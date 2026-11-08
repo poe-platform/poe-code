@@ -3044,7 +3044,7 @@ function magickCompositeMode(mode: string): { name: string; delegated: boolean; 
     let name = "";
     for (const character of mode.toLowerCase()) if (character !== "-" && character !== "_" && character.trim()) name += character;
     return { name, delegated: ["over", "srcover", "add"].includes(name),
-        preservesAlpha: ["intensity", "difference", "src", "source", "copy", "xor", "blend", "in", "srcin", "out", "srcout", "dstin", "destin", "dstout", "destout"].includes(name) };
+        preservesAlpha: ["lightenintensity", "darkenintensity", "intensity", "difference", "src", "source", "copy", "xor", "blend", "in", "srcin", "out", "srcout", "dstin", "destin", "dstout", "destout"].includes(name) };
 }
 
 function* compositeMaskPixelSteps(image: Pick<RgbaImage, "width" | "height">, mask: Pick<RgbaImage, "width" | "height" | "hasAlpha">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
@@ -3109,6 +3109,24 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 const distance = (saByte - daByte) ** 2
                     + ((sr - dr) ** 2 + (sg - dg) ** 2 + (sb - db) ** 2) * sa * da;
                 if (distance <= 2 * fuzz ** 2) out[dIdx + 3] = 0;
+                continue;
+            }
+            if (norm === "lightenintensity" || norm === "darkenintensity") {
+                const sourceIntensity = 0.212656 * sr + 0.715158 * sg + 0.072186 * sb;
+                const destinationIntensity = 0.212656 * dr + 0.715158 * dg + 0.072186 * db;
+                for (let c = 0; c < 3; c++) {
+                    if (norm === "lightenintensity") {
+                        out[dIdx + c] = sourceIntensity > destinationIntensity ? src.data[sIdx + c]! : dst.data[dIdx + c]!;
+                    } else {
+                        const source = src.data[sIdx + c]! * sa;
+                        const destination = dst.data[dIdx + c]! * da;
+                        // ImageMagick 7.1.2 Q16 uses quantum-scale intensities in this blend.
+                        out[dIdx + c] = clampByteVal(Math.min(source, destination)
+                            + source * (1 - destinationIntensity * 257) + destination * (1 - sourceIntensity * 257));
+                    }
+                }
+                // Native writes normalized alpha as a quantum value, which rounds to zero at 8 bits.
+                if (dst.hasAlpha) out[dIdx + 3] = 0;
                 continue;
             }
             if (norm === "intensity") {

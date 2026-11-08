@@ -1,3 +1,4 @@
+import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
 import { decimate } from "./decimate.js";
 import { exciteAudio } from "./audio-aexciter.js";
@@ -5249,6 +5250,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const filterTarget = equals < 0 ? trimmed : trimmed.slice(0, equals);
                       if (instance >= 0 && (equals < 0 || instance < equals)) {
                         trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
+                      }
+                      if (trimmed === "adeclick" || trimmed.startsWith("adeclick=")) {
+                        stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal);
+                        continue;
                       }
                       if (trimmed === "anull") continue;
                       if (trimmed.startsWith("asendcmd=")) {

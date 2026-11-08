@@ -77,20 +77,22 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     offset = start + size;
   }
   if (!format || !data) throw new Error("Missing CAF description or data");
-  if (framesPerPacket > 1) budget.checkSamples(Math.ceil(data.length / bytesPerPacket));
-  let doc = raw.find(plugin => plugin.id === format)!.parse(data, { ...options, budget, sampleRate, channels });
-  if (framesPerPacket > 1) {
-    const samples: MediaSample[] = [];
-    for (let start = 0, pts = 0; start < data.length; start += bytesPerPacket, pts += framesPerPacket) {
-      budget.checkCpu();
-      const packet = data.subarray(start, start + bytesPerPacket);
-      samples.push({
-        data: packet, size: packet.length, offset: data.byteOffset - bytes.byteOffset + start,
-        dts: pts, pts, cts: 0, duration: Math.floor(packet.length * framesPerPacket / bytesPerPacket),
-        isKeyframe: true, sampleDescriptionIndex: 1
-      });
-    }
-    doc = { ...doc, tracks: [{ ...doc.tracks[0]!, samples }] };
+  // CAF batches single-frame packets into at most 4096 bytes, aligned to
+  // complete frames; multi-frame packets retain their declared boundaries.
+  const packetBytes = framesPerPacket === 1
+    ? Math.max(1, Math.floor(4096 / bytesPerPacket)) * bytesPerPacket : bytesPerPacket;
+  budget.checkSamples(Math.ceil(data.length / packetBytes));
+  const doc = raw.find(plugin => plugin.id === format)!.parse(data, { ...options, budget, sampleRate, channels });
+  const samples: MediaSample[] = [];
+  for (let start = 0; start < data.length; start += packetBytes) {
+    budget.checkCpu();
+    const packet = data.subarray(start, start + packetBytes);
+    const pts = start * framesPerPacket / bytesPerPacket;
+    samples.push({
+      data: packet, size: packet.length, offset: data.byteOffset - bytes.byteOffset + start,
+      dts: pts, pts, cts: 0, duration: Math.floor(packet.length * framesPerPacket / bytesPerPacket),
+      isKeyframe: true, sampleDescriptionIndex: 1
+    });
   }
   // CAF estimates stream duration from bytes, while packet durations and
   // decoded audio count only complete sample frames.
@@ -99,7 +101,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   return { ...doc, duration, durationSeconds: duration / sampleRate,
     metadata: { ...doc.metadata, ...metadata }, containerFormat: "caf", byteLength: bytes.length,
     tracks: doc.tracks.map(track => ({ ...track, duration,
-      samples: track.samples.map(sample => ({ ...sample, offset: sample.data.byteOffset - bytes.byteOffset }))
+      samples
     })) };
 }
 

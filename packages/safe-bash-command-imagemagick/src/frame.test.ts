@@ -2,10 +2,43 @@ import { spawnSync } from "node:child_process";
 import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync, runMogrifyCli } from "./index.js";
+import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync, runMogrifyCli } from "./index.js";
 
 const nativeAvailable = spawnSync("magick", ["-version"]).status === 0;
+it("rejects malformed frame geometry through the public command without replacing the destination", async () => {
+    const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+    expect(runConvertCliSync(["-size", "10x8", "gradient:black-white", "input.png"], files).exitCode).toBe(0);
+    expect(runConvertCliSync(["-size", "1x1", "xc:#010101", "out.png"], files).exitCode).toBe(0);
+    for (const [path, bytes] of files) await filesystem.writeFile(`/${path}`, bytes);
+    const args = createCommandArguments(["input.png", "-mattecolor", "red", "-frame", "bogus", "out.png"]);
+    let stderr = "";
+    const context = {
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, signal: new AbortController().signal,
+        stdin: (async function* () {})(),
+        stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
+        registerCleanup() {}, fs: filesystem,
+    } as unknown as CommandContext;
+    expect((await createMagickCommand().execute(context)).exitCode).toBe(1);
+    expect(stderr).toContain("invalid argument for option '-frame'");
+    expect(await filesystem.readFile("/out.png")).toEqual(files.get("out.png"));
+});
+
 for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each(["bogus", "2xjunk", "", "+", "4x4oops", "2x2+2+1"])(`preserves the destination for invalid frame geometry %s, ${mode}`, async geometry => {
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        expect(runConvertCliSync(["-size", "10x8", "gradient:black-white", "input.png"], files).exitCode).toBe(0);
+        expect(runConvertCliSync(["-size", "1x1", "xc:#010101", "out.png"], files).exitCode).toBe(0);
+        const original = files.get("out.png")!.slice();
+        for (const [path, bytes] of files) await filesystem.writeFile(`/${path}`, bytes);
+        const args = ["input.png", "-mattecolor", "red", "-frame", geometry, "out.png"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(1);
+        if (geometry !== "2x2+2+1") expect(result.stderr).toContain("invalid argument for option '-frame'");
+        expect(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")).toEqual(original);
+    });
     it.each([
         { options: [], corner: [189, 189, 189, 255] },
         { options: ["-mattecolor", "blue"], corner: [0, 0, 255, 255] },
@@ -39,6 +72,11 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect(result.exitCode).not.toBe(0);
     });
     it.skipIf(!nativeAvailable).each([
+        ["-frame", "2x"],
+        ["-frame", "x2"],
+        ["-frame", "2x0"],
+        ["-frame", "0x2"],
+        ["-frame", "2"],
         ["-frame", "3x3+1+1"],
         ["-mattecolor", "#5588bb", "-frame", "7x5+2+3"],
         ["-frame", "4x6+0+2"],

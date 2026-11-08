@@ -7005,7 +7005,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-frame") {
-            const g = parseMagickGeometry(tokens[++i] ?? "4x4");
+            const raw = tokens[++i] ?? "";
+            validateMagickTransformGeometry(raw, t);
+            const g = parseMagickGeometry(raw);
             const fw = Math.max(0, Math.round(g.width ?? 4));
             const fh = Math.max(0, Math.round(g.height ?? fw));
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -8633,7 +8635,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredImage(canvas, backend.storage, { kind: "composite", layers: [{ input: new Uint8Array(), left: layout.left, top: layout.top, blend: "over" }] }, signal, { async readImage() { return overlay; } });
             });
         } else if (!operandsOnly && token === "-frame") {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "4x4"), left = Math.max(0, Math.round(geometry.width ?? 4)), top = Math.max(0, Math.round(geometry.height ?? left));
+            const raw = tokens[++i] ?? "";
+            validateMagickTransformGeometry(raw, token);
+            const geometry = parseMagickGeometry(raw), left = Math.max(0, Math.round(geometry.width ?? 4)), top = Math.max(0, Math.round(geometry.height ?? left));
             const { borderColor, matteColor } = state;
             steps.push(async (image, backend) => {
                 if (!image) return;

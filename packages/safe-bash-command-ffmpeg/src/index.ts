@@ -2920,22 +2920,23 @@ function outputChapters(
 }
 
 function mapGlobalMetadata(documents: readonly MediaDocument[], sources: readonly number[]): Mp4MetadataTags {
-  if (sources.length === 0) {
-    const metadata = documents[0]!.metadata;
-    if (!metadata.custom || !("creation_time" in metadata.custom)) return metadata;
-    const custom = { ...metadata.custom };
-    delete custom.creation_time;
-    return { ...metadata, custom };
-  }
   let metadata: Mp4MetadataTags = {};
-  for (const source of sources) {
+  for (const source of sources.length ? sources : [0]) {
     if (source >= documents.length) throw new Error(`Invalid metadata input index: ${source}`);
     if (source < 0) continue;
-    const tags = documents[source]!.metadata;
+    const document = documents[source]!;
+    const tags = document.metadata;
+    const custom = { ...tags.custom };
+    if (document.containerFormat === "mp4" || document.containerFormat === "mov") {
+      if (document.majorBrand !== undefined) custom.major_brand = document.majorBrand;
+      if (document.minorVersion !== undefined) custom.minor_version = String(document.minorVersion);
+      if (document.compatibleBrands?.length) custom.compatible_brands = document.compatibleBrands.join("");
+    }
+    if (sources.length === 0) delete custom.creation_time;
     metadata = {
       ...Object.fromEntries(Object.entries(tags).filter(([, value]) => value !== undefined)),
       ...metadata,
-      custom: { ...tags.custom, ...metadata.custom }
+      custom: { ...custom, ...metadata.custom }
     };
   }
   return metadata;

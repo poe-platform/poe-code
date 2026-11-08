@@ -3763,7 +3763,7 @@ export function evalSyncFfmpeg(
     let writePeak: "off" | "on" | "only" | undefined;
     let rf64: "always" | "auto" | "never" | undefined;
     let writeColr = false;
-    let faststart = true;
+    let faststart = false;
     let majorBrand: string | undefined;
     let movieTimescale: number | undefined;
     let videoTrackTimescale = 0;
@@ -3773,7 +3773,6 @@ export function evalSyncFfmpeg(
     let fragmentKeyframes = false;
     let fragmentEveryFrame = false;
     let fragmentDuration: number | undefined;
-    let fragmentIndex: number | undefined;
     let emptyMoov = false;
     let id3v2Version: 0 | 3 | 4 | undefined;
     let writeId3v1: boolean | undefined;
@@ -4093,12 +4092,6 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (value === undefined) throw new Error("-brand requires a value");
         majorBrand = value.length >= 4 ? value.slice(0, 4) : undefined;
-      } else if (arg === "-fragment_index") {
-        const value = args[++i];
-        fragmentIndex = value?.trim() ? Number(value) : NaN;
-        if (!Number.isInteger(fragmentIndex) || fragmentIndex < 1 || fragmentIndex > 2147483647) {
-          throw new Error("-fragment_index requires an integer from 1 to 2147483647");
-        }
       } else if (arg === "-frag_duration") {
         const value = args[++i];
         fragmentDuration = value?.trim() ? Number(value) : NaN;
@@ -4112,7 +4105,11 @@ export function evalSyncFfmpeg(
         if (flags.includes("skip_trailer")) skipTrailer = true;
         if (flags.includes("write_colr")) writeColr = true;
         if (flags.includes("default_base_moof")) defaultBaseMoof = true;
-        if (flags.includes("faststart")) faststart = true;
+        if (!flags.startsWith("+") && !flags.startsWith("-")) faststart = false;
+        for (const flag of flags.split("-").join("+-").split("+")) {
+          if (flag === "faststart") faststart = true;
+          if (flag === "-faststart") faststart = false;
+        }
         if (flags.includes("empty_moov")) emptyMoov = true;
         if (flags.includes("frag_every_frame")) fragmentEveryFrame = true;
         if (flags.includes("frag_keyframe")) fragmentKeyframes = true;
@@ -4346,7 +4343,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, writeColr, majorBrand, skipTrailer, defaultBaseMoof, fragmented, fragmentKeyframes, fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, writeColr, majorBrand, skipTrailer, defaultBaseMoof, fragmented, fragmentKeyframes, fragmentEveryFrame, fragmentDuration, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -4640,7 +4637,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
     let writePeak: "off" | "on" | "only" | undefined;
         let rf64: "always" | "auto" | "never" | undefined;
         let writeColr = false;
-        let faststart = true;
+        let faststart = false;
         let majorBrand: string | undefined;
         let movieTimescale: number | undefined;
         let videoTrackTimescale = 0;
@@ -4650,7 +4647,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let fragmentKeyframes = false;
         let fragmentEveryFrame = false;
         let fragmentDuration: number | undefined;
-        let fragmentIndex: number | undefined;
         let emptyMoov = false;
         let id3v2Version: 0 | 3 | 4 | undefined;
         let writeId3v1: boolean | undefined;
@@ -5410,13 +5406,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const value = args[++i];
             if (value === undefined) throw new Error("-brand requires a value");
             majorBrand = value.length >= 4 ? value.slice(0, 4) : undefined;
-          } else if (arg === "-fragment_index") {
-            const value = args[++i];
-            fragmentIndex = value?.trim() ? Number(value) : NaN;
-            if (!Number.isInteger(fragmentIndex) || fragmentIndex < 1 || fragmentIndex > 2147483647) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -fragment_index requires an integer from 1 to 2147483647\n"), context.signal);
-              return { exitCode: 1 };
-            }
           } else if (arg === "-frag_duration") {
             const value = args[++i];
             fragmentDuration = value?.trim() ? Number(value) : NaN;
@@ -5435,7 +5424,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (flags.includes("skip_trailer")) skipTrailer = true;
             if (flags.includes("write_colr")) writeColr = true;
             if (flags.includes("default_base_moof")) defaultBaseMoof = true;
-            if (flags.includes("faststart")) faststart = true;
+            if (!flags.startsWith("+") && !flags.startsWith("-")) faststart = false;
+            for (const flag of flags.split("-").join("+-").split("+")) {
+              if (flag === "faststart") faststart = true;
+              if (flag === "-faststart") faststart = false;
+            }
             if (flags.includes("empty_moov")) emptyMoov = true;
             if (flags.includes("frag_every_frame")) fragmentEveryFrame = true;
             if (flags.includes("frag_keyframe")) fragmentKeyframes = true;
@@ -8049,7 +8042,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 };
                 let segBytes = segPlugin.serialize(segmentDoc, {
                   fragmented: isFmp4,
-                  skipTrailer: true,
                   limits: options.limits,
                   budget
                 });
@@ -8364,7 +8356,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               fragmentKeyframes,
               fragmentEveryFrame,
               fragmentDuration,
-              fragmentIndex,
               emptyMoov,
               id3v2Version,
               writeId3v1,

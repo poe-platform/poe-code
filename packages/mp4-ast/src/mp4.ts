@@ -1381,7 +1381,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     const fragments: Uint8Array[] = [];
     const randomAccess = new Map<number, { time: number; offset: number; traf: number; sample: number }[]>();
     let moofOffset = ftypBox.byteLength + moovBox.byteLength + (options.emptyMoov === false ? initialSize + 8 : 0);
-    let sequence = options.fragmentIndex ?? 1;
+    let sequence = 1;
     for (const end of [...boundaries, Infinity]) {
       const fragmentTracks = materializedTracks.flatMap((mt, index) => {
         const start = positions[index]!;

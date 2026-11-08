@@ -1967,6 +1967,13 @@ async function applyVideoFilterChain(
         }
         return selected;
       });
+    } else if (name === "framestep") {
+      const step = Number(named.step ?? (argStr || "1"));
+      if (positional.length > 1 || Object.keys(named).some(key => key !== "step") ||
+          !Number.isInteger(step) || step < 1 || step > 2147483647) {
+        throw new Error("framestep: step must be an integer from 1 to 2147483647");
+      }
+      current = current.filter((_, index) => index % step === 0);
     } else if (name === "reverse") {
       // Reverse pictures while retaining the input's ordered timestamp slots.
       current = await mapWork([...current].reverse(), (f, index) => ({

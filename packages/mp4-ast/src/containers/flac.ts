@@ -24,8 +24,11 @@ function frameNumber(value: number): number[] {
   return [(0xff << (7 - tail.length)) & 255 | value, ...tail];
 }
 
-/** Encode lossless PCM with bounded fixed-predictor/Rice search and verbatim fallback. */
-export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number): Uint8Array[] {
+/** Encode lossless PCM with bounded fixed/LPC predictor and Rice search and verbatim fallback. */
+export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string): Uint8Array[] {
+  if (lpcType !== undefined && !["none", "fixed", "levinson", "cholesky"].includes(lpcType)) {
+    throw new Error("FLAC lpc_type must be none, fixed, levinson or cholesky");
+  }
   const level = compressionLevel === -1 ? 5 : compressionLevel;
   if (level !== undefined && (!Number.isInteger(level) || level < 0 || level > 12)) {
     throw new Error("FLAC compression_level must be between 0 and 12 (or -1 for default)");
@@ -103,15 +106,31 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
       }
       let bestOrder = -1, bestParameter = 0, bestSize = length * bits;
       let residuals: number[] = [];
+      let coefficient: number | undefined;
       // Increasing effort searches more fixed predictor orders. Never emit a
       // Rice subframe larger than verbatim, including for noisy 24-bit PCM.
-      if (level !== undefined) {
-        const maxOrder = Math.min(4, Math.floor((level + 2) / 3), length - 1);
+      if (level !== undefined || lpcType !== undefined) {
+        const lpc = lpcType === "levinson" || lpcType === "cholesky";
+        let fitted = 0;
+        if (lpc && length > 1) {
+          // First-order Levinson uses autocorrelation (Toeplitz normal equation);
+          // first-order Cholesky solves the covariance least-squares equation.
+          let energy = 0, correlation = 0;
+          for (let i = 1; i < length; i++) {
+            energy += samples[i - 1]! ** 2;
+            correlation += samples[i]! * samples[i - 1]!;
+          }
+          if (lpcType === "levinson") energy += samples[length - 1]! ** 2;
+          fitted = energy === 0 ? 0 : Math.max(-16384, Math.min(16383, Math.round(correlation / energy * 4096)));
+        }
+        const maxOrder = lpc ? Math.min(1, length - 1) : lpcType === "none" ? 0
+          : Math.min(4, Math.floor(((level ?? 5) + 2) / 3), length - 1);
         let differences: number[] = Array.from(samples);
-        for (let order = 0; order <= maxOrder; order++) {
+        for (let order = lpc ? maxOrder : 0; order <= maxOrder; order++) {
+          if (lpc && order === 1) differences = Array.from(samples.subarray(1), (value, i) => value - Math.floor(fitted * samples[i]! / 4096));
           const folded = differences.map(value => value < 0 ? -2 * value - 1 : 2 * value);
           for (let parameter = 0; parameter < 15; parameter++) {
-            let size = order * bits + 10;
+            let size = order * bits + 10 + (lpc && order === 1 ? 24 : 0);
             for (const value of folded) {
               size += Math.floor(value / 2 ** parameter) + 1 + parameter;
               if (size >= bestSize) break;
@@ -121,16 +140,22 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
               bestOrder = order;
               bestParameter = parameter;
               residuals = folded;
+              coefficient = lpc && order === 1 ? fitted : undefined;
             }
           }
           differences = differences.slice(1).map((value, i) => value - differences[i]!);
         }
       }
-      write(bestOrder < 0 ? 2 : (8 + bestOrder) << 1, 8);
+      write(bestOrder < 0 ? 2 : coefficient !== undefined ? 64 : (8 + bestOrder) << 1, 8);
       if (bestOrder < 0) {
         for (const sample of samples) write(sample, bits);
       } else {
         for (let i = 0; i < bestOrder; i++) write(samples[i]!, bits);
+        if (coefficient !== undefined) {
+          write(14, 4); // Signed 15-bit coefficient.
+          write(12, 5); // Q12 predictor shift.
+          write(coefficient, 15);
+        }
         write(0, 6); // Rice method 0, one residual partition.
         write(bestParameter, 4);
         for (const value of residuals) {

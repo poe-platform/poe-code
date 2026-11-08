@@ -669,6 +669,8 @@ export interface SerializeMediaOptions {
   readonly frameSize?: number | undefined;
   /** FLAC compression effort, 0–12; -1 selects the default. */
   readonly compressionLevel?: number | undefined;
+  /** FLAC predictor algorithm; LPC modes use a bounded first-order fit. */
+  readonly lpcType?: string | undefined;
   /** FLAC: include the stream marker and metadata blocks (default: true). */
   readonly writeHeader?: boolean | undefined;
   /** MP3: write Xing counts and gapless timing (default: true). */

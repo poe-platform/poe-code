@@ -1,3 +1,4 @@
+import { storedHistogram } from "./text-output.js";
 import { identifyStoredStatistics } from "./identify-statistics.js";
 import { identifyStoredHull } from "./identify-hull.js";
 import { identifyStoredMoments } from "./identify-moments.js";
@@ -16,6 +17,7 @@ export type IdentifyInspection = {
     readonly metadata: ImageMetadata;
     readonly size: number;
     readonly stats?: ImageStats;
+    readonly histogram?: string;
     readonly statistics?: string;
     readonly bytes?: Uint8Array;
     readonly formatted?: string;
@@ -69,6 +71,11 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                                 const image = verbose ? await decodeFileImage(checked, storage, fs, cwd, signal, options) : undefined;
                                 const statistics = image ? await identifyStoredStatistics(image, storage, statisticsPrecision ?? 6, signal) : undefined;
                                 const stats = image ? await computeStoredImageStats(image, storage, signal) : undefined;
+                                let histogram: string | undefined;
+                                if (image) {
+                                    histogram = "";
+                                    for await (const line of storedHistogram(image, storage, signal)) histogram += line;
+                                }
                                 const hull = image && hullPrecision !== undefined ? await identifyStoredHull(image, storage, hullPrecision, signal) : undefined;
                                 const moments = image && momentsPrecision !== undefined ? await identifyStoredMoments(image, storage, momentsPrecision, signal) : undefined;
                                 return { metadata, size: source.size, ...(statistics === undefined ? {} : { statistics }), ...(stats ? { stats } : {}), ...(moments === undefined ? {} : { moments }), ...(hull === undefined ? {} : { hull }) };

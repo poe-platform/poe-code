@@ -5450,6 +5450,8 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             }
             else if (verbose) {
                 const stats = inspected?.stats??(yield* computeImageStatsSteps(decodeImage(encoded!, inputOptions)));
+                const histogram = inspected?.histogram ?? (yield* formatHistogramOutputSteps(decodeImage(encoded!, inputOptions)));
+                const colors = histogram.trim() ? histogram.trimEnd().split("\n").length : 0;
                 outParts.push(`Image: ${inPath}\n` +
                     `  Format: ${meta.format.toUpperCase()}\n` +
                     `  Geometry: ${meta.width}x${meta.height}+0+0\n` +
@@ -5459,7 +5461,8 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     `  Channels: ${meta.channels}\n` +
                     `  Alpha: ${meta.hasAlpha ? "True" : "False"}\n` +
                     `  Filesize: ${size}B\n` +
-                    `  Entropy: ${stats.entropy.toFixed(4)}\n`);
+                    `  Entropy: ${stats.entropy.toFixed(4)}\n` +
+                    `  Colors: ${colors}\n  Histogram:\n${histogram}`);
                 if (inspected?.statistics !== undefined) outParts.push(inspected.statistics);
                 else {
                     const image = decodeImage(encoded!, inputOptions), steps = identifyStatisticsSteps(image, precision);

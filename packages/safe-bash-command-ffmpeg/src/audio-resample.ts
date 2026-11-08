@@ -2,9 +2,10 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 export async function resampleAudio(
-  channels: readonly (Float32Array | Float64Array)[], outputLength: number, rateRatio: number,
-  budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9, filterSize = 32, resampleCutoff = 0, phaseShift = 10, linearInterp = 1
+  channels: readonly (Float32Array | Float64Array)[], outputLength: number, inputRate: number, outputRate: number,
+  budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9, filterSize = 32, resampleCutoff = 0, phaseShift = 10, linearInterp = 1, exactRational = 1
 ): Promise<Float32Array[]> {
+  const rateRatio = inputRate / outputRate;
   const length = channels[0]?.length ?? 0;
   // Zero selects swresample’s default cutoff; scale support with the effective ratio.
   const cutoff = Math.min((resampleCutoff || 0.97) / rateRatio, 1);
@@ -22,14 +23,20 @@ export async function resampleAudio(
   const center = Math.floor((filterLength - 1) / 2);
   const period = Math.max(1, 2 * (length - 1));
   const sums = new Float64Array(channels.length);
-  const phaseCount = 2 ** phaseShift;
+  let phaseCount = 2 ** phaseShift;
+  if (exactRational) {
+    let divisor = inputRate;
+    let remainder = outputRate;
+    while (remainder) [divisor, remainder] = [remainder, divisor % remainder];
+    const exactPhases = outputRate / divisor;
+    if (exactPhases <= phaseCount) phaseCount = exactPhases;
+  }
   let work = 0;
   let normalization = 1;
   for (let i = 0; i < outputLength; i++) {
-    const position = i * rateRatio;
     let weightSum = 0;
     sums.fill(0);
-    const phasePosition = position * phaseCount;
+    const phasePosition = i * (inputRate * phaseCount) / outputRate;
     const fraction = linearInterp ? phasePosition - Math.floor(phasePosition) : 0;
     // Default linear interpolation blends adjacent polyphase filter responses.
     // Evaluate only those phases, without allocating a potentially huge bank.

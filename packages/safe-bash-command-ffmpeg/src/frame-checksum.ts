@@ -1,12 +1,40 @@
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
-import { encodeUtf8, type MediaDocument, type MediaAstPlugin, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { encodeUtf8, concatBytes, rgbaToYuv420p, type MediaTrack, type MediaVideoFrame, type MediaDocument, type MediaAstPlugin, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 export const crc32Table = Uint32Array.from({ length: 256 }, (_, value) => {
   for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
   return value >>> 0;
 });
+
+function videoTimeBase(track: MediaTrack): [number, number] {
+  const ticks = Math.max(1, Math.round((track.decodedVideoFrames?.[0]?.durationSeconds ??
+    (track.samples[0]?.duration ?? 1) / track.timescale) * track.timescale));
+  let a = ticks, b = track.timescale;
+  while (b) [a, b] = [b, a % b];
+  return [ticks / a, track.timescale / a];
+}
+
+function videoBytes(frame: MediaVideoFrame, format: string, budget: MediaBudgetTracker): Uint8Array {
+  const native = frame.native;
+  if (native && native.rgba === frame.data && native.width === frame.width && native.height === frame.height) {
+    return native.pixels;
+  }
+  if (format === "yuv420p") {
+    const { y, u, v } = rgbaToYuv420p(frame.data, frame.width, frame.height);
+    return concatBytes([y, u, v]);
+  }
+  const channels = ({ rgba: [0, 1, 2, 3], rgb24: [0, 1, 2], bgr24: [2, 1, 0],
+    bgra: [2, 1, 0, 3], gray: [0], gray8: [0], ya8: [0, 3] } as Record<string, number[]>)[format];
+  if (!channels) throw new Error(`Unsupported rawvideo pixel format '${format}'`);
+  const bytes = new Uint8Array(frame.width * frame.height * channels.length);
+  for (let i = 0; i < frame.width * frame.height; i++) {
+    if (i % 4096 === 0) budget.checkCpu();
+    for (const [j, channel] of channels.entries()) bytes[i * channels.length + j] = frame.data[i * 4 + channel]!;
+  }
+  return bytes;
+}
 
 export function serializeFrameChecksum(
   doc: MediaDocument,
@@ -15,15 +43,25 @@ export function serializeFrameChecksum(
   audioCodec: string | undefined,
   rawAudio: MediaAstPlugin | undefined,
   budget: MediaBudgetTracker,
-  formatVersion = 2
+  formatVersion = 2,
+  videoCodec?: string
 ): Uint8Array {
-  if (!rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
   const name = algorithm.toLowerCase();
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512 };
   if (format !== "framecrc" && name !== "crc32" && !Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
   const lines = format === "framecrc" ? [] : ["#format: frame checksums", `#version: ${formatVersion}`, `#hash: ${name.toUpperCase()}`];
   for (const [index, track] of doc.tracks.entries()) {
-    if (track.type !== "audio") throw new Error("Frame checksum output requires audio streams");
+    if (track.type === "video") {
+      if (videoCodec && videoCodec !== "rawvideo" && videoCodec !== "copy") throw new Error(`Unsupported frame checksum video codec '${videoCodec}'`);
+      const [num, den] = videoCodec === "copy" ? [1, track.timescale] : videoTimeBase(track);
+      const codec = track.codecDescriptions[0];
+      lines.push(`#tb ${index}: ${num}/${den}`, `#media_type ${index}: video`,
+        `#codec_id ${index}: ${videoCodec === "copy" ? codec?.codecName : "rawvideo"}`,
+        `#dimensions ${index}: ${track.width}x${track.height}`,
+        `#sar ${index}: ${codec?.sarWidth ?? 1}/${codec?.sarHeight ?? 1}`);
+      continue;
+    }
+    if (track.type !== "audio") throw new Error("Frame checksum output requires audio or video streams");
     const copy = audioCodec === "copy";
     const rate = copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
     const channels = track.decodedAudio?.channels ?? track.codecDescriptions[0]?.channels ?? 0;
@@ -46,18 +84,26 @@ export function serializeFrameChecksum(
   if (format !== "framecrc") lines.push("#stream#, dts,        pts, duration,     size, hash");
   const rows: { dts: number; rate: number; line: string }[] = [];
   for (const [index, track] of doc.tracks.entries()) {
-    const copy = audioCodec === "copy";
-    const rate = copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
-    const payload = rawAudio.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
+    const video = track.type === "video";
+    const copy = (video ? videoCodec : audioCodec) === "copy";
+    const [num, den] = video && !copy ? videoTimeBase(track) : [1, track.timescale];
+    const rate = video ? den / num : copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
+    if (!video && !rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
+    const payload = video ? new Uint8Array() : rawAudio!.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
     const frames = track.decodedAudio?.channelData[0]?.length ?? Math.round(track.duration * rate / track.timescale);
     const bytesPerFrame = frames ? payload.length / frames : 0;
     let offset = 0;
-    const packets = track.samples.length ? track.samples : payload.length ? [{ dts: 0, pts: 0, duration: track.duration, data: payload }] : [];
+    if (video && !copy && !track.decodedVideoFrames) throw new Error("Frame checksum output requires decoded video frames");
+    const packets = video && !copy ? track.decodedVideoFrames!.map(frame => ({
+      dts: frame.ptsSeconds * track.timescale, pts: frame.ptsSeconds * track.timescale,
+      duration: frame.durationSeconds * track.timescale, frame
+    })) : track.samples.length ? track.samples : payload.length ? [{ dts: 0, pts: 0, duration: track.duration, data: payload }] : [];
     for (const packet of packets) {
       budget.checkCpu();
       const duration = Math.round(packet.duration * rate / track.timescale);
-      const size = copy ? packet.data.length : Math.min(payload.length - offset, Math.round(duration * bytesPerFrame));
-      const bytes = payload.subarray(offset, offset + size);
+      const bytes = "frame" in packet ? videoBytes(packet.frame, track.codecDescriptions[0]?.pixFmt ?? "rgba", budget)
+        : video ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(duration * bytesPerFrame))));
+      const size = bytes.length;
       offset += size;
       let digest: string;
       if (format === "framecrc") {

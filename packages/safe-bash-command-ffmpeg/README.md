@@ -78,8 +78,10 @@ Explicit `-f` raw audio output writes headerless `s8`, `u8`, `u16le/be`, `u24le/
 `s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, and `alaw` samples, for example
 `ffmpeg -i input.wav -f s16le output.pcm`. Explicit encoders and copied audio must match
 the output format’s PCM codec; mismatches fail before writing sample data.
-Use `-f framehash -format_version 1 -` for version 1 per-packet audio hashes;
+Use `-f framehash -format_version 1 -` for version 1 per-packet audio or video hashes;
 `framehash` and `framemd5` default to version 2 and accept `-format_version 1` or `2`.
+`framemd5`, `framehash`, and `framecrc` write one row per video frame, with timestamps,
+duration, raw pixel byte count, and a digest (MD5, SHA256, or Adler-32 respectively).
 
 Verify audio streams with `-f hash -` (SHA256), `-f md5 -`, or
 `-f crc -` (Adler-32). These hash decoded PCM16 samples, without container

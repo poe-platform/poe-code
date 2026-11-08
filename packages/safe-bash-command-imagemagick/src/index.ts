@@ -5506,6 +5506,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = image => applyMagickFunctionSteps(image, operation, value, channels, signal);
     } else if (token === "-solarize") {
         const value = tokens[++i] ?? "50%";
+        const threshold = value.endsWith("%") ? value.slice(0, -1) : value;
+        if (!Number.isFinite(Number(threshold)) || Number.parseFloat(threshold) !== Number(threshold)) {
+            throw new Error(`invalid argument '-solarize' '${value}'`);
+        }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickSolarizeSteps(image, value, channels, signal);
     } else if (token === "-ordered-dither") {

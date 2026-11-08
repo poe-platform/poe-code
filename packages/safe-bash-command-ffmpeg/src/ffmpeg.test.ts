@@ -85,6 +85,9 @@ describe("negate timeline", () => {
   for (const [filter, enabled] of [
     ["negate", [true, true, true]],
     ["negate=enable=0", [false, false, false]],
+    ["negate=enable=0.25", [false, false, false]],
+    ["negate=enable=-1", [true, true, true]],
+    ["negate=components=r+g+b:negate_alpha=0:enable=gte(n\\,1)", [false, true, true]],
     ["negate=enable=gte(n\\,1)", [false, true, true]],
     ["negate=enable=between(t\\,1\\,1)", [false, true, false]]
   ] as const) {

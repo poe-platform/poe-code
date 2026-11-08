@@ -7012,8 +7012,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const g = parseMagickGeometry(raw.replace(":", "x"));
             const hasAxes = raw.toLowerCase().includes("x");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const fw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? (hasAxes ? 0 : 4)));
-                const fh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? (hasAxes ? 0 : fw)));
+                const fw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? (hasAxes ? 0 : im.width)));
+                const fh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? (hasAxes ? 0 : g.width ?? im.height)));
                 const width = im.width + 2 * fw, height = im.height + 2 * fh;
                 return yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, state.matteColor, fw, fh, g.x, g.y), signal,
                     { width, height, hasAlpha: im.hasAlpha || state.matteColor.a < 255 });
@@ -8645,8 +8645,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const { borderColor, matteColor } = state;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const left = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? (hasAxes ? 0 : 4)));
-                const top = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? (hasAxes ? 0 : left)));
+                const left = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? (hasAxes ? 0 : image.width)));
+                const top = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? (hasAxes ? 0 : geometry.width ?? image.height)));
                 const width = image.width + 2 * left, height = image.height + 2 * top;
                 return transformStoredMagickRaster(image, backend, magickFramePixels(image, width, height, borderColor, matteColor, left, top, geometry.x, geometry.y), signal,
                     { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 });

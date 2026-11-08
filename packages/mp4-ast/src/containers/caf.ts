@@ -1,4 +1,4 @@
-import { MediaBudgetTracker, type MediaAstPlugin, type ParseMediaOptions } from "../types.js";
+import { MediaBudgetTracker, type MediaSample, type MediaAstPlugin, type ParseMediaOptions } from "../types.js";
 import { buildProbeResultFromDoc, concatMp4, sliceMp4 } from "../mp4.js";
 import { rawAudioAsts } from "./raw-audio.js";
 
@@ -14,6 +14,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     throw new Error("Invalid CAF header");
   }
   let sampleRate = 0, channels = 0;
+  let framesPerPacket = 0, bytesPerPacket = 0;
   let format: string | undefined;
   let data: Uint8Array | undefined;
   const metadata: { title?: string; artist?: string } = {};
@@ -41,8 +42,10 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
           throw new Error("Unsupported CAF audio encoding");
         }
       }
-      if (view.getUint32(start + 20) !== 1 ||
-          view.getUint32(start + 16) !== channels * bits / 8) {
+      framesPerPacket = view.getUint32(start + 20);
+      bytesPerPacket = view.getUint32(start + 16);
+      if (framesPerPacket === 0 || bytesPerPacket === 0 ||
+          bytesPerPacket !== framesPerPacket * channels * bits / 8) {
         throw new Error("Unsupported CAF audio encoding");
       }
     } else if (id === 0x696e666f) {
@@ -69,7 +72,21 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     offset = start + size;
   }
   if (!format || !data) throw new Error("Missing CAF description or data");
-  const doc = raw.find(plugin => plugin.id === format)!.parse(data, { ...options, budget, sampleRate, channels });
+  if (framesPerPacket > 1) budget.checkSamples(Math.ceil(data.length / bytesPerPacket));
+  let doc = raw.find(plugin => plugin.id === format)!.parse(data, { ...options, budget, sampleRate, channels });
+  if (framesPerPacket > 1) {
+    const samples: MediaSample[] = [];
+    for (let start = 0, pts = 0; start < data.length; start += bytesPerPacket, pts += framesPerPacket) {
+      budget.checkCpu();
+      const packet = data.subarray(start, start + bytesPerPacket);
+      samples.push({
+        data: packet, size: packet.length, offset: data.byteOffset - bytes.byteOffset + start,
+        dts: pts, pts, cts: 0, duration: Math.floor(packet.length * framesPerPacket / bytesPerPacket),
+        isKeyframe: true, sampleDescriptionIndex: 1
+      });
+    }
+    doc = { ...doc, tracks: [{ ...doc.tracks[0]!, samples }] };
+  }
   return { ...doc, metadata: { ...doc.metadata, ...metadata }, containerFormat: "caf", byteLength: bytes.length,
     tracks: doc.tracks.map(track => ({ ...track,
       samples: track.samples.map(sample => ({ ...sample, offset: sample.data.byteOffset - bytes.byteOffset }))

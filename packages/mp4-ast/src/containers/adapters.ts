@@ -656,9 +656,9 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
   const { formatTag, channels, sampleRate, bitsPerSample, byteLength } = header;
   // ffprobe estimates block ADPCM stream duration from coded bits, including block headers.
   // Decoded audio and individual packet durations still use the actual block sample counts.
-  const frames = decodedAudio?.channelData[0]?.length ?? wavFrames(header);
   const totalPcmSamples = !decodedAudio && (formatTag === 2 || formatTag === 17)
-    ? Math.floor(header.dataSize * 8 / (bitsPerSample * channels)) : frames;
+    ? Math.floor(header.dataSize * 8 / (bitsPerSample * channels))
+    : decodedAudio?.channelData[0]?.length ?? wavFrames(header);
   const durationSeconds = totalPcmSamples / Math.max(1, sampleRate);
   return {
     containerFormat: header.containerFormat,
@@ -1036,7 +1036,7 @@ function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResul
 function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaProbeRecords {
   const metadata = wavMetadata(header, options.filename), stream = metadata.streams[0]!;
   const bytesPerFrame = header.formatTag === 0x45 ? header.bitsPerSample / 8 : header.formatTag === 32 ? header.channels / 2 : Math.max(1, header.bitsPerSample ? header.channels * (header.bitsPerSample >>> 3) : header.blockAlign);
-  const samples = wavFrames(header), rate = Math.max(1, header.sampleRate);
+  const samples = header.formatTag === 17 && !options.showFrames ? 0 : wavFrames(header), rate = Math.max(1, header.sampleRate);
   const chunkFrames = header.formatTag === 0x45 ? Math.max(8, Math.floor(wavPacketFrames(header.sampleRate, bytesPerFrame, options.maxSize) / 8) * 8) : header.formatTag === 2 ? msBlockFrames(header.blockAlign, header.channels) : header.formatTag === 17 ? imaBlockFrames(header.blockAlign, header.channels) : wavPacketFrames(header.sampleRate, bytesPerFrame, options.maxSize);
   function* spans() {
     for (let pts = 0; (header.formatTag === 2 || header.formatTag === 17 ? pts < samples : pts * bytesPerFrame < header.dataSize); pts += chunkFrames) {
@@ -1050,6 +1050,23 @@ function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaP
   }
   return { ...metadata,
     packets: options.showPackets ? { *[Symbol.iterator]() {
+      if (header.formatTag === 17) {
+        // Demux packets retain incomplete blocks; only complete blocks contribute duration.
+        const packetSize = Math.max(1, Math.floor((options.maxSize ?? 4096) / header.blockAlign)) * header.blockAlign;
+        let pts = 0;
+        for (let offset = 0; offset < header.dataSize; offset += packetSize) {
+          options.signal?.throwIfAborted();
+          const size = Math.min(packetSize, header.dataSize - offset);
+          const duration = Math.floor(size / header.blockAlign) * chunkFrames;
+          const time = (pts / rate).toFixed(6);
+          yield { codec_type: "audio" as const, stream_index: 0, pts, pts_time: time,
+            dts: pts, dts_time: time, duration: duration || undefined,
+            duration_time: duration ? (duration / rate).toFixed(6) : undefined,
+            size: String(size), pos: String(header.dataOffset + offset), flags: "K__" };
+          pts += duration;
+        }
+        return;
+      }
       for (const s of spans()) yield { codec_type: "audio" as const, stream_index: 0, pts: s.pts, pts_time: s.time,
         dts: s.pts, dts_time: s.time, duration: header.bitsPerSample ? s.count : undefined, duration_time: header.bitsPerSample ? s.duration : undefined, size: s.size,
         pos: String(s.pos), flags: "K__" };
@@ -1109,7 +1126,13 @@ export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
       return serializeWav(doc, options, format);
     },
     probe(bytes, options) {
-      const metadata = wavMetadata(readWavHeader(bytes, options?.ignoreLength), options?.filename);
+      const header = readWavHeader(bytes, options?.ignoreLength);
+      if (header.formatTag === 17) {
+        const records = wavRecords(header, options ?? {});
+        return { ...records, packets: records.packets ? Array.from(records.packets) : undefined,
+          frames: records.frames ? Array.from(records.frames) : undefined };
+      }
+      const metadata = wavMetadata(header, options?.filename);
       if (!options?.showPackets && !options?.showFrames) return metadata;
       const doc = parseWav(bytes, { ...options, decodeAudio: false });
       return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.wav", {

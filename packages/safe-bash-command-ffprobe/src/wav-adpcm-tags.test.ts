@@ -41,3 +41,32 @@ for (const [encoding, header, size] of fixtures) {
     });
   }
 }
+
+for (const size of [1, 1025]) {
+  it(`reports all ${size} IMA WAV payload bytes without decoding a truncated block`, async () => {
+    const bytes = Buffer.concat([Buffer.from(fixtures[3][1], "hex"), Buffer.alloc(size)]);
+    bytes.writeUInt32LE(bytes.length - 8, 4);
+    bytes.writeUInt32LE(size, 90);
+    const expected = [{ pos: "94", size: String(size), ...(size === 1025 ? { duration: 2041 } : {}) }];
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/in.wav", bytes);
+    for (const target of ["/in.wav", "pipe:0"]) {
+      const args = ["-v", "error", "-show_packets", "-show_entries",
+        "stream=codec_name,codec_tag_string,channels,sample_rate,duration_ts:packet=pos,size,duration", "-of", "json", target];
+      let output = "", diagnostic = "";
+      const result = await createFfprobeCommand().execute({
+        command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs,
+        signal: new AbortController().signal,
+        stdin: (async function* () { yield bytes; })(),
+        stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
+        stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
+      });
+      expect(result.exitCode, diagnostic).toBe(0);
+      for (const probe of [JSON.parse(output), JSON.parse(evalSyncFfprobe(target === "pipe:0" ? bytes : undefined, args, () => bytes)!)]) {
+        expect(probe.packets).toEqual(expected);
+        expect(probe.streams).toEqual([{ codec_name: "adpcm_ima_wav", codec_tag_string: "[17][0][0][0]",
+          channels: 1, sample_rate: "8000", ...(target === "/in.wav" ? { duration_ts: size * 2 } : {}) }]);
+      }
+    }
+  });
+}

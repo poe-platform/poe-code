@@ -10,6 +10,18 @@ export function pixelEnumerationLine(x: number, y: number, r: number, g: number,
     const samples = colorspace.startsWith("gray") ? String(r) : `${r},${g},${b}`;
     return `${x},${y}: (${samples}${alpha ? `,${a}` : ""})  #${hex(r)}${hex(g)}${hex(b)}${alpha && (a < 255 || colorspace === "rgba" || colorspace === "graya") ? hex(a) : ""}  ${colorspace}(${samples}${alpha ? `,${Number((a / 255).toPrecision(6))}` : ""})`;
 }
+export function srgbDepthEnumerationLine(x: number, y: number, samples: Uint8Array | Uint16Array, hasAlpha: boolean, depth: number): string {
+    const levels = 2 ** Math.min(depth, 16) - 1, maximum = depth <= 8 ? 255 : 65535;
+    const sourceMaximum = samples instanceof Uint16Array ? 65535 : 255;
+    const channels = Array.from(samples.subarray(0, hasAlpha ? 4 : 3), value => Math.round(Math.round(value * levels / sourceMaximum) * maximum / levels));
+    const color = channels.map(value => hex(value).padStart(maximum === 255 ? 2 : 4, "0")).join("");
+    const rgb = channels.slice(0, 3);
+    const percent = maximum === 65535 && rgb.some(value => value % 257 !== 0);
+    const values = rgb.map(value => percent ? `${Number((value * 100 / maximum).toPrecision(6))}%` : String(value / (maximum === 65535 ? 257 : 1)));
+    if (hasAlpha) values.push(String(Number((channels[3]! / maximum).toPrecision(6))));
+    const name = !hasAlpha ? histogramColorNames[(Math.round(rgb[0]! * 255 / maximum) << 16) | (Math.round(rgb[1]! * 255 / maximum) << 8) | Math.round(rgb[2]! * 255 / maximum)] : undefined;
+    return `${x},${y}: (${channels.join(",")})  #${color}  ${name && !percent ? name : `srgb${hasAlpha ? "a" : ""}(${values.join(",")})`}`;
+}
 export function gray16EnumerationLine(x: number, y: number, gray: number, alpha: number | undefined): string {
     const value = gray % 257 === 0 ? String(gray / 257) : `${Number((gray * 100 / 65535).toPrecision(6))}%`;
     const color = hex(gray).padStart(4, "0").repeat(3);
@@ -49,20 +61,25 @@ export async function* storedSparseColor(image: StoredRgbaImage, storage: PagedS
         yield* sparseColorPoints(image, data, start / 4);
     }
 }
-export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
+export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, depth?: number): AsyncGenerator<string> {
+    const srgbDepth = depth !== undefined && image.space === "srgb" && !image.magickColorspace;
     const colorspace = `${image.space === "b-w" || image.space === "grey16" ? "gray" : image.magickColorspace === "RGB" ? "rgb" : "srgb"}${image.hasAlpha ? "a" : ""}`;
     const gray16 = (image.space === "b-w" || image.space === "grey16") && image.storedData16 !== undefined;
-    yield gray16 ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,gray${image.hasAlpha ? "a" : ""}\n` : (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},0,255,${colorspace}\n`;
+    yield srgbDepth ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,${depth > 8 ? 65535 : 255},srgb${image.hasAlpha ? "a" : ""}\n` : gray16 ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,gray${image.hasAlpha ? "a" : ""}\n` : (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},0,255,${colorspace}\n`;
     const size = image.width * image.height * 4;
     for (let start = 0; start < size; start += 16384) {
         await yieldTurn(signal);
         const bytes = await storage.read(image.position + start, Math.min(16384, size - start));
-        const original = (gray16 || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") && image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
+        const original = (srgbDepth || gray16 || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") && image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
         const data16 = original ? new Uint16Array(original.buffer.slice(original.byteOffset, original.byteOffset + original.byteLength)) : undefined;
         const samples = (image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") && image.storedHueSamples !== undefined ? await storage.read(image.storedHueSamples + start * 8, bytes.length * 8) : undefined;
         const hueSamples = samples ? new Float64Array(samples.buffer.slice(samples.byteOffset, samples.byteOffset + samples.byteLength)) : undefined;
         for (let offset = 0; offset < bytes.length; offset += 4) {
             const pixel = (start + offset) / 4;
+            if (srgbDepth) {
+                yield srgbDepthEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), (data16 ?? bytes).subarray(offset, offset + 4), image.hasAlpha, depth) + "\n";
+                continue;
+            }
             if ((image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab")) {
                 yield `${pixel % image.width},${Math.floor(pixel / image.width)}: ${hueTextPixel(Array.from(data16?.subarray(offset, offset + 4) ?? bytes.subarray(offset, offset + 4), value => data16 ? value : value * 257), image.hasAlpha, image.magickColorspace, hueSamples ? Array.from(hueSamples.subarray(offset, offset + 4)) : undefined)}\n`;
                 continue;

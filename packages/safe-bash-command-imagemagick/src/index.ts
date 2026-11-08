@@ -37,7 +37,7 @@ import { connectedComponentsSteps, connectedComponentsStored } from "./connected
 import { type LookupInterpolation, clutPixelSteps, haldClutPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
-import { gray16EnumerationLine, pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, sparseColorPoints, storedSparseColor, encodeText } from "./text-output.js";
+import { srgbDepthEnumerationLine, gray16EnumerationLine, pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, sparseColorPoints, storedSparseColor, encodeText } from "./text-output.js";
 import { StoredImageStack, magickInput, type MagickFormatContext, type StoredMagickImage } from "./stored-stack.js";
 import { remapColorOrder, remapStoredImage } from "./remap.js";
 import { floodfillStoredImage, matchesAlphaFloodfill } from "./floodfill.js";
@@ -1497,12 +1497,13 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
  return drainIdentifySteps(formatMagickPropertyStringSteps(format,metadata,()=>{throw new UnsupportedStoredResource("Pixel formatting requires decoded input");},context,resolve),signal);
 }
 
-function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, void> {
+function* formatTxtEnumerationSteps(img: RgbaImage, depth?: number): Generator<void, string, void> {
     const colorspace = `${img.space === "b-w" || img.space === "grey16" ? "gray" : img.magickColorspace === "RGB" ? "rgb" : "srgb"}${img.hasAlpha ? "a" : ""}`;
+    const srgbDepth = depth !== undefined && img.space === "srgb" && !img.magickColorspace;
     const gray16 = (img.space === "b-w" || img.space === "grey16") && img.data16 !== undefined;
     let work = 0;
     const lines: string[] = [
-        gray16 ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,gray${img.hasAlpha ? "a" : ""}` : (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},0,255,${colorspace}`
+        srgbDepth ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,${depth > 8 ? 65535 : 255},srgb${img.hasAlpha ? "a" : ""}` : gray16 ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,gray${img.hasAlpha ? "a" : ""}` : (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},0,255,${colorspace}`
     ];
     for (let y = 0; y < img.height; y++) {
         if (++work % 16384 === 0)
@@ -1511,6 +1512,10 @@ function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, voi
             if (++work % 16384 === 0)
                 yield;
             const idx = (y * img.width + x) * 4;
+            if (srgbDepth) {
+                lines.push(srgbDepthEnumerationLine(x, y, (img.data16 ?? img.data).subarray(idx, idx + 4), img.hasAlpha, depth));
+                continue;
+            }
             if (gray16) {
                 lines.push(gray16EnumerationLine(x, y, img.data16![idx]!, img.hasAlpha ? img.data16![idx + 3]! : undefined));
                 continue;
@@ -8105,7 +8110,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                         yield;
                         for (const point of sparseColorPoints(frame, data.subarray(start, start + 16384), start / 4)) txt += point;
                     }
-                } else txt += yield* formatTxtEnumerationSteps(frame);
+                } else txt += yield* formatTxtEnumerationSteps(frame, state.inputDepth);
             }
             const target = outLower.startsWith("sparse-color:") ? outSpec.slice(13) : outLower.startsWith("txt:") ? outSpec.slice(4) : outSpec;
             if (!target || target === "-") {
@@ -9526,7 +9531,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const frame = (await stack.get(index))!;
                     if (sparse) { yield* storedSparseColor(frame, backend.storage, signal); continue; }
                     if (ftxt) { yield* storedFtxt(frame, backend.storage, signal, state.ftxtFormat); continue; }
-                    if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal); continue; }
+                    if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
                     const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], sceneIdx: index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined }, async () => ({ image: frame, storage: backend.storage }), signal) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;

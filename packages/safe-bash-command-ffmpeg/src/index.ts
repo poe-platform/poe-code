@@ -694,7 +694,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
           offset++;
           args.push(parse(0, depth + 1));
         }
-        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !((filter === "volume" || filter === "select" || filter === "crop") && Number.isNaN(arg)))) {
+        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !((filter === "volume" || filter === "select" || filter === "crop" || filter === "pad") && Number.isNaN(arg)))) {
           throw new Error(`${filter}: invalid expression`);
         }
         if (name === "val" && args.length === 1 && sampleValue) value = sampleValue(args[0]!);
@@ -745,7 +745,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
     return value;
   }
   const angle = parse();
-  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "volume" || filter === "select" || filter === "crop") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
+  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "volume" || filter === "select" || filter === "crop" || filter === "pad") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
   return angle;
 }
 
@@ -1695,14 +1695,28 @@ async function applyVideoFilterChain(
       const width = named.w ?? named.width ?? positional[0] ?? String(iw);
       const height = named.h ?? named.height ?? positional[1] ?? String(ih);
       const inputDimensions = { iw, ih, in_w: iw, in_h: ih };
-      const pw = Math.trunc(parseFilterExpression(width, "pad", inputDimensions)) || iw;
-      const ph = Math.trunc(parseFilterExpression(height, "pad", inputDimensions)) || ih;
+      let pw = Math.trunc(parseFilterExpression(width, "pad", inputDimensions));
+      let ph = Math.trunc(parseFilterExpression(height, "pad", inputDimensions));
+      if (!Number.isFinite(pw) || !Number.isFinite(ph)) {
+        throw new Error("pad: invalid or unsupported expression");
+      }
+      pw ||= iw;
+      ph ||= ih;
       if (pw < iw || ph < ih) {
         throw new Error("Padded dimensions cannot be smaller than input dimensions");
       }
-      const variables = { iw, ih, ow: pw, oh: ph, in_w: iw, in_h: ih, out_w: pw, out_h: ph };
-      const x = Math.trunc(parseFilterExpression(named.x ?? positional[2] ?? "0", "pad", variables));
-      const y = Math.trunc(parseFilterExpression(named.y ?? positional[3] ?? "0", "pad", variables));
+      const variables = { iw, ih, ow: pw, oh: ph, in_w: iw, in_h: ih, out_w: pw, out_h: ph, x: NaN, y: NaN };
+      const xExpression = named.x ?? positional[2] ?? "0";
+      const yExpression = named.y ?? positional[3] ?? "0";
+      // FFmpeg evaluates x again after y so either coordinate can depend on the other.
+      variables.x = parseFilterExpression(xExpression, "pad", variables);
+      variables.y = parseFilterExpression(yExpression, "pad", variables);
+      variables.x = parseFilterExpression(xExpression, "pad", variables);
+      if (!Number.isFinite(variables.x) || !Number.isFinite(variables.y)) {
+        throw new Error("pad: invalid or unsupported expression");
+      }
+      const x = Math.trunc(variables.x);
+      const y = Math.trunc(variables.y);
       // Align placement to the source chroma grid, as with crop.
       const format = current[0]!.native?.format;
       const hsub = format === 0 || format === 12 || format === 4 || format === 13 ? 2 : 1;

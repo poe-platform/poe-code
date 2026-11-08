@@ -17,6 +17,27 @@ import {
 } from "./index.js";
 
 describe("xfade duration", () => {
+  for (const options of ["duration=0:offset=1", "fade:0:1", "transition=wipeleft:duration=0:offset=1"]) {
+    it(`cuts immediately with ${options}`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-v", "error",
+        "-f", "lavfi", "-i", "color=c=red:s=8x8:r=4:d=2",
+        "-f", "lavfi", "-i", "color=c=blue:s=8x8:r=4:d=2",
+        "-filter_complex", `[0:v][1:v]xfade=${options}`, "/%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(vfs.store.size, 12);
+      // Native FFmpeg emits four red frames followed by eight blue frames.
+      for (let index = 0; index < 12; index++) {
+        const frame = decodeImage(vfs.store.get(`/${index + 1}.png`)!);
+        const red = index < 4 ? 254 : 0;
+        assert.ok(Math.abs(frame.data[0]! - red) <= 1,
+          `frame ${index + 1}: expected red ${red}, got ${frame.data[0]}`);
+      }
+    });
+  }
   for (const [duration, offset] of [[1, 0], [0.5, 0], [0.5, 0.5]] as const) {
     it(`matches named options for positional fade:${duration}:${offset}`, async () => {
       const { decodeImage } = await import("@poe-code/image-ast/portable");

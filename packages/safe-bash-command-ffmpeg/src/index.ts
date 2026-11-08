@@ -2986,9 +2986,10 @@ function applyStreamLanguages(tracks: readonly MediaTrack[], languages: readonly
 
 function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: readonly [string, string][]): readonly MediaTrack[] {
   for (const [specifier, value] of dispositions) {
-    const [selector, ordinal] = specifier.split(":");
+    const parts = specifier.split(":");
+    const selector = parts[0];
     const type = selector === "a" ? "audio" : selector === "v" ? "video" : selector === "s" ? "subtitle" : undefined;
-    const index = type ? ordinal : selector;
+    const [index, key, language] = type ? parts.slice(1) : parts;
     let enabled: boolean;
     if (value === "0" || value === "-default" || value === "attached_pic") enabled = false;
     else if (value === "1" || value === "default" || value === "+default") enabled = true;
@@ -2997,7 +2998,9 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
     tracks = tracks.map(track => {
       if (type && track.type !== type) return track;
       const current = matched++;
-      if (index && current !== Number(index)) return track;
+      if (index === "m") {
+        if (key !== "language" || (language !== undefined && track.language !== language)) return track;
+      } else if (index && current !== Number(index)) return track;
       return { ...track, enabled,
         ...(value === "attached_pic" ? { disposition: { attached_pic: 1 } }
           : value === "0" ? { disposition: {} } : {}) };

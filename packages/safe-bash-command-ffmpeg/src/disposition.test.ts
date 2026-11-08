@@ -13,11 +13,13 @@ it("changes the default between distinguishable AAC tracks, verified by native f
   assert.equal(generated.status, 0, generated.stderr.toString());
   const input = parseMp4(generated.stdout);
   assert.notDeepEqual(input.tracks[0]!.samples[0]!.data, input.tracks[1]!.samples[0]!.data);
-  const bytes = serializeMp4({ ...input, tracks: input.tracks.map((track, index) => ({ ...track, enabled: index === 0 })) });
+  const bytes = serializeMp4({ ...input, tracks: input.tracks.map((track, index) => ({ ...track, enabled: index === 0, language: index === 0 ? "eng" : "fra" })) });
   for (const options of [
     ["-disposition:a:0", "0", "-disposition:a:1", "default"],
     ["-disposition:a:0", "-default", "-disposition:a:1", "+default"],
-    ["-disposition", "0", "-disposition:1", "1"]
+    ["-disposition", "0", "-disposition:1", "1"],
+    ["-disposition:a:0", "0", "-disposition:m:language:fra", "default"],
+    ["-disposition:a:0", "0", "-disposition:a:m:language:fra", "default"]
   ]) {
     const volume = Volume.fromJSON({});
     volume.writeFileSync("/in.mp4", bytes);
@@ -44,6 +46,7 @@ it("changes the default between distinguishable AAC tracks, verified by native f
     const streams = JSON.parse(probe.stdout.toString()).streams as { disposition: { default: number } }[];
     assert.deepEqual(streams.map(stream => stream.disposition.default), [0, 1]);
     const actual = parseMp4(output);
+    assert.deepEqual(actual.tracks.map(track => track.language), ["eng", "fra"]);
     assert.deepEqual(actual.tracks.map(track => track.samples.map(sample => sample.data)), input.tracks.map(track => track.samples.map(sample => sample.data)));
   }
 });

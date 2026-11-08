@@ -1711,6 +1711,8 @@ async function applyVideoFilterChain(
         throw new Error("pad: invalid or unsupported expression");
       }
       pw ||= iw;
+      pw = Math.floor(pw / hsub) * hsub;
+      ph = Math.floor(ph / vsub) * vsub;
       if (pw < iw || ph < ih) {
         throw new Error("Padded dimensions cannot be smaller than input dimensions");
       }

@@ -2707,6 +2707,50 @@ describe("pad position expressions", () => {
   }
 });
 
+describe("pad chroma dimensions", () => {
+  for (const source of ["yuv420p", "rgba"]) {
+    for (const [size, width, height, position] of [
+      ["65:49:0:0", 65, 49, 0],
+      ["68:52:1:1", 68, 52, 1],
+      ["69:53:(ow-iw)/2:(oh-ih)/2", 69, 53, 2]
+    ] as const) {
+      it(`aligns pad=${size} dimensions and placement for ${source}`, async () => {
+        const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+        const input = source === "yuv420p"
+          ? readFileSync(new URL("../../mp4-ast/src/fixtures/h264-b-frames.mp4", import.meta.url))
+          : encodeImage({ width: 64, height: 48, channels: 4,
+            data: new Uint8Array(64 * 48 * 4).fill(255), format: "png", space: "srgb",
+            depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
+        const path = source === "yuv420p" ? "/in.mp4" : "/in.png";
+        const vfs = createTestVfs({ [path]: input });
+        const original = await runCmd(createFfmpegCommand(), [
+          "-i", path, "-frames:v", "1", "/original.png"
+        ], vfs);
+        assert.equal(original.exitCode, 0, original.stderr);
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", path, "-vf", `pad=${size}:color=red`, "-frames:v", "1", "/pad.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const output = decodeImage(vfs.store.get("/pad.png")!);
+        const grid = source === "yuv420p" ? 2 : 1;
+        assert.equal(output.width, Math.floor(width / grid) * grid);
+        assert.equal(output.height, Math.floor(height / grid) * grid);
+        const offset = Math.floor(position / grid) * grid;
+        const decoded = decodeImage(vfs.store.get("/original.png")!);
+        for (let y = 0; y < output.height; y++) {
+          for (let x = 0; x < output.width; x++) {
+            const i = (y * output.width + x) * 4;
+            const inside = x >= offset && x < offset + 64 && y >= offset && y < offset + 48;
+            const j = ((y - offset) * 64 + x - offset) * 4;
+            assert.deepEqual(output.data.slice(i, i + 4), inside
+              ? decoded.data.slice(j, j + 4) : new Uint8Array([255, 0, 0, 255]));
+          }
+        }
+      });
+    }
+  }
+});
+
 describe("pad dimensions", () => {
   for (const filter of ["pad=8:8", "pad=8:32", "pad=32:8", "pad=w=iw/2:h=ih", "pad=width=iw:height=ih/2"]) {
     for (const existing of [false, true]) {

@@ -14,10 +14,10 @@ const planes = [
 ];
 
 for (const mode of ["buffered", "sync", "retained", "command"])
-for (const alpha of [false, true])
-it(`preserves external 16-bit channel planes (${mode}, alpha=${alpha})`, async () => {
+for (const count of [2, 3, 4])
+it(`preserves external 16-bit channel planes (${mode}, planes=${count})`, async () => {
     const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
-    const names = planes.slice(0, alpha ? 4 : 3).map((_, index) => `/plane${index}.png`);
+    const names = planes.slice(0, count).map((_, index) => `/plane${index}.png`);
     for (const [index, name] of names.entries()) {
         const bytes = Buffer.from(planes[index]!, "hex");
         files.set(name, bytes);
@@ -33,7 +33,7 @@ it(`preserves external 16-bit channel planes (${mode}, alpha=${alpha})`, async (
         : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
     expect(result.exitCode).toBe(0);
     const output = mode === "command" || mode === "retained" ? await fs.readFile("/out.png") : files.get("/out.png")!;
-    const expected = [0x1234, 0x4567, 0x789a, alpha ? 0x8001 : 65535, 0xabcd, 0xef01, 0x5678, alpha ? 0xc003 : 65535];
+    const expected = [0x1234, 0x4567, (count === 2 ? 0x1234 : 0x789a), count === 4 ? 0x8001 : 65535, 0xabcd, 0xef01, (count === 2 ? 0xabcd : 0x5678), count === 4 ? 0xc003 : 65535];
     const decoded = decodeImage(output);
     expect([decoded.width, decoded.height]).toEqual([2, 1]);
     expect(Array.from(decoded.data16 ?? [])).toEqual(expected);

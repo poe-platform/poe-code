@@ -3249,6 +3249,7 @@ export function evalSyncFfmpeg(
     let pendingAudioDecoder: string | undefined;
     let pendingTimestampOffset = 0;
     let pendingFixSubDuration = false;
+    let pendingSkipInitialBytes = 0;
     let pendingSs: number | undefined;
     let pendingTimestampScales: [string, number][] = [];
     let pendingSseof: number | undefined;
@@ -3400,6 +3401,10 @@ export function evalSyncFfmpeg(
       else if (arg === "-fix_sub_duration") {
         if (!args.slice(i + 1).includes("-i")) return undefined;
         pendingFixSubDuration = true;
+      } else if (arg === "-skip_initial_bytes") {
+        const value = Number(args[++i]);
+        if (!Number.isSafeInteger(value) || value < 0 || !args.slice(i + 1).includes("-i")) return undefined;
+        pendingSkipInitialBytes = value;
       } else if (arg === "-i") {
         if (pendingAudioDecoder !== undefined && !astPlugins.some(plugin => plugin.canDemux && plugin.supportedAudioCodecs.includes(pendingAudioDecoder!))) return undefined;
         pendingAudioDecoder = undefined;
@@ -3408,6 +3413,7 @@ export function evalSyncFfmpeg(
           format: pendingFormat,
           sampleRate: audioRate,
           channels: audioChannels,
+          skipInitialBytes: pendingSkipInitialBytes,
           timestampOffset: pendingTimestampOffset,
           fixSubDuration: pendingFixSubDuration,
           startSeconds: pendingSs,
@@ -3423,6 +3429,7 @@ export function evalSyncFfmpeg(
         pendingTimestampScales = [];
         pendingTimestampOffset = 0;
         pendingFixSubDuration = false;
+        pendingSkipInitialBytes = 0;
         pendingFormat = undefined; pendingSs = undefined; pendingSseof = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
       } else if (arg === "-c" || arg === "-codec") {
         const val = args[++i]; videoCodec = val; audioCodec = val; subtitleCodec = val;
@@ -3624,9 +3631,10 @@ export function evalSyncFfmpeg(
         // command runs lavfiSteps and yields between sample/pixel batches.
         return undefined;
       } else {
-        const rawBytes = isStdin(inp.path) ? inBytes : readFileSync?.(inp.path);
+        let rawBytes = isStdin(inp.path) ? inBytes : readFileSync?.(inp.path);
         if (!rawBytes || rawBytes.byteLength > 262144) return undefined;
         budget.checkInputBytes(rawBytes.byteLength);
+        rawBytes = rawBytes.subarray(inp.skipInitialBytes ?? 0);
         const plugin = inp.format !== undefined
           ? registry.findByFormatName(inp.format)
           : registry.detect(rawBytes, inp.path);
@@ -3865,6 +3873,7 @@ interface InputSpec {
   readonly allowedExtensions?: string | undefined;
   readonly timestampOffset?: number | undefined;
   readonly fixSubDuration?: boolean | undefined;
+  readonly skipInitialBytes?: number | undefined;
   readonly startSeconds?: number | undefined;
   readonly endRelativeSeconds?: number | undefined;
   readonly timestampScales: readonly [string, number][];
@@ -3935,6 +3944,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingAudioDecoder: string | undefined;
       let pendingTimestampOffset = 0;
       let pendingFixSubDuration = false;
+      let pendingSkipInitialBytes = 0;
       let pendingSs: number | undefined;
       let pendingTimestampScales: [string, number][] = [];
       let pendingSseof: number | undefined;
@@ -4496,6 +4506,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingFixSubDuration = true;
+          } else if (arg === "-skip_initial_bytes") {
+            const value = Number(args[++i]);
+            if (!Number.isSafeInteger(value) || value < 0 || !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -skip_initial_bytes requires a nonnegative integer before an input\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingSkipInitialBytes = value;
           } else if (arg === "-i") {
             if (pendingAudioDecoder !== undefined && !astPlugins.some(plugin => plugin.canDemux && plugin.supportedAudioCodecs.includes(pendingAudioDecoder!))) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unknown decoder '${pendingAudioDecoder}'\n`), context.signal);
@@ -4511,6 +4528,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               fixSubDuration: pendingFixSubDuration,
               safe: pendingSafe,
               allowedExtensions: pendingAllowedExtensions,
+              skipInitialBytes: pendingSkipInitialBytes,
               timestampOffset: pendingTimestampOffset,
               startSeconds: pendingSs,
               endRelativeSeconds: pendingSseof,
@@ -4532,6 +4550,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingAllowedExtensions = undefined;
             pendingTimestampOffset = 0;
             pendingFixSubDuration = false;
+            pendingSkipInitialBytes = 0;
             pendingSs = undefined;
             pendingSseof = undefined;
             pendingTimestampScales = [];
@@ -4976,7 +4995,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 };
               }
 
-              const rawBytes = await readInput(filePath);
+              const rawBytes = (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0);
 
               const concatSignature = "ffconcat version 1.0";
               if (explicitFormat === "concat" || (explicitFormat === undefined &&

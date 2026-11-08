@@ -9128,3 +9128,63 @@ describe("raw PCM input channel layout options", () => {
     }
   }
 });
+
+
+describe("raw PCM skip_initial_bytes", () => {
+  for (const synchronous of [false, true]) {
+    for (const skip of [undefined, 0, 4]) {
+      it(`decodes exact stereo samples after skipping ${skip ?? "no"} bytes (sync=${synchronous})`, async () => {
+        const samples = [100, -200, 300, -400, 500, -600];
+        const input = new Uint8Array(samples.length * 2);
+        const view = new DataView(input.buffer);
+        samples.forEach((sample, index) => view.setInt16(index * 2, sample, true));
+        const vfs = createTestVfs({ "/in.raw": input });
+        const args = ["-hide_banner", "-v", "error", "-y", "-f", "s16le", "-ar", "8000", "-ac", "2",
+          ...(skip === undefined ? [] : ["-skip_initial_bytes", String(skip)]),
+          "-i", "/in.raw", "-c:a", "pcm_s16le", "/out.wav"];
+        if (synchronous) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, data) => { vfs.store.set(path, data); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+        assert.equal(audio.sampleRate, 8000);
+        assert.equal(audio.channels, 2);
+        assert.equal(audio.channelData[0]!.length, skip === 4 ? 2 : 3);
+        assert.deepEqual(audio.channelData.map(channel => Array.from(channel, value => Math.round(value * 32768))),
+          skip === 4 ? [[300, 500], [-400, -600]] : [[100, 300, 500], [-200, -400, -600]]);
+      });
+    }
+  }
+});
+
+
+describe("skip_initial_bytes input scope", () => {
+  it("resets the offset for the next input", async () => {
+    const bytes = Uint8Array.from([100, 0, 200, 0, 44, 1]);
+    const vfs = createTestVfs({ "/first.raw": bytes.slice(), "/second.raw": bytes.slice() });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-f", "s16le", "-skip_initial_bytes", "2", "-i", "/first.raw",
+      "-f", "s16le", "-i", "/second.raw", "-map", "1:a", "-c:a", "pcm_s16le", "/out.wav"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 44100);
+    assert.deepEqual(Array.from(audio.channelData[0]!, value => Math.round(value * 32768)), [100, 200, 300]);
+  });
+
+  for (const value of ["-1", "1.5", "no", "Infinity"]) {
+    it(`rejects invalid offset ${value} without replacing output`, async () => {
+      const original = Uint8Array.from([1, 2, 3]);
+      const vfs = createTestVfs({ "/in.raw": new Uint8Array(12), "/out.wav": original });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-f", "s16le", "-skip_initial_bytes", value, "-i", "/in.raw", "/out.wav"
+      ], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.match(result.stderr, /skip_initial_bytes/);
+      assert.deepEqual(vfs.store.get("/out.wav"), original);
+    });
+  }
+});

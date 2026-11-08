@@ -99,6 +99,8 @@ WAV output accepts `-write_bext 1` to write Broadcast Wave metadata (`descriptio
 
 WAV output accepts `-write_peak on` to append a peak envelope, `-write_peak only` for the envelope without audio, and `-write_peak off` (the default) to omit it. Numeric values `1`, `2`, and `0` are also accepted. Peak envelopes require 16-bit PCM output and default to 256-frame blocks with positive and negative peaks per channel. Set `-peak_block_size 0..65536` (0 omits the envelope), `-peak_format 1|2` for byte width, and `-peak_ppv 1|2` for one magnitude or separate positive/negative peaks.
 
+For headerless PCM, place `-skip_initial_bytes N` before `-i` to skip N input bytes before decoding. For example, `-f s16le -ar 8000 -ac 2 -skip_initial_bytes 4 -i input.raw output.wav` skips one stereo frame. The offset applies only to the next input.
+
 WAV output accepts `-rf64 always` for RF64 with 64-bit sizes, `-rf64 auto` to reserve a size chunk and use RF64 when RIFF overflows, and `-rf64 never` (the default) for ordinary RIFF.
 
 Read and write Sony Wave64 with `ffmpeg -i input.wav output.w64` or `ffmpeg -i input.w64 -c:a pcm_s16le output.wav`; `-f w64` selects the format explicitly.

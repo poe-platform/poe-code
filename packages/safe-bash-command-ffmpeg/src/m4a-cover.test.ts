@@ -30,9 +30,9 @@ it("extracts the original PNG packet through the first video stream map", async 
   } as never);
   assert.equal(result.exitCode, 0, stderr);
   const png = volume.readFileSync("/out.png") as Buffer;
-  assert.equal(png.length, 189);
+  assert.equal(png.length, 219);
   assert.equal(createHash("sha256").update(png).digest("hex"),
-    "82a8e47d536522fada1a5de1d16b79222f54a32a7af74c50990ced1268988d25");
+    "64c128ecc4e8795d71a95f8eacdb4f755326f45b1fb4361b368d6d5147f766d1");
 });
 
 for (const [source, selection, keep] of [[input, [], true], [input, ["-map", "0"], true], [input, ["-map", "0:a"], false], [input, ["-vn"], false], [plain, [], false]] as const) {

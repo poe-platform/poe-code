@@ -994,7 +994,7 @@ function buildTrakBox(
   tkhdWriter.writeFixed8_8(track.type === "audio" ? (track.volume ?? 1.0) : 0);
   tkhdWriter.writeU16BE(0); // reserved
   const matrix =
-    track.rotation !== undefined
+    track.rotation !== undefined && (!track.matrix || track.rotation !== rotationFromMatrix(track.matrix))
       ? matrixForRotation(track.rotation)
       : (track.matrix ?? IDENTITY_MATRIX);
   for (let i = 0; i < 9; i++) {
@@ -1933,6 +1933,7 @@ export function* muxMp4Steps(
       collectedTracks.push({
         ...trk,
         id: collectedTracks.length + 1,
+        matrix: options.rotation !== undefined && trk.type === "video" ? undefined : trk.matrix,
         rotation:
           options.rotation !== undefined && trk.type === "video" ? options.rotation : trk.rotation
       });

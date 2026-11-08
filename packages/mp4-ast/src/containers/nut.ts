@@ -1,4 +1,4 @@
-import { MediaBudgetTracker, type MediaAstPlugin, type MediaDocument, type MediaSample, type MediaTrack, type ParseMediaOptions } from "../types.js";
+import { MediaBudgetTracker, type MediaAstPlugin, type MediaDocument, type MediaSample, type MediaTrack, type ParseMediaOptions, type SerializeMediaOptions } from "../types.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
 import { concatBytes } from "../binary.js";
 import { rawAudioAsts } from "./raw-audio.js";
@@ -224,10 +224,127 @@ function parseNut(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocu
     byteLength: bytes.length, metadata: {}, tracks };
 }
 
+function serializeNut(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
+  const budget = options.budget ?? new MediaBudgetTracker();
+  if (!doc.tracks.length || doc.tracks.some(track => track.type !== "audio")) throw new Error("NUT output requires PCM audio streams");
+  budget.checkStreams(doc.tracks.length);
+  const integer = (value: number): number[] => {
+    if (!Number.isSafeInteger(value) || value < 0) throw new Error("Invalid NUT output integer");
+    const bytes = [value % 128];
+    while (value >= 128) { value = Math.floor(value / 128); bytes.unshift(value % 128 | 128); }
+    return bytes;
+  };
+  const checksum = (bytes: Uint8Array): Uint8Array => {
+    let crc = 0;
+    for (const byte of bytes) {
+      crc ^= byte << 24;
+      for (let bit = 0; bit < 8; bit++) crc = (crc << 1) ^ (crc < 0 ? 0x04c11db7 : 0);
+    }
+    return Uint8Array.of(crc >>> 24, crc >>> 16, crc >>> 8, crc);
+  };
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  const append = (bytes: Uint8Array): void => {
+    length += bytes.length;
+    budget.checkOutputBytes(length);
+    budget.allocateMemory(bytes.length);
+    chunks.push(bytes);
+  };
+  const packet = (code: string, values: number[]): void => {
+    const payload = Uint8Array.from(values);
+    const header = Uint8Array.from([...Array.from({ length: 8 }, (_, i) => Number.parseInt(code.slice(i * 2, i * 2 + 2), 16)), ...integer(payload.length + 4)]);
+    append(header);
+    if (payload.length + 4 > 4096) append(checksum(header));
+    append(payload);
+    append(checksum(payload));
+  };
+  append(signature);
+  const count = doc.tracks.length;
+  // One explicit frame code; all other codes are invalid (N is reserved).
+  packet(startcodes[0]!, [3, ...integer(count), ...integer(32767), ...integer(count),
+    ...doc.tracks.flatMap(track => [1, ...integer(track.timescale)]),
+    ...integer(8192), 6, 0, 1, 0, 0, 0, 1,
+    121, 6, 0, 1, 0, 0, 0, 1,
+    ...integer(8192), 6, 0, 1, 0, 0, 0, ...integer(253), 0]);
+  const streams = doc.tracks.map((track, id) => {
+    const desc = track.codecDescriptions[0];
+    const codec = options.audioCodec === "copy" ? desc?.codecName : options.audioCodec ?? desc?.codecName;
+    const format = codec?.startsWith("pcm_") ? codec.slice(4) : "";
+    const bits = Number.parseInt(format.slice(1), 10);
+    const type = format[0];
+    if (!codec || !["s", "u", "f"].includes(type!) || ![8, 16, 24, 32, 64].includes(bits)
+      || (!rawAudio.some(plugin => plugin.id === format) && format !== "s64le" && format !== "s64be")) throw new Error(`Unsupported NUT audio codec '${codec}'`);
+    const sampleRate = desc?.sampleRate, channels = desc?.channels;
+    if (!sampleRate || !channels) throw new Error("NUT output requires sample rate and channels");
+    const tag = [80, type === "s" ? 83 : type === "u" ? 85 : 70, 68, bits];
+    if (format.endsWith("be")) tag.reverse();
+    packet(startcodes[1]!, [...integer(id), 1, 4, ...tag, ...integer(id), 14,
+      ...integer(track.timescale), 0, 0, 0, ...integer(sampleRate), 1, ...integer(channels)]);
+    if (codec !== desc?.codecName || (options.audioCodec !== "copy" && track.decodedAudio)) {
+      const encoder = rawAudio.find(plugin => plugin.id === format);
+      if (!encoder) throw new Error(`Unsupported NUT audio encoder '${codec}'`);
+      const data = encoder.serialize({ ...doc, tracks: [track] }, { ...options, budget });
+      return { track, sampleRate, channels, bits, samples: [{ data, pts: 0 }] };
+    }
+    return { track, sampleRate, channels, bits, samples: track.samples };
+  });
+  let samples = 0;
+  const syncpoints: { position: number; id: number; pts: number }[] = [];
+  let maxPts = 0, maxTime = -1;
+  for (const [id, stream] of streams.entries()) {
+    const alignment = stream.channels * stream.bits / 8;
+    const packetSize = Math.max(alignment, Math.floor(4096 / alignment) * alignment);
+    for (const sample of stream.samples) {
+      for (let offset = 0; offset < sample.data.length; offset += packetSize) {
+        budget.checkCpu();
+        budget.checkSamples(++samples);
+        const pts = Math.round(sample.pts + offset / alignment * stream.track.timescale / stream.sampleRate);
+        const data = sample.data.subarray(offset, offset + packetSize);
+        budget.checkDuration(pts / stream.track.timescale + data.length / alignment / stream.sampleRate);
+        budget.allocateMemory(24);
+        syncpoints.push({ position: length, id, pts });
+        if (pts / stream.track.timescale > maxTime) {
+          maxTime = pts / stream.track.timescale;
+          maxPts = pts * count + id;
+        }
+        packet(startcodes[2]!, [...integer(pts * count + id), 0]);
+        const header = Uint8Array.from([1, ...integer(id), ...integer(pts + 16384), ...integer(data.length)]);
+        append(header);
+        append(checksum(header));
+        append(data);
+      }
+    }
+  }
+  if (syncpoints.length) {
+    const index = [...integer(maxPts), ...integer(syncpoints.length)];
+    let previous = 0;
+    for (const point of syncpoints) {
+      const position = Math.floor(point.position / 16);
+      index.push(...integer(position - previous));
+      previous = position;
+    }
+    for (let id = 0; id < count; id++) {
+      let lastPts = -1;
+      for (let i = 0; i < syncpoints.length; i++) {
+        const point = syncpoints[i - 1];
+        const keyframe = point?.id === id && point.pts > lastPts;
+        index.push(keyframe ? 1 : 3);
+        if (keyframe) { index.push(...integer(point.pts - lastPts)); lastPts = point.pts; }
+      }
+    }
+    const payloadSize = index.length + 12;
+    const pointer = new Uint8Array(8);
+    new DataView(pointer.buffer).setBigUint64(0, BigInt(8 + integer(payloadSize).length + (payloadSize > 4096 ? 4 : 0) + payloadSize));
+    packet(startcodes[4]!, [...index, ...pointer]);
+  }
+  budget.allocateMemory(length);
+  return concatBytes(chunks);
+}
+
 export function nutAst(): MediaAstPlugin {
   return {
     id: "nut", formatName: "nut", formatLongName: "NUT", extensions: ["nut"], mimeTypes: ["video/x-nut"],
-    canDemux: true, canMux: false, supportedVideoCodecs: ["rawvideo"],
+    canDemux: true, canMux: true, supportedVideoCodecs: ["rawvideo"],
     supportedAudioCodecs: [...rawAudio.map(plugin => `pcm_${plugin.id}`), "pcm_s64le", "pcm_s64be"],
     detect: bytes => signature.every((byte, i) => bytes[i] === byte),
     parse: parseNut,
@@ -235,6 +352,6 @@ export function nutAst(): MediaAstPlugin {
       return buildProbeResultFromDoc(parseNut(bytes, { ...options, decodeAudio: false }), bytes.length, options.filename,
         { ...options, formatName: "nut", formatLongName: "NUT" });
     },
-    serialize() { throw new Error("NUT output is not supported"); }
+    serialize: serializeNut
   };
 }

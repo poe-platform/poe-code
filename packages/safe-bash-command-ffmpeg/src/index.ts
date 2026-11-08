@@ -6142,8 +6142,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 globPaths.sort();
               }
 
+              const planeInput = !pipeBytes && filePath.endsWith(".Y") && (!explicitFormat || explicitFormat === "image2");
+              const literalPlane = planeInput && (input?.patternType === "none" || formatImageSequence(filePath, 0) === undefined);
               // Literal image inputs bypass numbered-pattern expansion.
-              if (pipeBytes || globPaths || (input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
+              if (planeInput || pipeBytes || globPaths || (input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
                 const frames: MediaVideoFrame[] = [];
                 const packets: Uint8Array[] = [];
                 let codecName = "png";
@@ -6157,6 +6159,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   budget.checkCpu();
                   context.signal.throwIfAborted();
                   let imgBytes: Uint8Array;
+                  let planeFrame: MediaVideoFrame | undefined;
                   if (pipeBytes) {
                     const start = pipeOffset;
                     if (![137, 80, 78, 71, 13, 10, 26, 10].every((byte, i) => pipeBytes[start + i] === byte)) {
@@ -6179,23 +6182,42 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                     imgBytes = pipeBytes.subarray(start, pipeOffset);
                   } else {
-                    const formatted = globPaths ? globPaths[idx]! : formatImageSequence(filePath, idx)!;
+                    const formatted = globPaths ? globPaths[idx]! : literalPlane ? filePath : formatImageSequence(filePath, idx)!;
                     const resolved = resolvePath(context.cwd, formatted);
                     try {
                       imgBytes = await readInput(resolved);
                     } catch (error) {
                       rethrowRuntimeError(context, error);
                       if ((error as { code?: string }).code !== "ENOENT") throw error;
-                      if (globPaths) throw error;
+                      if (globPaths || literalPlane) throw error;
                       if (frames.length === 0 && idx - startNumber < startNumberRange - 1) continue;
                       break;
                     }
+                    if (planeInput) {
+                      if (input?.pixelFormat !== undefined && input.pixelFormat !== "yuv420p") {
+                        throw new Error(`Unsupported image2 plane pixel format '${input.pixelFormat}'`);
+                      }
+                      const u = await readInput(`${resolved.slice(0, -1)}U`);
+                      const v = await readInput(`${resolved.slice(0, -1)}V`);
+                      budget.allocateMemory(imgBytes.byteLength + u.byteLength + v.byteLength);
+                      const packet = concatBytes([imgBytes, u, v]);
+                      const raw = parseRawVideo(packet, input?.videoSize, "yuv420p", fps, budget);
+                      planeFrame = raw.tracks[0]?.decodedVideoFrames?.[0];
+                      if (!planeFrame ||
+                          imgBytes.byteLength !== planeFrame.width * planeFrame.height ||
+                          u.byteLength !== Math.ceil(planeFrame.width / 2) * Math.ceil(planeFrame.height / 2) || v.byteLength !== u.byteLength) {
+                        throw new Error(`${resolved}: Invalid image2 plane sizes`);
+                      }
+                      imgBytes = packet;
+                    }
                   }
                   {
-                    const decoded = decodeImage(imgBytes);
+                    const decoded = planeFrame
+                      ? { ...planeFrame, format: "rawvideo", hasAlpha: false, resolution: undefined }
+                      : decodeImage(imgBytes);
                     if (frames.length === 0) {
                       codecName = decoded.format === "jpeg" ? "mjpeg" : decoded.format;
-                      pixelFormat = decoded.hasAlpha ? "rgba" : "rgb24";
+                      pixelFormat = planeFrame ? "yuv420p" : decoded.hasAlpha ? "rgba" : "rgb24";
                       sarWidth = decoded.resolution?.x || 1;
                       sarHeight = decoded.resolution?.y || 1;
                     }
@@ -6204,8 +6226,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const gc = (globalThis as { gc?: () => void }).gc;
                       if (typeof gc === "function") { gc(); gc(); }
                     }
-                    budget.recordFrame(decoded.width, decoded.height);
+                    if (!planeFrame) budget.recordFrame(decoded.width, decoded.height);
                     frames.push({
+                      ...(planeFrame ? { native: planeFrame.native } : {}),
                       width: decoded.width,
                       height: decoded.height,
                       data: decoded.data,
@@ -6214,6 +6237,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       keyframe: true
                     });
                   }
+                  if (literalPlane && !globPaths) break;
                 }
                 if (frames.length === 0) {
                   throw new Error(`${filePath}: No matching image sequence files found`);

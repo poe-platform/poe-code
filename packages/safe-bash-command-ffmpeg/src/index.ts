@@ -4781,6 +4781,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioChannels: number | undefined;
         let rematrixMaxval: number | undefined;
         let filterSize = 32;
+        let resampleCutoff = 0;
         let rematrixVolume = 1;
         let centerMixLevel: number | undefined;
         let surroundMixLevel: number | undefined;
@@ -5306,6 +5307,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (audioRate !== undefined && audioRate < 0) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: sample rate must be nonnegative\n"), context.signal);
               return { exitCode: 1 };
+            }
+          } else if (arg === "-resample_cutoff") {
+            const raw = args[++i];
+            resampleCutoff = Number(raw);
+            if (!raw?.trim() || !Number.isFinite(resampleCutoff) || resampleCutoff < 0 || resampleCutoff > 1) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: resample_cutoff must be a number between 0 and 1\n"), context.signal);
+              return { exitCode: 8 };
+            }
+          } else if (arg === "-cutoff") {
+            // FFmpeg routes this CLI option to the encoder, not swresample.
+            const raw = args[++i];
+            const cutoff = Number(raw);
+            if (!raw?.trim() || !Number.isFinite(cutoff) || cutoff < -2147483648 || cutoff > 2147483647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid codec cutoff\n"), context.signal);
+              return { exitCode: 8 };
             }
           } else if (arg === "-filter_size") {
             const raw = args[++i];
@@ -8818,7 +8834,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let targetSamples = Math.max(0, Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate));
                   if (targetRate !== origRate) stretched = loudnormResampling
                     ? await resampleLoudnorm(stretched, origRate, targetRate, budget, context.signal)
-                    : await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal, filterType, kaiserBeta, filterSize);
+                    : await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal, filterType, kaiserBeta, filterSize, resampleCutoff);
                   if (targetRate !== origRate && !loudnormResampling) targetSamples = stretched[0]?.length ?? 0;
                   const newChannelData: (Float32Array | Float64Array)[] = [];
                   const ChannelArray = stretched.some(channel => channel instanceof Float64Array) ? Float64Array : Float32Array;

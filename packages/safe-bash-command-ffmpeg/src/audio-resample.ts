@@ -3,14 +3,15 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 export async function resampleAudio(
   channels: readonly (Float32Array | Float64Array)[], outputLength: number, rateRatio: number,
-  budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9, filterSize = 32
+  budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9, filterSize = 32, resampleCutoff = 0
 ): Promise<Float32Array[]> {
   const length = channels[0]?.length ?? 0;
-  // swresample scales the requested filter size by a 0.97 cutoff and rounds up to even support.
+  // Zero selects swresample’s default cutoff; scale support with the effective ratio.
+  const cutoff = Math.min((resampleCutoff || 0.97) / rateRatio, 1);
   // Startup needs filterLength + 1 input samples, including the limited
   // reflected tail added on flush. Short clips may never initialize at all.
-  const filterLength = filterSize <= Math.min(0.97 / rateRatio, 1) ? 1
-    : 2 * Math.ceil(filterSize / 2 / Math.min(0.97 / rateRatio, 1));
+  const filterLength = filterSize <= cutoff ? 1
+    : 2 * Math.ceil(filterSize / 2 / cutoff);
   if (length <= filterLength) {
     const flushedLength = length + Math.ceil(length / 2);
     outputLength = flushedLength <= filterLength ? 0
@@ -18,8 +19,6 @@ export async function resampleAudio(
   }
   const output = channels.map(() => new Float32Array(outputLength));
   if (length === 0) return output;
-  // swresample defaults: Kaiser beta 9 and a 0.97 cutoff.
-  const cutoff = Math.min(0.97 / rateRatio, 1);
   const center = Math.floor((filterLength - 1) / 2);
   const period = Math.max(1, 2 * (length - 1));
   const sums = new Float64Array(channels.length);

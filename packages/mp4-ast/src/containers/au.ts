@@ -21,6 +21,9 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   let doc = raw.find(plugin => plugin.id === format)!.parse(
     bytes.subarray(offset, size === 0 && options.decodeAudio !== false ? offset : bytes.length),
     { ...options, budget, sampleRate: view.getUint32(16), channels: view.getUint32(20) });
+  doc = { ...doc, tracks: doc.tracks.map(track => ({ ...track,
+    samples: track.samples.map(sample => ({ ...sample, offset: sample.data.byteOffset - bytes.byteOffset }))
+  })) };
   // Probing reads available packets even when the header declares zero duration.
   // Decoding retains FFmpeg's empty-input behavior for an explicit zero size.
   if (size !== 0xffffffff) {

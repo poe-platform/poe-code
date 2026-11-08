@@ -1,4 +1,48 @@
-import { concatBytes, rgbaToYuv420p, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { concatBytes, rgbaToYuv420p, type MediaDocument, type MediaSample, type MediaVideoFrame, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+
+export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixelFormat: string | undefined, fps: number, budget: MediaBudgetTracker): MediaDocument {
+  const dimensions = size?.split("x").map(Number) ?? [];
+  const [width = 0, height = 0] = dimensions;
+  if (dimensions.length !== 2 || !Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0) {
+    throw new Error("rawvideo input requires a valid -video_size WIDTHxHEIGHT");
+  }
+  if (pixelFormat !== "rgb24") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
+  const frameBytes = width * height * 3;
+  if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
+  const count = Math.ceil(bytes.length / frameBytes);
+  budget.checkSamples(count);
+  const timescale = 1_000_000;
+  const ticks = Math.max(1, Math.round(timescale / fps));
+  const samples: MediaSample[] = [];
+  const frames: MediaVideoFrame[] = [];
+  for (let index = 0; index < count; index++) {
+    budget.checkCpu();
+    const data = bytes.subarray(index * frameBytes, (index + 1) * frameBytes);
+    samples.push({ data, size: data.length, dts: index * ticks, pts: index * ticks, cts: 0,
+      duration: ticks, isKeyframe: true, sampleDescriptionIndex: 1 });
+    // Stream copy retains the final short packet; decoding only emits complete frames.
+    if (data.length !== frameBytes) continue;
+    budget.recordFrame(width, height);
+    budget.allocateMemory(width * height * 4);
+    const rgba = new Uint8Array(width * height * 4);
+    for (let pixel = 0; pixel < width * height; pixel++) {
+      if (pixel % 4096 === 0) budget.checkCpu();
+      rgba.set(data.subarray(pixel * 3, pixel * 3 + 3), pixel * 4);
+      rgba[pixel * 4 + 3] = 255;
+    }
+    frames.push({ width, height, data: rgba, ptsSeconds: index * ticks / timescale,
+      durationSeconds: ticks / timescale, keyframe: true });
+  }
+  return {
+    containerFormat: "rawvideo", timescale, duration: count * ticks, durationSeconds: count * ticks / timescale,
+    byteLength: bytes.length, metadata: {}, tracks: [{
+      id: 1, type: "video", handlerType: "vide", timescale, duration: count * ticks,
+      language: "und", enabled: true, width, height,
+      codecDescriptions: [{ formatFourCC: "raw ", codecName: "rawvideo", width, height, pixFmt: pixelFormat }],
+      samples, decodedVideoFrames: frames
+    }]
+  };
+}
 
 export function serializeRawVideo(track: MediaTrack, codec: string | undefined, pixelFormat: string | undefined, budget: MediaBudgetTracker): Uint8Array {
   if (codec !== undefined && codec !== "copy" && codec !== "rawvideo") throw new Error(`Unsupported rawvideo encoder '${codec}'`);

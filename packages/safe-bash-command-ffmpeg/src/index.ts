@@ -4,7 +4,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 import { autoConvertConcatTrack } from "./concat-auto-convert.js";
 import { filterBitstream } from "./bitstream.js";
 import { authorTimecode } from "./timecode.js";
-import { serializeRawVideo } from "./rawvideo.js";
+import { parseRawVideo, serializeRawVideo } from "./rawvideo.js";
 import { formatYuv } from "./format-yuv.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
@@ -4585,6 +4585,8 @@ function matchesImageGlob(pattern: string, name: string, budget: MediaBudgetTrac
 }
 
 interface InputSpec {
+  readonly videoSize?: string | undefined;
+  readonly pixelFormat?: string | undefined;
   readonly dumpAttachments?: readonly [string, string][];
   readonly sampleRate?: number | undefined;
   readonly channels?: number | undefined;
@@ -4690,6 +4692,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingIgnoreLoop: boolean | undefined;
       let pendingImageLoop: boolean | undefined;
       let pendingFps: number | undefined;
+      let pendingVideoSize: string | undefined;
+      let pendingPixelFormat: string | undefined;
       let pendingStartNumber: number | undefined;
       let pendingStartNumberRange: number | undefined;
       let pendingPatternType: InputSpec["patternType"];
@@ -4936,8 +4940,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const value = args[++i]?.split("+").at(-1) ?? "";
             const levels: Record<string, number> = { quiet: -8, panic: 0, fatal: 8, error: 16, warning: 24, info: 32, verbose: 40, debug: 48, trace: 56 };
             logLevel = levels[value] ?? Number(value);
-          } else if (arg === "-pix_fmt") {
-            rawPixelFormat = args[++i];
+          } else if (arg === "-pix_fmt" || arg === "-pixel_format") {
+            const value = args[++i];
+            if (args.slice(i + 1).includes("-i")) pendingPixelFormat = value;
+            else rawPixelFormat = value;
           } else if (arg === "-tag:v") {
             videoTag = args[++i];
             if (videoTag === undefined) throw new Error("Missing value for -tag:v");
@@ -5478,8 +5484,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } else {
               outputFps = val;
             }
-          } else if (arg === "-s") {
-            outputSize = args[++i];
+          } else if (arg === "-s" || arg === "-video_size") {
+            const value = args[++i];
+            if (args.slice(i + 1).includes("-i")) pendingVideoSize = value;
+            else outputSize = value;
           } else if (arg === "-fix_sub_duration") {
             if (!args.slice(i + 1).includes("-i")) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: -fix_sub_duration must precede an input\n"), context.signal);
@@ -5553,6 +5561,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ignoreLoop: pendingIgnoreLoop,
               imageLoop: pendingImageLoop,
               fps: pendingFps,
+              videoSize: pendingVideoSize,
+              pixelFormat: pendingPixelFormat,
               startNumber: pendingStartNumber,
               patternType: pendingPatternType,
               startNumberRange: pendingStartNumberRange
@@ -5580,6 +5590,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingIgnoreLoop = undefined;
             pendingImageLoop = undefined;
             pendingFps = undefined;
+            pendingVideoSize = undefined;
+            pendingPixelFormat = undefined;
             pendingStartNumber = undefined;
             pendingStartNumberRange = undefined;
             pendingPatternType = undefined;
@@ -6181,6 +6193,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
 
               const rawBytes = (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0);
+
+              if (explicitFormat === "rawvideo") {
+                return parseRawVideo(rawBytes, input?.videoSize, input?.pixelFormat, fpsHint ?? 25, budget);
+              }
 
               const concatSignature = "ffconcat version 1.0";
               if (explicitFormat === "concat" || (explicitFormat === undefined &&

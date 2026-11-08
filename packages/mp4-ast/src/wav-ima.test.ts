@@ -21,7 +21,7 @@ it("probes IMA WAV codec, duration and block packets without decoding", async ()
   const ranged = await probeWavSource({ size: input.length, async read(offset, length) { return input.subarray(offset, offset + length); } }, { showPackets: true });
   for (const probe of [buffered, ranged]) {
     assert.equal(probe.streams[0]!.codec_name, "adpcm_ima_wav");
-    assert.equal(probe.streams[0]!.duration, "0.255125");
+    assert.equal(probe.streams[0]!.duration, "0.256000");
     const packets = Array.from(probe.packets!);
     assert.equal(packets.length, 1);
     assert.equal(packets[0]!.duration, 2041);

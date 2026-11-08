@@ -648,7 +648,11 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
 
 function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: MediaAudioData, bytes?: Uint8Array): MediaDocument {
   const { formatTag, channels, sampleRate, bitsPerSample, byteLength } = header;
-  const totalPcmSamples = decodedAudio?.channelData[0]?.length ?? wavFrames(header);
+  // ffprobe estimates block ADPCM stream duration from coded bits, including block headers.
+  // Decoded audio and individual packet durations still use the actual block sample counts.
+  const frames = decodedAudio?.channelData[0]?.length ?? wavFrames(header);
+  const totalPcmSamples = !decodedAudio && (formatTag === 2 || formatTag === 17)
+    ? Math.floor(header.dataSize * 8 / (bitsPerSample * channels)) : frames;
   const durationSeconds = totalPcmSamples / Math.max(1, sampleRate);
   return {
     containerFormat: header.containerFormat,

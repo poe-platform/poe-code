@@ -454,3 +454,5 @@ positional options and use in audio filter chains.
 Use `-isync INDEX` before `-i` to synchronize that MP4/MOV input with another input’s source start time. `-isync -1` disables synchronization; the option resets for each input. With `-copyts`, also pass `-start_at_zero`. Inputs without a known source start time remain unchanged.
 
 For input-side stream-copy seeking (`-ss TIME -i INPUT`), `-copypriorss 0` discards video preroll before the requested start and begins at the next keyframe. `-copypriorss 1` preserves preroll, matching the default. Packet timestamps remain relative to the requested start.
+
+MP4/MOV output `-movie_timescale N` sets the movie header timescale independently of video and audio time bases. Movie durations and edit-list durations are rescaled; packet timestamps and bytes are preserved. `N` must be an integer from 1 to 2147483647.

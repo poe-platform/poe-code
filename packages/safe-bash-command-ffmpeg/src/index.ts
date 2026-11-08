@@ -3636,6 +3636,14 @@ function shiftTimestamps(doc: MediaDocument, seconds: number, budget: MediaBudge
   };
 }
 
+function rescaleMovie(doc: MediaDocument, timescale: number): MediaDocument {
+  const scale = timescale / doc.timescale;
+  return { ...doc, timescale, duration: Math.round(doc.duration * scale),
+    tracks: doc.tracks.map(track => ({ ...track,
+      editList: track.editList?.map(edit => ({ ...edit, segmentDuration: Math.round(edit.segmentDuration * scale) }))
+    })) };
+}
+
 function rescaleVideoTracks(doc: MediaDocument, timescale: number, budget: MediaBudgetTracker): MediaDocument {
   return { ...doc, tracks: doc.tracks.map(track => {
     if (track.type !== "video" || track.timescale === timescale) return track;
@@ -3745,6 +3753,7 @@ export function evalSyncFfmpeg(
     let writePeak: "off" | "on" | "only" | undefined;
     let rf64: "always" | "auto" | "never" | undefined;
     let faststart = true;
+    let movieTimescale: number | undefined;
     let videoTrackTimescale = 0;
     let fragmented = false;
     let id3v2Version: 0 | 3 | 4 | undefined;
@@ -4049,6 +4058,12 @@ export function evalSyncFfmpeg(
           throw new Error("Invalid rf64 value: expected always, auto or never");
         }
         rf64 = value;
+      } else if (arg === "-movie_timescale") {
+        const value = args[++i];
+        movieTimescale = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(movieTimescale) || movieTimescale < 1 || movieTimescale > 2147483647) {
+          throw new Error("-movie_timescale requires an integer from 1 to 2147483647");
+        }
       } else if (arg === "-video_track_timescale") {
         const value = args[++i];
         videoTrackTimescale = value?.trim() ? Number(value) : NaN;
@@ -4282,6 +4297,9 @@ export function evalSyncFfmpeg(
     validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
+    if (movieTimescale !== undefined && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
+      workingDoc = rescaleMovie(workingDoc, movieTimescale);
+    }
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
@@ -4579,6 +4597,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
     let writePeak: "off" | "on" | "only" | undefined;
         let rf64: "always" | "auto" | "never" | undefined;
         let faststart = true;
+        let movieTimescale: number | undefined;
         let videoTrackTimescale = 0;
         let fragmented = false;
         let id3v2Version: 0 | 3 | 4 | undefined;
@@ -5321,6 +5340,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             rf64 = value;
+          } else if (arg === "-movie_timescale") {
+            const value = args[++i];
+            movieTimescale = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(movieTimescale) || movieTimescale < 1 || movieTimescale > 2147483647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -movie_timescale requires an integer from 1 to 2147483647\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-video_track_timescale") {
             const value = args[++i];
             videoTrackTimescale = value?.trim() ? Number(value) : NaN;
@@ -8208,6 +8234,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (!checksumOutput) validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
             validateStreamCopy(workingDoc, outPlugin?.id ?? outputFormat!, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
             validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin?.id ?? outputFormat!);
+            if (movieTimescale !== undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) {
+              workingDoc = rescaleMovie(workingDoc, movieTimescale);
+            }
             if (videoTrackTimescale && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) {
               workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
             }

@@ -4618,6 +4618,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioRate: number | undefined;
         let audioChannels: number | undefined;
         let segmentTime = 2;
+        let segmentFrames: number[] | undefined;
         let segmentList: string | undefined;
         let hlsTime = 2;
         let dashAdaptationSets: string | undefined;
@@ -4845,6 +4846,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             segmentTime = parseFfmpegTimestamp(value ?? "");
             if (!Number.isFinite(segmentTime) || segmentTime <= 0) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_time\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-segment_frames") {
+            const values = (args[++i] ?? "").split(",");
+            segmentFrames = values.map(value => Number(value));
+            if (values.some((value, index) => !value.trim() ||
+                !Array.from(value.trim()).every(char => char >= "0" && char <= "9") ||
+                !Number.isInteger(segmentFrames![index]) || segmentFrames![index]! > 2147483647 ||
+                (index > 0 && segmentFrames![index]! < segmentFrames![index - 1]!))) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_frames\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-segment_list") {
@@ -8311,19 +8322,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             if (outputFormat === "segment") {
               const segmentPlugin = registry.findByFilename(outputTarget);
-              const track = workingDoc.tracks[0];
-              if (segmentPlugin?.id !== "wav" || workingDoc.tracks.length !== 1 || track?.type !== "audio") {
-                throw new Error("segment output requires a single audio track and WAV filenames");
+              const track = workingDoc.tracks.find(track => track.type === "video") ?? workingDoc.tracks[0];
+              if (!track || !(segmentPlugin?.id === "mp4" ||
+                  (segmentPlugin?.id === "wav" && workingDoc.tracks.length === 1 && track.type === "audio"))) {
+                throw new Error("segment output requires MP4 filenames or a single audio track with WAV filenames");
               }
               if (formatImageSequence(outputTarget, 0) === undefined) {
                 throw new Error("segment output requires a numbered filename pattern");
               }
-              validateStreamCopy(workingDoc, "wav", { audio: audioCodec });
+              validateStreamCopy(workingDoc, segmentPlugin.id, { audio: audioCodec, video: videoCodec });
               const boundaries = [0];
-              for (const packet of track.samples) {
+              for (const [frame, packet] of track.samples.entries()) {
                 budget.checkCpu();
                 const seconds = packet.pts / track.timescale;
-                if (seconds > boundaries[boundaries.length - 1]! && seconds >= boundaries.length * segmentTime) {
+                const reached = segmentFrames === undefined
+                  ? seconds >= boundaries.length * segmentTime
+                  : frame >= (segmentFrames[boundaries.length - 1] ?? Infinity);
+                if (seconds > boundaries[boundaries.length - 1]! && reached &&
+                    (track.type !== "video" || packet.isKeyframe)) {
                   boundaries.push(seconds);
                 }
               }
@@ -8355,7 +8371,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 context.signal.throwIfAborted();
                 const start = boundaries[index]!;
                 const end = boundaries[index + 1]!;
-                const segment = sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget });
+                const segment = segmentPlugin.id === "wav"
+                  ? sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget })
+                  : { ...workingDoc, tracks: workingDoc.tracks.map(track => ({
+                    ...track,
+                    duration: Math.round(end * track.timescale),
+                    editList: undefined,
+                    samples: track.samples.filter(sample =>
+                      (index === 0 || sample.dts >= start * track.timescale) &&
+                      (index === paths.length - 1 || sample.dts < end * track.timescale))
+                  })) };
                 const bytes = segmentPlugin.serialize(segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;

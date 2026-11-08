@@ -2003,6 +2003,7 @@ async function applyVideoFilterChain(
       const endFrame = named.end_frame === undefined ? undefined : Number(named.end_frame);
       const end = Math.max(named.end === undefined ? -Infinity : roundTime(named.end),
         named.end_pts === undefined ? -Infinity : Number(named.end_pts) / timescale);
+      const duration = named.duration === undefined ? undefined : parseHlsDuration(named.duration);
       const dur = named.duration === undefined ? undefined : roundTime(named.duration);
       for (const [option, raw, value] of [["start", start, st], ["end", named.end, end], ["duration", named.duration, dur]] as const) {
         if (raw !== undefined && !Number.isFinite(value)) {
@@ -2017,7 +2018,7 @@ async function applyVideoFilterChain(
             : index >= startFrame || f.ptsSeconds >= st;
           if (!afterStart) return false;
           firstPts ??= f.ptsSeconds;
-          const finalEnd = dur !== undefined ? Math.max(end, firstPts + dur) : end;
+          const finalEnd = dur !== undefined && duration !== 0 ? Math.max(end, firstPts + dur) : end;
           const beforeEnd = endFrame === undefined
             ? finalEnd === -Infinity || f.ptsSeconds < finalEnd
             : index < endFrame || (Number.isFinite(finalEnd) && f.ptsSeconds < finalEnd);

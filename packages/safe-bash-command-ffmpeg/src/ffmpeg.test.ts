@@ -50,6 +50,20 @@ describe("trim positional validation", () => {
   }
 });
 
+it("trim keeps a positive duration that rounds to zero as an empty interval", async () => {
+  const { encodeImage } = await import("@poe-code/image-ast/portable");
+  const vfs = createTestVfs();
+  vfs.store.set("/in1.png", encodeImage({ width: 1, height: 1,
+    data: Uint8Array.from([20, 20, 20, 255]),
+    format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false
+  }, { format: "png" }).data);
+  await runCmd(createFfmpegCommand(), [
+    "-framerate", "4", "-i", "/in%d.png",
+    "-vf", "fps=4,trim=duration=0.01", "/out%d.png"
+  ], vfs);
+  assert.equal([...vfs.store.keys()].some(path => path.startsWith("/out")), false);
+});
+
 describe("trim preserves timestamps", () => {
   for (const [filter, expected] of [
     ["trim=0.5:1", [60, 80]],
@@ -87,6 +101,11 @@ describe("trim preserves timestamps", () => {
     ["trim=end=0.3", [20]],
     ["trim=end=0.375", [20, 40]],
     ["trim=duration=0.3", [20]],
+    ["trim=duration=0", [20, 40, 60, 80, 100, 120]],
+    ["trim=duration=0:start_frame=2", [60, 80, 100, 120]],
+    ["trim=durationi=0:start=0.5", [60, 80, 100, 120]],
+    ["trim=duration=0:end_frame=3", [20, 40, 60]],
+    ["trim=duration=0:end=0.5", [20, 40]],
     ["trim=start=0.2:duration=0.3", [40]],
     ["trim=start_frame=3:start=0.2", [40, 60, 80, 100, 120]],
     ["fps=2,trim=start=0.3", [60, 100]],

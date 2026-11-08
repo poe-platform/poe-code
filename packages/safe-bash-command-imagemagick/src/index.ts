@@ -3070,6 +3070,8 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
     const modulation = norm === "modulate" ? (composeArgs || "100").toLowerCase().replaceAll(",", "x").split("x") : [];
     const lumaScale = Number.parseFloat(modulation[0] ?? "100") / 100;
     const chromaScale = Number.parseFloat(modulation[1] ?? "100") / 100;
+    const [product = 0, source = 0, destination = 0, constant = 0] = norm === "mathematics"
+        ? (composeArgs ?? "").toLowerCase().replaceAll("x", ",").split(",").map(Number) : [];
     const out = new Uint8Array(dst.data);
     const dw = dst.width;
     const dh = dst.height;
@@ -3105,6 +3107,18 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
             const daByte = dst.data[dIdx + 3]!;
             const sa = saByte / 255;
             const da = daByte / 255;
+            if (norm === "mathematics") {
+                const alpha = sa + da - sa * da;
+                for (let c = 0; c < 3; c++) {
+                    const sc = src.data[sIdx + c]! / 255 * sa;
+                    const dc = dst.data[dIdx + c]! / 255 * da;
+                    const blended = product * sc * dc + source * sc * da + destination * dc * sa
+                        + constant * sa * da + sc * (1 - da) + dc * (1 - sa);
+                    out[dIdx + c] = alpha === 0 ? 0 : clampByteVal(255 * blended / alpha);
+                }
+                out[dIdx + 3] = clampByteVal(alpha * 255);
+                continue;
+            }
             if (norm === "changemask") {
                 const distance = (saByte - daByte) ** 2
                     + ((sr - dr) ** 2 + (sg - dg) ** 2 + (sb - db) ** 2) * sa * da;

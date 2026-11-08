@@ -4780,6 +4780,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsDiscontStart = false;
         let hlsAppendList = false;
         let hlsRoundDurations = false;
+        let hlsProgramDateTime = false;
         let hlsIndependentSegments = false;
         let hlsSplitByTime = false;
         let hlsDeleteThreshold = 1;
@@ -5141,6 +5142,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               hlsDiscontStart = false;
               hlsAppendList = false;
               hlsRoundDurations = false;
+              hlsProgramDateTime = false;
               hlsIndependentSegments = false;
               hlsSplitByTime = false;
             }
@@ -5156,6 +5158,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               else if (name === "append_list") hlsAppendList = enabled;
               else if (name === "discont_start") hlsDiscontStart = enabled;
               else if (name === "round_durations") hlsRoundDurations = enabled;
+              else if (name === "program_date_time") hlsProgramDateTime = enabled;
               else {
                 await writeBytes(context.stderr, encodeUtf8(`ffmpeg: unrecognized HLS flag '${name}'\n`), context.signal);
                 return { exitCode: 1 };
@@ -8837,7 +8840,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const outDir = outResolved.includes("/")
                 ? outResolved.slice(0, outResolved.lastIndexOf("/")) || "/"
                 : "/";
-              const previous: { uri: string; duration: number; discontinuity: boolean }[] = [];
+              const programDateTime = Date.now();
+              const previous: { uri: string; duration: number; discontinuity: boolean; programDateTime: string | undefined }[] = [];
               let sequence = outputStartNumber ?? 0;
               if (hlsAppendList) {
                 if (hlsSingleFile) throw new Error("HLS append_list requires separate segment files");
@@ -8853,6 +8857,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (lines[0] !== "#EXTM3U") throw new Error("Invalid HLS playlist for append_list");
                   let duration: number | undefined;
                   let discontinuity = false;
+                  let previousProgramDateTime: string | undefined;
                   for (const line of lines) {
                     budget.checkCpu();
                     if (line.startsWith("#EXT-X-MEDIA-SEQUENCE:")) {
@@ -8862,12 +8867,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     } else if (line.startsWith("#EXTINF:")) {
                       duration = Number(line.slice(8).split(",")[0]);
                       if (!Number.isFinite(duration) || duration < 0) throw new Error("Invalid HLS segment duration");
+                    } else if (line.startsWith("#EXT-X-PROGRAM-DATE-TIME:")) {
+                      previousProgramDateTime = line;
                     } else if (line === "#EXT-X-DISCONTINUITY") discontinuity = true;
                     else if (line.startsWith("#EXT-X-BYTERANGE:") || line.startsWith("#EXT-X-KEY:")) {
                       throw new Error("HLS append_list does not support byte ranges or encryption");
                     } else if (line && !line.startsWith("#")) {
                       if (duration === undefined) throw new Error("Missing HLS segment duration");
-                      previous.push({ uri: line, duration, discontinuity });
+                      previous.push({ uri: line, duration, discontinuity, programDateTime: previousProgramDateTime });
+                      previousProgramDateTime = undefined;
                       duration = undefined;
                       discontinuity = false;
                     }
@@ -8940,7 +8948,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
               for (const entry of previous.slice(firstEntry)) {
                 if (entry.discontinuity) playlistLines.push("#EXT-X-DISCONTINUITY");
-                playlistLines.push(`#EXTINF:${hlsRoundDurations ? Math.round(entry.duration) : entry.duration.toFixed(6)},`, entry.uri);
+                playlistLines.push(`#EXTINF:${hlsRoundDurations ? Math.round(entry.duration) : entry.duration.toFixed(6)},`);
+                if (hlsProgramDateTime && entry.programDateTime) playlistLines.push(entry.programDateTime);
+                playlistLines.push(entry.uri);
               }
 
               const singleFileChunks: Uint8Array[] = [];
@@ -9023,6 +9033,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if ((hlsDiscontStart || hlsAppendList) && sIdx === 0) playlistLines.push("#EXT-X-DISCONTINUITY");
                   playlistLines.push(`#EXTINF:${hlsRoundDurations ? Math.round(actualDur) : actualDur.toFixed(6)},`);
                   if (hlsSingleFile) playlistLines.push(`#EXT-X-BYTERANGE:${segBytes.byteLength}@${singleFileSize}`);
+                  if (hlsProgramDateTime) playlistLines.push(`#EXT-X-PROGRAM-DATE-TIME:${new Date(programDateTime + st * 1000).toISOString()}`);
                   playlistLines.push(hlsBaseUrl + relSegName);
                 }
                 if (hlsSingleFile) singleFileSize += segBytes.byteLength;

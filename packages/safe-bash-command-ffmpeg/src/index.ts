@@ -6421,7 +6421,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const commands = gainCommands.filter(command => command.target === "volume" || command.target === filterTarget)
                           .sort((a, b) => a.sample - b.sample);
                         let nextCommand = 0;
-                        const output = stretched.map(channel => new Float32Array(channel.length));
+                        const output = stretched.map(channel => precision === "double"
+                          ? new Float64Array(channel.length) : new Float32Array(channel.length));
                         const length = stretched[0]?.length ?? 0;
                         const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
                         const variables: Record<string, number> = { sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
@@ -7168,11 +7169,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                   const targetSamples = Math.max(0, Math.round((stretched[0]?.length ?? 0) * targetRate / origRate));
                   if (targetRate !== origRate) stretched = await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal);
-                  const newChannelData: Float32Array[] = [];
+                  const newChannelData: (Float32Array | Float64Array)[] = [];
+                  const ChannelArray = stretched.some(channel => channel instanceof Float64Array) ? Float64Array : Float32Array;
                   for (let c = 0; c < targetCh; c++) {
                     if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
-                    const dst = new Float32Array(targetSamples);
+                    const dst = new ChannelArray(targetSamples);
                     // Default 4.0 through 7.1 layouts route mono to front center only.
                     const srcCh = (monoStereo && c >= 2) || (monoSurround && c !== 2)
                       ? undefined : stretched[origCh === 1 ? 0 : c];

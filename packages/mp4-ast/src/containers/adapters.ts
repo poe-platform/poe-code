@@ -1828,6 +1828,17 @@ export function image2Ast(): MediaAstPlugin {
       let codecName = "png";
       let rgba: Uint8Array = new Uint8Array(64 * 64 * 4).fill(180);
       const tga = options?.filename?.toLowerCase().endsWith(".tga");
+      let pixFmt = "rgb24";
+      if (isPngSignature(bytes) && bytes.byteLength >= 29) {
+        const depth = bytes[24];
+        switch (bytes[25]) {
+          case 0: pixFmt = depth === 16 ? "gray16be" : depth === 1 ? "monob" : "gray"; break;
+          case 2: pixFmt = depth === 16 ? "rgb48be" : "rgb24"; break;
+          case 3: pixFmt = "pal8"; break;
+          case 4: pixFmt = depth === 16 ? "ya16be" : "ya8"; break;
+          case 6: pixFmt = depth === 16 ? "rgba64be" : "rgba"; break;
+        }
+      }
       try {
         const img = tga ? decodeTga(bytes, options) : decodeImage(bytes);
         width = img.width;
@@ -1872,7 +1883,7 @@ export function image2Ast(): MediaAstPlugin {
                 codecName,
                 width,
                 height,
-                pixFmt: tga ? (bytes[16] === 32 ? "bgra" : "bgr24") : "rgb24"
+                pixFmt: tga ? (bytes[16] === 32 ? "bgra" : "bgr24") : pixFmt
               }
             ],
             samples: [

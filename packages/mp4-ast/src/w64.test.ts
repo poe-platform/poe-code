@@ -25,7 +25,7 @@ it("probes Wave64 and preserves encoded samples for stream copy", async () => {
   })()), header);
 });
 
-it("aligns Wave64 fmt, fact, and data chunks without adding audio samples", () => {
+it("includes Wave64 data alignment bytes in the declared sample payload", () => {
   const ast = wavAst("w64");
   const input = Buffer.from(native);
   input.writeBigUInt64LE(42n, 96); // Nine samples, with padding outside the data chunk.
@@ -34,7 +34,7 @@ it("aligns Wave64 fmt, fact, and data chunks without adding audio samples", () =
     const header = readWavHeader(bytes);
     assert.equal(header.dataOffset % 8, 0);
     assert.equal(bytes.length % 8, 0);
-    assert.equal(parseWav(bytes).tracks[0]!.decodedAudio!.channelData[0]!.length, 9);
+    assert.equal(parseWav(bytes).tracks[0]!.decodedAudio!.channelData[0]!.length, codec === "pcm_s16le" ? 12 : codec === "pcm_f32le" ? 10 : 16);
     assert.equal(ast.probe(bytes).streams[0]!.codec_name, codec);
   }
 });
@@ -53,3 +53,23 @@ it("rejects invalid Wave64 GUIDs, sizes and missing required chunks", () => {
     assert.throws(() => ast.parse(bytes), /Wave64/);
   }
 });
+
+for (const count of [4, 5]) {
+  for (const codec of ["pcm_s16le", "pcm_f32le"] as const) {
+    it(`matches native Wave64 data length and decoded samples for ${count} ${codec} samples`, () => {
+      const input = Buffer.from(native.subarray(0, 120));
+      input.writeBigUInt64LE(120n, 16);
+      input.writeBigUInt64LE(BigInt(24 + count * 2), 96);
+      input.fill(0, 104);
+      const samples = [10, -20, 30, -40, 50].slice(0, count);
+      samples.forEach((sample, index) => input.writeInt16LE(sample, 104 + index * 2));
+      const bytes = wavAst("w64").serialize(parseWav(input), { audioCodec: codec });
+      const header = readWavHeader(bytes);
+      const expectedSize = codec === "pcm_s16le" ? (count === 4 ? 32n : 40n) : (count === 4 ? 40n : 48n);
+      assert.equal(new DataView(bytes.buffer, bytes.byteOffset).getBigUint64(header.dataOffset - 8, true), expectedSize);
+      const decoded = parseWav(bytes).tracks[0]!.decodedAudio!.channelData[0]!;
+      const expected = [...samples, ...Array(count === 4 ? 0 : codec === "pcm_s16le" ? 3 : 1).fill(0)];
+      assert.deepEqual(Array.from(decoded, sample => Math.round(sample * 32768)), expected);
+    });
+  }
+}

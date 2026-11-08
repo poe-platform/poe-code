@@ -861,7 +861,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     if (pad(bextSize)) writer.writeBytes(new Uint8Array(pad(bextSize)));
   }
   if (!peakOnly) {
-    chunk("data", rf64 || (!wave64 && options.seekable === false) ? 0xffffffff : pcmBytes.byteLength);
+    // Native FFmpeg counts Wave64 alignment bytes as part of the data payload.
+    chunk("data", rf64 || (!wave64 && options.seekable === false) ? 0xffffffff : pcmBytes.byteLength + (wave64 ? padding : 0));
     writer.writeBytes(pcmBytes);
     if (padding) writer.writeBytes(new Uint8Array(padding));
   }

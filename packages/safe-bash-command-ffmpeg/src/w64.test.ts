@@ -41,7 +41,7 @@ for (const direction of ["encode", "decode"]) {
           assert.equal(output.readBigUInt64LE(16), BigInt(output.length));
           assert.equal(output.readUInt16LE(64), 1);
           assert.equal(output.readUInt32LE(68), 8000);
-          assert.deepEqual(output.subarray(104, 122), wav.subarray(44));
+          assert.deepEqual(output, w64);
         } else assert.deepEqual(output, w64.subarray(104));
       });
     }

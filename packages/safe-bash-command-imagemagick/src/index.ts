@@ -522,6 +522,7 @@ interface MagickState {
   sizeWidth: number;
   sizeHeight: number;
   hasSize: boolean;
+  page?: NonNullable<RgbaImage["virtualCanvas"]>;
   iconAutoResize?: number[];
   inputDepth?: number;
   netpbmAscii?: boolean;
@@ -4753,6 +4754,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     const {baseToken,pageSpec,inlineGeom}=parseInputToken(token);
     function* applyMod(imgs: RgbaImage[]): Generator<void, RgbaImage[], void> {
         return yield* mapSteps(imgs, function* (im) {
+            if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.orientation !== undefined) im = { ...im, orientation: state.orientation };
             if (state.units !== undefined) im = applyMagickUnits(im, state.units);
             for (const key of ["comment", "label"] as const) {
@@ -6281,6 +6283,13 @@ if (t === "-seed") {
             state.inputEndian = endian;
         }
         else if (t === "+endian") { delete state.inputEndian; }
+        else if (t === "-page") {
+            const value = tokens[++i] ?? "";
+            validateMagickTransformGeometry(value, t);
+            const geometry = parseMagickGeometry(value);
+            state.page = { width: geometry.width ?? 0, height: geometry.height ?? 0, x: geometry.x, y: geometry.y };
+        }
+        else if (t === "+page") { delete state.page; }
         else if (t === "-size") {
             const g = parseMagickGeometry(tokens[++i] ?? "1x1");
             state.sizeWidth = Math.max(1, Math.round(g.width ?? 1));
@@ -6733,7 +6742,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const pixelOperation = setting === undefined ? parseMagickPixelOperation(tokens, state, i, signal) : undefined;
         const warpOperation = setting === undefined ? parseMagickWarpOperation(tokens, state, i) : undefined;
         const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
-        if (setting !== undefined) { i = setting; }
+        if (setting !== undefined) {
+            i = setting;
+            if (t === "-page") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualCanvas: state.page! }; });
+        }
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, i++);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -8214,7 +8226,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
-        if (setting !== undefined) { i = setting; continue; }
+        if (setting !== undefined) {
+            i = setting;
+            if (token === "-page") {
+                const page = state.page!;
+                steps.push(async image => image ? { ...image, virtualCanvas: page } : undefined);
+            }
+            continue;
+        }
         const warpOperation = operandsOnly ? undefined : parseMagickWarpOperation(tokens, state, i);
         if (warpOperation) {
             i = warpOperation.end;
@@ -9207,7 +9226,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-contrast-stretch", "-linear-stretch", "-connected-components", "+connected-components"
     ]);
     const flagsWithTwoArgs = new Set(["-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill"]);
-    const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-comment", "-label"]);
+    const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label"]);
     const flagsWithoutArgs = new Set([
         "-antialias", "+antialias",
         "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
@@ -9216,7 +9235,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
         "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
-        "+read-mask", "+interpolate", "+filter",
+        "+read-mask", "+interpolate", "+filter", "+page",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
     ]);
     for (let i = 0; i < argv.length; i++) {
@@ -9249,7 +9268,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
             outDir = argv[++i]!;
         }
         else if (option) {
-            (t === "-write" || t === "+write" ? writeTokens : readFlags.has(t) || t === "+filter" ? readSettings : opTokens).push(...argv.slice(i, i + count + 1));
+            (t === "-write" || t === "+write" ? writeTokens : readFlags.has(t) || t === "+filter" || t === "+page" ? readSettings : opTokens).push(...argv.slice(i, i + count + 1));
             i += count;
         }
         else {
@@ -9548,6 +9567,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
+  if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.orientation!==undefined)image={...image,orientation:state.orientation};
   if(state.units!==undefined)image=applyMagickUnits(image,state.units);
  for (const key of ["comment", "label"] as const) {

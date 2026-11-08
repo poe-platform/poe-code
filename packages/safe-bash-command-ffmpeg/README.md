@@ -58,6 +58,8 @@ the encoded audio packets. Use `-vn` to exclude video.
 Read headerless samples with input format, rate, and channel options:
 `ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
 
+WAV output writes the encoder identification in LIST/INFO even with `-map_metadata -1`. Use `-bitexact` or `-fflags +bitexact` to omit it while preserving user tags and PCM audio.
+
 WAV output accepts `-write_bext 1` to write Broadcast Wave metadata (`description`, `originator`, `originator_reference`, `origination_date`, `origination_time`, `time_reference`, and `coding_history`) supplied with `-metadata`. The default and `-write_bext 0` omit the extension.
 
 WAV output accepts `-write_peak on` to append a peak envelope, `-write_peak only` for the envelope without audio, and `-write_peak off` (the default) to omit it. Numeric values `1`, `2`, and `0` are also accepted. Peak envelopes require 16-bit PCM output and use 256-frame blocks with positive and negative peaks per channel.

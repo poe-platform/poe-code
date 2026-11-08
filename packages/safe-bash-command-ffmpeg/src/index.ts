@@ -2487,7 +2487,7 @@ export function evalSyncFfmpeg(
       date: metadata.date ?? metadata.year ?? sourceMetadata.date,
       comment: metadata.comment ?? sourceMetadata.comment,
       genre: metadata.genre ?? sourceMetadata.genre,
-      encoder: outPlugin?.id === "ffmetadata" ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
+      encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
     workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSource), streamDispositions) };
     workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
@@ -5385,7 +5385,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               date: metadata.date ?? metadata.year ?? sourceMetadata.date,
               comment: metadata.comment ?? sourceMetadata.comment,
               genre: metadata.genre ?? sourceMetadata.genre,
-              encoder: outPlugin?.id === "ffmetadata" ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder
+              encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder
             };
             workingDoc = {
               ...workingDoc,

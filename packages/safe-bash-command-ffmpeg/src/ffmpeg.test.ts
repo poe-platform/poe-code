@@ -4321,6 +4321,35 @@ for (const [sourceRate, targetRate] of [[16000, 8000], [44100, 16000]] as const)
   });
 }
 
+describe("WAV encoder identification", () => {
+  for (const sync of [false, true]) {
+    for (const flags of [[], ["-bitexact"], ["-fflags", "+bitexact"]]) {
+      for (const removeMetadata of [false, true]) {
+        it(`${sync ? "sync" : "async"} writes WAV INFO with ${flags.join(" ") || "defaults"}, removeMetadata=${removeMetadata}`, async () => {
+          const input = Uint8Array.from(Buffer.from("UklGRlwAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAATElTVCYAAABJTkZPSU5BTQoAAABPbGQgdGl0bGUASUFSVAcAAABQbGF5ZXIAAGRhdGEKAAAAAIAA/wAAAAEAfw==", "base64"));
+          const vfs = createTestVfs({ "/in.wav": input });
+          const args = ["-i", "/in.wav", ...flags,
+            ...(removeMetadata ? ["-map_metadata", "-1"] : []), "/out.wav"];
+          if (sync) {
+            assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+              (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+          } else {
+            const result = await runCmd(createFfmpegCommand(), args, vfs);
+            assert.equal(result.exitCode, 0, result.stderr);
+          }
+          const output = vfs.store.get("/out.wav")!;
+          const parsed = parseWav(output);
+          assert.equal(parsed.metadata.encoder, flags.length ? undefined : "Lavf61.7.100");
+          assert.equal(new TextDecoder().decode(output).includes("ISFT"), flags.length === 0);
+          assert.equal(parsed.metadata.title, removeMetadata ? undefined : "Old title");
+          assert.equal(parsed.metadata.artist, removeMetadata ? undefined : "Player");
+          assert.deepEqual(parsed.tracks[0]!.decodedAudio, parseWav(input).tracks[0]!.decodedAudio);
+        });
+      }
+    }
+  }
+});
+
 describe("global metadata mapping", () => {
   for (const sync of [false, true]) {
     for (const [mapping, title] of [[undefined, "First"], ["0", "First"], ["1", "Second"], ["-1", undefined]] as const) {

@@ -3600,6 +3600,17 @@ function scaleInputTimestamps(doc: MediaDocument, scales: readonly [string, numb
   return { ...doc, tracks, durationSeconds, duration: Math.round(durationSeconds * doc.timescale) };
 }
 
+function imageOutputFormat(codec: string | undefined, extension: string): ImageFormat | "tga" {
+  const format = codec && codec !== "copy" ? codec : extension;
+  switch (format) {
+    case "mjpeg": case "jpg": case "jpeg": return "jpeg";
+    case "libwebp": case "libwebp_anim": case "webp": return "webp";
+    case "targa": case "tga": return "tga";
+    case "qoi": case "gif": case "bmp": case "ppm": return format;
+    default: return "png";
+  }
+}
+
 const imageEncoders = ["png", "mjpeg", "webp", "libwebp", "libwebp_anim", "gif", "bmp", "ppm", "qoi", "targa"];
 
 function validateAudioEncoder(codec: string | undefined, doc: MediaDocument, plugins: readonly MediaAstPlugin[]): void {
@@ -4471,11 +4482,11 @@ export function evalSyncFfmpeg(
       if (vTrack && !vTrack.decodedVideoFrames) return undefined;
       const frames = vTrack?.decodedVideoFrames ?? [];
       const limit = Math.min(frames.length, maxVideoFrames ?? Infinity);
-      const imgFmt: ImageFormat = outExt === "qoi" || videoCodec === "qoi" ? "qoi" : outExt === "jpg" || outExt === "jpeg" ? "jpeg" : outExt === "webp" ? "webp" : outExt === "gif" ? "gif" : outExt === "bmp" ? "bmp" : outExt === "ppm" ? "ppm" : "png";
+      const imgFmt = imageOutputFormat(videoCodec, outExt);
       for (let idx = 0; idx < limit; idx++) {
         const f = frames[idx]!;
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1))!;
-        const encoded = outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
+        const encoded = imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
                     ...(imgFmt === "qoi" ? { hasAlpha: !["rgb24", "bgr24", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba") } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"
                       ? { pngPalette: { bytes: pal8Palette, depth: 8 } } : {}),
@@ -9467,7 +9478,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if ((imageOutput && !isStdout(outputTarget)) || numberedImageOutput) {
               const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
               const imgPlugin = registry.findByFilename(`x.${outExt}`);
-              if (!imgPlugin || !imgPlugin.canMux) {
+              if (videoCodec === undefined && (!imgPlugin || !imgPlugin.canMux)) {
                 throw new Error(`Unsupported output format for '${outputTarget}' (AST not registered)`);
               }
               const vTrack = workingDoc.tracks.find((t) => t.type === "video");
@@ -9477,13 +9488,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const constantRate = ["auto", "-1", "cfr", "1"].includes(videoSync);
               let nextPts = (frames[0]?.ptsSeconds ?? 0) / duration;
               let idx = 0;
-              const imgFmt: ImageFormat =
-                outExt === "qoi" || videoCodec === "qoi" ? "qoi" :
-                outExt === "jpg" || outExt === "jpeg" ? "jpeg" :
-                outExt === "webp" ? "webp" :
-                outExt === "gif" ? "gif" :
-                outExt === "bmp" ? "bmp" :
-                outExt === "ppm" ? "ppm" : "png";
+              const imgFmt = imageOutputFormat(videoCodec, outExt);
 
               for (let sourceIndex = 0; sourceIndex < frames.length && idx < limit; sourceIndex++) {
                 const source = frames[sourceIndex]!;
@@ -9512,7 +9517,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     : idx + (outputStartNumber ?? 1);
                   const fileName = imageFileName(number);
                   const fullOutPath = resolvePath(context.cwd, fileName);
-                  const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
+                  const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
                     ...(imgFmt === "qoi" ? { hasAlpha: !["rgb24", "bgr24", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba") } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"
                       ? { pngPalette: { bytes: pal8Palette, depth: 8 } } : {}),

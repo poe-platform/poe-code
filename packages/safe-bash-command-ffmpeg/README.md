@@ -458,3 +458,5 @@ For input-side stream-copy seeking (`-ss TIME -i INPUT`), `-copypriorss 0` disca
 MP4/MOV output `-brand mp42` sets the container major brand without changing packet bytes or timing. Brands of fewer than four characters keep the default; longer values use the first four characters.
 
 MP4/MOV output `-movie_timescale N` sets the movie header timescale independently of video and audio time bases. Movie durations and edit-list durations are rescaled; packet timestamps and bytes are preserved. `N` must be an integer from 1 to 2147483647.
+
+MP4/MOV output accepts `-timecode 01:02:03:04`, `-metadata timecode=01:02:03:04`, and `-metadata:s:v:0 timecode=01:02:03:04`. These create a linked timecode track using the video frame rate; stream timecode overrides the global value.

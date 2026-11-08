@@ -6173,7 +6173,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-threshold") {
-        const raw = tokens[++i] ?? "50%", value = raw.endsWith("%") ? parseFloat(raw) / 100 * 255 : parseFloat(raw) / 257;
+        const raw = tokens[++i] ?? "", threshold = raw.endsWith("%") ? raw.slice(0, -1) : raw;
+        if (!Number.isFinite(Number(threshold)) || Number.parseFloat(threshold) !== Number(threshold)) {
+            throw new Error(`invalid argument '-threshold' '${raw}'`);
+        }
+        const value = raw.endsWith("%") ? Number(threshold) / 100 * 255 : Number(threshold) / 257;
         const channels = state.channelExplicit ? state.channels : undefined;
         apply = function* (image) {
             const out = new Uint8Array(image.data);

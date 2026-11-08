@@ -7860,14 +7860,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const targetCh = audioChannels === -1 ? origCh : audioChannels ?? origCh;
                   const channelMask = filteredChannelMask;
                   const surroundMono = origCh === 6 && targetCh === 1;
+                  const surroundStereo = origCh === 6 && targetCh === 2;
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
                   const pcm16Output = audioCodec === "pcm_s16le" || audioCodec === undefined &&
                     (outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "wav";
                   const pcm16MonoStereo = monoStereo && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
+                  const pcm16SurroundStereo = surroundStereo && !filter && targetRate === origRate &&
+                    t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const monoSurround = origCh === 1 && targetCh >= 4 && targetCh <= 8;
                   if (targetCh !== origCh && origCh > 2 &&
-                      (!surroundMono || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
+                      (!(surroundMono || surroundStereo) || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
                     throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
                   }
 
@@ -7893,11 +7896,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const sample = surroundMono
                           ? ((stretched[0]![srcIdx]! + stretched[1]![srcIdx]!) * Math.SQRT1_2 +
                               stretched[2]![srcIdx]! + (stretched[4]![srcIdx]! + stretched[5]![srcIdx]!) / 2) / (2 + Math.SQRT2)
-                          : rightCh ? (srcCh[srcIdx]! + rightCh[srcIdx]!) / 2 : srcCh[srcIdx]!;
+                          // Stereo keeps each front/surround on its own side, adds
+                          // center equally, and omits LFE. Normalize each row to 1.
+                          : surroundStereo
+                            ? (srcCh[srcIdx]! + (stretched[2]![srcIdx]! + stretched[c + 4]![srcIdx]!) * Math.SQRT1_2) / (1 + Math.SQRT2)
+                            : rightCh ? (srcCh[srcIdx]! + rightCh[srcIdx]!) / 2 : srcCh[srcIdx]!;
                         // Mono to stereo (or 2.1) uses equal-power FL/FR gains.
                         // The s16 mixer uses a Q15 coefficient and rounds half upward.
                         const mixed = pcm16MonoStereo
                           ? Math.floor((sample * 32768 * 23170 + 16384) / 32768) / 32768
+                          : pcm16SurroundStereo
+                            ? Math.floor(srcCh[srcIdx]! * 13573 +
+                                (stretched[2]![srcIdx]! + stretched[c + 4]![srcIdx]!) * 9598 + 0.5) / 32768
                           : sample * (monoStereo ? Math.SQRT1_2 : 1);
                         // FFmpeg 7.0.2 converts non-finite floating samples to silence for PCM16.
                         const scaled = mixed * volFactor;

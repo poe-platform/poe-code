@@ -19,13 +19,16 @@ export function decodeImaWav(data: Uint8Array, channels: number, blockAlign: num
   const output = Array.from({ length: channels }, () => new Float32Array(frames));
   const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
   let frame = 0;
-  for (let offset = 0; offset < data.length; offset += blockAlign) {
+  blocks: for (let offset = 0; offset < data.length; offset += blockAlign) {
     const size = Math.min(blockAlign, data.length - offset);
     const count = imaBlockFrames(size, channels);
+    // A damaged channel invalidates the whole block, including its other channels.
+    for (let ch = 0; ch < channels; ch++) {
+      if (view.getUint16(offset + ch * 4 + 2, true) > 88) continue blocks;
+    }
     for (let ch = 0; ch < channels; ch++) {
       let predictor = view.getInt16(offset + ch * 4, true);
-      let index = data[offset + ch * 4 + 2]!;
-      if (index > 88) throw new Error("Invalid IMA WAV step index");
+      let index = view.getUint16(offset + ch * 4 + 2, true);
       const samples = output[ch]!;
       samples[frame] = predictor / 32768;
       let sample = frame + 1;
@@ -45,7 +48,8 @@ export function decodeImaWav(data: Uint8Array, channels: number, blockAlign: num
     }
     frame += count;
   }
-  return output;
+  if (data.length > 0 && frame === 0) throw new Error("Invalid IMA WAV step index");
+  return frame === frames ? output : output.map(samples => samples.subarray(0, frame));
 }
 
 export function encodeImaWav(channelData: readonly (Float32Array | Float64Array)[], blockAlign: number): Uint8Array {

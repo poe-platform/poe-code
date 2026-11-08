@@ -1,3 +1,4 @@
+import { decodeImaWav } from "./containers/wav-ima.js";
 import { createHash } from "node:crypto";
 import assert from "node:assert/strict";
 import { it } from "node:test";
@@ -29,8 +30,27 @@ it("probes IMA WAV codec, duration and block packets without decoding", async ()
   }
 });
 
-it("rejects invalid IMA step indexes instead of fabricating audio", () => {
-  const invalid = Buffer.from(input);
-  invalid[invalid.indexOf("data") + 10] = 89;
-  assert.throws(() => parseWav(invalid), /IMA.*index/);
-});
+for (const index of [89, 256, 344, 32768, 65535]) {
+  it(`rejects invalid IMA step index ${index} instead of fabricating audio`, () => {
+    const invalid = Buffer.from(input);
+    invalid.writeUInt16LE(index, invalid.indexOf("data") + 10);
+    assert.throws(() => parseWav(invalid), /IMA.*index/);
+  });
+}
+
+for (const channels of [1, 2]) for (let badChannel = 0; badChannel < channels; badChannel++) {
+  for (const badBlock of [0, 1, 2]) it(`skips IMA block ${badBlock} with an invalid index in channel ${badChannel} of ${channels}`, () => {
+    const blockAlign = channels * 8;
+    const data = new Uint8Array(blockAlign * 3);
+    const view = new DataView(data.buffer);
+    for (let block = 0; block < 3; block++) for (let ch = 0; ch < channels; ch++) {
+      view.setInt16(block * blockAlign + ch * 4, (block + 1) * 1000 * (ch ? -1 : 1), true);
+    }
+    data[badBlock * blockAlign + badChannel * 4 + 2] = 100;
+    const decoded = decodeImaWav(data, channels, blockAlign, 27);
+    for (let ch = 0; ch < channels; ch++) {
+      assert.deepEqual(Array.from(decoded[ch]!, sample => sample * 32768),
+        [0, 1, 2].filter(block => block !== badBlock).flatMap(block => Array(9).fill((block + 1) * 1000 * (ch ? -1 : 1))));
+    }
+  });
+}

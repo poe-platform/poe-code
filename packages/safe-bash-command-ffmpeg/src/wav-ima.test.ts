@@ -4,10 +4,11 @@ import { Volume } from "memfs";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
-for (const sync of [false, true]) {
-  it(`${sync ? "sync" : "async"} decodes stereo IMA WAV blocks to PCM16`, async () => {
-    // Two blocks, with opposite predictors in each channel and zero deltas.
-    const input = Buffer.from("524946464400000057415645666d74201400000011000200401f00000000000010000400020009006461746120000000e803000018fc00000000000000000000d007000030f800000000000000000000", "hex");
+for (const sync of [false, true]) for (const badBlock of [-1, 0, 1, 2]) for (const index of [100, 256]) {
+  it(`${sync ? "sync" : "async"} decodes stereo IMA WAV blocks to PCM16 (invalid block ${badBlock}, index ${index})`, async () => {
+    // Three blocks, with opposite predictors in each channel and zero deltas.
+    const input = Buffer.from("524946465400000057415645666d74201400000011000200401f00000000000010000400020009006461746130000000e803000018fc00000000000000000000d007000030f800000000000000000000b80b000048f400000000000000000000", "hex");
+    if (badBlock >= 0) input.writeUInt16LE(index, input.indexOf("data") + 8 + badBlock * 16 + 6);
     const volume = Volume.fromJSON({});
     volume.writeFileSync("/in.wav", input);
     const args = ["-v", "error", "-i", "/in.wav", "-c:a", "pcm_s16le", "/out.wav"];
@@ -34,7 +35,7 @@ for (const sync of [false, true]) {
     assert.equal(audio.channels, 2);
     for (let ch = 0; ch < 2; ch++) {
       assert.deepEqual(Array.from(audio.channelData[ch]!, n => n * 32768),
-        Array.from({ length: 18 }, (_, i) => (i < 9 ? 1000 : 2000) * (ch === 0 ? 1 : -1)));
+        [0, 1, 2].filter(block => block !== badBlock).flatMap(block => Array(9).fill((block + 1) * 1000 * (ch === 0 ? 1 : -1))));
     }
   });
 }

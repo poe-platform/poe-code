@@ -1,3 +1,4 @@
+import { identifyStatisticsSteps } from "./identify-statistics.js";
 import { identifyHullSteps } from "./identify-hull.js";
 import { identifyMomentsSteps } from "./identify-moments.js";
 import { identifyMaximumSteps, identifyStoredMaximum } from "./identify-locate.js";
@@ -5405,7 +5406,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
         const analysis = { warnings: "" };
         let inspected:IdentifyInspection|undefined;
-        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,precision,analysis},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined);}};
+        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,precision,analysis},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
         const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
         if (!bytes&&!inspected) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
@@ -5459,6 +5460,16 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     `  Alpha: ${meta.hasAlpha ? "True" : "False"}\n` +
                     `  Filesize: ${size}B\n` +
                     `  Entropy: ${stats.entropy.toFixed(4)}\n`);
+                if (inspected?.statistics !== undefined) outParts.push(inspected.statistics);
+                else {
+                    const image = decodeImage(encoded!, inputOptions), steps = identifyStatisticsSteps(image, precision);
+                    let next = steps.next();
+                    while (!next.done) {
+                        yield;
+                        next = next.value ? steps.next((image.data16 ?? image.data).subarray(next.value.position, next.value.position + next.value.length)) : steps.next();
+                    }
+                    outParts.push(next.value);
+                }
                 if (convexHull) {
                     if (inspected?.hull !== undefined) outParts.push(inspected.hull);
                     else {

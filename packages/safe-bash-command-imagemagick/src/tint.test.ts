@@ -81,3 +81,30 @@ it.each(["bogus", "50%junk", "50%"])(`${mode}: validates tint strength %s before
         expect([...output]).toEqual([...destination]);
     }
 });
+
+// Native Q16-HDRI: RGB16 4321 8765 abcd, PNG48 input, -fill FILL -tint STRENGTH.
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    it.each([
+        ["black", "100%", [0x4321, 0x8765, 0xabcd, 65535]],
+        ["#aabbcc", "50%", [0, 0x2c3b, 0x6294, 65535]],
+    ] as const)(`${mode}: preserves 16-bit samples with %s tint`, async (fill, strength, expected) => {
+        const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABEAIAAADA54+dAAAAD0lEQVQI12NwVmxPXX0WAAesAsn2ck3qAAAAAElFTkSuQmCC", "base64");
+        const files = new Map<string, Uint8Array>([["/input.png", input]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const args = ["/input.png", "-fill", fill, "-tint", strength, "/out.png"];
+        const result = mode === "command"
+            ? await createMagickCommand().execute({
+                command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+                stdin: (async function* () {})(), signal: new AbortController().signal,
+                stdout: { write: async () => {} }, stderr: { write: async () => {} },
+            })
+            : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        const output = mode === "command" || mode === "retained"
+            ? await filesystem.readFile("/out.png") : files.get("/out.png")!;
+        expect(output[24]).toBe(16);
+        expect(Array.from(decodeImage(output).data16 ?? [])).toEqual(expected);
+    });
+}

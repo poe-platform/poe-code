@@ -5741,6 +5741,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-tint") {
+        highDepth = true;
         const value = tokens[++i] ?? "";
         const [red = 1, green = red, blue = red] = value.split(",").map(part => {
             const percent = part.endsWith("%") ? part.slice(0, -1) : part;
@@ -5756,15 +5757,19 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const vector = fill.map((channel, index) => channel * strengths[index]! - intensity);
         apply = function* (image) {
             const out = new Uint8Array(image.data);
+            const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+            const samples = data16 ?? out, quantum = data16 ? 65535 : 255;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 for (let channel = 0; channel < 3; channel++) {
-                    const value = out[idx + channel]!;
-                    const weight = value / 255 - 0.5;
-                    out[idx + channel] = clampByteVal(value + vector[channel]! * (1 - 4 * weight * weight));
+                    const value = samples[idx + channel]!;
+                    const weight = value / quantum - 0.5;
+                    const sample = Math.max(0, Math.min(quantum, Math.round(value + vector[channel]! * (quantum / 255) * (1 - 4 * weight * weight))));
+                    if (data16) data16[idx + channel] = sample;
+                    out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
                 }
             }
-            return { ...image, data: out };
+            return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     }
     else if (token === "-negate" || token === "+negate") {

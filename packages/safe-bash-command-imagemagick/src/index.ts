@@ -5593,6 +5593,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
             throw new Error(`invalid argument for option '-modulate': ${raw}`);
         }
+        for (let offset = 0; offset < raw.length; offset++) {
+            if (raw[offset]?.toLowerCase() !== "e") continue;
+            const next = raw[offset + 1] === "+" || raw[offset + 1] === "-" ? offset + 2 : offset + 1;
+            if (!"0123456789.".includes(raw[offset - 1] ?? " ") || !"0123456789".includes(raw[next] ?? " ")) {
+                throw new Error(`invalid argument for option '-modulate': ${raw}`);
+            }
+        }
         // Native modulation geometry defaults omitted components to 100.
         let value = "", component = 0;
         for (const c of raw) {

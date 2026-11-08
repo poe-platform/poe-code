@@ -6,6 +6,16 @@ import { concatBytes, encodeUtf8, rgbaToYuv420p } from "./binary.js";
 const samples = Uint8Array.from([0x10, 0x30, 0x50, 0x70, 0x80, 0x90]);
 const input = concatBytes([encodeUtf8("YUV4MPEG2 W2 H2 F2:1 Ip A1:1 C420jpeg\nFRAME\n"), samples]);
 
+for (const [tag, colorRange] of [["FULL", "pc"], ["LIMITED", "tv"], [undefined, undefined]]) {
+  it(`preserves Y4M color range ${tag ?? "unspecified"}`, () => {
+    const range = tag ? ` XCOLORRANGE=${tag}` : "";
+    const bytes = concatBytes([encodeUtf8(`YUV4MPEG2 W2 H2 F25:1 Ip A1:1 C420jpeg${range}\nFRAME\n`), samples]);
+    const doc = parseY4m(bytes);
+    assert.equal(doc.tracks[0]!.codecDescriptions[0]!.colorRange, colorRange);
+    assert.deepEqual(serializeY4m(doc), bytes);
+  });
+}
+
 for (const aspect of ["1:1", "4:3", "0:0"]) {
   it(`preserves Y4M sample aspect ratio ${aspect}`, () => {
     const bytes = concatBytes([encodeUtf8(`YUV4MPEG2 W2 H2 F25:1 Ip A${aspect} C420jpeg\nFRAME\n`), samples]);

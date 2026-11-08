@@ -26,9 +26,22 @@ export function serializeFrameChecksum(
     if (track.type !== "audio") throw new Error("Frame checksum output requires audio streams");
     const copy = audioCodec === "copy";
     const rate = copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
+    const channels = track.decodedAudio?.channels ?? track.codecDescriptions[0]?.channels ?? 0;
+    const mask = track.decodedAudio?.channelMask;
+    const layouts: Record<number, string> = {
+      4: "mono", 3: "stereo", 11: "2.1", 7: "3.0", 259: "3.0(back)",
+      15: "3.1", 263: "4.0", 51: "quad", 1539: "quad(side)",
+      271: "4.1", 55: "5.0", 1543: "5.0(side)", 63: "5.1", 1551: "5.1(side)",
+      1799: "6.0", 1807: "6.1", 1591: "7.0", 1599: "7.1", 255: "7.1(wide)"
+    };
+    const speakers = mask ? ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR", "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"]
+      .filter((_, bit) => (mask & (2 ** bit)) !== 0) : [];
+    const layout = mask && speakers.length === channels
+      ? layouts[mask] ?? `${channels} channels (${speakers.join("+")})`
+      : ["0 channels", "mono", "stereo", "2.1", "4.0", "5.0", "5.1", "6.1", "7.1"][channels] ?? `${channels} channels`;
     lines.push(`#tb ${index}: 1/${rate}`, `#media_type ${index}: audio`,
       `#codec_id ${index}: ${copy ? track.codecDescriptions[0]?.codecName : audioCodec ?? "pcm_s16le"}`,
-      `#sample_rate ${index}: ${rate}`);
+      `#sample_rate ${index}: ${rate}`, `#channel_layout_name ${index}: ${layout}`);
   }
   if (format !== "framecrc") lines.push("#stream#, dts,        pts, duration,     size, hash");
   const rows: { dts: number; rate: number; line: string }[] = [];

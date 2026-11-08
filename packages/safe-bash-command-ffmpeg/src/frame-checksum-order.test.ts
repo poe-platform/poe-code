@@ -27,6 +27,8 @@ for (const format of ["framemd5", "framehash", "framecrc"]) {
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         assert.equal(result.exitCode, 0, stderr);
+        assert.deepEqual(stdout.split("\n").filter(line => line.startsWith("#channel_layout_name")),
+          ["#channel_layout_name 0: mono", "#channel_layout_name 1: mono"]);
         const rows = stdout.split("\n").filter(line => line && !line.startsWith("#"));
         // At equal DTS, native FFmpeg emits the lower output stream index first.
         const order = differentRates
@@ -47,5 +49,44 @@ for (const format of ["framemd5", "framehash", "framecrc"]) {
         assert.deepEqual(rows.map(row => row.split(",").map(field => field.trim())), expected);
       });
     }
+  }
+}
+
+for (const [channels, mask, layout] of [[2, 0, "stereo"], [6, 63, "5.1"], [6, 1551, "5.1(side)"],
+  [2, 5, "2 channels (FL+FC)"]] as const) {
+  for (const downmix of [false, true]) {
+    it(`frame checksum headers describe ${layout}${downmix ? " downmixed to mono" : ""}`, async () => {
+      const wav = encodeWav({ sampleRate: 8000, channels: Array.from({ length: channels }, () => new Float64Array(16)) });
+      // Expand the PCM fmt chunk to WAVE_FORMAT_EXTENSIBLE with an explicit speaker mask.
+      const input = new Uint8Array(wav.length + 24);
+      input.set(wav.subarray(0, 36));
+      input.set(wav.subarray(36), 60);
+      const view = new DataView(input.buffer);
+      view.setUint32(4, input.length - 8, true);
+      view.setUint32(16, 40, true);
+      view.setUint16(20, 0xfffe, true);
+      view.setUint16(36, 22, true);
+      view.setUint16(38, 16, true);
+      view.setUint32(40, mask, true);
+      input.set([1, 0, 0, 0, 0, 0, 16, 0, 128, 0, 0, 170, 0, 56, 155, 113], 44);
+      const fs = Volume.fromJSON({});
+      fs.writeFileSync("/in.wav", input);
+      let stdout = "", stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-i", "/in.wav", ...(downmix ? ["-ac", "1"] : []), "-f", "framemd5", "-"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return fs.readFileSync(path); },
+          async stat(path: string) { return fs.statSync(path); }
+        },
+        stdin: (async function* () {})(),
+        stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.deepEqual(stdout.split("\n").filter(line => line.startsWith("#channel_layout_name")),
+        [`#channel_layout_name 0: ${downmix ? "mono" : layout}`]);
+      assert.ok(stdout.includes("#sample_rate 0: 8000\n"));
+    });
   }
 }

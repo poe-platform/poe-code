@@ -1,3 +1,4 @@
+import { decimate } from "./decimate.js";
 import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
 import { renderTestsrc } from "./testsrc.js";
@@ -1967,6 +1968,13 @@ async function applyVideoFilterChain(
         }
         return selected;
       });
+    } else if (name === "decimate") {
+      const cycle = Number(named.cycle ?? (argStr || "5"));
+      if (positional.length > 1 || Object.keys(named).some(key => key !== "cycle") ||
+          !Number.isInteger(cycle) || cycle < 2 || cycle > 25) {
+        throw new Error("decimate: only cycle is supported; expected an integer from 2 to 25");
+      }
+      current = await decimate(current, cycle, budget, signal);
     } else if (name === "mpdecimate") {
       if (argStr) throw new Error("mpdecimate: custom options are unsupported");
       const retained: typeof current = [];

@@ -573,7 +573,7 @@ export function encodeImage(
     case "pfm": return encodePfmImage(img, fmt);
     case "pam": {
       const data = encodePpm(img, options.netpbmDepth, false, true);
-      return { data, format: "pam", channels: img.hasAlpha ? 4 : 3 };
+      return { data, format: "pam", channels: (img.space === "b-w" || img.space === "grey16" ? 1 : 3) + (img.hasAlpha ? 1 : 0) };
     }
     case "ppm": {
       const data = encodePpm(img, options.netpbmDepth, options.netpbmAscii);

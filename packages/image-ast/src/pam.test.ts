@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import sharp, { decodeImage } from "./index.js";
+import sharp, { decodeImage, encodeImage } from "./index.js";
 
 for (const [tuple, channels, maximum, hex, rgba] of [
     ["BLACKANDWHITE", 1, 1, "0001", "000000ffffffffff"],
@@ -41,3 +41,19 @@ for (const header of [
     await filesystem.writeFile("/in", input);
     await expect(sharp("/in", { filesystem }).png().toFile("/out")).rejects.toThrow();
 });
+
+for (const depth of [8, 16]) for (const alpha of [false, true]) {
+    it(`preserves grayscale PAM layout at ${depth} bits, alpha=${alpha}`, async () => {
+        const tuple = alpha ? "GRAYSCALE_ALPHA" : "GRAYSCALE";
+        const channels = alpha ? 2 : 1;
+        const samples = Buffer.from(depth === 16 ? (alpha ? "12348080abcd0000" : "1234abcd") : (alpha ? "2f80c800" : "2fc8"), "hex");
+        const input = Buffer.concat([Buffer.from(`P7\nWIDTH 2\nHEIGHT 1\nDEPTH ${channels}\nMAXVAL ${depth === 16 ? 65535 : 255}\nTUPLTYPE ${tuple}\nENDHDR\n`), samples]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.pam", input);
+        const sync = encodeImage(decodeImage(input), { format: "pam" });
+        expect(Buffer.from(sync.data)).toEqual(input);
+        expect(sync.channels).toBe(channels);
+        await sharp("/in.pam", { filesystem }).toFormat("pam").toFile("/out.pam");
+        expect(Buffer.from(await filesystem.readFile("/out.pam"))).toEqual(input);
+    });
+}

@@ -70,8 +70,9 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
  if(!Number.isInteger(depth)||depth<1||depth>16) throw new RangeError("Invalid Netpbm depth");
  const maximum=2**depth-1;
  if(format==="pam") ascii=false;
- const channels=format==="pam"?(image.hasAlpha?4:3):format==="ppm"?3:1;
- const pamHeader=`P7\nWIDTH ${image.width}\nHEIGHT ${image.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${image.hasAlpha?"RGB_ALPHA":"RGB"}\nENDHDR\n`;
+ const gray=format==="pam"&&(image.space==="b-w"||image.space==="grey16");
+ const channels=format==="pam"?(gray?1:3)+(image.hasAlpha?1:0):format==="ppm"?3:1;
+ const pamHeader=`P7\nWIDTH ${image.width}\nHEIGHT ${image.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${gray?"GRAYSCALE":"RGB"}${image.hasAlpha?"_ALPHA":""}\nENDHDR\n`;
  const {width,height,position}=image;
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)||!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+width*height*4)) throw new RangeError("Invalid Netpbm backing dimensions");
  if(format!=="pbm"&&image.storedData16) {
@@ -87,7 +88,7 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
    const data=new Uint16Array(new Uint8Array(bytes).buffer),out=new Uint8Array(ascii?0:pixels*channels*(depth>8?2:1));let dst=0;const text:string[]=[];
    for(let i=0;i<pixels;i++) {
     const r=data[i*4]!,g=data[i*4+1]!,b=data[i*4+2]!;
-    for(const value of format==="pam"?(image.hasAlpha?[r,g,b,data[i*4+3]!]:[r,g,b]):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(ascii){text.push(String(scaled));continue;}if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
+    for(const value of format==="pam"?(gray?(image.hasAlpha?[r,data[i*4+3]!]:[r]):(image.hasAlpha?[r,g,b,data[i*4+3]!]:[r,g,b])):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(ascii){text.push(String(scaled));continue;}if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
    }
    yield ascii?new TextEncoder().encode(text.join("\n")+"\n"):out;
   }
@@ -100,7 +101,7 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
   for(let x=0;x<width;x++) {
    const value=await pixels.pixel(y*width+x),r=value&255,g=value>>>8&255,b=value>>>16&255;
    if(format!=="pbm") {
-    for(const channel of format==="pam"?(image.hasAlpha?[r,g,b,value>>>24]:[r,g,b]):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {
+    for(const channel of format==="pam"?(gray?(image.hasAlpha?[r,value>>>24]:[r]):(image.hasAlpha?[r,g,b,value>>>24]:[r,g,b])):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {
      const scaled=Math.round(channel*maximum/255);
      if(ascii) {
       for(const byte of new TextEncoder().encode(`${scaled}\n`)) {buffer[used++]=byte;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}

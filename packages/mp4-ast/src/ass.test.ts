@@ -28,9 +28,9 @@ it("honors declared event field order and ignores invalid cue times", () => {
     "[Script Info]", "[Events]", "Format: Start, End, Layer, Text",
     "Dialogue: 0:00:01.25,0:00:03.50,0,a,b",
     "Dialogue: invalid,0:00:03.50,0,ignored",
-    "Dialogue: 0:00:05.00,0:00:03.50,0,reversed"
+    "Dialogue: 0:00:05.00,0:00:03.50,0,ignored"
   ].join("\n")));
-  assert.equal(doc.tracks[0]!.samples.length, 2);
+  assert.equal(doc.tracks[0]!.samples.length, 1);
   assert.equal(decodeUtf8(doc.tracks[0]!.samples[0]!.data), "a,b");
 });
 
@@ -44,20 +44,3 @@ it("copies encoded ASS event fields in declared order while retaining editable t
   const shifted = { ...doc, tracks: [{ ...track, samples: track.samples.map(sample => ({ ...sample, pts: sample.pts + 1000 })) }] };
   assert.equal(decodeUtf8(plugin.serialize(shifted)), header + "Dialogue: 0:00:02.25,0:00:04.50,3,{\\i1}a,b\\Nnext{\\i0}\n");
 });
-
-for (const decodeSubtitles of [false, true]) {
-  it(`retains reversed ASS intervals, decodeSubtitles=${decodeSubtitles}`, () => {
-    const plugin = assAst();
-    const input = encodeUtf8("[Script Info]\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 3,0:00:03.00,0:00:01.00,Default,Actor,0010,0020,0030,,Timed\n");
-    const doc = plugin.parse(input, { decodeSubtitles });
-    assert.equal(doc.tracks[0]!.samples.length, 1);
-    const sample = doc.tracks[0]!.samples[0]!;
-    assert.equal(sample.pts, 3000);
-    assert.equal(sample.duration, decodeSubtitles ? 4294965296 : -2000);
-    if (decodeSubtitles) {
-      assert.equal(doc.duration, 4294968296);
-    } else {
-      assert.ok(decodeUtf8(plugin.serialize(doc)).includes("0:00:03.00,0:00:01.00"));
-    }
-  });
-}

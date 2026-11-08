@@ -4757,7 +4757,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (transition !== "fade" && transition !== "wipeleft") {
                   throw new Error(`Unsupported xfade transition: ${transition}`);
                 }
-                const fadeDur = parseFloat(named.duration ?? "0.5") || 0.5;
+                const fadeDur = parseFloat(named.duration ?? "1") || 1;
                 const fps = f0[0]?.durationSeconds ? Math.round(1 / f0[0].durationSeconds) : 25;
                 const overlapFrames = Math.max(1, Math.min(f0.length, f1.length, Math.round(fadeDur * fps)));
                 const offsetSec = named.offset !== undefined ? parseFloat(named.offset) : Math.max(0, (f0.length - overlapFrames) / fps);

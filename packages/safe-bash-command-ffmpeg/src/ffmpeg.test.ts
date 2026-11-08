@@ -16,6 +16,33 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("xfade duration", () => {
+  for (const duration of [undefined, "1", "0.5"]) {
+    it(`matches native fade timing with duration=${duration ?? "default"}`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-v", "error",
+        "-f", "lavfi", "-i", "color=c=red:s=8x8:r=4:d=2",
+        "-f", "lavfi", "-i", "color=c=blue:s=8x8:r=4:d=2",
+        "-filter_complex", `[0:v][1:v]xfade=${duration === undefined ? "" : `duration=${duration}:`}offset=0`,
+        "/%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(vfs.store.size, 8);
+      // Native FFmpeg PNG red channels; lavfi color conversion differs by at most one.
+      const expected = duration === "0.5"
+        ? [254, 127, 0, 0, 0, 0, 0, 0]
+        : [254, 190, 127, 63, 0, 0, 0, 0];
+      for (const [index, red] of expected.entries()) {
+        const frame = decodeImage(vfs.store.get(`/${index + 1}.png`)!);
+        assert.ok(Math.abs(frame.data[0]! - red) <= 1,
+          `frame ${index + 1}: expected red ${red}, got ${frame.data[0]}`);
+      }
+    });
+  }
+});
+
 describe("stack input counts", () => {
   for (const axis of ["hstack", "vstack"]) {
     for (const count of [1, 0, -1, 2147483648]) {

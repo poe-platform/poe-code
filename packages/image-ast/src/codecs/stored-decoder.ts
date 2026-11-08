@@ -1,3 +1,5 @@
+import { isRadianceBytes } from "./radiance.js";
+import { decodeRadianceToStorage } from "./radiance-storage.js";
 import { isExrBytes } from "./exr.js";
 import { decodeExrToStorage } from "./exr-storage.js";
 import { isPhmBytes } from "./phm.js";
@@ -33,6 +35,7 @@ export async function storedImageDecoder(source:ImageByteSource,signal:AbortSign
  signal.throwIfAborted();const length=Math.min(54,source.size),prefix=await source.read(0,length,{signal});signal.throwIfAborted();
  if(!(prefix instanceof Uint8Array)||prefix.length!==length)throw new Error("Truncated image source");
  if(isExrBytes(prefix))return decodeExrToStorage;
+ if(isRadianceBytes(prefix))return decodeRadianceToStorage;
  if(isPfmBytes(prefix))return decodePfmToStorage;
  if(isPhmBytes(prefix))return decodePhmToStorage;
  if(isTxtBytes(prefix))return readTxtFromSource;

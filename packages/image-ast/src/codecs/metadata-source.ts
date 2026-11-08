@@ -1,3 +1,5 @@
+import { isRadianceBytes } from "./radiance.js";
+import { readRadianceFromSource } from "./radiance-storage.js";
 import { isExrBytes } from "./exr.js";
 import { readExrFromSource } from "./exr-storage.js";
 import { isPhmBytes } from "./phm.js";
@@ -60,6 +62,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  else if(isBmpBytes(prefix))metadata={...readBmpMetadata(prefix),size:source.size};
  else if(isExrBytes(prefix))metadata=(await readExrFromSource(source,signal)).metadata;
  else if(isPfmBytes(prefix)) { metadata=(await readPfmFromSource(source,signal)).metadata; }
+ else if(isRadianceBytes(prefix)) { metadata=(await readRadianceFromSource(source,signal)).metadata; }
  else if(isPhmBytes(prefix)) { metadata=(await readPhmFromSource(source,signal)).metadata; }
  else if(isNetpbmBytes(prefix)) {
   const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmSequenceSteps(source.size);let next=steps.next();

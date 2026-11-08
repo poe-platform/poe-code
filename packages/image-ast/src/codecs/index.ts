@@ -1,3 +1,4 @@
+import { isRadianceBytes, readRadianceHeader, decodeRadianceImage } from "./radiance.js";
 import { isExrBytes, readExrHeader, decodeExrImage } from "./exr.js";
 import { encodeExrImage } from "./exr-output.js";
 import { encodePfmImage } from "./pfm-output.js";
@@ -65,6 +66,7 @@ import {
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isExrBytes(bytes)) return "exr";
+  if (isRadianceBytes(bytes)) return "hdr";
   if (isPhmBytes(bytes)) return "phm";
   if (isPfmBytes(bytes)) return "pfm";
   if (isTxtBytes(bytes)) return "txt";
@@ -159,6 +161,7 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
+    case "hdr": meta = readRadianceHeader(bytes).metadata; break;
     case "exr": meta = readExrHeader(bytes).metadata; break;
     case "phm": meta = readPhmHeader(bytes).metadata; break;
     case "tga":
@@ -394,6 +397,7 @@ export function decodeImage(
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;
   switch (meta.format) {
+    case "hdr": decoded = decodeRadianceImage(bytes, options); break;
     case "exr": decoded = decodeExrImage(bytes, options); break;
     case "phm": decoded = decodePhmImage(bytes, options); break;
     case "tga":

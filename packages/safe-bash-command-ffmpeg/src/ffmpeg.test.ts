@@ -6618,6 +6618,39 @@ describe("chapter mapping", () => {
 });
 
 
+describe("scaled audio frame limits", () => {
+  for (const sync of [false, true]) {
+    for (const option of ["-frames:a", "-aframes"]) {
+      for (const [limit, count] of [["2", 1024], ["0.002k", 1024], ["1k", 16000], ["2Ki", 16000], ["2000m", 1024]] as const) {
+        it(`${sync ? "sync" : "async"} ${option} ${limit} preserves scaled PCM samples`, async () => {
+          const samples = Float64Array.from({ length: 16000 }, (_, i) => (i - 8000) / 32768);
+          const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [samples] }) });
+          const args = ["-i", "/in.wav", "-c:a", "copy", option, limit, "/out.wav"];
+          if (sync) {
+            assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+              (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+          } else {
+            const result = await runCmd(createFfmpegCommand(), args, vfs);
+            assert.equal(result.exitCode, 0, result.stderr);
+          }
+          const actual = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+          assert.deepEqual(Array.from(actual), Array.from(samples.slice(0, count)));
+        });
+      }
+    }
+  }
+  for (const limit of ["1m", "0.0025k", "2Kii", "Ki", "1e100k"]) {
+    it(`rejects invalid scaled audio frame count ${limit}`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(16)] }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-c:a", "copy",
+        "-frames:a", limit, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /invalid audio frame limit/);
+      assert.equal(vfs.store.has("/out.wav"), false);
+    });
+  }
+});
+
 describe("negative audio frame limits", () => {
   for (const option of ["-frames:a", "-aframes"]) {
     for (const limit of [-2, -1, 0, 1, undefined]) {

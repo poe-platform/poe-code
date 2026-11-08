@@ -236,6 +236,20 @@ function serializeChecksum(
   return encodeUtf8(`${name.toUpperCase()}=${bytesToHex(hash.digest())}\n`);
 }
 
+function parseScaledFrameLimit(value: string | undefined): number {
+  let number = value ?? "";
+  const binary = number.endsWith("i");
+  if (binary) number = number.slice(0, -1);
+  const powers: Record<string, number> = {
+    y: -24, z: -21, a: -18, f: -15, p: -12, n: -9, u: -6, m: -3,
+    c: -2, d: -1, h: 2, k: 3, K: 3, M: 6, G: 9, T: 12, P: 15, E: 18, Z: 21, Y: 24
+  };
+  const power = powers[number.slice(-1)];
+  if (power !== undefined) number = number.slice(0, -1);
+  const scale = power === undefined ? 1 : binary ? 2 ** (power / 3 * 10) : 10 ** power;
+  return number.trim() && (!binary || power !== undefined) ? Number(number) * scale : NaN;
+}
+
 function parseAudioBitrate(value: string | undefined): number | undefined {
   const suffix = value?.slice(-1);
   const scale = suffix === "k" || suffix === "K" ? 1000 : suffix === "M" ? 1000000 : 1;
@@ -3650,7 +3664,7 @@ export function evalSyncFfmpeg(
       }
       else if (arg === "-frames:a" || arg === "-aframes") {
         const value = args[++i];
-        maxAudioFrames = value?.trim() ? Number(value) : NaN;
+        maxAudioFrames = parseScaledFrameLimit(value);
         if (!Number.isSafeInteger(maxAudioFrames)) return undefined;
         if (maxAudioFrames < 0) maxAudioFrames = undefined;
       }
@@ -4826,7 +4840,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-frames:a" || arg === "-aframes") {
             const value = args[++i];
-            maxAudioFrames = value?.trim() ? Number(value) : NaN;
+            maxAudioFrames = parseScaledFrameLimit(value);
             if (!Number.isSafeInteger(maxAudioFrames)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid audio frame limit\n"), context.signal);
               return { exitCode: 1 };

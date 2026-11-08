@@ -5589,8 +5589,18 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-monochrome") {
         apply = function* (image) { return yield* thresholdImageSteps(yield* grayscaleImageSteps(image), 128, true); };
     } else if (token === "-modulate") {
-        const parts = (tokens[++i] ?? "100,100,100").split(",").map(Number);
-        const brightness = (parts[0] ?? 100) / 100, saturation = (parts[1] ?? 100) / 100, hueShift = ((parts[2] ?? 100) - 100) * 3 / 100;
+        const raw = tokens[++i] ?? "";
+        if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+            throw new Error(`invalid argument for option '-modulate': ${raw}`);
+        }
+        // Native modulation geometry defaults omitted components to 100.
+        let value = "", component = 0;
+        for (const c of raw) {
+            if (c === "," || c === "/") value += component++ === 0 ? "x" : "+";
+            else if (c.trim() !== "" && !"!#%()<>@\\^".includes(c)) value += c;
+        }
+        const geometry = parseMagickGeometry(value);
+        const brightness = (geometry.width ?? 100) / 100, saturation = (geometry.height ?? 100) / 100, hueShift = ((geometry.hasOffset ? geometry.x : 100) - 100) * 3 / 100;
         // ImageMagick defaults to HSL modulation; image-ast uses libvips LCh.
         apply = function* (image) {
             const out = new Uint8Array(image.data);

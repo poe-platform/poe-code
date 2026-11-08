@@ -45,7 +45,7 @@ for (const sync of [false, true]) {
         offset += 8 + size + size % 2;
       }
       if (mode === "only" || mode === "2") {
-        assert.deepEqual([...chunks.keys()], ["levl"]);
+        assert.deepEqual([...chunks.keys()].filter(key => key !== "LIST"), ["levl"]);
       } else {
         assert.deepEqual(chunks.get("data"), input.subarray(44));
         assert.deepEqual(parseWav(output).tracks[0]!.decodedAudio, parseWav(input).tracks[0]!.decodedAudio);

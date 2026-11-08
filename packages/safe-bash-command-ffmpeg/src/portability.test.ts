@@ -121,7 +121,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes selectable ICO/CUR streams and the current icon container command graph (833,464 bytes).
   // Includes HQX interpolation and the current pixel-art filter graph (847,057 bytes).
   // Includes tremolo modulation and the current audio filter graph (852,824 bytes).
-  assert.ok(otherCodeBytes < 860_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes GIF input options and WAV encoder metadata.
+  assert.ok(otherCodeBytes < 865_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

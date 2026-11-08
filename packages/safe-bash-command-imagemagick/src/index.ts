@@ -2435,12 +2435,12 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
       continue;
     }
     const two = src.slice(k, k + 2);
-    if (two === "==" || two === "!=" || two === "<=" || two === ">=" || two === "&&" || two === "||" || two === "**") {
+    if (two === "==" || two === "!=" || two === "<=" || two === ">=" || two === "&&" || two === "||" || two === "**" || two === "<<" || two === ">>") {
       tokens.push({ type: "op", val: two });
       k += 2;
       continue;
     }
-    if ("+-*/%^<>!?".includes(ch)) {
+    if ("+-*/%^<>!?&|".includes(ch)) {
       tokens.push({ type: "op", val: ch });
       k++;
       continue;
@@ -2485,12 +2485,41 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
   }
 
   function parseAnd(): (ctx: FxEvalContext) => number {
-    let left = parseEquality();
+    let left = parseBitwiseOr();
     while (peek()?.val === "&&") {
+      next();
+      const right = parseBitwiseOr();
+      const prev = left;
+      left = (ctx) => (prev(ctx) !== 0 && right(ctx) !== 0 ? 1 : 0);
+    }
+    return left;
+  }
+
+  function bitwiseInteger(value: number): bigint {
+    // ImageMagick rounds to the nearest unsigned 64-bit integer, saturating at its limits.
+    if (!(value > 0)) return 0n;
+    if (value >= 2 ** 64) return (1n << 64n) - 1n;
+    return BigInt(Math.floor(value + 0.5));
+  }
+
+  function parseBitwiseOr(): (ctx: FxEvalContext) => number {
+    let left = parseBitwiseAnd();
+    while (peek()?.val === "|") {
+      next();
+      const right = parseBitwiseAnd();
+      const prev = left;
+      left = (ctx) => Number(bitwiseInteger(prev(ctx)) | bitwiseInteger(right(ctx)));
+    }
+    return left;
+  }
+
+  function parseBitwiseAnd(): (ctx: FxEvalContext) => number {
+    let left = parseEquality();
+    while (peek()?.val === "&") {
       next();
       const right = parseEquality();
       const prev = left;
-      left = (ctx) => (prev(ctx) !== 0 && right(ctx) !== 0 ? 1 : 0);
+      left = (ctx) => Number(bitwiseInteger(prev(ctx)) & bitwiseInteger(right(ctx)));
     }
     return left;
   }
@@ -2510,7 +2539,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
   }
 
   function parseRelational(): (ctx: FxEvalContext) => number {
-    let left = parseAdditive();
+    let left = parseShift();
     while (
       peek()?.val === "<" ||
       peek()?.val === "<=" ||
@@ -2518,12 +2547,27 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
       peek()?.val === ">="
     ) {
       const op = next()!.val;
-      const right = parseAdditive();
+      const right = parseShift();
       const prev = left;
       if (op === "<") left = (ctx) => (prev(ctx) < right(ctx) ? 1 : 0);
       else if (op === "<=") left = (ctx) => (prev(ctx) <= right(ctx) ? 1 : 0);
       else if (op === ">") left = (ctx) => (prev(ctx) > right(ctx) ? 1 : 0);
       else left = (ctx) => (prev(ctx) >= right(ctx) ? 1 : 0);
+    }
+    return left;
+  }
+
+  function parseShift(): (ctx: FxEvalContext) => number {
+    let left = parseAdditive();
+    while (peek()?.val === "<<" || peek()?.val === ">>") {
+      const op = next()!.val;
+      const right = parseAdditive();
+      const prev = left;
+      left = (ctx) => {
+        const value = bitwiseInteger(prev(ctx)), shift = bitwiseInteger(right(ctx));
+        if (shift >= 64n) throw new Error(`Undefined FX shift: ${shift}`);
+        return Number(op === "<<" ? BigInt.asUintN(64, value << shift) : value >> shift);
+      };
     }
     return left;
   }

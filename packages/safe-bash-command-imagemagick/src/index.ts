@@ -4421,6 +4421,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
       return "pam";
     case "phm":
       return "phm";
+    case "exr":
+      return "exr";
     case "pfm":
       return "pfm";
     case "pnm":

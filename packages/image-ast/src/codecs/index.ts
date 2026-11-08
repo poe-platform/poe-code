@@ -1,3 +1,4 @@
+import { encodeExrImage } from "./exr-output.js";
 import { encodePfmImage } from "./pfm-output.js";
 import { isPhmBytes, readPhmHeader, decodePhmImage } from "./phm.js";
 import { isPfmBytes, readPfmHeader, decodePfmImage } from "./pfm.js";
@@ -453,6 +454,7 @@ export function encodeImage(
   const fmt = requested === "pnm" ? netpbmFormat(img.data16 ?? img.data) : requested;
 
   switch (fmt) {
+    case "exr": return { data: encodeExrImage(img), format: "exr", channels: img.hasAlpha ? 4 : 3 };
     case "tga": return { data: encodeTgaImage(img, options), format: "tga", channels: img.hasAlpha ? 4 : 3 };
     case "ico":
     case "cur": return { data: encodeIcoImage(img), format: fmt, channels: 4 };

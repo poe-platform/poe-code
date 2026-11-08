@@ -2934,6 +2934,22 @@ async function applyVideoFilterChain(
   return current;
 }
 
+function mapGlobalMetadata(documents: readonly MediaDocument[], sources: readonly number[]): Mp4MetadataTags {
+  if (sources.length === 0) return documents[0]!.metadata;
+  let metadata: Mp4MetadataTags = {};
+  for (const source of sources) {
+    if (source >= documents.length) throw new Error(`Invalid metadata input index: ${source}`);
+    if (source < 0) continue;
+    const tags = documents[source]!.metadata;
+    metadata = {
+      ...Object.fromEntries(Object.entries(tags).filter(([, value]) => value !== undefined)),
+      ...metadata,
+      custom: { ...tags.custom, ...metadata.custom }
+    };
+  }
+  return metadata;
+}
+
 function applyStreamLanguages(tracks: readonly MediaTrack[], languages: readonly [string, string][], metadataSource: number | undefined): readonly MediaTrack[] {
   if (metadataSource !== undefined && metadataSource < 0) {
     tracks = tracks.map(track => ({ ...track, language: "und" }));
@@ -3367,7 +3383,7 @@ export function evalSyncFfmpeg(
     let noOverwrite: boolean | undefined;
     const vfFilters: string[] = [];
     let chapterSource: number | undefined;
-    let metadataSource: number | undefined;
+    const metadataSources: number[] = [];
     const metadata: Record<string, string> = {};
     const streamLanguages: [string, string][] = [];
     const streamDispositions: [string, string][] = [];
@@ -3391,8 +3407,9 @@ export function evalSyncFfmpeg(
       } else if (arg === "-map_metadata" || arg === "-map_metadata:g") {
         const source = args[++i];
         const value = source?.endsWith(":g") ? source.slice(0, -2) : source;
-        metadataSource = value?.trim() ? Number(value) : NaN;
+        const metadataSource = value?.trim() ? Number(value) : NaN;
         if (!Number.isSafeInteger(metadataSource)) return undefined;
+        metadataSources.push(metadataSource);
       } else if (arg === "-start_number") {
         const val = Number(args[++i]);
         if (!Number.isSafeInteger(val) || val < 0) return undefined;
@@ -3764,9 +3781,7 @@ export function evalSyncFfmpeg(
       if (chapterSource >= loadedDocs.length) return undefined;
       workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : loadedDocs[chapterSource]!.chapters };
     }
-    if (metadataSource !== undefined && metadataSource >= loadedDocs.length) return undefined;
-    const sourceMetadata = metadataSource === undefined ? loadedDocs[0]!.metadata
-      : metadataSource < 0 ? {} : loadedDocs[metadataSource]!.metadata;
+    const sourceMetadata = mapGlobalMetadata(loadedDocs, metadataSources);
     const metaTags: Mp4MetadataTags = {
       ...sourceMetadata,
       description: metadata.description ?? sourceMetadata.description,
@@ -3779,7 +3794,7 @@ export function evalSyncFfmpeg(
       genre: metadata.genre ?? sourceMetadata.genre,
       encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
-    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSource), streamDispositions) };
+    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSources.at(-1)), streamDispositions) };
     workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
@@ -4140,7 +4155,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let logLevel = 32;
         const afFilters: { ordinal: number | undefined; expression: string }[] = [];
         let chapterSource: number | undefined;
-        let metadataSource: number | undefined;
+        const metadataSources: number[] = [];
         const metadata: Record<string, string> = {};
         const streamLanguages: [string, string][] = [];
         const streamDispositions: [string, string][] = [];
@@ -4380,11 +4395,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-map_metadata" || arg === "-map_metadata:g") {
             const source = args[++i];
             const value = source?.endsWith(":g") ? source.slice(0, -2) : source;
-            metadataSource = value?.trim() ? Number(value) : NaN;
+            const metadataSource = value?.trim() ? Number(value) : NaN;
             if (!Number.isSafeInteger(metadataSource)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid metadata input index\n"), context.signal);
               return { exitCode: 1 };
             }
+            metadataSources.push(metadataSource);
           } else if (arg === "-frame_pts") {
             const value = args[++i]?.toLowerCase();
             if (value !== undefined && ["yes", "true", "on", "y", "enable", "enabled"].includes(value)) {
@@ -7120,11 +7136,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : loadedDocs[chapterSource]!.chapters };
             }
-            if (metadataSource !== undefined && metadataSource >= loadedDocs.length) {
-              throw new Error(`Invalid metadata input index: ${metadataSource}`);
-            }
-            const sourceMetadata = metadataSource === undefined ? loadedDocs[0]!.metadata
-              : metadataSource < 0 ? {} : loadedDocs[metadataSource]!.metadata;
+            const sourceMetadata = mapGlobalMetadata(loadedDocs, metadataSources);
 
             // Apply `-metadata` tags
             const metaTags: Mp4MetadataTags = {
@@ -7143,7 +7155,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ...workingDoc,
               faststart,
               metadata: metaTags,
-              tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSource), streamDispositions)
+              tracks: applyStreamDispositions(applyStreamLanguages(workingDoc.tracks, streamLanguages, metadataSources.at(-1)), streamDispositions)
             };
 
             let decodeExitCode = demuxExitCode;

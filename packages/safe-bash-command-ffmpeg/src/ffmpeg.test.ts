@@ -6433,6 +6433,31 @@ describe("WAV encoder identification", () => {
 });
 
 describe("global metadata mapping", () => {
+  for (const sync of [false, true]) {
+    for (const sources of [[0, 1], [1, 0]]) {
+      it(`${sync ? "sync" : "async"} merges repeated global metadata maps ${sources}`, async () => {
+        const first = createSyntheticMp4({ frameCount: 2, includeAudio: true, metadata: { title: "First", artist: "Alice" } });
+        const second = createSyntheticMp4({ frameCount: 1, includeAudio: true, metadata: { title: "Second", album: "Beta" } });
+        const vfs = createTestVfs({ "/first.mp4": first, "/second.mp4": second });
+        const args = ["-i", "/first.mp4", "-i", "/second.mp4",
+          ...(sync ? [] : ["-map", "0:a:0"]),
+          ...sources.flatMap(source => ["-map_metadata", String(source)]), "-c", "copy", "/out.mp4"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const output = parseMp4(vfs.store.get("/out.mp4")!);
+        assert.equal(output.metadata.title, sources[0] === 0 ? "First" : "Second");
+        assert.equal(output.metadata.artist, "Alice");
+        assert.equal(output.metadata.album, "Beta");
+        assert.deepEqual(output.tracks.find(t => t.type === "audio")?.samples.map(s => [s.data, s.duration, s.pts]),
+          parseMp4(first).tracks.find(t => t.type === "audio")?.samples.map(s => [s.data, s.duration, s.pts]));
+      });
+    }
+  }
   for (const [option, suffix] of [["-map_metadata", ""], ["-map_metadata", ":g"], ["-map_metadata:g", ""], ["-map_metadata:g", ":g"]] as const) {
     for (const sync of [false, true]) {
       for (const [mapping, title] of [[undefined, "First"], ["0", "First"], ["1", "Second"], ["-1", undefined]] as const) {

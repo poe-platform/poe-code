@@ -283,6 +283,7 @@ without creating or replacing the output. Stream copying remains supported. With
 `-map_metadata N` copies it from input N, and `-map_metadata -1` suppresses copying.
 Explicit global selectors are accepted on either side: `-map_metadata N:g`,
 `-map_metadata:g N`, and `-map_metadata:g N:g`.
+Repeated global maps fill missing tags in argument order, keeping the first mapped value for duplicate keys.
 Explicit `-metadata key=value` tags override copied metadata.
 Each output filename closes its option group: `-t 0.025 a.wav -t 0.075 b.wav`
 writes both files with independent durations. Output options reset after each filename;

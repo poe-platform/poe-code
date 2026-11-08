@@ -12,6 +12,8 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         ["#80402080", "10x0", [], [154, 90, 58, 154]],
         ["#80402080", "10x20", [], [160, 80, 40, 160]],
         ["#80402080", "-10x-20", [], [108, 56, 31, 108]],
+        ["#80402080", "-10,-20", [], [108, 56, 31, 108]],
+        ["#80402080", "-10/-20", [], [108, 56, 31, 108]],
         ["#80402080", "0x-100", [], [128, 128, 128, 128]],
         ["#80402080", "0x100", [], [255, 0, 0, 255]],
         ["#80402080", "-10x-20", ["-alpha", "off"], [108, 56, 31, 255]],
@@ -32,7 +34,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
 }
 
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
-    it.each(["bogus", "10x20junk", "10x20"])(`preserves output on invalid brightness-contrast %s via ${mode}`, async geometry => {
+    it.each(["bogus", "10x20junk", "10x20", "10,20", "10/20"])(`validates brightness-contrast %s before writing via ${mode}`, async geometry => {
         const input = await sharp(Uint8Array.from([25, 100, 220]), { raw: { width: 1, height: 1, channels: 3 } }).png().toBuffer();
         const destination = await sharp(Uint8Array.from([255, 0, 0]), { raw: { width: 1, height: 1, channels: 3 } }).png().toBuffer();
         const files = new Map([["in.png", input], ["out.png", destination]]);
@@ -48,7 +50,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         }) : mode === "sync" ? runConvertCliSync(args, files)
             : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
         const output = mode === "retained" || mode === "command" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
-        if (geometry === "10x20") {
+        if (["10x20", "10,20", "10/20"].includes(geometry)) {
             expect(result.exitCode).toBe(0);
             expect([...decodeImage(output).data]).toEqual([31, 125, 255, 255]);
         } else {

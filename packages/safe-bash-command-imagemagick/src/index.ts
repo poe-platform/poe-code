@@ -5629,7 +5629,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-brightness-contrast") {
-        const raw = tokens[++i] ?? "";
+        const raw = (tokens[++i] ?? "").replaceAll(",", "x").replaceAll("/", "x");
         validateMagickTransformGeometry(raw, token);
         const [brightness = 0, contrast = 0] = raw.split("x").map(value => parseFloat(value) || 0);
         // ImageMagick BrightnessContrastImage: a polynomial centered at midgray.

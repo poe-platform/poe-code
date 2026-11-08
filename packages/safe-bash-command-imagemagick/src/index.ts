@@ -1501,7 +1501,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, voi
     const gray16 = (img.space === "b-w" || img.space === "grey16") && img.data16 !== undefined;
     let work = 0;
     const lines: string[] = [
-        gray16 ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,gray${img.hasAlpha ? "a" : ""}` : (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},0,255,srgba`
+        gray16 ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,gray${img.hasAlpha ? "a" : ""}` : (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${img.width},${img.height},0,65535,${img.magickColorspace.toLowerCase()}${img.hasAlpha ? "a" : ""}` : `# ImageMagick pixel enumeration: ${img.width},${img.height},0,255,${img.magickColorspace === "RGB" ? `rgb${img.hasAlpha ? "a" : ""}` : "srgba"}`
     ];
     for (let y = 0; y < img.height; y++) {
         if (++work % 16384 === 0)
@@ -1518,7 +1518,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, voi
             const g = img.data[idx + 1]!;
             const b = img.data[idx + 2]!;
             const a = img.data[idx + 3]!;
-            lines.push((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") ? `${x},${y}: ${hueTextPixel(Array.from(img.data16?.subarray(idx, idx + 4) ?? img.data.subarray(idx, idx + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, (img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && img.hueSamples ? Array.from(img.hueSamples.subarray(idx, idx + 4)) : undefined)}` : pixelEnumerationLine(x, y, r, g, b, a));
+            lines.push((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") ? `${x},${y}: ${hueTextPixel(Array.from(img.data16?.subarray(idx, idx + 4) ?? img.data.subarray(idx, idx + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, (img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && img.hueSamples ? Array.from(img.hueSamples.subarray(idx, idx + 4)) : undefined)}` : pixelEnumerationLine(x, y, r, g, b, a, img.magickColorspace === "RGB" ? `rgb${img.hasAlpha ? "a" : ""}` : "srgba"));
         }
     }
     return lines.join("\n") + "\n";

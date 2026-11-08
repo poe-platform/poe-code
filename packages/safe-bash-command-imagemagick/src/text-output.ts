@@ -5,8 +5,9 @@ import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
 const hex = (value: number) => value.toString(16).toUpperCase().padStart(2, "0");
-export function pixelEnumerationLine(x: number, y: number, r: number, g: number, b: number, a: number): string {
-    return `${x},${y}: (${r},${g},${b},${a})  #${hex(r)}${hex(g)}${hex(b)}${a < 255 ? hex(a) : ""}  srgba(${r},${g},${b},${Number((a / 255).toPrecision(6))})`;
+export function pixelEnumerationLine(x: number, y: number, r: number, g: number, b: number, a: number, colorspace = "srgba"): string {
+    const alpha = colorspace.endsWith("a");
+    return `${x},${y}: (${r},${g},${b}${alpha ? `,${a}` : ""})  #${hex(r)}${hex(g)}${hex(b)}${alpha && (a < 255 || colorspace === "rgba") ? hex(a) : ""}  ${colorspace}(${r},${g},${b}${alpha ? `,${Number((a / 255).toPrecision(6))}` : ""})`;
 }
 export function gray16EnumerationLine(x: number, y: number, gray: number, alpha: number | undefined): string {
     const value = gray % 257 === 0 ? String(gray / 257) : `${Number((gray * 100 / 65535).toPrecision(6))}%`;
@@ -49,7 +50,7 @@ export async function* storedSparseColor(image: StoredRgbaImage, storage: PagedS
 }
 export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
     const gray16 = (image.space === "b-w" || image.space === "grey16") && image.storedData16 !== undefined;
-    yield gray16 ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,gray${image.hasAlpha ? "a" : ""}\n` : (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},0,255,srgba\n`;
+    yield gray16 ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,gray${image.hasAlpha ? "a" : ""}\n` : (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},0,255,${image.magickColorspace === "RGB" ? `rgb${image.hasAlpha ? "a" : ""}` : "srgba"}\n`;
     const size = image.width * image.height * 4;
     for (let start = 0; start < size; start += 16384) {
         await yieldTurn(signal);
@@ -68,7 +69,7 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
                 yield gray16EnumerationLine(pixel % image.width, Math.floor(pixel / image.width), data16![offset]!, image.hasAlpha ? data16![offset + 3]! : undefined) + "\n";
                 continue;
             }
-            yield pixelEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), bytes[offset]!, bytes[offset + 1]!, bytes[offset + 2]!, bytes[offset + 3]!) + "\n";
+            yield pixelEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), bytes[offset]!, bytes[offset + 1]!, bytes[offset + 2]!, bytes[offset + 3]!, image.magickColorspace === "RGB" ? `rgb${image.hasAlpha ? "a" : ""}` : "srgba") + "\n";
         }
     }
 }

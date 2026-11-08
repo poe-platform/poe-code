@@ -64,3 +64,40 @@ for (const [format, hex] of Object.entries(golden)) {
     }
   }
 }
+
+for (const sync of [false, true]) {
+  for (const placement of ["input", "output", "none"]) {
+    for (const codec of ["copy", "pcm_s16le"]) {
+      it(`limits headerless PCM duration with ${codec}, ${placement} -t (${sync ? "sync" : "async"})`, async () => {
+        const input = Buffer.alloc(16000);
+        for (let i = 0; i < 8000; i++) input.writeInt16LE(i, i * 2);
+        const volume = Volume.fromJSON({});
+        volume.writeFileSync("/in.raw", input);
+        const args = ["-v", "error", "-y", "-f", "s16le", "-ar", "8000", "-ac", "1",
+          ...(placement === "input" ? ["-t", "0.25"] : []), "-i", "/in.raw",
+          ...(placement === "output" ? ["-t", "0.25"] : []), "-c:a", codec, "-f", "s16le", "/out.raw"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined,
+            path => volume.readFileSync(path) as Buffer,
+            (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
+        } else {
+          let stderr = "";
+          const result = await createFfmpegCommand().execute({
+            args, cwd: "/", env: {}, signal: new AbortController().signal,
+            fs: {
+              async readFile(path: string) { return volume.readFileSync(path); },
+              async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+              async stat(path: string) { return volume.statSync(path); }
+            },
+            stdin: (async function* () {})(), stdout: { async write() {} },
+            stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+          } as never);
+          assert.equal(result.exitCode, 0, stderr);
+        }
+        // FFmpeg 7.0.2 keeps four 512-frame packets for copy; encoding trims exactly.
+        const frames = placement === "none" ? 8000 : codec === "copy" ? 2048 : 2000;
+        assert.deepEqual(volume.readFileSync("/out.raw"), input.subarray(0, frames * 2));
+      });
+    }
+  }
+}

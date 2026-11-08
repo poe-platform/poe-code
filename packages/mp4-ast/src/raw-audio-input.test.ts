@@ -35,3 +35,28 @@ it("checks resource limits before allocating decoded samples", () => {
   assert.throws(() => pcm.parse(bytes, { sampleRate: 8, limits: { maxDurationSeconds: 0.5 } }), /maxDurationSeconds/);
   assert.equal(pcm.parse(bytes, { decodeAudio: false, limits: { maxMemoryBytes: 0 } }).tracks[0]!.decodedAudio, undefined);
 });
+
+it("splits raw PCM into aligned PCM packets and accounts for their limit", () => {
+  const bytes = new Uint8Array(4000);
+  const doc = pcm.parse(bytes, { sampleRate: 8000, channels: 2, decodeAudio: false });
+  assert.deepEqual(doc.tracks[0]!.samples.map(s => [s.pts, s.duration, s.size]),
+    [[0, 512, 2048], [512, 488, 1952]]);
+  assert.throws(() => pcm.parse(bytes, { sampleRate: 8000, limits: { maxSamplesPerTrack: 3 } }), /maxSamplesPerTrack/);
+});
+
+for (const [sampleRate, packetFrames] of [[8000, 512], [44100, 4096], [48000, 4096]] as const) {
+  it(`packetizes raw PCM at ${sampleRate} Hz without splitting channel frames`, () => {
+    const bytes = new Uint8Array((packetFrames * 2 + 3) * 6);
+    const doc = pcm.parse(bytes, { sampleRate: sampleRate, channels: 3, decodeAudio: false });
+    const packets = doc.tracks[0]!.samples;
+    assert.deepEqual(packets.map(p => [p.pts, p.dts, p.duration, p.size]), [
+      [0, 0, packetFrames, packetFrames * 6],
+      [packetFrames, packetFrames, packetFrames, packetFrames * 6],
+      [packetFrames * 2, packetFrames * 2, 3, 18]
+    ]);
+    assert.deepEqual(pcm.serialize(doc, { audioCodec: "copy" }), bytes);
+    assert.throws(() => pcm.parse(bytes, {
+      sampleRate: sampleRate, channels: 3, decodeAudio: false, limits: { maxSamplesPerTrack: 2 }
+    }), /maxSamplesPerTrack/);
+  });
+}

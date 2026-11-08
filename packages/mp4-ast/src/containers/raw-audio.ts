@@ -1,4 +1,4 @@
-import { MediaBudgetTracker, type MediaDocument, type ParseMediaOptions, type MediaAstPlugin } from "../types.js";
+import { MediaBudgetTracker, type MediaDocument, type MediaSample, type ParseMediaOptions, type MediaAstPlugin } from "../types.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
 import { concatBytes } from "../binary.js";
 import { decodeAacTrack } from "../aac.js";
@@ -47,7 +47,20 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
   budget.checkInputBytes(bytes.length);
   budget.checkStreams(1);
   budget.checkDuration(frames / sampleRate);
-  budget.checkSamples(frames === 0 ? 0 : 1);
+  // FFmpeg targets ten PCM packets per second, rounding down to a power
+  // of two complete interleaved sample frames (ff_pcm_default_packet_size).
+  const packetFrames = 2 ** Math.floor(Math.log2(Math.max(1, Math.min(
+    Math.floor(sampleRate / 10), Math.floor(0x7fffffff / (width * channels))
+  ))));
+  budget.checkSamples(Math.ceil(frames / packetFrames));
+  const samples: MediaSample[] = [];
+  for (let start = 0; start < frames; start += packetFrames) {
+    budget.checkCpu();
+    const duration = Math.min(packetFrames, frames - start);
+    const data = bytes.subarray(start * width * channels, (start + duration) * width * channels);
+    samples.push({ data, size: data.length, dts: start, pts: start, cts: 0,
+      duration, isKeyframe: true, sampleDescriptionIndex: 1 });
+  }
   let channelData: Float64Array[] | undefined;
   if (options.decodeAudio !== false) {
     budget.allocateMemory(frames * channels * 8);
@@ -87,7 +100,7 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
     tracks: [{
       id: 1, type: "audio", handlerType: "soun", timescale: sampleRate, duration: frames, language: "und", enabled: true,
       codecDescriptions: [{ formatFourCC: "raw ", codecName: `pcm_${format}`, sampleRate, channels, bitsPerSample: bits }],
-      samples: frames === 0 ? [] : [{ data: bytes, size: bytes.length, dts: 0, pts: 0, cts: 0, duration: frames, isKeyframe: true, sampleDescriptionIndex: 1 }],
+      samples,
       ...(channelData ? { decodedAudio: { sampleRate, channels, channelData } } : {})
     }]
   };

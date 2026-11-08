@@ -2,9 +2,10 @@ import { MediaBudgetTracker, type MediaAstPlugin, type MediaDocument, type Parse
 import { buildProbeResultFromDoc, concatMp4, sliceMp4 } from "../mp4.js";
 import { rawAudioAsts } from "./raw-audio.js";
 import { parseImaQt } from "./aiff-ima.js";
+import { encodeImaQt } from "./aiff-ima-encoder.js";
 
 const pcm = rawAudioAsts();
-const codecs = ["pcm_s16be", "pcm_s8", "pcm_s24be", "pcm_s32be", "pcm_s16le", "pcm_f32be", "pcm_f64be", "pcm_alaw", "pcm_mulaw"];
+const codecs = ["pcm_s16be", "pcm_s8", "pcm_s24be", "pcm_s32be", "pcm_s16le", "pcm_f32be", "pcm_f64be", "pcm_alaw", "pcm_mulaw", "adpcm_ima_qt"];
 
 export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
@@ -78,18 +79,36 @@ export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions
   const codec = options.audioCodec === "copy" ? desc?.codecName : options.audioCodec ?? "pcm_s16be";
   if (!codec || !codecs.includes(codec)) throw new Error(`Codec ${codec} not supported in AIFF format`);
   const raw = pcm.find(plugin => `pcm_${plugin.id}` === codec)!;
-  const data = raw.serialize(doc, { ...options, audioCodec: options.audioCodec === "copy" ? "copy" : codec });
+  const ima = codec === "adpcm_ima_qt";
+  let data: Uint8Array;
+  if (ima && options.audioCodec === "copy") {
+    const size = track.samples.reduce((sum, sample) => sum + sample.data.length, 0);
+    options.budget?.checkOutputBytes(size);
+    options.budget?.allocateMemory(size);
+    data = new Uint8Array(size);
+    let offset = 0;
+    for (const sample of track.samples) {
+      options.budget?.checkCpu();
+      data.set(sample.data, offset);
+      offset += sample.data.length;
+    }
+  } else if (ima) {
+    if (!track.decodedAudio) throw new Error("QuickTime IMA encoding requires decoded audio");
+    data = encodeImaQt(track.decodedAudio.channelData, options.budget);
+  } else {
+    data = raw.serialize(doc, { ...options, audioCodec: options.audioCodec === "copy" ? "copy" : codec });
+  }
   const channels = track.decodedAudio?.channels ?? desc?.channels ?? 0;
   const sampleRate = track.decodedAudio?.sampleRate ?? desc?.sampleRate ?? 0;
   const g711 = codec === "pcm_alaw" || codec === "pcm_mulaw";
-  const bits = g711 ? 8 : Number.parseInt(codec.slice(5), 10);
-  const frames = data.length / (channels * bits / 8);
+  const bits = ima ? 4 : g711 ? 8 : Number.parseInt(codec.slice(5), 10);
+  const frames = ima ? data.length / (channels * 34) : data.length / (channels * bits / 8);
   if (!Number.isSafeInteger(frames) || channels < 1 || channels > 65535 ||
       !Number.isSafeInteger(sampleRate) || sampleRate < 1 || sampleRate > 0xffffffff || frames > 0xffffffff) {
     throw new Error("Invalid AIFF audio dimensions");
   }
   const title = new TextEncoder().encode((options.metadata ?? doc.metadata).title ?? "");
-  const compression = g711 ? (codec === "pcm_alaw" ? "alaw" : "ulaw") : codec === "pcm_s16le" ? "sowt" : codec.startsWith("pcm_f") ? `fl${bits}` : undefined;
+  const compression = ima ? "ima4" : g711 ? (codec === "pcm_alaw" ? "alaw" : "ulaw") : codec === "pcm_s16le" ? "sowt" : codec.startsWith("pcm_f") ? `fl${bits}` : undefined;
   const comm = compression ? 24 : 12;
   const titleOffset = comm + (compression ? 32 : 26);
   const sound = titleOffset + (title.length ? 8 + title.length + title.length % 2 : 0);

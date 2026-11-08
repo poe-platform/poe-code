@@ -32,6 +32,8 @@ Use `GIF87:out.gif` to write GIF87a without transparency, timing, loop or commen
 
 Use `-transparent-color color` to choose the transparent GIF palette color without changing opaque pixels or which pixels are transparent.
 
+Lossless animated WebP inputs read every frame in order with their delays and loop count. Use `animation.webp out.png` to extract PNG frames or `animation.webp[1] out.png` to select the second frame.
+
 Use `APNG:input.apng` to read all animation frames with their delays, blending and disposal; for example, `magick APNG:input.apng out.gif` or `magick APNG:input.apng -append strip.png`. An unprefixed PNG input still reads only its default image.
 
 Output parent directories must already exist, including directories selected with `mogrify -path`. Mogrify expands quoted filename patterns (`*`, `?`, and character classes such as `[ab]`) against the command filesystem, including literal SDK arguments. Unmatched patterns fail; parent directory names remain literal.

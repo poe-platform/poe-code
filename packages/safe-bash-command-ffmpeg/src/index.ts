@@ -1,3 +1,4 @@
+import { renderTestsrc } from "./testsrc.js";
 import { formatDate } from "safe-bash-calendar-engine/time-env/format";
 import { millisecondsInstant, TimeZone } from "safe-bash-calendar-engine/time-env/calendar";
 import { decodeMatroskaAss } from "./matroska-ass.js";
@@ -517,7 +518,9 @@ function* lavfiSteps(
     yield;
     budget.recordFrame(width, height);
     const rgba = new Uint8Array(width * height * 4);
-    for (let y = 0; y < height; y++) {
+    if (filterName === "testsrc") {
+      yield* renderTestsrc(rgba, width, height, i / fps);
+    } else for (let y = 0; y < height; y++) {
       if (y % 16 === 0) yield;
       for (let x = 0; x < width; x++) {
         if (++work % 1024 === 0) yield;

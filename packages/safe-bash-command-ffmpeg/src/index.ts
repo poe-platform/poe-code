@@ -1981,8 +1981,12 @@ async function applyVideoFilterChain(
       }
       for (const option of ["start_frame", "end_frame"]) {
         const value = named[option];
+        if (option === "start_frame" && Number(value) === -1) {
+          delete named[option];
+          continue;
+        }
         if (value !== undefined && (!value || !Number.isSafeInteger(Number(value)) || Number(value) < 0)) {
-          throw new Error(`trim: ${option} must be a nonnegative integer`);
+          throw new Error(`trim: ${option} must be a nonnegative integer${option === "start_frame" ? " or -1 (unset)" : ""}`);
         }
       }
       for (const option of ["start_pts", "end_pts"]) {

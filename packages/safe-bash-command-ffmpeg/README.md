@@ -258,7 +258,7 @@ For FLAC cover art, map the audio and PNG/JPEG inputs with `-map 0:a -map 1:v -c
 `xfade` supports the default `fade` and `transition=wipeleft`; other transitions fail
 without creating or replacing output.
 `trim` supports `start` (`starti`), `end` (`endi`), `duration` (`durationi`), `start_frame`, `end_frame`, `start_pts`, and `end_pts`; frame
-numbers are zero-based. Positional options follow `start:end:start_pts:end_pts:duration:start_frame:end_frame`;
+numbers are zero-based. `start_frame=-1` leaves the frame start unset, preserving any time or PTS start bound; lower values are invalid. Positional options follow `start:end:start_pts:end_pts:duration:start_frame:end_frame`;
 for example, `trim=0.5:1` keeps frames from 0.5 seconds up to 1 second. Positional integer bounds round to the nearest integer, with ties to even.
 PTS bounds use the input time base, and end bounds are exclusive. Unsupported trim options fail
 without replacing output.

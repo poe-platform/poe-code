@@ -34,6 +34,22 @@ describe("trim PTS validation", () => {
   }
 });
 
+describe("trim frame validation", () => {
+  for (const options of ["start_frame=-2", "end_frame=-1", "start_frame=bogus", "start_frame=Infinity", "start_frame="]) {
+    it(`rejects ${options} without replacing output`, async () => {
+      const previous = new Uint8Array([1, 2, 3]);
+      const vfs = createTestVfs({ "/out.png": previous });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-f", "lavfi", "-i", "color=red:s=2x2:r=4:d=1",
+        "-vf", `trim=${options}`, "/out.png"
+      ], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("trim:"), result.stderr);
+      assert.deepEqual(vfs.store.get("/out.png"), previous);
+    });
+  }
+});
+
 describe("trim positional validation", () => {
   for (const options of ["start=0.5:1", "0:1:0:4:1:0:6:7", "0:1:bogus", "0:1:"]) {
     it(`rejects ${options} without replacing output`, async () => {
@@ -66,6 +82,11 @@ it("trim keeps a positive duration that rounds to zero as an empty interval", as
 
 describe("trim preserves timestamps", () => {
   for (const [filter, expected] of [
+    ["trim=start_frame=-1", [20, 40, 60, 80, 100, 120]],
+    ["trim=start_frame=-1:start=0.5", [60, 80, 100, 120]],
+    ["trim=start_frame=-1:start_pts=2", [60, 80, 100, 120]],
+    ["trim=start_frame=-1:end_frame=3", [20, 40, 60]],
+    ["trim=0.5:1:2:4:0:-1", [60, 80]],
     ["trim=end_frame=0", []],
     ["trim=start=10", []],
     ["trim=start_frame=5:end_frame=2", []],

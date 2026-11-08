@@ -1137,14 +1137,23 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     if (!chain.startsWith("[") || inputEnd < 0 || outputStart <= inputEnd || !chain.endsWith("]")) {
       throw new Error("Unsupported audio filter graph: expected labeled chains");
     }
-    const expression = chain.slice(inputEnd + 1, outputStart).trim();
+    let expression = chain.slice(inputEnd + 1, outputStart).trim();
     if (!expression || expression.startsWith("[") || !outputs.length) {
       throw new Error("Unsupported audio filter graph");
     }
     const filters = parseFilterChain(expression);
     const last = filters.at(-1)!;
     const split = last === "channelsplit" || last.startsWith("channelsplit=") ? parseChannelSplit(last) : undefined;
-    if (outputs.length !== (split?.length ?? 1)) throw new Error("Audio filter output label count does not match filter outputs");
+    let outputCount = split?.length ?? 1;
+    if (last === "asplit" || last.startsWith("asplit=")) {
+      const argument = last.slice("asplit=".length);
+      const count = argument.startsWith("outputs=") ? argument.slice("outputs=".length) : argument;
+      outputCount = last === "asplit" ? 2 : Number(count);
+      if (!Number.isInteger(outputCount) || outputCount < 1) throw new Error("asplit: outputs must be a positive integer");
+      // Duplicate the source and preceding filters; each branch applies its own downstream filters.
+      expression = filters.slice(0, -1).join(",") || "anull";
+    }
+    if (outputs.length !== outputCount) throw new Error("Audio filter output label count does not match filter outputs");
     for (const [index, output] of outputs.entries()) {
       if (!output || nodes.has(output)) throw new Error("Duplicate or empty audio filter output");
       // Each graph edge evaluates the preceding chain, then selects its own PCM channel.

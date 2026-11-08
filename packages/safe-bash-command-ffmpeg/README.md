@@ -301,6 +301,9 @@ Numeric channel maps support mono/stereo output and reject unavailable input cha
 stereo channels. Mono/stereo expressions support arithmetic, `val(channel)`, `ch`,
 `n`, `t`, `s`, `nb_in_channels`, and `nb_out_channels`; `c=same` retains the input
 layout and repeats the last expression when needed.
+Duplicate an audio input into independently filtered outputs with
+`-filter_complex '[1:a]asplit=2[x][t];[t]volume=0.5[y]' -map '[x]' one.wav -map '[y]' two.wav`.
+`asplit` defaults to two outputs; `asplit=outputs=3` selects three.
 Split stereo PCM into distinct mono files with
 `-filter_complex '[0:a]channelsplit=channel_layout=stereo[L][R]' -map '[L]' left.wav -map '[R]' right.wav`.
 Use `-af channelsplit=channel_layout=stereo:channels=FR` to extract only the right

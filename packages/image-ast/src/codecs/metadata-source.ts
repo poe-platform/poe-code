@@ -1,5 +1,7 @@
 import { isPhmBytes } from "./phm.js";
 import { readPhmFromSource } from "./phm-storage.js";
+import { isPfmBytes } from "./pfm.js";
+import { readPfmFromSource } from "./pfm-storage.js";
 import { isTgaBytes, readTgaMetadata } from "./tga.js";
 import { isTxtBytes, readTxtFromSource } from "./txt.js";
 import { isIcoBytes } from "./ico-input.js";
@@ -54,6 +56,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
    ...(decoded.orientation===undefined?{}:{orientation:decoded.orientation}),size:source.size};
  }
  else if(isBmpBytes(prefix))metadata={...readBmpMetadata(prefix),size:source.size};
+ else if(isPfmBytes(prefix)) { metadata=(await readPfmFromSource(source,signal)).metadata; }
  else if(isPhmBytes(prefix)) { metadata=(await readPhmFromSource(source,signal)).metadata; }
  else if(isNetpbmBytes(prefix)) {
   const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmSequenceSteps(source.size);let next=steps.next();

@@ -1,5 +1,6 @@
 import { encodePfmImage } from "./pfm-output.js";
 import { isPhmBytes, readPhmHeader, decodePhmImage } from "./phm.js";
+import { isPfmBytes, readPfmHeader, decodePfmImage } from "./pfm.js";
 import { encodeTgaImage } from "./tga-output.js";
 import { isTgaBytes, readTgaMetadata, decodeTgaImage } from "./tga.js";
 import { isTxtBytes, readTxtImage } from "./txt.js";
@@ -62,6 +63,7 @@ import {
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isPhmBytes(bytes)) return "phm";
+  if (isPfmBytes(bytes)) return "pfm";
   if (isTxtBytes(bytes)) return "txt";
   if (isTgaBytes(bytes)) return "tga";
   if (isIcoBytes(bytes)) return bytes[2] === 1 ? "ico" : "cur";
@@ -185,6 +187,7 @@ export function readImageMetadata(
     case "gif":
       meta = readGifMetadata(bytes, options);
       break;
+    case "pfm": meta = readPfmHeader(bytes).metadata; break;
     case "pam":
     case "ppm":
     case "pgm":
@@ -414,6 +417,7 @@ export function decodeImage(
     case "gif":
       decoded = decodeGifImage(bytes, options);
       break;
+    case "pfm": decoded = decodePfmImage(bytes, options); break;
     case "pam":
     case "ppm":
     case "pgm":

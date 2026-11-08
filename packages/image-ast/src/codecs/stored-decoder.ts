@@ -1,5 +1,7 @@
 import { isPhmBytes } from "./phm.js";
 import { decodePhmToStorage } from "./phm-storage.js";
+import { isPfmBytes } from "./pfm.js";
+import { decodePfmToStorage } from "./pfm-storage.js";
 import { isTgaBytes, decodeTgaToStorage } from "./tga.js";
 import { isTxtBytes, readTxtFromSource } from "./txt.js";
 import { isIcoBytes } from "./ico-input.js";
@@ -28,6 +30,7 @@ import {decodeTiffToStorage} from "./tiff-input-storage.js";
 export async function storedImageDecoder(source:ImageByteSource,signal:AbortSignal):Promise<typeof decodePngToStorage|undefined> {
  signal.throwIfAborted();const length=Math.min(54,source.size),prefix=await source.read(0,length,{signal});signal.throwIfAborted();
  if(!(prefix instanceof Uint8Array)||prefix.length!==length)throw new Error("Truncated image source");
+ if(isPfmBytes(prefix))return decodePfmToStorage;
  if(isPhmBytes(prefix))return decodePhmToStorage;
  if(isTxtBytes(prefix))return readTxtFromSource;
  if(isTgaBytes(prefix))return decodeTgaToStorage;

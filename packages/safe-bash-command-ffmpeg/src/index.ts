@@ -1826,9 +1826,18 @@ async function applyVideoFilterChain(
           durationSeconds: f.durationSeconds, keyframe: true };
       }, signal);
     } else if (name === "negate") {
-      const components = named.components ?? ((positional[0]?.includes("=") ? "" : positional[0]) || "y+u+v+r+g+b");
+      if (positional.length > 2 || Object.keys(named).some(key => key !== "components" && key !== "negate_alpha")) {
+        throw new Error("negate: unknown option");
+      }
+      const components = named.components ?? (positional[0]?.includes("=") ? undefined : positional[0] || undefined);
+      const alpha = (named.negate_alpha ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "0").toLowerCase();
+      if (!["", "0", "1", "true", "false", "yes", "no", "on", "off"].includes(alpha)) {
+        throw new Error("negate: invalid negate_alpha boolean");
+      }
+      const negateAlpha = ["1", "true", "yes", "on"].includes(alpha);
       let mask = 0;
-      for (const component of components.split("+")) {
+      for (const component of (components ?? "0").split("+")) {
+        if (!component.trim()) throw new Error("negate: invalid empty component");
         const index = ["y", "u", "v", "r", "g", "b", "a"].indexOf(component);
         const value = index < 0 ? Number(component) : 1 << index;
         if (!Number.isInteger(value) || value < 0 || value > 127) {
@@ -1836,17 +1845,25 @@ async function applyVideoFilterChain(
         }
         mask |= value;
       }
-      current = await mapWork(current, async (f) => {
+      current = await mapWork(current, async (f, n) => {
         const source = f.native;
+        const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
+          [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;
+        const available = planar ? 0b0000111 :
+          pixelFormat === "rgb24" || pixelFormat === "bgr24" ? 0b0111000 : 0b1111000;
+        const selected = (components === undefined ? available & 0b0111111 : mask) | (negateAlpha ? available & 0b1000000 : 0);
+        if (selected & ~available) throw new Error("negate: Requested components not available");
+        if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, "negate enable", {
+          n, t: f.ptsSeconds, w: f.width, h: f.height
+        })) < 0.5) return f;
         // Negate planar 8-bit YUV before RGB conversion, including full-range YUV.
-        if (source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
-            [0, 4, 5, 12, 13, 14].includes(source.format)) {
+        if (planar) {
           const lumaSize = f.width * f.height;
-          const chromaSize = Math.ceil(f.width / ([5, 14].includes(source.format) ? 1 : 2)) *
-            Math.ceil(f.height / ([0, 12].includes(source.format) ? 2 : 1));
-          const pixels = new Uint8Array(source.pixels);
+          const chromaSize = Math.ceil(f.width / ([5, 14].includes(planar.format) ? 1 : 2)) *
+            Math.ceil(f.height / ([0, 12].includes(planar.format) ? 2 : 1));
+          const pixels = new Uint8Array(planar.pixels);
           for (let plane = 0; plane < 3; plane++) {
-            if (!(mask & (1 << plane))) continue;
+            if (!(selected & (1 << plane))) continue;
             const start = plane === 0 ? 0 : lumaSize + (plane - 1) * chromaSize;
             const end = start + (plane === 0 ? lumaSize : chromaSize);
             for (let i = start; i < end; i++) {
@@ -1858,7 +1875,7 @@ async function applyVideoFilterChain(
               pixels[i] = 255 - pixels[i]!;
             }
           }
-          const native = { ...source, pixels };
+          const native = { ...planar, pixels };
           const data = scaleVideoPicture({ ...f, native }, f.width, f.height)!;
           return { ...f, data, native: { ...native, rgba: data } };
         }
@@ -1869,7 +1886,7 @@ async function applyVideoFilterChain(
             signal?.throwIfAborted();
             budget.checkCpu();
           }
-          if (mask & (1 << (3 + i % 4))) data[i] = 255 - data[i]!;
+          if (selected & (1 << (3 + i % 4))) data[i] = 255 - data[i]!;
         }
         return { ...f, data };
       }, signal);

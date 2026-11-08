@@ -16,9 +16,105 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("negate available components", () => {
+  for (const [source, filter, valid] of [
+    ["rgba", "negate=components=y", false],
+    ["rgba", "negate=components=u+v", false],
+    ["rgba", "negate=components=y+r", false],
+    ["rgba", "negate=63", false],
+    ["rgba", "negate=components=r+a", true],
+    ["yuv", "negate=components=r", false],
+    ["yuv", "negate=components=a", false],
+    ["yuv", "negate=components=y+r", false],
+    ["yuv", "negate=127", false],
+    ["yuv", "negate=components=y", true],
+    ["yuv", "negate=components=u+v", true],
+    ["yuv", "negate", true],
+    ["yuv", "negate=0", true],
+    ["yuv", "format=rgba,negate=components=y", false],
+    ["yuv", "format=rgba,negate=components=r+a", true],
+    ["rgba", "format=rgb24,negate=components=a", false]
+  ] as const) {
+    it(`${valid ? "accepts" : "rejects"} ${filter} on ${source}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const png = encodeImage({ width: 2, height: 1,
+        data: new Uint8Array([10, 40, 90, 64, 20, 50, 100, 192]),
+        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const input = source === "rgba" ? png : readFileSync(new URL("../../mp4-ast/src/fixtures/h264-b-frames.mp4", import.meta.url));
+      const path = source === "rgba" ? "/in.png" : "/in.mp4";
+      const vfs = createTestVfs({ [path]: input, "/out.png": png });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-i", path, "-vf", filter, "-frames:v", "1", "/out.png"
+      ], vfs);
+      if (valid) {
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.ok(decodeImage(vfs.store.get("/out.png")!).width > 0);
+      } else {
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes("Requested components not available"), result.stderr);
+        assert.deepEqual(vfs.store.get("/out.png"), png);
+      }
+      assert.deepEqual(vfs.store.get(path), input);
+    });
+  }
+});
+
+describe("negate option validation", () => {
+  for (const options of ["components=bogus", "negate_alpha=bogus", "unknown=1", "components=", "components=r+", "negate_alpha=2", "r:0:extra"]) {
+    it(`rejects ${options} without overwriting output`, async () => {
+      const { encodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({ width: 2, height: 1,
+        data: new Uint8Array([10, 40, 90, 64, 20, 50, 100, 192]),
+        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const previous = new Uint8Array([1, 2, 3]);
+      const vfs = createTestVfs({ "/in.png": input, "/out.png": previous });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-i", "/in.png", "-vf", `negate=${options}`, "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("negate:"), result.stderr);
+      assert.deepEqual(vfs.store.get("/out.png"), previous);
+      assert.deepEqual(vfs.store.get("/in.png"), input);
+    });
+  }
+});
+
+describe("negate timeline", () => {
+  for (const [filter, enabled] of [
+    ["negate", [true, true, true]],
+    ["negate=enable=0", [false, false, false]],
+    ["negate=enable=gte(n\\,1)", [false, true, true]],
+    ["negate=enable=between(t\\,1\\,1)", [false, true, false]]
+  ] as const) {
+    it(`honors ${filter} on each frame and preserves alpha`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const pixels = [10, 40, 90, 64, 20, 50, 100, 192];
+      const input = encodeImage({ width: 2, height: 1,
+        data: new Uint8Array(pixels), format: "png", space: "srgb", channels: 4,
+        depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice() });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "1", "-i", "/in%d.png", "-vf", filter, "-frames:v", "3", "/out%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      for (const [index, active] of enabled.entries()) {
+        const output = decodeImage(vfs.store.get(`/out${index + 1}.png`)!);
+        assert.deepEqual([...output.data], pixels.map((value, channel) =>
+          active && channel % 4 !== 3 ? 255 - value : value));
+      }
+    });
+  }
+});
+
 describe("negate RGBA components", () => {
   for (const [filter, expected] of [
     ["negate", [245, 215, 165, 64, 235, 205, 155, 192]],
+    ["negate=negate_alpha=true", [245, 215, 165, 191, 235, 205, 155, 63]],
+    ["negate=r:yes", [245, 40, 90, 191, 235, 50, 100, 63]],
+    ["negate=negate_alpha=off", [245, 215, 165, 64, 235, 205, 155, 192]],
     ["negate=components=r+a", [245, 40, 90, 191, 235, 50, 100, 63]],
     ["negate=components=a", [10, 40, 90, 191, 20, 50, 100, 63]],
     ["negate=components=g+b", [10, 215, 165, 64, 20, 205, 155, 192]],

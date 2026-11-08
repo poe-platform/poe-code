@@ -45,7 +45,7 @@ for (const direction of ["hflip", "vflip"]) {
     });
   }
 
-  for (const option of ["", "=enable=0", "=enable=1", "=enable='gte(t,1)'"]) {
+  for (const option of ["", "=enable=0", "=enable=1", "=enable=gte(n\\,1)", "=enable='gte(t,1)'"]) {
     it(`${direction}${option} produces the expected pixels across three frames`, async () => {
       const { volume, result, stderr } = await render(direction + option);
       assert.equal(result.exitCode, 0, stderr);

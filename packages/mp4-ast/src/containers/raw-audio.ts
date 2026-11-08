@@ -6,6 +6,7 @@ import { decodeMp3Track } from "../mp3.js";
 import { decodeVorbisTrack } from "../vorbis.js";
 
 const formats = ["s8", "u8", "s16le", "s16be", "s24le", "s24be", "s32le", "s32be",
+  "u16le", "u16be", "u24le", "u24be", "u32le", "u32be",
   "f32le", "f32be", "f64le", "f64be", "mulaw", "alaw"];
 
 // FFmpeg maps PCM16 through a 14-bit G.711 table using midpoint thresholds.
@@ -109,14 +110,14 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
 
 /** Headerless audio requires an explicit format; it cannot be detected from bytes. */
 export function rawAudioAsts(): MediaAstPlugin[] {
-  return [...formats, "u16le", "u16be", "u24le", "u24be", "u32le", "u32be"].map(format => ({
+  return formats.map(format => ({
     id: format,
     formatName: format,
     formatLongName: `Raw ${format} audio`,
     extensions: [],
     mimeTypes: [],
     canDemux: true,
-    canMux: formats.includes(format),
+    canMux: true,
     supportedVideoCodecs: [],
     supportedAudioCodecs: [`pcm_${format}`],
     detect: () => false,
@@ -169,7 +170,8 @@ export function rawAudioAsts(): MediaAstPlugin[] {
           const scaled = Math.max(-1, Math.min(1, value)) * scale;
           const lower = Math.floor(scaled);
           const rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
-          const sample = Math.min(scale - 1, truncate ? lower : rounded);
+          const sample = Math.min(scale - 1, truncate ? lower : rounded) +
+            (codec.startsWith("u") && bits > 8 ? scale : 0);
           if (companded) {
             bytes[offset] = (codec === "mulaw" ? mulawTable : alawTable)[(sample & 65535) >> 2]!;
           } else if (bits === 8) view.setUint8(offset, (sample >> 8) + (codec === "u8" ? 128 : 0));

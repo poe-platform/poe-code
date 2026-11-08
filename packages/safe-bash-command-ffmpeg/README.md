@@ -415,7 +415,7 @@ Inputs must share a sample rate. `inputs` defaults to two; `map` must select one
 input. Filters after selection are supported; multiple output selections and
 filters before selection are currently unsupported.
 
-Frame limits accept `-frames N` for all output streams, `-frames:0 N` for an output stream index, and `-frames:a:0 N`, `-frames:v:0 N`, or `-frames:s:0 N` for a stream index within its type. Selectors follow output mapping order; unmatched streams have no individual frame cap. The last matching option wins. During stream copy, reaching a frame limit also stops companion copied streams at that packet end time, without requiring `-shortest`.
+Frame limits accept `-frames N` for all output streams, `-frames:0 N` for an output stream index, and `-frames:a:0 N`, `-frames:v:0 N`, or `-frames:s:0 N` for a stream index within its type. Selectors follow output mapping order; unmatched streams have no individual frame cap. The last matching option wins. During stream copy, reaching a frame limit also stops companion copied streams at that packet end time, without requiring `-shortest`. With `-shortest`, only whole packets ending within the shortest stream's presentation are copied; AAC priming is preserved.
 
 Use `-frames:s N` to retain at most N subtitle cues per output stream without shortening their intervals; `0` emits no cues.
 

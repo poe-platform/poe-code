@@ -3197,7 +3197,8 @@ function outputFrameLimits(tracks: readonly MediaTrack[], options: readonly [str
 function limitCopyPackets(
   document: MediaDocument,
   limits: readonly (number | undefined)[],
-  codecs: Partial<Record<MediaTrack["type"], string | undefined>>
+  codecs: Partial<Record<MediaTrack["type"], string | undefined>>,
+  shortest = false
 ): MediaDocument {
   const offsets = document.tracks.map(track => {
     let offset = 0;
@@ -3207,7 +3208,9 @@ function limitCopyPackets(
     }
     return offset;
   });
-  let end = Infinity;
+  let end = shortest ? Math.min(...document.tracks.map(track => track.editList?.length
+    ? track.editList.reduce((total, edit) => total + edit.segmentDuration, 0) / document.timescale
+    : track.duration / track.timescale)) : Infinity;
   for (const [index, track] of document.tracks.entries()) {
     const limit = limits[index];
     if (codecs[track.type] !== "copy" || limit === undefined || limit > track.samples.length) continue;
@@ -3219,8 +3222,11 @@ function limitCopyPackets(
   if (end === Infinity) return document;
   return {
     ...document,
+    ...(shortest ? { durationSeconds: end, duration: Math.round(end * document.timescale) } : {}),
     tracks: document.tracks.map((track, index) => {
-      if (codecs[track.type] !== "copy") return track;
+      if (codecs[track.type] !== "copy") return shortest
+        ? sliceMp4({ ...document, tracks: [track] }, { startSeconds: 0, endSeconds: end }).tracks[0]!
+        : track;
       const samples = track.samples.slice(0, limits[index]).filter(sample =>
         (sample.pts + sample.duration) / track.timescale + offsets[index]! <= end + 1e-9);
       if (samples.length === track.samples.length) return track;
@@ -3967,7 +3973,8 @@ export function evalSyncFfmpeg(
     if (outPlugin?.id === "image2" && outputStartNumber !== undefined && outputStartNumber > 2147483647) return undefined;
     // MP4/MOV have no default subtitle encoder for automatic stream selection.
     if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) stripSubtitles = true;
-    let workingDoc = muxMp4(selectAutomaticStreams(loadedDocs), { stripAudio, stripVideo, stripSubtitles, shortest, rotation });
+    let workingDoc = muxMp4(selectAutomaticStreams(loadedDocs), { stripAudio, stripVideo, stripSubtitles, rotation });
+    if (shortest) workingDoc = limitCopyPackets(workingDoc, [], { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec }, true);
     if (workingDoc.tracks.length === 0 && outPlugin?.id !== "ffmetadata") return undefined;
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
     if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
@@ -5991,10 +5998,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const outputs = await resolveAudioGraph(filterComplex, loadedDocs, maps, mappedAudioLabels, budget, context.signal);
                   workingDoc = await muxMp4Cooperatively(
                     [{ ...loadedDocs[0]!, tracks: outputs.map(output => output.track) }],
-                    { stripAudio, stripVideo, stripSubtitles, shortest, rotation }, context.signal);
+                    { stripAudio, stripVideo, stripSubtitles, rotation }, context.signal);
                   afFilters.push(...outputs.map((output, ordinal) => ({ ordinal, expression: output.expression })));
                 } else {
-                  workingDoc = await muxMp4Cooperatively(loadedDocs, { shortest }, context.signal);
+                  workingDoc = await muxMp4Cooperatively(loadedDocs, {}, context.signal);
                   const cleanedComplex = filterComplex.replace(/\[[^\]]+\]/g, "").trim();
                   if (cleanedComplex) vfFilters.push(cleanedComplex);
                 }
@@ -6041,7 +6048,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   selectedTracks.push(...matches.map(track => ({ input: inputIdx, track })));
                 }
               }
-              const streams = selectedTracks.map(entry => entry.track);
+              const streams = selectedTracks.map(({ input, track }) => {
+                if (!("samples" in track) || !track.editList) return track;
+                const scale = loadedDocs[0]!.timescale / loadedDocs[input]!.timescale;
+                return { ...track, editList: track.editList.map(edit => ({
+                  ...edit, segmentDuration: Math.round(edit.segmentDuration * scale)
+                })) };
+              });
               const filteredTracks = streams.filter((stream): stream is MediaTrack => "samples" in stream);
               const attachments = streams.filter((stream): stream is MediaAttachment => !("samples" in stream));
               if (!mapped) {
@@ -6055,7 +6068,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
               workingDoc = await muxMp4Cooperatively(
                 [{ ...loadedDocs[0]!, tracks: filteredTracks, attachments }],
-                { stripAudio, stripVideo, stripSubtitles, shortest, rotation }
+                { stripAudio, stripVideo, stripSubtitles, rotation }
               , context.signal);
             } else {
               // Explicit maps retain their requested streams.
@@ -6064,10 +6077,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 stripAudio,
                 stripVideo,
                 stripSubtitles,
-                shortest,
                 rotation
               }, context.signal);
             }
+
+            if (shortest) workingDoc = limitCopyPackets(workingDoc, [], { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec }, true);
 
             if (workingDoc.tracks.length === 0 && !workingDoc.attachments?.length && outPlugin?.id !== "ffmetadata") {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Output file does not contain any stream.\n"), context.signal);

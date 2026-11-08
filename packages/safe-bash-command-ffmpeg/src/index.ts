@@ -17,6 +17,7 @@ import { compressAudio } from "./audio-acompressor.js";
 import { normalizeSpeech } from "./audio-speechnorm.js";
 import { normalizeAudio } from "./audio-dynaudnorm.js";
 import { compandAudio } from "./audio-compand.js";
+import { removeSilence } from "./audio-silenceremove.js";
 import { fadeAudio } from "./audio-fade.js";
 import { acrossfadeAudio } from "./audio-acrossfade.js";
 import { mixAudio } from "./audio-amix.js";
@@ -5059,6 +5060,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "dynaudnorm" || trimmed.startsWith("dynaudnorm=")) {
                         stretched = await normalizeAudio(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
+                      } else if (trimmed === "silenceremove" || trimmed.startsWith("silenceremove=")) {
+                        stretched = await removeSilence(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "silencedetect" || trimmed.startsWith("silencedetect=")) {
                         let noise = 0.001;
                         let duration = 2;

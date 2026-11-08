@@ -92,3 +92,33 @@ for (const [size, rate, error] of [
     });
   }
 }
+
+for (const offset of ["", ":offset=0"]) {
+  it(`xfade duration=1${offset} starts blending at zero`, async () => {
+    const volume = Volume.fromJSON({});
+    const errors: Uint8Array[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-y", "-v", "error",
+        "-f", "lavfi", "-i", "color=c=red:s=8x8:r=4:d=2",
+        "-f", "lavfi", "-i", "color=c=blue:s=8x8:r=4:d=2",
+        "-filter_complex", `[0:v][1:v]xfade=duration=1${offset}`, "/%d.png"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+    assert.equal(volume.readdirSync("/").length, 8);
+    // Native FFmpeg PNG red channels; allow one unit for lavfi color conversion.
+    for (const [index, red] of [254, 190, 127, 63, 0, 0, 0, 0].entries()) {
+      const frame = decodeImage(volume.readFileSync(`/${index + 1}.png`) as Buffer);
+      assert.ok(Math.abs(frame.data[0]! - red) <= 1,
+        `frame ${index + 1}: expected red ${red}, got ${frame.data[0]}`);
+    }
+  });
+}

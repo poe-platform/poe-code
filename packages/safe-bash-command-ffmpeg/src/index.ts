@@ -3600,6 +3600,8 @@ function scaleInputTimestamps(doc: MediaDocument, scales: readonly [string, numb
   return { ...doc, tracks, durationSeconds, duration: Math.round(durationSeconds * doc.timescale) };
 }
 
+const imageEncoders = ["png", "mjpeg", "webp", "libwebp", "libwebp_anim", "gif", "bmp", "ppm", "qoi", "targa"];
+
 function validateAudioEncoder(codec: string | undefined, doc: MediaDocument, plugins: readonly MediaAstPlugin[]): void {
   if (codec === undefined || codec === "copy" || !doc.tracks.some(track => track.type === "audio")) return;
   const name = codec === "libopus" ? "opus" : codec === "libvorbis" ? "vorbis" : codec === "libmp3lame" ? "mp3" : codec;
@@ -4463,6 +4465,7 @@ export function evalSyncFfmpeg(
       return writeFileSync(outputTarget, bytes) ? "" : undefined;
     }
     if (formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined) {
+      if (videoCodec !== undefined && videoCodec !== "copy" && !imageEncoders.includes(videoCodec)) return undefined;
       const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
       const vTrack = workingDoc.tracks.find((t) => t.type === "video");
       if (vTrack && !vTrack.decodedVideoFrames) return undefined;
@@ -7122,6 +7125,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
             const numberedImageOutput = formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined;
+            if ((imageOutput || numberedImageOutput) && videoCodec !== undefined && videoCodec !== "copy" && !imageEncoders.includes(videoCodec)) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unknown encoder '${videoCodec}'\n`), context.signal);
+              return { exitCode: 8 };
+            }
             // Numbered image output applies -r during CFR synchronization, after video filters.
             if (outputSize && videoCodec !== "copy") {
               const [w, h] = outputSize.toLowerCase().split("x");

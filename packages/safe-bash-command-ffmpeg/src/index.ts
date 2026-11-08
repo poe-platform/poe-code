@@ -1263,7 +1263,7 @@ async function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
   budget: MediaBudgetTracker,
-  diagnostics: { sar: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void> },
+  diagnostics: { sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void> },
   subtitleCues?: readonly { startSec: number; endSec: number; text: string }[],
   signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
@@ -1636,6 +1636,18 @@ async function applyVideoFilterChain(
       const ch = Math.floor(roundToEven(dimensions.oh) / vsub) * vsub;
       if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0 || cw > iw || ch > ih) {
         throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
+      }
+      if (["1", "true", "yes", "on"].includes((crop.keep_aspect ?? "0").toLowerCase())) {
+        let numerator = diagnostics.sarWidth * iw * ch;
+        let denominator = diagnostics.sarHeight * ih * cw;
+        while (denominator !== 0) {
+          const remainder = numerator % denominator;
+          numerator = denominator;
+          denominator = remainder;
+        }
+        diagnostics.sarWidth = diagnostics.sarWidth * iw * ch / numerator;
+        diagnostics.sarHeight = diagnostics.sarHeight * ih * cw / numerator;
+        diagnostics.sar = diagnostics.sarWidth / diagnostics.sarHeight;
       }
       const variables = { ...dimensions, ow: cw, oh: ch, out_w: cw, out_h: ch, n: 0, t: 0, x: NaN, y: NaN };
       const xExpression = crop.x ?? String((iw - cw) / 2);
@@ -3398,7 +3410,10 @@ export function evalSyncFfmpeg(
       for (let idx = 0; idx < limit; idx++) {
         const f = frames[idx]!;
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1))!;
-        const encoded = outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage(makeRgbaImg(f.width, f.height, f.data), { format: imgFmt }).data;
+        const encoded = outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
+                    ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight ? {
+                      resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
+                    } : {}) }, { format: imgFmt }).data;
         if (!writeFileSync!(fileName, encoded)) return undefined;
       }
       return "";
@@ -4542,6 +4557,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (globPaths || (input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
                 const frames: MediaVideoFrame[] = [];
                 let pixelFormat = "rgb24";
+                let sarWidth = 1;
+                let sarHeight = 1;
                 const fps = fpsHint ?? 25;
                 const startNumber = input?.startNumber ?? 0;
                 const startNumberRange = input?.startNumberRange ?? 5;
@@ -4562,7 +4579,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   {
                     const decoded = decodeImage(imgBytes);
-                    if (frames.length === 0) pixelFormat = decoded.hasAlpha ? "rgba" : "rgb24";
+                    if (frames.length === 0) {
+                      pixelFormat = decoded.hasAlpha ? "rgba" : "rgb24";
+                      sarWidth = decoded.resolution?.x || 1;
+                      sarHeight = decoded.resolution?.y || 1;
+                    }
                     detachBytesBuffer(imgBytes);
                     if (decoded.width * decoded.height >= 16384) {
                       const gc = (globalThis as { gc?: () => void }).gc;
@@ -4598,7 +4619,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   duration: Math.round(frames.length / fps * base.timescale),
                   durationSeconds: frames.length / fps,
                   tracks: base.tracks.map((t) =>
-                    t.type === "video" ? { ...t, width: first.width, height: first.height, duration: Math.round(frames.length / fps * t.timescale), codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, pixFmt: pixelFormat })), samples: [], decodedVideoFrames: frames } : t
+                    t.type === "video" ? { ...t, width: first.width, height: first.height, duration: Math.round(frames.length / fps * t.timescale), codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, pixFmt: pixelFormat, sarWidth, sarHeight })), samples: [], decodedVideoFrames: frames } : t
                   )
                 };
               }
@@ -5377,19 +5398,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
                   // Filters use the displayed timeline; retain media coordinates for the existing edit list.
                   const displayed = decoded.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) - offsetTicks) / t.timescale }));
-                  const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, {
+                  const diagnostics = {
                     timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds
                       ? 1 / decoded[0].durationSeconds : t.timescale,
+                    sarWidth: t.codecDescriptions[0]?.sarWidth || 1,
+                    sarHeight: t.codecDescriptions[0]?.sarHeight || 1,
                     sar: (t.codecDescriptions[0]?.sarWidth || 1) / (t.codecDescriptions[0]?.sarHeight || 1),
                     pixelFormat: t.codecDescriptions[0]?.pixFmt,
                     logLevel,
-                    write: text => writeBytes(context.stderr, encodeUtf8(text), context.signal)
-                  }, loadedSubtitleCues, context.signal);
+                    write: (text: string) => writeBytes(context.stderr, encodeUtf8(text), context.signal)
+                  };
+                  const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, diagnostics, loadedSubtitleCues, context.signal);
                   const first = filtered[0];
                   return {
                     ...t,
                     width: first?.width ?? t.width,
                     height: first?.height ?? t.height,
+                    codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, sarWidth: diagnostics.sarWidth, sarHeight: diagnostics.sarHeight })),
                     samples: [],
                     decodedVideoFrames: filtered.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) + offsetTicks) / t.timescale }))
                   };
@@ -7085,7 +7110,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     : idx + (outputStartNumber ?? 1);
                   const fileName = imageFileName(number);
                   const fullOutPath = resolvePath(context.cwd, fileName);
-                  const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage(makeRgbaImg(f.width, f.height, f.data), {
+                  const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
+                    ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight ? {
+                      resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
+                    } : {}) }, {
                     format: imgFmt
                   }).data);
                   budget.checkOutputBytes(encoded.byteLength);

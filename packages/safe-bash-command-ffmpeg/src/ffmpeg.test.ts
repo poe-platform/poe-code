@@ -5303,6 +5303,28 @@ describe("image2 pattern_type", () => {
 });
 
 describe("image2 frame_pts", () => {
+  for (const [values, timestamps] of [
+    [["true", "yes", "on", "y", "enable", "enabled", "TrUe", "+01"], [0, 1]],
+    [["false", "no", "off", "n", "disable", "disabled", "FaLsE", "", "-0"], [1, 2]]
+  ] as const) {
+    for (const value of values) {
+      it(`accepts native boolean spelling ${JSON.stringify(value)}`, async () => {
+        const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+        const colors = [[255, 0, 0, 255], [0, 0, 255, 255]];
+        const vfs = createTestVfs(Object.fromEntries(colors.map((color, i) => [
+          `/f${i}.png`, encodeImage({ width: 2, height: 2, data: Uint8Array.from(Array(4).fill(color).flat()),
+            channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data
+        ])));
+        const result = await runCmd(createFfmpegCommand(), [
+          "-framerate", "2", "-i", "f%d.png", "-frame_pts", value, "p%d.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const output = [...vfs.store.entries()].filter(([name]) => name.startsWith("/p"));
+        assert.deepEqual(output.map(([name]) => name), timestamps.map(t => `/p${t}.png`));
+        assert.deepEqual(output.map(([, bytes]) => [...decodeImage(bytes).data]), colors.map(color => Array(4).fill(color).flat()));
+      });
+    }
+  }
   for (const [flags, timestamps, indices] of [
     [[], [1, 2, 3], [0, 1, 2]],
     [["-frame_pts", "0", "-start_number", "7"], [7, 8, 9], [0, 1, 2]],
@@ -5333,15 +5355,17 @@ describe("image2 frame_pts", () => {
     assert.equal(result.exitCode, 0, result.stderr);
     assert.deepEqual([...vfs.store.keys()], ["/pts0.png", "/pts1.png", "/seq1.png", "/seq2.png"]);
   });
-  it("rejects invalid timestamp naming without replacing output", async () => {
-    const vfs = createTestVfs({ "/out.png": "original" });
-    const result = await runCmd(createFfmpegCommand(), [
-      "-f", "lavfi", "-i", "color=c=red:s=16x16:r=1:d=1", "-frame_pts", "invalid", "out.png"
-    ], vfs);
-    assert.equal(result.exitCode, 1);
-    assert.match(result.stderr, /frame_pts/);
-    assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "original");
-  });
+  for (const value of ["invalid", "2", "-1", "auto", "1.0", "0x1", "true "]) {
+    it(`rejects invalid timestamp naming ${JSON.stringify(value)} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/out.png": "original" });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "color=c=red:s=16x16:r=1:d=1", "-frame_pts", value, "out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /frame_pts/);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "original");
+    });
+  }
 });
 
 describe("B-frame limit", () => {

@@ -3402,12 +3402,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
           } else if (arg === "-frame_pts") {
-            const value = args[++i];
-            if (value !== "0" && value !== "1") {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid frame_pts\n"), context.signal);
-              return { exitCode: 1 };
+            const value = args[++i]?.toLowerCase();
+            if (value !== undefined && ["yes", "true", "on", "y", "enable", "enabled"].includes(value)) {
+              framePts = true;
+            } else if (value !== undefined && ["no", "false", "off", "n", "disable", "disabled", ""].includes(value)) {
+              framePts = false;
+            } else {
+              const number = value?.trimStart() ?? "";
+              const digits = number.startsWith("+") || number.startsWith("-") ? number.slice(1) : number;
+              if (!digits.length || ![...digits].every(char => char >= "0" && char <= "9") ||
+                  (Number(number) !== 0 && Number(number) !== 1)) {
+                await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid frame_pts\n"), context.signal);
+                return { exitCode: 1 };
+              }
+              framePts = Number(number) === 1;
             }
-            framePts = value === "1";
           } else if (arg === "-start_number_range") {
             const value = Number(args[++i]);
             if (!Number.isInteger(value) || value < 1 || value > 2147483647) {

@@ -1,3 +1,4 @@
+import {tiffPageSteps} from "./tiff-pages.js";
 import {encodeTiffIntegerSamples} from "./tiff-integer.js";
 import {encodeTiffFloatSamples} from "./tiff-float.js";
 import { BmpRleEncoder } from "./bmp-rle-encoder.js";
@@ -525,10 +526,13 @@ function decodeTiffLzw(src: Uint8Array, expectedLen: number): Uint8Array {
   return out;
 }
 
-export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
+export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
   const le = bytes[0] === 0x49;
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const ifdOffset = view.getUint32(4, le);
+  const steps = tiffPageSteps(bytes.length, page);
+  let next = steps.next();
+  while (!next.done) next = steps.next(bytes[next.value]);
+  const {offset: ifdOffset, pages} = next.value;
   const numEntries = view.getUint16(ifdOffset, le);
   let width = 0;
   let height = 0;
@@ -808,6 +812,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     data: rgba,
     ...(data16 ? {data16} : {}),
     format: "tiff",
+    ...(pages > 1 ? {pages} : {}),
     space:
       !palette && samplesPerPixel < 3
         ? bitsPerSample === 16

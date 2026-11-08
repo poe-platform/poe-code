@@ -206,10 +206,11 @@ export function readImageMetadata(
       meta = readBmpMetadata(bytes);
       break;
     case "tiff": {
-      const decoded = decodeTiffImage(bytes);
+      const decoded = decodeTiffImage(bytes, options?.page);
       meta = {
         ...(decoded.properties ? {properties:decoded.properties} : {}),
         format: "tiff",
+        ...(decoded.pages === undefined ? {} : {pages: decoded.pages}),
         width: decoded.width,
         height: decoded.height,
         space: decoded.space,
@@ -441,7 +442,7 @@ export function decodeImage(
       decoded = decodeBmpImage(bytes);
       break;
     case "tiff":
-      decoded = decodeTiffImage(bytes);
+      decoded = decodeTiffImage(bytes, options?.page);
       break;
     case "pdf":
       decoded = decodePdfImage(bytes, options);

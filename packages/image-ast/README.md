@@ -61,7 +61,7 @@ for BMP inputs (including 32-bit channel masks and optional alpha) and BMP outpu
 `decodeTiffToStorage` reads classic TIFF strips and tiles through caller backing,
 including uncompressed, DEFLATE, LZW, PackBits and JPEG data and horizontal prediction.
 Shared JPEG tables and strip/tile data are read through bounded logical ranges. CIELab TIFF input converts signed color components to sRGB. Full-resolution YCbCr TIFF input with default BT.601 coefficients converts to RGB.
-Palette TIFF input with 8-bit or 16-bit indices resolves the ColorMap to RGB.
+TIFF input reports the page count and accepts a zero-based `page` option, preserving each page’s dimensions and metadata. Palette TIFF input with 8-bit or 16-bit indices resolves the ColorMap to RGB.
 Integer 16-bit TIFF input retains every sample bit when converted to PNG, including signed samples interpreted as unsigned bit patterns.
 `encodeTiffFromStorage` and `encodeImage` accept `tiffPlanar: true` for separate channel planes (default: contiguous samples), except with JPEG compression. They accept `tiffRowsPerStrip` to control TIFF strip height. Use `tiffTile: {width: 32, height: 16}` for tiled output; tile dimensions must be positive multiples of 16. `encodeTiffFromStorage` streams TIFF pixels with a header and strip directory
 state, preserving density and orientation. Set `tiffFloatDepth: 16`, `32`, or `64` on encode options for normalized IEEE floating-point samples (incompatible with JPEG compression). Use `tiffIntegerDepth: 8`, `16`, or `32` for integer samples and `tiffSigned: true` for signed sample metadata; 8-bit input samples scale to the full output range. TIFF output supports `none` (default),

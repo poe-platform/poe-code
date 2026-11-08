@@ -174,8 +174,6 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                         throw error;
                     if (!entered || completed || error instanceof FsError)
                         throw new CompareInputFailure(error);
-                    if (error instanceof Error && error.message === "Truncated TIFF directory")
-                        throw new RangeError("Offset is outside the bounds of the DataView");
                     throw error;
                 }
             },

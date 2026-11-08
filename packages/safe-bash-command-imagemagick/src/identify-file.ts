@@ -82,7 +82,7 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                             throw error.reason;
                         if (error instanceof FsError)
                             throw error;
-                        return { error: error instanceof Error && error.message === "Truncated TIFF directory" ? new RangeError("Offset is outside the bounds of the DataView") : error };
+                        return { error };
                     }
                 };
                 const result = await load(path, inspect);

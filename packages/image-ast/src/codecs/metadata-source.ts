@@ -54,8 +54,8 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  else if(isGifBytes(prefix)){if(!storage)throw new UnsupportedStoredResource();metadata=await readGifMetadataFromSource(source,storage,signal,options);}
  else if(isTiffBytes(prefix)) {
   if(!storage)throw new UnsupportedStoredResource();
-  const decoded=await decodeTiffToStorage(source,storage,signal);
-  metadata={...(decoded.properties?{properties:decoded.properties}:{}),format:"tiff",width:decoded.width,height:decoded.height,space:decoded.space,channels:decoded.channels,depth:decoded.depth,
+  const decoded=await decodeTiffToStorage(source,storage,signal,options);
+  metadata={...(decoded.pages===undefined?{}:{pages:decoded.pages}),...(decoded.properties?{properties:decoded.properties}:{}),format:"tiff",width:decoded.width,height:decoded.height,space:decoded.space,channels:decoded.channels,depth:decoded.depth,
    ...(decoded.bitsPerSample===undefined?{}:{bitsPerSample:decoded.bitsPerSample}),density:decoded.density,...(decoded.resolution?{resolution:decoded.resolution}:{}),hasAlpha:decoded.hasAlpha,
    ...(decoded.orientation===undefined?{}:{orientation:decoded.orientation}),size:source.size};
  }

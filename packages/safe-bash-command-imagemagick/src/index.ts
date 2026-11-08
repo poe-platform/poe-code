@@ -5262,7 +5262,8 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
     };
     let exitCode = 0;
-    for (const inPath of targets) {
+    for (let targetIndex = 0; targetIndex < targets.length; targetIndex++) {
+        let inPath = targets[targetIndex]!;
         yield;
         const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
         let baseInPath = bracketMatch ? bracketMatch[1]! : inPath;
@@ -5284,6 +5285,13 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
             if(inspected&&"error" in inspected)throw inspected.error;
             const meta = inspected?.metadata??readImageMetadata(bytes!, inputOptions),size=inspected?.size??bytes!.byteLength;
+            if (pageIdx === undefined && meta.format === "tiff" && (meta.pages ?? 1) > 1) {
+                for (let page = 1; page < meta.pages!; page++) {
+                    yield;
+                    targets.splice(targetIndex + page, 0, `${baseInPath}[${page}]`);
+                }
+                inPath = `${baseInPath}[0]`;
+            }
             const encoded=inspected?.bytes??bytes;
             const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
             const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";

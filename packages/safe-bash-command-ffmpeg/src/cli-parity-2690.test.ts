@@ -383,3 +383,66 @@ it("matches native FFmpeg automatic and explicit selection of two AAC languages"
     }
   }
 });
+
+for (const options of [
+  "PI/2:ow=ih:oh=iw", "PI/2:out_w=4:out_h=12", "PI/2:4:12",
+  "PI/2:ow=rotw(PI/2):oh=roth(PI/2)",
+  "PI/2:ow=in_h:oh=in_w", "PI/2:ow=4:oh=ow*3"
+]) {
+  it(`centers the complete rotated grid for rotate=${options}`, async () => {
+    const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+    const input = encodeImage({
+      width: 12, height: 4, channels: 4,
+      data: new Uint8Array(Array.from({ length: 48 }, (_, i) => [4 * (i + 1), 4 * (i + 1), 4 * (i + 1), 255]).flat()),
+      format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+    }, { format: "png" }).data;
+    const vfs = createTestVfs({ "/input.png": input });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/input.png", "-vf", `rotate=${options}`, "-frames:v", "1", "/out.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const actual = decodeImage(vfs.store.get("/out.png")!);
+    assert.equal(actual.width, 4);
+    assert.equal(actual.height, 12);
+    // Native FFmpeg: clockwise rows start 148,100,52,4, then 152,104,56,8.
+    const expected = Array.from({ length: 48 }, (_, i) =>
+      [4 * ((3 - i % 4) * 12 + Math.floor(i / 4) + 1)]
+        .flatMap(value => [value, value, value, 255]));
+    assert.deepEqual([...actual.data], expected.flat());
+  });
+}
+
+it("centers native YUV planes in the resized rotation canvas", async () => {
+  const { decodeImage } = await import("@poe-code/image-ast/portable");
+  const input = readFileSync(new URL("../../mp4-ast/src/fixtures/h264-b-frames.mp4", import.meta.url));
+  const vfs = createTestVfs({ "/input.mp4": input });
+  for (const [filter, output] of [["null", "/original.png"], ["rotate=PI/2:ow=ih:oh=iw", "/out.png"]]) {
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/input.mp4", "-vf", filter!, "-frames:v", "1", output!
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+  }
+  const original = decodeImage(vfs.store.get("/original.png")!);
+  const actual = decodeImage(vfs.store.get("/out.png")!);
+  assert.equal(actual.width, original.height);
+  assert.equal(actual.height, original.width);
+  for (let y = 0; y < actual.height; y++) {
+    for (let x = 0; x < actual.width; x++) {
+      for (let c = 0; c < 4; c++) {
+        const expected = original.data[((original.height - 1 - x) * original.width + y) * 4 + c]!;
+        assert.ok(Math.abs(actual.data[(y * actual.width + x) * 4 + c]! - expected) <= 1);
+      }
+    }
+  }
+});
+
+for (const size of ["0:12", "4:-1", "1e20:12", "bad:12"]) {
+  it(`rejects rotate output size ${size} without replacing output`, async () => {
+    const vfs = createTestVfs({ "/out.png": "original" });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-y", "-f", "lavfi", "-i", "color=s=12x4:r=1:d=1", "-vf", `rotate=PI/2:${size}`, "/out.png"
+    ], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "original");
+  });
+}

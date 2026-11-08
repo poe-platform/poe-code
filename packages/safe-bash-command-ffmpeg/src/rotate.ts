@@ -18,7 +18,7 @@ function fixedSin(angle: number): number {
 }
 
 export async function rotateYuvFrame(
-  frame: MediaVideoFrame, angle: number, budget: MediaBudgetTracker, signal?: AbortSignal
+  frame: MediaVideoFrame, angle: number, outputWidth: number, outputHeight: number, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame | undefined> {
   const source = frame.native;
   if (!source || source.rgba !== frame.data || source.width !== frame.width || source.height !== frame.height) return undefined;
@@ -30,24 +30,29 @@ export async function rotateYuvFrame(
   if (!sampling) return undefined;
   const chromaWidth = Math.ceil(frame.width / sampling[0]);
   const chromaHeight = Math.ceil(frame.height / sampling[1]);
-  const pixels = new Uint8Array(source.pixels.length);
+  const outputChromaWidth = Math.ceil(outputWidth / sampling[0]);
+  const outputChromaHeight = Math.ceil(outputHeight / sampling[1]);
+  const pixels = new Uint8Array(outputWidth * outputHeight + 2 * outputChromaWidth * outputChromaHeight);
   const fixedAngle = Math.trunc(angle * 1048576);
   const sin = fixedSin(fixedAngle);
   const cos = fixedSin(fixedAngle + Math.trunc(3294199 / 2));
   let offset = 0;
+  let outputOffset = 0;
   for (let plane = 0; plane < 3; plane++) {
     const width = plane === 0 ? frame.width : chromaWidth;
     const height = plane === 0 ? frame.height : chromaHeight;
-    pixels.fill(plane === 0 ? (source.fullRange ? 0 : 16) : 128, offset, offset + width * height);
-    const xi = Math.trunc(-(width - 1) * cos / 2);
-    const yi = Math.trunc((width - 1) * sin / 2);
-    const xprime = Math.trunc(-(height - 1) * sin / 2);
-    const yprime = Math.trunc(-(height - 1) * cos / 2);
-    for (let y = 0; y < height; y++) {
+    const destWidth = plane === 0 ? outputWidth : outputChromaWidth;
+    const destHeight = plane === 0 ? outputHeight : outputChromaHeight;
+    pixels.fill(plane === 0 ? (source.fullRange ? 0 : 16) : 128, outputOffset, outputOffset + destWidth * destHeight);
+    const xi = Math.trunc(-(destWidth - 1) * cos / 2);
+    const yi = Math.trunc((destWidth - 1) * sin / 2);
+    const xprime = Math.trunc(-(destHeight - 1) * sin / 2);
+    const yprime = Math.trunc(-(destHeight - 1) * cos / 2);
+    for (let y = 0; y < destHeight; y++) {
       await yieldTurn(signal);
       signal?.throwIfAborted();
       budget.checkCpu();
-      for (let x = 0; x < width; x++) {
+      for (let x = 0; x < destWidth; x++) {
         const sx = xprime + y * sin + xi + 65536 * (width - 1) / 2 + x * cos;
         const sy = yprime + y * cos + yi + 65536 * (height - 1) / 2 - x * sin;
         const ix = Math.floor(sx / 65536);
@@ -61,12 +66,13 @@ export async function rotateYuvFrame(
         const dy = sy - iy * 65536;
         const top = (65536 - dx) * source.pixels[offset + y0 * width + x0]! + dx * source.pixels[offset + y0 * width + x1]!;
         const bottom = (65536 - dx) * source.pixels[offset + y1 * width + x0]! + dx * source.pixels[offset + y1 * width + x1]!;
-        pixels[offset + y * width + x] = Math.floor(((65536 - dy) * top + dy * bottom) / 4294967296);
+        pixels[outputOffset + y * destWidth + x] = Math.floor(((65536 - dy) * top + dy * bottom) / 4294967296);
       }
     }
     offset += width * height;
+    outputOffset += destWidth * destHeight;
   }
-  const native = { ...source, pixels };
-  const data = scaleVideoPicture({ ...frame, native }, frame.width, frame.height)!;
-  return { ...frame, data, native: { ...native, rgba: data } };
+  const native = { ...source, width: outputWidth, height: outputHeight, pixels };
+  const data = scaleVideoPicture({ ...frame, width: outputWidth, height: outputHeight, native }, outputWidth, outputHeight)!;
+  return { ...frame, width: outputWidth, height: outputHeight, data, native: { ...native, rgba: data } };
 }

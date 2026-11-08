@@ -699,6 +699,11 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
           throw new Error(`${filter}: invalid expression`);
         }
         if (name === "val" && args.length === 1 && sampleValue) value = sampleValue(args[0]!);
+        else if (filter === "rotate" && args.length === 1 && (name === "rotw" || name === "roth")) {
+          const sin = Math.abs(Math.sin(args[0]!));
+          const cos = Math.abs(Math.cos(args[0]!));
+          value = name === "rotw" ? variables.iw! * cos + variables.ih! * sin : variables.iw! * sin + variables.ih! * cos;
+        }
         else if (name === "isnan" && args.length === 1) value = Number(Number.isNaN(args[0]));
         else if (name === "not" && args.length === 1) value = Number(args[0] === 0);
         else if (name === "eq" && args.length === 2) value = Number(args[0] === args[1]);
@@ -1706,8 +1711,9 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "rotate") {
-      if (positional.filter(option => !option.includes("=")).length > 1 || Object.keys(named).some(key => key !== "angle" && key !== "a" && key !== "c" && key !== "fillcolor")) {
-        throw new Error("rotate: only angle and fill color options are supported");
+      const rotatePositional = positional.filter(option => !option.includes("="));
+      if (rotatePositional.length > 3 || Object.keys(named).some(key => !["angle", "a", "ow", "out_w", "oh", "out_h", "c", "fillcolor"].includes(key))) {
+        throw new Error("rotate: unsupported option");
       }
       let fill: [number, number, number, number];
       try {
@@ -1715,24 +1721,33 @@ async function applyVideoFilterChain(
       } catch (error) {
         throw new Error(`rotate: ${(error as Error).message}`);
       }
-      const angle = parseFilterExpression(named.angle ?? named.a ?? (positional[0] || "0"), "rotate", { PI: Math.PI });
-      const cos = Math.cos(angle);
-      const sin = Math.sin(angle);
+      const angle = parseFilterExpression(named.angle ?? named.a ?? (rotatePositional[0] || "0"), "rotate", { PI: Math.PI });
+      const cos = Math.abs(Math.cos(angle)) < 1e-15 ? 0 : Math.cos(angle);
+      const sin = Math.abs(Math.sin(angle)) < 1e-15 ? 0 : Math.sin(angle);
       current = await mapWork(current, async (f) => {
-        budget.recordFrame(f.width, f.height);
+        const dimensions = { PI: Math.PI, iw: f.width, ih: f.height, in_w: f.width, in_h: f.height,
+          ow: f.width, oh: f.height, out_w: f.width, out_h: f.height };
+        const widthExpression = named.ow ?? named.out_w ?? (rotatePositional[1] || "iw");
+        const heightExpression = named.oh ?? named.out_h ?? (rotatePositional[2] || "ih");
+        dimensions.ow = dimensions.out_w = parseFilterExpression(widthExpression, "rotate", dimensions);
+        dimensions.oh = dimensions.out_h = parseFilterExpression(heightExpression, "rotate", dimensions);
+        const width = Math.trunc(parseFilterExpression(widthExpression, "rotate", dimensions));
+        const height = Math.trunc(dimensions.oh);
+        if (width <= 0 || height <= 0) throw new Error("rotate: output dimensions must be positive");
+        budget.recordFrame(width, height);
         const yuv = fill[0] === 0 && fill[1] === 0 && fill[2] === 0 && fill[3] === 255
-          ? await rotateYuvFrame(f, angle, budget, signal) : undefined;
+          ? await rotateYuvFrame(f, angle, width, height, budget, signal) : undefined;
         if (yuv) return yuv;
-        const data = new Uint8Array(f.data.length);
+        const data = new Uint8Array(width * height * 4);
         const cx = (f.width - 1) / 2;
         const cy = (f.height - 1) / 2;
-        for (let y = 0; y < f.height; y++) {
+        for (let y = 0; y < height; y++) {
           await yieldTurn(signal);
           budget.checkCpu();
-          for (let x = 0; x < f.width; x++) {
-            const sx = cos * (x - cx) + sin * (y - cy) + cx;
-            const sy = -sin * (x - cx) + cos * (y - cy) + cy;
-            const dest = (y * f.width + x) * 4;
+          for (let x = 0; x < width; x++) {
+            const sx = cos * (x - (width - 1) / 2) + sin * (y - (height - 1) / 2) + cx;
+            const sy = -sin * (x - (width - 1) / 2) + cos * (y - (height - 1) / 2) + cy;
+            const dest = (y * width + x) * 4;
             data.set(fill, dest);
             const ix = Math.floor(sx);
             const iy = Math.floor(sy);
@@ -1752,7 +1767,7 @@ async function applyVideoFilterChain(
             }
           }
         }
-        return { ...f, data };
+        return { ...f, width, height, data };
       }, signal);
     } else if (name === "histogram") {
       if (argStr) throw new Error("histogram: options are not supported");

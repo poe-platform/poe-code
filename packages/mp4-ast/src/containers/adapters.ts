@@ -159,6 +159,7 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
     else if (token === "Ip") fieldOrder = "progressive";
     else if (token === "It") fieldOrder = "tt";
     else if (token === "Ib") fieldOrder = "bb";
+    else if (token === "Im") throw new Error("YUV4MPEG stream contains mixed interlaced and non-interlaced frames");
     else if (token === "C420mpeg2") chromaLocation = "left";
     else if (token === "C420jpeg") chromaLocation = "center";
     else if (token === "Cmono") { pixFmt = "gray"; format = 8; }

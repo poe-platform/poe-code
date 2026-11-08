@@ -176,6 +176,8 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
       width,
       height,
       data: rgba,
+      native: { rgba, pixels: bytes.subarray(cursor, cursor + frameByteSize), width, height,
+        format: 0, colorspace: 5, fullRange: 0 },
       ptsSeconds: frameIdx / fps,
       durationSeconds: 1 / fps,
       keyframe: true

@@ -134,6 +134,8 @@ must have matching sample rates; preceding filters other than `anull` are unsupp
 `apad=pad_len=19` appends 19 silent samples per channel; `whole_len=16100` pads only until the minimum sample count is reached. `pad_dur` and `whole_dur` accept durations in seconds. Infinite padding and combining padding with a minimum length are rejected.
 `showinfo` reports video frame timestamps, durations, dimensions, pixel format, Adler-32 plane checksums, means, and standard deviations on stderr at info log level or above, without changing pixels. Use `showinfo=checksum=0` to omit checksum statistics. It measures the frames at its position in the filter chain; RGB/RGBA images and retained native planar YUV pixels are supported.
 
+`signalstats` measures per-frame Y/U/V levels, saturation, hue, temporal differences, and effective bit depths. Add `stat=brng` to count broadcast-range violations and `out=brng` to highlight them (yellow by default; `color`/`c` selects another color). Read measurements with `signalstats=stat=brng,metadata=print`. RGB inputs convert to limited-range BT.601 YUV444; retained 8-bit planar YUV inputs preserve their sampling. Temporal-outlier (`tout`) and vertical-repetition (`vrep`) modes are unsupported.
+
 `ashowinfo` reports audio frame timestamps, sample counts, and PCM Adler-32 checksums on stderr at info log level or above, without changing the samples.
 
 `silencedetect=noise=-40dB:d=0.1` reports silence starts, ends, and durations on stderr without changing PCM. Add `:mono=1` to measure each channel separately; trailing silence closes at end of input.

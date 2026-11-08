@@ -34,6 +34,7 @@ import { xbrFrame } from "./xbr.js";
 import { super2xsaiFrame } from "./super2xsai.js";
 import { epxFrame } from "./epx.js";
 import { hqxFrame } from "./hqx.js";
+import { signalstats } from "./signalstats.js";
 import { rotateYuvFrame } from "./rotate.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -1248,7 +1249,21 @@ async function applyVideoFilterChain(
       }
     }
 
-    if (name === "bitplanenoise") {
+    if (name === "signalstats") {
+      const stat = named.stat ?? (positional[0]?.includes("=") ? "" : positional[0]) ?? "";
+      const out = named.out ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "-1";
+      if (Object.keys(named).some(key => !["stat", "out", "c", "color"].includes(key)) || positional.length > 3 ||
+          !["", "0", "brng", "4"].includes(stat) || !["-1", "brng", "2"].includes(out)) {
+        throw new Error("signalstats: supported stat/out mode is brng");
+      }
+      const [r, g, b] = parseColorRgba(named.c ?? named.color ?? positional[2] ?? "yellow");
+      const color = out === "-1" ? undefined : [
+        (263*r + 516*g + 100*b + 512 + (16<<10)) >> 10,
+        ((-152*r - 298*g + 450*b + 511) >> 10) + 128,
+        ((450*r - 377*g - 73*b + 511) >> 10) + 128
+      ];
+      current = await signalstats(current, stat === "brng" || stat === "4", color, budget, signal);
+    } else if (name === "bitplanenoise") {
       const bitplane = Number(named.bitplane ?? (positional[0]?.includes("=") ? undefined : positional[0] || undefined) ?? 1);
       const filter = named.filter ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "0";
       if (Object.keys(named).some(key => key !== "bitplane" && key !== "filter") || positional.length > 2 ||

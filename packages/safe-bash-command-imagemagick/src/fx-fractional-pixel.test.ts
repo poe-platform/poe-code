@@ -12,19 +12,25 @@ const transparent = [[255, 0, 0, 0], [0, 0, 255, 255]];
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     it.each([
         ["p{0.5,0}", [40, 56, 72, 255], pixels],
+        ["p{0.5,0}", [16, 32, 48, 255], pixels, ["-interpolate", "integer"]],
+        ["p{0.5,0}", [64, 80, 96, 255], pixels, ["-interpolate", "nearest-neighbor"]],
+        ["p{0.5,0}", [40, 56, 72, 255], pixels, ["-interpolate", "bilinear"]],
+        ["p{0.5,0}", [112, 128, 144, 255], pixels, ["-interpolate", "average"]],
+        ["p{0,0}", [112, 128, 144, 255], pixels, ["-interpolate", "average"]],
+        ["p{0.5,0}", [40, 56, 72, 255], pixels, ["-interpolate", "integer", "+interpolate"]],
         ["p{0.5,0.5}", [112, 128, 144, 255], pixels],
         ["p{1,0}", [64, 80, 96, 255], pixels],
         ["p{-0.5,0}", [16, 32, 48, 255], pixels],
         ["u.p{0.5,0}.g", [56, 56, 56, 56], pixels],
         ["p{0.5,0}", [0, 0, 255, 128], transparent],
-    ] as const)(`${mode}: interpolates %s`, async (expression, pixel, source) => {
+    ] as const)(`${mode}: interpolates %s`, async (expression, pixel, source, options: readonly string[] = []) => {
         const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
         for (const [name, data] of [["input.png", source]] as const) {
             const input = encodeImage({ width: source === pixels ? 3 : 2, height: source === pixels ? 2 : 1, data: Uint8Array.from(data.flat()), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: source === transparent }, { format: "png" }).data;
             files.set(name, input);
             await filesystem.writeFile(`/${name}`, input);
         }
-        const args = ["input.png", "-fx", expression, "out.png"];
+        const args = ["input.png", ...options, "-fx", expression, "out.png"];
         const argumentValues = createCommandArguments(args);
         const result = mode === "command" ? await createMagickCommand().execute({
             command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: filesystem,

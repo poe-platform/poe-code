@@ -2306,6 +2306,7 @@ interface FxEvalContext {
   readonly statistics?: Readonly<Record<string, number>> | undefined;
   readonly stack: FxStack | readonly FxImage[];
   readonly sample?: typeof sampleFxImage;
+  readonly interpolation?: LookupInterpolation | undefined;
   readonly x: number;
   readonly y: number;
   readonly w: number;
@@ -2336,18 +2337,20 @@ function sampleFxImage(
   if ((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && img.data16 && ch < 4) return img.data16[idx + ch]! / 65535;
   return sampleFxPixel(img.data16 ?? img.data!, idx, ch, img.data16 ? 65535 : 255);
 }
-function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number): number {
+function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
   if (!img) return 0;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
   const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
-  if (dx === 0 && dy === 0) return sample(img, x, y, ch);
+  if (interpolation === "integer") return sample(img, left, top, ch);
+  if (interpolation === "nearest") return sample(img, Math.floor(x + 0.5), Math.floor(y + 0.5), ch);
+  if (interpolation !== "average" && dx === 0 && dy === 0) return sample(img, x, y, ch);
   if (ch >= 4 && ch <= 7) {
-    return sampleFxPixel([0, 1, 2].map(channel => interpolateFxImage(sample, img, x, y, channel)), 0, ch, 1);
+    return sampleFxPixel([0, 1, 2].map(channel => interpolateFxImage(sample, img, x, y, channel, interpolation)), 0, ch, 1);
   }
   let value = 0, alpha = 0;
   for (let row = 0; row < 2; row++) {
     for (let column = 0; column < 2; column++) {
-      const weight = (column ? dx : 1 - dx) * (row ? dy : 1 - dy);
+      const weight = interpolation === "average" ? 0.25 : (column ? dx : 1 - dx) * (row ? dy : 1 - dy);
       if (weight === 0) continue;
       const opacity = img.hasAlpha && ch !== 3 ? sample(img, left + column, top + row, 3) : 1;
       value += weight * opacity * sample(img, left + column, top + row, ch);
@@ -2873,7 +2876,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (name === "lightness") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 7);
 
         const ch = propName ? propToChannel(propName) : ctx.ch;
-        return interpolateFxImage(ctx.sample ?? sampleFxImage, targetImg, px, py, ch);
+        return interpolateFxImage(ctx.sample ?? sampleFxImage, targetImg, px, py, ch, ctx.interpolation);
       };
     }
     throw new Error(`Expected operand in FX expression, got: ${tok.val}`);
@@ -2884,7 +2887,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
   return expression;
 }
 
-function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: string, channels: MagickState["channels"], method: VirtualPixelMethod | undefined, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: string, channels: MagickState["channels"], method: VirtualPixelMethod | undefined, background: RgbaColor, interpolation: LookupInterpolation | undefined): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const stack: FxStack = "get" in input ? input : { length: input.length, get: index => input[index], indexOf: image => input.indexOf(image) };
     const base = stack.get(0)!, evaluate = compileFxExpression(expression), mask = [channels.r, channels.g, channels.b, channels.a && base.hasAlpha];
     const highDepth = !!(base.data16 || ("storedData16" in base && base.storedData16)), maximum = highDepth ? 65535 : 255;
@@ -2946,7 +2949,7 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
             for (let ch = 0; ch < 4; ch++) {
                 if (!mask[ch]) continue;
                 // ImageMagick convert evaluates statistics as zero in the red output channel.
-                const context: FxEvalContext = { statistics: statistics && ch === 0 ? {} : statistics, stack, x: (start + i) % base.width, y: Math.floor((start + i) / base.width), w: base.width, h: base.height, ch, vars, sample: samplePixel };
+                const context: FxEvalContext = { statistics: statistics && ch === 0 ? {} : statistics, stack, x: (start + i) % base.width, y: Math.floor((start + i) / base.width), w: base.width, h: base.height, ch, vars, sample: samplePixel, interpolation };
                 // Replaying local assignments is deterministic; retain only this pixel's demanded samples.
                 while (true) {
                     vars.clear();
@@ -7783,7 +7786,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const expr = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             if (stack.length > 0) {
                 const base = stack[0]!;
-                stack = [yield* applyMagickRasterSteps(base, magickFxPixelSteps(stack, expr, channels, state.virtualPixel, state.background), signal, { ...base, hasAlpha: base.hasAlpha || channels.a && (state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255) }, stack)];
+                stack = [yield* applyMagickRasterSteps(base, magickFxPixelSteps(stack, expr, channels, state.virtualPixel, state.background, state.interpolation), signal, { ...base, hasAlpha: base.hasAlpha || channels.a && (state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255) }, stack)];
             }
         }
         else if (t === "-shadow") {
@@ -9557,7 +9560,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const offset = explicit ? offsetOrText : "+0+0", text = explicit ? (tokens[++i] ?? "") : offsetOrText, settings = { ...state };
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, annotatePixelSteps(image, offset, text, settings), signal) : undefined);
         } else if (!operandsOnly && token === "-fx") {
-            const expression = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true }, virtualPixel = state.virtualPixel, background = state.background;
+            const expression = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true }, virtualPixel = state.virtualPixel, background = state.background, interpolation = state.interpolation;
             stackStep(async (stack, backend) => {
                 const base = await stack.get(0); if (!base) return stack;
                 const frames = new Map<number, StoredRgbaImage>([[0, base]]), indices = new WeakMap<FxImage, number>(); indices.set(base, 0);
@@ -9569,7 +9572,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     // Metadata retained during replay is bounded by expression references, not the number of input frames.
                     reset() { if (frames.size > 32) { frames.clear(); frames.set(0, base); } }
                 };
-                const result = await transformStoredMagickRaster(base, backend, magickFxPixelSteps(source, expression, channels, virtualPixel, background), signal, { ...base, hasAlpha: base.hasAlpha || channels.a && (virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255) }, async index => index === stack.length ? { ...base, ...((base as StoredRgbaImage).readMask!) } : (await stack.get(index))!, async () => {
+                const result = await transformStoredMagickRaster(base, backend, magickFxPixelSteps(source, expression, channels, virtualPixel, background, interpolation), signal, { ...base, hasAlpha: base.hasAlpha || channels.a && (virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255) }, async index => index === stack.length ? { ...base, ...((base as StoredRgbaImage).readMask!) } : (await stack.get(index))!, async () => {
                     if (demanded === undefined) return; const index = demanded; demanded = undefined; const frame = (await stack.get(index))!; frames.set(index, frame); indices.set(frame, index);
                 });
                 stack.length = 0; await stack.push(result); return stack;

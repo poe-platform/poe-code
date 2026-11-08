@@ -6431,7 +6431,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid input file index: ${inputIdx}.\n`), context.signal);
                   return { exitCode: 234 };
                 }
-                const type = selector === "v" ? "video" : selector === "a" ? "audio" : selector === "s" ? "subtitle" : undefined;
+                const type = selector === "v" ? "video" : selector === "a" ? "audio" : selector === "s" ? "subtitle" : selector === "d" ? "data" : undefined;
                 let matches: readonly (MediaTrack | MediaAttachment)[] = type ? srcDoc.tracks.filter(t => t.type === type)
                   : selector === "t" ? srcDoc.attachments ?? [] : [...srcDoc.tracks, ...srcDoc.attachments ?? []];
                 const streamSpecifier = type || selector === "t" ? specifier.slice(1) : specifier;

@@ -4760,9 +4760,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
                 const fadeDur = parseFloat(named.duration ?? "1");
                 const fps = f0[0]?.durationSeconds ? Math.round(1 / f0[0].durationSeconds) : 25;
-                const overlapFrames = fadeDur === 0 ? 0 : Math.max(1, Math.min(f0.length, f1.length, Math.round(fadeDur * fps)));
                 const offsetSec = parseFloat(named.offset ?? "0");
-                const preCount = Math.max(0, Math.min(f0.length - overlapFrames, Math.round(offsetSec * fps)));
+                const preCount = Math.max(0, Math.min(f0.length, Math.round(offsetSec * fps)));
+                const overlapFrames = fadeDur === 0 ? 0 : Math.min(f0.length - preCount, f1.length, Math.max(1, Math.round(fadeDur * fps)));
                 const outFrames: MediaVideoFrame[] = [];
                 let cursor = 0;
                 for (let i = 0; i < preCount; i++) {
@@ -4794,6 +4794,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   });
                   cursor += a.durationSeconds;
                 }
+                // If the first clip ends before the transition starts, FFmpeg forwards
+                // the second clip at its original timestamps; output sync handles overlap.
+                if (preCount === f0.length) cursor = f1[0]?.ptsSeconds ?? 0;
                 for (let j = overlapFrames; j < f1.length; j++) {
                   const b = f1[j]!;
                   outFrames.push({ ...b, ptsSeconds: cursor });

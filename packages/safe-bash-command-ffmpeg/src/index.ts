@@ -1449,10 +1449,10 @@ async function applyVideoFilterChain(
       if (targetW === 0) targetW = iw;
       if (targetH === 0) targetH = ih;
       if (targetW < 0 && targetH > 0) {
-        const multiple = wSpec.trim() === "-2" ? 2 : 1;
+        const multiple = -targetW;
         targetW = Math.max(1, Math.round((iw * targetH) / (Math.max(1, ih) * multiple))) * multiple;
       } else if (targetH < 0 && targetW > 0) {
-        const multiple = hSpec.trim() === "-2" ? 2 : 1;
+        const multiple = -targetH;
         targetH = Math.max(1, Math.round((ih * targetW) / (Math.max(1, iw) * multiple))) * multiple;
       }
       if (aspect === "decrease" || aspect === "1" || aspect === "increase" || aspect === "2") {

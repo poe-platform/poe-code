@@ -1341,56 +1341,75 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     if (udtaBox) moovChildren.push(udtaBox);
     const moovBox = makeBox("moov", concatBytes(moovChildren));
 
-    // Build single moof + mdat fragment containing all track runs
-    const mdatChunks: Uint8Array[] = [];
-    const trackByteStarts: number[] = [];
-    let currentMdatPayloadOffset = 0;
-    for (const mt of materializedTracks) {
-      trackByteStarts.push(currentMdatPayloadOffset);
-      for (const s of mt.samples) {
-        mdatChunks.push(s.data);
-        currentMdatPayloadOffset += s.data.byteLength;
-      }
-    }
-
-    // Build moof first with placeholder data_offset, then patch exact moof size + 8
-    const buildMoof = (moofByteSize: number): Uint8Array => {
-      const mfhdWriter = new BinaryWriter(4);
-      mfhdWriter.writeU32BE(1); // sequence_number = 1
-      const mfhdBox = makeFullBox("mfhd", 0, 0, mfhdWriter.toUint8Array());
-
-      const trafBoxes = materializedTracks.map((mt, idx) => {
-        const tfhdWriter = new BinaryWriter(8);
-        tfhdWriter.writeU32BE(mt.track.id);
-        tfhdWriter.writeU32BE(1); // sample_description_index
-        // flags: 0x020002 (default-base-is-moof + sample-description-index-present)
-        const tfhdBox = makeFullBox("tfhd", 0, 0x020002, tfhdWriter.toUint8Array());
-
-        const tfdtWriter = new BinaryWriter(8);
-        tfdtWriter.writeU64BE(mt.samples[0]?.dts ?? 0);
-        const tfdtBox = makeFullBox("tfdt", 1, 0, tfdtWriter.toUint8Array());
-
-        // trun flags: 0x000f01 (data-offset + duration + size + flags + cts)
-        const trunWriter = new BinaryWriter(8 + mt.samples.length * 16);
-        trunWriter.writeU32BE(mt.samples.length);
-        trunWriter.writeI32BE(moofByteSize + 8 + trackByteStarts[idx]!);
-        for (const s of mt.samples) {
-          trunWriter.writeU32BE(s.duration);
-          trunWriter.writeU32BE(s.data.byteLength);
-          trunWriter.writeU32BE(s.isKeyframe ? 0x02000000 : 0x01010000);
-          trunWriter.writeI32BE(s.cts);
-        }
-        const trunBox = makeFullBox("trun", 1, 0x000f01, trunWriter.toUint8Array());
-        return makeBox("traf", concatBytes([tfhdBox, tfdtBox, trunBox]));
+    const boundaries = options.fragmentKeyframes
+      ? [...new Set(materializedTracks.flatMap(mt => mt.track.type === "video"
+        ? mt.samples.slice(1).filter(sample => sample.isKeyframe).map(sample => sample.dts / mt.track.timescale)
+        : []))].sort((a, b) => a - b)
+      : [];
+    const positions = materializedTracks.map(() => 0);
+    const fragments: Uint8Array[] = [];
+    let sequence = 1;
+    for (const end of [...boundaries, Infinity]) {
+      const fragmentTracks = materializedTracks.flatMap((mt, index) => {
+        const start = positions[index]!;
+        let stop = start;
+        while (stop < mt.samples.length && mt.samples[stop]!.dts / mt.track.timescale < end) stop++;
+        positions[index] = stop;
+        return stop > start ? [{ ...mt, samples: mt.samples.slice(start, stop) }] : [];
       });
+      if (fragmentTracks.length === 0) continue;
+      const mdatChunks: Uint8Array[] = [];
+      const trackByteStarts: number[] = [];
+      let currentMdatPayloadOffset = 0;
+      for (const mt of fragmentTracks) {
+        trackByteStarts.push(currentMdatPayloadOffset);
+        for (const s of mt.samples) {
+          mdatChunks.push(s.data);
+          currentMdatPayloadOffset += s.data.byteLength;
+        }
+      }
 
-      return makeBox("moof", concatBytes([mfhdBox, ...trafBoxes]));
-    };
+      // Build moof first with placeholder data_offset, then patch exact moof size + 8
+      const buildMoof = (moofByteSize: number): Uint8Array => {
+        const mfhdWriter = new BinaryWriter(4);
+        mfhdWriter.writeU32BE(sequence); // sequence_number
+        const mfhdBox = makeFullBox("mfhd", 0, 0, mfhdWriter.toUint8Array());
 
-    const dummyMoof = buildMoof(0);
-    const finalMoof = buildMoof(dummyMoof.byteLength);
-    const mdatBox = makeBox("mdat", concatBytes(mdatChunks));
-    const result = concatBytes([ftypBox, moovBox, finalMoof, mdatBox]);
+        const trafBoxes = fragmentTracks.map((mt, idx) => {
+          const tfhdWriter = new BinaryWriter(8);
+          tfhdWriter.writeU32BE(mt.track.id);
+          tfhdWriter.writeU32BE(1); // sample_description_index
+          // flags: 0x020002 (default-base-is-moof + sample-description-index-present)
+          const tfhdBox = makeFullBox("tfhd", 0, 0x020002, tfhdWriter.toUint8Array());
+
+          const tfdtWriter = new BinaryWriter(8);
+          tfdtWriter.writeU64BE(mt.samples[0]?.dts ?? 0);
+          const tfdtBox = makeFullBox("tfdt", 1, 0, tfdtWriter.toUint8Array());
+
+          // trun flags: 0x000f01 (data-offset + duration + size + flags + cts)
+          const trunWriter = new BinaryWriter(8 + mt.samples.length * 16);
+          trunWriter.writeU32BE(mt.samples.length);
+          trunWriter.writeI32BE(moofByteSize + 8 + trackByteStarts[idx]!);
+          for (const s of mt.samples) {
+            trunWriter.writeU32BE(s.duration);
+            trunWriter.writeU32BE(s.data.byteLength);
+            trunWriter.writeU32BE(s.isKeyframe ? 0x02000000 : 0x01010000);
+            trunWriter.writeI32BE(s.cts);
+          }
+          const trunBox = makeFullBox("trun", 1, 0x000f01, trunWriter.toUint8Array());
+          return makeBox("traf", concatBytes([tfhdBox, tfdtBox, trunBox]));
+        });
+
+        return makeBox("moof", concatBytes([mfhdBox, ...trafBoxes]));
+      };
+
+      const dummyMoof = buildMoof(0);
+      const finalMoof = buildMoof(dummyMoof.byteLength);
+      const mdatBox = makeBox("mdat", concatBytes(mdatChunks));
+      fragments.push(finalMoof, mdatBox);
+      sequence++;
+    }
+    const result = concatBytes([ftypBox, moovBox, ...fragments]);
     budget.checkOutputBytes(result.byteLength);
     return result;
   }

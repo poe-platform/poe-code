@@ -722,6 +722,8 @@ export interface SerializeMediaOptions {
   readonly format?: string | undefined;
   readonly faststart?: boolean | undefined;
   readonly fragmented?: boolean | undefined;
+  /** Start a new MP4 fragment at each video keyframe. Requires fragmented output. */
+  readonly fragmentKeyframes?: boolean | undefined;
   /** Write an MP4 color information box even when color metadata is unspecified. */
   readonly writeColr?: boolean | undefined;
   readonly id3v2Version?: 0 | 3 | 4 | undefined;

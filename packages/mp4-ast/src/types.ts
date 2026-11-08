@@ -749,6 +749,8 @@ export interface SerializeMediaOptions {
   readonly format?: string | undefined;
   /** Write named MP4 metadata using the mdta keys table. */
   readonly useMetadataTags?: boolean | undefined;
+  /** Omit Nero chapters while retaining the QuickTime chapter track. */
+  readonly disableChpl?: boolean | undefined;
   readonly faststart?: boolean | undefined;
   readonly fragmented?: boolean | undefined;
   /** Write one segment index per track globally or before each fragment. */

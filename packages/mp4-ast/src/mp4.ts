@@ -1531,7 +1531,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       data: pictureData
     } : undefined
   };
-  const udtaBox = buildUdtaMetadataBox(mergedMetadata, doc.chapters, options.useMetadataTags);
+  const udtaBox = buildUdtaMetadataBox(mergedMetadata, options.disableChpl ? undefined : doc.chapters, options.useMetadataTags);
 
   // Fragmented MP4 mode (`ftyp` + `moov(mvex)` + `moof` + `mdat`)
   if (options.fragmented) {

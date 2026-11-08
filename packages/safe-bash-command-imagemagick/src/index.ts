@@ -6778,6 +6778,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i = j;
             continue;
         }
+        if (t === "+orient") {
+            delete state.orientation;
+            i++;
+            continue;
+        }
         if (t === "-orient") {
             const orientation = state.orientation = parseMagickOrientation(tokens[++i] ?? "");
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, orientation }; });
@@ -8286,6 +8291,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
+        if (!operandsOnly && token === "+orient") {
+            delete state.orientation;
+            continue;
+        }
         if (!operandsOnly && token === "-orient") {
             const orientation = state.orientation = parseMagickOrientation(tokens[++i] ?? "");
             steps.push(async image => image ? { ...image, orientation } : undefined);
@@ -9376,7 +9385,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
         "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
-        "+read-mask", "+interpolate", "+filter", "+page",
+        "+read-mask", "+interpolate", "+filter", "+page", "+orient",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
     ]);
     for (let i = 0; i < argv.length; i++) {

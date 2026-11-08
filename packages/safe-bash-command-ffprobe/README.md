@@ -28,7 +28,7 @@ Matroska stream inventories include attachments with filename, MIME type, descri
 
 `-show_data` adds WAV, MP3, FLAC and MP4/MOV packet payloads as hexadecimal and ASCII dumps, selectable with `-show_entries packet=data,size`. WAV payloads exclude container headers; retained packet payloads stream through bounded reads, and stdin is staged when data is requested.
 `-show_data_hash sha256` adds packet payload checksums, selectable with `-show_entries packet=data_hash,size`. Supported algorithms are `md5`, `sha160`, `sha224`, `sha256`, `sha384`, and `sha512`; hashes exclude container headers and use bounded reads.
-Numbered image inputs (`in%d.png`, `in%03d.png`) expand consecutive files with `-f image2` or an image filename extension. Probing searches starting numbers 0–4, stops at the first gap, and timestamps packets at 25 fps by default or the supplied `-framerate`.
+Numbered image inputs (`in%d.png`, `in%03d.png`) expand consecutive files with `-f image2` or an image filename extension. Probing searches starting numbers 0–4, stops at the first gap, and timestamps packets at 25 fps by default or the supplied `-framerate`. For numbered or literal image files, `-ts_from_file 1` uses file modification times in whole seconds; `-ts_from_file 2` uses nanosecond ticks derived from filesystem millisecond timestamps. `-ts_from_file 0` keeps frame-rate timing.
 
 `-export_path_metadata 1` adds `lavf.image2dec.source_path` and `lavf.image2dec.source_basename` tags plus Strings Metadata side data to each image2 packet, using its actual input filename. Omit the option or pass `0` to leave path metadata disabled.
 

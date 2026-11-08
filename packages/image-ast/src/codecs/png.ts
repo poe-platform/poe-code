@@ -2,7 +2,7 @@ import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, makeChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
+import {PNG_SIGNATURE, makeChunk, gammaChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
 import {paethPredictor, writePngPixel} from "./png-pixels.js";
 import { createByteCodec, transformBytes, ByteCodecError } from "@poe-code/compression";
 
@@ -223,6 +223,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     ...(meta.bitsPerSample === undefined ? {} : {bitsPerSample: meta.bitsPerSample}),
     ...(meta.backgroundColor === undefined ? {} : {backgroundColor: meta.backgroundColor}),
     density: meta.density,
+    ...(meta.gamma === undefined ? {} : {gamma: meta.gamma}),
     ...(meta.resolution ? {resolution: meta.resolution} : {}),
     hasAlpha: meta.hasAlpha,
     ...(meta.virtualCanvas === undefined ? {} : {virtualCanvas: meta.virtualCanvas}),
@@ -443,6 +444,7 @@ export function encodePngImage(
   const chunks = [
     PNG_SIGNATURE,
     makeChunk("IHDR", ihdr),
+    ...(img.gamma === undefined ? [] : [gammaChunk(img.gamma)]),
     ...(img.icc ? [iccChunk(img.icc)] : []),
     ...(exactPalette ? [makeChunk("PLTE", exactPalette.bytes), ...(exactPalette.transparency ? [makeChunk("tRNS", exactPalette.transparency)] : [])] : []),
     ...(palette ? [makeChunk("PLTE", palette.bytes), makeChunk("tRNS", Uint8Array.from({ length: 256 }, (_, i) => i === 255 ? 0 : 255))] : []),

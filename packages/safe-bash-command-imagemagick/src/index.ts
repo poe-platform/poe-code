@@ -5341,7 +5341,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         const lookup = [channels.r, channels.g, channels.b, channels.a].map(active =>
             Uint8Array.from({ length: 256 }, (_, value) => active ? clampByteVal(255 * Math.min(1, Math.pow(value / 255, gamma === 0 ? Number.MAX_VALUE : 1 / gamma))) : value));
-        apply = image => applyMagickLookup(image, lookup);
+        apply = function* (image) {
+            // Native PNG readback treats the rounded sRGB gAMA value as 1/2.2.
+            const inputGamma = image.gamma === undefined || image.gamma === 0.45455 ? 1 / 2.2 : image.gamma;
+            return { ...yield* applyMagickLookup(image, lookup), gamma: inputGamma * gamma };
+        };
     }
     else if (token === "-alpha") {
         const mode = (tokens[++i] ?? "on").toLowerCase();

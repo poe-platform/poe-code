@@ -68,6 +68,7 @@ export interface RgbaImage {
   readonly space: ColorSpace;
   readonly channels: 1 | 2 | 3 | 4;
   readonly depth: "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | "bit";
+  readonly gamma?: number;
   readonly density: number;
   readonly resolution?: NonNullable<ImageMetadata["resolution"]>;
   readonly hasAlpha: boolean;
@@ -104,6 +105,7 @@ export interface ImageMetadata {
   readonly space: ColorSpace;
   readonly channels: 1 | 2 | 3 | 4;
   readonly depth: "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | "bit";
+  readonly gamma?: number;
   readonly density: number;
   readonly hasAlpha: boolean;
   readonly compression?: "hevc" | "av1";

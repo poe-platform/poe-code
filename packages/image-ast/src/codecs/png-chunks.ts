@@ -68,3 +68,9 @@ export function iccChunk(icc: Uint8Array): Uint8Array {
   payload.set(compressed, 5);
   return makeChunk("iCCP", payload);
 }
+
+export function gammaChunk(gamma: number): Uint8Array {
+  const bytes = new Uint8Array(4);
+  new DataView(bytes.buffer).setUint32(0, Math.round(gamma * 100000));
+  return makeChunk("gAMA", bytes);
+}

@@ -14,6 +14,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   let colorType = 6;
   let interlace = 0;
   let density = 72;
+  let gamma: number | undefined;
   let resolution: ImageMetadata["resolution"];
   let hasTrns = false;
   let virtualCanvas: ImageMetadata["virtualCanvas"];
@@ -41,6 +42,10 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       bitDepth = chunk[8]!;
       colorType = chunk[9]!;
       interlace = chunk[12]!;
+    } else if (type === "gAMA" && len === 4) {
+      const chunk = yield {position:dataStart,length:4};
+      const value = new DataView(chunk.buffer,chunk.byteOffset,4).getUint32(0);
+      if (value > 0) gamma = value / 100000;
     } else if (type === "tEXt" || type === "zTXt" || type === "iTXt") {
       if (len > 16 * 1024 * 1024) throw new Error("PNG text exceeds 16 MiB");
       const keyword = yield {position:dataStart,length:Math.min(len,80)};
@@ -196,6 +201,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
     depth,
     bitsPerSample: bitDepth,
     density,
+    ...(gamma === undefined ? {} : {gamma}),
     ...(backgroundColor === undefined ? {} : {backgroundColor}),
     ...(resolution === undefined ? {} : {resolution}),
     hasAlpha,

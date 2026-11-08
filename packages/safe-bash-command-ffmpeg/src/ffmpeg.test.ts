@@ -6553,7 +6553,7 @@ describe("chapter output seeking", () => {
           }
           assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).chapters ?? [], mapping === "-1" ? [] : [
             { id: 0, startTimeSeconds: 0, endTimeSeconds: 0.15, title: "Intro" },
-            { id: 1, startTimeSeconds: 0.15, endTimeSeconds: parseMp4(vfs.store.get("/out.mp4")!).durationSeconds, title: "Discussion" }
+            { id: 1, startTimeSeconds: 0.15, endTimeSeconds: 0.5, title: "Discussion" }
           ]);
         });
       }

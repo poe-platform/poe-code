@@ -2,10 +2,10 @@ import type { RgbaImage } from "../ast.js";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { defaultRuntime } from "@poe-code/compression";
 
-function miffHeader(image: { width: number; height: number }): Uint8Array {
+function miffHeader(image: { width: number; height: number; magickColorspace?: string }): Uint8Array {
     const { width, height } = image;
     if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new RangeError("Invalid MIFF dimensions");
-    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=True\ncolumns=${width} rows=${height} depth=8\ncolorspace=sRGB\ncompression=None\n\f\n:\x1a`);
+    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=True\ncolumns=${width} rows=${height} depth=8\ncolorspace=${image.magickColorspace === "RGB" ? "RGB" : "sRGB"}\ncompression=None\n\f\n:\x1a`);
 }
 
 export function encodeMiffImage(image: RgbaImage): Uint8Array {

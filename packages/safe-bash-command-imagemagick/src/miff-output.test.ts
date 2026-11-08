@@ -43,3 +43,25 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     });
 }
 }
+
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    it(`preserves each MIFF frame's linear RGB colorspace in ${mode}`, async () => {
+        const files = new Map<string, Uint8Array>();
+        const filesystem = new MemoryFileSystem();
+        const args = ["xc:#123456", "xc:#abcdef", "+append", "-colorspace", "RGB", "(", "xc:#abcdef", ")", "out.miff"];
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args, cwd: "/", env: {}, fs: filesystem,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write() {} }
+        }) : mode === "sync" ? runMagickCliSync(args, files)
+            : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        const bytes = mode === "retained" || mode === "command" ? await filesystem.readFile("/out.miff") : files.get("out.miff")!;
+        const firstEnd = bytes.indexOf(26);
+        expect(new TextDecoder().decode(bytes.subarray(0, firstEnd))).toContain("colorspace=RGB\n");
+        expect([...bytes.subarray(firstEnd + 1, firstEnd + 9)]).toEqual([2, 9, 24, 255, 104, 156, 220, 255]);
+        const secondEnd = bytes.indexOf(26, firstEnd + 9);
+        expect(new TextDecoder().decode(bytes.subarray(firstEnd + 9, secondEnd))).toContain("colorspace=sRGB\n");
+        expect([...bytes.subarray(secondEnd + 1)]).toEqual([171, 205, 239, 255]);
+    });
+}

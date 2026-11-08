@@ -6729,7 +6729,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await deessAudio(stretched, origRate, trimmed, budget, context.signal);
                         continue;
                       }
-                      if (trimmed === "anull") continue;
+                      if (trimmed === "anull" || trimmed === "acopy") continue;
                       if (trimmed.startsWith("asendcmd=")) {
                         let commands = trimmed.slice("asendcmd=".length);
                         if (commands.startsWith("c=")) commands = commands.slice(2);

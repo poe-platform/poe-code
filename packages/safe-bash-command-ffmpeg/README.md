@@ -156,7 +156,7 @@ input, such as WAV or a `lavfi` source. `[0:a][1:a]amix=inputs=2:duration=shorte
 `compand=attacks=0:decays=0:points=-80/-80|-40/-40|-20/-30|0/-20` applies a dB transfer curve to PCM without changing its length. Per-channel attack/decay times, soft knees, output gain, and initial volume are supported; nonzero delay is rejected.
 
 `mcompand` applies FFmpeg’s default five-band companding curve at 48 kHz. Custom quoted band specifications support attack/decay pairs, soft knees, transfer points, crossover frequencies, and initial volume. Crossovers must be below half the sample rate; nonzero delay and gain are rejected.
-`anull` passes audio through unchanged, alone or in a filter chain.
+`anull` and `acopy` pass audio through unchanged, alone or in a filter chain.
 `deesser=i=0.8:m=0.5:f=0.5` reduces sibilance independently per channel. Intensity (`i`, default 0), maximum deessing (`m`, default 0.5), and frequency (`f`, default 0.5) accept values from 0 to 1. Output mode `s` selects input (`i`/`0`), processed audio (`o`/`1`, default), or removed sibilance (`e`/`2`). Positional options follow `i:m:f:s`.
 
 `adeclick` removes impulsive noise from decoded PCM using autoregressive interpolation.

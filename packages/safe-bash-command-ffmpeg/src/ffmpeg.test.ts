@@ -16,6 +16,30 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("acopy", () => {
+  for (const graph of [false, true]) {
+    for (const filter of ["acopy", "acopy,areverse", "areverse,acopy"]) {
+      it(`preserves exact PCM samples through ${filter} (graph=${graph})`, async () => {
+        const samples = [100, -200, 300, -400, 500, -600, 700, -800];
+        const vfs = createTestVfs({ "/in.wav": encodeWav({
+          sampleRate: 8000, channels: [Float64Array.from(samples, value => value / 32768)]
+        }) });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-v", "error", "-y", "-i", "/in.wav",
+          ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          "-c:a", "pcm_s16le", "/out.wav"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+        assert.equal(audio.sampleRate, 8000);
+        assert.equal(audio.channelData.length, 1);
+        assert.deepEqual(Array.from(audio.channelData[0]!, value => value * 32768),
+          filter.includes("areverse") ? [...samples].reverse() : samples);
+      });
+    }
+  }
+});
+
 describe("output initialization before media writing", () => {
   for (const earlierExists of [false, true]) {
     for (const later of [["in.wav"], ["./in.wav"], ["-f", "not_a_muxer", "last.zz"]]) {

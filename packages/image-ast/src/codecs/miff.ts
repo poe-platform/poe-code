@@ -41,11 +41,16 @@ function miffPixels(bytes: Uint8Array, channels: number, sampleBytes: number, co
     return encoded.subarray(0, length);
 }
 
-function miffHeader(image: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha" | "virtualCanvas"> & { magickColorspace?: string }, depth: 8 | 16, compression: OutputEncodeOptions["miffCompression"]): Uint8Array {
+function miffHeader(image: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha" | "virtualCanvas" | "resolution" | "density"> & { magickColorspace?: string }, depth: 8 | 16, compression: OutputEncodeOptions["miffCompression"]): Uint8Array {
     const { width, height, virtualCanvas: page } = image;
+    const resolution = image.resolution;
+    const scale = resolution?.unit === "meter" ? 100 : 1;
+    const x = resolution ? resolution.x / scale : image.density;
+    const y = resolution ? resolution.y / scale : image.density;
+    const units = resolution?.unit === "inch" ? "PixelsPerInch" : resolution?.unit === "cm" || resolution?.unit === "meter" ? "PixelsPerCentimeter" : "Undefined";
     const geometry = page ? `page=${page.width}x${page.height}${page.x < 0 ? "" : "+"}${page.x}${page.y < 0 ? "" : "+"}${page.y}\n` : "";
     if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new RangeError("Invalid MIFF dimensions");
-    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=${image.hasAlpha ? "True" : "False"}\ncolumns=${width} rows=${height} depth=${depth}\n${geometry}colorspace=${miffChannels(image) <= 2 ? "Gray" : image.magickColorspace === "RGB" ? "RGB" : "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
+    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=${image.hasAlpha ? "True" : "False"}\ncolumns=${width} rows=${height} depth=${depth}\n${geometry}resolution=${x}x${y}\nunits=${units}\ncolorspace=${miffChannels(image) <= 2 ? "Gray" : image.magickColorspace === "RGB" ? "RGB" : "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
 }
 
 export function encodeMiffImage(image: RgbaImage, requestedDepth?: 8 | 16, compression?: OutputEncodeOptions["miffCompression"]): Uint8Array {

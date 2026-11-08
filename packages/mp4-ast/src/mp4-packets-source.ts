@@ -46,7 +46,10 @@ export async function* scanMp4Frames(source: MediaProbeSource, options: Mp4Packe
       best_effort_timestamp: sample.pts, best_effort_timestamp_time: ptsTime,
       duration: sample.duration, duration_time: (sample.duration / scale).toFixed(6), pkt_size: String(sample.size),
       pkt_pos: String(sample.offset),
-      width: track.width, height: track.height, pix_fmt: track.type === 'video' ? (track.codec?.pixFmt ?? 'yuv420p') : undefined,
+      width: track.width, height: track.height,
+      ...(track.type === 'video' && track.codec?.sarWidth && track.codec?.sarHeight
+        ? { sample_aspect_ratio: `${track.codec.sarWidth}:${track.codec.sarHeight}` } : {}),
+      pix_fmt: track.type === 'video' ? (track.codec?.pixFmt ?? 'yuv420p') : undefined,
       pict_type: undefined,
       sample_fmt: probeSampleFormat(track.type, track.codec?.codecName ?? (track.type === 'video' ? 'h264' : 'aac')),
       nb_samples: track.type === 'audio' ? sample.duration : undefined, channels: track.type === 'audio' ? (track.codec?.channels ?? 2) : undefined,

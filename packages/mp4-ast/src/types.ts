@@ -587,6 +587,7 @@ export interface MediaProbeFrame {
   readonly height?: number | undefined;
   readonly pix_fmt?: string | undefined;
   readonly pict_type?: string | undefined;
+  readonly sample_aspect_ratio?: string | undefined;
   readonly sample_fmt?: string | undefined;
   readonly nb_samples?: number | undefined;
   readonly channels?: number | undefined;

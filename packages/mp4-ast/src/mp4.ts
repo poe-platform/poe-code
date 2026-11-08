@@ -2503,6 +2503,7 @@ export function buildProbeResultFromDoc(
             ...(["mp4", "mov", "wav", "w64", "matroska", "webm"].includes(doc.containerFormat) ? { pkt_pos: String(s.offset ?? -1) } : {}),
             width: w,
             height: h,
+            ...(stream.sample_aspect_ratio ? { sample_aspect_ratio: stream.sample_aspect_ratio } : {}),
             pix_fmt: track.type === "video" ? (desc?.pixFmt ?? "yuv420p") : undefined,
             pict_type: undefined,
             sample_fmt: sampleFormat,

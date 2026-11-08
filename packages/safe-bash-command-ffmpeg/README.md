@@ -290,6 +290,8 @@ writes both files with independent durations. Output options reset after each fi
 trailing options without a filename do not change earlier outputs.
 `-stream_loop -1` repeats an input up to a finite output `-t` or `-to`, subject to
 media resource limits. Without either output bound, infinite looping fails explicitly.
+`-metadata:s:m:language:fra language=deu` changes only output tracks whose language is French;
+add a type (`-metadata:s:a:m:language:fra`) to restrict matching to audio.
 `-metadata:s:a:0 language=fra` sets the first output audio track’s language;
 `-metadata:s:a:1 handler_name=Bob` sets the second output audio track’s MP4 handler name.
 Stream selectors also accept an absolute index (`s:1`), a type (`s:a`), or all streams (`s`).

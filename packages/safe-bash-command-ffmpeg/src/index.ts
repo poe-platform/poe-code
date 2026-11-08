@@ -2970,14 +2970,19 @@ function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [
     tracks = tracks.map(track => ({ ...track, language: "und" }));
   }
   for (const [specifier, key, value] of metadata) {
-    const [selector, ordinal] = specifier.split(":");
+    const parts = specifier.split(":");
+    const selector = parts[0];
     const type = selector === "a" ? "audio" : selector === "v" ? "video" : selector === "s" ? "subtitle" : undefined;
-    const index = type ? ordinal : selector;
+    const [index, metadataKey, ...valueParts] = type ? parts.slice(1) : parts;
+    const metadataValue = valueParts.length ? valueParts.join(":") : undefined;
     let matched = 0;
     tracks = tracks.map(track => {
       if (type && track.type !== type) return track;
       const current = matched++;
-      if (index && current !== Number(index)) return track;
+      if (index === "m") {
+        if (metadataKey !== "language" || track.language === undefined ||
+            (metadataValue !== undefined && track.language !== metadataValue)) return track;
+      } else if (index && current !== Number(index)) return track;
       return { ...track, [key]: value };
     });
   }

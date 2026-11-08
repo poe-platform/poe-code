@@ -2825,13 +2825,28 @@ function* applyMagickSolarizeSteps(img: RgbaImage, threshStr: string, channels: 
 
 function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, levelsRaw: number, dither: boolean, channels: MagickState["channels"], signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     let cooperativeWork = 0;
-    const levels = Math.max(2, Math.min(256, Math.trunc(levelsRaw)));
+    const levels = Math.max(2, Math.trunc(levelsRaw));
     const step = 255 / (levels - 1);
     const mask = [channels.r, channels.g, channels.b, channels.a];
     type PaletteNode = { children: PaletteNode[]; color?: number[] };
     let palette: PaletteNode | undefined;
     // Native posterize uses Riemersma only for palettes with 2–16 levels.
     dither &&= levelsRaw >= 2 && levels <= 16;
+    if (!dither && levelsRaw >= 2) {
+        // Quantize Q16 samples directly; an eight-bit palette loses both input
+        // precision and output levels. Transfers stay bounded in caller storage.
+        for (let position = 0; position < img.width * img.height * 4; position += 4096) {
+            signal?.throwIfAborted();
+            const length = Math.min(4096, img.width * img.height * 4 - position);
+            const bytes = (yield { kind: "read", highDepth: true, position, length })!;
+            const samples = new Uint16Array(bytes.slice().buffer);
+            for (let i = 0; i < samples.length; i++) {
+                if (mask[i % 4]) samples[i] = Math.round(Math.round(samples[i]! / 65535 * (levels - 1)) / (levels - 1) * 65535);
+            }
+            yield { kind: "write", highDepth: true, position, data: new Uint8Array(samples.buffer) };
+        }
+        return;
+    }
     const errors = new Float64Array(16 * 4);
     const weights = Float64Array.from({ length: 16 }, (_, i) => 16 ** (-1 - i / 15));
     function* pixels(x: number, y: number, xi: number, yi: number, xj: number, yj: number, size: number): Generator<number> {
@@ -5566,6 +5581,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickRasterSteps(image, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a]), signal);
     } else if (token === "-posterize") {
+        highDepth = true;
         const value = tokens[++i] ?? "", levels = Number(value);
         if (!value.trim() || !Number.isFinite(levels)) throw new Error(`invalid argument '-posterize' '${value}'`);
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };

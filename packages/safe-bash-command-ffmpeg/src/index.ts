@@ -2054,7 +2054,22 @@ async function applyVideoFilterChain(
       }
       if (formats) {
         pixelFormat = formats.includes(pixelFormat ?? "rgba") ? pixelFormat ?? "rgba" : formats[0]!;
+        diagnostics.pixelFormat = pixelFormat;
         current = current.map(({ native: _native, ...frame }) => frame);
+        if (pixelFormat === "rgb24" || pixelFormat === "bgr24") {
+          current = await mapWork(current, async (f) => {
+            const data = f.data.slice();
+            for (let i = 3; i < data.length; i += 4) {
+              if (i % 65536 === 3) {
+                await yieldTurn(signal);
+                signal?.throwIfAborted();
+                budget.checkCpu();
+              }
+              data[i] = 255;
+            }
+            return { ...f, data };
+          }, signal);
+        }
         if (pixelFormat === "gray" || pixelFormat === "gray8") {
           current = await mapWork(current, async (f) => {
             const out = grayscaleImage(makeRgbaImg(f.width, f.height, f.data));
@@ -5512,7 +5527,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ...t,
                     width: first?.width ?? t.width,
                     height: first?.height ?? t.height,
-                    codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, sarWidth: diagnostics.sarWidth, sarHeight: diagnostics.sarHeight })),
+                    codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, pixFmt: diagnostics.pixelFormat, sarWidth: diagnostics.sarWidth, sarHeight: diagnostics.sarHeight })),
                     samples: [],
                     decodedVideoFrames: filtered.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) + offsetTicks) / t.timescale }))
                   };
@@ -7213,7 +7228,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
                     } : {}) }, {
-                    format: imgFmt
+                    format: imgFmt,
+                    forceOpaque: vTrack?.codecDescriptions[0]?.pixFmt === "rgb24" || vTrack?.codecDescriptions[0]?.pixFmt === "bgr24"
                   }).data);
                   budget.checkOutputBytes(encoded.byteLength);
                   await writeImage(fullOutPath, encoded);

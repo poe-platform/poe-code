@@ -835,6 +835,72 @@ function fdct8x8(block: Float64Array, quant: Uint8Array, outZigZag: Int32Array):
   }
 }
 
+// IJG's accurate integer transform retains two bits between passes and
+// rounds fixed-point products only after each complete one-dimensional DCT.
+function fdctInteger(block: Float64Array, quant: Uint8Array, out: Int32Array): void {
+  for (let pass = 0; pass < 2; pass++) for (let i = 0; i < 8; i++) {
+    const at = (j: number) => pass === 0 ? i * 8 + j : j * 8 + i;
+    const input = pass === 0 ? block : FDCT_TEMP;
+    const t0 = input[at(0)]! + input[at(7)]!, t7 = input[at(0)]! - input[at(7)]!;
+    const t1 = input[at(1)]! + input[at(6)]!, t6 = input[at(1)]! - input[at(6)]!;
+    const t2 = input[at(2)]! + input[at(5)]!, t5 = input[at(2)]! - input[at(5)]!;
+    const t3 = input[at(3)]! + input[at(4)]!, t4 = input[at(3)]! - input[at(4)]!;
+    const t10 = t0 + t3, t13 = t0 - t3, t11 = t1 + t2, t12 = t1 - t2;
+    const shift = pass === 0 ? 11 : 15;
+    const descale = (v: number) => Math.floor((v + 2 ** (shift - 1)) / 2 ** shift);
+    FDCT_TEMP[at(0)] = pass === 0 ? (t10 + t11) * 4 : (t10 + t11 + 2) >> 2;
+    FDCT_TEMP[at(4)] = pass === 0 ? (t10 - t11) * 4 : (t10 - t11 + 2) >> 2;
+    const z1 = (t12 + t13) * 4433;
+    FDCT_TEMP[at(2)] = descale(z1 + t13 * 6270);
+    FDCT_TEMP[at(6)] = descale(z1 - t12 * 15137);
+    const z5 = (t4 + t6 + t5 + t7) * 9633;
+    const z3 = (t4 + t6) * -16069 + z5, z4 = (t5 + t7) * -3196 + z5;
+    const z11 = (t4 + t7) * -7373, z2 = (t5 + t6) * -20995;
+    FDCT_TEMP[at(7)] = descale(t4 * 2446 + z11 + z3);
+    FDCT_TEMP[at(5)] = descale(t5 * 16819 + z2 + z4);
+    FDCT_TEMP[at(3)] = descale(t6 * 25172 + z2 + z3);
+    FDCT_TEMP[at(1)] = descale(t7 * 12299 + z11 + z4);
+  }
+  for (let i = 0; i < 64; i++) {
+    const zig = INV_ZIGZAG[i]!, value = FDCT_TEMP[i]!, divisor = quant[zig]! * 8;
+    const magnitude = Math.floor((Math.abs(value) + divisor / 2) / divisor);
+    out[zig] = value < 0 ? -magnitude : magnitude;
+  }
+}
+
+const FDCT_FLOAT = new Float32Array(64);
+const AAN_FLOAT = [1, 1.387039845, 1.306562965, 1.175875602, 1, 0.785694958, 0.541196100, 0.275899379];
+function fdctFloat(block: Float64Array, quant: Uint8Array, out: Int32Array): void {
+  const f = Math.fround;
+  for (let pass = 0; pass < 2; pass++) for (let i = 0; i < 8; i++) {
+    const at = (j: number) => pass === 0 ? i * 8 + j : j * 8 + i;
+    const input = pass === 0 ? block : FDCT_FLOAT;
+    const t0 = f(input[at(0)]! + input[at(7)]!), t7 = f(input[at(0)]! - input[at(7)]!);
+    const t1 = f(input[at(1)]! + input[at(6)]!), t6 = f(input[at(1)]! - input[at(6)]!);
+    const t2 = f(input[at(2)]! + input[at(5)]!), t5 = f(input[at(2)]! - input[at(5)]!);
+    const t3 = f(input[at(3)]! + input[at(4)]!), t4 = f(input[at(3)]! - input[at(4)]!);
+    const t10 = f(t0 + t3), t13 = f(t0 - t3), t11 = f(t1 + t2), t12 = f(t1 - t2);
+    FDCT_FLOAT[at(0)] = t10 + t11;
+    FDCT_FLOAT[at(4)] = t10 - t11;
+    const z1 = f(f(t12 + t13) * f(0.707106781));
+    FDCT_FLOAT[at(2)] = t13 + z1;
+    FDCT_FLOAT[at(6)] = t13 - z1;
+    const o10 = f(t4 + t5), o11 = f(t5 + t6), o12 = f(t6 + t7);
+    const z5 = f(f(o10 - o12) * f(0.382683433));
+    const z2 = f(f(o10 * f(0.541196100)) + z5), z4 = f(f(o12 * f(1.306562965)) + z5);
+    const z3 = f(o11 * f(0.707106781)), z11 = f(t7 + z3), z13 = f(t7 - z3);
+    FDCT_FLOAT[at(5)] = z13 + z2;
+    FDCT_FLOAT[at(3)] = z13 - z2;
+    FDCT_FLOAT[at(1)] = z11 + z4;
+    FDCT_FLOAT[at(7)] = z11 - z4;
+  }
+  for (let i = 0; i < 64; i++) {
+    const zig = INV_ZIGZAG[i]!;
+    const reciprocal = f(1 / (quant[zig]! * AAN_FLOAT[i >> 3]! * AAN_FLOAT[i & 7]! * 8));
+    out[zig] = Math.trunc(f(f(FDCT_FLOAT[i]! * reciprocal) + f(16384.5))) - 16384;
+  }
+}
+
 function scaleQuantTable(base: Uint8Array, quality: number): Uint8Array {
   const q = Math.max(1, Math.min(100, Math.round(quality)));
   const scale = q < 50 ? Math.floor(5000 / q) : 200 - q * 2;
@@ -853,6 +919,7 @@ export function createJpegEncoder(
     readonly synthesizeExif?: boolean;
     readonly jpegProgressive?: boolean;
     readonly jpegOptimizeCoding?: boolean;
+    readonly jpegDctMethod?: "integer" | "float" | "fastest";
     readonly jpegRestartInterval?: number;
     readonly quality?: number;
     readonly samplingFactor?: string;
@@ -875,6 +942,7 @@ export function createJpegEncoder(
   let blockWidth = maxH * 8, blockHeight = maxV * 8;
   let scan = 0;
   const progressive = options?.jpegProgressive === true;
+  const transform = options?.jpegDctMethod === "integer" ? fdctInteger : options?.jpegDctMethod === "float" ? fdctFloat : fdct8x8;
   let gathering = options?.jpegOptimizeCoding === true;
   const tables = [
     [STD_DC_LUMA_NRCODES, STD_DC_LUMA_VALUES],
@@ -1118,7 +1186,7 @@ export function createJpegEncoder(
             }
             samples[y * 8 + x] = sum / (scaleX * scaleY);
           }
-          fdct8x8(samples, component === 0 ? lumaQ : chromaQ, zzOut);
+          transform(samples, component === 0 ? lumaQ : chromaQ, zzOut);
           dc[component] = encodeBlock(zzOut, dc[component]!, tables[component === 0 ? 0 : 2]!, tables[component === 0 ? 1 : 3]!);
         }
       }

@@ -69,7 +69,7 @@ it("checks cancellation after an awaited chunk and returns its iterator", async 
   assert.equal(closed, true);
 });
 
-it("preserves padded unknown chunks, later fmt and last data selection", async () => {
+it("preserves padded unknown chunks, first fmt and last data selection", async () => {
   const bytes = new Uint8Array(44 + 12 + 24 + 8 + 5), view = new DataView(bytes.buffer);
   bytes.set(wav(0));
   view.setUint32(40, 2, true);
@@ -81,7 +81,7 @@ it("preserves padded unknown chunks, later fmt and last data selection", async (
   async function* source() { for (let offset = 0; offset < bytes.length; offset += 5) yield bytes.subarray(offset, offset + 5); }
   const result = await probeWavStream(source());
   assert.deepEqual(result, wavAst().probe(bytes));
-  assert.equal(result.streams[0]!.duration, "0.005000"); assert.equal(result.streams[0]!.sample_rate, "1000");
+  assert.equal(result.streams[0]!.duration, "0.000125"); assert.equal(result.streams[0]!.sample_rate, "8000");
 });
 
 it("does not acquire a source after pre-cancellation", async () => {

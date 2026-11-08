@@ -127,7 +127,7 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
     }
     if (wave64 && !wave64Guid(id).every((value, i) => chunk[i] === value)) id = "";
     const start = pos + chunkHeader, end = Math.min(byteLength, start + size);
-    if (id === "fmt ") {
+    if (id === "fmt " && header.formatOffset === undefined) {
       if (size < 14) throw new Error("Invalid WAV fmt chunk: expected at least 14 bytes");
       header.formatOffset = start;
       header.formatSize = end - start;

@@ -167,3 +167,7 @@ export function parseNetpbmSequence(bytes: Uint8Array, page?: number) {
   while (!next.done) next = steps.next(bytes[next.value]);
   return next.value;
 }
+
+export function netpbmComment(comment: string | undefined): string {
+  return comment ? comment.split("\n").map(line => `#${line.split("\r").join("\r#")}\n`).join("") : "";
+}

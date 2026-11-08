@@ -12,7 +12,7 @@ import {readTiffFloat8} from "./tiff-float.js";
 import {createTiffCompressor} from "./tiff-compression.js";
 import {tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
 import {createBmpHeader,readBmpMasks,bmpMaskedChannel,packBmpPixel} from "./bmp-header.js";
-import {parseNetpbmSequence} from "./netpbm-header.js";
+import {netpbmComment,parseNetpbmSequence} from "./netpbm-header.js";
 import { transformBytes } from "@poe-code/compression";
 import type { ImageMetadata, RgbaImage } from "../ast.js";
 import { encodeJpegImage, decodeJpegImage } from "./jpeg.js";
@@ -146,10 +146,12 @@ export function encodePpm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = f
   if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
   const maximum = 2 ** depth - 1;
   const text: string[] = [];
-  const header = pam ? `P7\nWIDTH ${img.width}\nHEIGHT ${img.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${cmyk ? "CMYK" : gray ? "GRAYSCALE" : "RGB"}${img.hasAlpha ? "_ALPHA" : ""}\nENDHDR\n` : `${ascii ? "P3" : "P6"}\n${img.width} ${img.height}\n${maximum}\n`;
-  const out = new Uint8Array(ascii ? 0 : header.length + img.width * img.height * channels * (depth > 8 ? 2 : 1));
-  if (!ascii) out.set(new TextEncoder().encode(header), 0);
-  let dst = header.length;
+  const comment = netpbmComment(img.properties?.comment);
+  const header = pam ? `P7\n${comment}WIDTH ${img.width}\nHEIGHT ${img.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${cmyk ? "CMYK" : gray ? "GRAYSCALE" : "RGB"}${img.hasAlpha ? "_ALPHA" : ""}\nENDHDR\n` : `${ascii ? "P3" : "P6"}\n${comment}${img.width} ${img.height}\n${maximum}\n`;
+  const headerBytes = new TextEncoder().encode(header);
+  const out = new Uint8Array(ascii ? 0 : headerBytes.length + img.width * img.height * channels * (depth > 8 ? 2 : 1));
+  if (!ascii) out.set(headerBytes, 0);
+  let dst = headerBytes.length;
   for (let i = 0; i < img.width * img.height; i++) {
     for (let channel = 0; channel < channels; channel++) {
       const value = Math.round(cmyk && channel < 4 ? img.hueSamples![i * 4 + channel]! * maximum : (img.data16 ?? img.data)[i * 4 + (channel === 4 || (gray && channel === 1) ? 3 : channel)]! * maximum / (img.data16 ? 65535 : 255));
@@ -165,10 +167,12 @@ export function encodePgm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = f
   if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
   const maximum = 2 ** depth - 1;
   const text: string[] = [];
-  const header = `${ascii ? "P2" : "P5"}\n${img.width} ${img.height}\n${maximum}\n`;
-  const out = new Uint8Array(ascii ? 0 : header.length + img.width * img.height * (depth > 8 ? 2 : 1));
-  if (!ascii) out.set(new TextEncoder().encode(header), 0);
-  let dst = header.length;
+  const comment = netpbmComment(img.properties?.comment);
+  const header = `${ascii ? "P2" : "P5"}\n${comment}${img.width} ${img.height}\n${maximum}\n`;
+  const headerBytes = new TextEncoder().encode(header);
+  const out = new Uint8Array(ascii ? 0 : headerBytes.length + img.width * img.height * (depth > 8 ? 2 : 1));
+  if (!ascii) out.set(headerBytes, 0);
+  let dst = headerBytes.length;
   for (let i = 0; i < img.width * img.height; i++) {
     const samples = img.data16 ?? img.data;
     const r = samples[i * 4]!;
@@ -184,12 +188,14 @@ export function encodePgm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = f
 
 export function encodePbm(img: RgbaImage, ascii = false): Uint8Array {
   const text: string[] = [];
-  const header = `${ascii ? "P1" : "P4"}\n${img.width} ${img.height}\n`;
+  const comment = netpbmComment(img.properties?.comment);
+  const header = `${ascii ? "P1" : "P4"}\n${comment}${img.width} ${img.height}\n`;
   const rowBytes = Math.ceil(img.width / 8);
-  const out = new Uint8Array(ascii ? 0 : header.length + rowBytes * img.height);
-  if (!ascii) out.set(new TextEncoder().encode(header), 0);
+  const headerBytes = new TextEncoder().encode(header);
+  const out = new Uint8Array(ascii ? 0 : headerBytes.length + rowBytes * img.height);
+  if (!ascii) out.set(headerBytes, 0);
   for (let y = 0; y < img.height; y++) {
-    const rowOffset = header.length + y * rowBytes;
+    const rowOffset = headerBytes.length + y * rowBytes;
     for (let x = 0; x < img.width; x++) {
       const idx = (y * img.width + x) * 4;
       const luma = 0.299 * img.data[idx]! + 0.587 * img.data[idx + 1]! + 0.114 * img.data[idx + 2]!;

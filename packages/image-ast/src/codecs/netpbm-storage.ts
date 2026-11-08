@@ -2,7 +2,7 @@ import {defaultRuntime} from "@poe-code/compression";
 import type {SharpInputOptions} from "../ast.js";
 import {checkLimitInputPixels} from "../limits.js";
 import type {ImageByteSource,ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
-import {netpbmSequenceSteps} from "./netpbm-header.js";
+import {netpbmComment,netpbmSequenceSteps} from "./netpbm-header.js";
 import {SourceBytes} from "./storage-source.js";
 import {Pixels,Output} from "../ops/storage-raster.js";
 
@@ -83,7 +83,8 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
  const gray=format==="pam"&&(image.space==="b-w"||image.space==="grey16");
  const cmyk=format==="pam"&&image.space==="cmyk";
  const channels=format==="pam"?(gray?1:cmyk?4:3)+(image.hasAlpha?1:0):format==="ppm"?3:1;
- const pamHeader=`P7\nWIDTH ${image.width}\nHEIGHT ${image.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${gray?"GRAYSCALE":cmyk?"CMYK":"RGB"}${image.hasAlpha?"_ALPHA":""}\nENDHDR\n`;
+ const comment=netpbmComment(image.properties?.comment);
+ const pamHeader=`P7\n${comment}WIDTH ${image.width}\nHEIGHT ${image.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${gray?"GRAYSCALE":cmyk?"CMYK":"RGB"}${image.hasAlpha?"_ALPHA":""}\nENDHDR\n`;
  const {width,height,position}=image;
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)||!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+width*height*4)) throw new RangeError("Invalid Netpbm backing dimensions");
  if(cmyk&&image.storedHueSamples!==undefined) {
@@ -108,7 +109,7 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
  if(format!=="pbm"&&image.storedData16) {
   const samples=image.storedData16,count=width*height;
   if(!Number.isSafeInteger(samples.position)||samples.position<0||!Number.isSafeInteger(samples.position+count*8)||!Number.isSafeInteger(samples.length)||samples.length<count*4) throw new RangeError("Invalid Netpbm sample backing");
-  yield new TextEncoder().encode(format==="pam"?pamHeader:`${format==="ppm"?(ascii?"P3":"P6"):(ascii?"P2":"P5")}\n${width} ${height}\n${maximum}\n`);
+  yield new TextEncoder().encode(format==="pam"?pamHeader:`${format==="ppm"?(ascii?"P3":"P6"):(ascii?"P2":"P5")}\n${comment}${width} ${height}\n${maximum}\n`);
   for(let offset=0;offset<count;offset+=512) {
    signal.throwIfAborted();if(offset%16384===0) await defaultRuntime.yieldTurn(signal);
    const pixels=Math.min(512,count-offset),length=pixels*8;
@@ -126,7 +127,7 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
   }
   return;
  }
- yield new TextEncoder().encode(format==="pam"?pamHeader:`${format==="ppm"?(ascii?"P3":"P6"):format==="pgm"?(ascii?"P2":"P5"):(ascii?"P1":"P4")}\n${width} ${height}\n${format==="pbm"?"":`${maximum}\n`}`);
+ yield new TextEncoder().encode(format==="pam"?pamHeader:`${format==="ppm"?(ascii?"P3":"P6"):format==="pgm"?(ascii?"P2":"P5"):(ascii?"P1":"P4")}\n${comment}${width} ${height}\n${format==="pbm"?"":`${maximum}\n`}`);
  const pixels=new Pixels(image,storage,signal),buffer=new Uint8Array(4096);let used=0;
  for(let y=0;y<height;y++) {
   let bits=0;

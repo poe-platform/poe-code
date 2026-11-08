@@ -2,7 +2,7 @@ import {expect, it} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/core";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import type {RgbaImage} from "../ast.js";
-import {encodePpm, encodePgm} from "./netpbm.js";
+import {encodePpm, encodePgm, encodePbm} from "./netpbm.js";
 import {encodeNetpbmFromStorage} from "./netpbm-storage.js";
 
 it.each(["ppm", "pgm"] as const)("writes exact big-endian %s samples in both output paths", async format => {
@@ -30,6 +30,26 @@ it.each(["ppm", "pgm"] as const)("writes exact big-endian %s samples in both out
       await storage.write(storedData16.position, new Uint8Array(data16.buffer));
       const chunks: Uint8Array[] = [];
       for await (const chunk of encodeNetpbmFromStorage({...image, position, ...(highDepth ? {storedData16} : {})}, storage, signal, format, depth)) chunks.push(chunk);
+      expect(Buffer.concat(chunks)).toEqual(expected);
+    } finally {await storage.close();}
+  }
+});
+
+it.each(["ppm", "pam", "pgm", "pbm"] as const)("writes %s comments without changing raster bytes", async format => {
+  for (const comment of [undefined, "", "caption A\ncaption B", "café\n画像", "end\n", "a\r\nb"]) for (const ascii of [false, true]) {
+    const image: RgbaImage = {width: 2, height: 1, data: Uint8Array.from([18, 52, 86, 255, 171, 205, 239, 255]), format: "png", depth: "uchar", space: "srgb", channels: 3, density: 72, hasAlpha: false};
+    const encode = (input: RgbaImage) => format === "pbm" ? encodePbm(input, ascii) : format === "pgm" ? encodePgm(input, 8, ascii) : encodePpm(input, 8, ascii, format === "pam");
+    const baseline = encode(image);
+    image.properties = comment === undefined ? {} : {comment};
+    const expected = Buffer.concat([baseline.subarray(0, 3), Buffer.from(comment ? comment.split("\n").map(line => `#${line.split("\r").join("\r#")}\n`).join("") : ""), baseline.subarray(3)]);
+    expect(Buffer.from(encode(image))).toEqual(expected);
+    const signal = new AbortController().signal;
+    const storage = new PagedStorage({fs: new MemoryFileSystem(), cwd: "/", env: {}, signal}, 1);
+    try {
+      const position = storage.allocate(image.data.length);
+      await storage.write(position, image.data);
+      const chunks: Uint8Array[] = [];
+      for await (const chunk of encodeNetpbmFromStorage({...image, position}, storage, signal, format, 8, ascii)) chunks.push(chunk);
       expect(Buffer.concat(chunks)).toEqual(expected);
     } finally {await storage.close();}
   }

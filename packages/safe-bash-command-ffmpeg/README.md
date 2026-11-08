@@ -38,6 +38,8 @@ stream has no frames, even if other streams contain media. The diagnostic identi
 each empty output stream.
 Combine abort flags with `+`, or use numeric masks: `0` disables checks, `1`
 checks empty outputs, `2` checks empty streams, and `3` enables both checks.
+With explicit `-n`, refusing an existing output returns status 0, matching FFmpeg
+7.0.2, while reporting the refusal and preserving the file. Use `-y` to replace it.
 Use `-max_error_rate N` to set the decoder failure threshold (default `2/3`);
 exceeding it returns status 69 after writing output. Error accounting matches
 FFmpeg 7.0.2: partial decode failures have rate 0, wholly failed decoding has rate 1.

@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { inflateSync } from "node:zlib";
 import { Volume } from "memfs";
+import { encodeWav } from "@poe-code/audio-ast";
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { createSyntheticMp4, parseMp4, serializeMp4 } from "@poe-code/mp4-ast";
@@ -166,11 +167,23 @@ it('honors independent input/output start numbers and reads beyond 1000 frames',
   assert.equal([...vfs.store.keys()].filter(p => p.startsWith('/out_')).length, 1001);
 });
 
-it('returns failure and preserves existing output with -n', async () => {
+it('preserves WAV input and output on explicit -n refusal', async () => {
+  const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from([1, 2, 3, 4, 5, 6, 7, 8], n => n / 32768)] });
+  const vfs = createTestVfs({ '/in.wav': input, '/old.wav': 'old' });
+  const result = await runCmd(createFfmpegCommand(), ['-v', 'error', '-n', '-i', 'in.wav', 'old.wav'], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(result.stderr.includes("File 'old.wav' already exists. Exiting."));
+  assert.ok(result.stderr.includes('Error opening output file old.wav.'));
+  assert.equal(new TextDecoder().decode(vfs.store.get('/old.wav')), 'old');
+  assert.deepEqual(vfs.store.get('/in.wav'), input);
+});
+
+it('matches FFmpeg 7.0.2 status zero and preserves existing output with -n', async () => {
   const vfs = createTestVfs({'/out.mp4': 'existing'});
   const result = await runCmd(createFfmpegCommand(), ['-n', '-f', 'lavfi', '-i', 'color=s=2x2', '/out.mp4'], vfs);
-  assert.equal(result.exitCode, 1);
+  assert.equal(result.exitCode, 0);
   assert.ok(result.stderr.includes('already exists'));
+  assert.ok(result.stderr.includes('Error opening output file /out.mp4.'));
   assert.equal(new TextDecoder().decode(vfs.store.get('/out.mp4')), 'existing');
 });
 

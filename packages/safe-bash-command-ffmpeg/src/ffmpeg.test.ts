@@ -5807,7 +5807,7 @@ describe("native ffmpeg parity", () => {
       const result = await runCmd(createFfmpegCommand(), [
         ...flags, "-f", "lavfi", "-i", "color=c=red:s=16x16:d=0.1", "/out.mp4"
       ], vfs);
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, flags.includes("-n") ? 0 : 1);
       assert.match(result.stderr, /already exists/);
       assert.deepEqual(vfs.store.get("/out.mp4"), original);
     });

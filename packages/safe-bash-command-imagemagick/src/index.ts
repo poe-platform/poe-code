@@ -4419,6 +4419,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
       return "tiff";
     case "pam":
       return "pam";
+    case "pfm":
+      return "pfm";
     case "pnm":
       return "pnm";
     case "ppm":

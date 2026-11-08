@@ -1,3 +1,4 @@
+import { encodePfmImage } from "./pfm-output.js";
 import { encodeTgaImage } from "./tga-output.js";
 import { isTgaBytes, readTgaMetadata, decodeTgaImage } from "./tga.js";
 import { isTxtBytes, readTxtImage } from "./txt.js";
@@ -535,6 +536,7 @@ export function encodeImage(
       });
       return { data, format: "gif", channels: 4 };
     }
+    case "pfm": return encodePfmImage(img);
     case "pam": {
       const data = encodePpm(img, options.netpbmDepth, false, true);
       return { data, format: "pam", channels: img.hasAlpha ? 4 : 3 };

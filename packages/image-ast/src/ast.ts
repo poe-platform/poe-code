@@ -13,6 +13,7 @@ export type ImageFormat =
   | "avif"
   | "gif"
   | "pam"
+  | "pfm"
   | "pnm"
   | "ppm"
   | "pgm"
@@ -58,6 +59,8 @@ export interface RgbaImage {
   readonly height: number;
   readonly data: Uint8Array;
   readonly data16?: Uint16Array;
+  /** Normalized, unclamped RGBA float samples. */
+  readonly dataFloat?: Float32Array;
   readonly format: ImageFormat;
   readonly space: ColorSpace;
   readonly channels: 1 | 2 | 3 | 4;

@@ -20,12 +20,14 @@ export interface ImageByteStorage extends Pick<ImageByteSource, "read"> {
   allocate(length: number): number;
   write(position: number, bytes: Uint8Array, options?: {readonly signal?: AbortSignal}): Promise<void>;
 }
-export interface StoredRgbaImage extends Omit<RgbaImage, "data" | "data16" | "pngIndices" | "miffPages" | "tiffPages" | "icoPages"> {
+export interface StoredRgbaImage extends Omit<RgbaImage, "data" | "data16" | "dataFloat" | "pngIndices" | "miffPages" | "tiffPages" | "icoPages"> {
   readonly storedMiffPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
   readonly storedIcoPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
   readonly storedTiffPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
   readonly storedPngIndices?: { readonly position: number; readonly width: number; readonly height: number };
   readonly position: number;
+  /** Normalized float samples retain their unclamped values in caller storage. */
+  readonly storedDataFloat?: {readonly position:number;readonly length:number};
   /** Original high-depth raw samples retain the same lifetime as buffered data16. */
   readonly storedData16?: {readonly position:number;readonly length:number};
   /** Frame delays can remain in caller storage instead of an unbounded metadata array. */

@@ -4430,7 +4430,7 @@ function* annotatePixelSteps(img: Pick<RgbaImage, "width" | "height">, offsetStr
 }
 
 // Scan bounded pixel chunks into edge profiles, shared by buffered and stored execution.
-function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha">[], vertical: boolean, gap: number, gravity: GravityPosition): Generator<{ index: number; position: number; length: number }, { width: number; height: number; offsets: { left: number; top: number }[] }, Uint8Array> {
+function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha">[], vertical: boolean, gap: number, gravity: GravityPosition): Generator<{ index: number; position: number; length: number }, { width: number; height: number; virtualCanvas: NonNullable<RgbaImage["virtualCanvas"]>; offsets: { left: number; top: number }[] }, Uint8Array> {
     const cross = Math.max(...images.map(image => vertical ? image.width : image.height));
     const offsets: { left: number; top: number }[] = [];
     let cursor = 0, previous: { trailing: Float64Array; offset: number } | undefined;
@@ -4465,7 +4465,9 @@ function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlph
         cursor += length;
         previous = { trailing, offset };
     }
-    return { width: vertical ? cross : cursor, height: vertical ? cursor : cross, offsets };
+    const extent = images.reduce((sum, image) => sum + (vertical ? image.height : image.width), 0) + gap * (images.length - 1);
+    return { width: vertical ? cross : cursor, height: vertical ? cursor : cross,
+        virtualCanvas: { width: vertical ? cross : extent, height: vertical ? extent : cross, x: 0, y: 0 }, offsets };
 }
 
 function smushGap(value: string | undefined): number {
@@ -7450,13 +7452,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const request = next.value;
                     next = layout.next(stack[request.index]!.data.subarray(request.position, request.position + request.length));
                 }
-                const { width, height, offsets } = next.value;
+                const { width, height, virtualCanvas, offsets } = next.value;
                 let canvas = yield* createSolidRgbaImageSteps(width, height, { ...state.background, a: stack.some(image => image.hasAlpha) ? state.background.a : 255 });
                 for (let n = 0; n < stack.length; n++) {
                     canvas = yield* applyMagickCompositeLayerSteps(canvas, stack[n]!, "over", offsets[n]!.left, offsets[n]!.top, undefined, signal);
                 }
                 for (const image of stack) detachRgbaBuffer(image.data);
-                stack = [canvas];
+                stack = [{ ...canvas, virtualCanvas }];
             }
         }
         else if (t === "-append" || t === "+append") {
@@ -8278,11 +8280,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const request = next.value;
                     next = layout.next(await backend.storage.read(images[request.index]!.position + request.position, request.length));
                 }
-                const { width, height, offsets } = next.value;
+                const { width, height, virtualCanvas, offsets } = next.value;
                 let canvas = await createStoredCanvas(width, height, { ...settings.background, a: images.some(image => image.hasAlpha) ? settings.background.a : 255 }, backend, signal);
                 for (let n = 0; n < images.length; n++) canvas = await compositeStoredMagick(canvas, images[n]!, backend, signal, offsets[n]!.left, offsets[n]!.top, "over");
                 stack.length = 0;
-                await stack.push(canvas);
+                await stack.push({ ...canvas, virtualCanvas });
                 return stack;
             });
             continue;

@@ -5627,7 +5627,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat))
             : registry.findByFilename(outputTarget);
           const format = outputFormat ?? outputTarget.split(".").pop()?.toLowerCase();
-          if (!plugin?.canMux && !["null", "segment", "rawvideo", "ico", "apng", "framemd5", "framehash", "framecrc", "streamhash", "hash", "md5", "crc"].includes(format ?? "")) {
+          if (!plugin?.canMux && !["null", "segment", "data", "rawvideo", "ico", "apng", "framemd5", "framehash", "framecrc", "streamhash", "hash", "md5", "crc"].includes(format ?? "")) {
             throw new Error(`Unable to find a suitable output format for '${outputFormat ?? outputTarget}' (format AST not registered)`);
           }
           // Open earlier ordinary destinations before checking later outputs.
@@ -8376,6 +8376,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 track = { ...track, decodedVideoFrames: await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, maxVideoFrames) };
               }
               const bytes = serializeRawVideo(track, videoCodec, rawPixelFormat, budget);
+              if (firstOutput) progressSize = bytes.byteLength;
+              context.signal?.throwIfAborted();
+              if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
+              else if (outputTarget !== "/dev/null") await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
+              options.onMetrics?.(budget.getStats());
+              return { exitCode: decodeExitCode };
+            }
+
+            if (outputFormat === "data") {
+              if (workingDoc.tracks.length !== 1) throw new Error("data output requires exactly one stream");
+              const samples = workingDoc.tracks[0]!.samples;
+              budget.checkOutputBytes(samples.reduce((size, sample) => size + sample.data.byteLength, 0));
+              const bytes = concatBytes(samples.map(sample => sample.data));
               if (firstOutput) progressSize = bytes.byteLength;
               context.signal?.throwIfAborted();
               if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);

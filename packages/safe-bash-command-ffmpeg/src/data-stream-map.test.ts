@@ -42,11 +42,12 @@ it("rejects a missing data ordinal", async () => {
   assert.match(stderr, /matches no streams/);
 });
 
-it("resolves data maps before reporting unsupported data muxing", async () => {
+it("writes identical raw data for numeric and typed maps", async () => {
   const numeric = await copy(["0:1"], "data");
   const typed = await copy(["0:d"], "data");
-  assert.notEqual(numeric.result.exitCode, 0);
+  assert.equal(numeric.result.exitCode, 0, numeric.stderr);
   assert.doesNotMatch(numeric.stderr, /matches no streams/);
   assert.equal(typed.result.exitCode, numeric.result.exitCode);
   assert.equal(typed.stderr, numeric.stderr);
+  assert.deepEqual(typed.volume.readFileSync("/out.mov"), numeric.volume.readFileSync("/out.mov"));
 });

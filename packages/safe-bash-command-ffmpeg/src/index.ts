@@ -5607,7 +5607,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             factor = evaluateGain();
                           }
                           // Native fixed precision uses a Q8 gain and rounds integer samples half upward.
-                          const fixedGain = Math.floor(factor * 256 + 0.5);
+                          const fixedGain = Math.max(0, Math.floor(factor * 256 + 0.5));
                           const enabled = enable === undefined || parseFilterExpression(enable, "volume enable", {
                             n, t: pts / origRate
                           }) !== 0;

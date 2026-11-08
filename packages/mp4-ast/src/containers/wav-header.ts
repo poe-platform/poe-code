@@ -131,7 +131,8 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
       if (size < 14) throw new Error("Invalid WAV fmt chunk: expected at least 14 bytes");
       header.formatOffset = start;
       header.formatSize = end - start;
-      const read = yield { offset: start, length: Math.min(size, 16) };
+      // Legacy 15-byte formats use the alignment byte to complete the sample depth.
+      const read = yield { offset: start, length: size === 14 ? 14 : 16 };
       acceptEnd(read.end);
       const bytes = read.bytes;
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);

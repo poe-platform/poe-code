@@ -4990,7 +4990,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return yield* applyMod([decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density })]);
     }
     if (lower === "null:") {
-        return yield* applyMod([(yield* createSolidRgbaImageSteps(1, 1, { r: 0, g: 0, b: 0, a: 0 }))]);
+        return yield* applyMod([Object.assign(yield* createSolidRgbaImageSteps(1, 1, { r: 0, g: 0, b: 0, a: 0 }), { [magickInput]: { filePath: "null:" } })]);
     }
     if (lower.startsWith("apng:")) {
         const path = baseToken.slice(5), bytes = path === "-" ? stdinBytes : files.get(path);
@@ -7797,6 +7797,23 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (flatten && first.orientation !== undefined) stack[0] = { ...stack[0]!, orientation: first.orientation };
             }
         }
+        else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "composite") {
+            i++;
+            const separator = stack.findIndex(frame => (frame as MagickImage)[magickInput]?.filePath === "null:");
+            if (separator < 0) throw new Error("missing Null Image List Separator layers Composite");
+            const destinations = stack.slice(0, separator), sources = stack.slice(separator + 1);
+            if (!destinations.length || !sources.length) throw new Error("image sequence is required '-layers Composite'");
+            const count = destinations.length === 1 ? sources.length : sources.length === 1 ? destinations.length : Math.min(destinations.length, sources.length);
+            const geometry = parseMagickGeometry(state.geometry ?? "+0+0");
+            const composed: RgbaImage[] = [];
+            for (let n = 0; n < count; n++) {
+                const base = destinations[destinations.length === 1 ? 0 : n]!, overlay = sources[sources.length === 1 ? 0 : n]!;
+                const offset = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, geometry.x, geometry.y, state.gravity);
+                const result = yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, offset.x, offset.y, state.composeArgs, signal, state.alphaFuzz);
+                composed.push({ ...base, ...result });
+            }
+            stack = composed;
+        }
         else if (t === "-composite") {
             if (stack.length >= 2) {
                 const base = stack[0]!;
@@ -8630,6 +8647,31 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             state.optimizeLayers = true; i++; continue;
+        }
+        if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "composite") {
+            i++;
+            const settings = { ...state };
+            stackStep(async (stack, backend) => {
+                let separator = -1;
+                for (let n = 0; n < stack.length; n++) {
+                    if ((await stack.get(n))![magickInput]?.filePath === "null:") { separator = n; break; }
+                }
+                if (separator < 0) throw new Error("missing Null Image List Separator layers Composite");
+                const sourceCount = stack.length - separator - 1;
+                if (!separator || !sourceCount) throw new Error("image sequence is required '-layers Composite'");
+                const count = separator === 1 ? sourceCount : sourceCount === 1 ? separator : Math.min(separator, sourceCount);
+                const geometry = parseMagickGeometry(settings.geometry ?? "+0+0");
+                const first = (await stack.get(0))!;
+                for (let n = 0; n < count; n++) {
+                    const base = separator === 1 ? first : (await stack.get(n))!;
+                    const overlay = (await stack.get(separator + 1 + (sourceCount === 1 ? 0 : n)))!;
+                    const offset = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, geometry.x, geometry.y, settings.gravity);
+                    const result = await compositeStoredMagick(base, overlay, backend, signal, offset.x, offset.y, settings.composeRaw, settings.composeArgs, false, false, false, false, settings.alphaFuzz);
+                    await stack.set(n, result);
+                }
+                stack.length = count;
+                return stack;
+            }); continue;
         }
         if (!operandsOnly && (["-append", "+append", "-flatten", "-mosaic", "-composite"].includes(token) || (token === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
             const flatten = token === "-flatten" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "flatten");
@@ -9820,7 +9862,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   return readOptions.source===null?undefined:readOptions.source?consume(readOptions.source):backend.read(path,consume);
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white"),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
-  image={...await createStoredCanvas(width,height,color,backend,signal),hasAlpha:color.a<255};
+  image={...await createStoredCanvas(width,height,color,backend,signal),hasAlpha:color.a<255,...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{})};
  }else if(lower.startsWith("gradient:")||lower.startsWith("radial-gradient:")||lower.startsWith("pattern:")||lower.startsWith("plasma:")){
   const width=Math.max(1,Math.round(state.sizeWidth)),height=Math.max(1,Math.round(state.sizeHeight)),position=backend.storage.allocate(width*height*4);
   const checker=lower.startsWith("pattern:")||lower.startsWith("plasma:"),radial=lower.startsWith("radial-gradient:");

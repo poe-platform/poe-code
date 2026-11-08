@@ -31,7 +31,8 @@ burns red captions at the left-center of the frame. Other style fields are not i
 The `lavfi` color source uses FFmpeg 7's limited-range BT.601 RGB samples: red
 becomes `(253, 0, 0)` in PNG output; existing RGB PNG inputs retain their samples.
 Use `-abort_on empty_output` to fail with status 234 when processing produces no
-media frames across all outputs. Empty streams remain valid without this flag.
+media frames in any output file. An output with both empty and nonempty streams
+remains valid. Empty outputs remain valid without this flag.
 Use `-max_error_rate N` to set the decoder failure threshold (default `2/3`);
 exceeding it returns status 69 after writing output. Error accounting matches
 FFmpeg 7.0.2: partial decode failures have rate 0, wholly failed decoding has rate 1.

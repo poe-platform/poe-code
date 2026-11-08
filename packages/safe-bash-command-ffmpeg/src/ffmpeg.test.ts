@@ -1369,6 +1369,25 @@ it("copies Matroska PCM audio without changing its codec or packets", async () =
 });
 
 describe("-abort_on empty_output", () => {
+  for (const maps of [[0, 1], [1, 0], [0, 0]]) {
+    for (const separateOutputs of [false, true]) {
+      it(`checks each output, not each stream: maps=${maps}, separate=${separateOutputs}`, async () => {
+        const vfs = createTestVfs({
+          "/full.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(800)] }),
+          "/empty.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(0)] })
+        });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-v", "error", "-abort_on", "empty_output", "-i", "/full.wav", "-i", "/empty.wav",
+          ...maps.flatMap(index => ["-map", `${index}:a`, ...(separateOutputs ? ["-f", "null", "-"] : [])]),
+          ...(separateOutputs ? [] : ["-f", "null", "-"])
+        ], vfs);
+        const emptyOutput = separateOutputs && maps.includes(1);
+        assert.equal(result.exitCode, emptyOutput ? 234 : 0, result.stderr);
+        if (emptyOutput) assert.match(result.stderr, /[Nn]othing was (written|encoded)/);
+        else assert.equal(result.stderr, "");
+      });
+    }
+  }
   for (const output of [["-f", "null", "-"], ["/out.wav"]]) {
     for (const frames of [0, 4096]) {
       for (const abort of [false, true]) {
@@ -1394,7 +1413,7 @@ describe("-abort_on empty_output", () => {
       assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
         (path, bytes) => { vfs.store.set(path, bytes); return true; }), undefined);
       const result = await runCmd(createFfmpegCommand(), args, vfs);
-      assert.equal(result.exitCode, secondOutput ? 0 : 234, result.stderr);
+      assert.equal(result.exitCode, 234, result.stderr);
       assert.ok(vfs.store.has("/empty.wav"));
     }
   });

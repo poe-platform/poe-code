@@ -4012,6 +4012,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let maxErrorRate = Math.fround(2 / 3);
       let abortOnEmptyOutput = false;
       let hasOutputFrames = false;
+      let hasEmptyOutput = false;
       let progressTarget: string | undefined;
       let progressSeconds = 0;
       const progressStarted = performance.now();
@@ -7141,10 +7142,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             // Count processed media, not container headers or checksum text.
             workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
-            hasOutputFrames ||= workingDoc.tracks.some(track =>
+            const outputHasFrames = workingDoc.tracks.some(track =>
               track.decodedAudio ? track.decodedAudio.channelData.some(channel => channel.length > 0)
                 : track.decodedVideoFrames ? track.decodedVideoFrames.length > 0
                   : track.samples.length > 0);
+            hasOutputFrames ||= outputHasFrames;
+            hasEmptyOutput ||= !outputHasFrames;
 
             if (progressTarget !== undefined) {
               for (const [streamIndex, track] of workingDoc.tracks.entries()) {
@@ -7705,7 +7708,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const result = await output();
         if (result.exitCode !== 0) return result;
       }
-      if (abortOnEmptyOutput && !hasOutputFrames) {
+      if (abortOnEmptyOutput && hasEmptyOutput) {
         await writeBytes(context.stderr, encodeUtf8("ffmpeg: Nothing was written into output file, because at least one of its streams received no packets.\n"), context.signal);
         return { exitCode: 234 };
       }

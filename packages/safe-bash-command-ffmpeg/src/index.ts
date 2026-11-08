@@ -7178,8 +7178,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             const imagePipe = outputFormat === "image2pipe";
             const imageOutput = imagePipe || (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
+            const planeOutput = imageOutput && !imagePipe && outputTarget.endsWith(".Y") && (videoCodec === undefined || videoCodec === "rawvideo");
             const numberedImageOutput = !imagePipe && formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined;
-            if ((imageOutput || numberedImageOutput) && videoCodec !== undefined && videoCodec !== "copy" && !imageEncoders.includes(videoCodec)) {
+            if ((imageOutput || numberedImageOutput) && !planeOutput && videoCodec !== undefined && videoCodec !== "copy" && !imageEncoders.includes(videoCodec)) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unknown encoder '${videoCodec}'\n`), context.signal);
               return { exitCode: 8 };
             }
@@ -9535,7 +9536,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (imagePipe || (imageOutput && !isStdout(outputTarget)) || numberedImageOutput) {
               const outExt = imagePipe ? "jpg" : outputTarget.split(".").pop()?.toLowerCase() ?? "png";
               const imgPlugin = registry.findByFilename(`x.${outExt}`);
-              if (videoCodec === undefined && (!imgPlugin || !imgPlugin.canMux)) {
+              if (!planeOutput && videoCodec === undefined && (!imgPlugin || !imgPlugin.canMux)) {
                 throw new Error(`Unsupported output format for '${outputTarget}' (AST not registered)`);
               }
               const vTrack = workingDoc.tracks.find((t) => t.type === "video");
@@ -9545,7 +9546,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const constantRate = ["auto", "-1", "cfr", "1"].includes(videoSync);
               let nextPts = (frames[0]?.ptsSeconds ?? 0) / duration;
               let idx = 0;
-              const imgFmt = imageOutputFormat(videoCodec, outExt);
+              if (planeOutput && rawPixelFormat !== undefined && rawPixelFormat !== "yuv420p") {
+                throw new Error(`Unsupported image2 plane pixel format '${rawPixelFormat}'`);
+              }
 
               for (let sourceIndex = 0; sourceIndex < frames.length && idx < limit; sourceIndex++) {
                 const source = frames[sourceIndex]!;
@@ -9574,6 +9577,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     : idx + (outputStartNumber ?? 1);
                   const fileName = imageFileName(number);
                   const fullOutPath = resolvePath(context.cwd, fileName);
+                  if (planeOutput) {
+                    const ySize = f.width * f.height;
+                    const chromaSize = Math.ceil(f.width / 2) * Math.ceil(f.height / 2);
+                    imagePacketBytes += ySize + 2 * chromaSize;
+                    budget.checkOutputBytes(imagePacketBytes);
+                    budget.allocateMemory(ySize * 5 + 2 * chromaSize);
+                    const bytes = (await formatYuv(f, "yuv420p", context.signal)).native!.pixels;
+                    budget.checkCpu();
+                    await writeImage(fullOutPath, bytes.subarray(0, ySize));
+                    await writeImage(`${fullOutPath.slice(0, -1)}U`, bytes.subarray(ySize, ySize + chromaSize));
+                    await writeImage(`${fullOutPath.slice(0, -1)}V`, bytes.subarray(ySize + chromaSize));
+                    continue;
+                  }
+                  const imgFmt = imageOutputFormat(videoCodec, outExt);
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
                     ...(imgFmt === "qoi" ? { hasAlpha: !["rgb24", "bgr24", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba") } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"

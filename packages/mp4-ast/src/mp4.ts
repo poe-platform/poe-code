@@ -266,7 +266,21 @@ function parseMetadataTags(moov: Mp4Box): Mp4MetadataTags {
 }
 
 
-function parseMp4Chapters(moovBox: Mp4Box, durationSeconds: number): Mp4Chapter[] {
+function parseMp4Chapters(moovBox: Mp4Box, durationSeconds: number, tracks: readonly MediaTrack[], chapterSamples: ReadonlyMap<number, readonly MediaSample[]>): Mp4Chapter[] {
+  for (const track of tracks) {
+    const chapters: Mp4Chapter[] = [];
+    for (const sample of chapterSamples.get(track.id) ?? []) {
+      // Chapter titles are length-prefixed text, followed by optional styling boxes.
+      const packet = sample.data;
+      if (packet.length < 2) continue;
+      const length = new BinaryReader(packet).readU16BE();
+      if (length > packet.length - 2) continue;
+      chapters.push({ id: chapters.length, startTimeSeconds: sample.dts / track.timescale,
+        endTimeSeconds: (sample.dts + sample.duration) / track.timescale,
+        title: decodeUtf8(packet.subarray(2, 2 + length)) });
+    }
+    if (chapters.length) return chapters;
+  }
   const udta = findBox(moovBox.children, "udta");
   const chpl = findBox(udta?.children, "chpl");
   if (!chpl || chpl.payload.byteLength < 9) return [];
@@ -378,6 +392,14 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
 
   const trakBoxes = findBoxes(moovBox.children, "trak");
   budget.checkStreams(trakBoxes.length);
+  const chapterSamples = new Map<number, MediaSample[]>();
+  const chapterTrackIds = new Set<number>();
+  for (const trak of trakBoxes) {
+    const reference = findBox(findBox(trak.children, "tref")?.children, "chap");
+    if (!reference) continue;
+    const reader = new BinaryReader(reference.payload);
+    while (reader.remaining >= 4) chapterTrackIds.add(reader.readU32BE());
+  }
   const tracks: MediaTrack[] = [];
 
   for (let tIdx = 0; tIdx < trakBoxes.length; tIdx++) {
@@ -510,6 +532,9 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       else { const { offset, ...sample } = step.sample; samples.push({ ...sample, offset, data: bytes.subarray(offset, offset + sample.size) }); }
     }
 
+    const rawChapterSamples = chapterTrackIds.has(trackId) ? samples.slice() : undefined;
+    if (rawChapterSamples) chapterSamples.set(trackId, rawChapterSamples);
+
     // Keep tx3g extension boxes until text decoding; packet scans remain byte ranges.
     if (type === "subtitle" && options.decodeSubtitles !== false) {
       let kept = 0;
@@ -561,6 +586,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
               else if (step.kind === 'sample') {
                 const { offset, ...sample } = step.sample;
                 samples.push({ ...sample, offset, data: bytes.subarray(offset, offset + sample.size) });
+                rawChapterSamples?.push(samples[samples.length - 1]!);
               }
             }
           }
@@ -644,7 +670,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
         isKeyframe: true, sampleDescriptionIndex: 1 }]
     });
   }
-  const chapters = parseMp4Chapters(moovBox, maxTrackSeconds);
+  const chapters = parseMp4Chapters(moovBox, maxTrackSeconds, tracks, chapterSamples);
 
   return {
     containerFormat: isMov ? "mov" : "mp4",

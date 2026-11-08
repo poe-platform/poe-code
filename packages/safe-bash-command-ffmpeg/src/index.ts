@@ -3860,7 +3860,8 @@ export function evalSyncFfmpeg(
       else if (arg === "-bsf" || arg.startsWith("-bsf:")) {
         validateBitstreamFilters(args[++i]);
       }
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") i++;
+      else if (arg === "-vsync" || arg === "-fps_mode") return undefined;
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-tag:a") i++;
       else if (arg === "-b:a") {
         audioBitrate = parseAudioBitrate(args[++i]);
         if (audioBitrate === undefined) return undefined;
@@ -5783,6 +5784,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
         // A filename closes its option group; trailing options have no output.
         if (!outputTarget) break;
+        if (outputFps !== undefined && !["auto", "-1", "cfr", "1"].includes(videoSync)) {
+          await writeBytes(context.stderr,
+            encodeUtf8("ffmpeg: output -r is contradictory to a non-CFR -vsync/-fps_mode\n"), context.signal);
+          return { exitCode: 234 };
+        }
         if (pendingDumpAttachments.length) throw new Error("-dump_attachment must precede its input file");
         if (fileSize !== undefined && (audioCodec !== "copy" ||
           (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id !== "wav")) {

@@ -3222,6 +3222,37 @@ describe("transpose directions", () => {
   }
 });
 
+describe("drawbox invert color", () => {
+  for (const options of ["0:0:2:2:invert:fill", "x=0:y=0:w=2:h=2:color=invert:t=fill", "x=0:y=0:w=2:h=2:c=invert:t=1"]) {
+    for (const varied of [false, true]) {
+      it(`inverts source RGB and preserves alpha for ${options}, varied=${varied}`, async () => {
+        const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+        const pixels = Array.from({ length: 64 }, (_, i) => varied
+          ? [i * 4, 255 - i * 3, i * 2, i * 4] : [20, 40, 60, 80]);
+        const input = encodeImage({
+          width: 8, height: 8, channels: 4, data: new Uint8Array(pixels.flat()),
+          format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+        }, { format: "png" }).data;
+        const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice() });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-framerate", "1", "-i", "/in%d.png", "-vf", `drawbox=${options}`,
+          "-frames:v", "3", "/out%d.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const expected = new Uint8Array(pixels.flatMap((pixel, i) =>
+          i % 8 < 2 && Math.floor(i / 8) < 2
+            ? pixel.map((value, channel) => channel < 3 ? 255 - value : value) : pixel));
+        for (let frame = 1; frame <= 3; frame++) {
+          const output = decodeImage(vfs.store.get(`/out${frame}.png`)!);
+          assert.equal(output.width, 8);
+          assert.equal(output.height, 8);
+          assert.deepEqual(output.data, expected);
+        }
+      });
+    }
+  }
+});
+
 describe("drawbox default color", () => {
   for (const options of ["0:0:8:8", "x=0:y=0:w=8:h=8", "0:0:8:8:black:3", "0:0:8:8:red:3"]) {
     it(`matches native RGBA pixels for ${options} across three frames`, async () => {

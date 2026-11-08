@@ -2702,7 +2702,9 @@ async function applyVideoFilterChain(
       if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(replaceOption)) {
         throw new Error("drawbox: invalid replace boolean");
       }
-      const col = parseColorRgba(named.color ?? named.c ?? values[4] ?? "black");
+      const color = named.color ?? named.c ?? values[4] ?? "black";
+      const invert = color === "invert";
+      const col = parseColorRgba(invert ? "black" : color);
       // FFmpeg uses limited-range BT.601 integer coefficients for drawbox colors.
       const [r, g, b] = col;
       const yuvColor = [
@@ -2758,6 +2760,18 @@ async function applyVideoFilterChain(
             if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
             if (Math.min(x - bx, y - by, bx + bw - 1 - x, by + bh - 1 - y) >= thickness) continue;
+            if (invert) {
+              if (planar) {
+                const index = y * f.width + x;
+                nextData[index] = 255 - nextData[index]!;
+              } else {
+                const index = (y * f.width + x) * 4;
+                for (let channel = 0; channel < 3; channel++) {
+                  nextData[index + channel] = 255 - nextData[index + channel]!;
+                }
+              }
+              continue;
+            }
             if (planar) {
               // Native drawbox updates shared chroma once per covered luma pixel,
               // including repeated alpha blends and pixels just outside box edges.

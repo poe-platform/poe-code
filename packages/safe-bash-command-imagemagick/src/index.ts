@@ -1995,6 +1995,7 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
     let cooperativeWork = 0;
     const fn = funcRaw.toLowerCase();
     const out = new Uint8Array(img.data);
+    const data16 = img.data16?.slice();
     const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
@@ -2004,7 +2005,7 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
                 yield;
             if (!mask[c])
                 continue;
-            const x = out[i + c]! / 255;
+            const x = data16 ? data16[i + c]! / 65535 : out[i + c]! / 255;
             let y = x;
             if (fn === "polynomial") {
                 y = params.reduce((acc, coeff) => acc * x + coeff, 0);
@@ -2034,9 +2035,10 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
                 y = (range / Math.PI) * Math.atan(slope * Math.PI * (x - center)) + bias;
             }
             out[i + c] = clampByteVal(y * 255);
+            if (data16) data16[i + c] = Math.round(Math.max(0, Math.min(1, y)) * 65535);
         }
     }
-    return { ...img, data: out };
+    return { ...img, data: out, ...(data16 ? { data16 } : {}) };
 }
 
 type FxImage = Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>;
@@ -5583,6 +5585,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return applyMagickEvaluateSteps(image, operation, value, channels, random, signal);
         };
     } else if (token === "-function") {
+        highDepth = true;
         const operation = tokens[++i] ?? "Polynomial", value = tokens[++i] ?? "1,0";
         if (!["polynomial", "sinusoid", "arcsin", "arctan"].includes(operation.toLowerCase())) {
             throw new Error(`unrecognized function '-function' '${operation}'`);

@@ -77,7 +77,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  let next=steps.next();
  while(!next.done)next=steps.next(await reader.at(next.value));
  const {offset:ifd,pages}=next.value,count=await number(ifd,countSize);
- let width=0,height=0,bits=8,compression=1,photometric=2,samples=4,rows=0,predictor=1,xRes=72,yRes=72,resUnit=2,tileWidth=0,tileHeight=0,orientation:number|undefined;
+ let width=0,height=0,bits=8,compression=1,photometric=2,samples=4,rows=0,predictor=1,xRes=72,yRes=72,resUnit=2,tileWidth=0,tileHeight=0,orientation=1;
  let planar=false;
  let fillOrder=1,faxOptions=0;
  let colorMap=empty;
@@ -244,7 +244,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  if(palette&&(colorMap.count!==paletteSize*3||![8,16].includes(bits)))throw new Error("Invalid or unsupported TIFF ColorMap");
  const cmyk=photometric===5;
  const hasAlpha=(cmyk?samples===5:samples===2||samples===4)&&(extraSample===undefined||extraSample===1||extraSample===2);
- const metadata:StoredRgbaImage={...(pages>1?{pages}:{}),...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:!palette&&samples<3?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:!palette&&samples<3?hasAlpha?2:1:hasAlpha?4:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm":resUnit===1?"unknown":"inch"},hasAlpha,...(orientation===undefined?{}:{orientation})};
+ const metadata:StoredRgbaImage={...(pages>1?{pages}:{}),...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:!palette&&samples<3?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:!palette&&samples<3?hasAlpha?2:1:hasAlpha?4:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm":resUnit===1?"unknown":"inch"},hasAlpha,orientation};
  const raster=new Raster(combined,total,storage,signal),output=new Output(metadata,width,height,storage,signal);
  const sampleBuffer=new Uint8Array(8),sampleView=new DataView(sampleBuffer.buffer);
  const readSample=async(at:number,high:boolean)=>{

@@ -566,7 +566,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
   let predictor = 1;
   let xRes = 72, yRes = 72;
   let resUnit = 2;
-  let orientation: number | undefined;
+  let orientation = 1;
   let properties: Record<string,string> | undefined;
   let jpegTables: Uint8Array | undefined;
   for (let i = 0; i < numEntries; i++) {
@@ -855,6 +855,6 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
     resolution: {x:xRes,y:yRes,unit:resUnit===3?"cm":resUnit===1?"unknown":"inch"},
     hasAlpha,
     ...(properties ? {properties} : {}),
-    ...(orientation !== undefined ? { orientation } : {})
+    orientation
   };
 }

@@ -48,10 +48,9 @@ it("rejects truncated reads and rechecks cancellation after an awaited read", as
   }}, { signal: controller.signal }), error => error === reason);
 });
 
-it("preserves last-data-chunk, clipping, defaults, and ignored RIFF size behavior", async () => {
+it("preserves last-data-chunk, clipping, and ignored RIFF size behavior", async () => {
   const bytes = new Uint8Array(64); bytes.set(header(44));
   const view = new DataView(bytes.buffer); view.setUint32(4, 0, true);
-  view.setUint16(22, 0, true); view.setUint16(34, 0, true);
   bytes.set(new TextEncoder().encode("data"), 44); view.setUint32(48, 50, true);
   const expected = buildProbeResultFromDoc(parseWav(bytes, { decodeAudio: false }), bytes.length, "input.wav", {
     formatName: "wav", formatLongName: "WAV / WAVE (Waveform Audio)"

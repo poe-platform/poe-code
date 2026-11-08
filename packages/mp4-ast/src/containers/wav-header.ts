@@ -141,7 +141,7 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
       header.sampleRate = view.getUint32(4, littleEndian);
       if (header.sampleRate === 0) throw new Error("Invalid sample rate: 0");
       header.blockAlign = view.getUint16(12, littleEndian);
-      header.bitsPerSample = size === 14 ? 8 : view.getUint16(14, littleEndian) || 16;
+      header.bitsPerSample = size === 14 ? 8 : view.getUint16(14, littleEndian);
       if (header.formatTag === 0xfffe) {
         if (size < 40) throw new Error("Invalid WAV extensible format");
         const extension = yield { offset: start + 16, length: 8 };

@@ -557,8 +557,8 @@ export interface MediaProbePacket {
   readonly pts_time: string;
   readonly dts: number;
   readonly dts_time: string;
-  readonly duration: number;
-  readonly duration_time: string;
+  readonly duration?: number | undefined;
+  readonly duration_time?: string | undefined;
   readonly size: string;
   readonly pos: string;
   readonly flags: string;

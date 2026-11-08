@@ -81,9 +81,9 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
   return {
     index: idx,
     id: matroska ? undefined : `0x${track.id.toString(16)}`,
-    codec_name: codecName,
+    codec_name: codecName || undefined,
     mime_codec_string: desc?.mimeCodecString,
-    codec_long_name: codecLongName,
+    codec_long_name: codecLongName || undefined,
     profile: desc?.profile,
     codec_type: track.type,
     codec_tag_string: matroskaPcm ? "[0][0][0][0]" : tagFourCC,

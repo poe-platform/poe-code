@@ -514,7 +514,7 @@ export function wavPacketFrames(sampleRate: number, block: number, maxSize?: num
 }
 
 function wavFrames(header: WavHeader): number {
-  if (header.formatTag !== 17) return Math.floor(header.dataSize / Math.max(1, header.channels * (header.bitsPerSample >>> 3)));
+  if (header.formatTag !== 17) return Math.floor(header.dataSize / Math.max(1, header.bitsPerSample ? header.channels * (header.bitsPerSample >>> 3) : header.blockAlign));
   if (header.bitsPerSample !== 4) throw new Error("Invalid IMA WAV sample width");
   const frames = imaBlockFrames(header.blockAlign, header.channels);
   const remainder = header.dataSize % header.blockAlign;
@@ -527,14 +527,14 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   const pcmData = bytes.subarray(header.dataOffset, header.dataOffset + header.dataSize);
 
   const compressed = formatTag !== 1 && formatTag !== 3 && formatTag !== 0xfffe;
-  const bytesPerFrame = Math.max(1, channels * (bitsPerSample >>> 3));
+  const bytesPerFrame = Math.max(1, bitsPerSample ? channels * (bitsPerSample >>> 3) : header.blockAlign);
   const totalPcmSamples = wavFrames(header);
   let decodedAudio: MediaAudioData | undefined;
   if (options.decodeAudio !== false && (formatTag === 85 || formatTag === 255)) {
     decodedAudio = decodeCompressedWav(bytes, header);
   } else if (options.decodeAudio !== false && formatTag === 17) {
     decodedAudio = { sampleRate, channels, channelData: decodeImaWav(pcmData, channels, header.blockAlign, totalPcmSamples) };
-  } else if (options.decodeAudio !== false) {
+  } else if (options.decodeAudio !== false && bitsPerSample !== 0) {
     // Preserve precision for signed PCM32 and 64-bit samples.
     const SampleArray = bitsPerSample === 64 || (formatTag === 1 || formatTag === 0xfffe) && bitsPerSample === 32 ? Float64Array : Float32Array;
     const channelData = Array.from({ length: channels }, () => new SampleArray(totalPcmSamples));
@@ -591,7 +591,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       dts: offsetSample,
       pts: offsetSample,
       cts: 0,
-      duration: count,
+      duration: bitsPerSample ? count : 0,
       size: byteEnd - byteStart,
       isKeyframe: true,
       sampleDescriptionIndex: 1
@@ -646,7 +646,7 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
         codecDescriptions: [
           {
             formatFourCC: String.fromCharCode(formatTag & 255, formatTag >>> 8, 0, 0),
-            codecName: formatTag === 85 ? "mp3" : formatTag === 255 ? "aac" : formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : formatTag === 3 ? `pcm_f${bitsPerSample}${header.littleEndian ? "le" : "be"}` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}${header.littleEndian ? "le" : "be"}`,
+            codecName: formatTag === 85 ? "mp3" : formatTag === 255 ? "aac" : formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : bitsPerSample === 0 ? "" : formatTag === 3 ? `pcm_f${bitsPerSample}${header.littleEndian ? "le" : "be"}` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}${header.littleEndian ? "le" : "be"}`,
             sampleRate,
             channels,
             bitsPerSample,
@@ -675,6 +675,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   if (options.audioCodec === "copy" && audioTrack?.codecDescriptions[0]?.codecName.endsWith("be")) {
     throw new Error(`Codec ${audioTrack.codecDescriptions[0].codecName} not supported in WAVE format`);
   }
+  if (audioTrack?.codecDescriptions[0]?.codecName === "") throw new Error("Unknown audio codec cannot be written to WAVE format");
   const sampleRate = audioTrack?.codecDescriptions[0]?.sampleRate ?? audioTrack?.timescale ?? 44100;
   const channels = audioTrack?.codecDescriptions[0]?.channels ?? 2;
   let bitsPerSample = 16;
@@ -988,7 +989,7 @@ function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResul
     formatName: header.containerFormat, formatLongName: header.containerFormat === "w64" ? "Sony Wave64" : "WAV / WAVE (Waveform Audio)"
   });
   const samples = doc.duration;
-  const bytesPerFrame = Math.max(1, header.channels * (header.bitsPerSample >>> 3));
+  const bytesPerFrame = Math.max(1, header.bitsPerSample ? header.channels * (header.bitsPerSample >>> 3) : header.blockAlign);
   return { ...result, streams: [{ ...result.streams[0]!,
     bit_rate: doc.durationSeconds > 0
       ? String(Math.round((header.formatTag === 17 ? header.dataSize : samples * bytesPerFrame) * 8 / doc.durationSeconds)) : "0"
@@ -997,7 +998,7 @@ function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResul
 
 function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaProbeRecords {
   const metadata = wavMetadata(header, options.filename), stream = metadata.streams[0]!;
-  const bytesPerFrame = Math.max(1, header.channels * (header.bitsPerSample >>> 3));
+  const bytesPerFrame = Math.max(1, header.bitsPerSample ? header.channels * (header.bitsPerSample >>> 3) : header.blockAlign);
   const samples = wavFrames(header), rate = Math.max(1, header.sampleRate);
   const chunkFrames = header.formatTag === 17 ? imaBlockFrames(header.blockAlign, header.channels) : wavPacketFrames(header.sampleRate, bytesPerFrame, options.maxSize);
   function* spans() {
@@ -1013,7 +1014,7 @@ function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaP
   return { ...metadata,
     packets: options.showPackets ? { *[Symbol.iterator]() {
       for (const s of spans()) yield { codec_type: "audio" as const, stream_index: 0, pts: s.pts, pts_time: s.time,
-        dts: s.pts, dts_time: s.time, duration: s.count, duration_time: s.duration, size: s.size,
+        dts: s.pts, dts_time: s.time, duration: header.bitsPerSample ? s.count : undefined, duration_time: header.bitsPerSample ? s.duration : undefined, size: s.size,
         pos: String(s.pos), flags: "K__" };
     } } : undefined,
     frames: options.showFrames ? { *[Symbol.iterator]() {

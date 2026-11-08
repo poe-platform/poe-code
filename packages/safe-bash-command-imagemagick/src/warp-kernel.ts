@@ -1,5 +1,6 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { resizeFilter, type MagickResizeKernel, type ResizeFilterSettings } from "./resize-kernel.js";
 export interface WarpPlan {
     readonly width: number;
     readonly height: number;
@@ -19,13 +20,13 @@ const robidoux = Float64Array.from({ length: 1024 }, (_, i) => {
         : ((-b - 6 * c) * x ** 3 + (6 * b + 30 * c) * x * x + (-12 * b - 48 * c) * x + 8 * b + 24 * c) / 6;
 });
 
-function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [number, number, number, number]): Generator<readonly [number, number, number] | undefined> {
+function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [number, number, number, number], weights: Float64Array, support: number): Generator<readonly [number, number, number] | undefined> {
     // Singular values of the inverse mapping, clamped to at least one source pixel.
     const xx = ux * ux + uy * uy, yy = vx * vx + vy * vy, xy = ux * vx + uy * vy;
     const delta = Math.hypot(xx - yy, 2 * xy), major = Math.max(1, (xx + yy + delta) / 2), minor = Math.max(1, (xx + yy - delta) / 2);
     const angle = Math.atan2(2 * xy, xx - yy) / 2, cos = Math.cos(angle), sin = Math.sin(angle);
     const a = major * sin * sin + minor * cos * cos, b = -2 * (major - minor) * cos * sin, c = major * cos * cos + minor * sin * sin;
-    const f = 4 * major * minor, vLimit = Math.sqrt(a * f / (a * c - b * b / 4)), uWidth = Math.sqrt(f / a), slope = -b / (2 * a);
+    const f = support * support * major * minor, vLimit = Math.sqrt(a * f / (a * c - b * b / 4)), uWidth = Math.sqrt(f / a), slope = -b / (2 * a);
     if (![sx, sy, vLimit, uWidth].every(Number.isFinite) || uWidth * vLimit > 1_000_000
         || !Number.isSafeInteger(Math.ceil(Math.abs(sx) + uWidth + Math.abs(slope * vLimit)))
         || !Number.isSafeInteger(Math.ceil(Math.abs(sy) + vLimit)))
@@ -39,13 +40,17 @@ function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [num
         for (let i = 0; i < count; i++, q += dq, dq += 2 * A) {
             if (++scanned % 1024 === 0) yield;
             const index = Math.trunc(q);
-            if (index >= 0 && index < 1024) yield [firstX + i, y, robidoux[index]!];
+            if (index >= 0 && index < 1024) yield [firstX + i, y, weights[index]!];
         }
     }
 }
 
-export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source;
+    const filter = kernel === undefined || kernel === "nearest" ? undefined : resizeFilter(kernel, settings, true);
+    const blur = Math.max(1e-12, (settings?.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485 : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
+    const support = filter ? filter.radius * blur : 2;
+    const weights = filter ? Float64Array.from({ length: 1024 }, (_, i) => filter.weight(Math.sqrt(i / 1024) * filter.radius)) : robidoux;
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     for (let start = 0; start < plan.width * plan.height; start += 1024) {
         yield;
@@ -62,8 +67,11 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             const x1 = virtualPixel ? x0 + 1 : Math.max(0, Math.min(width - 1, x0 + 1)), y1 = virtualPixel ? y0 + 1 : Math.max(0, Math.min(height - 1, y0 + 1));
             const fx = Math.max(0, Math.min(1, sx - x0)), fy = Math.max(0, Math.min(1, sy - y0));
             const derivatives = plan.derivatives?.(px, py);
-            for (let filtered = !!derivatives && !plan.nearest; ; filtered = false) {
-                const samples: Iterable<readonly [number, number, number] | undefined> = plan.nearest ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : filtered ? ellipseSamples(sx, sy, derivatives!) : [
+            // Native resampling uses an integer lookup when the entire filter
+            // footprint lies beyond the raster's pixel centers.
+            const outside = filter && virtualPixel === "background" && (sx + support < 0 || sy + support < 0 || sx - support > width - 1 || sy - support > height - 1);
+            for (let filtered = !!derivatives && kernel !== "nearest" && !plan.nearest; ; filtered = false) {
+                const samples: Iterable<readonly [number, number, number] | undefined> = outside ? [[Math.floor(sx), Math.floor(sy), 1]] : plan.nearest ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : filtered ? ellipseSamples(sx, sy, derivatives!, weights, support) : [
                     [x0, y0, (1 - fx) * (1 - fy)], [x1, y0, fx * (1 - fy)],
                     [x0, y1, (1 - fx) * fy], [x1, y1, fx * fy]
                 ];

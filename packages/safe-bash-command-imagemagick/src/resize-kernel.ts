@@ -50,6 +50,45 @@ function windowWeight(kernel: MagickResizeKernel, x: number): number {
     }
 }
 
+export function resizeFilter(kernel: MagickResizeKernel, settings: ResizeFilterSettings = {}, radial = false) {
+    // ImageMagick promotes windowed Sinc to Jinc for radial (EWA) sampling.
+    const windowedJinc = radial && (settings.window !== undefined || ["lanczos2", "lanczos2sharp", "lanczos3", "lanczossharp", "bartlett", "blackman", "bohman", "cosine", "hamming", "hann", "kaiser", "parzen", "welch"].includes(kernel));
+    const lobes = settings.lobes ?? (kernel === "lanczos2" || kernel === "lanczos2sharp" ? 2 : 3);
+    const jincSupport = (kernel === "jinc" || windowedJinc) ? [1.2196698912665045,2.2331305943815285,3.238315484166236,4.24106286379607,5.242764376870182,6.243921689864488,7.244759868719957,8.245394913952042,9.245892684949467,10.246293348754916,11.246622794877883,12.246898461138105,13.247132522181062,14.24733373580685,15.2475085630373,16.247661874700963][Math.min(16, lobes) - 1] : undefined;
+    const radius = settings.support ?? jincSupport ?? settings.lobes ?? (kernel === "box" ? radial ? Math.SQRT1_2 : 0.5 : kernel === "jinc" ? 3.238315484166236 : kernel === "magickernelsharp2013" ? 2.5 : kernel === "magickernelsharp2021" ? 4.5
+        : kernel === "gaussian" ? 4 * (radial ? Math.max(0.5, settings.sigma ?? 0.5) : settings.sigma ?? 0.5) : kernel === "lagrange" ? 2 : kernel === "linear" || kernel === "bilinear" || kernel === "hermite" ? 1 : kernel === "quadratic" ? 1.5 : kernel === "cubic" || kernel === "catrom" || kernel === "cubicspline" || kernel === "robidoux" || kernel === "robidouxsharp" || kernel === "mitchell" || kernel === "lanczos2" || kernel === "lanczos2sharp" ? 2
+        : kernel === "lanczos3" || kernel === "lanczossharp" || kernel === "cosine" || kernel === "welch" ? 3 : 4);
+    // ImageMagick BC cubic parameters; Cubic/Spline use the B-spline, Catrom interpolates.
+    const b = settings.b ?? (settings.c !== undefined ? 1 - 2 * settings.c : kernel === "mitchell" ? 1 / 3 : kernel === "cubic" ? 1 : kernel === "robidoux" ? 0.3782157550939987 : kernel === "robidouxsharp" ? 0.2620145123990142 : 0);
+    const c = settings.c ?? (settings.b !== undefined ? (1 - settings.b) / 2 : kernel === "mitchell" ? 1 / 3 : kernel === "catrom" ? 0.5 : kernel === "robidoux" ? 0.3108921224530007 : kernel === "robidouxsharp" ? 0.3689927438004929 : 0);
+    return { radius, weight(x: number) {
+        let weight = kernel === "box" ? 1
+            : windowedJinc ? jinc(x) * (settings.window ? windowWeight(settings.window, x / radius)
+                : kernel === "lanczos2" || kernel === "lanczos2sharp" || kernel === "lanczos3" || kernel === "lanczossharp" ? jinc(x * 1.2196698912665045 / radius) : windowWeight(kernel, x / radius))
+            : ((kernel === "mitchell" || kernel === "cubic" || kernel === "catrom" || kernel === "robidoux" || kernel === "robidouxsharp" || kernel === "cubicspline") && x >= 2) || (kernel === "hermite" && x >= 1) || (kernel === "quadratic" && x >= 1.5) ? 0
+            : kernel === "gaussian" ? Math.exp(-x * x / (2 * (settings.sigma ?? 0.5) ** 2))
+            : kernel === "jinc" ? jinc(x)
+            : kernel === "sinc" || kernel === "sincfast" ? sinc(x)
+            : kernel === "lagrange" ? (x < 1 ? (x + 1) * (x - 1) * (x - 2) / 2 : -(x - 1) * (x - 2) * (x - 3) / 6)
+            : kernel === "magickernelsharp2013" ? (x < 0.5 ? 0.625 + 1.75 * (0.5 - x) * (0.5 + x)
+                : x < 1.5 ? (1 - x) * (1.75 - x) : -0.125 * (2.5 - x) ** 2)
+            : kernel === "magickernelsharp2021" ? (x < 0.5 ? 577 / 576 - 239 / 144 * x * x
+                : x < 1.5 ? 35 / 36 * (x - 1) * (x - 239 / 140)
+                : x < 2.5 ? (x - 2) * (65 / 24 - x) / 6
+                : x < 3.5 ? (x - 3) * (x - 3.75) / 36 : -((x - 4.5) ** 2) / 288)
+            : kernel === "linear" || kernel === "bilinear" ? Math.max(0, 1 - x)
+            : kernel === "hermite" ? (2 * x - 3) * x * x + 1
+            : kernel === "quadratic" ? (x < 0.5 ? 0.75 - x * x : 0.5 * (x - 1.5) ** 2)
+            : kernel === "cubicspline" ? (x < 1 ? ((x - 9 / 5) * x - 1 / 5) * x + 1 : ((-(x - 1) / 3 + 4 / 5) * (x - 1) - 7 / 15) * (x - 1))
+            : kernel === "mitchell" || kernel === "cubic" || kernel === "catrom" || kernel === "robidoux" || kernel === "robidouxsharp"
+                ? (x < 1 ? ((12 - 9 * b - 6 * c) * x ** 3 + (-18 + 12 * b + 6 * c) * x * x + 6 - 2 * b) / 6
+                    : ((-b - 6 * c) * x ** 3 + (6 * b + 30 * c) * x * x + (-12 * b - 48 * c) * x + 8 * b + 24 * c) / 6)
+            : sinc(x) * windowWeight(settings.window ?? kernel, x / radius);
+        if (!windowedJinc && settings.window && kernel === "sinc") weight *= windowWeight(settings.window, x / radius);
+        return weight;
+    } };
+}
+
 function contributions(index: number, source: number, target: number, blur: number, area: boolean, kernel: MagickResizeKernel, thumbnailFactor = 0, settings: ResizeFilterSettings = {}) {
     if (thumbnailFactor >= 3) {
         // ThumbnailImage samples to 4x, box-filters to 2x, then applies the final
@@ -86,10 +125,7 @@ function contributions(index: number, source: number, target: number, blur: numb
         const end = Math.min(source, Math.floor(center + support + 0.5 + 1e-12));
         return { first, weights: new Float64Array(end - first).fill(1 / (end - first)) };
     }
-    const jincSupport = kernel === "jinc" ? [1.2196698912665045,2.2331305943815285,3.238315484166236,4.24106286379607,5.242764376870182,6.243921689864488,7.244759868719957,8.245394913952042,9.245892684949467,10.246293348754916,11.246622794877883,12.246898461138105,13.247132522181062,14.24733373580685,15.2475085630373,16.247661874700963][Math.min(16, settings.lobes ?? 3) - 1] : undefined;
-    const radius = settings.support ?? jincSupport ?? settings.lobes ?? (kernel === "jinc" ? 3.238315484166236 : kernel === "magickernelsharp2013" ? 2.5 : kernel === "magickernelsharp2021" ? 4.5
-        : kernel === "gaussian" ? 4 * (settings.sigma ?? 0.5) : kernel === "lagrange" ? 2 : kernel === "linear" || kernel === "bilinear" || kernel === "hermite" ? 1 : kernel === "quadratic" ? 1.5 : kernel === "cubic" || kernel === "catrom" || kernel === "cubicspline" || kernel === "robidoux" || kernel === "robidouxsharp" || kernel === "mitchell" || kernel === "lanczos2" || kernel === "lanczos2sharp" ? 2
-        : kernel === "lanczos3" || kernel === "lanczossharp" || kernel === "cosine" || kernel === "welch" ? 3 : 4);
+    const { radius, weight } = resizeFilter(kernel, settings);
     let scale = Math.max(1, source / target) * blur;
     const narrow = radius * scale < 0.5;
     const center = (index + 0.5) * source / target + (narrow ? 1e-12 : 0) - 0.5;
@@ -97,33 +133,11 @@ function contributions(index: number, source: number, target: number, blur: numb
     const support = Math.max(0.5, radius * scale);
     const first = Math.max(0, Math.ceil(center - support)), last = Math.min(source - 1, Math.floor(center + support));
     const weights = new Float64Array(last - first + 1);
-    // ImageMagick BC cubic parameters; Cubic/Spline use the B-spline, Catrom interpolates.
-    const b = settings.b ?? (settings.c !== undefined ? 1 - 2 * settings.c : kernel === "mitchell" ? 1 / 3 : kernel === "cubic" ? 1 : kernel === "robidoux" ? 0.3782157550939987 : kernel === "robidouxsharp" ? 0.2620145123990142 : 0);
-    const c = settings.c ?? (settings.b !== undefined ? (1 - settings.b) / 2 : kernel === "mitchell" ? 1 / 3 : kernel === "catrom" ? 0.5 : kernel === "robidoux" ? 0.3108921224530007 : kernel === "robidouxsharp" ? 0.3689927438004929 : 0);
     let sum = 0;
     for (let i = 0; i < weights.length; i++) {
         const distance = (first + i - center) / scale;
         const x = Math.abs(distance);
-        weights[i] = ((kernel === "mitchell" || kernel === "cubic" || kernel === "catrom" || kernel === "robidoux" || kernel === "robidouxsharp" || kernel === "cubicspline") && x >= 2) || (kernel === "hermite" && x >= 1) || (kernel === "quadratic" && x >= 1.5) ? 0
-            : kernel === "gaussian" ? Math.exp(-x * x / (2 * (settings.sigma ?? 0.5) ** 2))
-            : kernel === "jinc" ? jinc(x)
-            : kernel === "sinc" || kernel === "sincfast" ? sinc(x)
-            : kernel === "lagrange" ? (x < 1 ? (x + 1) * (x - 1) * (x - 2) / 2 : -(x - 1) * (x - 2) * (x - 3) / 6)
-            : kernel === "magickernelsharp2013" ? (x < 0.5 ? 0.625 + 1.75 * (0.5 - x) * (0.5 + x)
-                : x < 1.5 ? (1 - x) * (1.75 - x) : -0.125 * (2.5 - x) ** 2)
-            : kernel === "magickernelsharp2021" ? (x < 0.5 ? 577 / 576 - 239 / 144 * x * x
-                : x < 1.5 ? 35 / 36 * (x - 1) * (x - 239 / 140)
-                : x < 2.5 ? (x - 2) * (65 / 24 - x) / 6
-                : x < 3.5 ? (x - 3) * (x - 3.75) / 36 : -((x - 4.5) ** 2) / 288)
-            : kernel === "linear" || kernel === "bilinear" ? Math.max(0, 1 - x)
-            : kernel === "hermite" ? (2 * x - 3) * x * x + 1
-            : kernel === "quadratic" ? (x < 0.5 ? 0.75 - x * x : 0.5 * (x - 1.5) ** 2)
-            : kernel === "cubicspline" ? (x < 1 ? ((x - 9 / 5) * x - 1 / 5) * x + 1 : ((-(x - 1) / 3 + 4 / 5) * (x - 1) - 7 / 15) * (x - 1))
-            : kernel === "mitchell" || kernel === "cubic" || kernel === "catrom" || kernel === "robidoux" || kernel === "robidouxsharp"
-                ? (x < 1 ? ((12 - 9 * b - 6 * c) * x ** 3 + (-18 + 12 * b + 6 * c) * x * x + 6 - 2 * b) / 6
-                    : ((-b - 6 * c) * x ** 3 + (6 * b + 30 * c) * x * x + (-12 * b - 48 * c) * x + 8 * b + 24 * c) / 6)
-            : sinc(distance) * windowWeight(settings.window ?? kernel, x / radius);
-        if (settings.window && kernel === "sinc") weights[i]! *= windowWeight(settings.window, x / radius);
+        weights[i] = weight(x);
         sum += weights[i]!;
     }
     for (let i = 0; i < weights.length; i++) weights[i]! /= Math.abs(sum) >= 1e-12 ? sum : sum < 0 ? -1e-12 : 1e-12;

@@ -5676,9 +5676,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else if (token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") {
-        const raw = tokens[++i] ?? "3x50%";
+        const raw = tokens[++i] ?? "";
+        validateMagickTransformGeometry(raw, token);
         const [cStr, mStr] = raw.split("x");
-        const beta = Math.max(1e-4, parseFloat(cStr || "3"));
+        const strength = parseFloat(cStr ?? "");
+        if (!Number.isFinite(strength)) {
+            throw new Error(`invalid argument for option '${token}': ${raw}`);
+        }
+        const beta = Math.max(1e-4, strength);
         const mRaw = parseFloat(mStr || "50");
         const alpha = (mStr ?? "50%").endsWith("%") ? mRaw / 100 : mRaw / 65535;
         const sig = (u: number) => 1 / (1 + Math.exp(beta * (alpha - u)));

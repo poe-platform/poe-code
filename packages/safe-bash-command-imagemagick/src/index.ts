@@ -1039,8 +1039,6 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
         if (!seen.has(key)) {
             seen.add(key);
             palette.push({ r, g, b, a });
-            if (palette.length >= 256)
-                break;
         }
     }
     if (palette.length === 0)

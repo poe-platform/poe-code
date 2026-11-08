@@ -4,11 +4,11 @@ import { RasterBackingCache } from "./raster-backing.js";
 
 export async function remapStoredImage(image: StoredRgbaImage, paletteImage: StoredRgbaImage, storage: ImageByteStorage, dither: boolean, signal: AbortSignal): Promise<StoredRgbaImage> {
     const palette: number[] = [], seen = new Set<number>();
-    for (let offset = 0; offset < paletteImage.width * paletteImage.height * 4 && palette.length < 256; offset += 4096) {
+    for (let offset = 0; offset < paletteImage.width * paletteImage.height * 4; offset += 4096) {
         await yieldTurn(signal);
         const length = Math.min(4096, paletteImage.width * paletteImage.height * 4 - offset), bytes = await storage.read(paletteImage.position + offset, length, { signal });
         if (bytes.length !== length) throw new Error("Truncated remap palette");
-        for (let i = 0; i < length && palette.length < 256; i += 4) {
+        for (let i = 0; i < length; i += 4) {
             const key = bytes[i]! << 24 | bytes[i + 1]! << 16 | bytes[i + 2]! << 8 | bytes[i + 3]!;
             if (!seen.has(key)) { seen.add(key); palette.push(key); }
         }

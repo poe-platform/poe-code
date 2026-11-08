@@ -52,7 +52,7 @@ Use `ftxt:out.dat` or `out.ftxt` for plain pixel channel rows with Q16 values, o
 
 Use `-comment text` or `-label text` before an input to set its text metadata when it is read; settings after an input leave that image unchanged. Use `-set comment 'width=%w'` to write an expanded comment to PNG, JPEG, GIF or TIFF. PNG also stores named text properties such as `-set label` and `-set asset`. Use `-define png:preserve-colormap=true` to retain an indexed PNG’s palette order, bit depth and pixel indices.
 
-Use `identify -format '%#' image.png` or `magick image.png -format '%[signature]' info:` to compute the ImageMagick pixel signature. Both tokens produce the same SHA-256 digest, independent of comments and page metadata. Use `magick animation.gif -format '%T/%D/%c;' info:` to report each frame’s delay in centiseconds, disposal name and comment.
+Use `identify -format '%#' image.png` or `magick image.png -format '%[signature]' info:` to compute the ImageMagick pixel signature. Both tokens produce the same SHA-256 digest, independent of comments and page metadata. Use `magick animation.gif -format '%T/%D/%c;' info:` to report each frame’s delay in centiseconds, disposal name and comment. Use `%[entropy]` for normalized image entropy, averaged across selected channels (`-channel R` selects red; `+channel` resets). Each channel is normalized by its distinct sample count; constant channels contribute zero.
 
 Use `+set comment` (or another property name) to remove that property from the current images while preserving other properties.
 

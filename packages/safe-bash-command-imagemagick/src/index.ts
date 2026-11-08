@@ -1194,6 +1194,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   }
   count = Math.max(1, count);
   let selectedMedian = 0;
+  let entropy = 0;
   if (statistics) {
     statistics.mean = 0;
     statistics.standard_deviation = 0;
@@ -1203,6 +1204,18 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     for (let c = 0; c < channels; c++) {
       const deviation = Math.sqrt(Math.max(0, moments[c]! / Math.max(1, count - 1)));
       const histogram = histograms![c]!;
+      if (selectedChannels[c]) {
+        let distinct = 0, channelEntropy = 0;
+        for (let value = 0; value < histogram.length; value++) {
+          if (value % 8192 === 0) yield;
+          if (histogram[value] === 0) continue;
+          distinct++;
+          const probability = histogram[value]! / count;
+          channelEntropy -= probability * Math.log2(probability);
+        }
+        // ImageMagick normalizes by occupied bins; constant channels contribute zero.
+        if (distinct > 1) entropy += channelEntropy / Math.log2(distinct) / selectedCount;
+      }
       let minimum = 0, maximum = 65535, median = 0, cumulative = 0;
       while (minimum < 65535 && histogram[minimum] === 0) minimum++;
       while (maximum > 0 && histogram[maximum] === 0) maximum--;
@@ -1244,6 +1257,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     max: String(max),
     median: String(Number(selectedMedian.toPrecision(6))),
     "standard-deviation": String(Number(deviation.toPrecision(6))),
+    entropy: String(Number(entropy.toPrecision(6))),
     opaque: opaque ? "True" : "False",
     type,
     "bit-depth": String(bitDepth)
@@ -1349,7 +1363,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
       const key = property.toLowerCase();
       if (Object.hasOwn(properties, key)) {
         parts.push(properties[key]!);
-      } else if (["mean", "min", "max", "median", "standard-deviation", "opaque", "type", "bit-depth"].includes(key)) {
+      } else if (["mean", "min", "max", "median", "standard-deviation", "entropy", "opaque", "type", "bit-depth"].includes(key)) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
         pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection);

@@ -25,11 +25,13 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
       line = line.split("#")[0]!.trim();
       if (line === "ENDHDR") {
         const width = Number(fields.get("WIDTH")), height = Number(fields.get("HEIGHT"));
-        const channels = Number(fields.get("DEPTH")), maxval = Number(fields.get("MAXVAL"));
+        const depth = Number(fields.get("DEPTH")), maxval = Number(fields.get("MAXVAL"));
         const tuple = fields.get("TUPLTYPE");
         if (!Number.isSafeInteger(width * height * 4) || !Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0 ||
-            ![1, 2, 3, 4, 5].includes(channels) || !Number.isInteger(maxval) || maxval < 1 || maxval > 65535)
+            ![1, 2, 3, 4, 5].includes(depth) || !Number.isInteger(maxval) || maxval < 1 || maxval > 65535)
           throw new Error("Invalid PAM header");
+        // ImageMagick defaults to packed RGB when TUPLTYPE is omitted.
+        const channels = tuple === undefined ? 3 : depth;
         const tuples: Record<string, number> = { BLACKANDWHITE: 1, BLACKANDWHITE_ALPHA: 2, GRAYSCALE: 1, GRAYSCALE_ALPHA: 2, RGB: 3, RGB_ALPHA: 4, CMYK: 4, CMYK_ALPHA: 5 };
         if ((tuple && tuples[tuple] !== channels) || (channels === 5 && tuple !== "CMYK_ALPHA")) throw new Error("Unsupported PAM tuple type");
         return { magic, format: "pam", width, height, maxval, channels: channels as 1 | 2 | 3 | 4 | 5, cmyk: tuple === "CMYK" || tuple === "CMYK_ALPHA", hasAlpha: tuple === "CMYK_ALPHA" || (tuple !== "CMYK" && (channels === 2 || channels === 4)), dataOffset: pos };
@@ -152,6 +154,8 @@ export function* netpbmSequenceSteps(size: number, page?: number): Generator<num
       else if (c <= 32) offset++;
       else break;
     }
+    // PAM readers ignore trailing bytes that do not start another image.
+    if (magic === "P7" && offset < size && (yield offset) !== 0x50) break;
   }
   if (!first || page !== undefined) throw new RangeError("Netpbm page out of range");
   return { header: first, pages };

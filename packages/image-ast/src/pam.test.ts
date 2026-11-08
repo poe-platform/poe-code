@@ -59,3 +59,32 @@ for (const depth of [8, 16]) for (const alpha of [false, true]) {
         expect(Buffer.from(await filesystem.readFile("/out.pam"))).toEqual(input);
     });
 }
+
+for (const depth of [1, 2, 3, 4, 5]) {
+    it(`uses RGB when PAM depth ${depth} has no tuple type`, async () => {
+        const raster = Buffer.from("12345680abcdef001234", "hex").subarray(0, depth * 2);
+        const input = Buffer.concat([Buffer.from(`P7\nWIDTH 2\nHEIGHT 1\nDEPTH ${depth}\nMAXVAL 255\nENDHDR\n`), raster]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.pam", input);
+        if (depth < 3) {
+            expect(() => decodeImage(input)).toThrow("Truncated PAM raster");
+            await expect(sharp("/in.pam", { filesystem }).png().toFile("/out.png")).rejects.toThrow("Truncated PAM raster");
+        } else {
+            const expected = Buffer.from("123456ff80abcdff", "hex");
+            expect(Buffer.from(decodeImage(input).data)).toEqual(expected);
+            expect(await sharp("/in.pam", { filesystem }).metadata()).toMatchObject({ channels: 3, hasAlpha: false });
+            await sharp("/in.pam", { filesystem }).png().toFile("/out.png");
+            expect(Buffer.from(decodeImage(await filesystem.readFile("/out.png")).data)).toEqual(expected);
+        }
+    });
+}
+
+it("keeps concatenated untyped PAM frames separate", async () => {
+    const frame = Buffer.concat([Buffer.from("P7\nWIDTH 1\nHEIGHT 1\nDEPTH 4\nMAXVAL 65535\nENDHDR\n"), Buffer.from("121234345656", "hex")]);
+    const input = Buffer.concat([frame, frame]);
+    const filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/in.pam", input);
+    expect(await sharp(input).metadata()).toMatchObject({ pages: 2, channels: 3, hasAlpha: false });
+    expect(await sharp("/in.pam", { filesystem }).metadata()).toMatchObject({ pages: 2, channels: 3, hasAlpha: false });
+    expect(Buffer.from(decodeImage(input, { page: 1 }).data)).toEqual(Buffer.from("123456ff", "hex"));
+});

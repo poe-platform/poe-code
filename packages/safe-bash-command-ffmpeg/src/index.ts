@@ -8523,8 +8523,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const pcm16SurroundStereo = surroundStereo && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
+                  const sevenOneDownmix = origCh === 8 && channelMask === 0x63f && [1, 2, 6].includes(targetCh);
+                  const pcm16SevenOne = sevenOneDownmix && targetCh !== 1 && !filter && targetRate === origRate &&
+                    t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
+                  // Normalize against the loudest row, including the extra surround pair.
+                  // The PCM16 stereo mixer distributes Q15 rounding between center and surrounds.
+                  const sevenOneMatrix = !sevenOneDownmix ? [] : targetCh === 1
+                    ? [[Math.SQRT1_2, Math.SQRT1_2, 1, 0, 0.5, 0.5, 0.5, 0.5].map(gain => gain / (3 + Math.SQRT2))]
+                    : targetCh === 2
+                    ? [[1, 0, Math.SQRT1_2, 0, Math.SQRT1_2, 0, Math.SQRT1_2, 0],
+                       [0, 1, Math.SQRT1_2, 0, 0, Math.SQRT1_2, 0, Math.SQRT1_2]].map(row =>
+                        row.map((gain, speaker) => pcm16SevenOne
+                          ? gain === 0 ? 0 : speaker < 2 ? 10498 : speaker === 2 ? 7424 : 7423
+                          : gain / (1 + 3 * Math.SQRT1_2)))
+                    : Array.from({ length: 6 }, (_, output) => Array.from({ length: 8 }, (_, input) =>
+                        input === output ? pcm16SevenOne ? 19195 : 1 / (1 + Math.SQRT1_2)
+                          : output >= 4 && input === output + 2 ? pcm16SevenOne ? 13573 : Math.SQRT1_2 / (1 + Math.SQRT1_2) : 0));
                   const monoSurround = origCh === 1 && targetCh >= 4 && targetCh <= 8;
-                  if (targetCh !== origCh && origCh > 2 && !surroundUpmix && !threeChannelDownmix && !quadDownmix && !surroundExpansion &&
+                  if (targetCh !== origCh && origCh > 2 && !sevenOneDownmix && !surroundUpmix && !threeChannelDownmix && !quadDownmix && !surroundExpansion &&
                       (!(surroundMono || surroundStereo) || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
                     throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
                   }
@@ -8592,7 +8608,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 (stretched[2]![srcIdx]! + stretched[c + 4]![srcIdx]!) * 9598 + 0.5) / 32768
                           : sample * (monoStereo || centerLfeStereo ? Math.SQRT1_2 : 1);
                         // FFmpeg 7.0.2 converts non-finite floating samples to silence for PCM16.
-                        const scaled = mixed * volFactor;
+                        const sevenOneSample = sevenOneMatrix[c]?.reduce((sum, gain, speaker) =>
+                          sum + stretched[speaker]![srcIdx]! * gain, 0);
+                        const scaled = (sevenOneSample === undefined ? mixed : pcm16SevenOne
+                          ? Math.floor(sevenOneSample + 0.5) / 32768 : sevenOneSample) * volFactor;
                         dst[i] = pcm16Output && !Number.isFinite(scaled) ? 0 : Math.max(-1, Math.min(1, scaled));
                       }
                     }

@@ -3119,6 +3119,16 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 out[dIdx + 3] = clampByteVal(alpha * 255);
                 continue;
             }
+            if (norm === "rmse") {
+                // ImageMagick divides only the blue squared difference by three.
+                const gray = clampByteVal(Math.sqrt((dr - sr) ** 2 + (dg - sg) ** 2 + (db - sb) ** 2 / 3));
+                for (let c = 0; c < 3; c++) {
+                    out[dIdx + c] = saByte === 0 ? dst.data[dIdx + c]!
+                        : daByte === 0 ? src.data[sIdx + c]! : gray;
+                }
+                out[dIdx + 3] = Math.max(saByte, daByte);
+                continue;
+            }
             if (norm === "changemask") {
                 const distance = (saByte - daByte) ** 2
                     + ((sr - dr) ** 2 + (sg - dg) ** 2 + (sb - db) ** 2) * sa * da;

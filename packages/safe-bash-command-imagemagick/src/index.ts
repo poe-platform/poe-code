@@ -6684,7 +6684,7 @@ if (t === "-seed") {
                 } else if (key === "connected-components:sort-order") {
                     if (extra !== undefined || (value !== "increasing" && value !== "decreasing")) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedSortOrder = value;
-                } else if (key === "connected-components:minor-axis-threshold" || key === "connected-components:perimeter-threshold" || key === "connected-components:angle-threshold" || key === "connected-components:major-axis-threshold" || key === "connected-components:circularity-threshold") {
+                } else if (key === "connected-components:diameter-threshold" || key === "connected-components:minor-axis-threshold" || key === "connected-components:perimeter-threshold" || key === "connected-components:angle-threshold" || key === "connected-components:major-axis-threshold" || key === "connected-components:circularity-threshold") {
                     const bounds = value?.trim().split("-").map(part => part.trim()) ?? [];
                     if (extra !== undefined || bounds.length < 1 || bounds.length > 2 || bounds.some(part => !part || !Number.isFinite(Number(part)) || Number(part) < 0)) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     const threshold = [Number(bounds[0]), bounds.length === 2 ? Number(bounds[1]) : Infinity];

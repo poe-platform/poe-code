@@ -84,7 +84,7 @@ it("keeps AU ADPCM metadata independent from decoding and enforces parser limits
   const bytes = Buffer.from(native);
   bytes.writeUInt32BE(23, 12);
   const ast = auAst();
-  assert.equal(ast.parse(bytes).tracks[0]!.decodedAudio!.channelData[0]!.length, 36);
+  assert.throws(() => ast.parse(bytes), /Unsupported AU audio decoding/);
   const doc = ast.parse(bytes, { decodeAudio: false });
   assert.equal(doc.tracks[0]!.decodedAudio, undefined);
   assert.deepEqual(doc.tracks[0]!.samples[0]!.data, bytes.subarray(32));

@@ -2038,17 +2038,29 @@ async function applyVideoFilterChain(
         }
         return { ...f, data };
       }, signal);
-    } else if (name === "format" && argStr.includes("gray")) {
-      current = await mapWork(current, async (f) => {
-
-
-        const out = grayscaleImage(makeRgbaImg(f.width, f.height, f.data));
-        return { ...f, data: out.data };
-      }, signal);
     } else if (name === "format") {
-      if (argStr.includes("rgb") || argStr.includes("bgr")) {
-        pixelFormat = named.pix_fmts ?? positional[0];
+      let formats: string[] | undefined;
+      for (const [index, part] of (argStr ? positional : []).entries()) {
+        const separator = part.indexOf("=");
+        const key = separator < 0 ? (index === 0 ? "pix_fmts" : undefined) : part.slice(0, separator).trim();
+        if (key !== "pix_fmts") throw new Error(`format: unsupported option ${part}`);
+        const values = (separator < 0 ? part : part.slice(separator + 1)).trim().split("|");
+        for (const value of values) {
+          if (!["rgba", "bgra", "rgb24", "bgr24", "gray", "gray8"].includes(value)) {
+            throw new Error(`format: unsupported pixel format ${value}`);
+          }
+        }
+        formats = values;
+      }
+      if (formats) {
+        pixelFormat = formats.includes(pixelFormat ?? "rgba") ? pixelFormat ?? "rgba" : formats[0]!;
         current = current.map(({ native: _native, ...frame }) => frame);
+        if (pixelFormat === "gray" || pixelFormat === "gray8") {
+          current = await mapWork(current, async (f) => {
+            const out = grayscaleImage(makeRgbaImg(f.width, f.height, f.data));
+            return { ...f, data: out.data };
+          }, signal);
+        }
       }
     } else if (name === "fps") {
       const options: Record<string, string> = {};

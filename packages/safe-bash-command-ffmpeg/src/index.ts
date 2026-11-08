@@ -3915,7 +3915,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           try {
             if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget)) {
               const inputIndex = inputs.findIndex(input =>
-                input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget);
+                input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget &&
+                (input.patternType === "none" || input.patternType === "glob" ||
+                  formatImageSequence(input.path, input.startNumber ?? 0) === undefined));
               if (inputIndex >= 0) throw new Error(`Output ${outputTarget} same as Input #${inputIndex} - exiting. FFmpeg cannot edit existing files in-place.`);
             }
             // Virtual streams are non-interactive: replacing a file requires -y.

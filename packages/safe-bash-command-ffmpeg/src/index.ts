@@ -3991,6 +3991,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
         let outputFormat: string | undefined;
         let hashAlgorithm: string | undefined;
+        let frameHashVersion = 2;
         let outputTimestampOffset = 0;
         let outputSs: number | undefined;
         let outputTo: number | undefined;
@@ -4137,6 +4138,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             audioBitrate = parseAudioBitrate(args[++i]);
             if (audioBitrate === undefined) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid audio bitrate\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-format_version") {
+            const value = args[++i];
+            frameHashVersion = value?.trim() ? Number(value) : NaN;
+            if (frameHashVersion !== 1 && frameHashVersion !== 2) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid format_version: expected 1 or 2\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-hash") {
@@ -7530,7 +7538,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             validateStreamCopy(workingDoc, outPlugin?.id ?? outputFormat!, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
             validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin?.id ?? outputFormat!);
             const serializedBytes = checksumOutput
-              ? (frameChecksumOutput ? serializeFrameChecksum : serializeAudioChecksum)(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget)
+              ? (frameChecksumOutput ? serializeFrameChecksum : serializeAudioChecksum)(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion)
               : outPlugin!.serialize(workingDoc, {
               seekable: !isStdout(outputTarget),
               format: outputFormat ?? outExt,

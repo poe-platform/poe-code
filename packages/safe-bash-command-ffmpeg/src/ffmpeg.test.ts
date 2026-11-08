@@ -1401,6 +1401,40 @@ describe("-abort_on empty_output", () => {
 });
 
 describe("per-frame audio checksums", () => {
+  it("selects framehash format versions while retaining native PCM rows", async () => {
+    const input = encodeWav({ sampleRate: 8000,
+      channels: [Float64Array.from({ length: 1200 }, (_, i) => i / 32768)] });
+    const digests = [
+      "407715b8ded48be4426df98401cecd0e7ad61b9ad742649eb844de452d1c5f91",
+      "559634035f5df002db2c2a92319018124bdcf693acc7008f32a269e1705e0381",
+      "2697af264dc1db05044267745e5bd6a3676ce9274d6b18d40c6860b606b11d90"
+    ];
+    for (const version of [undefined, "1", "2"]) {
+      for (const target of ["-", "/frames.txt"]) {
+        const vfs = createTestVfs({ "/i.wav": input });
+        const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/i.wav",
+          "-f", "framehash", ...(version ? ["-format_version", version] : []), target], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const output = target === "-" ? result.stdout : new TextDecoder().decode(vfs.store.get(target));
+        assert.ok(output.includes(`#version: ${version ?? "2"}\n#hash: SHA256\n`));
+        const rows = output.split("\n").filter(line => line && !line.startsWith("#"));
+        assert.deepEqual(rows.map(row => row.split(",").map(field => field.trim())),
+          digests.map((digest, i) => ["0", String(i * 512), String(i * 512),
+            String(i === 2 ? 176 : 512), String(i === 2 ? 352 : 1024), digest]));
+      }
+    }
+  });
+  it("rejects invalid framehash format versions without replacing output", async () => {
+    for (const version of ["0", "3", "invalid", "", "1.5"]) {
+      const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000,
+        channels: [new Float64Array(1200)] }), "/frames.txt": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav",
+        "-f", "framehash", "-format_version", version, "/frames.txt"], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("format_version"));
+      assert.equal(new TextDecoder().decode(vfs.store.get("/frames.txt")), "keep");
+    }
+  });
   it("honors framemd5 hash overrides for every PCM packet", async () => {
     const pcm = new Uint8Array(2400);
     for (let i = 0; i < 1200; i++) new DataView(pcm.buffer).setInt16(i * 2, i, true);

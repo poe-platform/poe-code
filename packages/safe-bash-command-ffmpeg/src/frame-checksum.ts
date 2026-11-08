@@ -14,13 +14,14 @@ export function serializeFrameChecksum(
   algorithm: string,
   audioCodec: string | undefined,
   rawAudio: MediaAstPlugin | undefined,
-  budget: MediaBudgetTracker
+  budget: MediaBudgetTracker,
+  formatVersion = 2
 ): Uint8Array {
   if (!rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
   const name = algorithm.toLowerCase();
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512 };
   if (format !== "framecrc" && name !== "crc32" && !Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
-  const lines = format === "framecrc" ? [] : ["#format: frame checksums", "#version: 2", `#hash: ${name.toUpperCase()}`];
+  const lines = format === "framecrc" ? [] : ["#format: frame checksums", `#version: ${formatVersion}`, `#hash: ${name.toUpperCase()}`];
   for (const [index, track] of doc.tracks.entries()) {
     if (track.type !== "audio") throw new Error("Frame checksum output requires audio streams");
     const copy = audioCodec === "copy";

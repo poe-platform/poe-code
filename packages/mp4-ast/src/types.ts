@@ -722,6 +722,8 @@ export interface SerializeMediaOptions {
   readonly format?: string | undefined;
   readonly faststart?: boolean | undefined;
   readonly fragmented?: boolean | undefined;
+  /** Omit initial MP4 sample tables and media (default: true for fragmented output). */
+  readonly emptyMoov?: boolean | undefined;
   /** Start a new MP4 fragment at each video keyframe. Requires fragmented output. */
   readonly fragmentKeyframes?: boolean | undefined;
   /** Write an MP4 color information box even when color metadata is unspecified. */

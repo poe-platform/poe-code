@@ -1285,8 +1285,25 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     return { track, ...materialized };
   }).filter(track => options.fragmented || track.samples.length > 0);
 
+  const boundaries = options.fragmented && options.fragmentKeyframes
+    ? [...new Set(materializedTracks.flatMap(mt => mt.track.type === "video"
+      ? mt.samples.slice(1).filter(sample => sample.isKeyframe).map(sample => sample.dts / mt.track.timescale)
+      : []))].sort((a, b) => a - b)
+    : [];
+  const positions = materializedTracks.map(() => 0);
+  const initialTracks = materializedTracks.map((mt, index) => {
+    if (!options.fragmented) return mt;
+    let stop = 0;
+    if (options.emptyMoov === false) {
+      const end = boundaries[0] ?? Infinity;
+      while (stop < mt.samples.length && mt.samples[stop]!.dts / mt.track.timescale < end) stop++;
+    }
+    positions[index] = stop;
+    return { ...mt, samples: mt.samples.slice(0, stop) };
+  });
+
   let maxDurationSeconds = 0;
-  for (const mt of materializedTracks) {
+  for (const mt of initialTracks) {
     const last = mt.samples[mt.samples.length - 1];
     const durTicks = last ? last.dts + last.duration - mt.samples[0]!.dts : mt.track.duration;
     const sec = mt.track.editList?.length
@@ -1301,7 +1318,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
   mvhdWriter.writeU32BE(0); // creation_time
   mvhdWriter.writeU32BE(0); // modification_time
   mvhdWriter.writeU32BE(movieTimescale);
-  mvhdWriter.writeU32BE(options.fragmented ? 0 : movieDuration);
+  mvhdWriter.writeU32BE(options.fragmented && options.emptyMoov !== false ? 0 : movieDuration);
   mvhdWriter.writeFixed16_16(1.0); // rate
   mvhdWriter.writeFixed8_8(1.0); // volume
   mvhdWriter.writeZeros(10); // reserved
@@ -1318,15 +1335,14 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
 
   // Fragmented MP4 mode (`ftyp` + `moov(mvex)` + `moof` + `mdat`)
   if (options.fragmented) {
-    const trakBoxes = materializedTracks.map((mt) =>
-      buildTrakBox(
-        { ...mt.track, samples: mt.samples, codecDescriptions: mt.codecDescriptions },
-        movieTimescale,
-        [],
-        true,
-        options.writeColr
-      )
-    );
+    const initialPayloads: Uint8Array[] = [];
+    let initialSize = 0;
+    const initialOffsets = initialTracks.map(mt => mt.samples.map(sample => {
+      const offset = initialSize;
+      initialPayloads.push(sample.data);
+      initialSize += sample.data.byteLength;
+      return offset;
+    }));
     const trexBoxes = materializedTracks.map((mt) => {
       const w = new BinaryWriter(20);
       w.writeU32BE(mt.track.id);
@@ -1337,16 +1353,17 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       return makeFullBox("trex", 0, 0, w.toUint8Array());
     });
     const mvexBox = makeBox("mvex", concatBytes(trexBoxes));
-    const moovChildren = [mvhdBox, ...trakBoxes, mvexBox];
-    if (udtaBox) moovChildren.push(udtaBox);
-    const moovBox = makeBox("moov", concatBytes(moovChildren));
+    const buildMoov = (dataStart: number) => {
+      const trakBoxes = initialTracks.map((mt, index) => buildTrakBox(
+        { ...mt.track, samples: mt.samples, codecDescriptions: mt.codecDescriptions },
+        movieTimescale, initialOffsets[index]!.map(offset => dataStart + offset),
+        options.emptyMoov !== false, options.writeColr
+      ));
+      return makeBox("moov", concatBytes([mvhdBox, ...trakBoxes, mvexBox, ...(udtaBox ? [udtaBox] : [])]));
+    };
+    let moovBox = buildMoov(0);
+    if (options.emptyMoov === false) moovBox = buildMoov(ftypBox.byteLength + moovBox.byteLength + 8);
 
-    const boundaries = options.fragmentKeyframes
-      ? [...new Set(materializedTracks.flatMap(mt => mt.track.type === "video"
-        ? mt.samples.slice(1).filter(sample => sample.isKeyframe).map(sample => sample.dts / mt.track.timescale)
-        : []))].sort((a, b) => a - b)
-      : [];
-    const positions = materializedTracks.map(() => 0);
     const fragments: Uint8Array[] = [];
     let sequence = 1;
     for (const end of [...boundaries, Infinity]) {
@@ -1409,7 +1426,8 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       fragments.push(finalMoof, mdatBox);
       sequence++;
     }
-    const result = concatBytes([ftypBox, moovBox, ...fragments]);
+    const result = concatBytes([ftypBox, moovBox,
+      ...(options.emptyMoov === false ? [makeBox("mdat", concatBytes(initialPayloads))] : []), ...fragments]);
     budget.checkOutputBytes(result.byteLength);
     return result;
   }

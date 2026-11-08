@@ -41,24 +41,30 @@ function miffPixels(bytes: Uint8Array, channels: number, sampleBytes: number, co
     return encoded.subarray(0, length);
 }
 
-function miffHeader(image: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha" | "virtualCanvas" | "resolution" | "density"> & { magickColorspace?: string }, depth: 8 | 16, compression: OutputEncodeOptions["miffCompression"]): Uint8Array {
+function miffHeader(image: Pick<RgbaImage, "properties" | "width" | "height" | "space" | "hasAlpha" | "virtualCanvas" | "resolution" | "density" | "disposal" | "loop"> & { magickColorspace?: string }, depth: 8 | 16, compression: OutputEncodeOptions["miffCompression"], delay: number | undefined, loop: number | undefined): Uint8Array {
     const { width, height, virtualCanvas: page } = image;
+    let properties = "";
+    for (const key of ["comment", "label"] as const) {
+        const value = image.properties?.[key];
+        if (value !== undefined) properties += `${key}={${value.replaceAll("\\", "\\\\").replaceAll("{", "\\{").replaceAll("}", "\\}")}}\n`;
+    }
     const resolution = image.resolution;
     const scale = resolution?.unit === "meter" ? 100 : 1;
     const x = resolution ? resolution.x / scale : image.density;
     const y = resolution ? resolution.y / scale : image.density;
     const units = resolution?.unit === "inch" ? "PixelsPerInch" : resolution?.unit === "cm" || resolution?.unit === "meter" ? "PixelsPerCentimeter" : "Undefined";
+    const animation = `delay=${Math.floor((delay ?? 0) / 10)}\nticks-per-second=100\niterations=${loop ?? image.loop ?? 0}\ndispose=${["Undefined", "None", "Background", "Previous"][typeof image.disposal === "number" ? image.disposal : image.disposal?.[0] ?? 0] ?? "Undefined"}\n`;
     const geometry = page ? `page=${page.width}x${page.height}${page.x < 0 ? "" : "+"}${page.x}${page.y < 0 ? "" : "+"}${page.y}\n` : "";
     if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new RangeError("Invalid MIFF dimensions");
-    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=${image.hasAlpha ? "True" : "False"}\ncolumns=${width} rows=${height} depth=${depth}\n${geometry}resolution=${x}x${y}\nunits=${units}\ncolorspace=${miffChannels(image) <= 2 ? "Gray" : image.magickColorspace === "RGB" ? "RGB" : "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
+    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=${image.hasAlpha ? "True" : "False"}\ncolumns=${width} rows=${height} depth=${depth}\n${geometry}${properties}${animation}resolution=${x}x${y}\nunits=${units}\ncolorspace=${miffChannels(image) <= 2 ? "Gray" : image.magickColorspace === "RGB" ? "RGB" : "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
 }
 
-export function encodeMiffImage(image: RgbaImage, requestedDepth?: 8 | 16, compression?: OutputEncodeOptions["miffCompression"]): Uint8Array {
+export function encodeMiffImage(image: RgbaImage, requestedDepth?: 8 | 16, compression?: OutputEncodeOptions["miffCompression"], loop?: number): Uint8Array {
     const chunks: Uint8Array[] = [];
     let length = 0;
     for (const page of image.miffPages ?? [image]) {
         const depth = requestedDepth ?? (page.depth === "ushort" ? 16 : 8);
-        const header = miffHeader(page, depth, compression), size = page.width * page.height * 4;
+        const header = miffHeader(page, depth, compression, page.delay?.[0], loop ?? image.loop), size = page.width * page.height * 4;
         if (page.data.length !== size) throw new Error("Invalid MIFF pixels");
         if (page.data16 && page.data16.length !== size) throw new Error("Invalid MIFF pixels");
         const pixels = depth === 8 ? page.data : new Uint8Array(size * 2);
@@ -83,14 +89,14 @@ export function encodeMiffImage(image: RgbaImage, requestedDepth?: 8 | 16, compr
     return bytes;
 }
 
-export async function* encodeMiffFromStorage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, requestedDepth?: 8 | 16, compression?: OutputEncodeOptions["miffCompression"]): AsyncGenerator<Uint8Array> {
+export async function* encodeMiffFromStorage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, requestedDepth?: 8 | 16, compression?: OutputEncodeOptions["miffCompression"], loop?: number): AsyncGenerator<Uint8Array> {
     for (let index = 0; index < (image.storedMiffPages?.length ?? 1); index++) {
         signal.throwIfAborted();
         const page = image.storedMiffPages ? await image.storedMiffPages.at(index) : image;
         signal.throwIfAborted();
         const depth = requestedDepth ?? (page.depth === "ushort" ? 16 : 8);
         const source16 = depth === 16 ? page.storedData16 : undefined;
-        yield miffHeader(page, depth, compression);
+        yield miffHeader(page, depth, compression, await page.storedDelay?.at(0, { signal }) ?? page.delay?.[0], loop ?? image.loop);
         const length = page.width * page.height * 4;
         if (source16 && source16.length !== length) throw new Error("Invalid MIFF pixels");
         const compressor = compression === "zip" || compression === "bzip" ? createMiffCompressor(page.width * miffChannels(page) * (depth / 8), compression) : undefined;

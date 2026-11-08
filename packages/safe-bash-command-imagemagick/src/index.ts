@@ -6458,6 +6458,10 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat): Generator<void, RgbaImage, void> {
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     image = yield* prepareHueOutput(image, format);
+    if (format === "miff") {
+        const scene = (image as MagickImage)[magickInput]?.sceneIdx ?? 0;
+        return { ...image, delay: [image.delay?.[scene] ?? image.delay?.[0] ?? 0], disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene] ?? 0 };
+    }
     if (format !== "pbm" && format !== "xbm") return image;
     const source = image.data16 ? { ...image, data: new Uint8Array(image.data16.buffer, image.data16.byteOffset, image.data16.byteLength) } : image;
     return yield* applyMagickRasterSteps({ ...image, space: "b-w", channels: 1, hasAlpha: false }, bilevelPixelSteps(image.width * image.height, !!image.data16), undefined, { ...image, hasAlpha: false }, [source]);
@@ -6467,6 +6471,12 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     if (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
+    }
+    if (format === "miff") {
+        const scene = (image as StoredMagickImage)[magickInput]?.sceneIdx ?? 0;
+        const frame = { ...image, delay: [await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] ?? image.delay?.[0] ?? 0], disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene] ?? 0 };
+        delete frame.storedDelay;
+        return frame;
     }
     if (format !== "pbm" && format !== "xbm") return image;
     const source = image.storedData16 ? { ...image, position: image.storedData16.position } : image;

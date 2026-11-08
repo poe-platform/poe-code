@@ -1905,6 +1905,14 @@ async function applyVideoFilterChain(
       }
     } else if (name === "fps") {
       const options: Record<string, string> = {};
+      const rounding = named.round ?? positional[2] ?? "near";
+      const roundTimestamp = (rounding === "zero" || rounding === "0") ? Math.trunc
+        : (rounding === "down" || rounding === "2") ? Math.floor
+        : (rounding === "up" || rounding === "3") ? Math.ceil
+        : (rounding === "inf" || rounding === "1") ? (value: number) => Math.sign(value) * Math.ceil(Math.abs(value))
+        : (rounding === "near" || rounding === "5") ? (value: number) => Math.sign(value) * Math.floor(Math.abs(value) + 0.5)
+        : undefined;
+      if (!roundTimestamp) throw new Error(`fps: invalid rounding mode ${rounding}`);
       const keys = ["fps", "start_time", "round", "eof_action"];
       for (const [index, part] of (argStr ? positional : []).entries()) {
         const separator = part.indexOf("=");
@@ -1925,14 +1933,14 @@ async function applyVideoFilterChain(
         throw new Error("fps: invalid eof_action value");
       }
       const totalDuration = current.reduce((acc, f) => acc + f.durationSeconds, 0) || 1;
-      const targetCount = Math.max(1, Math.round(totalDuration * targetFps));
+      const targetCount = Math.max(0, roundTimestamp(totalDuration * targetFps));
       const resampled: MediaVideoFrame[] = [];
       let srcIdx = 0;
       for (let i = 0; i < targetCount; i++) {
         if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
         // Round presentation timestamps to the output time base, as FFmpeg does.
-        while (srcIdx + 1 < current.length && Math.round(current[srcIdx + 1]!.ptsSeconds * targetFps) <= i) {
+        while (srcIdx + 1 < current.length && roundTimestamp(current[srcIdx + 1]!.ptsSeconds * targetFps) <= i) {
           srcIdx++;
         }
         const src = current[srcIdx]!;

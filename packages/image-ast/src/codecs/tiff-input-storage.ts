@@ -73,6 +73,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const ifd=await number(4,4),count=await number(ifd,2);
  let width=0,height=0,bits=8,compression=1,photometric=2,samples=4,rows=0,predictor=1,xRes=72,yRes=72,resUnit=2,tileWidth=0,tileHeight=0,orientation:number|undefined;
  let planar=false;
+ let fillOrder=1;
  let colorMap=empty;
  let sampleFormat=1;
  let extraSample:number|undefined;
@@ -96,6 +97,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   else if(tag===278&&first>0)rows=first;else if(tag===279&&available)counts=values;
   else if(tag===282&&first>0)xRes=first;else if(tag===283&&first>0)yRes=first;else if(tag===296&&(first===1||first===2||first===3))resUnit=first;
   else if(tag===284)planar=first===2;
+  else if(tag===266)fillOrder=first;
   else if(tag===317&&first>0)predictor=first;else if(tag===322&&first>0)tileWidth=first;
   else if(tag===323&&first>0)tileHeight=first;else if(tag===324&&available)tileOffsets=values;else if(tag===325&&available)tileCounts=values;
   else if(tag===320)colorMap=values;
@@ -114,11 +116,24 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const combined=allocate(total),scratch=allocate(tiled?tileBytes:total),zeros=new Uint8Array(4096);
  for(let at=0;at<total;at+=4096){await write(combined+at,zeros.subarray(0,Math.min(4096,total-at)));if(at%65536===0)await defaultRuntime.yieldTurn(signal);}
  const jpegStorage=new BackingArena(storage);
- const decompress=async(off:number,rawLength:number,expected:number,max:number)=>{
+ const decompress=async(off:number,rawLength:number,expected:number,max:number,rowSamples:number)=>{
   // Uint8Array.subarray clamps source offsets in the compatibility decoder.
   const start=Math.min(source.size,Math.max(0,Math.trunc(off))),end=Math.max(start,Math.min(source.size,Math.trunc(off+rawLength))),position=scratch;
   let length=0;
   const append=async(bytes:Uint8Array)=>{const size=Math.min(bytes.length,max-length);if(size>0){await write(position+length,bytes.subarray(0,size));length+=size;}};
+  if(compression===1&&bits===1){
+   const packedStride=Math.ceil(rowSamples/8);
+   for(let at=0;at<expected;at+=4096){
+    const bytes=new Uint8Array(Math.min(4096,expected-at));
+    for(let i=0;i<bytes.length;i++){
+     const index=at+i,x=index%rowSamples,offset=start+Math.floor(index/rowSamples)*packedStride+(x>>>3);
+     const value=offset<end?await reader.at(offset)??0:0;
+     bytes[i]=((value>>>(fillOrder===2?x%8:7-x%8))&1)*255;
+    }
+    await append(bytes);await defaultRuntime.yieldTurn(signal);
+   }
+   return {position,length};
+  }
   if(compression===6||compression===7){
    const tables=jpegTables;
    const shared=tables&&tables.length>4&&await reader.at(tables.start)===255&&await reader.at(tables.start+1)===216&&end-start>2&&await reader.at(start)===255&&await reader.at(start+1)===216;
@@ -173,7 +188,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  };
  const copy=async(from:number,to:number,length:number)=>{for(let at=0;at<length;at+=4096){await write(to+at,await read(from+at,Math.min(4096,length-at)));if(at%65536===0)await defaultRuntime.yieldTurn(signal);}};
  if(tiled){const across=Math.max(1,Math.ceil(width/tileWidth)),expected=tileBytes,tilesPerPlane=across*Math.ceil(height/tileHeight);
-  for(let i=0;i<tileOffsets.count;i++){const off=(await tileOffsets.at(i))!,raw=await tileCounts.at(i)??Math.max(0,source.size-off),tile=await decompress(off,raw,expected,expected);await predict(tile.position,tile.length,tileHeight,tileStride);
+  for(let i=0;i<tileOffsets.count;i++){const off=(await tileOffsets.at(i))!,raw=await tileCounts.at(i)??Math.max(0,source.size-off),tile=await decompress(off,raw,expected,expected,tileStride);await predict(tile.position,tile.length,tileHeight,tileStride);
    const x=i%across*tileWidth,y=Math.floor((planar?i%tilesPerPlane:i)/across)*tileHeight,planeOffset=planar?Math.floor(i/tilesPerPlane)*planeBytes:0,validWidth=Math.max(0,Math.min(tileWidth,width-x)),validHeight=Math.max(0,Math.min(tileHeight,height-y)),rowBytes=validWidth*pixelBytes;
    for(let row=0;row<validHeight;row++){const from=row*tileStride,to=planeOffset+(y+row)*stride+x*pixelBytes;if(from+rowBytes<=tile.length&&to+rowBytes<=total)await copy(tile.position+from,combined+to,rowBytes);}
   }
@@ -186,7 +201,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
     destination=Math.floor(i/stripsPerPlane)*planeBytes+(i%stripsPerPlane)*stripRows*stride;
    }
    const remaining=planar?planeBytes-destination%planeBytes:total-destination;
-   const off=(await offsets.at(i))!,raw=await counts.at(i)??Math.max(0,source.size-off),expected=Math.min(remaining,stripRows*stride),strip=await decompress(off,raw,expected,remaining);
+   const off=(await offsets.at(i))!,raw=await counts.at(i)??Math.max(0,source.size-off),expected=Math.min(remaining,stripRows*stride),strip=await decompress(off,raw,expected,remaining,stride);
    await copy(strip.position,combined+destination,strip.length);destination+=strip.length;
   }
   await predict(combined,total,height*(planar?samples:1),stride);

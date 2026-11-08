@@ -6406,43 +6406,46 @@ describe("WAV encoder identification", () => {
 });
 
 describe("global metadata mapping", () => {
-  for (const sync of [false, true]) {
-    for (const [mapping, title] of [[undefined, "First"], ["0", "First"], ["1", "Second"], ["-1", undefined]] as const) {
-      for (const override of [false, true]) {
-        it(`${sync ? "sync" : "async"} maps metadata ${mapping ?? "by default"} with override=${override}`, async () => {
-          const vfs = createTestVfs({
-            "/first.mp4": createSyntheticMp4({ frameCount: 1, metadata: { title: "First", artist: "Artist" } }),
-            "/second.mp4": createSyntheticMp4({ frameCount: 1, metadata: { title: "Second" } })
+  for (const [option, suffix] of [["-map_metadata", ""], ["-map_metadata", ":g"], ["-map_metadata:g", ""], ["-map_metadata:g", ":g"]] as const) {
+    for (const sync of [false, true]) {
+      for (const [mapping, title] of [[undefined, "First"], ["0", "First"], ["1", "Second"], ["-1", undefined]] as const) {
+        for (const override of [false, true]) {
+          it(`${sync ? "sync" : "async"} maps ${option} metadata ${mapping ?? "by default"}${suffix} with override=${override}`, async () => {
+            const vfs = createTestVfs({
+              "/first.mp4": createSyntheticMp4({ frameCount: 1, metadata: { title: "First", artist: "Artist" } }),
+              "/second.mp4": createSyntheticMp4({ frameCount: 1, metadata: { title: "Second", album: "Beta" } })
+            });
+            const args = ["-i", "/first.mp4", "-i", "/second.mp4",
+              ...(sync ? [] : ["-map", "0:v"]),
+              ...(mapping === undefined ? [] : [option, `${mapping}${suffix}`]),
+              ...(override ? ["-metadata", "title=Override"] : []), "-c", "copy", "/out.mp4"];
+            if (sync) {
+              assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+                (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+            } else {
+              const result = await runCmd(createFfmpegCommand(), args, vfs);
+              assert.equal(result.exitCode, 0, result.stderr);
+            }
+            const tags = parseMp4(vfs.store.get("/out.mp4")!).metadata;
+            assert.equal(tags.title, override ? "Override" : title);
+            assert.equal(tags.album, mapping === "1" ? "Beta" : undefined);
+            assert.equal(tags.artist, mapping === "1" || mapping === "-1" ? undefined : "Artist");
           });
-          const args = ["-i", "/first.mp4", "-i", "/second.mp4",
-            ...(sync ? [] : ["-map", "0:v"]),
-            ...(mapping === undefined ? [] : ["-map_metadata", mapping]),
-            ...(override ? ["-metadata", "title=Override"] : []), "-c", "copy", "/out.mp4"];
+        }
+      }
+      for (const mapping of ["2", "oops", "1.5", ":g", "0:s", "0:g:g"]) {
+        it(`${sync ? "sync" : "async"} rejects ${option} metadata source ${mapping}${suffix} without writing output`, async () => {
+          const vfs = createTestVfs({ "/first.mp4": createSyntheticMp4({ frameCount: 1 }) });
+          const args = ["-i", "/first.mp4", option, `${mapping}${suffix}`, "-c", "copy", "/out.mp4"];
           if (sync) {
             assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
-              (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+              (path, bytes) => { vfs.store.set(path, bytes); return true; }), undefined);
           } else {
-            const result = await runCmd(createFfmpegCommand(), args, vfs);
-            assert.equal(result.exitCode, 0, result.stderr);
+            assert.notEqual((await runCmd(createFfmpegCommand(), args, vfs)).exitCode, 0);
           }
-          const tags = parseMp4(vfs.store.get("/out.mp4")!).metadata;
-          assert.equal(tags.title, override ? "Override" : title);
-          assert.equal(tags.artist, mapping === "1" || mapping === "-1" ? undefined : "Artist");
+          assert.equal(vfs.store.has("/out.mp4"), false);
         });
       }
-    }
-    for (const mapping of ["2", "oops", "1.5"]) {
-      it(`${sync ? "sync" : "async"} rejects metadata source ${mapping} without writing output`, async () => {
-        const vfs = createTestVfs({ "/first.mp4": createSyntheticMp4({ frameCount: 1 }) });
-        const args = ["-i", "/first.mp4", "-map_metadata", mapping, "-c", "copy", "/out.mp4"];
-        if (sync) {
-          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
-            (path, bytes) => { vfs.store.set(path, bytes); return true; }), undefined);
-        } else {
-          assert.notEqual((await runCmd(createFfmpegCommand(), args, vfs)).exitCode, 0);
-        }
-        assert.equal(vfs.store.has("/out.mp4"), false);
-      });
     }
   }
 });

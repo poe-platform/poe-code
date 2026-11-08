@@ -3388,8 +3388,9 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         chapterSource = value?.trim() ? Number(value) : NaN;
         if (!Number.isSafeInteger(chapterSource)) return undefined;
-      } else if (arg === "-map_metadata") {
-        const value = args[++i];
+      } else if (arg === "-map_metadata" || arg === "-map_metadata:g") {
+        const source = args[++i];
+        const value = source?.endsWith(":g") ? source.slice(0, -2) : source;
         metadataSource = value?.trim() ? Number(value) : NaN;
         if (!Number.isSafeInteger(metadataSource)) return undefined;
       } else if (arg === "-start_number") {
@@ -4375,8 +4376,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid chapter input index\n"), context.signal);
               return { exitCode: 1 };
             }
-          } else if (arg === "-map_metadata") {
-            const value = args[++i];
+          } else if (arg === "-map_metadata" || arg === "-map_metadata:g") {
+            const source = args[++i];
+            const value = source?.endsWith(":g") ? source.slice(0, -2) : source;
             metadataSource = value?.trim() ? Number(value) : NaN;
             if (!Number.isSafeInteger(metadataSource)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid metadata input index\n"), context.signal);

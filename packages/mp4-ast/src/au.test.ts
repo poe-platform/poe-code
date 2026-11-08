@@ -79,3 +79,22 @@ for (const size of [0, 4, 8, 16, 0xffffffff]) {
     assert.equal(Number(probe.format.duration), frames / 8000);
   });
 }
+
+it("keeps AU ADPCM metadata independent from decoding and enforces parser limits", () => {
+  const bytes = Buffer.from(native);
+  bytes.writeUInt32BE(23, 12);
+  const ast = auAst();
+  assert.equal(ast.parse(bytes).tracks[0]!.decodedAudio!.channelData[0]!.length, 36);
+  const doc = ast.parse(bytes, { decodeAudio: false });
+  assert.equal(doc.tracks[0]!.decodedAudio, undefined);
+  assert.deepEqual(doc.tracks[0]!.samples[0]!.data, bytes.subarray(32));
+  assert.equal(doc.tracks[0]!.samples[0]!.offset, 32);
+  for (const limits of [{ maxStreams: 0 }, { maxSamplesPerTrack: 0 }, { maxDurationSeconds: 0 }]) {
+    assert.throws(() => ast.probe(bytes, { limits }), /limit/i);
+  }
+  for (const [offset, value] of [[16, 0], [20, 0], [20, 65536]]) {
+    const invalid = Buffer.from(bytes);
+    invalid.writeUInt32BE(value!, offset!);
+    assert.throws(() => ast.probe(invalid), /sample rate or channel count/);
+  }
+});

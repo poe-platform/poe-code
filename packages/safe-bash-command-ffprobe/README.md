@@ -20,6 +20,7 @@ FLAC and MP4/M4A `covr` cover art appears as attached picture streams with image
 Headerless RGB24 video supports `-f rawvideo -pixel_format rgb24 -video_size WIDTHxHEIGHT -framerate RATE` (default rate: 25; fractions such as `30000/1001` are accepted). Packet scans preserve a final short packet; frame counts include only complete frames. For example, 74 bytes at `3x2` produces four 18-byte packets and one two-byte packet. Files and stdin use the same boundaries. Other raw pixel formats are rejected explicitly.
 Raw and RLE true-color TGA files report the `targa` codec, source dimensions, and `bgr24` or `bgra` pixel format for 24-bit or 32-bit images.
 QOI images report the `qoi` codec, source dimensions, and `rgb24` or `rgba` according to the file's channel count, including inputs read from stdin.
+AU inputs identify G.722 and G.726 ADPCM streams and report durations from their encoded sample widths without decoding PCM.
 Matroska stream inventories include attachments with filename, MIME type, description and data size, without generating playable packets.
 `-unit` appends `byte` to packet sizes and `s` to packet timestamps and durations in seconds. Output without `-unit` is unchanged.
 

@@ -1,9 +1,14 @@
-import { type MediaAstPlugin, type ParseMediaOptions, MediaBudgetTracker } from "../types.js";
+import { type MediaAstPlugin, type MediaDocument, type ParseMediaOptions, MediaBudgetTracker } from "../types.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
+import { decodeAuG726 } from "./au-g726.js";
 import { rawAudioAsts } from "./raw-audio.js";
 
 const encodings = new Map([[1, "mulaw"], [2, "s8"], [3, "s16be"], [4, "s24be"],
   [5, "s32be"], [6, "f32be"], [7, "f64be"], [27, "alaw"]]);
+const adpcmEncodings = new Map([
+  [23, { codec: "adpcm_g726le", bits: 4 as const }], [24, { codec: "adpcm_g722", bits: 4 as const }],
+  [25, { codec: "adpcm_g726le", bits: 3 as const }], [26, { codec: "adpcm_g726le", bits: 5 as const }]
+]);
 const raw = rawAudioAsts();
 
 function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
@@ -14,13 +19,38 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   const offset = view.getUint32(4);
   const size = view.getUint32(8);
   const format = encodings.get(view.getUint32(12));
-  if (!format) throw new Error("Unsupported AU audio encoding");
+  const adpcm = adpcmEncodings.get(view.getUint32(12));
+  if (!format && !adpcm) throw new Error("Unsupported AU audio encoding");
   if (offset < 24 || offset > bytes.length) {
     throw new Error("Invalid AU data bounds");
   }
-  let doc = raw.find(plugin => plugin.id === format)!.parse(
-    bytes.subarray(offset, size === 0 && options.decodeAudio !== false ? offset : bytes.length),
-    { ...options, budget, sampleRate: view.getUint32(16), channels: view.getUint32(20) });
+  const sampleRate = view.getUint32(16), channels = view.getUint32(20);
+  let doc: MediaDocument;
+  if (adpcm) {
+    if (!sampleRate || !channels || channels > 65535) throw new Error("Invalid AU sample rate or channel count");
+    if (options.decodeAudio !== false && adpcm.codec === "adpcm_g726le" && channels !== 1) throw new Error("G.726 requires a mono channel count");
+    const data = bytes.subarray(offset);
+    const frames = Math.floor(data.length * 8 / (channels * adpcm.bits));
+    budget.checkStreams(1);
+    budget.checkSamples(data.length ? 1 : 0);
+    budget.checkDuration(frames / sampleRate);
+    doc = {
+      containerFormat: "au", timescale: sampleRate, duration: frames, durationSeconds: frames / sampleRate,
+      metadata: {}, byteLength: bytes.length,
+      tracks: [{
+        id: 1, type: "audio", handlerType: "soun", timescale: sampleRate, duration: frames, language: "und", enabled: true,
+        codecDescriptions: [{ formatFourCC: "", codecName: adpcm.codec, sampleRate, channels, bitsPerSample: adpcm.bits }],
+        samples: data.length ? [{ data, size: data.length, dts: 0, pts: 0, cts: 0,
+          duration: frames, isKeyframe: true, sampleDescriptionIndex: 1 }] : [],
+        ...(options.decodeAudio !== false ? { decodedAudio: { sampleRate, channels,
+          channelData: [adpcm.codec === "adpcm_g722" ? decodeG722(data, budget) : decodeAuG726(data, adpcm.bits, budget)] } } : {})
+      }]
+    };
+  } else {
+    doc = raw.find(plugin => plugin.id === format)!.parse(
+      bytes.subarray(offset, size === 0 && options.decodeAudio !== false ? offset : bytes.length),
+      { ...options, budget, sampleRate, channels });
+  }
   doc = { ...doc, tracks: doc.tracks.map(track => ({ ...track,
     samples: track.samples.map(sample => ({ ...sample, offset: sample.data.byteOffset - bytes.byteOffset }))
   })) };

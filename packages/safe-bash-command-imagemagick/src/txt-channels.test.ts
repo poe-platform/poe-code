@@ -12,7 +12,7 @@ for (const mode of ["buffered", "sync", "command"] as const) {
         { bytes: alpha, options: ["-alpha", "off"], space: "srgb", tuples: ["(255,0,0)", "(10,20,30)"] },
         { bytes: rgb, options: ["-colorspace", "Gray"], space: "gray", tuples: ["(47)", "(200)"] },
         { bytes: alpha, options: ["-colorspace", "Gray"], space: "graya", tuples: ["(54,255)", "(19,128)"] },
-        { bytes: alpha, options: [], space: "srgba", tuples: ["(255,0,0,255)", "(10,20,30,128)"] },
+        ...[[], ["-depth", "8"]].map(options => ({ bytes: alpha, options, space: "srgba", tuples: ["(255,0,0,255)", "(10,20,30,128)"] })),
     ])(`preserves $space channels through ${mode}`, async ({ bytes, options, space, tuples }) => {
         const files = new Map([["/in.png", bytes]]), fs = new MemoryFileSystem();
         await fs.writeFile("/in.png", bytes);
@@ -27,6 +27,10 @@ for (const mode of ["buffered", "sync", "command"] as const) {
         expect(result.exitCode).toBe(0);
         const lines = ("stdout" in result && typeof result.stdout === "string" ? result.stdout : stdout).trim().split("\n");
         expect(lines[0]).toBe(`# ImageMagick pixel enumeration: 2,1,0,255,${space}`);
+        if (space === "srgba") expect(lines.slice(1)).toEqual([
+            "0,0: (255,0,0,255)  #FF0000FF  red",
+            "1,0: (10,20,30,128)  #0A141E80  srgba(10,20,30,0.501961)",
+        ]);
         tuples.forEach((tuple, x) => expect(lines[x + 1]?.startsWith(`${x},0: ${tuple}  #`)).toBe(true));
     });
 }

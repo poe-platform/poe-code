@@ -8,7 +8,8 @@ const hex = (value: number) => value.toString(16).toUpperCase().padStart(2, "0")
 export function pixelEnumerationLine(x: number, y: number, r: number, g: number, b: number, a: number, colorspace = "srgba"): string {
     const alpha = colorspace.endsWith("a");
     const samples = colorspace.startsWith("gray") ? String(r) : `${r},${g},${b}`;
-    return `${x},${y}: (${samples}${alpha ? `,${a}` : ""})  #${hex(r)}${hex(g)}${hex(b)}${alpha && (a < 255 || colorspace === "rgba" || colorspace === "graya") ? hex(a) : ""}  ${colorspace}(${samples}${alpha ? `,${Number((a / 255).toPrecision(6))}` : ""})`;
+    const name = colorspace === "srgba" && a === 255 ? histogramColorNames[(r << 16) | (g << 8) | b] : undefined;
+    return `${x},${y}: (${samples}${alpha ? `,${a}` : ""})  #${hex(r)}${hex(g)}${hex(b)}${alpha ? hex(a) : ""}  ${name ?? `${colorspace}(${samples}${alpha ? `,${Number((a / 255).toPrecision(6))}` : ""})`}`;
 }
 export function srgbDepthEnumerationLine(x: number, y: number, samples: Uint8Array | Uint16Array, hasAlpha: boolean, depth: number): string {
     const levels = 2 ** Math.min(depth, 16) - 1, maximum = depth <= 8 ? 255 : 65535;
@@ -19,7 +20,7 @@ export function srgbDepthEnumerationLine(x: number, y: number, samples: Uint8Arr
     const percent = maximum === 65535 && rgb.some(value => value % 257 !== 0);
     const values = rgb.map(value => percent ? `${Number((value * 100 / maximum).toPrecision(6))}%` : String(value / (maximum === 65535 ? 257 : 1)));
     if (hasAlpha) values.push(String(Number((channels[3]! / maximum).toPrecision(6))));
-    const name = !hasAlpha ? histogramColorNames[(Math.round(rgb[0]! * 255 / maximum) << 16) | (Math.round(rgb[1]! * 255 / maximum) << 8) | Math.round(rgb[2]! * 255 / maximum)] : undefined;
+    const name = !hasAlpha || channels[3] === maximum ? histogramColorNames[(Math.round(rgb[0]! * 255 / maximum) << 16) | (Math.round(rgb[1]! * 255 / maximum) << 8) | Math.round(rgb[2]! * 255 / maximum)] : undefined;
     return `${x},${y}: (${channels.join(",")})  #${color}  ${name && !percent ? name : `srgb${hasAlpha ? "a" : ""}(${values.join(",")})`}`;
 }
 export function gray16EnumerationLine(x: number, y: number, gray: number, alpha: number | undefined): string {

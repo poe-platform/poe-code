@@ -4319,7 +4319,7 @@ export function evalSyncFfmpeg(
     if (outPlugin.id === "image2" && maxVideoFrames === 0) return "";
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
-    workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget), audioBitstreamFilter, budget, "audio") };
+    workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale) };
     workingDoc = applyVideoTag(workingDoc, outPlugin.id, videoCodec, videoTag);
     validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
@@ -8082,7 +8082,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
             }
 
-            workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget), audioBitstreamFilter, budget, "audio") };
+            workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale) };
 
             // Count processed media, not container headers or checksum text.
             workingDoc = applyDisplayAspects(workingDoc, displayAspects);

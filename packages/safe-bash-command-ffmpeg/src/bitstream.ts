@@ -1,10 +1,11 @@
+import { setPacketTimestamps } from "./setts.js";
 import { rechunkPcm } from "./pcm-rechunk.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { rewriteH264Sps } from "./h264-metadata.js";
 import { parseMp4Boxes, makeBox, decodeFourCC, parseAvcC, concatBytes, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
-/** Apply packet filters in command-line order, preserving packet timing. */
-export function filterBitstream(tracks: readonly MediaTrack[], chain: string | undefined, budget: MediaBudgetTracker, type: "video" | "audio" = "video"): readonly MediaTrack[] {
+/** Apply packet filters in command-line order, preserving packet payloads unless explicitly changed. */
+export function filterBitstream(tracks: readonly MediaTrack[], chain: string | undefined, budget: MediaBudgetTracker, type: "video" | "audio" = "video", movieTimescale = 1000): readonly MediaTrack[] {
   if (chain === undefined) return tracks;
   const filters: string[] = [];
   let value = "";
@@ -20,6 +21,10 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
   filters.push(value.trim());
   for (const filter of filters) {
     if (filter === "null") continue;
+    if (filter === "setts" || filter.startsWith("setts=")) {
+      tracks = setPacketTimestamps(tracks, filter, type, budget, movieTimescale);
+      continue;
+    }
     if (filter === "chomp") {
       tracks = tracks.map(track => track.type !== type ? track : {
         ...track,

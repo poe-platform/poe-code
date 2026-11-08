@@ -4681,6 +4681,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const metadataSources: number[] = [];
         const metadata: Record<string, string> = {};
         const streamMetadata: [string, "language" | "handlerName" | "timecode", string][] = [];
+        const attachmentFiles: string[] = [];
+        const attachmentMetadata: [string, string, string][] = [];
         const streamDispositions: [string, string][] = [];
         const displayAspects: [string, number][] = [];
         let outputTarget: string | undefined;
@@ -5524,6 +5526,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             filterComplex = args[++i];
           } else if (arg === "-disposition" || arg.startsWith("-disposition:")) {
             streamDispositions.push([arg.slice("-disposition:".length), args[++i] ?? ""]);
+          } else if (arg === "-attach") {
+            const filename = args[++i];
+            if (!filename) throw new Error("-attach requires a filename");
+            attachmentFiles.push(filename);
           } else if (arg === "-timecode") {
             metadata.timecode = args[++i] ?? "";
           } else if (arg === "-metadata" || arg.startsWith("-metadata:")) {
@@ -5549,6 +5555,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (eq >= 0) {
               const k = kv.slice(0, eq).trim().toLowerCase();
               const v = kv.slice(eq + 1);
+              if (arg === "-metadata:s" || arg.startsWith("-metadata:s:")) {
+                attachmentMetadata.push([arg.slice("-metadata:s:".length), k, v]);
+              }
               if ((k === "language" || k === "handler_name" || k === "timecode") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
                 streamMetadata.push([arg.slice("-metadata:s:".length), k === "handler_name" ? "handlerName" : k, v]);
               } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
@@ -6534,6 +6543,35 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 stripVideo,
                 stripSubtitles
               }, context.signal);
+            }
+
+            if (attachmentFiles.length) {
+              if (outPlugin?.id !== "mkv") throw new Error("Attachments require Matroska output");
+              const attachments = [...workingDoc.attachments ?? []];
+              for (const filename of attachmentFiles) {
+                const data = await readInput(filename);
+                if (!data.length) throw new Error(`Attachment is empty: ${filename}`);
+                attachments.push({ data, size: data.length, tags: { filename: filename.split("/").pop()! } });
+              }
+              workingDoc = { ...workingDoc, attachments };
+            }
+            if (workingDoc.attachments?.length) {
+              const attachments = workingDoc.attachments.map((file, ordinal) => {
+                const tags = { ...file.tags };
+                for (const [specifier, key, value] of attachmentMetadata) {
+                  const parts = specifier.split(":");
+                  const index = parts[0] === "t" ? parts[1] : parts[0];
+                  const current = parts[0] === "t" ? ordinal : workingDoc.tracks.length + ordinal;
+                  if (!index || Number(index) === current) {
+                    if (value) tags[key] = value;
+                    else delete tags[key];
+                  }
+                }
+                if (!tags.mimetype) throw new Error("Attachment requires mimetype metadata");
+                if (!tags.filename) throw new Error("Attachment requires filename metadata");
+                return { ...file, tags };
+              });
+              workingDoc = { ...workingDoc, attachments };
             }
 
             if (shortest) workingDoc = limitCopyPackets(workingDoc, [], { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec }, true);

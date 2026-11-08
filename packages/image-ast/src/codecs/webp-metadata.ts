@@ -25,8 +25,6 @@ export function* webpMetadataSteps(size:number):Generator<MetadataRead,ImageMeta
   let hasAlpha = false;
   let density = 72;
   let orientation: number | undefined;
-  const delay: number[] = [];
-  let loop: number | undefined;
 
   let pos = 12;
   while (pos + 8 <= size) {
@@ -57,13 +55,6 @@ export function* webpMetadataSteps(size:number):Generator<MetadataRead,ImageMeta
         width = (payload[6]! | (payload[7]! << 8)) & 0x3fff;
         height = (payload[8]! | (payload[9]! << 8)) & 0x3fff;
       }
-    } else if (fourcc === "ANIM" && chunkSize >= 6) {
-      const animation = yield { position: dataStart, length: 6 };
-      loop = animation[4]! | (animation[5]! << 8);
-    } else if (fourcc === "ANMF") {
-      if (chunkSize < 24) throw new Error("Invalid WebP frame");
-      const frame = yield { position: dataStart, length: 16 };
-      delay.push(frame[12]! | (frame[13]! << 8) | (frame[14]! << 16));
     } else if (fourcc === "EXIF") {
       const exif = yield* exifMetadataSteps(chunkSize,dataStart);
       if (exif.orientation !== undefined) orientation = exif.orientation;
@@ -86,7 +77,6 @@ export function* webpMetadataSteps(size:number):Generator<MetadataRead,ImageMeta
     density,
     hasAlpha,
     ...(orientation !== undefined ? { orientation } : {}),
-    ...(delay.length ? { pages: delay.length, delay, loop: loop ?? 0 } : {}),
     size
   };
 }

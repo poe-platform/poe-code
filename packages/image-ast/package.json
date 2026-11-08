@@ -27,7 +27,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE.jpeg"
+    "LICENSE.jpeg",
+    "LICENSE.webp"
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc && esbuild src/index.ts --bundle --minify-syntax --platform=browser --conditions=workerd --format=esm --target=es2022 --external:@poe-code/pdf-ast --external:pako --external:@poe-code/safe-fs --external:@poe-code/safe-fs/* --outfile=dist/index.js && printf 'export * from \"./index.js\";\\nexport { default } from \"./index.js\";\\n' > dist/portable.js && printf 'export * from \"./index.js\";\\nexport { default } from \"./index.js\";\\n' > dist/index.browser.js && tsc -p tsconfig.browser.json",
@@ -41,7 +42,8 @@
     "@poe-code/pdf-ast": "*",
     "pako": "3.0.1",
     "@poe-code/safe-fs": "*",
-    "@poe-code/compression": "*"
+    "@poe-code/compression": "*",
+    "@stacksjs/ts-webp": "0.1.7"
   },
   "poeCode": {
     "safeLibraryExports": {
@@ -55,7 +57,8 @@
     },
     "safeLibraryNotices": {
       "safe-bash": [
-        "./LICENSE.jpeg"
+        "./LICENSE.jpeg",
+        "./LICENSE.webp"
       ]
     }
   }

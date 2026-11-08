@@ -1,4 +1,4 @@
-import { webpFrameSteps } from "./webp-frame.js";
+import { decodeWebpImage } from "./webp.js";
 import {webpMetadataSteps} from "./webp-metadata.js";
 import { createByteCodec, defaultRuntime } from "@poe-code/compression";
 import type { SharpInputOptions } from "../ast.js";
@@ -156,32 +156,7 @@ export async function decodeWebpToStorage(
   };
   const fourcc = async (at: number) =>
     String.fromCharCode(await byte(at), await byte(at + 1), await byte(at + 2), await byte(at + 3));
-  const meta = await readWebpMetadataFromSource(source, signal);
-  const {width,height,hasAlpha,density,orientation} = meta;
-  if (meta.pages) {
-    checkLimitInputPixels(width, height, options);
-    const steps = webpFrameSteps(source.size, options?.page ?? 0);
-    let next = steps.next();
-    while (!next.done) {
-      signal.throwIfAborted();
-      next = steps.next(await source.read(next.value.position, next.value.length, { signal }));
-    }
-    const frame = next.value;
-    if (frame.x + frame.width > width || frame.y + frame.height > height)
-      throw new Error("WebP frame exceeds canvas");
-    const decoded = await decodeWebpToStorage({ size: 12 + frame.length, async read(position, length) {
-      signal.throwIfAborted();
-      if (position >= 12) return source.read(frame.position + position - 12, length, { signal });
-      const bytes = new Uint8Array(length), count = Math.min(length, 12 - position);
-      bytes.set(frame.header.subarray(position, position + count));
-      if (count < length) bytes.set(await source.read(frame.position, length - count, { signal }), count);
-      return bytes;
-    } }, storage, signal, options);
-    if (decoded.width !== frame.width || decoded.height !== frame.height) throw new Error("Invalid WebP frame dimensions");
-    return { ...decoded, density: meta.density, ...(meta.orientation === undefined ? {} : { orientation: meta.orientation }),
-      delay: meta.delay!, loop: meta.loop!, disposal: frame.disposal,
-      virtualCanvas: { width, height, x: frame.x, y: frame.y } };
-  }
+  const {width,height,hasAlpha,density,orientation}=await readWebpMetadataFromSource(source,signal);
   checkLimitInputPixels(width, height, options);
   const size = width * height * 4,
     position = storage.allocate(size);
@@ -208,6 +183,25 @@ export async function decodeWebpToStorage(
       length = await number(at + 4, 4),
       start = at + 8;
     if (start + length > source.size) break;
+    if (kind === "VP8 ") {
+      const input = new Uint8Array(source.size);
+      for (let off = 0; off < input.length; off += 4096) {
+        signal.throwIfAborted();
+        const count = Math.min(4096, input.length - off);
+        const chunk = await source.read(off, count, { signal });
+        signal.throwIfAborted();
+        if (!(chunk instanceof Uint8Array) || chunk.length !== count)
+          throw new Error("Truncated WebP source");
+        input.set(chunk, off);
+        await defaultRuntime.yieldTurn(signal);
+      }
+      const decoded = decodeWebpImage(input);
+      for (let off = 0; off < decoded.data.length; off += 4096) {
+        await write(off, decoded.data.subarray(off, off + 4096));
+        await defaultRuntime.yieldTurn(signal);
+      }
+      return { ...metadata, ...(orientation === undefined ? {} : { orientation }) };
+    }
     if (kind === "VP8L" && length >= 5 && (await byte(start)) === 47) {
       if (length > 7 && (await byte(start + 5)) === 0 && (await byte(start + 6)) === 120) {
         const codec = createByteCodec({ direction: "decode", format: "zlib", chunkSize: 4096 });
@@ -264,11 +258,5 @@ export async function decodeWebpToStorage(
     }
     at = start + length + (length & 1);
   }
-  const black = new Uint8Array(4096);
-  for (let i = 3; i < black.length; i += 4) black[i] = 255;
-  for (let at = 0; at < size; at += 4096) {
-    await write(at, black.subarray(0, Math.min(4096, size - at)));
-    if (at % 65536 === 0) await defaultRuntime.yieldTurn(signal);
-  }
-  return metadata;
+  throw new Error("Invalid or unsupported WebP image data");
 }

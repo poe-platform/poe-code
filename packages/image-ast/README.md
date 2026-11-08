@@ -38,8 +38,6 @@ retained reads, source-version validation and handle cleanup to a supplied files
 
 ImageMagick TXT pixel enumerations are detected by signature. RGB and grayscale input preserves alpha and 16-bit samples; `page` selects an image from concatenated enumerations.
 
-Lossless animated WebP inputs expose `pages`, millisecond `delay` values and `loop` metadata. Use `page` to decode a frame, including its canvas offset and disposal. Buffered and storage-backed decoders support the same frame selection.
-
 ICO and CUR inputs decode PNG entries and uncompressed 1/4/8/24/32-bit DIB entries with transparency. Set `page` to select a directory entry; metadata reports the directory count as `pages`.
 
 ICO output supports 1–256 pixel dimensions and preserves RGBA transparency in 32-bit DIB entries. `encodeImage` accepts `icoPages` for multiple entries; `encodeStoredImage` accepts `storedIcoPages` and streams rows from caller storage.
@@ -118,6 +116,10 @@ those retained delays without a frame-count-sized array. GIF encoding accepts `g
 `decodeWebpToStorage` retains RIFF metadata, VP8L pixels, transforms and Huffman groups
 in caller storage with fixed input and word caches.
 `encodeWebpFromStorage` scans alpha and emits owned lossless WebP chunks from caller storage.
+WebP input decodes lossy VP8, including VP8X/ALPH transparency, and lossless VP8L.
+Lossy decoding uses in-memory encoded and pixel working buffers, including for file
+inputs; storage transfers remain limited to 4 KiB. Invalid or unsupported WebP
+image data is rejected instead of replaced with black pixels.
 `encodeJpegFromStorage` emits bounded 8×8 blocks
 from caller storage with the same quality, density and EXIF semantics as the
 buffered encoder. JPEG output preserves source resolution or an explicit encoder `density`; untagged images use unitless 1×1 JFIF density. Set `jpegDctMethod` to `integer`, `float`, or `fastest` (default)

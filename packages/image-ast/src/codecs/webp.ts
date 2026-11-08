@@ -1,4 +1,4 @@
-import { webpFrameSteps } from "./webp-frame.js";
+import { decode as decodeLossyWebp } from "@stacksjs/ts-webp";
 import {webpMetadataSteps} from "./webp-metadata.js";
 import {decodeWebpLossless} from "./webp-decode-kernel.js";
 import { transformBytes } from "@poe-code/compression";
@@ -258,24 +258,8 @@ function decodeVp8lStream(payload: Uint8Array, width: number, height: number): U
   }
 }
 
-export function decodeWebpImage(bytes: Uint8Array, options?: { readonly page?: number }): RgbaImage {
+export function decodeWebpImage(bytes: Uint8Array): RgbaImage {
   const meta = readWebpMetadata(bytes);
-  if (meta.pages) {
-    const steps = webpFrameSteps(bytes.length, options?.page ?? 0);
-    let next = steps.next();
-    while (!next.done) next = steps.next(bytes.subarray(next.value.position, next.value.position + next.value.length));
-    const frame = next.value;
-    if (frame.x + frame.width > meta.width || frame.y + frame.height > meta.height)
-      throw new Error("WebP frame exceeds canvas");
-    const encoded = new Uint8Array(12 + frame.length);
-    encoded.set(frame.header);
-    encoded.set(bytes.subarray(frame.position, frame.position + frame.length), 12);
-    const decoded = decodeWebpImage(encoded);
-    if (decoded.width !== frame.width || decoded.height !== frame.height) throw new Error("Invalid WebP frame dimensions");
-    return { ...decoded, density: meta.density, ...(meta.orientation === undefined ? {} : { orientation: meta.orientation }),
-      delay: meta.delay!, loop: meta.loop!, disposal: frame.disposal,
-      virtualCanvas: { width: meta.width, height: meta.height, x: frame.x, y: frame.y } };
-  }
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const { width, height } = meta;
 
@@ -291,6 +275,12 @@ export function decodeWebpImage(bytes: Uint8Array, options?: { readonly page?: n
     const dataStart = pos + 8;
     if (dataStart + chunkSize > bytes.length) break;
     const payload = bytes.subarray(dataStart, dataStart + chunkSize);
+    if (fourcc === "VP8 ") {
+      const decoded = decodeLossyWebp(bytes);
+      if (decoded.width !== width || decoded.height !== height || decoded.data.length !== width * height * 4)
+        throw new Error("Invalid WebP decoded dimensions");
+      return { ...meta, data: decoded.data };
+    }
     if (fourcc === "VP8L" && payload.length >= 5 && payload[0] === 0x2f) {
       if (payload.length > 7 && payload[5] === 0x00 && payload[6] === 0x78) {
         try {
@@ -330,25 +320,11 @@ export function decodeWebpImage(bytes: Uint8Array, options?: { readonly page?: n
           };
         }
       } catch {
-        // Fall through to synthetic fallback if lossy VP8 bitstream
+        // Reject invalid image data below.
       }
     }
     pos = dataStart + chunkSize + (chunkSize & 1);
   }
 
-  const fallback = new Uint8Array(width * height * 4);
-  for (let i = 0; i < width * height; i++) {
-    fallback[i * 4 + 3] = 255;
-  }
-  return {
-    width,
-    height,
-    data: fallback,
-    format: "webp",
-    space: "srgb",
-    channels: meta.channels,
-    depth: "uchar",
-    density: meta.density,
-    hasAlpha: meta.hasAlpha
-  };
+  throw new Error("Invalid or unsupported WebP image data");
 }

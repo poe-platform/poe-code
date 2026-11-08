@@ -1,3 +1,4 @@
+import { parseTee, selectTeeTracks } from "./tee.js";
 import { measureReplayGain } from "./audio-replaygain.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { autoConvertConcatTrack } from "./concat-auto-convert.js";
@@ -4291,7 +4292,7 @@ export function evalSyncFfmpeg(
     // Output resampling and channel mixing require the async audio filter path.
     if (audioRate !== undefined || audioChannels !== undefined) return undefined;
     if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) return undefined;
-    if (outputFormat === "segment") return undefined;
+    if (outputFormat === "segment" || outputFormat === "tee") return undefined;
     const isNullMux = outputFormat === "null";
     if (!isNullMux && !isStdout(outputTarget) && inputs.some(input =>
       input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget)) return undefined;
@@ -5895,6 +5896,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           const outputTarget = target;
           if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) {
             throw new Error("-to value smaller than -ss; aborting.");
+          }
+          if (outputFormat === "tee") {
+            if (!maps.length) throw new Error("Output file does not contain any stream; tee requires -map");
+            parseTee(outputTarget);
+            return;
           }
           if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget)) {
             const inputIndex = inputs.findIndex(input =>
@@ -8650,6 +8656,55 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                 }
               }
+            }
+
+            if (outputFormat === "tee") {
+              let successful = 0;
+              let totalBytes = 0;
+              for (const slave of parseTee(outputTarget)) {
+                try {
+                  const plugin = slave.format
+                    ? (registry.findById(slave.format) ?? registry.findByFormatName(slave.format))
+                    : registry.findByFilename(slave.target);
+                  if (!plugin?.canMux) throw new Error(`Unable to find a suitable output format for '${slave.format ?? slave.target}'`);
+                  const path = resolvePath(context.cwd, slave.target);
+                  if (inputs.some(input => input.format !== "lavfi" && !isStdin(input.path) && resolvePath(context.cwd, input.path) === path)) {
+                    throw new Error(`Output ${slave.target} same as input; cannot edit in-place`);
+                  }
+                  if (!overwrite && !isStdout(slave.target) && slave.target !== "/dev/null") {
+                    try {
+                      await context.fs.stat(path, { signal: context.signal });
+                      throw new Error(`File '${slave.target}' already exists. Exiting.`);
+                    } catch (error) {
+                      rethrowRuntimeError(context, error);
+                      if ((error as { code?: string }).code !== "ENOENT") throw error;
+                    }
+                  }
+                  const doc = { ...workingDoc, tracks: selectTeeTracks(workingDoc.tracks, slave.select) };
+                  if (!doc.tracks.length) throw new Error("Tee destination does not contain any stream");
+                  validateRawAudioCodec(doc, plugin, audioCodec);
+                  validateStreamCopy(doc, plugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
+                  validateSubtitleEncoder(subtitleCodec, doc, plugin.id);
+                  const bytes = serializeLimitedWav(doc, plugin, {
+                    format: slave.format, seekable: !isStdout(slave.target),
+                    audioCodec, videoCodec, audioBitrate, sampleFormat, metadata: metaTags, budget
+                  }, undefined);
+                  totalBytes += bytes.byteLength;
+                  budget.checkOutputBytes(totalBytes);
+                  if (isStdout(slave.target)) await writeBytes(context.stdout, bytes, context.signal);
+                  else if (slave.target !== "/dev/null") await writeFileOutput(context, bytes,
+                    data => context.fs.writeFile(path, data, { signal: context.signal }));
+                  successful++;
+                } catch (error) {
+                  rethrowRuntimeError(context, error);
+                  if (!slave.ignore) throw error;
+                  await writeBytes(context.stderr, encodeUtf8(`ffmpeg: tee destination '${slave.target}' failed: ${(error as Error).message}\n`), context.signal);
+                }
+              }
+              if (!successful) throw new Error("All tee destinations failed");
+              if (firstOutput) progressSize = totalBytes;
+              options.onMetrics?.(budget.getStats());
+              return { exitCode: decodeExitCode };
             }
 
             // Null muxer (`-f null -`)

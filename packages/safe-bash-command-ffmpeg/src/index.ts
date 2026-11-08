@@ -4917,14 +4917,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             else if (arg === "-strftime") strftime = enabled;
             else if (arg === "-reset_timestamps") resetTimestamps = enabled;
             else atomicWriting = enabled;
-          } else if (arg === "-vsync" || arg === "-fps_mode") {
-            videoSync = args[++i] ?? "";
-            if (arg === "-fps_mode") {
-              videoSync = videoSync.toLowerCase();
-              if (!["passthrough", "cfr", "vfr", "auto", "drop"].includes(videoSync)) {
-                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -fps_mode: ${videoSync}\n`), context.signal);
+          } else if (arg === "-vsync") {
+            const value = args[++i] ?? "";
+            const mode = value.toLowerCase();
+            if (["passthrough", "cfr", "vfr", "drop"].includes(mode)) {
+              videoSync = mode;
+            } else {
+              const number = value.trim() ? Number(value) : NaN;
+              if (!Number.isInteger(number) || number < -1 || number > 2) {
+                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -vsync: ${value}\n`), context.signal);
                 return { exitCode: 234 };
               }
+              videoSync = String(number);
+            }
+          } else if (arg === "-fps_mode") {
+            videoSync = (args[++i] ?? "").toLowerCase();
+            if (!["passthrough", "cfr", "vfr", "auto", "drop"].includes(videoSync)) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -fps_mode: ${videoSync}\n`), context.signal);
+              return { exitCode: 234 };
             }
           } else if (arg === "-segment_time") {
             const value = args[++i];

@@ -8158,3 +8158,35 @@ describe("fps timestamp rounding", () => {
     assert.equal(result.stderr, "");
   });
 });
+
+describe("fps end-of-file action", () => {
+  for (const [options, expected] of [
+    ["2", [40, 80]],
+    ["2:eof_action=round", [40, 80]],
+    ["2:eof_action=0", [40, 80]],
+    ["2:eof_action=pass", [40, 80, 120]],
+    ["2:eof_action=1", [40, 80, 120]],
+    ["2:0:near:pass", [40, 80, 120]],
+    ["5:eof_action=pass", [20, 40, 60, 80, 100, 120]]
+  ] as const) {
+    it(`selects native frames for fps=${options}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      for (let i = 0; i < 6; i++) {
+        const gray = (i + 1) * 20;
+        vfs.store.set(`/in${i + 1}.png`, encodeImage({
+          width: 1, height: 1, data: new Uint8Array([gray, gray, gray, 255]),
+          format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false
+        }, { format: "png" }).data);
+      }
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "5", "-i", "/in%d.png", "-vf", `fps=${options}`, "/out%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const outputs = [...vfs.store.keys()].filter(path => path.startsWith("/out"))
+        .sort((a, b) => Number(a.slice(4, -4)) - Number(b.slice(4, -4)));
+      assert.equal(outputs.length, expected.length);
+      assert.deepEqual(outputs.map(path => decodeImage(vfs.store.get(path)!).data[0]), expected);
+    });
+  }
+});

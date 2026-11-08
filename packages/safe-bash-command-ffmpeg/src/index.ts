@@ -1905,14 +1905,6 @@ async function applyVideoFilterChain(
       }
     } else if (name === "fps") {
       const options: Record<string, string> = {};
-      const rounding = named.round ?? positional[2] ?? "near";
-      const roundTimestamp = (rounding === "zero" || rounding === "0") ? Math.trunc
-        : (rounding === "down" || rounding === "2") ? Math.floor
-        : (rounding === "up" || rounding === "3") ? Math.ceil
-        : (rounding === "inf" || rounding === "1") ? (value: number) => Math.sign(value) * Math.ceil(Math.abs(value))
-        : (rounding === "near" || rounding === "5") ? (value: number) => Math.sign(value) * Math.floor(Math.abs(value) + 0.5)
-        : undefined;
-      if (!roundTimestamp) throw new Error(`fps: invalid rounding mode ${rounding}`);
       const keys = ["fps", "start_time", "round", "eof_action"];
       for (const [index, part] of (argStr ? positional : []).entries()) {
         const separator = part.indexOf("=");
@@ -1932,8 +1924,16 @@ async function applyVideoFilterChain(
       if (options.eof_action !== undefined && !["round", "pass", "0", "1"].includes(options.eof_action)) {
         throw new Error("fps: invalid eof_action value");
       }
+      const rounding = options.round ?? "near";
+      const roundTimestamp = (rounding === "zero" || rounding === "0") ? Math.trunc
+        : (rounding === "down" || rounding === "2") ? Math.floor
+        : (rounding === "up" || rounding === "3") ? Math.ceil
+        : (rounding === "inf" || rounding === "1") ? (value: number) => Math.sign(value) * Math.ceil(Math.abs(value))
+        : (value: number) => Math.sign(value) * Math.floor(Math.abs(value) + 0.5);
       const totalDuration = current.reduce((acc, f) => acc + f.durationSeconds, 0) || 1;
-      const targetCount = Math.max(0, roundTimestamp(totalDuration * targetFps));
+      const targetCount = Math.max(0, options.eof_action === "pass" || options.eof_action === "1"
+        ? Math.ceil(totalDuration * targetFps)
+        : roundTimestamp(totalDuration * targetFps));
       const resampled: MediaVideoFrame[] = [];
       let srcIdx = 0;
       for (let i = 0; i < targetCount; i++) {

@@ -24,7 +24,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
     const id = text(offset, 4), size = view.getUint32(offset + 4), start = offset + 8;
     if (start + size + size % 2 > end) throw new Error("Truncated AIFF chunk");
     if (id === "COMM") {
-      if (size < (compressed ? 22 : 18) || channels) throw new Error("Invalid AIFF COMM chunk");
+      if (size < (compressed ? 22 : 18)) throw new Error("Invalid AIFF COMM chunk");
       if (compressed) {
         const compression = text(start + 18, 4);
         if (compression !== "sowt" && compression !== "NONE") throw new Error(`Unsupported AIFF-C compression: ${compression}`);

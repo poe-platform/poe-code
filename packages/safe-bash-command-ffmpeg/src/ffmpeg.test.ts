@@ -2437,6 +2437,39 @@ describe("transpose option validation", () => {
   }
 });
 
+describe("legacy transpose directions", () => {
+  for (const [direction, portrait] of [
+    [4, [10, 30, 50, 20, 40, 60]],
+    [5, [50, 30, 10, 60, 40, 20]],
+    [6, [20, 40, 60, 10, 30, 50]],
+    [7, [60, 40, 20, 50, 30, 10]]
+  ] as const) {
+    for (const [width, height] of [[3, 2], [2, 3], [2, 2]] as const) {
+      for (const options of [`${direction}`, `dir=${direction}`, `${direction}:passthrough=none`]) {
+        it(`matches native pixels for transpose=${options} on ${width}x${height}`, async () => {
+          const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+          const values = [10, 20, 30, 40, 50, 60].slice(0, width * height);
+          const input = encodeImage({
+            width, height, channels: 4,
+            data: new Uint8Array(values.flatMap(value => [value, value, value, 255])),
+            format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+          }, { format: "png" }).data;
+          const vfs = createTestVfs({ "/in.png": input });
+          const result = await runCmd(createFfmpegCommand(), [
+            "-i", "/in.png", "-vf", `transpose=${options}`, "-frames:v", "1", "/out.png"
+          ], vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+          const output = decodeImage(vfs.store.get("/out.png")!);
+          const preserve = width >= height;
+          assert.equal(output.width, preserve ? width : height);
+          assert.equal(output.height, preserve ? height : width);
+          assert.deepEqual(Array.from(output.data.filter((_, index) => index % 4 === 0)), preserve ? values : portrait);
+        });
+      }
+    }
+  }
+});
+
 describe("transpose direction expressions", () => {
   for (const [width, height, counterclockwise, flipped] of [
     [3, 2, [30, 60, 20, 50, 10, 40], [60, 30, 50, 20, 40, 10]],

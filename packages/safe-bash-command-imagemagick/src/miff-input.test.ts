@@ -38,7 +38,7 @@ for (const fixture of fixtures) for (const mode of ["sync", "command"] as const)
             signal: new AbortController().signal, stdin: (async function* () {})(),
             stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
         });
-        expect({ ...result, stderr: mode === "sync" ? result.stderr : stderr }).toMatchObject({ exitCode: 0, stderr: "" });
+        expect({ ...result, stderr: "stderr" in result ? result.stderr : stderr }).toMatchObject({ exitCode: 0, stderr: "" });
         const image = decodeImage(mode === "sync" ? files.get("out.png")! : await filesystem.readFile("/out.png"));
         expect([...image.data]).toEqual([18, 52, 86, fixture.alpha ? 128 : 255, 171, 205, 239, fixture.alpha ? 0 : 255]);
         if (fixture.depth === 16) expect([...image.data16!]).toEqual([18, 52, 86, fixture.alpha ? 128 : 255, 171, 205, 239, fixture.alpha ? 0 : 255].map(value => value * 257));

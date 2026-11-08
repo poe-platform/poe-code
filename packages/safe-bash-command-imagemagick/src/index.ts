@@ -5589,6 +5589,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-monochrome") {
         apply = function* (image) { return yield* thresholdImageSteps(yield* grayscaleImageSteps(image), 128, true); };
     } else if (token === "-modulate") {
+        highDepth = true;
         const raw = tokens[++i] ?? "";
         if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
             throw new Error(`invalid argument for option '-modulate': ${raw}`);
@@ -5611,9 +5612,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         // ImageMagick defaults to HSL modulation; image-ast uses libvips LCh.
         apply = function* (image) {
             const out = new Uint8Array(image.data);
+            const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+            const samples = data16 ?? out, quantum = data16 ? 65535 : 255;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
-                const r = out[idx]! / 255, g = out[idx + 1]! / 255, b = out[idx + 2]! / 255;
+                const r = samples[idx]! / quantum, g = samples[idx + 1]! / quantum, b = samples[idx + 2]! / quantum;
                 const max = Math.max(r, g, b), min = Math.min(r, g, b), delta = max - min;
                 const lightness = (max + min) / 2;
                 const sat = delta === 0 ? 0 : delta / (lightness <= 0.5 ? max + min : 2 - max - min);
@@ -5626,12 +5629,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const red = hue < 1 || hue >= 5 ? chroma : hue < 2 || hue >= 4 ? secondary : 0;
                 const green = hue < 1 ? secondary : hue < 3 ? chroma : hue < 4 ? secondary : 0;
                 const blue = hue < 2 ? 0 : hue < 3 ? secondary : hue < 5 ? chroma : secondary;
-                out[idx] = clampByteVal((red + offset) * 255);
-                out[idx + 1] = clampByteVal((green + offset) * 255);
-                out[idx + 2] = clampByteVal((blue + offset) * 255);
+                for (const [channel, value] of [red, green, blue].entries()) {
+                    const sample = Math.max(0, Math.min(quantum, Math.round((value + offset) * quantum)));
+                    if (data16) data16[idx + channel] = sample;
+                    out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
+                }
             }
-            const { data16: ignored, ...metadata } = image;
-            return { ...metadata, data: out };
+            return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-brightness-contrast") {
         const [brightness = 0, contrast = 0] = (tokens[++i] ?? "0x0").split("x").map(value => parseFloat(value) || 0);

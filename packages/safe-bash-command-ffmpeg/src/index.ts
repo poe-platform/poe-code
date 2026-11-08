@@ -8901,11 +8901,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 for (let seconds = nextBoundary(); seconds < totalSec - 1e-6; seconds = Math.max(seconds + 0.2, nextBoundary())) boundaries.push(seconds);
               }
               boundaries.push(totalSec);
-              let targetDuration = 0;
-              for (let i = 1; i < boundaries.length; i++) targetDuration = Math.max(targetDuration, boundaries[i]! - boundaries[i - 1]!);
               if (hlsPlaylistType) hlsListSize = 0;
               const firstEntry = hlsListSize === 0 ? 0 : Math.max(0, previous.length + boundaries.length - 1 - hlsListSize);
               const firstSegment = Math.max(0, firstEntry - previous.length);
+              let targetDuration = 0;
+              for (let i = firstSegment + 1; i < boundaries.length; i++) targetDuration = Math.max(targetDuration, boundaries[i]! - boundaries[i - 1]!);
               for (const entry of previous.slice(firstEntry)) targetDuration = Math.max(targetDuration, entry.duration);
               const independentSegments = hlsIndependentSegments && !hlsSplitByTime && !!vTrk && workingDoc.tracks
                 .filter(track => track.type === "video")
@@ -8916,7 +8916,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const playlistLines: string[] = [
                 "#EXTM3U",
                 isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : hlsSingleFile ? "#EXT-X-VERSION:4" : hlsRoundDurations ? "#EXT-X-VERSION:2" : "#EXT-X-VERSION:3",
-                `#EXT-X-TARGETDURATION:${Math.ceil(targetDuration)}`,
+                `#EXT-X-TARGETDURATION:${Math.round(targetDuration)}`,
                 `#EXT-X-MEDIA-SEQUENCE:${sequence + firstEntry}`
               ];
 

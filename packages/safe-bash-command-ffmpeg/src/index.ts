@@ -1414,7 +1414,7 @@ async function applyVideoFilterChain(
       }
     } else if (name === "scale") {
       for (const key of Object.keys(named)) {
-        if (!["w", "width", "h", "height", "flags"].includes(key)) {
+        if (!["w", "width", "h", "height", "flags", "force_original_aspect_ratio"].includes(key)) {
           throw new Error(`scale: unsupported option ${key}`);
         }
       }
@@ -1423,6 +1423,10 @@ async function applyVideoFilterChain(
       }
       if (named.flags !== undefined && !["neighbor", "lanczos", "bicubic"].includes(named.flags)) {
         throw new Error("scale: unsupported flags");
+      }
+      const aspect = named.force_original_aspect_ratio ?? "disable";
+      if (!["disable", "decrease", "increase", "0", "1", "2"].includes(aspect)) {
+        throw new Error("scale: invalid force_original_aspect_ratio");
       }
       const iw = current[0]!.width;
       const ih = current[0]!.height;
@@ -1442,6 +1446,13 @@ async function applyVideoFilterChain(
       } else if (targetH < 0 && targetW > 0) {
         const multiple = hSpec.trim() === "-2" ? 2 : 1;
         targetH = Math.max(1, Math.round((ih * targetW) / (Math.max(1, iw) * multiple))) * multiple;
+      }
+      if (aspect === "decrease" || aspect === "1" || aspect === "increase" || aspect === "2") {
+        const fitWidth = Math.round(targetH * iw / ih);
+        const fitHeight = Math.round(targetW * ih / iw);
+        const bound = aspect === "decrease" || aspect === "1" ? Math.min : Math.max;
+        targetW = bound(targetW, fitWidth);
+        targetH = bound(targetH, fitHeight);
       }
       targetW = Math.max(1, targetW);
       targetH = Math.max(1, targetH);

@@ -796,6 +796,19 @@ function buildUdtaMetadataBox(
   if (tags.encoder) ilstItems.push(buildIlstTagBox("\xa9too", tags.encoder));
   if (tags.description) ilstItems.push(buildIlstTagBox("desc", tags.description));
   if (tags.copyright) ilstItems.push(buildIlstTagBox("cprt", tags.copyright));
+  for (const [type, value] of [["trkn", tags.trackNumber], ["disk", tags.discNumber]] as const) {
+    if (!value) continue;
+    const [number, total] = value.split("/").map(part => Number.parseInt(part, 10));
+    if (!number) continue;
+    const payload = new BinaryWriter(16);
+    payload.writeU32BE(0); // implicit data type
+    payload.writeU32BE(0); // locale
+    payload.writeU16BE(0); // reserved
+    payload.writeU16BE(number);
+    payload.writeU16BE(total || 0);
+    if (type === "trkn") payload.writeU16BE(0);
+    ilstItems.push(makeBox(type, makeBox("data", payload.toUint8Array())));
+  }
   if (tags.coverArt) {
     const payload = new BinaryWriter(8 + tags.coverArt.data.length);
     payload.writeU32BE(tags.coverArt.mimeType === "image/png" ? 14 : 13);

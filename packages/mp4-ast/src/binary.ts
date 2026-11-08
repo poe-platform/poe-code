@@ -569,17 +569,11 @@ export const IDENTITY_MATRIX: readonly number[] = [
 ];
 
 export function matrixForRotation(degrees: number): readonly number[] {
-  const norm = ((degrees % 360) + 360) % 360;
-  if (norm === 90) {
-    return [0, 0x00010000, 0, -0x00010000, 0, 0, 0, 0, 0x40000000];
-  }
-  if (norm === 180) {
-    return [-0x00010000, 0, 0, 0, -0x00010000, 0, 0, 0, 0x40000000];
-  }
-  if (norm === 270) {
-    return [0, -0x00010000, 0, 0x00010000, 0, 0, 0, 0, 0x40000000];
-  }
-  return IDENTITY_MATRIX;
+  const radians = (degrees % 360) * Math.PI / 180;
+  // MP4 uses 16.16 fixed-point coefficients, truncated toward zero.
+  const cosine = Math.trunc(Math.cos(radians) * 65536) || 0;
+  const sine = Math.trunc(Math.sin(radians) * 65536) || 0;
+  return [cosine, sine, 0, -sine || 0, cosine, 0, 0, 0, 0x40000000];
 }
 
 export function rotationFromMatrix(matrix: readonly number[]): number {

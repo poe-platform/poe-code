@@ -3969,7 +3969,7 @@ export function evalSyncFfmpeg(
           } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
           else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
         }
-      } else if (arg === "-display_rotation") rotation = Math.abs(parseInt(args[++i] ?? "0", 10) || 0);
+      } else if (arg === "-display_rotation") rotation = -(Number(args[++i] ?? "0") || 0);
       else if (arg.startsWith("-") && arg !== "-") return undefined;
       else {
         // Multi-output and trailing groups use the async path before any writes.
@@ -5247,7 +5247,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
             }
           } else if (arg === "-display_rotation") {
-            rotation = Math.abs(parseInt(args[++i] ?? "0", 10) || 0);
+            rotation = -(Number(args[++i] ?? "0") || 0);
           } else if (!arg.startsWith("-") || arg === "-") {
             outputTarget = arg;
             i++;

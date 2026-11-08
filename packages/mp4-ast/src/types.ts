@@ -377,7 +377,7 @@ export interface MediaTrack {
   readonly disposition?: Readonly<Record<string, number>> | undefined;
   readonly width?: number | undefined;
   readonly height?: number | undefined;
-  readonly rotation?: number | undefined; // 0, 90, 180, 270
+  readonly rotation?: number | undefined; // Clockwise degrees; signed and fractional values are supported
   readonly matrix?: readonly number[] | undefined; // 9-element 3x3 display matrix
   readonly volume?: number | undefined; // 0.0 .. 1.0
   readonly codecDescriptions: readonly MediaCodecDescription[];

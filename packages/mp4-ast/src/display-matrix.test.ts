@@ -21,3 +21,15 @@ for (const matrix of [
     }
   });
 }
+
+for (const [rotation, matrix] of [
+  [32.5, [55272, 35212, 0, -35212, 55272, 0, 0, 0, 1073741824]],
+  [-45, [46340, -46340, 0, 46340, 46340, 0, 0, 0, 1073741824]]
+] as const) {
+  it(`writes fractional and signed rotation ${rotation}`, () => {
+    const input = parseMp4(createSyntheticMp4({ width: 16, height: 16, frameCount: 1 }));
+    const output = parseMp4(serializeMp4(muxMp4([input], { rotation })));
+    assert.deepEqual(output.tracks[0]!.matrix, matrix);
+    assert.deepEqual(parseMp4(serializeMp4(muxMp4([output]))).tracks[0]!.matrix, matrix);
+  });
+}

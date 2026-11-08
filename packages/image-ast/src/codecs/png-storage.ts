@@ -227,7 +227,9 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   if (requestedColor === 4 || requestedColor === 6 || coder === "png32" || coder === "png64") alpha = true;
   const gray = !coder && requestedColor !== 2 && requestedColor !== 3 && requestedColor !== 6 && (image.space === "b-w" || image.channels === 1 || image.channels === 2);
   const channels = gray ? alpha ? [0,3] : [0] : alpha ? [0,1,2,3] : [0,1,2];
-  const sampleBytes = palette ? 1 : !coder && options.pngBitDepth ? options.pngBitDepth / 8 : coder === "png48" || coder === "png64" || (!coder && image.storedData16) ? 2 : 1;
+  const monochrome = !coder && options.pngBitDepth === 1 && gray && !alpha && !palette;
+  if (!coder && options.pngBitDepth === 1 && !monochrome) throw new Error("1-bit PNG requires grayscale without alpha");
+  const sampleBytes = monochrome ? 1 : palette ? 1 : !coder && options.pngBitDepth ? options.pngBitDepth / 8 : coder === "png48" || coder === "png64" || (!coder && image.storedData16) ? 2 : 1;
   let exactPalette = options.palette && !options.pngCoder && options.pngBitDepth === undefined && requestedColor === undefined && !options.pngBitDepth && !gray && !alpha && sampleBytes === 1 ? new PngPalette() : undefined;
   if (options.pngPreserveColormap && !options.forceOpaque && image.pngPalette && !coder && requestedColor === undefined && !options.pngBitDepth && sampleBytes === 1) exactPalette = new PngPalette(image.pngPalette);
   for (let offset = 0; exactPalette && offset < width * height * 4; offset += 4096) {
@@ -236,7 +238,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   const source16 = sampleBytes === 2 ? image.storedData16 : undefined;
   const sourceBytes = source16 ? 2 : 1;
   const header = new Uint8Array(13), view = new DataView(header.buffer);
-  view.setUint32(0,width); view.setUint32(4,height); header[8] = exactPalette?.depth ?? sampleBytes * 8; header[9] = exactPalette || palette ? 3 : gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
+  view.setUint32(0,width); view.setUint32(4,height); header[8] = exactPalette?.depth ?? (monochrome ? 1 : sampleBytes * 8); header[9] = exactPalette || palette ? 3 : gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
   header[12] = options.pngInterlace ? 1 : 0;
   yield new Uint8Array(PNG_SIGNATURE);
   signal.throwIfAborted(); yield makeChunk("IHDR",header);
@@ -272,7 +274,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
       if (!passWidth) continue;
       for (let y=y0;y<height;y+=dy) {
         signal.throwIfAborted();
-        for (const bytes of encoder.push(Uint8Array.of(exactPalette ? 0 : 1))) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}
+        for (const bytes of encoder.push(Uint8Array.of(exactPalette || monochrome ? 0 : 1))) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}
         const previous = new Uint8Array(channels.length * sampleBytes);
         const chunkPixels = 1024 / sampleBytes / dx;
         for (let x=0;x<passWidth;x+=chunkPixels) {
@@ -285,6 +287,12 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
             const indexSpan = original && original.width === width && original.height === height ? await read(original.position + y * width + x0 + x * dx, (count - 1) * dx + 1) : undefined;
             const indices = indexSpan && dx !== 1 ? Uint8Array.from({length: count}, (_, i) => indexSpan[i * dx]!) : indexSpan;
             for (const bytes of encoder.push(exactPalette.pack(pixels, indices))) {signal.throwIfAborted(); yield makeChunk("IDAT", bytes);}
+            continue;
+          }
+          if (monochrome) {
+            const raw = new Uint8Array(Math.ceil(count / 8));
+            for (let i = 0; i < count; i++) if (pixels[i * 4]! >= 128) raw[i >> 3]! |= 1 << (7 - (i & 7));
+            for (const bytes of encoder.push(raw)) {signal.throwIfAborted(); yield makeChunk("IDAT", bytes);}
             continue;
           }
           const samples16 = source16 ? new Uint16Array(pixels.buffer, pixels.byteOffset, pixels.length / 2) : undefined;

@@ -2052,7 +2052,7 @@ async function applyVideoFilterChain(
         if (key !== "pix_fmts") throw new Error(`format: unsupported option ${part}`);
         const values = (separator < 0 ? part : part.slice(separator + 1)).trim().split("|");
         for (const value of values) {
-          if (!["pal8", "rgba", "bgra", "rgb24", "bgr24", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be", "yuv420p", "yuv422p", "yuv444p"].includes(value)) {
+          if (!["monob", "pal8", "rgba", "bgra", "rgb24", "bgr24", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be", "yuv420p", "yuv422p", "yuv444p"].includes(value)) {
             throw new Error(`format: unsupported pixel format ${value}`);
           }
         }
@@ -2072,6 +2072,35 @@ async function applyVideoFilterChain(
           }, signal);
         } else {
           current = current.map(({ native: _native, ...frame }) => frame);
+        }
+        if (pixelFormat === "monob" && previousPixelFormat !== "monob") {
+          // swscale's ordered 8x8 dither applied to limited-range BT.601 luma.
+          const dither = [
+            [117, 62, 158, 103, 113, 58, 155, 100],
+            [34, 199, 21, 186, 31, 196, 17, 182],
+            [144, 89, 131, 76, 141, 86, 127, 72],
+            [0, 165, 41, 206, 10, 175, 52, 217],
+            [110, 55, 151, 96, 120, 65, 162, 107],
+            [28, 193, 14, 179, 38, 203, 24, 189],
+            [138, 83, 124, 69, 148, 93, 134, 79],
+            [7, 172, 48, 213, 3, 168, 45, 210]
+          ];
+          current = await mapWork(current, async f => {
+            const data = f.data.slice();
+            for (let i = 0; i < data.length; i += 4) {
+              if (i % 65536 === 0) {
+                await yieldTurn(signal);
+                signal?.throwIfAborted();
+                budget.checkCpu();
+              }
+              const luma = Math.round(16 + (0.299 * data[i]! + 0.587 * data[i + 1]! + 0.114 * data[i + 2]!) * 219 / 255);
+              const pixel = i / 4;
+              const value = luma + dither[Math.floor(pixel / f.width) & 7]![pixel % f.width & 7]! >= 234 ? 255 : 0;
+              data[i] = data[i + 1] = data[i + 2] = value;
+              data[i + 3] = 255;
+            }
+            return { ...f, data };
+          }, signal);
         }
         if (pixelFormat === "pal8" && previousPixelFormat !== "pal8") {
           current = await mapWork(current, async (f) => {
@@ -3602,14 +3631,14 @@ export function evalSyncFfmpeg(
         const encoded = outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"
                       ? { pngPalette: { bytes: pal8Palette, depth: 8 } } : {}),
-                    ...(vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8"
+                    ...(vTrack?.codecDescriptions[0]?.pixFmt === "monob" || vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8"
                       ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false }
                       : vTrack?.codecDescriptions[0]?.pixFmt === "ya8"
                         ? { space: "b-w" as const, channels: 2 as const, hasAlpha: true } : {}),
                     ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
                       vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
-                    } : {}) }, { format: imgFmt, pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8" }).data;
+                    } : {}) }, { format: imgFmt, pngBitDepth: vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : undefined, pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8" }).data;
         if (!writeFileSync!(fileName, encoded)) return undefined;
       }
       return "";
@@ -7309,7 +7338,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"
                       ? { pngPalette: { bytes: pal8Palette, depth: 8 } } : {}),
-                    ...(vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8" || vTrack?.codecDescriptions[0]?.pixFmt === "gray16be"
+                    ...(vTrack?.codecDescriptions[0]?.pixFmt === "monob" || vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8" || vTrack?.codecDescriptions[0]?.pixFmt === "gray16be"
                       ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false }
                       : vTrack?.codecDescriptions[0]?.pixFmt === "ya8"
                         ? { space: "b-w" as const, channels: 2 as const, hasAlpha: true } : {}),
@@ -7319,7 +7348,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     } : {}) }, {
                     format: imgFmt,
                     pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8",
-                    pngBitDepth: vTrack?.codecDescriptions[0]?.pixFmt === "pal8" ? undefined : ["rgba64be", "rgb48be", "gray16be"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "") ? 16 : 8,
+                    pngBitDepth: vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : vTrack?.codecDescriptions[0]?.pixFmt === "pal8" ? undefined : ["rgba64be", "rgb48be", "gray16be"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "") ? 16 : 8,
                     forceOpaque: vTrack?.codecDescriptions[0]?.pixFmt === "rgb48be" || vTrack?.codecDescriptions[0]?.pixFmt === "rgb24" || vTrack?.codecDescriptions[0]?.pixFmt === "bgr24"
                   }).data);
                   budget.checkOutputBytes(encoded.byteLength);

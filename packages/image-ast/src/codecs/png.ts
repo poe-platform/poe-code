@@ -245,7 +245,7 @@ export function encodePngImage(
     readonly omitPngResolution?: boolean;
     readonly pngPreserveColormap?: boolean | undefined;
     readonly pngInterlace?: boolean | undefined;
-    readonly pngBitDepth?: 8 | 16 | undefined;
+    readonly pngBitDepth?: 1 | 8 | 16 | undefined;
     readonly pngColorType?: 0 | 2 | 3 | 4 | 6 | undefined;
     readonly pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" | undefined;
     readonly forceOpaque?: boolean;
@@ -257,7 +257,7 @@ export function encodePngImage(
   const coder = options?.pngCoder === "png00" ? undefined : options?.pngCoder;
   const requestedColor = coder ? undefined : options?.pngColorType;
   const bitDepth = requestedColor === 3 ? 8 : coder === "png48" || coder === "png64" ? 16 : coder ? 8 : options?.pngBitDepth;
-  const data16 = bitDepth === 16 ? img.data16 ?? Uint16Array.from(data, value => value * 257) : bitDepth === 8 ? undefined : img.data16;
+  const data16 = bitDepth === 16 ? img.data16 ?? Uint16Array.from(data, value => value * 257) : bitDepth === 8 || bitDepth === 1 ? undefined : img.data16;
   const palette = (coder === "png8" || requestedColor === 3) ? new GifPalette() : undefined;
   if (palette) {
     for (let i = 0; i < data.length; i += 4) palette.add(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!);
@@ -286,9 +286,11 @@ export function encodePngImage(
   if (exactPalette && !exactPalette.add(data)) exactPalette = undefined;
   const colorType = exactPalette || palette ? 3 : isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);
   const channels = isBw ? (hasAlpha ? [0, 3] : [0]) : (hasAlpha ? [0, 1, 2, 3] : [0, 1, 2]);
+  const monochrome = bitDepth === 1 && colorType === 0;
+  if (bitDepth === 1 && !monochrome) throw new Error("1-bit PNG requires grayscale without alpha");
   const bpp = palette ? 1 : channels.length * (data16 ? 2 : 1);
   const passes = options?.pngInterlace ? ADAM7_PASSES : [[0, 0, 1, 1] as const];
-  const scanlineBytes = (w: number) => 1 + (exactPalette ? Math.ceil(w * exactPalette.depth / 8) : w * bpp);
+  const scanlineBytes = (w: number) => 1 + (exactPalette ? Math.ceil(w * exactPalette.depth / 8) : monochrome ? Math.ceil(w / 8) : w * bpp);
   let activeData = data;
   const totalScanlineBytes = passes.reduce((sum, [x, y, dx, dy]) => {
     const w = Math.max(0, Math.ceil((width - x) / dx));
@@ -313,7 +315,7 @@ export function encodePngImage(
       }
     }
   }
-  const canFilterInPlace = Boolean(!exactPalette && !options?.pngInterlace && !data16 && options?.consumeInput && width >= 1 && activeData.length >= totalScanlineBytes);
+  const canFilterInPlace = Boolean(!monochrome && !exactPalette && !options?.pngInterlace && !data16 && options?.consumeInput && width >= 1 && activeData.length >= totalScanlineBytes);
   const raw = canFilterInPlace ? activeData.subarray(0, totalScanlineBytes) : new Uint8Array(totalScanlineBytes);
   const rowScratch = canFilterInPlace ? new Uint8Array(width * 4) : undefined;
   const reverseRows = canFilterInPlace && bpp === 4;
@@ -344,6 +346,12 @@ export function encodePngImage(
           if (indices) indices[x] = img.pngIndices![source]!;
         }
         raw.set(exactPalette.pack(pixels, indices), dstRow + 1);
+        continue;
+      }
+      if (monochrome) {
+        for (let x = 0; x < passWidth; x++) {
+          if (srcRowData[rowBase + (x0 + x * dx) * 4]! >= 128) raw[dstRow + 1 + (x >> 3)]! |= 1 << (7 - (x & 7));
+        }
         continue;
       }
       raw[dstRow] = 1;
@@ -415,7 +423,7 @@ export function encodePngImage(
   const ihdrView = new DataView(ihdr.buffer);
   ihdrView.setUint32(0, width, false);
   ihdrView.setUint32(4, height, false);
-  ihdr[8] = exactPalette?.depth ?? (data16 ? 16 : 8);
+  ihdr[8] = exactPalette?.depth ?? (monochrome ? 1 : data16 ? 16 : 8);
   ihdr[9] = colorType;
   ihdr[10] = 0;
   ihdr[11] = 0;

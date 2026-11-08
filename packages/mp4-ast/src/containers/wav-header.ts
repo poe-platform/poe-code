@@ -245,6 +245,7 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
   if (rf64 && ((!ignoreLength && pos !== riffEnd) || header.formatOffset === undefined || !header.dataOffset)) throw new Error("Invalid RF64 chunks");
   if (wave64 && (header.formatOffset === undefined || !header.dataOffset)) throw new Error("Missing Wave64 fmt or data chunk");
   if (header.formatOffset === undefined) throw new Error("Missing WAV fmt chunk");
+  if (!header.dataOffset) throw new Error("Missing WAV data chunk");
   for (const cue of header.cues ?? []) cue.title = labels.get(cue.id) ?? "";
   return header;
 }

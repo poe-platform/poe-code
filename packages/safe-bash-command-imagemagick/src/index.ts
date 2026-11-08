@@ -3700,7 +3700,11 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
     const srcH = img.height;
     let targetW: number;
     let targetH: number;
-    if (g.areaLimit !== undefined) {
+    if (g.aspectRatio !== undefined) {
+        targetW = Math.max(1, Math.round(Math.min(srcW, srcH * g.aspectRatio)));
+        targetH = Math.max(1, Math.round(Math.min(srcH, srcW / g.aspectRatio)));
+    }
+    else if (g.areaLimit !== undefined) {
         const currentArea = srcW * srcH;
         const scale = Math.sqrt(g.areaLimit / Math.max(1, currentArea));
         if (g.shrinkOnly && scale >= 1)

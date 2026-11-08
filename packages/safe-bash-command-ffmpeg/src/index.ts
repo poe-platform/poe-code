@@ -4305,6 +4305,7 @@ export function evalSyncFfmpeg(
     const metaTags: Mp4MetadataTags = {
       ...sourceMetadata,
       description: metadata.description ?? sourceMetadata.description,
+      compilation: metadata.compilation ?? sourceMetadata.compilation,
       custom: writeBext ? { ...sourceMetadata.custom, ...metadata } : sourceMetadata.custom,
       title: metadata.title ?? sourceMetadata.title,
       artist: metadata.artist ?? sourceMetadata.artist,
@@ -7874,6 +7875,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const metaTags: Mp4MetadataTags = {
               ...sourceMetadata,
               description: metadata.description ?? sourceMetadata.description,
+              compilation: metadata.compilation ?? sourceMetadata.compilation,
               custom: writeBext ? { ...sourceMetadata.custom, ...metadata } : sourceMetadata.custom,
               title: metadata.title ?? sourceMetadata.title,
               artist: metadata.artist ?? sourceMetadata.artist,

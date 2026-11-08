@@ -176,6 +176,7 @@ function parseMetadataTags(moov: Mp4Box): Mp4MetadataTags {
     title?: string;
     artist?: string;
     albumArtist?: string;
+    compilation?: string;
     album?: string;
     date?: string;
     comment?: string;
@@ -200,6 +201,11 @@ function parseMetadataTags(moov: Mp4Box): Mp4MetadataTags {
       ? new DataView(payload.buffer, payload.byteOffset, 4).getUint32(0, false)
       : 1;
     const valueBytes = dataBox && payload.byteLength >= 8 ? payload.subarray(8) : payload;
+
+    if (item.type === "cpil") {
+      if (dataBox && payload.byteLength >= 9) tags.compilation = String(valueBytes[0]);
+      continue;
+    }
 
     if (item.type === "covr") {
       if (typeIndicator !== 13 && typeIndicator !== 14) continue;
@@ -796,6 +802,9 @@ function buildUdtaMetadataBox(
   if (tags.encoder) ilstItems.push(buildIlstTagBox("\xa9too", tags.encoder));
   if (tags.description) ilstItems.push(buildIlstTagBox("desc", tags.description));
   if (tags.copyright) ilstItems.push(buildIlstTagBox("cprt", tags.copyright));
+  if (tags.compilation !== undefined && tags.compilation !== "") {
+    ilstItems.push(makeBox("cpil", makeBox("data", Uint8Array.of(0, 0, 0, 21, 0, 0, 0, 0, Number(tags.compilation) ? 1 : 0))));
+  }
   for (const [type, value] of [["trkn", tags.trackNumber], ["disk", tags.discNumber]] as const) {
     if (!value) continue;
     const [number, total] = value.split("/").map(part => Number.parseInt(part, 10));

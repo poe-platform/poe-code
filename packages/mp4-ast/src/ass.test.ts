@@ -33,3 +33,14 @@ it("honors declared event field order and ignores invalid cue times", () => {
   assert.equal(doc.tracks[0]!.samples.length, 1);
   assert.equal(decodeUtf8(doc.tracks[0]!.samples[0]!.data), "a,b");
 });
+
+it("copies encoded ASS event fields in declared order while retaining editable timestamps", () => {
+  const plugin = assAst();
+  const header = "[Script Info]\nPlayResX: 640\n[Events]\nFormat: Start, End, Layer, Text\n";
+  const doc = plugin.parse(encodeUtf8(header + "Dialogue: 0:00:01.25,0:00:03.50,3,{\\i1}a,b\\Nnext{\\i0}\n"),
+    { decodeSubtitles: false });
+  const track = doc.tracks[0]!;
+  assert.equal(decodeUtf8(track.samples[0]!.data), "0,3,,,,,,,{\\i1}a,b\\Nnext{\\i0}");
+  const shifted = { ...doc, tracks: [{ ...track, samples: track.samples.map(sample => ({ ...sample, pts: sample.pts + 1000 })) }] };
+  assert.equal(decodeUtf8(plugin.serialize(shifted)), header + "Dialogue: 0:00:02.25,0:00:04.50,3,{\\i1}a,b\\Nnext{\\i0}\n");
+});

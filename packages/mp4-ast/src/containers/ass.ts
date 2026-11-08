@@ -1,6 +1,6 @@
 import { decodeUtf8, encodeUtf8 } from "../binary.js";
 import { buildProbeResultFromDoc, concatMp4, sliceMp4 } from "../mp4.js";
-import type { MediaAstPlugin, MediaDocument, MediaSample } from "../types.js";
+import type { MediaAstPlugin, MediaDocument, MediaSample, ParseMediaOptions } from "../types.js";
 
 function decodeAssText(text: string): string {
   let result = "";
@@ -22,19 +22,25 @@ function decodeAssText(text: string): string {
   return result;
 }
 
-function parseAss(bytes: Uint8Array): MediaDocument {
+const eventFields = ["Layer", "Start", "End", "Style", "Name", "MarginL", "MarginR", "MarginV", "Effect", "Text"];
+const packetFields = ["Layer", "Style", "Name", "MarginL", "MarginR", "MarginV", "Effect", "Text"];
+
+function parseAss(bytes: Uint8Array, options?: ParseMediaOptions): MediaDocument {
+  const copy = options?.decodeSubtitles === false;
+  const header: string[] = [];
   const samples: MediaSample[] = [];
-  let fields = ["Layer", "Start", "End", "Style", "Name", "MarginL", "MarginR", "MarginV", "Effect", "Text"];
+  let fields = eventFields;
   let events = false;
   let duration = 0;
   for (const raw of decodeUtf8(bytes).split("\n")) {
     const line = raw.trim();
+    if (copy && !(events && line.startsWith("Dialogue:"))) header.push(raw.endsWith("\r") ? raw.slice(0, -1) : raw);
     if (line.startsWith("[")) { events = line === "[Events]"; continue; }
     if (!events) continue;
     if (line.startsWith("Format:")) { fields = line.slice(7).split(",").map(field => field.trim()); continue; }
     if (!line.startsWith("Dialogue:")) continue;
     // The final Text field may itself contain commas.
-    const values = line.slice(9).trimStart().split(",");
+    const values = (raw.endsWith("\r") ? raw.slice(0, -1) : raw).trimStart().slice(9).trimStart().split(",");
     if (values.length < fields.length || fields.at(-1) !== "Text") continue;
     const time = (field: string) => {
       const parts = values[fields.indexOf(field)]?.trim().split(":");
@@ -43,7 +49,11 @@ function parseAss(bytes: Uint8Array): MediaDocument {
     const start = time("Start");
     const end = time("End");
     if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) continue;
-    const data = encodeUtf8(decodeAssText(values.slice(fields.length - 1).join(",")));
+    const text = values.slice(fields.length - 1).join(",");
+    // ASS packets carry read order and event fields; timing lives on the sample.
+    const data = encodeUtf8(copy
+      ? [String(samples.length), ...packetFields.map(field => field === "Text" ? text : values[fields.indexOf(field)] ?? "")].join(",")
+      : decodeAssText(text));
     samples.push({ data, dts: start, pts: start, cts: 0, duration: end - start,
       size: data.byteLength, isKeyframe: true, sampleDescriptionIndex: 1 });
     duration = Math.max(duration, end);
@@ -52,13 +62,14 @@ function parseAss(bytes: Uint8Array): MediaDocument {
   return {
     containerFormat: "ass", timescale: 1000, duration, durationSeconds: duration / 1000,
     tracks: [{ id: 1, type: "subtitle", handlerType: "sbtl", timescale: 1000, duration,
-      language: "und", enabled: true, codecDescriptions: [{ formatFourCC: "ass ", codecName: "ass" }], samples }],
+      language: "und", enabled: true, codecDescriptions: [{ formatFourCC: "ass ", codecName: "ass",
+        ...(copy ? { extraData: encodeUtf8(header.join("\n").trimEnd() + "\n") } : {}) }], samples }],
     metadata: {}, byteLength: bytes.byteLength
   };
 }
 
 function serializeAss(doc: MediaDocument): Uint8Array {
-  const lines = [
+  let lines = [
     "[Script Info]", "ScriptType: v4.00+", "PlayResX: 384", "PlayResY: 288", "",
     "[V4+ Styles]",
     "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
@@ -66,11 +77,32 @@ function serializeAss(doc: MediaDocument): Uint8Array {
     "[Events]", "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"
   ];
   const track = doc.tracks.find(track => track.type === "subtitle");
+  const extraData = doc.containerFormat === "ass" ? track?.codecDescriptions[0]?.extraData : undefined;
+  let fields = eventFields;
+  if (extraData) {
+    lines = decodeUtf8(extraData).trimEnd().split("\n");
+    let events = false;
+    for (const line of lines) {
+      if (line.startsWith("[")) events = line.trim() === "[Events]";
+      if (events && line.startsWith("Format:")) fields = line.slice(7).split(",").map(field => field.trim());
+    }
+  }
   const time = (ticks: number) => {
     const cs = Math.max(0, Math.floor(ticks * 100 / (track?.timescale || 1000)));
     return `${Math.floor(cs / 360000)}:${String(Math.floor(cs / 6000) % 60).padStart(2, "0")}:${String(Math.floor(cs / 100) % 60).padStart(2, "0")}.${String(cs % 100).padStart(2, "0")}`;
   };
   for (const sample of track?.samples ?? []) {
+    if (extraData) {
+      const values = decodeUtf8(sample.data).split(",");
+      const event = fields.map(field => {
+        if (field === "Start") return time(sample.pts);
+        if (field === "End") return time(sample.pts + sample.duration);
+        if (field === "Text") return values.slice(packetFields.length).join(",");
+        return values[packetFields.indexOf(field) + 1] ?? "";
+      });
+      lines.push(`Dialogue: ${event.join(",")}`);
+      continue;
+    }
     const text = decodeUtf8(sample.data).split("\r\n").join("\n").split("\n").join("\\N");
     lines.push(`Dialogue: 0,${time(sample.pts)},${time(sample.pts + sample.duration)},Default,,0,0,0,,${text}`);
   }

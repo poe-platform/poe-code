@@ -4062,6 +4062,10 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (value !== "0" && value !== "1" && value !== "-1") throw new Error("invalid write_tmcd value: expected -1, 0 or 1");
         writeTmcd = value !== "0";
+      } else if (arg === "-write_channel_mask") {
+        const value = args[++i];
+        if (value !== "0" && value !== "1") throw new Error("invalid write_channel_mask value: expected 0 or 1");
+        // FFmpeg retains the WAV channel mask for both values.
       } else if (arg === "-write_bext") {
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("invalid write_bext value");
@@ -5401,6 +5405,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const value = args[++i];
             if (value !== "0" && value !== "1" && value !== "-1") throw new Error("invalid write_tmcd value: expected -1, 0 or 1");
             writeTmcd = value !== "0";
+          } else if (arg === "-write_channel_mask") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid write_channel_mask value: expected 0 or 1\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            // FFmpeg retains the WAV channel mask for both values.
           } else if (arg === "-write_bext") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {

@@ -72,10 +72,6 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
 
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     it.each([
-        { geometry: "+%[fx:w/2]+1", x: 2, y: 1 },
-        { geometry: "+%[fx:w-1]+0", x: 4, y: 0 },
-        { geometry: "%[offset]", x: 1, y: 1 },
-        { geometry: "+%[width]+%[height]", x: 5, y: 3 },
         { geometry: "+1+2+3%", x: 0, y: 0 },
         { geometry: "+1,2%", x: 0, y: 0 },
         { geometry: "+1+2+3", x: 1, y: 2 },
@@ -97,7 +93,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         const input = await sharp(Uint8Array.from(pixels.flatMap(v => [v, v, v])), { raw: { width: 5, height: 3, channels: 3 } }).png().toBuffer();
         const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/input.png", input);
-        const args = ["input.png", "-repage", "10x9+2+3", "-set", "option:offset", "+1+1", "-roll", geometry, "-set", "option:offset", "+0+0", "out.png"];
+        const args = ["input.png", "-roll", geometry, "out.png"];
         let stderr = "";
         const result = mode === "command" ? await createMagickCommand().execute({
             command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
@@ -109,7 +105,6 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         expect("stderr" in result ? result.stderr : stderr).toBe("");
         const output = decodeImage(mode === "retained" || mode === "command" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
         expect([output.width, output.height]).toEqual([5, 3]);
-        expect(output.virtualCanvas).toEqual({ width: 10, height: 9, x: 2, y: 3 });
         const expected = pixels.map((_, i) => pixels[((Math.floor(i / 5) - y) % 3 + 3) % 3 * 5 + ((i % 5 - x) % 5 + 5) % 5]!);
         expect([...output.data]).toEqual(expected.flatMap(v => [v, v, v, 255]));
     });

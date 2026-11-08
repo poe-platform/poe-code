@@ -519,7 +519,6 @@ interface MagickState {
   comment?: string;
   label?: string;
   filenameProperties?: Record<string, string>;
-  optionProperties?: Record<string, string>;
   sizeWidth: number;
   sizeHeight: number;
   hasSize: boolean;
@@ -1598,12 +1597,25 @@ function parseMagickBorderGeometry(raw: string): MagickGeometry {
 }
 
 function parseMagickRollGeometry(raw: string): MagickGeometry {
+    // Normalize signed hexadecimal offsets without treating size separators as hex.
+    let normalized = "";
+    for (let i = 0; i < raw.length; i++) {
+        normalized += raw[i];
+        if ((raw[i] === "+" || raw[i] === "-") && raw[i + 1] === "0" && raw[i + 2]?.toLowerCase() === "x") {
+            let end = i + 3;
+            while (end < raw.length && raw[end]! >= "0" && raw[end]! <= "9") end++;
+            if (end > i + 3) {
+                normalized += Number.parseInt(raw.slice(i + 3, end), 16);
+                i = end - 1;
+            }
+        }
+    }
     // Native roll consumes at most two offsets; comma/colon ends the offset list.
     let offsets = 0;
-    let end = raw.length;
-    for (let i = 0; i < raw.length; i++) {
-        const char = raw[i];
-        if ((char === "+" || char === "-") && raw[i - 1]?.toLowerCase() !== "e") {
+    let end = normalized.length;
+    for (let i = 0; i < normalized.length; i++) {
+        const char = normalized[i];
+        if ((char === "+" || char === "-") && normalized[i - 1]?.toLowerCase() !== "e") {
             offsets++;
             if (offsets > 2) { end = i; break; }
         } else if (offsets > 0 && (char === "," || char === ":")) {
@@ -1611,11 +1623,11 @@ function parseMagickRollGeometry(raw: string): MagickGeometry {
             break;
         }
     }
-    const geometry = parseMagickGeometry(raw.slice(0, end));
+    const geometry = parseMagickGeometry(normalized.slice(0, end));
     // Native percentage roll geometries leave the pixel offsets at zero.
     if (raw.includes("%")) return { ...geometry, x: 0, y: 0 };
     // A size followed by offsets needs an x separator, even with no height.
-    if (geometry.hasOffset && geometry.width !== undefined && !raw.toLowerCase().includes("x")) {
+    if (geometry.hasOffset && geometry.width !== undefined && !normalized.toLowerCase().includes("x")) {
         throw new Error(`invalid argument for option '-roll': ${raw}`);
     }
     return { ...geometry, x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
@@ -6579,7 +6591,6 @@ if (t === "-seed") {
         else if (t === "-set") {
             const k = (tokens[++i] ?? "").toLowerCase();
             const v = tokens[++i] ?? "";
-            if (k.startsWith("option:")) state.optionProperties = { ...state.optionProperties, [k.slice("option:".length)]: v };
             if (k.startsWith("option:connected-components:") || k.startsWith("connected-components:")) throw new Error(`Unsupported connected-components setting: ${k}`);
             if (k.startsWith("filename:")) state.filenameProperties = { ...state.filenameProperties, [k]: v };
             if (k === "option:compose:args")
@@ -6971,10 +6982,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-roll") {
             const geom = tokens[++i] ?? "+0+0";
+            validateMagickTransformGeometry(geom, t);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
-                validateMagickTransformGeometry(expanded, t);
-                return (yield* applyMagickRollSteps(im, expanded, signal));
+                return (yield* applyMagickRollSteps(im, geom, signal));
             });
         }
         else if (t === "-morph") {
@@ -8747,13 +8757,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
             if (token === "-splice") validateMagickSpliceGeometry(geometry);
-            else if (token !== "-roll") validateMagickTransformGeometry(geometry, token);
-            steps.push(async (image, backend) => {
-                if (!image) return;
-                const expanded = token === "-roll" ? await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, (image as StoredMagickImage)[magickInput] ?? {}, async () => ({ image, storage: backend.storage }), signal) : geometry;
-                if (token === "-roll") validateMagickTransformGeometry(expanded, token);
-                return transformStoredMagickCoordinates(image, backend, token, expanded, captured, signal, analysis);
-            });
+            else validateMagickTransformGeometry(geometry, token);
+            steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal, analysis) : undefined);
         } else if (!operandsOnly && token === "-resample") {
             const value = tokens[++i] ?? "72", kernel = state.kernel, settings = state.resizeFilter;
             steps.push(async (image, backend) => {

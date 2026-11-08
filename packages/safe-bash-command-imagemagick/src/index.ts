@@ -2615,6 +2615,11 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
           }
         }
         expectToken(")");
+        const arity = name === "rand" ? 0 : name === "if" ? 3
+          : ["atan2", "pow", "min", "max", "hypot", "mod"].includes(name) ? 2 : 1;
+        if (args.length !== arity) {
+          throw new Error(`FX function '${name}' expects ${arity} arguments, got ${args.length}`);
+        }
         return (ctx) => {
           const vals = args.map((a) => a(ctx));
           const a0 = vals[0] ?? 0;
@@ -2674,7 +2679,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
             case "mod":
               return a1 === 0 ? 0 : a0 % a1;
             case "clamp":
-              return Math.max(a1, Math.min(a2, a0));
+              return Math.max(0, Math.min(1, a0));
             case "if":
               return a0 !== 0 ? a1 : a2;
             case "rand":

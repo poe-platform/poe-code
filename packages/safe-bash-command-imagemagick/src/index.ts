@@ -7382,11 +7382,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-remap") {
             const palSpec = tokens[++i] ?? "";
             const palImg = (yield* parseInputOperandSteps(palSpec, files, state, stdinBytes));
-            if (palImg) {
-                stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                    return (yield* applyMagickRemapSteps(im, palImg, state.dither, signal));
-                });
-            }
+            if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                return (yield* applyMagickRemapSteps(im, palImg, state.dither, signal));
+            });
         }
         else if (t === "-clut" || t === "-hald-clut") {
             if (stack.length >= 2) {
@@ -9113,7 +9112,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const colors = await parseStoredCompareInput(palette, settings, backend, signal);
-                return colors ? remapStoredImage(image, colors, backend.storage, settings.dither, signal) : image;
+                if (!colors) throw new Error(`unable to open image '${palette}'`);
+                return remapStoredImage(image, colors, backend.storage, settings.dither, signal);
             });
         } else if (!operandsOnly && token === "-floodfill") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "+0+0"), candidate = tokens[i + 1], replacement = state.fill, fuzz = state.fuzz;

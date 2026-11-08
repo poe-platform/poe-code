@@ -2,12 +2,13 @@ import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 const operators = [
     ["-remap", "palette"], ["+dither", "-remap", "palette"],
     ["-dither", "none", "-remap", "palette"], ["-dither", "FloydSteinberg", "-remap", "palette"],
     ["-remap", "gradient:red-blue"], ["+dither", "-remap", "pattern:checkerboard"],
-    ["-remap", "xc:red"], ["-remap", "missing"],
+    ["-remap", "xc:red"],
     ["-remap", "palette", "+dither", "-remap", "gradient:blue-red"]
 ];
 async function paletteFixture() { return sharp(new Uint8Array([0, 0, 0, 255, 255, 255, 255, 255]), { raw: { width: 2, height: 1, channels: 4 } }).png().toBuffer(); }
@@ -49,19 +50,18 @@ it("preserves original remap pixel vectors", async () => {
     for (const args of operators) {
         const files = new Map([["input", bytes], ["palette", await paletteFixture()]]);
         expect((await runConvertCli(["input", ...args, "out.png"], files)).exitCode).toBe(0);
-        hashes.push(createHash("sha256").update(files.get("out.png")!).digest("hex"));
+        hashes.push(createHash("sha256").update(decodeImage(files.get("out.png")!).data).digest("hex"));
     }
     expect(hashes).toMatchInlineSnapshot(`
       [
-        "83a355d7c2839f422065a37a534fa66a1d41bc1d75b395421440e660915e0267",
-        "482f6e94ff264edf615ceffd039e8a0f8cd36447ff86372b33c356c7611d4406",
-        "482f6e94ff264edf615ceffd039e8a0f8cd36447ff86372b33c356c7611d4406",
-        "83a355d7c2839f422065a37a534fa66a1d41bc1d75b395421440e660915e0267",
-        "49569d48065faaa3fae04614070ba15cd508d9139c6ab5011e5329ec20b18ee2",
-        "f4c2149f011129a4814ee7cd28ea3eba4fa33262e385f6e3f60019c9d8021829",
-        "49569d48065faaa3fae04614070ba15cd508d9139c6ab5011e5329ec20b18ee2",
-        "d3b98c3d20a92e1f210c8fd9db66ed6be330b333920d38e38c3e1c05eb4c8156",
-        "8217d29cdc785151c1d6d1d5b0d4e0df30c1c282bfb44e718c36598f1869f918",
+        "24c0ee0ee399d8c9715d56bd1467cf23fb97509901924516308738fd434cf5d3",
+        "fcee49ef0769efa8208316e6259550e0e9d6b8e23e6f0142c1a6147b802d419f",
+        "fcee49ef0769efa8208316e6259550e0e9d6b8e23e6f0142c1a6147b802d419f",
+        "24c0ee0ee399d8c9715d56bd1467cf23fb97509901924516308738fd434cf5d3",
+        "6eac2444bedf289ceee36b9dfc034f5fb8b0e75a294bac17e47ebb2b5ad0aace",
+        "4dc179bd3d3031105fe34142bfbcc6fe191b591113a0959af486fd6d8b9ae064",
+        "6eac2444bedf289ceee36b9dfc034f5fb8b0e75a294bac17e47ebb2b5ad0aace",
+        "07f880da26145a8329f7322487ac84bae6a1622fc29a06b39f9ad15b7cf1d904",
       ]
     `);
 });
@@ -78,3 +78,36 @@ it.each(operators.flatMap(args => [[53, 37], [1031, 3], [1, 1], ...(args === ope
     expect(await runConvertCli(argv, { filesystem, cwd: "/" })).toEqual(await runConvertCli(argv, files));
     expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
 });
+
+for (const execution of ["buffered", "retained", "sync", "command"] as const) {
+    it.each(["missing.png", "rgb.png"])(`${execution}: remaps with palette %s without losing existing output on failure`, async palette => {
+        const pixels = new Uint8Array([255, 0, 0, 0, 255, 0, 0, 0, 255]);
+        const png = await sharp(pixels, { raw: { width: 3, height: 1, channels: 3 } }).png().toBuffer();
+        const sentinel = new TextEncoder().encode("sentinel");
+        const files = new Map([["rgb.png", png], ["out.png", sentinel]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/rgb.png", png);
+        await filesystem.writeFile("/out.png", sentinel);
+        const argv = ["rgb.png", "+dither", "-remap", palette, "out.png"];
+        let stderr = "";
+        const args = createCommandArguments(argv);
+        const result = execution === "command"
+            ? await createMagickCommand().execute({
+                command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {},
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write() {} }, stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
+                fs: filesystem,
+            })
+            : execution === "sync" ? runConvertCliSync(argv, files)
+            : await runConvertCli(argv, execution === "retained" ? { filesystem, cwd: "/" } : files);
+        const output = execution === "command" || execution === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
+        if (palette === "missing.png") {
+            expect(output).toEqual(sentinel);
+            expect(result.exitCode).toBe(1);
+            expect("stderr" in result ? result.stderr : stderr).toContain("unable to open image 'missing.png'");
+        } else {
+            expect(result.exitCode).toBe(0);
+            expect(await sharp(output).removeAlpha().raw().toBuffer()).toEqual(pixels);
+        }
+    });
+}

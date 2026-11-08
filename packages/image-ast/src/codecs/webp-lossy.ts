@@ -1,3 +1,5 @@
+import { encode, createRiffContainer, parseRiff, type WebpImageData } from "@stacksjs/ts-webp";
+import { encodeVP8 } from "./webp-vp8/encoder.js";
 import type { RgbaImage } from "../ast.js";
 import { buildExifApp1Segment } from "./exif.js";
 import type { createWebpEncoder } from "./webp.js";
@@ -64,4 +66,24 @@ export function assembleLossyWebp(
   let at = 12;
   for (const part of parts) { output.set(part, at); at += part.length; }
   return output;
+}
+
+/** Fit VP8 coefficient probabilities without changing quantization or decoded pixels. */
+export function encodeLossyWebp(image: WebpImageData, options: { quality: number; effort: number }): Uint8Array {
+  if (!Number.isFinite(options.quality) || options.quality < 0 || options.quality > 100)
+    throw new RangeError("WebP quality must be from 0 to 100");
+  const vp8 = { fourCC: "VP8 ", data: encodeVP8(image, { quality: Math.round(127 - options.quality / 100 * 127), effort: options.effort }) };
+  let hasAlpha = false;
+  for (let i = 3; i < image.data.length; i += 4) if (image.data[i] !== 255) { hasAlpha = true; break; }
+  if (!hasAlpha) return createRiffContainer([vp8]);
+  const alpha = new Uint8Array(image.data.length);
+  for (let i = 0; i < alpha.length; i += 4) { alpha[i + 1] = image.data[i + 3]!; alpha[i + 3] = 255; }
+  const payload = parseRiff(encode({ ...image, data: alpha, hasAlpha: false }, { lossless: true }))[0]!.data.subarray(5);
+  const alph = new Uint8Array(payload.length + 1);
+  alph[0] = 1;
+  alph.set(payload, 1);
+  const extended = new Uint8Array(10), w = image.width - 1, h = image.height - 1;
+  extended[0] = 16;
+  extended.set([w & 255, w >>> 8, 0, h & 255, h >>> 8, 0], 4);
+  return createRiffContainer([{ fourCC: "VP8X", data: extended }, { fourCC: "ALPH", data: alph }, vp8]);
 }

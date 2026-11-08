@@ -505,6 +505,7 @@ export interface OutputEncodeOptions {
   readonly compression?: "hevc" | "av1";
   readonly compressionLevel?: number;
   readonly palette?: boolean;
+  readonly effort?: number;
   readonly lossless?: boolean;
   readonly webpExact?: boolean;
   readonly density?: number;

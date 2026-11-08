@@ -1,5 +1,4 @@
-import { encode as encodeLossyWebp } from "@stacksjs/ts-webp";
-import { assembleLossyWebp } from "./webp-lossy.js";
+import { assembleLossyWebp, encodeLossyWebp } from "./webp-lossy.js";
 import type { StoredRgbaImage, ImageByteStorage } from "./png-storage.js";
 import { Pixels } from "../ops/storage-raster.js";
 import { defaultRuntime } from "@poe-code/compression";
@@ -40,7 +39,7 @@ export async function* encodeWebpFromStorage(
         if (at % 65536 === 0) await defaultRuntime.yieldTurn(signal);
       }
       signal.throwIfAborted();
-      frames.push(encodeLossyWebp({ width: image.width, height, data }, { lossless: false, quality: options.quality ?? 80 }));
+      frames.push(encodeLossyWebp({ width: image.width, height, data }, { quality: options.quality ?? 80, effort: options.effort ?? 4 }));
       delays.push(typeof options.delay === "number" ? options.delay : options.delay?.[frame] ?? await image.storedDelay?.at(frame, { signal }) ?? image.delay?.[frame] ?? 0);
     }
     const bytes = assembleLossyWebp(image, frames, height, delays, options);

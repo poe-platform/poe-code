@@ -2091,7 +2091,7 @@ export class SharpInstance extends Duplex {
     return this;
   }
 
-  webp(options?: { readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
+  webp(options?: { readonly effort?: number; readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
     this.validateQuality(options?.quality);
     const anyOpts = options as Record<string, unknown> | undefined;
     for (const [k, label] of [
@@ -2124,6 +2124,7 @@ export class SharpInstance extends Duplex {
     }
     this.outputOptions = {
       ...this.outputOptions,
+      ...(options?.effort === undefined ? {} : { effort: options.effort }),
       ...(options?.force === false ? {} : { format: "webp" }),
       ...(options?.quality !== undefined ? { quality: options.quality } : {}),
       ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})

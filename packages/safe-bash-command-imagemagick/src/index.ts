@@ -1599,6 +1599,7 @@ function parseMagickBorderGeometry(raw: string): MagickGeometry {
 }
 
 function parseMagickRollGeometry(raw: string): MagickGeometry {
+    raw = raw.replaceAll(" ", "");
     // Normalize signed hexadecimal offsets without treating size separators as hex.
     let normalized = "";
     for (let i = 0; i < raw.length; i++) {

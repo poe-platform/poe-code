@@ -1,3 +1,4 @@
+import { automaticThreshold } from "./auto-threshold.js";
 import { identifyStatisticsSteps } from "./identify-statistics.js";
 import { identifyHullSteps } from "./identify-hull.js";
 import { identifyMomentsSteps } from "./identify-moments.js";
@@ -5649,6 +5650,19 @@ function parseConnectedComponents(tokens: readonly string[], start: number): num
 
 function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickState, start: number): MagickAnalysisOperation | undefined {
     const token = tokens[start];
+    if (token === "-auto-threshold") {
+        const method = tokens[start + 1]?.toLowerCase();
+        if (!method || !["otsu", "kapur", "triangle"].includes(method)) throw new Error(`invalid argument '-auto-threshold' '${tokens[start + 1] ?? ""}'`);
+        const captured = { ...state, channels: { ...state.channels } };
+        return { end: start + 1, luminance: true, highDepth: true, transform(histogram) {
+            const threshold = automaticThreshold(histogram[4]!, method);
+            const operation = parseMagickPixelOperation(["-threshold", String(65535 * threshold / 100)], captured, 0)!;
+            return function* (image) {
+                const result = yield* operation.apply(image);
+                return { ...result, properties: { ...result.properties, "auto-threshold:threshold": `${Number(threshold.toPrecision(6))}%` } };
+            };
+        } };
+    }
     if (token === "-sepia-tone") {
         const argument = tokens[start + 1] ?? "80%", raw = parseFloat(argument);
         // Native CLI percentages span QuantumRange + 1 (65536), in Q16 units.

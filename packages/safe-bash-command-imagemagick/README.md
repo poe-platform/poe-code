@@ -66,6 +66,8 @@ PNG and JPEG preserve embedded ICC profiles. Use `-profile color.icc` to attach 
 
 `-remap` honors `-define dither:diffusion-amount=50%` (or `0.5`) for Floyd–Steinberg and Riemersma dithering. Use `0%` to disable error diffusion; `+define dither:diffusion-amount` restores full diffusion.
 
+`-auto-threshold OTSU|Kapur|Triangle` computes a histogram-based black-and-white mask. Read the computed percentage with `-format '%[auto-threshold:threshold]' info:`.
+
 `-ordered-dither` applies the built-in ImageMagick threshold, checkerboard, ordered, halftone and circle maps (including their aliases). Append a level count, such as `o8x8,4`, to quantize each channel to that many levels; `-channel` selects the channels to change. Unsupported maps return an error. `-remap palette.png` uses Riemersma error diffusion by default; use `-dither FloydSteinberg` for Floyd–Steinberg or `+dither` to disable diffusion.
 
 Use `-region WIDTHxHEIGHT+X+Y` to limit subsequent pixel edits to a rectangle. Placement follows `-gravity`, and rectangles are clipped to the image. Use `+region` to restore edits across the whole image.

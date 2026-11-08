@@ -240,6 +240,12 @@ export function serializeY4m(doc: MediaDocument): Uint8Array {
   const chunks: Uint8Array[] = [header];
 
   for (const frame of frames) {
+    const native = frame.native;
+    if (native?.format === 0 && native.rgba === frame.data &&
+        native.width === width && native.height === height) {
+      chunks.push(frameTag, native.pixels);
+      continue;
+    }
     const { y, u, v } = rgbaToYuv420p(frame.data, width, height);
     chunks.push(frameTag, y, u, v);
   }

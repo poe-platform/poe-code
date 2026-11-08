@@ -1194,6 +1194,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   }
   count = Math.max(1, count);
   let selectedMedian = 0;
+  let skewness = 0, kurtosis = 0;
   let entropy = 0;
   if (statistics) {
     statistics.mean = 0;
@@ -1219,6 +1220,22 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       let minimum = 0, maximum = 65535, median = 0, cumulative = 0;
       while (minimum < 65535 && histogram[minimum] === 0) minimum++;
       while (maximum > 0 && histogram[maximum] === 0) maximum--;
+      if (selectedChannels[c] && deviation > 0) {
+        let third = 0, fourth = 0;
+        const mean = sums[c]! / count;
+        for (let value = minimum; value <= maximum; value++) {
+          if (value % 8192 === 0) yield;
+          if (histogram[value] === 0) continue;
+          const delta = (value - mean) / 65535 / deviation;
+          const probability = histogram[value]! / count;
+          third += probability * delta ** 3;
+          fourth += probability * delta ** 4;
+        }
+        // Native uses sample deviation, population moments and excess kurtosis.
+        // Constant channels contribute zero to both channel averages.
+        skewness += third / selectedCount;
+        kurtosis += (fourth - 3) / selectedCount;
+      }
       for (; median < 65535; median++) {
         if (median % 8192 === 0) yield;
         cumulative += histogram[median]!;
@@ -1257,6 +1274,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     max: String(max),
     median: String(Number(selectedMedian.toPrecision(6))),
     "standard-deviation": String(Number(deviation.toPrecision(6))),
+    skewness: String(Number(skewness.toPrecision(6))),
+    kurtosis: String(Number(kurtosis.toPrecision(6))),
     entropy: String(Number(entropy.toPrecision(6))),
     opaque: opaque ? "True" : "False",
     type,
@@ -1363,7 +1382,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
       const key = property.toLowerCase();
       if (Object.hasOwn(properties, key)) {
         parts.push(properties[key]!);
-      } else if (["mean", "min", "max", "median", "standard-deviation", "entropy", "opaque", "type", "bit-depth"].includes(key)) {
+      } else if (["mean", "min", "max", "median", "standard-deviation", "skewness", "kurtosis", "entropy", "opaque", "type", "bit-depth"].includes(key)) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
         pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection);

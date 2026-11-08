@@ -101,7 +101,7 @@ Async `runIdentifyCli(args, { filesystem, cwd, stdin, stdout, stderr })` uses th
 `identify -format` and `magick ... -format FORMAT info:` support literal `%%`,
 geometry (`%g`, `%P`), compression (`%C`, `%Q`), and named properties including
 `%[channels]`, `%[width]`, `%[height]`, `%[depth]`, `%[bit-depth]`, `%[opaque]`,
-`%[type]`, `%[size]`, `%[orientation]`, `%[exif:Orientation]`, and `%[standard-deviation]`.
+`%[type]`, `%[size]`, `%[orientation]`, `%[exif:Orientation]`, `%[standard-deviation]`, `%[skewness]`, and `%[kurtosis]`. Skewness and excess kurtosis use sample standard deviation and average the selected channels; constant channels contribute zero.
 Use `-read-mask mask.png` after an input to measure mean and standard deviation only where the mask is brighter than 50%; `+read-mask` restores measurement of all pixels. Read masks do not protect pixels from edits.
 `-orient RightTop` sets orientation metadata without changing pixels; `-auto-orient` transforms pixels using that tag. Explicit `-orient` settings persist, so repeated `-auto-orient` operations repeat the transform. `+orient` resets the active setting without changing existing image tags. Without an explicit setting, auto-orientation resets the source tag to TopLeft.
 Orientation reports the EXIF name (such as `RightTop`) and numeric value (`6`),

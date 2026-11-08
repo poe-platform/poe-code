@@ -17,6 +17,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   let littleEndian = false;
   let channels = 0, frames = 0, bits = 0, sampleRate = 0;
   let sound: Uint8Array | undefined;
+  let title: string | undefined;
   for (let offset = 12; offset < end;) {
     budget.checkCpu();
     if (offset + 8 > end) throw new Error("Truncated AIFF chunk header");
@@ -36,6 +37,8 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       const mantissa = view.getUint32(start + 10) * 2 ** 32 + view.getUint32(start + 14);
       sampleRate = mantissa * 2 ** (exponent - 16383 - 63);
       if (exponent & 0x8000 || !Number.isSafeInteger(sampleRate) || sampleRate <= 0) throw new Error("Invalid AIFF sample rate");
+    } else if (id === "NAME") {
+      title = new TextDecoder().decode(bytes.subarray(start, start + size)).split("\0", 1)[0];
     } else if (id === "SSND") {
       if (size < 8 || sound) throw new Error("Invalid AIFF SSND chunk");
       const skip = view.getUint32(start);
@@ -49,7 +52,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   if (size > sound.length) throw new Error("Truncated AIFF sample data");
   const format = bits === 8 ? "s8" : `s${bits}${littleEndian ? "le" : "be"}`;
   const doc = pcm.find(plugin => plugin.id === format)!.parse(sound.subarray(0, size), { ...options, budget, channels, sampleRate });
-  return { ...doc, containerFormat: "aiff", byteLength: bytes.length };
+  return { ...doc, metadata: title === undefined ? doc.metadata : { ...doc.metadata, title }, containerFormat: "aiff", byteLength: bytes.length };
 }
 
 export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
@@ -68,6 +71,7 @@ export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions
       !Number.isSafeInteger(sampleRate) || sampleRate < 1 || sampleRate > 0xffffffff || frames > 0xffffffff) {
     throw new Error("Invalid AIFF audio dimensions");
   }
+  const title = new TextEncoder().encode((options.metadata ?? doc.metadata).title ?? "");
   const littleEndian = codec === "pcm_s16le";
   const comm = littleEndian ? 24 : 12;
   const titleOffset = comm + (littleEndian ? 32 : 26);
@@ -90,6 +94,10 @@ export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions
   view.setUint32(comm + 18, Math.floor(mantissa / 2 ** 32)); view.setUint32(comm + 22, mantissa % 2 ** 32);
   text(sound, "SSND"); view.setUint32(sound + 4, data.length + 8);
   bytes.set(data, sound + 16);
+  if (title.length) {
+    text(titleOffset, "NAME"); view.setUint32(titleOffset + 4, title.length);
+    bytes.set(title, titleOffset + 8);
+  }
   return bytes;
 }
 

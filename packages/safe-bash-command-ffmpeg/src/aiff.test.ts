@@ -97,6 +97,7 @@ for (const sync of [false, true]) {
     const bytes = volume.readFileSync("/out.aiff") as Buffer;
     assert.equal(bytes.toString("ascii", 8, 12), "AIFC");
     assert.equal(bytes.toString("ascii", 50, 54), "sowt");
-    assert.deepEqual(bytes.subarray(72, 72 + samples.length * 2), Buffer.from(aiff.subarray(54)).swap16());
+    const sound = bytes.indexOf(Buffer.from("SSND")) + 16;
+    assert.deepEqual(bytes.subarray(sound, sound + samples.length * 2), Buffer.from(aiff.subarray(54)).swap16());
   });
 }

@@ -316,6 +316,8 @@ three quarters of the analysis window (1536 samples at 44100 Hz). It accepts
 
 `aphaser=in_gain=0.5:out_gain=0.8:delay=3:decay=0.4:speed=1` adds a phasing effect while preserving sample rate and frame count. Supports named or positional input/output gain, delay, decay, modulation speed, and triangular (`type=t`, default) or sinusoidal (`type=s`) modulation.
 
+`apsyclip=clip=0.2` applies psychoacoustic clipping to PCM audio using overlapping windows and iterative spectral masking. Supports `level_in`, `level_out`, `clip`, `diff`, `adaptive`, `iterations`, and automatic output leveling (`level`). Like FFmpeg, it preserves the sample count with a window delay and does not drain the delayed tail.
+
 `alimiter=limit=0.25:level=0:latency=1` limits PCM peaks with linked channels, lookahead attack, and gradual release. `latency=1` preserves sample positions and drains the delayed tail; the default retains the lookahead delay. Supports `level_in`, `level_out`, `limit`, `attack`, `release`, and automatic output leveling (`level`). Automatic release (`asc=1`) is unsupported and fails explicitly.
 
 `[0:a][1:a]amultiply[out]` multiplies corresponding PCM samples from two inputs

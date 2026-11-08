@@ -1,3 +1,4 @@
+import { psychoacousticClip } from "./audio-apsyclip.js";
 import { renderTestsrc } from "./testsrc.js";
 import { formatDate } from "safe-bash-calendar-engine/time-env/format";
 import { millisecondsInstant, TimeZone } from "safe-bash-calendar-engine/time-env/calendar";
@@ -5041,6 +5042,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await pulsateAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "vibrato" || trimmed.startsWith("vibrato=")) {
                         stretched = await vibratoAudio(stretched, origRate, trimmed, budget, context.signal);
+                      } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
+                        stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
+                        statsScale = 1;
                       } else if (trimmed === "alimiter" || trimmed.startsWith("alimiter=")) {
                         stretched = await limitAudio(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;

@@ -72,7 +72,6 @@ import {
   flipImage,
   flopImage,
   grayscaleImage,
-  negateImage,
   resizeImage,
   rotateImage,
   type ImageFormat,
@@ -1827,6 +1826,16 @@ async function applyVideoFilterChain(
           durationSeconds: f.durationSeconds, keyframe: true };
       }, signal);
     } else if (name === "negate") {
+      const components = named.components ?? ((positional[0]?.includes("=") ? "" : positional[0]) || "y+u+v+r+g+b");
+      let mask = 0;
+      for (const component of components.split("+")) {
+        const index = ["y", "u", "v", "r", "g", "b", "a"].indexOf(component);
+        const value = index < 0 ? Number(component) : 1 << index;
+        if (!Number.isInteger(value) || value < 0 || value > 127) {
+          throw new Error(`negate: invalid component ${component}`);
+        }
+        mask |= value;
+      }
       current = await mapWork(current, async (f) => {
         const source = f.native;
         // Negate planar 8-bit YUV before RGB conversion, including full-range YUV.
@@ -1845,8 +1854,16 @@ async function applyVideoFilterChain(
           const data = scaleVideoPicture({ ...f, native }, f.width, f.height)!;
           return { ...f, data, native: { ...native, rgba: data } };
         }
-        const out = negateImage(makeRgbaImg(f.width, f.height, f.data));
-        return { ...f, data: out.data };
+        const data = f.data.slice();
+        for (let i = 0; i < data.length; i++) {
+          if (i % 65536 === 0) {
+            await yieldTurn(signal);
+            signal?.throwIfAborted();
+            budget.checkCpu();
+          }
+          if (mask & (1 << (3 + i % 4))) data[i] = 255 - data[i]!;
+        }
+        return { ...f, data };
       }, signal);
     } else if (name === "format" && argStr.includes("gray")) {
       current = await mapWork(current, async (f) => {

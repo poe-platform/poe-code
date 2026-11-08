@@ -5114,12 +5114,12 @@ export function runIdentifyCliSync(argv: readonly string[], files: Map<string, U
 
 function parseMagickIndices(spec: string, ranges = true): number[][] {
   if (!spec.trim() || spec.trimStart().startsWith(",")) throw new Error(`invalid argument ${spec}`);
-  return Array.from(spec, c => c.trim() ? c : ",").join("").split(",").filter(part => part.trim()).map(part => {
+  return Array.from(spec, c => !c.trim() || (!ranges && c === "x") ? "," : c).join("").split(",").filter(part => part.trim()).map(part => {
     const value = part.trim();
     const separator = ranges ? value.indexOf("-", 1) : -1;
     const values = separator > 0 ? [value.slice(0, separator), value.slice(separator + 1)] : [value];
     return values.map(value => {
-      const digits = value.startsWith("-") ? value.slice(1) : value;
+      const digits = value.startsWith("-") || (!ranges && value.startsWith("+")) ? value.slice(1) : value;
       if (!digits.length || !Array.from(digits).every(c => c >= "0" && c <= "9") || !Number.isSafeInteger(Number(value))) {
         throw new Error(`invalid argument ${spec}`);
       }

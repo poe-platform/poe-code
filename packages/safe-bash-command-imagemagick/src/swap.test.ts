@@ -7,6 +7,12 @@ const red = [255, 0, 0, 255], green = [0, 255, 0, 255], blue = [0, 0, 255, 255];
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([
+        ...["1,2", "1x2", "+1,2", "+1x+2", "-2x-1"].map(spec => ({
+            args: ["r.png", "g.png", "b.png", "-swap", spec], pixels: [red, blue, green]
+        })),
+        ...["1x9", "+1,+1", "1xbad", "++1,2"].map(spec => ({
+            args: ["r.png", "g.png", "b.png", "-swap", spec], pixels: null
+        })),
         { args: ["r.png", "g.png", "-swap", "0.5,1"], pixels: null },
         { args: ["r.png", "g.png", "-swap", "bad,1"], pixels: null },
         { args: ["r.png", "g.png", "b.png", "-swap", "0,9"], pixels: null },

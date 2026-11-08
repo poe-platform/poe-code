@@ -483,7 +483,7 @@ export function encodeImage(
     case "cur": return { data: encodeIcoImage(img), format: fmt, channels: 4 };
     case "mng": return { data: encodeMngImage(img, options), format: "mng", channels: 4 };
     case "apng": return { data: encodeApngImage(img, options), format: "apng", channels: 4 };
-    case "miff": return { data: encodeMiffImage(img), format: "miff", channels: 4 };
+    case "miff": return { data: encodeMiffImage(img, options.miffDepth), format: "miff", channels: 4 };
     case "png": {
       const data = encodePngImage(img, {
         ...(options.synthesizeExif === undefined ? {} : { synthesizeExif: options.synthesizeExif }),

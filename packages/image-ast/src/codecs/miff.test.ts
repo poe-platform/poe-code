@@ -35,3 +35,23 @@ it("rejects truncated MIFF pixels", async () => {
     await stream.next();
     await expect(stream.next()).rejects.toThrow("Truncated MIFF backing storage");
 });
+
+it("preserves 16-bit samples across borrowed storage chunk boundaries", async () => {
+    const samples = Uint16Array.from({ length: image.width * 4 }, (_, index) => (index * 1237) & 65535);
+    const source = new Uint8Array(samples.buffer), borrowed = new Uint8Array(8193);
+    const storage = { allocate: vi.fn(), write: vi.fn(), read: vi.fn(async (position: number, size: number) => {
+        borrowed.fill(0);
+        borrowed.set(source.subarray(position - 32, position - 32 + size), 1);
+        return borrowed.subarray(1, size + 1);
+    }) };
+    const stream = encodeMiffFromStorage({ ...image, depth: "ushort", storedData16: { position: 32, length: samples.length } }, storage, new AbortController().signal);
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of stream) chunks.push(chunk);
+    expect(new TextDecoder().decode(chunks.shift())).toContain("depth=16\n");
+    const bytes = new Uint8Array(source.length);
+    let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+    const view = new DataView(bytes.buffer);
+    expect(Array.from({ length: samples.length }, (_, index) => view.getUint16(index * 2))).toEqual([...samples]);
+    expect(storage.read.mock.calls.map(([position, size]) => [position, size])).toEqual([[32, 8192], [8224, 8192], [16416, 24]]);
+});

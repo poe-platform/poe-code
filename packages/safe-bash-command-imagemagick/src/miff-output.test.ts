@@ -65,3 +65,36 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         expect([...bytes.subarray(secondEnd + 1)]).toEqual([171, 205, 239, 255]);
     });
 }
+
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    for (const depth of [undefined, 8, 16] as const) for (const highDepth of [false, true]) {
+        it(`preserves MIFF samples in ${mode}, source16=${highDepth}, depth=${depth}`, async () => {
+            const samples = new Uint16Array([0x1234, 0x5678, 0x9abc, 0x8001, 0xabcd, 0xef01, 0x3456, 0]);
+            const pixels = Uint8Array.from(samples, value => value >>> 8);
+            const { data } = encodeImage({ width: 2, height: 1, format: "png", space: "srgb", depth: highDepth ? "ushort" : "uchar", density: 72, channels: 4, hasAlpha: true, data: pixels, ...(highDepth ? { data16: samples } : {}) }, { format: "png", pngBitDepth: highDepth ? 16 : 8 });
+            const files = new Map([["in.png", data]]), filesystem = new MemoryFileSystem();
+            await filesystem.writeFile("/in.png", data);
+            const args = ["in.png", ...(depth === undefined ? [] : ["-depth", String(depth)]), "-write", "mid.miff", "in.png", "out.miff"];
+            const result = mode === "command" ? await createMagickCommand().execute({
+                command: "magick", args, cwd: "/", env: {}, fs: filesystem,
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write() {} }, stderr: { async write() {} }
+            }) : mode === "sync" ? runMagickCliSync(args, files)
+                : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            expect(result.exitCode).toBe(0);
+            const outputDepth = depth ?? (highDepth ? 16 : 8);
+            const expected = outputDepth === 8 ? pixels : Uint8Array.from([...samples].flatMap((value, index) => highDepth ? [value >>> 8, value & 255] : [pixels[index]!, pixels[index]!]));
+            for (const [name, count] of [["mid.miff", 1], ["out.miff", 2]] as const) {
+                const bytes = mode === "retained" || mode === "command" ? await filesystem.readFile(`/${name}`) : files.get(name)!;
+                let offset = 0;
+                for (let frame = 0; frame < count; frame++) {
+                    const end = bytes.indexOf(26, offset);
+                    expect(new TextDecoder().decode(bytes.subarray(offset, end))).toContain(`depth=${outputDepth}\n`);
+                    expect(bytes.subarray(end + 1, end + 1 + expected.length)).toEqual(expected);
+                    offset = end + 1 + expected.length;
+                }
+                expect(offset).toBe(bytes.length);
+            }
+        });
+    }
+}

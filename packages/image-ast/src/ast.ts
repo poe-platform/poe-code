@@ -496,6 +496,7 @@ export interface OutputEncodeOptions {
   readonly consumeInput?: boolean;
   readonly format?: ImageFormat;
   readonly rawDepth?: string;
+  readonly miffDepth?: 8 | 16;
   readonly netpbmDepth?: number;
   readonly netpbmAscii?: boolean;
   readonly tiffBig?: boolean | undefined;

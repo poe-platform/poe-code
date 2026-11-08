@@ -8,6 +8,7 @@ const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAAEUlEQ
 
 for (const mode of ["buffered", "retained", "sync", "mogrify"] as const) {
   it.each([
+    "channel()", "channel(1,2,3,4,5,6)",
     "min(u)", "min(u,0,1)", "max()", "max(u,0,1)",
     "round()", "round(u,0.2)", "clamp()", "clamp(u,0.2,0.5)",
     "gcd()", "gcd(u)", "gcd(u,1,2)", "pow(u)", "atan2(u,0,1)", "hypot(u)", "mod(u,0,1)",

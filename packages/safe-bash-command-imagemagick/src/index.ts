@@ -2682,6 +2682,13 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
           }
         }
         expectToken(")");
+        if (name === "channel") {
+          if (args.length < 1 || args.length > 5) {
+            throw new Error(`FX function 'channel' expects 1 to 5 arguments, got ${args.length}`);
+          }
+          // The fourth argument is CMYK black; alpha is the fifth.
+          return ctx => args[ctx.ch === 3 ? 4 : ctx.ch]?.(ctx) ?? 0;
+        }
         if (!["sin", "sinc", "gauss", "cos", "tan", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh", "squish", "j0", "j1",
           "sqrt", "pow", "exp", "log", "log10", "ln", "abs", "min", "max", "floor", "ceil",
           "round", "int", "trunc", "sign", "isnan", "not", "hypot", "mod", "gcd", "clamp", "if", "rand"].includes(name)) {

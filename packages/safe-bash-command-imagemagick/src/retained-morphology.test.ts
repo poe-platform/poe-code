@@ -4,7 +4,7 @@ import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 const operators = [
-    ...["erode", "minimum", "dilate", "maximum", "open", "close", "edgein", "edgeout", "edge", "gradient", "tophat", "bottomhat", "median", "unknown"].map(method => ["-morphology", method, "3x5"]),
+    ...["erode", "minimum", "dilate", "maximum", "open", "close", "edgein", "edgeout", "edge", "gradient", "tophat", "bottomhat", "median"].map(method => ["-morphology", method, "3x5"]),
     ["-morphology", "median", "Square:2"], ["-morphology", "median", "Square:1"],
     ["-morphology", "Convolve", "1,2,-1,0,3,0,-1,2,1"], ["-morphology", "Correlate", "2x2:0.5,-1,2,0.2"],
     ["-statistic", "median", "5x3"], ["-statistic", "minimum", "3x3"], ["-statistic", "maximum", "1x1"], ["-statistic", "mean", "3x3"]
@@ -34,7 +34,6 @@ it("preserves original morphology pixel vectors", async () => {
         "c025507f95c5f736671db65c1b87d655f0f850171c414e7444d7dd501d840992",
         "7d47aee12529a8327466284023823121b3cefc359c2d820445760713adaacbea",
         "660d2ace02b838a136de3d575f4a80037c819db33f876f00b3d82079d84a402e",
-        "5c97f08bd90d5aa6cdd5d4cbd206be407e8d41a882f604db2433b6c2a7a398aa",
         "238307eb2f8ffb95415581d796f95c37296756e075f44210da0c936e7ac7f1b3",
         "c3c1d1ec79853dc2ded937f636c21d74f8e04a5d4a55c647695a61f87cd5bacc",
         "8c8313ef9c5744071f553effac956c376b3f6752fb9a48658d68d63595a6adec",

@@ -762,7 +762,8 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: Mo
     case "edge": case "gradient": steps = [filter(0, "max"), filter(0, "min"), diff(1, 2)]; break;
     case "tophat": steps = [filter(0, "min"), filter(1, "max"), diff(0, 2)]; break;
     case "bottomhat": steps = [filter(0, "max"), filter(1, "min"), diff(2, 0)]; break;
-    default: steps = [filter(0, "max")];
+    case "dilate": case "maximum": steps = [filter(0, "max")]; break;
+    default: throw new Error(`unrecognized function '${methodRaw}'`);
   }
   const explicit = explicitMorphologyRows(kernelSpec);
   if (explicit) return { rows: explicit, dilateRows: explicit.slice().reverse().map(row =>
@@ -7399,9 +7400,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) {
                 kernelSpec = tokens[++i]!;
             }
-            if (method.includes("convolve") || method.includes("correlate")) {
+            if (method.split(":")[0] === "convolve" || method.split(":")[0] === "correlate") {
                 const { iterations } = parseMagickMorphologyMethod(method);
-                const kernel = parseMagickConvolveKernel(kernelSpec, false, method.includes("convolve"));
+                const kernel = parseMagickConvolveKernel(kernelSpec, false, method.split(":")[0] === "convolve");
                 stack = yield* mapMagickImagesSteps(stack, function* (im) {
                     for (let pass = 0; kernel.weights.length && pass < iterations; pass++)
                         im = yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0), signal);
@@ -8806,9 +8807,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             let spec = "";
             if (token === "-statistic") spec = tokens[++i] ?? "3x3";
             else if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) spec = tokens[++i]!;
-            if (token === "-morphology" && (method.includes("convolve") || method.includes("correlate"))) {
+            if (token === "-morphology" && (method.split(":")[0] === "convolve" || method.split(":")[0] === "correlate")) {
                 const { iterations } = parseMagickMorphologyMethod(method);
-                const kernel = parseMagickConvolveKernel(spec, false, method.includes("convolve"));
+                const kernel = parseMagickConvolveKernel(spec, false, method.split(":")[0] === "convolve");
                 steps.push(async (image, backend) => {
                     for (let pass = 0; image && kernel.weights.length && pass < iterations; pass++)
                         image = await transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal);

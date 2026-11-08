@@ -1,3 +1,4 @@
+import { isXbmBytes, readXbmFromSource } from "./xbm.js";
 import { isRadianceBytes } from "./radiance.js";
 import { decodeRadianceToStorage } from "./radiance-storage.js";
 import { isExrBytes } from "./exr.js";
@@ -38,6 +39,7 @@ export async function storedImageDecoder(source:ImageByteSource,signal:AbortSign
  if(isRadianceBytes(prefix))return decodeRadianceToStorage;
  if(isPfmBytes(prefix))return decodePfmToStorage;
  if(isPhmBytes(prefix))return decodePhmToStorage;
+ if(isXbmBytes(prefix))return readXbmFromSource;
  if(isTxtBytes(prefix))return readTxtFromSource;
  if(isTgaBytes(prefix))return decodeTgaToStorage;
  if(isIcoBytes(prefix))return decodeIcoToStorage;

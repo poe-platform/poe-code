@@ -40,6 +40,8 @@ keep ownership of shared backing for other pending outputs.
 File adapters can use `withImageSource(input, filesystem, signal, callback)` to scope
 retained reads, source-version validation and handle cleanup to a supplied filesystem.
 
+Read XBM byte arrays with least-significant-bit-first pixels and byte-padded scanlines, including widths that are not multiples of eight.
+
 ImageMagick TXT pixel enumerations are detected by signature. RGB and grayscale input preserves alpha and 16-bit samples; `page` selects an image from concatenated enumerations.
 
 Lossless animated WebP inputs expose `pages`, millisecond `delay` values and `loop` metadata. Use `page` to decode a frame, including its canvas offset and disposal. Buffered and storage-backed decoders support the same frame selection.

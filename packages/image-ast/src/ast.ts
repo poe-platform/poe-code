@@ -6,6 +6,7 @@ export type ImageFormat =
   | "phm"
   | "xpm"
   | "tga"
+  | "xbm"
   | "txt"
   | "png"
   | "apng"

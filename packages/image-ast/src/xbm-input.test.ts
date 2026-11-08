@@ -1,0 +1,31 @@
+import { expect, it } from "vitest";
+import { decodeImage, readImageMetadata } from "./codecs/index.js";
+import { readXbmFromSource } from "./codecs/xbm.js";
+
+const bitmap = (width: number, height: number, values: string) => new TextEncoder().encode(`#define test_width ${width}\n#define test_height ${height}\nstatic char test_bits[] = { ${values} };`);
+
+it.each([1, 7, 8, 9, 16, 17])("ignores set padding bits for width %s", width => {
+  const stride = Math.ceil(width / 8);
+  const bytes = bitmap(width, 2, [...Array<string>(stride).fill("0xff"), ...Array<string>(stride).fill("0x00")].join(","));
+  const image = decodeImage(bytes);
+  expect(readImageMetadata(bytes)).toMatchObject({ format: "xbm", width, height: 2, channels: 1, hasAlpha: false });
+  for (let i = 0; i < width * 2; i++) expect([...image.data.subarray(i * 4, i * 4 + 4)]).toEqual(i < width ? [0, 0, 0, 255] : [255, 255, 255, 255]);
+});
+
+it.each([
+  bitmap(0, 1, "0"), bitmap(1, -1, "0"), bitmap(13, 5, "7,0"), bitmap(1, 1, "256"), bitmap(1, 1, "-1"), bitmap(1, 1, "0,0")
+])("rejects malformed XBM", bytes => {
+  expect(() => decodeImage(bytes)).toThrow("XBM");
+});
+
+it("enforces pixel limits before allocating pixels", () => {
+  expect(() => decodeImage(bitmap(13, 5, ""), { limitInputPixels: 64 })).toThrow("pixel limit");
+});
+
+it("honors cancellation and rejects truncated retained reads", async () => {
+  const bytes = bitmap(1, 1, "1");
+  const source = { size: bytes.length, async read(position: number, length: number) { return bytes.subarray(position, position + length); } };
+  const controller = new AbortController(); controller.abort(new Error("cancelled"));
+  await expect(readXbmFromSource(source, undefined, controller.signal)).rejects.toThrow("cancelled");
+  await expect(readXbmFromSource({ ...source, async read() { return new Uint8Array(); } }, undefined, new AbortController().signal)).rejects.toThrow("Truncated XBM source");
+});

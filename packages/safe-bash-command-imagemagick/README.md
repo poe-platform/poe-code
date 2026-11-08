@@ -22,6 +22,8 @@ const info = await shell.exec("magick identify -format '%m %wx%h' /banner.png");
 console.log(info.stdout); // PNG 60x40
 ```
 
+Read XBM byte arrays with least-significant-bit-first pixels and byte-padded scanlines, including widths that are not multiples of eight.
+
 Read native ImageMagick pixel enumerations by signature or with `txt:input.dat`. RGB and grayscale samples preserve alpha and 16-bit precision. Concatenated enumerations produce images in order: `magick txt:input.dat out-%d.png`; use `txt:input.dat[1]` to select the second image.
 
 ICO and CUR inputs read images in directory order, including PNG and uncompressed DIB entries with transparency. Use `icons.ico[1]` to select the second image, `icons.ico out-%d.png` to extract all images, or `icons.ico -append strip.png` to stack them.

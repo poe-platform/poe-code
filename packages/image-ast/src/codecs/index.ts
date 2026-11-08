@@ -1,3 +1,4 @@
+import { isXbmBytes, readXbmImage } from "./xbm.js";
 import { encodeXpmImage } from "./xpm-output.js";
 import { encodeHdrImage } from "./hdr-output.js";
 import { isRadianceBytes, readRadianceHeader, decodeRadianceImage } from "./radiance.js";
@@ -71,6 +72,7 @@ export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isRadianceBytes(bytes)) return "hdr";
   if (isPhmBytes(bytes)) return "phm";
   if (isPfmBytes(bytes)) return "pfm";
+  if (isXbmBytes(bytes)) return "xbm";
   if (isTxtBytes(bytes)) return "txt";
   if (isTgaBytes(bytes)) return "tga";
   if (isIcoBytes(bytes)) return bytes[2] === 1 ? "ico" : "cur";
@@ -169,6 +171,7 @@ export function readImageMetadata(
     case "tga":
       meta = readTgaMetadata(bytes);
       break;
+    case "xbm": meta = readXbmImage(bytes, options, true); break;
     case "txt":
       meta = readTxtImage(bytes, options, true);
       break;
@@ -406,6 +409,7 @@ export function decodeImage(
     case "tga":
       decoded = decodeTgaImage(bytes, options);
       break;
+    case "xbm": decoded = readXbmImage(bytes, options); break;
     case "txt":
       decoded = readTxtImage(bytes, options);
       break;

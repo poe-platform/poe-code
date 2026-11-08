@@ -2713,10 +2713,11 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     // use ImageMagick's best-fit SRT canvas and background virtual pixels.
     if (token === "-rotate") {
         const { angle, applies } = parseMagickRotation(tokens[start + 1] ?? "0"), background = state.background;
+        const nearest = state.kernel === "nearest" && state.interpolation === "nearest";
         if (!Number.isFinite(angle) || angle % 90 === 0) return;
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha">) => {
             if (!applies(image)) return;
-            const plan = magickWarpPlan(image, "+distort", "SRT", String(angle % 360))!;
+            const plan = { ...magickWarpPlan(image, "+distort", "SRT", String(angle % 360))!, nearest };
             return { ...plan, steps: warpPixelSteps(image, plan, background, "background") };
         } };
     }

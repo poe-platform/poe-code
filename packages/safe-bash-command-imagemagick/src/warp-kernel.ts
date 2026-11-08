@@ -4,6 +4,7 @@ export interface WarpPlan {
     readonly width: number;
     readonly height: number;
     readonly hasAlpha: boolean;
+    readonly nearest?: boolean;
     readonly virtualCanvas?: RgbaImage["virtualCanvas"];
     derivatives?(x: number, y: number): readonly [number, number, number, number];
     map(x: number, y: number): readonly [number, number];
@@ -61,8 +62,8 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             const x1 = virtualPixel ? x0 + 1 : Math.max(0, Math.min(width - 1, x0 + 1)), y1 = virtualPixel ? y0 + 1 : Math.max(0, Math.min(height - 1, y0 + 1));
             const fx = Math.max(0, Math.min(1, sx - x0)), fy = Math.max(0, Math.min(1, sy - y0));
             const derivatives = plan.derivatives?.(px, py);
-            for (let filtered = !!derivatives; ; filtered = false) {
-                const samples: Iterable<readonly [number, number, number] | undefined> = filtered ? ellipseSamples(sx, sy, derivatives!) : [
+            for (let filtered = !!derivatives && !plan.nearest; ; filtered = false) {
+                const samples: Iterable<readonly [number, number, number] | undefined> = plan.nearest ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : filtered ? ellipseSamples(sx, sy, derivatives!) : [
                     [x0, y0, (1 - fx) * (1 - fy)], [x1, y0, fx * (1 - fy)],
                     [x0, y1, (1 - fx) * fy], [x1, y1, fx * fy]
                 ];

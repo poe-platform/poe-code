@@ -1986,7 +1986,7 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
     return { ...img, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
 }
 
-function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, paramsRaw: string, channels: {
+function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: readonly number[], channels: {
     r: boolean;
     g: boolean;
     b: boolean;
@@ -1994,7 +1994,6 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, paramsRaw: s
 }, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const fn = funcRaw.toLowerCase();
-    const params = paramsRaw.split(",").map((s) => Number(s.trim()));
     const out = new Uint8Array(img.data);
     const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
     for (let i = 0; i < out.length; i += 4) {
@@ -5589,10 +5588,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             throw new Error(`unrecognized function '-function' '${operation}'`);
         }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        if (value.split(",").some(parameter => !Number.isFinite(Number(parameter)) || Number.parseFloat(parameter) !== Number(parameter))) {
+        const parameters = value.split(",").flatMap(part => part.trim().split(/\s+/));
+        if (parameters.some(parameter => !Number.isFinite(Number(parameter)) || Number.parseFloat(parameter) !== Number(parameter))) {
             throw new Error(`invalid list of numbers '-function' '${value}'`);
         }
-        apply = image => applyMagickFunctionSteps(image, operation, value, channels, signal);
+        const coefficients = parameters.map(Number);
+        apply = image => applyMagickFunctionSteps(image, operation, coefficients, channels, signal);
     } else if (token === "-solarize") {
         highDepth = true;
         const value = tokens[++i] ?? "50%";

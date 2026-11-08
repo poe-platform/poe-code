@@ -104,7 +104,7 @@ it("exposes independent GIF encoder flags through media serialization", () => {
     const output = ast.serialize(doc, { gifFlags });
     assert.deepEqual(decodeImage(output, { animated: true }).data, data);
     assert.deepEqual(decodeImage(output, { animated: true }).delay, [200, 200, 200]);
-    for (const [page, x, y] of [[1, 3, 4], [2, 5, 2]]) {
+    for (const [page, x, y] of [[1, 3, 4], [2, 5, 2]] as const) {
       const patch = decodeImage(output, { page, coalesce: false });
       assert.deepEqual([patch.virtualCanvas!.x, patch.virtualCanvas!.y, patch.width, patch.height], gifFlags & 1 ? [x, y, 1, 1] : [0, 0, 8, 8]);
     }

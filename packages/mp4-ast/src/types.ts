@@ -342,6 +342,8 @@ export interface MediaCodecDescription {
   readonly channels?: number | undefined;
   readonly bitsPerSample?: number | undefined;
   readonly avcC?: Mp4AvcCConfig | undefined;
+  /** Required stream-copy framing; AST H.264 samples remain length-prefixed. */
+  readonly h264Framing?: "avcc" | "annexb" | undefined;
   readonly hvcC?: Mp4HvcCConfig | undefined;
   readonly av1C?: Mp4Av1CConfig | undefined;
   readonly vpcC?: Mp4VpcCConfig | undefined;

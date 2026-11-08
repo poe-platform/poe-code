@@ -93,6 +93,17 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
       continue;
     }
     if (type !== "video") throw new Error(`Unsupported audio bitstream filter: ${filter}`);
+    if (filter === "h264_mp4toannexb") {
+      tracks = tracks.map(track => {
+        if (track.type !== "video") return track;
+        return { ...track, codecDescriptions: track.codecDescriptions.map(description => {
+          if (description.codecName !== "h264") throw new Error(`h264_mp4toannexb bitstream filter does not support codec ${description.codecName}`);
+          // Container serializers convert the normalized length-prefixed samples.
+          return { ...description, h264Framing: "annexb" as const };
+        }) };
+      });
+      continue;
+    }
     let insertAud = false;
     let level: number | undefined;
     let primaries: number | undefined;

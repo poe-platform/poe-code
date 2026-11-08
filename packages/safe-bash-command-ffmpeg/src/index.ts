@@ -3294,6 +3294,9 @@ function validateStreamCopy(
   const requiredSubtitleCodec = outputFormat === "srt" ? "subrip" : outputFormat === "webvtt" ? "webvtt" : outputFormat === "ass" ? "ass" : outputFormat === "ttml" ? "ttml" : undefined;
   for (const track of doc.tracks) {
     if (codecs[track.type] !== "copy") continue;
+    if (outputFormat === "avi" && track.samples.length && track.codecDescriptions.some(description => description.h264Framing === "avcc")) {
+      throw new Error("h264 bitstream malformed, no startcode found; use -bsf:v h264_mp4toannexb");
+    }
     const allowed = outputFormat === "webm"
       ? track.type === "video" ? ["vp8", "vp9", "av1"]
         : track.type === "audio" ? ["vorbis", "opus"]

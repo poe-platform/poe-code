@@ -661,6 +661,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       channels,
       bitsPerSample: info.bitDepth ?? 16,
       avcC,
+      h264Framing: avcC ? "avcc" : undefined,
       esds:
         codecName === "aac"
           ? {

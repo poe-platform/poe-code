@@ -4849,7 +4849,20 @@ function parseInputToken(token:string):{baseToken:string;pageSpec?:string;inline
     const bracketMatch = /^(.*)\[([^\]]+)\]$/.exec(baseToken);
     if (bracketMatch) {
         baseToken = bracketMatch[1]!;
-        const inside = bracketMatch[2]!;
+        let inside = bracketMatch[2]!;
+        if ([...inside].every(char => "0123456789-, ".includes(char))) {
+            // Spaces may surround indices and separators, but cannot join digits.
+            let normalized = "", spaced = false;
+            for (const char of inside) {
+                if (char === " ") { spaced = true; continue; }
+                if (spaced && "0123456789".includes(char) && normalized.length > 0 && "0123456789".includes(normalized.at(-1)!)) {
+                    throw new Error(`invalid image index '${inside}'`);
+                }
+                normalized += char;
+                spaced = false;
+            }
+            inside = normalized;
+        }
         if (/^-?\d+$/.test(inside) || /^-?\d+--?\d+$/.test(inside) || /^-?\d+(,-?\d+)+$/.test(inside)) {
             pageSpec = inside;
         }

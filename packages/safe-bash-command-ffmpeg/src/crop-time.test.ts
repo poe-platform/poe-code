@@ -17,7 +17,7 @@ for (const rate of [2, 4]) for (const axis of ["x", "y"]) for (const shifted of 
     const position = axis === "x" ? "2*t:0" : "x=0:y=2*t";
     const result = await createFfmpegCommand().execute({
       args: ["-framerate", String(rate), "-i", "/in%d.png", "-vf",
-        `${shifted ? "setpts=PTS+0.5," : ""}crop=4:2:${position}`,
+        `${shifted ? `setpts=PTS+${rate / 2},` : ""}crop=4:2:${position}`,
         "-fps_mode", "passthrough", "-frames:v", "3", "/out%d.png"],
       cwd: "/", env: {}, signal: new AbortController().signal,
       fs: {

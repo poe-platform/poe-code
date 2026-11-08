@@ -2040,18 +2040,24 @@ export function image2Ast(): MediaAstPlugin {
 // --- 9. SubRip (.srt) & WebVTT (.vtt) Subtitle ASTs ---
 
 function parseSubtitleTimecodeMs(raw: string, format: "srt" | "webvtt"): number {
+  if (format === "webvtt") {
+    const parts = raw.trim().split(":");
+    if (parts.length !== 2 && parts.length !== 3) return NaN;
+    const [seconds, fraction] = parts.pop()!.split(".");
+    parts.push(seconds ?? "");
+    if (parts.some(part => part.length === 0 || !Array.from(part).every(char => char >= "0" && char <= "9"))) return NaN;
+    const milliseconds = parseInt(fraction ?? "", 10);
+    if (!Number.isFinite(milliseconds)) return NaN;
+    return parts.reduce((total, part) => total * 60 + Number(part), 0) * 1000 + milliseconds;
+  }
   const clean = raw.trim().replace(",", ".");
   const parts = clean.split(":");
   if (parts.length === 3) {
     const h = parseInt(parts[0] ?? "0", 10) || 0;
     const m = parseInt(parts[1] ?? "0", 10) || 0;
-    if (format === "srt") {
-      const [seconds, milliseconds] = (parts[2] ?? "0").split(".");
-      return (h * 3600 + m * 60 + (parseInt(seconds ?? "0", 10) || 0)) * 1000
-        + (parseInt(milliseconds ?? "0", 10) || 0);
-    }
-    const sec = parseFloat(parts[2] ?? "0") || 0;
-    return Math.round((h * 3600 + m * 60 + sec) * 1000);
+    const [seconds, milliseconds] = (parts[2] ?? "0").split(".");
+    return (h * 3600 + m * 60 + (parseInt(seconds ?? "0", 10) || 0)) * 1000
+      + (parseInt(milliseconds ?? "0", 10) || 0);
   }
   if (parts.length === 2) {
     const m = parseInt(parts[0] ?? "0", 10) || 0;
@@ -2154,6 +2160,8 @@ export function parseSubtitleDocument(
     const subviewerTimes = format === "subviewer" ? subviewerTiming(timingLine) : undefined;
     const startMs = subviewerTimes ? subviewerTimes[0] : parseSubtitleTimecodeMs(leftRaw ?? "0", format === "srt" ? "srt" : "webvtt");
     const parsedEndMs = subviewerTimes ? subviewerTimes[1] : parseSubtitleTimecodeMs(rightRaw, format === "srt" ? "srt" : "webvtt");
+    // FFmpeg ends WebVTT demuxing here, preserving only preceding packets.
+    if (format === "webvtt" && (!Number.isFinite(startMs) || !Number.isFinite(parsedEndMs))) break;
     const endMs = format === "srt" ? parsedEndMs : Math.max(startMs + 1, parsedEndMs);
     const rawCueLines = lines.slice(arrowLineIdx + 1).join("\n");
     const cueLines = format === "subviewer" ? rawCueLines.replaceAll("[br]", "\n") : rawCueLines;

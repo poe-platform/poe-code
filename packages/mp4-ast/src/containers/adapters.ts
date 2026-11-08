@@ -132,9 +132,9 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
     newlineIdx++;
   }
   const headerLine = decodeUtf8(bytes.subarray(0, newlineIdx));
-  let width = 64;
-  let height = 64;
-  let fpsNum = 30;
+  let width = 0;
+  let height = 0;
+  let fpsNum = 25;
   let fpsDen = 1;
   let sarWidth = 1;
   let sarHeight = 1;
@@ -154,8 +154,8 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
     ].includes(token.slice(1))) {
       throw new Error("YUV4MPEG stream contains an unknown pixel format");
     }
-    if (token.startsWith("W")) width = parseInt(token.slice(1), 10) || width;
-    else if (token.startsWith("H")) height = parseInt(token.slice(1), 10) || height;
+    if (token.startsWith("W")) width = parseInt(token.slice(1), 10);
+    else if (token.startsWith("H")) height = parseInt(token.slice(1), 10);
     else if (token === "Ip") fieldOrder = "progressive";
     else if (token === "It") fieldOrder = "tt";
     else if (token === "Ib") fieldOrder = "bb";
@@ -168,7 +168,7 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
     else if (token === "XCOLORRANGE=LIMITED") colorRange = "tv";
     else if (token.startsWith("F")) {
       const [n, d] = token.slice(1).split(":");
-      fpsNum = parseInt(n ?? "30", 10) || 30;
+      fpsNum = parseInt(n ?? "25", 10) || 25;
       fpsDen = parseInt(d ?? "1", 10) || 1;
     } else if (token.startsWith("A")) {
       const [n, d] = token.slice(1).split(":");
@@ -180,6 +180,10 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
         sarHeight = denominator;
       }
     }
+  }
+
+  if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0) {
+    throw new Error("Invalid YUV4MPEG2 dimensions: width and height must be positive integers");
   }
 
   const fps = fpsNum / Math.max(1, fpsDen);

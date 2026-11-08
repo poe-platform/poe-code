@@ -79,6 +79,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  while(!next.done)next=steps.next(await reader.at(next.value));
  const {offset:ifd,pages}=next.value,count=await number(ifd,countSize);
  let width=0,height=0,bits=8,compression=1,photometric=2,samples=4,rows=0,predictor=1,xRes=72,yRes=72,resUnit=2,tileWidth=0,tileHeight=0,orientation=1;
+ let hasResolution=false;
  let planar=false;
  let fillOrder=1,faxOptions=0;
  let colorMap=empty;
@@ -105,7 +106,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   else if(tag===262)photometric=first;else if(tag===273&&available)offsets=values;
   else if(tag===274&&first>=1&&first<=8)orientation=first;else if(tag===277&&first>0)samples=first;
   else if(tag===278&&first>0)rows=first;else if(tag===279&&available)counts=values;
-  else if(tag===282&&first>0)xRes=first;else if(tag===283&&first>0)yRes=first;else if(tag===296&&(first===1||first===2||first===3))resUnit=first;
+  else if(tag===282&&first>0){xRes=first;hasResolution=true;}else if(tag===283&&first>0){yRes=first;hasResolution=true;}else if(tag===296&&(first===1||first===2||first===3))resUnit=first;
   else if(tag===284)planar=first===2;
   else if(tag===292||tag===293)faxOptions=first;
   else if(tag===266)fillOrder=first;
@@ -248,7 +249,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  if(palette&&(colorMap.count!==paletteSize*3||![8,16].includes(bits)))throw new Error("Invalid or unsupported TIFF ColorMap");
  const cmyk=photometric===5;
  const hasAlpha=(cmyk?samples===5:samples===2||samples===4)&&(extraSample===undefined||extraSample===1||extraSample===2);
- const metadata:StoredRgbaImage={...(pages>1?{pages}:{}),...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:!palette&&samples<3?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:!palette&&samples<3?hasAlpha?2:1:hasAlpha?4:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm":resUnit===1?"unknown":"inch"},hasAlpha,orientation};
+ const metadata:StoredRgbaImage={...(pages>1?{pages}:{}),...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:!palette&&samples<3?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:!palette&&samples<3?hasAlpha?2:1:hasAlpha?4:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),...(hasResolution?{resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm" as const:resUnit===1?"unknown" as const:"inch" as const}}:{}),hasAlpha,orientation};
  const raster=new Raster(combined,total,storage,signal),output=new Output(metadata,width,height,storage,signal);
  const sampleBuffer=new Uint8Array(8),sampleView=new DataView(sampleBuffer.buffer);
  const readSample=async(at:number,high:boolean)=>{

@@ -533,7 +533,7 @@ interface MagickState {
   bmpFormat?: "bmp2" | "bmp3" | "bmp4";
   bmp3Alpha?: boolean;
   bmpSubtype?: "RGB565" | "RGB555" | "ARGB4444" | "ARGB1555";
-  miffCompression?: "rle" | "none";
+  miffCompression?: "rle" | "none" | "bzip";
   tgaCompression?: "rle" | "none";
   bmpCompression?: "rle" | "none";
   tiffTile?: { width: number; height: number };
@@ -6563,10 +6563,10 @@ if (t === "-seed") {
         else if (t === "+interlace") { delete state.jpegProgressive; delete state.tiffPlanar; delete state.pngInterlace; delete state.gifInterlace; }
         else if (t === "-compress") {
             const compression = (tokens[++i] ?? "").toLowerCase();
-            const method = ({ none: "none", lzw: "lzw", zip: "deflate", rle: "packbits", jpeg: "jpeg" } as const)[compression as "none" | "lzw" | "zip" | "rle" | "jpeg"];
+            const method = ({ none: "none", lzw: "lzw", zip: "deflate", rle: "packbits", jpeg: "jpeg", bzip: "none" } as const)[compression as "none" | "lzw" | "zip" | "rle" | "jpeg" | "bzip"];
             if (method === undefined) throw new Error(`unsupported compression '${compression}'`);
             state.tiffCompression = method;
-            state.miffCompression = compression === "rle" ? "rle" : "none";
+            state.miffCompression = compression === "rle" || compression === "bzip" ? compression : "none";
             state.tgaCompression = compression === "rle" ? "rle" : "none";
             state.bmpCompression = compression === "rle" ? "rle" : "none";
             state.netpbmAscii = compression === "none";

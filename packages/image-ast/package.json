@@ -43,7 +43,8 @@
     "pako": "3.0.1",
     "@poe-code/safe-fs": "*",
     "@poe-code/compression": "*",
-    "@stacksjs/ts-webp": "0.1.7"
+    "@stacksjs/ts-webp": "0.1.7",
+    "safe-bash-compression-engine": "*"
   },
   "poeCode": {
     "safeLibraryExports": {

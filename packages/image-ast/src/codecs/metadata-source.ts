@@ -71,8 +71,8 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  else if(isNetpbmBytes(prefix)) {
   const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmSequenceSteps(source.size);let next=steps.next();
   while(!next.done)next=steps.next(await reader.at(next.value));
-  const {header:{format,width,height,maxval,channels,hasAlpha},pages}=next.value;
-  metadata={format,width,height,space:channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha,size:source.size,...(pages>1?{pages}:{})};
+  const {header:{format,width,height,maxval,channels,hasAlpha,cmyk},pages}=next.value;
+  metadata={format,width,height,space:cmyk?"cmyk":channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha,size:source.size,...(pages>1?{pages}:{})};
  } else {
   const length=Math.min(1029,source.size),head=await source.read(0,length,{signal});signal.throwIfAborted();
   if(!(head instanceof Uint8Array)||head.length!==length)throw new Error("Truncated image metadata source");

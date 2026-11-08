@@ -11,15 +11,22 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  signal.throwIfAborted();
  const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmSequenceSteps(source.size,options?.page??0);let next=steps.next();
  while(!next.done) next=steps.next(await reader.at(next.value));
- const {width,height,maxval,magic,format,dataOffset,channels,hasAlpha}=next.value.header;
+ const {width,height,maxval,magic,format,dataOffset,channels,hasAlpha,cmyk}=next.value.header;
  if(!["P1","P2","P3","P4","P5","P6","P7"].includes(magic)) throw new Error("Invalid Netpbm signature");
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)) throw new RangeError("Invalid Netpbm dimensions");
  checkLimitInputPixels(width,height,options);
  if(magic==="P6"&&source.size-dataOffset<width*height*3*(maxval>255?2:1)) throw new Error("Truncated PPM raster");
  if(magic==="P7"&&source.size-dataOffset<width*height*channels*(maxval>255?2:1)) throw new Error("Truncated PAM raster");
- const metadata:StoredRgbaImage={width,height,position:0,format,space:channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha};
+ const metadata:StoredRgbaImage={width,height,position:0,format,space:cmyk?"cmyk":channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha};
  const output=new Output(metadata,width,height,storage,signal);let position=dataOffset;
  const storedData16=maxval>255?{position:storage.allocate(width*height*8),length:width*height*4}:undefined;
+ const storedHueSamples=cmyk?storage.allocate(width*height*32):undefined;
+ const inks=new Float64Array(2048);let usedInks=0,offsetInks=0;
+ const flushInks=async():Promise<void>=>{
+  if(storedHueSamples===undefined||!usedInks)return;
+  await storage.write(storedHueSamples+offsetInks,new Uint8Array(inks.buffer,0,usedInks*8),{signal});
+  offsetInks+=usedInks*8;usedInks=0;
+ };
  const samples16=storedData16?new Uint16Array(2048):undefined;let used16=0,offset16=0;
  const flush16=async():Promise<void>=>{
   if(!storedData16||!samples16||!used16) return;
@@ -52,16 +59,19 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
    await output.pixel(g,g,g,255);
   } else if(magic==="P1") {const g=await ascii()===1?0:255;await output.pixel(g,g,g,255);}
   else {
-   const r=await sample(),g=channels>=3?await sample():r,b=channels>=3?await sample():r,a=hasAlpha?await sample():maxval;
-   await output.pixel(Math.round(r*255/maxval),Math.round(g*255/maxval),Math.round(b*255/maxval),hasAlpha?Math.round(a*255/maxval):255);
+   const r=await sample(),g=channels>=3?await sample():r,b=channels>=3?await sample():r,k=cmyk?await sample():0,a=hasAlpha?await sample():maxval;
+   const values=cmyk?[(maxval-r)*(maxval-k)/maxval,(maxval-g)*(maxval-k)/maxval,(maxval-b)*(maxval-k)/maxval,a]:[r,g,b,a];
+   if(cmyk){for(const value of [r,g,b,k])inks[usedInks++]=value/maxval;if(usedInks===inks.length)await flushInks();}
+   await output.pixel(Math.round(values[0]!*255/maxval),Math.round(values[1]!*255/maxval),Math.round(values[2]!*255/maxval),hasAlpha?Math.round(a*255/maxval):255);
    if(samples16) {
-    for(const value of [r,g,b,a]) samples16[used16++]=Math.round(value*65535/maxval);
+    for(const value of values) samples16[used16++]=Math.round(value*65535/maxval);
     if(used16===samples16.length) await flush16();
    }
   }
  }
  await flush16();
- return {...await output.finish(),...(storedData16?{storedData16}:{})};
+ await flushInks();
+ return {...await output.finish(),...(storedData16?{storedData16}:{}),...(storedHueSamples===undefined?{}:{storedHueSamples})};
 }
 /** Owned output chunks and pull-driven backpressure; rows never require full buffers. */
 export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,format:"ppm"|"pgm"|"pbm"|"pam",depth=image.storedData16?16:8,ascii=false):AsyncGenerator<Uint8Array> {
@@ -71,10 +81,30 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
  const maximum=2**depth-1;
  if(format==="pam") ascii=false;
  const gray=format==="pam"&&(image.space==="b-w"||image.space==="grey16");
- const channels=format==="pam"?(gray?1:3)+(image.hasAlpha?1:0):format==="ppm"?3:1;
- const pamHeader=`P7\nWIDTH ${image.width}\nHEIGHT ${image.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${gray?"GRAYSCALE":"RGB"}${image.hasAlpha?"_ALPHA":""}\nENDHDR\n`;
+ const cmyk=format==="pam"&&image.space==="cmyk";
+ const channels=format==="pam"?(gray?1:cmyk?4:3)+(image.hasAlpha?1:0):format==="ppm"?3:1;
+ const pamHeader=`P7\nWIDTH ${image.width}\nHEIGHT ${image.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${gray?"GRAYSCALE":cmyk?"CMYK":"RGB"}${image.hasAlpha?"_ALPHA":""}\nENDHDR\n`;
  const {width,height,position}=image;
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)||!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+width*height*4)) throw new RangeError("Invalid Netpbm backing dimensions");
+ if(cmyk&&image.storedHueSamples!==undefined) {
+  yield new TextEncoder().encode(pamHeader);
+  for(let offset=0;offset<width*height;offset+=512) {
+   signal.throwIfAborted();if(offset%16384===0)await defaultRuntime.yieldTurn(signal);
+   const count=Math.min(512,width*height-offset);
+   const bytes=await storage.read(image.storedHueSamples!+offset*32,count*32,{signal});
+   if(bytes.length!==count*32)throw new Error("Truncated PAM ink storage");
+   const inks=new Float64Array(new Uint8Array(bytes).buffer);
+   const alpha= image.storedData16 ? await storage.read(image.storedData16.position+offset*8,count*8,{signal}) : await storage.read(position+offset*4,count*4,{signal});
+   const samples=image.storedData16?new Uint16Array(new Uint8Array(alpha).buffer):alpha;
+   const out=new Uint8Array(count*channels*(depth>8?2:1));let dst=0;
+   for(let i=0;i<count;i++)for(let channel=0;channel<channels;channel++) {
+    const value=Math.round(maximum*(channel<4?inks[i*4+channel]!:samples[i*4+3]!/(image.storedData16?65535:255)));
+    if(depth>8)out[dst++]=value>>>8;out[dst++]=value&255;
+   }
+   yield out;
+  }
+  return;
+ }
  if(format!=="pbm"&&image.storedData16) {
   const samples=image.storedData16,count=width*height;
   if(!Number.isSafeInteger(samples.position)||samples.position<0||!Number.isSafeInteger(samples.position+count*8)||!Number.isSafeInteger(samples.length)||samples.length<count*4) throw new RangeError("Invalid Netpbm sample backing");
@@ -88,7 +118,9 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
    const data=new Uint16Array(new Uint8Array(bytes).buffer),out=new Uint8Array(ascii?0:pixels*channels*(depth>8?2:1));let dst=0;const text:string[]=[];
    for(let i=0;i<pixels;i++) {
     const r=data[i*4]!,g=data[i*4+1]!,b=data[i*4+2]!;
-    for(const value of format==="pam"?(gray?(image.hasAlpha?[r,data[i*4+3]!]:[r]):(image.hasAlpha?[r,g,b,data[i*4+3]!]:[r,g,b])):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(ascii){text.push(String(scaled));continue;}if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
+    const peak=Math.max(r,g,b),inks=cmyk?[peak===0?0:(1-r/peak)*65535,peak===0?0:(1-g/peak)*65535,peak===0?0:(1-b/peak)*65535,65535-peak]:[];
+    if(cmyk&&image.hasAlpha) inks.push(data[i*4+3]!);
+    for(const value of cmyk?inks:format==="pam"?(gray?(image.hasAlpha?[r,data[i*4+3]!]:[r]):(image.hasAlpha?[r,g,b,data[i*4+3]!]:[r,g,b])):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(ascii){text.push(String(scaled));continue;}if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
    }
    yield ascii?new TextEncoder().encode(text.join("\n")+"\n"):out;
   }
@@ -101,7 +133,9 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
   for(let x=0;x<width;x++) {
    const value=await pixels.pixel(y*width+x),r=value&255,g=value>>>8&255,b=value>>>16&255;
    if(format!=="pbm") {
-    for(const channel of format==="pam"?(gray?(image.hasAlpha?[r,value>>>24]:[r]):(image.hasAlpha?[r,g,b,value>>>24]:[r,g,b])):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {
+    const peak=Math.max(r,g,b),inks=cmyk?[peak===0?0:(1-r/peak)*255,peak===0?0:(1-g/peak)*255,peak===0?0:(1-b/peak)*255,255-peak]:[];
+    if(cmyk&&image.hasAlpha) inks.push(value>>>24);
+    for(const channel of cmyk?inks:format==="pam"?(gray?(image.hasAlpha?[r,value>>>24]:[r]):(image.hasAlpha?[r,g,b,value>>>24]:[r,g,b])):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {
      const scaled=Math.round(channel*maximum/255);
      if(ascii) {
       for(const byte of new TextEncoder().encode(`${scaled}\n`)) {buffer[used++]=byte;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}

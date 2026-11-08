@@ -5,7 +5,8 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
   width: number;
   height: number;
   maxval: number;
-  channels: 1 | 2 | 3 | 4;
+  channels: 1 | 2 | 3 | 4 | 5;
+  cmyk: boolean;
   hasAlpha: boolean;
   dataOffset: number;
 },number|undefined> {
@@ -27,11 +28,11 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
         const channels = Number(fields.get("DEPTH")), maxval = Number(fields.get("MAXVAL"));
         const tuple = fields.get("TUPLTYPE");
         if (!Number.isSafeInteger(width * height * 4) || !Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0 ||
-            ![1, 2, 3, 4].includes(channels) || !Number.isInteger(maxval) || maxval < 1 || maxval > 65535)
+            ![1, 2, 3, 4, 5].includes(channels) || !Number.isInteger(maxval) || maxval < 1 || maxval > 65535)
           throw new Error("Invalid PAM header");
-        const tuples: Record<string, number> = { BLACKANDWHITE: 1, BLACKANDWHITE_ALPHA: 2, GRAYSCALE: 1, GRAYSCALE_ALPHA: 2, RGB: 3, RGB_ALPHA: 4 };
-        if (tuple && tuples[tuple] !== channels) throw new Error("Unsupported PAM tuple type");
-        return { magic, format: "pam", width, height, maxval, channels: channels as 1 | 2 | 3 | 4, hasAlpha: channels === 2 || channels === 4, dataOffset: pos };
+        const tuples: Record<string, number> = { BLACKANDWHITE: 1, BLACKANDWHITE_ALPHA: 2, GRAYSCALE: 1, GRAYSCALE_ALPHA: 2, RGB: 3, RGB_ALPHA: 4, CMYK: 4, CMYK_ALPHA: 5 };
+        if ((tuple && tuples[tuple] !== channels) || (channels === 5 && tuple !== "CMYK_ALPHA")) throw new Error("Unsupported PAM tuple type");
+        return { magic, format: "pam", width, height, maxval, channels: channels as 1 | 2 | 3 | 4 | 5, cmyk: tuple === "CMYK" || tuple === "CMYK_ALPHA", hasAlpha: tuple === "CMYK_ALPHA" || (tuple !== "CMYK" && (channels === 2 || channels === 4)), dataOffset: pos };
       }
       if (!line) continue;
       let separator = 0;
@@ -96,6 +97,7 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
     height: tokens[1] ?? 0,
     maxval: format === "pbm" ? 1 : (tokens[2] ?? 255),
     channels: format === "ppm" ? 3 : 1,
+    cmyk: false,
     hasAlpha: false,
     dataOffset: pos
   };

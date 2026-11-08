@@ -53,3 +53,23 @@ for (const sync of [false, true]) for (const hasAlpha of [false, true]) {
         ]));
     });
 }
+
+for (const sync of [false, true]) for (const alpha of [false, true]) for (const depth of [8, 16]) {
+    it(`preserves CMYK inks and separate alpha, sync=${sync}, alpha=${alpha}, depth=${depth}`, async () => {
+        const inks = Buffer.from(alpha ? "00ffff0080ff000080ff" : "00ffff00ff000080", "hex");
+        const samples = depth === 8 ? inks : Buffer.from(Array.from(inks).flatMap(value => [value, value]));
+        const input = Buffer.concat([Buffer.from(`P7\nWIDTH 2\nHEIGHT 1\nDEPTH ${alpha ? 5 : 4}\nMAXVAL ${depth === 8 ? 255 : 65535}\nTUPLTYPE CMYK${alpha ? "_ALPHA" : ""}\nENDHDR\n`), samples]);
+        for (const convert of [false, true]) {
+            const files = new Map([["in.pam", input as Uint8Array]]);
+            const filesystem = new MemoryFileSystem();
+            await filesystem.writeFile("/in.pam", input);
+            const args = convert ? ["in.pam", "-colorspace", "sRGB", "-depth", "8", "out.rgba"] : ["in.pam", "out.pam"];
+            const result = sync ? runMagickCliSync(args, files) : await runMagickCli(args, { filesystem, cwd: "/" });
+            expect(result.stderr).toBe("");
+            expect(result.exitCode).toBe(0);
+            const path = convert ? "out.rgba" : "out.pam";
+            const output = sync ? files.get(path)! : await filesystem.readFile("/" + path);
+            expect(Buffer.from(output)).toEqual(convert ? Buffer.from(alpha ? "ff000080007f7fff" : "ff0000ff007f7fff", "hex") : input);
+        }
+    });
+}

@@ -573,7 +573,7 @@ export function encodeImage(
     case "pfm": return encodePfmImage(img, fmt);
     case "pam": {
       const data = encodePpm(img, options.netpbmDepth, false, true);
-      return { data, format: "pam", channels: (img.space === "b-w" || img.space === "grey16" ? 1 : 3) + (img.hasAlpha ? 1 : 0) };
+      return { data, format: "pam", channels: (img.space === "b-w" || img.space === "grey16" ? 1 : img.space === "cmyk" ? 4 : 3) + (img.hasAlpha ? 1 : 0) };
     }
     case "ppm": {
       const data = encodePpm(img, options.netpbmDepth, options.netpbmAscii);
@@ -616,8 +616,8 @@ export function encodeImage(
     }
     case "raw": {
       let rawU8: Uint8Array;
-      let outCh: 1 | 2 | 3 | 4 = img.channels;
-      if (img.channels === 4) {
+      let outCh: 1 | 2 | 3 | 4 = img.channels === 5 ? 4 : img.channels;
+      if (img.channels >= 4) {
         rawU8 = new Uint8Array(img.data);
         outCh = 4;
       } else if (img.channels === 3) {

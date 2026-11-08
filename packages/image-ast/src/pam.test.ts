@@ -5,6 +5,8 @@ import sharp, { decodeImage, encodeImage } from "./index.js";
 for (const [tuple, channels, maximum, hex, rgba] of [
     ["BLACKANDWHITE", 1, 1, "0001", "000000ffffffffff"],
     ["GRAYSCALE_ALPHA", 2, 255, "0a2320ff", "0a0a0a23202020ff"],
+    ["CMYK", 4, 255, "00ffff00ff000080", "ff0000ff007f7fff"],
+    ["CMYK_ALPHA", 5, 255, "00ffff0080ff000080ff", "ff000080007f7fff"],
     ["RGB", 3, 255, "123456abcdef", "123456ffabcdefff"],
     ["RGB_ALPHA", 4, 65535, "1234343456568080ababcdcdefef4040", "12345680abcdef40"]
 ] as const) {
@@ -15,7 +17,7 @@ for (const [tuple, channels, maximum, hex, rgba] of [
         const expected = Buffer.from(rgba, "hex");
         expect(Buffer.from(decodeImage(input).data)).toEqual(expected);
         const metadata = await sharp("/in", { filesystem }).metadata();
-        expect(metadata).toMatchObject({ format: "pam", width: 2, height: 1, channels, hasAlpha: channels === 2 || channels === 4 });
+        expect(metadata).toMatchObject({ format: "pam", width: 2, height: 1, channels, hasAlpha: tuple.endsWith("_ALPHA") });
         await sharp("/in", { filesystem }).toFormat("pam").toFile("/out");
         const sync = Buffer.from(sharp(input).toFormat("pam").toBufferSync());
         expect(Buffer.from(await filesystem.readFile("/out"))).toEqual(sync);

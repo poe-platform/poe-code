@@ -43,7 +43,7 @@ export function readNetpbmMetadata(bytes: Uint8Array): ImageMetadata {
     format: hdr.format,
     width: hdr.width,
     height: hdr.height,
-    space: hdr.channels >= 3 ? "srgb" : "b-w",
+    space: hdr.cmyk ? "cmyk" : hdr.channels >= 3 ? "srgb" : "b-w",
     channels: hdr.channels,
     depth: hdr.format === "pbm" ? "bit" : hdr.maxval > 255 ? "ushort" : "uchar",
     density: 72,
@@ -55,12 +55,13 @@ export function readNetpbmMetadata(bytes: Uint8Array): ImageMetadata {
 
 export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
   const { header: hdr } = parseNetpbmSequence(bytes, page);
-  const { width, height, maxval, magic, format, channels, hasAlpha } = hdr;
+  const { width, height, maxval, magic, format, channels, hasAlpha, cmyk } = hdr;
   if (magic === "P6" && bytes.length - hdr.dataOffset < width * height * 3 * (maxval > 255 ? 2 : 1)) {
     throw new Error("Truncated PPM raster");
   }
   if (magic === "P7" && bytes.length - hdr.dataOffset < width * height * channels * (maxval > 255 ? 2 : 1)) throw new Error("Truncated PAM raster");
   const rgba = new Uint8Array(width * height * 4);
+  const hueSamples = cmyk ? new Float64Array(rgba.length) : undefined;
   const data16 = maxval > 255 ? new Uint16Array(width * height * 4) : undefined;
   let pos = hdr.dataOffset;
 
@@ -89,8 +90,9 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
       return maxval > 255 ? (hi << 8) | (bytes[pos++] ?? 0) : hi;
     };
     for (let i = 0; i < width * height; i++) {
-      const r = readSample(), g = channels >= 3 ? readSample() : r, b = channels >= 3 ? readSample() : r, a = hasAlpha ? readSample() : maxval;
-      for (const [channel, value] of [r, g, b, a].entries()) {
+      const r = readSample(), g = channels >= 3 ? readSample() : r, b = channels >= 3 ? readSample() : r, k = cmyk ? readSample() : 0, a = hasAlpha ? readSample() : maxval;
+      hueSamples?.set([r / maxval, g / maxval, b / maxval, k / maxval], i * 4);
+      for (const [channel, value] of (cmyk ? [(maxval-r)*(maxval-k)/maxval, (maxval-g)*(maxval-k)/maxval, (maxval-b)*(maxval-k)/maxval, a] : [r, g, b, a]).entries()) {
         rgba[i * 4 + channel] = Math.round(value * 255 / maxval);
         if (data16) data16[i * 4 + channel] = Math.round(value * 65535 / maxval);
       }
@@ -127,7 +129,8 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
     data: rgba,
     ...(data16 ? {data16} : {}),
     format,
-    space: channels >= 3 ? "srgb" : "b-w",
+    space: cmyk ? "cmyk" : channels >= 3 ? "srgb" : "b-w",
+    ...(hueSamples ? {hueSamples} : {}),
     channels,
     depth: format === "pbm" ? "bit" : maxval > 255 ? "ushort" : "uchar",
     density: 72,
@@ -138,17 +141,18 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
 export function encodePpm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = false, pam = false): Uint8Array {
   if (pam) ascii = false;
   const gray = pam && (img.space === "b-w" || img.space === "grey16");
-  const channels = pam ? (gray ? 1 : 3) + (img.hasAlpha ? 1 : 0) : 3;
+  const cmyk = pam && img.space === "cmyk" && img.hueSamples !== undefined;
+  const channels = pam ? (cmyk ? 4 : gray ? 1 : 3) + (img.hasAlpha ? 1 : 0) : 3;
   if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
   const maximum = 2 ** depth - 1;
   const text: string[] = [];
-  const header = pam ? `P7\nWIDTH ${img.width}\nHEIGHT ${img.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${gray ? "GRAYSCALE" : "RGB"}${img.hasAlpha ? "_ALPHA" : ""}\nENDHDR\n` : `${ascii ? "P3" : "P6"}\n${img.width} ${img.height}\n${maximum}\n`;
+  const header = pam ? `P7\nWIDTH ${img.width}\nHEIGHT ${img.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${cmyk ? "CMYK" : gray ? "GRAYSCALE" : "RGB"}${img.hasAlpha ? "_ALPHA" : ""}\nENDHDR\n` : `${ascii ? "P3" : "P6"}\n${img.width} ${img.height}\n${maximum}\n`;
   const out = new Uint8Array(ascii ? 0 : header.length + img.width * img.height * channels * (depth > 8 ? 2 : 1));
   if (!ascii) out.set(new TextEncoder().encode(header), 0);
   let dst = header.length;
   for (let i = 0; i < img.width * img.height; i++) {
     for (let channel = 0; channel < channels; channel++) {
-      const value = Math.round((img.data16 ?? img.data)[i * 4 + (gray && channel === 1 ? 3 : channel)]! * maximum / (img.data16 ? 65535 : 255));
+      const value = Math.round(cmyk && channel < 4 ? img.hueSamples![i * 4 + channel]! * maximum : (img.data16 ?? img.data)[i * 4 + (channel === 4 || (gray && channel === 1) ? 3 : channel)]! * maximum / (img.data16 ? 65535 : 255));
       if (ascii) { text.push(String(value)); continue; }
       if (depth > 8) out[dst++] = value >>> 8;
       out[dst++] = value & 255;

@@ -64,11 +64,13 @@ export interface RgbaImage {
   readonly height: number;
   readonly data: Uint8Array;
   readonly data16?: Uint16Array;
+  /** Normalized working color samples; CMYK stores inks separately from RGBA. */
+  readonly hueSamples?: Float64Array;
   /** Normalized, unclamped RGBA float samples. */
   readonly dataFloat?: Float32Array;
   readonly format: ImageFormat;
   readonly space: ColorSpace;
-  readonly channels: 1 | 2 | 3 | 4;
+  readonly channels: 1 | 2 | 3 | 4 | 5;
   readonly depth: "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | "bit";
   readonly gamma?: number;
   readonly density: number;
@@ -105,7 +107,7 @@ export interface ImageMetadata {
   readonly width: number;
   readonly height: number;
   readonly space: ColorSpace;
-  readonly channels: 1 | 2 | 3 | 4;
+  readonly channels: 1 | 2 | 3 | 4 | 5;
   readonly depth: "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | "bit";
   readonly gamma?: number;
   readonly density: number;

@@ -16,8 +16,37 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("trim PTS validation", () => {
+  for (const option of ["start_pts", "end_pts"]) {
+    for (const value of ["", "bogus", "1.5", "Infinity", "9007199254740992"]) {
+      it(`rejects ${option}=${value} without replacing output`, async () => {
+        const previous = new Uint8Array([1, 2, 3]);
+        const vfs = createTestVfs({ "/out.png": previous });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-f", "lavfi", "-i", "color=red:s=2x2:r=4:d=1",
+          "-vf", `trim=${option}=${value}`, "/out.png"
+        ], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes(`trim: ${option} must be an integer`), result.stderr);
+        assert.deepEqual(vfs.store.get("/out.png"), previous);
+      });
+    }
+  }
+});
+
 describe("trim preserves timestamps", () => {
   for (const [filter, expected] of [
+    ["trim=start_pts=2:end_pts=4", [60, 80]],
+    ["trim=start_pts=2", [60, 80, 100, 120]],
+    ["trim=end_pts=4", [20, 40, 60, 80]],
+    ["trim=start_pts=-2:end_pts=2", [20, 40]],
+    ["trim=start_frame=1,trim=start_pts=2:end_pts=4", [60, 80]],
+    ["trim=start_pts=3:start_frame=1:end_pts=4", [40, 60, 80]],
+    ["trim=start_pts=3:start=0.25:end_pts=4", [40, 60, 80]],
+    ["trim=end_pts=2:end_frame=4", [20, 40, 60, 80]],
+    ["trim=end_pts=2:end=1", [20, 40, 60, 80]],
+    ["trim=start_pts=2:duration=0.5", [60, 80]],
+    ["fps=2,trim=start_pts=1:end_pts=2", [60]],
     ["trim=start=0.2", [40, 60, 80, 100, 120]],
     ["trim=start=0.1", [20, 40, 60, 80, 100, 120]],
     ["trim=start=0.125", [40, 60, 80, 100, 120]],

@@ -66,6 +66,9 @@ it("trim keeps a positive duration that rounds to zero as an empty interval", as
 
 describe("trim preserves timestamps", () => {
   for (const [filter, expected] of [
+    ["trim=end_frame=0", []],
+    ["trim=start=10", []],
+    ["trim=start_frame=5:end_frame=2", []],
     ["trim=0.5:1", [60, 80]],
     ["trim=0.5:1:0.25", [20, 40, 60, 80]],
     ["trim=0.5:1:0.5", [20, 40, 60, 80]],

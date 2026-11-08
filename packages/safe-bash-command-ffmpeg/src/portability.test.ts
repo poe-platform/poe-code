@@ -207,6 +207,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes transpose validation and geometry passthrough (10,299,197 bytes).
   // Includes rotate fill colors and the current rotation sampling graph.
   // Includes fps option validation and timestamp rounding (10,303,456 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_304_000,
+  // Includes trim duration anchoring, validation, and greedy end bounds (10,304,270 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_305_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

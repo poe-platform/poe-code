@@ -3,12 +3,12 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
-for (const rate of ["25:1", "30000:1001", "24000:1001", "12345:1001"]) {
+for (const rate of ["25:1", "30000:1001", "24000:1001", "12345:1001", "", "0:0", "bad"]) {
   for (const codec of [["-c:v", "copy"], ["-vf", "fps=2"]]) {
     it(`keeps exact Y4M rate ${rate} with ${codec.join(" ")}`, async () => {
       const payloads = Array.from({ length: 30 }, () => Buffer.alloc(6, 128));
       const input = Buffer.concat([
-        Buffer.from(`YUV4MPEG2 W2 H2 F${rate} Ip A1:1 C420jpeg\n`),
+        Buffer.from(`YUV4MPEG2 W2 H2${rate ? ` F${rate}` : ""} Ip A1:1 C420jpeg\n`),
         ...payloads.flatMap(payload => [Buffer.from("FRAME\n"), payload])
       ]);
       const volume = Volume.fromJSON({});
@@ -31,7 +31,7 @@ for (const rate of ["25:1", "30000:1001", "24000:1001", "12345:1001"]) {
       let cursor = bytes.indexOf(10) + 1;
       assert.ok(cursor > 0);
       const header = bytes.subarray(0, cursor - 1).toString().split(" ");
-      assert.ok(header.includes(`F${codec[0] === "-vf" ? "2:1" : rate}`), header.join(" "));
+      assert.ok(header.includes(`F${codec[0] === "-vf" ? "2:1" : ["", "0:0", "bad"].includes(rate) ? "25:1" : rate}`), header.join(" "));
       assert.ok(header.includes("W2"));
       assert.ok(header.includes("H2"));
       if (codec[0] === "-vf") return;

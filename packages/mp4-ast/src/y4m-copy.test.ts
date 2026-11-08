@@ -57,3 +57,17 @@ for (const [interlace, fieldOrder] of [["p", "progressive"], ["t", "tt"], ["b", 
     assert.deepEqual(serializeY4m(doc), bytes);
   });
 }
+
+for (const rate of ["", " F0:0", " Fbad", " F25:1"]) {
+  it(`uses 25 fps for Y4M rate ${rate || "omitted"}`, () => {
+    const bytes = concatBytes([encodeUtf8(`YUV4MPEG2 W2 H2${rate} C420jpeg\nFRAME\n`), samples]);
+    const doc = parseY4m(bytes);
+    const track = doc.tracks[0]!;
+    assert.equal(track.timescale / track.samples[0]!.duration, 25);
+    assert.equal(track.decodedVideoFrames![0]!.durationSeconds, 1 / 25);
+    assert.equal(doc.durationSeconds, 1 / 25);
+    const output = serializeY4m(doc);
+    assert.ok(new TextDecoder().decode(output.subarray(0, output.indexOf(10))).split(" ").includes("F25:1"));
+    assert.deepEqual(output.slice(-6), samples);
+  });
+}

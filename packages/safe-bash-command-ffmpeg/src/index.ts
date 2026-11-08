@@ -1,3 +1,4 @@
+import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
 import { decimate } from "./decimate.js";
@@ -5253,6 +5254,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       }
                       if (trimmed === "adeclick" || trimmed.startsWith("adeclick=")) {
                         stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal);
+                        continue;
+                      }
+                      if (trimmed === "deesser" || trimmed.startsWith("deesser=")) {
+                        stretched = await deessAudio(stretched, origRate, trimmed, budget, context.signal);
                         continue;
                       }
                       if (trimmed === "anull") continue;

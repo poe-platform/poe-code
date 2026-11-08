@@ -1,3 +1,4 @@
+import { decodeTga } from "./tga.js";
 import { icoAst } from "./ico.js";
 export { icoAst } from "./ico.js";
 import { apngAst } from "./apng.js";
@@ -1821,18 +1822,20 @@ export function image2Ast(): MediaAstPlugin {
       }
       return false;
     },
-    parse(bytes) {
+    parse(bytes, options) {
       let width = 64;
       let height = 64;
       let codecName = "png";
       let rgba: Uint8Array = new Uint8Array(64 * 64 * 4).fill(180);
+      const tga = options?.filename?.toLowerCase().endsWith(".tga");
       try {
-        const img = decodeImage(bytes);
+        const img = tga ? decodeTga(bytes, options) : decodeImage(bytes);
         width = img.width;
         height = img.height;
         rgba = img.data;
         codecName = img.format === "jpeg" ? "mjpeg" : img.format;
-      } catch {
+      } catch (error) {
+        if (tga) throw error;
         if (isPngSignature(bytes) && bytes.byteLength >= 24) {
           const view = new DataView(bytes.buffer, bytes.byteOffset + 16, 8);
           width = view.getUint32(0, false) || 64;

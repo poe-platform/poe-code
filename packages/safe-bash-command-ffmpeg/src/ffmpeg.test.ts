@@ -16,32 +16,6 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
-describe("trim preserves timestamps", () => {
-  for (const [filter, expected] of [
-    ["trim=start=0.5,trim=end=1", [60, 80]],
-    ["trim=start=0.5:end=1", [60, 80]],
-    ["trim=start_frame=2,trim=end=1", [60, 80]],
-    ["trim=start=0.5,setpts=PTS-STARTPTS,trim=end=0.5", [60, 80]]
-  ] as const) {
-    it(filter, async () => {
-      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
-      const vfs = createTestVfs();
-      for (let i = 1; i <= 6; i++) {
-        vfs.store.set(`/in${i}.png`, encodeImage({ width: 1, height: 1,
-          data: Uint8Array.from([i * 20, i * 20, i * 20, 255]),
-          format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false
-        }, { format: "png" }).data);
-      }
-      const result = await runCmd(createFfmpegCommand(), [
-        "-framerate", "4", "-i", "/in%d.png", "-vf", filter, "/out%d.png"
-      ], vfs);
-      assert.equal(result.exitCode, 0, result.stderr);
-      const output = [...vfs.store.keys()].filter(path => path.startsWith("/out")).sort();
-      assert.deepEqual(output.map(path => decodeImage(vfs.store.get(path)!).data[0]), expected);
-    });
-  }
-});
-
 describe("negate available components", () => {
   for (const [source, filter, valid] of [
     ["rgba", "negate=components=y", false],
@@ -8241,6 +8215,59 @@ describe("fps end-of-file action", () => {
         .sort((a, b) => Number(a.slice(4, -4)) - Number(b.slice(4, -4)));
       assert.equal(outputs.length, expected.length);
       assert.deepEqual(outputs.map(path => decodeImage(vfs.store.get(path)!).data[0]), expected);
+    });
+  }
+});
+
+describe("trim time validation", () => {
+  for (const option of ["start", "end", "duration"]) {
+    for (const value of ["bogus", "1bogus", "NaN", "Infinity", "", "1e3", "0x10"]) {
+      it(`rejects ${option}=${value} before writing output`, async () => {
+        const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+        const vfs = createTestVfs();
+        for (let i = 1; i <= 6; i++) {
+          vfs.store.set(`/in${i}.png`, encodeImage({ width: 1, height: 1,
+            data: Uint8Array.from([i * 20, i * 20, i * 20, 255]),
+            format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false
+          }, { format: "png" }).data);
+        }
+        const previous = vfs.store.get("/in6.png")!.slice();
+        vfs.store.set("/out1.png", previous.slice());
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-framerate", "4", "-i", "/in%d.png", "-vf", `trim=${option}=${value}`, "/out%d.png"
+        ], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes(`trim: invalid ${option}`), result.stderr);
+        assert.deepEqual(vfs.store.get("/out1.png"), previous);
+        const output = [...vfs.store.keys()].filter(path => path.startsWith("/out"));
+        assert.deepEqual(output, ["/out1.png"]);
+        assert.deepEqual(output.map(path => decodeImage(vfs.store.get(path)!).data[0]), [120]);
+      });
+    }
+  }
+  for (const [options, expected] of [
+    ["start=0.5:end=1", [60, 80]],
+    ["start=500ms:duration=500000us", [60, 80]],
+    ["0.5", [60, 80, 100, 120]],
+    ["start=-1:end=0.5", [20, 40]],
+    ["", [20, 40, 60, 80, 100, 120]]
+  ] as const) {
+    it(`accepts valid trim ${options}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      for (let i = 1; i <= 6; i++) {
+        vfs.store.set(`/in${i}.png`, encodeImage({ width: 1, height: 1,
+          data: Uint8Array.from([i * 20, i * 20, i * 20, 255]),
+          format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false
+        }, { format: "png" }).data);
+      }
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "4", "-i", "/in%d.png", "-vf", options ? `trim=${options}` : "trim",
+        "-fps_mode", "passthrough", "/out%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = [...vfs.store.keys()].filter(path => path.startsWith("/out")).sort();
+      assert.deepEqual(output.map(path => decodeImage(vfs.store.get(path)!).data[0]), expected);
     });
   }
 });

@@ -1971,12 +1971,17 @@ async function applyVideoFilterChain(
       if (positional.some((part, index) => part && !part.includes("=") && index > 0)) {
         throw new Error("trim: unsupported positional option");
       }
-      const start = named.start ?? (positional[0]?.includes("=") ? undefined : positional[0]);
-      const st = parseFfmpegTimestamp(start ?? "0");
+      const start = named.start ?? (argStr && !positional[0]?.includes("=") ? positional[0] : undefined);
+      const st = parseHlsDuration(start ?? "0");
       const startFrame = named.start_frame === undefined ? undefined : Number(named.start_frame);
       const endFrame = named.end_frame === undefined ? undefined : Number(named.end_frame);
-      const end = named.end ? parseFfmpegTimestamp(named.end) : Infinity;
-      const dur = named.duration ? parseFfmpegTimestamp(named.duration) : undefined;
+      const end = named.end === undefined ? Infinity : parseHlsDuration(named.end);
+      const dur = named.duration === undefined ? undefined : parseHlsDuration(named.duration);
+      for (const [option, raw, value] of [["start", start, st], ["end", named.end, end], ["duration", named.duration, dur]] as const) {
+        if (raw !== undefined && !Number.isFinite(value)) {
+          throw new Error(`trim: invalid ${option} duration: ${raw}`);
+        }
+      }
       const finalEnd = dur !== undefined ? st + dur : end;
       current = current
         .filter((f, index) => {
@@ -1987,7 +1992,8 @@ async function applyVideoFilterChain(
             ? f.ptsSeconds < finalEnd
             : index < endFrame || (Number.isFinite(finalEnd) && f.ptsSeconds < finalEnd);
           return afterStart && beforeEnd;
-        });
+        })
+        .map((f) => ({ ...f, ptsSeconds: Math.max(0, f.ptsSeconds - st) }));
     } else if (name === "drawtext") {
       const rawText = (named.text ?? positional[0] ?? "").replace(/^['"]|['"]$/g, "");
       const fontSize = parseInt(named.fontsize ?? "12", 10) || 12;

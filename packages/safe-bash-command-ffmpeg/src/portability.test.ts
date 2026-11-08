@@ -144,8 +144,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes transpose option validation and geometry passthrough (958,495 bytes).
   // Includes rotate fill colors and the current rotation sampling graph (960,008 bytes).
   // Includes negate option validation and component availability checks (961,770 bytes).
-  // Includes fps start-time offsets in the input and output time bases (963,021 bytes).
-  assert.ok(otherCodeBytes < 964_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  assert.ok(otherCodeBytes < 963_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

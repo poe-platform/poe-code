@@ -4724,23 +4724,39 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   };
                 }
               } else if (filterComplex.includes("xfade") && loadedDocs.length >= 2) {
-                const track0 = loadedDocs[0]!.tracks.find((t) => t.type === "video")!;
-                const track1 = loadedDocs[1]!.tracks.find((t) => t.type === "video")!;
-                const f0 = await ensureDecodedFrames(
-                  track0,
-                  loadedDocs[0]!.timescale, budget
-                , context.signal);
-                const f1 = await ensureDecodedFrames(
-                  track1,
-                  loadedDocs[1]!.timescale, budget
-                , context.signal);
+                let pads = filterComplex.slice(0, filterComplex.indexOf("xfade")).trim();
+                const selected = [0, 1].map(defaultIndex => {
+                  let inputIndex = defaultIndex;
+                  let streamIndex = 0;
+                  if (pads.startsWith("[")) {
+                    const end = pads.indexOf("]");
+                    const label = pads.slice(1, end);
+                    const parts = label.split(":");
+                    if (end < 0 || parts.length > 3 || parts[1] !== "v" ||
+                        !parts[0] || ![...parts[0]].every(char => char >= "0" && char <= "9") ||
+                        (parts[2] !== undefined && (!parts[2] || ![...parts[2]].every(char => char >= "0" && char <= "9")))) {
+                      throw new Error(`xfade: invalid input label ${label}`);
+                    }
+                    inputIndex = Number(parts[0]);
+                    streamIndex = Number(parts[2] ?? 0);
+                    pads = pads.slice(end + 1).trim();
+                  }
+                  const doc = loadedDocs[inputIndex];
+                  const track = doc?.tracks.filter(t => t.type === "video")[streamIndex];
+                  if (!doc || !track) throw new Error(`xfade: input ${inputIndex}:v:${streamIndex} is unavailable`);
+                  return { doc, track, input: inputs[inputIndex]! };
+                });
+                if (pads) throw new Error(`xfade: unsupported input labels ${pads}`);
+                const [first, second] = [selected[0]!, selected[1]!];
+                const f0 = await ensureDecodedFrames(first.track, first.doc.timescale, budget, context.signal);
+                const f1 = await ensureDecodedFrames(second.track, second.doc.timescale, budget, context.signal);
                 if (f0[0] && f1[0]) {
                   if (f0[0].width !== f1[0].width || f0[0].height !== f1[0].height) {
                     throw new Error(`xfade input size ${f0[0].width}x${f0[0].height} does not match ${f1[0].width}x${f1[0].height}`);
                   }
                   // Lavfi's timebase is its frame interval, not the synthetic MP4 timescale.
-                  const timebase0 = inputs[0]!.format === "lavfi" ? f0[0].durationSeconds : 1 / track0.timescale;
-                  const timebase1 = inputs[1]!.format === "lavfi" ? f1[0].durationSeconds : 1 / track1.timescale;
+                  const timebase0 = first.input.format === "lavfi" ? f0[0].durationSeconds : 1 / first.track.timescale;
+                  const timebase1 = second.input.format === "lavfi" ? f1[0].durationSeconds : 1 / second.track.timescale;
                   if (timebase0 !== timebase1) {
                     throw new Error(`xfade input timebase ${timebase0} does not match ${timebase1}`);
                   }

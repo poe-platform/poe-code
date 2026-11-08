@@ -17,6 +17,29 @@ import {
 } from "./index.js";
 
 describe("xfade duration", () => {
+  for (const [labels, expected] of [
+    ["[0:v][1:v]", [254, 254, 254, 254, 254, 190, 127, 63, 0, 0, 0, 0]],
+    ["[1:v][0:v]", [0, 0, 0, 0, 0, 63, 127, 190, 254, 254, 254, 254]]
+  ] as const) {
+    it(`binds xfade inputs in label order ${labels}`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-v", "error",
+        "-f", "lavfi", "-i", "color=c=red:s=8x8:r=4:d=2",
+        "-f", "lavfi", "-i", "color=c=blue:s=8x8:r=4:d=2",
+        "-filter_complex", `${labels}xfade=duration=1:offset=1`, "/%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(vfs.store.size, expected.length);
+      // Native FFmpeg's lavfi color conversion differs by at most one.
+      for (const [index, red] of expected.entries()) {
+        const frame = decodeImage(vfs.store.get(`/${index + 1}.png`)!);
+        assert.ok(Math.abs(frame.data[0]! - red) <= 1,
+          `frame ${index + 1}: expected red ${red}, got ${frame.data[0]}`);
+      }
+    });
+  }
   for (const [offset, expected] of [
     [-0.5, [127, 63, 0, 0, 0, 0, 0, 0]],
     [-1, [0, 0, 0, 0, 0, 0, 0, 0]],

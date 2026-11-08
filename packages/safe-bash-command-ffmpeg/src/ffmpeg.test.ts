@@ -1368,6 +1368,31 @@ it("copies Matroska PCM audio without changing its codec or packets", async () =
   }
 });
 
+describe("-abort_on flag combinations and masks", () => {
+  for (const [flag, mask] of [["0", 0], ["1", 1], ["2", 2], ["3", 3],
+    ["empty_output", 1], ["empty_output+empty_output_stream", 3],
+    ["empty_output_stream+empty_output", 3]] as const) {
+    for (const maps of [[0], [1], [0, 1]]) {
+      it(`${flag} with mapped inputs ${maps}`, async () => {
+        const vfs = createTestVfs({
+          "/full.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(800)] }),
+          "/empty.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(0)] })
+        });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-v", "error", "-abort_on", flag,
+          "-i", "/full.wav", "-i", "/empty.wav",
+          ...maps.flatMap(index => ["-map", `${index}:a`]), "-f", "null", "-"
+        ], vfs);
+        const emptyStream = (mask & 2) !== 0 && maps.includes(1);
+        const emptyOutput = (mask & 1) !== 0 && !maps.includes(0);
+        assert.equal(result.exitCode, emptyStream || emptyOutput ? 234 : 0, result.stderr);
+        if (emptyStream) assert.ok(result.stderr.includes(`output stream 0:${maps.indexOf(1)}`), result.stderr);
+        if (!emptyStream && !emptyOutput) assert.equal(result.stderr, "");
+      });
+    }
+  }
+});
+
 describe("-abort_on empty_output_stream", () => {
   for (const maps of [[0], [0, 1], [1, 0], [0, 0]]) {
     it(`checks mapped streams: ${maps}`, async () => {

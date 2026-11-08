@@ -4156,12 +4156,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             progressTarget = args[++i];
           } else if (arg === "-abort_on") {
             const value = args[++i];
-            if (value !== "empty_output" && value !== "empty_output_stream") {
+            let mask = 0;
+            for (const flag of (value ?? "").split("+")) {
+              if (flag === "empty_output") mask |= 1;
+              else if (flag === "empty_output_stream") mask |= 2;
+              else if (["0", "1", "2", "3"].includes(flag)) mask |= Number(flag);
+              else { mask = -1; break; }
+            }
+            if (mask < 0) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unsupported -abort_on value '${value ?? ""}'\n`), context.signal);
               return { exitCode: 234 };
             }
-            abortOnEmptyOutput = value === "empty_output";
-            abortOnEmptyOutputStream = value === "empty_output_stream";
+            abortOnEmptyOutput = (mask & 1) !== 0;
+            abortOnEmptyOutputStream = (mask & 2) !== 0;
           } else if (arg === "-max_error_rate") {
             const value = args[++i]?.trim().toLowerCase() ?? "";
             const rate = ["inf", "+inf", "infinity", "+infinity"].includes(value) ? Infinity

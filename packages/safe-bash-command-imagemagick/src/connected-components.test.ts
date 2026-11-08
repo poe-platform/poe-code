@@ -12,6 +12,25 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
   const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
   return { result, files, fs };
  }
+ for (const [colors, labels, rows] of [
+  ["red", [0,1,1,3,3,3,3], "  3: 4x1+3+0 4.5,0.0 4 srgb(255,0,0)\n  1: 2x1+1+0 1.5,0.0 2 srgb(255,0,0)\n  0: 1x1+0+0 0.0,0.0 1 srgb(0,0,0)\n"],
+  ["blue", [0,0,0,0,0,5,5], "  0: 5x1+0+0 2.0,0.0 5 srgb(0,0,0)\n  5: 2x1+5+0 5.5,0.0 2 srgb(0,0,255)\n"],
+ ] as const) it(`keeps components by mean color ${colors} (${mode})`, async () => {
+  const { result, files, fs } = await run(["xc:black", "xc:red", "xc:black", "xc:red", "xc:black", "xc:blue", "xc:black", "+append", "-define", `connected-components:keep-colors=${colors}`, "-define", "connected-components:verbose=true", "-connected-components", "4", "out.png"]);
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + rows });
+  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
+  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual(labels);
+ });
+ it(`keeps fuzzy mean colors (${mode})`, async () => {
+  const { result } = await run(["xc:red", "xc:red", "xc:red", "xc:rgb(0,0,240)", "xc:rgb(0,0,250)", "xc:green", "xc:green", "+append", "-fuzz", "3%", "-define", "connected-components:keep-colors=blue", "-define", "connected-components:verbose=true", "-connected-components", "4", "null:"]);
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  1: 4x1+3+0 4.5,0.0 4 srgb(0,0,245)\n  0: 3x1+0+0 1.0,0.0 3 srgb(255,0,0)\n" });
+ });
+ for (const reset of [false, true]) it(`keeps multiple colors and clears selection (${reset}, ${mode})`, async () => {
+  const { result, files, fs } = await run(["xc:black", "xc:red", "xc:blue", "xc:green", "+append", "-define", "connected-components:keep-colors=rgb(255,0,0);blue", ...(reset ? ["+define", "connected-components:keep-colors"] : []), "-connected-components", "4", "out.png"]);
+  expect(result.exitCode).toBe(0);
+  const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
+  expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual(reset ? [0,1,2,3] : [0,1,2,2]);
+ });
  for (const connectivity of [4, 8]) it(`keeps the largest foreground region and background (${connectivity}, ${mode})`, async () => {
   const bytes = readFileSync(new URL("./fixtures/component-stripes.png", import.meta.url));
   const { result, files, fs } = await run(["input.png", "-define", "connected-components:keep-top=1", "-define", "connected-components:verbose=true", "-connected-components", String(connectivity), "out.png"], bytes);

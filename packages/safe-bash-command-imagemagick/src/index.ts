@@ -2057,7 +2057,7 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = ((cur * 257) ^ Math.round(vFactor)) / 257;
                     break;
                 case "leftshift":
-                    next = cur * 2 ** Math.max(0, Math.round(vFactor));
+                    next = cur === 0 ? 0 : cur * 2 ** Math.max(0, Math.round(vFactor));
                     break;
                 case "rightshift":
                     // Preserve quantum precision until byte encoding; JS shifts truncate and wrap at 32 bits.
@@ -2087,7 +2087,8 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     break;
             }
             evaluateSamples[i + c] = next;
-            out[i + c] = clampByteVal(next);
+            // Positive overflow saturates on output while HDRI samples retain their range.
+            out[i + c] = clampByteVal(Math.min(255, next));
             if (data16) data16[i + c] = Math.round(Math.max(0, Math.min(65535, next * 257)));
         }
     }

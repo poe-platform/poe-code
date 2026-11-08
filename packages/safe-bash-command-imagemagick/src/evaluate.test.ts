@@ -228,6 +228,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     [16, [0, 0, 0]],
     [32, [0, 0, 0]],
     [100, [0, 0, 0]],
+    [1024, [0, 0, 0]],
   ])(`${mode}: RightShift %s matches native rounding and shift width`, async (shift, expected) => {
     const pixels = new Uint8Array([17, 101, 239].flatMap(value => [value, value, value, 255]));
     const bytes = await sharp(pixels, { raw: { width: 3, height: 1, channels: 4 } }).png().toBuffer();
@@ -242,7 +243,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     expect([...output.data]).toEqual(expected.flatMap(value => [value, value, value, 255]));
   });
 
-  it.each([2, 24])(`${mode}: LeftShift %i clamps overflowing channels`, async (shift) => {
+  it.each([2, 24, 256, 1024, 1025, 32768, "50%"])(`${mode}: LeftShift %s clamps overflowing channels`, async (shift) => {
     const values = [0, 40, 63, 64, 100, 200, 255];
     const pixels = new Uint8Array(values.flatMap(value => [value, value, value, 255]));
     const bytes = await sharp(pixels, { raw: { width: values.length, height: 1, channels: 4 } }).png().toBuffer();
@@ -317,3 +318,20 @@ for (const mode of ["map", "retained", "command"] as const) {
     expect(Array.from(output.data)).toEqual([red, 15, 21, 255, operation === "Multiply" ? 55 : red + 100, 115, 121, 255]);
   });
 }
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI saturates nonzero samples at these counts.
+it.each(["1024", "1025", "32768", "50%"])("command: LeftShift %s saturates the grayscale ramp", async (shift) => {
+  const values = [0, 1, 32, 64, 127, 128, 192, 254, 255];
+  const pixels = new Uint8Array(values.flatMap(value => [value, value, value, 255]));
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/in.png", await sharp(pixels, { raw: { width: values.length, height: 1, channels: 4 } }).png().toBuffer());
+  const args = ["/in.png", "-evaluate", "LeftShift", shift, "/out.png"];
+  const result = await createMagickCommand().execute({
+    command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+    stdin: (async function* () {})(), signal: new AbortController().signal,
+    stdout: { write: async () => {} }, stderr: { write: async () => {} },
+  });
+  expect(result).toMatchObject({ exitCode: 0 });
+  const output = decodeImage(await fs.readFile("/out.png"));
+  expect([...output.data]).toEqual(values.flatMap(value => value === 0 ? [0, 0, 0, 255] : [255, 255, 255, 255]));
+});

@@ -1488,6 +1488,48 @@ async function applyVideoFilterChain(
         }
         return { ...f, data };
       }, signal);
+    } else if (name === "histogram") {
+      if (argStr) throw new Error("histogram: options are not supported");
+      current = await mapWork(current, async (f) => {
+        const width = 256;
+        const levelHeight = 200;
+        const scaleHeight = 12;
+        const height = (levelHeight + scaleHeight) * 3;
+        budget.recordFrame(width, height);
+        const data = new Uint8Array(width * height * 4);
+        for (let channel = 0; channel < 3; channel++) {
+          const bins = new Uint32Array(256);
+          for (let i = channel; i < f.data.length; i += 4) {
+            if ((i - channel) % 65536 === 0) {
+              await yieldTurn(signal);
+              signal?.throwIfAborted();
+              budget.checkCpu();
+            }
+            bins[f.data[i]!]!++;
+          }
+          const maximum = Math.max(...bins);
+          const top = channel * (levelHeight + scaleHeight);
+          for (let y = 0; y < levelHeight + scaleHeight; y++) {
+            if (y % 32 === 0) {
+              await yieldTurn(signal);
+              signal?.throwIfAborted();
+              budget.checkCpu();
+            }
+            for (let x = 0; x < width; x++) {
+              const offset = ((top + y) * width + x) * 4;
+              if (y >= levelHeight) {
+                data[offset + channel] = x;
+              } else if (y >= levelHeight - Math.ceil(bins[x]! * levelHeight / maximum)) {
+                data[offset] = data[offset + 1] = data[offset + 2] = 255;
+              }
+              data[offset + 3] = 255;
+            }
+          }
+        }
+        // The histogram is a new RGB raster; source native planes no longer apply.
+        return { width, height, data, ptsSeconds: f.ptsSeconds,
+          durationSeconds: f.durationSeconds, keyframe: true };
+      }, signal);
     } else if (name === "negate") {
       current = await mapWork(current, async (f) => {
         const source = f.native;

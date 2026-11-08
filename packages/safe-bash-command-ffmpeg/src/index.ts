@@ -3194,27 +3194,6 @@ function outputFrameLimits(tracks: readonly MediaTrack[], options: readonly [str
   });
 }
 
-function discardOutputVideoPreroll(document: MediaDocument): MediaDocument {
-  const tracks = document.tracks.map(track => {
-    if (track.type !== "video") return track;
-    let offset = 0;
-    for (const edit of track.editList ?? []) {
-      if (edit.mediaTime < 0) offset += edit.segmentDuration / document.timescale;
-      else { offset -= edit.mediaTime / track.timescale; break; }
-    }
-    const first = track.samples.findIndex(sample => sample.isKeyframe &&
-      sample.pts + Math.round(offset * track.timescale) >= 0);
-    if (first === 0) return track;
-    // Keep the original timestamps and edit list: the next keyframe can leave
-    // a gap between the requested output start and the first copied packet.
-    return first < 0
-      ? { ...track, samples: [], duration: 0, editList: undefined, declaredSampleCount: undefined }
-      : { ...track, samples: track.samples.slice(first), declaredSampleCount: undefined };
-  });
-  const durationSeconds = Math.max(0, ...tracks.map(track => track.duration / track.timescale));
-  return { ...document, tracks, durationSeconds, duration: Math.round(durationSeconds * document.timescale) };
-}
-
 function limitCopyPackets(
   document: MediaDocument,
   limits: readonly (number | undefined)[],
@@ -3423,8 +3402,8 @@ function parseTimestampScale(option: string, value: string | undefined): [string
   return [specifier, scale];
 }
 
-function rebaseInputTimestamps(doc: MediaDocument, budget: MediaBudgetTracker): MediaDocument {
-  if (doc.containerFormat !== "mp4" && doc.containerFormat !== "mov") return doc;
+function inputStartTime(doc: MediaDocument, budget: MediaBudgetTracker): number | undefined {
+  if (doc.containerFormat !== "mp4" && doc.containerFormat !== "mov") return undefined;
   let start = Infinity;
   for (const track of doc.tracks) {
     budget.checkCpu();
@@ -3441,7 +3420,24 @@ function rebaseInputTimestamps(doc: MediaDocument, budget: MediaBudgetTracker): 
     }
     start = Math.min(start, seconds);
   }
-  return Number.isFinite(start) ? shiftTimestamps(doc, -start, budget) : doc;
+  return Number.isFinite(start) ? start : undefined;
+}
+
+function synchronizeInputs(docs: MediaDocument[], inputs: InputSpec[], starts: (number | undefined)[], copyTimestamps: boolean, startAtZero: boolean, budget: MediaBudgetTracker): void {
+  for (const [index, input] of inputs.entries()) {
+    const reference = input.syncReference;
+    if (reference === undefined || reference === -1 || reference === index) continue;
+    if (reference >= inputs.length) throw new Error("Invalid -isync reference input");
+    if (copyTimestamps && !startAtZero) throw new Error("-isync with -copyts requires -start_at_zero");
+    const target = inputs[reference]!;
+    if (target.syncReference !== undefined && target.syncReference !== -1 && target.syncReference !== reference) continue;
+    const start = starts[index];
+    const referenceStart = starts[reference];
+    if (start === undefined || referenceStart === undefined) continue;
+    const adjustment = start - referenceStart + (target.timestampOffset ?? 0) +
+      (copyTimestamps ? 0 : (input.startSeconds ?? 0) - (target.startSeconds ?? 0));
+    docs[index] = shiftTimestamps(docs[index]!, adjustment, budget);
+  }
 }
 
 function scaleInputTimestamps(doc: MediaDocument, scales: readonly [string, number][], budget: MediaBudgetTracker): MediaDocument {
@@ -3569,6 +3565,7 @@ export function evalSyncFfmpeg(
     let pendingFormat: string | undefined;
     let pendingAudioDecoder: string | undefined;
     let pendingTimestampOffset = 0;
+    let pendingSyncReference: number | undefined;
     let copyTimestamps = false;
     let startAtZero = false;
     let pendingFixSubDuration = false;
@@ -3693,6 +3690,13 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (!args.slice(i + 1).includes("-i")) return undefined;
         pendingTimestampScales.push(parseTimestampScale(arg, value));
+      } else if (arg === "-isync") {
+        const value = args[++i];
+        const reference = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(reference) || reference < -1 || reference > 2147483647 || !args.slice(i + 1).includes("-i")) {
+          throw new Error("Invalid -isync reference input");
+        }
+        pendingSyncReference = reference;
       } else if (arg === "-copyts") {
         copyTimestamps = true;
       } else if (arg === "-start_at_zero") {
@@ -3747,6 +3751,7 @@ export function evalSyncFfmpeg(
           skipInitialBytes: pendingSkipInitialBytes,
           timestampOffset: pendingTimestampOffset,
           fixSubDuration: pendingFixSubDuration,
+          syncReference: pendingSyncReference,
           startSeconds: pendingSs,
           endRelativeSeconds: pendingSseof,
           timestampScales: pendingTimestampScales,
@@ -3759,6 +3764,7 @@ export function evalSyncFfmpeg(
         audioRate = undefined; audioChannels = undefined;
         pendingTimestampScales = [];
         pendingTimestampOffset = 0;
+        pendingSyncReference = undefined;
         pendingFixSubDuration = false;
         pendingSkipInitialBytes = 0;
         pendingFormat = undefined; pendingSs = undefined; pendingSseof = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
@@ -3957,6 +3963,7 @@ export function evalSyncFfmpeg(
     if (noOverwrite !== false && !isNullMux && (!readFileSync || readFileSync(outputTarget))) return undefined;
 
     const loadedDocs: MediaDocument[] = [];
+    const inputStarts: (number | undefined)[] = [];
     for (const inp of inputs) {
       let doc: MediaDocument;
       if (inp.format === "lavfi") {
@@ -3978,7 +3985,9 @@ export function evalSyncFfmpeg(
         if (imageOutput && videoCodec === "copy") return undefined;
         if ((imageOutput || (maxVideoFrames !== undefined && videoCodec !== "copy")) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
-      if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = rebaseInputTimestamps(doc, budget);
+      const sourceStart = inputStartTime(doc, budget);
+      inputStarts.push(sourceStart);
+      if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
       doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
@@ -3996,6 +4005,7 @@ export function evalSyncFfmpeg(
       loadedDocs.push(shiftTimestamps(doc, inp.timestampOffset ?? 0, budget));
     }
 
+    synchronizeInputs(loadedDocs, inputs, inputStarts, copyTimestamps, startAtZero, budget);
     const outPlugin = outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget);
     if (outPlugin?.id === "image2" && outputStartNumber !== undefined && outputStartNumber > 2147483647) return undefined;
     // MP4/MOV have no default subtitle encoder for automatic stream selection.
@@ -4008,7 +4018,6 @@ export function evalSyncFfmpeg(
       outPlugin?.id, subtitleCodec);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
-      if (videoCodec === "copy" && outputSs !== undefined) workingDoc = discardOutputVideoPreroll(workingDoc);
     }
     const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);
     workingDoc = limitCopyPackets(workingDoc, streamFrameLimits, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
@@ -4216,6 +4225,7 @@ interface InputSpec {
   readonly timestampOffset?: number | undefined;
   readonly fixSubDuration?: boolean | undefined;
   readonly skipInitialBytes?: number | undefined;
+  readonly syncReference?: number | undefined;
   readonly startSeconds?: number | undefined;
   readonly endRelativeSeconds?: number | undefined;
   readonly timestampScales: readonly [string, number][];
@@ -4285,6 +4295,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingSafe: boolean | undefined;
       let pendingAudioDecoder: string | undefined;
       let pendingTimestampOffset = 0;
+      let pendingSyncReference: number | undefined;
       let copyTimestamps = false;
       let startAtZero = false;
       let pendingFixSubDuration = false;
@@ -4748,6 +4759,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-isync") {
+            const value = args[++i];
+            const reference = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(reference) || reference < -1 || reference > 2147483647 || !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid -isync reference input\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingSyncReference = reference;
           } else if (arg === "-copyts") {
             copyTimestamps = true;
           } else if (arg === "-start_at_zero") {
@@ -4905,6 +4924,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               allowedExtensions: pendingAllowedExtensions,
               skipInitialBytes: pendingSkipInitialBytes,
               timestampOffset: pendingTimestampOffset,
+              syncReference: pendingSyncReference,
               startSeconds: pendingSs,
               endRelativeSeconds: pendingSseof,
               timestampScales: pendingTimestampScales,
@@ -4924,6 +4944,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingSafe = undefined;
             pendingAllowedExtensions = undefined;
             pendingTimestampOffset = 0;
+            pendingSyncReference = undefined;
             pendingFixSubDuration = false;
             pendingSkipInitialBytes = 0;
             pendingSs = undefined;
@@ -5579,6 +5600,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             // Load all inputs and apply per-input slicing / looping
             const loadedDocs: MediaDocument[] = [];
+            const inputStarts: (number | undefined)[] = [];
             let demuxExitCode = 0;
             for (const inp of inputs) {
               await yieldTurn(context.signal);
@@ -5701,7 +5723,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }, context.signal)
                 };
               }
-              if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = rebaseInputTimestamps(doc, budget);
+              const sourceStart = inputStartTime(doc, budget);
+              inputStarts.push(sourceStart);
+              if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
               doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
               if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
@@ -5738,6 +5762,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               loadedDocs.push(shiftTimestamps(doc, inp.timestampOffset ?? 0, budget));
             }
+
+            synchronizeInputs(loadedDocs, inputs, inputStarts, copyTimestamps, startAtZero, budget);
 
             // Resolve output AST plugin from `outputFormat` or `outputTarget` filename
             const outPlugin = outputFormat
@@ -6148,7 +6174,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 endSeconds: outputDuration === undefined ? outputTo : undefined,
                 durationSeconds: outputDuration
               });
-              if (videoCodec === "copy" && outputSs !== undefined) workingDoc = discardOutputVideoPreroll(workingDoc);
             }
 
             const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);

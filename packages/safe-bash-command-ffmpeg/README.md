@@ -441,3 +441,5 @@ APNG output (`out.apng` or `-f apng`) writes all video frames into one animation
 positional options and use in audio filter chains.
 
 `tmix=frames=3:weights=1 2 1` mixes a rolling window of frames with normalized weights, ordered oldest to newest. Startup repeats the first frame to fill the window, preserving every input timestamp. `frames` defaults to 3 (1–1024); weights default to 1 and the final weight repeats for remaining slots. Other options are unsupported.
+
+Use `-isync INDEX` before `-i` to synchronize that MP4/MOV input with another input’s source start time. `-isync -1` disables synchronization; the option resets for each input. With `-copyts`, also pass `-start_at_zero`. Inputs without a known source start time remain unchanged.

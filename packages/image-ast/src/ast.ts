@@ -497,7 +497,7 @@ export interface OutputEncodeOptions {
   readonly format?: ImageFormat;
   readonly rawDepth?: string;
   readonly miffDepth?: 8 | 16;
-  readonly miffCompression?: "none" | "rle" | "bzip";
+  readonly miffCompression?: "none" | "rle" | "bzip" | "zip";
   readonly netpbmDepth?: number;
   readonly netpbmAscii?: boolean;
   readonly tiffBig?: boolean | undefined;

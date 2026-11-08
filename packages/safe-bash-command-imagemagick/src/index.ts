@@ -533,7 +533,7 @@ interface MagickState {
   bmpFormat?: "bmp2" | "bmp3" | "bmp4";
   bmp3Alpha?: boolean;
   bmpSubtype?: "RGB565" | "RGB555" | "ARGB4444" | "ARGB1555";
-  miffCompression?: "rle" | "none" | "bzip";
+  miffCompression?: "rle" | "none" | "bzip" | "zip";
   tgaCompression?: "rle" | "none";
   bmpCompression?: "rle" | "none";
   tiffTile?: { width: number; height: number };
@@ -6566,7 +6566,7 @@ if (t === "-seed") {
             const method = ({ none: "none", lzw: "lzw", zip: "deflate", rle: "packbits", jpeg: "jpeg", bzip: "none" } as const)[compression as "none" | "lzw" | "zip" | "rle" | "jpeg" | "bzip"];
             if (method === undefined) throw new Error(`unsupported compression '${compression}'`);
             state.tiffCompression = method;
-            state.miffCompression = compression === "rle" || compression === "bzip" ? compression : "none";
+            state.miffCompression = compression === "zip" || compression === "rle" || compression === "bzip" ? compression : "none";
             state.tgaCompression = compression === "rle" ? "rle" : "none";
             state.bmpCompression = compression === "rle" ? "rle" : "none";
             state.netpbmAscii = compression === "none";

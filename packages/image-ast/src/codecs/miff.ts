@@ -1,7 +1,7 @@
 import { createMiffBzip } from "./miff-bzip.js";
 import type { OutputEncodeOptions, RgbaImage } from "../ast.js";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
-import { defaultRuntime } from "@poe-code/compression";
+import { createByteCodec, defaultRuntime } from "@poe-code/compression";
 
 export function miffChannels(image: Pick<RgbaImage, "space" | "hasAlpha">): 1 | 2 | 3 | 4 {
     return image.space === "b-w" || image.space === "grey16" ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3;
@@ -45,7 +45,7 @@ function miffHeader(image: Pick<RgbaImage, "width" | "height" | "space" | "hasAl
     const { width, height, virtualCanvas: page } = image;
     const geometry = page ? `page=${page.width}x${page.height}${page.x < 0 ? "" : "+"}${page.x}${page.y < 0 ? "" : "+"}${page.y}\n` : "";
     if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new RangeError("Invalid MIFF dimensions");
-    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=${image.hasAlpha ? "True" : "False"}\ncolumns=${width} rows=${height} depth=${depth}\n${geometry}colorspace=${miffChannels(image) <= 2 ? "Gray" : image.magickColorspace === "RGB" ? "RGB" : "sRGB"}\ncompression=${compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
+    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=${image.hasAlpha ? "True" : "False"}\ncolumns=${width} rows=${height} depth=${depth}\n${geometry}colorspace=${miffChannels(image) <= 2 ? "Gray" : image.magickColorspace === "RGB" ? "RGB" : "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
 }
 
 export function encodeMiffImage(image: RgbaImage, requestedDepth?: 8 | 16, compression?: OutputEncodeOptions["miffCompression"]): Uint8Array {
@@ -64,7 +64,7 @@ export function encodeMiffImage(image: RgbaImage, requestedDepth?: 8 | 16, compr
         const packed = miffPixels(pixels, miffChannels(page), depth / 8, compression);
         chunks.push(header);
         length += header.length;
-        const compressor = compression === "bzip" ? createMiffCompressor(page.width * miffChannels(page) * (depth / 8)) : undefined;
+        const compressor = compression === "zip" || compression === "bzip" ? createMiffCompressor(page.width * miffChannels(page) * (depth / 8), compression) : undefined;
         try {
             for (const chunk of compressor ? compressor.push(packed, true) : [packed]) {
                 chunks.push(chunk);
@@ -88,7 +88,7 @@ export async function* encodeMiffFromStorage(image: StoredRgbaImage, storage: Im
         yield miffHeader(page, depth, compression);
         const length = page.width * page.height * 4;
         if (source16 && source16.length !== length) throw new Error("Invalid MIFF pixels");
-        const compressor = compression === "bzip" ? createMiffCompressor(page.width * miffChannels(page) * (depth / 8)) : undefined;
+        const compressor = compression === "zip" || compression === "bzip" ? createMiffCompressor(page.width * miffChannels(page) * (depth / 8), compression) : undefined;
         try {
             for (let offset = 0; offset < length; offset += 4096) {
                 signal.throwIfAborted();
@@ -120,11 +120,11 @@ function miffCompressedChunk(chunk: Uint8Array): Uint8Array {
     return bytes;
 }
 
-function createMiffCompressor(rowBytes: number) {
+function createMiffCompressor(rowBytes: number, compression: "zip" | "bzip") {
     // Native readers bound packets by row size and stop after the last pixel.
     // Keep the final two chunks together so the stream trailer stays in that packet.
     const chunkSize = Math.min(4096, Math.floor((rowBytes + 600) / 2));
-    const codec = createMiffBzip(chunkSize);
+    const codec = compression === "bzip" ? createMiffBzip(chunkSize) : createByteCodec({ direction: "encode", format: "zlib", chunkSize });
     const pending: Uint8Array[] = [];
     return {
         close: codec.close,

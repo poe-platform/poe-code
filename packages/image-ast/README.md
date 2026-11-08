@@ -27,7 +27,7 @@ decoder and supports raw or generated inputs. TGA input supports uncompressed an
 RLE true-color images (24-bit RGB or 32-bit RGBA), preserving origin and alpha. It shares the source and backing
 contracts of the format-specific codecs. `encodeStoredImage(image, storage, signal,
 options)` streams the corresponding output and returns final output information.
-Both encoders preserve 16-bit MIFF samples and accept `miffDepth: 8 | 16` to select output depth and `miffCompression: "rle"` for run-length compression or `"bzip"` for lossless BZip compression. The default is `"none"`.
+Both encoders preserve 16-bit MIFF samples and accept `miffDepth: 8 | 16` to select output depth and `miffCompression: "rle"` for run-length compression or `"bzip"` for lossless BZip compression. The default is `"none"`. Set `miffCompression: "zip"` for lossless Zip compression.
 Both encoders accept `format: "xpm"` for XPM C source with an RGB palette and binary transparency.
 Both encoders accept `format: "tga"` for RGB/RGBA TGA output, with optional
 `tgaCompression: "rle"` (default: uncompressed).

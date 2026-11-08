@@ -582,10 +582,10 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
 
   const samples: MediaSample[] = [];
   const chunkFrames = formatTag === 17 ? imaBlockFrames(header.blockAlign, channels) : wavPacketFrames(header.sampleRate, bytesPerFrame, options.maxSize);
-  for (let offsetSample = 0; offsetSample < totalPcmSamples; offsetSample += chunkFrames) {
+  for (let offsetSample = 0; (compressed ? offsetSample < totalPcmSamples : offsetSample * bytesPerFrame < pcmData.length); offsetSample += chunkFrames) {
     const count = Math.min(chunkFrames, totalPcmSamples - offsetSample);
     const byteStart = formatTag === 17 ? offsetSample / chunkFrames * header.blockAlign : offsetSample * bytesPerFrame;
-    const byteEnd = formatTag === 17 ? Math.min(pcmData.length, byteStart + header.blockAlign) : compressed && offsetSample + count === totalPcmSamples ? pcmData.byteLength : (offsetSample + count) * bytesPerFrame;
+    const byteEnd = formatTag === 17 ? Math.min(pcmData.length, byteStart + header.blockAlign) : compressed && offsetSample + count === totalPcmSamples ? pcmData.byteLength : Math.min(pcmData.length, (offsetSample + chunkFrames) * bytesPerFrame);
     samples.push({
       data: pcmData.subarray(byteStart, byteEnd),
       offset: header.dataOffset + byteStart,
@@ -990,11 +990,9 @@ function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResul
   const result = buildProbeResultFromDoc(doc, header.byteLength, filename, {
     formatName: header.containerFormat, formatLongName: header.containerFormat === "w64" ? "Sony Wave64" : "WAV / WAVE (Waveform Audio)"
   });
-  const samples = doc.duration;
-  const bytesPerFrame = Math.max(1, header.bitsPerSample ? header.channels * (header.bitsPerSample >>> 3) : header.blockAlign);
   return { ...result, streams: [{ ...result.streams[0]!,
     bit_rate: doc.durationSeconds > 0
-      ? String(Math.round((header.formatTag === 17 ? header.dataSize : samples * bytesPerFrame) * 8 / doc.durationSeconds)) : "0"
+      ? String(Math.round(header.dataSize * 8 / doc.durationSeconds)) : "0"
   }] };
 }
 
@@ -1004,11 +1002,11 @@ function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaP
   const samples = wavFrames(header), rate = Math.max(1, header.sampleRate);
   const chunkFrames = header.formatTag === 17 ? imaBlockFrames(header.blockAlign, header.channels) : wavPacketFrames(header.sampleRate, bytesPerFrame, options.maxSize);
   function* spans() {
-    for (let pts = 0; pts < samples; pts += chunkFrames) {
+    for (let pts = 0; (header.formatTag === 17 ? pts < samples : pts * bytesPerFrame < header.dataSize); pts += chunkFrames) {
       options.signal?.throwIfAborted();
       const count = Math.min(chunkFrames, samples - pts);
       const pos = header.formatTag === 17 ? pts / chunkFrames * header.blockAlign : pts * bytesPerFrame;
-      const size = header.formatTag === 17 ? Math.min(header.blockAlign, header.dataSize - pos) : count * bytesPerFrame;
+      const size = header.formatTag === 17 ? Math.min(header.blockAlign, header.dataSize - pos) : Math.min(chunkFrames * bytesPerFrame, header.dataSize - pos);
       yield { pts, count, pos: header.dataOffset + pos, size: String(size), time: (pts / rate).toFixed(6), duration: (count / rate).toFixed(6) };
     }
     options.signal?.throwIfAborted();

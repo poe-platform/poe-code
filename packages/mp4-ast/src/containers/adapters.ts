@@ -2169,7 +2169,7 @@ export function parseSubtitleDocument(
     const rawCueLines = lines.slice(arrowLineIdx + 1).join("\n");
     const cueLines = format === "subviewer" ? rawCueLines.replaceAll("[br]", "\n") : rawCueLines;
     const cueText = format === "srt" ? cueLines.replace(/^[ \t\n]+|[ \t\n]+$/g, "") : cueLines.trim();
-    if (!cueText) continue;
+    if (!cueText && format !== "webvtt") continue;
 
     if (format === "srt" || format === "webvtt") {
       const key = JSON.stringify([startMs, endMs, cueText]);
@@ -2263,7 +2263,7 @@ export function serializeSubtitleDocument(
   let cueIndex = 1;
   for (const s of samples) {
     const cueText = decodeUtf8(s.data).trim();
-    if (!cueText) continue;
+    if (!cueText && format !== "webvtt") continue;
     const startMs = Math.round((s.pts / ts) * 1000);
     const endMs = Math.round(((s.pts + s.duration) / ts) * 1000);
     if (format === "ttml") {

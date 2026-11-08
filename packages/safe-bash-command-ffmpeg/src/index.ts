@@ -673,10 +673,11 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
           offset++;
           args.push(parse(0, depth + 1));
         }
-        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg))) {
+        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !(filter === "volume" && Number.isNaN(arg)))) {
           throw new Error(`${filter}: invalid expression`);
         }
         if (name === "val" && args.length === 1 && sampleValue) value = sampleValue(args[0]!);
+        else if (name === "isnan" && args.length === 1) value = Number(Number.isNaN(args[0]));
         else if (name === "not" && args.length === 1) value = Number(args[0] === 0);
         else if (name === "eq" && args.length === 2) value = Number(args[0] === args[1]);
         else if (name === "gte" && args.length === 2) value = Number(args[0]! >= args[1]!);
@@ -687,7 +688,8 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
         else if (name === "between" && args.length === 3) value = Number(args[0]! >= args[1]! && args[0]! <= args[2]!);
         else throw new Error(`${filter}: invalid or unsupported expression`);
       } else {
-        value = Object.hasOwn(variables, name) ? variables[name]! : NaN;
+        if (!Object.hasOwn(variables, name)) throw new Error(`${filter}: invalid or unsupported expression`);
+        value = variables[name]!;
       }
     } else {
       const start = offset;
@@ -697,7 +699,9 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
           || ((c === "+" || c === "-") && (source[offset - 1] === "e" || source[offset - 1] === "E"))) offset++;
         else break;
       }
-      value = start === offset ? NaN : Number(source.slice(start, offset));
+      if (start === offset) throw new Error(`${filter}: invalid or unsupported expression`);
+      value = Number(source.slice(start, offset));
+      if (Number.isNaN(value)) throw new Error(`${filter}: invalid or unsupported expression`);
     }
     for (;;) {
       while (source[offset] === " ") offset++;
@@ -714,7 +718,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
     return value;
   }
   const angle = parse();
-  if (offset !== source.length || !Number.isFinite(angle)) throw new Error(`${filter}: invalid or unsupported expression`);
+  if (offset !== source.length || (!Number.isFinite(angle) && !(filter === "volume" && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
   return angle;
 }
 
@@ -5143,13 +5147,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
                           const end = evaluation === "once" && enable === undefined ? length : Math.min(length, start + count);
-                          const variables: Record<string, number> = { sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate };
+                          const variables: Record<string, number> = { sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
+                            // Native volume leaves sample counters unavailable in both evaluation modes.
+                            nb_samples: NaN, nb_consumed_samples: NaN };
                           if (evaluation === "frame") Object.assign(variables, {
-                            n, t: pts / origRate, pts,
-                            nb_samples: end - start, nb_consumed_samples: start
+                            n, t: pts / origRate, pts
                           });
                           const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", variables);
-                          const factor = decibels ? Math.pow(10, gain / 20) : gain;
+                          let factor = decibels ? Math.pow(10, gain / 20) : gain;
+                          if (evaluation === "frame" && Number.isNaN(factor)) factor = 0;
                           if (!Number.isFinite(factor)) throw new Error("volume: invalid gain");
                           // Native fixed precision uses a Q8 gain and rounds integer samples half upward.
                           const fixedGain = Math.floor(factor * 256 + 0.5);

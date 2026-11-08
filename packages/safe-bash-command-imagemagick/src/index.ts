@@ -590,6 +590,7 @@ interface MagickState {
   kernel: ResizeKernel | undefined;
   magnifyMethod?: MagnifyMethod;
   resizeFilter?: ResizeFilterSettings;
+  sampleOffset?: { x: number; y: number };
   pointFilter?: boolean;
   compose: BlendMode;
   composeRaw: string;
@@ -3809,18 +3810,18 @@ function magickResizeCanvas(image: Pick<RgbaImage, "width" | "height" | "virtual
     return { width: pageWidth, height: pageHeight, x: Math.ceil(scaleX * page.x - 0.5), y: Math.ceil(scaleY * page.y - 0.5) };
 }
 
-function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings): Generator<void, RgbaImage, void> {
+function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }): Generator<void, RgbaImage, void> {
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczos3" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
     let resized = !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
-        : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings), undefined, { ...img, width, height });
+        : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings), undefined, { ...img, width, height });
     if (!scale && kernel === "nearest" && img.data16) {
         const source = new Uint8Array(img.data16.buffer, img.data16.byteOffset, img.data16.byteLength);
         const data16 = new Uint16Array(width * height * 4), bytes = new Uint8Array(data16.buffer);
-        const steps = pointResizePixelSteps(img, width, height, sample, 8);
+        const steps = pointResizePixelSteps(img, width, height, sample, 8, sampleOffset);
         let next = steps.next();
         while (!next.done) {
             const request = next.value;
@@ -3834,15 +3835,15 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
 
-async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: NonNullable<ReturnType<typeof magickResizeOptions>>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings): Promise<StoredRgbaImage> {
+async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: NonNullable<ReturnType<typeof magickResizeOptions>>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }): Promise<StoredRgbaImage> {
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
     let resized = !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
-        : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings), signal, { ...image, width, height });
+        : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings), signal, { ...image, width, height });
     if (!scale && options.kernel === "nearest" && image.storedData16) {
         const storedData16 = { position: backend.storage.allocate(width * height * 8), length: width * height * 4 };
-        const steps = pointResizePixelSteps(image, width, height, sample, 8);
+        const steps = pointResizePixelSteps(image, width, height, sample, 8, sampleOffset);
         let next = steps.next();
         while (!next.done) {
             signal.throwIfAborted();
@@ -6130,6 +6131,7 @@ if (t === "-seed") {
                 state.resizeFilter = { ...state.resizeFilter };
                 delete state.resizeFilter[key.slice(7) as keyof ResizeFilterSettings];
             }
+            if (key === "sample:offset") delete state.sampleOffset;
             if (key === "jpeg:arithmetic-coding") delete state.jpegArithmeticCoding;
             if (key === "jpeg:restart-interval") delete state.jpegRestartInterval;
             if (key === "jpeg:dct-method") delete state.jpegDctMethod;
@@ -6176,6 +6178,11 @@ if (t === "-seed") {
             const defStr = tokens[++i] ?? "";
             if (defStr.toLowerCase().startsWith("magnify:method=")) state.magnifyMethod = parseMagnifyMethod(defStr.slice("magnify:method=".length));
             const [filterKey, filterValue] = defStr.toLowerCase().split("=");
+            if (filterKey === "sample:offset") {
+                const geometry = parseMagickGeometry(filterValue ?? "");
+                const x = geometry.width ?? 0;
+                state.sampleOffset = { x: x / 100, y: (geometry.height ?? x) / 100 };
+            }
             if (filterKey === "jpeg:arithmetic-coding") state.jpegArithmeticCoding = filterValue === undefined || ["true", "1", "yes", "on"].includes(filterValue.toLowerCase());
             if (filterKey === "jpeg:restart-interval") {
                 const interval = Number(filterValue);
@@ -6888,7 +6895,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             validateMagickTransformGeometry(geom, t);
             const k = t === "-sample" ? "nearest" : state.kernel;
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickResizeSteps(im, geom, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter));
+                return (yield* applyMagickResizeSteps(im, geom, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter, state.sampleOffset));
             }));
         }
         else if (t === "-crop") {
@@ -8488,9 +8495,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const method = state.magnifyMethod, factor = method === "scale3x" ? 3 : 2;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, magnifyPixelSteps(image, method), signal, { ...image, width: image.width * factor, height: image.height * factor }) : undefined);
         } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
-            const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter;
+            const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter, sampleOffset = state.sampleOffset;
             validateMagickTransformGeometry(geometry, token);
-            steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczos3" : undefined)); return options ? resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings) : image; });
+            steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczos3" : undefined)); return options ? resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, sampleOffset) : image; });
         } else if (!operandsOnly && ["-flip", "-flop", "-auto-orient"].includes(token)) {
             const kind = token === "-flip" ? "flip" : token === "-flop" ? "flop" : "autoOrient";
             steps.push(async (image, backend) => {

@@ -243,18 +243,19 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
 }
 
 /** Point filtering selects the source pixel containing the destination pixel center. */
-export function* pointResizePixelSteps(image: { width: number; height: number }, width: number, height: number, sample = false, pixelBytes = 4): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* pointResizePixelSteps(image: { width: number; height: number }, width: number, height: number, sample = false, pixelBytes = 4, sampleOffset?: { x: number; y: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // SampleImage uses 0.5 - MagickEpsilon to select the preceding pixel at ties.
-    const offset = sample ? 0.5 - 1e-12 : 0.5;
+    const offsetX = sample ? (sampleOffset?.x ?? 0.5) - 1e-12 : 0.5;
+    const offsetY = sample ? (sampleOffset?.y ?? 0.5) - 1e-12 : 0.5;
     let start = -1;
     let pixels: Uint8Array = new Uint8Array(0);
     for (let y = 0; y < height; y++) {
-        const sy = Math.min(image.height - 1, Math.floor((y + offset) * image.height / height));
+        const sy = Math.min(image.height - 1, Math.max(0, Math.trunc((y + offsetY) * image.height / height)));
         for (let left = 0; left < width; left += 1024) {
             yield;
             const count = Math.min(1024, width - left), data = new Uint8Array(count * pixelBytes);
             for (let x = 0; x < count; x++) {
-                const sx = Math.min(image.width - 1, Math.floor((left + x + offset) * image.width / width));
+                const sx = Math.min(image.width - 1, Math.max(0, Math.trunc((left + x + offsetX) * image.width / width)));
                 const position = (sy * image.width + sx) * pixelBytes;
                 if (position < start || position >= start + pixels.length) {
                     start = position;

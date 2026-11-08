@@ -172,7 +172,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes arealtime pacing, option validation, and cancellable timers (1,031,102 bytes).
   // Includes stream IDs and H.264 bitstream filtering with validation before writing.
   // Includes SPS metadata rewriting and the current bitstream filter graph (1,042,470 bytes).
-  assert.ok(otherCodeBytes < 1_044_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes AAC codec validation and the current packet-filter graph (1,044,691 bytes).
+  assert.ok(otherCodeBytes < 1_046_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -256,6 +257,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes arealtime pacing and the current audio filter graph (10,372,978 bytes).
   // Includes stream IDs and validated H.264 bitstream filtering (10,376,189 bytes).
   // Includes SPS metadata rewriting and the current dependency graph (10,384,154 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_386_000,
+  // Includes AAC codec validation and the current dependency graph (10,386,300 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_388_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

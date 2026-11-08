@@ -4769,7 +4769,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const fps = f0[0]?.durationSeconds ? Math.round(1 / f0[0].durationSeconds) : 25;
                 const offsetSec = parseHlsDuration(named.offset ?? "0");
                 const preCount = Math.max(0, Math.min(f0.length, Math.round(offsetSec * fps)));
-                const overlapFrames = fadeDur === 0 ? 0 : Math.min(f0.length - preCount, f1.length, Math.max(1, Math.round(fadeDur * fps)));
+                const elapsedFrames = Math.max(0, -Math.round(offsetSec * fps));
+                const overlapFrames = fadeDur === 0 ? 0 : Math.min(f0.length - preCount, f1.length, Math.max(0, Math.max(1, Math.round(fadeDur * fps)) - elapsedFrames));
                 const outFrames: MediaVideoFrame[] = [];
                 let cursor = 0;
                 for (let i = 0; i < preCount; i++) {
@@ -4780,7 +4781,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 for (let k = 0; k < overlapFrames; k++) {
                   const a = f0[Math.min(f0.length - 1, preCount + k)]!;
                   const b = f1[Math.min(f1.length - 1, k)]!;
-                  const progress = k / (fadeDur * fps);
+                  const progress = Math.min(1, (elapsedFrames + k) / (fadeDur * fps));
                   const blended = new Uint8Array(a.data.byteLength);
                   for (let pIdx = 0; pIdx < blended.byteLength; pIdx += 4) {
                     const alpha = transition === "wipeleft"

@@ -22,3 +22,15 @@ for (const block of ["STYLE", "REGION"]) {
     assert.equal(new TextDecoder().decode(serializeSubtitleDocument(doc, "webvtt")), `WEBVTT\n\n${good}`);
   });
 }
+
+for (const newline of ["\n", "\r\n"]) {
+  it(`preserves WebVTT dialogue whitespace with ${JSON.stringify(newline)} line endings`, () => {
+    const dialogue = "  one  \n two  ";
+    const input = `WEBVTT\n\n00:01.000 --> 00:02.000\n${dialogue}\n`;
+    const doc = parseSubtitleDocument(new TextEncoder().encode(input.replaceAll("\n", newline)), "webvtt");
+    const sample = doc.tracks[0]!.samples[0]!;
+    assert.equal(new TextDecoder().decode(sample.data), dialogue);
+    assert.equal(sample.size, 14);
+    assert.equal(new TextDecoder().decode(serializeSubtitleDocument(doc, "webvtt")), input);
+  });
+}

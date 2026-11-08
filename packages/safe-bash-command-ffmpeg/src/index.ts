@@ -2988,8 +2988,14 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
   for (const [specifier, value] of dispositions) {
     const parts = specifier.split(":");
     const selector = parts[0];
-    const type = selector === "a" ? "audio" : selector === "v" ? "video" : selector === "s" ? "subtitle" : undefined;
-    const [index, key, language] = type ? parts.slice(1) : parts;
+    const type = selector === "a" ? "audio" : selector === "v" ? "video" : selector === "s" ? "subtitle" : selector === "d" ? "data" : selector === "t" ? "attachment" : undefined;
+    const streamParts = type ? parts.slice(1) : parts;
+    const [index, key, ...languageParts] = streamParts;
+    const language = languageParts.length ? languageParts.join(":") : undefined;
+    if (index === "m" ? key === undefined
+      : streamParts.length > 1 || (index && !Array.from(index).every(char => char >= "0" && char <= "9"))) {
+      throw new Error(`Invalid stream specifier: ${specifier}`);
+    }
     const relative = value.startsWith("+") || value.startsWith("-");
     const operations = value.replaceAll("-", "+-").split("+").filter(Boolean).map(token => {
       const remove = token.startsWith("-");

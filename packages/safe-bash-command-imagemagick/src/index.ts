@@ -6867,6 +6867,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-resize" || t === "-scale" || t === "-sample" || t === "-thumbnail") {
             const geom = tokens[++i] ?? "100%";
+            validateMagickTransformGeometry(geom, t);
             const k = t === "-sample" ? "nearest" : state.kernel;
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickResizeSteps(im, geom, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter));
@@ -8469,6 +8470,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, magnifyPixelSteps(image, method), signal, { ...image, width: image.width * factor, height: image.height * factor }) : undefined);
         } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
             const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter;
+            validateMagickTransformGeometry(geometry, token);
             steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczos3" : undefined)); return options ? resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings) : image; });
         } else if (!operandsOnly && ["-flip", "-flop", "-auto-orient"].includes(token)) {
             const kind = token === "-flip" ? "flip" : token === "-flop" ? "flop" : "autoOrient";

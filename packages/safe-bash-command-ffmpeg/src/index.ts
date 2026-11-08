@@ -3034,7 +3034,13 @@ function outputChapters(
 }
 
 function mapGlobalMetadata(documents: readonly MediaDocument[], sources: readonly number[]): Mp4MetadataTags {
-  if (sources.length === 0) return documents[0]!.metadata;
+  if (sources.length === 0) {
+    const metadata = documents[0]!.metadata;
+    if (!metadata.custom || !("creation_time" in metadata.custom)) return metadata;
+    const custom = { ...metadata.custom };
+    delete custom.creation_time;
+    return { ...metadata, custom };
+  }
   let metadata: Mp4MetadataTags = {};
   for (const source of sources) {
     if (source >= documents.length) throw new Error(`Invalid metadata input index: ${source}`);

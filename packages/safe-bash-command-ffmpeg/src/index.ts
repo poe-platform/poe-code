@@ -8049,6 +8049,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 };
                 let segBytes = segPlugin.serialize(segmentDoc, {
                   fragmented: isFmp4,
+                  skipTrailer: true,
                   limits: options.limits,
                   budget
                 });

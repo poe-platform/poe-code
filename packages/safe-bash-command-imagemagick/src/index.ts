@@ -1133,6 +1133,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   const sums = new Array<number>(channels).fill(0);
   const squares = new Array<number>(channels).fill(0);
   const means = [0, 0, 0, 0], moments = [0, 0, 0, 0];
+  const histograms = statistics ? Array.from({ length: channels }, () => new Float64Array(65536)) : undefined;
   let min = 65535;
   let max = 0;
   let opaque = true;
@@ -1177,7 +1178,10 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
         bitDepth++;
       }
       const v = chunk.data16 ? value : value * 257;
-      if (selected) { sums[c]! += v; squares[c]! += v * v; }
+      if (selected) {
+        sums[c]! += v; squares[c]! += v * v;
+        if (histograms) histograms[c]![v]!++;
+      }
       min = Math.min(min, v);
       max = Math.max(max, v);
     }
@@ -1187,14 +1191,35 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   if (statistics) {
     statistics.mean = 0;
     statistics.standard_deviation = 0;
+    statistics.minima = 1;
+    statistics.maxima = 0;
+    statistics.median = 0;
     for (let c = 0; c < channels; c++) {
       const deviation = Math.sqrt(Math.max(0, moments[c]! / Math.max(1, count - 1)));
+      const histogram = histograms![c]!;
+      let minimum = 0, maximum = 65535, median = 0, cumulative = 0;
+      while (minimum < 65535 && histogram[minimum] === 0) minimum++;
+      while (maximum > 0 && histogram[maximum] === 0) maximum--;
+      for (; median < 65535; median++) {
+        if (median % 8192 === 0) yield;
+        cumulative += histogram[median]!;
+        if (cumulative >= Math.ceil(count / 2)) break;
+      }
+      statistics[`minima.${c}`] = minimum / 65535;
+      statistics[`maxima.${c}`] = maximum / 65535;
+      statistics[`median.${c}`] = median / 65535;
+      statistics.minima = Math.min(statistics.minima, minimum / 65535);
+      statistics.maxima = Math.max(statistics.maxima, maximum / 65535);
+      statistics.median += median / 65535 / channels;
       statistics[`mean.${c}`] = means[c]!;
       statistics[`standard_deviation.${c}`] = deviation;
       statistics.mean += means[c]! / channels;
       statistics.standard_deviation += deviation / channels;
     }
     if (!img.hasAlpha) {
+      statistics["minima.3"] = 0;
+      statistics["maxima.3"] = 0;
+      statistics["median.3"] = 0;
       statistics["mean.3"] = 0;
       statistics["standard_deviation.3"] = 0;
     }
@@ -2608,12 +2633,13 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         }
       }
 
-      if (name === "mean" || name === "standard_deviation") requireStatistics();
+      const isStatistic = ["mean", "standard_deviation", "minima", "maxima", "median"].includes(name);
+      if (isStatistic) requireStatistics();
       return (ctx) => {
         if (ctx.vars.has(name) && !propName && !coordX) {
           return ctx.vars.get(name)!;
         }
-        if ((name === "mean" || name === "standard_deviation") && ctx.statistics) {
+        if (isStatistic && ctx.statistics) {
           return ctx.statistics[propName ? `${name}.${propToChannel(propName)}` : name] ?? 0;
         }
         if (name === "i") return ctx.x;

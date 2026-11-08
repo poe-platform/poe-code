@@ -6,6 +6,7 @@ import type { MediaAstPlugin, MediaDocument, MediaSample, ParseMediaOptions } fr
 export function decodeAssText(text: string): string {
   const active: { key: string; tag: string; opening: string }[] = [];
   let result = "";
+  let alignmentSeen = false;
   const close = (tag: string) => {
     const index = active.findIndex(entry => entry.key === tag);
     if (index < 0) return;
@@ -18,6 +19,11 @@ export function decodeAssText(text: string): string {
       const end = text.indexOf("}", i + 2);
       if (end >= 0) {
         for (const command of text.slice(i + 1, end).split("\\")) {
+          // SubRip retains only the first alignment override in each cue.
+          if (!alignmentSeen && command.length === 3 && command.startsWith("an") && "0123456789".includes(command[2]!)) {
+            result += `{\\${command}}`;
+            alignmentSeen = true;
+          }
           const tag = command[0]!;
           if (["i", "b", "u", "s"].includes(tag) && ["0", "1", "-1"].includes(command.slice(1))) {
             if (command.slice(1) === "0") close(tag);

@@ -66,16 +66,17 @@ async function* packBits(reader:SourceBytes,start:number,length:number,expected:
  while(written++<expected)yield 0;
 }
 
-/** Classic TIFF strips/tiles and tags stay in the caller's source and scratch storage. */
+/** Classic TIFF and BigTIFF strips/tiles and tags stay in the caller's source and scratch storage. */
 export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageByteStorage,signal:AbortSignal,options?:SharpInputOptions):Promise<StoredRgbaImage> {
  signal.throwIfAborted();const reader=new SourceBytes(source,signal,"TIFF");
  const byte=async(at:number)=>{const value=await reader.at(at);if(value===undefined)throw new RangeError("Truncated TIFF directory");return value;};
  const le=(await byte(0))===73;
- const number=async(at:number,size:number)=>{let value=0;for(let i=0;i<size;i++)value+=(await byte(at+i))*2**(8*(le?i:size-i-1));return value;};
+ const number=async(at:number,size:number)=>{let value=0;for(let i=0;i<size;i++)value+=(await byte(at+i))*2**(8*(le?i:size-i-1));if(!Number.isSafeInteger(value))throw new RangeError("Unsafe TIFF integer");return value;};
+ const big=await number(2,2)===43,countSize=big?8:2,entrySize=big?20:12,offsetSize=big?8:4,valueOffset=big?12:8;
  const steps=tiffPageSteps(source.size,options?.page);
  let next=steps.next();
  while(!next.done)next=steps.next(await reader.at(next.value));
- const {offset:ifd,pages}=next.value,count=await number(ifd,2);
+ const {offset:ifd,pages}=next.value,count=await number(ifd,countSize);
  let width=0,height=0,bits=8,compression=1,photometric=2,samples=4,rows=0,predictor=1,xRes=72,yRes=72,resUnit=2,tileWidth=0,tileHeight=0,orientation:number|undefined;
  let planar=false;
  let fillOrder=1,faxOptions=0;
@@ -86,8 +87,8 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  let jpegTables:{start:number;length:number}|undefined;
  let offsets:Values={count:1,async at(i){return i===0?8:undefined;}},counts=empty,tileOffsets=empty,tileCounts=empty;
  for(let i=0;i<count;i++) {
-  const p=ifd+2+i*12,tag=await number(p,2),type=await number(p+2,2),n=await number(p+4,4),size=type===3?2:type===4?4:type===5?8:1;
-  const start=n*size<=4?p+8:await number(p+8,4),available=Math.max(0,Math.min(n,Math.floor((source.size-start)/size)));
+  const p=ifd+countSize+i*entrySize,tag=await number(p,2),type=await number(p+2,2),n=await number(p+4,offsetSize),size=type===3?2:type===4?4:(type===5||type===16||type===18)?8:1;
+  const start=n*size<=offsetSize?p+valueOffset:await number(p+valueOffset,offsetSize),available=Math.max(0,Math.min(n,Math.floor((source.size-start)/size)));
   const values:Values={count:available,async at(index){if(index<0||index>=available)return undefined;const at=start+index*size;if(type!==5)return number(at,size);const num=await number(at,4),den=await number(at+4,4);return den>0?num/den:num;}};
   const first=await values.at(0)??0;
   if(tag===270&&type===2){
@@ -109,7 +110,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   else if(tag===320)colorMap=values;
   else if(tag===338)extraSample=first;
   else if(tag===339)sampleFormat=first;
-  else if(tag===347){const offset=n<=4?p+8:await number(p+8,4);if(offset+n<=source.size)jpegTables={start:offset,length:n};}
+  else if(tag===347){const offset=n<=offsetSize?p+valueOffset:await number(p+valueOffset,offsetSize);if(offset+n<=source.size)jpegTables={start:offset,length:n};}
  }
  const sampleBytes=Math.max(1,bits>>>3),chunkSamples=planar?1:samples,pixelBytes=chunkSamples*sampleBytes,stride=width*pixelBytes,planeBytes=height*stride,total=planeBytes*(planar?samples:1);
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(samples)||samples<=0||!Number.isSafeInteger(total)||!Number.isSafeInteger(width*height*4))throw new RangeError("Invalid TIFF dimensions");

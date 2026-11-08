@@ -31,8 +31,8 @@ export function isBmpBytes(bytes: Uint8Array): boolean {
 export function isTiffBytes(bytes: Uint8Array): boolean {
   return (
     bytes.length >= 8 &&
-    ((bytes[0] === 0x49 && bytes[1] === 0x49 && bytes[2] === 0x2a && bytes[3] === 0x00) ||
-      (bytes[0] === 0x4d && bytes[1] === 0x4d && bytes[2] === 0x00 && bytes[3] === 0x2a))
+    ((bytes[0] === 0x49 && bytes[1] === 0x49 && (bytes[2] === 0x2a || bytes[2] === 0x2b) && bytes[3] === 0x00) ||
+      (bytes[0] === 0x4d && bytes[1] === 0x4d && bytes[2] === 0x00 && (bytes[3] === 0x2a || bytes[3] === 0x2b)))
   );
 }
 
@@ -411,22 +411,30 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
  return out;
 }
 
+function readTiffUint64(view: DataView, at: number, le: boolean): number {
+  const value = Number(view.getBigUint64(at, le));
+  if (!Number.isSafeInteger(value)) throw new RangeError("Unsafe TIFF integer");
+  return value;
+}
+
 function readTiffTagValues(
   view: DataView,
   entryPos: number,
-  le: boolean
+  le: boolean,
+  big: boolean
 ): number[] {
   const type = view.getUint16(entryPos + 2, le);
-  const count = view.getUint32(entryPos + 4, le);
-  const elemSize = type === 3 ? 2 : type === 4 ? 4 : type === 5 ? 8 : 1;
+  const count = big ? readTiffUint64(view, entryPos + 4, le) : view.getUint32(entryPos + 4, le);
+  const elemSize = type === 3 ? 2 : type === 4 ? 4 : (type === 5 || type === 16 || type === 18) ? 8 : 1;
   const totalBytes = count * elemSize;
-  const valPos = totalBytes <= 4 ? entryPos + 8 : view.getUint32(entryPos + 8, le);
+  const valPos = big ? (totalBytes <= 8 ? entryPos + 12 : readTiffUint64(view, entryPos + 12, le)) : (totalBytes <= 4 ? entryPos + 8 : view.getUint32(entryPos + 8, le));
   const values: number[] = [];
   for (let i = 0; i < count; i++) {
     const off = valPos + i * elemSize;
     if (off + elemSize > view.byteLength) break;
     if (type === 3) values.push(view.getUint16(off, le));
     else if (type === 4) values.push(view.getUint32(off, le));
+    else if (type === 16 || type === 18) values.push(readTiffUint64(view, off, le));
     else if (type === 5) {
       const num = view.getUint32(off, le);
       const den = view.getUint32(off + 4, le);
@@ -534,7 +542,8 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
   let next = steps.next();
   while (!next.done) next = steps.next(bytes[next.value]);
   const {offset: ifdOffset, pages} = next.value;
-  const numEntries = view.getUint16(ifdOffset, le);
+  const big = view.getUint16(2, le) === 43;
+  const numEntries = big ? readTiffUint64(view, ifdOffset, le) : view.getUint16(ifdOffset, le);
   let width = 0;
   let height = 0;
   let bitsPerSample = 8;
@@ -561,9 +570,9 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
   let properties: Record<string,string> | undefined;
   let jpegTables: Uint8Array | undefined;
   for (let i = 0; i < numEntries; i++) {
-    const p = ifdOffset + 2 + i * 12;
+    const p = ifdOffset + (big ? 8 : 2) + i * (big ? 20 : 12);
     const tag = view.getUint16(p, le);
-    const vals = readTiffTagValues(view, p, le);
+    const vals = readTiffTagValues(view, p, le, big);
     const first = vals[0] ?? 0;
     if (tag === 256) width = first;
     else if (tag === 257) height = first;
@@ -591,8 +600,8 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
     else if (tag === 338) extraSample = first;
     else if (tag === 339) sampleFormat = first;
     else if (tag === 347) {
-      const count = view.getUint32(p + 4, le);
-      const valOff = count <= 4 ? p + 8 : view.getUint32(p + 8, le);
+      const count = big ? readTiffUint64(view, p + 4, le) : view.getUint32(p + 4, le);
+      const valOff = big ? (count <= 8 ? p + 12 : readTiffUint64(view, p + 12, le)) : (count <= 4 ? p + 8 : view.getUint32(p + 8, le));
       if (valOff + count <= bytes.length) {
         jpegTables = bytes.subarray(valOff, valOff + count);
       }

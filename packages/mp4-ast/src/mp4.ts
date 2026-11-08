@@ -1379,6 +1379,8 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     if (options.emptyMoov === false) moovBox = buildMoov(ftypBox.byteLength + moovBox.byteLength + 8);
 
     const fragments: Uint8Array[] = [];
+    const randomAccess = new Map<number, { time: number; offset: number; traf: number; sample: number }[]>();
+    let moofOffset = ftypBox.byteLength + moovBox.byteLength + (options.emptyMoov === false ? initialSize + 8 : 0);
     let sequence = 1;
     for (const end of [...boundaries, Infinity]) {
       const fragmentTracks = materializedTracks.flatMap((mt, index) => {
@@ -1437,8 +1439,40 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       const dummyMoof = buildMoof(0);
       const finalMoof = buildMoof(dummyMoof.byteLength);
       const mdatBox = makeBox("mdat", concatBytes(mdatChunks));
+      if (!options.skipTrailer) {
+        for (const [index, mt] of fragmentTracks.entries()) {
+          const sample = mt.samples.findIndex(sample => sample.isKeyframe);
+          if (sample < 0) continue;
+          const entries = randomAccess.get(mt.track.id) ?? [];
+          entries.push({ time: mt.samples[sample]!.pts, offset: moofOffset, traf: index + 1, sample: sample + 1 });
+          randomAccess.set(mt.track.id, entries);
+        }
+      }
+      moofOffset += finalMoof.byteLength + mdatBox.byteLength;
       fragments.push(finalMoof, mdatBox);
       sequence++;
+    }
+    if (!options.skipTrailer) {
+      const indexes = materializedTracks.map(mt => {
+        const entries = randomAccess.get(mt.track.id) ?? [];
+        const trafBytes = entries.some(entry => entry.traf > 255) ? 4 : 1;
+        const sampleBytes = entries.some(entry => entry.sample > 255) ? 4 : 1;
+        const writer = new BinaryWriter(12 + entries.length * (17 + trafBytes + sampleBytes));
+        writer.writeU32BE(mt.track.id);
+        writer.writeU32BE(((trafBytes - 1) << 4) | (sampleBytes - 1));
+        writer.writeU32BE(entries.length);
+        for (const entry of entries) {
+          writer.writeU64BE(entry.time);
+          writer.writeU64BE(entry.offset);
+          if (trafBytes === 1) writer.writeU8(entry.traf); else writer.writeU32BE(entry.traf);
+          writer.writeU8(1); // One trun per traf.
+          if (sampleBytes === 1) writer.writeU8(entry.sample); else writer.writeU32BE(entry.sample);
+        }
+        return makeFullBox("tfra", 1, 0, writer.toUint8Array());
+      });
+      const footer = new BinaryWriter(4);
+      footer.writeU32BE(24 + indexes.reduce((size, box) => size + box.byteLength, 0));
+      fragments.push(makeBox("mfra", concatBytes([...indexes, makeFullBox("mfro", 0, 0, footer.toUint8Array())])));
     }
     const result = concatBytes([ftypBox, moovBox,
       ...(options.emptyMoov === false ? [makeBox("mdat", concatBytes(initialPayloads))] : []), ...fragments]);

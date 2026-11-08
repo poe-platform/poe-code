@@ -12,8 +12,8 @@ for (const includeAudio of [false, true]) {
       const bytes = serializeMp4({ ...doc, tracks }, { fragmented: true, fragmentKeyframes: true, emptyMoov: false });
       const boxes = parseMp4Boxes(bytes);
       assert.deepEqual(boxes.map(box => box.type), keyframes
-        ? ["ftyp", "moov", "mdat", "moof", "mdat", "moof", "mdat"]
-        : ["ftyp", "moov", "mdat"]);
+        ? ["ftyp", "moov", "mdat", "moof", "mdat", "moof", "mdat", "mfra"]
+        : ["ftyp", "moov", "mdat", "mfra"]);
       const initial = parseMp4(bytes.subarray(0, boxes.find(box => box.type === "moof")?.offset ?? bytes.length));
       assert.equal(initial.tracks.find(track => track.type === "video")!.samples.length, keyframes ? 4 : 12);
       const output = parseMp4(bytes);

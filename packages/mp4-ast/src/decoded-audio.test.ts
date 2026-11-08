@@ -1,3 +1,4 @@
+import { readWavHeader } from "./containers/wav-header.js";
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { concatMp4, sliceMp4, muxMp4, parseWav, serializeWav, type MediaDocument } from "./index.js";
@@ -91,14 +92,16 @@ for (const [codec, bits, tag] of [
     const source = audio(48000, [Float32Array.from([-1, 0, .5]), Float32Array.from([.25, -.5, 1])]);
     const bytes = serializeWav(source, { audioCodec: codec });
     const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    assert.equal(header.getUint16(20, true), tag);
+    const extended = tag === 1 && bits > 16;
+    const { dataOffset } = readWavHeader(bytes);
+    assert.equal(header.getUint16(20, true), extended ? 0xfffe : tag);
     assert.equal(header.getUint16(34, true), bits);
     assert.equal(header.getUint16(32, true), 2 * bits / 8);
     assert.equal(header.getUint32(28, true), 48000 * 2 * bits / 8);
-    assert.equal(header.getUint32(40, true), 6 * bits / 8);
+    assert.equal(header.getUint32(dataOffset - 4, true), 6 * bits / 8);
     const output = parseWav(bytes);
     assert.equal(output.tracks[0]!.codecDescriptions[0]!.codecName, codec);
-    const payload = bytes.subarray(44);
+    const payload = bytes.subarray(dataOffset);
     const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
     const samples = Array.from({ length: 6 }, (_, i) => {
       const offset = i * bits / 8;

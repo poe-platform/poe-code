@@ -52,3 +52,28 @@ for (const mask of [0, 0x3f, 0x60f, 0x707]) {
     });
   }
 }
+
+for (const channels of [1, 2]) {
+  for (const [bits, rate, extended] of [[16, 8000, false], [16, 48000, false], [16, 48001, true], [16, 96000, true], [24, 8000, true], [32, 8000, true], [64, 8000, true]] as const) {
+    it(`selects the PCM${bits} WAV header at ${rate} Hz with ${channels} channels`, () => {
+      const input = Buffer.from("UklGRi4AAABXQVZFZm10IBAAAAABAAEAAHcBAADuAgACABAAZGF0YQoAAAAAgAD/AAAAAQB/", "base64");
+      input.writeUInt16LE(channels, 22);
+      input.writeUInt32LE(rate, 24);
+      input.writeUInt32LE(rate * channels * 2, 28);
+      input.writeUInt16LE(channels * 2, 32);
+      const bytes = Buffer.from(serializeWav(parseWav(input), { audioCodec: `pcm_s${bits}le` }));
+      assert.equal(bytes.readUInt32LE(4), bytes.length - 8);
+      assert.equal(bytes.readUInt32LE(16), extended ? 40 : 16);
+      assert.equal(bytes.readUInt16LE(20), extended ? 0xfffe : 1);
+      if (extended) {
+        assert.equal(bytes.readUInt16LE(36), 22);
+        assert.equal(bytes.readUInt16LE(38), bits);
+        assert.equal(bytes.readUInt32LE(40), channels === 1 ? 4 : 3);
+        assert.equal(bytes.subarray(44, 60).toString("hex"), "0100000000001000800000aa00389b71");
+      }
+      const decoded = parseWav(bytes).tracks[0]!.decodedAudio!;
+      assert.deepEqual(decoded.channelData.map(channel => Array.from(channel)),
+        parseWav(input).tracks[0]!.decodedAudio!.channelData.map(channel => Array.from(channel)));
+    });
+  }
+}

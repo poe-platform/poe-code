@@ -50,7 +50,12 @@ for (const sync of [false, true]) {
       offset += 8 + size + (size % 2);
     }
     assert.ok(format);
-    assert.equal(format.readUInt16LE(0), 1);
+    assert.equal(format.length, 40);
+    assert.equal(format.readUInt16LE(0), 0xfffe);
+    assert.equal(format.readUInt16LE(16), 22);
+    assert.equal(format.readUInt16LE(18), 32);
+    assert.equal(format.readUInt32LE(20), 4);
+    assert.equal(format.subarray(24).toString("hex"), "0100000000001000800000aa00389b71");
     assert.equal(format.readUInt16LE(14), 32);
     assert.ok(actual);
     assert.deepEqual(Array.from({ length: actual.length / 4 }, (_, i) => actual!.readInt32LE(i * 4)), samples);

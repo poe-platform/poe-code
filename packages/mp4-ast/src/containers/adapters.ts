@@ -722,7 +722,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   // FFmpeg's default layouts from 2.1 through 7.1; explicit masks take precedence.
   const channelMask = audioTrack?.decodedAudio?.channelMask ?? (decodedAudio ? decodedAudio.channelMask : undefined) ??
     [0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels - 3];
-  const extensible = channelMask !== undefined || channels > 2;
+  const extensible = channelMask !== undefined || channels > 2 || sampleRate > 48000 ||
+    (formatTag === 1 && bitsPerSample > 16);
   const fmtSize = formatBytes?.length ?? (extensible ? 40 : formatTag === 6 || formatTag === 7 ? 18 : 16);
   const wave64 = format === "w64";
   const writePeak = !wave64 && options.writePeak !== undefined && options.writePeak !== "off";
@@ -805,7 +806,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       if (extensible) {
         writer.writeU16LE(22);
         writer.writeU16LE(bitsPerSample);
-        writer.writeU32LE(channelMask ?? 0);
+        writer.writeU32LE(channelMask ?? (channels === 1 ? 4 : channels === 2 ? 3 : 0));
         writer.writeU32LE(formatTag);
         writer.writeBytes(Uint8Array.of(0, 0, 0x10, 0, 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71));
       }

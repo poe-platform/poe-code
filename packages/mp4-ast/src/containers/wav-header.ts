@@ -158,13 +158,30 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
         (header.cues ??= []).push({ id: cue.getUint32(0, littleEndian), start: cue.getUint32(20, littleEndian), title: "" });
       }
     } else if (!wave64 && id === "bext" && size >= 602) {
-      const read = yield { offset: start, length: 338 };
+      const read = yield { offset: start, length: 346 };
       const text = (offset: number, length: number) => new TextDecoder().decode(read.bytes.subarray(offset, offset + length)).split("\0")[0]!;
+      const custom: Record<string, string> = { ...header.metadata?.custom,
+        time_reference: new DataView(read.bytes.buffer, read.bytes.byteOffset, read.bytes.byteLength).getBigUint64(338, true).toString()
+      };
+      for (const [key, offset, length] of [["encoded_by", 256, 32], ["originator_reference", 288, 32], ["creation_time", 330, 8]] as const) {
+        const value = text(offset, length);
+        if (value) custom[key] = value;
+      }
+      if (size > 602) {
+        const decoder = new TextDecoder();
+        let history = "";
+        for (let offset = start + 602; offset < end; offset += 16384) {
+          const read = yield { offset, length: Math.min(16384, end - offset) };
+          history += decoder.decode(read.bytes, { stream: true });
+        }
+        history = (history + decoder.decode()).split("\0")[0]!;
+        if (history) custom.coding_history = history;
+      }
       header.metadata = {
         ...header.metadata,
         ...(text(0, 256) ? { comment: text(0, 256) } : {}),
         ...(text(320, 10) ? { date: text(320, 10) } : {}),
-        ...(text(256, 32) ? { custom: { ...header.metadata?.custom, encoded_by: text(256, 32) } } : {})
+        custom
       };
     } else if (!wave64 && id === "LIST" && size >= 4) {
       const list = yield { offset: start, length: 4 };

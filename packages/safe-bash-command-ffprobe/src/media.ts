@@ -304,6 +304,8 @@ type FormatStep = ProbeOutputPart | {
 function formatQualifiedAudio(probe: ProbeSourceRows, opts: FfprobeFormatOptions, audioInput?: AudioProbeInput): string | undefined {
   // MP4 track tags belong to the media probe, not the audio container metadata.
   if (probe.format?.format_name.split(",").includes("mp4")) return undefined;
+  // Broadcast WAV fields are supplied by the media reader, not the audio schema.
+  if (probe.format?.format_name === "wav" && probe.format.tags?.time_reference !== undefined) return undefined;
   // Both execution paths retain qualified audio schemas while media-only options
   // and mixed streams use the general media formatter.
   if (audioInput && !opts.showPackets && !opts.showFrames && !opts.showChapters && !opts.showPrograms && !opts.countFrames && !opts.countPackets &&
@@ -883,7 +885,7 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
   }
   const result: MediaProbeSourceRecords = await (plugin.probeRecords ?? plugin.probeMetadata)!.call(plugin, source, { ...records, filename, signal: context.signal, budget, limits: budget.limits });
   if (result.close) retain(result.close.bind(result));
-  if (onAudio) {
+  if (onAudio && !(plugin.formatName === "wav" && result.format?.tags?.time_reference !== undefined)) {
     const tags = plugin.formatName === "flac" ? new FlacTags(source, context) : new SourceAudioTags(source, context);
     retain(tags.close);
     let checkpoints = 0;

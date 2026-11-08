@@ -1410,6 +1410,60 @@ describe("required option arguments", () => {
   });
 });
 
+describe("tile overlap", () => {
+  for (const overlap of ["-1", "1.5", "2147483648", "invalid"]) {
+    it(`rejects overlap=${overlap} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/out.png": "keep" });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-f", "lavfi", "-i", "color=s=4x4:r=1:d=1",
+        "-vf", `tile=3x1:overlap=${overlap}`, "/out.png"
+      ], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("tile: overlap"), result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "keep");
+    });
+  }
+  for (const [count, options, expected] of [
+    [7, "overlap=1", [[20, 40, 60], [60, 80, 100], [100, 120, 140]]],
+    [6, "overlap=1", [[20, 40, 60], [60, 80, 100], [100, 120, 0]]],
+    [2, "overlap=1", [[20, 40, 0]]],
+    [7, "overlap=0", [[20, 40, 60], [80, 100, 120], [140, 0, 0]]],
+    [7, "overlap=2", [[20, 40, 60], [40, 60, 80], [60, 80, 100], [80, 100, 120], [100, 120, 140]]],
+    [7, "overlap=3", [[20, 40, 60], [40, 60, 80], [60, 80, 100], [80, 100, 120], [100, 120, 140]]],
+    [7, "nb_frames=2:overlap=2", [[20, 40, 0], [40, 60, 0], [60, 80, 0], [80, 100, 0], [100, 120, 0], [120, 140, 0]]]
+  ] as const) {
+    it(`matches native RGB sheets for ${count} frames and ${options}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      for (let i = 0; i < count; i++) {
+        const value = 20 * (i + 1);
+        vfs.store.set(`/f${i}.png`, encodeImage({
+          width: 3, height: 2, data: Uint8Array.from(Array(6).fill([value, value, value, 255]).flat()),
+          format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false
+        }, { format: "png" }).data);
+      }
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "5", "-i", "/f%d.png", "-vf", `tile=3x1:${options}`,
+        "-fps_mode", "passthrough", "/o%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(vfs.store.size - count, expected.length);
+      for (const [index, cells] of expected.entries()) {
+        const sheet = decodeImage(vfs.store.get(`/o${index + 1}.png`)!);
+        assert.equal(sheet.width, 9);
+        assert.equal(sheet.height, 2);
+        for (let y = 0; y < 2; y++) {
+          for (let x = 0; x < 9; x++) {
+            const value = cells[Math.floor(x / 3)]!;
+            const offset = (y * 9 + x) * 4;
+            assert.deepEqual([...sheet.data.subarray(offset, offset + 4)], [value, value, value, 255]);
+          }
+        }
+      }
+    });
+  }
+});
+
 describe("tile frame grouping", () => {
   for (const count of [7, 31]) {
     for (const filter of ["tile", "tile=6x5"]) {

@@ -48,6 +48,8 @@ without `all=1`, unspecified channels are unchanged.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 `datascope=size=320x240` renders monochrome hexadecimal RGB pixel values for each frame, preserving timing. `s` and positional size are also accepted; the default is `1280x720` (`hd720`). Other datascope options are unsupported.
 
+`tile=3x1:overlap=1` carries the last frame of each contact sheet into the next sheet. Overlap is capped at one less than `nb_frames` (or the grid capacity); a partial final sheet is padded with the tile background color.
+
 `mpdecimate` removes near-duplicate decoded RGB frames using default 8×8 block thresholds against the last retained frame. Use `-fps_mode passthrough` to preserve their original timestamps. Custom mpdecimate options are unsupported.
 `decimate=cycle=4` (or `decimate=4`) drops one frame per complete cycle, preferring duplicates and otherwise using scene changes and overlapping 32×32 block differences. The default cycle is 5; supported cycles are 2–25. Incomplete final cycles are retained, and output timestamps use the reduced frame rate. Use `-fps_mode passthrough` to write each retained frame once. Options other than `cycle` are unsupported.
 

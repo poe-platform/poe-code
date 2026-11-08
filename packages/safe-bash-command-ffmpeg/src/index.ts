@@ -1912,8 +1912,13 @@ async function applyVideoFilterChain(
       const perTile = Number.isInteger(nbFrames) && nbFrames > 0 && nbFrames <= cols * rows
         ? nbFrames
         : cols * rows;
+      const overlap = Number(named.overlap ?? 0);
+      if (!Number.isInteger(overlap) || overlap < 0 || overlap > 2147483647) {
+        throw new Error("tile: overlap must be an integer from 0 to 2147483647");
+      }
+      const step = perTile - Math.min(overlap, perTile - 1);
       const tiledFrames: MediaVideoFrame[] = [];
-      for (let base = 0; base < current.length; base += perTile) {
+      for (let base = 0; base < current.length; base += step) {
         if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
         const batch = current.slice(base, base + perTile);
@@ -1946,6 +1951,7 @@ async function applyVideoFilterChain(
           durationSeconds: batch.reduce((s, x) => s + x.durationSeconds, 0),
           keyframe: true
         });
+        if (base + perTile >= current.length) break;
       }
       current = tiledFrames;
     } else if (name === "select") {

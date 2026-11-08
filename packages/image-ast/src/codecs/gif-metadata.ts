@@ -9,7 +9,7 @@ export function* gifAnimationSteps(size:number,start:number):Generator<number|{f
  const skip=function*(at:number):Generator<number,number,number|undefined>{while(at<size){const length=(yield at++)??0;if(!length)break;at+=length;}return at;};
  const word=function*(at:number):Generator<number,number,number|undefined>{return ((yield at)??0)|(((yield at+1)??0)<<8);};
  const comments: number[] = [];
- let at=start,pending=100,frames=0,loop:number|undefined;
+ let at=start,pending=0,frames=0,loop:number|undefined;
  while(at<size){
   const intro=yield at++;if(intro===59)break;
   if(intro===33){
@@ -30,7 +30,7 @@ export function* gifAnimationSteps(size:number,start:number):Generator<number|{f
     }
    }else at=yield* skip(at);
   }else if(intro===44){
-   if(at+9>size)break;yield {frame:frames++,delay:pending};pending=100;
+   if(at+9>size)break;yield {frame:frames++,delay:pending};pending=0;
    const flags=(yield at+8)??0;at+=9;if(flags&128)at+=3*(1<<((flags&7)+1));at=yield* skip(at+1);
   }else break;
  }

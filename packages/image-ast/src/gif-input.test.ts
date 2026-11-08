@@ -3340,7 +3340,7 @@ export const gifInputVectors: GifInputVector[] = [
       hasAlpha: true,
       pages: 4,
       pageHeight: 11,
-      delay: [100, 100, 100, 100],
+      delay: [0, 0, 0, 0],
       loop: 0,
       size: 1157
     },
@@ -3356,7 +3356,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 4,
       sourcePages: 4,
       pageHeight: 11,
-      delay: [100, 100, 100, 100],
+      delay: [0, 0, 0, 0],
       loop: 0
     },
     hash: "92cf497309357db87f489f1ef998ebe7fb6384647ac5262506b5d33d1f75f978"
@@ -3375,7 +3375,7 @@ export const gifInputVectors: GifInputVector[] = [
       hasAlpha: true,
       pages: 4,
       pageHeight: 11,
-      delay: [100, 100, 100, 100],
+      delay: [0, 0, 0, 0],
       loop: 65536,
       size: 1157
     },
@@ -3391,7 +3391,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 4,
       sourcePages: 4,
       pageHeight: 11,
-      delay: [100, 100, 100, 100],
+      delay: [0, 0, 0, 0],
       loop: 65536
     },
     hash: "92cf497309357db87f489f1ef998ebe7fb6384647ac5262506b5d33d1f75f978"

@@ -223,11 +223,12 @@ describe("@poe-code/mp4-ast", () => {
     const sampleEntry = subTrack.codecDescriptions[0]!.rawStsdEntryBytes!;
     assert.equal(Buffer.from(sampleEntry.subarray(46)).toString("hex"),
       "00000012667461620001000105417269616c");
+    assert.equal(subTrack.timescale, 1_000_000);
     assert.equal(subTrack.samples.length, 2);
-    assert.equal(subTrack.samples[0]!.pts, 200);
-    assert.equal(subTrack.samples[0]!.duration, 700);
-    assert.equal(subTrack.samples[1]!.pts, 1100);
-    assert.equal(subTrack.samples[1]!.duration, 700);
+    assert.equal(subTrack.samples[0]!.pts, 200000);
+    assert.equal(subTrack.samples[0]!.duration, 700000);
+    assert.equal(subTrack.samples[1]!.pts, 1100000);
+    assert.equal(subTrack.samples[1]!.duration, 700000);
   });
 
   it("parses and serializes Nero chpl chapters in MP4 and FFmetadata (;FFMETADATA1) documents", () => {

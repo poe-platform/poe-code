@@ -50,7 +50,7 @@ for (const [text, plain, runs] of [
   it(`encodes timed-text emphasis as binary style records: ${text}`, () => {
     const input = new TextEncoder().encode(`1\n00:00:00,500 --> 00:00:01,250\n${text}\n\n2\n00:00:02,000 --> 00:00:03,000\nSecond line\n`);
     const samples = parseMp4(serializeMp4(parseSubtitleDocument(input, "srt")), { decodeSubtitles: false }).tracks[0]!.samples;
-    assert.deepEqual(samples.map(s => [s.pts, s.duration]), [[0, 500], [500, 750], [1250, 750], [2000, 1000]]);
+    assert.deepEqual(samples.map(s => [s.pts, s.duration]), [[0, 500000], [500000, 750000], [1250000, 750000], [2000000, 1000000]]);
     assert.deepEqual(Array.from(samples[0]!.data), [0, 0]);
     assert.deepEqual(Array.from(samples[2]!.data), [0, 0]);
     const packet = Buffer.from(samples[1]!.data);

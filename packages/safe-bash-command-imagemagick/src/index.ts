@@ -3117,7 +3117,7 @@ function* compositeMaskPixelSteps(image: Pick<RgbaImage, "width" | "height">, ma
     }
 }
 
-function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal, fuzz = 0): Generator<void, RgbaImage, void> {
+function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal, fuzz = 0, clipToOverlay = false): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const { name: norm, delegated, preservesAlpha } = magickCompositeMode(modeRaw);
     const modulation = norm === "modulate" ? (composeArgs || "100").toLowerCase().replaceAll(",", "x").split("x") : [];
@@ -3131,7 +3131,7 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
     const sw = src.width;
     const sh = src.height;
     const maskDestination = ["dstin", "destin", "srcin", "in", "srcout", "out", "dstatop", "destatop"].includes(norm);
-    const extendSource = maskDestination || ["src", "source", "copy"].includes(norm);
+    const extendSource = !clipToOverlay && (maskDestination || ["src", "source", "copy"].includes(norm));
     for (let sy = extendSource ? -top : 0; sy < (extendSource ? dh - top : sh); sy++) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -6935,8 +6935,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const bw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
                 const bh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
                 const canvas = yield* createSolidRgbaImageSteps(im.width + bw * 2, im.height + bh * 2, state.borderColor);
-                yield* blitOverRgbaInPlaceSteps(canvas, im, bw, bh);
-                return { ...canvas, virtualCanvas: magickBorderCanvas(im, bw, bh) };
+                let composed = canvas;
+                if (state.composeRaw.toLowerCase() === "over") yield* blitOverRgbaInPlaceSteps(canvas, im, bw, bh);
+                else composed = yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, bw, bh, state.composeArgs, signal, state.alphaFuzz, true);
+                return { ...composed, virtualCanvas: magickBorderCanvas(im, bw, bh) };
             }));
         }
         else if (t === "-shave") {
@@ -7670,7 +7672,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
-async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false, montageRounding = false, tile = false, fuzz = 0): Promise<StoredRgbaImage> {
+async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false, montageRounding = false, tile = false, fuzz = 0, clipToOverlay = false): Promise<StoredRgbaImage> {
     const compositeMode = magickCompositeMode(mode);
     let hasAlpha = base.hasAlpha || (!generic && !compositeMode.delegated && !compositeMode.preservesAlpha);
     const position = inPlace ? base.position : backend.storage.allocate(base.width * base.height * 4);
@@ -7678,7 +7680,7 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
         await yieldTurn(signal); await backend.storage.write(position + start, await backend.storage.read(base.position + start, Math.min(16384, base.width * base.height * 4 - start)));
     }
     const maskDestination = !generic && ["dstin", "destin", "srcin", "in", "srcout", "out", "dstatop", "destatop"].includes(compositeMode.name);
-    const extendSource = maskDestination || (!generic && ["src", "source", "copy"].includes(compositeMode.name));
+    const extendSource = !clipToOverlay && (maskDestination || (!generic && ["src", "source", "copy"].includes(compositeMode.name)));
     const right = tile || extendSource ? base.width : Math.min(base.width, left + overlay.width);
     const bottom = tile || extendSource ? base.height : Math.min(base.height, top + overlay.height);
     for (let y = extendSource ? 0 : Math.max(0, top); y < bottom; y++) {
@@ -8646,13 +8648,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 });
             });
         } else if (!operandsOnly && token === "-border") {
-            const geometry = parseMagickBorderGeometry(tokens[++i] ?? ""), background = state.borderColor;
+            const geometry = parseMagickBorderGeometry(tokens[++i] ?? ""), background = state.borderColor, compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const left = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? 0));
                 const top = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? left));
                 const canvas = await createStoredCanvas(image.width + left * 2, image.height + top * 2, background, backend, signal);
-                return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, "over", undefined, false, true),
+                return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, compose, composeArgs, false, true, false, false, fuzz, true),
                     virtualCanvas: magickBorderCanvas(image, left, top) };
             });
         } else {

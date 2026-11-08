@@ -2918,11 +2918,17 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
             return (yield { kind: "read", image: stack.length, position, length })!;
         });
         const selected = mask.filter((enabled, channel) => enabled && (channel !== 3 || base.hasAlpha)).length;
-        for (const name of ["mean", "standard_deviation"]) {
-            statistics[name] = 0;
+        for (const name of ["mean", "standard_deviation", "minima", "maxima", "median"]) {
+            statistics[name] = name === "minima" && selected > 0 ? 1 : 0;
             for (let channel = 0; channel < 4; channel++) {
-                if (!mask[channel]) statistics[`${name}.${channel}`] = 0;
-                statistics[name]! += statistics[`${name}.${channel}`]! / Math.max(1, selected);
+                if (!mask[channel]) {
+                    statistics[`${name}.${channel}`] = 0;
+                    continue;
+                }
+                const value = statistics[`${name}.${channel}`]!;
+                if (name === "minima") statistics[name] = Math.min(statistics[name]!, value);
+                else if (name === "maxima") statistics[name] = Math.max(statistics[name]!, value);
+                else statistics[name]! += value / selected;
             }
         }
     }

@@ -44,7 +44,7 @@ import { cannyPixelSteps } from "./canny-kernel.js";
 import { shadowPixelSteps, vignetteLayout, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { shearPlan, shearPixelSteps } from "./shear-kernel.js";
 import { warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
-import { morphologyPixelSteps, type MorphologyRow } from "./morphology-kernel.js";
+import { hitAndMissPixelSteps, morphologyPixelSteps, type MorphologyRow } from "./morphology-kernel.js";
 import { edgePixelSteps } from "./edge-kernel.js";
 import { charcoalPixelSteps } from "./charcoal-kernel.js";
 import { embossPixelSteps } from "./emboss-kernel.js";
@@ -674,7 +674,7 @@ function parseMagickMorphologyMethod(raw: string): { method: string; iterations:
 }
 
 type MorphologyStep = { mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"; source: number } | { mode: "diff"; a: number; b: number };
-function explicitMorphologyRows(spec: string): number[][] | undefined {
+function explicitMorphologyRows(spec: string, match?: 0 | 1): number[][] | undefined {
   const colon = spec.indexOf(":");
   if (colon < 0 || !"0123456789".includes(spec[0] ?? " ")) return undefined;
   const geometry = parseMagickGeometry(spec.slice(0, colon));
@@ -691,15 +691,21 @@ function explicitMorphologyRows(spec: string): number[][] | undefined {
     const offsets = rows[row - y + radius]!;
     for (let column = 0; column < width; column++) {
       if (cells[row * width + column]!.toLowerCase() === "nan") continue;
-      if (Number(cells[row * width + column]) !== 1) throw new Error(`unsupported non-flat morphology kernel '${spec}'`);
-      offsets.push(column - x);
+      const value = Number(cells[row * width + column]);
+      if (value !== 1 && !(match !== undefined && value === 0)) throw new Error(`unsupported non-flat morphology kernel '${spec}'`);
+      if (match === undefined || value === match) offsets.push(column - x);
     }
   }
   return rows;
 }
 
-function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: MorphologyRow[]; dilateRows?: MorphologyRow[]; steps: MorphologyStep[]; iterations: number } {
+function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: MorphologyRow[]; backgroundRows?: MorphologyRow[]; dilateRows?: MorphologyRow[]; steps: MorphologyStep[]; iterations: number } {
   const { method, iterations } = parseMagickMorphologyMethod(methodRaw);
+  if (method === "hitandmiss") {
+    const rows = explicitMorphologyRows(kernelSpec, 1);
+    if (!rows) throw new Error(`invalid morphology kernel '${kernelSpec}'`);
+    return { rows, backgroundRows: explicitMorphologyRows(kernelSpec, 0)!, iterations, steps: [{ source: 0, mode: "min" }] };
+  }
   if (method === "nonpeak") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "nonpeak" }] };
   if (method === "contrast") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "contrast" }] };
   if (method === "standarddeviation") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "standarddeviation" }] };
@@ -791,7 +797,7 @@ function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kerne
         } else {
             let source = images[step.source]!;
             for (let pass = 0; pass < plan.iterations; pass++)
-                source = yield* applyMagickRasterSteps(source, morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels), signal);
+                source = yield* applyMagickRasterSteps(source, plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels), signal);
             images.push(source);
         }
     }
@@ -7912,7 +7918,7 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
         } else {
             let source = images[step.source]!;
             for (let pass = 0; pass < plan.iterations; pass++)
-                source = await transformStoredMagickRaster(source, backend, morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels), signal);
+                source = await transformStoredMagickRaster(source, backend, plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels), signal);
             images.push(source);
         }
     }

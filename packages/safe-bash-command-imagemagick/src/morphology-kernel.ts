@@ -2,6 +2,42 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 
 export type MorphologyRow = number | readonly number[];
 
+/** Hit-and-miss is the positive difference between minimum foreground and maximum background. */
+export function* hitAndMissPixelSteps(image: { width: number; height: number }, foreground: readonly MorphologyRow[], background: readonly MorphologyRow[], channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const { width, height } = image;
+    let work = 0;
+    for (let y = 0; y < height; y++) {
+        yield;
+        for (let x = 0; x < width; x++) {
+            const position = (y * width + x) * 4;
+            const original = yield { kind: "read", position, length: 4 };
+            if (!original || original.length !== 4) throw new Error("Truncated morphology pixels");
+            const data = original.slice(), minimum = [255, 255, 255, 255], maximum = [0, 0, 0, 0];
+            for (const rows of [foreground, background]) {
+                const ry = Math.floor(rows.length / 2);
+                for (let row = 0; row < rows.length; row++) {
+                    const offsets = rows[row]!;
+                    if (typeof offsets === "number") throw new Error("Expected explicit hit-and-miss kernel");
+                    for (const offset of offsets) {
+                        if (++work % 4096 === 0) yield;
+                        const sx = Math.max(0, Math.min(width - 1, x + offset));
+                        const sy = Math.max(0, Math.min(height - 1, y + row - ry));
+                        const bytes = yield { kind: "read", position: (sy * width + sx) * 4, length: 4 };
+                        if (!bytes || bytes.length !== 4) throw new Error("Truncated morphology pixels");
+                        for (let c = 0; c < 4; c++) {
+                            if (rows === foreground) minimum[c] = Math.min(minimum[c]!, bytes[c]!);
+                            else maximum[c] = Math.max(maximum[c]!, bytes[c]!);
+                        }
+                    }
+                }
+            }
+            for (let c = 0; c < 4; c++)
+                if (channels ? channels[c] : c < 3) data[c] = Math.max(0, minimum[c]! - maximum[c]!);
+            yield { kind: "write", position, data };
+        }
+    }
+}
+
 /** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. Arrays specify sparse horizontal offsets. */
 export function* morphologyPixelSteps(image: { width: number; height: number; hasAlpha?: boolean }, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, histogram = new Float64Array(4 * 256);

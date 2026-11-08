@@ -2990,10 +2990,15 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
     const selector = parts[0];
     const type = selector === "a" ? "audio" : selector === "v" ? "video" : selector === "s" ? "subtitle" : undefined;
     const [index, key, language] = type ? parts.slice(1) : parts;
-    let enabled: boolean;
-    if (value === "0" || value === "-default" || value === "attached_pic") enabled = false;
-    else if (value === "1" || value === "default" || value === "+default") enabled = true;
-    else throw new Error(`Unsupported disposition: ${value}`);
+    const relative = value.startsWith("+") || value.startsWith("-");
+    const operations = value.replaceAll("-", "+-").split("+").filter(Boolean).map(token => {
+      const remove = token.startsWith("-");
+      const flag = remove ? token.slice(1) : token;
+      const name = flag === "1" ? "default" : flag;
+      if (!["0", "default", "comment", "attached_pic"].includes(name)) throw new Error(`Unsupported disposition: ${value}`);
+      return { name, remove };
+    });
+    if (!operations.length) throw new Error(`Unsupported disposition: ${value}`);
     let matched = 0;
     tracks = tracks.map(track => {
       if (type && track.type !== type) return track;
@@ -3001,9 +3006,15 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
       if (index === "m") {
         if (key !== "language" || (language !== undefined && track.language !== language)) return track;
       } else if (index && current !== Number(index)) return track;
-      return { ...track, enabled,
-        ...(value === "attached_pic" ? { disposition: { attached_pic: 1 } }
-          : value === "0" ? { disposition: {} } : {}) };
+      let disposition: Record<string, number> = relative ? { ...track.disposition } : {};
+      let enabled = relative ? track.enabled : false;
+      for (const { name, remove } of operations) {
+        if (name === "0") { enabled = false; disposition = {}; }
+        else if (name === "default") { enabled = !remove; delete disposition.default; }
+        else if (remove) delete disposition[name];
+        else disposition[name] = 1;
+      }
+      return { ...track, enabled, disposition };
     });
   }
   // The MP4 muxer enables the first audio track if none is marked default.

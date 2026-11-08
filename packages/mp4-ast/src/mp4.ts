@@ -1195,6 +1195,10 @@ function buildTrakBox(
   const trakChildren: Uint8Array[] = [tkhdBox];
   if (edtsBox) trakChildren.push(edtsBox);
   trakChildren.push(mdiaBox);
+  if (track.disposition?.comment) {
+    trakChildren.push(makeBox("udta", makeFullBox("kind", 0, 0,
+      new TextEncoder().encode("urn:mpeg:dash:role:2011\0commentary\0"))));
+  }
   return makeBox("trak", concatBytes(trakChildren));
 }
 

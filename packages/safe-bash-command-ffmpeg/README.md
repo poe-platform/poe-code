@@ -295,7 +295,8 @@ stream selectors also accept an absolute index (`s:1`), a type (`s:a`), or all s
 `-disposition:a:0 0 -disposition:a:1 default` selects the second output audio track as the MP4 default.
 Disposition selectors accept a type, an absolute index, all streams, or an output language
 (`-disposition:m:language:fra default` or `-disposition:a:m:language:fra default`); supported values are
-`0`, `1`, `default`, `+default`, `-default`, and `attached_pic`. Other disposition values fail explicitly.
+`0`, `1`, `default`, `comment`, and `attached_pic`, with `+`/`-` flag updates and combinations such as
+`default+comment`. MP4 output writes `comment` as a commentary track role. Other disposition values fail explicitly.
 For FLAC cover art, map the audio and PNG/JPEG inputs with `-map 0:a -map 1:v -c copy -disposition:v:0 attached_pic`; unmarked video streams are omitted.
 Chapters default to the first input with chapters, independently of stream selection. `-map_chapters -1` removes output chapters; `-map_chapters N` copies chapters from input N. FFmetadata export preserves imported chapter time bases, including sample-accurate boundaries.
 `xfade` supports the default `fade` and `transition=wipeleft`; other transitions fail

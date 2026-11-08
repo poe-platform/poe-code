@@ -25,13 +25,19 @@ function frameNumber(value: number): number[] {
 }
 
 /** Encode lossless PCM with bounded fixed/LPC predictor and Rice search and verbatim fallback. */
-export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string, lpcPasses = 2, budget = new MediaBudgetTracker()): Uint8Array[] {
+export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string, lpcPasses = 2, budget = new MediaBudgetTracker(), lpcCoeffPrecision?: number): Uint8Array[] {
   if (lpcType !== undefined && !["none", "fixed", "levinson", "cholesky"].includes(lpcType)) {
     throw new Error("FLAC lpc_type must be none, fixed, levinson or cholesky");
   }
   if (!Number.isInteger(lpcPasses) || lpcPasses < 1 || lpcPasses > 2147483647) {
     throw new Error("FLAC lpc_passes must be an integer from 1 to 2147483647");
   }
+  if (lpcCoeffPrecision !== undefined && (!Number.isInteger(lpcCoeffPrecision) || lpcCoeffPrecision < 0 || lpcCoeffPrecision > 15)) {
+    throw new Error("FLAC lpc_coeff_precision must be an integer from 0 to 15");
+  }
+  const precision = lpcCoeffPrecision || 15;
+  const shift = Math.max(0, precision - 3);
+  if (lpcCoeffPrecision !== undefined && lpcType === undefined) lpcType = "levinson";
   const level = compressionLevel === -1 ? 5 : compressionLevel;
   if (level !== undefined && (!Number.isInteger(level) || level < 0 || level > 12)) {
     throw new Error("FLAC compression_level must be between 0 and 12 (or -1 for default)");
@@ -150,16 +156,16 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
             if (pass === 0 && (lpcType === "levinson" || passes > 1)) energy += samples[length - 1]! ** 2;
             predictor = energy === 0 ? 0 : correlation / energy;
           }
-          fitted = Math.max(-16384, Math.min(16383, Math.round(predictor * 4096)));
+          fitted = Math.max(-(2 ** (precision - 1)), Math.min(2 ** (precision - 1) - 1, Math.round(predictor * 2 ** shift)));
         }
         const maxOrder = lpc ? Math.min(1, length - 1) : lpcType === "none" ? 0
           : Math.min(4, Math.floor(((level ?? 5) + 2) / 3), length - 1);
         let differences: number[] = Array.from(samples);
         for (let order = lpc ? maxOrder : 0; order <= maxOrder; order++) {
-          if (lpc && order === 1) differences = Array.from(samples.subarray(1), (value, i) => value - Math.floor(fitted * samples[i]! / 4096));
+          if (lpc && order === 1) differences = Array.from(samples.subarray(1), (value, i) => value - Math.floor(fitted * samples[i]! / 2 ** shift));
           const folded = differences.map(value => value < 0 ? -2 * value - 1 : 2 * value);
           for (let parameter = 0; parameter < 15; parameter++) {
-            let size = order * sampleBits + 10 + (lpc && order === 1 ? 24 : 0);
+            let size = order * sampleBits + 10 + (lpc && order === 1 ? 9 + precision : 0);
             for (const value of folded) {
               size += Math.floor(value / 2 ** parameter) + 1 + parameter;
               if (size >= bestSize) break;
@@ -181,9 +187,9 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
       } else {
         for (let i = 0; i < bestOrder; i++) write(samples[i]!, sampleBits);
         if (coefficient !== undefined) {
-          write(14, 4); // Signed 15-bit coefficient.
-          write(12, 5); // Q12 predictor shift.
-          write(coefficient, 15);
+          write(precision - 1, 4);
+          write(shift, 5);
+          write(coefficient, precision);
         }
         write(0, 6); // Rice method 0, one residual partition.
         write(bestParameter, 4);

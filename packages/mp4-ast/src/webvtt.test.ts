@@ -13,3 +13,12 @@ it("round-trips WebVTT cue side data and multiline captions with CRLF input", ()
   assert.equal(new TextDecoder().decode(serializeSubtitleDocument(doc, "srt")),
     "1\n00:00:01,250 --> 00:00:03,500\nOne\nTwo\n\n2\n00:00:05,000 --> 00:00:06,750\nThree\n\n");
 });
+
+for (const block of ["STYLE", "REGION"]) {
+  it(`skips WebVTT ${block} blocks without dropping later cues or ordinary identifiers`, () => {
+    const good = "00:03.000 --> 00:04.000\nGood\n\nregion1\n00:05.000 --> 00:06.000\nCaption\n\nSTYLE1\n00:07.000 --> 00:08.000\nAnother\n";
+    const input = `WEBVTT\n\n${block}\n00:01.000 --> 00:02.000\nHello\n\n${good}`;
+    const doc = parseSubtitleDocument(new TextEncoder().encode(input), "webvtt");
+    assert.equal(new TextDecoder().decode(serializeSubtitleDocument(doc, "webvtt")), `WEBVTT\n\n${good}`);
+  });
+}

@@ -2138,6 +2138,7 @@ export function parseSubtitleDocument(
       .filter((l) => l.length > 0);
     if (lines.length === 0) continue;
     if (lines[0]!.startsWith("WEBVTT") || lines[0]!.startsWith("NOTE")) continue;
+    if (format === "webvtt" && (lines[0] === "STYLE" || lines[0] === "REGION")) continue;
 
     let arrowLineIdx = -1;
     for (let i = 0; i < lines.length; i++) {

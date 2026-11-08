@@ -3588,7 +3588,8 @@ export function evalSyncFfmpeg(
 
     if (inputs.length === 0 || !outputTarget) return undefined;
     // Output resampling and channel mixing require the async audio filter path.
-    if (audioRate !== undefined || audioChannels !== undefined) return undefined;
+    if (audioRate !== undefined || audioChannels !== undefined ||
+        (maxAudioFrames !== undefined && audioCodec !== "copy")) return undefined;
     if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) return undefined;
     if (outputFormat === "segment") return undefined;
     const isNullMux = outputFormat === "null";
@@ -5791,7 +5792,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio
-            if ((audioRate !== undefined || audioChannels !== undefined || afFilters.length > 0) && audioCodec !== "copy") {
+            if ((audioRate !== undefined || audioChannels !== undefined || afFilters.length > 0 || maxAudioFrames !== undefined) && audioCodec !== "copy") {
               let audioOrdinal = 0;
               workingDoc = {
                 ...workingDoc,
@@ -5801,7 +5802,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (t.type !== "audio") return t;
                   const ordinal = audioOrdinal++;
                   const filter = afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal).at(-1);
-                  if (audioRate === undefined && audioChannels === undefined && !filter) return t;
+                  if (audioRate === undefined && audioChannels === undefined && !filter && maxAudioFrames === undefined) return t;
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
                     ? decodeAacTrack(workingDoc, t) : undefined);
                   if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
@@ -6885,10 +6886,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                   }
 
-                  if (audioTimestamps && maxAudioFrames !== undefined) {
-                    const end = maxAudioFrames === 0 ? 0 : audioTimestamps[Math.min(maxAudioFrames, audioTimestamps.length) - 1]?.end ?? 0;
+                  if (maxAudioFrames !== undefined) {
+                    const end = audioTimestamps
+                      ? maxAudioFrames === 0 ? 0 : audioTimestamps[Math.min(maxAudioFrames, audioTimestamps.length) - 1]?.end ?? 0
+                      : Math.round(t.samples.slice(0, maxAudioFrames).reduce((total, sample) => total + sample.duration, 0) * origRate / t.timescale)
+                        + Math.max(0, maxAudioFrames - t.samples.length) * 1024;
                     stretched = stretched.map(channel => channel.subarray(0, end));
-                    audioTimestamps = audioTimestamps.slice(0, maxAudioFrames);
+                    audioTimestamps = audioTimestamps?.slice(0, maxAudioFrames);
                   }
 
                   const audioEnd = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));
@@ -6896,6 +6900,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     // FFmpeg stops on a frame's shifted PTS, retaining the entire preceding frame.
                     const cutoff = audioTimestamps.find(frame => frame.pts >= audioEnd * origRate);
                     if (cutoff) stretched = stretched.map(channel => channel.subarray(0, cutoff.start));
+                  }
+
+                  if (!filter && audioRate === undefined && audioChannels === undefined) {
+                    return { ...t, duration: (stretched[0]?.length ?? 0) * t.timescale / origRate,
+                      samples: [], decodedAudio: { ...audio, channelData: stretched } };
                   }
 
                   const origCh = stretched.length;

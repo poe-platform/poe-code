@@ -6348,6 +6348,53 @@ describe("chapter mapping", () => {
 });
 
 
+describe("PCM audio frame limits", () => {
+  for (const sampleRate of [8000, 44100]) {
+    for (const channels of [1, 2]) {
+      for (const inputFormat of ["s16le", "wav"]) {
+        for (const outputFormat of ["s16le", "wav"]) {
+          for (const codec of ["copy", "pcm_s16le", undefined]) {
+            for (const limit of [1, 2, 3, undefined]) {
+              it(`${sampleRate} Hz ${channels}ch ${inputFormat} to ${outputFormat} ${codec} frames=${limit ?? "unlimited"}`, async () => {
+                const length = 8000;
+                const pcm = new Uint8Array(length * channels * 2);
+                const view = new DataView(pcm.buffer);
+                for (let i = 0; i < length * channels; i++) view.setInt16(i * 2, i, true);
+                const input = inputFormat === "s16le" ? pcm : encodeWav({ sampleRate,
+                  channels: Array.from({ length: channels }, (_, ch) =>
+                    Float64Array.from({ length }, (_, i) => (i * channels + ch) / 32768)) });
+                const vfs = createTestVfs({ "/input": input });
+                const args = [...(inputFormat === "s16le" ? ["-f", "s16le", "-ar", String(sampleRate), "-ac", String(channels)] : []),
+                  "-i", "/input", ...(limit === undefined ? [] : ["-frames:a", String(limit)]),
+                  ...(codec ? ["-c:a", codec] : []), "-f", outputFormat, "/output"];
+                if (limit !== undefined && codec !== "copy") {
+                  assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+                    () => { assert.fail("frame limiting must use the async path"); }), undefined);
+                }
+                const result = await runCmd(createFfmpegCommand(), args, vfs);
+                assert.equal(result.exitCode, 0, result.stderr);
+                const output = vfs.store.get("/output")!;
+                const expectedLength = limit === undefined ? length : Math.min(length, limit * (sampleRate === 8000 ? 512 : 4096));
+                if (outputFormat === "s16le") {
+                  assert.equal(output.length, expectedLength * channels * 2);
+                  assert.deepEqual(output, pcm.subarray(0, expectedLength * channels * 2));
+                } else {
+                  const audio = parseWav(output).tracks[0]!.decodedAudio!;
+                  for (let ch = 0; ch < channels; ch++) {
+                    assert.equal(audio.channelData[ch]!.length, expectedLength);
+                    assert.deepEqual(Array.from(audio.channelData[ch]!),
+                      Array.from({ length: expectedLength }, (_, i) => (i * channels + ch) / 32768));
+                  }
+                }
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
 describe("audio stream copy frame limits", () => {
   for (const sync of [false, true]) {
     for (const option of ["-frames:a", "-aframes"]) {

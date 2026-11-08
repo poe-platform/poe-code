@@ -1898,7 +1898,8 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = cur + (isPct ? (rawNum / 100) * 65536 / 257 : vByte);
                     break;
                 case "addmodulus":
-                    next = (((cur + Math.round(vByte)) % 256) + 256) % 256;
+                    // Wrap Q16 samples before reducing to the byte-scale HDRI view.
+                    next = (((cur * 257 + (isPct ? rawNum / 100 * 65536 : rawNum)) % 65536) + 65536) % 65536 / 257;
                     break;
                 case "mean":
                     next = (cur + vByte) / 2;

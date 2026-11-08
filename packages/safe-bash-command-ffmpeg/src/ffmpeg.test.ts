@@ -16,6 +16,32 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("crop dimension aliases", () => {
+  for (const dimensions of ["out_w=4:out_h=2", "w=4:h=2", "out_w=4:h=2", "w=4:out_h=2"]) {
+    it(`matches native pixels for ${dimensions} across three frames`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({
+        width: 7, height: 5, channels: 4,
+        data: new Uint8Array(Array.from({ length: 35 }, (_, i) => [i + 1, i + 1, i + 1, 255]).flat()),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice() });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "2", "-i", "/in%d.png", "-vf", `crop=${dimensions}:x=0:y=0`,
+        "-frames:v", "3", "/out%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const expected = new Uint8Array([1, 2, 3, 4, 8, 9, 10, 11].flatMap(gray => [gray, gray, gray, 255]));
+      for (let frame = 1; frame <= 3; frame++) {
+        const output = decodeImage(vfs.store.get(`/out${frame}.png`)!);
+        assert.equal(output.width, 4);
+        assert.equal(output.height, 2);
+        assert.deepEqual(output.data, expected);
+      }
+    });
+  }
+});
+
 describe("default centered crop rounding", () => {
   for (const width of [2, 4]) {
     for (const position of ["", ":(iw-ow)/2:(ih-oh)/2"]) {

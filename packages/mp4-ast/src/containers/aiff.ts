@@ -17,7 +17,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   let littleEndian = false;
   let channels = 0, frames = 0, bits = 0, sampleRate = 0;
   let sound: Uint8Array | undefined;
-  let title: string | undefined;
+  const metadata: { title?: string; copyright?: string; comment?: string; custom?: Record<string, string> } = {};
   for (let offset = 12; offset < end;) {
     budget.checkCpu();
     if (offset + 8 > end) throw new Error("Truncated AIFF chunk header");
@@ -37,8 +37,12 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       const mantissa = view.getUint32(start + 10) * 2 ** 32 + view.getUint32(start + 14);
       sampleRate = Math.round(mantissa * 2 ** (exponent - 16383 - 63));
       if (exponent & 0x8000 || !Number.isSafeInteger(sampleRate) || sampleRate <= 0) throw new Error("Invalid AIFF sample rate");
-    } else if (id === "NAME") {
-      title = new TextDecoder().decode(bytes.subarray(start, start + size)).split("\0", 1)[0];
+    } else if (["NAME", "AUTH", "(c) ", "ANNO"].includes(id)) {
+      const value = new TextDecoder().decode(bytes.subarray(start, start + size)).split("\0", 1)[0]!;
+      if (id === "NAME") metadata.title = value;
+      else if (id === "AUTH") metadata.custom = { author: value };
+      else if (id === "(c) ") metadata.copyright = value;
+      else metadata.comment = value;
     } else if (id === "SSND") {
       if (size < 8) throw new Error("Invalid AIFF SSND chunk");
       const skip = view.getUint32(start);
@@ -56,7 +60,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   const doc = pcm.find(plugin => plugin.id === format)!.parse(sound, { ...options, budget, channels, sampleRate });
   // COMM describes duration; SSND determines the available PCM samples.
   return { ...doc, duration: frames, durationSeconds: frames / sampleRate,
-    tracks: doc.tracks.map(track => ({ ...track, duration: frames })), metadata: title === undefined ? doc.metadata : { ...doc.metadata, title }, containerFormat: "aiff", byteLength: bytes.length };
+    tracks: doc.tracks.map(track => ({ ...track, duration: frames })), metadata: { ...doc.metadata, ...metadata }, containerFormat: "aiff", byteLength: bytes.length };
 }
 
 export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {

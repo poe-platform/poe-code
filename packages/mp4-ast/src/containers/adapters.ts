@@ -2558,6 +2558,7 @@ export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
   if (m.album) lines.push(`album=${escapeFfmetadata(m.album)}`);
   if (m.date) lines.push(`date=${escapeFfmetadata(m.date)}`);
   if (m.comment) lines.push(`comment=${escapeFfmetadata(m.comment)}`);
+  if (m.copyright) lines.push(`copyright=${escapeFfmetadata(m.copyright)}`);
   if (m.genre) lines.push(`genre=${escapeFfmetadata(m.genre)}`);
   if (m.encoder) lines.push(`encoder=${escapeFfmetadata(m.encoder)}`);
   for (const [key, value] of Object.entries(m.custom ?? {})) {

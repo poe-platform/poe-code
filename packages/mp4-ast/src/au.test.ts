@@ -18,13 +18,12 @@ it("reads annotations, unknown data length, and preserves encoded packets for co
   assert.equal(probe.streams[0]!.sample_rate, "8000");
 });
 
-it("rejects truncated headers, invalid bounds, unsupported encodings and incomplete frames", () => {
+it("rejects truncated headers, invalid bounds, unsupported encodings", () => {
   const ast = auAst();
   assert.throws(() => ast.parse(native.subarray(0, 23)), /header/);
   for (const [offset, value, error] of [
     [4, 23, /bounds/], [4, 100, /bounds/], [8, 100, /bounds/],
-    [12, 99, /encoding/], [16, 0, /sample rate/], [20, 0, /channel count/],
-    [8, 17, /sample frame/]
+    [12, 99, /encoding/], [16, 0, /sample rate/], [20, 0, /channel count/]
   ] as const) {
     const bytes = Buffer.from(native);
     bytes.writeUInt32BE(value, offset);
@@ -32,6 +31,15 @@ it("rejects truncated headers, invalid bounds, unsupported encodings and incompl
   }
   assert.throws(() => ast.parse(native, { limits: { maxInputBytes: 40 } }), /limit/i);
   assert.throws(() => ast.serialize(ast.parse(native), { audioCodec: "pcm_s16le" }), /Unsupported AU/);
+});
+
+it("decodes complete AU samples while retaining an incomplete trailing frame", () => {
+  const bytes = Buffer.from(native);
+  bytes.writeUInt32BE(17, 8);
+  const ast = auAst();
+  const doc = ast.parse(bytes);
+  assert.equal(doc.durationSeconds, 8 / 8000);
+  assert.deepEqual(ast.serialize(doc, { audioCodec: "copy" }), new Uint8Array(bytes.subarray(0, 49)));
 });
 
 it("reads native title and artist annotations and writes aligned UTF-8 metadata", () => {

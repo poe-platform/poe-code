@@ -5287,7 +5287,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
             }
           } else if (arg === "-display_rotation" || arg.startsWith("-display_rotation:")) {
-            pendingDisplayRotations.push(parseDisplayRotation(arg, args[++i]));
+            try {
+              pendingDisplayRotations.push(parseDisplayRotation(arg, args[++i]));
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
+              return { exitCode: 234 };
+            }
             if (!args.slice(i + 1).includes("-i")) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: -display_rotation must precede an input\n"), context.signal);
               return { exitCode: 234 };

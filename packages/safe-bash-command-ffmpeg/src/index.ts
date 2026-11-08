@@ -3094,15 +3094,19 @@ function outputFrameLimits(tracks: readonly MediaTrack[], options: readonly [str
   });
 }
 
-function discardOutputVideoPreroll(document: MediaDocument, copyInitialNonKeyframes: boolean): MediaDocument {
+function discardOutputPreroll(
+  document: MediaDocument,
+  codecs: Partial<Record<MediaTrack["type"], string | undefined>>,
+  copyInitialNonKeyframes: boolean
+): MediaDocument {
   const tracks = document.tracks.map(track => {
-    if (track.type !== "video") return track;
+    if (codecs[track.type] !== "copy") return track;
     let offset = 0;
     for (const edit of track.editList ?? []) {
       if (edit.mediaTime < 0) offset += edit.segmentDuration / document.timescale;
       else { offset -= edit.mediaTime / track.timescale; break; }
     }
-    const first = track.samples.findIndex(sample => (copyInitialNonKeyframes || sample.isKeyframe) &&
+    const first = track.samples.findIndex(sample => (track.type !== "video" || copyInitialNonKeyframes || sample.isKeyframe) &&
       sample.pts + Math.round(offset * track.timescale) >= 0);
     if (first === 0) return track;
     // Keep the original timestamps and edit list: the next keyframe can leave
@@ -4180,7 +4184,7 @@ export function evalSyncFfmpeg(
           doc.tracks.some(track => track.codecDescriptions[0]?.codecName === `pcm_${doc.containerFormat}`)) return undefined;
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
         doc = sliceMp4(doc, { startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds });
-        if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputVideoPreroll(doc, copyInitialNonKeyframes);
+        if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputPreroll(doc, { video: videoCodec }, copyInitialNonKeyframes);
       }
       if (inp.streamLoop === -1) {
         doc = loopToOutputEnd(doc, outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration, budget);
@@ -4203,7 +4207,7 @@ export function evalSyncFfmpeg(
       outPlugin?.id, subtitleCodec);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
-      if (videoCodec === "copy" && outputSs !== undefined) workingDoc = discardOutputVideoPreroll(workingDoc, copyInitialNonKeyframes);
+      if (outputSs !== undefined) workingDoc = discardOutputPreroll(workingDoc, { video: videoCodec, audio: audioCodec }, copyInitialNonKeyframes);
     }
     const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);
     workingDoc = limitCopyPackets(workingDoc, streamFrameLimits, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
@@ -6112,7 +6116,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   endSeconds: rawSeek && inp.endSeconds !== undefined ? inp.endSeconds - startSeconds! : inp.endSeconds,
                   durationSeconds: inp.durationSeconds
                 });
-                if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputVideoPreroll(doc, copyInitialNonKeyframes);
+                if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputPreroll(doc, { video: videoCodec }, copyInitialNonKeyframes);
               }
               if (inp.streamLoop === -1) {
                 doc = loopToOutputEnd(doc, outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration, budget);
@@ -6559,7 +6563,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 endSeconds: outputDuration === undefined ? outputTo : undefined,
                 durationSeconds: outputDuration
               });
-              if (videoCodec === "copy" && outputSs !== undefined) workingDoc = discardOutputVideoPreroll(workingDoc, copyInitialNonKeyframes);
+              if (outputSs !== undefined) workingDoc = discardOutputPreroll(workingDoc, { video: videoCodec, audio: audioCodec }, copyInitialNonKeyframes);
             }
 
             const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);

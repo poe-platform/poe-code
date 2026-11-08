@@ -477,6 +477,8 @@ positional options and use in audio filter chains.
 
 Use `-isync INDEX` before `-i` to synchronize that MP4/MOV input with another input’s source start time. `-isync -1` disables synchronization; the option resets for each input. With `-copyts`, also pass `-start_at_zero`. Inputs without a known source start time remain unchanged.
 
+With AAC stream copy, output-side `-ss TIME` starts at the first packet whose timestamp is at or after the requested time. Input-side seeking preserves the packet crossing the seek boundary.
+
 For input-side stream-copy seeking (`-ss TIME -i INPUT`), `-copypriorss 0` discards video preroll before the requested start and begins at the next keyframe. `-copypriorss 1` preserves preroll, matching the default. Packet timestamps remain relative to the requested start.
 
 MP4/MOV output `-brand mp42` sets the container major brand without changing packet bytes or timing. Brands of fewer than four characters keep the default; longer values use the first four characters.

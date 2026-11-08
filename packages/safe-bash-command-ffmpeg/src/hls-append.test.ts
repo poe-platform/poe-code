@@ -18,7 +18,7 @@ for (const type of ["fmp4", "mpegts"]) {
         let stderr = "";
         const result = await createFfmpegCommand().execute({
           args: ["-y", "-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_segment_type", type,
-            "-hls_flags", "append_list", ...(size === undefined ? [] : ["-hls_list_size", size]), "/out.m3u8"],
+            "-hls_flags", "append_list", ...(size === undefined ? [] : ["-hls_list_size", size]), "/out.m3u8", ...(size === "7" ? ["-c", "copy", "/other-output.mp4"] : [])],
           cwd: "/", env: {}, signal: new AbortController().signal,
           fs: {
             async readFile(path: string) { return volume.readFileSync(path); },

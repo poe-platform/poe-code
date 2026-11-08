@@ -5750,7 +5750,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           }
           // Open earlier ordinary destinations before checking later outputs.
           if (progressOutputIndex < outputs.length - 1 && !isStdout(outputTarget) && outputTarget !== "/dev/null" &&
-              format !== "null" && format !== "segment" && plugin?.id !== "image2") {
+              format !== "null" && format !== "segment" && plugin?.id !== "hls" && plugin?.id !== "image2") {
             await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
           }
         });

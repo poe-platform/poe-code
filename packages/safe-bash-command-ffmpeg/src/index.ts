@@ -644,19 +644,6 @@ async function ensureDecodedFrames(
   return frames;
 }
 
-function evalScaleDim(expr: string, iw: number, ih: number): number {
-  const clean = expr.trim().toLowerCase();
-  if (clean === "-1" || clean === "-2") return -1;
-  if (clean === "iw" || clean === "in_w") return iw;
-  if (clean === "ih" || clean === "in_h") return ih;
-  if (clean.startsWith("iw/")) return Math.max(1, Math.round(iw / (parseFloat(clean.slice(3)) || 1)));
-  if (clean.startsWith("ih/")) return Math.max(1, Math.round(ih / (parseFloat(clean.slice(3)) || 1)));
-  if (clean.startsWith("iw*")) return Math.max(1, Math.round(iw * (parseFloat(clean.slice(3)) || 1)));
-  if (clean.startsWith("ih*")) return Math.max(1, Math.round(ih * (parseFloat(clean.slice(3)) || 1)));
-  return parseInt(clean, 10) || iw;
-}
-
-
 function roundToEven(value: number): number {
   const lower = Math.floor(value);
   // FFmpeg uses lrint: exact halves round to the nearest even integer.
@@ -1426,12 +1413,29 @@ async function applyVideoFilterChain(
         await diagnostics.write(`[showinfo] n:${n} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))} duration:${Math.round(frame.durationSeconds * diagnostics.timescale)} duration_time:${Number(frame.durationSeconds.toPrecision(6))} fmt:${format} s:${frame.width}x${frame.height} iskey:${Number(frame.keyframe)}${stats}\n`);
       }
     } else if (name === "scale") {
+      for (const key of Object.keys(named)) {
+        if (!["w", "width", "h", "height", "flags"].includes(key)) {
+          throw new Error(`scale: unsupported option ${key}`);
+        }
+      }
+      if (positional.some((part, index) => index > 1 && !part.includes("="))) {
+        throw new Error("scale: unsupported positional option");
+      }
+      if (named.flags !== undefined && !["neighbor", "lanczos", "bicubic"].includes(named.flags)) {
+        throw new Error("scale: unsupported flags");
+      }
       const iw = current[0]!.width;
       const ih = current[0]!.height;
-      const wSpec = named.w ?? named.width ?? positional[0] ?? String(iw);
-      const hSpec = named.h ?? named.height ?? positional[1] ?? String(ih);
-      let targetW = evalScaleDim(wSpec, iw, ih);
-      let targetH = evalScaleDim(hSpec, iw, ih);
+      const wSpec = named.w ?? named.width ?? (positional[0]?.includes("=") ? undefined : positional[0] || undefined) ?? String(iw);
+      const hSpec = named.h ?? named.height ?? (positional[1]?.includes("=") ? undefined : positional[1] || undefined) ?? String(ih);
+      const variables = { iw, ih, in_w: iw, in_h: ih };
+      let targetW = Math.trunc(parseFilterExpression(wSpec, "scale", variables));
+      let targetH = Math.trunc(parseFilterExpression(hSpec, "scale", variables));
+      if (!Number.isFinite(targetW) || !Number.isFinite(targetH)) {
+        throw new Error("scale: dimensions must be finite");
+      }
+      if (targetW === 0) targetW = iw;
+      if (targetH === 0) targetH = ih;
       if (targetW < 0 && targetH > 0) {
         const multiple = wSpec.trim() === "-2" ? 2 : 1;
         targetW = Math.max(1, Math.round((iw * targetH) / (Math.max(1, ih) * multiple))) * multiple;
@@ -1446,7 +1450,7 @@ async function applyVideoFilterChain(
 
 
         budget.recordFrame(targetW, targetH);
-        if (!named.flags) {
+        if (!named.flags || named.flags === "bicubic") {
           return {
             ...f,
             width: targetW,

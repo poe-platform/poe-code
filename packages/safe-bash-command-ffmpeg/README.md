@@ -46,6 +46,8 @@ milliseconds. `adelay=1S:all=1` repeats the last delay for remaining channels;
 without `all=1`, unspecified channels are unchanged.
 `asetrate=16000` changes the sample rate without resampling PCM, changing playback speed and duration. Later filters use the new rate; `r` and `sample_rate` are accepted option names.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
+`scale` accepts width/height expressions and `flags=neighbor`, `lanczos`, or `bicubic`.
+Invalid expressions, unsupported flags, and unsupported options (including `force_divisible_by`) fail before replacing output.
 `datascope=size=320x240` renders monochrome hexadecimal RGB pixel values for each frame, preserving timing. `s` and positional size are also accepted; the default is `1280x720` (`hd720`). Other datascope options are unsupported.
 
 `untile=3x1` splits contact sheets into frames in row order, including blank cells. It accepts `layout=3x1`, defaults to `6x5`, and requires sheet dimensions divisible by the grid.

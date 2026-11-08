@@ -1706,15 +1706,22 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "rotate") {
-      if (positional.length > 1 || Object.keys(named).some(key => key !== "angle" && key !== "a")) {
-        throw new Error("rotate: only the angle option is supported");
+      if (positional.filter(option => !option.includes("=")).length > 1 || Object.keys(named).some(key => key !== "angle" && key !== "a" && key !== "c" && key !== "fillcolor")) {
+        throw new Error("rotate: only angle and fill color options are supported");
+      }
+      let fill: [number, number, number, number];
+      try {
+        fill = parseColorRgba(named.fillcolor ?? named.c ?? "black");
+      } catch (error) {
+        throw new Error(`rotate: ${(error as Error).message}`);
       }
       const angle = parseFilterExpression(named.angle ?? named.a ?? (positional[0] || "0"), "rotate", { PI: Math.PI });
       const cos = Math.cos(angle);
       const sin = Math.sin(angle);
       current = await mapWork(current, async (f) => {
         budget.recordFrame(f.width, f.height);
-        const yuv = await rotateYuvFrame(f, angle, budget, signal);
+        const yuv = fill[0] === 0 && fill[1] === 0 && fill[2] === 0 && fill[3] === 255
+          ? await rotateYuvFrame(f, angle, budget, signal) : undefined;
         if (yuv) return yuv;
         const data = new Uint8Array(f.data.length);
         const cx = (f.width - 1) / 2;
@@ -1726,7 +1733,7 @@ async function applyVideoFilterChain(
             const sx = cos * (x - cx) + sin * (y - cy) + cx;
             const sy = -sin * (x - cx) + cos * (y - cy) + cy;
             const dest = (y * f.width + x) * 4;
-            data[dest + 3] = 255;
+            data.set(fill, dest);
             const ix = Math.floor(sx);
             const iy = Math.floor(sy);
             if (ix < -1 || ix > f.width || iy < -1 || iy > f.height) continue;

@@ -2370,6 +2370,35 @@ describe("video filter separators", () => {
   }
 });
 
+describe("rotate fill color", () => {
+  for (const [option, expected] of [
+    ["", [0, 0, 0, 255]],
+    [":c=red", [255, 0, 0, 255]],
+    [":fillcolor=red@0.5", [255, 0, 0, 127]],
+    [":c=0xff000080", [255, 0, 0, 128]],
+    [":fillcolor=blue@0", [0, 0, 255, 0]]
+  ] as const) {
+    it(`fills uncovered RGBA pixels for rotate=PI/2${option}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({
+        width: 12, height: 4, channels: 4,
+        data: new Uint8Array(Array.from({ length: 48 }, (_, i) => [4 * (i + 1), 4 * (i + 1), 4 * (i + 1), 255]).flat()),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice() });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "1", "-i", "/in%d.png", "-vf", `rotate=PI/2${option}`, "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = decodeImage(vfs.store.get("/out.png")!);
+      assert.equal(output.width, 12);
+      assert.equal(output.height, 4);
+      assert.deepEqual(Array.from(output.data.slice(0, 4)), expected);
+      assert.equal(output.data[(1 * 12 + 5) * 4 + 3], 255);
+    });
+  }
+});
+
 describe("rotate option validation", () => {
   for (const options of ["0:unknown=1", "0:c=bogus", "0:ow=bad", "0:bilinear=bogus", "0:oh=bad", "0:fillcolor=bogus", "0:out_w=bad", "0:out_h=bad", "0:extra", "angle=bad", "a=bad"]) {
     it(`preserves decoded output for invalid rotate=${options}`, async () => {

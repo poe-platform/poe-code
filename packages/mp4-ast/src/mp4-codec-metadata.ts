@@ -21,13 +21,17 @@ export function sampleEntryHeader(formatFourCC: string, body: Uint8Array): Codec
     profile: undefined, level: undefined, width: undefined, height: undefined, pixFmt: undefined,
     sarWidth: undefined, sarHeight: undefined, sampleRate: undefined, channels: undefined, bitsPerSample: undefined };
   const state: CodecEntryState = { metadata }, reader = new BinaryReader(body);
-  if (['avc1','avc3','hvc1','hev1','av01','vp08','vp09','mp4v','jpeg','mjpa','png ','s263'].includes(formatFourCC)) {
+  if (['avc1','avc3','hvc1','hev1','av01','vp08','vp09','mp4v','jpeg','mjpa','png ','s263','raw '].includes(formatFourCC)) {
     state.kind = 'video';
     if (body.length >= 78) {
       reader.skip(24); metadata.width = reader.readU16BE(); metadata.height = reader.readU16BE();
       reader.seek(42);
       const nameLength = Math.min(reader.readU8(), 31);
       metadata.compressorName = reader.readNullTerminatedString(nameLength);
+      if (formatFourCC === 'raw ') {
+        reader.seek(74);
+        metadata.pixFmt = ({ 16: 'rgb555be', 24: 'rgb24', 32: 'argb' } as Record<number, string>)[reader.readU16BE()];
+      }
       state.childOffset = 78;
     }
   } else if (['mp4a','Opus','fLaC','alac','ac-3','ec-3','sowt','twos','lpcm','.mp3','ulaw','alaw'].includes(formatFourCC)) {
@@ -91,7 +95,7 @@ export function applyCodecMetadata(state: CodecEntryState, child: CodecMetadataC
 export function finishCodecMetadata(state: CodecEntryState): Mp4CodecMetadata {
   const metadata = state.metadata, format = metadata.formatFourCC;
   if (state.kind === 'video') {
-    const aliases: Record<string,string> = { avc1:'h264',avc3:'h264',hvc1:'hevc',hev1:'hevc',av01:'av1',vp08:'vp8',vp09:'vp9',jpeg:'mjpeg',mjpa:'mjpeg',mp4v:'mpeg4','png ':'png' };
+    const aliases: Record<string,string> = { avc1:'h264',avc3:'h264',hvc1:'hevc',hev1:'hevc',av01:'av1',vp08:'vp8',vp09:'vp9',jpeg:'mjpeg',mjpa:'mjpeg',mp4v:'mpeg4','png ':'png','raw ':'rawvideo' };
     metadata.codecName = aliases[format] ?? metadata.codecName; metadata.pixFmt ??= 'yuv420p';
   } else if (state.kind === 'audio') {
     if (format === 'mp4a' && metadata.codecName === 'mp4a') { metadata.codecName = 'aac'; metadata.profile ??= 'LC'; }

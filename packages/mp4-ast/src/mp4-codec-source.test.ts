@@ -60,3 +60,14 @@ test('codec iteration stops before acquiring the next entry',async()=>{
   const iterator=api.scanMp4CodecDescriptions({size:bytes.length,async read(offset,length){reads++;return bytes.slice(offset,offset+length);}},{payloadOffset:0,payloadSize:bytes.length});
   assert.equal((await iterator.next()).done,false);const before=reads;await iterator.return();assert.equal(reads,before);
 });
+test('reads QuickTime raw RGB depths consistently from resident and source entries', async () => {
+  for (const [depth, pixFmt] of [[16, 'rgb555be'], [24, 'rgb24'], [32, 'argb']] as const) {
+    const body = new Uint8Array(78), view = new DataView(body.buffer);
+    view.setUint16(24, 3); view.setUint16(26, 2); view.setUint16(74, depth);
+    const [codec] = await scan([api.makeBox('raw ', body)]);
+    assert.equal(codec!.codecName, 'rawvideo');
+    assert.equal(codec!.pixFmt, pixFmt);
+    assert.equal(codec!.width, 3); assert.equal(codec!.height, 2);
+    assert.equal(codec!.codecTagString, 'raw ');
+  }
+});

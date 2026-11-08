@@ -1694,7 +1694,13 @@ async function applyVideoFilterChain(
       const ih = current[0]!.height;
       const width = named.w ?? named.width ?? positional[0] ?? String(iw);
       const height = named.h ?? named.height ?? positional[1] ?? String(ih);
-      const dimensions = { iw, ih, in_w: iw, in_h: ih, ow: NaN, oh: NaN, out_w: NaN, out_h: NaN };
+      const format = current[0]!.native?.format;
+      const hsub = format === 0 || format === 12 || format === 4 || format === 13 ? 2 : 1;
+      const vsub = format === 0 || format === 12 ? 2 : 1;
+      const dimensions = {
+        iw, ih, in_w: iw, in_h: ih, ow: NaN, oh: NaN, out_w: NaN, out_h: NaN,
+        a: iw / ih, sar: diagnostics.sar, dar: iw / ih * diagnostics.sar, hsub, vsub
+      };
       // Resolve width again after height so either dimension can depend on the other.
       dimensions.ow = dimensions.out_w = Math.trunc(parseFilterExpression(width, "pad", dimensions));
       dimensions.oh = dimensions.out_h = Math.trunc(parseFilterExpression(height, "pad", dimensions));
@@ -1708,7 +1714,7 @@ async function applyVideoFilterChain(
       if (pw < iw || ph < ih) {
         throw new Error("Padded dimensions cannot be smaller than input dimensions");
       }
-      const variables = { iw, ih, ow: pw, oh: ph, in_w: iw, in_h: ih, out_w: pw, out_h: ph, x: NaN, y: NaN };
+      const variables = { ...dimensions, ow: pw, oh: ph, out_w: pw, out_h: ph, x: NaN, y: NaN };
       const xExpression = named.x ?? positional[2] ?? "0";
       const yExpression = named.y ?? positional[3] ?? "0";
       // FFmpeg evaluates x again after y so either coordinate can depend on the other.
@@ -1721,9 +1727,6 @@ async function applyVideoFilterChain(
       const x = Math.trunc(variables.x);
       const y = Math.trunc(variables.y);
       // Align placement to the source chroma grid, as with crop.
-      const format = current[0]!.native?.format;
-      const hsub = format === 0 || format === 12 || format === 4 || format === 13 ? 2 : 1;
-      const vsub = format === 0 || format === 12 ? 2 : 1;
       const px = Math.floor((x < 0 || x > pw - iw ? Math.trunc((pw - iw) / 2) : x) / hsub) * hsub;
       const py = Math.floor((y < 0 || y > ph - ih ? Math.trunc((ph - ih) / 2) : y) / vsub) * vsub;
       const col = parseColorRgba(named.color ?? positional[4] ?? "black");

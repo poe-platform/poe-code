@@ -48,3 +48,5 @@ export { samiAst } from "./containers/sami.js";
 export { lrcAst } from "./containers/lrc.js";
 
 export { encodeTga } from "./containers/tga.js";
+
+export { nutAst } from "./containers/nut.js";

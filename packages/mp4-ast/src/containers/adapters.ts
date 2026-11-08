@@ -70,6 +70,7 @@ import {
   type SerializeMediaOptions
 } from "../types.js";
 import { assAst } from "./ass.js";
+import { nutAst } from "./nut.js";
 import { aviAst, flvAst } from "./avi.js";
 import { mkvAst, webmAst } from "./mkv.js";
 import { mpegtsAst } from "./mpegts.js";
@@ -2711,6 +2712,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     webmAst(),
     mpegtsAst(),
     aviAst(),
+    nutAst(),
     flvAst(),
     y4mAst(),
     aacAst(),

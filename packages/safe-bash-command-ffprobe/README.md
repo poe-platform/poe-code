@@ -1,6 +1,6 @@
 # safe-bash-command-ffprobe
 
-Inspect audio and video with `ffprobeCommands()` from
+Inspect audio and video, including NUT PCM audio and RGB/BGR video packets, with `ffprobeCommands()` from
 `@poe-platform/safe-bash/commands/ffprobe` or
 `poe-code/safe-bash/commands/ffprobe`.
 

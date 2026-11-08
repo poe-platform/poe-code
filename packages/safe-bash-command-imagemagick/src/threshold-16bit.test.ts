@@ -6,6 +6,14 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     it.each([
+        ["-threshold", "R", "32768",
+            [0, 0, 0, 65535].flatMap(red => [red, 0x1234, 0x4567, 0x89ab]),
+            [32766, 32767, 32768, 32769].flatMap(red => [red, 0x1234, 0x4567, 0x89ab])],
+        ["-threshold", "R", "32768", [0, 32769, 32770, 32769]],
+        ["-threshold", "RGB", "32769", [0, 0, 65535, 32769]],
+        ["-threshold", "A", "32769", [32768, 32769, 32770, 0]],
+        ["-threshold", "R", "50%", [65535, 32769, 32770, 32769]],
+        ["-threshold", "", "32769", [0, 0, 0, 0]],
         ["-black-threshold", "", "32769", [0, 0, 0, 0]],
         ["-white-threshold", "", "32769", [32768, 32769, 32770, 32769]],
         ["-white-threshold", "", "32768", [65535, 65535, 65535, 32769]],
@@ -17,9 +25,8 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         ["-white-threshold", "RGBA", "32769,32769,32769,32768", [32768, 32769, 65535, 65535]],
         ["-black-threshold", "RGB", "50%", [32768, 32769, 32770, 32769]],
         ["-white-threshold", "RGB", "50%", [65535, 65535, 65535, 32769]],
-    ] as const)(`preserves full samples for %s -channel %s %s via ${mode}`, async (operator, channels, threshold, expected) => {
-        const samples = [32768, 32769, 32770, 32769];
-        const input = encodeImage({ width: 1, height: 1, data: Uint8Array.from(samples, value => Math.round(value / 257)), data16: Uint16Array.from(samples), format: "png", space: "srgb", channels: 4, depth: "ushort", density: 72, hasAlpha: true }, { format: "png" }).data;
+    ] as const)(`preserves full samples for %s -channel %s %s via ${mode}`, async (operator, channels, threshold, expected, samples = [32768, 32769, 32770, 32769]) => {
+        const input = encodeImage({ width: samples.length / 4, height: 1, data: Uint8Array.from(samples, value => Math.round(value / 257)), data16: Uint16Array.from(samples), format: "png", space: "srgb", channels: 4, depth: "ushort", density: 72, hasAlpha: true }, { format: "png" }).data;
         expect([...decodeImage(input).data16!]).toEqual(samples);
         const filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/input.png", input);

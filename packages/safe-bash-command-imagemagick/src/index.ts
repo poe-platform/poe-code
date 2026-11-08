@@ -6173,31 +6173,41 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-threshold") {
+        highDepth = true;
         const raw = tokens[++i] ?? "", threshold = raw.endsWith("%") ? raw.slice(0, -1) : raw;
         if (!Number.isFinite(Number(threshold)) || Number.parseFloat(threshold) !== Number(threshold)) {
             throw new Error(`invalid argument '-threshold' '${raw}'`);
         }
-        const value = raw.endsWith("%") ? Number(threshold) / 100 * 255 : Number(threshold) / 257;
+        const value = raw.endsWith("%") ? Number(threshold) / 100 * 65535 : Number(threshold);
         const channels = state.channelExplicit ? state.channels : undefined;
         apply = function* (image) {
             const out = new Uint8Array(image.data);
+            const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+            const samples = data16 ?? out, quantumScale = data16 ? 1 : 257, maximum = data16 ? 65535 : 255;
             const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : undefined;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 if (mask) {
                     for (let channel = 0; channel < 4; channel++) {
-                        if (mask[channel]) out[idx + channel] = out[idx + channel]! > value ? 255 : 0;
+                        if (mask[channel]) {
+                            const white = samples[idx + channel]! * quantumScale > value;
+                            samples[idx + channel] = white ? maximum : 0;
+                            out[idx + channel] = white ? 255 : 0;
+                        }
                     }
                 } else {
-                    const intensity = 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!;
+                    const intensity = (0.212656 * samples[idx]! + 0.715158 * samples[idx + 1]! + 0.072186 * samples[idx + 2]!) * quantumScale;
                     const result = intensity > value ? 255 : 0;
+                    samples[idx] = samples[idx + 1] = samples[idx + 2] = result ? maximum : 0;
                     out[idx] = out[idx + 1] = out[idx + 2] = result;
                     // Native default threshold assigns the intensity result to alpha too.
-                    if (image.hasAlpha) out[idx + 3] = result;
+                    if (image.hasAlpha) {
+                        samples[idx + 3] = result ? maximum : 0;
+                        out[idx + 3] = result;
+                    }
                 }
             }
-            const { data16: ignored, ...metadata } = image;
-            return { ...metadata, data: out };
+            return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-colorize") {
         highDepth = true;

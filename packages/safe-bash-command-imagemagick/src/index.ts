@@ -2450,19 +2450,23 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
       k++;
       continue;
     }
-    k++;
+    throw new Error(`Invalid FX character: ${ch}`);
   }
 
   let pos = 0;
   const peek = () => tokens[pos];
   const next = () => tokens[pos++];
 
+  function expectToken(value: string): void {
+    if (next()?.val !== value) throw new Error(`Expected '${value}' in FX expression`);
+  }
+
   function parseTernary(): (ctx: FxEvalContext) => number {
     const cond = parseOr();
     if (peek()?.val === "?") {
       next();
       const tBranch = parseTernary();
-      if (peek()?.val === ":") next();
+      expectToken(":");
       const fBranch = parseTernary();
       return (ctx) => (cond(ctx) !== 0 ? tBranch(ctx) : fBranch(ctx));
     }
@@ -2584,16 +2588,17 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
 
   function parsePrimary(): (ctx: FxEvalContext) => number {
     const tok = peek();
-    if (!tok) return () => 0;
+    if (!tok) throw new Error("Expected operand in FX expression");
     if (tok.type === "num") {
       next();
       const val = Number(tok.val);
+      if (!Number.isFinite(val)) throw new Error(`Invalid FX number: ${tok.val}`);
       return () => val;
     }
     if (tok.val === "(") {
       next();
       const inner = parseTernary();
-      if (peek()?.val === ")") next();
+      expectToken(")");
       return inner;
     }
     if (tok.type === "id") {
@@ -2609,7 +2614,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
             args.push(parseTernary());
           }
         }
-        if (peek()?.val === ")") next();
+        expectToken(")");
         return (ctx) => {
           const vals = args.map((a) => a(ctx));
           const a0 = vals[0] ?? 0;
@@ -2685,7 +2690,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
       if (name === "u" && peek()?.val === "[") {
         next();
         imgIndex = parseTernary();
-        if (peek()?.val === "]") next();
+        expectToken("]");
       }
 
       // Check for p{x,y} or .p{x,y} or .r/.g/.b/.a/.w/.h/.intensity
@@ -2696,22 +2701,24 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
       if (name === "p" && peek()?.val === "{") {
         next();
         coordX = parseTernary();
-        if (peek()?.val === ",") next();
+        expectToken(",");
         coordY = parseTernary();
-        if (peek()?.val === "}") next();
+        expectToken("}");
       }
       while (peek()?.val === ".") {
         if (["entropy", "skewness", "kurtosis"].includes(name)) {
           throw new Error(`Expected operator at '.${tokens[pos + 1]?.val ?? ""}'`);
         }
         next();
-        const sub = next()?.val.toLowerCase() ?? "";
+        const property = next();
+        if (property?.type !== "id") throw new Error("Expected property in FX expression");
+        const sub = property.val.toLowerCase();
         if (sub === "p" && peek()?.val === "{") {
           next();
           coordX = parseTernary();
-          if (peek()?.val === ",") next();
+          expectToken(",");
           coordY = parseTernary();
-          if (peek()?.val === "}") next();
+          expectToken("}");
         } else {
           propName = sub;
         }
@@ -2765,11 +2772,12 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         return (ctx.sample ?? sampleFxImage)(targetImg, px, py, ch);
       };
     }
-    next();
-    return () => 0;
+    throw new Error(`Expected operand in FX expression, got: ${tok.val}`);
   }
 
-  return parseTernary();
+  const expression = parseTernary();
+  if (peek()) throw new Error(`Unexpected token in FX expression: ${peek()!.val}`);
+  return expression;
 }
 
 function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: string, channels: MagickState["channels"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {

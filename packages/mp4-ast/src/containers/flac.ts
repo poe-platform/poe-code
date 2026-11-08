@@ -25,7 +25,7 @@ function frameNumber(value: number): number[] {
 }
 
 /** Encode lossless PCM with bounded fixed/LPC predictor and Rice search and verbatim fallback. */
-export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string): Uint8Array[] {
+export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number, lpcType?: string, channelMode?: string): Uint8Array[] {
   if (lpcType !== undefined && !["none", "fixed", "levinson", "cholesky"].includes(lpcType)) {
     throw new Error("FLAC lpc_type must be none, fixed, levinson or cholesky");
   }
@@ -51,6 +51,10 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
     throw new Error("FLAC sample_fmt must be s16 or s32");
   }
   const { sampleRate, channels, channelData } = audio;
+  const modes = ["auto", "indep", "left_side", "right_side", "mid_side"];
+  const mode = channelMode === undefined ? 0 : modes.indexOf(channelMode);
+  if (mode < 0) throw new Error("Invalid FLAC ch_mode");
+  const assignment = channels === 2 && mode >= 2 ? mode + 6 : channels - 1;
   const count = channelData[0]?.length ?? 0;
   if (!Number.isInteger(sampleRate) || sampleRate < 1 || sampleRate > 655350 ||
       !Number.isInteger(channels) || channels < 1 || channels > 8 ||
@@ -79,9 +83,9 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
   const rateBytes = rateCode >= 13 ? [rateValue >>> 8, rateValue & 255] : [];
   for (let offset = 0, index = 0; offset < count; offset += blockSize, index++) {
     const length = Math.min(blockSize, count - offset);
-    const prefix = Uint8Array.from([0xff, 0xf8, 0x70 | rateCode, ((channels - 1) << 4) | (bits === 24 ? 12 : 8),
+    const prefix = Uint8Array.from([0xff, 0xf8, 0x70 | rateCode, (assignment << 4) | (bits === 24 ? 12 : 8),
       ...frameNumber(index), (length - 1) >>> 8, (length - 1) & 255, ...rateBytes]);
-    const frame = new Uint8Array(prefix.length + 1 + channels * (1 + length * width) + 2);
+    const frame = new Uint8Array(prefix.length + 1 + channels * (1 + length * width) + Math.ceil(length / 8) + 2);
     frame.set(prefix);
     frame[prefix.length] = crc(prefix, 8, 0x07);
     let position = (prefix.length + 1) * 8;
@@ -90,6 +94,7 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
         frame[position >>> 3]! |= ((value >>> bit) & 1) << (7 - (position & 7));
       }
     };
+    const encodedChannels: Int32Array[] = [];
     for (const [channel, data] of channelData.entries()) {
       const samples = new Int32Array(length);
       for (let i = offset; i < offset + length; i++) {
@@ -104,7 +109,18 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
           pcm[pcmOffset + byte] = value; // MD5 uses interleaved little-endian PCM.
         }
       }
-      let bestOrder = -1, bestParameter = 0, bestSize = length * bits;
+      encodedChannels.push(samples);
+    }
+    if (assignment >= 8) {
+      for (let i = 0; i < length; i++) {
+        const left = encodedChannels[0]![i]!, right = encodedChannels[1]![i]!;
+        encodedChannels[0]![i] = assignment === 9 ? left - right : assignment === 10 ? Math.floor((left + right) / 2) : left;
+        encodedChannels[1]![i] = assignment === 9 ? right : left - right;
+      }
+    }
+    for (const [channel, samples] of encodedChannels.entries()) {
+      const sampleBits = bits + ((assignment === 9 && channel === 0) || ((assignment === 8 || assignment === 10) && channel === 1) ? 1 : 0);
+      let bestOrder = -1, bestParameter = 0, bestSize = length * sampleBits;
       let residuals: number[] = [];
       let coefficient: number | undefined;
       // Increasing effort searches more fixed predictor orders. Never emit a
@@ -130,7 +146,7 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
           if (lpc && order === 1) differences = Array.from(samples.subarray(1), (value, i) => value - Math.floor(fitted * samples[i]! / 4096));
           const folded = differences.map(value => value < 0 ? -2 * value - 1 : 2 * value);
           for (let parameter = 0; parameter < 15; parameter++) {
-            let size = order * bits + 10 + (lpc && order === 1 ? 24 : 0);
+            let size = order * sampleBits + 10 + (lpc && order === 1 ? 24 : 0);
             for (const value of folded) {
               size += Math.floor(value / 2 ** parameter) + 1 + parameter;
               if (size >= bestSize) break;
@@ -148,9 +164,9 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
       }
       write(bestOrder < 0 ? 2 : coefficient !== undefined ? 64 : (8 + bestOrder) << 1, 8);
       if (bestOrder < 0) {
-        for (const sample of samples) write(sample, bits);
+        for (const sample of samples) write(sample, sampleBits);
       } else {
-        for (let i = 0; i < bestOrder; i++) write(samples[i]!, bits);
+        for (let i = 0; i < bestOrder; i++) write(samples[i]!, sampleBits);
         if (coefficient !== undefined) {
           write(14, 4); // Signed 15-bit coefficient.
           write(12, 5); // Q12 predictor shift.

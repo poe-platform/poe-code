@@ -2129,6 +2129,7 @@ export function evalSyncFfmpeg(
     let writeBext = false;
     let sampleFormat: string | undefined;
     let frameSize: number | undefined;
+    let channelMode: string | undefined;
     let lpcType: string | undefined;
     let compressionLevel: number | undefined;
     let peakBlockSize: number | undefined;
@@ -2294,6 +2295,9 @@ export function evalSyncFfmpeg(
       } else if (arg === "-sample_fmt") {
         sampleFormat = args[++i];
         if (!sampleFormat) throw new Error("Missing sample_fmt value");
+      } else if (arg === "-ch_mode") {
+        channelMode = args[++i];
+        if (!channelMode) throw new Error("Missing ch_mode value");
       } else if (arg === "-frame_size") {
         const value = args[++i];
         frameSize = value?.trim() ? Number(value) : NaN;
@@ -2559,7 +2563,7 @@ export function evalSyncFfmpeg(
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, lpcType, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2813,6 +2817,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeBext = false;
         let sampleFormat: string | undefined;
         let frameSize: number | undefined;
+        let channelMode: string | undefined;
         let lpcType: string | undefined;
         let compressionLevel: number | undefined;
         let peakBlockSize: number | undefined;
@@ -3341,6 +3346,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-sample_fmt") {
             sampleFormat = args[++i];
             if (!sampleFormat) throw new Error("Missing sample_fmt value");
+          } else if (arg === "-ch_mode") {
+            channelMode = args[++i];
+            if (!channelMode) throw new Error("Missing ch_mode value");
           } else if (arg === "-frame_size") {
         const value = args[++i];
         frameSize = value?.trim() ? Number(value) : NaN;
@@ -5560,7 +5568,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const start = boundaries[index]!;
                 const end = boundaries[index + 1]!;
                 const segment = sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget });
-                const bytes = segmentPlugin.serialize(segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, frameSize, lpcType, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
+                const bytes = segmentPlugin.serialize(segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, frameSize, channelMode, lpcType, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
@@ -5931,6 +5939,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               compressionLevel,
               lpcType,
               frameSize,
+              channelMode,
               sampleFormat,
               writeXing,
               faststart,

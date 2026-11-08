@@ -241,7 +241,7 @@ must have matching sample rates; preceding filters other than `anull` are unsupp
 
 `signalstats` measures per-frame Y/U/V levels, saturation, hue, temporal differences, and effective bit depths. Add `stat=brng` to count broadcast-range violations and `out=brng` to highlight them (yellow by default; `color`/`c` selects another color). Read measurements with `signalstats=stat=brng,metadata=print`. RGB inputs convert to limited-range BT.601 YUV444; retained 8-bit planar YUV inputs preserve their sampling. Temporal-outlier (`tout`) and vertical-repetition (`vrep`) modes are unsupported.
 
-`aphasemeter=video=0` measures stereo phase correlation without changing PCM. Read each frame's value with `aphasemeter=video=0,ametadata=mode=print:key=lavfi.aphasemeter.phase:file=phase.txt`. Omit `file` to print at info log level on stderr, or use `file=-` for stdout. Video generation and metadata modes other than `print` are unsupported.
+`aphasemeter=video=0` measures stereo phase correlation without changing PCM. Read each frame's value with `aphasemeter=video=0,ametadata=mode=print:key=lavfi.aphasemeter.phase:file=phase.txt`. Omit `file` to print at info log level on stderr, or use `file=-` for stdout. Add per-frame tags with `ametadata=mode=add:key=audit:value=left,ametadata=mode=print:key=audit:file=tag.txt`; adding an existing key preserves its value. Omit `key` in print mode to print all tags. Video generation and metadata modes other than `add` and `print` are unsupported.
 
 `ashowinfo` reports audio frame timestamps, sample counts, and PCM Adler-32 checksums on stderr at info log level or above, without changing the samples.
 

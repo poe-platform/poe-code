@@ -7001,7 +7001,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let stretched: typeof audio.channelData = audio.channelData;
                   let replayGainAvailable = true;
                   let audioStartSample = 0;
-                  let phaseMetadata: { pts: number; value: string }[] = [];
+                  const audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   let audioTimestamps: { start: number; end: number; pts: number }[] | undefined;
                   // astats normalizes integer PCM against its maximum positive value.
                   let statsScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 / 32767
@@ -7038,7 +7038,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (video) throw new Error("aphasemeter: only video=0 is supported");
                         if (stretched.length !== 2) throw new Error("aphasemeter: stereo audio required");
-                        phaseMetadata = [];
                         const length = stretched[0]!.length;
                         for (let start = 0, n = 0; start < length; n++) {
                           const timestamp = audioTimestamps?.[n];
@@ -7056,7 +7055,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             sum = Math.fround(sum + phase);
                           }
                           budget.allocateMemory(64);
-                          phaseMetadata.push({ pts: timestamp?.pts ?? audioStartSample + start, value: Math.fround(sum / (end - start)).toFixed(6) });
+                          const frame = audioMetadata[n] ?? { pts: timestamp?.pts ?? audioStartSample + start, tags: new Map<string, string>() };
+                          frame.tags.set("lavfi.aphasemeter.phase", Math.fround(sum / (end - start)).toFixed(6));
+                          audioMetadata[n] = frame;
                           start = end;
                         }
                         continue;
@@ -7064,6 +7065,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (trimmed === "ametadata" || trimmed.startsWith("ametadata=")) {
                         let mode = "select";
                         let key: string | undefined;
+                        let metadataValue: string | undefined;
                         let file: string | undefined;
                         for (const option of trimmed.slice("ametadata=".length).split(":").filter(Boolean)) {
                           const separator = option.indexOf("=");
@@ -7072,18 +7074,45 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (separator < 0) throw new Error(`ametadata: unsupported option ${option}`);
                           if (name === "mode") mode = value;
                           else if (name === "key") key = value;
+                          else if (name === "value") metadataValue = value;
                           else if (name === "file") file = value;
                           else throw new Error(`ametadata: unsupported option ${name}`);
                         }
-                        if (mode !== "print") throw new Error("ametadata: only mode=print is supported");
-                        let report = "";
-                        if (!key || key === "lavfi.aphasemeter.phase") {
-                          for (const [n, frame] of phaseMetadata.entries()) {
+                        if (mode !== "print" && mode !== "add") throw new Error("ametadata: only mode=add and mode=print are supported");
+                        if (mode === "add") {
+                          if (!key || metadataValue === undefined) throw new Error("ametadata: mode=add requires key and value");
+                          const length = stretched[0]?.length ?? 0;
+                          for (let start = 0, n = 0; start < length; n++) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            const line = `frame:${String(n).padEnd(5)}pts:${String(frame.pts).padEnd(7)} pts_time:${Number((frame.pts / origRate).toPrecision(6))}\nlavfi.aphasemeter.phase=${frame.value}\n`;
-                            budget.allocateMemory(line.length * 2);
-                            report += line;
+                            const timestamp = audioTimestamps?.[n];
+                            const packet = t.samples[n];
+                            const count = timestamp ? timestamp.end - timestamp.start
+                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const frame = audioMetadata[n] ?? { pts: timestamp?.pts ?? audioStartSample + start, tags: new Map<string, string>() };
+                            if (!frame.tags.has(key)) {
+                              budget.allocateMemory(64 + 2 * (key.length + metadataValue.length));
+                              frame.tags.set(key, metadataValue);
+                            }
+                            audioMetadata[n] = frame;
+                            start += count;
                           }
+                          continue;
+                        }
+                        let report = "";
+                        for (const [n, frame] of audioMetadata.entries()) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          let tags = "";
+                          for (const [name, value] of frame.tags) {
+                            if (key !== undefined && key !== name) continue;
+                            if (metadataValue !== undefined && metadataValue !== value) continue;
+                            const line = `${name}=${value}\n`;
+                            budget.allocateMemory(line.length * 2);
+                            tags += line;
+                          }
+                          if (!tags) continue;
+                          const header = `frame:${String(n).padEnd(5)}pts:${String(frame.pts).padEnd(7)} pts_time:${Number((frame.pts / origRate).toPrecision(6))}\n`;
+                          budget.allocateMemory(header.length * 2);
+                          report += header + tags;
                         }
                         if (file === "-") await writeBytes(context.stdout, encodeUtf8(report), context.signal);
                         else if (file) await writeFileOutput(context, encodeUtf8(report), data => context.fs.writeFile(resolvePath(context.cwd, file!), data, { signal: context.signal }));

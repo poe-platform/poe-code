@@ -609,6 +609,7 @@ interface MagickState {
   adjoin: boolean;
   scene?: number;
   dither: false | "riemersma" | "floydsteinberg";
+  diffusionAmount?: number;
   quantizeGray?: boolean;
   formatStr: string | undefined;
   channels: { r: boolean; g: boolean; b: boolean; a: boolean };
@@ -1020,7 +1021,7 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
     return { ...img, data: out, ...(data16 ? { data16 } : {}) };
 }
 
-function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boolean, diffusionAmount: number, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const palette: Array<{
         r: number;
@@ -1083,10 +1084,10 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
                 for (let c = 0; c < 4; c++) data16[idx + c] = out[idx + c]! * 257;
             }
             if (dither) {
-                const errR = oldR - best.r;
-                const errG = oldG - best.g;
-                const errB = oldB - best.b;
-                const errA = oldA - best.a;
+                const errR = (oldR - best.r) * diffusionAmount;
+                const errG = (oldG - best.g) * diffusionAmount;
+                const errB = (oldB - best.b) * diffusionAmount;
+                const errA = (oldA - best.a) * diffusionAmount;
                 const spread = (nx: number, ny: number, wgt: number) => {
                     if (nx < 0 || nx >= w || ny < 0 || ny >= h)
                         return;
@@ -6717,6 +6718,7 @@ if (t === "-seed") {
             if (key === "tiff:alpha") delete state.tiffAlpha;
             if (key === "tiff:endian") delete state.tiffEndian;
             if (key === "tiff:rows-per-strip") delete state.tiffRowsPerStrip;
+            if (key === "dither:diffusion-amount") delete state.diffusionAmount;
             if (key === "modulate:colorspace") delete state.modulateColorspace;
             if (key === "magnify:method") delete state.magnifyMethod;
             if (key === "trim:edges") delete state.trimEdges;
@@ -6726,6 +6728,10 @@ if (t === "-seed") {
             if (defStr.toLowerCase().startsWith("magnify:method=")) state.magnifyMethod = parseMagnifyMethod(defStr.slice("magnify:method=".length));
             const [filterKey, filterValue] = defStr.toLowerCase().split("=");
             if (filterKey === "filename:literal") state.filenameLiteral = filterValue === undefined || ["true", "1", "yes", "on"].includes(filterValue);
+            if (filterKey === "dither:diffusion-amount") {
+                const amount = parseFloat(filterValue ?? "");
+                state.diffusionAmount = Number.isFinite(amount) ? amount / (filterValue?.includes("%") ? 100 : 1) : 0;
+            }
             if (filterKey === "modulate:colorspace") state.modulateColorspace = filterValue ?? "hsl";
             if (filterKey === "sample:offset") {
                 const geometry = parseMagickGeometry(filterValue ?? "");
@@ -7376,8 +7382,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return state.dither === "riemersma"
-                    ? yield* applyMagickRasterSteps(im, riemersmaRemapSteps(im, palImg, !!im.data16), signal, im, [im, palImg])
-                    : yield* applyMagickRemapSteps(im, palImg, state.dither !== false, signal);
+                    ? yield* applyMagickRasterSteps(im, riemersmaRemapSteps(im, palImg, !!im.data16, state.diffusionAmount ?? 1), signal, im, [im, palImg])
+                    : yield* applyMagickRemapSteps(im, palImg, state.dither !== false, state.diffusionAmount ?? 1, signal);
             });
         }
         else if (t === "-clut" || t === "-hald-clut") {
@@ -9108,8 +9114,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const colors = await parseStoredCompareInput(palette, settings, backend, signal);
                 if (!colors) throw new Error(`unable to open image '${palette}'`);
                 return settings.dither === "riemersma"
-                    ? transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!image.storedData16), signal, image, [image, colors])
-                    : remapStoredImage(image, colors, backend.storage, settings.dither !== false, signal);
+                    ? transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!image.storedData16, settings.diffusionAmount ?? 1), signal, image, [image, colors])
+                    : remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal);
             });
         } else if (!operandsOnly && token === "-floodfill") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "+0+0"), candidate = tokens[i + 1], replacement = state.fill, fuzz = state.fuzz;

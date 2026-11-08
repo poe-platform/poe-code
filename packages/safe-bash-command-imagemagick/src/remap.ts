@@ -12,7 +12,7 @@ export function remapColorOrder(r: number, g: number, b: number): number {
     return order;
 }
 
-export async function remapStoredImage(image: StoredRgbaImage, paletteImage: StoredRgbaImage, storage: ImageByteStorage, dither: boolean, signal: AbortSignal): Promise<StoredRgbaImage> {
+export async function remapStoredImage(image: StoredRgbaImage, paletteImage: StoredRgbaImage, storage: ImageByteStorage, dither: boolean, diffusionAmount: number, signal: AbortSignal): Promise<StoredRgbaImage> {
     const palette: number[] = [], seen = new Set<number>();
     for (let offset = 0; offset < paletteImage.width * paletteImage.height * 4; offset += 4096) {
         await yieldTurn(signal);
@@ -63,6 +63,7 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
                 const spread = async (nx: number, ny: number, weight: number) => {
                     if (nx < 0 || nx >= image.width || ny >= image.height) return;
                     const next = (ny * image.width + nx) * 16;
+                    weight *= diffusionAmount;
                     await cache.setFloat32(errors, next, await cache.float32(errors, next) + (r - pixels[offset]!) * weight);
                     await cache.setFloat32(errors, next + 4, await cache.float32(errors, next + 4) + (g - pixels[offset + 1]!) * weight);
                     await cache.setFloat32(errors, next + 8, await cache.float32(errors, next + 8) + (b - pixels[offset + 2]!) * weight);

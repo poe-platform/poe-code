@@ -1,0 +1,1 @@
+Native FFmpeg RGB inputs for pixscope regression hashes. Generated from the 32×24 RGB formula in pixscope.test.ts using FFmpeg 7.0.2 `-vf scale=640:480`, saved as RGB PNGs. Keeping scaling outside the exact-render test isolates pixscope from scaler rounding differences.

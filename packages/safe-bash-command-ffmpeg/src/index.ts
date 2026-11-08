@@ -1,3 +1,4 @@
+import { pixscopeFrame } from "./pixscope.js";
 import { oscilloscope } from "./oscilloscope.js";
 import { vibratoAudio } from "./audio-vibrato.js";
 import { pulsateAudio } from "./audio-apulsator.js";
@@ -1438,6 +1439,9 @@ async function applyVideoFilterChain(
         const { native: ignoredNative, ...frame } = f;
         return { ...frame, width, height, data };
       }, signal);
+    } else if (name === "pixscope") {
+      if (argStr) throw new Error("pixscope: options are not supported");
+      current = await mapWork(current, f => pixscopeFrame(f, budget, signal), signal);
     } else if (name === "datascope") {
       if (positional.length > 1 || Object.keys(named).some(key => key !== "size" && key !== "s")) {
         throw new Error("datascope: only size (s) is supported");

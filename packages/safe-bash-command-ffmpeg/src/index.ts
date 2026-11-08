@@ -1,4 +1,5 @@
 import { tmix } from "./tmix.js";
+import { decimate } from "./decimate.js";
 import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
 import { renderTestsrc } from "./testsrc.js";
@@ -1968,6 +1969,13 @@ async function applyVideoFilterChain(
         }
         return selected;
       });
+    } else if (name === "decimate") {
+      const cycle = Number(named.cycle ?? (argStr || "5"));
+      if (positional.length > 1 || Object.keys(named).some(key => key !== "cycle") ||
+          !Number.isInteger(cycle) || cycle < 2 || cycle > 25) {
+        throw new Error("decimate: only cycle is supported; expected an integer from 2 to 25");
+      }
+      current = await decimate(current, cycle, budget, signal);
     } else if (name === "mpdecimate") {
       if (argStr) throw new Error("mpdecimate: custom options are unsupported");
       const retained: typeof current = [];
@@ -2006,6 +2014,55 @@ async function applyVideoFilterChain(
         throw new Error("framestep: step must be an integer from 1 to 2147483647");
       }
       current = current.filter((_, index) => index % step === 0);
+    } else if (name === "telecine") {
+      const options = { first_field: "top", pattern: "23" };
+      for (const [index, part] of (argStr ? positional : []).entries()) {
+        const separator = part.indexOf("=");
+        const key = separator < 0 ? ["first_field", "pattern"][index] : part.slice(0, separator).trim();
+        if (key !== "first_field" && key !== "pattern") throw new Error("telecine: unsupported option");
+        options[key] = (separator < 0 ? part : part.slice(separator + 1)).trim();
+      }
+      const fieldOrder = ["top", "t", "0"].includes(options.first_field) ? 0
+        : ["bottom", "b", "1"].includes(options.first_field) ? 1 : -1;
+      const pattern = Array.from(options.pattern, digit => digit.charCodeAt(0) - 48);
+      const fieldsPerCycle = pattern.reduce((sum, count) => sum + count, 0);
+      if (fieldOrder < 0 || !pattern.length || pattern.some(count => count < 0 || count > 9) || !fieldsPerCycle) {
+        throw new Error("telecine: expected first_field=top or bottom and a nonzero digit pattern");
+      }
+      const durationSeconds = (current[0]?.durationSeconds ?? 0) * 2 * pattern.length / fieldsPerCycle;
+      const start = current[0]?.ptsSeconds ?? 0;
+      const output: typeof current = [];
+      let pending: typeof current[number] | undefined;
+      for (const [index, frame] of current.entries()) {
+        for (let field = 0; field < pattern[index % pattern.length]!; field++) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          if (!pending) {
+            pending = frame;
+            continue;
+          }
+          if (pending.width !== frame.width || pending.height !== frame.height) {
+            throw new Error("telecine: adjacent fields must have matching dimensions");
+          }
+          budget.checkSamples(output.length + 1);
+          budget.allocateMemory(128);
+          let data = frame.data;
+          if (pending !== frame) {
+            budget.allocateMemory(frame.data.byteLength);
+            data = new Uint8Array(frame.data.byteLength);
+            const stride = frame.width * 4;
+            for (let row = 0; row < frame.height; row++) {
+              if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              const source = row % 2 === fieldOrder ? pending : frame;
+              data.set(source.data.subarray(row * stride, (row + 1) * stride), row * stride);
+            }
+          }
+          const combined = { ...frame, data, ptsSeconds: start + output.length * durationSeconds, durationSeconds };
+          if (pending !== frame) delete combined.native;
+          output.push(combined);
+          pending = undefined;
+        }
+      }
+      current = output;
     } else if (name === "tmix") {
       current = await tmix(current, argStr, budget, signal);
     } else if (name === "tblend") {

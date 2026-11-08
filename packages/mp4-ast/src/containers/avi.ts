@@ -80,6 +80,8 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     width?: number;
     height?: number;
     compression?: number;
+    sarWidth?: number;
+    sarHeight?: number;
     topDown?: boolean;
     sampleRate?: number;
     channels?: number;
@@ -123,6 +125,18 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         const scale = view.getUint32(payloadStart - pos + 20, true) || 1;
         const rate = view.getUint32(payloadStart - pos + 24, true) || 30;
         streamInfos.push({ fccType, fccHandler, scale, rate });
+      } else if (fourcc === "vprp" && listType === "strl" && payloadEnd - payloadStart >= 36) {
+        const cur = streamInfos[streamInfos.length - 1];
+        const aspect = view.getUint32(28, true);
+        const frameWidth = view.getUint32(32, true);
+        const frameHeight = view.getUint32(36, true);
+        const numerator = (aspect >>> 16) * frameHeight;
+        const denominator = (aspect & 0xffff) * frameWidth;
+        if (cur?.fccType === "vids" && numerator > 0 && denominator > 0) {
+          const divisor = gcd(numerator, denominator);
+          cur.sarWidth = numerator / divisor;
+          cur.sarHeight = denominator / divisor;
+        }
       } else if (fourcc === "strf" && streamInfos.length > 0) {
         const cur = streamInfos[streamInfos.length - 1]!;
         if (cur.fccType === "vids" && chunkSize >= 40) {
@@ -215,7 +229,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           id: i + 1, type: "video", handlerType: "vide", timescale,
           duration: rawSamples.length * frameDur, language: "und", enabled: true,
           width: w, height: h,
-          codecDescriptions: [{ formatFourCC: "raw ", codecName: "rawvideo", width: w, height: h, pixFmt: "bgr24" }],
+          codecDescriptions: [{ formatFourCC: "raw ", codecName: "rawvideo", width: w, height: h, sarWidth: info.sarWidth, sarHeight: info.sarHeight, pixFmt: "bgr24" }],
           samples, decodedVideoFrames: frames
         });
         continue;
@@ -318,6 +332,8 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             codecName,
             width: w,
             height: h,
+            sarWidth: info.sarWidth,
+            sarHeight: info.sarHeight,
             pixFmt: "yuv420p",
             avcC
           }

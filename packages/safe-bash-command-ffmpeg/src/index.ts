@@ -799,6 +799,7 @@ async function renderBitmapTextToRgba(
     xExpr?: string;
     yExpr?: string;
     fontSize?: number;
+    horizontalScale?: number;
     fontColor?: [number, number, number, number];
     drawBox?: boolean;
     preserveAlpha?: boolean;
@@ -810,7 +811,8 @@ async function renderBitmapTextToRgba(
 
   const out = new Uint8Array(rgba);
   const scale = Math.max(1, Math.round((opts.fontSize ?? 12) / 8));
-  const charW = 6 * scale;
+  const scaleX = scale * (opts.horizontalScale ?? 1);
+  const charW = 6 * scaleX;
   const charH = 8 * scale;
   const lines = text.split("\n");
   const maxCols = Math.max(1, ...lines.map((l) => l.length));
@@ -883,10 +885,9 @@ async function renderBitmapTextToRgba(
           for (let sy = 0; sy < scale; sy++) {
             if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
-            for (let sx = 0; sx < scale; sx++) {
+            for (let px = Math.max(0, Math.round(charX + col * scaleX)); px < Math.min(width, Math.round(charX + (col + 1) * scaleX)); px++) {
               if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
-              const px = charX + col * scale + sx;
               const py = lineY + r * scale + sy;
               if (px >= 0 && px < width && py >= 0 && py < height) {
                 const idx = (py * width + px) * 4;
@@ -2340,6 +2341,10 @@ async function applyVideoFilterChain(
       }
       const filename = named.filename ?? named.f;
       if (!filename) throw new Error("subtitles: filename is required");
+      const originalSize = named.original_size?.split("x").map(Number);
+      if (originalSize && (originalSize.length !== 2 || originalSize.some(value => !Number.isInteger(value) || value <= 0 || value > 2147483647))) {
+        throw new Error("subtitles: invalid original_size");
+      }
       let alignment = 2;
       let fontColor: [number, number, number, number] = [255, 255, 255, 255];
       for (const override of (named.force_style ?? "").split(",")) {
@@ -2386,6 +2391,8 @@ async function applyVideoFilterChain(
               : alignment & 8 ? "(h-text_h)/2"
                 : `h-text_h-${Math.max(4, Math.round(10 * f.height / 288))}`,
             fontSize: 16 * f.height / 288,
+            // Match libass's pixel aspect correction for the original canvas.
+            horizontalScale: originalSize ? f.width * originalSize[1]! / (f.height * originalSize[0]!) : 1,
             fontColor,
             drawBox: true,
             boxColor: [0, 0, 0, 180],

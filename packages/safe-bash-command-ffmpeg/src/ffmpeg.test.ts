@@ -4752,6 +4752,49 @@ describe("subtitle force_style", () => {
   }
 });
 
+it("applies subtitle original_size aspect scaling without changing timing or height", async () => {
+  const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+  const data = new Uint8Array(320 * 180 * 4);
+  for (let i = 3; i < data.length; i += 4) data[i] = 255;
+  const input = encodeImage({ width: 320, height: 180, channels: 4, data,
+    format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
+  const widths: number[] = [];
+  let baseline: Uint8Array | undefined;
+  for (const option of ["", ":original_size=640x360", ":original_size=180x288", ":180x288", ":original_size=640x180"]) {
+    const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice(),
+      "/s.srt": "1\n00:00:01,000 --> 00:00:02,000\nTEST\n" });
+    const result = await runCmd(createFfmpegCommand(), ["-framerate", "1", "-i", "/in%d.png",
+      "-vf", `subtitles=/s.srt${option}`, "-frames:v", "3", "/out%d.png"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    for (const frame of [1, 3]) assert.deepEqual(decodeImage(vfs.store.get(`/out${frame}.png`)!).data, data);
+    const output = decodeImage(vfs.store.get("/out2.png")!).data;
+    baseline ??= output;
+    if (option === ":original_size=640x360") assert.deepEqual(output, baseline);
+    const xs: number[] = [];
+    const ys: number[] = [];
+    for (let i = 0; i < output.length; i += 4) {
+      if (output[i]! > 30) { xs.push(i / 4 % 320); ys.push(Math.floor(i / 4 / 320)); }
+    }
+    widths.push(Math.max(...xs) - Math.min(...xs) + 1);
+    assert.equal(Math.max(...ys) - Math.min(...ys) + 1, 7);
+    assert.ok(Math.abs((Math.max(...xs) + Math.min(...xs)) / 2 - 160) < 4);
+  }
+  assert.ok(widths[2]! > widths[0]! * 2.5, `original_size did not widen text: ${widths}`);
+  assert.equal(widths[2], widths[3]);
+  assert.ok(widths[4]! < widths[0]! * 0.6, `original_size did not narrow text: ${widths}`);
+});
+
+it("rejects invalid subtitle original_size without replacing output", async () => {
+  for (const size of ["0x288", "180x0", "-1x288", "180x288x1", "oops", "1.5x288"]) {
+    const vfs = createTestVfs({ "/s.srt": "1\n00:00:00,000 --> 00:00:01,000\nTEST\n", "/out.png": "existing" });
+    const result = await runCmd(createFfmpegCommand(), ["-y", "-f", "lavfi", "-i", "color=black:s=32x32",
+      "-vf", `subtitles=/s.srt:original_size=${size}`, "-frames:v", "1", "/out.png"], vfs);
+    assert.notEqual(result.exitCode, 0, size);
+    assert.ok(result.stderr.includes("original_size"), result.stderr);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "existing");
+  }
+});
+
 it("scales default subtitle lettering and bottom spacing with video height", async () => {
   for (const height of [360, 720]) {
     const width = height * 16 / 9;

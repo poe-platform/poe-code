@@ -3741,6 +3741,7 @@ export function evalSyncFfmpeg(
     let startAtZero = false;
     let pendingFixSubDuration = false;
     let pendingSkipInitialBytes = 0;
+    let pendingIgnoreLength = false;
     let pendingSs: number | undefined;
     let pendingTimestampScales: [string, number][] = [];
     let pendingDisplayTransforms: DisplayTransform[] = [];
@@ -3959,6 +3960,12 @@ export function evalSyncFfmpeg(
       else if (arg === "-fix_sub_duration") {
         if (!args.slice(i + 1).includes("-i")) return undefined;
         pendingFixSubDuration = true;
+      } else if (arg === "-ignore_length") {
+        const value = args[++i];
+        if ((value !== "0" && value !== "1") || !args.slice(i + 1).includes("-i")) {
+          throw new Error("-ignore_length requires 0 or 1 before an input");
+        }
+        pendingIgnoreLength = value === "1";
       } else if (arg === "-skip_initial_bytes") {
         const value = Number(args[++i]);
         if (!Number.isSafeInteger(value) || value < 0 || !args.slice(i + 1).includes("-i")) return undefined;
@@ -3972,6 +3979,7 @@ export function evalSyncFfmpeg(
           sampleRate: audioRate,
           channels: audioChannels,
           skipInitialBytes: pendingSkipInitialBytes,
+          ignoreLength: pendingIgnoreLength,
           timestampOffset: pendingTimestampOffset,
           fixSubDuration: pendingFixSubDuration,
           syncReference: pendingSyncReference,
@@ -3992,6 +4000,7 @@ export function evalSyncFfmpeg(
         pendingSyncReference = undefined;
         pendingFixSubDuration = false;
         pendingSkipInitialBytes = 0;
+        pendingIgnoreLength = false;
         pendingFormat = undefined; pendingSs = undefined; pendingSseof = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
       } else if (arg === "-c" || arg === "-codec") {
         const val = args[++i]; videoCodec = val; audioCodec = val; subtitleCodec = val;
@@ -4269,7 +4278,7 @@ export function evalSyncFfmpeg(
           ? registry.findByFormatName(inp.format)
           : registry.detect(rawBytes, inp.path);
         if (!plugin || !plugin.canDemux) return undefined;
-        doc = plugin.parse(rawBytes, { decodeSubtitles: subtitleCodec !== "copy", decodeAudio: (plugin.id !== "flac" && plugin.id !== "ogg") || audioCodec !== "copy", filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels });
+        doc = plugin.parse(rawBytes, { decodeSubtitles: subtitleCodec !== "copy", decodeAudio: (plugin.id !== "flac" && plugin.id !== "ogg") || audioCodec !== "copy", filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels, ignoreLength: inp.ignoreLength });
         if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
@@ -4539,6 +4548,7 @@ interface InputSpec {
   readonly timestampOffset?: number | undefined;
   readonly fixSubDuration?: boolean | undefined;
   readonly skipInitialBytes?: number | undefined;
+  readonly ignoreLength?: boolean | undefined;
   readonly syncReference?: number | undefined;
   readonly startSeconds?: number | undefined;
   readonly endRelativeSeconds?: number | undefined;
@@ -4619,6 +4629,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let startAtZero = false;
       let pendingFixSubDuration = false;
       let pendingSkipInitialBytes = 0;
+      let pendingIgnoreLength = false;
       let pendingSs: number | undefined;
       let pendingTimestampScales: [string, number][] = [];
       let pendingDisplayTransforms: DisplayTransform[] = [];
@@ -5343,6 +5354,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingFixSubDuration = true;
+          } else if (arg === "-ignore_length") {
+            const value = args[++i];
+            if ((value !== "0" && value !== "1") || !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -ignore_length requires 0 or 1 before an input\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingIgnoreLength = value === "1";
           } else if (arg === "-skip_initial_bytes") {
             const value = Number(args[++i]);
             if (!Number.isSafeInteger(value) || value < 0 || !args.slice(i + 1).includes("-i")) {
@@ -5382,6 +5400,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               autoConvert: pendingAutoConvert,
               allowedExtensions: pendingAllowedExtensions,
               skipInitialBytes: pendingSkipInitialBytes,
+              ignoreLength: pendingIgnoreLength,
               timestampOffset: pendingTimestampOffset,
               syncReference: pendingSyncReference,
               startSeconds: pendingSs,
@@ -5409,6 +5428,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingSyncReference = undefined;
             pendingFixSubDuration = false;
             pendingSkipInitialBytes = 0;
+            pendingIgnoreLength = false;
             pendingSs = undefined;
             pendingSseof = undefined;
             pendingTimestampScales = [];
@@ -6181,6 +6201,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 resolveResource,
                 sampleRate: input?.sampleRate,
                 channels: input?.channels,
+                ignoreLength: input?.ignoreLength,
                 filename: filePath,
                 limits: options.limits,
                 budget

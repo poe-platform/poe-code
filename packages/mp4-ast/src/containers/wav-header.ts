@@ -47,7 +47,7 @@ interface WavHeaderRead {
 }
 
 /** Shared range requests preserve the byte parser's permissive chunk semantics. */
-export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: number; length: number }, WavHeader, WavHeaderRead> {
+export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Generator<{ offset: number; length: number }, WavHeader, WavHeaderRead> {
   if (byteLength < 12) throw new Error("Invalid WAV file: missing RIFF WAVE signature");
   const signature = yield { offset: 0, length: 12 };
   if (signature.end !== undefined) byteLength = signature.end;
@@ -232,8 +232,8 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
       header.dataOffset = start;
       header.dataSize = end - start;
       header.declaredDataSize = size;
-      if (!rf64 && !wave64 && size === 0) {
-        // A zero RIFF data length means PCM continues through EOF, including later chunk headers.
+      if (!wave64 && (ignoreLength || !rf64 && size === 0)) {
+        // Ignored or zero RIFF data lengths continue through EOF, including later chunk headers.
         if (!Number.isFinite(byteLength)) acceptEnd((yield { offset: Infinity, length: 0 }).end);
         header.dataSize = byteLength - start;
         break;
@@ -241,14 +241,14 @@ export function* scanWavHeader(byteLength = Infinity): Generator<{ offset: numbe
     }
     pos = end + (wave64 ? (8 - size % 8) % 8 : size & 1);
   }
-  if (rf64 && (pos !== riffEnd || header.formatOffset === undefined || !header.dataOffset)) throw new Error("Invalid RF64 chunks");
+  if (rf64 && ((!ignoreLength && pos !== riffEnd) || header.formatOffset === undefined || !header.dataOffset)) throw new Error("Invalid RF64 chunks");
   if (wave64 && (header.formatOffset === undefined || !header.dataOffset)) throw new Error("Missing Wave64 fmt or data chunk");
   for (const cue of header.cues ?? []) cue.title = labels.get(cue.id) ?? "";
   return header;
 }
 
-export function readWavHeader(bytes: Uint8Array): WavHeader {
-  const scan = scanWavHeader(bytes.byteLength);
+export function readWavHeader(bytes: Uint8Array, ignoreLength = false): WavHeader {
+  const scan = scanWavHeader(bytes.byteLength, ignoreLength);
   let step = scan.next();
   while (!step.done) {
     const { offset, length } = step.value;

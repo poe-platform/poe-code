@@ -140,6 +140,8 @@ with input format, rate, and channel options:
 `ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
 Input `-sample_rate 8000` also sets the raw PCM sample rate; place it before `-i`.
 Input `-ch_layout stereo` or `-channel_layout stereo` sets two channels, equivalent to `-ac 2`; `mono` sets one channel. Place these options before `-i`.
+WAV input `-ignore_length 1` reads audio through EOF when a recording outgrows its data header. Place it before the affected `-i`; `-ignore_length 0` (the default) honors the declared length.
+
 Quad WAV supports `-ac 1` and `-ac 2`, mixing back speakers into their matching front sides with normalized FFmpeg weights. Stream copy retains all four speakers and the quad channel mask.
 
 Output `-ac 6` upmixes 3.0, 2.1, and quad WAV to 5.1, preserving each named speaker (including LFE) and leaving absent speakers silent.

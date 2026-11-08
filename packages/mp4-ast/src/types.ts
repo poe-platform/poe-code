@@ -654,6 +654,8 @@ export interface MediaSourceProbeOptions extends ParseMediaOptions {
 }
 
 export interface ParseMediaOptions {
+  /** Read WAV audio through EOF instead of its declared data chunk length. */
+  readonly ignoreLength?: boolean | undefined;
   /** Stream parameters for explicitly selected headerless audio formats. */
   readonly sampleRate?: number | undefined;
   readonly channels?: number | undefined;

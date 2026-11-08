@@ -521,7 +521,7 @@ function wavFrames(header: WavHeader): number {
 }
 
 export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
-  const header = readWavHeader(bytes);
+  const header = readWavHeader(bytes, options.ignoreLength);
   const { formatTag, channels, sampleRate, bitsPerSample, littleEndian } = header;
   const pcmData = bytes.subarray(header.dataOffset, header.dataOffset + header.dataSize);
 
@@ -602,7 +602,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       size: pcmData.length, isKeyframe: true, sampleDescriptionIndex: 1 });
   }
   let doc = wavDocument(header, samples, decodedAudio, bytes);
-  if (!compressed && header.declaredDataSize !== undefined && pcmData.length < header.declaredDataSize &&
+  if (!options.ignoreLength && !compressed && header.declaredDataSize !== undefined && pcmData.length < header.declaredDataSize &&
       pcmData.length % (chunkFrames * bytesPerFrame) !== 0) {
     doc = { ...doc, tracks: doc.tracks.map(track => ({ ...track,
       demuxError: { message: "corrupt input packet", timestamp: Math.floor(totalPcmSamples / chunkFrames) * chunkFrames }

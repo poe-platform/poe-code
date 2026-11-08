@@ -98,15 +98,17 @@ function parseAss(bytes: Uint8Array, options?: ParseMediaOptions): MediaDocument
     };
     const start = time("Start");
     const end = time("End");
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) continue;
+    if (!Number.isFinite(start) || !Number.isFinite(end)) continue;
     const text = values.slice(fields.length - 1).join(",");
     // ASS packets carry read order and event fields; timing lives on the sample.
     const data = encodeUtf8(copy
       ? [String(samples.length), ...packetFields.map(field => field === "Text" ? text : values[fields.indexOf(field)] ?? "")].join(",")
       : decodeAssText(text));
-    samples.push({ data, dts: start, pts: start, cts: 0, duration: end - start,
+    // FFmpeg decodes ASS durations into an unsigned 32-bit millisecond field.
+    const sampleDuration = copy ? end - start : (end - start) >>> 0;
+    samples.push({ data, dts: start, pts: start, cts: 0, duration: sampleDuration,
       size: data.byteLength, isKeyframe: true, sampleDescriptionIndex: 1 });
-    duration = Math.max(duration, end);
+    duration = Math.max(duration, start + sampleDuration);
   }
   samples.sort((a, b) => a.pts - b.pts);
   return {

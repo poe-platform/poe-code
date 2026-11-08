@@ -6730,6 +6730,64 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         continue;
                       }
                       if (trimmed === "anull" || trimmed === "acopy") continue;
+                      if (trimmed === "arealtime" || trimmed.startsWith("arealtime=")) {
+                        let speed = 1;
+                        let limit = 2;
+                        const argument = trimmed.slice("arealtime=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["limit", "speed"][index] : option.slice(0, separator);
+                          const value = separator < 0 ? option : option.slice(separator + 1);
+                          if (key === "speed") {
+                            speed = Number(value);
+                            if (!value || !Number.isFinite(speed) || speed < 2.2250738585072014e-308) throw new Error("arealtime: invalid speed");
+                          } else if (key === "limit") {
+                            limit = parseHlsDuration(value);
+                            if (!Number.isFinite(limit)) throw new Error("arealtime: invalid limit");
+                          } else throw new Error(`arealtime: unsupported option ${key}`);
+                        }
+                        let origin: number | undefined;
+                        const length = stretched[0]?.length ?? 0;
+                        for (let start = 0, n = 0; start < length; n++) {
+                          if (n % 1024 === 0) await yieldTurn(context.signal);
+                          budget.checkCpu();
+                          context.signal?.throwIfAborted();
+                          const packet = t.samples[n];
+                          const timestamp = audioTimestamps?.[n];
+                          const count = timestamp ? timestamp.end - timestamp.start
+                            : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                          const pts = (timestamp?.pts ?? audioStartSample + start) / origRate * 1000 / speed;
+                          const now = Date.now();
+                          origin ??= now - pts;
+                          const delay = pts + origin - now;
+                          if (!Number.isFinite(delay) || Math.abs(delay) > limit * 1000 / speed) {
+                            origin = now - pts;
+                          } else if (delay > 0) {
+                            // Bound each timer so long waits remain cancellable and budgeted.
+                            const deadline = now + delay;
+                            while (Date.now() < deadline) {
+                              await new Promise<void>((resolve, reject) => {
+                                const signal = context.signal;
+                                const abort = () => {
+                                  clearTimeout(timer);
+                                  signal?.removeEventListener("abort", abort);
+                                  reject(signal?.reason);
+                                };
+                                const timer = setTimeout(() => {
+                                  signal?.removeEventListener("abort", abort);
+                                  resolve();
+                                }, Math.min(1000, deadline - Date.now()));
+                                signal?.addEventListener("abort", abort, { once: true });
+                                if (signal?.aborted) abort();
+                              });
+                              context.signal?.throwIfAborted();
+                              budget.checkCpu();
+                            }
+                          }
+                          start += count;
+                        }
+                        continue;
+                      }
                       if (trimmed.startsWith("asendcmd=")) {
                         let commands = trimmed.slice("asendcmd=".length);
                         if (commands.startsWith("c=")) commands = commands.slice(2);

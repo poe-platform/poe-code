@@ -37,6 +37,7 @@ import { acrossfadeAudio } from "./audio-acrossfade.js";
 import { mixAudio } from "./audio-amix.js";
 import { joinAudio } from "./audio-join.js";
 import { enhanceDialogue } from "./audio-dialogue.js";
+import { normalizeLoudness, resampleLoudnorm } from "./audio-loudnorm.js";
 import { measureEbur128 } from "./audio-ebur128.js";
 import { crc32Table, serializeFrameChecksum } from "./frame-checksum.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
@@ -6996,6 +6997,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ? decodeAacTrack(workingDoc, t) : undefined);
                   if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
                   let origRate = audio.sampleRate;
+                  let loudnormResampling = false;
                   let filteredChannelMask = audio.channelMask;
                   const volFactor = t.volume ?? 1.0;
                   let stretched: typeof audio.channelData = audio.channelData;
@@ -7426,6 +7428,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         report += `Overall\nPeak level dB: ${db(overallPeak * overallPeak)}\nRMS level dB: ${db(totalSquares / totalCount)}\nNumber of samples: ${totalCount / stretched.length}\n`;
                         await writeBytes(context.stderr, encodeUtf8(report), context.signal);
+                      } else if (trimmed === "loudnorm" || trimmed.startsWith("loudnorm=")) {
+                        const normalized = await normalizeLoudness(stretched, origRate,
+                          trimmed === "loudnorm" ? "" : trimmed.slice("loudnorm=".length), budget, context.signal);
+                        stretched = normalized.channels;
+                        origRate = 192000;
+                        loudnormResampling = true;
+                        if (normalized.report && logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(normalized.report), context.signal);
                       } else if (trimmed === "ebur128" || trimmed.startsWith("ebur128=")) {
                         for await (const report of measureEbur128(stretched, origRate, filteredChannelMask,
                           trimmed === "ebur128" ? "" : trimmed.slice("ebur128=".length), budget, context.signal)) {
@@ -8336,7 +8345,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
 
                   const targetSamples = Math.max(0, Math.round((stretched[0]?.length ?? 0) * targetRate / origRate));
-                  if (targetRate !== origRate) stretched = await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal);
+                  if (targetRate !== origRate) stretched = loudnormResampling
+                    ? await resampleLoudnorm(stretched, origRate, targetRate, budget, context.signal)
+                    : await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal);
                   const newChannelData: (Float32Array | Float64Array)[] = [];
                   const ChannelArray = stretched.some(channel => channel instanceof Float64Array) ? Float64Array : Float32Array;
                   for (let c = 0; c < targetCh; c++) {

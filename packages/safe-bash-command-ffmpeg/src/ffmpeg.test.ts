@@ -1464,6 +1464,48 @@ describe("tile overlap", () => {
   }
 });
 
+describe("tile positional options", () => {
+  for (const options of [
+    "3x1:2:1:2:red",
+    "3x1:2:1:padding=2:color=red",
+    "layout=3x1:nb_frames=2:margin=1:padding=2:color=red"
+  ]) {
+    it(`renders four 15x4 sheets with ${options}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const vfs = createTestVfs();
+      for (let i = 0; i < 7; i++) {
+        const value = 20 * (i + 1);
+        vfs.store.set(`/f${i}.png`, encodeImage({
+          width: 3, height: 2, data: Uint8Array.from(Array(6).fill([value, value, value, 255]).flat()),
+          format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false
+        }, { format: "png" }).data);
+      }
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "5", "-i", "/f%d.png", "-vf", `tile=${options}`,
+        "-fps_mode", "passthrough", "/o%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(vfs.store.size - 7, 4);
+      for (let index = 0; index < 4; index++) {
+        const sheet = decodeImage(vfs.store.get(`/o${index + 1}.png`)!);
+        assert.equal(sheet.width, 15);
+        assert.equal(sheet.height, 4);
+        for (let y = 0; y < 4; y++) {
+          for (let x = 0; x < 15; x++) {
+            const cell = Math.floor((x - 1) / 5);
+            const frame = index * 2 + cell;
+            const occupied = y >= 1 && y < 3 && x >= 1 && (x - 1) % 5 < 3 && cell < 2 && frame < 7;
+            const value = 20 * (frame + 1);
+            const offset = (y * 15 + x) * 4;
+            assert.deepEqual([...sheet.data.subarray(offset, offset + 4)],
+              occupied ? [value, value, value, 255] : [255, 0, 0, 255]);
+          }
+        }
+      }
+    });
+  }
+});
+
 describe("tile frame grouping", () => {
   for (const count of [7, 31]) {
     for (const filter of ["tile", "tile=6x5"]) {

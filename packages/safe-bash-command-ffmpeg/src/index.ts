@@ -1901,6 +1901,10 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "tile") {
+      for (const [index, key] of ["layout", "nb_frames", "margin", "padding", "color", "overlap", "init_padding"].entries()) {
+        const value = positional[index];
+        if (value && !value.includes("=")) named[key] ??= value;
+      }
       const layoutStr = ((named.layout ?? positional[0]) || "6x5").toLowerCase();
       const [colsStr, rowsStr] = layoutStr.split("x");
       const cols = Math.max(1, parseInt(colsStr ?? "2", 10) || 2);

@@ -612,7 +612,9 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
   };
 }
 
-function buildVisualStsdEntry(desc: MediaCodecDescription, width: number, height: number): Uint8Array {
+function buildVisualStsdEntry(desc: MediaCodecDescription, width: number, height: number, writeColr: boolean): Uint8Array {
+  // nclx: unspecified primaries, transfer and matrix; limited range.
+  const colr = writeColr ? makeBox("colr", concatBytes([encodeUtf8("nclx"), new Uint8Array([0, 2, 0, 2, 0, 2, 0])])) : new Uint8Array();
   const aspect = new BinaryWriter(8);
   if (desc.sarWidth && desc.sarHeight) {
     aspect.writeU32BE(desc.sarWidth);
@@ -620,13 +622,15 @@ function buildVisualStsdEntry(desc: MediaCodecDescription, width: number, height
   }
   const pasp = aspect.toUint8Array().length ? makeBox("pasp", aspect.toUint8Array()) : new Uint8Array();
   if (desc.rawStsdEntryBytes && desc.rawStsdEntryBytes.byteLength >= 86) {
-    if (!pasp.length) return desc.rawStsdEntryBytes;
+    if (!pasp.length && !writeColr) return desc.rawStsdEntryBytes;
     const entry = desc.rawStsdEntryBytes;
+    const children = parseMp4Boxes(entry.subarray(86));
     return makeBox(decodeFourCC(entry, 4), concatBytes([
       entry.subarray(8, 86),
-      ...parseMp4Boxes(entry.subarray(86)).filter(box => box.type !== "pasp")
+      ...children.filter(box => box.type !== "pasp")
         .map(box => entry.subarray(86 + box.offset, 86 + box.offset + box.size)),
-      pasp
+      pasp,
+      ...(children.some(box => box.type === "colr") ? [] : [colr])
     ]));
   }
   const writer = new BinaryWriter(256);
@@ -662,6 +666,7 @@ function buildVisualStsdEntry(desc: MediaCodecDescription, width: number, height
   }
 
   writer.writeBytes(pasp);
+  writer.writeBytes(colr);
   return makeBox(desc.formatFourCC || "avc1", writer.toUint8Array());
 }
 
@@ -982,7 +987,8 @@ function buildTrakBox(
   track: MediaTrack,
   movieTimescale: number,
   sampleOffsets: readonly number[],
-  fragmented = false
+  fragmented = false,
+  writeColr = false
 ): Uint8Array {
   const materialized = materializeTrackSamples(track);
   const samples = fragmented ? [] : materialized.samples;
@@ -1082,7 +1088,7 @@ function buildTrakBox(
   const stsdEntries: Uint8Array[] = [];
   for (const desc of codecDescriptions) {
     if (track.type === "video") {
-      stsdEntries.push(buildVisualStsdEntry(desc, track.width ?? desc.width ?? 320, track.height ?? desc.height ?? 240));
+      stsdEntries.push(buildVisualStsdEntry(desc, track.width ?? desc.width ?? 320, track.height ?? desc.height ?? 240, writeColr));
     } else if (track.type === "audio") {
       stsdEntries.push(buildAudioStsdEntry(desc));
     } else if (track.type === "subtitle") {
@@ -1317,7 +1323,8 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
         { ...mt.track, samples: mt.samples, codecDescriptions: mt.codecDescriptions },
         movieTimescale,
         [],
-        true
+        true,
+        options.writeColr
       )
     );
     const trexBoxes = materializedTracks.map((mt) => {
@@ -1413,7 +1420,8 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       buildTrakBox(
         { ...mt.track, samples: mt.samples, codecDescriptions: mt.codecDescriptions },
         movieTimescale,
-        relativeSampleOffsetsPerTrack[idx]!.map((rel) => mdatDataStart + rel)
+        relativeSampleOffsetsPerTrack[idx]!.map((rel) => mdatDataStart + rel),
+        false, options.writeColr
       )
     );
     const moovChildren = [mvhdBox, ...trakBoxes];
@@ -1437,7 +1445,8 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     buildTrakBox(
       { ...mt.track, samples: mt.samples, codecDescriptions: mt.codecDescriptions },
       movieTimescale,
-      relativeSampleOffsetsPerTrack[idx]!.map((rel) => rel)
+      relativeSampleOffsetsPerTrack[idx]!.map((rel) => rel),
+      false, options.writeColr
     )
   );
   const dummyMoovChildren = [mvhdBox, ...dummyTraks];
@@ -1449,7 +1458,8 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     buildTrakBox(
       { ...mt.track, samples: mt.samples, codecDescriptions: mt.codecDescriptions },
       movieTimescale,
-      relativeSampleOffsetsPerTrack[idx]!.map((rel) => mdatDataStart + rel)
+      relativeSampleOffsetsPerTrack[idx]!.map((rel) => mdatDataStart + rel),
+      false, options.writeColr
     )
   );
   const finalMoovChildren = [mvhdBox, ...finalTraks];

@@ -3752,6 +3752,7 @@ export function evalSyncFfmpeg(
     let peakPpv: number | undefined;
     let writePeak: "off" | "on" | "only" | undefined;
     let rf64: "always" | "auto" | "never" | undefined;
+    let writeColr = false;
     let faststart = true;
     let movieTimescale: number | undefined;
     let videoTrackTimescale = 0;
@@ -4072,6 +4073,7 @@ export function evalSyncFfmpeg(
         }
       } else if (arg === "-movflags") {
         const flags = args[++i] ?? "";
+        if (flags.includes("write_colr")) writeColr = true;
         if (flags.includes("faststart")) faststart = true;
         if (flags.includes("frag_keyframe") || flags.includes("empty_moov")) fragmented = true;
       } else if (arg === "-vf" || arg === "-filter:v") {
@@ -4303,7 +4305,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, writeColr, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -4596,6 +4598,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
     let peakPpv: number | undefined;
     let writePeak: "off" | "on" | "only" | undefined;
         let rf64: "always" | "auto" | "never" | undefined;
+        let writeColr = false;
         let faststart = true;
         let movieTimescale: number | undefined;
         let videoTrackTimescale = 0;
@@ -5356,6 +5359,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-movflags") {
             const flags = args[++i] ?? "";
+            if (flags.includes("write_colr")) writeColr = true;
             if (flags.includes("faststart")) faststart = true;
             if (flags.includes("frag_keyframe") || flags.includes("empty_moov")) {
               fragmented = true;
@@ -8273,6 +8277,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               sampleFormat,
               writeXing,
               faststart,
+              writeColr,
               fragmented,
               id3v2Version,
               writeId3v1,

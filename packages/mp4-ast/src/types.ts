@@ -722,6 +722,8 @@ export interface SerializeMediaOptions {
   readonly format?: string | undefined;
   readonly faststart?: boolean | undefined;
   readonly fragmented?: boolean | undefined;
+  /** Write an MP4 color information box even when color metadata is unspecified. */
+  readonly writeColr?: boolean | undefined;
   readonly id3v2Version?: 0 | 3 | 4 | undefined;
   readonly writeId3v1?: boolean | undefined;
   /** FLAC metadata padding bytes; -1 selects 8192, zero disables padding. */

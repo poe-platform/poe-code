@@ -7212,7 +7212,47 @@ for (const filter of ["aformat=channel_layouts=mono", "aformat=cl=mono", "aforma
   });
 }
 
-for (const filter of ["aformat=channel_layouts=surround", "aformat=channel_layouts=", "aformat=sample_fmts=s16"]) {
+for (const [format, expected] of [
+  ["u8", [0, -256, 256, -512, 256, -768, 512, -1024, -32768, 32512]],
+  ["s16", [100, -200, 300, -400, 500, -600, 700, -800, -32768, 32767]]
+] as const) {
+  for (const key of ["sample_fmts", "f"]) {
+    it(`quantizes aformat ${key}=${format} before PCM16 output`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from([100, -200, 300, -400, 500, -600, 700, -800, -32768, 32767], value => value / 32768)
+      ] });
+      const vfs = createTestVfs({ "/input.wav": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", "/input.wav", "-af", `aformat=${key}=${format}`, "-c:a", "pcm_s16le", "/output.wav"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 8000);
+      assert.equal(audio.channels, 1);
+      assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768), expected);
+    });
+  }
+}
+
+for (const [format, expected] of [
+  ["u8", [0, -256, 256, -512, 512, -512, 768, -768, -32768, 32512]],
+  ["s16", [100, -200, 300, -400, 500, -600, 700, -800, -32768, 32767]]
+] as const) {
+  it(`quantizes floating input through aformat ${format}`, async () => {
+    const input = encodeWav({ sampleRate: 8000, channels: [
+      Float64Array.from([100, -200, 300, -400, 500, -600, 700, -800, -32768, 32767], value => value / 32768)
+    ] }, { bitsPerSample: 64, float: true });
+    const vfs = createTestVfs({ "/input.wav": input });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-i", "/input.wav", "-af", `aformat=sample_fmts=${format}`, "-c:a", "pcm_s16le", "/output.wav"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const audio = parseWav(vfs.store.get("/output.wav")!).tracks[0]!.decodedAudio!;
+    assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768), expected);
+  });
+}
+
+for (const filter of ["aformat=channel_layouts=surround", "aformat=channel_layouts=", "aformat=sample_fmts=invalid", "aformat=sample_fmts="]) {
   it(`rejects unsupported aformat constraints without replacing output: ${filter}`, async () => {
     const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(4), new Float64Array(4)] });
     const vfs = createTestVfs({ "/input.wav": input, "/output.wav": "existing" });

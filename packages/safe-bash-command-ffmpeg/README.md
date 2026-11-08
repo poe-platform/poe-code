@@ -264,8 +264,10 @@ input layout: `-af 'pan=mono|c0=c1'` extracts the right channel and
 and `<` normalizes gains, for example `pan=mono|c0<2*c0+c1`.
 Use `-ch_layout mono` or `-channel_layout mono` for mono output, equivalent to `-ac 1`. Other output layouts are not supported by these options.
 `aformat=channel_layouts=mono` (or `aformat=cl=mono`) downmixes stereo by
-averaging left and right samples, or preserves mono input. Other `aformat`
-options and layouts are not supported.
+averaging left and right samples, or preserves mono input.
+`aformat=sample_fmts=u8` or `s16` (alias `f`) quantizes samples through that
+intermediate PCM format, even when the output codec has higher precision.
+Other `aformat` sample formats, options and layouts are not supported.
 These filters also work in labeled single-input audio graphs with `-map`.
 `volume` and `atempo` default to 1 and accept named primary arguments, such as
 `volume=volume=0.5` and `atempo=tempo=2`, as well as positional values.

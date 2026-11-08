@@ -7476,6 +7476,30 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const separator = option.indexOf("=");
                           const key = option.slice(0, separator).trim();
                           const value = option.slice(separator + 1).trim();
+                          if (key === "sample_fmts" || key === "f") {
+                            if (value !== "u8" && value !== "s16") throw new Error(`aformat: unsupported sample format ${value}`);
+                            const scale = value === "u8" ? 128 : 32768;
+                            const codec = t.codecDescriptions[0]?.codecName;
+                            const truncate = value === "u8" && (codec === "pcm_s16le" || codec === "pcm_s32le" || codec === "pcm_u8");
+                            const output = stretched.map(channel => new Float64Array(channel.length));
+                            for (let i = 0; i < stretched[0]!.length; i++) {
+                              if (i % 4096 === 0) {
+                                await yieldTurn(context.signal);
+                                context.signal?.throwIfAborted();
+                                budget.checkCpu();
+                              }
+                              for (let c = 0; c < stretched.length; c++) {
+                                const sample = stretched[c]![i]! * scale;
+                                // Integer PCM narrows by discarding low bits; floating PCM rounds to nearest even.
+                                const lower = Math.floor(sample);
+                                const quantized = truncate ? lower : sample - lower === 0.5
+                                  ? lower + Math.abs(lower % 2) : Math.round(sample);
+                                output[c]![i] = Math.max(-scale, Math.min(scale - 1, quantized)) / scale;
+                              }
+                            }
+                            stretched = output;
+                            continue;
+                          }
                           if (key !== "channel_layouts" && key !== "cl") throw new Error(`aformat: unsupported option ${key}`);
                           if (value !== "mono") throw new Error(`aformat: unsupported channel layout ${value}`);
                           if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) continue;

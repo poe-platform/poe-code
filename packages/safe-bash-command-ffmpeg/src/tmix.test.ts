@@ -5,23 +5,19 @@ import { encodeImage, decodeImage } from "@poe-code/image-ast/portable";
 import { createFfmpegCommand } from "./index.js";
 
 const values = [12, 40, 40, 112, 144, 176, 176, 232];
-const cadence = [[12, 12], [40, 40], [40, 40], [40, 112], [112, 112],
-  [144, 144], [176, 176], [176, 176], [176, 232], [232, 232]];
 for (const [filter, expected] of [
-  ["null", values.map(value => [value, value])],
-  ["telecine=pattern=23", cadence],
-  ["telecine", cadence],
-  ["telecine=top:23", cadence],
-  ["telecine=first_field=bottom:pattern=23", cadence.map(([top, bottom]) => [bottom, top])],
-  ["telecine=pattern=1", [[12, 40], [40, 112], [144, 176], [176, 232]]],
-  ["telecine=pattern=4", values.flatMap(value => [[value, value], [value, value]])],
-  ["telecine=pattern=203", [[12, 12], [40, 40], [40, 112], [112, 176], [176, 176], [176, 176]]],
-  ["trim=end_frame=3,telecine", cadence.slice(0, 3)],
-  ["trim=end_frame=1,telecine=pattern=1", []],
-  ["telecine,select='lt(t,0.25)'", cadence.slice(0, 4)],
-  ...["pattern=", "pattern=0", "pattern=2x", "pattern=-2", "first_field=sideways", "unknown=23"].map(value => [`telecine=${value}`, null] as const)
+  ["null", values],
+  ["tmix=frames=3:weights=1 2 1", [12, 19, 33, 58, 102, 144, 168, 190]],
+  ["tmix=frames=3:weights=1 2 1,select='eq(t,0)+eq(t,0.7)'", [12, 190]],
+  ["trim=end_frame=1,tmix=frames=3:weights=1 2 1", [12]],
+  ["tmix=frames=1", values],
+  ["tmix", [12, 21, 31, 64, 99, 144, 165, 195]],
+  ["tmix=3:1 2", [12, 23, 34, 69, 110, 150, 170, 198]],
+  ["tmix=3:1 2 1", [12, 19, 33, 58, 102, 144, 168, 190]],
+  ["tmix=frames=3:weights=1 0 0", [12, 12, 12, 40, 40, 112, 144, 176]],
+  ...["frames=0", "frames=1025", "frames=2.5", "weights=no", "weights=0 0 0", "unknown=1"].map(value => [`tmix=${value}`, null] as const)
 ] as const) {
-  it(`telecine selects frames or safely rejects ${filter}`, async () => {
+  it(`tmix selects frames or safely rejects ${filter}`, async () => {
     const volume = Volume.fromJSON(expected === null ? { "/o01.png": "existing output" } : {});
     for (const [i, value] of values.entries()) {
       const data = new Uint8Array(32 * 32 * 4).fill(value);
@@ -47,7 +43,7 @@ for (const [filter, expected] of [
     const stderr = Buffer.concat(errors).toString();
     if (expected === null) {
       assert.notEqual(result.exitCode, 0, stderr);
-      assert.ok(stderr.includes("telecine:"), stderr);
+      assert.ok(stderr.includes("tmix:"), stderr);
       assert.deepEqual(volume.toJSON(), before);
     } else {
       assert.equal(result.exitCode, 0, stderr);
@@ -58,7 +54,7 @@ for (const [filter, expected] of [
         assert.equal(image.width, 32);
         assert.equal(image.height, 32);
         for (let offset = 0; offset < image.data.length; offset += 4) {
-          assert.deepEqual(Array.from(image.data.subarray(offset, offset + 3)), Array(3).fill(expected[index]![Math.floor(offset / (image.width * 4)) % 2]));
+          assert.deepEqual(Array.from(image.data.subarray(offset, offset + 3)), Array(3).fill(expected[index]));
         }
       }
     }

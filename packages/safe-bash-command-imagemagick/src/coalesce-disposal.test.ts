@@ -7,17 +7,17 @@ import { runConvertCli } from "./index.js";
 const opaque = "R0lGODlhAwABAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEDAAAh+QQACAAAACwAAAAAAwABAAACAoQLACH5BAANAAAALAAAAAADAAEAgP8AAAAA/wICBFIAOw==";
 const transparent = "R0lGODlhAwADAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQECgAAACwAAAAAAwADAAACA4R/BQAh+QQJFAAAACwBAAEAAgACAIAAAAAAAP8CAgxeACH5BAweAAAALAAAAAABAAEAgACAAAAAAAICRAEAIfkEBCgAAAAsAgAAAAEAAQCA//8AAAAAAgJEAQA7";
 
-for (const retained of [false, true]) {
+for (const retained of [false, true]) for (const options of [["-coalesce"], ["-layers", "Coalesce"], ["-layers", "cOaLeScE"]]) {
   it.each([
     { name: "opaque", fixture: opaque, inputName: "in.gif", disposal: [1, 1], delay: [80, 130], loop: 4 },
     { name: "transparency transitions", fixture: transparent, inputName: "in.gif", disposal: [1, 2, 1, 1], delay: [100, 200, 300, 400], loop: 0 },
     { name: "final transparent transition", fixture: transparent, inputName: "in.gif[0-2]", disposal: [1, 2, 2], delay: [100, 200, 300], loop: 0 }
-  ])(`matches native coalesced $name disposal (retained=${retained})`, async ({ fixture, inputName, disposal, delay, loop }) => {
+  ])(`matches native coalesced $name disposal (retained=${retained}, options=${options.join(" ")})`, async ({ fixture, inputName, disposal, delay, loop }) => {
     const input = Buffer.from(fixture, "base64");
     const files = new Map([["in.gif", new Uint8Array(input)]]);
     const fs = new MemoryFileSystem();
     await fs.writeFile("/in.gif", input);
-    expect(await runConvertCli([inputName, "-coalesce", "out.gif"], retained ? { filesystem: fs, cwd: "/" } : files)).toMatchObject({ exitCode: 0 });
+    expect(await runConvertCli([inputName, ...options, "out.gif"], retained ? { filesystem: fs, cwd: "/" } : files)).toMatchObject({ exitCode: 0 });
     const output = retained ? await fs.readFile("/out.gif") : files.get("out.gif")!;
     expect(disposal.map((_, page) => decodeImage(output, { page, coalesce: false }).disposal)).toEqual(disposal);
     const decoded = decodeImage(output, { animated: true });

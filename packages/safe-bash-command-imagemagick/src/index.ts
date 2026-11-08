@@ -7159,9 +7159,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(previous, current, state.fuzz), signal, { ...current, hasAlpha: true }, [current, previous]);
             }
         }
-        else if (t === "-coalesce" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "dispose")) {
-            const dispose = t === "-layers";
-            if (dispose) i++;
+        else if (t === "-coalesce" || (t === "-layers" && ["coalesce", "dispose"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
+            const dispose = t === "-layers" && tokens[i + 1]?.toLowerCase() === "dispose";
+            if (t === "-layers") i++;
             if (stack.length) {
                 const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
@@ -8771,9 +8771,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-coalesce" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "dispose"))) {
-            const dispose = token === "-layers";
-            if (dispose) i++;
+        if (!operandsOnly && (token === "-coalesce" || (token === "-layers" && ["coalesce", "dispose"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
+            const dispose = token === "-layers" && tokens[i + 1]?.toLowerCase() === "dispose";
+            if (token === "-layers") i++;
             stackStep(async (stack, backend) => {
                 if (!stack.length) return stack;
                 const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;

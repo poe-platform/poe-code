@@ -2839,6 +2839,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (name === "j") return ctx.y;
         if (name === "w") return ctx.w;
         if (name === "h") return ctx.h;
+        if (name === "n") return ctx.stack.length;
         if (name === "quantumrange") return 65535;
         if (name === "pi") return Math.PI;
         if (name === "e") return Math.E;

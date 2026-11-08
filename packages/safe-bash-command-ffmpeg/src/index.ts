@@ -4792,6 +4792,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsSegmentFilename: string | undefined;
         let hlsFmp4InitFilename = "init.mp4";
         let hlsSingleFile = false;
+        let hlsSecondLevelSegmentIndex = false;
         let hlsSegmentType: string | undefined;
         let stripAudio = false;
         let stripVideo = false;
@@ -5162,6 +5163,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (!value.startsWith("+") && !value.startsWith("-")) {
               hlsDeleteSegments = false;
               hlsSingleFile = false;
+              hlsSecondLevelSegmentIndex = false;
               hlsOmitEndlist = false;
               hlsDiscontStart = false;
               hlsAppendList = false;
@@ -5176,6 +5178,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const enabled = !flag.startsWith("-");
               const name = enabled ? flag : flag.slice(1);
               if (name === "single_file") hlsSingleFile = enabled;
+              else if (name === "second_level_segment_index") hlsSecondLevelSegmentIndex = enabled;
               else if (name === "delete_segments") hlsDeleteSegments = enabled;
               else if (name === "iframes_only") hlsIframesOnly = enabled;
               else if (name === "independent_segments") hlsIndependentSegments = enabled;
@@ -8933,10 +8936,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const isFmp4 = hlsSegmentType === "fmp4";
               const segExt = isFmp4 ? "m4s" : "ts";
               const outName = outResolved.slice(outResolved.lastIndexOf("/") + 1);
-              const segPattern = hlsSegmentFilename ?? `${outName.includes(".") ? outName.slice(0, outName.lastIndexOf(".")) : outName}${hlsSingleFile ? "" : "%d"}.${segExt}`;
-              if (!hlsSingleFile && formatImageSequence(segPattern, outputStartNumber ?? 0) === undefined) {
-                throw new Error(`Invalid segment filename template '${segPattern}'`);
+              const segPattern = hlsSegmentFilename ?? `${outName.includes(".") ? outName.slice(0, outName.lastIndexOf(".")) : outName}${hlsSingleFile ? "" : strftime ? "-%s" : "%d"}.${segExt}`;
+              if (hlsSecondLevelSegmentIndex && !strftime) {
+                throw new Error("HLS second_level_segment_index requires strftime");
               }
+              const segmentTimeZone = strftime && !hlsSingleFile ? new TimeZone(context.env.TZ ?? "UTC") : undefined;
+              const segmentFileName = (number: number): string => {
+                if (hlsSingleFile) return segPattern;
+                const pattern = segmentTimeZone
+                  ? formatDate(segPattern, millisecondsInstant(Date.now()), segmentTimeZone, {
+                    maxOutputBytes: 1024, maxFormatWidth: 1023,
+                    maxArguments: Infinity, maxArgumentBytes: Infinity, maxEnvironmentEntries: Infinity
+                  }).slice(0, -1)
+                  : segPattern;
+                const filename = strftime && !hlsSecondLevelSegmentIndex ? pattern : formatImageSequence(pattern, number);
+                if (!filename) throw new Error(`Invalid segment filename template '${segPattern}'`);
+                return filename;
+              };
+              segmentFileName(nextSequence);
               const segPlugin = registry.findByFormatName(isFmp4 ? "mp4" : "mpegts");
               if (!segPlugin) {
                 throw new Error(`HLS segment format AST (${isFmp4 ? "mp4" : "mpegts"}) is not registered`);
@@ -9045,7 +9062,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   budget
                 });
 
-                const formattedSeg = hlsSingleFile ? segPattern : formatImageSequence(segPattern, sIdx + nextSequence)!;
+                const formattedSeg = segmentFileName(sIdx + nextSequence);
                 const fullSegPath = resolvePath(hlsSegmentFilename === undefined ? outDir : context.cwd, formattedSeg);
                 const relSegName = fullSegPath.startsWith(outDir === "/" ? "/" : `${outDir}/`)
                   ? fullSegPath.slice(outDir === "/" ? 1 : outDir.length + 1)

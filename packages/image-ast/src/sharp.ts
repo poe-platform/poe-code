@@ -2091,7 +2091,7 @@ export class SharpInstance extends Duplex {
     return this;
   }
 
-  webp(options?: { readonly alphaQuality?: number; readonly effort?: number; readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
+  webp(options?: { readonly alphaCompression?: 0 | 1; readonly alphaQuality?: number; readonly effort?: number; readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
     this.validateQuality(options?.quality);
     const anyOpts = options as Record<string, unknown> | undefined;
     for (const [k, label] of [
@@ -2105,6 +2105,9 @@ export class SharpInstance extends Duplex {
       if (anyOpts?.[k] !== undefined && typeof anyOpts[k] !== "boolean") {
         throw new Error(`Expected boolean for ${label} but received ${anyOpts[k]} of type ${typeof anyOpts[k]}`);
       }
+    }
+    if (anyOpts?.alphaCompression !== undefined && anyOpts.alphaCompression !== 0 && anyOpts.alphaCompression !== 1) {
+      throw new Error("WebP alpha compression must be 0 or 1");
     }
     if (
       anyOpts?.alphaQuality !== undefined &&
@@ -2124,6 +2127,7 @@ export class SharpInstance extends Duplex {
     }
     this.outputOptions = {
       ...this.outputOptions,
+      ...(options?.alphaCompression === undefined ? {} : { alphaCompression: options.alphaCompression }),
       ...(options?.alphaQuality === undefined ? {} : { alphaQuality: options.alphaQuality }),
       ...(options?.effort === undefined ? {} : { effort: options.effort }),
       ...(options?.force === false ? {} : { format: "webp" }),

@@ -69,9 +69,11 @@ export function assembleLossyWebp(
 }
 
 /** Fit VP8 coefficient probabilities without changing quantization or decoded pixels. */
-export function encodeLossyWebp(image: WebpImageData, options: { quality: number; effort: number; alphaQuality?: number }): Uint8Array {
+export function encodeLossyWebp(image: WebpImageData, options: { quality: number; effort: number; alphaQuality?: number; alphaCompression?: 0 | 1 }): Uint8Array {
   if (!Number.isFinite(options.quality) || options.quality < 0 || options.quality > 100)
     throw new RangeError("WebP quality must be from 0 to 100");
+  const alphaCompression = options.alphaCompression ?? 1;
+  if (alphaCompression !== 0 && alphaCompression !== 1) throw new RangeError("WebP alpha compression must be 0 or 1");
   const alphaQuality = options.alphaQuality ?? 100;
   if (!Number.isInteger(alphaQuality) || alphaQuality < 0 || alphaQuality > 100)
     throw new RangeError("WebP alpha quality must be an integer from 0 to 100");
@@ -83,9 +85,11 @@ export function encodeLossyWebp(image: WebpImageData, options: { quality: number
   if (!hasAlpha) return createRiffContainer([vp8]);
   const alpha = new Uint8Array(image.data.length);
   for (let i = 0; i < alpha.length; i += 4) { alpha[i + 1] = alphaQuality === 100 ? image.data[i + 3]! : Math.round(Math.round(image.data[i + 3]! * (levels - 1) / 255) * 255 / (levels - 1)); alpha[i + 3] = 255; }
-  const payload = parseRiff(encode({ ...image, data: alpha, hasAlpha: false }, { lossless: true }))[0]!.data.subarray(5);
+  const payload = alphaCompression === 0
+    ? alpha.filter((_, i) => i % 4 === 1)
+    : parseRiff(encode({ ...image, data: alpha, hasAlpha: false }, { lossless: true }))[0]!.data.subarray(5);
   const alph = new Uint8Array(payload.length + 1);
-  alph[0] = 1 | (alphaQuality < 100 ? 16 : 0);
+  alph[0] = alphaCompression | (alphaQuality < 100 ? 16 : 0);
   alph.set(payload, 1);
   const extended = new Uint8Array(10), w = image.width - 1, h = image.height - 1;
   extended[0] = 16;

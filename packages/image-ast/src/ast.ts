@@ -508,6 +508,7 @@ export interface OutputEncodeOptions {
   readonly effort?: number;
   readonly lossless?: boolean;
   readonly webpExact?: boolean;
+  readonly alphaCompression?: 0 | 1;
   readonly alphaQuality?: number;
   readonly density?: number;
   readonly orientation?: number;

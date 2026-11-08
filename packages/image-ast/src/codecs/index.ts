@@ -481,6 +481,7 @@ export function encodeImage(
       const orientation = options.orientation ?? img.orientation;
       const data = encodeWebpImage(img, {
         ...(options.effort === undefined ? {} : { effort: options.effort }),
+        ...(options.alphaCompression === undefined ? {} : { alphaCompression: options.alphaCompression }),
         ...(options.alphaQuality === undefined ? {} : { alphaQuality: options.alphaQuality }),
         ...(options.webpExact === undefined ? {} : { webpExact: options.webpExact }),
         ...(options.pageHeight === undefined ? {} : { pageHeight: options.pageHeight }),

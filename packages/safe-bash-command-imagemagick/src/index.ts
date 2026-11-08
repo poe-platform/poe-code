@@ -2661,6 +2661,9 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (peek()?.val === "}") next();
       }
       while (peek()?.val === ".") {
+        if (["entropy", "skewness", "kurtosis"].includes(name)) {
+          throw new Error(`Expected operator at '.${tokens[pos + 1]?.val ?? ""}'`);
+        }
         next();
         const sub = next()?.val.toLowerCase() ?? "";
         if (sub === "p" && peek()?.val === "{") {
@@ -9529,17 +9532,24 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (!text && !ftxt && !(histogramInfo && state.formatStr !== undefined) && last !== "\n") yield "\n";
             }
-            const parts = info || text || ftxt ? information() : storedHistogram(image, backend.storage, signal);
-            const chunks = encodeText(parts, signal), target = sparse ? outSpec.slice(13) : info || lower.startsWith("ftxt:") ? outSpec.slice(5) : ftxt ? outSpec : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
-            if (target && target !== "-") {
-                await backend.publishText(image, target, chunks);
-                return { exitCode: 0, stdout: "", stderr: "" };
+            try {
+                const parts = info || text || ftxt ? information() : storedHistogram(image, backend.storage, signal);
+                const chunks = encodeText(parts, signal), target = sparse ? outSpec.slice(13) : info || lower.startsWith("ftxt:") ? outSpec.slice(5) : ftxt ? outSpec : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
+                if (target && target !== "-") {
+                    await backend.publishText(image, target, chunks);
+                    return { exitCode: 0, stdout: "", stderr: "" };
+                }
+                let stdout = "";
+                if (input.stdout) for await (const chunk of chunks) await writeBytes(input.stdout, chunk, signal);
+                else for await (const part of parts) { signal.throwIfAborted(); stdout += part; }
+                await backend.publishPending();
+                return { exitCode: 0, stdout, stderr: "" };
+            } catch (error) {
+                signal.throwIfAborted();
+                if (error instanceof CompareInputFailure) throw error.reason;
+                await backend.publishPending();
+                return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
             }
-            let stdout = "";
-            if (input.stdout) for await (const chunk of chunks) await writeBytes(input.stdout, chunk, signal);
-            else for await (const part of parts) { signal.throwIfAborted(); stdout += part; }
-            await backend.publishPending();
-            return { exitCode: 0, stdout, stderr: "" };
         }
         if ((!state.filenameLiteral && filenameExpanded) || hasSceneOutputPattern(output.path, state.filenameLiteral) || (stack.length > 1 && (!state.adjoin || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
             const firstScene = state.scene ?? (await stack.get(0))![magickInput]?.sceneIdx ?? 0;

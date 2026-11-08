@@ -726,6 +726,8 @@ export interface SerializeMediaOptions {
   readonly emptyMoov?: boolean | undefined;
   /** Start a new MP4 fragment at each video keyframe. Requires fragmented output. */
   readonly fragmentKeyframes?: boolean | undefined;
+  /** Start a new MP4 fragment at each sample, including non-keyframes. Requires fragmented output. */
+  readonly fragmentEveryFrame?: boolean | undefined;
   /** Write an MP4 color information box even when color metadata is unspecified. */
   readonly writeColr?: boolean | undefined;
   readonly id3v2Version?: 0 | 3 | 4 | undefined;

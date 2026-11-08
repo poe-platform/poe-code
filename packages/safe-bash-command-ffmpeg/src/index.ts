@@ -3666,7 +3666,7 @@ function validateMovflags(value: string): void {
   const flags = value.split("-").join("+").split("+").filter(Boolean);
   if (flags.length === 0) throw new Error("Invalid movflags: expected a flag name");
   for (const flag of flags) {
-    if (!["faststart", "frag_keyframe", "empty_moov", "write_colr"].includes(flag)) {
+    if (!["faststart", "frag_keyframe", "frag_every_frame", "empty_moov", "write_colr"].includes(flag)) {
       throw new Error(`Unsupported movflags: ${flag}`);
     }
   }
@@ -3769,6 +3769,7 @@ export function evalSyncFfmpeg(
     let videoTrackTimescale = 0;
     let fragmented = false;
     let fragmentKeyframes = false;
+    let fragmentEveryFrame = false;
     let emptyMoov = false;
     let id3v2Version: 0 | 3 | 4 | undefined;
     let writeId3v1: boolean | undefined;
@@ -4094,8 +4095,9 @@ export function evalSyncFfmpeg(
         if (flags.includes("write_colr")) writeColr = true;
         if (flags.includes("faststart")) faststart = true;
         if (flags.includes("empty_moov")) emptyMoov = true;
+        if (flags.includes("frag_every_frame")) fragmentEveryFrame = true;
         if (flags.includes("frag_keyframe")) fragmentKeyframes = true;
-        if (flags.includes("frag_keyframe") || flags.includes("empty_moov")) fragmented = true;
+        if (flags.includes("frag_keyframe") || flags.includes("frag_every_frame") || flags.includes("empty_moov")) fragmented = true;
       } else if (arg === "-vf" || arg === "-filter:v") {
         const f = args[++i]; if (f) vfFilters.push(f);
       } else if (arg === "-af" || arg === "-filter:a" || arg.startsWith("-af:") || arg.startsWith("-filter:a:")) {
@@ -4325,7 +4327,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, writeColr, majorBrand, fragmented, fragmentKeyframes, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, writeColr, majorBrand, fragmented, fragmentKeyframes, fragmentEveryFrame, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -4625,6 +4627,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let videoTrackTimescale = 0;
         let fragmented = false;
         let fragmentKeyframes = false;
+        let fragmentEveryFrame = false;
         let emptyMoov = false;
         let id3v2Version: 0 | 3 | 4 | undefined;
         let writeId3v1: boolean | undefined;
@@ -5395,8 +5398,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (flags.includes("write_colr")) writeColr = true;
             if (flags.includes("faststart")) faststart = true;
             if (flags.includes("empty_moov")) emptyMoov = true;
+            if (flags.includes("frag_every_frame")) fragmentEveryFrame = true;
             if (flags.includes("frag_keyframe")) fragmentKeyframes = true;
-            if (flags.includes("frag_keyframe") || flags.includes("empty_moov")) {
+            if (flags.includes("frag_keyframe") || flags.includes("frag_every_frame") || flags.includes("empty_moov")) {
               fragmented = true;
             }
           } else if (arg === "-map") {
@@ -8316,6 +8320,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               majorBrand,
               fragmented,
               fragmentKeyframes,
+              fragmentEveryFrame,
               emptyMoov,
               id3v2Version,
               writeId3v1,

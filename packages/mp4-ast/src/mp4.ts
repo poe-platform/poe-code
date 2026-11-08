@@ -1285,9 +1285,9 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     return { track, ...materialized };
   }).filter(track => options.fragmented || track.samples.length > 0);
 
-  const boundaries = options.fragmented && options.fragmentKeyframes
-    ? [...new Set(materializedTracks.flatMap(mt => mt.track.type === "video"
-      ? mt.samples.slice(1).filter(sample => sample.isKeyframe).map(sample => sample.dts / mt.track.timescale)
+  const boundaries = options.fragmented && (options.fragmentKeyframes || options.fragmentEveryFrame)
+    ? [...new Set(materializedTracks.flatMap(mt => (options.fragmentEveryFrame || mt.track.type === "video")
+      ? mt.samples.slice(1).filter(sample => options.fragmentEveryFrame || sample.isKeyframe).map(sample => sample.dts / mt.track.timescale)
       : []))].sort((a, b) => a - b)
     : [];
   const positions = materializedTracks.map(() => 0);

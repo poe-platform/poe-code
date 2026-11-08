@@ -7925,6 +7925,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     (channelMask === 7 || channelMask === 11);
                   const centerDownmix = threeChannelDownmix && channelMask === 7;
                   const quadDownmix = origCh === 4 && channelMask === 0x33 && (targetCh === 1 || targetCh === 2);
+                  const surroundExpansion = origCh === 6 && targetCh === 8 &&
+                    (channelMask === 0x3f || channelMask === 0x60f);
                   const surroundMono = origCh === 6 && targetCh === 1;
                   const surroundStereo = origCh === 6 && targetCh === 2;
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
@@ -7939,7 +7941,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const pcm16SurroundStereo = surroundStereo && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const monoSurround = origCh === 1 && targetCh >= 4 && targetCh <= 8;
-                  if (targetCh !== origCh && origCh > 2 && !surroundUpmix && !threeChannelDownmix && !quadDownmix &&
+                  if (targetCh !== origCh && origCh > 2 && !surroundUpmix && !threeChannelDownmix && !quadDownmix && !surroundExpansion &&
                       (!(surroundMono || surroundStereo) || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
                     throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
                   }
@@ -7953,7 +7955,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                     const dst = new ChannelArray(targetSamples);
                     // Default 4.0 through 7.1 layouts route mono to front center only.
-                    const srcCh = (monoStereo && c >= 2) || (monoSurround && c !== 2)
+                    // 7.1 orders back speakers before side speakers; keep the absent pair silent.
+                    const expandedChannel = c < 4 ? c : channelMask === 0x60f ? c - 2 : c;
+                    const srcCh = surroundExpansion ? (c < 4 || (channelMask === 0x60f ? c >= 6 : c < 6)
+                      ? stretched[expandedChannel] : undefined) : (monoStereo && c >= 2) || (monoSurround && c !== 2)
                       ? undefined : stretched[surroundUpmix ? inputSpeakers.indexOf(1 << c) : origCh === 1 ? 0 : c];
                     const rightCh = (origCh === 2 || threeChannelDownmix) && targetCh === 1 ? stretched[1] : undefined;
                     if (srcCh && srcCh.length > 0) {

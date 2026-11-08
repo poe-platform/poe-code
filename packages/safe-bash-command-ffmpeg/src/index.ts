@@ -3662,6 +3662,16 @@ function rescaleVideoTracks(doc: MediaDocument, timescale: number, budget: Media
   }) };
 }
 
+function validateMovflags(value: string): void {
+  const flags = value.split("-").join("+").split("+").filter(Boolean);
+  if (flags.length === 0) throw new Error("Invalid movflags: expected a flag name");
+  for (const flag of flags) {
+    if (!["faststart", "frag_keyframe", "empty_moov", "write_colr"].includes(flag)) {
+      throw new Error(`Unsupported movflags: ${flag}`);
+    }
+  }
+}
+
 export function evalSyncFfmpeg(
   inBytesOrArgs: Uint8Array | readonly string[] | undefined,
   maybeArgs?: readonly string[],
@@ -4073,6 +4083,7 @@ export function evalSyncFfmpeg(
         }
       } else if (arg === "-movflags") {
         const flags = args[++i] ?? "";
+        validateMovflags(flags);
         if (flags.includes("write_colr")) writeColr = true;
         if (flags.includes("faststart")) faststart = true;
         if (flags.includes("frag_keyframe") || flags.includes("empty_moov")) fragmented = true;
@@ -5359,6 +5370,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-movflags") {
             const flags = args[++i] ?? "";
+            try {
+              validateMovflags(flags);
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
+              return { exitCode: 1 };
+            }
             if (flags.includes("write_colr")) writeColr = true;
             if (flags.includes("faststart")) faststart = true;
             if (flags.includes("frag_keyframe") || flags.includes("empty_moov")) {

@@ -3411,7 +3411,8 @@ export function evalSyncFfmpeg(
         const f = frames[idx]!;
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1))!;
         const encoded = outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
-                    ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight ? {
+                    ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
+                      vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
                     } : {}) }, { format: imgFmt }).data;
         if (!writeFileSync!(fileName, encoded)) return undefined;
@@ -7111,7 +7112,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const fileName = imageFileName(number);
                   const fullOutPath = resolvePath(context.cwd, fileName);
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
-                    ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight ? {
+                    ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
+                      vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
                     } : {}) }, {
                     format: imgFmt

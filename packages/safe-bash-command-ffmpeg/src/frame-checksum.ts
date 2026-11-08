@@ -12,7 +12,7 @@ export function serializeFrameChecksum(
   budget: MediaBudgetTracker
 ): Uint8Array {
   if (!rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
-  const name = format === "framemd5" ? "md5" : algorithm.toLowerCase();
+  const name = algorithm.toLowerCase();
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512 };
   if (format !== "framecrc" && !Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
   const lines = format === "framecrc" ? [] : ["#format: frame checksums", "#version: 2", `#hash: ${name.toUpperCase()}`];

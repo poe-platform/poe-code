@@ -1401,6 +1401,37 @@ describe("-abort_on empty_output", () => {
 });
 
 describe("per-frame audio checksums", () => {
+  it("honors framemd5 hash overrides for every PCM packet", async () => {
+    const pcm = new Uint8Array(2400);
+    for (let i = 0; i < 1200; i++) new DataView(pcm.buffer).setInt16(i * 2, i, true);
+    const input = encodeWav({ sampleRate: 8000,
+      channels: [Float64Array.from({ length: 1200 }, (_, i) => i / 32768)] });
+    for (const algorithm of [undefined, "sha256", "sha512"]) {
+      for (const target of ["-", "/frames.txt"]) {
+        const vfs = createTestVfs({ "/i.wav": input });
+        const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", "-i", "/i.wav",
+          "-f", "framemd5", ...(algorithm ? ["-hash", algorithm] : []), target], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const output = target === "-" ? result.stdout : new TextDecoder().decode(vfs.store.get(target));
+        assert.ok(output.includes(`#hash: ${(algorithm ?? "md5").toUpperCase()}\n`));
+        const rows = output.split("\n").filter(line => line && !line.startsWith("#"));
+        assert.equal(rows.length, 3);
+        for (const [i, row] of rows.entries()) {
+          const payload = pcm.subarray(i * 1024, (i + 1) * 1024);
+          assert.deepEqual(row.split(",").map(field => field.trim()), ["0", String(i * 512), String(i * 512),
+            String(payload.length / 2), String(payload.length), createHash(algorithm ?? "md5").update(payload).digest("hex")]);
+        }
+      }
+    }
+  });
+  it("rejects invalid framemd5 hashes without replacing output", async () => {
+    const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000,
+      channels: [new Float64Array(1200)] }), "/frames.txt": "keep" });
+    const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav",
+      "-f", "framemd5", "-hash", "invalid", "/frames.txt"], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/frames.txt")), "keep");
+  });
   it("supports explicit hashes, stereo PCM encoding, stream copy, and empty streams", async () => {
     for (const frames of [0, 515]) {
       const input = encodeWav({ sampleRate: 8000,

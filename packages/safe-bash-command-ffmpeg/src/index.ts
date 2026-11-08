@@ -3990,7 +3990,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let framePts = false;
 
         let outputFormat: string | undefined;
-        let hashAlgorithm = "sha256";
+        let hashAlgorithm: string | undefined;
         let outputTimestampOffset = 0;
         let outputSs: number | undefined;
         let outputTo: number | undefined;
@@ -7530,7 +7530,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             validateStreamCopy(workingDoc, outPlugin?.id ?? outputFormat!, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
             validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin?.id ?? outputFormat!);
             const serializedBytes = checksumOutput
-              ? (frameChecksumOutput ? serializeFrameChecksum : serializeAudioChecksum)(workingDoc, outputFormat!, hashAlgorithm, audioCodec, registry.findByFormatName("s16le"), budget)
+              ? (frameChecksumOutput ? serializeFrameChecksum : serializeAudioChecksum)(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget)
               : outPlugin!.serialize(workingDoc, {
               seekable: !isStdout(outputTarget),
               format: outputFormat ?? outExt,

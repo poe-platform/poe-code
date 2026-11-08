@@ -159,19 +159,44 @@ function serializeAudioChecksum(
       serializeAudioChecksum({ ...doc, tracks: [track] }, "hash", algorithm, audioCodec, rawAudio, budget)
     ])));
   }
-  if (doc.tracks.length !== 1 || doc.tracks[0]!.type !== "audio") {
-    throw new Error("Checksum output requires a single audio stream");
+  if (!doc.tracks.length || doc.tracks.some(track => track.type !== "audio")) {
+    throw new Error("Checksum output requires audio streams");
   }
   if (!rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
-  const payload = rawAudio.serialize(doc, { audioCodec, budget });
+  const packets: { dts: number; timescale: number; bytes: Uint8Array }[] = [];
+  for (const track of doc.tracks) {
+    const payload = rawAudio.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
+    if (doc.tracks.length === 1 || !track.samples.length) {
+      packets.push({ dts: 0, timescale: track.timescale, bytes: payload });
+      continue;
+    }
+    const rate = track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
+    const frames = track.decodedAudio?.channelData[0]?.length ?? Math.round(track.duration * rate / track.timescale);
+    const bytesPerFrame = frames ? payload.length / frames : 0;
+    let offset = 0;
+    for (const packet of track.samples) {
+      budget.checkCpu();
+      const duration = Math.round(packet.duration * rate / track.timescale);
+      const size = audioCodec === "copy" ? packet.data.length : Math.min(payload.length - offset, Math.round(duration * bytesPerFrame));
+      packets.push({ dts: packet.dts, timescale: track.timescale, bytes: payload.subarray(offset, offset + size) });
+      offset += size;
+    }
+  }
+  // Equal timestamps retain mapped output stream order.
+  packets.sort((a, b) => {
+    budget.checkCpu();
+    return a.dts * b.timescale - b.dts * a.timescale;
+  });
   if (format === "crc") {
     // FFmpeg's crc muxer uses Adler-32 rather than a CRC polynomial.
     let a = 1;
     let b = 0;
-    for (let i = 0; i < payload.length; i++) {
-      if (i % 4096 === 0) budget.checkCpu();
-      a = (a + payload[i]!) % 65521;
-      b = (b + a) % 65521;
+    for (const { bytes } of packets) {
+      for (let i = 0; i < bytes.length; i++) {
+        if (i % 4096 === 0) budget.checkCpu();
+        a = (a + bytes[i]!) % 65521;
+        b = (b + a) % 65521;
+      }
     }
     return encodeUtf8(`CRC=0x${((b * 65536 + a) >>> 0).toString(16).padStart(8, "0")}\n`);
   }
@@ -179,9 +204,11 @@ function serializeAudioChecksum(
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512 };
   if (!Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
   const hash = hashes[name as keyof typeof hashes].create();
-  for (let offset = 0; offset < payload.length; offset += 65536) {
-    budget.checkCpu();
-    hash.update(payload.subarray(offset, offset + 65536));
+  for (const { bytes } of packets) {
+    for (let offset = 0; offset < bytes.length; offset += 65536) {
+      budget.checkCpu();
+      hash.update(bytes.subarray(offset, offset + 65536));
+    }
   }
   return encodeUtf8(`${name.toUpperCase()}=${bytesToHex(hash.digest())}\n`);
 }

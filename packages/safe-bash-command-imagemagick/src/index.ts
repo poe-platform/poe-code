@@ -2660,7 +2660,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         expectToken(")");
         if (!["sin", "sinc", "gauss", "cos", "tan", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh", "squish", "j0", "j1",
           "sqrt", "pow", "exp", "log", "log10", "ln", "abs", "min", "max", "floor", "ceil",
-          "round", "int", "trunc", "sign", "isnan", "hypot", "mod", "gcd", "clamp", "if", "rand"].includes(name)) {
+          "round", "int", "trunc", "sign", "isnan", "not", "hypot", "mod", "gcd", "clamp", "if", "rand"].includes(name)) {
           throw new Error(`Unknown FX function: ${name}`);
         }
         const arity = name === "rand" ? 0 : name === "if" ? 3
@@ -2706,6 +2706,8 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
               return 1 / (1 + Math.exp(-a0));
             case "sqrt":
               return Math.sqrt(a0);
+            case "not":
+              return a0 < 1e-12 ? 1 : 0;
             case "isnan":
               return Number.isNaN(a0) ? 1 : 0;
             case "pow":

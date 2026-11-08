@@ -1679,16 +1679,21 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "pad") {
       for (const key of Object.keys(named)) {
-        if (!["w", "width", "h", "height", "x", "y", "color", "eval"].includes(key)) {
+        if (!["w", "width", "h", "height", "x", "y", "color", "eval", "aspect"].includes(key)) {
           throw new Error(`pad: unsupported option ${key}`);
         }
       }
-      if (positional.some((part, index) => index > 5 && !part.includes("="))) {
+      if (positional.some((part, index) => index > 6 && !part.includes("="))) {
         throw new Error("pad: too many positional options");
       }
       const evaluation = named.eval ?? (positional[5]?.includes("=") ? undefined : positional[5]) ?? "init";
       if (!["init", "frame", "0", "1"].includes(evaluation)) {
         throw new Error("pad: eval must be init or frame");
+      }
+      const aspectExpression = named.aspect ?? (positional[6]?.includes("=") ? undefined : positional[6]) ?? "0";
+      const aspect = parseFilterExpression(aspectExpression, "pad", {});
+      if (!Number.isFinite(aspect) || aspect < 0) {
+        throw new Error("pad: aspect must be a finite nonnegative ratio");
       }
       const iw = current[0]!.width;
       const ih = current[0]!.height;
@@ -1706,11 +1711,17 @@ async function applyVideoFilterChain(
       dimensions.oh = dimensions.out_h = Math.trunc(parseFilterExpression(height, "pad", dimensions));
       if (dimensions.oh === 0) dimensions.oh = dimensions.out_h = ih;
       let pw = Math.trunc(parseFilterExpression(width, "pad", dimensions));
-      const ph = dimensions.oh;
+      let ph = dimensions.oh;
       if (!Number.isFinite(pw) || !Number.isFinite(ph)) {
         throw new Error("pad: invalid or unsupported expression");
       }
       pw ||= iw;
+      if (aspect > 0) {
+        const pixelAspect = aspect / diagnostics.sar;
+        const aspectHeight = Math.round(pw / pixelAspect);
+        if (ph < aspectHeight) ph = aspectHeight;
+        else pw = Math.round(ph * pixelAspect);
+      }
       pw = Math.floor(pw / hsub) * hsub;
       ph = Math.floor(ph / vsub) * vsub;
       if (pw < iw || ph < ih) {

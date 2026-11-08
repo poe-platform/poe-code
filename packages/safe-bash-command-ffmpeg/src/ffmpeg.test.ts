@@ -2614,6 +2614,60 @@ describe("pad omitted named parameters", () => {
   }
 });
 
+describe("pad display aspect ratio", () => {
+  for (const [options, sar, width, height, left, top] of [
+    ["iw:ih:0:0:black:aspect=1/1", 1, 6, 6, 0, 0],
+    ["iw:ih:0:0:black:aspect=2/1", 1, 8, 4, 0, 0],
+    ["iw:ih:(ow-iw)/2:(oh-ih)/2:black:aspect=1/1", 1, 6, 6, 0, 1],
+    ["iw:ih:-1:-1:black:init:2/1", 1, 8, 4, 1, 0],
+    ["iw:ih:0:0:black:aspect=1.1", 1, 6, 5, 0, 0],
+    ["iw:ih:0:0:black:aspect=0", 1, 6, 4, 0, 0],
+    ["iw:ih:0:0:black:aspect=1/1", 2, 6, 12, 0, 0],
+    ["w=iw:h=ih:x=0:y=0:aspect=2/1", 2, 6, 6, 0, 0],
+    ["aspect=1/1", 1, 6, 6, 0, 0]
+  ] as const) {
+    it(`honors ${options} with sample aspect ${sar}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({
+        width: 6, height: 4, channels: 4,
+        data: new Uint8Array(Array.from({ length: 24 }, (_, i) => [20 + i, 20 + i, 20 + i, 255]).flat()),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true,
+        resolution: { x: sar, y: 1, unit: "unknown" }
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/input1.png": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-i", sar === 1 ? "/input1.png" : "/input%d.png", "-vf", `pad=${options}`, "-frames:v", "1", "/pad.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = decodeImage(vfs.store.get("/pad.png")!);
+      assert.equal(output.width, width);
+      assert.equal(output.height, height);
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const gray = x >= left && x < left + 6 && y >= top && y < top + 4
+            ? 20 + (y - top) * 6 + x - left : 0;
+          const offset = (y * width + x) * 4;
+          assert.deepEqual([...output.data.subarray(offset, offset + 4)], [gray, gray, gray, 255]);
+        }
+      }
+    });
+  }
+
+  for (const aspect of ["-1", "1/0", "garbage"]) {
+    it(`rejects invalid aspect ${aspect} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/pad.png": "original" });
+      const original = vfs.store.get("/pad.png");
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-f", "lavfi", "-i", "color=red:s=6x4:d=1",
+        "-vf", `pad=iw:ih:aspect=${aspect}`, "-frames:v", "1", "/pad.png"
+      ], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("pad:"), result.stderr);
+      assert.deepEqual(vfs.store.get("/pad.png"), original);
+    });
+  }
+});
+
 describe("pad background alpha", () => {
   for (const [color, alpha] of [["red@0.5", 127], ["red@0", 0], ["0xff000080", 128], ["red", 255]] as const) {
     for (const filter of [

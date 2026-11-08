@@ -9762,3 +9762,50 @@ describe("video frame limit operand validation", () => {
     });
   }
 });
+
+describe("input display_rotation scope", () => {
+  for (const rotatedInput of [0, 1]) {
+    for (const selectedInput of [0, 1]) {
+      it(`rotates input ${rotatedInput} while mapping input ${selectedInput}`, async () => {
+        const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ frameCount: 2 }) });
+        const args = [0, 1].flatMap(input => [
+          ...(input === rotatedInput ? ["-display_rotation", "-90"] : []), "-i", "/in.mp4"
+        ]);
+        const result = await runCmd(createFfmpegCommand(),
+          [...args, "-map", `${selectedInput}:v`, "-c:v", "copy", "/out.mp4"], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(parseMp4(vfs.store.get("/out.mp4")!).tracks[0]!.rotation,
+          rotatedInput === selectedInput ? 90 : 0);
+      });
+    }
+  }
+
+  for (const sync of [false, true]) {
+    it(`${sync ? "sync" : "async"} keeps the second input's rotation off the automatic first input`, async () => {
+      const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ frameCount: 2 }) });
+      const args = ["-i", "/in.mp4", "-display_rotation", "-90", "-i", "/in.mp4", "-c:v", "copy", "/out.mp4"];
+      if (sync) {
+        assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      } else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      assert.equal(parseMp4(vfs.store.get("/out.mp4")!).tracks[0]!.rotation, 0);
+    });
+
+    it(`${sync ? "sync" : "async"} rejects display_rotation without a following input`, async () => {
+      const vfs = createTestVfs({ "/in.mp4": createSyntheticMp4({ frameCount: 2 }) });
+      const args = ["-i", "/in.mp4", "-display_rotation", "90", "-c:v", "copy", "/out.mp4"];
+      if (sync) {
+        assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          () => { assert.fail("must not write output"); }), undefined);
+      } else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.match(result.stderr, /display_rotation must precede an input/);
+      }
+      assert.equal(vfs.store.has("/out.mp4"), false);
+    });
+  }
+});

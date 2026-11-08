@@ -3411,6 +3411,33 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
   };
 }
 
+function parseDisplayRotation(option: string, value: string | undefined): [string, number] {
+  const specifier = option === "-display_rotation" ? "" : option.slice("-display_rotation:".length);
+  const parts = specifier.split(":");
+  if (["v", "a", "s", "d", "t"].includes(parts[0]!)) parts.shift();
+  if (parts.length > 1 || (parts[0] && !Array.from(parts[0]).every(char => char >= "0" && char <= "9"))) {
+    throw new Error(`Invalid -display_rotation stream specifier: ${specifier}`);
+  }
+  const rotation = value?.trim() ? Number(value) : NaN;
+  if (!Number.isFinite(rotation)) throw new Error("Invalid -display_rotation value");
+  return [specifier, -rotation];
+}
+
+function applyInputDisplayRotations(doc: MediaDocument, rotations: readonly [string, number][]): MediaDocument {
+  if (!rotations.length) return doc;
+  let videoIndex = 0;
+  return { ...doc, tracks: doc.tracks.map((track, trackIndex) => {
+    if (track.type !== "video") return track;
+    const ordinal = videoIndex++;
+    for (const [specifier, rotation] of rotations) {
+      const [selector, index] = specifier.split(":");
+      if (selector === "v" ? index && Number(index) !== ordinal : selector && Number(selector) !== trackIndex) continue;
+      track = { ...track, rotation, matrix: undefined };
+    }
+    return track;
+  }) };
+}
+
 function parseTimestampScale(option: string, value: string | undefined): [string, number] {
   const specifier = option === "-itsscale" ? "" : option.slice("-itsscale:".length);
   const parts = specifier.split(":");
@@ -3595,6 +3622,7 @@ export function evalSyncFfmpeg(
     let pendingSkipInitialBytes = 0;
     let pendingSs: number | undefined;
     let pendingTimestampScales: [string, number][] = [];
+    let pendingDisplayRotations: [string, number][] = [];
     let pendingSseof: number | undefined;
     let pendingTo: number | undefined;
     let pendingDuration: number | undefined;
@@ -3784,6 +3812,7 @@ export function evalSyncFfmpeg(
           startSeconds: pendingSs,
           endRelativeSeconds: pendingSseof,
           timestampScales: pendingTimestampScales,
+          displayRotations: pendingDisplayRotations,
           endSeconds: pendingTo,
           durationSeconds: pendingDuration,
           streamLoop: pendingLoop,
@@ -3792,6 +3821,7 @@ export function evalSyncFfmpeg(
         });
         audioRate = undefined; audioChannels = undefined;
         pendingTimestampScales = [];
+        pendingDisplayRotations = [];
         pendingTimestampOffset = 0;
         pendingSyncReference = undefined;
         pendingFixSubDuration = false;
@@ -3969,7 +3999,10 @@ export function evalSyncFfmpeg(
           } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
           else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
         }
-      } else if (arg === "-display_rotation") rotation = -(Number(args[++i] ?? "0") || 0);
+      } else if (arg === "-display_rotation" || arg.startsWith("-display_rotation:")) {
+        pendingDisplayRotations.push(parseDisplayRotation(arg, args[++i]));
+        if (!args.slice(i + 1).includes("-i")) return undefined;
+      }
       else if (arg.startsWith("-") && arg !== "-") return undefined;
       else {
         // Multi-output and trailing groups use the async path before any writes.
@@ -4018,6 +4051,7 @@ export function evalSyncFfmpeg(
       inputStarts.push(sourceStart);
       if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
       doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
+      doc = applyInputDisplayRotations(doc, inp.displayRotations);
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
         ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
@@ -4260,6 +4294,7 @@ interface InputSpec {
   readonly startSeconds?: number | undefined;
   readonly endRelativeSeconds?: number | undefined;
   readonly timestampScales: readonly [string, number][];
+  readonly displayRotations: readonly [string, number][];
   readonly endSeconds?: number | undefined;
   readonly durationSeconds?: number | undefined;
   readonly streamLoop?: number | undefined;
@@ -4334,6 +4369,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingSkipInitialBytes = 0;
       let pendingSs: number | undefined;
       let pendingTimestampScales: [string, number][] = [];
+      let pendingDisplayRotations: [string, number][] = [];
       let pendingSseof: number | undefined;
       let pendingTo: number | undefined;
       let pendingDuration: number | undefined;
@@ -4967,6 +5003,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               startSeconds: pendingSs,
               endRelativeSeconds: pendingSseof,
               timestampScales: pendingTimestampScales,
+              displayRotations: pendingDisplayRotations,
+          displayRotations: pendingDisplayRotations,
               endSeconds: pendingTo,
               durationSeconds: pendingDuration,
               streamLoop: pendingLoop,
@@ -4989,6 +5027,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingSs = undefined;
             pendingSseof = undefined;
             pendingTimestampScales = [];
+            pendingDisplayRotations = [];
+        pendingDisplayRotations = [];
             pendingTo = undefined;
             pendingDuration = undefined;
             pendingLoop = undefined;
@@ -5246,8 +5286,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
               else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
             }
-          } else if (arg === "-display_rotation") {
-            rotation = -(Number(args[++i] ?? "0") || 0);
+          } else if (arg === "-display_rotation" || arg.startsWith("-display_rotation:")) {
+            pendingDisplayRotations.push(parseDisplayRotation(arg, args[++i]));
+            if (!args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -display_rotation must precede an input\n"), context.signal);
+              return { exitCode: 234 };
+            }
           } else if (!arg.startsWith("-") || arg === "-") {
             outputTarget = arg;
             i++;
@@ -5766,6 +5810,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               inputStarts.push(sourceStart);
               if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
               doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
+              doc = applyInputDisplayRotations(doc, inp.displayRotations);
+      doc = applyInputDisplayRotations(doc, inp.displayRotations);
               if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));

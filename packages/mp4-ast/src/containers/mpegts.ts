@@ -27,6 +27,7 @@ import {
   type MediaAstPlugin,
   type MediaCodecDescription,
   type MediaDocument,
+  type TsProgram,
   type MediaProbeResult,
   type MediaSample,
   type MediaTrack,
@@ -84,13 +85,6 @@ function writePesTimestamp(prefixNibbles: number, pts90k: number): Uint8Array {
   const b3 = (t >>> 7) & 0xff;
   const b4 = ((t & 0x7f) << 1) | 1;
   return new Uint8Array([b0, b1, b2, b3, b4]);
-}
-
-interface TsProgram {
-  programNumber: number;
-  pmtPid: number;
-  pcrPid: number;
-  streamPids: number[];
 }
 
 export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument & {

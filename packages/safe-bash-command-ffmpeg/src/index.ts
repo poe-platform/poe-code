@@ -6440,16 +6440,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (optional) clean = clean.slice(0, -1);
                 if (clean.startsWith("[")) continue;
                 const [input, ...specifier] = clean.split(":");
-                const selector = specifier[0];
                 const inputIdx = Number(input);
                 const srcDoc = loadedDocs[inputIdx];
                 if (!srcDoc) {
                   await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid input file index: ${inputIdx}.\n`), context.signal);
                   return { exitCode: 234 };
                 }
+                const program = specifier[0] === "p"
+                  ? srcDoc.programs?.find(program => program.programNumber === Number(specifier[1])) : undefined;
+                const programMap = specifier[0] === "p";
+                if (programMap) specifier.splice(0, 2);
+                const selector = specifier[0];
                 const type = selector === "v" ? "video" : selector === "a" ? "audio" : selector === "s" ? "subtitle" : selector === "d" ? "data" : undefined;
                 let matches: readonly (MediaTrack | MediaAttachment)[] = type ? srcDoc.tracks.filter(t => t.type === type)
                   : selector === "t" ? srcDoc.attachments ?? [] : [...srcDoc.tracks, ...srcDoc.attachments ?? []];
+                if (programMap) matches = matches.filter(track => "id" in track && program?.streamPids.includes(track.id));
                 const streamSpecifier = type || selector === "t" ? specifier.slice(1) : specifier;
                 const [index, key, ...valueParts] = streamSpecifier;
                 if (index?.startsWith("#") || index === "i") {

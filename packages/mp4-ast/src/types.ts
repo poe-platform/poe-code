@@ -448,6 +448,13 @@ export interface MediaAttachment {
   readonly size: number;
 }
 
+export interface TsProgram {
+  programNumber: number;
+  pmtPid: number;
+  pcrPid: number;
+  streamPids: number[];
+}
+
 export interface MediaDocument {
   readonly containerFormat: string; // 'mp4', 'mov', 'matroska', 'webm', 'mpegts', 'avi', 'flv', 'wav', 'mp3', 'flac', 'ogg', 'aac', 'gif', 'webp', 'image2', 'yuv4mpegpipe'
   readonly majorBrand?: string | undefined;
@@ -461,6 +468,7 @@ export interface MediaDocument {
   readonly isFragmented?: boolean | undefined;
   readonly faststart?: boolean | undefined;
   readonly attachments?: readonly MediaAttachment[] | undefined;
+  readonly programs?: readonly TsProgram[] | undefined;
   readonly tracks: readonly MediaTrack[];
   readonly metadata: Mp4MetadataTags;
   readonly chapters?: readonly Mp4Chapter[] | undefined;

@@ -13,6 +13,8 @@ const probe = await shell.exec("ffprobe -show_streams -of json /clip.mp4");
 await shell.dispose();
 ```
 
+MPEG-TS program maps (`-map 0:p:202`) select streams by program ID; `-map 0:p:202:a:0` selects the first audio stream in that program. Missing programs fail unless the map ends in `?`.
+
 MP4/MOV output `-streamid 0:21 -streamid 1:43 -use_stream_ids_as_track_ids 1` assigns track IDs to output stream ordinals after mapping. Without the muxer switch, IDs remain sequential starting at 1; with it, unassigned streams use ID 0. Options apply only to the next output.
 
 MP4/MOV output `-video_track_timescale N` sets the video time base to `1/N`, rescaling packet timestamps, durations, and edit offsets while preserving stream-copy packet bytes. `0` keeps the default. `-map 0:1 -c copy -f data output.bin` writes the selected stream’s packet payloads without a container header; the data muxer requires exactly one stream and also supports stdout. Data stream maps (`-map 0:d` or `-map 0:d:0`) select timecode tracks; output container support still applies. Video-only stream maps such as `-map 0:v -c copy` retain the source video's timecode track and link. `-map 0 -dn -c copy` suppresses copying input data streams while retaining the video’s linked timecode for MP4/MOV output. `-write_tmcd 0` disables timecode output; `-write_tmcd 1` (or the automatic default, `-1`) preserves it when present.

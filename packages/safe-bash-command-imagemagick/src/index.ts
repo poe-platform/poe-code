@@ -1512,11 +1512,11 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), hasAlpha: true, ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
-function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = parseMagickGeometry(geomStr);
     const cw = Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? img.width / 100 : 1)));
-    const ch = Math.max(0, Math.round((g.height ?? 0) * (g.isPercent ? img.height / 100 : 1)));
+    const ch = Math.max(0, Math.round((g.height ?? (g.isPercent || geomStr.toLowerCase().includes("x") ? 0 : img.height)) * (g.isPercent ? img.height / 100 : 1)));
     const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height, cw, ch, g.x, g.y, gravity);
     if (x0 + cw < 0 || y0 + ch < 0 || x0 > img.width || y0 > img.height) {
         return img;
@@ -1528,6 +1528,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     const choppedW = cx1 - cx0;
     const choppedH = cy1 - cy0;
     if (choppedW >= img.width || choppedH >= img.height) {
+        if (analysis) analysis.warnings += `magick: geometry does not contain image '${geomStr}'\n`;
         return img;
     }
     const outW = img.width - choppedW;
@@ -6695,7 +6696,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "0x0";
             validateMagickTransformGeometry(geom, t);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickChopSteps(im, geom, state.gravity, signal));
+                return (yield* applyMagickChopSteps(im, geom, state.gravity, signal, analysis));
             });
         }
         else if (t === "-roll") {
@@ -7547,7 +7548,7 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
     return images.at(-1)!;
 }
 
-async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend: CompareFileSession, token: string, geometry: string, state: MagickState, signal: AbortSignal): Promise<StoredRgbaImage> {
+async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend: CompareFileSession, token: string, geometry: string, state: MagickState, signal: AbortSignal, analysis: { warnings: string }): Promise<StoredRgbaImage> {
     const g = token === "-roll" ? parseMagickRollGeometry(geometry) : parseMagickGeometry(geometry), w = image.width, h = image.height;
     type Span = { source: number; target: number; length: number };
     let xs: Span[], ys: Span[], width = w, height = h;
@@ -7569,12 +7570,15 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         ys = [{ source: 0, target: 0, length: y }, { source: y, target: y + sh, length: h - y }];
     } else {
         const cw = Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? w / 100 : 1)));
-        const ch = Math.max(0, Math.round((g.height ?? 0) * (g.isPercent ? h / 100 : 1)));
+        const ch = Math.max(0, Math.round((g.height ?? (g.isPercent || geometry.toLowerCase().includes("x") ? 0 : h)) * (g.isPercent ? h / 100 : 1)));
         const { x, y } = gravityAdjustBox(w, h, cw, ch, g.x, g.y, state.gravity);
         if (x + cw < 0 || y + ch < 0 || x > w || y > h) return image;
         const x0 = Math.max(0, Math.min(w, x)), x1 = Math.max(x0, Math.min(w, x + cw));
         const y0 = Math.max(0, Math.min(h, y)), y1 = Math.max(y0, Math.min(h, y + ch));
-        if (x1 - x0 >= w || y1 - y0 >= h) return image;
+        if (x1 - x0 >= w || y1 - y0 >= h) {
+            analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
+            return image;
+        }
         width -= x1 - x0; height -= y1 - y0;
         xs = [{ source: 0, target: 0, length: x0 }, { source: x1, target: x0, length: w - x1 }];
         ys = [{ source: 0, target: 0, length: y0 }, { source: y1, target: y0, length: h - y1 }];
@@ -8445,7 +8449,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
             if (token === "-splice") validateMagickSpliceGeometry(geometry);
             else validateMagickTransformGeometry(geometry, token);
-            steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal) : undefined);
+            steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal, analysis) : undefined);
         } else if (!operandsOnly && token === "-resample") {
             const value = tokens[++i] ?? "72", kernel = state.kernel, settings = state.resizeFilter;
             steps.push(async (image, backend) => {

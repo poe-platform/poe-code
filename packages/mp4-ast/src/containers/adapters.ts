@@ -1363,6 +1363,7 @@ function flacProbe(scanner: FlacFrameScanner, options: MediaSourceProbeOptions =
     options.filename ?? "input.flac", { ...options, formatName: "flac", formatLongName: "raw FLAC" });
   return { ...result,
     streams: result.streams.map(stream => stream.index === 0 ? { ...stream, nb_frames: undefined,
+      ...(scanner.hasReplayGain ? { side_data_list: [{ side_data_type: "Replay Gain" }] } : {}),
       nb_read_packets: String(samples.length), nb_read_frames: String(samples.length) } : stream),
     packets: result.packets?.map((packet, index) => packet.stream_index === 0
       ? { ...packet, pos: String(scanner.packets[index]!.pos) } : packet) };

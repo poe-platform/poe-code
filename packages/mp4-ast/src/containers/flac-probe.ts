@@ -59,6 +59,7 @@ export function frameHeader(bytes: Uint8Array, start: number): { duration: numbe
 export class FlacFrameScanner {
   readonly header = new Uint8Array(42);
   readonly pictureBlocks: Uint8Array[] = [];
+  hasReplayGain = false;
   private metadataBlock: Uint8Array | undefined;
   private readonly chapterTags: Record<string, string> = {};
   private readonly cueBlocks: Uint8Array[] = [];
@@ -122,6 +123,7 @@ export class FlacFrameScanner {
             try {
               for (const [key, value] of Object.entries(parseAudio(metadata).tags)) {
                 if (key.startsWith("CHAPTER")) this.chapterTags[key] = value;
+                if (key === "REPLAYGAIN_TRACK_GAIN" || key === "REPLAYGAIN_ALBUM_GAIN") this.hasReplayGain = true;
               }
             } catch { /* Malformed comments retain the existing media-probe fallback. */ }
             this.metadataBlock = undefined;

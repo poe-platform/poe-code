@@ -304,6 +304,8 @@ type FormatStep = ProbeOutputPart | {
 };
 
 function formatQualifiedAudio(probe: ProbeSourceRows, opts: FfprobeFormatOptions, audioInput?: AudioProbeInput): string | undefined {
+  // Stream side data belongs to the media schema.
+  if (Array.isArray(probe.streams) && probe.streams.some(stream => stream.side_data_list?.length)) return undefined;
   // MP4 track tags belong to the media probe, not the audio container metadata.
   if (probe.format?.format_name.split(",").includes("mp4")) return undefined;
   // Broadcast WAV fields are supplied by the media reader, not the audio schema.
@@ -968,7 +970,7 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
         : await probeWavSource(source, { signal: context.signal, onTag: async span => {
           try { await tags.add(span); } catch (error) { sourceFailed = true; throw error; }
         } });
-      if (Array.isArray(result.streams) && result.streams.some(stream => stream.codec_type !== "audio")) {
+      if (Array.isArray(result.streams) && result.streams.some(stream => stream.codec_type !== "audio" || stream.side_data_list?.length)) {
         const formatTags: Record<string, MediaProbeText> = {};
         for await (const entry of tags.entries()) {
           let key = "";

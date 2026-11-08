@@ -4,6 +4,19 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
+    for (const count of ["-1", "-2,0", "0", "2"]) {
+        it(`preserves frame order for duplicate count ${count}: ${mode}`, async () => {
+            const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+            const args = ["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "-duplicate", count, "+append", "out.png"];
+            const result = mode === "sync" ? runConvertCliSync(args, files)
+                : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+            const image = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+            const red = [255, 0, 0, 255], green = [0, 255, 0, 255], blue = [0, 0, 255, 255];
+            expect([image.width, image.height]).toEqual([count === "2" ? 5 : 3, 1]);
+            expect([...image.data]).toEqual((count === "2" ? [red, green, blue, blue, blue] : [red, green, blue]).flat());
+        });
+    }
     for (const operation of [["+duplicate"], ["-duplicate", "1,0"]]) {
         it(`rejects duplication from an empty current list: ${mode} ${operation}`, async () => {
             const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();

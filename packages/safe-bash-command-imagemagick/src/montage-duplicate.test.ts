@@ -8,6 +8,8 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
   it.each([
     { inputs: ["a.png", "-duplicate", "1"], order: [0, 0] },
     { inputs: ["a.png", "-duplicate", "0"], order: [0] },
+    { inputs: ["a.png", "b.png", "-duplicate", "-1"], order: [0, 1] },
+    { inputs: ["a.png", "b.png", "-duplicate", "-2,0"], order: [0, 1] },
     { inputs: ["a.png", "-duplicate", "2", "b.png"], order: [0, 0, 0, 1] },
     { inputs: ["a.png", "b.png", "-duplicate", "1,0"], order: [0, 1, 0] },
     { inputs: ["a.png", "b.png", "+duplicate"], order: [0, 1, 1] },
@@ -48,7 +50,6 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
 it.each([
   ["-duplicate", "1", "a.png", "png:-"],
   ["a.png", "-duplicate"],
-  ["a.png", "-duplicate", "-1", "png:-"],
   ["a.png", "-duplicate", "1,no", "png:-"],
   ["a.png", "-duplicate", "1,8", "png:-"],
 ])("rejects invalid montage duplication: %j", (...args) => {

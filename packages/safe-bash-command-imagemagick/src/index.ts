@@ -7366,7 +7366,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const value = tokens[++i] ?? "", comma = value.indexOf(",");
                 const countSpec = comma < 0 ? value : value.slice(0, comma);
                 count = parseInt(countSpec, 10);
-                if (!Number.isSafeInteger(count) || count < 0) throw new Error(`invalid argument ${value}`);
+                if (!Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
                 idxSpec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
                 parseMagickIndices(idxSpec);
             }
@@ -7981,7 +7981,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-duplicate") {
                 const value = tokens[++i] ?? "", comma = value.indexOf(",");
                 count = parseInt(value, 10);
-                if (!Number.isSafeInteger(count) || count < 0) throw new Error(`invalid argument ${value}`);
+                if (!Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
                 spec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
                 parseMagickIndices(spec);
             }
@@ -9943,7 +9943,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             if (t === "-duplicate") {
                 const value = argv[++i] ?? "", comma = value.indexOf(",");
                 count = Number(comma < 0 ? value : value.slice(0, comma));
-                if (!value || !Number.isSafeInteger(count) || count < 0) return { exitCode: 1, stdout: "", stderr: `montage: invalid argument '${value}'\n` };
+                if (!value || !Number.isSafeInteger(count)) return { exitCode: 1, stdout: "", stderr: `montage: invalid argument '${value}'\n` };
                 spec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
             }
             const length = operands.length;

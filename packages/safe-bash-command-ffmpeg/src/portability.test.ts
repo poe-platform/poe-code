@@ -160,7 +160,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes stream metadata selection and the current command graph (996,354 bytes).
   // Includes output-stream frame selectors and encoded timed-text copying (999,989 bytes).
   // Includes per-input MP4 timestamp rebasing and stream-copy timestamp controls (1,002,056 bytes).
-  assert.ok(otherCodeBytes < 1_004_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes input synchronization and output seeking with initial non-key packet copying (1,004,412 bytes).
+  assert.ok(otherCodeBytes < 1_006_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -235,6 +236,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes completion progress statistics and destination handling (10,335,256 bytes).
   // Includes stream metadata selection and the current dependency graph (10,338,252 bytes).
   // Includes output-stream frame selectors and encoded timed-text copying (10,341,672 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_344_000,
+  // Includes timestamp controls, input synchronization, and output packet selection (10,346,301 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_348_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

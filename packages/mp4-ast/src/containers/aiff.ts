@@ -1,6 +1,7 @@
 import { MediaBudgetTracker, type MediaAstPlugin, type MediaDocument, type ParseMediaOptions, type SerializeMediaOptions } from "../types.js";
 import { buildProbeResultFromDoc, concatMp4, sliceMp4 } from "../mp4.js";
 import { rawAudioAsts } from "./raw-audio.js";
+import { parseImaQt } from "./aiff-ima.js";
 
 const pcm = rawAudioAsts();
 const codecs = ["pcm_s16be", "pcm_s8", "pcm_s24be", "pcm_s32be", "pcm_s16le", "pcm_f32be", "pcm_f64be", "pcm_alaw", "pcm_mulaw"];
@@ -28,10 +29,10 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       if (size < (compressed ? 22 : 18)) throw new Error("Invalid AIFF COMM chunk");
       if (compressed) {
         const compression = text(start + 18, 4);
-        if (!["sowt", "NONE", "fl32", "fl64", "alaw", "ulaw"].includes(compression)) throw new Error(`Unsupported AIFF-C compression: ${compression}`);
+        if (!["sowt", "NONE", "fl32", "fl64", "alaw", "ulaw", "ima4"].includes(compression)) throw new Error(`Unsupported AIFF-C compression: ${compression}`);
         littleEndian = compression === "sowt";
         compressedFormat = compression === "fl32" ? "f32be" : compression === "fl64" ? "f64be"
-          : compression === "alaw" ? "alaw" : compression === "ulaw" ? "mulaw" : undefined;
+          : compression === "ima4" ? "ima4" : compression === "alaw" ? "alaw" : compression === "ulaw" ? "mulaw" : undefined;
       }
       channels = view.getUint16(start);
       frames = view.getUint32(start + 2);
@@ -57,6 +58,10 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
     offset = start + size + size % 2;
   }
   if (!channels || !sound || (!compressedFormat && (bits < 1 || bits > 32))) throw new Error("Missing or unsupported AIFF audio format");
+  if (compressedFormat === "ima4") {
+    const doc = parseImaQt(sound, channels, sampleRate, frames, options, budget);
+    return { ...doc, metadata, byteLength: bytes.length };
+  }
   bits = Math.ceil(bits / 8) * 8;
   budget.checkDuration(frames / sampleRate);
   const format = compressedFormat ?? (bits === 8 ? "s8" : `s${bits}${littleEndian ? "le" : "be"}`);

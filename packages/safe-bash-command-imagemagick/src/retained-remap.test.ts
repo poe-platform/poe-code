@@ -54,10 +54,10 @@ it("preserves original remap pixel vectors", async () => {
     }
     expect(hashes).toMatchInlineSnapshot(`
       [
-        "24c0ee0ee399d8c9715d56bd1467cf23fb97509901924516308738fd434cf5d3",
+        "a90470bbb9028b30db84a260b8081087abeb566ea1d79522422465c0c453c26c",
         "fcee49ef0769efa8208316e6259550e0e9d6b8e23e6f0142c1a6147b802d419f",
         "fcee49ef0769efa8208316e6259550e0e9d6b8e23e6f0142c1a6147b802d419f",
-        "24c0ee0ee399d8c9715d56bd1467cf23fb97509901924516308738fd434cf5d3",
+        "a90470bbb9028b30db84a260b8081087abeb566ea1d79522422465c0c453c26c",
         "6eac2444bedf289ceee36b9dfc034f5fb8b0e75a294bac17e47ebb2b5ad0aace",
         "4dc179bd3d3031105fe34142bfbcc6fe191b591113a0959af486fd6d8b9ae064",
         "6eac2444bedf289ceee36b9dfc034f5fb8b0e75a294bac17e47ebb2b5ad0aace",

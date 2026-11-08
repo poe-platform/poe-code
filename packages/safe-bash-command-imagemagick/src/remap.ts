@@ -37,11 +37,16 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
     }
     const position = storage.allocate(count * 4);
     const storedData16 = image.storedData16 ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
-    for (let start = 0; start < count; start += 1024) {
+    for (let scanned = 0; scanned < count;) {
         await yieldTurn(signal);
-        const length = Math.min(1024, count - start), pixels = new Uint8Array(await storage.read(image.position + start * 4, length * 4, { signal }));
+        const y = Math.floor(scanned / image.width), column = scanned % image.width;
+        const direction = dither && y % 2 !== 0 ? -1 : 1;
+        const length = Math.min(1024, dither ? image.width - column : count - scanned);
+        const start = y * image.width + (direction === 1 ? column : image.width - column - length);
+        const pixels = new Uint8Array(await storage.read(image.position + start * 4, length * 4, { signal }));
         if (pixels.length !== length * 4) throw new Error("Truncated remap pixels");
-        for (let i = 0; i < length; i++) {
+        for (let step = 0; step < length; step++) {
+            const i = direction === 1 ? step : length - 1 - step;
             const current = start + i, offset = i * 4;
             const r = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16))) : pixels[offset]!;
             const g = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16 + 4))) : pixels[offset + 1]!;
@@ -63,10 +68,10 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
                     await cache.setFloat32(errors, next + 8, await cache.float32(errors, next + 8) + (b - pixels[offset + 2]!) * weight);
                     await cache.setFloat32(errors, next + 12, await cache.float32(errors, next + 12) + (a - pixels[offset + 3]!) * weight);
                 };
-                await spread(x + 1, y, 7 / 16);
-                await spread(x - 1, y + 1, 3 / 16);
+                await spread(x + direction, y, 7 / 16);
+                await spread(x - direction, y + 1, 3 / 16);
                 await spread(x, y + 1, 5 / 16);
-                await spread(x + 1, y + 1, 1 / 16);
+                await spread(x + direction, y + 1, 1 / 16);
             }
         }
         await storage.write(position + start * 4, pixels, { signal });
@@ -74,6 +79,7 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
             const samples = Uint16Array.from(pixels, value => value * 257);
             await storage.write(storedData16.position + start * 8, new Uint8Array(samples.buffer), { signal });
         }
+        scanned += length;
     }
     return { ...image, position, ...(storedData16 ? { storedData16 } : {}) };
 }

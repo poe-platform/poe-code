@@ -1052,7 +1052,10 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
     for (let y = 0; y < h; y++) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        for (let x = 0; x < w; x++) {
+        // Native Floyd–Steinberg alternates the scan direction each row.
+        const direction = y % 2 === 0 ? 1 : -1;
+        for (let step = 0; step < w; step++) {
+            const x = direction === 1 ? step : w - 1 - step;
             if (++cooperativeWork % 65536 === 0)
                 yield;
             const idx = (y * w + x) * 4;
@@ -1092,10 +1095,10 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
                     buf[nIdx + 2] = buf[nIdx + 2]! + errB * wgt;
                     buf[nIdx + 3] = buf[nIdx + 3]! + errA * wgt;
                 };
-                spread(x + 1, y, 7 / 16);
-                spread(x - 1, y + 1, 3 / 16);
+                spread(x + direction, y, 7 / 16);
+                spread(x - direction, y + 1, 3 / 16);
                 spread(x, y + 1, 5 / 16);
-                spread(x + 1, y + 1, 1 / 16);
+                spread(x + direction, y + 1, 1 / 16);
             }
         }
     }

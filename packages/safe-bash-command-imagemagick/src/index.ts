@@ -2376,7 +2376,10 @@ function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number, maxi
     const d = max - min;
     if (d < 1e-7) return 0;
     if (ch === 6) {
-      return l > 0.5 ? d / Math.max(1e-7, 2 - max - min) : d / Math.max(1e-7, max + min);
+      // Form the ratio before normalization to preserve exact rounding boundaries.
+      const high = Math.max(data[offset]!, data[offset + 1]!, data[offset + 2]!);
+      const low = Math.min(data[offset]!, data[offset + 1]!, data[offset + 2]!);
+      return (high - low) / Math.max(1e-7 * maximum, l > 0.5 ? 2 * maximum - high - low : high + low);
     }
     let h = 0;
     if (max === r) h = (g - b) / d + (g < b ? 6 : 0);

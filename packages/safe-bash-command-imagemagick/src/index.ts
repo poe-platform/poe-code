@@ -701,8 +701,21 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: Mo
   if (shape === "octagon" || shape === "diamond" || shape === "plus" || shape === "cross") {
     rx = ry = Math.max(1, Math.floor(Number(sizePart) || (shape === "diamond" ? 1 : 2)));
   }
-  const rows = Array.from({ length: ry * 2 + 1 }, (_, row) => {
+  let innerRadius = 0;
+  if (shape === "ring") {
+    const radii = colonIdx < 0 ? [2.5, 3.5] : sizePart.split(",").map(Number);
+    innerRadius = radii.length === 1 ? 0 : Math.min(...radii.slice(0, 2));
+    rx = Math.max(...radii.slice(0, 2));
+    ry = Math.floor(rx);
+  }
+  const rows: MorphologyRow[] = Array.from({ length: ry * 2 + 1 }, (_, row) => {
     const dy = Math.abs(row - ry);
+    if (shape === "ring") {
+      const outer = Math.floor(Math.sqrt(rx * rx - dy * dy));
+      if (dy > innerRadius) return outer;
+      const inner = Math.floor(Math.sqrt(innerRadius * innerRadius - dy * dy));
+      return Array.from({ length: outer * 2 + 1 }, (_, column) => column - outer).filter(column => Math.abs(column) > inner);
+    }
     if (disk) return Math.floor(Math.sqrt(radius * radius - dy * dy));
     if (shape === "cross") return dy === 0 ? [0] : [-dy, dy];
     if (shape === "diamond") return rx - dy;

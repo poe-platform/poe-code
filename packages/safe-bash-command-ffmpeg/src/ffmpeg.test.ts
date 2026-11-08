@@ -16,6 +16,51 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("stack input labels", () => {
+  for (const axis of ["hstack", "vstack"]) {
+    for (const labels of ["[1:v][0:v]", "[1:v:0][0:v:0]", "[0:v][1:v]", ""]) {
+      it(`${axis} respects ${labels || "implicit input order"}`, async () => {
+        const { decodeImage } = await import("@poe-code/image-ast/portable");
+        const vfs = createTestVfs();
+        const result = await runCmd(createFfmpegCommand(), [
+          "-f", "lavfi", "-i", "color=c=red:s=8x8:r=1:d=4",
+          "-f", "lavfi", "-i", "color=c=blue:s=8x8:r=1:d=2",
+          "-filter_complex", `${labels}${axis}=inputs=2`, "/out_%d.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(vfs.store.size, 4);
+        const colors = labels.startsWith("[1:")
+          ? [[0, 0, 255], [255, 0, 0]] : [[255, 0, 0], [0, 0, 255]];
+        for (let i = 1; i <= 4; i++) {
+          const frame = decodeImage(vfs.store.get(`/out_${i}.png`)!);
+          assert.equal(frame.width, axis === "hstack" ? 16 : 8);
+          assert.equal(frame.height, axis === "vstack" ? 16 : 8);
+          for (const [block, color] of colors.entries()) {
+            const offset = block * 8 * (axis === "vstack" ? frame.width : 1) * 4;
+            for (const [channel, expected] of color.entries()) {
+              assert.ok(Math.abs(frame.data[offset + channel]! - expected) <= 3,
+                `frame ${i}, block ${block}, channel ${channel}: expected ${expected}, got ${frame.data[offset + channel]}`);
+            }
+          }
+        }
+      });
+    }
+  }
+  for (const labels of ["[2:v][0:v]", "[0:v:1][1:v]", "[a][0:v]", "[0:v][1:v][0:v]"]) {
+    it(`rejects unavailable or invalid stack pads ${labels}`, async () => {
+      const vfs = createTestVfs({ "/out.png": "keep" });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-f", "lavfi", "-i", "color=c=red:s=8x8:r=1:d=1",
+        "-f", "lavfi", "-i", "color=c=blue:s=8x8:r=1:d=1",
+        "-filter_complex", `${labels}hstack=inputs=2`, "/out.png"
+      ], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("hstack:"), result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "keep");
+    });
+  }
+});
+
 describe("multi-input stacks", () => {
   for (const axis of ["hstack", "vstack"]) {
     for (const shortest of [false, true]) {

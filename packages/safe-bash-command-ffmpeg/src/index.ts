@@ -4818,10 +4818,29 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   throw new Error(`${filter}: inputs must specify at least two available inputs`);
                 }
                 const inputs: MediaVideoFrame[][] = [];
-                for (const doc of loadedDocs.slice(0, inputCount)) {
-                  inputs.push(await ensureDecodedFrames(doc.tracks.find(t => t.type === "video")!,
-                    doc.timescale, budget, context.signal));
+                let pads = filterComplex.slice(0, filterComplex.indexOf(filter)).trim();
+                for (let i = 0; i < inputCount; i++) {
+                  let inputIndex = i;
+                  let streamIndex = 0;
+                  if (pads.startsWith("[")) {
+                    const end = pads.indexOf("]");
+                    const label = pads.slice(1, end);
+                    const parts = label.split(":");
+                    if (end < 0 || parts.length > 3 || parts[1] !== "v" ||
+                        !parts[0] || ![...parts[0]].every(char => char >= "0" && char <= "9") ||
+                        (parts[2] !== undefined && (!parts[2] || ![...parts[2]].every(char => char >= "0" && char <= "9")))) {
+                      throw new Error(`${filter}: invalid input label ${label}`);
+                    }
+                    inputIndex = Number(parts[0]);
+                    streamIndex = Number(parts[2] ?? 0);
+                    pads = pads.slice(end + 1).trim();
+                  }
+                  const doc = loadedDocs[inputIndex];
+                  const track = doc?.tracks.filter(t => t.type === "video")[streamIndex];
+                  if (!doc || !track) throw new Error(`${filter}: input ${inputIndex}:v:${streamIndex} is unavailable`);
+                  inputs.push(await ensureDecodedFrames(track, doc.timescale, budget, context.signal));
                 }
+                if (pads) throw new Error(`${filter}: unsupported input labels ${pads}`);
                 const shortestOption = options.find((option) => option.trim().startsWith("shortest="))
                   ?.split("=")[1]?.trim() ?? options[1]?.trim();
                 const stopAtShortest = ["1", "true", "yes", "on"].includes(shortestOption ?? "0");

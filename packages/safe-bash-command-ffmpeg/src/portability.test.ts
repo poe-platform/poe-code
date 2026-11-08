@@ -137,7 +137,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes aexciter harmonic processing and its bounded per-channel state.
   // Includes mpdecimate and the current video filter graph (943,146 bytes).
   // Includes cycle-based decimation metrics and timestamp resampling (944,504 bytes).
-  assert.ok(otherCodeBytes < 946_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes tinterlace scan-line weaving (946,673 bytes).
+  assert.ok(otherCodeBytes < 948_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -194,6 +195,6 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes silence removal and the current audio filter graph.
   // Includes default mpdecimate block comparisons and retained-frame selection.
   // Includes cycle-based decimation (10,286,621 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_288_000,
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_290_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

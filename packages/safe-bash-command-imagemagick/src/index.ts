@@ -7678,6 +7678,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 const first = oldStack[0]! as MagickImage;
                 stack = [{ ...flattened, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0] }];
+                if (flatten && first.orientation !== undefined) stack[0] = { ...stack[0]!, orientation: first.orientation };
             }
         }
         else if (t === "-composite") {
@@ -8556,6 +8557,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!append) {
                     const first = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;
                     result = { ...result, delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };
+                    if (flatten && first.orientation !== undefined) result = { ...result, orientation: first.orientation };
                 }
                 stack.length = 0; await stack.push(result); return stack;
             }); continue;

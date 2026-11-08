@@ -1,3 +1,4 @@
+import { convertCmykPixels, formatCmykPixel, rgbToCmyk } from "./colorspace-cmyk.js";
 import { modulateRgb } from "./modulate.js";
 import { cyclePixelSteps } from "./cycle.js";
 import { magnifyPixelSteps, parseMagnifyMethod, type MagnifyMethod } from "./magnify-kernel.js";
@@ -1330,14 +1331,15 @@ function* formatMagickPropertyStringSteps<Step=never>(
           parts.push(formatMetricNum(fn(ctx)));
         } else {
           const channels: number[] = [];
-          for (let ch = 0; ch < (img.hasAlpha ? 4 : 3); ch++) {
+          for (const ch of img.space === "cmyk" ? (img.hasAlpha ? [0, 1, 2, 8, 3] : [0, 1, 2, 8]) : (img.hasAlpha ? [0, 1, 2, 3] : [0, 1, 2])) {
             ctx.vars.clear();
-            channels.push((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : clampByteVal(fn({ ...ctx, ch }) * 255));
+            channels.push((img.space === "cmyk" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : clampByteVal(fn({ ...ctx, ch }) * 255));
           }
           if (key.startsWith("hex:")) {
             parts.push(channels.map(value => value.toString(16).toUpperCase().padStart(2, "0")).join(""));
           } else {
             if (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") { parts.push(formatHuePixel(channels, img.magickColorspace, img.hasAlpha)); continue; }
+            if (img.space === "cmyk") { parts.push(formatCmykPixel(channels, img.hasAlpha)); continue; }
             // Preserve the existing RGB pixel spelling for opaque samples.
             parts.push(channels[3] !== undefined && channels[3] !== 255
               ? `srgba(${channels.slice(0, 3).join(",")},${formatMetricNum(channels[3] / 255)})`
@@ -1372,7 +1374,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  // missing sample, resetting local assignments. Samples are bounded by the
  // expression's references, independent of image dimensions, and retired here.
  const channels:number[]=[];
- for(let ch=0;ch<(key.startsWith("fx:")?1:image.hasAlpha?4:3);ch++){
+ for(const ch of key.startsWith("fx:") ? [0] : image.space === "cmyk" ? (image.hasAlpha ? [0,1,2,8,3] : [0,1,2,8]) : (image.hasAlpha ? [0,1,2,3] : [0,1,2])){
   let value:number;
   while(true){
    signal?.throwIfAborted();context.vars.clear();
@@ -1382,10 +1384,11 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
    }
   }
   if(key.startsWith("fx:"))return formatMetricNum(value);
-  channels.push(((image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "CIELab") && key.startsWith("pixel:") ? value : clampByteVal(value*255));
+  channels.push((image.space === "cmyk" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "CIELab") && key.startsWith("pixel:") ? value : clampByteVal(value*255));
  }
  if(key.startsWith("hex:"))return channels.map(value=>value.toString(16).toUpperCase().padStart(2,"0")).join("");
  if(((image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "CIELab"))return formatHuePixel(channels, (image as StoredRgbaImage).magickColorspace as "HSL" | "HSB" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", image.hasAlpha);
+ if(image.space === "cmyk")return formatCmykPixel(channels,image.hasAlpha);
  return channels[3]!==undefined&&channels[3]!==255?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3]/255)})`:`srgb(${channels.slice(0,3).join(",")})`;
 }
 
@@ -2216,6 +2219,12 @@ function sampleFxImage(
   const cx = Math.max(0, Math.min(img.width - 1, Math.round(px)));
   const cy = Math.max(0, Math.min(img.height - 1, Math.round(py)));
   const idx = (cy * img.width + cx) * 4;
+  if (img.space === "cmyk" && (ch < 3 || ch === 8)) {
+    const channel = ch === 8 ? 3 : ch;
+    if (img.hueSamples) return img.hueSamples[idx + channel]!;
+    const input = img.data16 ?? img.data!, range = img.data16 ? 65535 : 255;
+    return rgbToCmyk(input[idx]! / range, input[idx + 1]! / range, input[idx + 2]! / range)[channel]!;
+  }
   if ((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && img.hueSamples && ch < 4) return img.hueSamples[idx + ch]!;
   if ((img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && img.data16 && ch < 4) return img.data16[idx + ch]! / 65535;
   return sampleFxPixel(img.data!, idx, ch);
@@ -2257,6 +2266,7 @@ function propToChannel(prop: string): number {
   if (p === "hue") return 5;
   if (p === "saturation") return 6;
   if (p === "lightness") return 7;
+  if (p === "k") return 8;
   throw new Error(`Bad channel qualifier: ${prop}`);
 }
 
@@ -2629,7 +2639,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         const py = coordY ? coordY(ctx) : ctx.y;
 
         // RGB rasters have no separate black channel.
-        if (name === "k") return 0;
+        if (name === "k") return targetImg?.space === "cmyk" ? (ctx.sample ?? sampleFxImage)(targetImg, px, py, 8) : 0;
         if (name === "r" || name === "red") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 0);
         if (name === "g" || name === "green") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 1);
         if (name === "b" || name === "blue") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 2);
@@ -5594,6 +5604,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (image.magickColorspace === "RGB" && space === "rgb") return image;
             if ((image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") && (space === image.magickColorspace.toLowerCase() || (space === "lab" && image.magickColorspace === "CIELab"))) return image;
             if (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") image = yield* convertHuePixels(image, "sRGB");
+            if (image.space === "cmyk" && space !== "cmyk") {
+                const { hueSamples: ignoredCmyk, storedHueSamples: ignoredStoredCmyk, ...rgb } = image;
+                image = { ...rgb, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
+            }
             if (space === "rgb" || image.magickColorspace === "RGB") {
                 const linearize = space === "rgb";
                 const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
@@ -5611,8 +5625,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 image = { ...metadata, data, data16, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: "RGB" as const } : {}) };
                 if (linearize) return image;
             }
-            if (space === "cmyk") return { ...image, space: "cmyk", channels: 4 };
-            if (image.space === "cmyk") image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
+            if (space === "cmyk") return yield* convertCmykPixels(image);
             if (space === "lab" || space === "cielab") return yield* convertHuePixels(image, "CIELab");
             if (space === "hsl" || space === "hsb" || space === "hwb" || space === "xyz" || space === "ycbcr" || space === "yuv") return yield* convertHuePixels(image, space === "yuv" ? "YUV" : space === "ycbcr" ? "YCbCr" : space === "xyz" ? "XYZ" : space === "hwb" ? "HWB" : space === "hsb" ? "HSB" : "HSL");
             if (token !== "-grayscale" && !space.includes("gray") && !space.includes("grey") && space !== "rec709luma" && space !== "rec601luma") return image;

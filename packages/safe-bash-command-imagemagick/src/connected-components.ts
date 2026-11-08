@@ -1,28 +1,30 @@
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { ImageByteStorage, RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast";
 import type { HueMetadata } from "./colorspace-hue.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { RasterBackingCache } from "./raster-backing.js";
 
 type Region = "pixels" | "labels" | "queue";
-type Request = { region: Region; index: number; value?: number };
+type Request = { region: Region | "black"; index: number; value?: number };
 interface Component { diameter?: number; id: number; area: number; x: number; y: number; left: number; top: number; right: number; bottom: number; color: number[]; reportAlpha: number; perimeter?: number; angle?: number; majorAxis?: number; minorAxis?: number; eccentricity?: number; circularity?: number }
 
-function* pixelSteps(index: number): Generator<Request, number[], number> {
+function* pixelSteps(index: number, cmyk: boolean): Generator<Request, number[], number> {
  const channels: number[] = [];
  for (let channel = 0; channel < 4; channel++) channels.push(yield { region: "pixels", index: index * 4 + channel });
+ if (cmyk) channels.push(yield { region: "black", index });
  return channels;
 }
 
 // Labels and the flood-fill queue live in caller storage in retained mode.
 // Q16 labels, like native ImageMagick, allow at most 65536 objects.
-function* labelSteps(width: number, height: number, connectivity: number, fuzz: number, areaThreshold: number, keep: number[][] | undefined, remove: number[][] | undefined, removeColors: RgbaColor[] | undefined, keepTop: number | undefined, angleThreshold: number[] | undefined, perimeterThreshold: number[] | undefined, backgroundId: number | undefined, majorAxisThreshold: number[] | undefined, minorAxisThreshold: number[] | undefined, eccentricityThreshold: number[] | undefined, diameterThreshold: number[] | undefined, circularityThreshold: number[] | undefined, keepColors: RgbaColor[] | undefined): Generator<Request | undefined, Component[], number> {
+function* labelSteps(width: number, height: number, connectivity: number, fuzz: number, areaThreshold: number, keep: number[][] | undefined, remove: number[][] | undefined, removeColors: RgbaColor[] | undefined, keepTop: number | undefined, angleThreshold: number[] | undefined, perimeterThreshold: number[] | undefined, backgroundId: number | undefined, majorAxisThreshold: number[] | undefined, minorAxisThreshold: number[] | undefined, eccentricityThreshold: number[] | undefined, diameterThreshold: number[] | undefined, circularityThreshold: number[] | undefined, keepColors: RgbaColor[] | undefined, cmyk: boolean): Generator<Request | undefined, Component[], number> {
  const components: Component[] = [];
  for (let seed = 0; seed < width * height; seed++) {
   if (seed % 1024 === 0) yield;
   if (yield { region: "labels", index: seed }) continue;
   if (components.length === 65536) throw new Error("connected-components: too many objects (maximum 65536)");
   const id = components.length;
-  const component: Component = { id, area: 0, x: 0, y: 0, left: width, top: height, right: 0, bottom: 0, color: [0, 0, 0, 0], reportAlpha: 0 };
+  const component: Component = { id, area: 0, x: 0, y: 0, left: width, top: height, right: 0, bottom: 0, color: cmyk ? [0, 0, 0, 0, 0] : [0, 0, 0, 0], reportAlpha: 0 };
   let xx = 0, yy = 0, xy = 0;
   let head = 0, tail = 1;
   yield { region: "labels", index: seed, value: id + 1 };
@@ -30,23 +32,23 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
   while (head < tail) {
    if (head % 1024 === 0) yield;
    const current = yield { region: "queue", index: head++ }, x = current % width, y = Math.floor(current / width);
-   const pixel = yield* pixelSteps(current);
+   const pixel = yield* pixelSteps(current, cmyk);
    component.area++; component.x += x; component.y += y;
    if (majorAxisThreshold || minorAxisThreshold || eccentricityThreshold || angleThreshold) { xx += x * x; yy += y * y; xy += x * y; }
    component.left = Math.min(component.left, x); component.right = Math.max(component.right, x);
    component.top = Math.min(component.top, y); component.bottom = Math.max(component.bottom, y);
-   for (let channel = 0; channel < 4; channel++) component.color[channel]! += pixel[channel]!;
+   for (let channel = 0; channel < pixel.length; channel++) component.color[channel]! += pixel[channel]!;
    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
     if ((!dx && !dy) || (connectivity === 4 && dx && dy) || x + dx < 0 || x + dx >= width || y + dy < 0 || y + dy >= height) continue;
     const next = (y + dy) * width + x + dx;
     if (yield { region: "labels", index: next }) continue;
-    const neighbor = yield* pixelSteps(next);
+    const neighbor = yield* pixelSteps(next, cmyk);
     // Match adjacent pixels so similarity remains transitive across a region.
     const distance = (neighbor[3]! - pixel[3]!) ** 2
      + ((neighbor[0]! - pixel[0]!) ** 2 + (neighbor[1]! - pixel[1]!) ** 2 + (neighbor[2]! - pixel[2]!) ** 2)
       * (neighbor[3]! / 255) * (pixel[3]! / 255) / 3;
     // Native pixel equivalence adds the squared fuzz of both pixels.
-    if (distance > 2 * fuzz ** 2) continue;
+    if (distance + (cmyk ? (neighbor[4]! - pixel[4]!) ** 2 : 0) > 2 * fuzz ** 2) continue;
     yield { region: "labels", index: next, value: id + 1 };
     yield { region: "queue", index: tail++, value: next };
    }
@@ -193,9 +195,9 @@ function* reportSteps(components: Component[], sort: "x" | "area" | undefined, e
   // Only odd quarters are exact binary ties at one decimal place. Native uses ties-to-even.
   const centroid = [c.x / c.area, c.y / c.area].map(value =>
    (value % 0.5 === 0.25 ? Math.round(value * 5) / 5 : value).toFixed(1)).join(",");
-  const space = image.magickColorspace ?? (image.space === "b-w" || image.space === "grey16" ? "Gray" : "sRGB");
+  const space = image.magickColorspace ?? (image.space === "b-w" || image.space === "grey16" ? "Gray" : image.space === "cmyk" ? "CMYK" : "sRGB");
   const hue = space === "HSL" || space === "HSB";
-  const channels = c.color.slice(0, space === "Gray" ? 1 : 3).map((value, index) => {
+  const channels = (space === "CMYK" ? [c.color[0]!, c.color[1]!, c.color[2]!, c.color[4]!] : c.color.slice(0, space === "Gray" ? 1 : 3)).map((value, index) => {
    if (space === "CIELab") return formatMeasurement(index === 0 ? value / c.area * 100 / 255 : value / c.area - 127.5, precision);
    const grayPercent = space === "Gray" && !Number.isInteger(value / c.area);
    const scale = grayPercent ? 100 / 255 : hue ? (index === 0 ? 360 : 100) / 255 : space === "XYZ" ? 100 / 255 : 1;
@@ -209,13 +211,15 @@ function* reportSteps(components: Component[], sort: "x" | "area" | undefined, e
 
 export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x" | "area", angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[], keepColors?: RgbaColor[], precision = 6): Generator<void, { image: RgbaImage; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
- const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold, keepColors);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold, keepColors, image.space === "cmyk");
  let next = steps.next();
  while (!next.done) {
   const request = next.value;
   if (!request) { yield; next = steps.next(0); continue; }
   const { region, index, value } = request;
-  if (region === "pixels") next = steps.next(image.hueSamples ? image.hueSamples[index]! * 255 : image.data16 ? image.data16[index]! / 257 : image.data[index]!);
+  if (region === "black") next = steps.next(image.hueSamples ? image.hueSamples[index * 4 + 3]! * 255 : rgbToCmyk(image.data[index * 4]! / 255, image.data[index * 4 + 1]! / 255, image.data[index * 4 + 2]! / 255)[3]! * 255);
+  else if (region === "pixels" && image.space === "cmyk" && index % 4 === 3) next = steps.next(image.data16 ? image.data16[index]! / 257 : image.data[index]!);
+  else if (region === "pixels") next = steps.next(image.hueSamples ? image.hueSamples[index]! * 255 : image.data16 ? image.data16[index]! / 257 : image.data[index]!);
   else { const data = region === "labels" ? labels : queue; if (value !== undefined) data[index] = value; next = steps.next(data[index]!); }
  }
  const text = verbose ? yield* reportSteps(next.value, sort, excludeHeader, excludeIds, image, sortOrder, precision) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
@@ -223,24 +227,33 @@ export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connec
   if (i % 1024 === 0) yield;
   const id = labels[i]! - 1, value = Math.round(id / 257);
   const component = next.value[id]!;
-  data16.set(meanColor ? component.color.map(channel => Math.round(channel / component.area * 257)) : [id, id, id, 65535], i * 4);
-  data.set(meanColor ? component.color.map(channel => Math.round(channel / component.area)) : [value, value, value, 255], i * 4);
+  const color = component.color.map(channel => channel / component.area);
+  if (image.space === "cmyk") for (let channel = 0; channel < 3; channel++) color[channel] = (1 - color[channel]! / 255) * (255 - color[4]!);
+  color.length = 4;
+  data16.set(meanColor ? color.map(channel => Math.round(channel * 257)) : [id, id, id, 65535], i * 4);
+  data.set(meanColor ? color.map(channel => Math.round(channel)) : [value, value, value, 255], i * 4);
  }
- return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
+ const { hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...metadata } = image;
+ return { image: { ...(image.space === "cmyk" ? metadata : image), data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
 export async function connectedComponentsStored(image: StoredRgbaImage & HueMetadata, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x" | "area", angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[], keepColors?: RgbaColor[], precision = 6): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
  const regions = { pixels: image.storedHueSamples !== undefined ? { position: image.storedHueSamples, length: size * 8 } : image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
- const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold, keepColors);
+ const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold, keepColors, image.space === "cmyk");
  let next = steps.next();
  while (!next.done) {
   const request = next.value;
   if (!request) { await yieldTurn(signal); next = steps.next(0); continue; }
+  if (request.region === "black") {
+   next = steps.next(image.storedHueSamples !== undefined ? await cache.float64(regions.pixels, (request.index * 4 + 3) * 8) * 255 : 255 - Math.max(...await storage.read(image.position + request.index * 4, 3, { signal })));
+   continue;
+  }
   const region = regions[request.region], offset = request.index * 4;
   if (request.region === "pixels") {
    const index = request.index;
-   if (image.storedHueSamples !== undefined) next = steps.next(await cache.float64(region, index * 8) * 255);
+   if (image.space === "cmyk" && index % 4 === 3) next = steps.next(await cache.byte({ position: image.position, length: size }, index));
+   else if (image.storedHueSamples !== undefined) next = steps.next(await cache.float64(region, index * 8) * 255);
    else if (image.storedData16) {
     const pair = await cache.uint32(region, Math.floor(index / 2) * 4);
     next = steps.next(((pair >>> ((index % 2) * 16)) & 65535) / 257);
@@ -265,11 +278,15 @@ export async function connectedComponentsStored(image: StoredRgbaImage & HueMeta
   for (let i = 0; i < bytes.length; i += 4) {
    const id = view.getUint32(i, true) - 1, value = Math.round(id / 257);
    const component = next.value[id]!;
-   data16.set(meanColor ? component.color.map(channel => Math.round(channel / component.area * 257)) : [id, id, id, 65535], i);
-   bytes.set(meanColor ? component.color.map(channel => Math.round(channel / component.area)) : [value, value, value, 255], i);
+   const color = component.color.map(channel => channel / component.area);
+   if (image.space === "cmyk") for (let channel = 0; channel < 3; channel++) color[channel] = (1 - color[channel]! / 255) * (255 - color[4]!);
+   color.length = 4;
+   data16.set(meanColor ? color.map(channel => Math.round(channel * 257)) : [id, id, id, 65535], i);
+   bytes.set(meanColor ? color.map(channel => Math.round(channel)) : [value, value, value, 255], i);
   }
   await storage.write(position + offset, bytes, { signal });
   await storage.write(storedData16.position + offset * 2, new Uint8Array(data16.buffer), { signal });
  }
- return { image: { ...image, position, storedData16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
+ const { hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...metadata } = image;
+ return { image: { ...(image.space === "cmyk" ? metadata : image), position, storedData16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }

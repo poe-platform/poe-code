@@ -1,7 +1,9 @@
+import { encodeImage, decodeImage } from "@poe-code/image-ast";
+import { createCommandArguments } from "safe-bash-contracts/command";
 import { spawnSync } from "node:child_process";
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli } from "./index.js";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const retained of [false, true]) {
     it.each(["CMYK", "cmyk"])(`rejects unsupported %s conversion without overwriting TIFF, retained=${retained}`, async space => {
@@ -33,5 +35,65 @@ it.skipIf(!nativeAvailable)("rejects the native CMYK TIFF workflow instead of em
         expect(result.exitCode).toBe(1);
         expect(result.stderr).toContain("unsupported colorspace 'CMYK'");
         expect(result.stdout).toBe("");
+    }
+});
+
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    it(`inspects working CMYK pixels and connected components, ${mode}`, async () => {
+        const files = new Map<string, Uint8Array>();
+        const fs = new MemoryFileSystem();
+        const run = (args: string[]) => mode === "sync" ? runConvertCliSync(args, files) : runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        const input = ["-size", "3x2", "xc:red", "-fill", "blue", "-draw", "point 0,0", "-colorspace", "CMYK"];
+        const pixels = await run([...input, "-format", "%[colorspace] %[pixel:p{0,0}] %[pixel:p{1,0}]", "info:"]);
+        expect(pixels.exitCode, pixels.stderr).toBe(0);
+        expect(pixels.stdout.trim()).toBe("CMYK cmyk(255,255,0,0) cmyk(0,255,255,0)");
+        const components = await run([...input, "-define", "connected-components:verbose=true", "-connected-components", "4", "null:"]);
+        expect(components.exitCode, components.stderr).toBe(0);
+        expect(components.stdout).toContain("cmyk(255,255,0,0)");
+        expect(components.stdout).toContain("cmyk(0,255,255,0)");
+        const neutral = await run(["-size", "2x1", "xc:black", "-fill", "white", "-draw", "point 1,0", "-colorspace", "CMYK", "-define", "connected-components:verbose=true", "-connected-components", "4", "null:"]);
+        expect(neutral.exitCode, neutral.stderr).toBe(0);
+        expect(neutral.stdout).toContain("cmyk(0,0,0,255)");
+        expect(neutral.stdout).toContain("cmyk(0,0,0,0)");
+        const roundtrip = await run([...input, "-colorspace", "CMYK", "-colorspace", "sRGB", "-format", "%[colorspace] %[pixel:p{0,0}]", "info:"]);
+        expect(roundtrip.stdout.trim()).toBe("sRGB srgb(0,0,255)");
+    });
+}
+
+for (const retained of [false, true]) {
+    it(`preserves black, fractional ink, alpha and RGB codec output, retained=${retained}`, async () => {
+        const pixels = Uint8Array.of(32, 64, 96, 128, 0, 0, 0, 255);
+        const { data } = encodeImage({ width: 2, height: 1, data: pixels, format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" });
+        const files = new Map([["/in.png", data]]), fs = new MemoryFileSystem();
+        await fs.writeFile("/in.png", data);
+        const input = retained ? { filesystem: fs, cwd: "/" } : files;
+        const result = await runConvertCli(["/in.png", "-colorspace", "CMYK", "-write", "/out.png", "-format", "%[channels] %[pixel:p{0,0}] %[pixel:p{1,0}] %[fx:k] %[fx:p{1,0}.k]", "info:"], input);
+        expect(result.exitCode, result.stderr).toBe(0);
+        expect(result.stdout.trim()).toBe("cmyka 5.0 cmyka(170,85,0,159,0.501961) cmyka(0,0,0,255,1) 0.623529 1");
+        expect(decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!).data).toEqual(pixels);
+        const linear = await runConvertCli(["/in.png", "-colorspace", "CMYK", "-colorspace", "RGB", "-colorspace", "sRGB", "-format", "%[pixel:p{0,0}]", "info:"], input);
+        expect(linear.exitCode, linear.stderr).toBe(0);
+        expect(linear.stdout.trim()).toBe("srgba(32,64,96,0.501961)");
+    });
+}
+
+it("converts PNG pixels through the public magick command on a fresh filesystem", async () => {
+    const { data } = encodeImage({ width: 3, height: 2, data: Uint8Array.of(0, 0, 255, 255, ...Array(5).fill([255, 0, 0, 255]).flat()), format: "png", space: "srgb", channels: 3, depth: "uchar", density: 72, hasAlpha: false }, { format: "png" });
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/b.png", data);
+    const args = ["b.png", "-colorspace", "CMYK", "-format", "%[colorspace] %[pixel:p{0,0}] %[pixel:p{1,0}]", "info:"];
+    let stdout = "", stderr = "";
+    const result = await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async chunk => { stdout += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } },
+        stderr: { write: async chunk => { stderr += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } },
+    });
+    expect(result.exitCode, stderr).toBe(0);
+    expect(stdout.trim()).toBe("CMYK cmyk(255,255,0,0) cmyk(0,255,255,0)");
+    if (nativeAvailable) {
+        const native = spawnSync("magick", ["png:-", ...args.slice(1)], { input: data });
+        expect(native.status).toBe(0);
+        expect(stdout.trim()).toBe(native.stdout.toString().trim());
     }
 });

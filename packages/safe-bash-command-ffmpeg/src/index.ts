@@ -7917,6 +7917,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const targetRate = audioRate ?? origRate;
                   const targetCh = audioChannels === -1 ? origCh : audioChannels ?? origCh;
                   const channelMask = filteredChannelMask;
+                  const surroundUpmix = targetCh === 6 &&
+                    (origCh === 3 && (channelMask === 7 || channelMask === 11) || origCh === 4 && channelMask === 0x33);
+                  const inputSpeakers = surroundUpmix
+                    ? [1, 2, 4, 8, 16, 32].filter(speaker => (channelMask! & speaker) !== 0) : [];
                   const threeChannelDownmix = origCh === 3 && (targetCh === 1 || targetCh === 2) &&
                     (channelMask === 7 || channelMask === 11);
                   const centerDownmix = threeChannelDownmix && channelMask === 7;
@@ -7935,7 +7939,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const pcm16SurroundStereo = surroundStereo && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const monoSurround = origCh === 1 && targetCh >= 4 && targetCh <= 8;
-                  if (targetCh !== origCh && origCh > 2 && !threeChannelDownmix && !quadDownmix &&
+                  if (targetCh !== origCh && origCh > 2 && !surroundUpmix && !threeChannelDownmix && !quadDownmix &&
                       (!(surroundMono || surroundStereo) || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
                     throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
                   }
@@ -7950,7 +7954,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const dst = new ChannelArray(targetSamples);
                     // Default 4.0 through 7.1 layouts route mono to front center only.
                     const srcCh = (monoStereo && c >= 2) || (monoSurround && c !== 2)
-                      ? undefined : stretched[origCh === 1 ? 0 : c];
+                      ? undefined : stretched[surroundUpmix ? inputSpeakers.indexOf(1 << c) : origCh === 1 ? 0 : c];
                     const rightCh = (origCh === 2 || threeChannelDownmix) && targetCh === 1 ? stretched[1] : undefined;
                     if (srcCh && srcCh.length > 0) {
                       for (let i = 0; i < targetSamples; i++) {

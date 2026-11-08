@@ -122,6 +122,8 @@ Input `-sample_rate 8000` also sets the raw PCM sample rate; place it before `-i
 Input `-ch_layout stereo` or `-channel_layout stereo` sets two channels, equivalent to `-ac 2`; `mono` sets one channel. Place these options before `-i`.
 Quad WAV supports `-ac 1` and `-ac 2`, mixing back speakers into their matching front sides with normalized FFmpeg weights. Stream copy retains all four speakers and the quad channel mask.
 
+Output `-ac 6` upmixes 3.0, 2.1, and quad WAV to 5.1, preserving each named speaker (including LFE) and leaving absent speakers silent.
+
 Output `-ac 2` downmixes 5.1(back) and 5.1(side) WAV to stereo, mixing center into both sides and each surround into its corresponding side, excluding LFE. Three-channel WAV downmixing with `-ac 1` or `-ac 2` respects the channel mask: 3.0 mixes front center into the output, while 2.1 excludes LFE.
 With `-c:v copy`, output `-ss` starts at the next video keyframe, preserving its timestamp gap; input `-ss` retains the preceding keyframe for preroll.
 With `-c:a copy`, input `-ss` seeks to the exact sample frame; output `-ss` starts at the next raw packet. Transcoding seeks to the exact sample in either position.

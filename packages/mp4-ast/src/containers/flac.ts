@@ -25,7 +25,7 @@ function frameNumber(value: number): number[] {
 }
 
 /** Encode lossless PCM with bounded fixed-predictor/Rice search and verbatim fallback. */
-export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string): Uint8Array[] {
+export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionLevel?: number, sampleFormat?: string, frameSize?: number): Uint8Array[] {
   const level = compressionLevel === -1 ? 5 : compressionLevel;
   if (level !== undefined && (!Number.isInteger(level) || level < 0 || level > 12)) {
     throw new Error("FLAC compression_level must be between 0 and 12 (or -1 for default)");
@@ -57,7 +57,10 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
   const bits = sampleFormat === "s16" ? 16 : sampleFormat === "s32" ? 24
     : track?.codecDescriptions[0]?.bitsPerSample === 24 ? 24 : 16;
   const width = bits / 8;
-  const blockSize = 2048;
+  const blockSize = frameSize === undefined || frameSize === 0 ? 2048 : frameSize;
+  if (!Number.isInteger(blockSize) || blockSize < 16 || blockSize > 65535) {
+    throw new Error("FLAC frame_size must be between 16 and 65535 (or 0 for default)");
+  }
   const header = new Uint8Array(42);
   header.set([0x66, 0x4c, 0x61, 0x43, 0x80, 0, 0, 34]);
   const view = new DataView(header.buffer);

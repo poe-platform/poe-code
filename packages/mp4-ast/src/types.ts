@@ -665,6 +665,8 @@ export interface SerializeMediaOptions {
   readonly pageDuration?: number | undefined;
   /** Explicit encoder sample format (FLAC supports s16 and s32). */
   readonly sampleFormat?: string | undefined;
+  /** FLAC samples per frame, 16–65535; 0 selects the default (2048). */
+  readonly frameSize?: number | undefined;
   /** FLAC compression effort, 0–12; -1 selects the default. */
   readonly compressionLevel?: number | undefined;
   /** FLAC: include the stream marker and metadata blocks (default: true). */

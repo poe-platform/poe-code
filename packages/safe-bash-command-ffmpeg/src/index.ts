@@ -2128,6 +2128,7 @@ export function evalSyncFfmpeg(
     let writeXing = true;
     let writeBext = false;
     let sampleFormat: string | undefined;
+    let frameSize: number | undefined;
     let compressionLevel: number | undefined;
     let peakBlockSize: number | undefined;
     let peakFormat: number | undefined;
@@ -2292,6 +2293,12 @@ export function evalSyncFfmpeg(
       } else if (arg === "-sample_fmt") {
         sampleFormat = args[++i];
         if (!sampleFormat) throw new Error("Missing sample_fmt value");
+      } else if (arg === "-frame_size") {
+        const value = args[++i];
+        frameSize = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(frameSize) || frameSize < 0 || frameSize > 2147483647) {
+          throw new Error("Invalid frame_size: expected an integer from 0 to 2147483647");
+        }
       } else if (arg === "-compression_level") {
         const value = args[++i];
         compressionLevel = value?.trim() ? Number(value) : NaN;
@@ -2549,7 +2556,7 @@ export function evalSyncFfmpeg(
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2802,6 +2809,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeXing = true;
         let writeBext = false;
         let sampleFormat: string | undefined;
+        let frameSize: number | undefined;
         let compressionLevel: number | undefined;
         let peakBlockSize: number | undefined;
     let peakFormat: number | undefined;
@@ -3329,7 +3337,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-sample_fmt") {
             sampleFormat = args[++i];
             if (!sampleFormat) throw new Error("Missing sample_fmt value");
-          } else if (arg === "-compression_level") {
+          } else if (arg === "-frame_size") {
+        const value = args[++i];
+        frameSize = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(frameSize) || frameSize < 0 || frameSize > 2147483647) {
+          throw new Error("Invalid frame_size: expected an integer from 0 to 2147483647");
+        }
+      } else if (arg === "-compression_level") {
             const value = args[++i];
             compressionLevel = value?.trim() ? Number(value) : NaN;
             if (!Number.isInteger(compressionLevel)) {
@@ -5540,7 +5554,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const start = boundaries[index]!;
                 const end = boundaries[index + 1]!;
                 const segment = sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget });
-                const bytes = segmentPlugin.serialize(segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
+                const bytes = segmentPlugin.serialize(segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, frameSize, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
@@ -5909,6 +5923,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               videoCodec,
               audioBitrate,
               compressionLevel,
+              frameSize,
               sampleFormat,
               writeXing,
               faststart,

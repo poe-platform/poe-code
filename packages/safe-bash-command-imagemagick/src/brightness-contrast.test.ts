@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
-import { decodeImage } from "@poe-code/image-ast";
+import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 // ImageMagick 7.1.2-31: magick -size 1x1 xc:COLOR [-channel CHANNEL]
 // -brightness-contrast GEOMETRY -depth 8 rgba:-
@@ -27,5 +28,33 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect(result).toMatchObject({ exitCode: 0 });
         const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
         expect([...decodeImage(output).data]).toEqual(expected);
+    });
+}
+
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    it.each(["bogus", "10x20junk", "10x20"])(`preserves output on invalid brightness-contrast %s via ${mode}`, async geometry => {
+        const input = await sharp(Uint8Array.from([25, 100, 220]), { raw: { width: 1, height: 1, channels: 3 } }).png().toBuffer();
+        const destination = await sharp(Uint8Array.from([255, 0, 0]), { raw: { width: 1, height: 1, channels: 3 } }).png().toBuffer();
+        const files = new Map([["in.png", input], ["out.png", destination]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.png", input);
+        await filesystem.writeFile("/out.png", destination);
+        const args = ["in.png", "-brightness-contrast", geometry, "out.png"];
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        const output = mode === "retained" || mode === "command" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
+        if (geometry === "10x20") {
+            expect(result.exitCode).toBe(0);
+            expect([...decodeImage(output).data]).toEqual([31, 125, 255, 255]);
+        } else {
+            expect(result.exitCode).toBe(1);
+            expect("stderr" in result ? result.stderr : stderr).toContain("invalid argument for option '-brightness-contrast'");
+            expect(output).toEqual(destination);
+        }
     });
 }

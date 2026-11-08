@@ -5638,7 +5638,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-brightness-contrast") {
-        const [brightness = 0, contrast = 0] = (tokens[++i] ?? "0x0").split("x").map(value => parseFloat(value) || 0);
+        const raw = tokens[++i] ?? "";
+        validateMagickTransformGeometry(raw, token);
+        const [brightness = 0, contrast = 0] = raw.split("x").map(value => parseFloat(value) || 0);
         // ImageMagick BrightnessContrastImage: a polynomial centered at midgray.
         const slope = contrast < 0 ? 1 + contrast / 100 : 100 / Math.max(1e-12, 100 - contrast);
         const offset = (brightness / 100 * 255 - 127.5) * slope + 127.5;

@@ -7146,7 +7146,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             chapterSource ??= loadedDocs.findIndex(doc => doc.chapters?.length);
             if (chapterSource >= loadedDocs.length) {
-              throw new Error(`Invalid chapter input index: ${chapterSource}`);
+              if (overwrite && !isStdout(outputTarget) && outputTarget !== "/dev/null" && outputFormat !== "null") {
+                await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
+              }
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid chapter input index: ${chapterSource}\n`), context.signal);
+              return { exitCode: 234 };
             }
             workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo) };
             const sourceMetadata = mapGlobalMetadata(loadedDocs, metadataSources);

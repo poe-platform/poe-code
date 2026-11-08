@@ -24,6 +24,7 @@ for (const [tag, bits] of [[1, 16], [3, 32], [6, 8], [7, 8], [17, 4], [85, 0], [
     if (tag === 0xfffe) {
       fmt.writeUInt32LE(3, 20);
       fmt.writeUInt32LE(1, 24);
+      fmt.set(Buffer.from("00001000800000aa00389b71", "hex"), 28);
     }
     const fact = Buffer.from([9, 0, 0, 0]);
     const payload = Buffer.from(Array.from({ length: tag === 1 ? 12 : tag === 3 || tag === 17 ? 16 : tag === 0xfffe ? 18 : 9 }, (_, i) => i));

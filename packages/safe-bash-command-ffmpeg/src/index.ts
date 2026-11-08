@@ -7001,6 +7001,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let stretched: typeof audio.channelData = audio.channelData;
                   let replayGainAvailable = true;
                   let audioStartSample = 0;
+                  let phaseMetadata: { pts: number; value: string }[] = [];
                   let audioTimestamps: { start: number; end: number; pts: number }[] | undefined;
                   // astats normalizes integer PCM against its maximum positive value.
                   let statsScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 / 32767
@@ -7026,6 +7027,69 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         continue;
                       }
                       if (trimmed === "anull" || trimmed === "acopy") continue;
+                      if (trimmed === "aphasemeter" || trimmed.startsWith("aphasemeter=")) {
+                        let video = true;
+                        for (const option of trimmed.slice("aphasemeter=".length).split(":").filter(Boolean)) {
+                          const [key, value, extra] = option.split("=");
+                          if (key !== "video" || extra !== undefined || !["0", "false", "no", "off"].includes(value ?? "")) {
+                            throw new Error(`aphasemeter: unsupported option ${option}`);
+                          }
+                          video = false;
+                        }
+                        if (video) throw new Error("aphasemeter: only video=0 is supported");
+                        if (stretched.length !== 2) throw new Error("aphasemeter: stereo audio required");
+                        phaseMetadata = [];
+                        const length = stretched[0]!.length;
+                        for (let start = 0, n = 0; start < length; n++) {
+                          const timestamp = audioTimestamps?.[n];
+                          const packet = t.samples[n];
+                          const count = timestamp ? timestamp.end - timestamp.start
+                            : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                          const end = Math.min(length, start + count);
+                          let sum = 0;
+                          for (let i = start; i < end; i++) {
+                            if (++work % 4096 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const left = Math.fround(stretched[0]![i]!);
+                            const right = Math.fround(stretched[1]![i]!);
+                            const power = Math.fround(Math.fround(left * left) + Math.fround(right * right));
+                            const phase = power === 0 ? 1 : Math.fround(Math.fround(2 * left * right) / power);
+                            sum = Math.fround(sum + phase);
+                          }
+                          budget.allocateMemory(64);
+                          phaseMetadata.push({ pts: timestamp?.pts ?? audioStartSample + start, value: Math.fround(sum / (end - start)).toFixed(6) });
+                          start = end;
+                        }
+                        continue;
+                      }
+                      if (trimmed === "ametadata" || trimmed.startsWith("ametadata=")) {
+                        let mode = "select";
+                        let key: string | undefined;
+                        let file: string | undefined;
+                        for (const option of trimmed.slice("ametadata=".length).split(":").filter(Boolean)) {
+                          const separator = option.indexOf("=");
+                          const name = option.slice(0, separator);
+                          const value = option.slice(separator + 1);
+                          if (separator < 0) throw new Error(`ametadata: unsupported option ${option}`);
+                          if (name === "mode") mode = value;
+                          else if (name === "key") key = value;
+                          else if (name === "file") file = value;
+                          else throw new Error(`ametadata: unsupported option ${name}`);
+                        }
+                        if (mode !== "print") throw new Error("ametadata: only mode=print is supported");
+                        let report = "";
+                        if (!key || key === "lavfi.aphasemeter.phase") {
+                          for (const [n, frame] of phaseMetadata.entries()) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const line = `frame:${String(n).padEnd(5)}pts:${String(frame.pts).padEnd(7)} pts_time:${Number((frame.pts / origRate).toPrecision(6))}\nlavfi.aphasemeter.phase=${frame.value}\n`;
+                            budget.allocateMemory(line.length * 2);
+                            report += line;
+                          }
+                        }
+                        if (file === "-") await writeBytes(context.stdout, encodeUtf8(report), context.signal);
+                        else if (file) await writeFileOutput(context, encodeUtf8(report), data => context.fs.writeFile(resolvePath(context.cwd, file!), data, { signal: context.signal }));
+                        else if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
+                        continue;
+                      }
                       if (trimmed === "arealtime" || trimmed.startsWith("arealtime=")) {
                         let speed = 1;
                         let limit = 2;

@@ -2045,13 +2045,14 @@ async function applyVideoFilterChain(
         if (key !== "pix_fmts") throw new Error(`format: unsupported option ${part}`);
         const values = (separator < 0 ? part : part.slice(separator + 1)).trim().split("|");
         for (const value of values) {
-          if (!["rgba", "bgra", "rgb24", "bgr24", "gray", "gray8"].includes(value)) {
+          if (!["rgba", "bgra", "rgb24", "bgr24", "gray", "gray8", "ya8"].includes(value)) {
             throw new Error(`format: unsupported pixel format ${value}`);
           }
         }
         formats = values;
       }
       if (formats) {
+        const previousPixelFormat = pixelFormat;
         pixelFormat = formats.includes(pixelFormat ?? "rgba") ? pixelFormat ?? "rgba" : formats[0]!;
         diagnostics.pixelFormat = pixelFormat;
         current = current.map(({ native: _native, ...frame }) => frame);
@@ -2069,7 +2070,7 @@ async function applyVideoFilterChain(
             return { ...f, data };
           }, signal);
         }
-        if (pixelFormat === "gray" || pixelFormat === "gray8") {
+        if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "ya8") {
           current = await mapWork(current, async (f) => {
             const data = f.data.slice();
             for (let i = 0; i < data.length; i += 4) {
@@ -2081,7 +2082,11 @@ async function applyVideoFilterChain(
               // FFmpeg converts encoded RGB to full-range BT.601 luma.
               const gray = Math.round(0.299 * data[i]! + 0.587 * data[i + 1]! + 0.114 * data[i + 2]!);
               data[i] = data[i + 1] = data[i + 2] = gray;
-              data[i + 3] = 255;
+              if (pixelFormat !== "ya8") data[i + 3] = 255;
+              else if (previousPixelFormat !== "ya8") {
+                // Match swscale's rounded alpha conversion from RGB to YA8.
+                data[i + 3] = Math.min(255, Math.round(data[i + 3]! * 257 / 256));
+              }
             }
             return { ...f, data };
           }, signal);
@@ -3534,7 +3539,9 @@ export function evalSyncFfmpeg(
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1))!;
         const encoded = outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8"
-                      ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false } : {}),
+                      ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false }
+                      : vTrack?.codecDescriptions[0]?.pixFmt === "ya8"
+                        ? { space: "b-w" as const, channels: 2 as const, hasAlpha: true } : {}),
                     ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
                       vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
@@ -7237,7 +7244,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const fullOutPath = resolvePath(context.cwd, fileName);
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8"
-                      ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false } : {}),
+                      ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false }
+                      : vTrack?.codecDescriptions[0]?.pixFmt === "ya8"
+                        ? { space: "b-w" as const, channels: 2 as const, hasAlpha: true } : {}),
                     ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
                       vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }

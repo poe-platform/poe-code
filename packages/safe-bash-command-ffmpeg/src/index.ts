@@ -2129,6 +2129,9 @@ export function evalSyncFfmpeg(
     let writeBext = false;
     let sampleFormat: string | undefined;
     let compressionLevel: number | undefined;
+    let peakBlockSize: number | undefined;
+    let peakFormat: number | undefined;
+    let peakPpv: number | undefined;
     let writePeak: "off" | "on" | "only" | undefined;
     let rf64: "always" | "auto" | "never" | undefined;
     let faststart = true;
@@ -2338,6 +2341,17 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("invalid write_xing value");
         writeXing = value === "1";
+      } else if (arg === "-peak_block_size" || arg === "-peak_format" || arg === "-peak_ppv") {
+        const value = args[++i];
+        const number = value?.trim() ? Number(value) : NaN;
+        const min = arg === "-peak_block_size" ? 0 : 1;
+        const max = arg === "-peak_block_size" ? 65536 : 2;
+        if (!Number.isInteger(number) || number < min || number > max) {
+          throw new Error(`Invalid ${arg.slice(1)}: expected an integer from ${min} to ${max}`);
+        }
+        if (arg === "-peak_block_size") peakBlockSize = number;
+        else if (arg === "-peak_format") peakFormat = number;
+        else peakPpv = number;
       } else if (arg === "-write_peak") {
         const value = args[++i];
         const mode = value === "0" ? "off" : value === "1" ? "on" : value === "2" ? "only" : value;
@@ -2535,7 +2549,7 @@ export function evalSyncFfmpeg(
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2789,7 +2803,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeBext = false;
         let sampleFormat: string | undefined;
         let compressionLevel: number | undefined;
-        let writePeak: "off" | "on" | "only" | undefined;
+        let peakBlockSize: number | undefined;
+    let peakFormat: number | undefined;
+    let peakPpv: number | undefined;
+    let writePeak: "off" | "on" | "only" | undefined;
         let rf64: "always" | "auto" | "never" | undefined;
         let faststart = true;
         let fragmented = false;
@@ -3383,7 +3400,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             writeXing = value === "1";
-          } else if (arg === "-write_peak") {
+          } else if (arg === "-peak_block_size" || arg === "-peak_format" || arg === "-peak_ppv") {
+        const value = args[++i];
+        const number = value?.trim() ? Number(value) : NaN;
+        const min = arg === "-peak_block_size" ? 0 : 1;
+        const max = arg === "-peak_block_size" ? 65536 : 2;
+        if (!Number.isInteger(number) || number < min || number > max) {
+          throw new Error(`Invalid ${arg.slice(1)}: expected an integer from ${min} to ${max}`);
+        }
+        if (arg === "-peak_block_size") peakBlockSize = number;
+        else if (arg === "-peak_format") peakFormat = number;
+        else peakPpv = number;
+      } else if (arg === "-write_peak") {
             const value = args[++i];
             const mode = value === "0" ? "off" : value === "1" ? "on" : value === "2" ? "only" : value;
             if (mode !== "off" && mode !== "on" && mode !== "only") {
@@ -5512,7 +5540,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const start = boundaries[index]!;
                 const end = boundaries[index + 1]!;
                 const segment = sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget });
-                const bytes = segmentPlugin.serialize(segment, { writeHeader, writeBext, rf64, writePeak, audioCodec, audioBitrate, compressionLevel, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
+                const bytes = segmentPlugin.serialize(segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
@@ -5874,6 +5902,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               writeBext,
               rf64,
               writePeak,
+              peakBlockSize,
+              peakFormat,
+              peakPpv,
               audioCodec,
               videoCodec,
               audioBitrate,

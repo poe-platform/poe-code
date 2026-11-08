@@ -733,10 +733,22 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     (pcmFormat?.getUint16(14, true) ?? bitsPerSample) !== 16)) {
     throw new Error("Peak envelope requires 16-bit PCM audio");
   }
+  const peakBlockSize = options.peakBlockSize ?? 256;
+  const peakFormat = options.peakFormat ?? 2;
+  const peakPpv = options.peakPpv ?? 2;
+  for (const [name, value, min, max] of [
+    ["peak_block_size", peakBlockSize, 0, 65536],
+    ["peak_format", peakFormat, 1, 2],
+    ["peak_ppv", peakPpv, 1, 2]
+  ] as const) {
+    if (!Number.isInteger(value) || value < min || value > max) {
+      throw new Error(`Invalid ${name}: expected an integer from ${min} to ${max}`);
+    }
+  }
   const frames = pcmBytes.length / (channels * 2);
-  // FFmpeg emits the envelope only after at least one complete 256-frame block.
-  const peakFrames = writePeak && frames >= 256 ? Math.ceil(frames / 256) : 0;
-  const peakSize = peakFrames ? 120 + peakFrames * channels * 4 : 0;
+  // FFmpeg emits the envelope only after at least one complete block.
+  const peakFrames = writePeak && peakBlockSize > 0 && frames >= peakBlockSize ? Math.ceil(frames / peakBlockSize) : 0;
+  const peakSize = peakFrames ? 120 + peakFrames * channels * peakFormat * peakPpv : 0;
   const alignment = wave64 ? 8 : 2;
   const pad = (size: number) => (alignment - size % alignment) % alignment;
   const fmtPadding = pad(fmtSize);
@@ -755,7 +767,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   const reserveDs64 = !wave64 && (options.rf64 === "always" || options.rf64 === "auto");
   const size = (infoSize ? 8 + infoSize : 0) + (reserveDs64 ? 36 : 0) + (bextSize ? 8 + bextSize + pad(bextSize) : 0) +
     (peakOnly ? 12 : (wave64 ? 88 : 28) + fmtSize + fmtPadding + factSize + pcmBytes.byteLength + padding) +
-    (peakSize ? 8 + peakSize : 0);
+    (peakSize ? 8 + peakSize + pad(peakSize) : 0);
   const rf64 = reserveDs64 && (options.rf64 === "always" || size - 8 > 0xffffffff);
   options.budget?.checkOutputBytes(size);
   const writer = new BinaryWriter(size);
@@ -851,7 +863,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   }
   if (peakSize) {
     chunk("levl", peakSize);
-    for (const value of [1, 2, 2, 256, channels, peakFrames, 0xffffffff, 128]) writer.writeU32LE(value);
+    for (const value of [1, peakFormat, peakPpv, peakBlockSize, channels, peakFrames, 0xffffffff, 128]) writer.writeU32LE(value);
     const timestamp = new Uint8Array(28);
     const now = new Date();
     timestamp.set(new TextEncoder().encode([
@@ -863,15 +875,22 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     for (let block = 0; block < peakFrames; block++) {
       for (let channel = 0; channel < channels; channel++) {
         let positive = 0, negative = 0;
-        for (let frame = block * 256; frame < Math.min(frames, (block + 1) * 256); frame++) {
+        for (let frame = block * peakBlockSize; frame < Math.min(frames, (block + 1) * peakBlockSize); frame++) {
           const sample = pcm.getInt16((frame * channels + channel) * 2, true);
           positive = Math.max(positive, sample);
           negative = Math.min(negative, sample);
         }
-        writer.writeU16LE(positive);
-        writer.writeU16LE(-negative);
+        if (peakPpv === 1) positive = Math.max(positive, negative === -32768 ? -32768 : -negative);
+        if (peakFormat === 1) {
+          writer.writeU8(positive >>> 8);
+          if (peakPpv === 2) writer.writeU8(-negative >>> 8);
+        } else {
+          writer.writeU16LE(positive);
+          if (peakPpv === 2) writer.writeU16LE(-negative);
+        }
       }
     }
+    if (pad(peakSize)) writer.writeBytes(new Uint8Array(pad(peakSize)));
   }
   return writer.toUint8Array();
 }

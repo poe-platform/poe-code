@@ -653,6 +653,12 @@ export interface SerializeMediaOptions {
   readonly rf64?: "always" | "auto" | "never" | undefined;
   /** Write a WAV peak envelope from 16-bit PCM (default: off). */
   readonly writePeak?: "off" | "on" | "only" | undefined;
+  /** WAV peak block size in frames (0 through 65536, default: 256; 0 omits the envelope). */
+  readonly peakBlockSize?: number | undefined;
+  /** WAV peak value width in bytes (1 or 2, default: 2). */
+  readonly peakFormat?: number | undefined;
+  /** WAV peak points per value (1 or 2, default: 2). */
+  readonly peakPpv?: number | undefined;
   /** First Ogg logical stream serial number (0 through 2147483647). */
   readonly serialOffset?: number | undefined;
   /** Ogg Opus copy and Opus/Vorbis encoding page target in microseconds (default: 1000000). */

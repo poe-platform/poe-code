@@ -62,7 +62,7 @@ WAV output to stdout uses unknown (`0xffffffff`) RIFF and data lengths; regular 
 
 WAV output accepts `-write_bext 1` to write Broadcast Wave metadata (`description`, `originator`, `originator_reference`, `origination_date`, `origination_time`, `time_reference`, and `coding_history`) supplied with `-metadata`. The default and `-write_bext 0` omit the extension.
 
-WAV output accepts `-write_peak on` to append a peak envelope, `-write_peak only` for the envelope without audio, and `-write_peak off` (the default) to omit it. Numeric values `1`, `2`, and `0` are also accepted. Peak envelopes require 16-bit PCM output and use 256-frame blocks with positive and negative peaks per channel.
+WAV output accepts `-write_peak on` to append a peak envelope, `-write_peak only` for the envelope without audio, and `-write_peak off` (the default) to omit it. Numeric values `1`, `2`, and `0` are also accepted. Peak envelopes require 16-bit PCM output and default to 256-frame blocks with positive and negative peaks per channel. Set `-peak_block_size 0..65536` (0 omits the envelope), `-peak_format 1|2` for byte width, and `-peak_ppv 1|2` for one magnitude or separate positive/negative peaks.
 
 WAV output accepts `-rf64 always` for RF64 with 64-bit sizes, `-rf64 auto` to reserve a size chunk and use RF64 when RIFF overflows, and `-rf64 never` (the default) for ordinary RIFF.
 

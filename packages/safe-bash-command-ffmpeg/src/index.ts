@@ -3708,7 +3708,7 @@ export function evalSyncFfmpeg(
           if (k === "language" && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
             streamLanguages.push([arg.slice("-metadata:s:".length), v]);
           } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
-          else metadata[k] = v;
+          else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
         }
       } else if (arg === "-display_rotation") rotation = Math.abs(parseInt(args[++i] ?? "0", 10) || 0);
       else if (arg.startsWith("-") && arg !== "-") return undefined;
@@ -4921,7 +4921,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (k === "language" && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
                 streamLanguages.push([arg.slice("-metadata:s:".length), v]);
               } else if (k === "rotate") rotation = parseInt(v, 10) || 0;
-              else metadata[k] = v;
+              else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
             }
           } else if (arg === "-display_rotation") {
             rotation = Math.abs(parseInt(args[++i] ?? "0", 10) || 0);

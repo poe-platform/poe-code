@@ -7994,6 +7994,35 @@ describe("labeled audio filter graphs", () => {
   }
 });
 
+describe("unconnected audio filter outputs", () => {
+  for (const [graph, mapping, label] of [
+    ["[1:a]volume=0.5[x]", ["-map", "0:a"], "x"],
+    ["[0:a]channelsplit[l][r];[r]anull[o]", ["-map", "[o]"], "l"],
+    ["[0:a]channelsplit[l][r];[l]anull[o]", ["-map", "[o]"], "r"],
+    ["[0:a][1:a]astreamselect=map=1[o]", [], "o"],
+    ["[0:a]volume=0.5[x];[1:a]volume=0.5[y]", ["-map", "[x]", "/first.wav", "-map", "[x]"], "y"]
+  ] as const) {
+    for (const existing of [false, true]) {
+      it(`rejects unused ${label} in ${graph} (existing=${existing})`, async () => {
+        const vfs = createTestVfs({
+          "/a.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25, 0.5]), new Float64Array([-0.25, -0.5])] }),
+          "/b.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array([-0.5, -0.25])] }),
+          ...(existing ? { "/out.wav": "keep", "/first.wav": "keep" } : {})
+        });
+        const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/a.wav", "-i", "/b.wav",
+          "-filter_complex", graph, ...mapping, "/out.wav"], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes("unconnected") && result.stderr.includes(label), result.stderr);
+        for (const path of ["/out.wav", "/first.wav"]) {
+          const bytes = vfs.store.get(path);
+          assert.ok(bytes === undefined || bytes.length === 0 || new TextDecoder().decode(bytes) === "keep",
+            `wrote media to ${path}`);
+        }
+      });
+    }
+  }
+});
+
 describe("audio output label availability", () => {
   for (const existing of [false, true]) {
     for (const [name, graph, mapping, label] of [

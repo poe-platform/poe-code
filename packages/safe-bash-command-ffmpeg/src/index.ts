@@ -1102,7 +1102,7 @@ async function panAudio(
 }
 
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
-async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], mappedLabels: Set<string>, budget: MediaBudgetTracker, signal?: AbortSignal) {
+async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, budget: MediaBudgetTracker, signal?: AbortSignal) {
   const nodes = new Map<string, { inputs: string[]; expression: string }>();
   const consumed = new Set<string>();
   const unlabeled: string[] = [];
@@ -1351,24 +1351,30 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     if (!track) throw new Error(`Invalid audio filter input: ${label}`);
     return { track, expression: "" };
   };
-  const outputs = maps.length ? maps.map(map => {
-    if (!map.startsWith("[") || !map.endsWith("]")) throw new Error("Unsupported audio filter output map");
-    return map.slice(1, -1);
-  }) : [...nodes.keys()].filter(label => !consumed.has(label) && !unlabeled.includes(label));
+  const outputs = maps.filter(map => map.startsWith("[") && map.endsWith("]"))
+    .map(map => map.slice(1, -1));
   outputs.unshift(...unlabeled.filter(label => !mappedLabels.has(label)));
-  if (!outputs.length && unlabeled.length && !maps.length) {
-    return selectAutomaticStreams(docs).flatMap(doc => doc.tracks)
-      .filter(track => track.type === "audio").map(track => ({ track, expression: "" }));
-  }
-  if (!outputs.length) throw new Error("Audio filter graph has no output");
-  return Promise.all(outputs.map(label => {
+  for (const label of outputs) {
     if (!nodes.has(label)) throw new Error(`Unknown audio filter output: ${label}`);
     if (consumed.has(label) || mappedLabels.has(label)) {
       throw new Error(`Audio filter output already consumed: ${label}`);
     }
     mappedLabels.add(label);
-    return resolve(label);
-  }));
+  }
+  for (const label of nodes.keys()) {
+    if (!consumed.has(label) && !unlabeled.includes(label) && !outputMaps.has(`[${label}]`)) {
+      throw new Error(`Audio filter has an unconnected output: ${label}`);
+    }
+  }
+  if (maps.some(map => !map.startsWith("[") || !map.endsWith("]"))) {
+    throw new Error("Unsupported audio filter output map");
+  }
+  if (!outputs.length && unlabeled.length && !maps.length) {
+    return selectAutomaticStreams(docs).flatMap(doc => doc.tracks)
+      .filter(track => track.type === "audio").map(track => ({ track, expression: "" }));
+  }
+  if (!outputs.length) throw new Error("Audio filter graph has no output");
+  return Promise.all(outputs.map(label => resolve(label)));
 }
 
 async function applyVideoFilterChain(
@@ -4693,6 +4699,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let inputReadFailed = false;
       let filterComplex: string | undefined;
       const mappedAudioLabels = new Set<string>();
+      const audioOutputMaps = new Set<string>();
       const initializers: (() => Promise<{ exitCode: number } | void>)[] = [];
       const outputs: (() => Promise<{ exitCode: number }>)[] = [];
       const inputBytes = new Map<string, Uint8Array>();
@@ -5929,6 +5936,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
           }
         });
+        for (const map of maps) audioOutputMaps.add(map);
         outputs.push(async () => {
           const outputTarget = target;
           try {
@@ -6788,7 +6796,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   loadedDocs.some((_, index) => filterComplex?.includes(`[${index}:a`));
                 if (audioGraph) {
                   if (afFilters.length) throw new Error("Cannot combine simple and complex audio filters");
-                  const outputs = await resolveAudioGraph(filterComplex, loadedDocs, maps, mappedAudioLabels, budget, context.signal);
+                  const outputs = await resolveAudioGraph(filterComplex, loadedDocs, maps, audioOutputMaps, mappedAudioLabels, budget, context.signal);
                   workingDoc = await muxMp4Cooperatively(
                     [{ ...loadedDocs[0]!, tracks: outputs.map(output => output.track) }],
                     { stripAudio, stripVideo, stripSubtitles }, context.signal);

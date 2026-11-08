@@ -4754,6 +4754,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
   const rawCoder = ext.toLowerCase();
   if (isRawCoder(rawCoder)) return rawCoder;
   switch (ext.toLowerCase()) {
+    case "xpm":
+      return "xpm";
     case "tga":
       return "tga";
     case "txt":

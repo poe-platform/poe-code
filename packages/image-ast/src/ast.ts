@@ -4,6 +4,7 @@ export type ImageFormat =
   | "hdr"
   | "exr"
   | "phm"
+  | "xpm"
   | "tga"
   | "txt"
   | "png"

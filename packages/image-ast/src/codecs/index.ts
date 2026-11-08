@@ -1,3 +1,4 @@
+import { encodeXpmImage } from "./xpm-output.js";
 import { encodeHdrImage } from "./hdr-output.js";
 import { isRadianceBytes, readRadianceHeader, decodeRadianceImage } from "./radiance.js";
 import { isExrBytes, readExrHeader, decodeExrImage } from "./exr.js";
@@ -466,6 +467,7 @@ export function encodeImage(
   switch (fmt) {
     case "hdr": return { data: encodeHdrImage(img), format: "hdr", channels: 3 };
     case "exr": return { data: encodeExrImage(img), format: "exr", channels: img.hasAlpha ? 4 : 3 };
+    case "xpm": return { data: encodeXpmImage(img), format: "xpm", channels: img.hasAlpha ? 4 : 3 };
     case "tga": return { data: encodeTgaImage(img, options), format: "tga", channels: img.hasAlpha ? 4 : 3 };
     case "ico":
     case "cur": return { data: encodeIcoImage(img), format: fmt, channels: 4 };

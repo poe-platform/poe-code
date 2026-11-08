@@ -5577,6 +5577,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare", "uniformnoise", "impulsenoise", "gaussiannoise", "laplaciannoise", "multiplicativenoise", "poissonnoise"].includes(operation)) {
             throw new Error(`unrecognized evaluate operator '-evaluate' '${operationRaw}'`);
         }
+        const operand = value.trim().endsWith("%") ? value.trim().slice(0, -1) : value;
+        if (!Number.isFinite(Number(operand)) || !Number.isFinite(Number.parseFloat(operand))) {
+            throw new Error(`invalid argument '-evaluate' '${value}'`);
+        }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         let random: (() => number) | undefined;
         apply = (image, pixelOffset = 0) => {

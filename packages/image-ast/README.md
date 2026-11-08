@@ -118,7 +118,7 @@ in caller storage with fixed input and word caches.
 `encodeWebpFromStorage` scans alpha and emits owned lossless WebP chunks from caller storage.
 `encodeJpegFromStorage` emits bounded 8×8 blocks
 from caller storage with the same quality, density and EXIF semantics as the
-buffered encoder. Set `jpegDctMethod` to `integer`, `float`, or `fastest` (default)
+buffered encoder. JPEG output preserves source resolution or an explicit encoder `density`; untagged images use unitless 1×1 JFIF density. Set `jpegDctMethod` to `integer`, `float`, or `fastest` (default)
 to select the forward discrete cosine transform. Set `jpegOptimizeCoding: true` to build smaller Huffman tables
 from image frequencies without changing decoded pixels; this adds a bounded-memory
 pass over the pixels. Set `jpegRestartInterval` to an MCU interval from 0 to 65535

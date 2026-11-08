@@ -58,7 +58,7 @@ export function jpegInputFixture(spec: JpegInputSpec): Uint8Array {
         orientation: 6,
         hasAlpha: true
       },
-      bytes = encodeJpegImage(image, { quality: spec.quality ?? 85 });
+      bytes = encodeJpegImage(image, { quality: spec.quality ?? 85, density: 144 });
     return spec.truncate === undefined
       ? bytes
       : bytes.subarray(0, Math.max(0, bytes.length + spec.truncate));
@@ -3726,7 +3726,11 @@ it.each(jpegInputVectors)("decodes retained JPEG against frozen input $name", as
     await expect(decoded).rejects.toThrow(vector.error);
     return;
   }
-  const { position, ...metadata } = await decoded;
+  const { position, exif, ...metadata } = await decoded;
+  // Encoded fixtures carry an APP1 Exif profile after the 18-byte APP0 segment.
+  expect(exif).toEqual(vector.spec.kind === "encoded"
+    ? bytes.slice(30, 22 + new DataView(bytes.buffer, bytes.byteOffset).getUint16(22))
+    : undefined);
   expect(metadata).toEqual(vector.expected);
   const hash = createHash("sha256");
   for (let at = 0; at < metadata.width * metadata.height * 4; at += 4096)

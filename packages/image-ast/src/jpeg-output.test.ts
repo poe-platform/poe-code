@@ -54,6 +54,7 @@ export function jpegOutputRaster(spec: JpegOutputSpec): RgbaImage {
     depth: "uchar",
     hasAlpha: channels === 2 || channels === 4,
     density: spec.density ?? 72,
+    resolution: { x: spec.density ?? 72, y: spec.density ?? 72, unit: "inch" },
     ...(spec.orientation === undefined ? {} : { orientation: spec.orientation })
   };
 }

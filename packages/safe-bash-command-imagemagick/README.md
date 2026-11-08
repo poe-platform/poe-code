@@ -109,7 +109,7 @@ Use `-read-mask mask.png` after an input to measure mean and standard deviation 
 Orientation reports the EXIF name (such as `RightTop`) and numeric value (`6`),
 respectively; absent orientation yields `Undefined` and an empty EXIF value. Use `%[hex:p{0,0}]` for an
 uppercase RGB or RGBA hex value, or `%[fx:EXPRESSION]` and `%[pixel:EXPRESSION]`
-for calculated values. Named properties are case insensitive. Filenames and
+for calculated values. Named properties are case insensitive. Missing `%[comment]` expands to empty text; INFO output warns unless `-quiet` is set. Filenames and
 escaped percent signs are inserted literally; pixel statistics are calculated
 only when requested. `%q` reports the compatible ImageMagick quantum depth (`16`),
 while `%z` reports source bit depth and `%[bit-depth]` reports effective pixel depth.

@@ -1295,7 +1295,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   fmt: string,
   meta: ImageMetadata,
   getImage: () => RgbaImage,
-  context: MagickFormatContext = {},
+  context: MagickFormatContext & { analysis?: { warnings: string } } = {},
   resolvePixels?: (property:string)=>Generator<Step,string,void>
 ): Generator<void|Step, string, void> {
   const filePath = context.filePath ?? "";
@@ -1390,6 +1390,9 @@ function* formatMagickPropertyStringSteps<Step=never>(
       const key = property.toLowerCase();
       if (Object.hasOwn(properties, key)) {
         parts.push(properties[key]!);
+      } else if (key === "comment") {
+        if (context.analysis) context.analysis.warnings += `magick: unknown image property '${token}'\n`;
+        parts.push("");
       } else if (["mean", "min", "max", "median", "standard-deviation", "skewness", "kurtosis", "entropy", "opaque", "type", "bit-depth"].includes(key)) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
@@ -1466,7 +1469,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  return channels[3]!==undefined&&channels[3]!==255?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3]/255)})`:`srgb(${channels.slice(0,3).join(",")})`;
 }
 
-async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext,getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal):Promise<string>{
+async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string } },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal):Promise<string>{
  let raster:IdentifyRaster|undefined,properties:Record<string,string>|undefined;
  const statistics:Record<string,number>={};
  function* resolve(property:string):Generator<IdentifyStep,string,void>{
@@ -8085,7 +8088,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             for (const [idx, im] of stack.entries()) {
                 formatted.push(histogramComment ? yield* formatHistogramOutputSteps(im) : state.formatStr !== undefined
                     ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
-                        ...(im as MagickImage)[magickInput], sceneIdx: idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined
+                        ...(im as MagickImage)[magickInput], analysis, sceneIdx: idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined
                     })
                     : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
             }
@@ -9542,7 +9545,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
-                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], sceneIdx: index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined }, async () => ({ image: frame, storage: backend.storage }), signal) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], analysis, sceneIdx: index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined }, async () => ({ image: frame, storage: backend.storage }), signal) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
                     if (formatted) last = formatted.at(-1)!;
                     yield formatted;
                 }

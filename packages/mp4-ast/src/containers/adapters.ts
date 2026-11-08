@@ -138,10 +138,14 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
   let fpsDen = 1;
   let sarWidth = 1;
   let sarHeight = 1;
+  let fieldOrder: "progressive" | "tt" | "bb" | undefined;
 
   for (const token of headerLine.split(/\s+/)) {
     if (token.startsWith("W")) width = parseInt(token.slice(1), 10) || width;
     else if (token.startsWith("H")) height = parseInt(token.slice(1), 10) || height;
+    else if (token === "Ip") fieldOrder = "progressive";
+    else if (token === "It") fieldOrder = "tt";
+    else if (token === "Ib") fieldOrder = "bb";
     else if (token.startsWith("F")) {
       const [n, d] = token.slice(1).split(":");
       fpsNum = parseInt(n ?? "30", 10) || 30;
@@ -234,7 +238,8 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
             height,
             pixFmt: "yuv420p",
             sarWidth,
-            sarHeight
+            sarHeight,
+            fieldOrder
           }
         ],
         samples,
@@ -249,7 +254,8 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
 export function serializeY4m(doc: MediaDocument): Uint8Array {
   const { frames, width, height, fps } = extractVideoFramesFromDoc(doc);
   const codec = doc.tracks.find(track => track.type === "video")?.codecDescriptions[0];
-  const header = encodeUtf8(`YUV4MPEG2 W${width} H${height} F${fps}:1 Ip A${codec?.sarWidth ?? 1}:${codec?.sarHeight ?? 1} C420jpeg\n`);
+  const interlace = codec?.fieldOrder === "tt" ? "t" : codec?.fieldOrder === "bb" ? "b" : "p";
+  const header = encodeUtf8(`YUV4MPEG2 W${width} H${height} F${fps}:1 I${interlace} A${codec?.sarWidth ?? 1}:${codec?.sarHeight ?? 1} C420jpeg\n`);
   const frameTag = encodeUtf8("FRAME\n");
   const chunks: Uint8Array[] = [header];
 

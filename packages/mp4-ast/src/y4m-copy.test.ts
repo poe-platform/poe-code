@@ -28,3 +28,12 @@ it("converts edited RGBA instead of reusing stale YUV420 samples", () => {
   const { y, u, v } = rgbaToYuv420p(data, 2, 2);
   assert.deepEqual(serializeY4m(edited).slice(-6), concatBytes([y, u, v]));
 });
+
+for (const [interlace, fieldOrder] of [["p", "progressive"], ["t", "tt"], ["b", "bb"]]) {
+  it(`preserves Y4M field order I${interlace}`, () => {
+    const bytes = concatBytes([encodeUtf8(`YUV4MPEG2 W2 H2 F25:1 I${interlace} A1:1 C420jpeg\nFRAME\n`), samples]);
+    const doc = parseY4m(bytes);
+    assert.equal(doc.tracks[0]!.codecDescriptions[0]!.fieldOrder, fieldOrder);
+    assert.deepEqual(serializeY4m(doc), bytes);
+  });
+}

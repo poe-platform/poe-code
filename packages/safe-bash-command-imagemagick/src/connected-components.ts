@@ -196,6 +196,7 @@ function* reportSteps(components: Component[], sort: "x" | "area" | undefined, e
   const space = image.magickColorspace ?? (image.space === "b-w" || image.space === "grey16" ? "Gray" : "sRGB");
   const hue = space === "HSL" || space === "HSB";
   const channels = c.color.slice(0, space === "Gray" ? 1 : 3).map((value, index) => {
+   if (space === "CIELab") return formatMeasurement(index === 0 ? value / c.area * 100 / 255 : value / c.area - 127.5, precision);
    const grayPercent = space === "Gray" && !Number.isInteger(value / c.area);
    const scale = grayPercent ? 100 / 255 : hue ? (index === 0 ? 360 : 100) / 255 : space === "XYZ" ? 100 / 255 : 1;
    return `${formatMeasurement(value / c.area * scale, precision)}${grayPercent || (hue && index > 0) ? "%" : ""}`;

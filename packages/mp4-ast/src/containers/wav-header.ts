@@ -143,6 +143,9 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
       if (header.sampleRate === 0) throw new Error("Invalid sample rate: 0");
       header.blockAlign = view.getUint16(12, littleEndian);
       header.bitsPerSample = size === 14 ? 8 : view.getUint16(14, littleEndian);
+      // Legacy PCM depths select the enclosing byte-wide codec, as in FFmpeg.
+      if (header.formatTag === 1 && header.bitsPerSample <= 32)
+        header.bitsPerSample = Math.ceil(header.bitsPerSample / 8) * 8;
       if (header.formatTag === 0xfffe) {
         if (size < 40) throw new Error("Invalid WAV extensible format");
         const extension = yield { offset: start + 16, length: 8 };

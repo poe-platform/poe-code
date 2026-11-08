@@ -9465,7 +9465,7 @@ describe("fps timestamp rounding", () => {
     const lines = result.stderr.split("\n").filter(line => line.includes("pts_time:"));
     assert.equal(lines.length, 2);
     assert.match(lines[0]!, /pts_time:0 .*s:4x4/);
-    assert.match(lines[1]!, /pts_time:1 .*s:2x2/);
+    assert.match(lines[1]!, /pts:1 .*s:2x2/);
   });
   for (const filter of ["showinfo=checksum=2", "showinfo=unknown=1", "showinfo=1:0"]) {
     it(`rejects ${filter} without replacing output`, async () => {

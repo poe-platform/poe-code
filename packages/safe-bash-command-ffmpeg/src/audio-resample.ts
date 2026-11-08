@@ -3,7 +3,7 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 export async function resampleAudio(
   channels: readonly (Float32Array | Float64Array)[], outputLength: number, rateRatio: number,
-  budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9, filterSize = 32, resampleCutoff = 0, phaseShift = 10
+  budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9, filterSize = 32, resampleCutoff = 0, phaseShift = 10, linearInterp = 1
 ): Promise<Float32Array[]> {
   const length = channels[0]?.length ?? 0;
   // Zero selects swresample’s default cutoff; scale support with the effective ratio.
@@ -30,7 +30,7 @@ export async function resampleAudio(
     let weightSum = 0;
     sums.fill(0);
     const phasePosition = position * phaseCount;
-    const fraction = phasePosition - Math.floor(phasePosition);
+    const fraction = linearInterp ? phasePosition - Math.floor(phasePosition) : 0;
     // Default linear interpolation blends adjacent polyphase filter responses.
     // Evaluate only those phases, without allocating a potentially huge bank.
     for (let side = 0; side < (fraction === 0 ? 1 : 2); side++) {

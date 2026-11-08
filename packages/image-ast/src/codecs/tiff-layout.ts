@@ -4,10 +4,13 @@ export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties">,
-  options?: Pick<OutputEncodeOptions, "tiffIntegerDepth" | "tiffSigned" | "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
+  options?: Pick<OutputEncodeOptions, "tiffBig" | "tiffIntegerDepth" | "tiffSigned" | "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
   offset = 0, hasNext = false, stripSizes?: readonly number[]
 ) {
   const { width, height } = img;
+  const big = options?.tiffBig === true;
+  const alignment = big ? 8 : 2, offsetBytes = big ? 8 : 4;
+  const countBytes = big ? 8 : 2, entryBytes = big ? 20 : 12;
   const littleEndian = options?.tiffEndian !== "msb";
   const bits = options?.tiffFloatDepth ?? options?.tiffIntegerDepth ?? 8, sampleBytes = bits / 8;
   const jpeg = options?.tiffCompression === "jpeg";
@@ -22,7 +25,7 @@ export function createTiffLayout(
   const stripsPerPlane = tile ? Math.ceil(width / tile.width) * Math.ceil(height / tile.height) : Math.ceil(height / rowsPerStrip);
   const stripCount = stripsPerPlane * (options?.tiffPlanar ? channels : 1);
   const chunkChannels = options?.tiffPlanar ? 1 : channels;
-  const stripArraySize = stripCount > 1 ? stripCount * 8 : 0;
+  const stripArraySize = stripCount > 1 ? stripCount * offsetBytes * 2 : 0;
   const pixelBytes = stripSizes?.reduce((sum, size) => sum + size, 0) ?? (tile ? stripCount * tile.width * tile.height * chunkChannels : width * height * channels) * sampleBytes;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
   const resolution = options?.density === undefined ? img.resolution : undefined;
@@ -32,38 +35,45 @@ export function createTiffLayout(
   const orientation = options?.orientation ?? img.orientation ?? 1;
   // Keep the single-page layout byte-compatible. Later pages start with their
   // directory so the preceding page can link to them without reading ahead.
-  const padding = pixelBytes % 2;
+  const padding = (alignment - pixelBytes % alignment) % alignment;
   const comment = img.properties?.comment === undefined ? undefined : new TextEncoder().encode(img.properties.comment + "\0");
-  const commentSize = comment ? comment.length + comment.length % 2 : 0;
+  const commentSize = comment ? Math.ceil(comment.length / alignment) * alignment : 0;
   const numEntries = (hasAlpha ? 15 : 14) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
-  const directorySize = 2 + numEntries * 12 + 4 + 24 + commentSize + stripArraySize;
-  const pixelOffset = offset === 0 ? 8 : offset + directorySize;
+  const tableSize = Math.ceil((countBytes + numEntries * entryBytes + offsetBytes) / alignment) * alignment;
+  const directorySize = tableSize + 24 + commentSize + stripArraySize;
+  const pixelOffset = offset === 0 ? (big ? 16 : 8) : offset + directorySize;
   const ifdOffset = offset === 0 ? pixelOffset + pixelBytes + padding : offset;
-  const bpsOffset = ifdOffset + 2 + numEntries * 12 + 4;
+  const bpsOffset = ifdOffset + tableSize;
   const xResOffset = bpsOffset + 8;
   const yResOffset = xResOffset + 8;
-  // Classic TIFF uses 32-bit offsets and LONG fields, including directory payloads.
-  if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(width) || width <= 0 || width > 0xffffffff || !Number.isSafeInteger(height) || height <= 0 || height > 0xffffffff || !Number.isSafeInteger(pixelBytes) || pixelBytes > 0xffffffff || pixelOffset + pixelBytes + padding > 0x100000000 || yResOffset + 8 + commentSize + stripArraySize > 0x100000000) {
-    throw new RangeError("TIFF layout exceeds classic TIFF offsets");
+  // BigTIFF offsets stay within the exact integer range used by backing storage.
+  const limit = big ? Number.MAX_SAFE_INTEGER : 0xffffffff;
+  if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(width) || width <= 0 || width > 0xffffffff || !Number.isSafeInteger(height) || height <= 0 || height > 0xffffffff || !Number.isSafeInteger(pixelBytes) || pixelBytes > limit || pixelOffset + pixelBytes + padding > limit + (big ? 0 : 1) || yResOffset + 8 + commentSize + stripArraySize > limit + (big ? 0 : 1)) {
+    throw new RangeError(big ? "TIFF layout exceeds safe BigTIFF offsets" : "TIFF layout exceeds classic TIFF offsets");
   }
-  const header=new Uint8Array(8),directory=new Uint8Array(yResOffset+8+commentSize+stripArraySize-ifdOffset);
+  const header=new Uint8Array(big ? 16 : 8),directory=new Uint8Array(yResOffset+8+commentSize+stripArraySize-ifdOffset);
   const headerView=new DataView(header.buffer),view=new DataView(directory.buffer);
   header[0]=littleEndian ? 0x49 : 0x4d;header[1]=header[0];
-  headerView.setUint16(2,42,littleEndian);
-  headerView.setUint32(4,ifdOffset,littleEndian);
-
-  view.setUint16(0, numEntries, littleEndian);
+  headerView.setUint16(2,big ? 43 : 42,littleEndian);
+  if (big) {
+    headerView.setUint16(4, 8, littleEndian);
+    headerView.setBigUint64(8, BigInt(ifdOffset), littleEndian);
+    view.setBigUint64(0, BigInt(numEntries), littleEndian);
+  } else {
+    headerView.setUint32(4,ifdOffset,littleEndian);
+    view.setUint16(0, numEntries, littleEndian);
+  }
   const entries: [number, number, number, number][] = [];
   entries.push([256, 4, 1, width]); // ImageWidth
   entries.push([257, 4, 1, height]); // ImageLength
   entries.push([258, 3, channels, channels === 1 ? bits : channels === 2 ? bits * 0x10001 : bpsOffset]); // BitsPerSample
   entries.push([259, 3, 1, ({ none: 1, lzw: 5, deflate: 8, packbits: 32773, jpeg: 7 })[options?.tiffCompression ?? "none"]]);
   entries.push([262, 3, 1, jpeg ? 6 : channels < 3 ? 1 : 2]); // YCbCr, BlackIsZero or RGB
-  if (!tile) entries.push([273, 4, stripCount, stripCount === 1 ? pixelOffset : yResOffset + 8 + commentSize]); // StripOffsets
+  if (!tile) entries.push([273, big ? 16 : 4, stripCount, stripCount === 1 ? pixelOffset : yResOffset + 8 + commentSize]); // StripOffsets
   entries.push([274, 3, 1, orientation]); // Orientation
   entries.push([277, 3, 1, channels]); // SamplesPerPixel
   if (!tile) entries.push([278, 4, 1, rowsPerStrip]); // RowsPerStrip
-  if (!tile) entries.push([279, 4, stripCount, stripCount === 1 ? pixelBytes : yResOffset + 8 + commentSize + stripCount * 4]); // StripByteCounts
+  if (!tile) entries.push([279, big ? 16 : 4, stripCount, stripCount === 1 ? pixelBytes : yResOffset + 8 + commentSize + stripCount * offsetBytes]); // StripByteCounts
   entries.push([282, 5, 1, xResOffset]); // XResolution
   entries.push([283, 5, 1, yResOffset]); // YResolution
   entries.push([284, 3, 1, options?.tiffPlanar ? 2 : 1]); // PlanarConfiguration
@@ -71,35 +81,55 @@ export function createTiffLayout(
   if (tile) {
     entries.push([322, 4, 1, tile.width]);
     entries.push([323, 4, 1, tile.height]);
-    entries.push([324, 4, stripCount, stripCount === 1 ? pixelOffset : yResOffset + 8 + commentSize]);
-    entries.push([325, 4, stripCount, stripCount === 1 ? pixelBytes : yResOffset + 8 + commentSize + stripCount * 4]);
+    entries.push([324, big ? 16 : 4, stripCount, stripCount === 1 ? pixelOffset : yResOffset + 8 + commentSize]);
+    entries.push([325, big ? 16 : 4, stripCount, stripCount === 1 ? pixelBytes : yResOffset + 8 + commentSize + stripCount * offsetBytes]);
   }
   if (jpeg) entries.push([530, 3, 2, 0x00010001]); // YCbCrSubSampling
   if (options?.tiffFloatDepth) entries.push([339, 3, 1, 3]); // IEEE floating point
   else if (options?.tiffIntegerDepth || options?.tiffSigned) entries.push([339, 3, 1, options?.tiffSigned ? 2 : 1]);
   if (hasAlpha) entries.push([338, 3, 1, options?.tiffAlpha === "associated" ? 1 : options?.tiffAlpha === "unspecified" ? 0 : 2]); // ExtraSamples
   if (comment) {
-    entries.push([270, 2, comment.length, comment.length <= 4 ? 0 : yResOffset + 8]);
+    entries.push([270, 2, comment.length, comment.length <= offsetBytes ? 0 : yResOffset + 8]);
 
   }
   entries.sort((a,b) => a[0]-b[0]).forEach(([tag,type,count,val],index) => {
-    const p = 2 + index * 12;
-    view.setUint16(p,tag,littleEndian);view.setUint16(p+2,type,littleEndian);view.setUint32(p+4,count,littleEndian);
-    if(type === 3 && count === 1) view.setUint16(p+8,val,littleEndian);else view.setUint32(p+8,val,littleEndian);
-    if(tag === 270 && comment) directory.set(comment,comment.length <= 4 ? p+8 : yResOffset+8-ifdOffset);
+    const p = countBytes + index * entryBytes, valueAt = p + (big ? 12 : 8);
+    view.setUint16(p,tag,littleEndian);view.setUint16(p+2,type,littleEndian);
+    if (big) {
+      view.setBigUint64(p+4,BigInt(count),littleEndian);
+      if (type === 3) {
+        for (let i = 0; i < count; i++) view.setUint16(valueAt + i * 2, tag === 258 ? bits : count === 1 ? val : 1, littleEndian);
+      } else if (type === 4) view.setUint32(valueAt,val,littleEndian);
+      else if (type === 5) {
+        view.setUint32(valueAt, Math.round((tag === 282 ? x : y) * denominator), littleEndian);
+        view.setUint32(valueAt+4, denominator, littleEndian);
+      } else view.setBigUint64(valueAt,BigInt(val),littleEndian);
+    } else {
+      view.setUint32(p+4,count,littleEndian);
+      if(type === 3 && count === 1) view.setUint16(valueAt,val,littleEndian);
+      else view.setUint32(valueAt,val,littleEndian);
+    }
+    if(tag === 270 && comment) directory.set(comment,comment.length <= offsetBytes ? valueAt : yResOffset+8-ifdOffset);
   });
   if (stripCount > 1) {
     let stripOffset = pixelOffset;
     for (let strip = 0; strip < stripCount; strip++) {
       const size = stripSizes?.[strip] ?? (tile ? tile.width * tile.height : width * Math.min(rowsPerStrip, height - (strip % stripsPerPlane) * rowsPerStrip)) * chunkChannels * sampleBytes;
-      view.setUint32(yResOffset + 8 + commentSize - ifdOffset + strip * 4, stripOffset, littleEndian);
-      view.setUint32(yResOffset + 8 + commentSize - ifdOffset + (stripCount + strip) * 4, size, littleEndian);
+      const at = yResOffset + 8 + commentSize - ifdOffset + strip * offsetBytes;
+      if (big) {
+        view.setBigUint64(at, BigInt(stripOffset), littleEndian);
+        view.setBigUint64(at + stripCount * offsetBytes, BigInt(size), littleEndian);
+      } else {
+        view.setUint32(at, stripOffset, littleEndian);
+        view.setUint32(at + stripCount * offsetBytes, size, littleEndian);
+      }
       stripOffset += size;
     }
   }
   const end = offset === 0 ? yResOffset + 8 + commentSize + stripArraySize : pixelOffset + pixelBytes + padding;
-  if (hasNext && end > 0xffffffff) throw new RangeError("TIFF layout exceeds classic TIFF offsets");
-  view.setUint32(2 + numEntries * 12, hasNext ? end : 0, littleEndian);
+  if (hasNext && end > limit) throw new RangeError(big ? "TIFF layout exceeds safe BigTIFF offsets" : "TIFF layout exceeds classic TIFF offsets");
+  if (big) view.setBigUint64(countBytes + numEntries * entryBytes, BigInt(hasNext ? end : 0), littleEndian);
+  else view.setUint32(countBytes + numEntries * entryBytes, hasNext ? end : 0, littleEndian);
   view.setUint16(bpsOffset-ifdOffset, bits, littleEndian);
   view.setUint16(bpsOffset-ifdOffset + 2, bits, littleEndian);
   view.setUint16(bpsOffset-ifdOffset + 4, bits, littleEndian);

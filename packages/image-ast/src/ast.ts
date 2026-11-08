@@ -494,6 +494,7 @@ export interface OutputEncodeOptions {
   readonly rawDepth?: string;
   readonly netpbmDepth?: number;
   readonly netpbmAscii?: boolean;
+  readonly tiffBig?: boolean | undefined;
   readonly tiffIntegerDepth?: 8 | 16 | 32;
   readonly tiffSigned?: boolean;
   readonly tiffFloatDepth?: 16 | 32 | 64;

@@ -3694,8 +3694,6 @@ export function evalSyncFfmpeg(
         const entry = parseFrameLimit(arg, args[++i]);
         frameLimits.push(entry);
         if (entry[0] === "v" || entry[0] === "") maxVideoFrames = entry[1] < 0 ? undefined : entry[1];
-        if (entry[0] === "a" || entry[0] === "") maxAudioFrames = entry[1] < 0 ? undefined : entry[1];
-        if (entry[0] === "s" || entry[0] === "") maxSubtitleFrames = entry[1];
       }
       else if (arg === "-fs") fileSize = parseFileSize(args[++i]);
       else if (arg === "-id3v2_version") {
@@ -4879,8 +4877,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             frameLimits.push(entry);
             if (entry[0] === "v" || entry[0] === "") maxVideoFrames = entry[1] < 0 ? undefined : entry[1];
-            if (entry[0] === "a" || entry[0] === "") maxAudioFrames = entry[1] < 0 ? undefined : entry[1];
-            if (entry[0] === "s" || entry[0] === "") maxSubtitleFrames = entry[1];
           } else if (arg === "-fs") {
             try {
               fileSize = parseFileSize(args[++i]);

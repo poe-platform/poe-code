@@ -6011,6 +6011,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-channel-fx") {
         highDepth = true;
         const expression = tokens[++i] ?? "";
+        if (!expression.includes("=>")) return undefined;
         const names = [["r", "red"], ["g", "green"], ["b", "blue"], ["a", "alpha"]];
         const assignments = expression.split(",").flatMap(assignment => {
             const exchange = assignment.includes("<=>");
@@ -6432,6 +6433,28 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else return;
     return { end: i, apply, ...(warning ? { warning } : {}), evaluate: token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+}
+
+function parseChannelSelections(expression: string): number[][] {
+    const names = [["r", "red"], ["g", "green"], ["b", "blue"], ["a", "alpha"]];
+    return expression.split(";").map(group => group.split(",").map(name => {
+        const channel = names.findIndex(aliases => aliases.includes(name.trim().toLowerCase()));
+        if (channel < 0) throw new Error(`unsupported channel-fx selection '${name}'`);
+        return channel;
+    }));
+}
+
+function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<void, RgbaImage> {
+    const data = new Uint8Array(image.data), data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+    for (let offset = 0; offset < data.length; offset += 4) {
+        if (offset % 65536 === 0) yield;
+        for (let target = 0; target < 3; target++) {
+            const source = channels[target] ?? channels[0]!;
+            data[offset + target] = source === 3 && !image.hasAlpha ? 255 : image.data[offset + source]!;
+            if (data16) data16[offset + target] = source === 3 && !image.hasAlpha ? 65535 : image.data16![offset + source]!;
+        }
+    }
+    return { ...image, data, ...(data16 ? { data16 } : {}), space: "srgb", channels: image.hasAlpha ? 4 : 3 };
 }
 
 function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3): Generator<void, RgbaImage> {
@@ -7873,6 +7896,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return (yield* applyMagickMorphology4ChSteps(im, statType, geom, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined));
             });
         }
+        else if (t === "-channel-fx") {
+            const selections = parseChannelSelections(tokens[++i] ?? ""), image = stack[0];
+            const result: RgbaImage[] = [];
+            if (image) for (const channels of selections) result.push(yield* selectMagickChannels(image, channels));
+            stack = result;
+        }
         else if (t === "-separate") {
             const nextStack: RgbaImage[] = [];
             for (const im of stack) {
@@ -8625,6 +8654,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     await stack.swap(i1, i2);
                 }
                 return stack;
+            });
+            continue;
+        }
+        if (!operandsOnly && token === "-channel-fx" && !(tokens[i + 1] ?? "").includes("=>")) {
+            const selections = parseChannelSelections(tokens[++i] ?? "");
+            stackStep(async (stack, backend) => {
+                const result = new StoredImageStack(backend.storage, signal, stack), image = await stack.get(0);
+                if (image) for (const channels of selections) {
+                    await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: image => selectMagickChannels(image, channels) }, signal));
+                }
+                return result;
             });
             continue;
         }

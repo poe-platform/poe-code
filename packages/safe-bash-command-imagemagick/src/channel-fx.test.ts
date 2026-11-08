@@ -29,7 +29,7 @@ for (const mode of ["buffered", "retained", "sync", "mogrify"] as const) {
 }
 
 for (const retained of [false, true]) {
-    it.each(["", "red", "red=>", "red=>unknown", "red=>blue=>green", "red=>blue,", "red<=>", "red<=>unknown", "red<=>blue<=>green"])(`rejects invalid assignment %s without overwriting output, retained=${retained}`, async expression => {
+    it.each(["", "unknown", "red;", "red,", "red=>", "red=>unknown", "red=>blue=>green", "red=>blue,", "red<=>", "red<=>unknown", "red<=>blue<=>green"])(`rejects invalid assignment %s without overwriting output, retained=${retained}`, async expression => {
         const original = new Uint8Array([1, 2, 3]), files = new Map([["/out.png", original]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/out.png", original);
         const result = await runConvertCli(["xc:red", "-channel-fx", expression, "/out.png"], retained ? { filesystem, cwd: "/" } : files);

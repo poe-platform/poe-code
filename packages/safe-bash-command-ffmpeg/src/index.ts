@@ -8790,7 +8790,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     for (const row of remixMatrix) for (let input = 0; input < row.length; input++) row[input]! *= gain;
                   }
 
-                  const targetSamples = Math.max(0, Math.round((stretched[0]?.length ?? 0) * targetRate / origRate));
+                  // Flushing retains the final sample when the converted duration is fractional.
+                  const targetSamples = Math.max(0, Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate));
                   if (targetRate !== origRate) stretched = loudnormResampling
                     ? await resampleLoudnorm(stretched, origRate, targetRate, budget, context.signal)
                     : await resampleAudio(stretched, targetSamples, origRate / targetRate, budget, context.signal);

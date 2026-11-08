@@ -26,6 +26,7 @@ export function isRawCoder(format: string | undefined): format is RawCoder {
 }
 
 export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
+    if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
     const format = options.format;
     if (!isRawCoder(format)) {
         if (format === "webp" && options.lossless === false && (options.webpTargetSize ?? 0) > 0) {
@@ -75,6 +76,7 @@ export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): Ret
 }
 
 export async function* encodeStoredImage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
+    if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
     if (!isRawCoder(options.format)) {
         let quality = options.quality ?? 92;
         if (options.format === "webp" && options.lossless === false && (options.webpTargetSize ?? 0) > 0) {

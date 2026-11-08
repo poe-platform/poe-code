@@ -1578,7 +1578,7 @@ function parseMagickBorderGeometry(raw: string): MagickGeometry {
     if (geometry.width === undefined && geometry.height === undefined && geometry.aspectRatio === undefined && geometry.areaLimit === undefined) {
         throw new Error(`invalid argument for option '-border': ${raw}`);
     }
-    return geometry;
+    return geometry.height === undefined && raw.toLowerCase().includes("x") ? { ...geometry, height: 0 } : geometry;
 }
 
 function parseMagickRollGeometry(raw: string): MagickGeometry {
@@ -6945,7 +6945,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const g = parseMagickGeometry(geometry.replace(":", "x"));
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 const sw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
-                const sh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? sw));
+                const sh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? (geometry.toLowerCase().includes("x") ? 0 : sw)));
                 if ((g.hasOffset && g.width === undefined && g.height === undefined) || sw * 2 >= im.width || sh * 2 >= im.height) {
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return im;
@@ -8590,7 +8590,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const width = Math.max(0, Math.round(parsed.isPercent ? image.width * (parsed.percentX ?? 100) / 100 : parsed.width ?? 0));
-                const height = Math.max(0, Math.round(parsed.isPercent ? image.height * (parsed.percentY ?? 100) / 100 : parsed.height ?? width));
+                const height = Math.max(0, Math.round(parsed.isPercent ? image.height * (parsed.percentY ?? 100) / 100 : parsed.height ?? (geometry.toLowerCase().includes("x") ? 0 : width)));
                 if ((parsed.hasOffset && parsed.width === undefined && parsed.height === undefined) || width * 2 >= image.width || height * 2 >= image.height) {
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return image;

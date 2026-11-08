@@ -2323,24 +2323,25 @@ async function applyVideoFilterChain(
           }, signal)
         };
       }, signal);
-    } else if (name === "subtitles") {
-      const keys = ["filename", "original_size", "fontsdir", "alpha", "charenc", "stream_index", "force_style", "wrap_unicode"];
+    } else if (name === "subtitles" || name === "ass") {
+      const keys = name === "ass" ? ["filename", "original_size", "fontsdir", "alpha"]
+        : ["filename", "original_size", "fontsdir", "alpha", "charenc", "stream_index", "force_style", "wrap_unicode"];
       for (const key of Object.keys(named)) {
-        if (!keys.includes(key) && key !== "f" && key !== "si") {
-          throw new Error(`subtitles: unknown option ${key}`);
+        if (!keys.includes(key) && key !== "f" && !(name === "subtitles" && key === "si")) {
+          throw new Error(`${name}: unknown option ${key}`);
         }
       }
       for (const [index, value] of positional.entries()) {
         if (value.includes("=")) continue;
         const key = keys[index];
-        if (!key) throw new Error("subtitles: too many positional options");
+        if (!key) throw new Error(`${name}: too many positional options`);
         named[key] ??= value;
       }
       if (named.alpha !== undefined && !["0", "1", "true", "false", "yes", "no", "on", "off"].includes(named.alpha.toLowerCase())) {
-        throw new Error("subtitles: invalid alpha boolean");
+        throw new Error(`${name}: invalid alpha boolean`);
       }
       const filename = named.filename ?? named.f;
-      if (!filename) throw new Error("subtitles: filename is required");
+      if (!filename) throw new Error(`${name}: filename is required`);
       const originalSize = named.original_size?.split("x").map(Number);
       if (originalSize && (originalSize.length !== 2 || originalSize.some(value => !Number.isInteger(value) || value <= 0 || value > 2147483647))) {
         throw new Error("subtitles: invalid original_size");
@@ -2363,7 +2364,9 @@ async function applyVideoFilterChain(
         }
       }
       const bytes = await readSubtitle(filename);
-      const doc = parseSubtitleDocument(bytes, filename.toLowerCase().endsWith(".vtt") ? "webvtt" : "srt");
+      const ass = assAst();
+      const doc = name === "ass" ? assAst().parse(bytes) : ass.detect(bytes) ? ass.parse(bytes)
+        : parseSubtitleDocument(bytes, filename.toLowerCase().endsWith(".vtt") ? "webvtt" : "srt");
       const streamIndex = Number(named.si ?? named.stream_index ?? -1);
       const track = streamIndex === -1 ? doc.tracks.find(t => t.type === "subtitle") : doc.tracks[streamIndex];
       if (!track || track.type !== "subtitle") throw new Error("Unable to locate subtitle stream");

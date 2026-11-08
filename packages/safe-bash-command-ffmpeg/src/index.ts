@@ -54,6 +54,7 @@ import { isStdin, rethrowRuntimeError, createInputReader, loadManifestResources,
 export type { MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-command-ffprobe/media";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
+import { resampleSoxr } from "./audio-soxr.js";
 import { filterUnityTempo, stretchAudio } from "./audio-tempo.js";
 import { datascopeFrame } from "./datascope.js";
 import { scaleFrame } from "./scale.js";
@@ -4780,6 +4781,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioRate: number | undefined;
         let audioChannels: number | undefined;
         let rematrixMaxval: number | undefined;
+        let resampler: "swr" | "soxr" = "swr";
         let filterSize = 32;
         let phaseShift = 10;
         let linearInterp = 1;
@@ -5291,6 +5293,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (args.slice(i + 1).includes("-i")) pendingStartNumber = val;
             else outputStartNumber = val;
+          } else if (arg === "-resampler") {
+            const raw = args[++i];
+            if (raw === "swr" || raw === "0") resampler = "swr";
+            else if (raw === "soxr" || raw === "1") resampler = "soxr";
+            else {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: resampler must be swr or soxr\n"), context.signal);
+              return { exitCode: 8 };
+            }
           } else if (arg === "-kaiser_beta") {
             const raw = args[++i];
             kaiserBeta = Number(raw);
@@ -8863,10 +8873,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                   // Flushing retains the final sample when the converted duration is fractional.
                   let targetSamples = Math.max(0, Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate));
-                  if (targetRate !== origRate) stretched = loudnormResampling
+                  if (targetRate !== origRate) stretched = resampler === "soxr"
+                    ? await resampleSoxr(stretched, origRate, targetRate, budget, context.signal, resampleCutoff)
+                    : loudnormResampling
                     ? await resampleLoudnorm(stretched, origRate, targetRate, budget, context.signal)
                     : await resampleAudio(stretched, targetSamples, origRate, targetRate, budget, context.signal, filterType, kaiserBeta, filterSize, resampleCutoff, phaseShift, linearInterp, exactRational);
-                  if (targetRate !== origRate && !loudnormResampling) targetSamples = stretched[0]?.length ?? 0;
+                  if (targetRate !== origRate && (resampler === "soxr" || !loudnormResampling)) targetSamples = stretched[0]?.length ?? 0;
                   const newChannelData: (Float32Array | Float64Array)[] = [];
                   const ChannelArray = stretched.some(channel => channel instanceof Float64Array) ? Float64Array : Float32Array;
                   for (let c = 0; c < targetCh; c++) {

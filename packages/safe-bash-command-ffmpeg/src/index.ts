@@ -4774,6 +4774,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let dashInitSegmentName: string | undefined;
         let dashMediaSegmentName: string | undefined;
         let hlsListSize = 5;
+        let hlsStartNumberSource = "generic";
         let hlsAllowCache = -1;
         let hlsPlaylistType: string | undefined;
         let hlsDeleteSegments = false;
@@ -5134,6 +5135,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_allow_cache\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-hls_start_number_source") {
+            const value = args[++i];
+            if (value !== "generic" && value !== "epoch" && value !== "epoch_us" && value !== "datetime") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_start_number_source\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            hlsStartNumberSource = value;
           } else if (arg === "-hls_list_size") {
             const value = args[++i];
             hlsListSize = value?.trim() ? Number(value) : NaN;
@@ -8851,6 +8859,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const programDateTime = Date.now();
               const previous: { uri: string; duration: number; discontinuity: boolean; programDateTime: string | undefined }[] = [];
               let sequence = outputStartNumber ?? 0;
+              if (hlsStartNumberSource === "epoch") sequence = Math.floor(programDateTime / 1000);
+              else if (hlsStartNumberSource === "epoch_us") sequence = programDateTime * 1000;
+              else if (hlsStartNumberSource === "datetime") {
+                const date = new Date(programDateTime);
+                sequence = Number([date.getFullYear(), date.getMonth() + 1, date.getDate(),
+                  date.getHours(), date.getMinutes(), date.getSeconds()]
+                  .map(value => String(value).padStart(2, "0")).join(""));
+              }
               if (hlsAppendList) {
                 if (hlsSingleFile) throw new Error("HLS append_list requires separate segment files");
                 let playlist: Uint8Array | undefined;

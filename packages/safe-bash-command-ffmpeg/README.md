@@ -167,6 +167,9 @@ in dB on stderr, measuring audio after preceding filters without changing PCM sa
 `astats` (also `astats=metadata=0:reset=0`) reports per-channel and overall peak/RMS
 levels in dB and the overall sample count on stderr without changing PCM samples.
 Metadata injection, periodic resets, and other statistics options are not supported.
+`crystalizer=i=2` sharpens changes between successive samples independently per channel.
+Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
+Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.
 `extrastereo=m=0` averages left and right while retaining stereo; `m=-1` swaps them.
 The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
 `stereotools` supports stereo channel mute (`mutel`, `muter`), phase inversion

@@ -5850,6 +5850,46 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = await enhanceDialogue(stretched, origRate, values[0]!, values[1]!, values[2]!, budget, context.signal);
                         filteredChannelMask = 7;
+                      } else if (trimmed === "crystalizer" || trimmed.startsWith("crystalizer=")) {
+                        let intensity = 2;
+                        let clip = true;
+                        const argument = trimmed.slice("crystalizer=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["i", "c"][index] : option.slice(0, separator).trim();
+                          const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          if (key === "i") {
+                            intensity = Math.fround(parseFilterExpression(value, "crystalizer", {}));
+                            if (!Number.isFinite(intensity) || intensity < -10 || intensity > 10) {
+                              throw new Error("crystalizer: i must be in the range [-10, 10]");
+                            }
+                          } else if (key === "c") {
+                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value)) {
+                              throw new Error("crystalizer: invalid clipping option");
+                            }
+                            clip = ["1", "true", "yes", "on"].includes(value);
+                          } else throw new Error(`crystalizer: unsupported option ${key}`);
+                        }
+                        stretched = await mapWork(stretched, async channel => {
+                          budget.allocateMemory(channel.length * Float32Array.BYTES_PER_ELEMENT);
+                          const output = new Float32Array(channel.length);
+                          const scale = Math.fround(1 / Math.fround(1 - intensity));
+                          let previous = 0;
+                          for (let i = 0; i < channel.length; i++) {
+                            if (i % 4096 === 0) {
+                              await yieldTurn(context.signal);
+                              context.signal?.throwIfAborted();
+                              budget.checkCpu();
+                            }
+                            const current = Math.fround(channel[i]!);
+                            const value = intensity < 0
+                              ? Math.fround(Math.fround(current - Math.fround(previous * intensity)) * scale)
+                              : Math.fround(current + Math.fround(Math.fround(current - previous) * intensity));
+                            previous = intensity < 0 ? value : current;
+                            output[i] = clip ? Math.max(-1, Math.min(1, value)) : value;
+                          }
+                          return output;
+                        }, context.signal);
                       } else if (trimmed === "extrastereo" || trimmed.startsWith("extrastereo=")) {
                         let multiplier = 2.5;
                         let clip = true;

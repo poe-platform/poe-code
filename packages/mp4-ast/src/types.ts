@@ -687,6 +687,8 @@ export interface SerializeMediaOptions {
   readonly writeId3v1?: boolean | undefined;
   /** FLAC metadata padding bytes; -1 selects 8192, zero disables padding. */
   readonly metadataHeaderPadding?: number | undefined;
+  /** GIF final frame delay in centiseconds; -1 preserves the source delay. */
+  readonly finalDelay?: number | undefined;
   readonly majorBrand?: string | undefined;
   readonly compatibleBrands?: readonly string[] | undefined;
   readonly metadata?: Mp4MetadataTags | undefined;

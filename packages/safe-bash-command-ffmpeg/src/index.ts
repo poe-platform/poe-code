@@ -2137,6 +2137,7 @@ export function evalSyncFfmpeg(
     let metadataHeaderPadding: number | undefined;
     let pageDuration: number | undefined;
     let apngPlays = 1;
+    let finalDelay: number | undefined;
     let serialOffset: number | undefined;
     let bitexact = false;
     let maxVideoFrames: number | undefined;
@@ -2290,6 +2291,10 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         compressionLevel = value?.trim() ? Number(value) : NaN;
         if (!Number.isInteger(compressionLevel)) throw new Error("invalid compression_level value");
+      } else if (arg === "-final_delay") {
+        const value = args[++i];
+        finalDelay = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(finalDelay) || finalDelay < -1 || finalDelay > 65535) throw new Error("Invalid final_delay: expected an integer from -1 to 65535");
       } else if (arg === "-plays") {
         const value = args[++i];
         apngPlays = value?.trim() ? Number(value) : NaN;
@@ -2520,7 +2525,7 @@ export function evalSyncFfmpeg(
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { writeBext, rf64, writePeak, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { writeBext, rf64, writePeak, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, metadata: metaTags, budget });
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -2779,6 +2784,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let metadataHeaderPadding: number | undefined;
         let pageDuration: number | undefined;
         let apngPlays = 1;
+        let finalDelay: number | undefined;
         let serialOffset: number | undefined;
         let bitexact = false;
         let maxVideoFrames: number | undefined;
@@ -3257,6 +3263,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             compressionLevel = value?.trim() ? Number(value) : NaN;
             if (!Number.isInteger(compressionLevel)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid compression_level value\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-final_delay") {
+            const value = args[++i];
+            finalDelay = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(finalDelay) || finalDelay < -1 || finalDelay > 65535) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid final_delay: expected an integer from -1 to 65535\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-plays") {
@@ -5784,6 +5797,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               id3v2Version,
               writeId3v1,
               metadataHeaderPadding,
+              finalDelay,
               pageDuration,
               serialOffset,
               metadata: metaTags,

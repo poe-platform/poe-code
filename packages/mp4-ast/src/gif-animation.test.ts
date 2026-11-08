@@ -77,3 +77,16 @@ it("terminates copied GIF packets when trimming removes the original trailer", (
   assert.throws(() => ast.serialize({ ...doc, tracks: [{ ...track, samples: track.samples.slice(1) }] }, { videoCodec: "copy" }), /initial GIF header/);
   assert.throws(() => ast.serialize({ ...doc, tracks: [{ ...track, codecDescriptions: [{ formatFourCC: "avc1", codecName: "h264" }] }] }, { videoCodec: "copy" }), /requires GIF packets/);
 });
+
+it("sets the final delay of an untimed GIF packet without changing its pixels", () => {
+  const ast = gifAst();
+  const bytes = encodeImage({ width: 1, height: 1, channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true, data: Uint8Array.of(255, 0, 0, 255) }, { format: "gif", gifVersion: "87a" }).data;
+  const doc = ast.parse(bytes);
+  const source = decodeImage(bytes);
+  for (const finalDelay of [0, 57, 65535]) {
+    const output = decodeImage(ast.serialize(doc, { videoCodec: "copy", gifLoop: -1, finalDelay }), { animated: true });
+    assert.deepEqual(output.delay, [finalDelay * 10]);
+    assert.deepEqual(output.data, source.data);
+    assert.deepEqual(decodeImage(bytes).data, source.data);
+  }
+});

@@ -6414,3 +6414,30 @@ describe("GIF output loop counts", () => {
     });
   }
 });
+
+describe("GIF final_delay", () => {
+  for (const sync of [false, true]) for (const copy of [false, true]) for (const delay of [undefined, -1, 0, 57, 65535]) {
+    it(`${sync ? "sync" : "async"} ${copy ? "copy" : "sequence"} final_delay=${delay}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const colors = [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]];
+      const image = { width: 1, height: 3, channels: 4 as const, format: "png" as const, space: "srgb" as const, depth: "uchar" as const, density: 72, hasAlpha: true, data: Uint8Array.from(colors.flat()) };
+      const vfs = createTestVfs({ "/in.gif": encodeImage(image, { format: "gif", pageHeight: 1, delay: [100, 200, 300] }).data });
+      for (const [index, color] of colors.entries()) vfs.store.set(`/f${index}.png`, encodeImage({ ...image, height: 1, data: Uint8Array.from(color) }, { format: "png" }).data);
+      const args = ["-y", ...(copy ? ["-i", "/in.gif", "-c:v", "copy"] : sync ? ["-i", "/in.gif"] : ["-framerate", "5", "-start_number", "0", "-i", "/f%d.png"]), ...(delay === undefined ? [] : ["-final_delay", String(delay)]), "/out.gif"];
+      if (sync) assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path), (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      else { const result = await runCmd(createFfmpegCommand(), args, vfs); assert.equal(result.exitCode, 0, result.stderr); }
+      const output = decodeImage(vfs.store.get("/out.gif")!, { animated: true });
+      assert.deepEqual(output.delay, [...(copy || sync ? [100, 200] : [200, 200]), delay === undefined || delay < 0 ? (copy || sync ? 300 : 200) : delay * 10]);
+      assert.deepEqual(output.data, image.data);
+    });
+  }
+  for (const sync of [false, true]) for (const value of ["-2", "65536", "1.5", "bad", ""]) {
+    it(`rejects invalid final_delay=${value} sync=${sync}`, async () => {
+      const vfs = createTestVfs({ "/out.gif": "keep" });
+      const args = ["-y", "-final_delay", value, "/out.gif"];
+      if (sync) assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path), () => false), undefined);
+      else { const result = await runCmd(createFfmpegCommand(), args, vfs); assert.notEqual(result.exitCode, 0); assert.ok(result.stderr.includes("final_delay"), result.stderr); }
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.gif")), "keep");
+    });
+  }
+});

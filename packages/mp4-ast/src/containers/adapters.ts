@@ -1587,9 +1587,10 @@ function gifPackets(bytes: Uint8Array): Uint8Array[] {
   return packets;
 }
 
-function rewriteGifLoop(bytes: Uint8Array, loop: number): Uint8Array {
+function rewriteGifLoop(bytes: Uint8Array, loop: number, finalDelay?: number): Uint8Array {
   let at = 13 + ((bytes[10]! & 128) ? 3 * (1 << ((bytes[10]! & 7) + 1)) : 0);
   const parts = [bytes.subarray(0, at)];
+  let controlIndex = -1, lastControlIndex = -1, lastImageIndex = -1;
   if (loop !== -1) {
     parts.push(Uint8Array.from([0x21, 0xff, 11, ...new TextEncoder().encode("NETSCAPE2.0"), 3, 1, loop & 255, loop >> 8, 0]));
   }
@@ -1600,9 +1601,13 @@ function rewriteGifLoop(bytes: Uint8Array, loop: number): Uint8Array {
     let loopExtension = false;
     if (marker === 0x21) {
       const label = bytes[at++];
+      if (label === 0xf9) controlIndex = parts.length;
       const name = new TextDecoder().decode(bytes.subarray(at + 1, at + 12));
       loopExtension = label === 0xff && bytes[at] === 11 && (name === "NETSCAPE2.0" || name === "ANIMEXTS1.0");
     } else if (marker === 0x2c) {
+      lastControlIndex = controlIndex;
+      lastImageIndex = parts.length;
+      controlIndex = -1;
       if (at + 9 > bytes.length) throw new Error("Truncated GIF image descriptor");
       const flags = bytes[at + 8]!;
       at += 10 + ((flags & 128) ? 3 * (1 << ((flags & 7) + 1)) : 0);
@@ -1616,8 +1621,18 @@ function rewriteGifLoop(bytes: Uint8Array, loop: number): Uint8Array {
     }
     if (!loopExtension) parts.push(bytes.subarray(start, at));
   }
+  if (finalDelay !== undefined && finalDelay >= 0 && lastImageIndex >= 0) {
+    if (lastControlIndex >= 0) {
+      const control = parts[lastControlIndex]!.slice();
+      control[4] = finalDelay & 255;
+      control[5] = finalDelay >> 8;
+      parts[lastControlIndex] = control;
+    } else {
+      parts.splice(lastImageIndex, 0, Uint8Array.from([0x21, 0xf9, 4, 0, finalDelay & 255, finalDelay >> 8, 0, 0]));
+    }
+  }
   const output = concatBytes(parts);
-  if (loop !== -1) output.set(new TextEncoder().encode("GIF89a"));
+  if (loop !== -1 || (finalDelay !== undefined && finalDelay >= 0)) output.set(new TextEncoder().encode("GIF89a"));
   return output;
 }
 
@@ -1680,7 +1695,7 @@ export function gifAst(): MediaAstPlugin {
         }
         if (packets.at(-1)!.at(-1) !== 0x3b) packets.push(Uint8Array.of(0x3b));
         options.budget?.checkOutputBytes(packets.reduce((size, packet) => size + packet.byteLength, 0));
-        return rewriteGifLoop(concatBytes(packets), loop);
+        return rewriteGifLoop(concatBytes(packets), loop, options.finalDelay);
       }
       const { frames, width, height } = extractVideoFramesFromDoc(doc);
       const count = Math.max(1, frames.length), frameSize = width * height * 4;
@@ -1695,6 +1710,9 @@ export function gifAst(): MediaAstPlugin {
         const ticks = Math.round(elapsed * 100);
         delays.push((ticks - previousTicks) * 10);
         previousTicks = ticks;
+      }
+      if (options?.finalDelay !== undefined && options.finalDelay >= 0 && delays.length > 0) {
+        delays[delays.length - 1] = options.finalDelay * 10;
       }
       return encodeImage(makeRgbaImage(width, height * count, data), {
         // image-ast counts total plays; FFmpeg counts repeats after the first play.

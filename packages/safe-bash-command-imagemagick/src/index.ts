@@ -5629,23 +5629,29 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-brightness-contrast") {
+        highDepth = true;
         const raw = (tokens[++i] ?? "").replaceAll(",", "x").replaceAll("/", "x");
         validateMagickTransformGeometry(raw, token);
         const [brightness = 0, contrast = 0] = raw.split("x").map(value => parseFloat(value) || 0);
         // ImageMagick BrightnessContrastImage: a polynomial centered at midgray.
         const slope = contrast < 0 ? 1 + contrast / 100 : 100 / (contrast === 100 ? 1e-12 : 100 - contrast);
-        const offset = (brightness / 100 * 255 - 127.5) * slope + 127.5;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = function* (image) {
             const out = new Uint8Array(image.data);
+            const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+            const samples = data16 ?? out, quantum = data16 ? 65535 : 255;
+            const offset = (brightness / 100 * quantum - quantum / 2) * slope + quantum / 2;
             const mask = [channels.r, channels.g, channels.b, channels.a && image.hasAlpha];
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 for (let channel = 0; channel < 4; channel++) {
-                    if (mask[channel]) out[idx + channel] = clampByteVal(out[idx + channel]! * slope + offset);
+                    if (!mask[channel]) continue;
+                    const sample = Math.max(0, Math.min(quantum, Math.round(samples[idx + channel]! * slope + offset)));
+                    if (data16) data16[idx + channel] = sample;
+                    out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
                 }
             }
-            return { ...image, data: out };
+            return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-threshold") {
         const raw = tokens[++i] ?? "50%", value = raw.endsWith("%") ? parseFloat(raw) / 100 * 255 : parseFloat(raw) / 257;

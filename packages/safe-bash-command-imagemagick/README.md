@@ -6,6 +6,8 @@ Use `-filter` to select a resize or non-right-angle rotation filter, including `
 
 Montage defaults to centered tiles in 120×120 cells, shrinking oversized images without enlarging smaller ones, with 4-pixel horizontal and 3-pixel vertical padding. Use `-geometry` to override the tile dimensions and spacing. `-frame 2x2+1+1` sets frame dimensions and bevels, and `+frame` removes frames. `-mode Frame` adds beveled frames and soft shadows; `-mattecolor` sets the frame color, and `-mode Unframe` restores ordinary tiles. Use `-shadow` to add shadows without frames and `+shadow` to disable them. Montage supports `-label` for subsequent images and `-set label` for images already read. Labels and titles use bundled bitmap glyphs. Explicit `-font` selections return an unsupported-font error because host fonts and custom font files are unavailable.
 
+Use `-morphology Dilate:2 Diamond:1` to run two dilation passes, or `Erode:2` for two erosion passes. Nonnegative integer method counts also apply to compound methods and convolution; zero leaves the image unchanged. Compound methods repeat each primitive in order (`Open:2` erodes twice, then dilates twice). Negative convergence counts are unsupported.
+
 ## Quickstart
 
 ```ts

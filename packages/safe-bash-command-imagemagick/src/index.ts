@@ -665,13 +665,22 @@ function magickMedianRows(spec: string): number[] {
   return Array<number>(height).fill((width - 1) / 2);
 }
 
+function parseMagickMorphologyMethod(raw: string): { method: string; iterations: number } {
+  const [method = "", count] = raw.toLowerCase().split(":");
+  const iterations = count === undefined ? 1 : Number(count);
+  if (!Number.isSafeInteger(iterations) || iterations < 0 || count === "")
+    throw new Error(`unsupported morphology iteration count '${raw}'`);
+  return { method, iterations };
+}
+
 type MorphologyStep = { mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"; source: number } | { mode: "diff"; a: number; b: number };
-function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: number[]; steps: MorphologyStep[] } {
-  if (methodRaw.toLowerCase() === "nonpeak") return { rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "nonpeak" }] };
-  if (methodRaw.toLowerCase() === "contrast") return { rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "contrast" }] };
-  if (methodRaw.toLowerCase() === "standarddeviation") return { rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "standarddeviation" }] };
-  if (methodRaw.toLowerCase() === "rootmeansquare" || methodRaw.toLowerCase() === "rms") return { rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "rms" }] };
-  if (methodRaw.toLowerCase() === "mode") return { rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "mode" }] };
+function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: number[]; steps: MorphologyStep[]; iterations: number } {
+  const { method, iterations } = parseMagickMorphologyMethod(methodRaw);
+  if (method === "nonpeak") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "nonpeak" }] };
+  if (method === "contrast") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "contrast" }] };
+  if (method === "standarddeviation") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "standarddeviation" }] };
+  if (method === "rootmeansquare" || method === "rms") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "rms" }] };
+  if (method === "mode") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "mode" }] };
   let rx = 1;
   let ry = 1;
   const colonIdx = kernelSpec.indexOf(":");
@@ -704,7 +713,7 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: nu
   const filter = (source: number, mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"): MorphologyStep => ({ source, mode });
   const diff = (a: number, b: number): MorphologyStep => ({ mode: "diff", a, b });
   let steps: MorphologyStep[];
-  switch (methodRaw.toLowerCase()) {
+  switch (method) {
     case "erode": case "minimum": steps = [filter(0, "min")]; break;
     case "median": steps = [filter(0, "median")]; break;
     case "mean": steps = [filter(0, "mean")]; break;
@@ -717,7 +726,7 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: nu
     case "bottomhat": steps = [filter(0, "max"), filter(1, "min"), diff(2, 0)]; break;
     default: steps = [filter(0, "max")];
   }
-  return { rows, steps };
+  return { rows, steps, iterations };
 }
 function* subtractMagickPixelSteps(a: Uint8Array, b: Uint8Array, hasAlpha: boolean, channels?: readonly boolean[]): Generator<void, Uint8Array, void> {
     const result = new Uint8Array(a.length);
@@ -729,13 +738,16 @@ function* subtractMagickPixelSteps(a: Uint8Array, b: Uint8Array, hasAlpha: boole
 }
 function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kernelSpec: string, signal?: AbortSignal, channels?: readonly boolean[]): Generator<void, RgbaImage, void> {
     const plan = magickMorphologyPlan(methodRaw, kernelSpec), images = [img];
+    if (plan.iterations === 0) return img;
     for (const step of plan.steps) {
         if (step.mode === "diff") {
             const a = images[step.a]!, b = images[step.b]!;
             images.push({ ...a, data: yield* subtractMagickPixelSteps(a.data, b.data, img.hasAlpha, channels) });
         } else {
-            const source = images[step.source]!;
-            images.push(yield* applyMagickRasterSteps(source, morphologyPixelSteps(source, plan.rows, step.mode, channels), signal));
+            let source = images[step.source]!;
+            for (let pass = 0; pass < plan.iterations; pass++)
+                source = yield* applyMagickRasterSteps(source, morphologyPixelSteps(source, plan.rows, step.mode, channels), signal);
+            images.push(source);
         }
     }
     return images.at(-1)!;
@@ -7344,9 +7356,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 kernelSpec = tokens[++i]!;
             }
             if (method.includes("convolve") || method.includes("correlate")) {
+                const { iterations } = parseMagickMorphologyMethod(method);
                 const kernel = parseMagickConvolveKernel(kernelSpec, false, method.includes("convolve"));
                 stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                    return kernel.weights.length ? yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0), signal) : im;
+                    for (let pass = 0; kernel.weights.length && pass < iterations; pass++)
+                        im = yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0), signal);
+                    return im;
                 });
             }
             else {
@@ -7836,6 +7851,7 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
 
 async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal, channels?: readonly boolean[]): Promise<StoredRgbaImage> {
     const images = [image], size = image.width * image.height * 4;
+    if (plan.iterations === 0) return image;
     for (const step of plan.steps) {
         if (step.mode === "diff") {
             const position = backend.storage.allocate(size);
@@ -7849,8 +7865,10 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
             }
             images.push({ ...image, position });
         } else {
-            const source = images[step.source]!;
-            images.push(await transformStoredMagickRaster(source, backend, morphologyPixelSteps(source, plan.rows, step.mode, channels), signal));
+            let source = images[step.source]!;
+            for (let pass = 0; pass < plan.iterations; pass++)
+                source = await transformStoredMagickRaster(source, backend, morphologyPixelSteps(source, plan.rows, step.mode, channels), signal);
+            images.push(source);
         }
     }
     return images.at(-1)!;
@@ -8745,8 +8763,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-statistic") spec = tokens[++i] ?? "3x3";
             else if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) spec = tokens[++i]!;
             if (token === "-morphology" && (method.includes("convolve") || method.includes("correlate"))) {
+                const { iterations } = parseMagickMorphologyMethod(method);
                 const kernel = parseMagickConvolveKernel(spec, false, method.includes("convolve"));
-                steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
+                steps.push(async (image, backend) => {
+                    for (let pass = 0; image && kernel.weights.length && pass < iterations; pass++)
+                        image = await transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal);
+                    return image;
+                });
             } else {
                 const plan = magickMorphologyPlan(method, spec);
                 const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;

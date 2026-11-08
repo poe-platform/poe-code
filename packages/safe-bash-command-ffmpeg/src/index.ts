@@ -5287,6 +5287,28 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           start = end;
                         }
                         stretched = output;
+                      } else if (trimmed === "acontrast" || trimmed.startsWith("acontrast=")) {
+                        let contrast = 33;
+                        const argument = trimmed.slice("acontrast=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? (index === 0 ? "contrast" : "") : option.slice(0, separator).trim();
+                          const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          const value = Number(raw);
+                          if (key !== "contrast" || !raw || !Number.isFinite(value) || value < 0 || value > 100) {
+                            throw new Error("acontrast: expected contrast between 0 and 100");
+                          }
+                          contrast = Math.fround(value);
+                        }
+                        const amount = Math.fround(contrast / 750);
+                        for (const channel of stretched) {
+                          for (let i = 0; i < channel.length; i++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            // Native PCM uses the float transfer, including intermediate rounding.
+                            const angle = Math.fround(channel[i]! * Math.PI / 2);
+                            channel[i] = Math.sin(Math.fround(angle + Math.fround(amount * Math.fround(Math.sin(angle * 4)))));
+                          }
+                        }
                       } else if (trimmed === "dcshift" || trimmed.startsWith("dcshift=")) {
                         const argument = trimmed === "dcshift" ? "0" : trimmed.slice("dcshift=".length).trim();
                         const value = argument.startsWith("shift=") ? argument.slice("shift=".length).trim() : argument;

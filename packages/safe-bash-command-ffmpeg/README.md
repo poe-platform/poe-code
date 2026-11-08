@@ -133,6 +133,8 @@ must have matching sample rates; preceding filters other than `anull` are unsupp
 
 `dynaudnorm=f=100:g=5:p=0.5` normalizes changing PCM levels with smoothed frame gains and coupled channels. Supports frame length (`f`/`framelen`), Gaussian window (`g`/`gausssize`), peak (`p`/`peak`), and maximum gain (`m`/`maxgain`); other options fail explicitly.
 
+`acontrast=contrast=50` applies a nonlinear audio contrast transfer while preserving sample rate, channels, and frame count. Contrast ranges from 0 to 100 (default 33); positional `acontrast=50` is also supported. Zero contrast still applies the native sine transfer.
+
 `tremolo=f=5:d=0.75` modulates PCM volume while preserving sample rate, channels, and frame count. Frequency (`f`, 0.1–20000 Hz) defaults to 5 Hz; depth (`d`, 0–1) defaults to 0.5. Positional `tremolo=5:0.75` is also supported.
 
 `afade=t=in:ss=1000:ns=2000` fades PCM without changing its length. Fade out with `t=out`; use `st`/`d` for timing in seconds or `ss`/`ns` for sample counts. Linear (`tri`, default) and quadratic (`qua`) curves support fractional `silence` and `unity` gains. Long option names are also accepted.

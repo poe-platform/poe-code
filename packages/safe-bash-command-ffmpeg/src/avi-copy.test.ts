@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
-import { parseAvi } from "@poe-code/mp4-ast";
+import { createSyntheticMp4, parseMp4, serializeMp4, parseAvi } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
 const input = new Uint8Array(readFileSync(new URL("../../mp4-ast/src/fixtures/multitrack.avi", import.meta.url)));
@@ -78,3 +78,39 @@ it("MP4 to AVI copy preserves all five nonuniform packet times", async () => {
     assert.deepEqual(track.samples.map(sample => sample.dts / track.timescale), [0, 0.1, 0.2, 0.8, 0.9]);
     assert.equal(actual.durationSeconds, 1);
 });
+
+for (const [sarWidth, sarHeight, packedDar] of [[4, 3, 0x00100009], [1, 1, 0x00040003]] as const) {
+  it(`MP4 to AVI copy preserves display aspect for SAR ${sarWidth}:${sarHeight}`, async () => {
+    const doc = parseMp4(createSyntheticMp4({ width: 64, height: 48, frameCount: 2 }));
+    const track = doc.tracks[0]!;
+    const source = serializeMp4({ ...doc, tracks: [{ ...track,
+      codecDescriptions: [{ ...track.codecDescriptions[0]!, sarWidth, sarHeight }]
+    }] });
+    const files = new Map<string, Uint8Array>([["/in.mp4", source]]);
+    const errors: Uint8Array[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-i", "/in.mp4", "-map", "0:v", "-c", "copy", "/out.avi"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return files.get(path)!; },
+        async writeFile(path: string, bytes: Uint8Array) { files.set(path, bytes); },
+        async stat(path: string) {
+          if (!files.has(path)) throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+          return { type: "file", size: files.get(path)!.length, mode: 0o644, mtimeMs: 0 };
+        }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+    const output = Buffer.from(files.get("/out.avi")!);
+    const offset = output.indexOf("vprp");
+    assert.ok(offset > 0);
+    assert.equal(output.readUInt32LE(offset + 28), packedDar);
+    const copied = parseAvi(output).tracks[0]!;
+    assert.equal(copied.width, 64);
+    assert.equal(copied.height, 48);
+    assert.deepEqual(copied.samples.map(sample => sample.data), track.samples.map(sample => sample.data));
+  });
+}

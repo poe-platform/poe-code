@@ -118,3 +118,26 @@ it("preserves each nonuniform packet time using empty AVI chunks", () => {
   }
   assert.deepEqual(codedSlots, times);
 });
+
+for (const [sarWidth, sarHeight, darWidth, darHeight] of [[4, 3, 16, 9], [1, 1, 4, 3], [8, 9, 32, 27], [65536, 1, 65535, 1]] as const) {
+  it(`writes AVI display proportions for SAR ${sarWidth}:${sarHeight}`, () => {
+    const source = parseMp4(createSyntheticMp4({ width: 64, height: 48, frameCount: 2 }));
+    const track = source.tracks[0]!;
+    const output = Buffer.from(serializeAvi({ ...source, tracks: [{ ...track,
+      codecDescriptions: [{ ...track.codecDescriptions[0]!, sarWidth, sarHeight }]
+    }] }));
+    const offset = output.indexOf("vprp");
+    assert.ok(offset > 0, "AVI video stream must include vprp");
+    assert.equal(output.readUInt32LE(offset + 4), 68);
+    assert.equal(output.readUInt32LE(offset + 28), darWidth * 65536 + darHeight);
+    assert.equal(output.readUInt32LE(offset + 32), 64);
+    assert.equal(output.readUInt32LE(offset + 36), 48);
+    assert.equal(output.readUInt32LE(offset + 40), 1);
+    assert.deepEqual(Array.from({ length: 8 }, (_, i) => output.readUInt32LE(offset + 44 + i * 4)),
+      [48, 64, 48, 64, 0, 0, 0, 0]);
+    const copied = parseAvi(output).tracks[0]!;
+    assert.equal(copied.width, 64);
+    assert.equal(copied.height, 48);
+    assert.deepEqual(copied.samples.map(sample => sample.data), track.samples.map(sample => sample.data));
+  });
+}

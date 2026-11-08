@@ -433,6 +433,7 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
     const desc = track.codecDescriptions[0];
     const strh = new BinaryWriter(56);
     const strf = new BinaryWriter();
+    const vprp = new BinaryWriter();
     let samples = track.samples;
     let payloads: Uint8Array[];
     let slotTicks = 0;
@@ -493,6 +494,30 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
       strf.writeU32LE(w * h * 3);
       strf.writeZeros(16);
 
+      if (desc?.sarWidth && desc.sarHeight) {
+        const numerator = w * desc.sarWidth;
+        const denominator = h * desc.sarHeight;
+        const divisor = gcd(numerator, denominator);
+        // vprp packs the display ratio into two unsigned 16-bit fields.
+        const factor = Math.max(1, numerator / divisor / 65535, denominator / divisor / 65535);
+        const darWidth = Math.max(1, Math.round(numerator / divisor / factor));
+        const darHeight = Math.max(1, Math.round(denominator / divisor / factor));
+        vprp.writeU32LE(0); // Video format token
+        vprp.writeU32LE(0); // Video standard
+        vprp.writeU32LE(Math.round(rate / scale));
+        vprp.writeU32LE(w);
+        vprp.writeU32LE(h);
+        vprp.writeU32LE(darWidth * 65536 + darHeight);
+        vprp.writeU32LE(w);
+        vprp.writeU32LE(h);
+        vprp.writeU32LE(1); // One progressive field
+        vprp.writeU32LE(h);
+        vprp.writeU32LE(w);
+        vprp.writeU32LE(h);
+        vprp.writeU32LE(w);
+        vprp.writeZeros(16); // Field offsets
+      }
+
       if (codec === "H264") {
         const { sps, pps } = buildH264SpsPps(w, h, rate / scale);
         const spsList = desc?.avcC?.sps.length ? desc.avcC.sps : [sps];
@@ -543,7 +568,8 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
 
     strlLists.push(makeRiffList("strl", [
       makeRiffChunk("strh", strh.toUint8Array()),
-      makeRiffChunk("strf", strf.toUint8Array())
+      makeRiffChunk("strf", strf.toUint8Array()),
+      ...(vprp.toUint8Array().length ? [makeRiffChunk("vprp", vprp.toUint8Array())] : [])
     ]));
     let sampleIndex = 0;
     for (let slot = 0; slot < slotCount; slot++) {

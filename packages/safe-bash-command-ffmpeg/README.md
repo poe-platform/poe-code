@@ -85,7 +85,8 @@ stream, in output order, labeled `0,a,SHA256=...`, `1,a,SHA256=...`, and so on.
 Hash selection supports MD5, SHA160, SHA224, SHA256, SHA384, and SHA512.
 Audio filters and explicit PCM encoders apply before hashing; `-c:a copy` hashes
 the encoded audio packets. Use `-vn` to exclude video.
-Read headerless samples with input format, rate, and channel options:
+Read headerless samples, including unsigned `u16le/be`, `u24le/be`, and `u32le/be`,
+with input format, rate, and channel options:
 `ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
 With `-c:a copy`, input `-ss` seeks to the exact sample frame; output `-ss` starts at the next raw packet. Transcoding seeks to the exact sample in either position.
 

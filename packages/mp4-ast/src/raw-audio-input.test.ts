@@ -60,3 +60,28 @@ for (const [sampleRate, packetFrames] of [[8000, 512], [44100, 4096], [48000, 40
     }), /maxSamplesPerTrack/);
   });
 }
+
+for (const bits of [16, 24, 32]) {
+  for (const endian of ["le", "be"]) {
+    it(`decodes unsigned ${bits}-bit ${endian} endpoints and midpoint without losing precision`, () => {
+      const format = `u${bits}${endian}`;
+      const input = rawAudioAsts().find(plugin => plugin.id === format)!;
+      const midpoint = 2 ** (bits - 1);
+      const values = [0, midpoint - 1, midpoint, midpoint + 1, midpoint * 2 - 1];
+      const bytes = Buffer.alloc(values.length * bits / 8);
+      values.forEach((value, index) => {
+        if (endian === "le") bytes.writeUIntLE(value, index * bits / 8, bits / 8);
+        else bytes.writeUIntBE(value, index * bits / 8, bits / 8);
+      });
+      const doc = input.parse(bytes, { sampleRate: 8000 });
+      assert.deepEqual(Array.from(doc.tracks[0]!.decodedAudio!.channelData[0]!),
+        values.map(value => (value - midpoint) / midpoint));
+      assert.equal(doc.tracks[0]!.codecDescriptions[0]!.codecName, `pcm_${format}`);
+      // Native FFmpeg output: narrowing integer PCM discards the low bits.
+      const expected = bits === 16 ? "0080ffff00000100ff7f" : "0080ffff00000000ff7f";
+      const output = rawAudioAsts().find(plugin => plugin.id === "s16le")!.serialize(doc);
+      assert.equal(Buffer.from(output).toString("hex"), expected);
+      assert.throws(() => input.parse(bytes.subarray(1)), /Incomplete/);
+    });
+  }
+}

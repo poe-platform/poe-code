@@ -67,6 +67,7 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
     channelData = Array.from({ length: channels }, () => new Float64Array(frames));
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const le = format.endsWith("le");
+    const unsigned = format.startsWith("u");
     for (let frame = 0; frame < frames; frame++) {
       if (frame % 4096 === 0) budget.checkCpu();
       for (let ch = 0; ch < channels; ch++) {
@@ -83,12 +84,12 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
           const magnitude = exponent === 0 ? (code & 15) * 16 + 8 : ((code & 15) * 16 + 264) * 2 ** (exponent - 1);
           value = (code & 128 ? magnitude : -magnitude) / 32768;
         } else if (bits === 8) value = format === "u8" ? (bytes[offset]! - 128) / 128 : view.getInt8(offset) / 128;
-        else if (bits === 16) value = view.getInt16(offset, le) / 32768;
+        else if (bits === 16) value = (unsigned ? view.getUint16(offset, le) - 32768 : view.getInt16(offset, le)) / 32768;
         else if (bits === 24) {
           const packed = le ? bytes[offset]! | bytes[offset + 1]! << 8 | bytes[offset + 2]! << 16
             : bytes[offset + 2]! | bytes[offset + 1]! << 8 | bytes[offset]! << 16;
-          value = (packed << 8 >> 8) / 8388608;
-        } else value = view.getInt32(offset, le) / 2147483648;
+          value = (unsigned ? packed - 8388608 : packed << 8 >> 8) / 8388608;
+        } else value = (unsigned ? view.getUint32(offset, le) - 2147483648 : view.getInt32(offset, le)) / 2147483648;
         if (!Number.isFinite(value)) throw new Error("Non-finite raw audio sample");
         channelData[ch]![frame] = value;
       }
@@ -108,14 +109,14 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
 
 /** Headerless audio requires an explicit format; it cannot be detected from bytes. */
 export function rawAudioAsts(): MediaAstPlugin[] {
-  return formats.map(format => ({
+  return [...formats, "u16le", "u16be", "u24le", "u24be", "u32le", "u32be"].map(format => ({
     id: format,
     formatName: format,
     formatLongName: `Raw ${format} audio`,
     extensions: [],
     mimeTypes: [],
     canDemux: true,
-    canMux: true,
+    canMux: formats.includes(format),
     supportedVideoCodecs: [],
     supportedAudioCodecs: [`pcm_${format}`],
     detect: () => false,
@@ -145,7 +146,7 @@ export function rawAudioAsts(): MediaAstPlugin[] {
       const companded = codec === "mulaw" || codec === "alaw";
       const bits = companded ? 8 : Number.parseInt(codec.slice(1), 10);
       // Integer PCM narrowing discards low bits; floating-point sources round.
-      const truncate = !companded && sourceCodec?.startsWith("pcm_s") &&
+      const truncate = !companded && (sourceCodec?.startsWith("pcm_s") || sourceCodec?.startsWith("pcm_u")) &&
         (track.codecDescriptions[0]?.bitsPerSample ?? 0) > bits;
       const bytesPerSample = bits / 8;
       const channels = audio.channelData.length;

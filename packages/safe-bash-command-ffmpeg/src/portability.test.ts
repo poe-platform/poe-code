@@ -205,6 +205,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes tanh soft clipping and the current media dependency graph (10,297,108 bytes).
   // Includes transpose validation and geometry passthrough (10,299,197 bytes).
   // Includes rotate fill colors and the current rotation sampling graph.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_303_000,
+  // Includes fps option validation and timestamp rounding (10,303,456 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_304_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

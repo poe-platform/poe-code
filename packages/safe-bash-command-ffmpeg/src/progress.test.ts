@@ -29,6 +29,31 @@ async function run(flags: string[], output = ["-f", "null", "-"], video = false)
   return { ...result, stdout, stderr, volume };
 }
 
+for (const video of [false, true]) {
+  it(`keeps progress timestamps unavailable for empty ${video ? "video" : "audio"} output`, async () => {
+    const result = await run(["-progress", "pipe:1"], ["-t", "0", "-f", "null", "-"], video);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const records = Object.fromEntries(result.stdout.trim().split("\n").map(line => line.split("=")));
+    assert.equal(records.out_time_us, "N/A");
+    assert.equal(records.out_time_ms, "N/A");
+    assert.equal(records.out_time, "N/A");
+    assert.equal(records.progress, "end");
+    assert.equal(result.stderr, "");
+  });
+}
+
+it("preserves a measured zero timestamp when video frames were produced", async () => {
+  const result = await run(["-progress", "pipe:1"],
+    ["-frames:v", "1", "-output_ts_offset", "-0.5", "-f", "null", "-"], true);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const records = Object.fromEntries(result.stdout.trim().split("\n").map(line => line.split("=")));
+  assert.equal(records.out_time_us, "0");
+  assert.equal(records.out_time_ms, "0");
+  assert.equal(records.out_time, "00:00:00.000000");
+  assert.equal(records.frame, "1");
+  assert.equal(records.progress, "end");
+});
+
 for (const flags of [[], ["-nostats"]]) {
   it(`reports native completion records with ${flags.join(" ") || "default stats"}`, async () => {
     const result = await run(["-progress", "pipe:1", ...flags]);

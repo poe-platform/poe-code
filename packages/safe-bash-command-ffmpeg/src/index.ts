@@ -7719,8 +7719,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const progress = encodeUtf8([
           ...(progressFrames === undefined ? [] : [`frame=${progressFrames}`, `fps=${(elapsedSeconds > 1 ? progressFrames / elapsedSeconds : 0).toFixed(2)}`, ...progressQuality]),
           `bitrate=${progressSize !== undefined && microseconds > 0 ? `${(progressSize * 8000 / microseconds).toFixed(1)}kbits/s` : "N/A"}`,
-          `total_size=${progressSize ?? "N/A"}`, `out_time_us=${microseconds}`,
-          `out_time_ms=${microseconds}`, `out_time=${time}`, "dup_frames=0",
+          `total_size=${progressSize ?? "N/A"}`, `out_time_us=${hasOutputFrames ? microseconds : "N/A"}`,
+          `out_time_ms=${hasOutputFrames ? microseconds : "N/A"}`, `out_time=${hasOutputFrames ? time : "N/A"}`, "dup_frames=0",
           "drop_frames=0", "speed=N/A", "progress=end", ""
         ].join("\n"));
         try {

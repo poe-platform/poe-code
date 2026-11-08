@@ -1925,7 +1925,7 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = 255 * Math.exp(vFactor * (cur / 255));
                     break;
                 case "log":
-                    next = 255 * (Math.log(1 + Math.max(1e-6, vFactor) * (cur / 255)) / Math.log(1 + Math.max(1e-6, vFactor)));
+                    next = vFactor === 0 ? 0 : 255 * Math.log(1 + vFactor * (cur / 255)) / Math.log(1 + vFactor);
                     break;
                 case "inverselog":
                     next = vFactor === 0 ? 255 : 255 * Math.pow(vFactor + 1, cur / 255 - 1) / vFactor;

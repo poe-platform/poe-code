@@ -15,6 +15,9 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         { operator: "InverseLog", value: "2", channels: ["-channel", "RGB"], expected: [50, 65, 92, 64] },
         { operator: "InverseLog", value: "2", channels: ["-channel", "A"], expected: [40, 100, 180, 56] },
         { operator: "Log", value: "2", channels: [], expected: [63, 134, 204, 94] },
+        { operator: "Log", value: "0", channels: [], expected: [0, 0, 0, 0] },
+        { operator: "Log", value: "-0.5", channels: [], expected: [30, 80, 160, 49] },
+        { operator: "Log", value: "-0.5", channels: ["-channel", "RGB"], expected: [30, 80, 160, 64] },
     ])(`matches native $operator $value $channels via ${mode}`, async ({ operator, value, channels, expected }) => {
         const input = await sharp(Uint8Array.from([40, 100, 180, 64]), {
             raw: { width: 1, height: 1, channels: 4 }

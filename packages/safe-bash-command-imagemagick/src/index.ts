@@ -5141,6 +5141,7 @@ function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" 
         for (let k = s; k <= e; k++) yield k;
         continue;
       }
+      if (num! >= length) throw new Error(`invalid image index ${num}`);
       const s = resolve(num!), e = resolve(end), step = s <= e ? 1 : -1;
       for (let k = s;; k += step) { yield k; if (k === e) break; }
     } else {

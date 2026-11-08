@@ -17,6 +17,12 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         { args: ["r.png", "g.png", "-duplicate", "1,0,0"], pixels: [red, green, red, red] },
         { args: ["r.png", "g.png", "-clone", "0-3"], pixels: [red, green, red, green] },
         { args: ["r.png", "g.png", "-duplicate", "1,0-3"], pixels: [red, green, red, green] },
+        ...["5-7", "3-0"].flatMap(spec => [
+            { args: ["r.png", "g.png", "b.png", "-clone", spec], pixels: null },
+            { args: ["r.png", "g.png", "b.png", "-duplicate", `1,${spec}`], pixels: null }
+        ]),
+        { args: ["r.png", "g.png", "b.png", "-clone", "0-5"], pixels: [red, green, blue, red, green, blue] },
+        { args: ["r.png", "g.png", "b.png", "-duplicate", "1,0-5"], pixels: [red, green, blue, red, green, blue] },
         { args: ["r.png", "g.png", "-clone", "0"], pixels: [red, green, red] },
         { args: ["r.png", "g.png", "+clone"], pixels: [red, green, green] },
         { args: ["r.png", "(", "+clone", ")"], pixels: [red, red] },

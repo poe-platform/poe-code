@@ -6456,6 +6456,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   selectedTracks.push(...matches.map(track => ({ input: inputIdx, track })));
                 }
               }
+              if (outPlugin?.id === "mp4") {
+                const streamIndex = selectedTracks.filter(({ track }) => !("samples" in track) ||
+                  !(stripVideo && track.type === "video" || stripAudio && track.type === "audio" || stripSubtitles && track.type === "subtitle"))
+                  .findIndex(({ track }) => "samples" in track && track.codecDescriptions[0]?.formatFourCC === "tmcd");
+                if (streamIndex >= 0) {
+                  await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Could not find tag for codec none in stream #${streamIndex}, codec not currently supported in container\n`), context.signal);
+                  if (!isStdout(outputTarget) && outputTarget !== "/dev/null") {
+                    await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
+                  }
+                  return { exitCode: 234 };
+                }
+              }
               if (!stripVideo && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) {
                 for (const { input, track } of [...selectedTracks]) {
                   if (!("samples" in track) || track.type !== "video" || track.timecodeTrackId === undefined) continue;

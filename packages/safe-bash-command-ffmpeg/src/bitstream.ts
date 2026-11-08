@@ -21,6 +21,16 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
   filters.push(value.trim());
   for (const filter of filters) {
     if (filter === "null") continue;
+    if (filter === "aac_adtstoasc") {
+      for (const track of tracks) {
+        if (track.type !== type) continue;
+        for (const codec of track.codecDescriptions) {
+          if (codec.codecName !== "aac") throw new Error(`aac_adtstoasc bitstream filter does not support codec ${codec.codecName}`);
+        }
+      }
+      // Demuxers already expose AAC access units and AudioSpecificConfig.
+      continue;
+    }
     if (filter === "chomp") {
       tracks = tracks.map(track => track.type !== type ? track : {
         ...track,

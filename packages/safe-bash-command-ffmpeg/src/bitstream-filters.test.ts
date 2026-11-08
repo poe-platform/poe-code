@@ -1,8 +1,41 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { encodeWav } from "@poe-code/audio-ast";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { concatBytes, createSyntheticMp4, parseMp4, serializeMp4 } from "@poe-code/mp4-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
+
+for (const sync of [false, true]) {
+  for (const aac of [false, true]) {
+    it(`aac_adtstoasc validates the audio codec (aac=${aac}, sync=${sync})`, async () => {
+      const input = aac
+        ? readFileSync(new URL("../../mp4-ast/src/fixtures/aac-external.mp4", import.meta.url))
+        : encodeWav({ sampleRate: 8000, channels: [Float64Array.from({ length: 20 }, (_, i) => (i + 1) / 32768)] });
+      const source = aac ? "/in.m4a" : "/in.wav";
+      const target = aac ? "/out.m4a" : "/out.wav";
+      const volume = Volume.fromJSON({ [source]: Buffer.from(input), [target]: "EXISTING" });
+      const args = ["-v", "error", "-y", "-i", source, "-c:a", "copy", "-bsf:a", "null,aac_adtstoasc,null", target];
+      if (sync) {
+        const result = evalSyncFfmpeg(args, undefined,
+          path => volume.readFileSync(path) as Buffer,
+          (path, bytes) => { volume.writeFileSync(path, bytes); return true; });
+        assert.equal(result, aac ? "" : undefined);
+      } else {
+        const result = await run(volume, args);
+        if (aac) assert.equal(result.exitCode, 0, result.stderr);
+        else {
+          assert.notEqual(result.exitCode, 0);
+          assert.ok(result.stderr.includes("aac_adtstoasc") && result.stderr.includes("pcm_s16le"), result.stderr);
+        }
+      }
+      if (aac) {
+        assert.deepEqual(parseMp4(volume.readFileSync(target) as Buffer).tracks[0]!.samples.map(sample => sample.data),
+          parseMp4(input).tracks[0]!.samples.map(sample => sample.data));
+      } else assert.equal(volume.readFileSync(target, "utf8"), "EXISTING");
+    });
+  }
+}
 
 for (const flag of ["-bsf:v", "-bsf:a", "-bsf", "-bsf:v:0"]) {
   for (const filter of ["not_a_filter", "h264_metadata=aud=bogus", "null,not_a_filter", "null=bogus", "null,", ""]) {

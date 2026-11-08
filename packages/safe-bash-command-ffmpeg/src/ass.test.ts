@@ -30,7 +30,9 @@ for (const sync of [false, true]) {
       const fontText = '<font face="Courier New"><font size="24"><font color="#ff0000">RED</font></font></font>';
       const fontAss = nativeAss.slice(0, nativeAss.indexOf("Dialogue:")) +
         String.raw`Dialogue: 3,0:00:01.00,0:00:03.00,Default,Actor,0010,0020,0030,,{\fnCourier New\fs24\c&H0000FF&}RED` + "\n";
-      const volume = Volume.fromJSON({ "/input.srt": srt, "/native.ass": nativeAss, "/font.ass": fontAss });
+      const hardSpaceAss = nativeAss.slice(0, nativeAss.indexOf("Dialogue:")) +
+        String.raw`Dialogue: 3,0:00:01.00,0:00:03.00,Default,Actor,0010,0020,0030,,one\ntwo\Nthree\hfour` + "\n";
+      const volume = Volume.fromJSON({ "/input.srt": srt, "/native.ass": nativeAss, "/font.ass": fontAss, "/hard-space.ass": hardSpaceAss });
       const run = async (args: string[]) => {
         if (sync) {
           assert.equal(evalSyncFfmpeg(args, undefined,
@@ -56,6 +58,9 @@ for (const sync of [false, true]) {
       await run(["-i", "/font.ass", "/font.srt"]);
       assert.equal(String(volume.readFileSync("/font.srt", "utf8")).trimEnd(),
         "1\n00:00:01,000 --> 00:00:03,000\n" + fontText);
+      await run(["-i", "/hard-space.ass", ...(explicit ? ["-c:s", "srt", "-f", "srt"] : []), "/hard-space.srt"]);
+      assert.equal(volume.readFileSync("/hard-space.srt", "utf8"),
+        "1\n00:00:01,000 --> 00:00:03,000\none\ntwo\nthree\\hfour\n\n");
       for (const input of ["/out.ass", "/native.ass"]) {
         await run(["-y", "-i", input, "/out.srt"]);
         assert.equal(String(volume.readFileSync("/out.srt", "utf8")).trimEnd(), srt.trimEnd());
@@ -67,4 +72,9 @@ for (const sync of [false, true]) {
 it("preserves font overrides in Matroska ASS packets", () => {
   assert.equal(decodeMatroskaAss(String.raw`0,3,Default,Actor,0010,0020,0030,,{\fnCourier New\fs24\c&H0000FF&}RED`),
     '<font face="Courier New"><font size="24"><font color="#ff0000">RED</font></font></font>');
+});
+
+it("preserves hard-space escapes and literal nonbreaking spaces in Matroska ASS packets", () => {
+  assert.equal(decodeMatroskaAss("0,3,Default,Actor,0010,0020,0030,,one\\h two\u00a0three"),
+    "one\\h two\u00a0three");
 });

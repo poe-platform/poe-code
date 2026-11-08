@@ -16,7 +16,7 @@ it("reads native ASS event fields, commas, Unicode, overrides and line breaks", 
   const doc = plugin.parse(bytes);
   const samples = doc.tracks[0]!.samples;
   assert.deepEqual(samples.map(sample => [sample.pts, sample.duration, decodeUtf8(sample.data)]), [
-    [1250, 2250, "first"], [3723450, 1220, "Hello, 世界\nnext\nline\u00a0space"]
+    [1250, 2250, "first"], [3723450, 1220, "Hello, 世界\nnext\nline\\hspace"]
   ]);
   const restored = plugin.parse(plugin.serialize(doc));
   assert.deepEqual(restored.tracks[0]!.samples, samples);

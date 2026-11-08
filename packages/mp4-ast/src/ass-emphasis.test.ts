@@ -5,7 +5,7 @@ import { decodeUtf8, encodeUtf8 } from "./binary.js";
 
 for (const [text, expected] of [
   [String.raw`A{\i1}I{\i0}B{\b1}B{\b0}U{\u1}U{\u0}Z`, "A<i>I</i>B<b>B</b>U<u>U</u>Z"],
-  [String.raw`{\pos(1,2)\i1\b1}Hello, 世界{\i0}bold{\r}\Nnext\nline\hspace`, "<i><b>Hello, 世界</b></i><b>bold</b>\nnext\nline\u00a0space"],
+  [String.raw`{\pos(1,2)\i1\b1}Hello, 世界{\i0}bold{\r}\Nnext\nline\hspace`, "<i><b>Hello, 世界</b></i><b>bold</b>\nnext\nline\\hspace"],
   [String.raw`{\u1}underlined`, "<u>underlined</u>"],
   [String.raw`{\i1}one{\i1}two{\i0}{\i0}`, "<i>onetwo</i>"]
 ]) {

@@ -57,8 +57,10 @@ export function decodeAssText(text: string): string {
         continue;
       }
     }
-    if (text[i] === "\\" && ["N", "n", "h"].includes(text[i + 1]!)) {
-      result += text[++i] === "h" ? "\u00a0" : "\n";
+    // FFmpeg's text subtitle encoders retain hard-space escapes literally.
+    if (text[i] === "\\" && ["N", "n"].includes(text[i + 1]!)) {
+      result += "\n";
+      i++;
     } else result += text[i];
   }
   while (active.length) close(active.at(-1)!.key);

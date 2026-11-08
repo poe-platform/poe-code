@@ -791,6 +791,8 @@ export interface ConcatMediaOptions {
 }
 
 export interface SliceMediaOptions {
+  /** Keep the full final compressed audio packet when stream copying. */
+  readonly copyAudio?: boolean | undefined;
   readonly startSeconds?: number | undefined;
   readonly endSeconds?: number | undefined;
   readonly durationSeconds?: number | undefined;

@@ -2140,7 +2140,8 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
       const s = materialized.samples[i]!;
       if (s.dts >= endTick) break;
       const sampleStart = useEditList ? s.dts : Math.max(startTick, s.dts);
-      const clippedDuration = Math.max(0, Math.min(s.dts + s.duration, endTick) - sampleStart);
+      const clippedDuration = options.copyAudio && track.type === "audio" && !track.decodedAudio
+        ? s.duration : Math.max(0, Math.min(s.dts + s.duration, endTick) - sampleStart);
       const isPromotedFirst = i === actualStartIdx && promotedFirstSampleData !== undefined;
       const sampleData = isPromotedFirst ? promotedFirstSampleData! : s.data;
       slicedSamples.push({
@@ -2158,7 +2159,7 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
     let editList: Mp4EditListEntry[] | undefined;
     if (useEditList && slicedSamples.length > 0 && materialized.samples[actualStartIdx]!.dts < startTick) {
       const mediaSkipTicks = Math.max(0, startTick - materialized.samples[actualStartIdx]!.dts);
-      const segmentDurMovie = Math.round(Math.max(0, Math.min(endTick, materialized.samples[actualStartIdx]!.dts + runningDts) - startTick) / ts * movieTimescale);
+      const segmentDurMovie = Math.round(Math.max(0, Math.min(options.copyAudio && track.type === "audio" ? Infinity : endTick, materialized.samples[actualStartIdx]!.dts + runningDts) - startTick) / ts * movieTimescale);
       editList = [
         {
           segmentDuration: segmentDurMovie,

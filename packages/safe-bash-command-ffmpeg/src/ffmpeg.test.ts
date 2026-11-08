@@ -3287,6 +3287,41 @@ describe("drawbox timeline enable", () => {
   }
 });
 
+describe("drawbox detection box source", () => {
+  for (const source of [":box_source=side_data_detection_bboxes", ":0:side_data_detection_bboxes", ""]) {
+    it(`respects the selected source ${source || "explicit geometry"} across three frames`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const data = new Uint8Array(Array.from({ length: 64 }, () => [20, 40, 60, 80]).flat());
+      const input = encodeImage({
+        width: 8, height: 8, channels: 4, data,
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice() });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "1", "-i", "/in%d.png", "-vf", `drawbox=1:1:6:6:red:1${source}`,
+        "-frames:v", "3", "/out%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const expected = data.slice();
+      if (!source) {
+        for (let y = 1; y <= 6; y++) {
+          for (let x = 1; x <= 6; x++) {
+            if (x === 1 || x === 6 || y === 1 || y === 6) {
+              expected.set([255, 0, 0, 80], (y * 8 + x) * 4);
+            }
+          }
+        }
+      }
+      for (let frame = 1; frame <= 3; frame++) {
+        const output = decodeImage(vfs.store.get(`/out${frame}.png`)!);
+        assert.equal(output.width, 8);
+        assert.equal(output.height, 8);
+        assert.deepEqual(output.data, expected, `frame ${frame}`);
+      }
+    });
+  }
+});
+
 describe("drawbox default color", () => {
   for (const options of ["0:0:8:8", "x=0:y=0:w=8:h=8", "0:0:8:8:black:3", "0:0:8:8:red:3"]) {
     it(`matches native RGBA pixels for ${options} across three frames`, async () => {

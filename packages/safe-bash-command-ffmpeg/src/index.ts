@@ -2691,12 +2691,16 @@ async function applyVideoFilterChain(
     } else if (name === "drawbox") {
       const values = positional.map(part => part === "" || part.includes("=") ? undefined : part);
       for (const key of Object.keys(named)) {
-        if (!["x", "y", "w", "width", "h", "height", "c", "color", "t", "thickness", "replace", "enable"].includes(key)) {
+        if (!["x", "y", "w", "width", "h", "height", "c", "color", "t", "thickness", "replace", "box_source", "enable"].includes(key)) {
           throw new Error(`drawbox: unsupported option ${key}`);
         }
       }
-      if (positional.some((part, index) => index > 6 && !part.includes("="))) {
+      if (positional.some((part, index) => index > 7 && !part.includes("="))) {
         throw new Error("drawbox: too many positional options");
+      }
+      const boxSource = named.box_source ?? values[7];
+      if (boxSource !== undefined && boxSource !== "side_data_detection_bboxes") {
+        throw new Error("drawbox: unsupported box source");
       }
       const replaceOption = named.replace ?? values[6] ?? "0";
       if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(replaceOption)) {
@@ -2740,6 +2744,8 @@ async function applyVideoFilterChain(
         if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, "drawbox enable", {
           n, t: f.ptsSeconds, w: f.width, h: f.height
         })) < 0.5) return f;
+        // Decoded frames carry no detection bounding-box side data.
+        if (boxSource === "side_data_detection_bboxes") return f;
         const width = Math.trunc(variables.w);
         const height = Math.trunc(variables.h);
         const bw = width <= 0 ? f.width : width;

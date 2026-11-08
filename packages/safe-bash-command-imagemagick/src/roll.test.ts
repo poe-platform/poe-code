@@ -72,6 +72,15 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
 
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     it.each([
+        { geometry: "+1+2+3%", x: 0, y: 0 },
+        { geometry: "+1,2%", x: 0, y: 0 },
+        { geometry: "+1+2+3", x: 1, y: 2 },
+        { geometry: "+1,2", x: 1, y: 0 },
+        { geometry: "+1:+2", x: 1, y: 0 },
+        { geometry: "+1,+2", x: 1, y: 0 },
+        { geometry: "1:2+1+2", x: 1, y: 2 },
+        { geometry: "+1+2", x: 1, y: 2 },
+        { geometry: "+1", x: 1, y: 0 },
         { geometry: "+1.7-1.7", x: 1, y: -1 },
         { geometry: "-1.7+1.7", x: -1, y: 1 },
         { geometry: "+0.5+0.5", x: 0, y: 0 },

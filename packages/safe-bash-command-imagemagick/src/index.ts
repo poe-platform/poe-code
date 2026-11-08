@@ -1556,9 +1556,22 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
 }
 
 function parseMagickRollGeometry(raw: string): MagickGeometry {
-    const geometry = parseMagickGeometry(raw);
+    // Native roll consumes at most two offsets; comma/colon ends the offset list.
+    let offsets = 0;
+    let end = raw.length;
+    for (let i = 0; i < raw.length; i++) {
+        const char = raw[i];
+        if ((char === "+" || char === "-") && raw[i - 1]?.toLowerCase() !== "e") {
+            offsets++;
+            if (offsets > 2) { end = i; break; }
+        } else if (offsets > 0 && (char === "," || char === ":")) {
+            end = i;
+            break;
+        }
+    }
+    const geometry = parseMagickGeometry(raw.slice(0, end));
     // Native percentage roll geometries leave the pixel offsets at zero.
-    if (geometry.isPercent) return { ...geometry, x: 0, y: 0 };
+    if (raw.includes("%")) return { ...geometry, x: 0, y: 0 };
     // A size followed by offsets needs an x separator, even with no height.
     if (geometry.hasOffset && geometry.width !== undefined && !raw.toLowerCase().includes("x")) {
         throw new Error(`invalid argument for option '-roll': ${raw}`);

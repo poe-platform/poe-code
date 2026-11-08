@@ -218,7 +218,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
         ...(stream.codec === "flac" ? { bits_per_raw_sample: String(stream.bitsPerSample) } : {}),
         time_base: `1/${stream.codec === "mp3" ? mp3TimeBase : stream.sampleRate}`,
         ...(startPts === undefined ? {} : { start_pts: startPts, start_time: startTime! }),
-        ...(!stdinAudio && !unknownFlacDuration ? {
+        ...(!stdinAudio && !unknownFlacDuration && !(audio.format === "wav" && durations[index] === 0) ? {
           duration_ts: Math.round(durations[index]! * (stream.codec === "mp3" ? mp3TimeBase : stream.sampleRate)),
           duration: durations[index]!.toFixed(6)
         } : {}),

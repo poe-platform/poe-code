@@ -549,6 +549,9 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           channelData[ch]![i] = formatTag === 3
             ? pcmView.getFloat64(byteOff, littleEndian)
             : Number(pcmView.getBigInt64(byteOff, littleEndian)) / 2 ** 63;
+        } else if (formatTag === 1 && bitsPerSample === 32 && header.validBitsPerSample === 24 && littleEndian && byteOff + 4 <= pcmData.byteLength) {
+          // FFmpeg pcm_f24le stores floats scaled to the signed 24-bit range.
+          channelData[ch]![i] = pcmView.getFloat32(byteOff, true) / 8388608;
         } else if (formatTag === 3 && bitsPerSample === 32 && byteOff + 4 <= pcmData.byteLength) {
           channelData[ch]![i] = pcmView.getFloat32(byteOff, littleEndian);
         } else if (bitsPerSample === 24 && byteOff + 3 <= pcmData.byteLength) {
@@ -648,7 +651,7 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
         codecDescriptions: [
           {
             formatFourCC: String.fromCharCode(formatTag & 255, formatTag >>> 8, 0, 0),
-            codecName: formatTag === 85 ? "mp3" : formatTag === 255 ? "aac" : formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : bitsPerSample === 0 ? "" : formatTag === 3 ? `pcm_f${bitsPerSample}${header.littleEndian ? "le" : "be"}` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}${header.littleEndian ? "le" : "be"}`,
+            codecName: formatTag === 1 && bitsPerSample === 32 && header.validBitsPerSample === 24 && header.littleEndian ? "pcm_f24le" : formatTag === 85 ? "mp3" : formatTag === 255 ? "aac" : formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : bitsPerSample === 0 ? "" : formatTag === 3 ? `pcm_f${bitsPerSample}${header.littleEndian ? "le" : "be"}` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}${header.littleEndian ? "le" : "be"}`,
             sampleRate,
             channels,
             bitsPerSample,
@@ -674,7 +677,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     throw new Error(`Codec ${options.audioCodec} not supported in WAVE format`);
   }
   const audioTrack = doc.tracks.find((t) => t.type === "audio");
-  if (options.audioCodec === "copy" && audioTrack?.codecDescriptions[0]?.codecName.endsWith("be")) {
+  if (options.audioCodec === "copy" && (audioTrack?.codecDescriptions[0]?.codecName.endsWith("be") ||
+    audioTrack?.codecDescriptions[0]?.codecName === "pcm_f24le")) {
     throw new Error(`Codec ${audioTrack.codecDescriptions[0].codecName} not supported in WAVE format`);
   }
   if (audioTrack?.codecDescriptions[0]?.codecName === "") throw new Error("Unknown audio codec cannot be written to WAVE format");

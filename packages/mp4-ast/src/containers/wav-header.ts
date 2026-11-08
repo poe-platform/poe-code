@@ -17,6 +17,7 @@ export interface WavHeader {
   channelMask?: number;
   sampleRate: number;
   bitsPerSample: number;
+  validBitsPerSample?: number;
   blockAlign: number;
   formatOffset?: number;
   formatSize?: number;
@@ -148,6 +149,7 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
         acceptEnd(extension.end);
         const ext = new DataView(extension.bytes.buffer, extension.bytes.byteOffset, extension.bytes.byteLength);
         if (ext.getUint16(0, littleEndian) < 22) throw new Error("Invalid WAV extensible format");
+        header.validBitsPerSample = ext.getUint16(2, littleEndian);
         header.channelMask = ext.getUint32(4, littleEndian);
         const subtype = yield { offset: start + 24, length: 16 };
         acceptEnd(subtype.end);

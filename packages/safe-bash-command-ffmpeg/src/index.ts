@@ -4918,6 +4918,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             else atomicWriting = enabled;
           } else if (arg === "-vsync" || arg === "-fps_mode") {
             videoSync = args[++i] ?? "";
+            if (arg === "-fps_mode") {
+              videoSync = videoSync.toLowerCase();
+              if (!["passthrough", "cfr", "vfr", "auto", "drop"].includes(videoSync)) {
+                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -fps_mode: ${videoSync}\n`), context.signal);
+                return { exitCode: 234 };
+              }
+            }
           } else if (arg === "-segment_time") {
             const value = args[++i];
             segmentTime = parseFfmpegTimestamp(value ?? "");

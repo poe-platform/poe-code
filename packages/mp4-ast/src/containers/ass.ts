@@ -89,7 +89,12 @@ function parseAss(bytes: Uint8Array, options?: ParseMediaOptions): MediaDocument
     if (values.length < fields.length || fields.at(-1) !== "Text") continue;
     const time = (field: string) => {
       const parts = values[fields.indexOf(field)]?.trim().split(":");
-      return parts?.length === 3 ? Math.round((Number(parts[0]) * 3600 + Number(parts[1]) * 60 + Number(parts[2])) * 1000) : NaN;
+      if (parts?.length !== 3) return NaN;
+      const seconds = parts[2]!.split(".");
+      if (seconds.length > 2) return NaN;
+      // ASS stores an integer centisecond count, regardless of field width.
+      return (Number(parts[0]) * 3600 + Number(parts[1]) * 60 + Number(seconds[0])) * 1000
+        + Number(seconds[1] ?? 0) * 10;
     };
     const start = time("Start");
     const end = time("End");

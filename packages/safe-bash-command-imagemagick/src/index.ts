@@ -1,3 +1,4 @@
+import { cyclePixelSteps } from "./cycle.js";
 import { magnifyPixelSteps, parseMagnifyMethod, type MagnifyMethod } from "./magnify-kernel.js";
 import { ftxtInput } from "./ftxt-input.js";
 import { ftxtPixels, storedFtxt } from "./ftxt.js";
@@ -6283,6 +6284,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* analysisOperation.transform(histogram, image)(image);
             });
         }
+        else if (t === "-cycle") {
+            const amount = Number(tokens[++i]);
+            stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, cyclePixelSteps(image, amount), signal));
+        }
         else if (t === "-unique-colors") {
             stack = yield* mapMagickImagesSteps(stack, uniqueColorsSteps);
         }
@@ -7733,6 +7738,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
                 return { ...output, ...("space" in plan && plan.space ? { space: plan.space, channels: plan.space === "srgb" ? 4 as const : output.channels } : {}), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
             });
+            continue;
+        }
+        if (!operandsOnly && token === "-cycle") {
+            const amount = Number(tokens[++i]);
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, cyclePixelSteps(image, amount), signal) : undefined);
             continue;
         }
         if (!operandsOnly && token === "-unique-colors") {

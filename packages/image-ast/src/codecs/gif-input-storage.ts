@@ -172,6 +172,7 @@ export async function decodeGifToStorage(
       delayView.setUint32(0, delay, true);
       await write(delayPosition + frame * 4, delayBytes);
     });
+  let indexedColors: number[] | undefined;
   let canvas = options?.coalesce === false ? 0 : allocate(frameBytes),
     output = pages > 1 ? allocate(frameBytes * pages) : canvas;
   const saved = options?.coalesce === false ? 0 : allocate(frameBytes),
@@ -259,6 +260,7 @@ export async function decodeGifToStorage(
       at = await skip(at);
       if (options?.coalesce === false) {
         if (current++ !== page) { transparent = -1; disposal = 0; continue; }
+        indexedColors = Array.from({ length: colors.length / 3 }, (_, i) => (i === transparent ? 0 : 255 * 16777216) + colors[i * 3]! * 65536 + colors[i * 3 + 1]! * 256 + colors[i * 3 + 2]!);
         backgroundColor = { r: colors[header[11]! * 3] ?? 0, g: colors[header[11]! * 3 + 1] ?? 0, b: colors[header[11]! * 3 + 2] ?? 0, a: 1 };
         virtualCanvas = { width: canvasWidth, height: canvasHeight, x: left, y: top };
         width = w; height = h; frameBytes = w * h * 4;
@@ -341,6 +343,7 @@ export async function decodeGifToStorage(
     height: height * (virtualCanvas ? 1 : pages),
     ...(virtualCanvas ? { virtualCanvas, disposal } : {}),
     ...(backgroundColor ? { backgroundColor } : {}),
+    ...(indexedColors ? { indexedColors } : {}),
     ...(properties ? {properties} : {}),
     position: output,
     format: "gif",

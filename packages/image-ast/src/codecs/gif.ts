@@ -197,6 +197,7 @@ export function decodeGifImage(
           data.set([palette[index * 3] ?? 0, palette[index * 3 + 1] ?? 0, palette[index * 3 + 2] ?? 0, index === transparentIdx ? 0 : 255], at);
         }
         return { ...(meta.properties ? {properties:meta.properties} : {}), width: imgW, height: imgH, data, format: "gif", space: "srgb", channels: 4, depth: "uchar", density: 72,
+          indexedColors: Array.from({ length: palette.length / 3 }, (_, i) => (i === transparentIdx ? 0 : 255 * 16777216) + palette[i * 3]! * 65536 + palette[i * 3 + 1]! * 256 + palette[i * 3 + 2]!),
           backgroundColor: { r: palette[bytes[11]! * 3] ?? 0, g: palette[bytes[11]! * 3 + 1] ?? 0, b: palette[bytes[11]! * 3 + 2] ?? 0, a: 1 },
           hasAlpha: transparentIdx !== -1, virtualCanvas: { width, height, x: left, y: top }, disposal: disposalMethod,
           ...(meta.delay ? { delay: meta.delay } : {}), ...(meta.loop === undefined ? {} : { loop: meta.loop }) };

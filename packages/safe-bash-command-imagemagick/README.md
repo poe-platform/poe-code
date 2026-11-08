@@ -60,6 +60,7 @@ Use `-region WIDTHxHEIGHT+X+Y` to limit subsequent pixel edits to a rectangle. P
 
 Use `-write-mask mask.png` to restrict subsequent pixel edits on the current images: black permits edits, white protects pixels, and gray blends the result. Use `+write-mask` to remove the mask. Missing mask files return an error.
 
+Use `-cycle N` to rotate indexed GIF or PNG colors by a signed number of palette entries.
 Use `-unique-colors` to extract a one-row palette in ImageMagick color-tree order, preserving alpha, hidden RGB and distinct 16-bit colors.
 Use `-quantize gray -colors N` to reduce colors in grayscale; two colors produce black and white. The setting applies to subsequent `-colors` operations until `+quantize` resets it.
 

@@ -33,6 +33,19 @@ for (const mode of ["buffered", "retained", "command"]) {
   it(`applies auto-orient to the newly set tag (${mode})`, async () => {
     const { result, output } = await convert(["-orient", "righttop", "-auto-orient"]);
     expect(result).toMatchObject({ exitCode: 0 });
+    expect(decodeImage(output!)).toMatchObject({ width: 1, height: 2, orientation: 6, data: pixels });
+  });
+
+  it(`retains the explicit setting for repeated auto-orient (${mode})`, async () => {
+    const { result, output } = await convert(["-orient", "RightTop", "-auto-orient", "-auto-orient"]);
+    expect(result).toMatchObject({ exitCode: 0 });
+    expect(decodeImage(output!)).toMatchObject({ width: 2, height: 1, orientation: 6,
+      data: Uint8Array.of(0, 0, 255, 255, 255, 0, 0, 255) });
+  });
+
+  it(`captures the orientation setting at each auto-orient (${mode})`, async () => {
+    const { result, output } = await convert(["-orient", "RightTop", "-auto-orient", "-orient", "TopLeft", "-auto-orient"]);
+    expect(result).toMatchObject({ exitCode: 0 });
     expect(decodeImage(output!)).toMatchObject({ width: 1, height: 2, orientation: 1, data: pixels });
   });
 

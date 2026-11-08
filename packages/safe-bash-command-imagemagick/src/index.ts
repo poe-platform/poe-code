@@ -7359,7 +7359,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-auto-orient") {
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                const output = yield* applyExifOrientationSteps(im), virtualCanvas = magickAutoOrientCanvas(im);
+                let output = yield* applyExifOrientationSteps(im);
+                const virtualCanvas = magickAutoOrientCanvas(im);
+                if (state.orientation !== undefined) output = { ...output, orientation: state.orientation };
                 return virtualCanvas ? { ...output, virtualCanvas } : output;
             }));
         }
@@ -8931,10 +8933,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             validateMagickTransformGeometry(geometry, token);
             steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczos3" : undefined)); return options ? resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, sampleOffset) : image; });
         } else if (!operandsOnly && ["-flip", "-flop", "-auto-orient"].includes(token)) {
-            const kind = token === "-flip" ? "flip" : token === "-flop" ? "flop" : "autoOrient";
+            const kind = token === "-flip" ? "flip" : token === "-flop" ? "flop" : "autoOrient", orientation = state.orientation;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const output = await transformStoredImage(image, backend.storage, { kind }, signal);
+                let output = await transformStoredImage(image, backend.storage, { kind }, signal);
+                if (kind === "autoOrient" && orientation !== undefined) output = { ...output, orientation };
                 const virtualCanvas = kind === "autoOrient" ? magickAutoOrientCanvas(image) : magickMirrorCanvas(image, kind);
                 return virtualCanvas ? { ...output, virtualCanvas } : output;
             });

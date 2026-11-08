@@ -1520,6 +1520,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     const ch = offsetOnly ? img.height : Math.max(0, Math.round((g.height ?? (g.isPercent || geomStr.toLowerCase().includes("x") ? 0 : img.height)) * (g.isPercent ? img.height / 100 : 1)));
     const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height, cw, ch, g.x, g.y, gravity);
     if (x0 + cw < 0 || y0 + ch < 0 || x0 > img.width || y0 > img.height) {
+        if (analysis) analysis.warnings += `magick: geometry does not contain image '${geomStr}'\n`;
         return img;
     }
     const cx0 = Math.max(0, Math.min(img.width, x0));
@@ -7574,7 +7575,10 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         const cw = offsetOnly ? w : Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? w / 100 : 1)));
         const ch = offsetOnly ? h : Math.max(0, Math.round((g.height ?? (g.isPercent || geometry.toLowerCase().includes("x") ? 0 : h)) * (g.isPercent ? h / 100 : 1)));
         const { x, y } = gravityAdjustBox(w, h, cw, ch, g.x, g.y, state.gravity);
-        if (x + cw < 0 || y + ch < 0 || x > w || y > h) return image;
+        if (x + cw < 0 || y + ch < 0 || x > w || y > h) {
+            analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
+            return image;
+        }
         const x0 = Math.max(0, Math.min(w, x)), x1 = Math.max(x0, Math.min(w, x + cw));
         const y0 = Math.max(0, Math.min(h, y)), y1 = Math.max(y0, Math.min(h, y + ch));
         if (x1 - x0 >= w || y1 - y0 >= h) {

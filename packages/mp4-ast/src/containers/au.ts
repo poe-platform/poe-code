@@ -21,7 +21,14 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   const doc = raw.find(plugin => plugin.id === format)!.parse(
     bytes.subarray(offset, size === 0xffffffff ? bytes.length : offset + size),
     { ...options, budget, sampleRate: view.getUint32(16), channels: view.getUint32(20) });
-  return { ...doc, containerFormat: "au", byteLength: bytes.length };
+  const metadata = { ...doc.metadata };
+  const annotation = new TextDecoder().decode(bytes.subarray(24, offset)).split("\0")[0]!;
+  for (const line of annotation.split("\n")) {
+    const separator = line.indexOf("=");
+    const key = line.slice(0, separator).toLowerCase();
+    if (separator >= 0 && (key === "title" || key === "artist")) metadata[key] = line.slice(separator + 1);
+  }
+  return { ...doc, metadata, containerFormat: "au", byteLength: bytes.length };
 }
 
 export function auAst(): MediaAstPlugin {
@@ -47,11 +54,18 @@ export function auAst(): MediaAstPlugin {
       const channels = track.decodedAudio?.channels ?? description?.channels;
       if (!sampleRate || !channels) throw new Error("AU output requires sample rate and channels");
       const data = raw.find(plugin => plugin.id === encoding[1])!.serialize(doc, options);
-      options.budget?.checkOutputBytes(32 + data.length);
-      const bytes = new Uint8Array(32 + data.length);
+      const metadata = options.metadata ?? doc.metadata;
+      const annotation = new TextEncoder().encode((["title", "artist"] as const)
+        .filter(key => metadata[key])
+        .map(key => `${key[0]!.toUpperCase()}${key.slice(1)}=${metadata[key]}`)
+        .join("\n"));
+      const offset = 24 + Math.max(8, Math.ceil((annotation.length + 1) / 8) * 8);
+      options.budget?.checkOutputBytes(offset + data.length);
+      const bytes = new Uint8Array(offset + data.length);
       const view = new DataView(bytes.buffer);
-      [0x2e736e64, 32, data.length, encoding[0], sampleRate, channels].forEach((value, i) => view.setUint32(i * 4, value));
-      bytes.set(data, 32);
+      [0x2e736e64, offset, data.length, encoding[0], sampleRate, channels].forEach((value, i) => view.setUint32(i * 4, value));
+      bytes.set(annotation, 24);
+      bytes.set(data, offset);
       return bytes;
     }
   };

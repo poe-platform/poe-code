@@ -5739,7 +5739,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
-            const span = Math.max(1e-6, white - black);
+            const span = white === black ? 1e-6 : white - black;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;

@@ -5731,7 +5731,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return parseFloat(p) / 257;
         };
         const black = parsePt(parts[0], 0);
-        const white = parsePt(parts[1], 255);
+        const white = parsePt(parts[1], 255 - black);
         const gamma = parts[2] !== undefined ? Math.max(0.01, parseFloat(parts[2])) : 1.0;
         const inverse = token === "+level";
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };

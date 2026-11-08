@@ -1,3 +1,4 @@
+import { readImageMetadataFromSource } from "@poe-code/image-ast/portable";
 import { BinaryReader, decodeLatin1, decodeUtf8 } from './binary.js';
 import { scanMp4Boxes, type Mp4BoxSpan, type Mp4BoxScanOptions } from './mp4-source.js';
 import { readMp4SampleRange } from './mp4-sample-source.js';
@@ -8,6 +9,7 @@ type MetadataOptions = Pick<Mp4BoxScanOptions, 'budget' | 'signal' | 'checkpoint
 
 /** Probe-only tags and chapters. Caller retains the source until all field/row reads finish. */
 export async function probeMp4MetadataSource(source: MediaProbeSource, durationSeconds: number, options: MetadataOptions = {}): Promise<{
+  coverArt?: { width: number; height: number; codecName: string; size: number };
   tags: MediaProbeSourceTags;
   chapters: AsyncIterable<MediaProbeSourceChapter>;
 }> {
@@ -35,14 +37,25 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
   }
   const udta = await first(moov, 'udta'), meta = await first(udta, 'meta') ?? await first(moov, 'meta'), ilst = await first(meta, 'ilst');
   const values: Partial<Record<(typeof mp4ProbeMetadataKeys)[number], MediaProbeText>> = {};
+  let coverArt: { width: number; height: number; codecName: string; size: number } | undefined;
   if (ilst?.children) for await (const item of scanMp4Boxes(source, { ...ilst.children, ...work })) {
     const key = mp4TextMetadataKeys[item.type];
-    if (!key || !mp4ProbeMetadataKeys.some(name => name === key)) continue;
+    if (item.type !== "covr" && (!key || !mp4ProbeMetadataKeys.some(name => name === key))) continue;
     let data: Mp4BoxSpan | undefined;
     for await (const box of scanMp4Boxes(source, { offset: item.payloadOffset, length: item.payloadSize, ...work })) if (box.type === 'data') { data = box; break; }
     if (!data && item.payloadSize < 8) continue;
     const value = data ?? item, skip = data && data.payloadSize >= 8 ? 8 : 0;
     const offset = value.payloadOffset + skip; let length = value.payloadSize - skip;
+    if (item.type === "covr") {
+      if (!data || data.payloadSize < 8) continue;
+      const type = new BinaryReader(await read(data.payloadOffset, 4)).readU32BE();
+      if (type !== 13 && type !== 14) continue;
+      const image = await readImageMetadataFromSource({ size: length,
+        async read(at, count) { return read(offset + at, Math.min(count, length - at)); }
+      }, work.signal ?? new AbortController().signal);
+      coverArt = { width: image.width, height: image.height, codecName: type === 14 ? "png" : "mjpeg", size: length };
+      continue;
+    }
     // UTF-8 NUL is a single zero byte, so suffix trimming needs no resident decoded value.
     while (length) {
       const size = Math.min(16384, length), suffix = await read(offset + length - size, size);
@@ -74,7 +87,7 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
     }
     if (previous) yield row(previous, Math.max(previous.start, durationSeconds));
   }
-  return { tags, chapters: { [Symbol.asyncIterator]: chapters } };
+  return { ...(coverArt ? { coverArt } : {}), tags, chapters: { [Symbol.asyncIterator]: chapters } };
 }
 
 export function mp4SourceText(source: MediaProbeSource, offset: number, length: number, work: MetadataOptions, latin1 = false): MediaProbeText {

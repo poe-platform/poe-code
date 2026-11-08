@@ -287,11 +287,20 @@ export async function probeMp4Source(source: MediaProbeSource, options: Mp4Sourc
   const scan = scanProbeRecords(source, work, 'summary'), summary = await scan.next();
   if (!summary.done) throw new Error('Unexpected MP4 summary row');
   const { duration, start, presentationDuration, tracks } = summary.value, metadata = await probeMp4MetadataSource(source, duration, work);
+  const streamCount = tracks + (metadata.coverArt ? 1 : 0);
+  work.budget.checkStreams(streamCount);
   async function* streams(): AsyncGenerator<MediaProbeSourceStream> {
     for await (const row of scanProbeRecords(source, work, 'streams')) if (!('sample' in row)) yield row;
+    if (metadata.coverArt) {
+      const { width, height, codecName, size } = metadata.coverArt;
+      yield buildProbeStream({ id: tracks + 1, type: 'video', timescale: 90000,
+        duration: Math.round(duration * 90000), width, height, language: 'und', enabled: true,
+        disposition: { attached_pic: 1 } }, { codecName, formatFourCC: '\0\0\0\0', width, height },
+        { totalBytes: size, count: 1, ticks: 0, firstPts: 0, hasReorderedSamples: false }, tracks, 'mp4');
+    }
   }
   return { streams: { [Symbol.asyncIterator]: streams },
-    format: { filename: options.filename ?? 'input.mp4', nb_streams: tracks, nb_programs: 0, nb_stream_groups: 0,
+    format: { filename: options.filename ?? 'input.mp4', nb_streams: streamCount, nb_programs: 0, nb_stream_groups: 0,
       format_name: 'mov,mp4,m4a,3gp,3g2,mj2', format_long_name: 'QuickTime / MOV', start_time: start.toFixed(6),
       duration: presentationDuration.toFixed(6), size: String(source.size), bit_rate: presentationDuration > 0 ? String(Math.trunc(source.size * 8 / presentationDuration)) : '0', probe_score: 100, tags: metadata.tags },
     chapters: metadata.chapters,

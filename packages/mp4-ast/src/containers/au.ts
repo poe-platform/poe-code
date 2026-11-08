@@ -52,8 +52,14 @@ export function auAst(): MediaAstPlugin {
     detect: bytes => bytes.length >= 4 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0) === 0x2e736e64,
     parse: parseAu,
     probe(bytes, options = {}) {
-      return buildProbeResultFromDoc(parseAu(bytes, { ...options, decodeAudio: false }), bytes.length, options.filename,
+      const result = buildProbeResultFromDoc(parseAu(bytes, { ...options, decodeAudio: false }), bytes.length, options.filename,
         { ...options, formatName: "au", formatLongName: "Sun AU" });
+      const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      // An unknown length needs payload bytes before a sample count can be inferred.
+      if (header.getUint32(8) === 0xffffffff && header.getUint32(4) === bytes.length) {
+        return { ...result, streams: result.streams.map(stream => ({ ...stream, duration_ts: undefined })) };
+      }
+      return result;
     },
     serialize(doc, options = {}) {
       const track = doc.tracks.find(track => track.type === "audio");

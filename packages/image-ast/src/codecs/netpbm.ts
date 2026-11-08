@@ -375,7 +375,7 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
    for(let y=0;y<Math.min(height,page.height-row);y++) data.set(page.data.subarray(((row+y)*page.width+left)*4,((row+y)*page.width+Math.min(left+columns,page.width))*4),y*columns*4);
    block={...page,width:columns,height,data};
   } else block={...page,height,data:page.data.subarray(row*page.width*4,(row+height)*page.width*4)};
-  if(options?.tiffCompression === "jpeg") chunks.push(encodeJpegImage(block, {...options,chromaSubsampling:"4:4:4"}));
+  if(options?.tiffCompression === "jpeg") chunks.push(encodeJpegImage({...block,space:"srgb"}, {...options,chromaSubsampling:"4:4:4"}));
   else {
    const compressor=createTiffCompressor(options?.tiffCompression,columns*(options?.tiffPlanar ? 1 : channels));
    try {

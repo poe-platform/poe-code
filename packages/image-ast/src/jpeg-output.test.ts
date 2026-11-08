@@ -3,6 +3,8 @@ import { expect, it, vi } from "vitest";
 import { defaultRuntime } from "@poe-code/compression";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import sharp from "./index.js";
+import { encodeImage } from "./codecs/index.js";
+import { encodeStoredImage } from "./image-encode.js";
 import { encodeJpegImage as buffered, createJpegEncoder } from "./codecs/jpeg.js";
 import { encodeJpegFromStorage } from "./codecs/jpeg-storage.js";
 import type { RgbaImage, ImageMetadata } from "./ast.js";
@@ -1385,39 +1387,39 @@ export const jpegOutputVectors: JpegOutputVector[] = [
   {
     spec: { width: 9, height: 11, channels: 1, density: 150, orientation: 6 },
     options: { quality: 1 },
-    hash: "1b07078ec836aa99437e32a6228f8e9e82fd3e7d4040cb05bee7bfa703174246",
-    length: 735,
+    hash: "714ebd591f39ca2c5e16faa3633a687d737e2e350d6fa1a5323fb0ce208fbc84",
+    length: 428,
     metadata: {
       format: "jpeg",
       width: 9,
       height: 11,
-      space: "srgb",
-      channels: 3,
+      space: "b-w",
+      channels: 1,
       depth: "uchar",
       density: 150,
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 735
+      size: 428
     }
   },
   {
     spec: { width: 9, height: 11, channels: 2, density: 150, orientation: 6 },
     options: { quality: 1 },
-    hash: "1b07078ec836aa99437e32a6228f8e9e82fd3e7d4040cb05bee7bfa703174246",
-    length: 735,
+    hash: "714ebd591f39ca2c5e16faa3633a687d737e2e350d6fa1a5323fb0ce208fbc84",
+    length: 428,
     metadata: {
       format: "jpeg",
       width: 9,
       height: 11,
-      space: "srgb",
-      channels: 3,
+      space: "b-w",
+      channels: 1,
       depth: "uchar",
       density: 150,
       hasAlpha: false,
       orientation: 6,
       isProgressive: false,
-      size: 735
+      size: 428
     }
   },
   {
@@ -1693,3 +1695,15 @@ it.each(["png", "ppm", "pgm", "pbm", "bmp", "tiff", "gif"] as const)(
     expect((await fs.readdir("/")).map((entry) => entry.name)).toEqual(["in", "out"]);
   }
 );
+
+for (const space of ["b-w", "grey16"] as const) it(`reports one JPEG channel for ${space} buffered and stored output`, async () => {
+  const { image, stored, storage } = backing({ width: 9, height: 11, channels: 2 });
+  expect(encodeImage({ ...image, space }, { format: "jpeg" }).channels).toBe(1);
+  const stream = encodeStoredImage({ ...stored, space }, storage, new AbortController().signal, { format: "jpeg" });
+  let next = await stream.next();
+  while (!next.done) next = await stream.next();
+  expect(next.value?.channels).toBe(1);
+  // TIFF's JPEG strips retain their declared three-component color layout.
+  const tiff = encodeImage({ ...image, space }, { format: "tiff", tiffCompression: "jpeg" });
+  expect(tiff.channels).toBe(3);
+});

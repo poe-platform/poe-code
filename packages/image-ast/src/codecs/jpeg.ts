@@ -915,7 +915,7 @@ function scaleQuantTable(base: Uint8Array, quality: number): Uint8Array {
 }
 
 export function createJpegEncoder(
-  img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"exif"|"icc"|"properties">,
+  img: Pick<RgbaImage,"space"|"width"|"height"|"density"|"resolution"|"orientation"|"exif"|"icc"|"properties">,
   options?: {
     readonly synthesizeExif?: boolean;
     readonly jpegProgressive?: boolean;
@@ -933,12 +933,15 @@ export function createJpegEncoder(
   const { width, height } = img;
   if(!Number.isSafeInteger(width)||width<=0||width>65535||!Number.isSafeInteger(height)||height<=0||height>65535)throw new RangeError("JPEG dimensions exceed 16-bit frame fields");
   const aliases: Record<string, string> = { "4:4:4": "1x1", "4:2:2": "2x1", "4:2:0": "2x2", "4:1:1": "4x1" };
+  const grayscale = img.space === "b-w" || img.space === "grey16";
+  const components = grayscale ? 1 : 3;
   const spec = options?.samplingFactor ?? options?.chromaSubsampling ?? "1x1";
   const factors = (aliases[spec] ?? spec).split(",").map(value => value.split("x").map(Number));
   while (factors.length < 3) factors.push([1, 1]);
+  if (grayscale) factors.splice(0, factors.length, [1, 1]);
   const maxH = Math.max(...factors.map(value => value[0]!));
   const maxV = Math.max(...factors.map(value => value[1]!));
-  if (factors.length !== 3 || factors.some(value => value.length !== 2 || value.some(n => !Number.isInteger(n) || n < 1 || n > 4) || maxH % value[0]! !== 0 || maxV % value[1]! !== 0) || factors.reduce((sum, value) => sum + value[0]! * value[1]!, 0) > 10) {
+  if (factors.length !== components || factors.some(value => value.length !== 2 || value.some(n => !Number.isInteger(n) || n < 1 || n > 4) || maxH % value[0]! !== 0 || maxV % value[1]! !== 0) || factors.reduce((sum, value) => sum + value[0]! * value[1]!, 0) > 10) {
     throw new RangeError(`Invalid JPEG sampling factor: ${spec}`);
   }
   let blockWidth = maxH * 8, blockHeight = maxV * 8;
@@ -952,7 +955,7 @@ export function createJpegEncoder(
     [STD_AC_LUMA_NRCODES, STD_AC_LUMA_VALUES],
     [STD_DC_CHROMA_NRCODES, STD_DC_CHROMA_VALUES],
     [STD_AC_CHROMA_NRCODES, STD_AC_CHROMA_VALUES]
-  ].map(([counts, values]) => ({ counts: counts!, values: values!, ...buildEncodeTable(counts!, values!), histogram: new Float64Array(256) }));
+  ].slice(0, grayscale ? 2 : 4).map(([counts, values]) => ({ counts: counts!, values: values!, ...buildEncodeTable(counts!, values!), histogram: new Float64Array(256) }));
   const restartInterval = options?.jpegRestartInterval ?? 0;
   if (!Number.isInteger(restartInterval) || restartInterval < 0 || restartInterval > 65535) throw new RangeError("JPEG restart interval must be an integer from 0 to 65535");
   let mcuCount = 0, restartCount = 0;
@@ -1019,11 +1022,13 @@ export function createJpegEncoder(
   }
 
   // DQT
-  const dqt = new Uint8Array(130);
+  const dqt = new Uint8Array(grayscale ? 65 : 130);
   dqt[0] = 0x00;
   dqt.set(lumaQ, 1);
-  dqt[65] = 0x01;
-  dqt.set(chromaQ, 66);
+  if (!grayscale) {
+    dqt[65] = 0x01;
+    dqt.set(chromaQ, 66);
+  }
   writeSegment(0xdb, dqt);
 
   // SOF0 (baseline) or SOF2 (progressive DCT)
@@ -1031,10 +1036,8 @@ export function createJpegEncoder(
     8,
     (height >>> 8) & 0xff, height & 0xff,
     (width >>> 8) & 0xff, width & 0xff,
-    3,
-    1, (factors[0]![0]! << 4) | factors[0]![1]!, 0,
-    2, (factors[1]![0]! << 4) | factors[1]![1]!, 1,
-    3, (factors[2]![0]! << 4) | factors[2]![1]!, 1
+    components,
+    ...factors.flatMap(([h, v], index) => [index + 1, (h! << 4) | v!, index === 0 ? 0 : 1])
   ]);
   writeSegment(arithmetic ? (progressive ? 0xca : 0xc9) : (progressive ? 0xc2 : 0xc0), sof0);
 
@@ -1056,10 +1059,8 @@ export function createJpegEncoder(
 
     // SOS
     const sos = new Uint8Array([
-      3,
-      1, 0x00,
-      2, 0x11,
-      3, 0x11,
+      components,
+      ...factors.flatMap((_, index) => [index + 1, index === 0 ? 0 : 0x11]),
       0, progressive ? 0 : 63, 0
     ]);
     writeSegment(0xda, sos);
@@ -1135,7 +1136,7 @@ export function createJpegEncoder(
   return {
     get blockWidth() { return blockWidth; },
     get blockHeight() { return blockHeight; },
-    scanCount: (progressive ? 4 : 1) * (gathering ? 2 : 1),
+    scanCount: (progressive ? components + 1 : 1) * (gathering ? 2 : 1),
     // DC is interleaved; each AC scan traverses one component in block-row order.
     nextScan() {
       arithmeticEncoder?.finish();
@@ -1144,7 +1145,7 @@ export function createJpegEncoder(
       bitBuf = 0; bitCnt = 0;
       mcuCount = 0; restartCount = 0; dc.fill(0);
       scan++;
-      if (gathering && scan === (progressive ? 4 : 1)) {
+      if (gathering && scan === (progressive ? components + 1 : 1)) {
         for (const table of tables) {
           const optimized = optimizedTable(table.histogram);
           Object.assign(table, optimized, buildEncodeTable(optimized.counts, optimized.values));
@@ -1173,7 +1174,7 @@ export function createJpegEncoder(
         dc.fill(0);
       }
       mcuCount++;
-      for (let component = 0; component < 3; component++) {
+      for (let component = 0; component < components; component++) {
         if (scan > 0 && component !== scan - 1) continue;
         const [h, v] = factors[component]!;
         const scaleX = maxH / h!, scaleY = maxV / v!;

@@ -5633,7 +5633,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         validateMagickTransformGeometry(raw, token);
         const [brightness = 0, contrast = 0] = raw.split("x").map(value => parseFloat(value) || 0);
         // ImageMagick BrightnessContrastImage: a polynomial centered at midgray.
-        const slope = contrast < 0 ? 1 + contrast / 100 : 100 / Math.max(1e-12, 100 - contrast);
+        const slope = contrast < 0 ? 1 + contrast / 100 : 100 / (contrast === 100 ? 1e-12 : 100 - contrast);
         const offset = (brightness / 100 * 255 - 127.5) * slope + 127.5;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = function* (image) {

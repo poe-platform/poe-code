@@ -135,7 +135,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes scheduled volume commands, ReplayGain, and the PCM audio gate (926,366 bytes).
   // Includes silence removal and the current audio filter graph (934,065 bytes).
   // Includes aexciter harmonic processing and its bounded per-channel state.
-  assert.ok(otherCodeBytes < 941_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes mpdecimate and the current video filter graph (943,146 bytes).
+  assert.ok(otherCodeBytes < 944_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -190,6 +191,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes the native testsrc renderer (10,261,109 bytes).
   // Includes scheduled volume commands, ReplayGain, and the PCM audio gate (10,265,955 bytes).
   // Includes silence removal and the current audio filter graph.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_281_000,
+  // Includes default mpdecimate block comparisons and retained-frame selection.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_285_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

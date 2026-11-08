@@ -422,6 +422,12 @@ function encodeApngFrames(frames: readonly MediaVideoFrame[], plays: number, bud
   }
 }
 
+// FFmpeg's systematic BGR8 palette used by format=pal8.
+const pal8Palette = Uint8Array.from({ length: 768 }, (_, i) => {
+  const index = Math.floor(i / 3);
+  return i % 3 === 0 ? (index & 7) * 36 : i % 3 === 1 ? ((index >> 3) & 7) * 36 : (index >> 6) * 85;
+});
+
 function makeRgbaImg(width: number, height: number, data: Uint8Array): RgbaImage {
   return {
     width,
@@ -2046,7 +2052,7 @@ async function applyVideoFilterChain(
         if (key !== "pix_fmts") throw new Error(`format: unsupported option ${part}`);
         const values = (separator < 0 ? part : part.slice(separator + 1)).trim().split("|");
         for (const value of values) {
-          if (!["rgba", "bgra", "rgb24", "bgr24", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be", "yuv420p", "yuv422p", "yuv444p"].includes(value)) {
+          if (!["pal8", "rgba", "bgra", "rgb24", "bgr24", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be", "yuv420p", "yuv422p", "yuv444p"].includes(value)) {
             throw new Error(`format: unsupported pixel format ${value}`);
           }
         }
@@ -2066,6 +2072,37 @@ async function applyVideoFilterChain(
           }, signal);
         } else {
           current = current.map(({ native: _native, ...frame }) => frame);
+        }
+        if (pixelFormat === "pal8" && previousPixelFormat !== "pal8") {
+          current = await mapWork(current, async (f) => {
+            const data = f.data.slice();
+            // swscale's default error diffusion carries three channel errors across rows.
+            const errors = Array.from({ length: 3 }, () => new Int32Array(f.width + 2));
+            for (let y = 0; y < f.height; y++) {
+              const previous = [0, 0, 0];
+              for (let x = 0; x < f.width; x++) {
+                const offset = (y * f.width + x) * 4;
+                if (offset % 65536 === 0) {
+                  await yieldTurn(signal);
+                  signal?.throwIfAborted();
+                  budget.checkCpu();
+                }
+                for (let channel = 0; channel < 3; channel++) {
+                  const row = errors[channel]!;
+                  const value = data[offset + channel]! +
+                    ((7 * previous[channel]! + row[x]! + 5 * row[x + 1]! + 3 * row[x + 2]!) >> 4);
+                  row[x] = previous[channel]!;
+                  const level = Math.max(0, Math.min(channel === 2 ? 3 : 7, value >> (channel === 2 ? 6 : 5)));
+                  const quantized = level * (channel === 2 ? 85 : 36);
+                  previous[channel] = value - quantized;
+                  data[offset + channel] = quantized;
+                }
+                data[offset + 3] = 255;
+              }
+              for (let channel = 0; channel < 3; channel++) errors[channel]![f.width] = previous[channel]!;
+            }
+            return { ...f, data };
+          }, signal);
         }
         if (pixelFormat === "rgb24" || pixelFormat === "bgr24" || pixelFormat === "rgb48be") {
           current = await mapWork(current, async (f) => {
@@ -3549,6 +3586,8 @@ export function evalSyncFfmpeg(
         const f = frames[idx]!;
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1))!;
         const encoded = outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
+                    ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"
+                      ? { pngPalette: { bytes: pal8Palette, depth: 8 } } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8"
                       ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false }
                       : vTrack?.codecDescriptions[0]?.pixFmt === "ya8"
@@ -3556,7 +3595,7 @@ export function evalSyncFfmpeg(
                     ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
                       vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
-                    } : {}) }, { format: imgFmt }).data;
+                    } : {}) }, { format: imgFmt, pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8" }).data;
         if (!writeFileSync!(fileName, encoded)) return undefined;
       }
       return "";
@@ -7254,6 +7293,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const fileName = imageFileName(number);
                   const fullOutPath = resolvePath(context.cwd, fileName);
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
+                    ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"
+                      ? { pngPalette: { bytes: pal8Palette, depth: 8 } } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8" || vTrack?.codecDescriptions[0]?.pixFmt === "gray16be"
                       ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false }
                       : vTrack?.codecDescriptions[0]?.pixFmt === "ya8"
@@ -7263,7 +7304,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
                     } : {}) }, {
                     format: imgFmt,
-                    pngBitDepth: ["rgba64be", "rgb48be", "gray16be"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "") ? 16 : 8,
+                    pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8",
+                    pngBitDepth: vTrack?.codecDescriptions[0]?.pixFmt === "pal8" ? undefined : ["rgba64be", "rgb48be", "gray16be"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "") ? 16 : 8,
                     forceOpaque: vTrack?.codecDescriptions[0]?.pixFmt === "rgb48be" || vTrack?.codecDescriptions[0]?.pixFmt === "rgb24" || vTrack?.codecDescriptions[0]?.pixFmt === "bgr24"
                   }).data);
                   budget.checkOutputBytes(encoded.byteLength);

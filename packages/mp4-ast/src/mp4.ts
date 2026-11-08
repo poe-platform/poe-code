@@ -1361,6 +1361,18 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       };
     }
     const materialized = materializeTrackSamples(t);
+    if (t.type === "video") {
+      // MP4 decode timestamps must increase. Repair overlapping packets without
+      // shifting the later timeline, as FFmpeg does when stream-copying concat.
+      let previousDts = -Infinity;
+      materialized.samples = materialized.samples.map(sample => {
+        const dts = Math.max(sample.dts, previousDts + 1);
+        previousDts = dts;
+        if (dts === sample.dts) return sample;
+        const pts = Math.max(sample.pts, dts);
+        return { ...sample, dts, pts, cts: pts - dts };
+      });
+    }
     const last = materialized.samples.at(-1);
     // Clear the final cue at its end, including when remuxing packed text.
     if (t.type === "subtitle" && last &&

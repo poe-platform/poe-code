@@ -90,7 +90,6 @@ import {
   scaleVideoPicture,
   decodeUtf8,
   encodeUtf8,
-  parseSubtitleDocument,
   serializeDashDocument,
   srtAst,
   ttmlAst,
@@ -1264,6 +1263,7 @@ async function applyVideoFilterChain(
   budget: MediaBudgetTracker,
   diagnostics: { sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void> },
   readSubtitle: (filename: string) => Promise<Uint8Array>,
+  registry: ReturnType<typeof createMediaAstRegistry>,
   signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
   let work = 0;
@@ -2364,9 +2364,9 @@ async function applyVideoFilterChain(
         }
       }
       const bytes = await readSubtitle(filename);
-      const ass = assAst();
-      const doc = name === "ass" ? assAst().parse(bytes) : ass.detect(bytes) ? ass.parse(bytes)
-        : parseSubtitleDocument(bytes, filename.toLowerCase().endsWith(".vtt") ? "webvtt" : "srt");
+      const plugin = name === "ass" ? assAst() : registry.detect(bytes, filename);
+      if (!plugin) throw new Error("Unable to detect subtitle input format");
+      const doc = plugin.parse(bytes, { filename, budget, decodeAudio: false });
       const streamIndex = Number(named.si ?? named.stream_index ?? -1);
       const track = streamIndex === -1 ? doc.tracks.find(t => t.type === "subtitle") : doc.tracks[streamIndex];
       if (!track || track.type !== "subtitle") throw new Error("Unable to locate subtitle stream");
@@ -5717,7 +5717,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     logLevel,
                     write: (text: string) => writeBytes(context.stderr, encodeUtf8(text), context.signal)
                   };
-                  const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), context.signal);
+                  const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal);
                   const first = filtered[0];
                   return {
                     ...t,

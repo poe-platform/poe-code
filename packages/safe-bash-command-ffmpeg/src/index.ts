@@ -3061,7 +3061,7 @@ function validateMetadataStreamSpecifier(specifier: string): void {
   }
 }
 
-function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [string, "language" | "handlerName" | "timecode", string][], metadataSource: number | undefined): readonly MediaTrack[] {
+function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [string, "language" | "handlerName" | "timecode" | "title", string][], metadataSource: number | undefined): readonly MediaTrack[] {
   if (metadataSource !== undefined && metadataSource < 0) {
     tracks = tracks.map(track => ({ ...track, language: "und" }));
   }
@@ -3079,7 +3079,7 @@ function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [
         if (metadataKey !== "language" || track.language === undefined ||
             (metadataValue !== undefined && track.language !== metadataValue)) return track;
       } else if (index && current !== Number(index)) return track;
-      return key === "timecode" ? { ...track, metadata: { ...track.metadata, timecode: value } } : { ...track, [key]: value };
+      return key === "timecode" || key === "title" ? { ...track, metadata: { ...track.metadata, [key]: value } } : { ...track, [key]: value };
     });
   }
   return tracks;
@@ -3866,7 +3866,7 @@ export function evalSyncFfmpeg(
     let chapterSource: number | undefined;
     const metadataSources: number[] = [];
     const metadata: Record<string, string> = {};
-    const streamMetadata: [string, "language" | "handlerName" | "timecode", string][] = [];
+    const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title", string][] = [];
     const streamDispositions: [string, string][] = [];
     const displayAspects: [string, number][] = [];
     let outputTarget: string | undefined;
@@ -4271,7 +4271,7 @@ export function evalSyncFfmpeg(
         if (eq >= 0) {
           const k = kv.slice(0, eq).trim().toLowerCase();
           const v = kv.slice(eq + 1);
-          if ((k === "language" || k === "handler_name" || k === "timecode") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
+          if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
             streamMetadata.push([arg.slice("-metadata:s:".length), k === "handler_name" ? "handlerName" : k, v]);
           } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
         }
@@ -4852,7 +4852,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let chapterSource: number | undefined;
         const metadataSources: number[] = [];
         const metadata: Record<string, string> = {};
-        const streamMetadata: [string, "language" | "handlerName" | "timecode", string][] = [];
+        const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title", string][] = [];
         const attachmentFiles: string[] = [];
         const attachmentMetadata: [string, string, string][] = [];
         const streamDispositions: [string, string][] = [];
@@ -5834,7 +5834,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (arg === "-metadata:s" || arg.startsWith("-metadata:s:")) {
                 attachmentMetadata.push([arg.slice("-metadata:s:".length), k, v]);
               }
-              if ((k === "language" || k === "handler_name" || k === "timecode") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
+              if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
                 streamMetadata.push([arg.slice("-metadata:s:".length), k === "handler_name" ? "handlerName" : k, v]);
               } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
             }

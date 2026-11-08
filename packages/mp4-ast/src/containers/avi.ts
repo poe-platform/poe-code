@@ -606,7 +606,8 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
     strlLists.push(makeRiffList("strl", [
       makeRiffChunk("strh", strh.toUint8Array()),
       makeRiffChunk("strf", strf.toUint8Array()),
-      ...(vprp.toUint8Array().length ? [makeRiffChunk("vprp", vprp.toUint8Array())] : [])
+      ...(vprp.toUint8Array().length ? [makeRiffChunk("vprp", vprp.toUint8Array())] : []),
+      ...(track.metadata?.title ? [makeRiffChunk("strn", encodeUtf8(`${track.metadata.title}\0`))] : [])
     ]));
     let sampleIndex = 0;
     for (let slot = 0; slot < slotCount; slot++) {

@@ -4,6 +4,24 @@ import { Volume } from "memfs";
 import { decodeImage, encodeImage } from "@poe-code/image-ast/portable";
 import { createFfmpegCommand } from "./index.js";
 
+it("renders identical frames for bare, filename=, and f= subtitle filenames", async () => {
+  const bare = await run("subtitles=a.srt");
+  assert.equal(bare.result.exitCode, 0, bare.stderr);
+  for (const filter of ["subtitles=filename=a.srt", "subtitles=f=a.srt"]) {
+    const actual = await run(filter);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    for (let frame = 1; frame <= 3; frame++) {
+      const expected = decodeImage(bare.volume.readFileSync(`/out${frame}.png`) as Buffer);
+      const decoded = decodeImage(actual.volume.readFileSync(`/out${frame}.png`) as Buffer);
+      assert.equal(decoded.width, 320);
+      assert.equal(decoded.height, 180);
+      assert.deepEqual(decoded.data, expected.data, `${filter}, frame ${frame}`);
+      if (frame === 2) assert.notDeepEqual(decoded.data, actual.pixels);
+      else assert.deepEqual(decoded.data, actual.pixels);
+    }
+  }
+});
+
 for (const chain of [
   "subtitles=/a.srt,subtitles=/b.srt",
   "subtitles=filename='/a.srt',subtitles=filename='/b.srt'",

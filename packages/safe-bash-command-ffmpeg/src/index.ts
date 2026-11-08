@@ -1,3 +1,4 @@
+import { ciescopeFrame } from "./ciescope.js";
 import { pixscopeFrame } from "./pixscope.js";
 import { oscilloscope } from "./oscilloscope.js";
 import { vibratoAudio } from "./audio-vibrato.js";
@@ -1442,6 +1443,15 @@ async function applyVideoFilterChain(
     } else if (name === "pixscope") {
       if (argStr) throw new Error("pixscope: options are not supported");
       current = await mapWork(current, f => pixscopeFrame(f, budget, signal), signal);
+    } else if (name === "ciescope") {
+      if (positional.some(part => part && !part.includes("=")) || Object.keys(named).some(key => key !== "size" && key !== "s")) {
+        throw new Error("ciescope: options other than size (s) are not supported");
+      }
+      const size = Number(named.size ?? named.s ?? 512);
+      if (!Number.isSafeInteger(size) || size < 256 || size > 8192) {
+        throw new Error("ciescope: size must be an integer between 256 and 8192");
+      }
+      current = await mapWork(current, f => ciescopeFrame(f, size, budget, signal), signal);
     } else if (name === "datascope") {
       if (positional.length > 1 || Object.keys(named).some(key => key !== "size" && key !== "s")) {
         throw new Error("datascope: only size (s) is supported");

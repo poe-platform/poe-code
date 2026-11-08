@@ -325,3 +325,5 @@ APNG output (`out.apng` or `-f apng`) writes all video frames into one animation
 `vibrato=f=5:d=0.5` modulates PCM pitch using an interpolated delay while preserving sample rate, channels, and frame count. Frequency (`f`, 0.1–20000 Hz) defaults to 5 Hz; depth (`d`, 0–1) defaults to 0.5. Positional `vibrato=5:0.5` is also supported. Like native FFmpeg, the filter introduces a short startup delay even at zero depth.
 
 `pixscope` magnifies the default central 7×7 RGB sample and overlays channel statistics on frames at least 640×480, preserving dimensions and timing. Custom pixscope options are unsupported.
+
+`ciescope=size=256` renders a square CIE 1931 xyY chromaticity plot using Rec.709/D65, with the spectral background and per-frame pixel density. `s` is an alias for `size`; the default is 512, with integer sizes from 256 to 8192 subject to media limits. Timing is preserved. Other ciescope options are unsupported.

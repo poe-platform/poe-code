@@ -4618,6 +4618,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioRate: number | undefined;
         let audioChannels: number | undefined;
         let segmentTime = 2;
+        let segmentTimes: number[] | undefined;
         let segmentFrames: number[] | undefined;
         let segmentList: string | undefined;
         let hlsTime = 2;
@@ -4856,6 +4857,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 !Number.isInteger(segmentFrames![index]) || segmentFrames![index]! > 2147483647 ||
                 (index > 0 && segmentFrames![index]! < segmentFrames![index - 1]!))) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_frames\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-segment_times") {
+            segmentTimes = (args[++i] ?? "").split(",").map(parseHlsDuration);
+            if (segmentTimes.some((time, index) => !Number.isFinite(time) || time < 0 ||
+              (index > 0 && time < segmentTimes![index - 1]!))) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_times\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-segment_list") {
@@ -8336,14 +8344,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 budget.checkCpu();
                 const seconds = packet.pts / track.timescale;
                 const reached = segmentFrames === undefined
-                  ? seconds >= boundaries.length * segmentTime
+                  ? seconds >= (segmentTimes === undefined ? boundaries.length * segmentTime
+                    : segmentTimes[boundaries.length - 1] ?? Infinity)
                   : frame >= (segmentFrames[boundaries.length - 1] ?? Infinity);
                 if (seconds > boundaries[boundaries.length - 1]! && reached &&
                     (track.type !== "video" || packet.isKeyframe)) {
                   boundaries.push(seconds);
                 }
               }
-              boundaries.push(track.duration / track.timescale);
+              boundaries.push(workingDoc.durationSeconds);
               const paths = boundaries.slice(1).map((_, index) =>
                 resolvePath(context.cwd, formatImageSequence(outputTarget, index)!));
               const listPath = segmentList === undefined ? undefined : resolvePath(context.cwd, segmentList);

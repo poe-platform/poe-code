@@ -3298,7 +3298,7 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
                 continue;
             }
             if (norm === "copyopacity" || norm === "copyalpha") {
-                out[dIdx + 3] = saByte;
+                out[dIdx + 3] = src.hasAlpha ? saByte : clampByteVal(0.212656 * sr + 0.715158 * sg + 0.072186 * sb);
                 continue;
             }
             if (norm === "copyred") {

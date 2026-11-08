@@ -3731,8 +3731,8 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
             return undefined;
     }
     else if (g.fillArea) {
-        const boxW = g.width ?? srcW;
-        const boxH = g.height ?? srcH;
+        const boxW = g.width ?? g.height ?? srcW;
+        const boxH = g.height ?? g.width ?? srcH;
         if (g.shrinkOnly && srcW <= boxW && srcH <= boxH)
             return undefined;
         if (g.enlargeOnly && srcW >= boxW && srcH >= boxH)

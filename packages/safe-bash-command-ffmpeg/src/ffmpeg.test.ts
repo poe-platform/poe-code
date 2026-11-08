@@ -2445,6 +2445,54 @@ describe("rotate bilinear sampling", () => {
   }
 });
 
+describe("rotate timeline enable", () => {
+  it("rejects an invalid enable expression without replacing output", async () => {
+    const { encodeImage } = await import("@poe-code/image-ast/portable");
+    const input = encodeImage({
+      width: 1, height: 1, channels: 4, data: new Uint8Array([40, 40, 40, 255]),
+      format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+    }, { format: "png" }).data;
+    const vfs = createTestVfs({ "/in.png": input, "/out.png": input.slice() });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-y", "-i", "/in.png", "-vf", "rotate=PI:enable=unknown", "/out.png"
+    ], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("rotate enable"), result.stderr);
+    assert.deepEqual(vfs.store.get("/out.png"), input);
+  });
+
+  for (const [option, expected] of [
+    [":enable=gte(n\\,1)", [28, 168, 168]],
+    [":enable=between(t\\,0.5\\,0.5)", [28, 168, 28]],
+    [":enable=0", [28, 28, 28]],
+    [":enable=-1", [168, 168, 168]],
+    [":enable=0.25", [28, 28, 28]],
+    ["", [168, 168, 168]]
+  ] as const) {
+    it(`selects frames and preserves decoded pixels for rotate=PI${option}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({
+        width: 12, height: 4, channels: 4,
+        data: new Uint8Array(Array.from({ length: 48 }, (_, i) => [4 * (i + 1), 4 * (i + 1), 4 * (i + 1), 255]).flat()),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice() });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "2", "-i", "/in%d.png", "-vf", `rotate=PI${option}`, "-frames:v", "3", "/out-%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(vfs.store.size, 6);
+      for (const [index, gray] of expected.entries()) {
+        const output = decodeImage(vfs.store.get(`/out-${index + 1}.png`)!);
+        assert.equal(output.width, 12);
+        assert.equal(output.height, 4);
+        assert.deepEqual(Array.from(output.data.slice(6 * 4, 7 * 4)), [gray, gray, gray, 255]);
+        if (gray === 28) assert.deepEqual(output.data, decodeImage(input).data);
+      }
+    });
+  }
+});
+
 describe("rotate fill color", () => {
   for (const [option, expected] of [
     ["", [0, 0, 0, 255]],

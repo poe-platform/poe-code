@@ -1712,7 +1712,7 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "rotate") {
       const rotatePositional = positional.filter(option => !option.includes("="));
-      if (rotatePositional.length > 3 || Object.keys(named).some(key => !["angle", "a", "ow", "out_w", "oh", "out_h", "c", "fillcolor", "bilinear"].includes(key))) {
+      if (rotatePositional.length > 3 || Object.keys(named).some(key => !["angle", "a", "ow", "out_w", "oh", "out_h", "c", "fillcolor", "bilinear", "enable"].includes(key))) {
         throw new Error("rotate: unsupported option");
       }
       const interpolation = (named.bilinear ?? "1").toLowerCase();
@@ -1729,6 +1729,9 @@ async function applyVideoFilterChain(
       const angleExpression = named.angle ?? named.a ?? (rotatePositional[0] || "0");
       if (current.length === 0) parseFilterExpression(angleExpression, "rotate", { PI: Math.PI, n: 0, t: 0 });
       current = await mapWork(current, async (f, n) => {
+        if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, "rotate enable", {
+          n, t: f.ptsSeconds, w: f.width, h: f.height
+        })) < 0.5) return f;
         const angle = parseFilterExpression(angleExpression, "rotate", { PI: Math.PI, n, t: f.ptsSeconds });
         const cos = Math.abs(Math.cos(angle)) < 1e-15 ? 0 : Math.cos(angle);
         const sin = Math.abs(Math.sin(angle)) < 1e-15 ? 0 : Math.sin(angle);

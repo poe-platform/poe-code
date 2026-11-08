@@ -1,3 +1,4 @@
+import { isMiffBytes, readMiffHeader, decodeMiffImage } from "./miff-input.js";
 import { encodeXbmImage } from "./xbm-output.js";
 import { isXbmBytes, readXbmImage } from "./xbm.js";
 import { encodeXpmImage } from "./xpm-output.js";
@@ -70,6 +71,7 @@ import {
 
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
+  if (isMiffBytes(bytes)) return "miff";
   if (isExrBytes(bytes)) return "exr";
   if (isRadianceBytes(bytes)) return "hdr";
   if (isPhmBytes(bytes)) return "phm";
@@ -170,6 +172,7 @@ export function readImageMetadata(
   switch (fmt) {
     case "hdr": meta = readRadianceHeader(bytes).metadata; break;
     case "exr": meta = readExrHeader(bytes).metadata; break;
+    case "miff": meta = readMiffHeader(bytes).metadata; break;
     case "phm": meta = readPhmHeader(bytes).metadata; break;
     case "tga":
       meta = readTgaMetadata(bytes);
@@ -409,6 +412,7 @@ export function decodeImage(
   switch (meta.format) {
     case "hdr": decoded = decodeRadianceImage(bytes, options); break;
     case "exr": decoded = decodeExrImage(bytes, options); break;
+    case "miff": decoded = decodeMiffImage(bytes, options); break;
     case "phm": decoded = decodePhmImage(bytes, options); break;
     case "tga":
       decoded = decodeTgaImage(bytes, options);

@@ -64,7 +64,7 @@ PNG and JPEG preserve embedded ICC profiles. Use `-profile color.icc` to attach 
 
 `-wave` preserves native grayscale background handling, including PNG background metadata. Use `-virtual-pixel background` to retain a colored `-background` on grayscale input. Sequence evaluation extends smaller images using `-virtual-pixel`; the default repeats edge pixels, and `+virtual-pixel` restores that default.
 
-`-ordered-dither` applies the built-in ImageMagick threshold, checkerboard, ordered, halftone and circle maps (including their aliases). Append a level count, such as `o8x8,4`, to quantize each channel to that many levels; `-channel` selects the channels to change. Unsupported maps return an error.
+`-ordered-dither` applies the built-in ImageMagick threshold, checkerboard, ordered, halftone and circle maps (including their aliases). Append a level count, such as `o8x8,4`, to quantize each channel to that many levels; `-channel` selects the channels to change. Unsupported maps return an error. `-remap palette.png` uses Riemersma error diffusion by default; use `-dither FloydSteinberg` for Floyd–Steinberg or `+dither` to disable diffusion.
 
 Use `-region WIDTHxHEIGHT+X+Y` to limit subsequent pixel edits to a rectangle. Placement follows `-gravity`, and rectangles are clipped to the image. Use `+region` to restore edits across the whole image.
 

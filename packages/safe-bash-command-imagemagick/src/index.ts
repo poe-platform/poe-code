@@ -1,3 +1,4 @@
+import { hilbertPixels, riemersmaRemapSteps } from "./riemersma.js";
 import { convertCmykPixels, formatCmykPixel, rgbToCmyk } from "./colorspace-cmyk.js";
 import { modulateRgb } from "./modulate.js";
 import { cyclePixelSteps } from "./cycle.js";
@@ -607,7 +608,7 @@ interface MagickState {
   strip: boolean;
   adjoin: boolean;
   scene?: number;
-  dither: boolean;
+  dither: false | "riemersma" | "floydsteinberg";
   quantizeGray?: boolean;
   formatStr: string | undefined;
   channels: { r: boolean; g: boolean; b: boolean; a: boolean };
@@ -661,7 +662,7 @@ function createDefaultState(): MagickState {
     tile: undefined,
     strip: false,
     adjoin: true,
-    dither: true,
+    dither: "riemersma",
     formatStr: undefined,
     channels: { r: true, g: true, b: true, a: false },
     channelExplicit: false
@@ -3099,26 +3100,10 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
     }
     const errors = new Float64Array(16 * 4);
     const weights = Float64Array.from({ length: 16 }, (_, i) => 16 ** (-1 - i / 15));
-    function* pixels(x: number, y: number, xi: number, yi: number, xj: number, yj: number, size: number): Generator<number> {
-        // Skip whole Hilbert quadrants outside a rectangular image.
-        if (Math.min(x, x + xi, x + xj, x + xi + xj) >= img.width ||
-            Math.min(y, y + yi, y + yj, y + yi + yj) >= img.height ||
-            Math.max(x, x + xi, x + xj, x + xi + xj) <= 0 ||
-            Math.max(y, y + yi, y + yj, y + yi + yj) <= 0) return;
-        if (size === 1) {
-            yield (Math.floor(y + (yi + yj) / 2) * img.width + Math.floor(x + (xi + xj) / 2)) * 4;
-            return;
-        }
-        yield* pixels(x, y, xj / 2, yj / 2, xi / 2, yi / 2, size / 2);
-        yield* pixels(x + xi / 2, y + yi / 2, xi / 2, yi / 2, xj / 2, yj / 2, size / 2);
-        yield* pixels(x + (xi + xj) / 2, y + (yi + yj) / 2, xi / 2, yi / 2, xj / 2, yj / 2, size / 2);
-        yield* pixels(x + xi / 2 + xj, y + yi / 2 + yj, -xj / 2, -yj / 2, -xi / 2, -yi / 2, size / 2);
-    }
     function* scan(): Generator<number> {
         for (let i = 0; i < img.width * img.height * 4; i += 4) yield i;
     }
-    const extent = 2 ** Math.ceil(Math.log2(Math.max(img.width, img.height, 1)));
-    for (const i of dither ? pixels(0, 0, 0, extent, extent, 0, extent) : scan()) {
+    for (const i of dither ? hilbertPixels(img) : scan()) {
         if (++cooperativeWork % 1024 === 0) { signal?.throwIfAborted(); yield; }
         const input = (yield { kind: "read", position: i, length: 4 })!;
         const out = new Uint8Array(4);
@@ -5972,7 +5957,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const value = tokens[++i] ?? "", levels = Number(value);
         if (!value.trim() || !Number.isFinite(levels)) throw new Error(`invalid argument '-posterize' '${value}'`);
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        apply = image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, state.dither, channels, signal), signal);
+        apply = image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, state.dither !== false, channels, signal), signal);
     } else if (token === "-monochrome") {
         apply = function* (image) { return yield* thresholdImageSteps(yield* grayscaleImageSteps(image), 128, true); };
     } else if (token === "-modulate") {
@@ -7390,7 +7375,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const palImg = (yield* parseInputOperandSteps(palSpec, files, state, stdinBytes));
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickRemapSteps(im, palImg, state.dither, signal));
+                return state.dither === "riemersma"
+                    ? yield* applyMagickRasterSteps(im, riemersmaRemapSteps(im, palImg, !!im.data16), signal, im, [im, palImg])
+                    : yield* applyMagickRemapSteps(im, palImg, state.dither !== false, signal);
             });
         }
         else if (t === "-clut" || t === "-hald-clut") {
@@ -7425,8 +7412,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 state.dither = false;
             }
             else {
-                const dMode = (tokens[++i] ?? "floydsteinberg").toLowerCase();
-                state.dither = dMode !== "none";
+                const dMode = (tokens[++i] ?? "riemersma").toLowerCase();
+                state.dither = dMode === "none" ? false : dMode === "floydsteinberg" ? "floydsteinberg" : "riemersma";
             }
         }
         else if (t === "-hough-lines") {
@@ -8663,7 +8650,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-posterize") {
             const value = tokens[++i] ?? "", levels = Number(value);
             if (!value.trim() || !Number.isFinite(levels)) throw new Error(`invalid argument '-posterize' '${value}'`);
-            const dither = state.dither, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+            const dither = state.dither !== false, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, channels, signal), signal) : undefined);
             continue;
         }
@@ -9101,7 +9088,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
         } else if (!operandsOnly && (token === "-dither" || token === "+dither")) {
-            state.dither = token === "-dither" ? (tokens[++i] ?? "floydsteinberg").toLowerCase() !== "none" : false;
+            const dMode = token === "-dither" ? (tokens[++i] ?? "riemersma").toLowerCase() : "none";
+            state.dither = dMode === "none" ? false : dMode === "floydsteinberg" ? "floydsteinberg" : "riemersma";
         } else if (!operandsOnly && (token === "-read-mask" || token === "+read-mask")) {
             const spec = token === "-read-mask" ? tokens[++i] : undefined, settings = { ...state };
             if (token === "-read-mask" && !spec) throw new Error(`missing argument '${token}'`);
@@ -9119,7 +9107,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const colors = await parseStoredCompareInput(palette, settings, backend, signal);
                 if (!colors) throw new Error(`unable to open image '${palette}'`);
-                return remapStoredImage(image, colors, backend.storage, settings.dither, signal);
+                return settings.dither === "riemersma"
+                    ? transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!image.storedData16), signal, image, [image, colors])
+                    : remapStoredImage(image, colors, backend.storage, settings.dither !== false, signal);
             });
         } else if (!operandsOnly && token === "-floodfill") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "+0+0"), candidate = tokens[i + 1], replacement = state.fill, fuzz = state.fuzz;

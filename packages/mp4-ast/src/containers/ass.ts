@@ -2,23 +2,39 @@ import { decodeUtf8, encodeUtf8 } from "../binary.js";
 import { buildProbeResultFromDoc, concatMp4, sliceMp4 } from "../mp4.js";
 import type { MediaAstPlugin, MediaDocument, MediaSample, ParseMediaOptions } from "../types.js";
 
-function decodeAssText(text: string): string {
+/** Decode ASS dialogue overrides into scoped subtitle markup. */
+export function decodeAssText(text: string): string {
+  const active: string[] = [];
   let result = "";
+  const close = (tag: string) => {
+    const index = active.indexOf(tag);
+    if (index < 0) return;
+    for (let i = active.length - 1; i >= index; i--) result += `</${active[i]}>`;
+    active.splice(index, 1);
+    for (let i = index; i < active.length; i++) result += `<${active[i]}>`;
+  };
   for (let i = 0; i < text.length; i++) {
     if (text.startsWith("{\\", i)) {
       const end = text.indexOf("}", i + 2);
-      if (end >= 0) { i = end; continue; }
-    }
-    if (text[i] === "\\") {
-      const escape = text[i + 1];
-      if (escape === "N" || escape === "n" || escape === "h") {
-        result += escape === "h" ? "\u00a0" : "\n";
-        i++;
+      if (end >= 0) {
+        for (const command of text.slice(i + 1, end).split("\\")) {
+          const tag = command[0]!;
+          if (["i", "b", "u", "s"].includes(tag) && ["0", "1", "-1"].includes(command.slice(1))) {
+            if (command.slice(1) === "0") close(tag);
+            else if (!active.includes(tag)) { active.push(tag); result += `<${tag}>`; }
+          } else if (tag === "r") {
+            while (active.length) close(active.at(-1)!);
+          }
+        }
+        i = end;
         continue;
       }
     }
-    result += text[i];
+    if (text[i] === "\\" && ["N", "n", "h"].includes(text[i + 1]!)) {
+      result += text[++i] === "h" ? "\u00a0" : "\n";
+    } else result += text[i];
   }
+  while (active.length) close(active.at(-1)!);
   return result;
 }
 
@@ -103,7 +119,10 @@ function serializeAss(doc: MediaDocument): Uint8Array {
       lines.push(`Dialogue: ${event.join(",")}`);
       continue;
     }
-    const text = decodeUtf8(sample.data).split("\r\n").join("\n").split("\n").join("\\N");
+    let text = decodeUtf8(sample.data).split("\r\n").join("\n").split("\n").join("\\N");
+    for (const tag of ["i", "b", "u", "s"]) {
+      text = text.replaceAll(`<${tag}>`, `{\\${tag}1}`).replaceAll(`</${tag}>`, `{\\${tag}0}`);
+    }
     lines.push(`Dialogue: 0,${time(sample.pts)},${time(sample.pts + sample.duration)},Default,,0,0,0,,${text}`);
   }
   return encodeUtf8(lines.join("\n") + "\n");

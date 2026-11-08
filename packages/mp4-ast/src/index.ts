@@ -32,7 +32,7 @@ export { scaleVideoPicture } from "@poe-code/media-codecs";
 
 export { decodeAacTrack } from "./aac.js";
 
-export { assAst } from "./containers/ass.js";
+export { assAst, decodeAssText } from "./containers/ass.js";
 
 export { aiffAst, parseAiff, serializeAiff } from "./containers/aiff.js";
 

@@ -145,6 +145,15 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
   let colorRange: "pc" | "tv" | undefined;
 
   for (const token of headerLine.split(/\s+/)) {
+    if (token.startsWith("C") && ![
+      "420", "420jpeg", "420mpeg2", "420paldv", "422", "444", "411", "444alpha", "mono",
+      "420p9", "420p10", "420p12", "420p14", "420p16",
+      "422p9", "422p10", "422p12", "422p14", "422p16",
+      "444p9", "444p10", "444p12", "444p14", "444p16",
+      "mono9", "mono10", "mono12", "mono16"
+    ].includes(token.slice(1))) {
+      throw new Error("YUV4MPEG stream contains an unknown pixel format");
+    }
     if (token.startsWith("W")) width = parseInt(token.slice(1), 10) || width;
     else if (token.startsWith("H")) height = parseInt(token.slice(1), 10) || height;
     else if (token === "Ip") fieldOrder = "progressive";

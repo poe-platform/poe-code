@@ -466,6 +466,10 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   const prepareStream = (row: unknown): Record<string, unknown> | undefined => {
     const stream = row as MediaProbeStream, spec = opts.selectStreams?.toLowerCase();
     if (spec) {
+      if (spec.startsWith("i:") || spec.startsWith("#")) {
+        const id = Number(spec.slice(spec[0] === "#" ? 1 : 2));
+        if (stream.id === undefined || Number(stream.id) !== id) return;
+      }
       if (spec.startsWith("m:")) {
         const [key, ...value] = opts.selectStreams!.slice(2).split(":");
         const tag = Object.entries(stream.tags ?? {}).find(([name]) => name.toLowerCase() === key!.toLowerCase());
@@ -810,9 +814,15 @@ function parseProbeArguments(args: readonly string[]) {
     const [kind, ...parts] = selectStreams.split(":");
     const index = parts.length === 0 ? kind! : parts[0]!;
     const numeric = index.length > 0 && [...index].every(c => c >= "0" && c <= "9");
+    const id = selectStreams.startsWith("i:") ? selectStreams.slice(2)
+      : selectStreams.startsWith("#") ? selectStreams.slice(1) : "";
+    const hex = id.toLowerCase().startsWith("0x");
+    const digits = hex ? id.slice(2).toLowerCase() : id;
+    const validId = digits.length > 0 && [...digits].every(c =>
+      c >= "0" && c <= "9" || hex && c >= "a" && c <= "f") && Number.isSafeInteger(Number(id));
     const valid = kind === "m" && parts.length > 0
       || ["v", "a", "s"].includes(kind!) && (parts.length === 0 || parts.length === 1 && numeric)
-      || parts.length === 0 && numeric;
+      || parts.length === 0 && numeric || validId;
     if (!valid) throw new Error(`Invalid stream specifier: ${selectStreams}`);
   }
   const [head = "default", ...parameters] = printFormat.split(":");

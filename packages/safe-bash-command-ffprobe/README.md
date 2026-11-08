@@ -12,7 +12,7 @@ ffprobe -show_entries stream=sample_rate,channels:format=duration -of csv record
 Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 `json`, `compact`, `csv`, `default`, `flat`, `ini`, `xml`; `-show_format`, `-show_streams`,
 `-show_error` for structured missing-input errors (with a nonzero exit status),
-`-show_entries section=fields` (including format/stream tags and `stream_disposition`), `-select_streams a:0`,
+`-show_entries section=fields` (including format/stream tags and `stream_disposition`), `-select_streams a:0` (or MP4 track IDs such as `i:77` and `#0x4d`),
 `-sexagesimal` for `H:MM:SS.ffffff` timestamps and durations, and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,
 `-show_programs`, `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`.
 MP4/M4A format tags include title, artist, album artist, composer, track/disc numbers and totals, compilation, copyright, and description.

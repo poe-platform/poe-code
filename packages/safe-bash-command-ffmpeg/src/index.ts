@@ -1987,8 +1987,7 @@ async function applyVideoFilterChain(
             ? f.ptsSeconds < finalEnd
             : index < endFrame || (Number.isFinite(finalEnd) && f.ptsSeconds < finalEnd);
           return afterStart && beforeEnd;
-        })
-        .map((f) => ({ ...f, ptsSeconds: Math.max(0, f.ptsSeconds - st) }));
+        });
     } else if (name === "drawtext") {
       const rawText = (named.text ?? positional[0] ?? "").replace(/^['"]|['"]$/g, "");
       const fontSize = parseInt(named.fontsize ?? "12", 10) || 12;

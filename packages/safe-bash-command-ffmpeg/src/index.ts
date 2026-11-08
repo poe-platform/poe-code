@@ -1901,21 +1901,36 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "tile") {
-      for (const [index, key] of ["layout", "nb_frames", "margin", "padding", "color", "overlap", "init_padding"].entries()) {
-        const value = positional[index];
-        if (value && !value.includes("=")) named[key] ??= value;
+      const keys = ["layout", "nb_frames", "margin", "padding", "color", "overlap", "init_padding"];
+      for (const key of Object.keys(named)) {
+        if (!keys.includes(key)) throw new Error(`tile: unknown option ${key}`);
       }
-      const layoutStr = ((named.layout ?? positional[0]) || "6x5").toLowerCase();
-      const [colsStr, rowsStr] = layoutStr.split("x");
-      const cols = Math.max(1, parseInt(colsStr ?? "2", 10) || 2);
-      const rows = Math.max(1, parseInt(rowsStr ?? "2", 10) || 2);
-      const padding = parseInt(named.padding ?? "0", 10) || 0;
-      const margin = parseInt(named.margin ?? "0", 10) || 0;
+      for (const [index, value] of positional.entries()) {
+        if (!value || value.includes("=")) continue;
+        const key = keys[index];
+        if (!key) throw new Error("tile: too many positional options");
+        named[key] ??= value;
+      }
+      const dimensions = (named.layout ?? "6x5").toLowerCase().split("x");
+      if (dimensions.length !== 2 || dimensions.some(value =>
+        !value || [...value].some(char => char < "0" || char > "9") ||
+        !Number.isSafeInteger(Number(value)) || Number(value) < 1 || Number(value) > 2147483647)) {
+        throw new Error("tile: layout must contain two positive integer dimensions");
+      }
+      const cols = Number(dimensions[0]);
+      const rows = Number(dimensions[1]);
+      if (cols * rows > 2147483647) throw new Error("tile: layout has too many cells");
+      for (const key of ["nb_frames", "margin", "padding"]) {
+        const value = Number(named[key] ?? 0);
+        const max = key === "nb_frames" ? cols * rows : 1024;
+        if (named[key]?.trim() === "" || !Number.isInteger(value) || value < 0 || value > max) {
+          throw new Error(`tile: ${key} must be an integer from 0 to ${max}`);
+        }
+      }
+      const padding = Number(named.padding ?? 0);
+      const margin = Number(named.margin ?? 0);
       const color = parseColorRgba(named.color ?? "black");
-      const nbFrames = Number(named.nb_frames ?? 0);
-      const perTile = Number.isInteger(nbFrames) && nbFrames > 0 && nbFrames <= cols * rows
-        ? nbFrames
-        : cols * rows;
+      const perTile = Number(named.nb_frames ?? 0) || cols * rows;
       const overlap = Number(named.overlap ?? 0);
       if (!Number.isInteger(overlap) || overlap < 0 || overlap > 2147483647) {
         throw new Error("tile: overlap must be an integer from 0 to 2147483647");

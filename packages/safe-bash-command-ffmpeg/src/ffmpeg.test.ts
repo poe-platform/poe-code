@@ -1410,6 +1410,31 @@ describe("required option arguments", () => {
   });
 });
 
+describe("tile invalid options", () => {
+  for (const options of [
+    "2x2:nb_frames=5", "0x2", "2x0", "-1x2", "2x2x2", "2junkx2", "2.5x2",
+    "2x2:padding=-1", "2x2:margin=-1", "2x2:badkey=1",
+    "2x2:nb_frames=-1", "2x2:nb_frames=1.5", "2x2:nb_frames=invalid",
+    "2x2:padding=1.5", "2x2:margin=invalid", "2x2:padding=2147483648",
+    "2x2:margin=2147483648", "2x2:padding=1025", "2x2:margin=1025",
+    "2147483648x1", "65536x65536", "2x2:nb_frames=", "2x2:color=invalid",
+    "2x2:0:0:0:black:0:0:extra"
+  ]) {
+    it(`rejects tile=${options} without publishing or replacing sheets`, async () => {
+      for (const existing of [false, true]) {
+        const vfs = createTestVfs(existing ? { "/out1.png": "keep" } : {});
+        const before = new Map(vfs.store);
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-f", "lavfi", "-i", "color=s=4x4:r=5:d=1.4",
+          "-vf", `tile=${options}`, "-fps_mode", "passthrough", "/out%d.png"
+        ], vfs);
+        assert.notEqual(result.exitCode, 0, result.stderr);
+        assert.deepEqual(vfs.store, before);
+      }
+    });
+  }
+});
+
 describe("tile overlap", () => {
   for (const overlap of ["-1", "1.5", "2147483648", "invalid"]) {
     it(`rejects overlap=${overlap} without replacing output`, async () => {

@@ -6186,6 +6186,37 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
+    } else if (token === "-range-threshold") {
+        highDepth = true;
+        const raw = tokens[++i] ?? "";
+        const parts = raw.split(",").map(part => part.endsWith("%") ? part.slice(0, -1) : part);
+        if (parts.length !== 4 || parts.some(part => !part.trim() || !Number.isFinite(Number(part)))) {
+            throw new Error(`invalid argument '-range-threshold' '${raw}'`);
+        }
+        const scale = raw.includes("%") ? 65535 / 100 : 1;
+        const [lowBlack, lowWhite, highWhite, highBlack] = parts.map(part => Number(part) * scale) as [number, number, number, number];
+        const channels = state.channels;
+        const explicit = state.channelExplicit;
+        apply = function* (image) {
+            const out = new Uint8Array(image.data);
+            const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+            const samples = data16 ?? out, quantumScale = data16 ? 1 : 257, maximum = data16 ? 65535 : 255;
+            const mask = explicit ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : [true, true, true, image.hasAlpha];
+            for (let idx = 0; idx < out.length; idx += 4) {
+                if (idx % 65536 === 0) yield;
+                const intensity = samples[idx] === samples[idx + 1] && samples[idx] === samples[idx + 2] ? samples[idx]! * quantumScale : (0.212656 * samples[idx]! + 0.715158 * samples[idx + 1]! + 0.072186 * samples[idx + 2]!) * quantumScale;
+                for (let channel = 0; channel < 4; channel++) {
+                    if (!mask[channel]) continue;
+                    const value = explicit ? samples[idx + channel]! * quantumScale : intensity;
+                    const level = value <= lowBlack || value >= highBlack ? 0
+                        : value < lowWhite ? (value - lowBlack) / (lowWhite - lowBlack)
+                        : value > highWhite ? (highBlack - value) / (highBlack - highWhite) : 1;
+                    samples[idx + channel] = Math.round(level * maximum);
+                    out[idx + channel] = Math.round(data16 ? samples[idx + channel]! / 257 : samples[idx + channel]!);
+                }
+            }
+            return { ...image, data: out, ...(data16 ? { data16 } : {}) };
+        };
     } else if (token === "-threshold") {
         highDepth = true;
         const raw = tokens[++i] ?? "", threshold = raw.endsWith("%") ? raw.slice(0, -1) : raw;
@@ -9886,6 +9917,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-level",
         "+level",
         "-threshold",
+        "-range-threshold",
         "-black-threshold",
         "-white-threshold",
         "-sigmoidal-contrast",

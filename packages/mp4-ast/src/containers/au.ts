@@ -1,7 +1,7 @@
 import { type MediaAstPlugin, type MediaDocument, type ParseMediaOptions, MediaBudgetTracker } from "../types.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
 import { decodeG722 } from "./g722.js";
-import { decodeAuG726 } from "./au-g726.js";
+import { decodeG726 } from "./au-g726.js";
 import { rawAudioAsts } from "./raw-audio.js";
 
 const encodings = new Map([[1, "mulaw"], [2, "s8"], [3, "s16be"], [4, "s24be"],
@@ -44,7 +44,7 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
         samples: data.length ? [{ data, size: data.length, dts: 0, pts: 0, cts: 0,
           duration: frames, isKeyframe: true, sampleDescriptionIndex: 1 }] : [],
         ...(options.decodeAudio !== false ? { decodedAudio: { sampleRate, channels: adpcm.codec === "adpcm_g722" ? 1 : channels,
-          channelData: [adpcm.codec === "adpcm_g722" ? decodeG722(data, budget) : decodeAuG726(data, adpcm.bits, budget)] } } : {})
+          channelData: [adpcm.codec === "adpcm_g722" ? decodeG722(data, budget) : decodeG726(data, adpcm.bits, budget, true)] } } : {})
       }]
     };
   } else {

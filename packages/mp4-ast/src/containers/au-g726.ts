@@ -23,10 +23,11 @@
  * 2550 Garcia Avenue
  * Mountain View, California  94043
  */
-// G.721/G.723 predictor arithmetic and tables (G.726, 24/32/40 kbit/s).
+// G.721/G.723 predictor arithmetic and tables (G.726, 16/24/32/40 kbit/s).
 import { type MediaBudgetTracker } from "../types.js";
 
 const tables = {
+  2: { inverse: [116, 365, 365, 116], scale: [-22, 439, 439, -22], speed: [0, 7, 7, 0] },
   3: {
     inverse: [-32768, 135, 273, 373, 373, 273, 135, -32768],
     scale: [-4, 30, 137, 582, 582, 137, 30, -4],
@@ -47,22 +48,22 @@ const tables = {
   }
 };
 
-// Packed sign, four-bit exponent and six-bit mantissa used by the predictors.
+// Keep five exponent bits: abs(-32768) needs exponent 16 without overlapping the sign.
 function floating(value: number): number {
   const magnitude = Math.abs(value);
   const exponent = magnitude ? 32 - Math.clz32(magnitude) : 0;
-  return (value < 0 ? 1024 : 0) | exponent << 6 | (magnitude ? (magnitude << 6) >> exponent : 32);
+  return (value < 0 ? 2048 : 0) | exponent << 6 | (magnitude ? (magnitude << 6) >> exponent : 32);
 }
 
 function multiply(coefficient: number, history: number): number {
   const packed = floating(coefficient);
-  const exponent = ((packed >> 6) & 15) + ((history >> 6) & 15) - 19;
+  const exponent = ((packed >> 6) & 31) + ((history >> 6) & 31) - 19;
   const mantissa = (((packed & 63) * (history & 63)) + 48) >> 4;
   const magnitude = exponent >= 0 ? mantissa << exponent : mantissa >> -exponent;
-  return ((packed ^ history) & 1024 ? -magnitude : magnitude) << 16 >> 16;
+  return ((packed ^ history) & 2048 ? -magnitude : magnitude) << 16 >> 16;
 }
 
-export function decodeAuG726(data: Uint8Array, bits: 3 | 4 | 5, budget: MediaBudgetTracker): Float64Array {
+export function decodeG726(data: Uint8Array, bits: 2 | 3 | 4 | 5, budget: MediaBudgetTracker, littleEndian: boolean): Float64Array {
   const duration = Math.floor(data.length * 8 / bits);
   budget.allocateMemory(duration * 8);
   const output = new Float64Array(duration);
@@ -75,7 +76,9 @@ export function decodeAuG726(data: Uint8Array, bits: 3 | 4 | 5, budget: MediaBud
   for (let frame = 0; frame < duration; frame++) {
     if (frame % 4096 === 0) budget.checkCpu();
     const bit = frame * bits, byte = Math.floor(bit / 8);
-    const code = ((data[byte]! | (data[byte + 1] ?? 0) << 8) >> (bit % 8)) & ((1 << bits) - 1);
+    const code = (littleEndian
+      ? (data[byte]! | (data[byte + 1] ?? 0) << 8) >> (bit % 8)
+      : (data[byte]! << 8 | (data[byte + 1] ?? 0)) >> (16 - bits - bit % 8)) & ((1 << bits) - 1);
     const negative = code >> (bits - 1);
     const logarithm = inverse[code]! + (step >> 2);
     const magnitude = logarithm < 0 ? 0 : ((128 + (logarithm & 127)) << ((logarithm >> 7) & 15)) >> 7;
@@ -94,7 +97,7 @@ export function decodeAuG726(data: Uint8Array, bits: 3 | 4 | 5, budget: MediaBud
       const limit = 15360 - poles[1]!;
       poles[0] = Math.max(-limit, Math.min(limit, poles[0]! + 192 * sign * signs[0]! - (poles[0]! >> 8)));
       for (let i = 0; i < 6; i++) {
-        zeros[i] = zeros[i]! + 128 * Math.sign(difference) * (differences[i]! & 1024 ? -1 : 1) - (zeros[i]! >> 8);
+        zeros[i] = zeros[i]! + 128 * Math.sign(difference) * (differences[i]! & 2048 ? -1 : 1) - (zeros[i]! >> 8);
       }
     }
     signs[1] = signs[0]!;
@@ -102,7 +105,7 @@ export function decodeAuG726(data: Uint8Array, bits: 3 | 4 | 5, budget: MediaBud
     signals[1] = signals[0]!;
     signals[0] = floating(signal);
     for (let i = 5; i > 0; i--) differences[i] = differences[i - 1]!;
-    differences[0] = (floating(difference) & 1023) | negative << 10;
+    differences[0] = (floating(difference) & 2047) | negative << 11;
     tone = poles[1]! < -11776;
     shortEnergy += (speed[code]! << 4) + (-shortEnergy >> 5);
     longEnergy += (speed[code]! << 4) + (-longEnergy >> 7);

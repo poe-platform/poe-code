@@ -3253,6 +3253,40 @@ describe("drawbox invert color", () => {
   }
 });
 
+describe("drawbox timeline enable", () => {
+  for (const [enable, activeFrames] of [
+    ["0", [false, false, false]],
+    ["gte(n\\,1)", [false, true, true]],
+    ["between(t\\,1\\,1)", [false, true, false]],
+    ["0.25", [false, false, false]],
+    ["-1", [true, true, true]]
+  ] as const) {
+    it(`draws only enabled pixels for ${enable}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({
+        width: 8, height: 8, channels: 4,
+        data: new Uint8Array(Array.from({ length: 64 }, () => [20, 40, 60, 80]).flat()),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice() });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "1", "-i", "/in%d.png", "-vf", `drawbox=0:0:4:4:red:fill:enable=${enable}`,
+        "-frames:v", "3", "/out%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      for (const [index, active] of activeFrames.entries()) {
+        const output = decodeImage(vfs.store.get(`/out${index + 1}.png`)!);
+        const expected = new Uint8Array(Array.from({ length: 64 }, (_, pixel) =>
+          active && pixel % 8 < 4 && Math.floor(pixel / 8) < 4
+            ? [255, 0, 0, 80] : [20, 40, 60, 80]).flat());
+        assert.equal(output.width, 8);
+        assert.equal(output.height, 8);
+        assert.deepEqual(output.data, expected, `frame ${index}`);
+      }
+    });
+  }
+});
+
 describe("drawbox default color", () => {
   for (const options of ["0:0:8:8", "x=0:y=0:w=8:h=8", "0:0:8:8:black:3", "0:0:8:8:red:3"]) {
     it(`matches native RGBA pixels for ${options} across three frames`, async () => {

@@ -2691,7 +2691,7 @@ async function applyVideoFilterChain(
     } else if (name === "drawbox") {
       const values = positional.map(part => part === "" || part.includes("=") ? undefined : part);
       for (const key of Object.keys(named)) {
-        if (!["x", "y", "w", "width", "h", "height", "c", "color", "t", "thickness", "replace"].includes(key)) {
+        if (!["x", "y", "w", "width", "h", "height", "c", "color", "t", "thickness", "replace", "enable"].includes(key)) {
           throw new Error(`drawbox: unsupported option ${key}`);
         }
       }
@@ -2718,7 +2718,7 @@ async function applyVideoFilterChain(
       const inverseAlpha = Math.fround(1 - alpha);
       const thicknessOption = named.t ?? named.thickness ?? values[5] ?? "3";
       const replace = ["1", "true", "yes", "on"].includes(replaceOption);
-      current = await mapWork(current, async (f) => {
+      current = await mapWork(current, async (f, n) => {
         let work = 0;
 
         const variables = {
@@ -2737,6 +2737,9 @@ async function applyVideoFilterChain(
         if (![variables.x, variables.y, variables.w, variables.h, variables.t].every(Number.isFinite)) {
           throw new Error("drawbox: invalid or unsupported expression");
         }
+        if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, "drawbox enable", {
+          n, t: f.ptsSeconds, w: f.width, h: f.height
+        })) < 0.5) return f;
         const width = Math.trunc(variables.w);
         const height = Math.trunc(variables.h);
         const bw = width <= 0 ? f.width : width;

@@ -1687,7 +1687,7 @@ async function applyVideoFilterChain(
         else throw new Error(`transpose: unsupported option ${key}`);
       }
       const directions: Record<string, number> = { cclock_flip: 0, clock: 1, cclock: 2, clock_flip: 3 };
-      let dir = Object.hasOwn(directions, direction) ? directions[direction]! : direction ? Number(direction) : NaN;
+      let dir = parseFilterExpression(direction, "transpose", directions);
       if (!Number.isInteger(dir) || dir < 0 || dir > 7) throw new Error("transpose: invalid direction");
       const modes: Record<string, number> = { none: 0, landscape: 1, portrait: 2 };
       let pass = Object.hasOwn(modes, passthrough) ? modes[passthrough]! : passthrough ? Number(passthrough) : NaN;

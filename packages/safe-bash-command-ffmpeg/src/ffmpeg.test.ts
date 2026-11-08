@@ -2437,6 +2437,37 @@ describe("transpose option validation", () => {
   }
 });
 
+describe("transpose direction expressions", () => {
+  for (const [width, height, counterclockwise, flipped] of [
+    [3, 2, [30, 60, 20, 50, 10, 40], [60, 30, 50, 20, 40, 10]],
+    [2, 3, [20, 40, 60, 10, 30, 50], [60, 40, 20, 50, 30, 10]],
+    [2, 2, [20, 40, 10, 30], [40, 20, 30, 10]]
+  ] as const) {
+    for (const [direction, expected] of [["1+1", counterclockwise], ["2", counterclockwise], ["1+2", flipped], ["3", flipped]] as const) {
+      for (const option of [direction, `dir=${direction}`]) {
+        it(`evaluates ${option} on ${width}x${height}`, async () => {
+          const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+          const values = [10, 20, 30, 40, 50, 60].slice(0, width * height);
+          const input = encodeImage({
+            width, height, channels: 4,
+            data: new Uint8Array(values.flatMap(value => [value, value, value, 255])),
+            format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+          }, { format: "png" }).data;
+          const vfs = createTestVfs({ "/in.png": input });
+          const result = await runCmd(createFfmpegCommand(), [
+            "-i", "/in.png", "-vf", `transpose=${option}`, "-frames:v", "1", "/out.png"
+          ], vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+          const output = decodeImage(vfs.store.get("/out.png")!);
+          assert.equal(output.width, height);
+          assert.equal(output.height, width);
+          assert.deepEqual(Array.from(output.data.filter((_, index) => index % 4 === 0)), expected);
+        });
+      }
+    }
+  }
+});
+
 describe("transpose directions", () => {
   // Native FFmpeg's pixel order for a 3x2 image containing rows 1,2,3 / 4,5,6.
   for (const [dir, order] of [

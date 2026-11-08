@@ -257,10 +257,10 @@ export function readWavHeader(bytes: Uint8Array, ignoreLength = false): WavHeade
   return step.value;
 }
 
-export async function readWavSourceHeader(source: MediaProbeSource, signal?: AbortSignal): Promise<WavHeader> {
+export async function readWavSourceHeader(source: MediaProbeSource, signal?: AbortSignal, ignoreLength = false): Promise<WavHeader> {
   signal?.throwIfAborted();
   if (!Number.isSafeInteger(source.size) || source.size < 0) throw new RangeError("Invalid WAV source size");
-  const scan = scanWavHeader(source.size);
+  const scan = scanWavHeader(source.size, ignoreLength);
   let step = scan.next();
   while (!step.done) {
     const { offset, length } = step.value;
@@ -285,9 +285,9 @@ export async function readWavSourceHeader(source: MediaProbeSource, signal?: Abo
  * Parsing errors are deferred until admission completes, matching the buffered
  * path's precedence when an upstream reader fails after malformed input.
  */
-export async function readWavStreamHeader(source: AsyncIterable<Uint8Array>, signal?: AbortSignal): Promise<WavHeader> {
+export async function readWavStreamHeader(source: AsyncIterable<Uint8Array>, signal?: AbortSignal, ignoreLength = false): Promise<WavHeader> {
   signal?.throwIfAborted();
-  const scan = scanWavHeader();
+  const scan = scanWavHeader(Infinity, ignoreLength);
   let step = scan.next(), bytes = new Uint8Array(step.done ? 0 : step.value.length);
   let size = 0, filled = 0;
   let failure: { error: unknown } | undefined;

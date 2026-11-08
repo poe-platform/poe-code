@@ -7,26 +7,28 @@ import { createFfprobeCommand, evalSyncFfprobe } from "./media.js";
 for (const declaredSize of [0, 8, 16, 0xffffffff]) {
   for (const target of ["/input.wav", "-"]) {
     for (const format of [[], ["-f", "wav"]]) {
-      it(`reports WAV packets with data size ${declaredSize} from ${target} ${format.join(" ")}`, async () => {
-        const samples = [11, 22, 33, 44, -55, -66, -77, -88];
-        const bytes = encodeWav({ sampleRate: 8000, channels: [Float64Array.from(samples, value => value / 32768)] });
-        new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).setUint32(40, declaredSize, true);
-        const args = ["-v", "error", ...format, "-show_packets", "-show_entries", "packet=pts,duration,size", "-of", "json", target];
-        const duration = declaredSize === 8 ? 4 : 8;
-        const expected = [{ pts: 0, duration, size: String(duration * 2) }];
-        const fs = new MemoryFileSystem(); await fs.writeFile("/input.wav", bytes);
-        let output = "";
-        const result = await createFfprobeCommand().execute({
-          command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs,
-          signal: new AbortController().signal,
-          stdin: { async *[Symbol.asyncIterator]() { yield bytes; } },
-          stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
-          stderr: { async write(chunk) { throw new Error(new TextDecoder().decode(chunk)); } }
+      for (const ignoreLength of [[], ["-ignore_length", "0"], ["-ignore_length", "1"]]) {
+        it(`reports WAV packets with data size ${declaredSize} from ${target} ${format.join(" ")} ${ignoreLength.join(" ")}`, async () => {
+          const samples = [11, 22, 33, 44, -55, -66, -77, -88];
+          const bytes = encodeWav({ sampleRate: 8000, channels: [Float64Array.from(samples, value => value / 32768)] });
+          new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).setUint32(40, declaredSize, true);
+          const args = ["-v", "error", ...format, ...ignoreLength, "-show_packets", "-show_entries", "packet=pts,duration,size", "-of", "json", target];
+          const duration = declaredSize === 8 && ignoreLength[1] !== "1" ? 4 : 8;
+          const expected = [{ pts: 0, duration, size: String(duration * 2) }];
+          const fs = new MemoryFileSystem(); await fs.writeFile("/input.wav", bytes);
+          let output = "";
+          const result = await createFfprobeCommand().execute({
+            command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs,
+            signal: new AbortController().signal,
+            stdin: { async *[Symbol.asyncIterator]() { yield bytes; } },
+            stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
+            stderr: { async write(chunk) { throw new Error(new TextDecoder().decode(chunk)); } }
+          });
+          expect(result.exitCode).toBe(0);
+          expect(JSON.parse(output).packets).toEqual(expected);
+          expect(JSON.parse(evalSyncFfprobe(target === "-" ? bytes : undefined, args, () => bytes)!).packets).toEqual(expected);
         });
-        expect(result.exitCode).toBe(0);
-        expect(JSON.parse(output).packets).toEqual(expected);
-        expect(JSON.parse(evalSyncFfprobe(target === "-" ? bytes : undefined, args, () => bytes)!).packets).toEqual(expected);
-      });
+      }
     }
   }
 }

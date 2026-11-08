@@ -1033,14 +1033,14 @@ type WavMetadataOnlyOptions = MediaSourceProbeOptions & { showPackets?: false; s
 export function probeWavSource(source: MediaProbeSource, options?: WavMetadataOnlyOptions): Promise<MediaProbeResult>;
 export function probeWavSource(source: MediaProbeSource, options: MediaSourceProbeOptions): Promise<MediaProbeRecords>;
 export async function probeWavSource(source: MediaProbeSource, options: MediaSourceProbeOptions = {}): Promise<MediaProbeRecords> {
-  return wavRecords(await readWavSourceHeader(source, options.signal), options);
+  return wavRecords(await readWavSourceHeader(source, options.signal, options.ignoreLength), options);
 }
 
 /** Consumes sequential borrowed chunks through EOF without retaining sample payloads. */
 export function probeWavStream(source: AsyncIterable<Uint8Array>, options?: WavMetadataOnlyOptions): Promise<MediaProbeResult>;
 export function probeWavStream(source: AsyncIterable<Uint8Array>, options: MediaSourceProbeOptions): Promise<MediaProbeRecords>;
 export async function probeWavStream(source: AsyncIterable<Uint8Array>, options: MediaSourceProbeOptions = {}): Promise<MediaProbeRecords> {
-  return wavRecords(await readWavStreamHeader(source, options.signal), options);
+  return wavRecords(await readWavStreamHeader(source, options.signal, options.ignoreLength), options);
 }
 
 export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
@@ -1070,7 +1070,7 @@ export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
       return serializeWav(doc, options, format);
     },
     probe(bytes, options) {
-      if (!options?.showPackets && !options?.showFrames) return wavMetadata(readWavHeader(bytes), options?.filename);
+      if (!options?.showPackets && !options?.showFrames) return wavMetadata(readWavHeader(bytes, options?.ignoreLength), options?.filename);
       const doc = parseWav(bytes, { ...options, decodeAudio: false });
       return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.wav", {
         ...options,

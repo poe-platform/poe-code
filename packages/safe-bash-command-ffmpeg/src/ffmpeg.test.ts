@@ -2370,6 +2370,66 @@ describe("video filter separators", () => {
   }
 });
 
+describe("transpose option validation", () => {
+  const png = (width: number, height: number, values: number[]) => import("@poe-code/image-ast/portable").then(({ encodeImage }) => encodeImage({
+    width, height, channels: 4, data: new Uint8Array(values.flatMap(value => [value, value, value, 255])),
+    format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+  }, { format: "png" }).data);
+
+  for (const filter of ["transpose", "transpose=0", "transpose=dir=cclock_flip"]) {
+    it(`uses counterclockwise rotation with vertical flip for ${filter}`, async () => {
+      const vfs = createTestVfs({ "/in.png": await png(3, 2, [10, 20, 30, 40, 50, 60]) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.png", "-vf", filter, "/out.png"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const output = decodeImage(vfs.store.get("/out.png")!);
+      assert.equal(output.width, 2);
+      assert.equal(output.height, 3);
+      assert.deepEqual(Array.from(output.data.filter((_, index) => index % 4 === 0)), [10, 40, 20, 50, 30, 60]);
+    });
+  }
+
+  for (const options of ["8", "-1", "bogus", "1:passthrough=bogus", "1:unknown=1", "1:passthrough=-1", "1:passthrough=2147483648", "1:none:extra"]) {
+    it(`preserves existing output for invalid transpose=${options}`, async () => {
+      const original = await png(1, 1, [99]);
+      const vfs = createTestVfs({ "/in.png": await png(3, 2, [10, 20, 30, 40, 50, 60]), "/out.png": original });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-v", "error", "-i", "/in.png", "-vf", `transpose=${options}`, "-frames:v", "1", "/out.png"
+      ], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("transpose"), result.stderr);
+      assert.deepEqual(vfs.store.get("/out.png"), original);
+    });
+  }
+
+  for (const [width, height, rotated] of [
+    [3, 2, [40, 10, 50, 20, 60, 30]],
+    [2, 3, [50, 30, 10, 60, 40, 20]],
+    [2, 2, [30, 10, 40, 20]]
+  ] as const) {
+    for (const [options, preserve] of [
+      ["1", false], ["dir=clock", false], ["1:passthrough=none", false],
+      ["1:passthrough=landscape", width >= height], ["1:1", width >= height],
+      ["1:passthrough=portrait", width <= height], ["1:2", width <= height],
+      ["5", width >= height]
+    ] as const) {
+      it(`transposes ${width}x${height} with ${options}`, async () => {
+        const values = [10, 20, 30, 40, 50, 60].slice(0, width * height);
+        const vfs = createTestVfs({ "/in.png": await png(width, height, values) });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/in.png", "-vf", `transpose=${options}`, "-frames:v", "1", "/out.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const { decodeImage } = await import("@poe-code/image-ast/portable");
+        const output = decodeImage(vfs.store.get("/out.png")!);
+        assert.equal(output.width, preserve ? width : height);
+        assert.equal(output.height, preserve ? height : width);
+        assert.deepEqual(Array.from(output.data.filter((_, index) => index % 4 === 0)), preserve ? values : rotated);
+      });
+    }
+  }
+});
+
 describe("transpose directions", () => {
   // Native FFmpeg's pixel order for a 3x2 image containing rows 1,2,3 / 4,5,6.
   for (const [dir, order] of [

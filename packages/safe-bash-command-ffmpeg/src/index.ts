@@ -1676,11 +1676,28 @@ async function applyVideoFilterChain(
         return { ...f, data: out.data };
       }, signal);
     } else if (name === "transpose") {
-      const dir = named.dir ?? positional[0] ?? "1";
-      const angle = dir === "0" || dir === "2" ? 270 : 90;
+      let direction = "0";
+      let passthrough = "none";
+      for (const [index, part] of (argStr ? positional : []).entries()) {
+        const separator = part.indexOf("=");
+        const key = separator < 0 ? ["dir", "passthrough"][index] : part.slice(0, separator).trim();
+        const value = (separator < 0 ? part : part.slice(separator + 1)).trim();
+        if (key === "dir") direction = value;
+        else if (key === "passthrough") passthrough = value;
+        else throw new Error(`transpose: unsupported option ${key}`);
+      }
+      const directions: Record<string, number> = { cclock_flip: 0, clock: 1, cclock: 2, clock_flip: 3 };
+      let dir = Object.hasOwn(directions, direction) ? directions[direction]! : direction ? Number(direction) : NaN;
+      if (!Number.isInteger(dir) || dir < 0 || dir > 7) throw new Error("transpose: invalid direction");
+      const modes: Record<string, number> = { none: 0, landscape: 1, portrait: 2 };
+      let pass = Object.hasOwn(modes, passthrough) ? modes[passthrough]! : passthrough ? Number(passthrough) : NaN;
+      if (!Number.isInteger(pass) || pass < 0 || pass > 2147483647) throw new Error("transpose: invalid passthrough");
+      if (dir >= 4) { dir -= 4; pass = 1; }
+      const angle = dir === 0 || dir === 2 ? 270 : 90;
       current = await mapWork(current, async (f) => {
+        if ((pass === 1 && f.width >= f.height) || (pass === 2 && f.width <= f.height)) return f;
         const rotated = rotateImage(makeRgbaImg(f.width, f.height, f.data), angle);
-        const out = dir === "0" || dir === "3" ? flipImage(rotated) : rotated;
+        const out = dir === 0 || dir === 3 ? flipImage(rotated) : rotated;
         return {
           ...f,
           width: out.width,

@@ -1381,16 +1381,42 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     const fragments: Uint8Array[] = [];
     const randomAccess = new Map<number, { time: number; offset: number; traf: number; sample: number }[]>();
     let moofOffset = ftypBox.byteLength + moovBox.byteLength + (options.emptyMoov === false ? initialSize + 8 : 0);
+    const groups = [...boundaries, Infinity].map(end => materializedTracks.flatMap((mt, index) => {
+      const start = positions[index]!;
+      let stop = start;
+      while (stop < mt.samples.length && mt.samples[stop]!.dts / mt.track.timescale < end) stop++;
+      positions[index] = stop;
+      return stop > start ? [{ ...mt, samples: mt.samples.slice(start, stop) }] : [];
+    })).filter(tracks => tracks.length > 0);
+    const segmentEntries = new Map<number, { time: number; duration: number; offset: number; size: number; sap: number }[]>();
+    const globalIndexSize = options.segmentIndex === "global" ? materializedTracks.reduce((size, mt) => {
+      const count = groups.filter(group => group.some(item => item.track.id === mt.track.id)).length;
+      if (count > 65535) throw new Error("MP4 segment index exceeds 65535 references");
+      return size + (count ? 40 + count * 12 : 0);
+    }, 0) : 0;
+    const globalIndexOffset = moofOffset;
+    moofOffset += globalIndexSize;
+    const buildSegmentIndex = (track: MediaTrack, entries: NonNullable<ReturnType<typeof segmentEntries.get>>, offset: number) => {
+      const writer = new BinaryWriter(28 + entries.length * 12);
+      writer.writeU32BE(track.id);
+      writer.writeU32BE(track.timescale);
+      writer.writeU64BE(Math.max(0, entries[0]!.time));
+      writer.writeU64BE(entries[0]!.offset - offset - (40 + entries.length * 12));
+      writer.writeU16BE(0);
+      writer.writeU16BE(entries.length);
+      for (const [index, entry] of entries.entries()) {
+        const size = entries[index + 1] ? entries[index + 1]!.offset - entry.offset : entry.size;
+        if (size > 0x7fffffff) throw new Error("MP4 segment index reference exceeds 31-bit size");
+        writer.writeU32BE(size);
+        writer.writeU32BE(entry.duration);
+        writer.writeU32BE(entry.sap);
+      }
+      return makeFullBox("sidx", 1, 0, writer.toUint8Array());
+    };
     let sequence = 1;
-    for (const end of [...boundaries, Infinity]) {
-      const fragmentTracks = materializedTracks.flatMap((mt, index) => {
-        const start = positions[index]!;
-        let stop = start;
-        while (stop < mt.samples.length && mt.samples[stop]!.dts / mt.track.timescale < end) stop++;
-        positions[index] = stop;
-        return stop > start ? [{ ...mt, samples: mt.samples.slice(start, stop) }] : [];
-      });
-      if (fragmentTracks.length === 0) continue;
+    for (const fragmentTracks of groups) {
+      const indexOffset = moofOffset;
+      if (options.segmentIndex === "fragment") moofOffset += fragmentTracks.length * 52;
       const mdatChunks: Uint8Array[] = [];
       const trackByteStarts: number[] = [];
       let currentMdatPayloadOffset = 0;
@@ -1449,6 +1475,25 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
           randomAccess.set(mt.track.id, entries);
         }
       }
+      if (options.segmentIndex) {
+        let offset = indexOffset;
+        for (const mt of fragmentTracks) {
+          const first = mt.samples[0]!;
+          const last = mt.samples[mt.samples.length - 1]!;
+          const entry = { time: first.pts, duration: last.dts + last.duration - first.dts,
+            offset: moofOffset, size: finalMoof.byteLength + mdatBox.byteLength,
+            sap: first.isKeyframe ? 0x90000000 : 0 };
+          if (options.segmentIndex === "fragment") {
+            const box = buildSegmentIndex(mt.track, [entry], offset);
+            fragments.push(box);
+            offset += box.byteLength;
+          } else {
+            const entries = segmentEntries.get(mt.track.id) ?? [];
+            entries.push(entry);
+            segmentEntries.set(mt.track.id, entries);
+          }
+        }
+      }
       moofOffset += finalMoof.byteLength + mdatBox.byteLength;
       fragments.push(finalMoof, mdatBox);
       sequence++;
@@ -1475,8 +1520,17 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       footer.writeU32BE(24 + indexes.reduce((size, box) => size + box.byteLength, 0));
       fragments.push(makeBox("mfra", concatBytes([...indexes, makeFullBox("mfro", 0, 0, footer.toUint8Array())])));
     }
+    const globalIndexes: Uint8Array[] = [];
+    let indexOffset = globalIndexOffset;
+    for (const mt of materializedTracks) {
+      const entries = segmentEntries.get(mt.track.id);
+      if (!entries?.length) continue;
+      const box = buildSegmentIndex(mt.track, entries, indexOffset);
+      globalIndexes.push(box);
+      indexOffset += box.byteLength;
+    }
     const result = concatBytes([ftypBox, moovBox,
-      ...(options.emptyMoov === false ? [makeBox("mdat", concatBytes(initialPayloads))] : []), ...fragments]);
+      ...(options.emptyMoov === false ? [makeBox("mdat", concatBytes(initialPayloads))] : []), ...globalIndexes, ...fragments]);
     budget.checkOutputBytes(result.byteLength);
     return result;
   }

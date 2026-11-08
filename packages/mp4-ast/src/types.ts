@@ -722,6 +722,8 @@ export interface SerializeMediaOptions {
   readonly format?: string | undefined;
   readonly faststart?: boolean | undefined;
   readonly fragmented?: boolean | undefined;
+  /** Write one segment index per track globally or before each fragment. */
+  readonly segmentIndex?: "global" | "fragment" | undefined;
   /** Use moof-relative fragment addressing (default: true); false writes explicit absolute base offsets. */
   readonly defaultBaseMoof?: boolean | undefined;
   /** Omit the fragmented MP4 random-access trailer. */

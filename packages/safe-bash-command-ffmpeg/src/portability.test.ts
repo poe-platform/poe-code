@@ -139,7 +139,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes cycle-based decimation metrics and timestamp resampling (944,504 bytes).
   // Includes tinterlace scan-line weaving (946,673 bytes).
   // Includes contact-sheet extraction with untile (948,900 bytes).
-  assert.ok(otherCodeBytes < 950_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes elapsed xfade progress and the current command graph (950,528 bytes).
+  assert.ok(otherCodeBytes < 952_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

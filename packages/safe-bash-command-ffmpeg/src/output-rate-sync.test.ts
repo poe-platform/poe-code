@@ -12,10 +12,13 @@ for (const options of [
   ["-r", "4", "-vsync", "2"],
   ["-r", "4", "-fps_mode", "cfr"],
   ["-r", "4", "-fps_mode", "auto"],
+  ["-vf", "setpts=2*PTS", "-r", "2", "-fps_mode", "cfr"],
+  ["-vf", "setpts=2*PTS", "-r", "2", "-vsync", "1"],
+  ["-vf", "setpts=2*PTS", "-r", "2"],
   ["-r", "4"],
   ["-fps_mode", "passthrough"],
 ]) {
-  const invalid = options.includes("-r") && ["passthrough", "vfr", "drop", "0", "2"].some(mode => options.includes(mode));
+  const invalid = options.includes("-r") && options.some((option, index) => ["-fps_mode", "-vsync"].includes(option) && ["passthrough", "vfr", "drop", "0", "2"].includes(options[index + 1]!));
   it(`output rate and sync: ${options.join(" ")}`, async () => {
     const volume = new Volume();
     const colors = [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]];
@@ -46,11 +49,14 @@ for (const options of [
       return;
     }
     assert.equal(result.exitCode, 0, stderr);
-    const count = options.includes("-r") ? 6 : 3;
+    // FFmpeg 9 retains frame durations through setpts (7 cleared them).
+    const expected = options.includes("setpts=2*PTS") ? [0, 1, 1, 2, 2]
+      : options.includes("-r") ? [0, 0, 1, 1, 2, 2] : [0, 1, 2];
+    const count = expected.length;
     assert.equal(volume.readdirSync("/").length, 3 + count);
     for (let index = 0; index < count; index++) {
       const image = decodeImage(volume.readFileSync(`/o00${index}.png`) as Buffer);
-      assert.deepEqual([...image.data.slice(0, 4)], colors[Math.floor(index * 3 / count)]);
+      assert.deepEqual([...image.data.slice(0, 4)], colors[expected[index]!]);
     }
   });
 }

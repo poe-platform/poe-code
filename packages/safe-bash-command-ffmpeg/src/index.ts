@@ -6915,23 +6915,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               else if (type === "audio") maxAudioFrames = maximum;
               else maxSubtitleFrames = maximum;
             }
-            // Apply `-s <WxH>` or `-r <fps>` as video filter operations when transcoding
+            const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
+            const numberedImageOutput = formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined;
+            // Numbered image output applies -r during CFR synchronization, after video filters.
             if (outputSize && videoCodec !== "copy") {
               const [w, h] = outputSize.toLowerCase().split("x");
               if (w && h) vfFilters.push(`scale=${w}:${h}`);
             }
-            if (outputFps && videoCodec !== "copy") {
+            if (outputFps && videoCodec !== "copy" && !numberedImageOutput) {
               vfFilters.push(`fps=${outputFps}`);
             }
 
-            const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
             // Output frame counts refer to displayed pictures, never encoded packets.
             if ((imageOutput || maxVideoFrames !== undefined) && videoCodec !== "copy") {
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async (track, index) => {
                   if (track.type !== "video") return track;
-                  const limit = vfFilters.length === 0 ? streamFrameLimits[index] : undefined;
+                  const limit = vfFilters.length === 0 && outputFps === undefined ? streamFrameLimits[index] : undefined;
                   const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
                   return { ...track, samples: [], decodedVideoFrames: frames };
                 }, context.signal)
@@ -9003,7 +9004,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             // Image files share frame processing and encoding.
-            const numberedImageOutput = formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined;
             if ((imageOutput && !isStdout(outputTarget)) || numberedImageOutput) {
               const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
               const imgPlugin = registry.findByFilename(`x.${outExt}`);
@@ -9013,7 +9013,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const vTrack = workingDoc.tracks.find((t) => t.type === "video");
               const frames = vTrack ? await ensureDecodedFrames(vTrack, workingDoc.timescale, budget, context.signal) : [];
               const limit = maxVideoFrames ?? Infinity;
-              const duration = frames[0]?.durationSeconds ?? 1;
+              const duration = outputFps ? 1 / outputFps : frames[0]?.durationSeconds ?? 1;
               const constantRate = ["auto", "-1", "cfr", "1"].includes(videoSync);
               let nextPts = (frames[0]?.ptsSeconds ?? 0) / duration;
               let idx = 0;

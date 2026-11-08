@@ -1780,6 +1780,10 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
     }
 
     let actualStartIdx = firstIdx;
+    // A zero-start trim must retain compressed audio preroll hidden by the edit list.
+    if (useEditList && track.type === "audio" && startSec === 0 && endTick > startTick) {
+      actualStartIdx = 0;
+    }
     if (useEditList && track.type === "video" && firstIdx < materialized.samples.length) {
       for (let i = firstIdx; i >= 0; i--) {
         if (++work % 256 === 0) yield;

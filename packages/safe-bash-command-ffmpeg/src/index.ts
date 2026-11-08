@@ -2965,6 +2965,22 @@ function mapGlobalMetadata(documents: readonly MediaDocument[], sources: readonl
   return metadata;
 }
 
+function validateMetadataStreamSpecifier(specifier: string): void {
+  const parts = specifier.split(":");
+  const isIndex = (value: string | undefined) => value !== undefined && value.length > 0 &&
+    Array.from(value).every(char => char >= "0" && char <= "9");
+  while (parts.length) {
+    const selector = parts.shift()!;
+    if (["a", "v", "V", "s", "d", "t"].includes(selector)) continue;
+    if (selector === "p" && isIndex(parts.shift())) continue;
+    if (selector === "m" && parts.length > 0) return;
+    if (selector === "i" && parts.length === 1 && isIndex(parts[0])) return;
+    if (selector.startsWith("#") && parts.length === 0 && isIndex(selector.slice(1))) return;
+    if (parts.length === 0 && (selector === "" || selector === "u" || isIndex(selector))) return;
+    throw new Error(`Invalid stream specifier: ${specifier}`);
+  }
+}
+
 function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [string, "language" | "handlerName", string][], metadataSource: number | undefined): readonly MediaTrack[] {
   if (metadataSource !== undefined && metadataSource < 0) {
     tracks = tracks.map(track => ({ ...track, language: "und" }));
@@ -3707,6 +3723,9 @@ export function evalSyncFfmpeg(
       } else if (arg === "-metadata" || arg.startsWith("-metadata:")) {
         const type = arg["-metadata:".length] ?? "g";
         if (type !== "g" && type !== "s" && type !== "c" && type !== "p") return undefined;
+        if (arg === "-metadata:s" || arg.startsWith("-metadata:s:")) {
+          validateMetadataStreamSpecifier(arg.slice("-metadata:s:".length));
+        }
         const kv = args[++i] ?? "";
         const eq = kv.indexOf("=");
         if (eq < 0) return undefined;
@@ -4925,6 +4944,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (type !== "g" && type !== "s" && type !== "c" && type !== "p") {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid metadata type ${type}.\n`), context.signal);
               return { exitCode: 234 };
+            }
+            if (arg === "-metadata:s" || arg.startsWith("-metadata:s:")) {
+              try {
+                validateMetadataStreamSpecifier(arg.slice("-metadata:s:".length));
+              } catch (error) {
+                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}.\n`), context.signal);
+                return { exitCode: 234 };
+              }
             }
             const kv = args[++i] ?? "";
             const eq = kv.indexOf("=");

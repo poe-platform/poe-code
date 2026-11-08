@@ -7756,7 +7756,17 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             stack = [appended];
         }
-        else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimize") { state.optimizeLayers = true; i++; }
+        else if (t === "-layers" && ["optimize", "optimizeframe"].includes((tokens[i + 1] ?? "").toLowerCase())) {
+            if (tokens[i + 1]!.toLowerCase() === "optimizeframe") {
+                for (const frame of stack) {
+                    if (frame.width !== stack[0]!.width || frame.height !== stack[0]!.height ||
+                        (frame.virtualCanvas?.width || frame.width) !== frame.width ||
+                        (frame.virtualCanvas?.height || frame.height) !== frame.height ||
+                        frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
+                }
+            }
+            state.optimizeLayers = true; i++;
+        }
         else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
             const flatten = t === "-flatten" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "flatten");
             if (t === "-layers")
@@ -8607,7 +8617,20 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "optimize") { state.optimizeLayers = true; i++; continue; }
+        if (!operandsOnly && token === "-layers" && ["optimize", "optimizeframe"].includes((tokens[i + 1] ?? "").toLowerCase())) {
+            if (tokens[i + 1]!.toLowerCase() === "optimizeframe") stackStep(async stack => {
+                const first = await stack.get(0);
+                for (let n = 0; n < stack.length; n++) {
+                    const frame = (await stack.get(n))!;
+                    if (frame.width !== first!.width || frame.height !== first!.height ||
+                        (frame.virtualCanvas?.width || frame.width) !== frame.width ||
+                        (frame.virtualCanvas?.height || frame.height) !== frame.height ||
+                        frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
+                }
+                return stack;
+            });
+            state.optimizeLayers = true; i++; continue;
+        }
         if (!operandsOnly && (["-append", "+append", "-flatten", "-mosaic", "-composite"].includes(token) || (token === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
             const flatten = token === "-flatten" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "flatten");
             if (token === "-layers") i++;

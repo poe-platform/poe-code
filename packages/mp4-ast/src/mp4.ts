@@ -1218,6 +1218,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
   const ftypBox = makeBox("ftyp", ftypWriter.toUint8Array());
 
   const movieTimescale = doc.timescale || 1000;
+  // Only fragmented MP4 needs track descriptions before any packets are written.
   const materializedTracks = doc.tracks.map((t) => {
     const sampleRate = t.codecDescriptions[0]?.sampleRate;
     if (t.codecDescriptions[0]?.codecName === "mp3" && sampleRate && sampleRate !== t.timescale) {
@@ -1262,7 +1263,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       ];
     }) } : t;
     return { track, ...materialized };
-  });
+  }).filter(track => options.fragmented || track.samples.length > 0);
 
   let maxDurationSeconds = 0;
   for (const mt of materializedTracks) {

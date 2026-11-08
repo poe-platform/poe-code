@@ -15,7 +15,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   if (end > bytes.length || end < 12) throw new Error("Truncated AIFF FORM");
   const compressed = text(8, 4) === "AIFC";
   let littleEndian = false;
-  let floatFormat: string | undefined;
+  let compressedFormat: string | undefined;
   let channels = 0, frames = 0, bits = 0, sampleRate = 0;
   let sound: Uint8Array | undefined;
   const metadata: { title?: string; copyright?: string; comment?: string; custom?: Record<string, string> } = {};
@@ -28,9 +28,10 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       if (size < (compressed ? 22 : 18)) throw new Error("Invalid AIFF COMM chunk");
       if (compressed) {
         const compression = text(start + 18, 4);
-        if (!["sowt", "NONE", "fl32", "fl64"].includes(compression)) throw new Error(`Unsupported AIFF-C compression: ${compression}`);
+        if (!["sowt", "NONE", "fl32", "fl64", "alaw", "ulaw"].includes(compression)) throw new Error(`Unsupported AIFF-C compression: ${compression}`);
         littleEndian = compression === "sowt";
-        floatFormat = compression === "fl32" ? "f32be" : compression === "fl64" ? "f64be" : undefined;
+        compressedFormat = compression === "fl32" ? "f32be" : compression === "fl64" ? "f64be"
+          : compression === "alaw" ? "alaw" : compression === "ulaw" ? "mulaw" : undefined;
       }
       channels = view.getUint16(start);
       frames = view.getUint32(start + 2);
@@ -55,10 +56,10 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
     }
     offset = start + size + size % 2;
   }
-  if (!channels || !sound || (!floatFormat && (bits < 1 || bits > 32))) throw new Error("Missing or unsupported AIFF audio format");
+  if (!channels || !sound || (!compressedFormat && (bits < 1 || bits > 32))) throw new Error("Missing or unsupported AIFF audio format");
   bits = Math.ceil(bits / 8) * 8;
   budget.checkDuration(frames / sampleRate);
-  const format = floatFormat ?? (bits === 8 ? "s8" : `s${bits}${littleEndian ? "le" : "be"}`);
+  const format = compressedFormat ?? (bits === 8 ? "s8" : `s${bits}${littleEndian ? "le" : "be"}`);
   const doc = pcm.find(plugin => plugin.id === format)!.parse(sound, { ...options, budget, channels, sampleRate });
   // COMM describes duration; SSND determines the available PCM samples.
   return { ...doc, duration: frames, durationSeconds: frames / sampleRate,

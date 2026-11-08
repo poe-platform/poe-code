@@ -75,7 +75,7 @@ it("detects and probes native AIFF-C sowt and decodes ordered samples", () => {
 
 it("rejects unknown AIFF-C compression and missing compression tags", () => {
   const unknown = Buffer.from(aifc);
-  unknown.write("ulaw", 64);
+  unknown.write("zzzz", 64);
   assert.throws(() => parseAiff(unknown), /Unsupported AIFF-C compression/);
   const truncated = Buffer.from(aifc);
   truncated.writeUInt32BE(18, 42);

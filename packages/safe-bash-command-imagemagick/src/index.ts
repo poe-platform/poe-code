@@ -4863,6 +4863,12 @@ function parseInputToken(token:string):{baseToken:string;pageSpec?:string;inline
             }
             inside = normalized;
         }
+        if (inside.includes(",") && !inside.startsWith(",") && [...inside].every(char => "0123456789-,".includes(char))) {
+            // Native skips middle empty entries, but a trailing comma selects frame zero.
+            const entries = inside.split(",");
+            if (entries.at(-1) === "") entries[entries.length - 1] = "0";
+            inside = entries.filter(entry => entry !== "").join(",");
+        }
         if (/^-?\d+$/.test(inside) || /^-?\d+--?\d+$/.test(inside) || /^-?\d+(,-?\d+)+$/.test(inside)) {
             pageSpec = inside;
         }

@@ -4756,6 +4756,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioRate: number | undefined;
         let audioChannels: number | undefined;
         let rematrixMaxval: number | undefined;
+        let rematrixVolume = 1;
         let centerMixLevel: number | undefined;
         let surroundMixLevel: number | undefined;
         let lfeMixLevel: number | undefined;
@@ -5284,6 +5285,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             rematrixMaxval = Number(raw);
             if (!raw?.trim() || !Number.isFinite(rematrixMaxval) || rematrixMaxval < 0 || rematrixMaxval > 1000) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: rematrix_maxval must be a number between 0 and 1000\n"), context.signal);
+              return { exitCode: 8 };
+            }
+          } else if (arg === "-rematrix_volume") {
+            const raw = args[++i];
+            rematrixVolume = Number(raw);
+            if (!raw?.trim() || !Number.isFinite(rematrixVolume) || Math.abs(rematrixVolume) > 1000) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: rematrix_volume must be a number between -1000 and 1000\n"), context.signal);
               return { exitCode: 8 };
             }
           } else if (arg === "-center_mix_level") {
@@ -7188,7 +7196,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio
-            if ((audioRate !== undefined || audioChannels !== undefined || afFilters.length > 0 || maxAudioFrames !== undefined) && audioCodec !== "copy") {
+            if ((audioRate !== undefined || audioChannels !== undefined || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined) && audioCodec !== "copy") {
               let audioOrdinal = 0;
               workingDoc = {
                 ...workingDoc,
@@ -7199,11 +7207,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (t.type !== "audio") return t;
                   const ordinal = audioOrdinal++;
                   const filter = afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal).at(-1);
-                  if (audioRate === undefined && audioChannels === undefined && !filter && maxAudioFrames === undefined) return t;
+                  if (audioRate === undefined && audioChannels === undefined && rematrixVolume === 1 && !filter && maxAudioFrames === undefined) return t;
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
                     ? decodeAacTrack(workingDoc, t) : undefined);
                   if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
                   let matrixMaxval = rematrixMaxval;
+                  let remixVolume = rematrixVolume;
                   let mixLevel = centerMixLevel;
                   let surroundLevel = surroundMixLevel;
                   let lfeLevel = lfeMixLevel;
@@ -7869,6 +7878,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           lfeLevel = Number(raw);
                           if (!raw?.trim() || extra !== undefined || !Number.isFinite(lfeLevel) || Math.abs(lfeLevel) > 32) {
                             throw new Error("aresample: LFE mix level must be a number between -32 and 32");
+                          }
+                          continue;
+                        }
+                        if (key === "rematrix_volume") {
+                          remixVolume = Number(raw);
+                          if (!raw?.trim() || extra !== undefined || !Number.isFinite(remixVolume) || Math.abs(remixVolume) > 1000) {
+                            throw new Error("aresample: rematrix_volume must be a number between -1000 and 1000");
                           }
                           continue;
                         }
@@ -8633,6 +8649,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
                   }
 
+                  // Apply rematrix volume to coefficients before PCM rounding. Negative
+                  // values ask swresample to normalize the largest coefficient to -1/volume.
+                  const remixMatrix = remixVolume === 0 || remixVolume === 1 ? undefined : Array.from({ length: targetCh }, (_, output) =>
+                    Array.from({ length: origCh }, (_, input) => {
+                      if (centerMatrix) return centerMatrix[output]![input]!;
+                      if (sevenOneDownmix) return sevenOneMatrix[output]![input]! / (pcm16SevenOne ? 32768 : 1);
+                      if (surroundMono) return [Math.SQRT1_2, Math.SQRT1_2, 1, 0, 0.5, 0.5][input]! / (2 + Math.SQRT2);
+                      if (surroundStereo) return (input === output ? 1 : input === 2 || input === output + 4 ? Math.SQRT1_2 : 0) / (1 + Math.SQRT2);
+                      if (centerDownmix) return (input === 2 ? Math.SQRT1_2 : input < 2 ? targetCh === 1 ? 0.5 : input === output ? 1 : 0 : 0) / (1 + Math.SQRT1_2);
+                      if (quadDownmix) return (targetCh === 1 ? 0.5 : input % 2 === output ? 1 : 0) * (input >= 2 ? Math.SQRT1_2 : 1) / (1 + Math.SQRT1_2);
+                      if (quadToFour) return output < 2 ? input === output ? Math.SQRT1_2 : 0 : output === 3 && input >= 2 ? 0.5 : 0;
+                      if (monoStereo || centerLfeStereo) return output < 2 && input === 0 ? Math.SQRT1_2 : 0;
+                      if (monoSurround) return output === 2 ? 1 : 0;
+                      if (surroundUpmix) return inputSpeakers[input] === 1 << output ? 1 : 0;
+                      if (surroundExpansion) return input === (output < 4 ? output : channelMask === 0x60f ? output - 2 : output) &&
+                        (output < 4 || (channelMask === 0x60f ? output >= 6 : output < 6)) ? 1 : 0;
+                      if (targetCh === 1 && !centerLfe && (origCh === 2 || threeChannelDownmix)) return input < 2 ? 0.5 : 0;
+                      return input === output ? 1 : 0;
+                    }));
+                  if (remixMatrix) {
+                    const peak = Math.max(...remixMatrix.flat().map(Math.abs));
+                    const gain = remixVolume < 0 ? -1 / (remixVolume * peak) : remixVolume;
+                    for (const row of remixMatrix) for (let input = 0; input < row.length; input++) row[input]! *= gain;
+                  }
+
                   const targetSamples = Math.max(0, Math.round((stretched[0]?.length ?? 0) * targetRate / origRate));
                   if (targetRate !== origRate) stretched = loudnormResampling
                     ? await resampleLoudnorm(stretched, origRate, targetRate, budget, context.signal)
@@ -8700,7 +8741,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           sum + stretched[speaker]![srcIdx]! * gain, 0);
                         const centerSample = centerMatrix?.[c]?.reduce((sum, gain, speaker) =>
                           sum + stretched[speaker]![srcIdx]! * gain, 0);
-                        const scaled = (centerSample ?? (sevenOneSample === undefined ? mixed : pcm16SevenOne
+                        const remixSample = remixMatrix?.[c]?.reduce((sum, gain, speaker) =>
+                          sum + stretched[speaker]![srcIdx]! * gain, 0);
+                        const scaled = (remixSample ?? centerSample ?? (sevenOneSample === undefined ? mixed : pcm16SevenOne
                           ? Math.floor(sevenOneSample + 0.5) / 32768 : sevenOneSample)) * volFactor;
                         dst[i] = pcm16Output && !Number.isFinite(scaled) ? 0 : Math.max(-1, Math.min(1, scaled));
                       }

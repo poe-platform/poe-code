@@ -106,20 +106,20 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
     }
 }
 
-export function* combinePixelSteps(size: number, lengths: readonly number[], highDepth = false): Steps {
-    for (let position = 0; position < size; position += 16384) {
+export function* combinePixelSteps(inputs: readonly Pick<RgbaImage, "width" | "height">[], highDepth = false): Steps {
+    const { width, height } = inputs[0]!, chunkPixels = highDepth ? 2048 : 4096;
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x += chunkPixels) {
         yield;
-        const length = Math.min(16384, size - position), data = highDepth ? new Uint16Array(length) : new Uint8Array(length);
-        for (let image = 0; image < 4; image++) {
-            if (image === 3 && lengths.length < 4) { for (let offset = 3; offset < length; offset += 4) data[offset] = highDepth ? 65535 : 255; continue; }
-            const count = Math.max(0, Math.min(length, (lengths[image] ?? 0) - position));
-            if (!count) continue;
-            const bytes = (yield { kind: "read", highDepth, image, position, length: count })!;
+        const position = (y * width + x) * 4, length = Math.min(chunkPixels, width - x) * 4;
+        const base = (yield { kind: "read", highDepth, image: 0, position, length })!;
+        const data = highDepth ? new Uint16Array(base.slice().buffer) : new Uint8Array(base);
+        if (inputs.length < 4) for (let offset = 3; offset < length; offset += 4) data[offset] = highDepth ? 65535 : 255;
+        for (let image = 0; image < inputs.length; image++) {
+            const sourceImage = inputs[image]!;
+            if (y >= sourceImage.height || x >= sourceImage.width) continue;
+            const count = Math.min(length, (sourceImage.width - x) * 4);
+            const bytes = image === 0 ? base : (yield { kind: "read", highDepth, image, position: (y * sourceImage.width + x) * 4, length: count })!;
             const source = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
-            // Unfilled color planes retain the first image's channel values.
-            if (image === 0) for (let channel = lengths.length; channel < 3; channel++) {
-                for (let offset = 0; offset < count; offset += 4) data[offset + channel] = source[offset + channel]!;
-            }
             for (let offset = 0; offset < count; offset += 4) data[offset + image] = Math.round(0.212656 * source[offset]! + 0.715158 * source[offset + 1]! + 0.072186 * source[offset + 2]!);
         }
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };

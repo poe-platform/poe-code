@@ -7890,7 +7890,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length > 0) {
                 const rIm = stack[0]!;
                 const sources = stack.slice(0, 4);
-                const result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(rIm.width * rIm.height * 4, sources.map(image => image.data.length), sources.some(image => !!image.data16)), signal, rIm, sources);
+                const result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(sources, sources.some(image => !!image.data16)), signal, rIm, sources);
                 stack = [{ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 }];
             }
         }
@@ -8655,7 +8655,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (stack.length === 0) return stack;
                     const sources: StoredRgbaImage[] = [];
                     for (let index = 0; index < Math.min(4, stack.length); index++) sources.push((await stack.get(index))!);
-                    const base = sources[0]!, result = await transformStoredMagickRaster(base, backend, combinePixelSteps(base.width * base.height * 4, sources.map(image => image.width * image.height * 4), sources.some(image => !!image.storedData16)), signal, base, sources);
+                    const base = sources[0]!, result = await transformStoredMagickRaster(base, backend, combinePixelSteps(sources, sources.some(image => !!image.storedData16)), signal, base, sources);
                     stack.length = 0; await stack.push({ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 });
                 } else if (token === "-morph") {
                     const count = Math.max(0, Math.trunc(Number(argument)));

@@ -140,7 +140,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes tinterlace scan-line weaving (946,673 bytes).
   // Includes contact-sheet extraction with untile (948,900 bytes).
   // Includes elapsed xfade progress and the current command graph (950,528 bytes).
-  assert.ok(otherCodeBytes < 952_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes tanh soft clipping and the current audio filter graph (956,408 bytes).
+  assert.ok(otherCodeBytes < 958_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -198,6 +199,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes default mpdecimate block comparisons and retained-frame selection.
   // Includes cycle-based decimation (10,286,621 bytes).
   // Includes contact-sheet extraction with untile (10,290,146 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_292_000,
+  // Includes tanh soft clipping and the current media dependency graph (10,297,108 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_299_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

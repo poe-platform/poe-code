@@ -1,3 +1,4 @@
+import { decodeMovText } from "./mov-text.js";
 import { h264FieldOrderSteps } from './h264-field-order.js';
 import { buildProbeStream } from './probe-stream.js';
 import { mp4TextMetadataKeys, mp4ProbeMetadataKeys } from './mp4-metadata.js';
@@ -462,7 +463,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
     sizeReader.skip(8);
     const declaredSampleCount = (sizeTable?.payload.length ?? 0) >= 12 ? sizeReader.readU32BE() : 0;
     const samples: MediaSample[] = [], syncSamples = new Set<number>();
-    const steps = mp4SampleTableSteps(bytes.length, tables, { type, budget });
+    const steps = mp4SampleTableSteps(bytes.length, tables, { type: type === "subtitle" ? "data" : type, budget });
     let answer: Uint8Array | boolean | undefined;
     for (;;) {
       const next = steps.next(answer); if (next.done) break;
@@ -471,6 +472,22 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       else if (step.kind === 'sync-add') syncSamples.add(step.sample);
       else if (step.kind === 'sync-has') answer = syncSamples.has(step.sample);
       else { const { offset, ...sample } = step.sample; samples.push({ ...sample, offset, data: bytes.subarray(offset, offset + sample.size) }); }
+    }
+
+    // Keep tx3g extension boxes until text decoding; packet scans remain byte ranges.
+    if (type === "subtitle") {
+      let kept = 0;
+      for (const sample of samples) {
+        if (codecDescriptions[sample.sampleDescriptionIndex - 1]?.codecName !== "mov_text") {
+          samples[kept++] = sample;
+          continue;
+        }
+        const data = decodeMovText(sample.data);
+        if (!data.length) continue;
+        samples[kept++] = { ...sample, data, size: data.length,
+          ...(sample.offset !== undefined ? { offset: sample.offset + 2 } : {}) };
+      }
+      samples.length = kept;
     }
 
     // Reconstruct samples from fragmented MP4 (`moof` -> `traf` -> `tfhd`/`tfdt`/`trun`)

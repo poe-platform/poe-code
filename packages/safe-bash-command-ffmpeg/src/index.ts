@@ -4751,14 +4751,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const named: Record<string, string> = {};
                 for (const [index, part] of positional.entries()) {
                   const eqIdx = part.indexOf("=");
-                  if (eqIdx >= 0) named[part.slice(0, eqIdx).trim()] = part.slice(eqIdx + 1).trim();
-                  else if (part && index < 3) named[["transition", "duration", "offset"][index]!] = part.trim();
+                  if (!part && positional.length === 1) continue;
+                  const key = eqIdx >= 0 ? part.slice(0, eqIdx).trim() : ["transition", "duration", "offset"][index];
+                  if (key !== "transition" && key !== "duration" && key !== "offset") {
+                    throw new Error(`xfade: unsupported option ${key ?? part}`);
+                  }
+                  named[key] = (eqIdx >= 0 ? part.slice(eqIdx + 1) : part).trim();
                 }
                 const transition = named.transition ?? "fade";
                 if (transition !== "fade" && transition !== "wipeleft") {
                   throw new Error(`Unsupported xfade transition: ${transition}`);
                 }
                 const fadeDur = parseHlsDuration(named.duration ?? "1");
+                if (!Number.isFinite(fadeDur) || fadeDur < 0 || fadeDur > 60) {
+                  throw new Error("xfade: duration must be in the range [0, 60]");
+                }
                 const fps = f0[0]?.durationSeconds ? Math.round(1 / f0[0].durationSeconds) : 25;
                 const offsetSec = parseHlsDuration(named.offset ?? "0");
                 const preCount = Math.max(0, Math.min(f0.length, Math.round(offsetSec * fps)));

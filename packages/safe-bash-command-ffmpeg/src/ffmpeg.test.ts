@@ -17,6 +17,19 @@ import {
 } from "./index.js";
 
 describe("xfade duration", () => {
+  for (const options of ["duration=-1:offset=0", "duration=bad:offset=0", "duration=1:offset=0:typo=1", "duration=61:offset=0", "fade:-1:0", "fade:1:0:extra"]) {
+    it(`rejects invalid xfade options ${options} before writing frames`, async () => {
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-v", "error",
+        "-f", "lavfi", "-i", "color=c=red:s=8x8:r=4:d=2",
+        "-f", "lavfi", "-i", "color=c=blue:s=8x8:r=4:d=2",
+        "-filter_complex", `[0:v][1:v]xfade=${options}`, "/%d.png"
+      ], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(vfs.store.size, 0);
+    });
+  }
   for (const options of ["duration=0:offset=1", "fade:0:1", "transition=wipeleft:duration=0:offset=1"]) {
     it(`cuts immediately with ${options}`, async () => {
       const { decodeImage } = await import("@poe-code/image-ast/portable");

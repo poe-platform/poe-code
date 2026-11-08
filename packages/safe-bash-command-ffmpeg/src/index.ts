@@ -1982,12 +1982,15 @@ async function applyVideoFilterChain(
           throw new Error(`trim: invalid ${option} duration: ${raw}`);
         }
       }
-      const finalEnd = dur !== undefined ? st + dur : end;
+      let firstPts: number | undefined;
       current = current
         .filter((f, index) => {
           const afterStart = startFrame === undefined
             ? f.ptsSeconds + f.durationSeconds > st
             : index >= startFrame || (start !== undefined && f.ptsSeconds + f.durationSeconds > st);
+          if (!afterStart) return false;
+          firstPts ??= f.ptsSeconds;
+          const finalEnd = dur !== undefined ? firstPts + dur : end;
           const beforeEnd = endFrame === undefined
             ? f.ptsSeconds < finalEnd
             : index < endFrame || (Number.isFinite(finalEnd) && f.ptsSeconds < finalEnd);

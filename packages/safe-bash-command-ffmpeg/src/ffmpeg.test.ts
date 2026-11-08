@@ -18,6 +18,9 @@ import {
 
 describe("trim preserves timestamps", () => {
   for (const [filter, expected] of [
+    ["trim=start_frame=2:duration=0.5", [60, 80]],
+    ["trim=start=0.5:duration=0.5", [60, 80]],
+    ["trim=start_frame=2,trim=duration=0.5", [60, 80]],
     ["trim=start=0.5,trim=end=1", [60, 80]],
     ["trim=start=0.5:end=1", [60, 80]],
     ["trim=start_frame=2,trim=end=1", [60, 80]],

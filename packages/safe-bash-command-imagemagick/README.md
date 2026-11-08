@@ -60,7 +60,7 @@ PNG and JPEG preserve embedded ICC profiles. Use `-profile color.icc` to attach 
 
 Use `-region WIDTHxHEIGHT+X+Y` to limit subsequent pixel edits to a rectangle. Placement follows `-gravity`, and rectangles are clipped to the image. Use `+region` to restore edits across the whole image.
 
-Use `-write-mask mask.png` to restrict subsequent pixel edits on the current images: black permits edits, white protects pixels, and gray blends the result. Use `+write-mask` to remove the mask. Missing mask files return an error.
+Use `-write-mask mask.png` to restrict subsequent pixel edits on the current images: black permits edits, white protects pixels, and gray blends the result. Use `+write-mask` to remove the mask. The legacy `-clip-mask mask.png` and `+clip-mask` spellings are also supported. Missing mask files return an error.
 
 Use `-cycle N` to rotate indexed GIF or PNG colors by a signed number of palette entries.
 Use `-unique-colors` to extract a one-row palette in ImageMagick color-tree order, preserving alpha, hidden RGB and distinct 16-bit colors.

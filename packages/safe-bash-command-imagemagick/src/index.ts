@@ -6358,9 +6358,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if (t === "-write-mask" || t === "+write-mask") {
-            const path = t === "-write-mask" ? tokens[++i] : undefined;
-            if (t === "-write-mask" && !path) throw new Error("missing argument '-write-mask'");
+        if (t === "-write-mask" || t === "+write-mask" || t === "-clip-mask" || t === "+clip-mask") {
+            const path = t.startsWith("-") ? tokens[++i] : undefined;
+            if (t.startsWith("-") && !path) throw new Error(`missing argument '${t}'`);
             const mask = path ? yield* parseInputOperandSteps(path, files, state, stdinBytes) : undefined;
             if (path && !mask) throw new Error(`unable to open image '${path}'`);
             stack = stack.map(image => ({ ...image, writeMask: mask }));
@@ -7818,9 +7818,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async image => image ? { ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, gravity) } : undefined);
             continue;
         }
-        if (!operandsOnly && (token === "-write-mask" || token === "+write-mask")) {
-            const path = token === "-write-mask" ? tokens[++i] : undefined, settings = { ...state };
-            if (token === "-write-mask" && !path) throw new Error("missing argument '-write-mask'");
+        if (!operandsOnly && (token === "-write-mask" || token === "+write-mask" || token === "-clip-mask" || token === "+clip-mask")) {
+            const path = token.startsWith("-") ? tokens[++i] : undefined, settings = { ...state };
+            if (token.startsWith("-") && !path) throw new Error(`missing argument '${token}'`);
             stackStep(async (stack, backend) => {
                 const mask = path ? await parseStoredCompareInput(path, settings, backend, signal) : undefined;
                 if (path && !mask) throw new Error(`unable to open image '${path}'`);
@@ -8791,7 +8791,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-hough-lines",
         "-emboss",
         "-charcoal",
-        "-region", "-write-mask", "-sketch", "-seed", "-quantize", "-virtual-pixel", "-orient", "-profile", "+profile",
+        "-region", "-write-mask", "-clip-mask", "-sketch", "-seed", "-quantize", "-virtual-pixel", "-orient", "-profile", "+profile",
         "-scene", "-delay", "-loop", "-transparent-color", "-dispose", "-morph", "-repage", "-raise", "+raise",
         "-clone", "-insert", "-swap", "-delete", "-smush", "+smush", "-layers", "-recolor",
         "-contrast-stretch", "-linear-stretch", "-connected-components", "+connected-components"
@@ -8805,7 +8805,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
-        "+region", "+write-mask", "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
+        "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
         "+read-mask", "+interpolate", "+filter",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
     ]);

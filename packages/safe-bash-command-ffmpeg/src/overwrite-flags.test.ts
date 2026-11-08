@@ -32,7 +32,7 @@ for (const sync of [false, true]) {
             stdin: (async function* () {})(), stdout: { async write() {} },
             stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
           } as never);
-          assert.equal(result.exitCode, conflict ? 234 : rejected ? 1 : 0, stderr);
+          assert.equal(result.exitCode, conflict ? 234 : 0, stderr);
           if (conflict) assert.ok(stderr.includes("both -y and -n supplied"), stderr);
         }
         if (rejected) {

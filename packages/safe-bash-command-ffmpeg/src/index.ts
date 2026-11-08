@@ -6445,7 +6445,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           ? new Float64Array(channel.length) : new Float32Array(channel.length));
                         const length = stretched[0]?.length ?? 0;
                         const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
-                        const variables: Record<string, number> = { PI: Math.PI, sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
+                        const variables: Record<string, number> = { PI: Math.PI, nan: NaN, sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
                           // Native volume leaves sample counters unavailable in both evaluation modes.
                           nb_samples: NaN, nb_consumed_samples: NaN, startpts: NaN, startt: NaN,
                           n: NaN, t: NaN, pts: NaN, volume: NaN };

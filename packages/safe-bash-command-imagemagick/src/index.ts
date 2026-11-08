@@ -5112,6 +5112,21 @@ export function runIdentifyCliSync(argv: readonly string[], files: Map<string, U
     return next.value;
 }
 
+function parseMagickInsertPosition(spec: string): number {
+    if (!spec.trim() || [...spec].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@^".includes(c))) {
+        throw new Error(`invalid argument for option '-insert': ${spec}`);
+    }
+    const geometry = [...spec].filter(c => c.trim() !== "" && c !== "(" && c !== ")").join("");
+    const component = geometry.split(",")[0]!.split("/")[0]!;
+    // Geometry modifiers set native parse flags even without a dimension.
+    const hasGeometryFlag = geometry.startsWith("-") || [...geometry].some(c => "xX.!#%:<>@^".includes(c));
+    if (!hasGeometryFlag && !(component && Number.isFinite(Number(component)))) {
+        throw new Error(`invalid argument for option '-insert': ${spec}`);
+    }
+    // Native validates geometry, then reads only the leading decimal integer.
+    return Number.parseInt(spec, 10) || 0;
+}
+
 function parseMagickIndices(spec: string, ranges = true): number[][] {
   if (!spec.trim() || spec.trimStart().startsWith(",")) throw new Error(`invalid argument ${spec}`);
   return Array.from(spec, c => !c.trim() || (!ranges && c === "x") ? "," : c).join("").split(",").filter(part => part.trim()).map(part => {
@@ -7385,7 +7400,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else if (t === "+insert" || t === "-insert") {
-            const rawIdx = t === "+insert" ? 0 : Number(tokens[++i] ?? 0);
+            const rawIdx = t === "+insert" ? 0 : parseMagickInsertPosition(tokens[++i] ?? "0");
             const target = rawIdx < 0 ? stack.length - 1 + rawIdx : rawIdx;
             if (!Number.isInteger(target) || target < 0 || target >= stack.length || (rawIdx < 0 && target === 0)) throw new Error(`invalid image index ${t}`);
             if (stack.length > 1) {
@@ -7995,7 +8010,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 } else if (token.endsWith("delete")) await stack.remove(parseMagickIndexSpec(spec, stack.length, "delete"));
                 else if (token === "-reverse") { for (let n = 0; n < Math.floor(stack.length / 2); n++) { await yieldTurn(signal); await stack.swap(n, stack.length - 1 - n); } }
                 else if (token.endsWith("insert")) {
-                    const raw = token === "+insert" ? 0 : Number(spec), target = raw < 0 ? stack.length - 1 + raw : raw;
+                    const raw = token === "+insert" ? 0 : parseMagickInsertPosition(spec), target = raw < 0 ? stack.length - 1 + raw : raw;
                     if (!Number.isInteger(target) || target < 0 || target >= stack.length || (raw < 0 && target === 0)) throw new Error(`invalid image index ${token}`);
                     for (let n = stack.length - 1; n > target; n--) { await yieldTurn(signal); await stack.swap(n, n - 1); }
                 } else {

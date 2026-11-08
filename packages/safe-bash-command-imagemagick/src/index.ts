@@ -2850,6 +2850,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (imgIndex && (!Number.isFinite(targetIdx) || targetIdx >= ctx.stack.length)) {
           throw new Error(`ImgNum ${rawIdx} bad for ImgListLen ${ctx.stack.length}`);
         }
+        if (name === "t" || propName === "t") return targetIdx;
         const targetImg = "get" in ctx.stack ? ctx.stack.get(targetIdx) ?? ctx.stack.get(0) : ctx.stack[targetIdx] ?? ctx.stack[0];
         if (name === "depth") return targetImg?.bitsPerSample ?? (targetImg?.depth === "ushort" ? 16 : targetImg?.depth === "bit" ? 1 : 8);
         if (propName === "w") return targetImg?.width ?? ctx.w;

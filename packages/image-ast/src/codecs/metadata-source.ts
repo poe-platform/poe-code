@@ -1,3 +1,4 @@
+import { isXpmBytes, readXpmFromSource } from "./xpm.js";
 import { isXbmBytes, readXbmFromSource } from "./xbm.js";
 import { isRadianceBytes } from "./radiance.js";
 import { readRadianceFromSource } from "./radiance-storage.js";
@@ -46,6 +47,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  const prefix=new Uint8Array(borrowed);let metadata:RetainedImageMetadata;
  if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);
  else if(isXbmBytes(prefix))metadata=await readXbmFromSource(source,undefined,signal,options);
+ else if(isXpmBytes(prefix))metadata=await readXpmFromSource(source,undefined,signal,options);
  else if(isTxtBytes(prefix))metadata=await readTxtFromSource(source,undefined,signal,options);
  else if(isTgaBytes(prefix))metadata={...readTgaMetadata(prefix),size:source.size};
  else if(isIcoBytes(prefix))metadata=(await readIcoEntryFromSource(source,signal,options)).metadata;

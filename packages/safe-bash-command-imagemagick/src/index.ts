@@ -38,7 +38,7 @@ import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
 import { gray16EnumerationLine, pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, sparseColorPoints, storedSparseColor, encodeText } from "./text-output.js";
 import { StoredImageStack, magickInput, type MagickFormatContext, type StoredMagickImage } from "./stored-stack.js";
-import { remapStoredImage } from "./remap.js";
+import { remapColorOrder, remapStoredImage } from "./remap.js";
 import { floodfillStoredImage, matchesAlphaFloodfill } from "./floodfill.js";
 import { createHoughTransform } from "./hough-kernel.js";
 import { cannyPixelSteps } from "./canny-kernel.js";
@@ -1043,6 +1043,7 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
     }
     if (palette.length === 0)
         return img;
+    palette.sort((a, b) => remapColorOrder(b.r, b.g, b.b) - remapColorOrder(a.r, a.g, a.b));
     const w = img.width;
     const h = img.height;
     const buf = new Float32Array(img.data);

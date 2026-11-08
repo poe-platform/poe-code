@@ -2,6 +2,16 @@ import type { ImageByteStorage, StoredRgbaImage } from "@poe-code/image-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { RasterBackingCache } from "./raster-backing.js";
 
+// Interleaved RGB bits give the native octree traversal order (R, G, B
+// have child weights 1, 2, 4). Native chooses the last equal-distance color.
+export function remapColorOrder(r: number, g: number, b: number): number {
+    let order = 0;
+    for (let bit = 7; bit >= 0; bit--) {
+        order = order * 8 + ((r >>> bit & 1) | (g >>> bit & 1) << 1 | (b >>> bit & 1) << 2);
+    }
+    return order;
+}
+
 export async function remapStoredImage(image: StoredRgbaImage, paletteImage: StoredRgbaImage, storage: ImageByteStorage, dither: boolean, signal: AbortSignal): Promise<StoredRgbaImage> {
     const palette: number[] = [], seen = new Set<number>();
     for (let offset = 0; offset < paletteImage.width * paletteImage.height * 4; offset += 4096) {
@@ -14,6 +24,7 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
         }
     }
     if (!palette.length) return image;
+    palette.sort((a, b) => remapColorOrder(b >>> 24, b >>> 16 & 255, b >>> 8 & 255) - remapColorOrder(a >>> 24, a >>> 16 & 255, a >>> 8 & 255));
     const count = image.width * image.height, cache = new RasterBackingCache(storage, signal);
     const errors = dither ? { position: storage.allocate(count * 16), length: count * 16 } : undefined;
     if (errors) for (let start = 0; start < count; start += 1024) {

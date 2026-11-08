@@ -4784,6 +4784,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsAppendList = false;
         let hlsRoundDurations = false;
         let hlsProgramDateTime = false;
+        let hlsIframesOnly = false;
         let hlsIndependentSegments = false;
         let hlsSplitByTime = false;
         let hlsDeleteThreshold = 1;
@@ -5166,6 +5167,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               hlsAppendList = false;
               hlsRoundDurations = false;
               hlsProgramDateTime = false;
+              hlsIframesOnly = false;
               hlsIndependentSegments = false;
               hlsSplitByTime = false;
             }
@@ -5175,6 +5177,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const name = enabled ? flag : flag.slice(1);
               if (name === "single_file") hlsSingleFile = enabled;
               else if (name === "delete_segments") hlsDeleteSegments = enabled;
+              else if (name === "iframes_only") hlsIframesOnly = enabled;
               else if (name === "independent_segments") hlsIndependentSegments = enabled;
               else if (name === "split_by_time") hlsSplitByTime = enabled;
               else if (name === "omit_endlist") hlsOmitEndlist = enabled;
@@ -8981,13 +8984,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }));
               const playlistLines: string[] = [
                 "#EXTM3U",
-                isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : hlsSingleFile ? "#EXT-X-VERSION:4" : hlsRoundDurations ? "#EXT-X-VERSION:2" : "#EXT-X-VERSION:3",
+                isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : hlsSingleFile || hlsIframesOnly ? "#EXT-X-VERSION:4" : hlsRoundDurations ? "#EXT-X-VERSION:2" : "#EXT-X-VERSION:3",
                 ...(hlsAllowCache === 0 ? ["#EXT-X-ALLOW-CACHE:NO"] : hlsAllowCache === 1 ? ["#EXT-X-ALLOW-CACHE:YES"] : []),
                 `#EXT-X-TARGETDURATION:${Math.round(targetDuration)}`,
                 `#EXT-X-MEDIA-SEQUENCE:${sequence + firstEntry}`
               ];
 
               if (hlsPlaylistType) playlistLines.push(`#EXT-X-PLAYLIST-TYPE:${hlsPlaylistType.toUpperCase()}`);
+              if (hlsIframesOnly) playlistLines.push("#EXT-X-I-FRAMES-ONLY");
               if (independentSegments) playlistLines.push("#EXT-X-INDEPENDENT-SEGMENTS");
               if (isFmp4 && !hlsSingleFile) playlistLines.push(`#EXT-X-MAP:URI="${hlsFmp4InitFilename}"`);
 

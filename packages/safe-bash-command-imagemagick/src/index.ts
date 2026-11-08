@@ -1745,12 +1745,14 @@ function clampByteVal(n: number): number {
   return Math.max(0, Math.min(255, Math.round(n)));
 }
 
-function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement: RgbaColor, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement: RgbaColor, fuzz: number, invert: boolean, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const out = new Uint8Array(img.data);
     const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
     const samples = data16 ?? out, scale = data16 ? 257 : 1;
     const gray = img.space === "b-w" || img.space === "grey16";
+    const mask = [channels.r, channels.g, channels.b, channels.a];
+    const paint = [replacement.r, replacement.g, replacement.b, replacement.a];
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -1763,20 +1765,19 @@ function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement:
             + (dr ** 2 + dg ** 2 + db ** 2) * (alpha / 255) * (target.a / 255) / 3;
         const matched = distance <= fuzz ** 2;
         if (invert ? !matched : matched) {
-            // Native grayscale channel writes share one sample; blue is written last.
-            out[i] = gray ? replacement.b : replacement.r;
-            out[i + 1] = gray ? replacement.b : replacement.g;
-            out[i + 2] = replacement.b;
-            out[i + 3] = replacement.a;
-            if (data16) {
-                data16[i] = out[i]! * 257;
-                data16[i + 1] = out[i + 1]! * 257;
-                data16[i + 2] = out[i + 2]! * 257;
-                data16[i + 3] = out[i + 3]! * 257;
+            for (let channel = 0; channel < 4; channel++) {
+                if (!mask[channel]) continue;
+                // Grayscale RGB channels share one sample; the last selected write wins.
+                const start = gray && channel < 3 ? 0 : channel;
+                const end = gray && channel < 3 ? 3 : channel + 1;
+                for (let output = start; output < end; output++) {
+                    out[i + output] = paint[channel]!;
+                    if (data16) data16[i + output] = paint[channel]! * 257;
+                }
             }
         }
     }
-    return { ...img, data: out, ...(data16 ? { data16 } : {}), hasAlpha: img.hasAlpha || replacement.a < 255 };
+    return { ...img, data: out, ...(data16 ? { data16 } : {}), hasAlpha: img.hasAlpha || channels.a && replacement.a < 255 };
 }
 
 function* applyMagickTransparentSteps(img: RgbaImage, target: RgbaColor, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -5551,7 +5552,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-opaque" || token === "+opaque") {
         highDepth = true;
         const target = parseColor(tokens[++i] ?? "#000000", true);
-        apply = image => applyMagickOpaqueSteps(image, target, state.fill, state.alphaFuzz, token === "+opaque", signal);
+        apply = image => applyMagickOpaqueSteps(image, target, state.fill, state.alphaFuzz, token === "+opaque", state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true }, signal);
     } else if (token === "-transparent" || token === "+transparent") {
         highDepth = true;
         const target = parseColor(tokens[++i] ?? "#ffffff", true);

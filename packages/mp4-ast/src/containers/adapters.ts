@@ -2148,11 +2148,14 @@ export function parseSubtitleDocument(
 
     let arrowLineIdx = -1;
     for (let i = 0; i < lines.length; i++) {
+      if (format === "webvtt" && i > 1) break;
       if (format === "subviewer" ? subviewerTiming(lines[i]!) !== undefined : lines[i]!.includes("-->")) {
         arrowLineIdx = i;
         break;
       }
     }
+    // WebVTT permits only one identifier; malformed cues end demuxing.
+    if (format === "webvtt" && arrowLineIdx < 0) break;
     if (arrowLineIdx < 0) continue;
     const timingLine = lines[arrowLineIdx]!;
     const [leftRaw, rightWithSettings] = timingLine.split("-->");

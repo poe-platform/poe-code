@@ -506,6 +506,7 @@ export interface OutputEncodeOptions {
   readonly compressionLevel?: number;
   readonly palette?: boolean;
   readonly lossless?: boolean;
+  readonly webpExact?: boolean;
   readonly density?: number;
   readonly orientation?: number;
   readonly pageHeight?: number;

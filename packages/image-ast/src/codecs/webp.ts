@@ -23,6 +23,7 @@ export function createWebpEncoder(
     readonly loop?: number;
     readonly quality?: number;
     readonly lossless?: boolean;
+    readonly webpExact?: boolean;
     readonly density?: number;
     readonly orientation?: number;
   }
@@ -163,9 +164,11 @@ export function createWebpEncoder(
       )
         throw new RangeError("Invalid WebP pixel chunk");
       for (let i = 0; i < data.length; i += 4) {
-        writeBits(rev8[data[i + 1]!]!, 8);
-        writeBits(rev8[data[i]!]!, 8);
-        writeBits(rev8[data[i + 2]!]!, 8);
+        // Non-exact lossless output may discard RGB only at zero alpha.
+        const clear = options?.webpExact === false && hasAlpha && data[i + 3] === 0;
+        writeBits(rev8[clear ? 0 : data[i + 1]!]!, 8);
+        writeBits(rev8[clear ? 0 : data[i]!]!, 8);
+        writeBits(rev8[clear ? 0 : data[i + 2]!]!, 8);
         writeBits(rev8[hasAlpha ? data[i + 3]! : 255]!, 8);
       }
       written += data.length / 4;
@@ -227,7 +230,7 @@ export function createWebpAnimation(
     frame(delay: number) {
       if (!Number.isInteger(delay) || delay < 0 || delay > 0xffffff)
         throw new RangeError("Invalid WebP frame duration");
-      const encoder = createWebpEncoder(frameImage, hasAlpha);
+      const encoder = createWebpEncoder(frameImage, hasAlpha, options?.webpExact === undefined ? {} : { webpExact: options.webpExact });
       const prefix = new Uint8Array(24 + encoder.header.length - 12);
       prefix.set([65, 78, 77, 70]);
       new DataView(prefix.buffer).setUint32(4, 16 + frameSize, true);

@@ -1631,11 +1631,11 @@ async function applyVideoFilterChain(
         const variables = { iw, ih, ow: cw, oh: ch, in_w: iw, in_h: ih, out_w: cw, out_h: ch, n };
         const cx = Math.max(
           0,
-          Math.min(iw - cw, roundToEven(parseFilterExpression(crop.x ?? String(Math.floor((iw - cw) / 2)), "crop", variables)))
+          Math.min(iw - cw, roundToEven(parseFilterExpression(crop.x ?? String((iw - cw) / 2), "crop", variables)))
         );
         const cy = Math.max(
           0,
-          Math.min(ih - ch, roundToEven(parseFilterExpression(crop.y ?? String(Math.floor((ih - ch) / 2)), "crop", variables)))
+          Math.min(ih - ch, roundToEven(parseFilterExpression(crop.y ?? String((ih - ch) / 2), "crop", variables)))
         );
         const cropped = extractImage(makeRgbaImg(f.width, f.height, f.data), {
           left: Math.floor(cx / hsub) * hsub,

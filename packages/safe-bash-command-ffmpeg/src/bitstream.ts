@@ -1,10 +1,38 @@
+import { parseFilterExpression } from "./filter-expression.js";
 import { concatBytes, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 /** Apply packet filters in command-line order, preserving packet timing. */
-export function filterVideoBitstream(tracks: readonly MediaTrack[], chain: string | undefined, budget: MediaBudgetTracker): readonly MediaTrack[] {
+export function filterBitstream(tracks: readonly MediaTrack[], chain: string | undefined, budget: MediaBudgetTracker, type: "video" | "audio" = "video"): readonly MediaTrack[] {
   if (chain === undefined) return tracks;
-  for (const filter of chain.split(",")) {
+  const filters: string[] = [];
+  let value = "";
+  let quoted = false;
+  for (let i = 0; i < chain.length; i++) {
+    const char = chain[i]!;
+    if (char === "'") quoted = !quoted;
+    else if (!quoted && char === "\\" && i + 1 < chain.length) value += chain[++i]!;
+    else if (!quoted && char === ",") { filters.push(value.trim()); value = ""; }
+    else value += char;
+  }
+  if (quoted) throw new Error("Unterminated bitstream filter quote");
+  filters.push(value.trim());
+  for (const filter of filters) {
     if (filter === "null") continue;
+    if (filter.startsWith("noise=drop=")) {
+      const expression = filter.slice("noise=drop=".length);
+      parseFilterExpression(expression, "noise bitstream filter", { n: 0 });
+      tracks = tracks.map(track => track.type !== type ? track : {
+        ...track,
+        samples: track.samples.filter((_, n) => {
+          budget.checkCpu();
+          const drop = parseFilterExpression(expression, "noise bitstream filter", { n });
+          if (drop < 0) throw new Error("noise bitstream filter: probabilistic dropping is unsupported");
+          return drop === 0;
+        })
+      });
+      continue;
+    }
+    if (type !== "video") throw new Error(`Unsupported audio bitstream filter: ${filter}`);
     const insertAud = filter === "h264_metadata=aud=insert";
     const remove = new Set<number>();
     if (!insertAud) {

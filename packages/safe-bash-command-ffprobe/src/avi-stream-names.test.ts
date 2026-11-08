@@ -12,7 +12,7 @@ for (const stdin of [false, true]) {
     let output = '', diagnostic = '';
     const result = await createFfprobeCommand().execute({
       command: 'ffprobe', ...createCommandArguments(['-v', 'error', '-show_entries',
-        'stream=index,codec_name:stream_tags=title:format_tags=title', '-of', 'json', stdin ? '-' : '/clip.avi']),
+        'stream=index,codec_name:stream_tags=title:format_tags', '-of', 'json', stdin ? '-' : '/clip.avi']),
       cwd: '/', env: {}, fs, signal: new AbortController().signal,
       stdin: { async *[Symbol.asyncIterator]() { yield bytes; } },
       stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
@@ -24,6 +24,6 @@ for (const stdin of [false, true]) {
       { index: 0, codec_name: 'aac', tags: { title: 'Alice' } },
       { index: 1, codec_name: 'aac', tags: { title: 'Bob' } }
     ]);
-    expect(probe.format.tags).toEqual({ title: 'Meeting' });
+    expect(probe.format.tags).toEqual({ title: 'Meeting', software: 'Lavf63.1.101' });
   });
 }

@@ -60,6 +60,15 @@ export function isFlvSignature(bytes: Uint8Array): boolean {
   );
 }
 
+const aviInfoTags: Readonly<Record<string, string>> = {
+  IARL: "archival_location", IART: "artist", ICMS: "commissioned", ICMT: "comment",
+  ICOP: "copyright", ICRD: "date", ICRP: "cropped", IDIM: "dimensions",
+  IDPI: "dots_per_inch", IENG: "engineer", IGNR: "genre", IKEY: "keywords",
+  ILGT: "lightness", IMED: "medium", INAM: "title", IPLT: "palette",
+  IPRD: "album", ISBJ: "subject", ISFT: "software", ISHP: "sharpness",
+  ISRC: "source", ISRF: "source_form", ITCH: "technician", ITRK: "track"
+};
+
 export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   budget.checkInputBytes(bytes.byteLength);
@@ -93,7 +102,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
 
   const streamInfos: AviStreamInfo[] = [];
   const samplesByStream = new Map<number, MediaSample[]>();
-  let title: string | undefined;
+  const infoTags: Record<string, string> = {};
 
   function walkChunks(start: number, end: number, listType?: string): void {
     let pos = start;
@@ -111,10 +120,10 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           walkChunks(payloadStart + 4, payloadEnd, childType);
         }
       } else if (listType === "INFO") {
-        if (fourcc === "INAM") {
-          const payload = bytes.subarray(payloadStart, payloadEnd);
-          const terminator = payload.indexOf(0);
-          title = decodeUtf8(terminator < 0 ? payload : payload.subarray(0, terminator));
+        const payload = bytes.subarray(payloadStart, payloadEnd);
+        const terminator = payload.indexOf(0);
+        if (payload.length > 0 && terminator !== 0) {
+          infoTags[aviInfoTags[fourcc] ?? fourcc] = decodeUtf8(terminator < 0 ? payload : payload.subarray(0, terminator));
         }
       } else if (fourcc === "avih" && chunkSize >= 40) {
         microSecPerFrame = view.getUint32(8, true) || 33333;
@@ -412,13 +421,14 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     if (sec > maxSec) maxSec = sec;
   }
 
+  const { title, ...custom } = infoTags;
   return {
     containerFormat: "avi",
     timescale: 1000,
     duration: Math.round(maxSec * 1000),
     durationSeconds: maxSec,
     tracks,
-    metadata: title === undefined ? {} : { title },
+    metadata: { ...(title === undefined ? {} : { title }), custom },
     byteLength: bytes.byteLength
   };
 }

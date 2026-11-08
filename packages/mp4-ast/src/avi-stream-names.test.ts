@@ -27,3 +27,11 @@ it("stops stream names at the first NUL and accepts unterminated names", () => {
   bytes.set(Buffer.from("Bobs"), second);
   assert.deepEqual(parseAvi(bytes).tracks.map(track => track.metadata), [{ title: "Al" }, { title: "Bobs" }]);
 });
+
+it("reads all container INFO fields without leaking them to streams", () => {
+  const bytes = Buffer.from(fixture);
+  bytes.write("IART", bytes.indexOf("INAM"));
+  assert.deepEqual(parseAvi(bytes).metadata.custom, { artist: "Meeting", software: "Lavf63.1.101" });
+  bytes.write("ZZZZ", bytes.indexOf("IART"));
+  assert.deepEqual(parseAvi(bytes).metadata.custom, { ZZZZ: "Meeting", software: "Lavf63.1.101" });
+});

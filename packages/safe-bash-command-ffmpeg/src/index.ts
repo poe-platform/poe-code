@@ -3083,6 +3083,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let gifFlags = 3;
         let outputStartNumber: number | undefined;
         let updateImage = false;
+        let atomicWriting = false;
         let framePts = false;
 
         let outputFormat: string | undefined;
@@ -3237,22 +3238,25 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-hash") {
             hashAlgorithm = args[++i] ?? "";
-          } else if (arg === "-update") {
+          } else if (arg === "-update" || arg === "-atomic_writing") {
+            let enabled: boolean;
             const value = args[++i]?.toLowerCase();
             if (value !== undefined && ["yes", "true", "on", "y", "enable", "enabled"].includes(value)) {
-              updateImage = true;
+              enabled = true;
             } else if (value !== undefined && ["no", "false", "off", "n", "disable", "disabled", ""].includes(value)) {
-              updateImage = false;
+              enabled = false;
             } else {
               const number = value?.trimStart() ?? "";
               const digits = number.startsWith("+") || number.startsWith("-") ? number.slice(1) : number;
               if (!digits.length || ![...digits].every(char => char >= "0" && char <= "9") ||
                   (Number(number) !== 0 && Number(number) !== 1)) {
-                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid boolean value for -update: ${value ?? ""}\n`), context.signal);
+                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid boolean value for ${arg}: ${value ?? ""}\n`), context.signal);
                 return { exitCode: 234 };
               }
-              updateImage = Number(number) === 1;
+              enabled = Number(number) === 1;
             }
+            if (arg === "-update") updateImage = enabled;
+            else atomicWriting = enabled;
           } else if (arg === "-vsync" || arg === "-fps_mode") {
             videoSync = args[++i] ?? "";
           } else if (arg === "-segment_time") {
@@ -6190,6 +6194,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: decodeExitCode };
             }
 
+            const writeImage = async (path: string, bytes: Uint8Array): Promise<void> => {
+              const destination = atomicWriting ? `${path}.tmp` : path;
+              await writeFileOutput(context, bytes, data => context.fs.writeFile(destination, data, { signal: context.signal }));
+              if (atomicWriting) await context.fs.rename(destination, path, { signal: context.signal });
+            };
+
             if (imageOutput && videoCodec === "copy") {
               const track = workingDoc.tracks.find(track => track.type === "video");
               const samples = track?.samples ?? [];
@@ -6205,7 +6215,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 budget.checkSamples(index + 1);
                 budget.checkOutputBytes(bytes.byteLength);
                 if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
-                else await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, fileName), data, { signal: context.signal }));
+                else await writeImage(resolvePath(context.cwd, fileName), bytes);
               }
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
@@ -6294,7 +6304,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     format: imgFmt
                   }).data);
                   budget.checkOutputBytes(encoded.byteLength);
-                  await writeFileOutput(context, encoded, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
+                  await writeImage(fullOutPath, encoded);
                 }
               }
               options.onMetrics?.(budget.getStats());

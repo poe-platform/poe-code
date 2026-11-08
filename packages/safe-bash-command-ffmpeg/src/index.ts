@@ -5154,18 +5154,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const output = stretched.map(channel => new Float32Array(channel.length));
                         const length = stretched[0]?.length ?? 0;
                         const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
+                        let startpts = NaN;
                         for (let start = 0, n = 0; start < length; n++) {
                           const packet = t.samples[n];
                           const timestamp = audioTimestamps?.[n];
                           const count = timestamp ? timestamp.end - timestamp.start
                             : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
+                          if (n === 0) startpts = pts;
                           const end = evaluation === "once" && enable === undefined ? length : Math.min(length, start + count);
                           const variables: Record<string, number> = { sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
                             // Native volume leaves sample counters unavailable in both evaluation modes.
-                            nb_samples: NaN, nb_consumed_samples: NaN };
+                            nb_samples: NaN, nb_consumed_samples: NaN, startpts: NaN, startt: NaN };
                           if (evaluation === "frame") Object.assign(variables, {
-                            n, t: pts / origRate, pts
+                            n, t: pts / origRate, pts, startpts, startt: startpts / origRate
                           });
                           const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", variables);
                           let factor = decibels ? Math.pow(10, gain / 20) : gain;

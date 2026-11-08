@@ -129,7 +129,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes the oscilloscope renderer and its CGA statistics glyphs (889,166 bytes).
   // Includes datascope readouts and the current filter graph (892,012 bytes).
   // Includes pixscope magnification, statistics glyphs, and the current filter graph (906,336 bytes).
-  assert.ok(otherCodeBytes < 908_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes Matroska ASS packet fields and style overrides (908,889 bytes).
+  assert.ok(otherCodeBytes < 910_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -178,6 +179,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes per-frame vectorscopes and the current media dependency graph.
   // Includes oscilloscope rendering and statistics (10,204,599 bytes).
   // Includes pixscope rendering and the current media dependency graph (10,221,740 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_224_000,
+  // Includes Matroska ASS decoding and the current media dependency graph (10,224,328 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_226_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

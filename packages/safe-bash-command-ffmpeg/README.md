@@ -237,6 +237,7 @@ MPL2 input (`-f mpl2`) reads decisecond cue timing and converts `|` to line brea
 
 SubViewer input (`-f subviewer` or detected `.sub` timecodes) preserves centisecond timing, skips information headers, and converts `[br]` to line breaks.
 ASS and SRT conversion preserves cue text and timing; ASS output uses a default style and centisecond timestamps. ASS input decodes line breaks and removes positioning/style overrides. Matroska output with `-c:s ass` encodes basic SRT styling and line breaks; `-c:s copy` retains ASS packets and the original script header.
+Matroska ASS-to-SRT conversion decodes event fields, basic style overrides and escaped line breaks while preserving cue timing.
 SRT-to-WebVTT conversion removes ASS override blocks and converts `\N` and `\n` to line breaks; `-c:s copy` preserves the original cue text.
 
 `ffprobe` uses the same audio/video implementation as `@poe-platform/safe-bash/commands/ffprobe`, with default limits of 32 MiB input and 1 MiB output. Pass `limits` to override them.

@@ -1,3 +1,4 @@
+import { decodeMatroskaAss } from "./matroska-ass.js";
 import { ciescopeFrame } from "./ciescope.js";
 import { pixscopeFrame } from "./pixscope.js";
 import { oscilloscope } from "./oscilloscope.js";
@@ -2186,6 +2187,10 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
             text = text.replaceAll(`<${tag}>`, `{\\${tag}1}`).replaceAll(`</${tag}>`, `{\\${tag}0}`);
           }
           const data = encodeUtf8(`${index},0,Default,,0,0,0,,${text}`);
+          return { ...sample, data, size: data.byteLength, webvtt: undefined };
+        }
+        if (codec === "ass" && (doc.containerFormat === "matroska" || doc.containerFormat === "webm")) {
+          const data = encodeUtf8(decodeMatroskaAss(decodeUtf8(sample.data)));
           return { ...sample, data, size: data.byteLength, webvtt: undefined };
         }
         if (codec === "microdvd" || codec === "mpl2") {

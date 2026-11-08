@@ -1,3 +1,4 @@
+import { identifyMaximumSteps, identifyStoredMaximum } from "./identify-locate.js";
 import { hilbertPixels, riemersmaRemapSteps } from "./riemersma.js";
 import { convertCmykPixels, formatCmykPixel, rgbToCmyk } from "./colorspace-cmyk.js";
 import { modulateRgb } from "./modulate.js";
@@ -5320,6 +5321,8 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let verbose = false;
     let customFormat: string | undefined;
     let precision = 6;
+    let locateMaximum = false;
+    let locateLimit = 0;
     const targets: string[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
@@ -5341,6 +5344,14 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
         if (a === "-verbose" || a === "--verbose") {
             verbose = true;
+        }
+        else if (a === "-define" || a === "+define") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: `identify: missing an argument for option '${a}'\n` };
+            const equals = value.indexOf("="), key = equals < 0 ? value : value.slice(0, equals);
+            const setting = equals < 0 ? "" : value.slice(equals + 1);
+            if (key === "identify:locate") locateMaximum = a === "-define" && setting.toLowerCase() === "maximum";
+            if (key === "identify:limit") locateLimit = a === "+define" ? 0 : Math.max(0, Math.trunc(Number(setting)) || 0);
         }
         else if (a === "-ping" || a === "--ping") {
             // Metadata-first reading
@@ -5388,7 +5399,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
         const analysis = { warnings: "" };
         let inspected:IdentifyInspection|undefined;
-        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?undefined:(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,precision,analysis},pixels,signal));}};
+        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,precision,analysis},pixels,signal));}};
         const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
         if (!bytes&&!inspected) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
@@ -5414,6 +5425,21 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 outParts.push(inspected?.formatted??(yield* formatMagickPropertyStringSteps(customFormat, meta, () => decodeImage(encoded!, inputOptions), {
                     filePath: baseInPath, byteLen: size, sceneIdx: pageIdx ?? 0, precision, analysis
                 })));
+            }
+            else if (locateMaximum) {
+                if (inspected?.formatted !== undefined) outParts.push(inspected.formatted);
+                else {
+                    const image = decodeImage(encoded!, inputOptions), steps = identifyMaximumSteps(image, locateLimit, precision);
+                    let next = steps.next();
+                    while (!next.done) {
+                        if (!next.value) { yield; next = steps.next(); }
+                        else {
+                            const { position, length } = next.value;
+                            next = steps.next((image.data16 ?? image.data).subarray(position, position + length));
+                        }
+                    }
+                    outParts.push(next.value);
+                }
             }
             else if (verbose) {
                 const stats = inspected?.stats??(yield* computeImageStatsSteps(decodeImage(encoded!, inputOptions)));

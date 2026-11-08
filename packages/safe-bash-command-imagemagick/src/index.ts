@@ -5664,8 +5664,13 @@ type MagickPixelOperation = { warning?: string; evaluate?: boolean; highDepth?: 
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
     let i = start, apply: MagickPixelOperation["apply"], highDepth = false, warning: string | undefined;
-    if (token === "-colorspace" || token === "-grayscale") {
-        const space = (tokens[++i] ?? "gray").toLowerCase();
+    if (token === "-colorspace" || token === "-grayscale" || token === "-type") {
+        const value = tokens[++i];
+        const imageType = token === "-type" ? (value ?? "").toLowerCase() : undefined;
+        if (imageType !== undefined && !["bilevel", "grayscale", "grayscalealpha"].includes(imageType)) {
+            throw new Error(`unsupported image type '${value ?? ""}'`);
+        }
+        const space = imageType === undefined ? (value ?? "gray").toLowerCase() : "gray";
         if (token === "-grayscale" && !["average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(space)) {
             throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
         }
@@ -5719,11 +5724,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     case "rec601luma": case "rec601luminance": intensity = 0.298839 * r + 0.586811 * g + 0.11435 * b; break;
                     default: intensity = 0.212656 * r + 0.715158 * g + 0.072186 * b;
                 }
-                const gray = clampByteVal(intensity);
+                const gray = imageType === "bilevel" ? (intensity > 127.5 ? 255 : 0) : clampByteVal(intensity);
                 out[idx] = out[idx + 1] = out[idx + 2] = gray;
+                if (imageType !== undefined && (imageType !== "grayscalealpha" || !image.hasAlpha)) out[idx + 3] = 255;
             }
             const { data16: ignored, ...metadata } = image;
-            return { ...metadata, data: out, space: "b-w", channels: image.hasAlpha ? 2 : 1 };
+            const hasAlpha = imageType === undefined ? image.hasAlpha : imageType === "grayscalealpha";
+            return { ...metadata, data: out, space: "b-w", hasAlpha, channels: hasAlpha ? 2 : 1 };
         };
     }
     else if (token === "-gamma" || token === "+gamma") {
@@ -6291,7 +6298,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, ...(warning ? { warning } : {}), evaluate: token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" };
+    return { end: i, apply, ...(warning ? { warning } : {}), evaluate: token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {
@@ -9651,6 +9658,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-interpolate",
         "-colorspace",
         "-grayscale",
+        "-type",
         "-modulate",
         "-brightness-contrast",
         "-gamma", "+gamma",

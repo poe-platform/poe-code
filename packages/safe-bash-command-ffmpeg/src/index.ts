@@ -1901,7 +1901,7 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "tile") {
-      const layoutStr = (named.layout ?? positional[0] ?? "2x2").toLowerCase();
+      const layoutStr = ((named.layout ?? positional[0]) || "6x5").toLowerCase();
       const [colsStr, rowsStr] = layoutStr.split("x");
       const cols = Math.max(1, parseInt(colsStr ?? "2", 10) || 2);
       const rows = Math.max(1, parseInt(rowsStr ?? "2", 10) || 2);

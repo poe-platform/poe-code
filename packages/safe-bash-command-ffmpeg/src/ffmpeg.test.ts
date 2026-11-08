@@ -1411,6 +1411,39 @@ describe("required option arguments", () => {
 });
 
 describe("tile frame grouping", () => {
+  for (const count of [7, 31]) {
+    for (const filter of ["tile", "tile=6x5"]) {
+      it(`uses 6x5 sheets with row-major pixels for ${filter} and ${count} frames`, async () => {
+        const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+        const vfs = createTestVfs();
+        for (let i = 0; i < count; i++) {
+          const value = (20 * (i + 1)) % 256;
+          vfs.store.set(`/f${i}.png`, encodeImage({
+            width: 3, height: 2, data: Uint8Array.from(Array(6).fill([value, value, value, 255]).flat()),
+            format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false
+          }, { format: "png" }).data);
+        }
+        const result = await runCmd(createFfmpegCommand(), [
+          "-framerate", "5", "-i", "/f%d.png", "-vf", filter, "-fps_mode", "passthrough", "/o%d.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(vfs.store.size - count, Math.ceil(count / 30));
+        for (let index = 0; index < Math.ceil(count / 30); index++) {
+          const sheet = decodeImage(vfs.store.get(`/o${index + 1}.png`)!);
+          assert.equal(sheet.width, 18);
+          assert.equal(sheet.height, 10);
+          for (let y = 0; y < 10; y++) {
+            for (let x = 0; x < 18; x++) {
+              const frame = index * 30 + Math.floor(y / 2) * 6 + Math.floor(x / 3);
+              const value = frame < count ? (20 * (frame + 1)) % 256 : 0;
+              const offset = (y * 18 + x) * 4;
+              assert.deepEqual([...sheet.data.subarray(offset, offset + 4)], [value, value, value, 255]);
+            }
+          }
+        }
+      });
+    }
+  }
   // Native FFmpeg with RGB input: occupied cells are white, unused cells black.
   for (const [options, occupied] of [
     ["", [4]],

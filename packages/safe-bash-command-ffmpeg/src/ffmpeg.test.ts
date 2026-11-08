@@ -6679,7 +6679,7 @@ describe("negative video frame limits", () => {
         const before = parseMp4(input).tracks.find(track => track.type === "video")!;
         const after = parseMp4(vfs.store.get("/out.mp4")!).tracks.find(track => track.type === "video")!;
         const expected = limit === undefined || limit < 0 ? before.samples : before.samples.slice(0, limit);
-        assert.deepEqual(after.samples.map(sample => sample.data), expected.map(sample => sample.data));
+        assert.deepEqual(after?.samples.map(sample => sample.data) ?? [], expected.map(sample => sample.data));
       });
     }
   }
@@ -6720,7 +6720,7 @@ describe("output stream frame selectors", () => {
       assert.deepEqual(Array.from(audio), Array.from({ length: count }, (_, i) => (i - 8000) / 32768));
     });
   }
-  it("applies the last matching limit independently to mapped audio streams", async () => {
+  it("stops mapped audio streams at the earliest matching limit", async () => {
     const input = createSyntheticMp4({ frameCount: 5, includeAudio: true });
     const source = parseMp4(input).tracks.find(t => t.type === "audio")!;
     const vfs = createTestVfs({ "/in.mp4": input });
@@ -6728,7 +6728,7 @@ describe("output stream frame selectors", () => {
       "-frames", "1", "-frames:a:1", "2", "/out.mp4"], vfs);
     assert.equal(result.exitCode, 0, result.stderr);
     const tracks = parseMp4(vfs.store.get("/out.mp4")!).tracks;
-    assert.deepEqual(tracks.map(t => t.samples.map(s => s.data)), [source.samples.slice(0, 1).map(s => s.data), source.samples.slice(0, 2).map(s => s.data)]);
+    assert.deepEqual(tracks.map(t => t.samples.map(s => s.data)), [source.samples.slice(0, 1).map(s => s.data), source.samples.slice(0, 1).map(s => s.data)]);
   });
   it("counts blank timed-text packets toward subtitle limits", async () => {
     const vfs = createTestVfs({ "/in.mp4": readFileSync(new URL("../../mp4-ast/src/fixtures/timed-text-styles.mp4", import.meta.url)) });
@@ -6748,7 +6748,7 @@ describe("output stream frame selectors", () => {
       assert.equal(result.exitCode, 0, result.stderr);
       const output = parseMp4(vfs.store.get("/out.mp4")!);
       assert.equal(output.tracks.find(t => t.type === "video")!.samples.length, 2);
-      assert.deepEqual(output.tracks.find(t => t.type === "audio")!.samples.map(s => s.data), source.tracks.find(t => t.type === "audio")!.samples.map(s => s.data));
+      assert.deepEqual(output.tracks.find(t => t.type === "audio")!.samples.map(s => s.data), source.tracks.find(t => t.type === "audio")!.samples.slice(0, 8).map(s => s.data));
     });
   }
 });

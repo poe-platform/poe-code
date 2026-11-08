@@ -3194,14 +3194,45 @@ function outputFrameLimits(tracks: readonly MediaTrack[], options: readonly [str
   });
 }
 
-function limitAudioCopyPackets(document: MediaDocument, limits: readonly (number | undefined)[]): MediaDocument {
+function limitCopyPackets(
+  document: MediaDocument,
+  limits: readonly (number | undefined)[],
+  codecs: Partial<Record<MediaTrack["type"], string | undefined>>
+): MediaDocument {
+  const offsets = document.tracks.map(track => {
+    let offset = 0;
+    for (const edit of track.editList ?? []) {
+      if (edit.mediaTime < 0) offset += edit.segmentDuration / document.timescale;
+      else { offset -= edit.mediaTime / track.timescale; break; }
+    }
+    return offset;
+  });
+  let end = Infinity;
+  for (const [index, track] of document.tracks.entries()) {
+    const limit = limits[index];
+    if (codecs[track.type] !== "copy" || limit === undefined || limit > track.samples.length) continue;
+    if (limit === 0) { end = -Infinity; break; }
+    const last = track.samples[limit - 1]!;
+    // FFmpeg's mux synchronization queue compares packet end timestamps.
+    end = Math.min(end, (last.pts + last.duration) / track.timescale + offsets[index]!);
+  }
+  if (end === Infinity) return document;
   return {
     ...document,
     tracks: document.tracks.map((track, index) => {
-      const limit = limits[index];
-      if (track.type !== "audio" || limit === undefined || track.samples.length <= limit) return track;
-      const samples = track.samples.slice(0, limit);
-      return { ...track, samples, duration: samples.reduce((total, sample) => total + sample.duration, 0) };
+      if (codecs[track.type] !== "copy") return track;
+      const samples = track.samples.slice(0, limits[index]).filter(sample =>
+        (sample.pts + sample.duration) / track.timescale + offsets[index]! <= end + 1e-9);
+      if (samples.length === track.samples.length) return track;
+      const last = samples.at(-1);
+      const duration = last ? last.dts + last.duration : 0;
+      let remaining = Math.max(0, Math.round(((last ? (last.pts + last.duration) / track.timescale : 0) + offsets[index]!) * document.timescale));
+      const editList = track.editList?.map(edit => {
+        const segmentDuration = Math.min(edit.segmentDuration, remaining);
+        remaining -= segmentDuration;
+        return { ...edit, segmentDuration };
+      });
+      return { ...track, samples, duration, editList, decodedAudio: undefined, decodedVideoFrames: undefined };
     })
   };
 }
@@ -3891,7 +3922,7 @@ export function evalSyncFfmpeg(
         if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
-        if ((imageOutput || maxVideoFrames !== undefined) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
+        if ((imageOutput || (maxVideoFrames !== undefined && videoCodec !== "copy")) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
       doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
@@ -3923,6 +3954,7 @@ export function evalSyncFfmpeg(
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration });
     }
     const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);
+    workingDoc = limitCopyPackets(workingDoc, streamFrameLimits, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     for (const type of ["video", "audio", "subtitle"] as const) {
       const limits = workingDoc.tracks.flatMap((track, index) => track.type === type ? [streamFrameLimits[index]] : []);
       const maximum = limits.some(limit => limit !== undefined) ? Math.max(...limits.map(limit => limit ?? Infinity)) : undefined;
@@ -3964,9 +3996,6 @@ export function evalSyncFfmpeg(
           return t;
         }),
       };
-    }
-    if (audioCodec === "copy" && maxAudioFrames !== undefined) {
-      workingDoc = limitAudioCopyPackets(workingDoc, streamFrameLimits);
     }
     chapterSource ??= loadedDocs.findIndex(doc => doc.chapters?.length);
     if (chapterSource >= loadedDocs.length) return undefined;
@@ -6051,6 +6080,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);
+            workingDoc = limitCopyPackets(workingDoc, streamFrameLimits, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
             for (const type of ["video", "audio", "subtitle"] as const) {
               const limits = workingDoc.tracks.flatMap((track, index) => track.type === type ? [streamFrameLimits[index]] : []);
               const maximum = limits.some(limit => limit !== undefined) ? Math.max(...limits.map(limit => limit ?? Infinity)) : undefined;
@@ -6160,10 +6190,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   return t;
                 })
               };
-            }
-
-            if (audioCodec === "copy" && maxAudioFrames !== undefined) {
-              workingDoc = limitAudioCopyPackets(workingDoc, streamFrameLimits);
             }
 
             // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio

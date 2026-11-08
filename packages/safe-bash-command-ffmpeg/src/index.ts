@@ -3548,6 +3548,8 @@ export function evalSyncFfmpeg(
     let pendingFormat: string | undefined;
     let pendingAudioDecoder: string | undefined;
     let pendingTimestampOffset = 0;
+    let copyTimestamps = false;
+    let startAtZero = false;
     let pendingFixSubDuration = false;
     let pendingSkipInitialBytes = 0;
     let pendingSs: number | undefined;
@@ -3670,6 +3672,10 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (!args.slice(i + 1).includes("-i")) return undefined;
         pendingTimestampScales.push(parseTimestampScale(arg, value));
+      } else if (arg === "-copyts") {
+        copyTimestamps = true;
+      } else if (arg === "-start_at_zero") {
+        startAtZero = true;
       } else if (arg === "-itsoffset" || arg === "-output_ts_offset") {
         const value = parseHlsDuration(args[++i] ?? "");
         const beforeInput = args.slice(i + 1).includes("-i");
@@ -3951,7 +3957,7 @@ export function evalSyncFfmpeg(
         if (imageOutput && videoCodec === "copy") return undefined;
         if ((imageOutput || (maxVideoFrames !== undefined && videoCodec !== "copy")) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
-      if (videoCodec === "copy" || audioCodec === "copy") doc = rebaseInputTimestamps(doc, budget);
+      if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = rebaseInputTimestamps(doc, budget);
       doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
@@ -4257,6 +4263,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingSafe: boolean | undefined;
       let pendingAudioDecoder: string | undefined;
       let pendingTimestampOffset = 0;
+      let copyTimestamps = false;
+      let startAtZero = false;
       let pendingFixSubDuration = false;
       let pendingSkipInitialBytes = 0;
       let pendingSs: number | undefined;
@@ -4718,6 +4726,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-copyts") {
+            copyTimestamps = true;
+          } else if (arg === "-start_at_zero") {
+            startAtZero = true;
           } else if (arg === "-itsoffset" || arg === "-output_ts_offset") {
             const value = parseHlsDuration(args[++i] ?? "");
             const beforeInput = args.slice(i + 1).includes("-i");
@@ -5667,7 +5679,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }, context.signal)
                 };
               }
-              if (videoCodec === "copy" || audioCodec === "copy") doc = rebaseInputTimestamps(doc, budget);
+              if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = rebaseInputTimestamps(doc, budget);
               doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
               if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined

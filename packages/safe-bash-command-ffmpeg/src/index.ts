@@ -3951,7 +3951,7 @@ export function evalSyncFfmpeg(
         if (imageOutput && videoCodec === "copy") return undefined;
         if ((imageOutput || (maxVideoFrames !== undefined && videoCodec !== "copy")) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
-      doc = rebaseInputTimestamps(doc, budget);
+      if (videoCodec === "copy" || audioCodec === "copy") doc = rebaseInputTimestamps(doc, budget);
       doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
@@ -5667,7 +5667,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }, context.signal)
                 };
               }
-              doc = rebaseInputTimestamps(doc, budget);
+              if (videoCodec === "copy" || audioCodec === "copy") doc = rebaseInputTimestamps(doc, budget);
               doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
               if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined

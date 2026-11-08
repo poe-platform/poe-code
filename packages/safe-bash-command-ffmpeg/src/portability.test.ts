@@ -151,7 +151,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes 16-bit PNG format selection, channel layout, and current command graph (972,260 bytes).
   // Includes indexed pal8 PNG output and error diffusion (974,139 bytes).
   // Includes subtitle filter option validation before frame publication (976,314 bytes).
-  assert.ok(otherCodeBytes < 977_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes subtitle color/alignment overrides and original-canvas aspect scaling (977,528 bytes).
+  assert.ok(otherCodeBytes < 978_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -219,6 +220,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes scale size notation, expressions, and interpolation flags (10,310,795 bytes).
   // Includes 16-bit PNG format output and current dependencies (10,312,964 bytes).
   // Includes pal8 conversion and the current image codec graph (10,315,957 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_318_000,
+  // Includes subtitle option validation, style overrides, and original_size scaling (10,318,887 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_320_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

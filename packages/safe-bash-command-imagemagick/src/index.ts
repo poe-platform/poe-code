@@ -1563,14 +1563,14 @@ function parseMagickRollGeometry(raw: string): MagickGeometry {
     if (geometry.hasOffset && geometry.width !== undefined && !raw.toLowerCase().includes("x")) {
         throw new Error(`invalid argument for option '-roll': ${raw}`);
     }
-    return geometry;
+    return { ...geometry, x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
 }
 
 function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = parseMagickRollGeometry(geomStr);
-    const rx = Math.round(g.x);
-    const ry = Math.round(g.y);
+    const rx = g.x;
+    const ry = g.y;
     const w = img.width;
     const h = img.height;
     const out = new Uint8Array(img.data.length);
@@ -7524,8 +7524,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     type Span = { source: number; target: number; length: number };
     let xs: Span[], ys: Span[], width = w, height = h;
     if (token === "-roll") {
-        const dx = ((Math.round(g.x) % w) + w) % w;
-        const dy = ((Math.round(g.y) % h) + h) % h;
+        const dx = ((g.x % w) + w) % w;
+        const dy = ((g.y % h) + h) % h;
         xs = [{ source: w - dx, target: 0, length: dx }, { source: 0, target: dx, length: w - dx }];
         ys = [{ source: h - dy, target: 0, length: dy }, { source: 0, target: dy, length: h - dy }];
     } else if (token === "-splice") {

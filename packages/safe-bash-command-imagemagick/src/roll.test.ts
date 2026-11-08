@@ -69,3 +69,34 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         expect([...output.data]).toEqual(expected.flatMap(v => [v, v, v, 255]));
     });
 }
+
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    it.each([
+        { geometry: "+1.7-1.7", x: 1, y: -1 },
+        { geometry: "-1.7+1.7", x: -1, y: 1 },
+        { geometry: "+0.5+0.5", x: 0, y: 0 },
+        { geometry: "-0.7-0.7", x: 0, y: 0 },
+        { geometry: "+13.9-8.9", x: 13, y: -8 },
+        { geometry: "+1-1", x: 1, y: -1 },
+        { geometry: "+13-8", x: 13, y: -8 },
+    ])(`truncates roll offsets before wrapping $geometry, ${mode}`, async ({ geometry, x, y }) => {
+        const pixels = Array.from({ length: 15 }, (_, i) => (i + 1) * 10);
+        const input = await sharp(Uint8Array.from(pixels.flatMap(v => [v, v, v])), { raw: { width: 5, height: 3, channels: 3 } }).png().toBuffer();
+        const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const args = ["input.png", "-roll", geometry, "out.png"];
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const output = decodeImage(mode === "retained" || mode === "command" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+        expect([output.width, output.height]).toEqual([5, 3]);
+        const expected = pixels.map((_, i) => pixels[((Math.floor(i / 5) - y) % 3 + 3) % 3 * 5 + ((i % 5 - x) % 5 + 5) % 5]!);
+        expect([...output.data]).toEqual(expected.flatMap(v => [v, v, v, 255]));
+    });
+}

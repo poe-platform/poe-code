@@ -155,7 +155,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes PCM frame limits and the current raw-audio codec validation (981,042 bytes).
   // Includes explicit frame checksum hash selection and the current command graph (983,646 bytes).
   // Includes frame hash format versions and the current checksum command graph (985,258 bytes).
-  assert.ok(otherCodeBytes < 986_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes per-frame video checksums and the current command graph (990,464 bytes).
+  assert.ok(otherCodeBytes < 991_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -226,6 +227,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes subtitle option validation, style overrides, and original_size scaling (10,318,887 bytes).
   // Includes PCM frame limits and the current raw-audio codec validation (10,322,309 bytes).
   // Includes explicit frame checksum hash selection and the current dependency graph (10,325,595 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_327_000,
+  // Includes per-frame video checksums and the current dependency graph (10,332,258 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_333_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

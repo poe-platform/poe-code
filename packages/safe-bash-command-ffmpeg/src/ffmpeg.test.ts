@@ -6502,6 +6502,41 @@ describe("global metadata mapping", () => {
   }
 });
 
+describe("chapter output seeking", () => {
+  for (const sync of [false, true]) {
+    for (const mapping of [undefined, "0", "-1"]) {
+      for (const end of [["-t", "0.5"], ["-to", "0.75"]]) {
+        it(`${sync ? "sync" : "async"} rebases chapters with ${end[0]} and mapping ${mapping ?? "default"}`, async () => {
+          const base = parseMp4(createSyntheticMp4({ frameCount: 25, fps: 25, includeAudio: true }));
+          const chapters = [
+            { id: 0, startTimeSeconds: 0, endTimeSeconds: 0.4, title: "Intro" },
+            { id: 1, startTimeSeconds: 0.4, endTimeSeconds: 1, title: "Discussion" }
+          ];
+          const vfs = createTestVfs({
+            "/chapters.mp4": serializeMp4({ ...base, chapters }),
+            "/plain.mp4": serializeMp4(base)
+          });
+          const args = ["-i", "/chapters.mp4", "-i", "/plain.mp4",
+            ...(sync ? [] : ["-map", "0:a:0"]), "-c", "copy",
+            ...(mapping === undefined ? [] : ["-map_chapters", mapping]),
+            "-ss", "0.25", ...end, "/out.mp4"];
+          if (sync) {
+            assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+              (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+          } else {
+            const result = await runCmd(createFfmpegCommand(), args, vfs);
+            assert.equal(result.exitCode, 0, result.stderr);
+          }
+          assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).chapters ?? [], mapping === "-1" ? [] : [
+            { id: 0, startTimeSeconds: 0, endTimeSeconds: 0.15, title: "Intro" },
+            { id: 1, startTimeSeconds: 0.15, endTimeSeconds: 0.5, title: "Discussion" }
+          ]);
+        });
+      }
+    }
+  }
+});
+
 describe("chapter mapping", () => {
   for (const sync of [false, true]) {
     for (const mapping of [undefined, "-1", "0", "1", "2"]) {

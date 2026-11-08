@@ -9081,3 +9081,50 @@ describe("raw PCM input sample_rate option", () => {
     }
   }
 });
+
+
+describe("raw PCM input channel layout options", () => {
+  for (const option of ["-ch_layout", "-channel_layout"]) {
+    it(`scopes ${option} to the next input`, async () => {
+      const input = new Uint8Array([100, 0, 200, 0, 44, 1, 144, 1]);
+      const vfs = createTestVfs({ "/in.raw": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "s16le", "-ar", "8000", option, "stereo", "-i", "/in.raw",
+        "-f", "s16le", "-i", "/in.raw", "-map", "1:a", "-c:a", "pcm_s16le", "/out.wav"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 44100);
+      assert.equal(audio.channels, 1);
+      assert.deepEqual(Array.from(audio.channelData[0]!, value => Math.round(value * 32768)), [100, 200, 300, 400]);
+    });
+  }
+  for (const synchronous of [false, true]) {
+    for (const option of ["-ac", "-ch_layout", "-channel_layout"]) {
+      for (const channels of [1, 2]) {
+        it(`preserves ${channels} channels with ${option} (sync=${synchronous})`, async () => {
+          const samples = [100, -200, 300, -400, 500, -600];
+          const input = new Uint8Array(samples.length * 2);
+          const view = new DataView(input.buffer);
+          samples.forEach((sample, index) => view.setInt16(index * 2, sample, true));
+          const vfs = createTestVfs({ "/in.raw": input });
+          const args = ["-hide_banner", "-v", "error", "-y", "-f", "s16le", "-ar", "8000",
+            option, option === "-ac" ? String(channels) : channels === 1 ? "mono" : "stereo",
+            "-i", "/in.raw", "-c:a", "pcm_s16le", "/out.wav"];
+          if (synchronous) {
+            assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+              (path, data) => { vfs.store.set(path, data); return true; }), "");
+          } else {
+            const result = await runCmd(createFfmpegCommand(), args, vfs);
+            assert.equal(result.exitCode, 0, result.stderr);
+          }
+          const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+          assert.equal(audio.sampleRate, 8000);
+          assert.equal(audio.channels, channels);
+          assert.deepEqual(audio.channelData.map(channel => Array.from(channel, value => Math.round(value * 32768))),
+            channels === 1 ? [samples] : [[100, 300, 500], [-200, -400, -600]]);
+        });
+      }
+    }
+  }
+});

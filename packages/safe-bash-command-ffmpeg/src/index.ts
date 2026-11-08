@@ -3351,6 +3351,11 @@ export function evalSyncFfmpeg(
         if (audioRate !== undefined && audioRate < 0) return undefined;
       }
       else if (arg === "-ac") audioChannels = parseInt(args[++i] ?? "0", 10) || undefined;
+      else if ((arg === "-ch_layout" || arg === "-channel_layout") && args.slice(i + 1).includes("-i")) {
+        const layout = args[++i];
+        if (layout !== "mono" && layout !== "stereo") return undefined;
+        audioChannels = layout === "mono" ? 1 : 2;
+      }
       else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats" || arg === "-nostats") continue;
       else if (arg === "-f") {
         const val = args[++i];
@@ -4335,11 +4340,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-ac") {
             audioChannels = parseInt(args[++i] ?? "0", 10) || undefined;
           } else if (arg === "-ch_layout" || arg === "-channel_layout") {
-            if (args[++i] !== "mono") {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: only mono output channel layout is supported\n"), context.signal);
+            const layout = args[++i];
+            const beforeInput = args.slice(i + 1).includes("-i");
+            if (layout !== "mono" && !(beforeInput && layout === "stereo")) {
+              await writeBytes(context.stderr, encodeUtf8(beforeInput
+                ? "ffmpeg: only mono and stereo input channel layouts are supported\n"
+                : "ffmpeg: only mono output channel layout is supported\n"), context.signal);
               return { exitCode: 1 };
             }
-            audioChannels = 1;
+            audioChannels = layout === "mono" ? 1 : 2;
           } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats" || arg === "-nostats") {
             // no-op
           } else if (arg === "-f") {

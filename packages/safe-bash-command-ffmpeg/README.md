@@ -107,6 +107,8 @@ Use `-f framehash -format_version 1 -` for version 1 per-packet audio or video h
 `framehash` and `framemd5` default to version 2 and accept `-format_version 1` or `2`.
 `framemd5`, `framehash`, and `framecrc` write one row per video frame, with timestamps,
 duration, raw pixel byte count, and a digest (MD5, SHA256, or Adler-32 respectively).
+With `-map 0:s -c:s copy`, they checksum original subtitle packets, retaining style
+bytes, blank gap packets, and the source time base.
 
 Verify audio streams with `-f hash -` (SHA256), `-f md5 -`, or
 `-f crc -` (Adler-32). These hash decoded PCM16 samples, without container

@@ -44,7 +44,8 @@ export function serializeFrameChecksum(
   rawAudio: MediaAstPlugin | undefined,
   budget: MediaBudgetTracker,
   formatVersion = 2,
-  videoCodec?: string
+  videoCodec?: string,
+  subtitleCodec?: string
 ): Uint8Array {
   const name = algorithm.toLowerCase();
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512 };
@@ -61,7 +62,12 @@ export function serializeFrameChecksum(
         `#sar ${index}: ${codec?.sarWidth ?? 1}/${codec?.sarHeight ?? 1}`);
       continue;
     }
-    if (track.type !== "audio") throw new Error("Frame checksum output requires audio or video streams");
+    if (track.type === "subtitle" && subtitleCodec === "copy") {
+      lines.push(`#tb ${index}: 1/${track.timescale}`, `#media_type ${index}: subtitle`,
+        `#codec_id ${index}: ${track.codecDescriptions[0]?.codecName}`);
+      continue;
+    }
+    if (track.type !== "audio") throw new Error("Frame checksum output requires audio, video, or copied subtitle streams");
     const copy = audioCodec === "copy";
     const rate = copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
     const channels = track.decodedAudio?.channels ?? track.codecDescriptions[0]?.channels ?? 0;
@@ -85,11 +91,11 @@ export function serializeFrameChecksum(
   const rows: { dts: number; rate: number; line: string }[] = [];
   for (const [index, track] of doc.tracks.entries()) {
     const video = track.type === "video";
-    const copy = (video ? videoCodec : audioCodec) === "copy";
+    const copy = (video ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) === "copy";
     const [num, den] = video && !copy ? videoTimeBase(track) : [1, track.timescale];
     const rate = video ? den / num : copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
-    if (!video && !rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
-    const payload = video ? new Uint8Array() : rawAudio!.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
+    if (track.type === "audio" && !rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
+    const payload = track.type !== "audio" ? new Uint8Array() : rawAudio!.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
     const frames = track.decodedAudio?.channelData[0]?.length ?? Math.round(track.duration * rate / track.timescale);
     const bytesPerFrame = frames ? payload.length / frames : 0;
     let offset = 0;
@@ -100,9 +106,13 @@ export function serializeFrameChecksum(
     })) : track.samples.length ? track.samples : payload.length ? [{ dts: 0, pts: 0, duration: track.duration, data: payload }] : [];
     for (const packet of packets) {
       budget.checkCpu();
+      // MOV's final empty text sample terminates the track; FFmpeg emits no packet for it.
+      if (track.type === "subtitle" && track.codecDescriptions[0]?.codecName === "mov_text" &&
+          packet === track.samples.at(-1) && packet.duration === 0 && "data" in packet &&
+          packet.data.length === 2 && packet.data[0] === 0 && packet.data[1] === 0) continue;
       const duration = Math.round(packet.duration * rate / track.timescale);
       const bytes = "frame" in packet ? videoBytes(packet.frame, track.codecDescriptions[0]?.pixFmt ?? "rgba", budget)
-        : video ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(duration * bytesPerFrame))));
+        : track.type !== "audio" ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(duration * bytesPerFrame))));
       const size = bytes.length;
       offset += size;
       let digest: string;

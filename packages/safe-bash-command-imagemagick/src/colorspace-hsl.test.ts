@@ -39,7 +39,7 @@ for (const retained of [false, true]) {
         for (const output of ["txt:-", "histogram:-"]) {
             const text = await runConvertCli(["in.png", "-colorspace", "HSL", output], input);
             expect(text.exitCode, text.stderr).toBe(0);
-            expect(text.stdout).toContain("hsla(210.001,50.0008%,25.098%,0.501961)");
+            expect(text.stdout).toContain("hsla(210,50%,25.098%,0.501961)");
             expect(text.stdout).not.toContain("srgb");
         }
         const written = await runConvertCli(["in.png", "-colorspace", "HSL", "-write", "written.png", "-format", "%[colorspace]", "info:"], input);

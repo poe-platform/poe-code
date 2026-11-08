@@ -74,7 +74,7 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
         const bytes = await storage.read(image.position + start, Math.min(16384, size - start));
         const original = (srgbDepth || gray16 || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") && image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
         const data16 = original ? new Uint16Array(original.buffer.slice(original.byteOffset, original.byteOffset + original.byteLength)) : undefined;
-        const samples = (image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") && image.storedHueSamples !== undefined ? await storage.read(image.storedHueSamples + start * 8, bytes.length * 8) : undefined;
+        const samples = (image.magickColorspace === "HSL" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") && image.storedHueSamples !== undefined ? await storage.read(image.storedHueSamples + start * 8, bytes.length * 8) : undefined;
         const hueSamples = samples ? new Float64Array(samples.buffer.slice(samples.byteOffset, samples.byteOffset + samples.byteLength)) : undefined;
         for (let offset = 0; offset < bytes.length; offset += 4) {
             const pixel = (start + offset) / 4;
@@ -97,7 +97,7 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
 export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
     const hue = ["HSL", "HSB", "HWB", "XYZ", "YCbCr", "YUV", "CIELab"].includes(image.magickColorspace ?? "");
     const counts = new IntegerTable(storage, 512), order = hue ? new IntegerTable(storage, 128) : undefined, size = image.width * image.height * 4;
-    const sampleOffsets = (image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") && image.storedHueSamples !== undefined ? new IntegerTable(storage, 128) : undefined;
+    const sampleOffsets = (image.magickColorspace === "HSL" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") && image.storedHueSamples !== undefined ? new IntegerTable(storage, 128) : undefined;
     let unique = 0;
     for (let start = 0; start < size; start += 16384) {
         await yieldTurn(signal);

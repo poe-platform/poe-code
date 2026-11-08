@@ -4,14 +4,14 @@ import type { MediaAstPlugin, MediaDocument, MediaSample, ParseMediaOptions } fr
 
 /** Decode ASS dialogue overrides into scoped subtitle markup. */
 export function decodeAssText(text: string): string {
-  const active: string[] = [];
+  const active: { key: string; tag: string; opening: string }[] = [];
   let result = "";
   const close = (tag: string) => {
-    const index = active.indexOf(tag);
+    const index = active.findIndex(entry => entry.key === tag);
     if (index < 0) return;
-    for (let i = active.length - 1; i >= index; i--) result += `</${active[i]}>`;
+    for (let i = active.length - 1; i >= index; i--) result += `</${active[i]!.tag}>`;
     active.splice(index, 1);
-    for (let i = index; i < active.length; i++) result += `<${active[i]}>`;
+    for (let i = index; i < active.length; i++) result += active[i]!.opening;
   };
   for (let i = 0; i < text.length; i++) {
     if (text.startsWith("{\\", i)) {
@@ -21,9 +21,30 @@ export function decodeAssText(text: string): string {
           const tag = command[0]!;
           if (["i", "b", "u", "s"].includes(tag) && ["0", "1", "-1"].includes(command.slice(1))) {
             if (command.slice(1) === "0") close(tag);
-            else if (!active.includes(tag)) { active.push(tag); result += `<${tag}>`; }
+            else if (!active.some(entry => entry.key === tag)) {
+              active.push({ key: tag, tag, opening: `<${tag}>` }); result += `<${tag}>`;
+            }
+          } else if (command.startsWith("fn") || command.startsWith("fs") || command.startsWith("c") || command.startsWith("1c")) {
+            const key = command.startsWith("1c") ? "c" : command.startsWith("f") ? command.slice(0, 2) : "c";
+            let value = command.slice(command.startsWith("1c") ? 2 : key.length);
+            if (key === "fs" && value && (!Number.isFinite(Number(value)) || Number(value) <= 0)) continue;
+            if (key === "c" && value) {
+              if (!value.startsWith("&H")) continue;
+              const hex = value.slice(2, value.endsWith("&") ? -1 : undefined);
+              if (!hex.length || hex.length > 8 || [...hex.toLowerCase()].some(char => !"0123456789abcdef".includes(char))) continue;
+              const bgr = hex.padStart(6, "0").slice(-6).toLowerCase();
+              value = "#" + bgr.slice(4, 6) + bgr.slice(2, 4) + bgr.slice(0, 2);
+            }
+            close(key);
+            if (value) {
+              const attribute = key === "fn" ? "face" : key === "fs" ? "size" : "color";
+              value = value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+              const opening = `<font ${attribute}="${value}">`;
+              active.push({ key, tag: "font", opening });
+              result += opening;
+            }
           } else if (tag === "r") {
-            while (active.length) close(active.at(-1)!);
+            while (active.length) close(active.at(-1)!.key);
           }
         }
         i = end;
@@ -34,7 +55,7 @@ export function decodeAssText(text: string): string {
       result += text[++i] === "h" ? "\u00a0" : "\n";
     } else result += text[i];
   }
-  while (active.length) close(active.at(-1)!);
+  while (active.length) close(active.at(-1)!.key);
   return result;
 }
 

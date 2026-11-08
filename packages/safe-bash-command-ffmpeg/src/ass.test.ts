@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Volume } from "memfs";
+import { decodeMatroskaAss } from "./matroska-ass.js";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 const srt = "1\n00:00:01,250 --> 00:00:03,500\nHello\n\n2\n00:00:05,000 --> 00:00:06,750\nthere\n";
@@ -26,7 +27,10 @@ Dialogue: 0,0:00:05.00,0:00:06.75,Default,,0,0,0,,there
 for (const sync of [false, true]) {
   for (const explicit of [false, true]) {
     it(`${sync ? "sync" : "async"} converts native ASS and SRT, explicit=${explicit}`, async () => {
-      const volume = Volume.fromJSON({ "/input.srt": srt, "/native.ass": nativeAss });
+      const fontText = '<font face="Courier New"><font size="24"><font color="#ff0000">RED</font></font></font>';
+      const fontAss = nativeAss.slice(0, nativeAss.indexOf("Dialogue:")) +
+        String.raw`Dialogue: 3,0:00:01.00,0:00:03.00,Default,Actor,0010,0020,0030,,{\fnCourier New\fs24\c&H0000FF&}RED` + "\n";
+      const volume = Volume.fromJSON({ "/input.srt": srt, "/native.ass": nativeAss, "/font.ass": fontAss });
       const run = async (args: string[]) => {
         if (sync) {
           assert.equal(evalSyncFfmpeg(args, undefined,
@@ -49,6 +53,9 @@ for (const sync of [false, true]) {
       };
       await run(["-i", "/input.srt", ...(explicit ? ["-c:s", "ass", "-f", "ass"] : []), "/out.ass"]);
       assert.ok(String(volume.readFileSync("/out.ass")).includes("Dialogue: 0,0:00:01.25,0:00:03.50,"));
+      await run(["-i", "/font.ass", "/font.srt"]);
+      assert.equal(String(volume.readFileSync("/font.srt", "utf8")).trimEnd(),
+        "1\n00:00:01,000 --> 00:00:03,000\n" + fontText);
       for (const input of ["/out.ass", "/native.ass"]) {
         await run(["-y", "-i", input, "/out.srt"]);
         assert.equal(String(volume.readFileSync("/out.srt", "utf8")).trimEnd(), srt.trimEnd());
@@ -56,3 +63,8 @@ for (const sync of [false, true]) {
     });
   }
 }
+
+it("preserves font overrides in Matroska ASS packets", () => {
+  assert.equal(decodeMatroskaAss(String.raw`0,3,Default,Actor,0010,0020,0030,,{\fnCourier New\fs24\c&H0000FF&}RED`),
+    '<font face="Courier New"><font size="24"><font color="#ff0000">RED</font></font></font>');
+});

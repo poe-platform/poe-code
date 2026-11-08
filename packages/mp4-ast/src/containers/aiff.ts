@@ -3,7 +3,7 @@ import { buildProbeResultFromDoc, concatMp4, sliceMp4 } from "../mp4.js";
 import { rawAudioAsts } from "./raw-audio.js";
 
 const pcm = rawAudioAsts();
-const codecs = ["pcm_s16be", "pcm_s8", "pcm_s24be", "pcm_s32be"];
+const codecs = ["pcm_s16be", "pcm_s8", "pcm_s24be", "pcm_s32be", "pcm_s16le"];
 
 export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
@@ -68,20 +68,28 @@ export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions
       !Number.isSafeInteger(sampleRate) || sampleRate < 1 || sampleRate > 0xffffffff || frames > 0xffffffff) {
     throw new Error("Invalid AIFF audio dimensions");
   }
-  const size = 54 + data.length + data.length % 2;
+  const littleEndian = codec === "pcm_s16le";
+  const comm = littleEndian ? 24 : 12;
+  const titleOffset = comm + (littleEndian ? 32 : 26);
+  const sound = titleOffset + (title.length ? 8 + title.length + title.length % 2 : 0);
+  const size = sound + 16 + data.length + data.length % 2;
   if (size - 8 > 0xffffffff) throw new Error("AIFF output exceeds FORM size limit");
   options.budget?.checkOutputBytes(size);
   const bytes = new Uint8Array(size), view = new DataView(bytes.buffer);
   const text = (offset: number, value: string) => bytes.set(new TextEncoder().encode(value), offset);
-  text(0, "FORM"); view.setUint32(4, size - 8); text(8, "AIFF");
-  text(12, "COMM"); view.setUint32(16, 18);
-  view.setUint16(20, channels); view.setUint32(22, frames); view.setUint16(26, bits);
+  text(0, "FORM"); view.setUint32(4, size - 8); text(8, littleEndian ? "AIFC" : "AIFF");
+  if (littleEndian) {
+    text(12, "FVER"); view.setUint32(16, 4); view.setUint32(20, 0xa2805140);
+    text(comm + 26, "sowt"); // Followed by an empty, padded Pascal compression name.
+  }
+  text(comm, "COMM"); view.setUint32(comm + 4, littleEndian ? 24 : 18);
+  view.setUint16(comm + 8, channels); view.setUint32(comm + 10, frames); view.setUint16(comm + 14, bits);
   const exponent = Math.floor(Math.log2(sampleRate));
   const mantissa = sampleRate * 2 ** (63 - exponent);
-  view.setUint16(28, exponent + 16383);
-  view.setUint32(30, Math.floor(mantissa / 2 ** 32)); view.setUint32(34, mantissa % 2 ** 32);
-  text(38, "SSND"); view.setUint32(42, data.length + 8);
-  bytes.set(data, 54);
+  view.setUint16(comm + 16, exponent + 16383);
+  view.setUint32(comm + 18, Math.floor(mantissa / 2 ** 32)); view.setUint32(comm + 22, mantissa % 2 ** 32);
+  text(sound, "SSND"); view.setUint32(sound + 4, data.length + 8);
+  bytes.set(data, sound + 16);
   return bytes;
 }
 

@@ -69,3 +69,34 @@ it("reads native AIFF-C sowt input as exact little-endian PCM", async () => {
   assert.equal(result.exitCode, 0, stderr);
   assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"), "0080fffe00000101ff7f");
 });
+
+for (const sync of [false, true]) {
+  it(`${sync ? "sync" : "async"} writes little-endian PCM as AIFF-C sowt`, async () => {
+    const volume = Volume.fromJSON({});
+    volume.writeFileSync("/in.wav", wav);
+    const args = ["-y", "-v", "error", "-i", "/in.wav", "-metadata", "title=Needle",
+      "-metadata", "artist=Tester", "-c:a", "pcm_s16le", "/out.aiff"];
+    if (sync) {
+      assert.equal(evalSyncFfmpeg(args, undefined,
+        name => volume.existsSync(name) ? volume.readFileSync(name) as Buffer : undefined,
+        (name, bytes) => { volume.writeFileSync(name, bytes); return true; }), "");
+    } else {
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args, cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(name: string) { return volume.readFileSync(name); },
+          async writeFile(name: string, bytes: Uint8Array) { volume.writeFileSync(name, bytes); },
+          async stat(name: string) { return volume.statSync(name); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+    }
+    const bytes = volume.readFileSync("/out.aiff") as Buffer;
+    assert.equal(bytes.toString("ascii", 8, 12), "AIFC");
+    assert.equal(bytes.toString("ascii", 50, 54), "sowt");
+    assert.deepEqual(bytes.subarray(72, 72 + samples.length * 2), Buffer.from(aiff.subarray(54)).swap16());
+  });
+}

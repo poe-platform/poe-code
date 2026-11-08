@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
+import { MediaBudgetTracker } from "./types.js";
 import { aiffAst, parseAiff, serializeAiff } from "./containers/aiff.js";
 
 const native = Buffer.from("464f524d0000004041494646434f4d4d000000120001000000090010400bfa0000000000000053534e440000001a00000000000000008000bffffeffffff00000001010140017fff", "hex");
@@ -45,7 +46,7 @@ for (const [name, offset, value] of [
 }
 
 it("rejects unsupported encoders and enforces decode limits", () => {
-  assert.throws(() => serializeAiff(parseAiff(native), { audioCodec: "pcm_s16le" }), /not supported/);
+  assert.throws(() => serializeAiff(parseAiff(native), { audioCodec: "pcm_s24le" }), /not supported/);
   assert.throws(() => parseAiff(native, { limits: { maxInputBytes: 10 } }));
 });
 
@@ -88,3 +89,19 @@ it("reads AIFF-C NONE samples as big-endian PCM", () => {
   assert.deepEqual(parseAiff(bytes).tracks[0]!.decodedAudio, parseAiff(aifc).tracks[0]!.decodedAudio);
   assert.equal(aiffAst().probe(bytes).streams[0]!.codec_name, "pcm_s16be");
 });
+
+for (const copy of [false, true]) {
+  it(`writes AIFF-C sowt with exact PCM16LE bytes (${copy ? "copy" : "encode"})`, () => {
+    const doc = { ...parseAiff(aifc, { decodeAudio: !copy }), metadata: {} };
+    const bytes = Buffer.from(serializeAiff(doc, { audioCodec: copy ? "copy" : "pcm_s16le" }));
+    // Native fixture without its optional NAME metadata chunk.
+    const expected = Buffer.concat([aifc.subarray(0, 24), aifc.subarray(38)]);
+    expected.writeUInt32BE(expected.length - 8, 4);
+    assert.deepEqual(bytes, expected);
+    assert.ok(aiffAst().supportedAudioCodecs.includes("pcm_s16le"));
+    assert.throws(() => serializeAiff(doc, {
+      audioCodec: copy ? "copy" : "pcm_s16le",
+      budget: new MediaBudgetTracker({ maxOutputBytes: bytes.length - 1 })
+    }), /limit/i);
+  });
+}

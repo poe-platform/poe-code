@@ -5741,7 +5741,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-tint") {
-        const [red = 1, green = red, blue = red] = (tokens[++i] ?? "100").split(",").map(value => parseFloat(value) / 100);
+        const value = tokens[++i] ?? "";
+        const [red = 1, green = red, blue = red] = value.split(",").map(part => {
+            const percent = part.endsWith("%") ? part.slice(0, -1) : part;
+            if (!Number.isFinite(Number(percent)) || Number.parseFloat(percent) !== Number(percent)) {
+                throw new Error(`invalid argument '-tint' '${value}'`);
+            }
+            return Number(percent) / 100;
+        });
         const strengths = [red, green, blue];
         const fill = [state.fill.r, state.fill.g, state.fill.b];
         // ImageMagick subtracts the fill luminance even at zero strength.

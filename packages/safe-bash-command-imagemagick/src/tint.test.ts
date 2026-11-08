@@ -53,3 +53,31 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         expect([...decodeImage(output).data]).toEqual(expected);
     });
 }
+
+for (const mode of ["buffered", "retained", "sync", "command"] as const)
+it.each(["bogus", "50%junk", "50%"])(`${mode}: validates tint strength %s before replacing output`, async strength => {
+    const input = await sharp(new Uint8Array([25, 100, 220, 128]), { raw: { width: 1, height: 1, channels: 4 } }).png().toBuffer();
+    const destination = await sharp(new Uint8Array([255, 0, 0]), { raw: { width: 1, height: 1, channels: 3 } }).png().toBuffer();
+    const files = new Map([["/input.png", input], ["/out.png", destination]]);
+    const filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/input.png", input);
+    await filesystem.writeFile("/out.png", destination);
+    const args = ["/input.png", "-fill", "#aabbcc", "-tint", strength, "/out.png"];
+    const result = mode === "command"
+        ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { write: async () => {} }, stderr: { write: async () => {} },
+        })
+        : mode === "sync" ? runConvertCliSync(args, files)
+        : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    const output = mode === "command" || mode === "retained"
+        ? await filesystem.readFile("/out.png") : files.get("/out.png")!;
+    if (strength === "50%") {
+        expect(result.exitCode).toBe(0);
+        expect([...decodeImage(output).data]).toEqual([0, 13, 181, 128]);
+    } else {
+        expect(result.exitCode).toBe(1);
+        expect([...output]).toEqual([...destination]);
+    }
+});

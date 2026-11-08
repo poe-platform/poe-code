@@ -2885,12 +2885,14 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
 function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: string, channels: MagickState["channels"], method: VirtualPixelMethod | undefined, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const stack: FxStack = "get" in input ? input : { length: input.length, get: index => input[index], indexOf: image => input.indexOf(image) };
     const base = stack.get(0)!, evaluate = compileFxExpression(expression), mask = [channels.r, channels.g, channels.b, channels.a && base.hasAlpha];
+    const highDepth = !!(base.data16 || ("storedData16" in base && base.storedData16)), maximum = highDepth ? 65535 : 255;
     const statistics: Record<string, number> | undefined = evaluate.needsStatistics ? {} : undefined;
     if (statistics) {
         yield* magickPixelPropertiesSteps<ConvolveRequest, Uint8Array | undefined>(base, function*(position, length) {
-            const data = yield { kind: "read", position, length };
-            if (!data || data.length !== length) throw new Error("Truncated expression statistics");
-            return { data };
+            const data = yield { kind: "read", highDepth, position, length };
+            if (!data || data.length !== length * (highDepth ? 2 : 1)) throw new Error("Truncated expression statistics");
+            const data16 = highDepth ? new Uint16Array(data.slice().buffer) : undefined;
+            return data16 ? { data: Uint8Array.from(data16, value => Math.round(value / 257)), data16 } : { data };
         }, statistics, false, function*(position, length) {
             return (yield { kind: "read", image: stack.length, position, length })!;
         });
@@ -2903,7 +2905,7 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
             }
         }
     }
-    const samples = new Map<string, number>(), sample = new Uint8Array(4), vars = new Map<string, number>();
+    const samples = new Map<string, Uint8Array | Uint16Array>(), vars = new Map<string, number>();
     const samplePixel: typeof sampleFxImage = (target, x, y, channel) => {
         if (!target) return 0;
         let px = Math.round(x), py = Math.round(y);
@@ -2925,21 +2927,20 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
         }
         const position = (py * target.width + px) * 4;
         if (!Number.isFinite(position)) return NaN;
-        const image = stack.indexOf(target), packed = samples.get(image + ":" + position);
-        if (packed === undefined) throw new FxPixelDemand(position, image);
-        for (let c = 0; c < 4; c++) sample[c] = packed >>> (c * 8) & 255;
-        return sampleFxPixel(sample, 0, channel);
+        const image = stack.indexOf(target), pixel = samples.get(image + ":" + position);
+        if (pixel === undefined) throw new FxPixelDemand(position, image);
+        return sampleFxPixel(pixel, 0, channel, maximum);
     };
     for (let start = 0; start < base.width * base.height; start += 1024) {
         yield;
-        const count = Math.min(1024, base.width * base.height - start), bytes = yield { kind: "read", position: start * 4, length: count * 4 };
-        if (!bytes || bytes.length !== count * 4) throw new Error("Truncated expression pixels");
-        const data = new Uint8Array(bytes);
+        const count = Math.min(1024, base.width * base.height - start), bytes = yield { kind: "read", highDepth, position: start * 4, length: count * 4 };
+        if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated expression pixels");
+        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
         for (let i = 0; i < count; i++) {
             const position = (start + i) * 4, offset = i * 4;
             stack.reset?.();
             samples.clear();
-            samples.set("0:" + position, data[offset]! | data[offset + 1]! << 8 | data[offset + 2]! << 16 | data[offset + 3]! << 24);
+            samples.set("0:" + position, data.slice(offset, offset + 4));
             for (let ch = 0; ch < 4; ch++) {
                 if (!mask[ch]) continue;
                 // ImageMagick convert evaluates statistics as zero in the red output channel.
@@ -2947,18 +2948,18 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
                 // Replaying local assignments is deterministic; retain only this pixel's demanded samples.
                 while (true) {
                     vars.clear();
-                    try { data[offset + ch] = clampByteVal(Math.min(1, evaluate(context)) * 255); break; }
+                    try { data[offset + ch] = Math.round(Math.max(0, Math.min(1, evaluate(context))) * maximum); break; }
                     catch (error) {
                         if (error instanceof FxFrameDemand) { yield; continue; }
                         if (!(error instanceof FxPixelDemand)) throw error;
-                        const value = yield { kind: "read", image: error.image, position: error.position, length: 4 };
-                        if (!value || value.length !== 4) throw new Error("Truncated expression pixels");
-                        samples.set(error.image + ":" + error.position, value[0]! | value[1]! << 8 | value[2]! << 16 | value[3]! << 24);
+                        const value = yield { kind: "read", highDepth, image: error.image, position: error.position, length: 4 };
+                        if (!value || value.length !== 4 * (highDepth ? 2 : 1)) throw new Error("Truncated expression pixels");
+                        samples.set(error.image + ":" + error.position, highDepth ? new Uint16Array(value.slice().buffer) : new Uint8Array(value));
                     }
                 }
             }
         }
-        yield { kind: "write", position: start * 4, data };
+        yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
     }
 }
 

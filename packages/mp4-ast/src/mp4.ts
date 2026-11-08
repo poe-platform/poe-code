@@ -1397,17 +1397,27 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
 
   // Standard MP4/MOV layout: compute relative sample offsets within mdat payload
   const mdatPayloads: Uint8Array[] = [];
-  const relativeSampleOffsetsPerTrack: number[][] = [];
+  const relativeSampleOffsetsPerTrack: number[][] = materializedTracks.map(() => []);
   let mdatPayloadSize = 0;
 
-  for (const mt of materializedTracks) {
-    const offsets: number[] = [];
-    for (const sample of mt.samples) {
-      offsets.push(mdatPayloadSize);
-      mdatPayloads.push(sample.data);
-      mdatPayloadSize += sample.data.byteLength;
+  // Merge decode-ordered tracks, keeping track order for equal timestamps.
+  while (true) {
+    let nextTrack = -1;
+    let nextTime = Infinity;
+    for (let i = 0; i < materializedTracks.length; i++) {
+      const mt = materializedTracks[i]!;
+      const sample = mt.samples[relativeSampleOffsetsPerTrack[i]!.length];
+      if (sample && sample.dts / mt.track.timescale < nextTime) {
+        nextTrack = i;
+        nextTime = sample.dts / mt.track.timescale;
+      }
     }
-    relativeSampleOffsetsPerTrack.push(offsets);
+    if (nextTrack < 0) break;
+    const offsets = relativeSampleOffsetsPerTrack[nextTrack]!;
+    const sample = materializedTracks[nextTrack]!.samples[offsets.length]!;
+    offsets.push(mdatPayloadSize);
+    mdatPayloads.push(sample.data);
+    mdatPayloadSize += sample.data.byteLength;
   }
 
   const mdatHeaderSize = 8;

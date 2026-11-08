@@ -904,7 +904,7 @@ function materializeTrackSamples(track: MediaTrack): {
     );
     const codecDescriptions: readonly MediaCodecDescription[] =
       track.codecDescriptions.length > 0
-        ? track.codecDescriptions.map((d) => ({ ...d, formatFourCC: "tx3g", codecName: "mov_text" }))
+        ? track.codecDescriptions.map((d) => ({ ...d, formatFourCC: d.formatFourCC === "text" ? "text" : "tx3g", codecName: "mov_text" }))
         : [{ formatFourCC: "tx3g", codecName: "mov_text" }];
     if (alreadyPacked) {
       return { samples: track.samples, codecDescriptions };
@@ -1088,7 +1088,8 @@ function buildTrakBox(
   movieTimescale: number,
   sampleOffsets: readonly number[],
   fragmented = false,
-  writeColr = false
+  writeColr = false,
+  chapterTrackId?: number
 ): Uint8Array {
   const materialized = materializeTrackSamples(track);
   const samples = fragmented ? [] : materialized.samples;
@@ -1313,11 +1314,18 @@ function buildTrakBox(
   const mdiaBox = makeBox("mdia", concatBytes([mdhdBox, hdlrBox, minfBox]));
 
   const trakChildren: Uint8Array[] = [tkhdBox];
+  const references: Uint8Array[] = [];
+  if (chapterTrackId !== undefined && track.id !== chapterTrackId) {
+    const reference = new BinaryWriter(4);
+    reference.writeU32BE(chapterTrackId);
+    references.push(makeBox("chap", reference.toUint8Array()));
+  }
   if (track.timecodeTrackId !== undefined) {
     const reference = new BinaryWriter(4);
     reference.writeU32BE(track.timecodeTrackId);
-    trakChildren.push(makeBox("tref", makeBox("tmcd", reference.toUint8Array())));
+    references.push(makeBox("tmcd", reference.toUint8Array()));
   }
+  if (references.length) trakChildren.push(makeBox("tref", concatBytes(references)));
   if (edtsBox) trakChildren.push(edtsBox);
   trakChildren.push(mdiaBox);
   if (track.disposition?.comment) {
@@ -1427,6 +1435,35 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     }
   }
 
+  let chapterTrackId: number | undefined;
+  if (doc.chapters?.length) {
+    chapterTrackId = Math.max(0, ...materializedTracks.map(mt => mt.track.id)) + 1;
+    const timescale = 1000;
+    const samples = doc.chapters.map((chapter, index): MediaSample => {
+      const title = encodeUtf8(chapter.title).subarray(0, 65535);
+      const writer = new BinaryWriter(title.length + 2);
+      writer.writeU16BE(title.length);
+      writer.writeBytes(title);
+      // QuickTime chapters start at zero and extend to the next chapter start.
+      const dts = index === 0 ? 0 : Math.round(chapter.startTimeSeconds * timescale);
+      const end = Math.round((doc.chapters![index + 1]?.startTimeSeconds ?? chapter.endTimeSeconds) * timescale);
+      const data = writer.toUint8Array();
+      return { data, size: data.length, dts, pts: dts, cts: 0,
+        duration: Math.max(0, end - dts), isKeyframe: true, sampleDescriptionIndex: 1 };
+    });
+    const entry = new BinaryWriter(51);
+    entry.writeZeros(6);
+    entry.writeU16BE(1); // data reference index
+    entry.writeZeros(43); // QuickTime text display, color, rectangle and font fields
+    const codecDescriptions = [{ formatFourCC: "text", codecName: "bin_data",
+      rawStsdEntryBytes: makeBox("text", entry.toUint8Array()) }];
+    const last = samples[samples.length - 1]!;
+    const track: MediaTrack = { id: chapterTrackId, type: "data", handlerType: "text",
+      handlerName: "SubtitleHandler", timescale, duration: last.dts + last.duration,
+      language: "und", enabled: false, samples, codecDescriptions };
+    materializedTracks.push({ track, samples, codecDescriptions });
+  }
+
   const boundaries: number[] = [];
   if (options.fragmented && (options.fragmentKeyframes || options.fragmentEveryFrame || options.fragmentDuration)) {
     const packets = materializedTracks.flatMap((mt, trackIndex) => mt.samples.map((sample, index) => ({
@@ -1480,7 +1517,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
   mvhdWriter.writeZeros(10); // reserved
   for (const m of IDENTITY_MATRIX) mvhdWriter.writeI32BE(m);
   mvhdWriter.writeZeros(24); // pre_defined
-  mvhdWriter.writeU32BE(doc.tracks.length + 1); // next_track_id
+  mvhdWriter.writeU32BE(Math.max(0, ...materializedTracks.map(mt => mt.track.id)) + 1); // next_track_id
   const mvhdBox = makeFullBox("mvhd", 0, 0, mvhdWriter.toUint8Array());
 
   const picture = doc.tracks.find(track => track.type === "video" && track.disposition?.attached_pic === 1);
@@ -1520,7 +1557,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       const trakBoxes = initialTracks.map((mt, index) => buildTrakBox(
         { ...mt.track, samples: mt.samples, codecDescriptions: mt.codecDescriptions },
         movieTimescale, initialOffsets[index]!.map(offset => dataStart + offset),
-        options.emptyMoov !== false, options.writeColr
+        options.emptyMoov !== false, options.writeColr, chapterTrackId
       ));
       return makeBox("moov", concatBytes([mvhdBox, ...trakBoxes, mvexBox, ...(udtaBox ? [udtaBox] : [])]));
     };
@@ -1720,7 +1757,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
         { ...mt.track, samples: mt.samples, codecDescriptions: mt.codecDescriptions },
         movieTimescale,
         relativeSampleOffsetsPerTrack[idx]!.map((rel) => mdatDataStart + rel),
-        false, options.writeColr
+        false, options.writeColr, chapterTrackId
       )
     );
     const moovChildren = [mvhdBox, ...trakBoxes];
@@ -1745,7 +1782,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       { ...mt.track, samples: mt.samples, codecDescriptions: mt.codecDescriptions },
       movieTimescale,
       relativeSampleOffsetsPerTrack[idx]!.map((rel) => rel),
-      false, options.writeColr
+      false, options.writeColr, chapterTrackId
     )
   );
   const dummyMoovChildren = [mvhdBox, ...dummyTraks];
@@ -1758,7 +1795,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       { ...mt.track, samples: mt.samples, codecDescriptions: mt.codecDescriptions },
       movieTimescale,
       relativeSampleOffsetsPerTrack[idx]!.map((rel) => mdatDataStart + rel),
-      false, options.writeColr
+      false, options.writeColr, chapterTrackId
     )
   );
   const finalMoovChildren = [mvhdBox, ...finalTraks];

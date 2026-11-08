@@ -1,4 +1,5 @@
 import type { ImageByteStorage, RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast";
+import type { HueMetadata } from "./colorspace-hue.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { RasterBackingCache } from "./raster-backing.js";
 
@@ -177,7 +178,7 @@ function* sortSteps(components: Component[], sort?: "x" | "area", order?: "incre
  return sorted;
 }
 
-function* reportSteps(components: Component[], sort: "x" | "area" | undefined, excludeHeader: boolean, excludeIds: boolean, hasAlpha: boolean, order?: "increasing" | "decreasing"): Generator<void, string, void> {
+function* reportSteps(components: Component[], sort: "x" | "area" | undefined, excludeHeader: boolean, excludeIds: boolean, image: (RgbaImage | StoredRgbaImage) & HueMetadata, order?: "increasing" | "decreasing"): Generator<void, string, void> {
  const sorted = yield* sortSteps(components, sort, order);
  let text = excludeHeader ? "" : `Objects (${excludeIds ? "" : "id: "}bounding-box centroid area mean-color${components[0]?.perimeter === undefined ? "" : " perimeter"}${components[0]?.circularity === undefined ? "" : " circularity"}${components[0]?.diameter === undefined ? "" : " diameter"}${components[0]?.majorAxis === undefined ? "" : " major-axis"}${components[0]?.minorAxis === undefined ? "" : " minor-axis"}${components[0]?.eccentricity === undefined ? "" : " eccentricity"}${components[0]?.angle === undefined ? "" : " angle"}):\n`;
  for (const c of sorted) {
@@ -185,14 +186,20 @@ function* reportSteps(components: Component[], sort: "x" | "area" | undefined, e
   // Only odd quarters are exact binary ties at one decimal place. Native uses ties-to-even.
   const centroid = [c.x / c.area, c.y / c.area].map(value =>
    (value % 0.5 === 0.25 ? Math.round(value * 5) / 5 : value).toFixed(1)).join(",");
-  const channels = c.color.slice(0, 3).map(value => Number((value / c.area).toPrecision(6)));
-  const color = hasAlpha ? `srgba(${channels.join(",")},${Number(c.reportAlpha.toPrecision(6))})` : `srgb(${channels.join(",")})`;
+  const space = image.magickColorspace ?? (image.space === "b-w" || image.space === "grey16" ? "Gray" : "sRGB");
+  const hue = space === "HSL" || space === "HSB";
+  const channels = c.color.slice(0, space === "Gray" ? 1 : 3).map((value, index) => {
+   const grayPercent = space === "Gray" && !Number.isInteger(value / c.area);
+   const scale = grayPercent ? 100 / 255 : hue ? (index === 0 ? 360 : 100) / 255 : space === "XYZ" ? 100 / 255 : 1;
+   return `${Number((value / c.area * scale).toPrecision(6))}${grayPercent || (hue && index > 0) ? "%" : ""}`;
+  });
+  const color = `${space.toLowerCase()}${image.hasAlpha ? "a" : ""}(${channels.join(",")}${image.hasAlpha ? `,${Number(c.reportAlpha.toPrecision(6))}` : ""})`;
   text += `  ${excludeIds ? "" : `${c.id}: `}${c.right - c.left + 1}x${c.bottom - c.top + 1}+${c.left}+${c.top} ${centroid} ${c.area} ${color}${c.perimeter === undefined ? "" : ` ${c.perimeter}`}${c.circularity === undefined ? "" : ` ${Number(c.circularity.toPrecision(6))}`}${c.diameter === undefined ? "" : ` ${c.diameter}`}${c.majorAxis === undefined ? "" : ` ${Number(c.majorAxis.toPrecision(6))}`}${c.minorAxis === undefined ? "" : ` ${Number(c.minorAxis.toPrecision(6))}`}${c.eccentricity === undefined ? "" : ` ${Number(c.eccentricity.toPrecision(6))}`}${c.angle === undefined ? "" : ` ${Number(c.angle.toPrecision(6))}`}\n`;
  }
  return text;
 }
 
-export function* connectedComponentsSteps(image: RgbaImage, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x" | "area", angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[]): Generator<void, { image: RgbaImage; text: string }, void> {
+export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x" | "area", angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[]): Generator<void, { image: RgbaImage; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
  const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold);
  let next = steps.next();
@@ -200,10 +207,10 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
   const request = next.value;
   if (!request) { yield; next = steps.next(0); continue; }
   const { region, index, value } = request;
-  if (region === "pixels") next = steps.next(image.data16 ? image.data16[index]! / 257 : image.data[index]!);
+  if (region === "pixels") next = steps.next(image.hueSamples ? image.hueSamples[index]! * 255 : image.data16 ? image.data16[index]! / 257 : image.data[index]!);
   else { const data = region === "labels" ? labels : queue; if (value !== undefined) data[index] = value; next = steps.next(data[index]!); }
  }
- const text = verbose ? yield* reportSteps(next.value, sort, excludeHeader, excludeIds, image.hasAlpha ?? false, sortOrder) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
+ const text = verbose ? yield* reportSteps(next.value, sort, excludeHeader, excludeIds, image, sortOrder) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
  for (let i = 0; i < count; i++) {
   if (i % 1024 === 0) yield;
   const id = labels[i]! - 1, value = Math.round(id / 257);
@@ -214,9 +221,9 @@ export function* connectedComponentsSteps(image: RgbaImage, connectivity: number
  return { image: { ...image, data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
-export async function connectedComponentsStored(image: StoredRgbaImage, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x" | "area", angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[]): Promise<{ image: StoredRgbaImage; text: string }> {
+export async function connectedComponentsStored(image: StoredRgbaImage & HueMetadata, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x" | "area", angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[]): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
- const regions = { pixels: image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
+ const regions = { pixels: image.storedHueSamples !== undefined ? { position: image.storedHueSamples, length: size * 8 } : image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
  const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold);
  let next = steps.next();
  while (!next.done) {
@@ -225,7 +232,8 @@ export async function connectedComponentsStored(image: StoredRgbaImage, storage:
   const region = regions[request.region], offset = request.index * 4;
   if (request.region === "pixels") {
    const index = request.index;
-   if (image.storedData16) {
+   if (image.storedHueSamples !== undefined) next = steps.next(await cache.float64(region, index * 8) * 255);
+   else if (image.storedData16) {
     const pair = await cache.uint32(region, Math.floor(index / 2) * 4);
     next = steps.next(((pair >>> ((index % 2) * 16)) & 65535) / 257);
    } else next = steps.next(await cache.byte(region, index));
@@ -235,7 +243,7 @@ export async function connectedComponentsStored(image: StoredRgbaImage, storage:
  }
  let text = "";
  if (verbose) {
-  const report = reportSteps(next.value, sort, excludeHeader, excludeIds, image.hasAlpha ?? false, sortOrder);
+  const report = reportSteps(next.value, sort, excludeHeader, excludeIds, image, sortOrder);
   let part = report.next();
   while (!part.done) { await yieldTurn(signal); part = report.next(); }
   text = part.value;

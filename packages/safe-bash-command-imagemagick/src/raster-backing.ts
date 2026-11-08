@@ -43,6 +43,7 @@ export class RasterBackingCache {
     async setUint32(region: RasterRegion, offset: number, value: number): Promise<void> {
         const page = await this.page(region, offset); page.view.setUint32(offset % 4096, value, true); page.dirty = true;
     }
+    async float64(region: RasterRegion, offset: number): Promise<number> { return (await this.page(region, offset)).view.getFloat64(offset % 4096, true); }
     async float32(region: RasterRegion, offset: number): Promise<number> { return (await this.page(region, offset)).view.getFloat32(offset % 4096, true); }
     async setFloat32(region: RasterRegion, offset: number, value: number): Promise<void> {
         const page = await this.page(region, offset); page.view.setFloat32(offset % 4096, value, true); page.dirty = true;

@@ -7657,15 +7657,19 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 i++;
             if (stack.length > 0) {
                 const oldStack = stack;
-                const maxW = flatten ? oldStack[0]!.width : Math.max(...oldStack.map((im) => im.width));
-                const maxH = flatten ? oldStack[0]!.height : Math.max(...oldStack.map((im) => im.height));
+                const maxW = flatten ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : Math.max(...oldStack.map((im) => im.width));
+                const maxH = flatten ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : Math.max(...oldStack.map((im) => im.height));
                 const canvas = (yield* createSolidRgbaImageSteps(maxW, maxH, state.background));
                 const layers: CompositeLayer[] = [];
                 for (const im of oldStack) {
-                    const clipped = im.width > maxW || im.height > maxH
-                        ? yield* extractImageSteps(im, { left: 0, top: 0, width: Math.min(im.width, maxW), height: Math.min(im.height, maxH) })
+                    const x = flatten ? im.virtualCanvas?.x ?? 0 : 0, y = flatten ? im.virtualCanvas?.y ?? 0 : 0;
+                    const left = Math.max(0, -x), top = Math.max(0, -y);
+                    const width = Math.min(im.width - left, maxW - Math.max(0, x)), height = Math.min(im.height - top, maxH - Math.max(0, y));
+                    if (width <= 0 || height <= 0) continue;
+                    const clipped = left || top || width !== im.width || height !== im.height
+                        ? yield* extractImageSteps(im, { left, top, width, height })
                         : im;
-                    layers.push(rgbaToCompositeLayer(clipped, 0, 0, state.compose));
+                    layers.push(rgbaToCompositeLayer(clipped, Math.max(0, x), Math.max(0, y), state.compose));
                 }
                 const flattened = (yield* compositeImageSteps(canvas, layers));
                 if (canvas.data.buffer !== flattened.data.buffer) detachRgbaBuffer(canvas.data);
@@ -8516,6 +8520,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (append && stack.length === 1) return stack;
                 let width = 0, height = 0, highDepth = false;
                 for (let n = 0; n < (flatten ? 1 : stack.length); n++) { await yieldTurn(signal); const frame = (await stack.get(n))!; highDepth ||= !!frame.storedData16; width = append && !vertical ? width + frame.width : Math.max(width, frame.width); height = append && vertical ? height + frame.height : Math.max(height, frame.height); }
+                if (flatten) {
+                    const first = (await stack.get(0))!;
+                    width = first.virtualCanvas?.width || first.width;
+                    height = first.virtualCanvas?.height || first.height;
+                }
                 result = await createStoredCanvas(width, height, settings.background, backend, signal, append && highDepth);
                 if (append) {
                     const first = (await stack.get(0))!;
@@ -8541,7 +8550,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                         result = { ...result, hasAlpha: result.hasAlpha || frame.hasAlpha };
                     }
-                    else result = await compositeStoredMagick(result, frame, backend, signal, 0, 0, settings.compose, undefined, true, true);
+                    else result = await compositeStoredMagick(result, frame, backend, signal, flatten ? frame.virtualCanvas?.x ?? 0 : 0, flatten ? frame.virtualCanvas?.y ?? 0 : 0, settings.compose, undefined, true, true);
                     cursor += vertical ? frame.height : frame.width;
                 }
                 if (!append) {

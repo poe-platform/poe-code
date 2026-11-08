@@ -1555,6 +1555,19 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
+function validateMagickTransformGeometry(raw: string, option: string): void {
+    const value = raw.trim();
+    let dimensions = false;
+    for (const char of value) {
+        if (char === "x" || char === "X" || char === ":") dimensions = true;
+        if ((char.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(char)) ||
+            (!dimensions && (char === "/" || (char === "," && value[0] !== "+" && value[0] !== "-")))) {
+            throw new Error(`invalid argument for option '${option}': ${raw}`);
+        }
+    }
+    if (!value || value === "+" || value === "-") throw new Error(`invalid argument for option '${option}': ${raw}`);
+}
+
 function parseMagickRollGeometry(raw: string): MagickGeometry {
     // Native roll consumes at most two offsets; comma/colon ends the offset list.
     let offsets = 0;
@@ -6680,12 +6693,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-chop") {
             const geom = tokens[++i] ?? "0x0";
+            validateMagickTransformGeometry(geom, t);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickChopSteps(im, geom, state.gravity, signal));
             });
         }
         else if (t === "-roll") {
             const geom = tokens[++i] ?? "+0+0";
+            validateMagickTransformGeometry(geom, t);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickRollSteps(im, geom, signal));
             });
@@ -8429,6 +8444,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
             if (token === "-splice") validateMagickSpliceGeometry(geometry);
+            else validateMagickTransformGeometry(geometry, token);
             steps.push(async (image, backend) => image ? transformStoredMagickCoordinates(image, backend, token, geometry, captured, signal) : undefined);
         } else if (!operandsOnly && token === "-resample") {
             const value = tokens[++i] ?? "72", kernel = state.kernel, settings = state.resizeFilter;

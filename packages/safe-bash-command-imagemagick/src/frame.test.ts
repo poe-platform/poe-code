@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { expect, it } from "vitest";
-import { decodeImage } from "@poe-code/image-ast";
+import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync, runMogrifyCli } from "./index.js";
@@ -26,6 +26,31 @@ it("rejects malformed frame geometry through the public command without replacin
 });
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each([
+        { geometry: "2x", horizontal: 2, vertical: 0 },
+        { geometry: "x2", horizontal: 0, vertical: 2 },
+        { geometry: "2x0", horizontal: 2, vertical: 0 },
+        { geometry: "0x2", horizontal: 0, vertical: 2 },
+        { geometry: "2", horizontal: 2, vertical: 2 },
+    ])(`frames only the specified axes, ${mode}: $geometry`, async ({ geometry, horizontal, vertical }) => {
+        const data = Uint8Array.from({ length: 10 * 8 * 4 }, (_, i) => i % 4 === 3 ? 255 : Math.floor(i / 4) + 1);
+        const input = encodeImage({ width: 10, height: 8, data, format: "png", depth: "uchar", density: 72, channels: 4, space: "srgb", hasAlpha: false }, { format: "png" }).data;
+        const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const args = ["input.png", "-mattecolor", "red", "-frame", geometry, "png:-"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode, result.stderr).toBe(0);
+        const image = decodeImage(result.stdoutBytes!);
+        expect([image.width, image.height]).toEqual([10 + 2 * horizontal, 8 + 2 * vertical]);
+        const expected = [];
+        for (let y = 0; y < image.height; y++) for (let x = 0; x < image.width; x++) {
+            const inside = x >= horizontal && x < horizontal + 10 && y >= vertical && y < vertical + 8;
+            const value = (y - vertical) * 10 + x - horizontal + 1;
+            expected.push(...(inside ? [value, value, value, 255] : [255, 0, 0, 255]));
+        }
+        expect([...image.data]).toEqual(expected);
+    });
     it.each(["bogus", "2xjunk", "", "+", "4x4oops", "2x2+2+1"])(`preserves the destination for invalid frame geometry %s, ${mode}`, async geometry => {
         const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
         expect(runConvertCliSync(["-size", "10x8", "gradient:black-white", "input.png"], files).exitCode).toBe(0);

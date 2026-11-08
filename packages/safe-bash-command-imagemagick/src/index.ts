@@ -7010,8 +7010,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const raw = tokens[++i] ?? "";
             validateMagickTransformGeometry(raw, t);
             const g = parseMagickGeometry(raw);
-            const fw = Math.max(0, Math.round(g.width ?? 4));
-            const fh = Math.max(0, Math.round(g.height ?? fw));
+            const hasAxes = raw.toLowerCase().includes("x");
+            const fw = Math.max(0, Math.round(g.width ?? (hasAxes ? 0 : 4)));
+            const fh = Math.max(0, Math.round(g.height ?? (hasAxes ? 0 : fw)));
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const width = im.width + 2 * fw, height = im.height + 2 * fh;
                 return yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, state.matteColor, fw, fh, g.x, g.y), signal,
@@ -8639,7 +8640,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-frame") {
             const raw = tokens[++i] ?? "";
             validateMagickTransformGeometry(raw, token);
-            const geometry = parseMagickGeometry(raw), left = Math.max(0, Math.round(geometry.width ?? 4)), top = Math.max(0, Math.round(geometry.height ?? left));
+            const hasAxes = raw.toLowerCase().includes("x");
+            const geometry = parseMagickGeometry(raw), left = Math.max(0, Math.round(geometry.width ?? (hasAxes ? 0 : 4))), top = Math.max(0, Math.round(geometry.height ?? (hasAxes ? 0 : left)));
             const { borderColor, matteColor } = state;
             steps.push(async (image, backend) => {
                 if (!image) return;

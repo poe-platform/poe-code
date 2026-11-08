@@ -16,6 +16,25 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("stack input counts", () => {
+  for (const axis of ["hstack", "vstack"]) {
+    for (const count of [1, 0, -1, 2147483648]) {
+      it(`${axis} rejects inputs=${count} before publishing frames`, async () => {
+        const vfs = createTestVfs();
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-v", "error",
+          "-f", "lavfi", "-i", "color=c=red:s=8x8:r=1:d=4",
+          "-f", "lavfi", "-i", "color=c=blue:s=8x8:r=1:d=2",
+          "-filter_complex", `[0:v][1:v]${axis}=inputs=${count}`, "/out_%d.png"
+        ], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(result.stderr.includes(`${axis}: inputs`), result.stderr);
+        assert.equal(vfs.store.size, 0);
+      });
+    }
+  }
+});
+
 describe("stack input labels", () => {
   for (const axis of ["hstack", "vstack"]) {
     for (const labels of ["[1:v][0:v]", "[1:v:0][0:v:0]", "[0:v][1:v]", ""]) {

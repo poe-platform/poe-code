@@ -17,10 +17,9 @@ export async function resampleAudio(
   }
   const output = channels.map(() => new Float32Array(outputLength));
   if (length === 0) return output;
-  // A Blackman-windowed sinc removes content above the new Nyquist limit.
-  // Scale the support with the rate ratio to retain rejection at large reductions.
-  const cutoff = rateRatio > 1 ? 0.94 / rateRatio : 1;
-  const radius = 32 / cutoff;
+  // swresample defaults: Kaiser beta 9, 32 taps scaled by the 0.97 cutoff.
+  const cutoff = Math.min(0.97 / rateRatio, 1);
+  const center = filterLength / 2 - 1;
   const period = Math.max(1, 2 * (length - 1));
   const sums = new Float64Array(channels.length);
   let work = 0;
@@ -28,10 +27,19 @@ export async function resampleAudio(
     const position = i * rateRatio;
     let weightSum = 0;
     sums.fill(0);
-    for (let j = Math.ceil(position - radius); j <= Math.floor(position + radius); j++) {
+    for (let j = Math.floor(position) - center; j < Math.floor(position) - center + filterLength; j++) {
       const distance = j - position;
       const phase = Math.PI * distance * cutoff;
-      const window = 0.42 + 0.5 * Math.cos(Math.PI * distance / radius) + 0.08 * Math.cos(2 * Math.PI * distance / radius);
+      const w = 2 * distance / filterLength;
+      const x = 81 * Math.max(1 - w * w, 0) / 4;
+      // I0(9 * sqrt(1 - w²)), evaluated by its convergent power series.
+      let window = 1;
+      let term = 1;
+      for (let k = 1; k < 32; k++) {
+        term *= x / (k * k);
+        window += term;
+        if (term < window * Number.EPSILON) break;
+      }
       const weight = (phase === 0 ? 1 : Math.sin(phase) / phase) * window;
       weightSum += weight;
       // Reflect at both ends, including clips shorter than the filter support.

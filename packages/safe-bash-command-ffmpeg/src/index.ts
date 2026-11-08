@@ -4470,7 +4470,7 @@ function formatImageSequence(pattern: string, number: number): string | undefine
       i++;
     }
     if (pattern[i] !== "d") return undefined;
-    filename += String(number).padStart(width, "0");
+    filename += (number < 0 ? "-" : "") + String(Math.abs(number)).padStart(width, "0");
     numbered = true;
   }
   return numbered ? filename : undefined;

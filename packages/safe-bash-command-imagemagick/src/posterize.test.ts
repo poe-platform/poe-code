@@ -105,6 +105,28 @@ for (const execution of ["command", "buffered", "sync"] as const) {
 }
 
 for (const execution of ["command", "buffered", "sync"] as const) {
+    it.each([
+        ["2", [0, 0, 255, 255]],
+        ["2.9", [0, 0, 255, 255]],
+        ["3", [0, 128, 255, 255]],
+    ] as const)(`${execution}: truncates posterize level count %s`, async (levels, expected) => {
+        const input = await sharp(Uint8Array.from([25, 100, 220]), {
+            raw: { width: 1, height: 1, channels: 3 }
+        }).png().toBuffer();
+        const files = new Map([["in.png", input]]), fs = new MemoryFileSystem();
+        await fs.writeFile("/in.png", input);
+        const args = ["in.png", "+dither", "-posterize", levels, "out.png"];
+        const argumentValues = createCommandArguments(args);
+        const result = execution === "command" ? await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, fs, cwd: "/", env: {},
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write() {} },
+        }) : execution === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, files);
+        expect(result.exitCode).toBe(0);
+        const output = decodeImage(execution === "command" ? await fs.readFile("/out.png") : files.get("out.png")!);
+        expect([...output.data]).toEqual(expected);
+    });
+
     it.each(["bogus", "4junk", "", "NaN", "Infinity", "4"])(
         `${execution}: validates posterize levels %j before replacing output`, async (levels) => {
             const input = await sharp(Uint8Array.from([25, 100, 220]), {

@@ -2384,9 +2384,9 @@ export function buildProbeResultFromDoc(
   if (doc.compatibleBrands && doc.compatibleBrands.length > 0) {
     formatTags.compatible_brands = doc.compatibleBrands.join("");
   }
-  for (const key of mp4ProbeMetadataKeys) {
+  for (const key of Object.keys(mp4ProbeMetadataKeys) as (keyof typeof mp4ProbeMetadataKeys)[]) {
     const value = doc.metadata[key];
-    if (value) formatTags[key] = value;
+    if (value) formatTags[mp4ProbeMetadataKeys[key]] = value;
   }
 
   const startTime = Number.isFinite(formatStart) ? formatStart : 0;

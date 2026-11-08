@@ -36,11 +36,11 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
     if (length) tags.compatible_brands = mp4SourceText(source, brands.payloadOffset + 8, length, work, true);
   }
   const udta = await first(moov, 'udta'), meta = await first(udta, 'meta') ?? await first(moov, 'meta'), ilst = await first(meta, 'ilst');
-  const values: Partial<Record<(typeof mp4ProbeMetadataKeys)[number], MediaProbeText | string>> = {};
+  const values: Partial<Record<keyof typeof mp4ProbeMetadataKeys, MediaProbeText | string>> = {};
   let coverArt: { width: number; height: number; codecName: string; size: number } | undefined;
   if (ilst?.children) for await (const item of scanMp4Boxes(source, { ...ilst.children, ...work })) {
     const key = mp4TextMetadataKeys[item.type];
-    if (item.type !== "cpil" && item.type !== "covr" && (!key || !mp4ProbeMetadataKeys.some(name => name === key))) continue;
+    if (item.type !== "cpil" && item.type !== "covr" && item.type !== "trkn" && item.type !== "disk" && !key) continue;
     let data: Mp4BoxSpan | undefined;
     for await (const box of scanMp4Boxes(source, { offset: item.payloadOffset, length: item.payloadSize, ...work })) if (box.type === 'data') { data = box; break; }
     if (!data && item.payloadSize < 8) continue;
@@ -48,6 +48,14 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
     const offset = value.payloadOffset + skip; let length = value.payloadSize - skip;
     if (item.type === "cpil") {
       if (data && data.payloadSize >= 9) values.compilation = String((await read(offset, 1))[0]);
+      continue;
+    }
+    if (item.type === "trkn" || item.type === "disk") {
+      if (length >= 6) {
+        const number = new BinaryReader(await read(offset + 2, 4));
+        const current = number.readU16BE(), total = number.readU16BE();
+        values[item.type === "trkn" ? "trackNumber" : "discNumber"] = total > 0 ? `${current}/${total}` : String(current);
+      }
       continue;
     }
     if (item.type === "covr") {
@@ -69,10 +77,12 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
     if (!length) continue;
     // The resident UTF-8 decoder removes a leading BOM; BOM-only values are empty.
     if (length === 3) { const prefix = await read(offset, 3); if (prefix[0] === 0xef && prefix[1] === 0xbb && prefix[2] === 0xbf) continue; }
-    values[key as (typeof mp4ProbeMetadataKeys)[number]] = mp4SourceText(source, offset, length, work);
+    values[key as keyof typeof mp4ProbeMetadataKeys] = mp4SourceText(source, offset, length, work);
   }
   // Probe tag order is schema order, independent of the container's item order.
-  for (const key of mp4ProbeMetadataKeys) if (values[key]) tags[key] = values[key]!;
+  for (const key of Object.keys(mp4ProbeMetadataKeys) as (keyof typeof mp4ProbeMetadataKeys)[]) {
+    if (values[key]) tags[mp4ProbeMetadataKeys[key]] = values[key]!;
+  }
   const chpl = await first(udta, 'chpl');
   async function* chapters(): AsyncGenerator<MediaProbeSourceChapter> {
     work.signal?.throwIfAborted();

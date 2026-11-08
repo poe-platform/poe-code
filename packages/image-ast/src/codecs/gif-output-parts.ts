@@ -109,12 +109,11 @@ export function gifHeader(
   layout: ReturnType<typeof gifLayout>,
   palette: GifPalette
 ) {
-  const comment = new TextEncoder().encode(options.gifVersion === "87a" ? "" : image.properties?.comment ?? "");
   const { frames } = layout,
     width = image.virtualCanvas?.width || layout.width, frameHeight = image.virtualCanvas?.height || layout.frameHeight,
     loop = options.gifVersion === "87a" ? undefined : options.loop ?? image.loop ?? (frames > 1 ? 0 : undefined),
     headerSize = 13 + (options.globalPalette === false ? 0 : 768),
-    out = new Uint8Array(headerSize + (loop === undefined || loop === 1 ? 0 : 19) + (comment.length ? 3 + comment.length + Math.ceil(comment.length / 255) : 0));
+    out = new Uint8Array(headerSize + (loop === undefined || loop === 1 ? 0 : 19));
   out.set([
     71,
     73,
@@ -158,14 +157,6 @@ export function gifHeader(
       headerSize
     );
   }
-  if (comment.length) {
-    let at = headerSize + (loop === undefined || loop === 1 ? 0 : 19);
-    out.set([33,254], at); at += 2;
-    for (let offset = 0; offset < comment.length; offset += 255) {
-      const part = comment.subarray(offset, offset + 255);
-      out[at++] = part.length; out.set(part, at); at += part.length;
-    }
-  }
   return out;
 }
 export function gifFrameHeader(
@@ -177,7 +168,7 @@ export function gifFrameHeader(
   transparent: boolean,
   frameDelay = image.delay?.[frame],
   frameDisposal = typeof image.disposal === "number" ? image.disposal : image.disposal?.[frame],
-  rectangle = { left: 0, top: 0, width: layout.width, height: layout.frameHeight }
+  rectangle: { left: number; top: number; width: number; height: number; comment?: string | undefined } = { left: 0, top: 0, width: layout.width, height: layout.frameHeight }
 ) {
   const { frames } = layout,
     { left, top, width, height } = rectangle,
@@ -187,8 +178,18 @@ export function gifFrameHeader(
         ? options.delay
         : (frameDelay ?? (frames > 1 ? 100 : 0)),
     centiseconds = Math.max(0, Math.round(delay / 10));
+  const comment = new TextEncoder().encode(options.gifVersion === "87a" ? "" : rectangle.comment ?? (frame === 0 ? image.properties?.comment ?? "" : ""));
+  const commentSize = comment.length ? 3 + comment.length + Math.ceil(comment.length / 255) : 0;
   const gce = options.gifVersion !== "87a" && (frames > 1 || transparent || options.delay !== undefined || frameDisposal !== undefined),
-    out = new Uint8Array((gce ? 19 : 11) + (options.globalPalette === false ? 768 : 0));
+    out = new Uint8Array(commentSize + (gce ? 19 : 11) + (options.globalPalette === false ? 768 : 0));
+  if (comment.length) {
+    let at = 0;
+    out.set([33,254], at); at += 2;
+    for (let offset = 0; offset < comment.length; offset += 255) {
+      const part = comment.subarray(offset, offset + 255);
+      out[at++] = part.length; out.set(part, at); at += part.length;
+    }
+  }
   if (gce)
     out.set([
       33,
@@ -199,12 +200,12 @@ export function gifFrameHeader(
       (centiseconds >>> 8) & 255,
       255,
       0
-    ]);
+    ], commentSize);
   out.set(
     [44, left & 255, left >>> 8, top & 255, top >>> 8, width & 255, width >>> 8, height & 255, height >>> 8, (options.gifInterlace ? 64 : 0) | (options.globalPalette === false ? 135 : 0)],
-    gce ? 8 : 0
+    commentSize + (gce ? 8 : 0)
   );
-  if (options.globalPalette === false) out.set(palette.bytes, gce ? 18 : 10);
+  if (options.globalPalette === false) out.set(palette.bytes, commentSize + (gce ? 18 : 10));
   out[out.length - 1] = 8;
   return out;
 }

@@ -341,7 +341,7 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
   }
   if (transdiff) transparent = true;
   const disposal = resetFrames ? 3 : options.optimizeFrames && currentDisposal <= 1 ? 1 : undefined;
-  chunks.push(gifFrameHeader(img,palette,options,layout,frame,transparent,undefined,disposal,{left,top,width,height}));const codes=new GifCodes();codes.code(256);
+  chunks.push(gifFrameHeader(img,palette,options,layout,frame,transparent,undefined,disposal,{left,top,width,height,comment:rectangle?.comment}));const codes=new GifCodes();codes.code(256);
   let emitted = 0;
   for (const row of gifRows(height, options.gifInterlace)) for (let x = 0; x < width; x++) {
    const i = row * width + x;

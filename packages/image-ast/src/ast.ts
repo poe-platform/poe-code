@@ -83,7 +83,7 @@ export interface RgbaImage {
   readonly pages?: number;
   readonly sourcePages?: number;
   readonly pageHeight?: number;
-  readonly gifFrames?: readonly { readonly width: number; readonly height: number; readonly x: number; readonly y: number }[];
+  readonly gifFrames?: readonly { readonly comment?: string | undefined; readonly width: number; readonly height: number; readonly x: number; readonly y: number }[];
   readonly disposal?: number | readonly number[];
   readonly delay?: readonly number[];
   readonly loop?: number;

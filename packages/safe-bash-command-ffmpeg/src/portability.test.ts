@@ -127,7 +127,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes per-frame RGB histograms and the current video filter graph (878,315 bytes).
   // Includes per-frame vectorscopes and the current video filter graph (884,356 bytes).
   // Includes the oscilloscope renderer and its CGA statistics glyphs (889,166 bytes).
-  assert.ok(otherCodeBytes < 892_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes datascope readouts and the current filter graph (892,012 bytes).
+  assert.ok(otherCodeBytes < 894_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

@@ -5348,8 +5348,10 @@ function* applyMagickLookup(image: RgbaImage, lookup: Uint8Array[]): Generator<v
 function parseConnectedComponents(tokens: readonly string[], start: number): number {
     const value = tokens[start + 1];
     if (tokens[start] !== "-connected-components") throw new Error(`Unsupported option: ${tokens[start]}`);
-    if (value !== "4" && value !== "8") throw new Error("connected-components: connectivity must be 4 or 8");
-    return Number(value);
+    if (!value?.trim() || !Number.isFinite(Number(value))) throw new Error("connected-components: connectivity must be numeric");
+    // Native converts to an unsigned integer before choosing the neighborhood.
+    const connectivity = Math.trunc(Number(value));
+    return connectivity >= 0 && connectivity <= 4 ? 4 : 8;
 }
 
 function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickState, start: number): MagickAnalysisOperation | undefined {

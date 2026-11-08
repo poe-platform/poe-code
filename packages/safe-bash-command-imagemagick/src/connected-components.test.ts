@@ -87,10 +87,10 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
   const { result } = await run(["input.png", "-define", "connected-components:verbose=true", "-connected-components", "4", "null:"], bytes);
   expect(result.stdout).toBe(header + "  0: 2x1+0+0 0.5,0.0 2 srgba(20,30,40,32767.5)\n");
  });
- for (const connectivity of [4, 8]) it(`labels diagonal pixels with ${connectivity} connectivity (${mode})`, async () => {
+ for (const connectivity of [0, 1, 3, 4, 4.5, 5, 6, 8, 9, -1]) it(`labels diagonal pixels with ${connectivity} connectivity (${mode})`, async () => {
   const bytes = await sharp(Uint8Array.from([0,0,0,255,255,255,255,255,255,0,0,0]), { raw: { width: 2, height: 2, channels: 3 } }).png().toBuffer();
   const { result } = await run(["input.png", "-define", "connected-components:verbose=true", "-connected-components", String(connectivity), "null:"], bytes);
-  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + (connectivity === 4
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + (connectivity >= 0 && connectivity < 5
    ? "  0: 1x1+0+0 0.0,0.0 1 srgb(0,0,0)\n  1: 1x1+1+0 1.0,0.0 1 srgb(255,255,255)\n  2: 1x1+0+1 0.0,1.0 1 srgb(255,255,255)\n  3: 1x1+1+1 1.0,1.0 1 srgb(0,0,0)\n"
    : "  0: 2x2+0+0 0.5,0.5 2 srgb(0,0,0)\n  1: 2x2+0+0 0.5,0.5 2 srgb(255,255,255)\n") });
  });
@@ -184,7 +184,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
   expect(result.exitCode).toBe(0);
   expect([...decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!).data]).toEqual([0,0,0,255,0,0,0,255,0,0,0,255]);
  });
- for (const options of [["-connected-components", "6"], ["+connected-components", "4"], ["-connected-components", "4junk"], ["-define", "connected-components:verbose=true=bad", "-connected-components", "4"], ["-set", "option:connected-components:mean-color", "true", "-connected-components", "4"], ["-define", "connected-components:area-threshold=bad", "-connected-components", "4"]]) it(`rejects unsupported ${options.join(" ")} (${mode})`, async () => {
+ for (const options of [["-connected-components", "bad"], ["-connected-components", ""], ["-connected-components", "Infinity"], ["+connected-components", "4"], ["-connected-components", "4junk"], ["-define", "connected-components:verbose=true=bad", "-connected-components", "4"], ["-set", "option:connected-components:mean-color", "true", "-connected-components", "4"], ["-define", "connected-components:area-threshold=bad", "-connected-components", "4"]]) it(`rejects unsupported ${options.join(" ")} (${mode})`, async () => {
   const { result, files } = await run(["-size", "7x7", "xc:white", ...options, "out.png"]);
   expect(result.exitCode).toBe(1);
   expect(result.stderr).toContain("connected-components");

@@ -4736,6 +4736,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let videoSync = "auto";
         let outputSize: string | undefined;
         const maps: string[] = [];
+        const streamIds = new Map<number, number>();
+        let useStreamIdsAsTrackIds = false;
         const vfFilters: string[] = [];
         let logLevel = 32;
         const afFilters: { ordinal: number | undefined; expression: string }[] = [];
@@ -5540,6 +5542,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (flags.includes("frag_keyframe") || flags.includes("frag_every_frame") || flags.includes("empty_moov")) {
               fragmented = true;
             }
+          } else if (arg === "-streamid") {
+            const value = args[++i];
+            const parts = value?.split(":") ?? [];
+            const ordinal = Number(parts[0]);
+            const id = Number(parts[1]);
+            if (parts.length !== 2 || parts.some(part => !part.trim()) ||
+                !Number.isInteger(ordinal) || ordinal < 0 || ordinal > 2147483647 ||
+                !Number.isInteger(id) || id < -2147483648 || id > 2147483647) {
+              throw new Error(`Invalid -streamid value '${value ?? ""}'`);
+            }
+            streamIds.set(ordinal, id);
+          } else if (arg === "-use_stream_ids_as_track_ids") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") throw new Error("-use_stream_ids_as_track_ids requires 0 or 1");
+            useStreamIdsAsTrackIds = value === "1";
           } else if (arg === "-map") {
             const m = args[++i];
             if (m) maps.push(m);
@@ -8102,6 +8119,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {
               workingDoc = { ...workingDoc, tracks: writeTmcd ? authorTimecode(workingDoc.tracks, metadata.timecode) : removeTimecode(workingDoc.tracks) };
+              if (useStreamIdsAsTrackIds) {
+                const ids = new Map(workingDoc.tracks.map((track, index) => [track.id, streamIds.get(index) ?? 0]));
+                workingDoc = { ...workingDoc, tracks: workingDoc.tracks.map((track, index) => ({
+                  ...track,
+                  id: streamIds.get(index) ?? 0,
+                  ...(track.timecodeTrackId === undefined ? {} : { timecodeTrackId: ids.get(track.timecodeTrackId)! })
+                })) };
+              }
             }
 
             let decodeExitCode = demuxExitCode;

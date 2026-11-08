@@ -398,12 +398,12 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       enabled = (flags & 0x01) !== 0;
       if (version === 1) {
         tReader.skip(16); // creation + modification
-        trackId = tReader.readU32BE() || tIdx + 1;
+        trackId = tReader.readU32BE();
         tReader.skip(4); // reserved
         tkhdDuration = tReader.readU64BE();
       } else {
         tReader.skip(8);
-        trackId = tReader.readU32BE() || tIdx + 1;
+        trackId = tReader.readU32BE();
         tReader.skip(4);
         tkhdDuration = tReader.readU32BE();
       }

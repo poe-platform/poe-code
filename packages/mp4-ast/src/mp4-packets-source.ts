@@ -82,7 +82,7 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     let id = index + 1, headerDuration = 0, width: number | undefined, height: number | undefined, enabled = true, rotation = 0;
     if ((tkhd?.payloadSize ?? 0) >= 24) {
       const version = header.readU8(); enabled = (header.readU24BE() & 1) !== 0; header.skip(version === 1 ? 16 : 8);
-      id = header.readU32BE() || id; header.skip(4); headerDuration = version === 1 ? header.readU64BE() : header.readU32BE();
+      id = header.readU32BE(); header.skip(4); headerDuration = version === 1 ? header.readU64BE() : header.readU32BE();
       if (withCodec) { header.skip(16); const matrix = Array.from({ length: 9 }, () => header.readI32BE()); rotation = rotationFromMatrix(matrix); const w = Math.round(header.readFixed16_16()), h = Math.round(header.readFixed16_16()); if (w > 0) width = w; if (h > 0) height = h; }
     }
     const mdia = await first(trak, 'mdia'), mdhd = await first(mdia, 'mdhd'), media = await read(mdhd, 34);

@@ -182,9 +182,12 @@ function* reportSteps(components: Component[], sort: "x" | "area" | undefined, e
  let text = excludeHeader ? "" : `Objects (${excludeIds ? "" : "id: "}bounding-box centroid area mean-color${components[0]?.perimeter === undefined ? "" : " perimeter"}${components[0]?.circularity === undefined ? "" : " circularity"}${components[0]?.diameter === undefined ? "" : " diameter"}${components[0]?.majorAxis === undefined ? "" : " major-axis"}${components[0]?.minorAxis === undefined ? "" : " minor-axis"}${components[0]?.eccentricity === undefined ? "" : " eccentricity"}${components[0]?.angle === undefined ? "" : " angle"}):\n`;
  for (const c of sorted) {
   if (c.id % 1024 === 0) yield;
+  // Only odd quarters are exact binary ties at one decimal place. Native uses ties-to-even.
+  const centroid = [c.x / c.area, c.y / c.area].map(value =>
+   (value % 0.5 === 0.25 ? Math.round(value * 5) / 5 : value).toFixed(1)).join(",");
   const channels = c.color.slice(0, 3).map(value => Number((value / c.area).toPrecision(6)));
   const color = hasAlpha ? `srgba(${channels.join(",")},${Number(c.reportAlpha.toPrecision(6))})` : `srgb(${channels.join(",")})`;
-  text += `  ${excludeIds ? "" : `${c.id}: `}${c.right - c.left + 1}x${c.bottom - c.top + 1}+${c.left}+${c.top} ${(c.x / c.area).toFixed(1)},${(c.y / c.area).toFixed(1)} ${c.area} ${color}${c.perimeter === undefined ? "" : ` ${c.perimeter}`}${c.circularity === undefined ? "" : ` ${Number(c.circularity.toPrecision(6))}`}${c.diameter === undefined ? "" : ` ${c.diameter}`}${c.majorAxis === undefined ? "" : ` ${Number(c.majorAxis.toPrecision(6))}`}${c.minorAxis === undefined ? "" : ` ${Number(c.minorAxis.toPrecision(6))}`}${c.eccentricity === undefined ? "" : ` ${Number(c.eccentricity.toPrecision(6))}`}${c.angle === undefined ? "" : ` ${Number(c.angle.toPrecision(6))}`}\n`;
+  text += `  ${excludeIds ? "" : `${c.id}: `}${c.right - c.left + 1}x${c.bottom - c.top + 1}+${c.left}+${c.top} ${centroid} ${c.area} ${color}${c.perimeter === undefined ? "" : ` ${c.perimeter}`}${c.circularity === undefined ? "" : ` ${Number(c.circularity.toPrecision(6))}`}${c.diameter === undefined ? "" : ` ${c.diameter}`}${c.majorAxis === undefined ? "" : ` ${Number(c.majorAxis.toPrecision(6))}`}${c.minorAxis === undefined ? "" : ` ${Number(c.minorAxis.toPrecision(6))}`}${c.eccentricity === undefined ? "" : ` ${Number(c.eccentricity.toPrecision(6))}`}${c.angle === undefined ? "" : ` ${Number(c.angle.toPrecision(6))}`}\n`;
  }
  return text;
 }

@@ -830,6 +830,9 @@ async function renderBitmapTextToRgba(
       const off = parseInt(clean.split("-").pop() ?? "8", 10) || 8;
       return Math.max(0, height - textH - off);
     }
+    if (clean.startsWith("w-text_w-")) {
+      return Math.max(0, width - textW - Number(clean.slice("w-text_w-".length)));
+    }
     const num = parseInt(clean, 10);
     return Number.isFinite(num) ? num : defVal;
   };
@@ -887,9 +890,10 @@ async function renderBitmapTextToRgba(
               const py = lineY + r * scale + sy;
               if (px >= 0 && px < width && py >= 0 && py < height) {
                 const idx = (py * width + px) * 4;
-                out[idx] = fg[0];
-                out[idx + 1] = fg[1];
-                out[idx + 2] = fg[2];
+                const alpha = fg[3] / 255;
+                out[idx] = Math.round(fg[0] * alpha + out[idx]! * (1 - alpha));
+                out[idx + 1] = Math.round(fg[1] * alpha + out[idx + 1]! * (1 - alpha));
+                out[idx + 2] = Math.round(fg[2] * alpha + out[idx + 2]! * (1 - alpha));
                 if (!opts.preserveAlpha) out[idx + 3] = 255;
               }
             }
@@ -2336,6 +2340,23 @@ async function applyVideoFilterChain(
       }
       const filename = named.filename ?? named.f;
       if (!filename) throw new Error("subtitles: filename is required");
+      let alignment = 2;
+      let fontColor: [number, number, number, number] = [255, 255, 255, 255];
+      for (const override of (named.force_style ?? "").split(",")) {
+        const equals = override.indexOf("=");
+        if (equals < 0) continue;
+        const key = override.slice(0, equals).trim().toLowerCase();
+        const value = override.slice(equals + 1).trim();
+        if (key === "primarycolour") {
+          // ASS colors are &HAABBGGRR, with inverted alpha (00 is opaque).
+          const color = value.toLowerCase().startsWith("&h")
+            ? parseInt(value.slice(2), 16) : Number(value);
+          if (Number.isFinite(color)) fontColor = [color & 255, (color >>> 8) & 255, (color >>> 16) & 255, 255 - ((color >>> 24) & 255)];
+        } else if (key === "alignment" && Number.isInteger(Number(value))) {
+          // libass force_style uses SSA alignment bits, not ASS numpad positions.
+          alignment = Number(value);
+        }
+      }
       const bytes = await readSubtitle(filename);
       const doc = parseSubtitleDocument(bytes, filename.toLowerCase().endsWith(".vtt") ? "webvtt" : "srt");
       const streamIndex = Number(named.si ?? named.stream_index ?? -1);
@@ -2356,12 +2377,16 @@ async function applyVideoFilterChain(
         return {
           ...f,
           data: await renderBitmapTextToRgba(f.data, f.width, f.height, cueStr, {
-            xExpr: "(w-text_w)/2",
+            xExpr: (alignment & 3) === 2 ? "(w-text_w)/2"
+              : (alignment & 3) === 3 ? `w-text_w-${Math.round(10 * f.width / 384)}`
+                : String(Math.round(10 * f.width / 384)),
             // FFmpeg's default SRT style uses a 16-point font and 10-point
             // vertical margin on a 288-pixel reference canvas.
-            yExpr: `h-text_h-${Math.max(4, Math.round(10 * f.height / 288))}`,
+            yExpr: alignment & 4 ? String(Math.round(10 * f.height / 288))
+              : alignment & 8 ? "(h-text_h)/2"
+                : `h-text_h-${Math.max(4, Math.round(10 * f.height / 288))}`,
             fontSize: 16 * f.height / 288,
-            fontColor: [255, 255, 255, 255],
+            fontColor,
             drawBox: true,
             boxColor: [0, 0, 0, 180],
             preserveAlpha: !["1", "true", "yes", "on"].includes((named.alpha ?? "0").toLowerCase())

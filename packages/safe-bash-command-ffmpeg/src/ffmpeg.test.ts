@@ -4706,6 +4706,52 @@ it("HLS copies each video sample once and cuts at keyframes", async () => {
   assert.equal(segments.reduce((sum, [, bytes]) => sum + parseMpegTs(bytes).tracks.find(t => t.type === "video")!.samples.length, 0), 20);
 });
 
+describe("subtitle force_style", () => {
+  for (const style of ["PrimaryColour=&H000000FF", "PrimaryColour=255", "PrimaryColour=&H800000FF", "Alignment=8", "Alignment=3", "Alignment=6", "'PrimaryColour=&H000000FF,Alignment=8'", "PrimaryColour=&H000000FF\\,Alignment=8"]) {
+    it(`applies ${style} only during the cue`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const width = 320, height = 180;
+      const data = new Uint8Array(width * height * 4);
+      for (let i = 3; i < data.length; i += 4) data[i] = 255;
+      const input = encodeImage({ width, height, channels: 4, data, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice(),
+        "/captions.srt": "1\n00:00:01,000 --> 00:00:02,000\nTEST\n" });
+      for (const [name, suffix] of [["default", ""], ["styled", `:force_style=${style}`]]) {
+        for (const n of [1, 2, 3]) vfs.store.set(`/in${n}.png`, input.slice());
+        const result = await runCmd(createFfmpegCommand(), ["-framerate", "1", "-i", "/in%d.png",
+          "-vf", `subtitles=/captions.srt${suffix}`, "-frames:v", "3", `/${name}%d.png`], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      for (const n of [1, 3]) assert.deepEqual(decodeImage(vfs.store.get(`/styled${n}.png`)!).data, data);
+      const baseline = decodeImage(vfs.store.get("/default2.png")!).data;
+      const styled = decodeImage(vfs.store.get("/styled2.png")!).data;
+      const visible = (pixels: Uint8Array) => {
+        const points: number[] = [];
+        for (let i = 0; i < pixels.length; i += 4) if (pixels[i]! > 30) points.push(i / 4);
+        return points;
+      };
+      const before = visible(baseline), after = visible(styled);
+      assert.ok(before.length > 0 && after.length > 0);
+      if (style.includes("PrimaryColour")) {
+        assert.ok(after.every(i => styled[i * 4]! > 2 * styled[i * 4 + 1]! && styled[i * 4]! > 2 * styled[i * 4 + 2]!), "PrimaryColour must produce red glyphs");
+      }
+      if (style === "PrimaryColour=&H800000FF") {
+        assert.equal(Math.max(...after.map(i => styled[i * 4]!)), 127, "ASS alpha is inverted");
+      }
+      if (style === "Alignment=3") {
+        assert.ok(Math.min(...after.map(i => i % width)) > width * .75, "Alignment=3 right-aligns text");
+        assert.equal(Math.min(...after.map(i => Math.floor(i / width))), Math.min(...before.map(i => Math.floor(i / width))));
+      } else if (style === "Alignment=6") {
+        assert.ok(Math.max(...after.map(i => Math.floor(i / width))) < height / 4, "Alignment=6 uses top-center alignment");
+        assert.equal(Math.min(...after.map(i => i % width)), Math.min(...before.map(i => i % width)));
+      } else if (style.includes("Alignment")) {
+        assert.ok(Math.max(...after.map(i => i % width)) < width / 4, "Alignment=8 uses libass's left alignment");
+        assert.ok(Math.abs(Math.min(...after.map(i => Math.floor(i / width))) - height / 2) < 12, "Alignment=8 vertically centers text");
+      } else assert.deepEqual(after, before);
+    });
+  }
+});
+
 it("scales default subtitle lettering and bottom spacing with video height", async () => {
   for (const height of [360, 720]) {
     const width = height * 16 / 9;

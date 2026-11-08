@@ -19,9 +19,10 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     throw new Error("Invalid AU data bounds");
   }
   let doc = raw.find(plugin => plugin.id === format)!.parse(
-    bytes.subarray(offset, size === 0 ? offset : bytes.length),
+    bytes.subarray(offset, size === 0 && options.decodeAudio !== false ? offset : bytes.length),
     { ...options, budget, sampleRate: view.getUint32(16), channels: view.getUint32(20) });
-  // The header describes duration; nonzero lengths do not bound the audio payload.
+  // Probing reads available packets even when the header declares zero duration.
+  // Decoding retains FFmpeg's empty-input behavior for an explicit zero size.
   if (size !== 0xffffffff) {
     const track = doc.tracks[0]!;
     const description = track.codecDescriptions[0]!;

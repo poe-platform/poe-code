@@ -2856,7 +2856,10 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (name === "w") return ctx.w;
         if (name === "h") return ctx.h;
         if (name === "n") return ctx.stack.length;
-        if (name === "quantumrange") return 65535;
+        if (name === "quantumrange" || name === "maxrgb") return 65535;
+        if (name === "quantumscale") return 1 / 65535;
+        if (name === "epsilon") return 1e-12;
+        if (name === "phi") return (1 + Math.sqrt(5)) / 2;
         if (name === "pi") return Math.PI;
         if (name === "e") return Math.E;
 

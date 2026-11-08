@@ -8766,7 +8766,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           sum + stretched[speaker]![srcIdx]! * gain, 0);
                         const scaled = (remixSample ?? centerSample ?? (sevenOneSample === undefined ? mixed : pcm16SevenOne
                           ? Math.floor(sevenOneSample + 0.5) / 32768 : sevenOneSample)) * volFactor;
-                        dst[i] = pcm16Output && !Number.isFinite(scaled) ? 0 : Math.max(-1, Math.min(1, scaled));
+                        dst[i] = pcm16Output && !Number.isFinite(scaled) ? 0 : scaled;
                       }
                     }
                     newChannelData.push(dst);

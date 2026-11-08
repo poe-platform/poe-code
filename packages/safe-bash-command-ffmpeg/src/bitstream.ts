@@ -1,3 +1,4 @@
+import { rechunkPcm } from "./pcm-rechunk.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { rewriteH264Sps } from "./h264-metadata.js";
 import { parseMp4Boxes, makeBox, decodeFourCC, parseAvcC, concatBytes, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
@@ -31,6 +32,10 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
           return drop === 0;
         })
       });
+      continue;
+    }
+    if (type === "audio" && (filter === "pcm_rechunk" || filter.startsWith("pcm_rechunk="))) {
+      tracks = rechunkPcm(tracks, filter, budget);
       continue;
     }
     if (type !== "video") throw new Error(`Unsupported audio bitstream filter: ${filter}`);

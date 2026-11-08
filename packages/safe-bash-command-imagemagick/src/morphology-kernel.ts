@@ -1,10 +1,12 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-/** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. */
-export function* morphologyPixelSteps(image: { width: number; height: number; hasAlpha?: boolean }, rows: readonly number[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export type MorphologyRow = number | readonly number[];
+
+/** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. Arrays specify sparse horizontal offsets. */
+export function* morphologyPixelSteps(image: { width: number; height: number; hasAlpha?: boolean }, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, histogram = new Float64Array(4 * 256);
     const ry = Math.floor(rows.length / 2);
-    const samples = rows.reduce((total, radius) => total + radius * 2 + 1, 0);
+    const samples = rows.reduce<number>((total, radius) => total + (typeof radius === "number" ? radius * 2 + 1 : radius.length), 0);
     const rank = Math.floor(samples / 2), sums = new Float64Array(4), squaredSums = new Float64Array(4);
     let work = 0;
     for (let y = 0; y < height; y++) {
@@ -24,10 +26,13 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
                 for (let phase = 0; phase < (x === 0 ? 1 : 2); phase++) {
                     const delta = x === 0 || phase === 1 ? 1 : -1;
                     for (let row = 0; row < rows.length; row++) {
-                        const rx = rows[row]!, before = Math.ceil(rx), after = Math.floor(rx);
+                        const offsets = rows[row]!;
+                        const rx = typeof offsets === "number" ? offsets : 0, before = Math.ceil(rx), after = Math.floor(rx);
                         const first = x === 0 ? -before : phase === 0 ? x - before - 1 : x + after;
                         const last = x === 0 ? after : first;
-                        for (let column = first; column <= last; column++) {
+                        const count = typeof offsets === "number" ? last - first + 1 : offsets.length;
+                        for (let sample = 0; sample < count; sample++) {
+                            const column = typeof offsets === "number" ? first + sample : x + offsets[sample]! - (phase === 0 && x > 0 ? 1 : 0);
                             if (++work % 4096 === 0) yield;
                             const sx = Math.max(0, Math.min(width - 1, column)), sy = Math.max(0, Math.min(height - 1, y + row - ry));
                             const bytes = yield { kind: "read", position: (sy * width + sx) * 4, length: 4 };

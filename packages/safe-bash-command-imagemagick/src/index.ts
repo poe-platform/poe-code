@@ -44,7 +44,7 @@ import { cannyPixelSteps } from "./canny-kernel.js";
 import { shadowPixelSteps, vignetteLayout, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { shearPlan, shearPixelSteps } from "./shear-kernel.js";
 import { warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
-import { morphologyPixelSteps } from "./morphology-kernel.js";
+import { morphologyPixelSteps, type MorphologyRow } from "./morphology-kernel.js";
 import { edgePixelSteps } from "./edge-kernel.js";
 import { charcoalPixelSteps } from "./charcoal-kernel.js";
 import { embossPixelSteps } from "./emboss-kernel.js";
@@ -674,7 +674,7 @@ function parseMagickMorphologyMethod(raw: string): { method: string; iterations:
 }
 
 type MorphologyStep = { mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"; source: number } | { mode: "diff"; a: number; b: number };
-function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: number[]; steps: MorphologyStep[]; iterations: number } {
+function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: MorphologyRow[]; steps: MorphologyStep[]; iterations: number } {
   const { method, iterations } = parseMagickMorphologyMethod(methodRaw);
   if (method === "nonpeak") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "nonpeak" }] };
   if (method === "contrast") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "contrast" }] };
@@ -698,12 +698,13 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: nu
   const disk = shape === "disk";
   const radius = Number(sizePart) || 4.5;
   if (disk) ry = Math.max(0, Math.floor(radius));
-  if (shape === "octagon" || shape === "diamond" || shape === "plus") {
+  if (shape === "octagon" || shape === "diamond" || shape === "plus" || shape === "cross") {
     rx = ry = Math.max(1, Math.floor(Number(sizePart) || (shape === "diamond" ? 1 : 2)));
   }
   const rows = Array.from({ length: ry * 2 + 1 }, (_, row) => {
     const dy = Math.abs(row - ry);
     if (disk) return Math.floor(Math.sqrt(radius * radius - dy * dy));
+    if (shape === "cross") return dy === 0 ? [0] : [-dy, dy];
     if (shape === "diamond") return rx - dy;
     if (shape === "plus") return dy === 0 ? rx : 0;
     if (shape === "octagon") return Math.min(rx, rx + Math.floor(rx / 2) - dy);

@@ -9,7 +9,9 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
   cmyk: boolean;
   hasAlpha: boolean;
   dataOffset: number;
+  properties?: Record<string, string>;
 },number|undefined> {
+  let comment = "";
   const magic = String.fromCharCode((yield 0)!, (yield 1)!);
   if (magic === "P7") {
     let pos = 2;
@@ -22,6 +24,8 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
         line += String.fromCharCode(byte);
         if (line.length > 4096) throw new Error("PAM header line too long");
       }
+      const marker = line.indexOf("#");
+      if (marker >= 0) comment += line.slice(marker + 1) + "\n";
       line = line.split("#")[0]!.trim();
       if (line === "ENDHDR") {
         const width = Number(fields.get("WIDTH")), height = Number(fields.get("HEIGHT"));
@@ -34,7 +38,7 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
         const channels = tuple === undefined ? 3 : depth;
         const tuples: Record<string, number> = { BLACKANDWHITE: 1, BLACKANDWHITE_ALPHA: 2, GRAYSCALE: 1, GRAYSCALE_ALPHA: 2, RGB: 3, RGB_ALPHA: 4, CMYK: 4, CMYK_ALPHA: 5 };
         if ((tuple && tuples[tuple] !== channels) || (channels === 5 && tuple !== "CMYK_ALPHA")) throw new Error("Unsupported PAM tuple type");
-        return { magic, format: "pam", width, height, maxval, channels: channels as 1 | 2 | 3 | 4 | 5, cmyk: tuple === "CMYK" || tuple === "CMYK_ALPHA", hasAlpha: tuple === "CMYK_ALPHA" || (tuple !== "CMYK" && (channels === 2 || channels === 4)), dataOffset: pos };
+        return { magic, format: "pam", width, height, maxval, channels: channels as 1 | 2 | 3 | 4 | 5, cmyk: tuple === "CMYK" || tuple === "CMYK_ALPHA", hasAlpha: tuple === "CMYK_ALPHA" || (tuple !== "CMYK" && (channels === 2 || channels === 4)), dataOffset: pos, ...(comment ? {properties: {comment}} : {}) };
       }
       if (!line) continue;
       let separator = 0;
@@ -58,8 +62,9 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
     while (pos < size) {
       const c = (yield pos)!;
       if (c === 0x23) {
-        // '#' comment
-        while (pos < size && (yield pos) !== 0x0a && (yield pos) !== 0x0d) pos++;
+        pos++;
+        while (pos < size && (yield pos) !== 0x0a && (yield pos) !== 0x0d) comment += String.fromCharCode((yield pos++)!);
+        comment += "\n";
       } else if (c === 0x20 || c === 0x09 || c === 0x0a || c === 0x0d) {
         pos++;
       } else {
@@ -80,8 +85,9 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
   let look = pos;
   while (look < size && ((yield look) === 0x20 || (yield look) === 0x09)) look++;
   if (look < size && (yield look) === 0x23) {
-    pos = look;
-    while (pos < size && (yield pos) !== 0x0a && (yield pos) !== 0x0d) pos++;
+    pos = look + 1;
+    while (pos < size && (yield pos) !== 0x0a && (yield pos) !== 0x0d) comment += String.fromCharCode((yield pos++)!);
+    comment += "\n";
   }
   // Skip the single terminating whitespace/newline character after header
   if (
@@ -101,7 +107,8 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
     channels: format === "ppm" ? 3 : 1,
     cmyk: false,
     hasAlpha: false,
-    dataOffset: pos
+    dataOffset: pos,
+    ...(comment ? {properties: {comment}} : {})
   };
 }
 

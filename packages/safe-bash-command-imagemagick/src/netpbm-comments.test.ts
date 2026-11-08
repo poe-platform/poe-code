@@ -24,3 +24,22 @@ for (const sync of [false, true]) it.each(fixtures)(`writes $format comment head
   const output = sync ? files.get(`out.${format}`)! : await fs.readFile(`/out.${format}`);
   expect(Buffer.from(output)).toEqual(Buffer.concat([Buffer.from(header.slice(0, 3) + "#caption A\n#caption B\n" + header.slice(3)), Buffer.from(raster, "hex")]));
 });
+
+const readFixtures = [
+  ...fixtures,
+  {format: "pbm", header: "P1\n2 1\n", raster: Buffer.from("1 0\n").toString("hex")},
+  {format: "pgm", header: "P2\n2 1\n255\n", raster: Buffer.from("47 200\n").toString("hex")},
+  {format: "ppm", header: "P3\n2 1\n255\n", raster: Buffer.from("18 52 86 171 205 239\n").toString("hex")},
+];
+
+for (const sync of [false, true]) it.each(readFixtures)(`reads $header comments independently of encoding, sync=${sync}`, async ({header, raster}) => {
+  const input = Buffer.concat([Buffer.from(header.slice(0, 3) + "#caption A\n# caption B\n" + header.slice(3)), Buffer.from(raster, "hex")]);
+  const args = createCommandArguments(["input.pnm", "-format", "%[comment]", "info:-"]);
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input.pnm", input);
+  let stdout = "", stderr = "";
+  const result = sync ? runMagickCliSync(args.args, new Map([["input.pnm", input]])) : await createMagickCommand().execute({command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs, signal: new AbortController().signal, stdin: (async function* () {})(), stdout: {async write(bytes) {stdout += new TextDecoder().decode(bytes);}}, stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}});
+  expect("stderr" in result ? result.stderr : stderr).toBe("");
+  expect(result.exitCode).toBe(0);
+  expect("stdout" in result ? result.stdout : stdout).toBe("caption A\n caption B\n");
+});

@@ -40,6 +40,7 @@ export function isTiffBytes(bytes: Uint8Array): boolean {
 export function readNetpbmMetadata(bytes: Uint8Array): ImageMetadata {
   const { header: hdr, pages } = parseNetpbmSequence(bytes);
   return {
+    ...(hdr.properties ? {properties: hdr.properties} : {}),
     format: hdr.format,
     width: hdr.width,
     height: hdr.height,
@@ -127,6 +128,7 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
     width,
     height,
     data: rgba,
+    ...(hdr.properties ? {properties: hdr.properties} : {}),
     ...(data16 ? {data16} : {}),
     format,
     space: cmyk ? "cmyk" : channels >= 3 ? "srgb" : "b-w",

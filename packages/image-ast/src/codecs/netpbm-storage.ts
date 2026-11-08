@@ -11,13 +11,13 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  signal.throwIfAborted();
  const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmSequenceSteps(source.size,options?.page??0);let next=steps.next();
  while(!next.done) next=steps.next(await reader.at(next.value));
- const {width,height,maxval,magic,format,dataOffset,channels,hasAlpha,cmyk}=next.value.header;
+ const {width,height,maxval,magic,format,dataOffset,channels,hasAlpha,cmyk,properties}=next.value.header;
  if(!["P1","P2","P3","P4","P5","P6","P7"].includes(magic)) throw new Error("Invalid Netpbm signature");
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)) throw new RangeError("Invalid Netpbm dimensions");
  checkLimitInputPixels(width,height,options);
  if(magic==="P6"&&source.size-dataOffset<width*height*3*(maxval>255?2:1)) throw new Error("Truncated PPM raster");
  if(magic==="P7"&&source.size-dataOffset<width*height*channels*(maxval>255?2:1)) throw new Error("Truncated PAM raster");
- const metadata:StoredRgbaImage={width,height,position:0,format,space:cmyk?"cmyk":channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha};
+ const metadata:StoredRgbaImage={...(properties?{properties}:{}),width,height,position:0,format,space:cmyk?"cmyk":channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha};
  const output=new Output(metadata,width,height,storage,signal);let position=dataOffset;
  const storedData16=maxval>255?{position:storage.allocate(width*height*8),length:width*height*4}:undefined;
  const storedHueSamples=cmyk?storage.allocate(width*height*32):undefined;

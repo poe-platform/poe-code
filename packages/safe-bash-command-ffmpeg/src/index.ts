@@ -247,6 +247,42 @@ function parseAudioBitrate(value: string | undefined): number | undefined {
   return bitrate;
 }
 
+function parseFileSize(value: string | undefined): number {
+  let text = value ?? "";
+  const binary = text.endsWith("i");
+  if (binary) text = text.slice(0, -1);
+  const power = text ? "kMGTPE".indexOf(text.endsWith("K") ? "k" : text.slice(-1)) + 1 : 0;
+  if (power) text = text.slice(0, -1);
+  const size = text.trim() ? Number(text) * (binary ? 1024 : 1000) ** power : NaN;
+  if ((binary && !power) || !Number.isSafeInteger(size) || size < 0) throw new Error("Invalid file size limit");
+  return size;
+}
+
+function serializeLimitedWav(
+  document: MediaDocument, plugin: MediaAstPlugin,
+  options: Parameters<MediaAstPlugin["serialize"]>[1], fileSize: number | undefined
+): Uint8Array {
+  if (fileSize !== undefined) {
+    // The muxer checks its current position before accepting the next packet.
+    // Serialize only the header to account for metadata and optional WAV chunks.
+    const track = document.tracks.find(track => track.type === "audio");
+    if (!track) throw new Error("WAV output requires an audio stream");
+    const empty = { ...document, tracks: [{ ...track, samples: [], duration: 0 }] };
+    let position = plugin.serialize(empty, options).byteLength;
+    let packets = 0;
+    for (const sample of track.samples) {
+      if (position >= fileSize) break;
+      options?.budget?.checkCpu();
+      position += sample.data.byteLength;
+      packets++;
+    }
+    const samples = track.samples.slice(0, packets);
+    document = { ...document, tracks: [{ ...track, samples,
+      duration: samples.reduce((total, sample) => total + sample.duration, 0) }] };
+  }
+  return plugin.serialize(document, options);
+}
+
 function parseFrameRate(value: string): number | undefined {
   switch (value) {
     case "ntsc": case "qntsc": case "sntsc": return 30000 / 1001;
@@ -3469,6 +3505,7 @@ export function evalSyncFfmpeg(
     let bitexact = false;
     let maxVideoFrames: number | undefined;
     let maxAudioFrames: number | undefined;
+    let fileSize: number | undefined;
     let maxSubtitleFrames: number | undefined;
     let outputFps: number | undefined;
     let outputSize: string | undefined;
@@ -3617,6 +3654,7 @@ export function evalSyncFfmpeg(
         if (!Number.isSafeInteger(maxAudioFrames)) return undefined;
         if (maxAudioFrames < 0) maxAudioFrames = undefined;
       }
+      else if (arg === "-fs") fileSize = parseFileSize(args[++i]);
       else if (arg === "-id3v2_version") {
         const value = args[++i];
         if (value !== "0" && value !== "3" && value !== "4") throw new Error("Invalid ID3v2 version: expected 0, 3 or 4");
@@ -3780,6 +3818,8 @@ export function evalSyncFfmpeg(
     }
 
     if (inputs.length === 0 || !outputTarget) return undefined;
+    if (fileSize !== undefined && (audioCodec !== "copy" ||
+      (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id !== "wav")) return undefined;
     // Output resampling and channel mixing require the async audio filter path.
     if (audioRate !== undefined || audioChannels !== undefined ||
         (maxAudioFrames !== undefined && audioCodec !== "copy")) return undefined;
@@ -3945,7 +3985,7 @@ export function evalSyncFfmpeg(
     validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
-    const serializedBytes = outPlugin.serialize(workingDoc, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget });
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, fragmented, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -4244,6 +4284,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let bitexact = false;
         let maxVideoFrames: number | undefined;
         let maxAudioFrames: number | undefined;
+        let fileSize: number | undefined;
         let maxSubtitleFrames: number | undefined;
         let outputFps: number | undefined;
         let videoSync = "auto";
@@ -4791,6 +4832,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             if (maxAudioFrames < 0) maxAudioFrames = undefined;
+          } else if (arg === "-fs") {
+            try {
+              fileSize = parseFileSize(args[++i]);
+            } catch {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid file size limit\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-id3v2_version") {
             const value = args[++i];
             if (value !== "0" && value !== "3" && value !== "4") {
@@ -5029,6 +5077,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
         // A filename closes its option group; trailing options have no output.
         if (!outputTarget) break;
+        if (fileSize !== undefined && (audioCodec !== "copy" ||
+          (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id !== "wav")) {
+          throw new Error("-fs currently requires WAV output with audio stream copy");
+        }
         const target = outputTarget;
         const progressOutputIndex = outputs.length;
         const firstOutput = outputs.length === 0;
@@ -7786,7 +7838,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin?.id ?? outputFormat!);
             const serializedBytes = checksumOutput
               ? (frameChecksumOutput ? serializeFrameChecksum : serializeChecksum)(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" || outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec)
-              : outPlugin!.serialize(workingDoc, {
+              : serializeLimitedWav(workingDoc, outPlugin!, {
               seekable: !isStdout(outputTarget),
               format: outputFormat ?? outExt,
               gifLoop,
@@ -7829,7 +7881,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               metadata: metaTags,
               limits: options.limits,
               budget
-            });
+            }, fileSize);
             for (const trk of workingDoc.tracks) {
               if (trk.decodedVideoFrames) {
                 for (const f of trk.decodedVideoFrames) detachBytesBuffer(f.data);

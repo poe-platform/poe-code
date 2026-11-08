@@ -6682,6 +6682,53 @@ describe("PCM audio frame limits", () => {
   }
 });
 
+describe("WAV output size limits", () => {
+  const input = () => encodeWav({ sampleRate: 8000,
+    channels: [Float64Array.from({ length: 16000 }, (_, i) => (i - 8000) / 32768)] });
+  for (const sync of [false, true]) {
+    for (const [limit, count] of [[undefined, 16000], ["4096", 2048], ["4Ki", 2048], ["16k", 8192], ["1", 0]] as const) {
+      it(`${sync ? "sync" : "async"} -fs ${limit ?? "unlimited"} keeps complete WAV packets`, async () => {
+        const vfs = createTestVfs({ "/in.wav": input() });
+        const args = ["-i", "/in.wav", "-c:a", "copy", ...(limit ? ["-fs", limit] : []), "/out.wav"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+            (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        } else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const output = parseWav(vfs.store.get("/out.wav")!);
+        const pcm = output.tracks[0]!.decodedAudio!.channelData[0]!;
+        assert.equal(pcm.length, count);
+        assert.deepEqual(Array.from(pcm, n => n * 32768), Array.from({ length: count }, (_, i) => i - 8000));
+      });
+    }
+  }
+  it("resets the limit for the next output and combines it with frame limits", async () => {
+    const vfs = createTestVfs({ "/in.wav": input() });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-c:a", "copy", "-fs", "4096",
+      "-frames:a", "1", "/short.wav", "-c:a", "copy", "/full.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(parseWav(vfs.store.get("/short.wav")!).tracks[0]!.decodedAudio!.channelData[0]!.length, 512);
+    assert.equal(parseWav(vfs.store.get("/full.wav")!).tracks[0]!.decodedAudio!.channelData[0]!.length, 16000);
+  });
+  for (const value of ["-1", "bad", "4Kii", "", "9007199254740992"]) {
+    it(`rejects invalid size ${JSON.stringify(value)}`, async () => {
+      const result = await runCmd(createFfmpegCommand(),
+        ["-i", "/in.wav", "-c:a", "copy", "-fs", value, "/out.wav"], createTestVfs({ "/in.wav": input() }));
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /invalid file size limit/);
+    });
+  }
+  it("keeps the output resource budget in force", async () => {
+    const vfs = createTestVfs({ "/in.wav": input() });
+    const result = await runCmd(createFfmpegCommand({ limits: { maxOutputBytes: 4096 } }),
+      ["-i", "/in.wav", "-c:a", "copy", "-fs", "4096", "/out.wav"], vfs);
+    assert.notEqual(result.exitCode, 0);
+    assert.match(result.stderr, /maxOutputBytes/);
+  });
+});
+
 describe("audio stream copy frame limits", () => {
   for (const sync of [false, true]) {
     for (const option of ["-frames:a", "-aframes"]) {

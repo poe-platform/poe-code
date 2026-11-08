@@ -2389,11 +2389,11 @@ function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number, maxi
 
 function propToChannel(prop: string): number {
   const p = prop.toLowerCase();
-  if (p === "r" || p === "red") return 0;
-  if (p === "g" || p === "green") return 1;
-  if (p === "b" || p === "blue") return 2;
+  if (p === "r") return 0;
+  if (p === "g") return 1;
+  if (p === "b") return 2;
   if (p === "a" || p === "o") return 3;
-  if (p === "intensity" || p === "luma" || p === "luminance") return 4;
+  if (p === "intensity") return 4;
   if (p === "hue") return 5;
   if (p === "saturation") return 6;
   if (p === "lightness") return 7;

@@ -244,6 +244,7 @@ without creating or replacing output.
 numbers are zero-based and the end frame is excluded. Unsupported trim options fail
 without replacing output.
 `framestep=3` (or `framestep=step=3`) keeps frames 0, 3, 6, and so on, preserving their timestamps. The default step is 1; use `-fps_mode passthrough` to write each selected frame once.
+`loop=loop=2:size=2:start=3` (or `loop=2:2:3`) repeats the buffered two-frame sequence twice, then resumes the remaining input with shifted timestamps. As in FFmpeg, `start=3` buffers input frames 2 and 3 (zero-based); starts 0 and 1 both begin at the first frame. A buffer ending at EOF repeats the available frames. Defaults disable looping. Only finite nonnegative loop counts, sizes up to 32767, and nonnegative frame starts are supported; infinite loops and time-based starts are rejected. Expansion respects media resource limits.
 Burned SRT captions use bitmap lettering and bottom spacing that scale with video height.
 MicroDVD input (`-f microdvd` or automatic detection) uses the declared frame rate and converts `|` to line breaks; `-c:s copy -f microdvd` preserves caption frame numbers and text.
 SAMI input (`-f sami`, `.smi`, or `.sami`) preserves millisecond SYNC timing and `<br>` line breaks; each cue ends at the next SYNC.

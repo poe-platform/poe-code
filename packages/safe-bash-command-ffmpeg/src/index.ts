@@ -1974,6 +1974,47 @@ async function applyVideoFilterChain(
         throw new Error("framestep: step must be an integer from 1 to 2147483647");
       }
       current = current.filter((_, index) => index % step === 0);
+    } else if (name === "loop") {
+      const values = { loop: 0, size: 0, start: 0 };
+      for (const [index, option] of (argStr ? argStr.split(":") : []).entries()) {
+        const separator = option.indexOf("=");
+        const key = separator < 0 ? ["loop", "size", "start"][index] : option.slice(0, separator).trim();
+        if (key !== "loop" && key !== "size" && key !== "start") throw new Error(`loop: unsupported option ${key}`);
+        const text = (separator < 0 ? option : option.slice(separator + 1)).trim();
+        const value = Number(text);
+        const max = key === "loop" ? 2147483647 : key === "size" ? 32767 : Number.MAX_SAFE_INTEGER;
+        if (!text || !Number.isSafeInteger(value) || value < 0 || value > max) {
+          throw new Error(`loop: ${key} must be a finite nonnegative integer no greater than ${max}`);
+        }
+        values[key] = value;
+      }
+      // FFmpeg starts buffering when its one-based input count reaches start.
+      const start = Math.max(0, values.start - 1);
+      const size = Math.min(values.size, Math.max(0, current.length - start));
+      if (values.loop > 0 && size > 0) {
+        const end = start + size;
+        const first = current[start]!;
+        const last = current[end - 1]!;
+        const duration = last.ptsSeconds + last.durationSeconds - first.ptsSeconds;
+        const added = values.loop * size;
+        const count = current.length + added;
+        if (!Number.isSafeInteger(count) || count > 4294967295) throw new Error("loop: output frame count is too large");
+        budget.checkSamples(count);
+        budget.checkDuration(current[current.length - 1]!.ptsSeconds + current[current.length - 1]!.durationSeconds + values.loop * duration);
+        budget.allocateMemory(count * 128);
+        const repeated: MediaVideoFrame[] = current.slice(0, end);
+        for (let index = 0; index < added; index++) {
+          if (index % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const frame = current[start + index % size]!;
+          budget.recordFrame(frame.width, frame.height);
+          repeated.push({ ...frame, ptsSeconds: frame.ptsSeconds + (Math.floor(index / size) + 1) * duration });
+        }
+        for (let index = end; index < current.length; index++) {
+          const frame = current[index]!;
+          repeated.push({ ...frame, ptsSeconds: frame.ptsSeconds + values.loop * duration });
+        }
+        current = repeated;
+      }
     } else if (name === "reverse") {
       // Reverse pictures while retaining the input's ordered timestamp slots.
       current = await mapWork([...current].reverse(), (f, index) => ({

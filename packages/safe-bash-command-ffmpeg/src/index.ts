@@ -5347,6 +5347,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: phase_shift must be an integer between 0 and 24\n"), context.signal);
               return { exitCode: 8 };
             }
+          } else if (arg === "-swr_flags") {
+            const raw = args[++i];
+            if (raw !== "res") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: swr_flags must be res\n"), context.signal);
+              return { exitCode: 8 };
+            }
+            // This CLI option does not force an equal-rate PCM conversion through resampling.
           } else if (arg === "-filter_size") {
             const raw = args[++i];
             filterSize = Number(raw);

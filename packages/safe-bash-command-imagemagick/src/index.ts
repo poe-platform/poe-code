@@ -4877,7 +4877,9 @@ function parseInputToken(token:string):{baseToken:string;pageSpec?:string;inline
             pageSpec = inside;
         }
         else {
-            inlineGeom = inside;
+            const geometry = parseMagickGeometry(inside);
+            // A read offset alone does not request a crop of the remaining canvas.
+            if (!geometry.hasOffset || geometry.width !== undefined || geometry.height !== undefined) inlineGeom = inside;
         }
     }
  return {baseToken,...(pageSpec===undefined?{}:{pageSpec}),...(inlineGeom===undefined?{}:{inlineGeom})};

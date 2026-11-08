@@ -4806,41 +4806,50 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   )
                 };
               } else if ((filterComplex.includes("vstack") || filterComplex.includes("hstack")) && loadedDocs.length >= 2) {
-                const f0 = await ensureDecodedFrames(
-                  loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
-                  loadedDocs[0]!.timescale, budget
-                , context.signal);
-                const f1 = await ensureDecodedFrames(
-                  loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
-                  loadedDocs[1]!.timescale, budget
-                , context.signal);
                 const vertical = filterComplex.includes("vstack");
                 const filter = vertical ? "vstack" : "hstack";
                 const spec = filterComplex.slice(filterComplex.indexOf(filter) + filter.length)
                   .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
                 const options = (spec.startsWith("=") ? spec.slice(1) : "").split(":");
+                const inputOption = options.find(option => option.trim().startsWith("inputs="))
+                  ?.split("=")[1]?.trim() ?? (options[0]?.includes("=") ? undefined : options[0]?.trim());
+                const inputCount = Number(inputOption || 2);
+                if (!Number.isInteger(inputCount) || inputCount < 2 || inputCount > loadedDocs.length) {
+                  throw new Error(`${filter}: inputs must specify at least two available inputs`);
+                }
+                const inputs: MediaVideoFrame[][] = [];
+                for (const doc of loadedDocs.slice(0, inputCount)) {
+                  inputs.push(await ensureDecodedFrames(doc.tracks.find(t => t.type === "video")!,
+                    doc.timescale, budget, context.signal));
+                }
                 const shortestOption = options.find((option) => option.trim().startsWith("shortest="))
                   ?.split("=")[1]?.trim() ?? options[1]?.trim();
                 const stopAtShortest = ["1", "true", "yes", "on"].includes(shortestOption ?? "0");
-                const count = stopAtShortest || !f0.length || !f1.length
-                  ? Math.min(f0.length, f1.length) : Math.max(f0.length, f1.length);
+                const lengths = inputs.map(frames => frames.length);
+                const count = stopAtShortest || lengths.includes(0)
+                  ? Math.min(...lengths) : Math.max(...lengths);
                 const stacked: MediaVideoFrame[] = [];
                 for (let i = 0; i < count; i++) {
-                  const a = f0[Math.min(i, f0.length - 1)]!;
-                  const b = f1[Math.min(i, f1.length - 1)]!;
-                  const timing = f0[i] ?? f1[i]!;
+                  const frames = inputs.map(input => input[Math.min(i, input.length - 1)]!);
+                  const first = frames[0]!;
+                  const timing = inputs.find(input => input[i])![i]!;
                   const axis = vertical ? "width" : "height";
-                  if (a[axis] !== b[axis]) {
-                    throw new Error(`Input 1 ${axis} ${b[axis]} does not match input 0 ${axis} ${a[axis]}`);
+                  for (const [index, frame] of frames.entries()) {
+                    if (frame[axis] !== first[axis]) {
+                      throw new Error(`Input ${index} ${axis} ${frame[axis]} does not match input 0 ${axis} ${first[axis]}`);
+                    }
                   }
-                  const w = vertical ? a.width : a.width + b.width;
-                  const h = vertical ? a.height + b.height : a.height;
+                  const w = vertical ? first.width : frames.reduce((sum, frame) => sum + frame.width, 0);
+                  const h = vertical ? frames.reduce((sum, frame) => sum + frame.height, 0) : first.height;
+                  budget.recordFrame(w, h);
                   const outData = new Uint8Array(w * h * 4);
-                  for (let y = 0; y < a.height; y++) {
-                    outData.set(a.data.subarray(y * a.width * 4, (y + 1) * a.width * 4), y * w * 4);
-                  }
-                  for (let y = 0; y < b.height; y++) {
-                    outData.set(b.data.subarray(y * b.width * 4, (y + 1) * b.width * 4), (vertical ? (a.height + y) * w : y * w + a.width) * 4);
+                  let offset = 0;
+                  for (const frame of frames) {
+                    for (let y = 0; y < frame.height; y++) {
+                      outData.set(frame.data.subarray(y * frame.width * 4, (y + 1) * frame.width * 4),
+                        (vertical ? (offset + y) * w : y * w + offset) * 4);
+                    }
+                    offset += vertical ? frame.height : frame.width;
                   }
                   stacked.push({
                     width: w,

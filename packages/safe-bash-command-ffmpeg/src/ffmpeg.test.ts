@@ -16,6 +16,39 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("multi-input stacks", () => {
+  for (const axis of ["hstack", "vstack"]) {
+    for (const shortest of [false, true]) {
+      it(`${axis} renders all three inputs with shortest=${shortest}`, async () => {
+        const { decodeImage } = await import("@poe-code/image-ast/portable");
+        const vfs = createTestVfs();
+        const result = await runCmd(createFfmpegCommand(), [
+          "-f", "lavfi", "-i", "color=c=red:s=8x8:r=1:d=4",
+          "-f", "lavfi", "-i", "color=c=blue:s=8x8:r=1:d=2",
+          "-f", "lavfi", "-i", "color=c=green:s=8x8:r=1:d=4",
+          "-filter_complex", `[0:v][1:v][2:v]${axis}=inputs=3${shortest ? ":shortest=1" : ""}`,
+          "/out_%d.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const count = shortest ? 2 : 4;
+        assert.equal([...vfs.store.keys()].filter(path => path.startsWith("/out_")).length, count);
+        for (let i = 1; i <= count; i++) {
+          const frame = decodeImage(vfs.store.get(`/out_${i}.png`)!);
+          assert.equal(frame.width, axis === "hstack" ? 24 : 8);
+          assert.equal(frame.height, axis === "vstack" ? 24 : 8);
+          for (const [block, expected] of [[255, 0, 0, 255], [0, 0, 255, 255], [0, 128, 0, 255]].entries()) {
+            const offset = block * 8 * (axis === "vstack" ? frame.width : 1) * 4;
+            // Allow YUV-to-RGB rounding in the lavfi color source.
+            for (const [channel, value] of expected.entries()) {
+              assert.ok(Math.abs(frame.data[offset + channel]! - value) <= 3);
+            }
+          }
+        }
+      });
+    }
+  }
+});
+
 describe("asendcmd", () => {
   for (const command of ["", "invalid volume@v volume 0.5", "0 volume@v unsupported 1", "0 [leave] volume@v volume 1"]) {
     it(`rejects unsupported schedule ${command} without replacing output`, async () => {

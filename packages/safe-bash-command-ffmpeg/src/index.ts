@@ -1726,10 +1726,12 @@ async function applyVideoFilterChain(
       } catch (error) {
         throw new Error(`rotate: ${(error as Error).message}`);
       }
-      const angle = parseFilterExpression(named.angle ?? named.a ?? (rotatePositional[0] || "0"), "rotate", { PI: Math.PI });
-      const cos = Math.abs(Math.cos(angle)) < 1e-15 ? 0 : Math.cos(angle);
-      const sin = Math.abs(Math.sin(angle)) < 1e-15 ? 0 : Math.sin(angle);
-      current = await mapWork(current, async (f) => {
+      const angleExpression = named.angle ?? named.a ?? (rotatePositional[0] || "0");
+      if (current.length === 0) parseFilterExpression(angleExpression, "rotate", { PI: Math.PI, n: 0, t: 0 });
+      current = await mapWork(current, async (f, n) => {
+        const angle = parseFilterExpression(angleExpression, "rotate", { PI: Math.PI, n, t: f.ptsSeconds });
+        const cos = Math.abs(Math.cos(angle)) < 1e-15 ? 0 : Math.cos(angle);
+        const sin = Math.abs(Math.sin(angle)) < 1e-15 ? 0 : Math.sin(angle);
         const dimensions = { PI: Math.PI, iw: f.width, ih: f.height, in_w: f.width, in_h: f.height,
           ow: f.width, oh: f.height, out_w: f.width, out_h: f.height };
         const widthExpression = named.ow ?? named.out_w ?? (rotatePositional[1] || "iw");

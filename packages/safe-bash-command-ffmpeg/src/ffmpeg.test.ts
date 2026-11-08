@@ -2370,6 +2370,33 @@ describe("video filter separators", () => {
   }
 });
 
+describe("rotate frame expressions", () => {
+  for (const [filter, expected] of [
+    ["rotate=t*PI/2", [28, 27, 68]],
+    ["rotate=angle=n*PI/2", [28, 68, 168]],
+    ["setpts=PTS*2,rotate=a=t*PI/2", [28, 68, 168]],
+    ["select=n,rotate=n*PI/2", [28, 68]]
+  ] as const) {
+    it(`evaluates ${filter} using the current frame`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const input = encodeImage({
+        width: 12, height: 4, channels: 4,
+        data: new Uint8Array(Array.from({ length: 48 }, (_, i) => [4 * (i + 1), 4 * (i + 1), 4 * (i + 1), 255]).flat()),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice() });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-framerate", "2", "-i", "/in%d.png", "-vf", filter,
+        "-fps_mode", "passthrough", "-frames:v", "3", "/out-%d.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const frames = [...vfs.store.keys()].filter(path => path.startsWith("/out-"));
+      assert.equal(frames.length, expected.length);
+      assert.deepEqual(frames.map(path => decodeImage(vfs.store.get(path)!).data[6 * 4]), expected);
+    });
+  }
+});
+
 describe("rotate bilinear sampling", () => {
   it("uses nearest sampling on native YUV frames", async () => {
     const { decodeImage } = await import("@poe-code/image-ast/portable");

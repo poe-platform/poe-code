@@ -722,6 +722,8 @@ export interface SerializeMediaOptions {
   readonly format?: string | undefined;
   readonly faststart?: boolean | undefined;
   readonly fragmented?: boolean | undefined;
+  /** Use moof-relative fragment addressing (default: true); false writes explicit absolute base offsets. */
+  readonly defaultBaseMoof?: boolean | undefined;
   /** Omit the fragmented MP4 random-access trailer. */
   readonly skipTrailer?: boolean | undefined;
   /** Omit initial MP4 sample tables and media (default: true for fragmented output). */

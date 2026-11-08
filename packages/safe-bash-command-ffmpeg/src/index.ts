@@ -3666,7 +3666,7 @@ function validateMovflags(value: string): void {
   const flags = value.split("-").join("+").split("+").filter(Boolean);
   if (flags.length === 0) throw new Error("Invalid movflags: expected a flag name");
   for (const flag of flags) {
-    if (!["faststart", "frag_keyframe", "frag_every_frame", "empty_moov", "write_colr", "skip_trailer"].includes(flag)) {
+    if (!["faststart", "frag_keyframe", "frag_every_frame", "empty_moov", "default_base_moof", "write_colr", "skip_trailer"].includes(flag)) {
       throw new Error(`Unsupported movflags: ${flag}`);
     }
   }
@@ -3768,6 +3768,7 @@ export function evalSyncFfmpeg(
     let movieTimescale: number | undefined;
     let videoTrackTimescale = 0;
     let skipTrailer = false;
+    let defaultBaseMoof = false;
     let fragmented = false;
     let fragmentKeyframes = false;
     let fragmentEveryFrame = false;
@@ -4103,6 +4104,7 @@ export function evalSyncFfmpeg(
         validateMovflags(flags);
         if (flags.includes("skip_trailer")) skipTrailer = true;
         if (flags.includes("write_colr")) writeColr = true;
+        if (flags.includes("default_base_moof")) defaultBaseMoof = true;
         if (flags.includes("faststart")) faststart = true;
         if (flags.includes("empty_moov")) emptyMoov = true;
         if (flags.includes("frag_every_frame")) fragmentEveryFrame = true;
@@ -4337,7 +4339,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, writeColr, majorBrand, skipTrailer, fragmented, fragmentKeyframes, fragmentEveryFrame, fragmentDuration, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, writeColr, majorBrand, skipTrailer, defaultBaseMoof, fragmented, fragmentKeyframes, fragmentEveryFrame, fragmentDuration, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -4636,6 +4638,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let movieTimescale: number | undefined;
         let videoTrackTimescale = 0;
         let skipTrailer = false;
+        let defaultBaseMoof = false;
         let fragmented = false;
         let fragmentKeyframes = false;
         let fragmentEveryFrame = false;
@@ -5416,6 +5419,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (flags.includes("skip_trailer")) skipTrailer = true;
             if (flags.includes("write_colr")) writeColr = true;
+            if (flags.includes("default_base_moof")) defaultBaseMoof = true;
             if (flags.includes("faststart")) faststart = true;
             if (flags.includes("empty_moov")) emptyMoov = true;
             if (flags.includes("frag_every_frame")) fragmentEveryFrame = true;
@@ -8339,6 +8343,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               writeColr,
               majorBrand,
               skipTrailer,
+              defaultBaseMoof,
               fragmented,
               fragmentKeyframes,
               fragmentEveryFrame,

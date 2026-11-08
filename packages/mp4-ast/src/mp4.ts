@@ -1409,11 +1409,12 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
         const mfhdBox = makeFullBox("mfhd", 0, 0, mfhdWriter.toUint8Array());
 
         const trafBoxes = fragmentTracks.map((mt, idx) => {
-          const tfhdWriter = new BinaryWriter(8);
+          const tfhdWriter = new BinaryWriter(options.defaultBaseMoof !== false ? 8 : 16);
           tfhdWriter.writeU32BE(mt.track.id);
+          if (options.defaultBaseMoof === false) tfhdWriter.writeU64BE(moofOffset);
           tfhdWriter.writeU32BE(1); // sample_description_index
-          // flags: 0x020002 (default-base-is-moof + sample-description-index-present)
-          const tfhdBox = makeFullBox("tfhd", 0, 0x020002, tfhdWriter.toUint8Array());
+          // Both address modes use the moof start as the base for trun offsets.
+          const tfhdBox = makeFullBox("tfhd", 0, options.defaultBaseMoof !== false ? 0x020002 : 0x000003, tfhdWriter.toUint8Array());
 
           const tfdtWriter = new BinaryWriter(8);
           tfdtWriter.writeU64BE(mt.samples[0]?.dts ?? 0);

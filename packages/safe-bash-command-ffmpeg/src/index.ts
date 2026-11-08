@@ -8873,9 +8873,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 throw new Error(`HLS segment format AST (${isFmp4 ? "mp4" : "mpegts"}) is not registered`);
               }
               const vTrk = workingDoc.tracks.find((t) => t.type === "video");
+              const referenceTrack = vTrk ?? workingDoc.tracks.find(track => track.type === "audio");
+              const lastAudioSample = !vTrk ? referenceTrack?.samples.at(-1) : undefined;
               const totalSec = Math.max(
                 0.1,
-                vTrk ? vTrk.duration / Math.max(1, vTrk.timescale) : (workingDoc.durationSeconds || 1)
+                lastAudioSample ? (lastAudioSample.dts + lastAudioSample.duration) / referenceTrack!.timescale
+                  : vTrk ? vTrk.duration / Math.max(1, vTrk.timescale) : (workingDoc.durationSeconds || 1)
               );
               const segDur = Math.max(0.2, hlsTime);
               const initialDuration = hlsInitTime > 0 && hlsListSize > 0 && !hlsAppendList ? hlsInitTime : segDur;
@@ -8887,10 +8890,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   ? hlsListSize * initialDuration + (completed - hlsListSize) * segDur
                   : boundaries.length * initialDuration;
               };
-              if (vTrk?.samples.length) {
-                for (const sample of vTrk.samples) {
-                  const seconds = sample.dts / vTrk.timescale;
-                  if ((hlsSplitByTime || sample.isKeyframe) && seconds >= nextBoundary() - 1e-6 && seconds < totalSec) {
+              if (referenceTrack?.samples.length) {
+                for (const sample of referenceTrack.samples) {
+                  const seconds = sample.dts / referenceTrack.timescale;
+                  if ((!vTrk || hlsSplitByTime || sample.isKeyframe) && seconds >= nextBoundary() - 1e-6 && seconds < totalSec) {
                     boundaries.push(seconds);
                   }
                 }
@@ -8944,7 +8947,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               for (let sIdx = 0; sIdx < boundaries.length - 1; sIdx++) {
                 const st = boundaries[sIdx]!;
                 const en = boundaries[sIdx + 1]!;
-                const actualDur = Math.max(0.04, en - st);
+                const actualDur = vTrk ? Math.max(0.04, en - st) : en - st;
                 // Compare decode times on the reference track's timeline, retaining priming and tail packets.
                 const segmentDoc = {
                   ...workingDoc,

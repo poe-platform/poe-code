@@ -4663,7 +4663,7 @@ for (const bitsPerSample of [8, 24, 32] as const) {
       Float64Array.from([-1, -0.5, 0, 1 / 2147483648, 1 - 1 / 2147483648])
     ] }, { bitsPerSample });
     const vfs = createTestVfs({ "/input.wav": input });
-    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-c:a", "copy", "/output.wav"], vfs);
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-c:a", "copy", "-bitexact", "/output.wav"], vfs);
     assert.equal(result.exitCode, 0, result.stderr);
     assert.deepEqual(vfs.store.get("/output.wav"), input);
   });

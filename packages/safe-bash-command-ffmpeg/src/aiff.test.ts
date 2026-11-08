@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
+import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 const samples = [-32768, -16385, -257, -1, 0, 1, 257, 16385, 32767];
@@ -42,8 +43,8 @@ for (const sync of [false, true]) {
         else {
           assert.equal(bytes.readUInt16LE(20), 1);
           assert.equal(bytes.readUInt16LE(34), 16);
-          assert.equal(bytes.toString("ascii", 36, 40), "data");
-          assert.deepEqual(samples.map((_, i) => bytes.readInt16LE(44 + i * 2)), samples);
+          const audio = parseWav(bytes).tracks[0]!.decodedAudio!;
+          assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768), samples);
         }
       });
     }

@@ -6012,12 +6012,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const expression = tokens[++i] ?? "";
         const names = [["r", "red"], ["g", "green"], ["b", "blue"], ["a", "alpha"]];
-        const assignments = expression.split(",").map(assignment => {
-            const parts = assignment.split("=>");
+        const assignments = expression.split(",").flatMap(assignment => {
+            const exchange = assignment.includes("<=>");
+            const parts = assignment.split(exchange ? "<=>" : "=>");
             const channels = parts.map(part => names.findIndex(aliases => aliases.includes(part.trim().toLowerCase())));
             if (parts.length !== 2 || channels.some(channel => channel < 0))
                 throw new Error(`unsupported channel-fx assignment '${assignment}'`);
-            return { source: channels[0]!, target: channels[1]! };
+            const source = channels[0]!, target = channels[1]!;
+            return exchange ? [{ source, target }, { source: target, target: source }] : [{ source, target }];
         });
         apply = function* (image) {
             const data = new Uint8Array(image.data), data16 = image.data16 ? new Uint16Array(image.data16) : undefined;

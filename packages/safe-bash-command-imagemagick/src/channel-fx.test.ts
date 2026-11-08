@@ -5,6 +5,9 @@ import { runConvertCli, runConvertCliSync, runMogrifyCli } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync", "mogrify"] as const) {
     it.each([
+        { expression: "red<=>blue", expected: [0, 0, 255, 255, 255, 0, 0, 255] },
+        { expression: "R <=> G", expected: [0, 255, 0, 255, 0, 0, 255, 255] },
+        { expression: "red<=>red", expected: [255, 0, 0, 255, 0, 0, 255, 255] },
         { expression: "red=>blue", expected: [255, 0, 255, 255, 0, 0, 0, 255] },
         { expression: "R => G, G => B", expected: [255, 255, 0, 255, 0, 0, 0, 255] },
         { expression: "blue=>alpha", expected: [255, 0, 0, 0, 0, 0, 255, 255] },
@@ -26,7 +29,7 @@ for (const mode of ["buffered", "retained", "sync", "mogrify"] as const) {
 }
 
 for (const retained of [false, true]) {
-    it.each(["", "red", "red=>", "red=>unknown", "red=>blue=>green", "red=>blue,"])(`rejects invalid assignment %s without overwriting output, retained=${retained}`, async expression => {
+    it.each(["", "red", "red=>", "red=>unknown", "red=>blue=>green", "red=>blue,", "red<=>", "red<=>unknown", "red<=>blue<=>green"])(`rejects invalid assignment %s without overwriting output, retained=${retained}`, async expression => {
         const original = new Uint8Array([1, 2, 3]), files = new Map([["/out.png", original]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/out.png", original);
         const result = await runConvertCli(["xc:red", "-channel-fx", expression, "/out.png"], retained ? { filesystem, cwd: "/" } : files);
@@ -56,3 +59,25 @@ it("copies across retained chunk boundaries", async () => {
     expect(output.length).toBe(4097 * 4);
     for (let offset = 0; offset < output.length; offset += 4) expect([...output.subarray(offset, offset + 4)]).toEqual([255, 0, 255, 255]);
 });
+
+for (const retained of [false, true]) {
+    for (const depth of [8, 16]) {
+        it.each([
+            { expression: "red<=>blue", hex8: "7845128056eeabbf", samples16: [0x789a, 0x4567, 0x1234, 0x8001, 0x5678, 0xef01, 0xabcd, 0xc003] },
+            { expression: "alpha<=>green", hex8: "12807845abbf56ee", samples16: [0x1234, 0x8001, 0x789a, 0x4567, 0xabcd, 0xc003, 0x5678, 0xef01] },
+            { expression: "R <=> B, G => R", hex8: "45451280eeeeabbf", samples16: [0x4567, 0x4567, 0x1234, 0x8001, 0xef01, 0xef01, 0xabcd, 0xc003] },
+        ])(`exchanges original RGBA${depth} samples, retained=${retained}: $expression`, async ({ expression, hex8, samples16 }) => {
+            // Native PNG32/PNG64 from MSB RGBA16 12344567789a8001abcdef015678c003.
+            const input = Buffer.from(depth === 8
+                ? "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAAEUlEQVQI12MQcq1oWP0ubD8ADq0D/sUFYD4AAAAASUVORK5CYII="
+                : "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABEAYAAACksqPJAAAAGUlEQVQI12MQMnFNr5jVwLj67HvGsIoDzAAzWgZ/WP2H5AAAAABJRU5ErkJggg==", "base64");
+            const files = new Map([["/input.png", input]]), filesystem = new MemoryFileSystem();
+            await filesystem.writeFile("/input.png", input);
+            const result = await runConvertCli(["/input.png", "-channel-fx", expression, "+append", "-depth", String(depth), "/out.png"], retained ? { filesystem, cwd: "/" } : files);
+            expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+            const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+            expect([output.width, output.height]).toEqual([2, 1]);
+            expect([...(depth === 16 ? output.data16! : output.data)]).toEqual(depth === 16 ? samples16 : [...Buffer.from(hex8, "hex")]);
+        });
+    }
+}

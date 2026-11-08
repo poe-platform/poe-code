@@ -1593,17 +1593,37 @@ async function applyVideoFilterChain(
         return { ...frame, width, height, data };
       }, signal);
     } else if (name === "crop") {
+      const crop: Record<string, string> = {};
+      const keys = ["w", "h", "x", "y", "keep_aspect", "exact"];
+      let namedOption = false;
+      for (const [index, part] of (argStr ? positional : []).entries()) {
+        const separator = part.indexOf("=");
+        let key = separator < 0 ? keys[index] : part.slice(0, separator).trim();
+        if (key === "out_w") key = "w";
+        if (key === "out_h") key = "h";
+        if (!key || !keys.includes(key) || (separator < 0 && namedOption)) {
+          throw new Error(`crop: unknown or misplaced option ${part}`);
+        }
+        namedOption ||= separator >= 0;
+        const value = (separator < 0 ? part : part.slice(separator + 1)).trim();
+        if (key === "keep_aspect" || key === "exact") {
+          if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value.toLowerCase())) {
+            throw new Error(`crop: ${key} must be a boolean`);
+          }
+        }
+        crop[key] = value;
+      }
       const iw = current[0]!.width;
       const ih = current[0]!.height;
       const dimensions = { iw, ih, in_w: iw, in_h: ih };
       // Preserve the decoded chroma grid even after earlier RGBA filter operations.
       // AVPixelFormat: YUV420P/YUVJ420P and YUV422P/YUVJ422P.
       const format = current[0]!.native?.format;
-      const exact = ["1", "true", "yes", "on"].includes(named.exact ?? positional[5] ?? "0");
+      const exact = ["1", "true", "yes", "on"].includes((crop.exact ?? "0").toLowerCase());
       const hsub = !exact && (format === 0 || format === 12 || format === 4 || format === 13) ? 2 : 1;
       const vsub = !exact && (format === 0 || format === 12) ? 2 : 1;
-      const cw = Math.floor(roundToEven(parseFilterExpression(named.w ?? positional[0] ?? String(iw), "crop", dimensions)) / hsub) * hsub;
-      const ch = Math.floor(roundToEven(parseFilterExpression(named.h ?? positional[1] ?? String(ih), "crop", dimensions)) / vsub) * vsub;
+      const cw = Math.floor(roundToEven(parseFilterExpression(crop.w ?? String(iw), "crop", dimensions)) / hsub) * hsub;
+      const ch = Math.floor(roundToEven(parseFilterExpression(crop.h ?? String(ih), "crop", dimensions)) / vsub) * vsub;
       if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0 || cw > iw || ch > ih) {
         throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
       }
@@ -1611,11 +1631,11 @@ async function applyVideoFilterChain(
         const variables = { iw, ih, ow: cw, oh: ch, in_w: iw, in_h: ih, out_w: cw, out_h: ch, n };
         const cx = Math.max(
           0,
-          Math.min(iw - cw, roundToEven(parseFilterExpression(named.x ?? positional[2] ?? String(Math.floor((iw - cw) / 2)), "crop", variables)))
+          Math.min(iw - cw, roundToEven(parseFilterExpression(crop.x ?? String(Math.floor((iw - cw) / 2)), "crop", variables)))
         );
         const cy = Math.max(
           0,
-          Math.min(ih - ch, roundToEven(parseFilterExpression(named.y ?? positional[3] ?? String(Math.floor((ih - ch) / 2)), "crop", variables)))
+          Math.min(ih - ch, roundToEven(parseFilterExpression(crop.y ?? String(Math.floor((ih - ch) / 2)), "crop", variables)))
         );
         const cropped = extractImage(makeRgbaImg(f.width, f.height, f.data), {
           left: Math.floor(cx / hsub) * hsub,

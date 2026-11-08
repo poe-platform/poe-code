@@ -4806,6 +4806,29 @@ describe("native ffmpeg parity", () => {
     }
   }
 
+  for (const options of ["exact=bogus", "keep_aspect=bogus", "typo=1", "bogus", "0:bogus", "0:0:1"]) {
+    it(`rejects invalid crop options ${options} before writing frames`, async () => {
+      const { encodeImage } = await import("@poe-code/image-ast/portable");
+      const image = (width: number, height: number) => encodeImage({
+        width, height, channels: 4,
+        data: Uint8Array.from(Array.from({ length: width * height }, (_, i) => [i + 1, i + 1, i + 1, 255]).flat()),
+        format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
+      }, { format: "png" }).data;
+      const input = image(7, 5);
+      const original = image(1, 1);
+      const vfs = createTestVfs({ "/in1.png": input.slice(), "/in2.png": input.slice(), "/in3.png": input.slice(), "/out1.png": original });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-framerate", "2", "-i", "/in%d.png", "-vf", `crop=4:2:0:0:${options}`,
+        "-frames:v", "3", "/out%d.png"
+      ], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("crop:"), result.stderr);
+      assert.deepEqual(vfs.store.get("/out1.png"), original);
+      assert.equal(vfs.store.has("/out2.png"), false);
+      assert.equal(vfs.store.has("/out3.png"), false);
+    });
+  }
+
   for (const crop of ["100:100", "100:8", "8:100", "-1:8", "8:-1", "w=iw*2:h=ih"]) {
     for (const existing of [false, true]) {
       it(`rejects invalid crop ${crop} and preserves ${existing ? "existing" : "absent"} output`, async () => {
@@ -4823,7 +4846,7 @@ describe("native ffmpeg parity", () => {
     }
   }
 
-  for (const [crop, width, height] of [["16:16", 16, 16], ["8:4", 8, 4], ["w=iw/2:h=ih/2", 8, 8]] as const) {
+  for (const [crop, width, height] of [["16:16", 16, 16], ["8:4", 8, 4], ["w=iw/2:h=ih/2", 8, 8], ["4:2:0:0:0:1", 4, 2], ["4:2:exact=TRUE:keep_aspect=no", 4, 2], ["out_w=4:out_h=2", 4, 2]] as const) {
     it(`preserves valid crop dimensions for ${crop}`, async () => {
       const { decodeImage } = await import("@poe-code/image-ast/portable");
       const vfs = createTestVfs();

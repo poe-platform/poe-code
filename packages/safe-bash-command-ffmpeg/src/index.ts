@@ -4025,6 +4025,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let inputReadFailed = false;
       let filterComplex: string | undefined;
       const mappedAudioLabels = new Set<string>();
+      const initializers: (() => Promise<{ exitCode: number } | void>)[] = [];
       const outputs: (() => Promise<{ exitCode: number }>)[] = [];
       const inputBytes = new Map<string, Uint8Array>();
       const readInput = async (path: string): Promise<Uint8Array> => {
@@ -4898,43 +4899,54 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const target = outputTarget;
         const progressOutputIndex = outputs.length;
         const firstOutput = outputs.length === 0;
-        outputs.push(async () => {
+        initializers.push(async () => {
           const outputTarget = target;
           if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) {
-            await writeBytes(context.stderr, encodeUtf8("ffmpeg: -to value smaller than -ss; aborting.\n"), context.signal);
-            return { exitCode: 1 };
+            throw new Error("-to value smaller than -ss; aborting.");
+          }
+          if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget)) {
+            const inputIndex = inputs.findIndex(input =>
+              input.format !== "lavfi" && !isStdin(input.path) &&
+              resolvePath(context.cwd, input.path) === resolvePath(context.cwd, outputTarget) &&
+              (input.patternType === "none" || input.patternType === "glob" ||
+                formatImageSequence(input.path, input.startNumber ?? 0) === undefined));
+            if (inputIndex >= 0) throw new Error(`Output ${outputTarget} same as Input #${inputIndex} - exiting. FFmpeg cannot edit existing files in-place.`);
+          }
+          // Virtual streams are non-interactive: replacing a file requires -y.
+          if (
+            !overwrite &&
+            !isStdout(outputTarget) &&
+            outputFormat !== "null"
+          ) {
+            const outFull = resolvePath(context.cwd, outputTarget);
+            try {
+              await context.fs.stat(outFull, { signal: context.signal });
+              await writeBytes(context.stderr,
+                encodeUtf8(`File '${outputTarget}' already exists. Exiting.\nError opening output file ${outputTarget}.\n`), context.signal);
+              return { exitCode: overwrite === false ? 0 : 1 };
+            } catch (error) {
+              rethrowRuntimeError(context, error);
+              if ((error as { code?: string }).code !== "ENOENT") throw error;
+              // File does not exist, proceed
+            }
           }
 
+          const plugin = outputFormat
+            ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat))
+            : registry.findByFilename(outputTarget);
+          const format = outputFormat ?? outputTarget.split(".").pop()?.toLowerCase();
+          if (!plugin?.canMux && !["null", "segment", "rawvideo", "ico", "apng", "framemd5", "framehash", "framecrc", "streamhash", "hash", "md5", "crc"].includes(format ?? "")) {
+            throw new Error(`Unable to find a suitable output format for '${outputFormat ?? outputTarget}' (format AST not registered)`);
+          }
+          // Open earlier ordinary destinations before checking later outputs.
+          if (progressOutputIndex < outputs.length - 1 && !isStdout(outputTarget) && outputTarget !== "/dev/null" &&
+              format !== "null" && format !== "segment" && plugin?.id !== "image2") {
+            await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
+          }
+        });
+        outputs.push(async () => {
+          const outputTarget = target;
           try {
-            if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget)) {
-              const inputIndex = inputs.findIndex(input =>
-                input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget &&
-                (input.patternType === "none" || input.patternType === "glob" ||
-                  formatImageSequence(input.path, input.startNumber ?? 0) === undefined));
-              if (inputIndex >= 0) throw new Error(`Output ${outputTarget} same as Input #${inputIndex} - exiting. FFmpeg cannot edit existing files in-place.`);
-            }
-            // Virtual streams are non-interactive: replacing a file requires -y.
-            if (
-              !overwrite &&
-              !isStdout(outputTarget) &&
-              outputFormat !== "null"
-            ) {
-              const outFull = resolvePath(context.cwd, outputTarget);
-              try {
-                await context.fs.stat(outFull, { signal: context.signal });
-                await writeBytes(
-                  context.stderr,
-                  encodeUtf8(`File '${outputTarget}' already exists. Exiting.\n`),
-                  context.signal
-                );
-                return { exitCode: 1 };
-              } catch (error) {
-                rethrowRuntimeError(context, error);
-                if ((error as { code?: string }).code !== "ENOENT") throw error;
-                // File does not exist, proceed
-              }
-            }
-
             const loadSingleDocument = async (
               filePath: string,
               explicitFormat?: string,
@@ -7718,6 +7730,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       }
       if (outputs.length === 0) {
         await writeBytes(context.stderr, encodeUtf8("ffmpeg: must specify an output file\n"), context.signal);
+        return { exitCode: 1 };
+      }
+      try {
+        for (const initialize of initializers) {
+          const result = await initialize();
+          if (result) return result;
+        }
+      } catch (error) {
+        rethrowRuntimeError(context, error);
+        await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
         return { exitCode: 1 };
       }
       for (const output of outputs) {

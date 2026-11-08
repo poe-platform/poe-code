@@ -16,6 +16,33 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("output initialization before media writing", () => {
+  for (const earlierExists of [false, true]) {
+    for (const later of [["in.wav"], ["./in.wav"], ["-f", "not_a_muxer", "last.zz"]]) {
+      it(`leaves earlier output empty on ${later.join(" ")} (existing=${earlierExists})`, async () => {
+        const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from([1, 2, 3, 4, 5, 6, 7, 8], n => n / 32768)] });
+        const vfs = createTestVfs({ "/in.wav": input.slice(), ...(earlierExists ? { "/first.wav": "old" } : {}) });
+        const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-y", "-i", "in.wav", "first.wav", ...later], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.match(result.stderr, later.length === 1 ? /in-place/ : /output format/);
+        assert.deepEqual(vfs.store.get("/in.wav"), input);
+        assert.equal(vfs.store.has("/last.zz"), false);
+        assert.equal(vfs.store.get("/first.wav")?.byteLength, 0);
+      });
+    }
+  }
+
+  for (const destinations of [["first.wav"], ["first.wav", "last.wav"]]) {
+    it(`writes media after successful setup of ${destinations.join(" ")}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(8).fill(1 / 32768)] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "in.wav", ...destinations], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      for (const destination of destinations) assert.ok(vfs.store.get(`/${destination}`)!.byteLength > 44);
+    });
+  }
+});
+
 describe("crop dimension aliases", () => {
   for (const dimensions of ["out_w=4:out_h=2", "w=4:h=2", "out_w=4:h=2", "w=4:out_h=2"]) {
     it(`matches native pixels for ${dimensions} across three frames`, async () => {

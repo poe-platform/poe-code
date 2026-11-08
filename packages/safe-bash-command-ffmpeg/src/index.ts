@@ -5145,6 +5145,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (key === "enable") enable = value;
                           else throw new Error(`volume: unsupported option ${key}`);
                         }
+                        precision = precision === "0" ? "fixed" : precision === "1" ? "float" : precision === "2" ? "double" : precision;
+                        evaluation = evaluation === "0" ? "once" : evaluation === "1" ? "frame" : evaluation;
                         if (!["fixed", "float", "double"].includes(precision)) throw new Error("volume: invalid precision");
                         if (precision !== "fixed") statsScale = 1;
                         if (evaluation !== "once" && evaluation !== "frame") throw new Error("volume: invalid eval");

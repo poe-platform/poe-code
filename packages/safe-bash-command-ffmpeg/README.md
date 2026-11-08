@@ -197,7 +197,7 @@ These filters also work in labeled single-input audio graphs with `-map`.
 Audio filters accept instance labels, such as `areverse@flip`, `volume@quiet=0.5`,
 and `atempo@fast=2`, with the same behavior as their unlabeled forms.
 `volume=if(lt(t\,0.5)\,0\,1):eval=frame` changes gain at audio frame timestamps;
-`eval=once` (the default) evaluates a constant gain. Expressions accept escaped commas or single quotes.
+`eval=once` (the default) evaluates a constant gain. Numeric modes are `precision=0/1/2` for fixed/float/double and `eval=0/1` for once/frame. Expressions accept escaped commas or single quotes.
 The volume counters `nb_samples` and `nb_consumed_samples` are unavailable (NaN), as in native FFmpeg.
 With `eval=frame`, a NaN gain becomes silence; `isnan()` can supply a fallback gain.
 `atempo=1` still aligns and blends audio windows, so it can change PCM samples and clip length.

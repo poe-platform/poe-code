@@ -1137,7 +1137,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   statistics?: Record<string, number>,
   countColors = false,
   loadMask?: (position: number, length: number) => Generator<Step, Uint8Array, Resume>,
-  channelSelection?: MagickFormatContext["channelSelection"]
+  channelSelection?: MagickFormatContext["channelSelection"],
+  precision = 6
 ): Generator<undefined|Step, Record<string, string>, Resume> {
   const channels = img.hasAlpha ? 4 : 3;
   const selectedChannels = channelSelection ? [channelSelection.r, channelSelection.g, channelSelection.b, channelSelection.a].slice(0, channels) : new Array<boolean>(channels).fill(true);
@@ -1278,14 +1279,14 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     (squares[c]! - value * value / count) / Math.max(1, count - 1))) : 0), 0) / selectedCount;
   return {
     ...(uniqueColors ? { colors: String(uniqueColors.size) } : {}),
-    mean: String(Number((sums.reduce((sum, value, c) => sum + (selectedChannels[c] ? value : 0), 0) / (count * selectedCount)).toPrecision(6))),
-    min: String(min),
-    max: String(max),
-    median: String(Number(selectedMedian.toPrecision(6))),
-    "standard-deviation": String(Number(deviation.toPrecision(6))),
-    skewness: String(Number(skewness.toPrecision(6))),
-    kurtosis: String(Number(kurtosis.toPrecision(6))),
-    entropy: String(Number(entropy.toPrecision(6))),
+    mean: formatSignificantMetric(sums.reduce((sum, value, c) => sum + (selectedChannels[c] ? value : 0), 0) / (count * selectedCount), precision),
+    min: formatSignificantMetric(min, precision),
+    max: formatSignificantMetric(max, precision),
+    median: formatSignificantMetric(selectedMedian, precision),
+    "standard-deviation": formatSignificantMetric(deviation, precision),
+    skewness: formatSignificantMetric(skewness, precision),
+    kurtosis: formatSignificantMetric(kurtosis, precision),
+    entropy: formatSignificantMetric(entropy, precision),
     opaque: opaque ? "True" : "False",
     type,
     "bit-depth": String(bitDepth)
@@ -1386,7 +1387,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
         short.k ??= yield* resolvePixels("colors");
       } else {
         img ??= getImage();
-        if (pixels?.colors === undefined) pixels = yield* magickPixelPropertiesSteps(img, undefined, statistics, true, undefined, context.channelSelection);
+        if (pixels?.colors === undefined) pixels = yield* magickPixelPropertiesSteps(img, undefined, statistics, true, undefined, context.channelSelection, context.precision);
         short.k = pixels.colors!;
       }
       parts.push(short.k!);
@@ -1403,16 +1404,16 @@ function* formatMagickPropertyStringSteps<Step=never>(
       } else if (["mean", "min", "max", "median", "standard-deviation", "skewness", "kurtosis", "entropy", "opaque", "type", "bit-depth"].includes(key)) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
-        pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection);
+        pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
         parts.push(pixels[key]!);
       } else if (key.startsWith("fx:") || key.startsWith("pixel:") || key.startsWith("hex:")) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
         const fn = compileFxExpression(property.slice(property.indexOf(":") + 1));
-        if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection);
+        if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
         const ctx: FxEvalContext = { statistics, stack: [img], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
         if (key.startsWith("fx:")) {
-          parts.push(formatSignificantMetric(fn(ctx)));
+          parts.push(formatSignificantMetric(fn(ctx), context.precision));
         } else {
           const channels: number[] = [];
           const hexMaximum = (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8 ? 65535 : 255;
@@ -1445,7 +1446,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
 }
 
 class FxPixelDemand { constructor(readonly position:number, readonly image = 0){} }
-function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,getStatistics:()=>Generator<IdentifyStep,Record<string,number>,void>,signal?:AbortSignal):Generator<IdentifyStep,string,void>{
+function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,getStatistics:()=>Generator<IdentifyStep,Record<string,number>,void>,signal?:AbortSignal,precision = 6):Generator<IdentifyStep,string,void>{
  const fn=compileFxExpression(property.slice(property.indexOf(":")+1)),key=property.toLowerCase(),samples=new Map<number,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array}>();
  const statistics=fn.needsStatistics?yield*getStatistics():undefined;
  const context:FxEvalContext={statistics,stack:[image],x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
@@ -1473,7 +1474,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
     yield {async run(){const data=await storage.read(image.position+error.position,4,signal?{signal}:undefined);const hue = (image as StoredRgbaImage).storedHueSamples; const floatBytes = hue === undefined ? undefined : await storage.read(hue+error.position*8,32,signal?{signal}:undefined); const original=image.storedData16 ? await storage.read(image.storedData16.position+error.position*2,8,signal?{signal}:undefined) : undefined; samples.set(error.position,{data:new Uint8Array(data),...(floatBytes?{hueSamples:new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset,floatBytes.byteOffset+32))}:{}),...(original?{data16:new Uint16Array(original.buffer.slice(original.byteOffset,original.byteOffset+8))}:{})});}};
    }
   }
-  if(key.startsWith("fx:"))return formatSignificantMetric(value);
+  if(key.startsWith("fx:"))return formatSignificantMetric(value, precision);
   if(key.startsWith("hex:")){channels.push(Math.max(0,Math.min(hexMaximum,Math.round(value*hexMaximum))));continue;}
   channels.push((image.space === "cmyk" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "CIELab") && key.startsWith("pixel:") ? value : clampByteVal(value*255));
  }
@@ -1493,7 +1494,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    yield { async run() { const scene = (metadata as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0; delay = await raster!.image.storedDelay?.at(scene, signal ? { signal } : undefined) ?? raster!.image.delay?.[scene] ?? 0; } };
    return String(delay);
   }
-  if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal);
+  if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal,context.precision);
   function* load(position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array},void>{
    let chunk!: {data:Uint8Array;data16?:Uint16Array};
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
@@ -1509,7 +1510,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    let data!: Uint8Array;
    yield { async run() { data = await raster!.storage.read((raster!.image as StoredRgbaImage).readMask!.position! + position, length, signal ? { signal } : undefined); } };
    return data;
-  }, context.channelSelection);
+  }, context.channelSelection, context.precision);
   return properties[property.toLowerCase()]!;
  }
  return drainIdentifySteps(formatMagickPropertyStringSteps(format,metadata,()=>{throw new UnsupportedStoredResource("Pixel formatting requires decoded input");},context,resolve),signal);
@@ -5318,6 +5319,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let cooperativeWork = 63;
     let verbose = false;
     let customFormat: string | undefined;
+    let precision = 6;
     const targets: string[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
@@ -5345,6 +5347,13 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
         else if (a === "-format" || a === "--format") {
             customFormat = argv[++i] ?? "";
+        }
+        else if (a === "-precision") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "identify: missing an argument for option '-precision'\n" };
+            const requested = Number(value);
+            if (!value.trim() || !Number.isFinite(requested)) return { exitCode: 1, stdout: "", stderr: "identify: invalid argument for option '-precision'\n" };
+            precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
         }
         else if (a === "-" || !a.startsWith("-")) {
             targets.push(a);
@@ -5379,7 +5388,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
         const analysis = { warnings: "" };
         let inspected:IdentifyInspection|undefined;
-        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?undefined:(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,analysis},pixels,signal));}};
+        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?undefined:(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,precision,analysis},pixels,signal));}};
         const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
         if (!bytes&&!inspected) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
@@ -5403,7 +5412,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
             if (customFormat !== undefined) {
                 outParts.push(inspected?.formatted??(yield* formatMagickPropertyStringSteps(customFormat, meta, () => decodeImage(encoded!, inputOptions), {
-                    filePath: baseInPath, byteLen: size, sceneIdx: pageIdx ?? 0, analysis
+                    filePath: baseInPath, byteLen: size, sceneIdx: pageIdx ?? 0, precision, analysis
                 })));
             }
             else if (verbose) {

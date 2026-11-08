@@ -11,6 +11,7 @@ export interface MagickFormatContext {
     sceneIdx?: number;
     sceneCount?: number;
     quality?: number;
+    precision?: number;
     channelSelection?: { r: boolean; g: boolean; b: boolean; a: boolean } | undefined;
 }
 export type StoredMagickImage = StoredRgbaImage & { [magickInput]?: MagickFormatContext };

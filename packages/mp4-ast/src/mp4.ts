@@ -176,6 +176,7 @@ function parseMetadataTags(moov: Mp4Box): Mp4MetadataTags {
     title?: string;
     artist?: string;
     albumArtist?: string;
+    composer?: string;
     compilation?: string;
     album?: string;
     date?: string;
@@ -795,6 +796,7 @@ function buildUdtaMetadataBox(
   if (tags.title) ilstItems.push(buildIlstTagBox("\xa9nam", tags.title));
   if (tags.artist) ilstItems.push(buildIlstTagBox("\xa9ART", tags.artist));
   if (tags.albumArtist) ilstItems.push(buildIlstTagBox("aART", tags.albumArtist));
+  if (tags.composer) ilstItems.push(buildIlstTagBox("\xa9wrt", tags.composer));
   if (tags.album) ilstItems.push(buildIlstTagBox("\xa9alb", tags.album));
   if (tags.date) ilstItems.push(buildIlstTagBox("\xa9day", tags.date));
   if (tags.comment) ilstItems.push(buildIlstTagBox("\xa9cmt", tags.comment));

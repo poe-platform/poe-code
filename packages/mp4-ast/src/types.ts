@@ -403,6 +403,7 @@ export interface Mp4MetadataTags {
   readonly title?: string | undefined;
   readonly artist?: string | undefined;
   readonly albumArtist?: string | undefined;
+  readonly composer?: string | undefined;
   readonly compilation?: string | undefined;
   readonly album?: string | undefined;
   readonly date?: string | undefined;

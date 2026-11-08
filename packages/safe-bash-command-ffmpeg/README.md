@@ -296,7 +296,7 @@ without creating or replacing the output. Stream copying remains supported. With
 Explicit global selectors are accepted on either side: `-map_metadata N:g`,
 `-map_metadata:g N`, and `-map_metadata:g N:g`.
 Repeated global maps fill missing tags in argument order, keeping the first mapped value for duplicate keys.
-Explicit `-metadata key=value` tags override copied metadata. M4A/MP4 copies preserve the compilation flag; `-metadata compilation=0` writes an explicit false flag, `compilation=1` sets it, and `compilation=` removes it.
+Explicit `-metadata key=value` tags override copied metadata. M4A/MP4 stream copies preserve composer tags; `-metadata composer=Writer` replaces the composer and `-metadata composer=` removes it. M4A/MP4 copies preserve the compilation flag; `-metadata compilation=0` writes an explicit false flag, `compilation=1` sets it, and `compilation=` removes it.
 Each output filename closes its option group: `-t 0.025 a.wav -t 0.075 b.wav`
 writes both files with independent durations. Output options reset after each filename;
 trailing options without a filename do not change earlier outputs.

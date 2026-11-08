@@ -2840,10 +2840,12 @@ async function applyVideoFilterChain(
       }), signal);
     } else if (name === "setpts") {
       const expr = (named.expr ?? positional[0] ?? "PTS").toUpperCase();
-      const startPts = current[0]?.ptsSeconds ?? 0;
+      const startPts = (current[0]?.ptsSeconds ?? 0) * timescale;
       current = await mapWork(current, async (f) => ({
         ...f,
-        ptsSeconds: parseFilterExpression(expr, "setpts", { PTS: f.ptsSeconds, STARTPTS: startPts })
+        ptsSeconds: Math.trunc(parseFilterExpression(expr, "setpts", {
+          PTS: f.ptsSeconds * timescale, STARTPTS: startPts
+        })) / timescale
       }), signal);
     } else if (name === "drawbox") {
       const values = positional.map(part => part === "" || part.includes("=") ? undefined : part);

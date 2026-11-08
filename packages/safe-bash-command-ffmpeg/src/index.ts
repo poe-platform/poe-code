@@ -4646,6 +4646,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let stripAudio = false;
         let stripVideo = false;
         let stripSubtitles = false;
+        let stripData = false;
         let shortest = false;
         let writeHeader = true;
         let writeXing = true;
@@ -5248,6 +5249,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             stripVideo = true;
           } else if (arg === "-sn") {
             stripSubtitles = true;
+          } else if (arg === "-dn") {
+            stripData = true;
           } else if (arg === "-shortest") {
             shortest = true;
           } else if (arg === "-frames" || arg.startsWith("-frames:") || arg === "-vframes" || arg === "-aframes") {
@@ -6455,6 +6458,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   mapped ||= matches.length > 0;
                   selectedTracks.push(...matches.map(track => ({ input: inputIdx, track })));
                 }
+              }
+              if (stripData) {
+                selectedTracks = selectedTracks.filter(({ track }) => !("samples" in track) || track.type !== "data");
               }
               if (outPlugin?.id === "mp4") {
                 const streamIndex = selectedTracks.filter(({ track }) => !("samples" in track) ||

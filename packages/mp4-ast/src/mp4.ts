@@ -1887,8 +1887,10 @@ export function concatMp4(
 
       let currentTick = runningTicksPerSlot[slotIdx]!;
       const startSeconds = options.startTimesSeconds?.[docIdx];
+      // Explicit concat positions refer to presentation start, after video preroll.
+      const prerollTicks = trk.type === "video" ? Math.max(0, trk.editList?.[0]?.mediaTime ?? 0) : 0;
       const timestampShift = startSeconds === undefined ? 0 :
-        Math.round(startSeconds * targetTimescale) - currentTick;
+        Math.round(startSeconds * targetTimescale - prerollTicks * scaleRatio) - currentTick;
       if (trk.type === "audio") {
         if (trk.decodedAudio) {
           audioSegments[slotIdx]!.push({ audio: trk.decodedAudio, offsetSeconds: currentTick / targetTimescale });

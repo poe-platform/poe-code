@@ -19,6 +19,7 @@ import { compressAudio } from "./audio-acompressor.js";
 import { normalizeSpeech } from "./audio-speechnorm.js";
 import { normalizeAudio } from "./audio-dynaudnorm.js";
 import { compandAudio } from "./audio-compand.js";
+import { multibandCompandAudio } from "./audio-mcompand.js";
 import { removeSilence } from "./audio-silenceremove.js";
 import { fadeAudio } from "./audio-fade.js";
 import { acrossfadeAudio } from "./audio-acrossfade.js";
@@ -5060,6 +5061,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "acompressor" || trimmed.startsWith("acompressor=")) {
                         stretched = await compressAudio(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
+                      } else if (trimmed === "mcompand" || trimmed.startsWith("mcompand=")) {
+                        stretched = await multibandCompandAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "compand" || trimmed.startsWith("compand=")) {
                         stretched = await compandAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "afade" || trimmed.startsWith("afade=")) {

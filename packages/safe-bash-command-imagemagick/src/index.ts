@@ -5780,30 +5780,34 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const parts = raw.split(",");
         // Native recognizes four plain comma coordinates before processing percent signs.
         const coordinates = parts.length >= 4 && parts.slice(0, 3).every(part => part.trim() !== "" && Number.isFinite(Number(part)));
-        const scale = raw.includes("%") && !coordinates ? 255 / 100 : 1 / 257;
+        const scale = raw.includes("%") && !coordinates ? 65535 / 100 : 1;
         // Only the first x separates threshold components; subsequent x values are ignored.
         const values = (parts.length > 1 ? parts : raw.toLowerCase().split("x").slice(0, 2)).map(part => parseFloat(part) * scale);
         const thresh = values[0]!;
-        const thresholds = [thresh, values[1] ?? thresh, values[2] ?? thresh, values[3] ?? 255];
+        const thresholds = [thresh, values[1] ?? thresh, values[2] ?? thresh, values[3] ?? 65535];
         const isBlack = token === "-black-threshold";
         const channels = state.channels;
         apply = function* (im) {
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
+            const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
+            const samples = data16 ?? out, quantumScale = data16 ? 1 : 257, maximum = data16 ? 65535 : 255;
             const mask = state.channelExplicit
                 ? [channels.r, channels.g, channels.b, channels.a && im.hasAlpha]
                 : [true, true, true, im.hasAlpha];
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
-                const intensity = 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!;
+                const intensity = (0.212656 * samples[idx]! + 0.715158 * samples[idx + 1]! + 0.072186 * samples[idx + 2]!) * quantumScale;
                 for (let channel = 0; channel < 4; channel++) {
-                    const value = state.channelExplicit ? out[idx + channel]! : intensity;
-                    if (mask[channel] && (isBlack ? value < thresholds[channel]! : value > thresholds[channel]!))
+                    const value = state.channelExplicit ? samples[idx + channel]! * quantumScale : intensity;
+                    if (mask[channel] && (isBlack ? value < thresholds[channel]! : value > thresholds[channel]!)) {
+                        samples[idx + channel] = isBlack ? 0 : maximum;
                         out[idx + channel] = isBlack ? 0 : 255;
+                    }
                 }
             }
-            return { ...im, data: out };
+            return { ...im, data: out, ...(data16 ? { data16 } : {}) };
         };
     }
     else return;

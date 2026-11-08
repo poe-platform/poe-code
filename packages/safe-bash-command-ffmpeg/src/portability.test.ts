@@ -181,7 +181,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes speaker-layout validation and the current audio mixing graph (1,101,689 bytes).
   // Includes headerless RGB input and the current container graph (1,117,724 bytes).
   // Includes the current command graph, retained image packets, and separate image2 planes.
-  assert.ok(otherCodeBytes < 1_145_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes configurable PCM resampling support (measured 1,145,221 bytes).
+  assert.ok(otherCodeBytes < 1_146_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

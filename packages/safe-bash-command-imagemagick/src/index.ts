@@ -2884,7 +2884,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
 
 function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: string, channels: MagickState["channels"], method: VirtualPixelMethod | undefined, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const stack: FxStack = "get" in input ? input : { length: input.length, get: index => input[index], indexOf: image => input.indexOf(image) };
-    const base = stack.get(0)!, evaluate = compileFxExpression(expression), mask = [channels.r, channels.g, channels.b, channels.a];
+    const base = stack.get(0)!, evaluate = compileFxExpression(expression), mask = [channels.r, channels.g, channels.b, channels.a && base.hasAlpha];
     const statistics: Record<string, number> | undefined = evaluate.needsStatistics ? {} : undefined;
     if (statistics) {
         yield* magickPixelPropertiesSteps<ConvolveRequest, Uint8Array | undefined>(base, function*(position, length) {

@@ -16,6 +16,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   let sampleRate = 0, channels = 0;
   let framesPerPacket = 0, bytesPerPacket = 0;
   let format: string | undefined;
+  let channelLayout: string | undefined;
   let data: Uint8Array | undefined;
   const metadata: { title?: string; artist?: string } = {};
   for (let offset = 8; offset < bytes.length;) {
@@ -53,6 +54,13 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
           bytesPerPacket !== framesPerPacket * channels * bits / 8) {
         throw new Error("Unsupported CAF audio encoding");
       }
+    } else if (id === 0x6368616e) {
+      if (size < 12) throw new Error("Invalid CAF channel layout chunk");
+      const tag = view.getUint32(start);
+      const layouts: Record<number, string> = {
+        0x00640001: "mono", 0x00650002: "stereo", 0x006c0004: "quad"
+      };
+      channelLayout = (tag & 0xffff) === channels ? layouts[tag] : undefined;
     } else if (id === 0x696e666f) {
       if (size < 4) throw new Error("Invalid CAF info chunk");
       const info = bytes.subarray(start + 4, start + size);
@@ -101,6 +109,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   return { ...doc, duration, durationSeconds: duration / sampleRate,
     metadata: { ...doc.metadata, ...metadata }, containerFormat: "caf", byteLength: bytes.length,
     tracks: doc.tracks.map(track => ({ ...track, duration,
+      codecDescriptions: track.codecDescriptions.map(desc => ({ ...desc, channelLayout })),
       samples
     })) };
 }

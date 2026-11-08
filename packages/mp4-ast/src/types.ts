@@ -339,6 +339,7 @@ export interface MediaCodecDescription {
   readonly sarWidth?: number | undefined;
   readonly sarHeight?: number | undefined;
   readonly sampleRate?: number | undefined;
+  readonly channelLayout?: string | undefined;
   readonly channels?: number | undefined;
   readonly bitsPerSample?: number | undefined;
   readonly avcC?: Mp4AvcCConfig | undefined;

@@ -34,6 +34,7 @@ it("requires the description first but permits unknown chunks after it", () => {
   const valid = Buffer.concat([header, description, free, data]);
   const expected = ast.parse(native).tracks[0]!;
   assert.deepEqual(ast.parse(valid).tracks, [{ ...expected,
+    codecDescriptions: expected.codecDescriptions.map(desc => ({ ...desc, channelLayout: undefined })),
     samples: expected.samples.map(sample => ({ ...sample, offset: 80 }))
   }]);
   assert.equal(ast.probe(valid).streams[0]!.codec_name, "pcm_s16be");

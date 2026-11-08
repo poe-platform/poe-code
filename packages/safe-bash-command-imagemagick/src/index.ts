@@ -2678,7 +2678,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
             case "trunc":
               return Math.trunc(a0);
             case "sign":
-              return Math.sign(a0);
+              return a0 < 0 ? -1 : 1;
             case "hypot":
               return Math.hypot(a0, a1);
             case "mod":

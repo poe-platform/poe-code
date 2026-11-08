@@ -1,3 +1,4 @@
+import {tiffTextProperties,tiffPhotometricNames} from "./tiff-properties.js";
 import {decodeCcittFax} from "@poe-code/pdf-ast";
 import {tiffPageSteps} from "./tiff-pages.js";
 import {encodeTiffIntegerSamples} from "./tiff-integer.js";
@@ -574,6 +575,12 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
     const tag = view.getUint16(p, le);
     const vals = readTiffTagValues(view, p, le, big);
     const first = vals[0] ?? 0;
+    const property = tiffTextProperties[tag];
+    if (property && view.getUint16(p + 2, le) === 2) {
+      (properties ??= {})[property] = new TextDecoder().decode(new Uint8Array(vals.slice(0, vals.indexOf(0) < 0 ? vals.length : vals.indexOf(0))));
+    }
+    if (tag === 262) (properties ??= {})["tiff:photometric"] = tiffPhotometricNames[first] ?? "unknown";
+    if (tag === 278) (properties ??= {})["tiff:rows-per-strip"] = String(first);
     if (tag === 256) width = first;
     else if (tag === 257) height = first;
     else if (tag === 258 && first > 0) bitsPerSample = first;
@@ -581,7 +588,6 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
     else if (tag === 292 || tag === 293) faxOptions = first;
     else if (tag === 266) fillOrder = first;
     else if (tag === 262) photometric = first;
-    else if (tag === 270) properties = {comment: new TextDecoder().decode(new Uint8Array(vals.slice(0, vals.indexOf(0) < 0 ? vals.length : vals.indexOf(0))))};
     else if (tag === 273 && vals.length > 0) stripOffsets = vals;
     else if (tag === 274 && first >= 1 && first <= 8) orientation = first;
     else if (tag === 277 && first > 0) samplesPerPixel = first;

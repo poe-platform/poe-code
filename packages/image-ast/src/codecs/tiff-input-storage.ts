@@ -1,3 +1,4 @@
+import {tiffTextProperties,tiffPhotometricNames} from "./tiff-properties.js";
 import {decodeCcittFaxChunks} from "@poe-code/pdf-ast";
 import {tiffPageSteps} from "./tiff-pages.js";
 import {tiffLabToRgb} from "./tiff-lab.js";
@@ -91,11 +92,14 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   const start=n*size<=offsetSize?p+valueOffset:await number(p+valueOffset,offsetSize),available=Math.max(0,Math.min(n,Math.floor((source.size-start)/size)));
   const values:Values={count:available,async at(index){if(index<0||index>=available)return undefined;const at=start+index*size;if(type!==5)return number(at,size);const num=await number(at,4),den=await number(at+4,4);return den>0?num/den:num;}};
   const first=await values.at(0)??0;
-  if(tag===270&&type===2){
-   if(available>16*1024*1024)throw new Error("TIFF comment exceeds 16 MiB");
+  const property=tiffTextProperties[tag];
+  if(property&&type===2){
+   if(available>16*1024*1024)throw new Error("TIFF text property exceeds 16 MiB");
    const text:number[]=[];for(let j=0;j<available;j++){const value=await values.at(j);if(!value)break;text.push(value);}
-   properties={comment:new TextDecoder().decode(new Uint8Array(text))};
+   (properties??={})[property]=new TextDecoder().decode(new Uint8Array(text));
   }
+  if(tag===262)(properties??={})["tiff:photometric"]=tiffPhotometricNames[first]??"unknown";
+  if(tag===278)(properties??={})["tiff:rows-per-strip"]=String(first);
   if(tag===256)width=first;else if(tag===257)height=first;
   else if(tag===258&&first>0)bits=first;else if(tag===259&&first>0)compression=first;
   else if(tag===262)photometric=first;else if(tag===273&&available)offsets=values;

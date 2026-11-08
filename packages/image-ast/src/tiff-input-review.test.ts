@@ -98,6 +98,13 @@ const vectors:{spec:Spec;expected:Omit<RgbaImage,"data">;hash:string}[]=[
 {"spec":{"compression":32946,"mode":"gzip","width":1031,"height":5,"tiles":false},"expected":{"width":1031,"height":5,"format":"tiff","space":"srgb","channels":4,"depth":"uchar","bitsPerSample":8,"density":381,"hasAlpha":true,"orientation":6},"hash":"ae9e00160d839ec528f0c9474e670a33fce3618b2f7ae92b5014959032c40202"},
 {"spec":{"compression":32946,"mode":"malformed","width":1031,"height":5,"tiles":false},"expected":{"width":1031,"height":5,"format":"tiff","space":"srgb","channels":4,"depth":"uchar","bitsPerSample":8,"density":381,"hasAlpha":true,"orientation":6},"hash":"6ef3011bd5fd2171536dc628a804817fbae7db427e822c99784b3394e842fd35"}
 ];
+// TIFF tags are now retained in addition to the legacy metadata and pixel vectors.
+for (const vector of vectors) {
+ vector.expected.properties = {
+  "tiff:photometric": (vector.spec.samples ?? 4) < 3 ? "min-is-white" : "RGB",
+  ...(vector.spec.tiles ? {} : {"tiff:rows-per-strip": "2"})
+ };
+}
 function backing(){const memory=new Uint8Array(8*1024*1024),borrowed=new Uint8Array(4096);let end=8;return {memory,storage:{allocate:vi.fn((length:number)=>{const position=end;end+=length;if(end>memory.length)throw new Error("fixture exhausted");return position;}),write:vi.fn(async(position:number,bytes:Uint8Array)=>{if(position<8||position+bytes.length>end||bytes.length>4096)throw new Error("invalid storage write");memory.set(bytes,position);}),read:vi.fn(async(position:number,length:number)=>{if(length>4096||position<8||position+length>end)throw new Error("invalid backing read");borrowed.fill(37);borrowed.set(memory.subarray(position,position+length));return borrowed.subarray(0,length);})}};}
 function source(bytes:Uint8Array){const borrowed=new Uint8Array(4096);return {size:bytes.length,read:vi.fn(async(position:number,length:number)=>{if(length>4096||position<0||position+length>bytes.length)throw new Error("invalid source read");borrowed.fill(39);borrowed.set(bytes.subarray(position,position+length));return borrowed.subarray(0,length);})};}
 const digest=(bytes:Uint8Array)=>createHash("sha256").update(bytes).digest("hex");

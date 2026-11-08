@@ -170,7 +170,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes M4A text/compilation metadata and the current portable command graph (1,026,245 bytes).
   // Includes aresample first_pts padding and trimming (1,029,023 bytes).
   // Includes arealtime pacing, option validation, and cancellable timers (1,031,102 bytes).
-  assert.ok(otherCodeBytes < 1_033_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes stream IDs and H.264 bitstream filtering with validation before writing.
+  assert.ok(otherCodeBytes < 1_036_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -252,6 +253,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes MP4 timecode references, authoring, and mapped-video retention (10,362,272 bytes).
   // Includes M4A text/compilation metadata and the current dependency graph (10,368,562 bytes).
   // Includes arealtime pacing and the current audio filter graph (10,372,978 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_375_000,
+  // Includes stream IDs and validated H.264 bitstream filtering (10,376,189 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_378_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

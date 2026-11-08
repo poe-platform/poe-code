@@ -1,4 +1,5 @@
 import { parseFilterExpression } from "./filter-expression.js";
+import { autoConvertConcatTrack } from "./concat-auto-convert.js";
 import { filterBitstream } from "./bitstream.js";
 import { authorTimecode } from "./timecode.js";
 import { serializeRawVideo } from "./rawvideo.js";
@@ -4454,6 +4455,7 @@ interface InputSpec {
   readonly path: string;
   readonly format?: string | undefined;
   readonly safe?: boolean | undefined;
+  readonly autoConvert?: boolean | undefined;
   readonly allowedExtensions?: string | undefined;
   readonly timestampOffset?: number | undefined;
   readonly fixSubDuration?: boolean | undefined;
@@ -4529,6 +4531,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingFormat: string | undefined;
       let pendingAllowedExtensions: string | undefined;
       let pendingSafe: boolean | undefined;
+      let pendingAutoConvert: boolean | undefined;
       let pendingAudioDecoder: string | undefined;
       let pendingTimestampOffset = 0;
       let pendingSyncReference: number | undefined;
@@ -4754,6 +4757,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-allowed_extensions") {
             pendingAllowedExtensions = args[++i];
             if (pendingAllowedExtensions === undefined) throw new Error("Missing value for -allowed_extensions");
+          } else if (arg === "-auto_convert") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -auto_convert must be 0 or 1\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingAutoConvert = value === "1";
           } else if (arg === "-safe") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -5232,6 +5242,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               channels: audioChannels,
               fixSubDuration: pendingFixSubDuration,
               safe: pendingSafe,
+              autoConvert: pendingAutoConvert,
               allowedExtensions: pendingAllowedExtensions,
               skipInitialBytes: pendingSkipInitialBytes,
               timestampOffset: pendingTimestampOffset,
@@ -5255,6 +5266,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             audioChannels = undefined;
             pendingFormat = undefined;
             pendingSafe = undefined;
+            pendingAutoConvert = undefined;
             pendingAllowedExtensions = undefined;
             pendingTimestampOffset = 0;
             pendingSyncReference = undefined;
@@ -5971,6 +5983,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Impossible to open '${segment.path}': No such file or directory\n`), context.signal);
                     inputReadFailed = true;
                     break;
+                  }
+                  if (input?.autoConvert !== false) {
+                    itemDoc = { ...itemDoc, tracks: itemDoc.tracks.map(track => autoConvertConcatTrack(track, budget)) };
                   }
                   let sliceEnd = segment.outpoint;
                   const wavTrack = itemDoc.containerFormat === "wav" ? itemDoc.tracks[0] : undefined;

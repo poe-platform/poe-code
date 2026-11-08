@@ -15,7 +15,7 @@ for (const duration of [undefined, 3, 1.4]) {
     });
     let stderr = "";
     const result = await createFfmpegCommand().execute({
-      args: ["-f", "concat", "-i", "/list.ffconcat", "-c", "copy", "/out.mp4"],
+      args: ["-f", "concat", "-auto_convert", "0", "-i", "/list.ffconcat", "-c", "copy", "/out.mp4"],
       cwd: "/", env: {}, signal: new AbortController().signal,
       fs: {
         async readFile(path: string) { return volume.readFileSync(path); },

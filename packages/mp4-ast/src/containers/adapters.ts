@@ -1908,11 +1908,11 @@ export function image2Ast(): MediaAstPlugin {
     id: "image2",
     formatName: "image2",
     formatLongName: "image2 sequence",
-    extensions: ["png", "jpg", "jpeg", "webp", "bmp", "ppm", "pgm", "tga", "tiff", "tif"],
+    extensions: ["png", "jpg", "jpeg", "webp", "bmp", "ppm", "pgm", "tga", "tiff", "tif", "qoi"],
     mimeTypes: ["image/png", "image/jpeg", "image/webp", "image/bmp", "image/x-portable-pixmap"],
     canDemux: true,
     canMux: true,
-    supportedVideoCodecs: ["png", "mjpeg", "webp", "bmp", "ppm"],
+    supportedVideoCodecs: ["png", "mjpeg", "webp", "bmp", "ppm", "qoi"],
     supportedAudioCodecs: [],
     detect(bytes, filename) {
       if (apngAst().detect(bytes)) return false;
@@ -2023,12 +2023,15 @@ export function image2Ast(): MediaAstPlugin {
       if (fmt === "tga" || options?.videoCodec === "targa") return encodeTga({ width, height, data: first }, options);
       const imgFmt: ImageFormat =
         fmt === "jpg" || fmt === "jpeg" || fmt === "mjpeg" ? "jpeg" :
+        fmt === "qoi" || options?.videoCodec === "qoi" ? "qoi" :
         fmt === "webp" ? "webp" :
         fmt === "gif" ? "gif" :
         fmt === "bmp" ? "bmp" :
         fmt === "tiff" || fmt === "tif" ? "tiff" :
         fmt === "ppm" ? "ppm" : "png";
-      return encodeImage(makeRgbaImage(width, height, first), { format: imgFmt }).data;
+      const image = makeRgbaImage(width, height, first);
+      if (imgFmt === "qoi") image.hasAlpha = !["rgb24", "bgr24", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(doc.tracks.find(track => track.type === "video")?.codecDescriptions[0]?.pixFmt ?? "rgba");
+      return encodeImage(image, { format: imgFmt }).data;
     },
     probe(bytes, options) {
       const doc = this.parse(bytes, options);

@@ -4466,11 +4466,12 @@ export function evalSyncFfmpeg(
       if (vTrack && !vTrack.decodedVideoFrames) return undefined;
       const frames = vTrack?.decodedVideoFrames ?? [];
       const limit = Math.min(frames.length, maxVideoFrames ?? Infinity);
-      const imgFmt: ImageFormat = outExt === "jpg" || outExt === "jpeg" ? "jpeg" : outExt === "webp" ? "webp" : outExt === "gif" ? "gif" : outExt === "bmp" ? "bmp" : outExt === "ppm" ? "ppm" : "png";
+      const imgFmt: ImageFormat = outExt === "qoi" || videoCodec === "qoi" ? "qoi" : outExt === "jpg" || outExt === "jpeg" ? "jpeg" : outExt === "webp" ? "webp" : outExt === "gif" ? "gif" : outExt === "bmp" ? "bmp" : outExt === "ppm" ? "ppm" : "png";
       for (let idx = 0; idx < limit; idx++) {
         const f = frames[idx]!;
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1))!;
         const encoded = outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
+                    ...(imgFmt === "qoi" ? { hasAlpha: !["rgb24", "bgr24", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba") } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"
                       ? { pngPalette: { bytes: pal8Palette, depth: 8 } } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "monob" || vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8"
@@ -9462,6 +9463,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               let nextPts = (frames[0]?.ptsSeconds ?? 0) / duration;
               let idx = 0;
               const imgFmt: ImageFormat =
+                outExt === "qoi" || videoCodec === "qoi" ? "qoi" :
                 outExt === "jpg" || outExt === "jpeg" ? "jpeg" :
                 outExt === "webp" ? "webp" :
                 outExt === "gif" ? "gif" :
@@ -9496,6 +9498,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const fileName = imageFileName(number);
                   const fullOutPath = resolvePath(context.cwd, fileName);
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), outExt === "tga" || videoCodec === "targa" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
+                    ...(imgFmt === "qoi" ? { hasAlpha: !["rgb24", "bgr24", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba") } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"
                       ? { pngPalette: { bytes: pal8Palette, depth: 8 } } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "monob" || vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8" || vTrack?.codecDescriptions[0]?.pixFmt === "gray16be"

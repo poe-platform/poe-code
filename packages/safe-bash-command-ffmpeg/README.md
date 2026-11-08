@@ -505,6 +505,8 @@ Use `-fix_sub_duration` before an input to shorten overlapping subtitle events d
 
 ICO output (`out.ico` or `-f ico`) with `-c:v png` writes one PNG-backed entry per mapped video stream, in mapping order. Each entry uses the first frame and must be between 1 and 256 pixels in each dimension. For example: `ffmpeg -i small.png -i large.png -map 0:v -map 1:v -c:v png out.ico`.
 
+QOI output (`out.qoi`, optionally `-c:v qoi`) preserves RGB and RGBA pixels, including the RGB samples of fully transparent pixels. Numbered image sequences such as `out%d.qoi` are supported.
+
 APNG output (`out.apng` or `-f apng`) writes all video frames into one animation. Use `-plays N` to set the play count (default `1`, `0` loops forever). Frame delays follow presentation timestamps; the final frame repeats the preceding interval.
 
 `apulsator=hz=2:amount=0.8:offset_l=0:offset_r=0.5` modulates stereo audio with independent channel phase offsets. Supports sine modulation with named `hz`, `amount`, `offset_l`, and `offset_r` options while preserving sample rate and frame count. Other pulsator options are rejected.

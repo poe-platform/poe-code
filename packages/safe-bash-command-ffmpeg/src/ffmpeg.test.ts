@@ -6095,6 +6095,31 @@ describe("reverse timestamp slots", () => {
   }
 });
 
+describe("fps start_time", () => {
+  for (const [start, expected] of [["0.5", [100]], ["1", []], ["-0.5", [20, 20, 80]], ["0", [40, 80]]] as const) {
+    for (const filter of [`fps=2:start_time=${start}`, `fps=2:${start}`]) {
+      it(`places frames on the requested grid for ${filter}`, async () => {
+        const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+        const files: Record<string, Uint8Array> = {};
+        for (let i = 1; i <= 6; i++) {
+          files[`/in${i}.png`] = encodeImage({ width: 1, height: 1,
+            data: new Uint8Array([i * 20, i * 20, i * 20, 255]), format: "png",
+            space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false
+          }, { format: "png" }).data;
+        }
+        const vfs = createTestVfs(files);
+        const result = await runCmd(createFfmpegCommand(), [
+          "-framerate", "5", "-i", "/in%d.png", "-vf", filter, "/out%d.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const output = [...vfs.store.keys()].filter(path => path.startsWith("/out")).sort();
+        assert.deepEqual(output.map(path => decodeImage(vfs.store.get(path)!).data[0]), expected);
+        for (const [path, bytes] of Object.entries(files)) assert.deepEqual(vfs.store.get(path), bytes);
+      });
+    }
+  }
+});
+
 describe("fps option validation", () => {
   for (const filter of ["fps=bogus", "fps=2garbage", "fps=1/0", "fps=-2", "fps=2:round=bogus", "fps=2:eof_action=bogus", "fps=2:no_such_option=1", "fps=2:start_time=bogus", "fps=2:0:bogus", "fps=2:0:near:round:extra"]) {
     for (const seeded of [false, true]) {

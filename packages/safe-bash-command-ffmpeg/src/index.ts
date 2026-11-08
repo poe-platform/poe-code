@@ -1917,7 +1917,7 @@ async function applyVideoFilterChain(
         ntsc: 30000 / 1001, pal: 25, film: 24, "ntsc_film": 24000 / 1001
       });
       if (targetFps <= 0) throw new Error("fps: frame rate must be positive");
-      if (options.start_time !== undefined) parseFilterExpression(options.start_time, "fps", {});
+      const startTime = options.start_time === undefined ? undefined : parseFilterExpression(options.start_time, "fps", {});
       if (options.round !== undefined && !["zero", "inf", "down", "up", "near", "0", "1", "2", "3", "5"].includes(options.round)) {
         throw new Error("fps: invalid round value");
       }
@@ -1930,17 +1930,22 @@ async function applyVideoFilterChain(
         : (rounding === "up" || rounding === "3") ? Math.ceil
         : (rounding === "inf" || rounding === "1") ? (value: number) => Math.sign(value) * Math.ceil(Math.abs(value))
         : (value: number) => Math.sign(value) * Math.floor(Math.abs(value) + 0.5);
-      const totalDuration = current.reduce((acc, f) => acc + f.durationSeconds, 0) || 1;
-      const targetCount = Math.max(0, options.eof_action === "pass" || options.eof_action === "1"
-        ? Math.ceil(totalDuration * targetFps)
-        : roundTimestamp(totalDuration * targetFps));
+      // FFmpeg rounds the requested start separately in the input and output time bases.
+      const inputOffset = startTime === undefined ? 0 : roundTimestamp(startTime * diagnostics.timescale) / diagnostics.timescale;
+      const outputOffset = startTime === undefined ? 0 : roundTimestamp(startTime * targetFps);
+      const last = current[current.length - 1]!;
+      const endTime = last.ptsSeconds + last.durationSeconds;
+      const endTimestamp = options.eof_action === "pass" || options.eof_action === "1"
+        ? Math.ceil(endTime * targetFps)
+        : roundTimestamp(endTime * targetFps);
+      const firstTimestamp = startTime === undefined ? roundTimestamp(current[0]!.ptsSeconds * targetFps) : outputOffset;
       const resampled: MediaVideoFrame[] = [];
       let srcIdx = 0;
-      for (let i = 0; i < targetCount; i++) {
+      for (let i = firstTimestamp; i < endTimestamp; i++) {
         if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
         // Round presentation timestamps to the output time base, as FFmpeg does.
-        while (srcIdx + 1 < current.length && roundTimestamp(current[srcIdx + 1]!.ptsSeconds * targetFps) <= i) {
+        while (srcIdx + 1 < current.length && outputOffset + roundTimestamp((current[srcIdx + 1]!.ptsSeconds - inputOffset) * targetFps) <= i) {
           srcIdx++;
         }
         const src = current[srcIdx]!;

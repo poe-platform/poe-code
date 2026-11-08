@@ -1359,7 +1359,7 @@ function flacProbe(scanner: FlacFrameScanner, options: MediaSourceProbeOptions =
       metadata: { title: picture.description, comment: id3PictureTypes[picture.type] ?? "Other" }
     });
   }
-  const result = buildProbeResultFromDoc({ ...doc, tracks }, scanner.size,
+  const result = buildProbeResultFromDoc({ ...doc, tracks, chapters: scanner.chapters(doc.timescale) }, scanner.size,
     options.filename ?? "input.flac", { ...options, formatName: "flac", formatLongName: "raw FLAC" });
   return { ...result,
     streams: result.streams.map(stream => stream.index === 0 ? { ...stream, nb_frames: undefined,
@@ -1446,7 +1446,7 @@ export function flacAst(): MediaAstPlugin {
       const track = { ...doc.tracks[0]!, duration, samples,
         codecDescriptions: [{ ...doc.tracks[0]!.codecDescriptions[0]!,
           bitsPerSample: stream.bitsPerSample, extraData: concatBytes(blocks) }] };
-      return { ...doc, metadata: parsed.tags, duration, durationSeconds: duration / track.timescale,
+      return { ...doc, metadata: parsed.tags, chapters: scanner.chapters(doc.timescale), duration, durationSeconds: duration / track.timescale,
         tracks: [{ ...track, ...(options.decodeAudio === false ? {} : { decodedAudio: decodeFlac(track, { ...options, budget }) }) },
           ...parsed.pictures.map((picture, index) => ({
             ...image2Ast().parse(picture.data).tracks[0]!,

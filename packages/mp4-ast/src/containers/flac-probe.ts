@@ -1,3 +1,5 @@
+import type { Mp4Chapter } from "../types.js";
+
 /** FLAC frame boundaries require both header CRC-8 and preceding frame CRC-16. */
 function checksum(value: number, byte: number, width: number, polynomial: number): number {
   value ^= byte << (width - 8);
@@ -35,7 +37,8 @@ export function frameHeader(bytes: Uint8Array, start: number): { duration: numbe
 export class FlacFrameScanner {
   readonly header = new Uint8Array(42);
   readonly pictureBlocks: Uint8Array[] = [];
-  private pictureBlock: Uint8Array | undefined;
+  private metadataBlock: Uint8Array | undefined;
+  private readonly cueBlocks: Uint8Array[] = [];
   readonly packets: { pts: number; duration: number; size: number; pos: number }[] = [];
   size = 0;
   private pending = new Uint8Array();
@@ -46,6 +49,33 @@ export class FlacFrameScanner {
   private crc = 0;
   private frame: { pts: number; duration: number; pos: number } | undefined;
   private fixedBlockSize = 0;
+
+  chapters(sampleRate: number): Mp4Chapter[] {
+    const chapters: Mp4Chapter[] = [];
+    for (const block of this.cueBlocks) {
+      if (block.length < 400 || this.offset < this.metadataEnd) throw new Error("Truncated FLAC CUESHEET");
+      const view = new DataView(block.buffer, block.byteOffset, block.length);
+      let offset = 400;
+      for (let index = 0; index < block[399]!; index++) {
+        if (offset + 36 > block.length) throw new Error("Truncated FLAC CUESHEET track");
+        const sample = Number(view.getBigUint64(offset));
+        if (!Number.isSafeInteger(sample)) throw new Error("FLAC CUESHEET offset exceeds safe integer range");
+        const previous = chapters.at(-1);
+        if (previous) chapters[chapters.length - 1] = { ...previous, endTimeSeconds: sample / sampleRate };
+        // The final track is the lead-out (170 for CD sheets), not a chapter.
+        if (index + 1 < block[399]!) {
+          const isrc = block.subarray(offset + 9, offset + 21);
+          const title = new TextDecoder().decode(isrc.subarray(0, isrc.indexOf(0) < 0 ? 12 : isrc.indexOf(0)));
+          chapters.push({ id: block[offset + 8]!, timescale: sampleRate, timeBase: { numerator: 1, denominator: sampleRate },
+            startTimeSeconds: sample / sampleRate, endTimeSeconds: sample / sampleRate,
+            title, tags: { title } });
+        }
+        offset += 36 + block[offset + 35]! * 12;
+        if (offset > block.length) throw new Error("Truncated FLAC CUESHEET indices");
+      }
+    }
+    return chapters;
+  }
 
   push(chunk: Uint8Array, final = false): void {
     if (this.size < 42) this.header.set(chunk.subarray(0, 42 - this.size), this.size);
@@ -60,18 +90,19 @@ export class FlacFrameScanner {
     for (; pos < end; pos++, this.offset++) {
       if (!this.audio) {
         if (this.offset < this.metadataEnd) {
-          if (this.pictureBlock) this.pictureBlock[this.pictureBlock.length - (this.metadataEnd - this.offset)] = bytes[pos]!;
+          if (this.metadataBlock) this.metadataBlock[this.metadataBlock.length - (this.metadataEnd - this.offset)] = bytes[pos]!;
           continue;
         }
-        this.pictureBlock = undefined;
+        this.metadataBlock = undefined;
         if (!this.lastMetadata) {
           if (pos + 4 > bytes.length) break;
           this.lastMetadata = !!(bytes[pos]! & 128);
           this.metadataEnd = this.offset + 4 + bytes[pos + 1]! * 65536 + bytes[pos + 2]! * 256 + bytes[pos + 3]!;
-          if ((bytes[pos]! & 127) === 6) {
-            this.pictureBlock = new Uint8Array(this.metadataEnd - this.offset);
-            this.pictureBlock[0] = 6;
-            this.pictureBlocks.push(this.pictureBlock);
+          const type = bytes[pos]! & 127;
+          if (type === 6 || type === 5) {
+            this.metadataBlock = new Uint8Array(this.metadataEnd - this.offset);
+            this.metadataBlock[0] = type;
+            (type === 6 ? this.pictureBlocks : this.cueBlocks).push(this.metadataBlock);
           }
           continue;
         }

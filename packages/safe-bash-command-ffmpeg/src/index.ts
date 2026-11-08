@@ -4894,17 +4894,53 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let statsScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 / 32767
                     : t.codecDescriptions[0]?.codecName === "pcm_s32le" ? 2147483648 / 2147483647 : 1;
                   if (filter) {
+                    const gainCommands: { sample: number; target: string; expression: string }[] = [];
                     for (const item of parseFilterChain(filter.expression)) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
                       let trimmed = item.trim();
                       const equals = trimmed.indexOf("=");
                       const instance = trimmed.indexOf("@");
+                      const filterTarget = equals < 0 ? trimmed : trimmed.slice(0, equals);
                       if (instance >= 0 && (equals < 0 || instance < equals)) {
                         trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
                       }
                       if (trimmed === "anull") continue;
-                      if (trimmed === "asetrate" || trimmed.startsWith("asetrate=")) {
+                      if (trimmed.startsWith("asendcmd=")) {
+                        let commands = trimmed.slice("asendcmd=".length);
+                        if (commands.startsWith("c=")) commands = commands.slice(2);
+                        else if (commands.startsWith("commands=")) commands = commands.slice(9);
+                        const scheduled = commands.split(";").filter(command => command.trim()).map(command => {
+                          const words = Array.from(command, char => char.trim() ? char : " ").join("").split(" ").filter(Boolean);
+                          const time = Number(words.shift());
+                          if (words[0] === "[enter]") words.shift();
+                          const [target, action, expression] = words;
+                          if (!Number.isFinite(time) || time < 0 || words.length !== 3 || action !== "volume"
+                            || !(target === "volume" || target?.startsWith("volume@")) || !expression) {
+                            throw new Error("asendcmd: expected TIME volume[@NAME] volume GAIN");
+                          }
+                          return { time, target, expression };
+                        });
+                        if (!scheduled.length) throw new Error("asendcmd: commands are required");
+                        budget.allocateMemory(scheduled.length * 64);
+                        scheduled.sort((a, b) => a.time - b.time);
+                        let next = 0;
+                        const length = stretched[0]?.length ?? 0;
+                        for (let start = 0, n = 0; start < length && next < scheduled.length; n++) {
+                          budget.checkCpu();
+                          if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          const packet = t.samples[n];
+                          const timestamp = audioTimestamps?.[n];
+                          const count = timestamp ? timestamp.end - timestamp.start
+                            : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                          const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
+                          while (next < scheduled.length && scheduled[next]!.time <= pts / origRate) {
+                            const command = scheduled[next++]!;
+                            gainCommands.push({ sample: start, target: command.target, expression: command.expression });
+                          }
+                          start += count;
+                        }
+                      } else if (trimmed === "asetrate" || trimmed.startsWith("asetrate=")) {
                         let rate = 44100;
                         const argument = trimmed === "asetrate" ? "" : trimmed.slice("asetrate=".length);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
@@ -5194,7 +5230,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         // All modes except ignore consume frame ReplayGain side data.
                         if (replayGain !== "ignore") replayGainAvailable = false;
-                        const decibels = volSpec.endsWith("dB");
+                        const commands = gainCommands.filter(command => command.target === "volume" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        let nextCommand = 0;
                         const output = stretched.map(channel => new Float32Array(channel.length));
                         const length = stretched[0]?.length ?? 0;
                         const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
@@ -5203,6 +5241,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           nb_samples: NaN, nb_consumed_samples: NaN, startpts: NaN, startt: NaN,
                           n: NaN, t: NaN, pts: NaN, volume: NaN };
                         const evaluateGain = () => {
+                          const decibels = volSpec.endsWith("dB");
                           const gain = parseFilterExpression(decibels ? volSpec.slice(0, -2) : volSpec, "volume", variables);
                           let factor = decibels ? Math.pow(10, gain / 20) : gain;
                           if (evaluation === "frame" && Number.isNaN(factor)) factor = 0;
@@ -5221,7 +5260,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
                           if (n === 0) startpts = pts;
-                          const end = evaluation === "once" && enable === undefined ? length : Math.min(length, start + count);
+                          const end = evaluation === "once" && enable === undefined && commands.length === 0 ? length : Math.min(length, start + count);
+                          while (nextCommand < commands.length && commands[nextCommand]!.sample <= start) {
+                            volSpec = commands[nextCommand++]!.expression;
+                            factor = evaluateGain();
+                          }
                           if (evaluation === "frame") {
                             Object.assign(variables, { n, t: pts / origRate, pts, startpts, startt: startpts / origRate });
                             factor = evaluateGain();

@@ -203,6 +203,7 @@ and `atempo@fast=2`, with the same behavior as their unlabeled forms.
 `volume=if(lt(t\,0.5)\,0\,1):eval=frame` changes gain at audio frame timestamps;
 `eval=once` (the default) evaluates a constant gain. Numeric modes are `precision=0/1/2` for fixed/float/double and `eval=0/1` for once/frame. Expressions accept escaped commas or single quotes.
 `volume` in an expression holds the previous gain, starting as NaN during setup; `eval=frame` evaluates again for each audio frame.
+`asendcmd=c='0.25 volume@v volume 0.25',volume@v=1` changes the named gain on the first audio frame at or after 0.25 seconds. Inline `c`/`commands` schedules support semicolon-separated time/target/volume/gain commands (optionally `[enter]`) targeting subsequent volume filters; target `volume` addresses all subsequent volume instances. Other command actions, interval flags, and command files are unsupported.
 The volume counters `nb_samples` and `nb_consumed_samples` are unavailable (NaN), as in native FFmpeg.
 `volume` supports ReplayGain `drop` (default), `ignore`, `track`, and `album` modes,
 with `replaygain_preamp` (-60–60 dB) and `replaygain_noclip` (enabled by default).

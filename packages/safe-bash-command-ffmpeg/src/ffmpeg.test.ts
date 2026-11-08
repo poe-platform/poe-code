@@ -16,6 +16,45 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("asendcmd", () => {
+  for (const command of ["", "invalid volume@v volume 0.5", "0 volume@v unsupported 1", "0 [leave] volume@v volume 1"]) {
+    it(`rejects unsupported schedule ${command} without replacing output`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }), "/out.wav": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af",
+        `asendcmd=c='${command}',volume@v=1`, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("asendcmd:"), result.stderr);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
+    });
+  }
+  for (const [prefix, transition] of [["", 2048], ["asetnsamples=300:p=0,", 2100]] as const) {
+    it(`applies named volume commands on the first eligible frame with ${prefix || "input frames"}`, async () => {
+      const samples = [ [0, 600], [400, 1600], [12000, 1600], [0, 800], [4000, 1600], [0, 1000] ]
+        .flatMap(([amplitude, count]) => Array.from({ length: count! }, (_, i) => (i % 2 ? -amplitude! : amplitude!) / 32768));
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [Float64Array.from(samples)] }) });
+      for (const [filter, path, gain] of [
+        ["anull", "/control.wav", 1],
+        [`${prefix}asendcmd=c='0.25 volume@v volume 0.25',volume@v=1,volume@other=0.5`, "/out.wav", 0.5]
+      ] as const) {
+        const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", filter, "-c:a", "pcm_s16le", path], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const actual = parseWav(vfs.store.get(path)!).tracks[0]!.decodedAudio!.channelData[0]!;
+        assert.deepEqual(Array.from(actual, value => Math.round(value * 32768)),
+          samples.map((value, i) => Math.round(value * 32768 * gain * (path === "/out.wav" && i >= transition ? 0.25 : 1)) || 0));
+      }
+    });
+  }
+  it("applies successive commands and respects sender timestamps", async () => {
+    const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8).fill(400 / 32768)] }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af",
+      "asetnsamples=2:p=0,asetpts=PTS+8000,asendcmd=commands='1.00025 volume@v volume 0.25;1.0005 volume@v volume 0.5',volume@v=1",
+      "/out.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(Array.from(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!, value => value * 32768),
+      [400, 400, 100, 100, 200, 200, 200, 200]);
+  });
+});
+
 describe("bitplanenoise", () => {
   for (const [filter, limits, error] of [
     ["bitplanenoise=unknown=1", {}, "bitplanenoise: options"],

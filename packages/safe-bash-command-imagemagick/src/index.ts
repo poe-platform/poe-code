@@ -5126,7 +5126,6 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (token === "-grayscale" && !["average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(space)) {
             throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
         }
-        if (space === "cmyk") throw new Error("unsupported colorspace 'CMYK'");
         if (space === "lab") throw new Error("unsupported colorspace 'Lab'");
         apply = function* (image) {
             if (image.magickColorspace === "RGB" && space === "rgb") return image;
@@ -5149,6 +5148,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 image = { ...metadata, data, data16, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: "RGB" as const } : {}) };
                 if (linearize) return image;
             }
+            if (space === "cmyk") return { ...image, space: "cmyk", channels: 4 };
+            if (image.space === "cmyk") image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
             if (space === "hsl" || space === "hsb" || space === "hwb" || space === "xyz" || space === "ycbcr" || space === "yuv") return yield* convertHuePixels(image, space === "yuv" ? "YUV" : space === "ycbcr" ? "YCbCr" : space === "xyz" ? "XYZ" : space === "hwb" ? "HWB" : space === "hsb" ? "HSB" : "HSL");
             if (token !== "-grayscale" && !space.includes("gray") && !space.includes("grey") && space !== "rec709luma" && space !== "rec601luma") return image;
             const out = new Uint8Array(image.data);
@@ -5788,6 +5789,7 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
 }
 
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat): Generator<void, RgbaImage, void> {
+    if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     image = yield* prepareHueOutput(image, format);
     if (format !== "pbm") return image;
     const source = image.data16 ? { ...image, data: new Uint8Array(image.data16.buffer, image.data16.byteOffset, image.data16.byteLength) } : image;
@@ -5795,6 +5797,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat): Generator<
 }
 
 async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
+    if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     if (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV") {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
     }
@@ -8530,6 +8533,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             image = (await stack.get(stack.length - 1))!;
         }
         output = inferOutputFormat(outSpec, "png");
+        if (output.format === "tiff") for (let index = 0; index < stack.length; index++) {
+            if ((await stack.get(index))!.space === "cmyk") return { exitCode: 1, stdout: "", stderr: "magick: unsupported colorspace 'CMYK' for TIFF output\n" };
+        }
         if (outSpec.toLowerCase() === "null:" || outSpec.toLowerCase().startsWith("mpr:")) { await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
         const lower = outSpec.toLowerCase(), info = lower.startsWith("info:");
         const ftxt = lower.startsWith("ftxt:") || (lower.endsWith(".ftxt") && !outSpec.includes(":"));

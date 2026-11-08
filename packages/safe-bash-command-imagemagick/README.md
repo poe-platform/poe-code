@@ -74,7 +74,7 @@ Raw RGB, RGBA, BGR, BGRA and grayscale output supports extensions (`out.rgb`) an
 
 Use `-define tiff:rows-per-strip=N` to set TIFF strip height for final output and `-write`; `+define tiff:rows-per-strip` restores the default. Use `-define tiff:endian=msb|lsb` to select TIFF byte order, including intermediate `-write` outputs; `+define tiff:endian` restores little-endian output. Use `-define tiff:tile-geometry=32x16` for tiled TIFF output, including partial edge tiles; dimensions must be positive multiples of 16. `+define tiff:tile-geometry` restores strips. Use `-define tiff:alpha=associated|unassociated|unspecified` to select alpha metadata and sample encoding; associated output multiplies every sample, including alpha, by alpha. `+define tiff:alpha` restores unassociated output.
 
-`-colorspace CMYK` and `-colorspace Lab` are unsupported and return an error before writing the requested output, including TIFF, rather than silently producing RGB pixels.
+`-colorspace CMYK` writes four-component CMYK JPEGs, including progressive output. CMYK TIFF output and `-colorspace Lab` remain unsupported and return an error before writing the requested output.
 
 Use `+antialias` for hard-edged drawing and `-antialias` to restore smoothing for subsequent draws. Filled circles preserve untouched 16-bit source pixels.
 

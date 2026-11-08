@@ -934,10 +934,11 @@ export function createJpegEncoder(
   if(!Number.isSafeInteger(width)||width<=0||width>65535||!Number.isSafeInteger(height)||height<=0||height>65535)throw new RangeError("JPEG dimensions exceed 16-bit frame fields");
   const aliases: Record<string, string> = { "4:4:4": "1x1", "4:2:2": "2x1", "4:2:0": "2x2", "4:1:1": "4x1" };
   const grayscale = img.space === "b-w" || img.space === "grey16";
-  const components = grayscale ? 1 : 3;
-  const spec = options?.samplingFactor ?? options?.chromaSubsampling ?? "1x1";
+  const cmyk = img.space === "cmyk";
+  const components = grayscale ? 1 : cmyk ? 4 : 3;
+  const spec = options?.samplingFactor ?? (cmyk ? "1x1" : options?.chromaSubsampling) ?? "1x1";
   const factors = (aliases[spec] ?? spec).split(",").map(value => value.split("x").map(Number));
-  while (factors.length < 3) factors.push([1, 1]);
+  while (factors.length < components) factors.push([1, 1]);
   if (grayscale) factors.splice(0, factors.length, [1, 1]);
   const maxH = Math.max(...factors.map(value => value[0]!));
   const maxV = Math.max(...factors.map(value => value[1]!));
@@ -994,7 +995,8 @@ export function createJpegEncoder(
     (yDensity >>> 8) & 0xff, yDensity & 0xff,
     0x00, 0x00
   ]);
-  writeSegment(0xe0, app0);
+  if (cmyk) writeSegment(0xee, new Uint8Array([65, 100, 111, 98, 101, 0, 100, 0, 0, 0, 0, 0]));
+  else writeSegment(0xe0, app0);
 
   if (img.properties?.comment !== undefined) {
     const comment = new TextEncoder().encode(img.properties.comment);
@@ -1131,7 +1133,7 @@ export function createJpegEncoder(
 
   const samples = new Float64Array(64);
   const zzOut = new Int32Array(64);
-  const dc = [0, 0, 0];
+  const dc = new Array<number>(components).fill(0);
   const take=()=>{const chunk=gathering ? new Uint8Array() : Uint8Array.from(bytes);bytes.length=0;return chunk;};
   return {
     get blockWidth() { return blockWidth; },
@@ -1187,6 +1189,12 @@ export function createJpegEncoder(
               const r = data[idx]! * a + 255 * (1 - a);
               const g = data[idx + 1]! * a + 255 * (1 - a);
               const b = data[idx + 2]! * a + 255 * (1 - a);
+              if (cmyk) {
+                // Adobe transform 0 stores inverted CMYK; backing pixels remain RGBA.
+                const black = Math.max(r, g, b);
+                sum += (component === 3 ? Math.round(black) : black === 0 ? 255 : Math.round((component === 0 ? r : component === 1 ? g : b) * 255 / black)) - 128;
+                continue;
+              }
               // libjpeg rounds RGB to 8-bit YCbCr before the forward DCT.
               sum += component === 0
                 ? Math.floor((19595 * r + 38470 * g + 7471 * b + 32768) / 65536) - 128

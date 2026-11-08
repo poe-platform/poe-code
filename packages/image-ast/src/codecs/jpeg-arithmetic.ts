@@ -32,7 +32,7 @@ export function createJpegArithmeticEncoder(bytes: number[]) {
   let a = 0x10000, c = 0, ct = 11, buffer = -1, pendingFF = 0, pendingZero = 0;
   const dcStats = [new Uint8Array(64), new Uint8Array(64)];
   const acStats = [new Uint8Array(256), new Uint8Array(256)];
-  const context = new Uint8Array(3);
+  const context = new Uint8Array(4);
   const fixed = new Uint8Array([113]);
   const emit = (byte: number) => { bytes.push(byte); if (byte === 255) bytes.push(0); };
   const zeros = () => { while (pendingZero > 0) { bytes.push(0); pendingZero--; } };

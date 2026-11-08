@@ -475,7 +475,7 @@ export function encodeImage(
         ...(options.density === undefined ? {} : {density: options.density}),
         ...(options.orientation !== undefined ? { orientation: options.orientation } : {})
       });
-      return { data, format: "jpeg", channels: img.space === "b-w" || img.space === "grey16" ? 1 : 3 };
+      return { data, format: "jpeg", channels: img.space === "b-w" || img.space === "grey16" ? 1 : img.space === "cmyk" ? 4 : 3 };
     }
     case "webp": {
       const orientation = options.orientation ?? img.orientation;

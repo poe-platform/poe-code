@@ -2793,19 +2793,33 @@ function magickSepiaTone(intensity: number, threshold: number, gray: boolean): [
 function* applyMagickSolarizeSteps(img: RgbaImage, threshStr: string, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const raw = parseFloat(threshStr);
-    const thresh = threshStr.endsWith("%") ? (raw / 100) * 255 : raw / 257;
+    const thresh = threshStr.endsWith("%") ? (raw / 100) * 65535 : raw;
     // Native palette solarize updates the RGB colormap, ignoring the channel mask.
     const mask = img.isPalette ? [true, true, true, false] : [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
     const out = new Uint8Array(img.data);
+    const data16 = img.data16?.slice();
+    const hueSamples = img.hueSamples?.slice();
+    const evaluateSamples = img.evaluateSamples?.slice();
     for (let i = 0; i < out.length; i += 4) {
-        if (++cooperativeWork % 65536 === 0)
+        if (++cooperativeWork % 65536 === 0) {
+            signal?.throwIfAborted();
             yield;
+        }
         for (let channel = 0; channel < 4; channel++) {
-            if (mask[channel] && out[i + channel]! > thresh)
-                out[i + channel] = 255 - out[i + channel]!;
+            if (!mask[channel]) continue;
+            const offset = i + channel;
+            const value = evaluateSamples ? evaluateSamples[offset]! * 257
+                : hueSamples ? hueSamples[offset]! * 65535
+                : data16 ? data16[offset]! : out[offset]! * 257;
+            if (!(value > thresh)) continue;
+            const next = 65535 - value;
+            out[offset] = clampByteVal(next / 257);
+            if (data16) data16[offset] = Math.round(Math.max(0, Math.min(65535, next)));
+            if (hueSamples) hueSamples[offset] = next / 65535;
+            if (evaluateSamples) evaluateSamples[offset] = next / 257;
         }
     }
-    return { ...img, data: out };
+    return { ...img, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
 function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, levelsRaw: number, dither: boolean, channels: MagickState["channels"], signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
@@ -5505,6 +5519,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickFunctionSteps(image, operation, value, channels, signal);
     } else if (token === "-solarize") {
+        highDepth = true;
         const value = tokens[++i] ?? "50%";
         const threshold = value.endsWith("%") ? value.slice(0, -1) : value;
         if (!Number.isFinite(Number(threshold)) || Number.parseFloat(threshold) !== Number(threshold)) {
@@ -5778,7 +5793,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, evaluate: token === "-evaluate" || token === "-clamp", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" };
+    return { end: i, apply, evaluate: token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" };
 }
 
 async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {

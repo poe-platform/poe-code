@@ -9732,3 +9732,32 @@ for (const expression of ["1/0", "-inf", "inf", "-1/0", "1/0,volume=0", "1/0:eva
     assert.deepEqual(Array.from(audio.channelData[0]!, value => value * 32768), samples.map(() => 0));
   });
 }
+
+describe("video frame limit operand validation", () => {
+  for (const option of ["-frames:v", "-vframes"]) {
+    for (const value of ["2garbage", "1.5", "hello", ""]) for (const existing of [false, true]) {
+      it(`rejects ${option} ${JSON.stringify(value)} (existing=${existing})`, async () => {
+        const vfs = createTestVfs({
+          "/in.mp4": createSyntheticMp4({ frameCount: 5, includeAudio: false }),
+          ...(existing ? { "/out.mp4": "EXISTING" } : {})
+        });
+        const before = vfs.store.get("/out.mp4")?.slice();
+        const args = ["-y", "-i", "/in.mp4", "-c:v", "copy", option, value, "/out.mp4"];
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.match(result.stderr, /invalid frame limit/);
+        assert.deepEqual(vfs.store.get("/out.mp4"), before);
+        assert.equal(vfs.store.has("/out.mp4"), existing);
+      });
+    }
+    it(`accepts ${option} 2 and preserves the first two packets`, async () => {
+      const input = createSyntheticMp4({ frameCount: 5, includeAudio: false });
+      const vfs = createTestVfs({ "/in.mp4": input, "/out.mp4": "EXISTING" });
+      const args = ["-y", "-i", "/in.mp4", "-c:v", "copy", option, "2", "/out.mp4"];
+      const result = await runCmd(createFfmpegCommand(), args, vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).tracks[0]!.samples.map(sample => sample.data),
+        parseMp4(input).tracks[0]!.samples.slice(0, 2).map(sample => sample.data));
+    });
+  }
+});

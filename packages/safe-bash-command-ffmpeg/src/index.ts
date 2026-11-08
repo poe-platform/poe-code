@@ -5730,7 +5730,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               filePath: string,
               explicitFormat?: string,
               fpsHint?: number,
-              input?: InputSpec
+              input?: InputSpec,
+              ignoreEditList = false
             ): Promise<MediaDocument> => {
               if (explicitFormat === "lavfi") {
                 if (features.lavfiSources === false) {
@@ -5872,7 +5873,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const concatDocs: MediaDocument[] = [];
                 const startTimesSeconds: number[] = [];
                 let nextStartSeconds = 0;
-                const segments: { path: string; inpoint: number | undefined; outpoint: number | undefined; duration: number | undefined; tags?: Record<string, string> }[] = [];
+                const segments: { path: string; inpoint: number | undefined; outpoint: number | undefined; duration: number | undefined; ignoreEditList?: boolean; tags?: Record<string, string> }[] = [];
 
                 const lines = listText.split(/\r?\n/);
                 for (let l = 0; l < lines.length; l++) {
@@ -5890,7 +5891,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     continue;
                   }
                   const segment = segments[segments.length - 1];
-                  if (["duration", "inpoint", "outpoint", "file_packet_meta"].includes(keyword) && !segment) {
+                  if (["duration", "inpoint", "outpoint", "option", "file_packet_meta"].includes(keyword) && !segment) {
                     throw new Error(`Line ${l + 1}: ${keyword} without file`);
                   }
                   let cursor = keyword.length;
@@ -5926,6 +5927,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const value = readToken();
                     if (!key || !value) throw new Error(`Line ${l + 1}: string required`);
                     segment!.tags = { ...segment!.tags, [key]: value };
+                  } else if (keyword === "option") {
+                    const name = readToken();
+                    const value = readToken();
+                    if (!name || !value) throw new Error(`Line ${l + 1}: option requires key and value`);
+                    if (name !== "ignore_editlist") throw new Error(`Unsupported concat file option '${name}'`);
+                    if (!["0", "1", "false", "true"].includes(value)) {
+                      throw new Error(`Invalid boolean value '${value}' for option '${name}'`);
+                    }
+                    segment!.ignoreEditList = value === "1" || value === "true";
                   } else if (["inpoint", "outpoint", "duration"].includes(keyword)) {
                     const value = line.slice(keyword.length).trim();
                     // FFmpeg durations are decimal seconds (optionally s/ms/us)
@@ -5965,7 +5975,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   let itemDoc: MediaDocument;
                   try {
-                    itemDoc = await loadSingleDocument(segment.path);
+                    itemDoc = await loadSingleDocument(segment.path, undefined, undefined, undefined, segment.ignoreEditList);
                   } catch (error) {
                     rethrowRuntimeError(context, error);
                     if ((error as { code?: string }).code !== "ENOENT" ||
@@ -6005,7 +6015,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   nextStartSeconds += segment.duration ?? itemDoc.durationSeconds;
                   concatDocs.push(itemDoc);
                 }
-                return concatMp4(concatDocs, { startTimesSeconds, limits: options.limits, budget });
+                // Concat starts at zero even when the first file retains negative preroll.
+                return { ...concatMp4(concatDocs, { startTimesSeconds, limits: options.limits, budget }), containerFormat: "concat" };
               }
 
               const plugin = explicitFormat !== undefined
@@ -6020,7 +6031,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
 
               const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget, input?.allowedExtensions);
-              return plugin.parse(rawBytes, {
+              const document = plugin.parse(rawBytes, {
                 decodeSubtitles: subtitleCodec !== "copy",
                 decodeAudio: (plugin.id !== "flac" && plugin.id !== "ogg") || audioCodec !== "copy",
                 resolveResource,
@@ -6030,6 +6041,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 limits: options.limits,
                 budget
               });
+              if (!ignoreEditList || (plugin.id !== "mp4" && plugin.id !== "mov")) return document;
+              const tracks = document.tracks.map(track => ({ ...track, editList: undefined,
+                duration: track.samples.reduce((end, sample) => Math.max(end, sample.dts + sample.duration), 0)
+              }));
+              const durationSeconds = Math.max(0, ...tracks.map(track => track.duration / track.timescale));
+              return { ...document, tracks, durationSeconds, duration: Math.round(durationSeconds * document.timescale) };
             };
 
             // Load all inputs and apply per-input slicing / looping

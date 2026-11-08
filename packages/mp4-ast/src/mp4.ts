@@ -1404,10 +1404,10 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     }
     const origin = materialized.samples[0]?.dts ?? 0;
     const edits = t.editList?.length ? t.editList : [{
-      segmentDuration: Math.round(t.duration * movieTimescale / t.timescale),
+      segmentDuration: Math.round((t.duration + Math.min(0, origin)) * movieTimescale / t.timescale),
       mediaTime: 0, mediaRateInteger: 1, mediaRateFraction: 0
     }];
-    const track = origin > 0 && !options.fragmented ? { ...t, editList: edits.flatMap(edit => {
+    const track = origin !== 0 && !options.fragmented ? { ...t, editList: edits.flatMap(edit => {
       if (edit.mediaTime < 0) return [edit];
       const mediaTime = edit.mediaTime - origin;
       if (mediaTime >= 0) return [{ ...edit, mediaTime }];

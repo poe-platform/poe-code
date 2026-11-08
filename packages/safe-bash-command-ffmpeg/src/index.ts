@@ -694,7 +694,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
           offset++;
           args.push(parse(0, depth + 1));
         }
-        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !((filter === "volume" || filter === "select") && Number.isNaN(arg)))) {
+        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !((filter === "volume" || filter === "select" || filter === "crop") && Number.isNaN(arg)))) {
           throw new Error(`${filter}: invalid expression`);
         }
         if (name === "val" && args.length === 1 && sampleValue) value = sampleValue(args[0]!);
@@ -745,7 +745,7 @@ function parseFilterExpression(expression: string, filter: string, variables: Re
     return value;
   }
   const angle = parse();
-  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "volume" || filter === "select") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
+  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "volume" || filter === "select" || filter === "crop") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
   return angle;
 }
 
@@ -1615,15 +1615,19 @@ async function applyVideoFilterChain(
       }
       const iw = current[0]!.width;
       const ih = current[0]!.height;
-      const dimensions = { iw, ih, in_w: iw, in_h: ih };
+      const dimensions = { iw, ih, in_w: iw, in_h: ih, ow: NaN, oh: NaN, out_w: NaN, out_h: NaN };
       // Preserve the decoded chroma grid even after earlier RGBA filter operations.
       // AVPixelFormat: YUV420P/YUVJ420P and YUV422P/YUVJ422P.
       const format = current[0]!.native?.format;
       const exact = ["1", "true", "yes", "on"].includes((crop.exact ?? "0").toLowerCase());
       const hsub = !exact && (format === 0 || format === 12 || format === 4 || format === 13) ? 2 : 1;
       const vsub = !exact && (format === 0 || format === 12) ? 2 : 1;
-      const cw = Math.floor(roundToEven(parseFilterExpression(crop.w ?? String(iw), "crop", dimensions)) / hsub) * hsub;
-      const ch = Math.floor(roundToEven(parseFilterExpression(crop.h ?? String(ih), "crop", dimensions)) / vsub) * vsub;
+      // Resolve width again after height so either dimension can depend on the other.
+      dimensions.ow = dimensions.out_w = parseFilterExpression(crop.w ?? String(iw), "crop", dimensions);
+      dimensions.oh = dimensions.out_h = parseFilterExpression(crop.h ?? String(ih), "crop", dimensions);
+      dimensions.ow = dimensions.out_w = parseFilterExpression(crop.w ?? String(iw), "crop", dimensions);
+      const cw = Math.floor(roundToEven(dimensions.ow) / hsub) * hsub;
+      const ch = Math.floor(roundToEven(dimensions.oh) / vsub) * vsub;
       if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0 || cw > iw || ch > ih) {
         throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
       }

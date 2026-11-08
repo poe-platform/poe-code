@@ -9873,3 +9873,35 @@ describe("input display_rotation scope", () => {
     });
   }
 });
+
+
+describe("H.264 filter_units", () => {
+  for (const sync of [false, true]) {
+    for (const filter of ["null", "filter_units=remove_types=6", "filter_units=remove_types=6|9", "filter_units=remove_types=6-9", "h264_metadata=aud=insert,filter_units=remove_types=6", "h264_metadata=aud=insert,filter_units=remove_types=6|9"]) {
+      it(`filters packet bytes with ${filter} (sync=${sync})`, async () => {
+        const doc = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps: 4, frameCount: 4 }));
+        const track = doc.tracks[0]!;
+        const sei = new Uint8Array([0, 0, 0, 4, 6, 0, 0, 128]);
+        const input = serializeMp4({ ...doc, tracks: [{ ...track, samples: track.samples.map((sample, i) => ({
+          ...sample, data: i === 0 ? concatBytes([sei, sample.data]) : sample.data
+        })) }] });
+        const vfs = createTestVfs({ "/in.mp4": input });
+        const args = ["-i", "/in.mp4", "-c:v", "copy", "-bsf:v", filter, "/out.mp4"];
+        if (sync) assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+        else {
+          const result = await runCmd(createFfmpegCommand(), args, vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+        }
+        const output = parseMp4(vfs.store.get("/out.mp4")!).tracks[0]!;
+        assert.equal(output.samples.length, track.samples.length);
+        for (const [i, sample] of output.samples.entries()) {
+          const prefix = filter === "null" && i === 0 ? sei
+            : filter === "h264_metadata=aud=insert,filter_units=remove_types=6" ? new Uint8Array([0, 0, 0, 2, 9, 240]) : new Uint8Array();
+          assert.deepEqual(sample.data, concatBytes([prefix, track.samples[i]!.data]));
+          assert.equal(sample.duration, track.samples[i]!.duration);
+        }
+      });
+    }
+  }
+});

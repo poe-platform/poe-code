@@ -1,3 +1,4 @@
+import { filterVideoBitstream } from "./bitstream.js";
 import { authorTimecode } from "./timecode.js";
 import { serializeRawVideo } from "./rawvideo.js";
 import { formatYuv } from "./format-yuv.js";
@@ -3753,6 +3754,7 @@ export function evalSyncFfmpeg(
     let outputSs: number | undefined;
     let outputTo: number | undefined;
     let outputDuration: number | undefined;
+    let videoBitstreamFilter: string | undefined;
     let videoCodec: string | undefined;
     let audioCodec: string | undefined;
     let audioBitrate: number | undefined;
@@ -3833,6 +3835,10 @@ export function evalSyncFfmpeg(
       if (arg === "-y" || arg === "-n") {
         if (noOverwrite !== undefined && noOverwrite !== (arg === "-n")) return undefined;
         noOverwrite = arg === "-n";
+      }
+      else if (arg === "-bsf:v") {
+        videoBitstreamFilter = args[++i];
+        filterVideoBitstream([], videoBitstreamFilter ?? "", budget);
       }
       else if (arg === "-bsf" || arg.startsWith("-bsf:")) {
         validateBitstreamFilters(args[++i]);
@@ -4398,6 +4404,7 @@ export function evalSyncFfmpeg(
     if (outPlugin.id === "image2" && maxVideoFrames === 0) return "";
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
+    workingDoc = { ...workingDoc, tracks: filterVideoBitstream(workingDoc.tracks, videoBitstreamFilter, budget) };
     validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
@@ -4639,6 +4646,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let outputSs: number | undefined;
         let outputTo: number | undefined;
         let outputDuration: number | undefined;
+        let videoBitstreamFilter: string | undefined;
         let videoCodec: string | undefined;
         let rawPixelFormat: string | undefined;
         let audioCodec: string | undefined;
@@ -4803,7 +4811,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             rawPixelFormat = args[++i];
           } else if (arg === "-bsf" || arg.startsWith("-bsf:")) {
             try {
-              validateBitstreamFilters(args[++i]);
+              if (arg === "-bsf:v") {
+                videoBitstreamFilter = args[++i];
+                filterVideoBitstream([], videoBitstreamFilter ?? "", budget);
+              } else validateBitstreamFilters(args[++i]);
             } catch (error) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
@@ -8146,6 +8157,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 decodeExitCode = 69;
               }
             }
+
+            workingDoc = { ...workingDoc, tracks: filterVideoBitstream(workingDoc.tracks, videoBitstreamFilter, budget) };
 
             // Count processed media, not container headers or checksum text.
             workingDoc = applyDisplayAspects(workingDoc, displayAspects);

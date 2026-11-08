@@ -1515,8 +1515,9 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
 function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = parseMagickGeometry(geomStr);
-    const cw = Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? img.width / 100 : 1)));
-    const ch = Math.max(0, Math.round((g.height ?? (g.isPercent || geomStr.toLowerCase().includes("x") ? 0 : img.height)) * (g.isPercent ? img.height / 100 : 1)));
+    const offsetOnly = g.hasOffset && g.width === undefined && g.height === undefined;
+    const cw = offsetOnly ? img.width : Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? img.width / 100 : 1)));
+    const ch = offsetOnly ? img.height : Math.max(0, Math.round((g.height ?? (g.isPercent || geomStr.toLowerCase().includes("x") ? 0 : img.height)) * (g.isPercent ? img.height / 100 : 1)));
     const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height, cw, ch, g.x, g.y, gravity);
     if (x0 + cw < 0 || y0 + ch < 0 || x0 > img.width || y0 > img.height) {
         return img;
@@ -7569,8 +7570,9 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         xs = [{ source: 0, target: 0, length: x }, { source: x, target: x + sw, length: Math.max(0, w - x) }];
         ys = [{ source: 0, target: 0, length: y }, { source: y, target: y + sh, length: h - y }];
     } else {
-        const cw = Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? w / 100 : 1)));
-        const ch = Math.max(0, Math.round((g.height ?? (g.isPercent || geometry.toLowerCase().includes("x") ? 0 : h)) * (g.isPercent ? h / 100 : 1)));
+        const offsetOnly = g.hasOffset && g.width === undefined && g.height === undefined;
+        const cw = offsetOnly ? w : Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? w / 100 : 1)));
+        const ch = offsetOnly ? h : Math.max(0, Math.round((g.height ?? (g.isPercent || geometry.toLowerCase().includes("x") ? 0 : h)) * (g.isPercent ? h / 100 : 1)));
         const { x, y } = gravityAdjustBox(w, h, cw, ch, g.x, g.y, state.gravity);
         if (x + cw < 0 || y + ch < 0 || x > w || y > h) return image;
         const x0 = Math.max(0, Math.min(w, x)), x1 = Math.max(x0, Math.min(w, x + cw));

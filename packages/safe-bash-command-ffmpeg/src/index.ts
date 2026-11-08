@@ -3588,6 +3588,7 @@ export function evalSyncFfmpeg(
     let pendingTimestampOffset = 0;
     let pendingSyncReference: number | undefined;
     let copyInitialNonKeyframes = false;
+    let copyPriorStart = true;
     let copyTimestamps = false;
     let startAtZero = false;
     let pendingFixSubDuration = false;
@@ -3719,6 +3720,10 @@ export function evalSyncFfmpeg(
           throw new Error("Invalid -isync reference input");
         }
         pendingSyncReference = reference;
+      } else if (arg === "-copypriorss") {
+        const value = args[++i];
+        if (value !== "0" && value !== "1") throw new Error("Invalid copypriorss: expected 0 or 1");
+        copyPriorStart = value === "1";
       } else if (arg === "-copyinkf") {
         copyInitialNonKeyframes = true;
       } else if (arg === "-copyts") {
@@ -4020,6 +4025,7 @@ export function evalSyncFfmpeg(
           doc.tracks.some(track => track.codecDescriptions[0]?.codecName === `pcm_${doc.containerFormat}`)) return undefined;
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
         doc = sliceMp4(doc, { startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds });
+        if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputVideoPreroll(doc, copyInitialNonKeyframes);
       }
       if (inp.streamLoop === -1) {
         doc = loopToOutputEnd(doc, outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration, budget);
@@ -4382,6 +4388,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hashAlgorithm: string | undefined;
         let frameHashVersion = 2;
         let outputTimestampOffset = 0;
+        let copyPriorStart = true;
         let outputSs: number | undefined;
         let outputTo: number | undefined;
         let outputDuration: number | undefined;
@@ -4793,6 +4800,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingSyncReference = reference;
+          } else if (arg === "-copypriorss") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") throw new Error("Invalid copypriorss: expected 0 or 1");
+            copyPriorStart = value === "1";
           } else if (arg === "-copyinkf") {
             copyInitialNonKeyframes = true;
           } else if (arg === "-copyts") {
@@ -5781,6 +5792,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   endSeconds: rawSeek && inp.endSeconds !== undefined ? inp.endSeconds - startSeconds! : inp.endSeconds,
                   durationSeconds: inp.durationSeconds
                 });
+                if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputVideoPreroll(doc, copyInitialNonKeyframes);
               }
               if (inp.streamLoop === -1) {
                 doc = loopToOutputEnd(doc, outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration, budget);

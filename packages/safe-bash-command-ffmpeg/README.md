@@ -446,3 +446,5 @@ positional options and use in audio filter chains.
 `tmix=frames=3:weights=1 2 1` mixes a rolling window of frames with normalized weights, ordered oldest to newest. Startup repeats the first frame to fill the window, preserving every input timestamp. `frames` defaults to 3 (1–1024); weights default to 1 and the final weight repeats for remaining slots. Other options are unsupported.
 
 Use `-isync INDEX` before `-i` to synchronize that MP4/MOV input with another input’s source start time. `-isync -1` disables synchronization; the option resets for each input. With `-copyts`, also pass `-start_at_zero`. Inputs without a known source start time remain unchanged.
+
+For input-side stream-copy seeking (`-ss TIME -i INPUT`), `-copypriorss 0` discards video preroll before the requested start and begins at the next keyframe. `-copypriorss 1` preserves preroll, matching the default. Packet timestamps remain relative to the requested start.

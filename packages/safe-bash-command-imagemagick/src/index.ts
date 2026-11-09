@@ -6655,7 +6655,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-tint") {
         highDepth = true;
         const value = tokens[++i] ?? "";
-        const [red = 1, green = red, blue = red] = value.split(",").map(part => {
+        const strength = [...value].filter(character => character.trim() !== "").join("");
+        const [red = 1, green = red, blue = red] = strength.split(",").map(part => {
             const percent = part.endsWith("%") ? part.slice(0, -1) : part;
             if (!Number.isFinite(Number(percent)) || Number.parseFloat(percent) !== Number(percent)) {
                 throw new Error(`invalid argument '-tint' '${value}'`);

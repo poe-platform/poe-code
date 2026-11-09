@@ -6999,6 +6999,7 @@ export class Runtime {
   }
   async interpreter(context: CommandContext, state: State, io: IO, loadedSource?: { path: string; source: string }): Promise<number> {
     const args = [...context.args];
+    const shoptArguments: string[][] = [];
     let commandString = false;
     let standardInput = false;
     const options = { allexport: false, braceexpand: true, errexit: false, noclobber: false, noexec: false, noglob: false, nounset: false, pipefail: false };
@@ -7026,19 +7027,29 @@ export class Runtime {
       for (const flag of flags) {
         if (flag === "c") commandString = true;
         else if (flag === "s") standardInput = true;
+        else if (flag === "O") {
+          const name = args[0];
+          shoptArguments.push(name === undefined || name.startsWith("-") || name.startsWith("+")
+            ? enabled ? [] : ["-p"]
+            : [enabled ? "-s" : "-u", "--", args.shift()!]);
+        }
         else options[flagsByName[flag as keyof typeof flagsByName]] = enabled;
       }
     }
-    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, options.errexit, loadedSource, options.braceexpand, options.noexec, options.nounset, options);
+    const script = !commandString && !standardInput ? args.shift() : undefined;
     const source = commandString ? args.shift() : undefined;
     if (commandString && source === undefined) {
       await writeDiagnostic(context.stderr, `${context.command}: -c: option requires an argument\n`);
       return 2;
     }
-    const arg0 = commandString && args.length ? getCommandArguments(context).values[context.args.length - args.length]! : (context.argv0 ?? context.command);
+    const arg0 = script ?? (commandString && args.length ? getCommandArguments(context).values[context.args.length - args.length]! : (context.argv0 ?? context.command));
     if (commandString) args.shift();
     const child = this.processState(context, state, io, arg0, args);
     Object.assign(child, options);
+    for (const args of shoptArguments) {
+      if (await this.shoptBuiltin({ ...io, ...context, args }, child)) return 2;
+    }
+    if (script !== undefined) return this.scriptFile(context, state, io, script, args, false, loadedSource, child);
     child.commandString = commandString;
     const references = new PipeDescriptorFrame(io[invocationScope]);
     const childIO = isolateIO({ ...io, ...context, argv0: undefined, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: shellValueText(arg0) }, references);
@@ -7297,7 +7308,8 @@ export class Runtime {
     }, (runtime, forwarded, child, childIO) => (command, arguments_, options = {}) =>
       runtime.shebangTarget(forwarded, child, childIO, command, arguments_, options, target, loadedSource));
   }
-  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }, braceexpand = true, noexec = false, nounset = false, options?: Pick<State, "allexport" | "noclobber" | "noglob" | "pipefail">): Promise<number> {
+  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, loadedSource?: { path: string; source: string }, child?: State): Promise<number> {
+    let errexit = false;
     if (target === "") throw new CommandFailure(`${context.command}: : No such file or directory`, 127);
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const path = pathOf(state, target);
@@ -7368,14 +7380,10 @@ export class Runtime {
     }
     source = scriptSource.source;
     const lineIndex = new SourceLineIndex(source, this.budget.parsing);
-    const child = this.processState(context, state, io, target, args);
+    child ??= this.processState(context, state, io, target, args);
     child.callerTopLevel = true;
     child.sourceNames = [target];
-    child.errexit = errexit;
-    child.braceexpand = braceexpand;
-    child.noexec = noexec;
-    child.nounset = nounset;
-    if (options) Object.assign(child, options);
+    if (direct) child.errexit = errexit;
     if (direct) child.profile = interpreterProfile ?? state.profile ?? "bash";
     const references = new PipeDescriptorFrame(io[invocationScope]);
     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: target }, references);

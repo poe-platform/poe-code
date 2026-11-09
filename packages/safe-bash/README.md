@@ -922,6 +922,8 @@ and credential protections remain in effect.
 
   Enable it on a preceding line before using unquoted extended patterns; syntax on the
   same command line or inside a function body is parsed before that line executes.
+  Virtual `bash -O option` and `bash +O option` enable or disable supported `shopt`
+  options before parsing command strings, stdin, or virtual script files.
   `checkhash` defaults off: a removed cached executable fails with status 127.
   `shopt -s checkhash` searches `PATH` again when a cached executable is no longer usable.
   `shopt -s xpg_echo` enables backslash escapes in builtin `echo`; `echo -E` disables them for that call.

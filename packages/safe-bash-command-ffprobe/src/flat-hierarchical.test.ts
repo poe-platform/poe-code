@@ -63,3 +63,10 @@ it.each(writers)("preserves program and member indices with %s", writer => {
   const program = writer.endsWith("=0") ? "" : "programs.", stream = writer.endsWith("=0") ? "" : "streams.";
   expect(output).toBe(`${program}program.0.program_id=101\n${program}program.0.${stream}stream.0.index=0\n${program}program.1.program_id=202\n${program}program.1.${stream}stream.0.index=1\n${stream}stream.0.index=0\n${stream}stream.1.index=1\n`);
 });
+
+it.each(["flat=h=false", "flat=hierarchical=off"])("uses shared writer Boolean values with %s", writer => {
+  expect(evalSyncFfprobe(bytes, ["-of", writer, "-show_entries", "packet=size", "-"]))
+    .toBe('packet.0.size="160"\n');
+  expect(probe(bytes, ["-of", writer.replace("=", ":"), "-show_entries", "stream=index", "input.wav"]))
+    .toBe("stream.0.index=0\n");
+});

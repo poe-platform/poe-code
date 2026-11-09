@@ -331,7 +331,7 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
       lines.push(values.join(sep));
     } else if (format === "flat") {
       const sep = settings.get("s") ?? settings.get("sep_char") ?? ".";
-      const prefix = section === "stream" ? `${(settings.get("h") ?? settings.get("hierarchical")) === "0" ? "" : "streams" + sep}stream${sep}${streamIndex++}` : "format";
+      const prefix = section === "stream" ? `${!parseWriterBoolean(settings.get("h") ?? settings.get("hierarchical") ?? "1") ? "" : "streams" + sep}stream${sep}${streamIndex++}` : "format";
       for (const [key, value] of fields)
         lines.push(
           `${prefix}${sep}${key.startsWith("tag:") ? "tags" + sep + key.slice(4) : key}=${typeof value === "number" ? value : JSON.stringify(value)}`

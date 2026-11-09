@@ -170,7 +170,7 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
       yield "\n";
     } else if (format === "flat") {
       const sep = settings.get("s") ?? settings.get("sep_char") ?? ".";
-      const prefix = section === "stream" ? `${(settings.get("h") ?? settings.get("hierarchical")) === "0" ? "" : "streams" + sep}stream${sep}${streamIndex++}` : "format";
+      const prefix = section === "stream" ? `${!parseWriterBoolean(settings.get("h") ?? settings.get("hierarchical") ?? "1") ? "" : "streams" + sep}stream${sep}${streamIndex++}` : "format";
       for await (const field of fields()) {
         yield prefix + sep + (field.tag ? "tags" + sep : ""); yield* parts(field.key); yield "=";
         if (typeof field.value === "number") yield String(field.value); else yield* jsonString(parts(field.value));

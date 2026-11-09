@@ -780,7 +780,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       yield "\n";
     } else if (fmt === "flat") {
       const sep = paramMap.s ?? paramMap.sep_char ?? ".";
-      const hierarchical = (paramMap.h ?? paramMap.hierarchical) !== "0";
+      const hierarchical = parseWriterBoolean(paramMap.h ?? paramMap.hierarchical ?? "1");
       const prefix = parentPath + (["program", "stream", "packet", "frame"].includes(name)
         ? `${hierarchical ? name + "s" + sep : ""}${name}${sep}${index}${sep}`
         : `${name}${sep}`);

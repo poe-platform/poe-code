@@ -8141,7 +8141,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         const setting = applyMagickReadSetting(tokens, state, i);
-        if (setting === undefined && (t === "-solarize" || ((t === "-colorize" || t === "-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
+        if (setting === undefined && (t === "-solarize" || ((t === "-colorize" || t === "-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
@@ -10113,9 +10113,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-ordered-dither") {
-            const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+            const value = tokens[++i] ?? "", optionProperties = state.optionProperties;
+            const options = value.includes("%[") ? undefined : parseOrderedDither(value);
+            const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             const mask = [channels.r, channels.g, channels.b, channels.a];
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, orderedDitherPixelSteps(image, options, mask), signal) : undefined);
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expandedOptions = options ?? parseOrderedDither(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
+                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, orderedDitherPixelSteps(image, expandedOptions, mask), signal);
+            });
             continue;
         }
         if (!operandsOnly && token === "-posterize") {

@@ -95,7 +95,10 @@ test('ordered counting options, legacy width and exact numeric admission', () =>
   assert.equal(parseFoldArguments(['-cb', '-w', ' 05'], limits).width, 5);
   assert.deepEqual(parseFoldArguments(['--', '-c'], limits).files, ['-c']);
   for (const width of ['0', '-5', '1.5', '5x', '', '18446744073709551616']) assert.throws(() => parseFoldArguments(['-w', width], limits), FoldError);
-  assert.throws(() => parseFoldArguments(['-w9007199254740992'], limits), (e: unknown) => e instanceof FoldError && e.code === 'LIMIT');
+  for (const width of ['9007199254740991', '9007199254740992', '9007199254740993', '18446744073709551606']) {
+    assert.deepEqual(fold('abcde', ['-w', width]), expected('abcde'));
+  }
+  assert.throws(() => parseFoldArguments(['-w18446744073709551607'], limits), (e: unknown) => e instanceof FoldError && e.code === 'WIDTH');
 });
 test('UTF8 byte mode admits whole characters, C preserves individual byte identity', () => {
   assert.deepEqual(fold('界界界\n', ['-b', '-w5']), expected('界\n界\n界\n'));

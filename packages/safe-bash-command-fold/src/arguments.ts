@@ -27,8 +27,9 @@ export function parseFoldArguments(args: readonly string[], configuration: Parti
       if (number > 18446744073709551606n) throw new FoldError('WIDTH', 'Width exceeds released 64-bit native range');
     }
     if (start === i || number === 0n) throw new FoldError('WIDTH', 'Width must be at least 1');
-    if (number > BigInt(Number.MAX_SAFE_INTEGER)) throw new FoldError('LIMIT', 'Width exceeds checked arithmetic admission');
-    width = Number(number);
+    // Columns cannot exceed checked safe-integer arithmetic. Larger CLI widths
+    // are equivalent within that domain; keep the engine and SDK numeric.
+    width = number > BigInt(Number.MAX_SAFE_INTEGER) ? Number.MAX_SAFE_INTEGER : Number(number);
   };
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;

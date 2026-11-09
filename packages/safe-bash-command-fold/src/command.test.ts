@@ -600,3 +600,66 @@ function retainedFixture(load: (path: string, options: { signal: AbortSignal; ma
     async readFile() { throw new Error('whole-file fallback must not run'); },
   } as unknown as CommandContext['fs'];
 }
+
+for (const implementation of ['standalone', 'aggregate'] as const) {
+  test(`${implementation} accepts released 64-bit CLI widths without width-sized allocation`, async () => {
+    const { createFoldCommand: familyFold } = await import('./family.js');
+    const { settings } = await import('safe-bash-text-stream-engine/stream-inspection/shared');
+    for (const width of ['9007199254740991', '9007199254740992', '9007199254740993', '18446744073709551606']) {
+      for (const args of [['-w', width], [`--width=${width}`], [`-w${width}`], [`-${width}`], ['-w', ` \t+0${width}`]]) {
+        for (const mode of ['', '-b', '-c', '-s']) {
+          const input = 'abcde\n界\txy\b\rz';
+          const f = fixture([...args, ...(mode ? [mode] : [])], input);
+          const command = implementation === 'standalone' ? createFoldCommand() : familyFold(settings({}));
+          assert.equal((await command.execute(f.context)).exitCode, 0, args.join(' '));
+          assert.equal(f.text(), input);
+          assert.equal(f.stderr.length, 0);
+          await Promise.all(f.cleanups.map(cleanup => cleanup()));
+        }
+      }
+    }
+  });
+
+  test(`${implementation} rejects widths beyond the released range before reading input`, async () => {
+    const { createFoldCommand: familyFold } = await import('./family.js');
+    const { settings } = await import('safe-bash-text-stream-engine/stream-inspection/shared');
+    for (const width of ['18446744073709551607', '18446744073709551615', '18446744073709551616', '9'.repeat(100)]) {
+      const f = fixture(['-w', width]);
+      let inputRead = false;
+      const context = { ...f.context, stdin: { [Symbol.asyncIterator]() { inputRead = true; throw new Error('invalid width must not read stdin'); } } };
+      const command = implementation === 'standalone' ? createFoldCommand() : familyFold(settings({}));
+      assert.equal((await command.execute(context)).exitCode, 1);
+      assert.equal(f.text(), '');
+      assert.equal(inputRead, false);
+      assert.notEqual(f.stderr.length, 0);
+      await Promise.all(f.cleanups.map(cleanup => cleanup()));
+    }
+  });
+}
+
+test('large CLI widths preserve standalone data quotas and fixed-buffer flushing', async () => {
+  const input = 'abcde'.repeat(60000);
+  const f = fixture(['-w18446744073709551606'], input);
+  const result = await createFoldCommand({ limits: { retainedBytes: 1048576 } }).execute(f.context);
+  assert.equal(result.exitCode, 0);
+  assert.equal(f.text(), input);
+  assert.ok((result as Awaited<ReturnType<typeof fold>>).accounting.peakRetainedBytes <= 1048576);
+  for (const limits of [{ inputBytes: 4 }, { outputBytes: 4 }, { decodedBytes: 4 }, { work: 100 }]) {
+    const f = fixture(['-w18446744073709551606'], input);
+    await assert.rejects(createFoldCommand({ limits }).execute(f.context) as Promise<unknown>,
+      error => error instanceof FoldError && error.code === 'LIMIT');
+  }
+});
+
+test('large CLI widths preserve aggregate data quotas', async () => {
+  const { createFoldCommand: familyFold } = await import('./family.js');
+  const { settings } = await import('safe-bash-text-stream-engine/stream-inspection/shared');
+  const f = fixture(['-w18446744073709551606'], 'abcde');
+  assert.equal((await familyFold(settings({ limits: { maxRecordBytes: 5, maxOutputBytes: 5, maxInputBytes: 5 } })).execute(f.context)).exitCode, 0);
+  assert.equal(f.text(), 'abcde');
+  for (const limits of [{ maxRecordBytes: 4 }, { maxInputBytes: 4 }, { maxOutputBytes: 4 }, { maxSteps: 4 }]) {
+    const f = fixture(['-w18446744073709551606'], 'abcde');
+    assert.equal((await familyFold(settings({ limits })).execute(f.context)).exitCode, 1);
+    assert.ok(new TextDecoder().decode(Uint8Array.from(f.stderr)).includes('limit exceeded'));
+  }
+});

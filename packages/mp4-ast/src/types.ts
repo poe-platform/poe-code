@@ -704,6 +704,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** Matroska/WebM live output: unknown Segment size, no Duration or Cues. */
+  readonly live?: boolean | undefined;
   /** Whether WAV output can finalize RIFF and data lengths (default: true). */
   readonly seekable?: boolean | undefined;
   /** GIF repeat count: -1 omits the extension, 0 loops forever (default), 1–65535 repeats. */

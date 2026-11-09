@@ -1029,7 +1029,7 @@ export function serializeMkv(
   };
   const infoParts: Uint8Array[] = [
     makeEbmlUint(0x2ad7b1, 1_000_000), // TimecodeScale = 1ms
-    makeEbmlFloat(0x4489, Math.max(1, maxDurationMs)), // Duration in ms
+    ...(options.live ? [] : [makeEbmlFloat(0x4489, Math.max(1, maxDurationMs))]), // Duration in ms
     makeEbmlString(0x4d80, "@poe-code/mp4-ast"), // MuxingApp
     makeEbmlString(0x5741, mergedMeta.encoder ?? "@poe-code/mp4-ast") // WritingApp
   ];
@@ -1092,7 +1092,7 @@ export function serializeMkv(
       clusterStartMs = blk.ptsMs;
       clusterPayloadSize = makeEbmlUint(0xe7, clusterStartMs).byteLength;
     }
-    if (blk.isKeyframe && doc.tracks[blk.trackNum - 1]!.type === "video") {
+    if (!options.live && blk.isKeyframe && doc.tracks[blk.trackNum - 1]!.type === "video") {
       cues.push({ time: blk.ptsMs, track: blk.trackNum, cluster: clusters.length, relativePosition: clusterPayloadSize });
     }
     const relTime = blk.ptsMs - clusterStartMs;
@@ -1178,7 +1178,9 @@ export function serializeMkv(
     segmentChildren.push(...clusters);
   }
 
-  const segmentElem = makeEbmlElement(0x18538067, concatBytes(segmentChildren));
+  const segmentElem = options.live
+    ? concatBytes([writeEbmlId(0x18538067), new Uint8Array([0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]), ...segmentChildren])
+    : makeEbmlElement(0x18538067, concatBytes(segmentChildren));
   return concatBytes([ebmlHeader, segmentElem]);
 }
 

@@ -4265,6 +4265,7 @@ export function evalSyncFfmpeg(
     let writeHeader = true;
     let writeXing = true;
     let writeBext = false;
+    let live = false;
     let writeTmcd = true;
     let sampleFormat: string | undefined;
     let trellis: number | undefined;
@@ -4738,6 +4739,8 @@ export function evalSyncFfmpeg(
         if (!["passthrough", "infer", "infer_no_subs"].includes(defaultMode)) {
           throw new Error("-default_mode requires passthrough, infer, or infer_no_subs");
         }
+      } else if (arg === "-live") {
+        live = parseFilterBoolean(args[++i] ?? "invalid", "Invalid live value: expected a boolean");
       } else if (arg === "-movflags") {
         const flags = args[++i] ?? "";
         validateMovflags(flags);
@@ -5030,7 +5033,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeId3v2, writeId3v1, metadataHeaderPadding, reserveIndexSpace, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { live, writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeId3v2, writeId3v1, metadataHeaderPadding, reserveIndexSpace, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -5458,6 +5461,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeHeader = true;
         let writeXing = true;
         let writeBext = false;
+        let live = false;
         let writeTmcd = true;
         let sampleFormat: string | undefined;
         let trellis: number | undefined;
@@ -6740,6 +6744,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             defaultMode = args[++i] ?? "";
             if (!["passthrough", "infer", "infer_no_subs"].includes(defaultMode)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: -default_mode requires passthrough, infer, or infer_no_subs\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-live") {
+            try {
+              live = parseFilterBoolean(args[++i] ?? "invalid", "Invalid live value: expected a boolean");
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-movflags") {
@@ -11259,6 +11270,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     minPartitionOrder, maxPartitionOrder, exactRiceParameters }))
               : serializeLimitedWav(workingDoc, outPlugin!, {
               seekable: !isStdout(outputTarget) && !outputTarget.startsWith("md5:"),
+              live,
               format: outputFormat ?? outExt,
               gifLoop,
               gifFlags,

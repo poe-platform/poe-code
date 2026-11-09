@@ -59,6 +59,8 @@ HLS, multi-variant or nested master playlists, and DASH byte-range segments are 
 Single-variant HLS master playlists resolve their media playlist and its resources
 relative to the containing playlist.
 
+`serializeDashDocument()` also returns `publications()`: iterate its resource batches, write each batch before its manifest, and publish dynamic updates followed by the final static manifest.
+
 Set `useTemplate: false` to emit explicit `SegmentList` resource references instead of the default `SegmentTemplate`.
 Set `useTimeline: false` for fixed-duration `SegmentTemplate` output without a timeline.
 Set `hlsPlaylist: true` to also return `master.m3u8` and per-stream `media_N.m3u8` playlists referencing the same DASH fragments (including single-file byte ranges).

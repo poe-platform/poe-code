@@ -376,8 +376,12 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
   return { ...document, containerFormat: format, durationSeconds: duration, duration: Math.round(duration * document.timescale) };
 }
 
-/** Produces the manifest and every referenced initialization/media resource. */
-export function serializeDashDocument(doc: MediaDocument, options: SerializeMediaOptions = {}): { manifest: Uint8Array; resources: ReadonlyMap<string, Uint8Array> } {
+/** Produces static output plus ordered resource/manifest publications for live output. */
+export function serializeDashDocument(doc: MediaDocument, options: SerializeMediaOptions = {}): {
+  manifest: Uint8Array;
+  resources: ReadonlyMap<string, Uint8Array>;
+  publications(): Generator<{ manifest: Uint8Array; resources: ReadonlyMap<string, Uint8Array> }>;
+} {
   const profiles = (options.mpdProfile ?? "dash").split("+");
   if (profiles.some(profile => profile !== "dash" && profile !== "dvb_dash")) {
     throw new Error("Invalid DASH mpd_profile");
@@ -422,7 +426,11 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     }
   }
   if (assigned.size !== doc.tracks.length) throw new Error("DASH adaptation_sets must assign every stream");
-  const representations: string[][] = [];
+  const publicationTracks: {
+    initialization: [string, Uint8Array];
+    segments: { resource: [string, Uint8Array]; end: number }[];
+    render: (count: number) => string[];
+  }[] = [];
   const adaptationAttributes: string[] = [];
   const minPlaybackRate = options.minPlaybackRate ?? 1;
   const maxPlaybackRate = options.maxPlaybackRate ?? 1;
@@ -479,7 +487,6 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
           sample.dts - origin >= starts.length * segmentDuration * track.timescale) starts.push(i);
     }
     const firstSegment = windowSize ? Math.max(0, starts.length - windowSize) : 0;
-    const timeline: { time: number; duration: number; repeat: number }[] = [];
     let trackBytes = 0;
     let initialization = new Uint8Array();
     const segments: { time: number; duration: number; bytes: Uint8Array }[] = [];
@@ -576,33 +583,30 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         }
       }
       segments.push({ time, duration, bytes: media });
-      if (segment < firstSegment) continue;
-      const previous = timeline.at(-1);
-      if (previous && previous.duration === duration && previous.time + previous.duration * (previous.repeat + 1) === time) previous.repeat++;
-      else timeline.push({ time, duration, repeat: 0 });
     }
     const bandwidth = String(Number(streams[index]?.bit_rate) > 0 ? streams[index]!.bit_rate : Math.max(1, Math.ceil(trackBytes * 8 / Math.max(doc.durationSeconds, 0.001))));
     const initializationUri = templateUri(initName, String(index), 0, 0, bandwidth);
     const mediaUris = segments.map((media, segment) => templateUri(mediaName, String(index), segment + 1, media.time, bandwidth));
-    const segmentTimeline = `<SegmentTimeline>${timeline.map(s => `<S t="${s.time}" d="${s.duration}"${s.repeat ? ` r="${s.repeat}"` : ""}/>`).join("")}</SegmentTimeline>`;
-    let singleFileList = "";
-    if (options.singleFile) {
-      const uri = templateUri(singleFileName, String(index), 0, 0, bandwidth);
-      let offset = initialization.length;
-      singleFileList = segments.map((segment, index) => {
-        const start = offset;
-        offset += segment.bytes.length;
-        if (index < firstSegment) return "";
+    const singleFileUri = templateUri(singleFileName, String(index), 0, 0, bandwidth);
+    const ranges: string[] = [];
+    let offset = initialization.length;
+    const singleFile = options.singleFile ? concatBytes([initialization, ...segments.map(s => s.bytes)]) : undefined;
+    const publicationSegments = segments.map((segment, number) => {
+      const start = offset;
+      offset += segment.bytes.length;
+      if (singleFile) {
         const indexSize = webm || streaming ? 0 : new DataView(segment.bytes.buffer, segment.bytes.byteOffset, segment.bytes.byteLength).getUint32(0);
-        return `<SegmentURL mediaRange="${start}-${offset - 1}"${indexSize ? ` indexRange="${start}-${start + indexSize - 1}"` : ""}/>`;
-      }).join("");
-      resources.set(uri, concatBytes([initialization, ...segments.map(s => s.bytes)]));
-      singleFileList = `<BaseURL>${uri.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</BaseURL><SegmentList timescale="${track.timescale}"><Initialization range="0-${initialization.length - 1}"/>${segmentTimeline}${singleFileList}</SegmentList>`;
-    } else {
-      resources.set(initializationUri, initialization);
-      for (const [segment, media] of segments.entries()) {
-        resources.set(mediaUris[segment]!, media.bytes);
+        ranges.push(`<SegmentURL mediaRange="${start}-${offset - 1}"${indexSize ? ` indexRange="${start}-${start + indexSize - 1}"` : ""}/>`);
       }
+      return {
+        resource: [singleFile ? singleFileUri : mediaUris[number]!, singleFile ? singleFile.subarray(0, offset) : segment.bytes] as [string, Uint8Array],
+        end: (segment.time + segment.duration) / track.timescale
+      };
+    });
+    if (singleFile) resources.set(singleFileUri, singleFile);
+    else {
+      resources.set(initializationUri, initialization);
+      for (const [segment, media] of segments.entries()) resources.set(mediaUris[segment]!, media.bytes);
     }
     const description = track.codecDescriptions[0];
     let codec = description?.formatFourCC ?? "";
@@ -662,18 +666,34 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     const language = track.language && track.language !== "und"
       ? ` lang="${track.language.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"` : "";
     adaptationAttributes[index] = `contentType="${track.type}" segmentAlignment="true"${language}${videoAttributes}`;
-    representations[index] = [
-      `<Representation id="${index}" mimeType="${track.type}/${webm ? "webm" : "mp4"}" codecs="${codec}" bandwidth="${bandwidth}"${dimensions}>`,
-      ...(track.type === "audio" && description?.channels ? [
-        `<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${description.channels}"/>`
-      ] : []),
-      options.singleFile ? singleFileList : options.useTemplate === false
-        ? `<SegmentList timescale="${track.timescale}"><Initialization sourceURL="${initializationUri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>${segmentTimeline}${mediaUris.slice(firstSegment).map(uri => `<SegmentURL media="${uri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>`).join("")}</SegmentList>`
-        : options.useTimeline === false
-          ? `<SegmentTemplate timescale="1000000" duration="${Math.round(segmentDuration * 1_000_000)}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1"/>`
-          : `<SegmentTemplate timescale="${track.timescale}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="${firstSegment + 1}">${segmentTimeline}</SegmentTemplate>`,
-      '</Representation>'
-    ];
+    publicationTracks.push({
+      initialization: [singleFile ? singleFileUri : initializationUri, initialization],
+      segments: publicationSegments,
+      render(count) {
+        const firstSegment = windowSize ? Math.max(0, count - windowSize) : 0;
+        const timeline: { time: number; duration: number; repeat: number }[] = [];
+        for (let number = firstSegment; number < count; number++) {
+          const { time, duration } = segments[number]!;
+          const previous = timeline.at(-1);
+          if (previous && previous.duration === duration && previous.time + previous.duration * (previous.repeat + 1) === time) previous.repeat++;
+          else timeline.push({ time, duration, repeat: 0 });
+        }
+        const segmentTimeline = `<SegmentTimeline>${timeline.map(s => `<S t="${s.time}" d="${s.duration}"${s.repeat ? ` r="${s.repeat}"` : ""}/>`).join("")}</SegmentTimeline>`;
+        const singleFileList = `<BaseURL>${singleFileUri.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</BaseURL><SegmentList timescale="${track.timescale}"><Initialization range="0-${initialization.length - 1}"/>${segmentTimeline}${ranges.slice(firstSegment, count).join("")}</SegmentList>`;
+        return [
+          `<Representation id="${index}" mimeType="${track.type}/${webm ? "webm" : "mp4"}" codecs="${codec}" bandwidth="${bandwidth}"${dimensions}>`,
+          ...(track.type === "audio" && description?.channels ? [
+            `<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${description.channels}"/>`
+          ] : []),
+          options.singleFile ? singleFileList : options.useTemplate === false
+            ? `<SegmentList timescale="${track.timescale}"><Initialization sourceURL="${initializationUri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>${segmentTimeline}${mediaUris.slice(firstSegment, count).map(uri => `<SegmentURL media="${uri.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>`).join("")}</SegmentList>`
+            : options.useTimeline === false
+              ? `<SegmentTemplate timescale="1000000" duration="${Math.round(segmentDuration * 1_000_000)}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="1"/>`
+              : `<SegmentTemplate timescale="${track.timescale}" initialization="${initAttribute}" media="${mediaAttribute}" startNumber="${firstSegment + 1}">${segmentTimeline}</SegmentTemplate>`,
+          '</Representation>'
+        ];
+      }
+    });
   }
   const lines = [
     '<?xml version="1.0" encoding="utf-8"?>',
@@ -682,6 +702,8 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     ...serviceDescription,
     '<Period id="0" start="PT0S">'
   ];
+  const manifestHeader = lines.slice();
+  const adaptationHeaders = new Map<number, string>();
   for (const adaptation of adaptations) {
     let dimensions = "";
     if (doc.tracks[adaptation.indices[0]!]!.type === "video") {
@@ -693,10 +715,12 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       }
       dimensions = ` maxWidth="${maxWidth}" maxHeight="${maxHeight}"`;
     }
-    lines.push(`<AdaptationSet id="${adaptation.id}" ${adaptationAttributes[adaptation.indices[0]!]}${dimensions}>`);
-    for (const index of adaptation.indices) lines.push(...representations[index]!);
+    adaptationHeaders.set(adaptation.id, `<AdaptationSet id="${adaptation.id}" ${adaptationAttributes[adaptation.indices[0]!]}${dimensions}>`);
+    lines.push(adaptationHeaders.get(adaptation.id)!);
+    for (const index of adaptation.indices) lines.push(...publicationTracks[index]!.render(publicationTracks[index]!.segments.length));
     lines.push('</AdaptationSet>');
   }
+  const periodEnd = lines.length;
   if (options.hlsPlaylist) {
     const master = ["#EXTM3U", "#EXT-X-VERSION:7"];
     const audio = doc.tracks.flatMap((track, index) => track.type === "audio" ? [index] : []);
@@ -720,5 +744,46 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   lines.push('</Period></MPD>', '');
   const manifest = encodeUtf8(lines.join("\n"));
   budget.checkOutputBytes(totalBytes + manifest.length);
-  return { manifest, resources };
+  return {
+    manifest,
+    resources,
+    *publications() {
+      const availabilityStartTime = new Date().toISOString();
+      const counts = publicationTracks.map(() => 0);
+      let pending = new Map(publicationTracks.map(track => track.initialization));
+      while (true) {
+        budget.checkCpu();
+        const end = Math.min(...publicationTracks.map((track, index) => track.segments[counts[index]!]?.end ?? Infinity));
+        if (end === Infinity) break;
+        for (const [index, track] of publicationTracks.entries()) {
+          while (counts[index]! < track.segments.length && track.segments[counts[index]!]!.end <= end) {
+            const [uri, bytes] = track.segments[counts[index]!]!.resource;
+            pending.set(uri, bytes);
+            counts[index]!++;
+          }
+        }
+        if (publicationTracks.every((track, index) => counts[index] === track.segments.length)) break;
+        const live = [
+          manifestHeader[0],
+          manifestHeader[1]!.replace('type="static"', `type="dynamic" minimumUpdatePeriod="PT${segmentDuration}S" suggestedPresentationDelay="PT${segmentDuration}S" availabilityStartTime="${availabilityStartTime}" publishTime="${new Date().toISOString()}"`)
+            .replace(` mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S"`, ""),
+          ...manifestHeader.slice(2)
+        ];
+        for (const adaptation of adaptations) {
+          live.push(adaptationHeaders.get(adaptation.id)!);
+          for (const index of adaptation.indices) live.push(...publicationTracks[index]!.render(counts[index]!));
+          live.push('</AdaptationSet>');
+        }
+        live.push(...lines.slice(periodEnd));
+        const bytes = encodeUtf8(live.join("\n"));
+        budget.checkOutputBytes(totalBytes + bytes.length);
+        yield { manifest: bytes, resources: pending };
+        pending = new Map();
+      }
+      if (options.hlsPlaylist) {
+        for (const [uri, bytes] of resources) if (uri.endsWith(".m3u8")) pending.set(uri, bytes);
+      }
+      yield { manifest, resources: pending };
+    }
+  };
 }

@@ -544,7 +544,7 @@ filesystem, including fMP4 initialization files, and report the actual media
 streams. HLS skips local media segments with disallowed file extensions before reading them; disallowed initialization files fail. Put `-allowed_extensions mp4,m4s,txt` before `-i` to replace the default media extension list for that input, or use `ALL` to allow any extension. Missing DASH media fragments are skipped when initialization is available,
 preserving surviving packet timestamps; missing initialization files and other read errors fail the command. DASH output (`-f dash` or
 `.mpd`) selects WebM for VP9 (`video/webm`, `init-stream*.webm`, and `chunk-stream*.webm`); H.264 retains MP4 with `init-stream*.m4s` and `chunk-stream*.m4s` files
-beside it. Use `-init_seg_name 'i-$RepresentationID$.mp4'` and
+beside it. It publishes a dynamic manifest after completed segments become available, then finalizes a static manifest at EOF. Use `-init_seg_name 'i-$RepresentationID$.mp4'` and
 `-media_seg_name 'm-$RepresentationID$-$Number$.m4s'` to customize the names; `$ext$` expands to the selected container extension.
 Use `-mpd_profile dvb_dash` to declare the DVB DASH profile, or `-mpd_profile dash+dvb_dash` for both DVB and the default ISO live profile.
 MP4 media chunks include a local `sidx` index covering their fragments. Use `-streaming 1` to omit indexes and write one fragment per frame (`0` is the default).

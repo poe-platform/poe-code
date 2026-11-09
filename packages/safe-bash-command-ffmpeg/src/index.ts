@@ -10229,12 +10229,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (!registry.findByFormatName("dash")?.canMux) throw new Error("DASH AST is not registered");
               const outResolved = resolvePath(context.cwd, outputTarget);
               const outDir = outResolved.slice(0, outResolved.lastIndexOf("/")) || "/";
-              const { manifest, resources } = serializeDashDocument(workingDoc, { mpdProfile: dashMpdProfile, hlsPlaylist: dashHlsPlaylist, adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.$ext$", minPlaybackRate: dashMinPlaybackRate, maxPlaybackRate: dashMaxPlaybackRate, segmentDuration: dashSegmentDuration, fragmentType: dashFragmentType, fragmentDuration, streaming: dashStreaming, lowLatency: dashLowLatency, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
+              const { resources, publications } = serializeDashDocument(workingDoc, { mpdProfile: dashMpdProfile, hlsPlaylist: dashHlsPlaylist, adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.$ext$", minPlaybackRate: dashMinPlaybackRate, maxPlaybackRate: dashMaxPlaybackRate, segmentDuration: dashSegmentDuration, fragmentType: dashFragmentType, fragmentDuration, streaming: dashStreaming, lowLatency: dashLowLatency, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
-              for (const [uri, bytes] of resources) {
-                await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(outDir, uri), data, { signal: context.signal }));
+              for (const publication of publications()) {
+                for (const [uri, bytes] of publication.resources) {
+                  await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(outDir, uri), data, { signal: context.signal }));
+                }
+                await writeFileOutput(context, publication.manifest, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
               }
-              await writeFileOutput(context, manifest, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
               if (dashRemoveAtExit) {
                 for (const uri of resources.keys()) {
                   await context.fs.rm(resolvePath(outDir, uri), { signal: context.signal });

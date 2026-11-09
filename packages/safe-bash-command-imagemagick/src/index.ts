@@ -4678,6 +4678,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     let tile = state.tile !== undefined;
     let stroke = rgbaToCss(state.stroke);
     let strokeWidth = state.strokeWidth;
+    const contexts: { fill: string; tile: boolean; stroke: string; strokeWidth: number }[] = [];
     const tokens: string[] = [];
     for (let offset = 0; offset < drawCmd.length;) {
         if (++cooperativeWork % 65536 === 0) yield;
@@ -4701,7 +4702,16 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (++cooperativeWork % 65536 === 0)
             yield;
         const cmd = tokens[i++]!.toLowerCase();
-        if (cmd === "fill") {
+        if (cmd === "push" || cmd === "pop") {
+            if (tokens[i++]?.toLowerCase() !== "graphic-context") throw new Error(`${cmd} drawing requires graphic-context`);
+            if (cmd === "push") contexts.push({ fill, tile, stroke, strokeWidth });
+            else {
+                const context = contexts.pop();
+                if (!context) throw new Error("Cannot pop graphic-context without a matching push");
+                ({ fill, tile, stroke, strokeWidth } = context);
+            }
+        }
+        else if (cmd === "fill") {
             fill = rgbaToCss(parseColor(tokens[i++] ?? "#000000"));
             tile = false;
         }

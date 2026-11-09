@@ -963,6 +963,7 @@ export interface State extends DynamicVariableState {
   redirectAssignments?: ReadonlyMap<string, ShellValue>;
   lastArgument?: string;
   functionNames?: string[];
+  sourceNames?: string[];
   callerFrames?: (CallerFrame & { readonly routine: string })[];
   callerTopLevel?: boolean;
   shellStartedAt?: number;
@@ -1651,6 +1652,7 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
   if (raw.variableAttributes) cloned.variableAttributes = new Map(raw.variableAttributes);
   if (raw.getopts) cloned.getopts = cloneGetoptsBinding(raw);
   if (raw.functionNames) cloned.functionNames = [...raw.functionNames];
+  if (raw.sourceNames) cloned.sourceNames = [...raw.sourceNames];
   if (raw.callerFrames) cloned.callerFrames = [...raw.callerFrames];
   if (raw.aliases) cloned.aliases = new Map(raw.aliases);
   if (raw.loopDepth > 0 || (raw as { _subshellInLoop?: boolean })._subshellInLoop) {
@@ -3112,6 +3114,7 @@ export class Runtime {
           ?? (name === "LINENO" ? String(line ?? 1)
             : name === "_" ? state.lastArgument ?? ""
             : name === "FUNCNAME" ? state.functionNames?.[0]
+            : name === "BASH_SOURCE" ? state.sourceNames?.[0]
             : undefined);
         if (state.nounset && typeof key === "string" && value === undefined) throw new NounsetFailure(`${key}: unbound variable`, line);
         return value;
@@ -3155,6 +3158,7 @@ export class Runtime {
     if (name === "DIRSTACK") return state.cwd;
     if (name === "BASH_SUBSHELL") return state.variables.BASH_SUBSHELL ?? "0";
     if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined) return state.functionNames?.[0];
+    if (name === "BASH_SOURCE") return state.sourceNames?.[0];
     if (name === "_" && state.variables._ === undefined) return state.lastArgument ?? "";
     return state.variables[name];
   }
@@ -3188,6 +3192,7 @@ export class Runtime {
   presenceArrayEntries(state: State, name: string): readonly string[] | undefined {
     if (name === "DIRSTACK") return [state.cwd, ...state.directoryStack?.entries ?? []];
     if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined && !arrayStore(state)?.get(name)) return state.functionNames ?? [];
+    if (name === "BASH_SOURCE") return state.sourceNames ?? [];
     return undefined;
   }
   tryVariablePresentSync(_state: State, _name: string): boolean | undefined { return undefined; }
@@ -5083,7 +5088,7 @@ export class Runtime {
         await this.diagnostic(io, `\`${command.name}': is a special builtin`);
         throw new Flow("exit", 2);
       } else {
-        const body = { ...command.body, sourceName: io.scriptName ?? "shell" };
+        const body = { ...command.body, sourceName: io.scriptName ?? "shell", sourceFile: state.sourceNames?.[0] ?? "environment" };
         const offset = io.diagnosticOffset ?? 0;
         const bodyLine = io.functionCommandLines?.get(command.body);
         if (bodyLine !== undefined) body.line = bodyLine - offset;
@@ -6432,6 +6437,7 @@ export class Runtime {
               const rawState = stateMonitor(state)?.raw ?? state;
               (rawState.callerFrames ??= []).unshift(captureCallerFrame(rawState, io, context.command));
               (rawState.functionNames ??= []).unshift(context.command);
+              (rawState.sourceNames ??= []).unshift(body.sourceFile ?? "environment");
               if (rawState !== state) state.functionNames = rawState.functionNames;};
             if (frameOwner) {
               const tickets = frameOwner.reserve({ epoch: true, work: 8 });
@@ -6519,6 +6525,7 @@ export class Runtime {
               state.locals.pop();
               const rawState = stateMonitor(state)?.raw ?? state;
               rawState.functionNames?.shift();
+              rawState.sourceNames?.shift();
               rawState.callerFrames?.shift();};
             if (!activeExt && !this.signal.aborted && scope.failures.length === 0 && !locals.has("OPTIND")) {
               if (functionRestoration) functionRestoration.apply(restoreControls, false);
@@ -7246,6 +7253,7 @@ export class Runtime {
     const lineIndex = new SourceLineIndex(source, this.budget.parsing);
     const child = this.processState(context, state, io, target, args);
     child.callerTopLevel = true;
+    child.sourceNames = [target];
     child.errexit = errexit;
     child.braceexpand = braceexpand;
     child.noexec = noexec;
@@ -7429,6 +7437,7 @@ export class Runtime {
         if (args.length) this.replacePositionals(state, getCommandArguments(context).values.slice(context.args.length - args.length), () => { state.positional = args; });
         const raw = stateMonitor(state)?.raw ?? state;
         (raw.callerFrames ??= []).unshift(captureCallerFrame(raw, io, "source"));
+        (raw.sourceNames ??= []).unshift(target);
         state.sourceDepth = (state.sourceDepth ?? 0) + 1;
         state.depth++;};
       if (owner) {
@@ -7463,6 +7472,7 @@ export class Runtime {
         state.depth--;
         state.sourceDepth = sourceDepth;
         (stateMonitor(state)?.raw ?? state).callerFrames?.shift();
+        (stateMonitor(state)?.raw ?? state).sourceNames?.shift();
         if (savedPositionals && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === version)) {
           monitor!.positionals.restore(savedPositionals, () => {
             state.positional = positional;
@@ -9202,6 +9212,7 @@ export class Runtime {
         names.push(name);};
       await consider("DIRSTACK", true);
       if (state.functionNames?.length) await consider("FUNCNAME", true);
+      await consider("BASH_SOURCE", true);
       for (const name in state.variables) if (Object.hasOwn(state.variables, name)) await consider(name, state.variables[name] !== undefined);
       if (store) for (const [name, entry] of store.bindings) await consider(name, entry.binding.assigned);
       for (const frame of state.locals) for (const [name, saved] of frame) {
@@ -9272,7 +9283,7 @@ export class Runtime {
       setArraySelector(resolved, { kind: "element", index: { decimal: shellValueText(value), word: { offset: word.offset, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } } });
       return resolved;
     }
-    const maximum = binding?.maximum ?? (part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? (state.functionNames?.length ?? 0) - 1 : state.variables[part.name] === undefined ? -1 : 0);
+    const maximum = binding?.maximum ?? ((this.presenceArrayEntries(state, part.name)?.length ?? (state.variables[part.name] === undefined ? 0 : 1)) - 1);
     const index = await this.arrayIndex(binding, selector.index, state, io, store.owner, false, maximum);
     const resolved = { ...part };
     copyArraySelector(part, resolved);
@@ -9302,8 +9313,9 @@ export class Runtime {
       const index = binding?.associative
         ? await this.arrayIndex(binding, element.index, state, io, store.owner)
         : numericIndex(element.index, 4294967295);
+      const entries = this.presenceArrayEntries(state, part.name);
       const value = binding ? index === undefined ? undefined : binding.getValue(index)
-        : part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? (index === undefined ? undefined : state.functionNames?.[index])
+        : entries ? (index === undefined ? undefined : entries[index])
         : index === 0 ? this.variable(state, part.name) : undefined;
       if (part.operator && defaultParameterOperators.includes(part.operator)) {
         const missing = value === undefined || part.operator.startsWith(":") && shellValueByteLength(value) === 0;
@@ -9707,8 +9719,9 @@ export class Runtime {
       if (selector.kind === "element") {
         const index = numericIndex(selector.index, 4294967295);
         if (index === undefined) throw new ArrayFailure("index outside 0..4294967295");
+        const entries = this.presenceArrayEntries(state, part.name);
         const value = binding ? binding.getValue(index)
-          : part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? state.functionNames?.[index]
+          : entries ? entries[index]
           : index === 0 && state.variables[part.name] !== undefined ? stateMonitor(state)?.values.get(part.name, state.variables[part.name]!) ?? state.variables[part.name] : undefined;
         if (["-", "+", ":-", ":+"].includes(part.operator ?? "")) {
           const missing = value === undefined || part.operator!.startsWith(":") && shellValueByteLength(value) === 0;
@@ -9719,7 +9732,7 @@ export class Runtime {
         this.requireParameter(value === undefined ? undefined : shellValueText(value), `${part.name}[${selector.index}]`, state, io, part.line);
         return part.length ? this.valueLength(value ?? "", state, io) : value ?? "";
       }
-      if (part.length) return String(binding?.values.size ?? (part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? state.functionNames?.length ?? 0 : state.variables[part.name] === undefined ? 0 : 1));
+      if (part.length) return String(binding?.values.size ?? (this.presenceArrayEntries(state, part.name)?.length ?? (state.variables[part.name] === undefined ? 0 : 1)));
       const values = await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring);
       const space = (selector.kind === "keys" || part.keys === true) ? Boolean(hereDocument || (selector.separator === "@" ? !part.quoted && !split || state.variables.IFS === "" : !part.quoted && split && state.variables.IFS === "")) : (!split && selector.separator === "@" && (!part.substring || !part.quoted || state.variables.IFS === ""));
       return this.arrayJoin(store.owner, values, space ? " " : this.ifsSeparator(state, io));
@@ -10194,8 +10207,9 @@ export class Runtime {
             ? await this.arrayIndex(binding, selector.index, state, partIO, requireArrays(state).owner)
             : numericIndex(selector.index, 4294967295);
           if (index === undefined && !binding?.associative) throw new ArrayFailure("index outside 0..4294967295");
+          const entries = this.presenceArrayEntries(state, part.name);
           value = binding ? index === undefined ? undefined : binding.getValue(index)
-            : part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? (index === undefined ? undefined : state.functionNames?.[index])
+            : entries ? (index === undefined ? undefined : entries[index])
             : index === 0 ? value : undefined;
         }
         const missing = value === undefined || (part.operator!.startsWith(":") && shellValueByteLength(value) === 0);
@@ -10467,7 +10481,7 @@ export class Runtime {
         const source = shellValueText(concatShellValues(fields, io[valueScope]));
         return this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);};
       offset = await evaluate(substring.offset);
-      const maximum = binding?.maximum ?? (name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? (state.functionNames?.length ?? 0) - 1 : state.variables[name] === undefined ? -1 : 0);
+      const maximum = binding?.maximum ?? ((this.presenceArrayEntries(state, name)?.length ?? (state.variables[name] === undefined ? 0 : 1)) - 1);
       if (offset < 0n) offset += BigInt(maximum + 1);
       if (substring.length) {
         count = await evaluate(substring.length);
@@ -10477,8 +10491,8 @@ export class Runtime {
     store.owner.reserve({ metadata: 64, work: 3 });
     if (offset < 0n || count === 0n) return [];
     if (!binding) {
-      if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined) {
-        const stack = state.functionNames ?? [];
+      const stack = this.presenceArrayEntries(state, name);
+      if (stack) {
         const start = Number(offset);
         const end = count === undefined ? stack.length : start + Number(count);
         const sliced = stack.slice(start, end);

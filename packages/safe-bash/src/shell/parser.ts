@@ -163,7 +163,7 @@ export type Command = (
   | { kind: "function"; name: string; body: Command }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string }
   | { kind: "conditional"; expression: ConditionalExpression; source: string }
-) & { redirects: Redirect[]; line?: number; sourceName?: string };
+) & { redirects: Redirect[]; line?: number; sourceName?: string; sourceFile?: string };
 
 function isSelfDelimitingCompound(command: Command | undefined): boolean {
   if (!command || command.redirects.length > 0) return false;

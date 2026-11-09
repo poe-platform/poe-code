@@ -209,7 +209,9 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   as false; `-L`/`-h` still recognize the link itself. Access checks `-r`/`-w`/`-x`
   evaluate denied access as false, and `-N` compares modification and access times.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
-  runs a script in the current shell. `bash -n script.sh` (also `sh -n`) checks
+  runs a script in the current shell. `BASH_SOURCE` tracks script and function
+  definition paths, so `${BASH_SOURCE[0]%/*}` locates sibling files.
+  `bash -n script.sh` (also `sh -n`) checks
   syntax without executing commands; `set -n` / `set -o noexec` parses the
   remaining input without execution. `set -e`, `set -u`, and `set -o pipefail`
   control failures; `set -a` (or `set -o allexport`) exports subsequent variable

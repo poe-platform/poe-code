@@ -1,3 +1,4 @@
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { ResizeKernel } from "@poe-code/image-ast/portable";
 import { interpolatePixelSteps } from "./sequence-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -148,10 +149,11 @@ type ResizeImage = { width: number; height: number; hasAlpha: boolean; space?: s
 type ResizeSamples = Generator<ConvolveRequest | { kind: "samples"; position: number; data: Float64Array } | undefined, void, Uint8Array | undefined>;
 
 /** Keep HDRI samples unclamped until all resizing and morph blending is finished. */
-function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: MagickResizeKernel, highDepth = false, settings: ResizeFilterSettings = {}): ResizeSamples {
+function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: MagickResizeKernel, highDepth = false, settings: ResizeFilterSettings = {}, inks = false): ResizeSamples {
     // An explicit window selects the Sinc weighting function with four-lobe support.
     if (settings.window) kernel = "sinc";
-    const range = highDepth ? 65535 : 255;
+    // Working CMYK rows use C, M, Y, alpha, K; black is never an alpha weight.
+    const range = highDepth ? 65535 : 255, stride = inks ? 5 : 4;
     // ImageMagick sharpens the sinc window by narrowing its support.
     const blur = Math.max(1e-12, (settings.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485
         : kernel === "lanczossharp" || thumbnail && kernel === "lanczos3" ? 0.9812505644269356 : 1));
@@ -161,13 +163,13 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
         const rows = new Map<number, Float64Array>();
         for (let y = 0; y < height; y++) {
             yield;
-            const vertical = contributions(y, image.height, height, blur, scale, kernel, thumbnailFactor, settings), sums = new Float64Array(count * 4);
+            const vertical = contributions(y, image.height, height, blur, scale, kernel, thumbnailFactor, settings), sums = new Float64Array(count * stride);
             for (let k = 0; k < vertical.weights.length; k++) {
                 const sy = vertical.first + k;
                 let row = rows.get(sy);
                 if (!row) {
                     yield;
-                    row = new Float64Array(count * 4);
+                    row = new Float64Array(count * stride);
                     const first = horizontal[0]!.first, last = horizontal[count - 1]!;
                     const end = last.first + last.weights.length;
                     for (let start = first; start < end; start += 1024) {
@@ -176,13 +178,26 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
                         const bytes = yield { kind: "read", highDepth, position: (sy * image.width + start) * 4, length: length * 4 };
                         if (!bytes || bytes.length !== length * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated resize pixels");
                         const pixels = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+                        let cmyk: Float64Array | undefined;
+                        if (inks && image.space === "cmyk") {
+                            const bytes = yield { kind: "read", hue: true, position: (sy * image.width + start) * 4, length: length * 4 };
+                            if (bytes?.length) cmyk = new Float64Array(bytes.slice().buffer);
+                            else {
+                                cmyk = new Float64Array(length * 4);
+                                for (let i = 0; i < length; i++) cmyk.set(rgbToCmyk(pixels[i * 4]! / range, pixels[i * 4 + 1]! / range, pixels[i * 4 + 2]! / range), i * 4);
+                            }
+                        }
                         for (let x = 0; x < count; x++) {
                             const contribution = horizontal[x]!;
                             for (let sx = Math.max(start, contribution.first); sx < Math.min(start + length, contribution.first + contribution.weights.length); sx++) {
                                 const i = sx - start, weight = contribution.weights[sx - contribution.first]!;
                                 const alpha = image.hasAlpha ? pixels[i * 4 + 3]! / range : 1;
-                                for (let channel = 0; channel < 3; channel++) row[x * 4 + channel]! += pixels[i * 4 + channel]! * alpha * weight;
-                                row[x * 4 + 3]! += alpha * weight;
+                                for (let channel = 0; channel < stride; channel++) {
+                                    if (channel === 3) continue;
+                                    const value = cmyk ? cmyk[i * 4 + (channel === 4 ? 3 : channel)]! * range : channel === 4 ? 0 : pixels[i * 4 + channel]!;
+                                    row[x * stride + channel]! += value * alpha * weight;
+                                }
+                                row[x * stride + 3]! += alpha * weight;
                             }
                         }
                     }
@@ -192,9 +207,9 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
                 for (let i = 0; i < sums.length; i++) sums[i]! += row[i]! * vertical.weights[k]!;
             }
             for (let x = 0; x < count; x++) {
-                const alpha = sums[x * 4 + 3]!;
-                for (let channel = 0; channel < 3; channel++) sums[x * 4 + channel] = !image.hasAlpha ? sums[x * 4 + channel]! : Math.abs(alpha) < 1e-12 ? 0 : sums[x * 4 + channel]! / alpha;
-                sums[x * 4 + 3] = image.hasAlpha ? alpha * range : range;
+                const alpha = sums[x * stride + 3]!;
+                for (let channel = 0; channel < stride; channel++) if (channel !== 3) sums[x * stride + channel] = !image.hasAlpha ? sums[x * stride + channel]! : Math.abs(alpha) < 1e-12 ? 0 : sums[x * stride + channel]! / alpha;
+                sums[x * stride + 3] = image.hasAlpha ? alpha * range : range;
             }
             yield { kind: "samples", position: (y * width + left) * 4, data: sums };
         }
@@ -221,16 +236,17 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
 
 export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[], highDepth = false, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // ImageMagick retains the first image's alpha unless both alpha channels are active.
-    const blendAlpha = a.hasAlpha && b.hasAlpha;
+    const blendAlpha = a.hasAlpha && b.hasAlpha, blendBlack = a.space === "cmyk" && b.space === "cmyk";
     // A grayscale first frame has one color channel, shared by R, G and B.
     const gray = a.space === "b-w" || a.space === "grey16";
-    if (a.width === width && a.height === height && b.width === width && b.height === height) {
+    const inks = a.space === "cmyk" || b.space === "cmyk", stride = inks ? 5 : 4;
+    if (!inks && a.width === width && a.height === height && b.width === width && b.height === height) {
         yield* interpolatePixelSteps(width * height * 4, fraction, blendAlpha, channels, highDepth, gray);
         return;
     }
     const sources = [a, b].map(image => resizeSamples(image, width, height, false,
         image.width === width && image.height === height,
-        kernel ?? (image.hasAlpha || width * height > image.width * image.height ? "mitchell" : "lanczos3"), highDepth, settings));
+        kernel ?? (image.hasAlpha || width * height > image.width * image.height ? "mitchell" : "lanczos3"), inks || highDepth, settings, inks));
     while (true) {
         let blended: Float64Array | undefined, position = 0;
         for (let image = 0; image < sources.length; image++) {
@@ -244,15 +260,33 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
             const samples = next.value!;
             if (samples.kind !== "samples") return;
             position = samples.position;
-            if (!blended) blended = Float64Array.from(samples.data, (value, i) => i % 4 === 3 && !blendAlpha ? value : value * (1 - fraction));
+            if (!blended) blended = Float64Array.from(samples.data, (value, i) => (i % stride === 3 && !blendAlpha || i % stride === 4 && !blendBlack) ? value : value * (1 - fraction));
             else for (let i = 0; i < blended.length; i++) {
-                if (i % 4 === 3 && !blendAlpha) continue;
-                if (channels && !channels[i % 4]) blended[i] = samples.data[i]!;
+                if (i % stride === 3 && !blendAlpha || i % stride === 4 && !blendBlack) continue;
+                if (channels && i % stride !== 4 && !channels[i % stride]) blended[i] = samples.data[i]!;
                 else blended[i]! += samples.data[i]! * fraction;
             }
         }
         const range = highDepth ? 65535 : 255;
-        const rounded = blended!.map(value => Math.round(Math.max(0, Math.min(range, value))));
+        if (inks) {
+            const count = blended!.length / stride, pixels = new Float64Array(count * 4), hue = a.space === "cmyk" ? new Float64Array(count * 4) : undefined;
+            for (let x = 0; x < count; x++) {
+                const offset = x * stride, black = blended![offset + 4]! / 65535;
+                for (let channel = 0; channel < 3; channel++) {
+                    const value = blended![offset + channel]! / 65535;
+                    if (hue) hue[x * 4 + channel] = value;
+                    pixels[x * 4 + channel] = (hue ? (1 - value) * (1 - black) : value) * range;
+                }
+                if (hue) hue[x * 4 + 3] = black;
+                pixels[x * 4 + 3] = blended![offset + 3]! / 65535 * range;
+            }
+            if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(hue.buffer) };
+            blended = pixels;
+        }
+        const rounded = blended!.map(value => {
+            const quantum = Math.fround(Math.max(0, Math.min(range, value)) * (highDepth ? 1 : 257));
+            return highDepth ? Math.round(quantum) : Math.floor(Math.fround(Math.fround(quantum / 257) + 0.5));
+        });
         if (gray) for (let i = 0; i < rounded.length; i += 4) rounded[i + 1] = rounded[i + 2] = rounded[i]!;
         const data = highDepth ? Uint16Array.from(rounded) : Uint8Array.from(rounded);
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };

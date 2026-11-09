@@ -3586,6 +3586,7 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
 
 function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal?: AbortSignal, dimensions: Pick<RgbaImage, "width" | "height" | "hasAlpha"> = img, sources: readonly RgbaImage[] = [img]): Generator<void, RgbaImage, void> {
     const data = new Uint8Array(dimensions.width * dimensions.height * 4);
+    let hueSamples: Float64Array | undefined;
     let data16: Uint16Array | undefined;
     let next = steps.next();
     while (!next.done) {
@@ -3594,12 +3595,20 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
         if (!request) { yield; next = steps.next(); }
         else if (request.kind === "read") {
             const source = sources[request.image ?? 0]!;
+            if (request.hue) {
+                const inks = source.hueSamples?.subarray(request.position, request.position + request.length);
+                next = steps.next(inks ? new Uint8Array(inks.buffer, inks.byteOffset, inks.byteLength) : new Uint8Array());
+                continue;
+            }
             const samples = source.data16?.subarray(request.position, request.position + request.length);
             next = steps.next(request.highDepth
                 ? samples ? new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength) : new Uint8Array(Uint16Array.from(source.data.subarray(request.position, request.position + request.length), value => value * 257).buffer)
                 : source.data.subarray(request.position, request.position + request.length));
         } else {
-            if (request.highDepth) {
+            if (request.hue) {
+                hueSamples ??= new Float64Array(data.length);
+                hueSamples.set(new Float64Array(request.data.slice().buffer), request.position);
+            } else if (request.highDepth) {
                 const samples = new Uint16Array(request.data.slice().buffer);
                 data16 ??= new Uint16Array(data.length);
                 data16.set(samples, request.position);
@@ -3610,7 +3619,7 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
     }
     // Raster steps replace the pixels; the original high-depth samples are stale.
     const { data16: _data16, ...metadata } = img;
-    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(data16 ? { data16 } : {}) };
+    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }
 
 function resolveGravityOffset(
@@ -9161,6 +9170,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
 }
 async function transformStoredMagickRaster(image: StoredRgbaImage, backend: CompareFileSession, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal: AbortSignal, dimensions: Pick<StoredRgbaImage, "width" | "height" | "hasAlpha"> = image, sources: readonly StoredRgbaImage[] | ((index: number) => Promise<StoredRgbaImage>) = [image], checkpoint?: () => Promise<void>): Promise<StoredRgbaImage> {
     const position = backend.storage.allocate(dimensions.width * dimensions.height * 4), cache = new Map<string, Uint8Array>();
+    let storedHueSamples: number | undefined;
     let storedData16: StoredRgbaImage["storedData16"];
     let next = steps.next();
     while (!next.done) {
@@ -9168,7 +9178,10 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
         const request = next.value;
         if (!request) { await yieldTurn(signal); await checkpoint?.(); next = steps.next(); }
         else if (request.kind === "write") {
-            if (request.highDepth) {
+            if (request.hue) {
+                storedHueSamples ??= backend.storage.allocate(dimensions.width * dimensions.height * 32);
+                await backend.storage.write(storedHueSamples + request.position * 8, request.data);
+            } else if (request.highDepth) {
                 storedData16 ??= { position: backend.storage.allocate(dimensions.width * dimensions.height * 8), length: dimensions.width * dimensions.height * 4 };
                 await backend.storage.write(storedData16.position + request.position * 2, request.data);
                 const samples = new Uint16Array(request.data.slice().buffer);
@@ -9178,6 +9191,10 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
         }
         else {
             const source = typeof sources === "function" ? await sources(request.image ?? 0) : sources[request.image ?? 0]!;
+            if (request.hue) {
+                next = steps.next(source.storedHueSamples === undefined ? new Uint8Array() : await backend.storage.read(source.storedHueSamples + request.position * 8, request.length * 8));
+                continue;
+            }
             const highDepth = request.highDepth && source.storedData16, stride = highDepth ? 2 : 1;
             const base = highDepth ? highDepth.position : source.position;
             const offset = request.position * stride, length = request.length * stride;
@@ -9197,7 +9214,7 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
         }
     }
     const { storedData16: _storedData16, ...metadata } = image;
-    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedData16 ? { storedData16 } : {}) };
+    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }) };
 }
 
 async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal, channels?: readonly boolean[]): Promise<StoredRgbaImage> {

@@ -1,7 +1,8 @@
+import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Separable à trous hat transform with native noise thresholds and reflected edges. */
-export function* waveletDenoisePixelSteps(image: { width: number; height: number }, geometry: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, geometry: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const [thresholdText = "", softnessText = "0", ...extra] = geometry.replaceAll("%", "").split("x");
     const scale = geometry.includes("%") ? 65535 / 100 : 1;
     const threshold = Number(thresholdText) * scale;
@@ -11,20 +12,21 @@ export function* waveletDenoisePixelSteps(image: { width: number; height: number
     const noise = [0.8002, 0.2735, 0.1202, 0.0585, 0.0291];
     let levels = 5;
     while (levels > 0 && 2 ** (levels - 1) >= Math.min(width, height)) levels--;
-    const output = new Uint8Array(size * 4);
+    const highDepth = !!(image.data16 || image.storedData16), quantumScale = highDepth ? 1 : 257;
+    const output = highDepth ? new Uint16Array(size * 4) : new Uint8Array(size * 4);
     for (let start = 0; start < size; start += 1024) {
         yield;
         const count = Math.min(1024, size - start);
-        const bytes = yield { kind: "read", position: start * 4, length: count * 4 };
-        if (!bytes || bytes.length !== count * 4) throw new Error("Truncated wavelet pixels");
-        output.set(bytes, start * 4);
+        const bytes = yield { kind: "read", highDepth, position: start * 4, length: count * 4 };
+        if (!bytes || bytes.length !== count * (highDepth ? 8 : 4)) throw new Error("Truncated wavelet pixels");
+        output.set(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes, start * 4);
     }
     if (threshold !== 0 && levels > 0) {
         const planes = new Float32Array(size * 3), row = new Float32Array(Math.max(width, height));
         for (let channel = 0; channel < 3; channel++) {
             for (let i = 0; i < size; i++) {
                 if (i % 1024 === 0) yield;
-                planes[i] = output[i * 4 + channel]! * 257;
+                planes[i] = output[i * 4 + channel]! * quantumScale;
             }
             let high = 0, low = 0;
             for (let level = 0; level < levels; level++) {
@@ -57,12 +59,12 @@ export function* waveletDenoisePixelSteps(image: { width: number; height: number
             }
             for (let i = 0; i < size; i++) {
                 if (i % 1024 === 0) yield;
-                output[i * 4 + channel] = Math.max(0, Math.min(255, Math.round((planes[i]! + planes[low + i]!) / 257)));
+                output[i * 4 + channel] = Math.max(0, Math.min(highDepth ? 65535 : 255, Math.round(Math.fround(planes[i]! + planes[low + i]!) / quantumScale)));
             }
         }
     }
     for (let position = 0; position < output.length; position += 4096) {
         yield;
-        yield { kind: "write", position, data: output.slice(position, position + 4096) };
+        yield { kind: "write", highDepth, position, data: new Uint8Array(output.slice(position, position + 4096).buffer) };
     }
 }

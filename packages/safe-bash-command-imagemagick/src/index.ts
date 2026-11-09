@@ -4595,7 +4595,28 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
 }
 
 type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor });
-type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | { kind: "floodfill"; x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
+type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | ({ kind: "floodfill" } | { kind: "paint-point" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
+
+function* drawPointPixelSteps(image: Pick<RgbaImage, "width" | "height">, point: { x: number; y: number; color: RgbaColor; alphaOnly: boolean }, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const seed = point.y * image.width + point.x, scale = highDepth ? 257 : 1;
+    for (let start = 0; start < image.width * image.height; start += 1024) {
+        yield;
+        const count = Math.min(1024, image.width * image.height - start);
+        const bytes = yield { kind: "read", position: start * 4, length: count * 4, highDepth };
+        if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated drawing pixels");
+        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
+        if (seed >= start && seed < start + count) {
+            const offset = (seed - start) * 4;
+            if (!point.alphaOnly) {
+                data[offset] = point.color.r * scale;
+                data[offset + 1] = point.color.g * scale;
+                data[offset + 2] = point.color.b * scale;
+            }
+            data[offset + 3] = Math.round(point.color.a * scale);
+        }
+        yield { kind: "write", position: start * 4, data: new Uint8Array(data.buffer), highDepth };
+    }
+}
 
 function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape, highDepth = false, tile?: Pick<RgbaImage, "width" | "height">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const quantum = highDepth ? 65535 : 255, scale = highDepth ? 257 : 1;
@@ -4786,15 +4807,15 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         else if (cmd === "color" || cmd === "alpha") {
             const px = num(), py = num(), method = tokens[i++]?.toLowerCase();
             const x = affine[0] * px + affine[2] * py + affine[4], y = affine[1] * px + affine[3] * py + affine[5];
-            if ((method !== "floodfill" && method !== "filltoborder") || !Number.isFinite(x) || !Number.isFinite(y)) throw new Error(`${cmd} drawing requires finite coordinates and the floodfill or filltoborder method`);
+            if ((method !== "floodfill" && method !== "filltoborder" && method !== "replace" && method !== "point") || !Number.isFinite(x) || !Number.isFinite(y)) throw new Error(`${cmd} drawing requires finite coordinates and the floodfill, filltoborder or point method`);
             if (svgElements.length > 0) {
                 yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
                 svgElements.length = 0;
             }
             // Native draw coordinates select the lower pixel at exact half ties.
             const seedX = Math.ceil(x - 0.5), seedY = Math.ceil(y - 0.5);
-            if (seedX < 0 || seedY < 0 || seedX >= img.width || seedY >= img.height) throw new Error(`${cmd} floodfill seed is outside the image`);
-            yield { kind: "floodfill", x: seedX, y: seedY, color: fillColor, alphaOnly: cmd === "alpha", fillToBorder: method === "filltoborder" };
+            if (seedX < 0 || seedY < 0 || seedX >= img.width || seedY >= img.height) throw new Error(`${cmd} ${method} seed is outside the image`);
+            yield { kind: method === "point" ? "paint-point" : "floodfill", x: seedX, y: seedY, color: fillColor, alphaOnly: cmd === "alpha", fillToBorder: method === "filltoborder" };
         }
         else if (cmd === "rectangle") {
             const x0 = num();
@@ -8402,9 +8423,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 for (const step of magickDrawSteps(im, drawSpec, state)) {
                     if (!step) { yield; continue; }
-                    if ((im.space === "b-w" || im.space === "grey16") && !(step.kind === "floodfill" && step.alphaOnly))
+                    if ((im.space === "b-w" || im.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point") && step.alphaOnly))
                         im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
                     if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile), signal, im, tile ? [im, tile] : [im]);
+                    else if (step.kind === "paint-point") im = yield* applyMagickRasterSteps(im, drawPointPixelSteps(im, step, !!im.data16), signal, { ...im, hasAlpha: im.hasAlpha || step.color.a < 255 });
+                    else if (step.kind === "replace") im = yield* applyMagickRasterSteps(im, drawReplacePixelSteps(im, step.x, step.y, step.color, step.alphaOnly, state.alphaFuzz, !!im.data16), signal, { ...im, hasAlpha: true });
                     else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, step.fillToBorder ? state.borderColor : undefined, step.color, state.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
                     else {
                         const overlay = decodeImage(new TextEncoder().encode(step.svg), { density: state.density });
@@ -9876,9 +9899,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const tile = settings.tile === undefined ? undefined : await parseStoredCompareInput(settings.tile, settings, backend, signal);
                 for (const step of magickDrawSteps(image, drawing, settings)) {
                     if (!step) { await yieldTurn(signal); continue; }
-                    if ((image.space === "b-w" || image.space === "grey16") && !(step.kind === "floodfill" && step.alphaOnly))
+                    if ((image.space === "b-w" || image.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point") && step.alphaOnly))
                         image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
                     if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile), signal, image, tile ? [image, tile] : [image]);
+                    else if (step.kind === "paint-point") image = await transformStoredMagickRaster(image, backend, drawPointPixelSteps(image, step, !!image.storedData16), signal, { ...image, hasAlpha: image.hasAlpha || step.color.a < 255 });
+                    else if (step.kind === "replace") image = await transformStoredMagickRaster(image, backend, drawReplacePixelSteps(image, step.x, step.y, step.color, step.alphaOnly, settings.alphaFuzz, !!image.storedData16), signal, { ...image, hasAlpha: true });
                     else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, step.fillToBorder ? settings.borderColor : undefined, step.color, settings.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
                     else {
                         const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);

@@ -11715,7 +11715,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (backend) yield { async run() {
             const active = signal ?? new AbortController().signal;
             const stack = new StoredImageStack(backend.storage, active);
-            let difference: StoredRgbaImage = { ...metadata, position: diffPosition!, ...(storedDiffData16 ? { depth: "ushort", storedData16: storedDiffData16 } : {}) };
+            let difference: StoredRgbaImage = { ...metadata, ...(imgA.properties ? { properties: imgA.properties } : {}), position: diffPosition!, ...(storedDiffData16 ? { depth: "ushort", storedData16: storedDiffData16 } : {}) };
             for (const operation of outputRotations) difference = await drainIdentifySteps(rotateImage(difference, operation), signal);
             await stack.push(difference);
             if (similarityPosition !== undefined) await stack.push({ ...metadata, position: similarityPosition });
@@ -11734,7 +11734,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
         } };
         else {
-            let difference: RgbaImage = { ...metadata, data: diffData!, ...(diffData16 ? { depth: "ushort", data16: diffData16 } : {}) };
+            let difference: RgbaImage = { ...metadata, ...(imgA.properties ? { properties: imgA.properties } : {}), data: diffData!, ...(diffData16 ? { depth: "ushort", data16: diffData16 } : {}) };
             for (const operation of outputRotations) difference = yield* rotateImage(difference, operation);
             const stack: RgbaImage[] = [difference];
             if (similarityData) stack.push({ ...metadata, data: similarityData });

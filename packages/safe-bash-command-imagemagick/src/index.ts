@@ -1477,6 +1477,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
     z: bitDepth, q: "16", r: `${meta.isPalette ? "PseudoClass" : "DirectClass"} ${space} ${meta.hasAlpha ? "Alpha" : ""}`,
     f: baseName, t: dot < 0 ? baseName : baseName.slice(0, dot), e: dot < 0 ? "" : baseName.slice(dot + 1), i: filePath,
+    d: filePath.slice(0, Math.max(0, filePath.lastIndexOf("/"))),
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
     x: String(resolution ? Number((resolution.x / resolutionScale).toPrecision(6)) : meta.density ?? 72),
     y: String(resolution ? Number((resolution.y / resolutionScale).toPrecision(6)) : meta.density ?? 72),
@@ -1486,6 +1487,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   };
   const properties: Record<string, string> = {
     ...meta.properties,
+    directory: short.d!, basename: short.t!, extension: short.e!,
     profiles: [...(meta.icc ? ["icc"] : []), ...(meta.xmp ? ["xmp"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
     gamma: String(Number((meta.gamma ?? 1 / 2.2).toPrecision(6))),
     orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",

@@ -1070,8 +1070,10 @@ export function serializeMkv(
 
   // Keep relative presentation timestamps within the signed 16-bit block range.
   const clusters: Uint8Array[] = [];
+  const cues: { time: number; track: number; cluster: number; relativePosition: number }[] = [];
   let clusterStartMs = allBlocks[0]?.ptsMs ?? 0;
   let currentClusterBlocks: Uint8Array[] = [];
+  let clusterPayloadSize = makeEbmlUint(0xe7, clusterStartMs).byteLength;
 
   const flushCluster = () => {
     if (currentClusterBlocks.length === 0) return;
@@ -1088,6 +1090,10 @@ export function serializeMkv(
     if ((blk.ptsMs - clusterStartMs > 30000 || blk.ptsMs - clusterStartMs < -32768) && currentClusterBlocks.length > 0) {
       flushCluster();
       clusterStartMs = blk.ptsMs;
+      clusterPayloadSize = makeEbmlUint(0xe7, clusterStartMs).byteLength;
+    }
+    if (blk.isKeyframe && doc.tracks[blk.trackNum - 1]!.type === "video") {
+      cues.push({ time: blk.ptsMs, track: blk.trackNum, cluster: clusters.length, relativePosition: clusterPayloadSize });
     }
     const relTime = blk.ptsMs - clusterStartMs;
     const sbWriter = new BinaryWriter(4 + blk.data.byteLength);
@@ -1111,6 +1117,7 @@ export function serializeMkv(
       sbWriter.writeBytes(blk.data);
       currentClusterBlocks.push(makeEbmlElement(0xa3, sbWriter.toUint8Array()));
     }
+    clusterPayloadSize += currentClusterBlocks[currentClusterBlocks.length - 1]!.byteLength;
   }
   flushCluster();
 
@@ -1139,7 +1146,37 @@ export function serializeMkv(
     ));
   }
   if (tagsElem) segmentChildren.push(tagsElem);
-  segmentChildren.push(...clusters);
+  if (cues.length > 0) {
+    // A fixed-width SeekPosition keeps the header size stable as offsets grow.
+    const seekHead = makeEbmlElement(0x114d9b74, makeEbmlElement(0x4dbb, concatBytes([
+      makeEbmlElement(0x53ab, writeEbmlId(0x1c53bb6b)), // SeekID: Cues
+      makeEbmlElement(0x53ac, new Uint8Array(8)) // SeekPosition, patched below
+    ])));
+    segmentChildren.unshift(seekHead);
+    let position = segmentChildren.reduce((size, element) => size + element.byteLength, 0);
+    const clusterPositions = clusters.map(cluster => {
+      const start = position;
+      position += cluster.byteLength;
+      return start;
+    });
+    new DataView(seekHead.buffer, seekHead.byteOffset, seekHead.byteLength)
+      .setBigUint64(seekHead.byteLength - 8, BigInt(position), false);
+    const cuesElement = makeEbmlElement(0x1c53bb6b, concatBytes(
+      cues.sort((a, b) => a.time - b.time || a.track - b.track).map(cue =>
+        makeEbmlElement(0xbb, concatBytes([
+          makeEbmlUint(0xb3, cue.time), // CueTime in the segment's millisecond ticks
+          makeEbmlElement(0xb7, concatBytes([
+            makeEbmlUint(0xf7, cue.track),
+            makeEbmlUint(0xf1, clusterPositions[cue.cluster]!), // Relative to Segment data
+            makeEbmlUint(0xf0, cue.relativePosition) // Relative to Cluster data
+          ]))
+        ]))
+      )
+    ));
+    segmentChildren.push(...clusters, cuesElement);
+  } else {
+    segmentChildren.push(...clusters);
+  }
 
   const segmentElem = makeEbmlElement(0x18538067, concatBytes(segmentChildren));
   return concatBytes([ebmlHeader, segmentElem]);

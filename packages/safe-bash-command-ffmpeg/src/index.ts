@@ -9697,17 +9697,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const values = delays.split("|").filter(value => value !== "");
                         if (values.length === 0) continue;
                         const offsets = stretched.map((_, channel) => {
-                          const value = values[channel] ?? (all ? values.at(-1)! : "0");
-                          const samples = value.endsWith("S");
-                          const seconds = value.endsWith("s");
-                          const number = samples || seconds ? value.slice(0, -1) : value;
-                          const delay = Number(number);
-                          // Native recognizes unit suffixes after an integer; fractional
-                          // time values take the millisecond path with float arithmetic.
-                          const integer = [...number].every(char => char >= "0" && char <= "9");
-                          const offset = samples && integer ? delay
-                            : Math.trunc(Math.fround(Math.fround(Math.fround(delay) * origRate) / (seconds && integer ? 1 : 1000)));
-                          if (!number.trim() || !Number.isFinite(delay) || delay < 0 || !Number.isSafeInteger(offset)) {
+                          const value = (values[channel] ?? (all ? values.at(-1)! : "0")).trimStart();
+                          // Native reads a signed integer and its next character for S/s
+                          // units, otherwise using a floating-point prefix in milliseconds.
+                          let end = value[0] === "+" || value[0] === "-" ? 1 : 0;
+                          const start = end;
+                          while (end < value.length && value[end]! >= "0" && value[end]! <= "9") end++;
+                          const unit = end > start ? value[end] : undefined;
+                          const delay = Number.parseFloat(value);
+                          const offset = unit === "S" ? delay
+                            : Math.trunc(Math.fround(Math.fround(Math.fround(delay) * origRate) / (unit === "s" ? 1 : 1000)));
+                          if (!Number.isFinite(delay) || delay < 0 || !Number.isSafeInteger(offset)) {
                             throw new Error(`adelay: invalid delay ${value}`);
                           }
                           return offset;

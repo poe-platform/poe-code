@@ -44,7 +44,7 @@ export async function compandAudio(
   });
   if (!points.length) throw new Error("compand: missing points");
   for (let i = 1; i < points.length; i++) {
-    if (points[i]!.x <= points[i - 1]!.x) throw new Error("compand: points must be increasing");
+    if (points[i]!.x < points[i - 1]!.x) throw new Error("compand: points must be increasing");
   }
   if (points.at(-1)!.x < 0) points.push({ x: 0, y: 0 });
   points.unshift({ x: points[0]!.x - 2 * knee, y: points[0]!.y });

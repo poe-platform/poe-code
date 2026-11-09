@@ -37,7 +37,7 @@ for (const [filter, indices, expected] of [
   });
 }
 
-for (const filter of ["compand=points=bad", "compand=points=0/0|-20/-30", "compand=attacks=-1", "compand=decays=NaN", "compand=points=-20/-30|-20/0", "compand=unknown=1", "compand=soft-knee=0", "compand=delay=1"]) {
+for (const filter of ["compand=points=bad", "compand=points=0/0|-20/-30", "compand=attacks=-1", "compand=decays=NaN", "compand=unknown=1", "compand=soft-knee=0", "compand=delay=1"]) {
   it(`${filter} fails without replacing output`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
     fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));
@@ -48,5 +48,39 @@ for (const filter of ["compand=points=bad", "compand=points=0/0|-20/-30", "compa
     } as never);
     assert.equal(result.exitCode, 1);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
+  });
+}
+
+// Native FFmpeg 7.0.2 PCM16 references around the repeated -20 dB input level.
+for (const [points, knee, expected] of [
+  ["-20/0|-20/-10|0/0", 0.01, [0, 2000, 10000, 30000, 32700, 32740, 10373, 10367, 10709, 11449, 22897, 32767, -2000, -32740, -10373, -22897]],
+  ["-20/0|-20/-10|0/0", 6, [0, 2000, 10000, 19992, 18468, 18432, 18425, 18394, 16496, 13999, 22897, 32767, -2000, -18432, -18425, -22897]],
+  ["-20/-10|-20/0|0/0", 0.01, [0, 632, 3162, 9487, 10341, 10366, 32737, 32767, 32767, 32767, 32767, 32767, -632, -10366, -32737, -32768]],
+  ["-20/-10|-20/0|0/0", 6, [0, 632, 3162, 14236, 18309, 18413, 18430, 18480, 22026, 28716, 32767, 32767, -632, -18413, -18430, -32768]],
+  ["-20/-10|-20/-10|0/0", 0.01, [0, 632, 3162, 9487, 10341, 10358, 10361, 10367, 10709, 11449, 22897, 32767, -632, -10358, -10361, -22897]]
+] as const) {
+  for (const graph of [false, true]) it(`equal compand inputs ${points}, knee ${knee} (${graph ? "graph" : "simple"})`, async () => {
+    const samples = [0, 200, 1000, 3000, 3270, 3276, 3277, 3280, 3500, 4000, 16000, 32767, -200, -3276, -3277, -16000];
+    const fs = Volume.fromJSON({});
+    fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [samples, [...samples].reverse()]
+      .map(channel => Float64Array.from(channel, sample => sample / 32768)) }));
+    const filter = `compand=attacks=0:decays=0:points=${points}:soft-knee=${knee}`;
+    const errors: Uint8Array[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-i", "/in.wav", ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", "/out.wav"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
+      stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { errors.push(b); } }
+    } as never);
+    assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+    const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 8000);
+    assert.equal(audio.channelData.length, 2);
+    for (const [c, channel] of audio.channelData.entries()) {
+      assert.equal(channel.length, samples.length);
+      const reference = c ? [...expected].reverse() : expected;
+      reference.forEach((sample, i) => assert.ok(Math.abs(channel[i]! * 32768 - sample) <= 1,
+        `channel ${c}, sample ${i}: ${channel[i]! * 32768}, expected ${sample}`));
+    }
   });
 }

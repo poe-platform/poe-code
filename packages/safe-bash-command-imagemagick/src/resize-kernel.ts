@@ -363,6 +363,7 @@ export function* pointResizePixelSteps(image: { width: number; height: number; h
                 yield { kind: "write", position: (y * width + left) * pixelBytes, data };
                 continue;
             }
+            const samples = pixelBytes === 32 ? new Float64Array(data.buffer) : pixelBytes === 8 ? new Uint16Array(data.buffer) : data;
             for (let x = 0; x < count; x++) {
                 const sx = Math.min(image.width - 1, Math.max(0, Math.trunc((left + x + offsetX) * image.width / width)));
                 const position = (sy * image.width + sx) * pixelBytes;
@@ -374,6 +375,8 @@ export function* pointResizePixelSteps(image: { width: number; height: number; h
                     pixels = bytes;
                 }
                 data.set(pixels.subarray(position - start, position - start + pixelBytes), x * pixelBytes);
+                // Resize filters premultiply alpha; SampleImage copies hidden color unchanged.
+                if (!sample && image.hasAlpha && samples[x * 4 + 3] === 0) data.fill(0, x * pixelBytes, x * pixelBytes + pixelBytes * 3 / 4);
             }
             yield { kind: "write", position: (y * width + left) * pixelBytes, data };
         }

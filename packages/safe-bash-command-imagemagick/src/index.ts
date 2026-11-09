@@ -6765,7 +6765,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-ordered-dither") {
         highDepth = true;
         const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        apply = image => applyMagickRasterSteps(image, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a]), signal);
+        apply = image => applyMagickRasterSteps({ ...image, isPalette: false }, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a]), signal);
     } else if (token === "-posterize") {
         highDepth = true;
         const levels = parsePosterizeLevels(tokens[++i] ?? "");
@@ -10115,7 +10115,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-ordered-dither") {
             const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             const mask = [channels.r, channels.g, channels.b, channels.a];
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, orderedDitherPixelSteps(image, options, mask), signal) : undefined);
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, orderedDitherPixelSteps(image, options, mask), signal) : undefined);
             continue;
         }
         if (!operandsOnly && token === "-posterize") {

@@ -74,6 +74,7 @@ async function* indices(
     let current = value,
       used = 0;
     if (value >= next) {
+      if (value !== next || old === -1) throw new Error("Invalid GIF LZW dictionary");
       stack[used++] = first;
       current = old;
     }

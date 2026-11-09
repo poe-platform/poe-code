@@ -57,6 +57,7 @@ function lzwDecode(minCodeSize: number, data: Uint8Array, pixelCount: number): U
     let inCode = code;
     let sp = 0;
     if (code >= nextCode) {
+      if (code !== nextCode || oldCode === -1) throw new Error("Invalid GIF LZW dictionary");
       stack[sp++] = firstChar;
       inCode = oldCode;
     }

@@ -6544,7 +6544,7 @@ export class Runtime {
             } else entry();
           } catch (error) { savedPositionals.close(); getoptsRestoration?.close(); functionRestoration?.close(); throw error; }
           const callerLoopDepth = state.loopDepth;
-          if (mapfileCallbackStates.has(state)) state.loopDepth = 0;
+          state.loopDepth = 0;
           let restoredLocals = false;
           const restoreLocals = async (): Promise<void> => {
             if (restoredLocals) return;

@@ -4546,6 +4546,7 @@ const syncExtraRuntimeMethods = {
         getoptsRestoration = monitor?.restoration();
       }
       const callerLoopDepth = pendingResume ? pendingResume.callerLoopDepth : state.loopDepth;
+      if (!pendingResume) state.loopDepth = 0;
       let restoredLocals = false;
       const restoreLocals = async (): Promise<void> => {
         if (restoredLocals) return;
@@ -11642,6 +11643,7 @@ const syncExtraRuntimeMethods = {
             (rawState.functionNames ??= []).unshift(w0Plain);
             (rawState.sourceNames ??= []).unshift(fnBody.sourceFile ?? "environment");
             const callerLoopDepth = rawState.loopDepth;
+            rawState.loopDepth = 0;
             let exitStatus = 0;
             let handedOffToResume = false;
             this._syncReturnDepth++;

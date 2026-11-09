@@ -1,6 +1,8 @@
 # `safe-bash-command-imagemagick`
 `magick input.xwd output.png` decodes version-7 X11 window dumps with 8-bit palettes or 24/32-bit true-color pixels, preserving scanline padding and byte order.
 
+`-colorspace HCL` and `HCLp` convert RGB into hue, chroma and luma for channel operations; PNG output converts back to RGB.
+
 ImageMagick (`magick`, `convert`, `mogrify`, `composite`, `montage`, `compare`, `identify`) command-line tools for `safe-bash`, powered by `@poe-code/image-ast`. Read saved MPR registers with frame selectors (`mpr:Seq[1]`, `mpr:Seq[2-0]`) or crop geometry (`mpr:Saved[1x1+1+0]`); ranges preserve the requested order. `.xwd` and `XWD:` outputs write version-7, 24-bit RGB XWD for true-color or indexed inputs, including `-write`; alpha is omitted.
 
 `-copy 2x1+0+0 +2+1` copies a pixel rectangle within each image. Overlapping copies follow native scan order, so earlier writes can become the source of later pixels.

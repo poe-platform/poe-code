@@ -196,7 +196,7 @@ function* reportSteps(components: Component[], sort: "x" | "area" | undefined, e
   const centroid = [c.x / c.area, c.y / c.area].map(value =>
    (value % 0.5 === 0.25 ? Math.round(value * 5) / 5 : value).toFixed(1)).join(",");
   const space = image.magickColorspace ?? (image.space === "b-w" || image.space === "grey16" ? "Gray" : image.space === "cmyk" ? "CMYK" : "sRGB");
-  const hue = space === "HSL" || space === "HSB" || space === "HSV";
+  const hue = space === "HCL" || space === "HCLp" || space === "HSL" || space === "HSB" || space === "HSV";
   const channels = (space === "CMYK" ? [c.color[0]!, c.color[1]!, c.color[2]!, c.color[4]!] : c.color.slice(0, space === "Gray" ? 1 : 3)).map((value, index) => {
    if (space === "CIELab") return formatMeasurement(index === 0 ? value / c.area * 100 / 255 : value / c.area - 127.5, precision);
    const grayPercent = space === "Gray" && !Number.isInteger(value / c.area);

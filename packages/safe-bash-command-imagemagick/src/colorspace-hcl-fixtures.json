@@ -1,0 +1,139 @@
+{
+  "input": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4nAHIADf/ACdFVjpQX01baGBmcXNxeoZ8g5mHjKySlQAuVlpBYWNUbGxnd3V6gn6NjYegmJCzo5kANWdeSHJnW31wboh5gZOClJ6Lp6mUurSdADx4Yk+Da2KOdHWZfYikhpuvj666mMHFoQBDiWZWlG9pn3h8qoGPtYqiwJO1y5zI1qUASppqXaVzcLB8g7uFlsaOqdGXvNygz+epAFGrbmS2d3fBgIrMiZ3XkrDim8PtpNb4rQBYvHJrx3t+0oSR3Y2k6Ja385/K/qjdCbGow2ohVBMCVAAAAABJRU5ErkJggg==",
+  "cases": [
+    {
+      "args": [
+        "-colorspace",
+        "HCL"
+      ],
+      "rgba": "J0VW/zpQX/9NW2j/YGZx/3Nxev+GfIP/mYeM/6ySlf8uVlr/QWFj/1RsbP9nd3X/eoJ+/42Nh/+gmJD/s6OZ/zVnXv9Icmf/W31w/26Ief+Bk4L/lJ6L/6eplP+6tJ3/PHhi/0+Da/9ijnT/dZl9/4ikhv+br4//rrqY/8HFof9DiWb/VpRv/2mfeP98qoH/j7WK/6LAk/+1y5z/yNal/0qaav9dpXP/cLB8/4O7hf+Wxo7/qdGX/7zcoP/P56n/Uatu/2S2d/93wYD/isyJ/53Xkv+w4pv/w+2k/9b4rf9YvHL/a8d7/37ShP+R3Y3/pOiW/7fzn//K/qj/3Qmx/w==",
+      "text": "HCL hcl(201.702,18.4314%,24.3054%)"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "HCL",
+        "-colorspace",
+        "HCL"
+      ],
+      "rgba": "J0VW/zpQX/9NW2j/YGZx/3Nxev+GfIP/mYeM/6ySlf8uVlr/QWFj/1RsbP9nd3X/eoJ+/42Nh/+gmJD/s6OZ/zVnXv9Icmf/W31w/26Ief+Bk4L/lJ6L/6eplP+6tJ3/PHhi/0+Da/9ijnT/dZl9/4ikhv+br4//rrqY/8HFof9DiWb/VpRv/2mfeP98qoH/j7WK/6LAk/+1y5z/yNal/0qaav9dpXP/cLB8/4O7hf+Wxo7/qdGX/7zcoP/P56n/Uatu/2S2d/93wYD/isyJ/53Xkv+w4pv/w+2k/9b4rf9YvHL/a8d7/37ShP+R3Y3/pOiW/7fzn//K/qj/3Qmx/w==",
+      "text": "HCL hcl(201.702,18.4314%,24.3054%)"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "HCL",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "J0VW/zpQX/9NW2j/YGZx/3Nxev+GfIP/mYeM/6ySlf8uVlr/QWFj/1RsbP9nd3X/eoJ+/42Nh/+gmJD/s6OZ/zVnXv9Icmf/W31w/26Ief+Bk4L/lJ6L/6eplP+6tJ3/PHhi/0+Da/9ijnT/dZl9/4ikhv+br4//rrqY/8HFof9DiWb/VpRv/2mfeP98qoH/j7WK/6LAk/+1y5z/yNal/0qaav9dpXP/cLB8/4O7hf+Wxo7/qdGX/7zcoP/P56n/Uatu/2S2d/93wYD/isyJ/53Xkv+w4pv/w+2k/9b4rf9YvHL/a8d7/37ShP+R3Y3/pOiW/7fzn//K/qj/3Qmx/w==",
+      "text": "sRGB srgb(39,69,86)"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "HCL",
+        "-channel",
+        "G",
+        "-separate",
+        "+channel"
+      ],
+      "rgba": "Ly8v/yUlJf8bGxv/ERER/wkJCf8KCgr/EhIS/xoaGv8sLCz/IiIi/xgYGP8QEBD/CAgI/wYGBv8QEBD/Ghoa/zIyMv8qKir/IiIi/xoaGv8SEhL/ExMT/xUVFf8dHR3/PDw8/zQ0NP8sLCz/JCQk/x4eHv8gICD/IiIi/yQkJP9GRkb/Pj4+/zY2Nv8uLi7/Kysr/y0tLf8vLy//MTEx/1BQUP9ISEj/QEBA/zg4OP84ODj/Ojo6/zw8PP8+Pj7/Wlpa/1JSUv9KSkr/Q0ND/0VFRf9HR0f/SUlJ/0tLS/9kZGT/XFxc/1RUVP9QUFD/UlJS/1RUVP9WVlb/1NTU/w==",
+      "text": "Gray gray(47)"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "HCL",
+        "-ordered-dither",
+        "o4x4",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "/////wAAAP//////AAAA//////8AAAD//////wAAAP8AAAD//////wAAAP//////AAAA//////8AAAD///////////8AAAD//////wAAAP//////AAAA////////////AAAA/wAAAP8AAAD//////wAAAP//////AAAA////////////AAAA//////8AAAD//////////////////////wAAAP//////AAAA//////8AAAD//////wAAAP///////////wAAAP////////////////////////////////8AAAD//////wAAAP//////AAAA/////////////////w==",
+      "text": "sRGB srgb(255,255,255)"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "HCL",
+        "-channel",
+        "G",
+        "-fill",
+        "lime",
+        "-colorize",
+        "100",
+        "+channel"
+      ],
+      "rgba": "AGTA/wBt1P8Acu3/E23//31F////H9L//zl///9LaP8AjaT/AJ6t/wCxsf8AwqL/ANpa/6mpAP//ggL//4Mh/wCoe/8AuHX/AMln/wDcSP8A8wP/WN4A/7LKAP/vuwD/ALpd/wDKVf8A20X/AO4o/w78AP9T8gD/kesA/8nlAP8Ay0v/ANtD/wDsM/8A/hr/JP8G/1j/A/+J/wH/tv8A/wDaQf8A6jn/APss/w3/F/81/xH/YP8R/4n/Ev+x/xT/AOk8/wD5Nf8K/yn/Hv8a/0X/HP9q/x//jv8i/7H/Jv8A9zv/CP80/xj/Kv8w/yT/U/8o/3X/LP+W/zH/9wDC/w==",
+      "text": "HCL hcl(201.702,100%,24.3054%)"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "HCLp"
+      ],
+      "rgba": "J0VW/zpQX/9NW2j/YGZx/3Nxev+GfIP/mYeM/6ySlf8uVlr/QWFj/1RsbP9nd3X/eoJ+/42Nh/+gmJD/s6OZ/zVnXv9Icmf/W31w/26Ief+Bk4L/lJ6L/6eplP+6tJ3/PHhi/0+Da/9ijnT/dZl9/4ikhv+br4//rrqY/8HFof9DiWb/VpRv/2mfeP98qoH/j7WK/6LAk/+1y5z/yNal/0qaav9dpXP/cLB8/4O7hf+Wxo7/qdGX/7zcoP/P56n/Uatu/2S2d/93wYD/isyJ/53Xkv+w4pv/w+2k/9b4rf9YvHL/a8d7/37ShP+R3Y3/pOiW/7fzn//K/qj/3Qmx/w==",
+      "text": "HCLp hclp(201.702,18.4314%,24.3054%)"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "HCLp",
+        "-colorspace",
+        "HCLp"
+      ],
+      "rgba": "J0VW/zpQX/9NW2j/YGZx/3Nxev+GfIP/mYeM/6ySlf8uVlr/QWFj/1RsbP9nd3X/eoJ+/42Nh/+gmJD/s6OZ/zVnXv9Icmf/W31w/26Ief+Bk4L/lJ6L/6eplP+6tJ3/PHhi/0+Da/9ijnT/dZl9/4ikhv+br4//rrqY/8HFof9DiWb/VpRv/2mfeP98qoH/j7WK/6LAk/+1y5z/yNal/0qaav9dpXP/cLB8/4O7hf+Wxo7/qdGX/7zcoP/P56n/Uatu/2S2d/93wYD/isyJ/53Xkv+w4pv/w+2k/9b4rf9YvHL/a8d7/37ShP+R3Y3/pOiW/7fzn//K/qj/3Qmx/w==",
+      "text": "HCLp hclp(201.702,18.4314%,24.3054%)"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "HCLp",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "J0VW/zpQX/9NW2j/YGZx/3Nxev+GfIP/mYeM/6ySlf8uVlr/QWFj/1RsbP9nd3X/eoJ+/42Nh/+gmJD/s6OZ/zVnXv9Icmf/W31w/26Ief+Bk4L/lJ6L/6eplP+6tJ3/PHhi/0+Da/9ijnT/dZl9/4ikhv+br4//rrqY/8HFof9DiWb/VpRv/2mfeP98qoH/j7WK/6LAk/+1y5z/yNal/0qaav9dpXP/cLB8/4O7hf+Wxo7/qdGX/7zcoP/P56n/Uatu/2S2d/93wYD/isyJ/53Xkv+w4pv/w+2k/9b4rf9YvHL/a8d7/37ShP+R3Y3/pOiW/7fzn//K/qj/3Qmx/w==",
+      "text": "sRGB srgb(39,69,86)"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "HCLp",
+        "-channel",
+        "G",
+        "-separate",
+        "+channel"
+      ],
+      "rgba": "Ly8v/yUlJf8bGxv/ERER/wkJCf8KCgr/EhIS/xoaGv8sLCz/IiIi/xgYGP8QEBD/CAgI/wYGBv8QEBD/Ghoa/zIyMv8qKir/IiIi/xoaGv8SEhL/ExMT/xUVFf8dHR3/PDw8/zQ0NP8sLCz/JCQk/x4eHv8gICD/IiIi/yQkJP9GRkb/Pj4+/zY2Nv8uLi7/Kysr/y0tLf8vLy//MTEx/1BQUP9ISEj/QEBA/zg4OP84ODj/Ojo6/zw8PP8+Pj7/Wlpa/1JSUv9KSkr/Q0ND/0VFRf9HR0f/SUlJ/0tLS/9kZGT/XFxc/1RUVP9QUFD/UlJS/1RUVP9WVlb/1NTU/w==",
+      "text": "Gray gray(47)"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "HCLp",
+        "-ordered-dither",
+        "o4x4",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "/////wAAAP//////AAAA//////8AAAD//////wAAAP8AAAD//////wAAAP//////AAAA//////8AAAD///////////8AAAD//////wAAAP//////AAAA////////////AAAA/wAAAP8AAAD//////wAAAP//////AAAA////////////AAAA//////8AAAD//////////////////////wAAAP//////AAAA//////8AAAD//////wAAAP///////////wAAAP////////////////////////////////8AAAD//////wAAAP//////AAAA/////////////////w==",
+      "text": "sRGB srgb(255,255,255)"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "HCLp",
+        "-channel",
+        "G",
+        "-fill",
+        "lime",
+        "-colorize",
+        "100",
+        "+channel"
+      ],
+      "rgba": "AFF//wBgov8AbdP/HW3//3pU////MsL//1WE//9sff8AaXP/AHyE/wCQkP8AppH/AMVj/56eAP//gwb//41F/wCAaf8AlW7/AKxq/wDHVP8A6w3/Y9IA/6/CAP/qugD/AJdg/wCuXv8Ax1H/AOMy/xH7AP9Z7QD/lOUA/8jhAP8Arlf/AMZQ/wDgPv8A/Rv/LP8Q/1v/Cf+J/wP/tv8B/wDFT/8A3kT/APgv/yH/Kf9L/y3/dP81/5v/Q/+//1n/ANxH/wD1Of8a/zb/Qv8//2n/Tf+O/1//sf93/9D/mP8A8z//Ff89/zz/Sv9i/1r/hv9t/6n/hv/J/6b/6wC6/w==",
+      "text": "HCLp hclp(201.702,100%,24.3054%)"
+    }
+  ]
+}

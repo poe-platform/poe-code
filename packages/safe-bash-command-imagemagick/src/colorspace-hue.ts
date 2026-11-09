@@ -2,13 +2,13 @@ import type { RgbaImage } from "@poe-code/image-ast/portable";
 import { formatMetricNum } from "./compare-kernel.js";
 
 export interface HueMetadata {
-    magickColorspace?: "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV" | "RGB";
+    magickColorspace?: "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV" | "RGB";
     // Preserve native HDRI precision for expressions; codecs use the integer planes.
     hueSamples?: Float64Array;
     storedHueSamples?: number;
 }
 
-export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV" | "sRGB"): Generator<void, RgbaImage & HueMetadata, void> {
+export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV" | "sRGB"): Generator<void, RgbaImage & HueMetadata, void> {
     if (image.magickColorspace === target) return image;
     const toHue = target !== "sRGB", hsb = toHue ? target === "HSB" || target === "HSV" : image.magickColorspace === "HSB" || image.magickColorspace === "HSV";
     const hwb = toHue ? target === "HWB" : image.magickColorspace === "HWB";
@@ -63,11 +63,21 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HSL" 
                 const value = sample - minimum;
                 return value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
             }) as [number, number, number];
+        } else if (!toHue && (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp")) {
+            const hue = r * 6, chroma = g, luma = b, x = chroma * (1 - Math.abs(hue % 2 - 1));
+            [r, g, b] = hue < 0 || hue >= 6 ? [0, 0, 0] : hue < 1 ? [chroma, x, 0] : hue < 2 ? [x, chroma, 0] : hue < 3 ? [0, chroma, x] : hue < 4 ? [0, x, chroma] : hue < 5 ? [x, 0, chroma] : [chroma, 0, x];
+            let m = luma - (0.298839 * r + 0.586811 * g + 0.114350 * b), scale = 1;
+            if (image.magickColorspace === "HCLp") {
+                if (m < 0) { scale = luma / (luma - m); m = 0; }
+                else if (m + chroma > 1) { scale = (1 - luma) / (m + chroma - luma); m = 1 - scale * chroma; }
+            }
+            r = scale * r + m; g = scale * g + m; b = scale * b + m;
         } else if (toHue) {
             const max = Math.max(r, g, b), min = Math.min(r, g, b), delta = max - min, lightness = (max + min) / 2;
             const hue = !delta ? 0 : max === r ? ((g - b) / delta + 6) % 6 : max === g ? (b - r) / delta + 2 : (r - g) / delta + 4;
+            const hcl = target === "HCL" || target === "HCLp", luma = 0.298839 * r + 0.586811 * g + 0.114350 * b;
             // ImageMagick HWB uses -1 for achromatic hue, 1 for red, and an HDRI epsilon for zero blackness.
-            r = hwb ? !delta ? -1 : hue === 0 ? 1 : hue / 6 : hue / 6; g = hwb ? min : delta ? delta / (hsb ? max : 1 - Math.abs(2 * lightness - 1)) : 0; b = hwb ? Math.max(2 ** -64, 1 - max) : hsb ? max : lightness;
+            r = hwb ? !delta ? -1 : hue === 0 ? 1 : hue / 6 : hue / 6; g = hcl ? delta : hwb ? min : delta ? delta / (hsb ? max : 1 - Math.abs(2 * lightness - 1)) : 0; b = hcl ? luma : hwb ? Math.max(2 ** -64, 1 - max) : hsb ? max : lightness;
         } else {
             // Edited HWB channels can sum above one; native preserves the negative chroma.
             const hue = (r < 0 || r === 1 ? 0 : r) * 6, chroma = hwb ? 1 - g - b : (hsb ? b : 1 - Math.abs(2 * b - 1)) * g, x = chroma * (1 - Math.abs(hue % 2 - 1)), m = hwb ? g : b - chroma / (hsb ? 1 : 2);
@@ -81,10 +91,10 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HSL" 
         }
     }
     const { magickColorspace: ignored, hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...metadata } = image;
-    return { ...metadata, data, data16, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(hueSamples ? { magickColorspace: target as "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", hueSamples } : {}) };
+    return { ...metadata, data, data16, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(hueSamples ? { magickColorspace: target as "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", hueSamples } : {}) };
 }
 
-export function formatHuePixel(channels: readonly number[], space: "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", hasAlpha: boolean): string {
+export function formatHuePixel(channels: readonly number[], space: "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", hasAlpha: boolean): string {
     if (space === "CIELab") return `cielab${hasAlpha ? "a" : ""}(${channels.slice(0, 3).map((value, index) => Number((index === 0 ? value * 100 : (value - 0.5) * 255).toPrecision(6))).join(",")}${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
     if (space === "XYZ") return `xyz${hasAlpha ? "a" : ""}(${channels.slice(0, 3).map(value => Number((value * 100).toPrecision(6))).join(",")}${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
     if (space === "HWB" || space === "YCbCr" || space === "YUV") return `${space.toLowerCase()}${hasAlpha ? "a" : ""}(${channels.slice(0, 3).map(value => Number((value * 255).toPrecision(6))).join(",")}${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
@@ -93,7 +103,7 @@ export function formatHuePixel(channels: readonly number[], space: "HSL" | "HSB"
 
 export function* prepareHueOutput(image: RgbaImage & HueMetadata, format: string): Generator<void, RgbaImage & HueMetadata, void> {
     if (image.magickColorspace === "CIELab" && format === "tiff") throw new Error("unsupported colorspace 'Lab' for TIFF output");
-    if (image.magickColorspace !== "CIELab" && image.magickColorspace !== "HSL" && image.magickColorspace !== "HSB" && image.magickColorspace !== "HSV" && image.magickColorspace !== "HWB" && image.magickColorspace !== "XYZ" && image.magickColorspace !== "YCbCr" && image.magickColorspace !== "YUV") return image;
+    if (image.magickColorspace !== "CIELab" && image.magickColorspace !== "HCL" && image.magickColorspace !== "HCLp" && image.magickColorspace !== "HSL" && image.magickColorspace !== "HSB" && image.magickColorspace !== "HSV" && image.magickColorspace !== "HWB" && image.magickColorspace !== "XYZ" && image.magickColorspace !== "YCbCr" && image.magickColorspace !== "YUV") return image;
     if (format === "tiff" || format === "raw") {
         const { magickColorspace: ignored, hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...output } = image;
         return output;
@@ -101,9 +111,9 @@ export function* prepareHueOutput(image: RgbaImage & HueMetadata, format: string
     return yield* convertHuePixels(image, "sRGB");
 }
 
-export function hueTextPixel(values: readonly number[], hasAlpha: boolean, space: "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", samples?: readonly number[], maximum = 65535): string {
+export function hueTextPixel(values: readonly number[], hasAlpha: boolean, space: "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", samples?: readonly number[], maximum = 65535): string {
     const channels = values.slice(0, hasAlpha ? 4 : 3).map(value => Math.round(value * maximum / 65535));
-    const color = formatHuePixel((space === "HSL" || space === "HWB" || space === "XYZ" || space === "CIELab" || space === "YCbCr" || space === "YUV") && samples ? samples : values.map(value => value / 65535), space, true);
+    const color = formatHuePixel((space === "HCL" || space === "HCLp" || space === "HSL" || space === "HWB" || space === "XYZ" || space === "CIELab" || space === "YCbCr" || space === "YUV") && samples ? samples : values.map(value => value / 65535), space, true);
     const spelling = hasAlpha ? color : `${space.toLowerCase()}(${color.slice(color.indexOf("(") + 1, color.lastIndexOf(","))})`;
     return `(${channels.join(",")})  #${channels.map(value => value.toString(16).toUpperCase().padStart(maximum === 255 ? 2 : 4, "0")).join("")}  ${spelling}`;
 }

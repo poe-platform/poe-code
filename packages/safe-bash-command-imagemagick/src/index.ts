@@ -6374,7 +6374,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else if (token === "-alpha") {
         const mode = (tokens[++i] ?? "on").toLowerCase();
-        highDepth = ["deactivate", "associate", "disassociate", "off", "opaque", "activate", "on", "set", "extract"].includes(mode);
+        highDepth = ["discrete", "deactivate", "associate", "disassociate", "off", "opaque", "activate", "on", "set", "extract"].includes(mode);
         if (mode === "offifopaque") {
             highDepth = true;
             apply = function* (im) {
@@ -6429,7 +6429,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: false };
             };
         }
-        else if (mode === "deactivate") {
+        else if (mode === "deactivate" || mode === "discrete") {
             apply = function* (im) {
                 yield;
                 return { ...im, hasAlpha: false };

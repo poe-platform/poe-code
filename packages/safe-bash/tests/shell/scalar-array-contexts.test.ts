@@ -6,6 +6,22 @@ import { nativeOptions, runNative } from "./extensions/trap/oracle.js";
 
 // Scalar star joining and new integer attributes follow Bash 5.2, not macOS Bash 3.2.
 const cases = [
+  ...[
+    ["a ''", 'a \x7f'],
+    ["a '' ''", 'a \x7f \x7f'],
+    ["'' a", '\x7f a'],
+    ["a '' b", 'a \x7f b'],
+    ["'' ''", '\x7f \x7f'],
+    ["'a '", 'a '],
+    ['a b', 'a b'],
+    ['', ''],
+    ["''", ''],
+  ].flatMap(([values, subject]) => ['"$@"', '"${arr[@]}"'].map(word => [
+    `set -- ${values}; arr=(${values}); case ${word} in '${subject}') printf matched;; *) printf wrong;; esac`,
+    'matched',
+  ] as const)),
+  ['set -- a ""; arr=(a ""); x="$@"; y="${arr[@]}"; printf "<%s>" "$x" "$y"; case "x$@y" in "xa y") printf matched;; esac; case "$@" in "a ") printf wrong;; *) printf other;; esac', '<a ><a >matchedother'],
+  ['arr=(a "" ""); case "x${arr[@]}y" in "xa \x7f y") printf matched;; esac; set -- a ""; case "$*" in "a ") printf star;; esac; case $@ in "a ") printf unquoted;; esac', 'matchedstarunquoted'],
   ['unset arr; arr[1]="${arr:=zero}-one"; printf "<%s>" "${arr[0]}" "${arr[1]}"', '<zero><zero-one>'],
   ['unset arr; arr[1]="${arr:=zero} $(echo one)"; printf "<%s>" "${arr[0]}" "${arr[1]}"', '<zero><zero one>'],
   ['unset arr; arr[${arr:=1}]=two; printf "<%s>" "${arr[0]}" "${arr[1]}"', '<1><two>'],

@@ -1005,7 +1005,7 @@ export interface IO {
   readonly capabilities?: import("./types.js").ShellCapabilities | undefined;
   readonly admittedHandles?: CommandContext["admittedHandles"];
   readonly processSignals?: CommandContext["processSignals"];
-  readonly nameExpansionContext?: "document" | "conditional" | undefined;
+  readonly nameExpansionContext?: "document" | "conditional" | "case" | undefined;
   readonly documentExpansion?: { hasAt: boolean; emptySlice: boolean };
   readonly [invocationScope]: InvocationScope;
   readonly [valueScope]?: ValueScope;
@@ -5224,7 +5224,7 @@ export class Runtime {
           if (!state.extensions.eventDepth) publishCommandSpelling(state, description);
           if (await this.extensionEvent("command", state, io, state.status, description)) status = state.status;
           else {
-            const subject = (await this.word(command.subject, state, io, false)).join("");
+            const subject = (await this.word(command.subject, state, { ...io, nameExpansionContext: "case" }, false)).join(" ");
             const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation };
             let fallthrough = false;
             let patterns = 0;
@@ -5242,7 +5242,7 @@ export class Runtime {
             }
           }
         } else {
-          const subject = (await this.word(command.subject, state, io, false)).join("");
+          const subject = (await this.word(command.subject, state, { ...io, nameExpansionContext: "case" }, false)).join(" ");
           const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation };
           let fallthrough = false;
           let patterns = 0;
@@ -10203,7 +10203,7 @@ export class Runtime {
   isPureArgWord(_word: Word, _rawState: State): boolean { return false; }
   tryFastPureSubstitution(_part: Extract<WordPart, { kind: "substitution" }>, _state: State, _rawState: State, _io: IO): string | undefined { return undefined; }
   private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void, hereDocument = false, braces = split && !pattern && !hereString && !hereDocument, assignmentStart?: number, skipFast = false): Promise<ShellValue[]> {
-    if (!conditionalPattern && !regexAppend && !skipFast) {
+    if (!conditionalPattern && !regexAppend && !skipFast && io.nameExpansionContext !== "case") {
       const fast = this.fastValueWord(word, state, io, split, pattern, hereDocument, braces, assignmentStart);
       if (fast !== undefined) return [fast];
       if (!split && !pattern && word.parts.length === 1 && !hasActiveVariableAttributes(state) && !guestArrays(state)) {
@@ -10425,7 +10425,7 @@ export class Runtime {
           if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
           else await appendSplit(value);
         }
-      } else if (part.kind === "variable" && split && expandMembers && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@" || (part.substring || !part.operator && !part.transform && !part.length) && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
+      } else if (part.kind === "variable" && (split || io.nameExpansionContext === "case" && part.quoted && selector && selector.kind !== "element" && selector.separator === "@") && expandMembers && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@" || (part.substring || !part.operator && !part.transform && !part.length) && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
         const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
         if (selector?.kind === "members" && !part.quoted && state.variables.IFS !== "" && !part.transform && !part.operator) {
           await appendSplit(await this.arrayJoin(requireArrays(state).owner, members, this.ifsSeparator(state, partIO)));
@@ -10446,7 +10446,7 @@ export class Runtime {
       } else if (part.kind === "text" && !splitText) {
         const value: ShellValue = invokedValues.get(part) ?? part.byteValue ?? part.value;
         append(value, !part.quoted, quotedPresence || shellValueByteLength(value) > 0);
-      } else if (part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultMembers && expandMembers) && !part.transform && split) {
+      } else if (part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultMembers && expandMembers) && !part.transform && (split || io.nameExpansionContext === "case")) {
         const members = part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
         for (let position = 0; position < members.length; position++) {
           if (position > 0) addField();
@@ -10475,7 +10475,9 @@ export class Runtime {
         if (empty) continue;
       }
       if (scratch && field.fragments.length > 1 && !field.bytes) scratch.reserve(field.fragments.reduce((bytes, value) => bytes + shellValueText(value).length * 2, 0), 0);
-      const assembled = concatShellValues(field.fragments, io[valueScope]);
+      // Bash retains CTLNUL for empty fields in a multi-field case subject.
+      const assembled = io.nameExpansionContext === "case" && fields.length > 1 && field.fragments.every(value => shellValueByteLength(value) === 0)
+        ? "\x7f" : concatShellValues(field.fragments, io[valueScope]);
       const projection = shellValueText(assembled);
       if (field.bytes && field.fragments.length > 1 && !field.patterns) {
         scratch?.reserve(field.fragments.length * 32, 0);

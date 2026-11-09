@@ -8,7 +8,7 @@ export async function pulsateAudio(
 ): Promise<Float64Array[]> {
   if (channels.length !== 2) throw new Error("apulsator: stereo input required");
   let mode = "sine";
-  const options = { hz: 2, amount: 1, offset_l: 0, offset_r: 0.5 };
+  const options = { hz: 2, amount: 1, offset_l: 0, offset_r: 0.5, width: 1 };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
@@ -24,7 +24,7 @@ export async function pulsateAudio(
     }
     const number = parseFilterExpression(value, "apulsator", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
     const min = key === "hz" ? 0.01 : 0;
-    const max = key === "hz" ? 100 : 1;
+    const max = key === "hz" ? 100 : key === "width" ? 2 : 1;
     if (number < min || number > max) {
       throw new Error(`apulsator: invalid ${key}`);
     }
@@ -33,6 +33,7 @@ export async function pulsateAudio(
   const length = channels[0]!.length;
   budget.allocateMemory(length * 2 * 8);
   const output = channels.map(() => new Float64Array(length));
+  const width = Math.min(1.99, Math.max(0.01, options.width));
   let phase = 0;
   for (let frame = 0; frame < length; frame++) {
     if (frame % 1024 === 0) {
@@ -41,7 +42,7 @@ export async function pulsateAudio(
       budget.checkCpu();
     }
     for (let channel = 0; channel < 2; channel++) {
-      let position = phase + (channel === 0 ? options.offset_l : options.offset_r);
+      let position = Math.min(100, phase / width + (channel === 0 ? options.offset_l : options.offset_r));
       if (position > 1) position %= 1;
       let wave: number;
       switch (mode) {

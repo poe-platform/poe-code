@@ -619,8 +619,19 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
       const g711 = desc?.codecName === "pcm_mulaw" || desc?.codecName === "pcm_alaw";
       const pcm = desc?.codecName === "pcm_s16le" || g711;
       const bits = g711 ? 8 : desc?.bitsPerSample ?? 16;
-      const blockAlign = pcm ? ch * bits / 8 : 4;
-      if (samples.length === 0 && !pcm) {
+      const ima = desc?.codecName === "adpcm_ima_wav";
+      const format = ima ? desc.rawWavFormatBytes : undefined;
+      if (ima && (!format || format.byteLength < 20)) {
+        throw new Error("AVI IMA ADPCM stream copy requires a WAV format header");
+      }
+      const wave = format ? new DataView(format.buffer, format.byteOffset, format.byteLength) : undefined;
+      if (wave && (wave.getUint16(0, true) !== 0x11 || !wave.getUint16(12, true) || !wave.getUint32(8, true))) {
+        throw new Error("Invalid AVI IMA ADPCM WAV format header");
+      }
+      const blockAlign = wave?.getUint16(12, true) ?? (pcm ? ch * bits / 8 : 4);
+      const bytesPerSecond = wave?.getUint32(8, true) ?? (pcm ? sr * blockAlign : 16000);
+      const divisor = ima ? gcd(blockAlign, bytesPerSecond) : 1;
+      if (samples.length === 0 && !pcm && !ima) {
         const data = createSilentAacFrame(ch);
         samples = [{ data, dts: 0, pts: 0, cts: 0, duration: 1024,
           size: data.byteLength, isKeyframe: true, sampleDescriptionIndex: 1 }];
@@ -632,25 +643,29 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
       strh.writeU16LE(0);
       strh.writeU16LE(0);
       strh.writeU32LE(0);
-      strh.writeU32LE(pcm ? blockAlign : 1024);
-      strh.writeU32LE(pcm ? sr * blockAlign : sr);
+      strh.writeU32LE(ima ? blockAlign / divisor : pcm ? blockAlign : 1024);
+      strh.writeU32LE(ima ? bytesPerSecond / divisor : pcm ? sr * blockAlign : sr);
       strh.writeU32LE(0);
-      strh.writeU32LE(pcm ? byteLength / blockAlign : samples.length);
+      strh.writeU32LE(pcm || ima ? byteLength / blockAlign : samples.length);
       strh.writeU32LE(4096);
       strh.writeU32LE(0xffffffff);
-      strh.writeU32LE(pcm ? blockAlign : 0);
+      strh.writeU32LE(pcm || ima ? blockAlign : 0);
       strh.writeZeros(8);
 
-      strf.writeU16LE(g711 ? (desc?.codecName === "pcm_mulaw" ? 7 : 6) : pcm ? 0x0001 : desc?.codecName === "mp3" ? 0x0055 : 0x00ff);
-      strf.writeU16LE(ch);
-      strf.writeU32LE(sr);
-      strf.writeU32LE(pcm ? sr * blockAlign : 16000);
-      strf.writeU16LE(blockAlign);
-      strf.writeU16LE(bits);
-      const extra = desc?.codecName === "aac"
-        ? desc.esds?.decoderSpecificInfo ?? buildAudioSpecificConfig(sr, ch, 2) : new Uint8Array(0);
-      strf.writeU16LE(extra.byteLength);
-      strf.writeBytes(extra);
+      if (format) {
+        strf.writeBytes(format);
+      } else {
+        strf.writeU16LE(g711 ? (desc?.codecName === "pcm_mulaw" ? 7 : 6) : pcm ? 0x0001 : desc?.codecName === "mp3" ? 0x0055 : 0x00ff);
+        strf.writeU16LE(ch);
+        strf.writeU32LE(sr);
+        strf.writeU32LE(pcm ? sr * blockAlign : 16000);
+        strf.writeU16LE(blockAlign);
+        strf.writeU16LE(bits);
+        const extra = desc?.codecName === "aac"
+          ? desc.esds?.decoderSpecificInfo ?? buildAudioSpecificConfig(sr, ch, 2) : new Uint8Array(0);
+        strf.writeU16LE(extra.byteLength);
+        strf.writeBytes(extra);
+      }
       payloads = samples.map(sample => sample.data);
       slotCount = samples.length;
     }

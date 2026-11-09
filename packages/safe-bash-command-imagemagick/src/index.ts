@@ -5840,15 +5840,20 @@ function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: M
         if (histogram[4]) histogram[4][Math.round((data instanceof Uint16Array ? 1 : 257) * magickIntensity(data[i]!, data[i + 1]!, data[i + 2]!, method, data instanceof Uint16Array ? 65535 : 255, linear))]!++;
     }
 }
-function* applyMagickLookup(image: RgbaImage, lookup: Uint8Array[]): Generator<void, RgbaImage, void> {
+function* applyMagickLookup(image: RgbaImage, lookup: (Uint8Array | Uint16Array)[]): Generator<void, RgbaImage, void> {
     const data = new Uint8Array(image.data);
+    const data16 = lookup[0] instanceof Uint16Array ? new Uint16Array(data.length) : undefined;
     const samples = lookup[0]!.length === 65536 ? image.data16 ?? image.data : image.data;
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
-        for (let channel = 0; channel < 4; channel++) data[i + channel] = lookup[channel]![samples[i + channel]!]!;
+        for (let channel = 0; channel < 4; channel++) {
+            const value = lookup[channel]![samples[i + channel]!]!;
+            if (data16) data16[i + channel] = value;
+            data[i + channel] = data16 ? clampByteVal(value / 257) : value;
+        }
     }
     const { data16: ignored, ...metadata } = image;
-    return { ...metadata, data };
+    return { ...metadata, data, ...(data16 ? { data16 } : {}) };
 }
 function parseConnectedComponents(tokens: readonly string[], start: number): number {
     const value = tokens[start + 1];
@@ -5934,23 +5939,25 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     let end = start;
     const argument = token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";
     const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
-    return { end, highDepth: token === "-equalize", luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, transform(histogram, image) {
+    return { end, highDepth: token === "-equalize" || token === "-auto-gamma", luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, transform(histogram, image) {
         const levels = histogram[0]!.length;
-        const lookup = Array.from({ length: 4 }, () => Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
+        const lookup = Array.from({ length: 4 }, () => token === "-auto-gamma" && levels === 65536
+            ? Uint16Array.from({ length: levels }, (_, value) => value)
+            : Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
         const count = Math.max(1, image.width * image.height);
         if (token === "-auto-gamma") {
             const channelCount = image.hasAlpha ? 4 : 3;
             const sums = [0, 0, 0, 0];
-            for (let channel = 0; channel < channelCount; channel++) for (let value = 0; value < 256; value++) sums[channel]! += histogram[channel]![value]! * value;
-            const sharedMean = sums.reduce((sum, value) => sum + value, 0) / (count * channelCount * 255);
+            for (let channel = 0; channel < channelCount; channel++) for (let value = 0; value < levels; value++) sums[channel]! += histogram[channel]![value]! * value;
+            const sharedMean = sums.reduce((sum, value) => sum + value, 0) / (count * channelCount * (levels - 1));
             // Explicit channels use independent RGB means; native leaves alpha unchanged.
             const active = [channels.r, channels.g, channels.b, !independent && image.hasAlpha];
             for (let channel = 0; channel < channelCount; channel++) {
                 if (!active[channel]) continue;
-                const mean = independent ? sums[channel]! / (count * 255) : sharedMean;
+                const mean = independent ? sums[channel]! / (count * (levels - 1)) : sharedMean;
                 if (mean <= 0 || mean >= 1) continue;
                 const exponent = Math.log(0.5) / Math.log(mean);
-                for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal(Math.pow(value / 255, exponent) * 255);
+                for (let value = 0; value < levels; value++) lookup[channel]![value] = Math.round(Math.pow(value / (levels - 1), exponent) * (levels - 1));
             }
         } else if (token === "-auto-level") {
             const mins = [255, 255, 255, 255], maxs = [0, 0, 0, 0], active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];

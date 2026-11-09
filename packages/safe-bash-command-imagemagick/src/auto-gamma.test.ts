@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { decodeImage } from "@poe-code/image-ast";
+import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
@@ -23,9 +23,31 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         const actual = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!).data;
         const original = decodeImage(input).data;
         for (let i = 0; i < native.length; i++) {
-            // The analysis uses 8-bit samples; native retains fractional 16-bit input.
+            // Compare the decoded 8-bit projection with the native reference.
             expect(Math.abs(actual[i]! - native[i]!)).toBeLessThanOrEqual(1);
             if (channels && (i % 4 === 3 || !channels.includes("RGB"[i % 4]!))) expect(actual[i]).toBe(original[i]);
         }
+    });
+}
+
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each([
+        { name: "gray", input: [10000, 10000, 10000, 10016, 10016, 10016, 10032, 10032, 10032, 10048, 10048, 10048], channels: "", expected: [32739, 32739, 32739, 32758, 32758, 32758, 32777, 32777, 32777, 32796, 32796, 32796] },
+        { name: "tone", input: [5001, 17201, 26301, 5021, 17221, 26321, 5041, 17241, 26341, 5081, 17281, 26381], channels: "R", expected: [32706, 17201, 26301, 32741, 17221, 26321, 32776, 17241, 26341, 32846, 17281, 26381] }
+    ])(`preserves native 16-bit auto-gamma values for $name via ${mode}`, async ({ input, channels, expected }) => {
+        // Expected samples captured from ImageMagick 7.1.2-35 Q16-HDRI.
+        const data16 = Uint16Array.from(input.flatMap((value, index) => index % 3 === 2 ? [value, 65535] : [value]));
+        const png = encodeImage({ width: 4, height: 1, data16,
+            data: Uint8Array.from(data16, value => Math.round(value / 257)),
+            format: "png", space: "srgb", channels: 3, depth: "ushort", density: 72, hasAlpha: false
+        }, { format: "png" }).data;
+        const files = new Map([["input.png", png]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", png);
+        const args = ["input.png", ...(channels ? ["-channel", channels] : []), "-auto-gamma", "+channel", "PNG48:out.png"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+        const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+        expect(Array.from(output.data16 ?? [])).toEqual(expected.flatMap((value, index) => index % 3 === 2 ? [value, 65535] : [value]));
     });
 }

@@ -81,7 +81,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
 
   return {
     index: idx,
-    id: matroska ? undefined : `0x${track.id.toString(16)}`,
+    id: matroska || containerFormat === "webvtt" ? undefined : `0x${track.id.toString(16)}`,
     codec_name: codecName || undefined,
     mime_codec_string: desc?.mimeCodecString,
     codec_long_name: codecLongName || undefined,

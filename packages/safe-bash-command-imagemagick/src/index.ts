@@ -7653,7 +7653,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     frames.push(current);
                     continue;
                 }
-                const bounds = compareLayerBounds(previous, current, state.fuzz, method);
+                const bounds = compareLayerBounds(previous, current, state.alphaFuzz, method);
                 let next = bounds.next();
                 while (!next.done) {
                     if (!next.value) { yield; next = bounds.next(); }
@@ -9324,7 +9324,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const removeDups = optimizePlus || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "removedups");
             if (optimizePlus) state.optimizeLayers = true;
             if (token === "-layers") i++;
-            const fuzz = state.fuzz;
+            const fuzz = state.alphaFuzz;
             stackStep(async (stack, backend) => {
                 const frames = new StoredImageStack(backend.storage, signal);
                 let previous = await stack.get(0);

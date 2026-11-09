@@ -4724,7 +4724,7 @@ interface InputSpec {
   readonly fps?: number | undefined;
   readonly startNumber?: number | undefined;
   readonly startNumberRange?: number | undefined;
-  readonly patternType?: "glob" | "none" | "sequence" | undefined;
+  readonly patternType?: "glob" | "glob_sequence" | "none" | "sequence" | undefined;
 }
 
 export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): CommandDefinition {
@@ -5609,7 +5609,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-pattern_type") {
             const selector = args[++i];
             const value = selector === "1" ? "glob" : selector === "2" ? "sequence" : selector === "3" ? "none" : selector;
-            if (value !== "glob" && value !== "none" && value !== "sequence") {
+            if (value !== "glob" && value !== "glob_sequence" && value !== "none" && value !== "sequence") {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid image2 pattern type: ${value ?? ""}\n`), context.signal);
               return { exitCode: 1 };
             }
@@ -6310,9 +6310,28 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0) : undefined;
               let pipeOffset = 0;
               let globPaths: string[] | undefined;
-              if (!pipeBytes && input?.patternType === "glob") {
+              let globPattern = input?.patternType === "glob" ? filePath : undefined;
+              if (!pipeBytes && (input?.patternType === undefined || input.patternType === "glob_sequence")) {
+                let converted = "";
+                let hasGlob = false;
+                for (let i = 0; i < filePath.length; i++) {
+                  budget.checkCpu();
+                  const character = filePath[i]!;
+                  const next = filePath[i + 1];
+                  if (character === "%" && next !== undefined && "%*?[]{}".includes(next)) {
+                    hasGlob ||= next !== "%";
+                    converted += next;
+                    i++;
+                  } else {
+                    if ("\\*?[]{}".includes(character)) converted += "\\";
+                    converted += character;
+                  }
+                }
+                if (hasGlob) globPattern = converted;
+              }
+              if (!pipeBytes && globPattern !== undefined) {
                 globPaths = [];
-                for (const pattern of expandImageGlob(filePath, budget)) {
+                for (const pattern of expandImageGlob(globPattern, budget)) {
                   let alternativePaths = ["/"];
                   for (const component of resolvePath(context.cwd, pattern).split("/").filter(Boolean)) {
                     const matches: string[] = [];

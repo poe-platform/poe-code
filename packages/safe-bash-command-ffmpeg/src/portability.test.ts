@@ -185,7 +185,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes WAV ADPCM/G.726 encoding and G.711 container handling (measured 1,161,162 bytes).
   // Current command graph with native expression powers measures 1,168,987 bytes.
   // Includes ordered image2 brace alternatives and the current command graph (1,178,057 bytes).
-  assert.ok(otherCodeBytes < 1_180_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Current dependencies plus asubcut measure 1,294,815 bytes (baseline 1,291,909).
+  assert.ok(otherCodeBytes < 1_297_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -281,6 +282,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes the current WAV encoders and G.711 container graph (measured 10,720,719 bytes).
   // Current dependency graph with native expression powers measures 10,736,115 bytes.
   // Includes ordered image2 brace alternatives and the current dependency graph (10,745,986 bytes).
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_748_000,
+  // Current dependencies plus asubcut measure 10,868,764 bytes (baseline 10,865,858).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_871_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

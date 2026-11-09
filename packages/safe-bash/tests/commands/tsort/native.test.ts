@@ -43,7 +43,8 @@ exit "$status"`);
 }
 
 for (const fixture of nativeCases) {
-  const information = ["help", "help-prefix", "version"].includes(fixture.name);
+  // GNU 9.4 accepts help with operands; retain the older 8.30 captures as historical evidence.
+  const information = ["help", "help-prefix", "version", "help-with-file", "help-after-file"].includes(fixture.name);
   test(`${information ? "qualified information" : "native"}: ${fixture.name}`, async () => {
     const { tsortCommands } = await import("../../../src/commands/tsort/index.js");
     const fs = new MemoryFileSystem();

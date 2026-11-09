@@ -8300,6 +8300,9 @@ export class Runtime {
       this.signal.throwIfAborted();
       name = this.referenceName(state, name);
       if (state.readonlyVariables?.has(name)) {
+        const binding = arrayStore(state)?.get(name);
+        // Bash evaluates indexed destinations even when the write is refused.
+        if (index && !binding?.associative) await this.arrayIndex(binding, index, state, context, requireArrays(state).owner, true, binding?.maximum ?? (state.variables[name] === undefined ? -1 : 0));
         await writeDiagnostic(context.stderr, `printf: ${name}: readonly variable\n`);
         return 1;
       }

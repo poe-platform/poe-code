@@ -7709,6 +7709,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             state.scene = Number(tokens[++i]);
             if (!Number.isSafeInteger(state.scene) || state.scene < 0) throw new Error("invalid scene number");
         }
+        else if (t === "+delay") {
+            state.delay = "0";
+        }
         else if (t === "-delay") {
             state.delay = tokens[++i] ?? "0";
             parseDelayOption(state.delay, 0);
@@ -9538,6 +9541,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }); continue;
         }
         if (!operandsOnly && token === "-format") { state.formatStr = tokens[++i] ?? ""; continue; }
+        if (!operandsOnly && token === "+delay") { state.delay = "0"; continue; }
         if (!operandsOnly && token === "-delay") { state.delay = tokens[++i] ?? "0";
             parseDelayOption(state.delay, 0); continue; }
         if (!operandsOnly && token === "-transparent-color") { state.transparentColor = parseColor(tokens[++i] ?? ""); continue; }

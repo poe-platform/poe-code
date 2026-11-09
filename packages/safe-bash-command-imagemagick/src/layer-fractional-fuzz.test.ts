@@ -8,6 +8,7 @@ for (const mode of ["sync", "buffered", "retained", "command"]) {
   for (const operation of [["-layers", "RemoveDups"], ["-layers", "CompareAny"], ["-deconstruct"]]) {
     it.each(["0.2%", "0.3%"])(`${mode} ${operation.join(" ")} preserves fractional fuzz %s`, async fuzz => {
       const input = encodeImage({ width: 1, height: 2, pageHeight: 1, pages: 2,
+        format: "gif", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false,
         data: new Uint8Array([100, 100, 100, 255, 101, 101, 101, 255]),
         delay: [30, 50], disposal: 1 }, { format: "gif", pageHeight: 1 }).data;
       const files = new Map([["in.gif", input]]);

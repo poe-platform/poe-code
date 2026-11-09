@@ -7669,7 +7669,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         const prior = frames[frames.length - 1]!;
                         const delay = (prior.delay?.[(prior as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0) +
                             (current.delay?.[(current as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0);
-                        frames[frames.length - 1] = { ...prior, delay: Array(prior.delay?.length ?? 1).fill(delay) };
+                        const survivor = optimizePlus ? prior : current;
+                        frames[frames.length - 1] = { ...survivor, delay: Array(survivor.delay?.length ?? 1).fill(delay) };
                     }
                 } else if (next.value) frames.push({ ...yield* extractImageSteps(current, next.value), virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top) });
             }
@@ -9355,8 +9356,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             const priorScene = prior[magickInput]?.sceneIdx ?? 0, scene = current[magickInput]?.sceneIdx ?? 0;
                             const delay = (await prior.storedDelay?.at(priorScene, { signal }) ?? prior.delay?.[priorScene] ?? 0) +
                                 (await current.storedDelay?.at(scene, { signal }) ?? current.delay?.[scene] ?? 0);
-                            await frames.set(frames.length - 1, { ...prior, storedDelay: {
-                                length: prior.storedDelay?.length ?? prior.delay?.length ?? 1,
+                            const survivor = optimizePlus ? prior : current;
+                            await frames.set(frames.length - 1, { ...survivor, storedDelay: {
+                                length: survivor.storedDelay?.length ?? survivor.delay?.length ?? 1,
                                 async at() { return delay; },
                             } });
                         }

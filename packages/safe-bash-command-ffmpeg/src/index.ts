@@ -1,3 +1,4 @@
+import { parseFeedbackGraph, applyFeedback } from "./feedback.js";
 import { applyOutputColors, parseOutputColorOption, type OutputColorOption } from "./color-options.js";
 import { surroundAudio } from "./audio-surround.js";
 import { denoiseWavelets } from "./audio-afwtdn.js";
@@ -8013,11 +8014,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             // Combine inputs according to `-filter_complex`, `-map`, or default mux
             let workingDoc: MediaDocument;
+            const feedback = filterComplex ? parseFeedbackGraph(filterComplex, maps) : undefined;
             if (filterComplex) {
               if (features.filterGraph === false) {
                 throw new Error("Filtergraph processing is disabled by consumer feature configuration");
               }
-              if (filterComplex.includes("showwavespic")) {
+              if (feedback) {
+                if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
+                if (vfFilters.length) throw new Error("feedback: cannot combine simple and complex video filters");
+                const doc = loadedDocs[feedback.input];
+                const track = doc?.tracks.filter(track => track.type === "video")[feedback.ordinal];
+                if (!doc || !track) throw new Error("feedback: video input is unavailable");
+                workingDoc = { ...doc, tracks: [track] };
+                vfFilters.push("null");
+              } else if (filterComplex.includes("showwavespic")) {
                 let expression = filterComplex.trim();
                 let input = "0:a:0";
                 if (expression.startsWith("[")) {
@@ -8610,7 +8620,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     logLevel,
                     write: (text: string) => writeBytes(context.stderr, encodeUtf8(text), context.signal)
                   };
-                  const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal);
+                  const inputFrames = feedback
+                    ? await applyFeedback(displayed, feedback.rectangle, tiles => applyVideoFilterChain(
+                      tiles, feedback.filter, budget, { ...diagnostics }, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal
+                    ), budget, context.signal)
+                    : displayed;
+                  const filtered = await applyVideoFilterChain(inputFrames, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal);
                   const first = filtered[0];
                   return {
                     ...t,

@@ -1490,7 +1490,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     // Native uses this sentinel when ImageInfo.number_scenes is unset.
     S: "2147483647",
     g: `${page.width}x${page.height}${pageX}${pageY}`, O: `${pageX}${pageY}`, P: `${page.width}x${page.height}`, X: pageX, Y: pageY,
-    c: meta.properties?.comment ?? "", C: compression, Q: String(context.quality ?? meta.quality ?? 92)
+    c: meta.properties?.comment ?? "", l: meta.properties?.label ?? "", C: compression, Q: String(context.quality ?? meta.quality ?? 92)
   };
   const properties: Record<string, string> = {
     ...meta.properties,

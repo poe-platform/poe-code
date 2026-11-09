@@ -930,6 +930,10 @@ export interface State extends DynamicVariableState {
   loopDepth: number;
   functionDepth: number;
   locals: Map<string, SavedVariable>[];
+  localSetOptions?: {
+    readonly values: Pick<State, "allexport" | "braceexpand" | "errexit" | "noclobber" | "noexec" | "noglob" | "nounset" | "pipefail">;
+    readonly extensions: ReadonlyMap<string, boolean>;
+  } | undefined;
   getopts?: GetoptsBinding | undefined;
   directoryStack?: { readonly entries: readonly string[]; readonly bytes: number } | undefined;
   directoryStackCwdPublication?: symbol;
@@ -6399,6 +6403,7 @@ export class Runtime {
           const functionRestoration = stateMonitor(state)?.restoration(true);
           let getoptsRestoration: Restoration | undefined;
           const locals = new Map<string, SavedVariable>();
+          const callerSetOptions = state.localSetOptions;
           try {
             getoptsRestoration = stateMonitor(state)?.restoration();
             const stack = state.locals;
@@ -6411,6 +6416,7 @@ export class Runtime {
               state.functionDepth++;
               state.depth++;
               stack.push(preparedLocals);
+              state.localSetOptions = undefined;
               const rawState = stateMonitor(state)?.raw ?? state;
               (rawState.callerFrames ??= []).unshift(captureCallerFrame(rawState, io, context.command));
               (rawState.functionNames ??= []).unshift(context.command);
@@ -6490,6 +6496,14 @@ export class Runtime {
               state.functionDepth--;
               state.loopDepth = callerLoopDepth;
               state.depth--;
+              if (state.localSetOptions) {
+                Object.assign(state, state.localSetOptions.values);
+                for (const [name, enabled] of state.localSetOptions.extensions) {
+                  const option = state.extensions?.options.get(name);
+                  if (option) option.enabled = enabled;
+                }
+              }
+              state.localSetOptions = callerSetOptions;
               state.locals.pop();
               const rawState = stateMonitor(state)?.raw ?? state;
               rawState.functionNames?.shift();
@@ -8451,6 +8465,7 @@ export class Runtime {
       }
       if (command === "declare" || command === "local") {
         while (declarationArgs[0]?.startsWith("-") || declarationArgs[0]?.startsWith("+")) {
+          if (command === "local" && declarationArgs[0] === "-") break;
           const option = declarationArgs.shift()!;
           if (option === "--") break;
           for (const flag of option.slice(1)) {
@@ -8624,6 +8639,18 @@ export class Runtime {
       const declarationOffset = args.length - declarationArgs.length;
       for (let declarationIndex = 0; declarationIndex < declarationArgs.length; declarationIndex++) {
         const arg = declarationArgs[declarationIndex]!;
+        if (command === "local" && arg === "-") {
+          state.localSetOptions ??= {
+            values: {
+              allexport: !!state.allexport, braceexpand: state.braceexpand !== false,
+              errexit: !!state.errexit, noclobber: !!state.noclobber,
+              noexec: !!state.noexec, noglob: !!state.noglob,
+              nounset: !!state.nounset, pipefail: state.pipefail,
+            },
+            extensions: new Map([...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled])),
+          };
+          continue;
+        }
         const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\+?=(.*))?$/su.exec(arg);
         if (!match) { await this.diagnostic(context, `${command}: \`${arg}': not a valid identifier`); status = 1; continue; }
         const name = match[1]!;

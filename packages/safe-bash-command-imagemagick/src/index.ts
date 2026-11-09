@@ -4786,8 +4786,9 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         else if (cmd === "rectangle") {
             const x0 = num();
             const y0 = num();
-            const x1 = num();
-            const y1 = num();
+            // Native drawing collapses a NaN endpoint onto the starting coordinate.
+            const x1 = ["nan", "+nan", "-nan"].includes(tokens[i]?.toLowerCase() ?? "") ? (i++, x0) : num();
+            const y1 = ["nan", "+nan", "-nan"].includes(tokens[i]?.toLowerCase() ?? "") ? (i++, y0) : num();
             const rx = Math.min(x0, x1);
             const ry = Math.min(y0, y1);
             const rw = Math.max(1, Math.abs(x1 - x0) + 1);

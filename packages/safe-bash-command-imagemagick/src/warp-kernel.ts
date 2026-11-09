@@ -50,7 +50,7 @@ function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [num
 
 export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">>, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source;
-    const filter = kernel === undefined || kernel === "nearest" ? undefined : resizeFilter(kernel, settings, true);
+    const filter = kernel === "nearest" ? undefined : resizeFilter(kernel ?? "robidoux", settings, true);
     const blur = Math.max(1e-12, (settings?.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485 : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
     const support = filter ? filter.radius * blur : 2;
     const weights = filter ? Float64Array.from({ length: 1024 }, (_, i) => filter.weight(Math.sqrt(i / 1024) * filter.radius)) : robidoux;

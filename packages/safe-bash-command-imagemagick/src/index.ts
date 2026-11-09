@@ -8871,6 +8871,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-evaluate-sequence" || t === "-average") {
             const op = t === "-average" ? "Mean" : tokens[++i] ?? "Mean";
+            if (t === "-evaluate-sequence" && !stack.length) throw new Error("no images found for operation '-evaluate-sequence'");
             if (t === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
             if (stack.length > 0) {
                 stack = [(yield* applyMagickEvaluateSequenceSteps(stack, op, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state, signal))];
@@ -10244,6 +10245,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && ["-clut", "-hald-clut", "-separate", "-combine", "-morph", "-evaluate-sequence", "-average"].includes(token)) {
             const argument = token === "-morph" || token === "-evaluate-sequence" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : token === "-average" ? "Mean" : "", settings = { ...state, channels: { ...state.channels } };
             stackStep(async (stack, backend) => {
+                if (token === "-evaluate-sequence" && !stack.length) throw new Error("no images found for operation '-evaluate-sequence'");
                 if (token === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
                 if (token === "-clut" || token === "-hald-clut") {
                     if (stack.length < 2) throw new Error(`image sequence is required '${token}'`);

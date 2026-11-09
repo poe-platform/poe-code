@@ -9050,7 +9050,7 @@ export class Runtime {
             state.getopts.integer = false;
           }
         }
-        const attributeName = enabled.has("n") || disabled.has("n") ? name : this.variableTarget(this.referenceName(state, name))!.name;
+        const attributeName = namerefDeclaration || disabled.has("n") ? name : this.variableTarget(this.referenceName(state, name))!.name;
         if (command === "declare" || command === "local") this.declareAttributes(state, attributeName, enabled, disabled);
         if (match[2] !== undefined && arrayStore(state)?.get(name)) {
           await this.arrayZero(state, name, context, async () => assignedValue(), append, command === "readonly");

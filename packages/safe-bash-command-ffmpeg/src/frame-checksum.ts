@@ -69,7 +69,7 @@ export function serializeFrameChecksum(
     }
     if (track.type !== "audio") throw new Error("Frame checksum output requires audio, video, or copied subtitle streams");
     const copy = audioCodec === "copy";
-    const rate = copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
+    const rate = track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
     const channels = track.decodedAudio?.channels ?? track.codecDescriptions[0]?.channels ?? 0;
     const mask = track.decodedAudio?.channelMask;
     const layouts: Record<number, string> = {
@@ -83,7 +83,7 @@ export function serializeFrameChecksum(
     const layout = mask && speakers.length === channels
       ? layouts[mask] ?? `${channels} channels (${speakers.join("+")})`
       : ["0 channels", "mono", "stereo", "2.1", "4.0", "5.0", "5.1", "6.1", "7.1"][channels] ?? `${channels} channels`;
-    lines.push(`#tb ${index}: 1/${rate}`, `#media_type ${index}: audio`,
+    lines.push(`#tb ${index}: 1/${copy ? track.timescale : rate}`, `#media_type ${index}: audio`,
       `#codec_id ${index}: ${copy ? track.codecDescriptions[0]?.codecName : audioCodec ?? "pcm_s16le"}`,
       `#sample_rate ${index}: ${rate}`, `#channel_layout_name ${index}: ${layout}`);
   }

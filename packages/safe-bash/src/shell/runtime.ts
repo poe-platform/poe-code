@@ -9528,7 +9528,12 @@ export class Runtime {
     } finally { allocation.close(); holding?.release(); }
   }
   private async resolveParameter<T extends WordPart>(part: T, state: State, io: IO): Promise<T> {
-    if (part.kind === "variable" && part.indirect && state.variableAttributes?.get(part.name)?.includes("n")) return part;
+    if (part.kind === "variable" && part.indirect && state.variableAttributes?.get(part.name)?.includes("n")) {
+      // Bash transforms an element nameref's value, but keeps its name for bare/default expansions.
+      if (!(part.substring || part.transform || memberPatternOperators.includes(part.operator ?? "")) ||
+          this.variableTarget(this.referenceName(state, part.name))?.subscript === undefined) return part;
+      part = copyArraySelector(part, { ...part, indirect: false });
+    }
     if (part.kind === "variable" && part.indirect) {
       const referencePart: Extract<WordPart, { kind: "variable" }> = { kind: "variable", name: part.name, quoted: true, ...(part.line === undefined ? {} : { line: part.line }) };
       copyArraySelector(part, referencePart);

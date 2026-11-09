@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterBoolean } from "./filter-boolean.js";
 
 export async function mixAudio(
   first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -28,8 +29,7 @@ export async function mixAudio(
       transition = Number(value);
       if (!value || !Number.isFinite(transition) || transition < 0) throw new Error("amix: invalid dropout transition");
     } else if (key === "normalize") {
-      if (!["0", "1", "false", "true"].includes(value)) throw new Error("amix: invalid normalize");
-      normalize = value === "1" || value === "true";
+      normalize = parseFilterBoolean(value, "amix: invalid normalize");
     } else if (key === "weights") {
       weights = parseWeights(value);
     } else throw new Error(`amix: unsupported option ${key}`);

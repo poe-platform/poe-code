@@ -110,3 +110,30 @@ for (const filter of ["amix=inputs=3", "amix=duration=invalid", "amix=normalize=
     assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
   });
 }
+
+for (const prefix of ["normalize=", "2:longest:2:1 1:"]) {
+  for (const [normalized, values] of [
+    [false, ["0", "false", "no", "off", "FaLsE", "NO", "OFF", "n", "disable", "disabled", "", "-0", "00"]],
+    [true, ["1", "true", "yes", "on", "TrUe", "YES", "ON", "y", "enable", "enabled", "+1", "01"]]
+  ] as const) {
+    it(`amix ${prefix} matches native ${normalized ? "normalized" : "summed"} PCM for boolean spellings`, async () => {
+      for (const value of values) {
+        const { result, volume, error } = await mix(`amix=${prefix}${value}`, Array(2048).fill(8000), Array(2048).fill(-4000));
+        assert.equal(result.exitCode, 0, `${value}: ${error}`);
+        const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+        assert.equal(audio.sampleRate, 8000);
+        assert.equal(audio.channels, 1);
+        assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768),
+          Array(2048).fill(normalized ? 2000 : 4000), value);
+      }
+    });
+  }
+  it(`amix ${prefix} rejects invalid booleans without replacing output`, async () => {
+    for (const value of ["auto", "maybe", "2", "-1", "1.0", "0x1", "truejunk"]) {
+      const { result, volume, error } = await mix(`amix=${prefix}${value}`, [8000], [-4000]);
+      assert.equal(result.exitCode, 1, value);
+      assert.ok(error.includes("amix: invalid normalize"), error);
+      assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep", value);
+    }
+  });
+}

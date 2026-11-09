@@ -32,7 +32,7 @@ for (const sync of [false, true]) {
         assert.equal(result.exitCode, 0, stderr);
       }
       assert.equal(volume.readFileSync(target, "utf8"),
-        "1\n00:00:00,250 --> 00:00:01,125\nPlain <i>slant</i> <b>bold</b>\nNext line\n\n");
+        `1\n00:00:00,250 --> 00:00:01,125\nPlain <i>slant</i> <b>bold</b>${format === "ass" ? "\r\n" : "\n"}Next line\n\n`);
     });
   }
 }

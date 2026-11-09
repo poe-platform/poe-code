@@ -17,3 +17,12 @@ for (const format of ["png", "jpeg", "tiff"] as const) {
     expect(decoded.resolution).toEqual(format === "png" ? {x:6000,y:3000,unit:"meter"} : {x:60,y:30,unit:"cm"});
   });
 }
+
+for (const tiffBig of [false, true]) {
+  it(`omits TIFF resolution when only the default density is present (BigTIFF=${tiffBig})`, () => {
+    const { resolution: ignoredResolution, ...untagged } = image;
+    const bytes = encodeImage({ ...untagged, density: 72 }, { format: "tiff", tiffBig }).data;
+    expect(readImageMetadata(bytes).resolution).toBeUndefined();
+    expect(decodeImage(bytes).data).toEqual(image.data);
+  });
+}

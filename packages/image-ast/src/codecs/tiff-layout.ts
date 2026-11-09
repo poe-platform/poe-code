@@ -29,6 +29,7 @@ export function createTiffLayout(
   const pixelBytes = stripSizes?.reduce((sum, size) => sum + size, 0) ?? (tile ? stripCount * tile.width * tile.height * chunkChannels : width * height * channels) * sampleBytes;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
   const resolution = options?.density === undefined ? img.resolution : undefined;
+  const hasResolution = resolution !== undefined || options?.density !== undefined;
   const scale = resolution?.unit === "meter" ? 100 : 1;
   const x = resolution ? resolution.x / scale : density, y = resolution ? resolution.y / scale : density;
   const denominator = Number.isInteger(x) && Number.isInteger(y) ? 1 : 10000;
@@ -41,7 +42,7 @@ export function createTiffLayout(
   const padding = (alignment - pixelBytes % alignment) % alignment;
   const comment = img.properties?.comment === undefined ? undefined : new TextEncoder().encode(img.properties.comment + "\0");
   const commentSize = comment ? Math.ceil(comment.length / alignment) * alignment : 0;
-  const numEntries = (hasAlpha ? 15 : 14) + (positions ? 2 : 0) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
+  const numEntries = (hasAlpha ? 15 : 14) - (hasResolution ? 0 : 3) + (positions ? 2 : 0) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
   const tableSize = Math.ceil((countBytes + numEntries * entryBytes + offsetBytes) / alignment) * alignment;
   const directorySize = tableSize + 24 + commentSize + stripArraySize + positionSize;
   const pixelOffset = offset === 0 ? (big ? 16 : 8) : offset + directorySize;
@@ -78,14 +79,14 @@ export function createTiffLayout(
   entries.push([277, 3, 1, channels]); // SamplesPerPixel
   if (!tile) entries.push([278, 4, 1, rowsPerStrip]); // RowsPerStrip
   if (!tile) entries.push([279, big ? 16 : 4, stripCount, stripCount === 1 ? pixelBytes : yResOffset + 8 + commentSize + stripCount * offsetBytes]); // StripByteCounts
-  entries.push([282, 5, 1, xResOffset]); // XResolution
-  entries.push([283, 5, 1, yResOffset]); // YResolution
+  if (hasResolution) entries.push([282, 5, 1, xResOffset]); // XResolution
+  if (hasResolution) entries.push([283, 5, 1, yResOffset]); // YResolution
   entries.push([284, 3, 1, options?.tiffPlanar ? 2 : 1]); // PlanarConfiguration
   if (positions) {
     entries.push([286, 5, 1, positionOffset]); // XPosition
     entries.push([287, 5, 1, positionOffset + 8]); // YPosition
   }
-  entries.push([296, 3, 1, resolution?.unit === "meter" || resolution?.unit === "cm" ? 3 : resolution?.unit === "unknown" ? 1 : 2]); // ResolutionUnit
+  if (hasResolution) entries.push([296, 3, 1, resolution?.unit === "meter" || resolution?.unit === "cm" ? 3 : resolution?.unit === "unknown" ? 1 : 2]); // ResolutionUnit
   if (tile) {
     entries.push([322, 4, 1, tile.width]);
     entries.push([323, 4, 1, tile.height]);

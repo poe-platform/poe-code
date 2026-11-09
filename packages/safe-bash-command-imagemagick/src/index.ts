@@ -11008,6 +11008,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let cooperativeWork = 63;
     const state = createDefaultState();
     state.fuzz = 0;
+    let density: string | undefined;
     let pngColorType: string | undefined;
     let channels: number[] | undefined;
     let metric = "rmse";
@@ -11232,8 +11233,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "+size") { state.hasSize = false; delete state.inputOffset; }
         else if (t === "+depth") { delete state.inputDepth; }
         else if (t === "-density") {
-            const g = parseMagickGeometry(argv[++i] ?? "72");
-            state.density = Math.max(1, Math.round(g.width ?? 72));
+            density = argv[++i] ?? "72";
+            state.density = Math.max(1, Math.round(parseMagickGeometry(density).width ?? 72));
         }
         else if (t === "(") {
             resizeSteps.push(t);
@@ -11707,7 +11708,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const pngWarnings = { warnings: "" };
         const colorType = pngOutputColorType(pngColorType, format, pngWarnings);
         const opaque = colorType === 0 || colorType === 2;
-        const metadata = { width, height, format: "png" as const, channels: opaque ? 3 as const : 4 as const, depth: "uchar" as const, density: state.density, space: "srgb" as const, hasAlpha: !opaque };
+        const outputMetadata = density === undefined ? imgA : applyMagickDensity(imgA, density);
+        const metadata = { width, height, format: "png" as const, channels: opaque ? 3 as const : 4 as const, depth: "uchar" as const, density: outputMetadata.density, ...(outputMetadata.resolution ? { resolution: outputMetadata.resolution } : {}), space: "srgb" as const, hasAlpha: !opaque };
         const encoding = { ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth), pngBitDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, miffDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, tiffIntegerDepth: state.inputDepth <= 8 ? 8 as const : state.inputDepth <= 16 ? 16 as const : 32 as const }), format, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4" as const, ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngColorType: colorType, ...(opaque ? { forceOpaque: true } : {}), ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) };
         const split = hasSceneOutputPattern(path) || (subimageSearch && !["gif", "miff", "tiff"].includes(format));
         let stdoutBytes: Uint8Array | undefined;

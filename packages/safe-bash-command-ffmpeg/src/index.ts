@@ -7063,14 +7063,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const start = cursor;
                     while (cursor < line.length && !" \t".includes(line[cursor]!)) cursor++;
                     const value = line.slice(start, cursor);
-                    // FFmpeg durations are decimal seconds (optionally s/ms/us)
-                    // or signed [hours:]minutes:seconds, with no trailing text.
-                    if (!/^-?(?:(?:\d+(?:\.\d*)?|\.\d+)(?:s|ms|us)?|(?:\d+:)?[0-5]?\d:[0-5]?\d(?:\.\d*)?)$/.test(value)) {
-                      throw new Error(`Line ${l + 1}: invalid ${keyword} '${value}'`);
-                    }
-                    const seconds = value.startsWith("-")
-                      ? -parseFfmpegTimestamp(value.slice(1))
-                      : parseFfmpegTimestamp(value);
+                    const seconds = parseHlsDuration(value);
                     if (!Number.isFinite(seconds) || Math.abs(seconds) >= 2 ** 63 / 1_000_000) {
                       throw new Error(`Line ${l + 1}: invalid ${keyword} '${value}'`);
                     }

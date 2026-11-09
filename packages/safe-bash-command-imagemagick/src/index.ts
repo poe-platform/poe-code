@@ -3339,7 +3339,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
     return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">, geometry = spec) => {
         if (token === "-shear") {
-            const plan = shearPlan(image, spec);
+            const plan = shearPlan(image, geometry);
             return { ...plan, virtualCanvas: undefined, steps: shearPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background) };
         }
         if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(geometry, token);
@@ -8055,7 +8055,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (warpOperation) {
             i = warpOperation.end;
-            const geometry = ["-wave", "-swirl", "-implode"].includes(t) ? tokens[i] : undefined;
+            const geometry = ["-shear", "-wave", "-swirl", "-implode"].includes(t) ? tokens[i] : undefined;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = geometry?.includes("%[") ? yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : geometry;
                 const plan = warpOperation.plan(image, expanded);
@@ -9688,7 +9688,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         const warpOperation = operandsOnly || token === "-rotate" ? undefined : parseMagickWarpOperation(tokens, state, i, analysis);
         if (warpOperation) {
             i = warpOperation.end;
-            const geometry = ["-wave", "-swirl", "-implode"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
+            const geometry = ["-shear", "-wave", "-swirl", "-implode"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = geometry?.includes("%[") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal) : geometry;

@@ -777,7 +777,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     format.setUint16(16, 2, true);
     format.setUint16(18, frames, true);
     factBytes = new Uint8Array(4);
-    new DataView(factBytes.buffer).setUint32(0, pcmBytes.length / blockAlign * frames, true);
+    new DataView(factBytes.buffer).setUint32(0, Math.max(1, decodedAudio.channelData[0]!.length), true);
   } else if (formatBytes) {
     pcmBytes = concatBytes(audioTrack!.samples.map(s => s.data));
   } else if (decodedAudio) {

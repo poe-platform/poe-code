@@ -45,7 +45,7 @@ for (const sync of [false, true]) {
         const frames = 1 + (1024 - 4 * channels) * 2 / channels;
         assert.equal(output.readUInt16LE(38), frames);
         assert.equal(output.toString("ascii", 40, 44), "fact");
-        assert.equal(output.readUInt32LE(48), Math.ceil(count / frames) * frames);
+        assert.equal(output.readUInt32LE(48), count);
         assert.equal(output.toString("ascii", 52, 56), "data");
         assert.equal(output.readUInt32LE(56), Math.ceil(count / frames) * 1024);
         if (smallChanges && channels === 1 && count === 9) {

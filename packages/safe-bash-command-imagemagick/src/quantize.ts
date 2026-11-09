@@ -36,10 +36,12 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
-    const prepare = (source: Uint8Array): Uint8Array => {
-        const data = new Uint8Array(source);
+    // Keep byte-scaled fractions for Q16 transfers; round only at output precision.
+    const round = (value: number) => highDepth ? Math.round(value * 257) / 257 : Math.round(value);
+    const prepare = (source: Uint8Array): Float64Array => {
+        const data = highDepth ? Float64Array.from(new Uint16Array(source.slice().buffer), value => value / 257) : Float64Array.from(source);
         for (let i = 0; i < data.length; i += 4) {
             if (!hasAlpha) data[i + 3] = 255;
             if (grayscale) {
@@ -53,15 +55,15 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         }
         return data;
     };
-    let bins = new Map<number, ColorBin>(), mask = 0xffffffff, precision = 8;
-    const key = (data: Uint8Array, i: number) => (data[i]! << 24 | data[i + 1]! << 16 | data[i + 2]! << 8 | data[i + 3]!) & mask;
+    let bins = new Map<number | string, ColorBin>(), mask = 0xffffffff, precision = 8;
+    const key = (data: Float64Array, i: number) => highDepth && precision === 8 ? data.subarray(i, i + 4).join(",") : (data[i]! << 24 | data[i + 1]! << 16 | data[i + 2]! << 8 | data[i + 3]!) & mask;
     for (let position = 0; position < length; position += 4096) {
         yield;
-        const size = Math.min(4096, length - position), source = yield { kind: "read", position, length: size };
-        if (!source || source.length !== size) throw new Error("Truncated quantization pixels");
+        const size = Math.min(4096, length - position), source = yield { kind: "read", highDepth, position, length: size };
+        if (!source || source.length !== size * (highDepth ? 2 : 1)) throw new Error("Truncated quantization pixels");
         const data = prepare(source);
         if (grayscale && requested === 2) {
-            yield { kind: "write", position, data };
+            yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data) };
             continue;
         }
         for (let i = 0; i < size; i += 4) {
@@ -76,11 +78,11 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         if (bins.size > 65536) {
             const channelMask = (255 << (8 - --precision)) & 255;
             mask = channelMask * 0x01010101;
-            const reduced = new Map<number, ColorBin>();
+            const reduced = new Map<number | string, ColorBin>();
             let work = 0;
             for (const [id, bin] of bins) {
                 if (++work % 1024 === 0) yield;
-                const next = id & mask, existing = reduced.get(next);
+                const next = typeof id === "number" ? id & mask : key(Float64Array.from(id.split(","), Number), 0), existing = reduced.get(next);
                 if (!existing) reduced.set(next, bin);
                 else { existing.count += bin.count; for (let c = 0; c < 7; c++) existing.sums[c]! += bin.sums[c]!; }
             }
@@ -89,18 +91,18 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     }
     if (grayscale && requested === 2) return;
     let work = 0;
-    if (bins.size <= requested) {
+    const channels = [...bins.values()].some(bin => bin.sums[3] !== 255 * bin.count) ? 4 : 3;
+    if (bins.size <= requested && channels === 3) {
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;
-            bin.color = bin.sums.slice(0, 4).map(value => Math.round(value / bin.count));
+            bin.color = bin.sums.slice(0, 4).map(value => round(value / bin.count));
         }
     } else {
         const depth = treeDepth === 0 ? 8 : Math.max(2, Math.min(8, treeDepth));
         const root: ColorNode = { level: 0, children: new Map(), count: 0, sums: [0, 0, 0, 0, 0, 0, 0], error: Infinity, removed: false };
-        const channels = [...bins.values()].some(bin => bin.sums[3] !== 255 * bin.count) ? 4 : 3;
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;
-            const pixel = bin.sums.slice(0, 4).map(value => value / bin.count), midpoint = [127.5, 127.5, 127.5, 127.5];
+            const pixel = bin.sums.slice(0, 4).map((value, c) => c < 3 ? bin.sums[c + 4]! / bin.count / 255 : value / bin.count), midpoint = [127.5, 127.5, 127.5, 127.5];
             let node = root;
             for (let bit = 7; bit >= 0; bit--) {
                 let id = 0, distance = 0;
@@ -171,43 +173,46 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             if (++work % 1024 === 0) yield;
             let node = bin.node!;
             while (node.removed) node = node.parent!;
-            if (channels === 3) {
-                const pixel = bin.sums.slice(0, 4).map(value => value / bin.count);
-                // Native assignment searches the deepest surviving cube's
-                // siblings and descendants, comparing unrounded palette means.
-                let cube = root;
-                for (let bit = 7; bit > 0; bit--) {
-                    let id = 0;
-                    for (let c = 0; c < channels; c++) id |= ((Math.round(pixel[c]!) >>> bit) & 1) << c;
-                    const child = cube.children.get(id);
-                    if (!child || child.removed) break;
-                    cube = child;
-                }
-                let closest = Infinity;
-                function* search(candidate: ColorNode): Generator<undefined> {
-                    if (++work % 1024 === 0) yield;
-                    for (let id = 0; id < 8; id++) {
-                        const child = candidate.children.get(id);
-                        if (child && !child.removed) yield* search(child);
-                    }
-                    if (!candidate.count) return;
-                    let distance = 0;
-                    for (let c = 0; c < 3; c++) distance += (candidate.sums[c]! / candidate.count - pixel[c]!) ** 2;
-                    if (distance <= closest) { closest = distance; node = candidate; }
-                }
-                yield* search(cube.parent ?? root);
+            const pixel = bin.sums.slice(0, 4).map((value, c) => c < 3 ? bin.sums[c + 4]! / bin.count / 255 : value / bin.count);
+            // Native assignment searches the deepest surviving cube's
+            // siblings and descendants, comparing unrounded palette means.
+            let cube = root;
+            for (let bit = 7; bit > 0; bit--) {
+                let id = 0;
+                for (let c = 0; c < channels; c++) id |= ((Math.round(pixel[c]!) >>> bit) & 1) << c;
+                const child = cube.children.get(id);
+                if (!child || child.removed) break;
+                cube = child;
             }
-            bin.color = node.sums.slice(0, 4).map((value, channel) => Math.round(
+            let closest = Infinity;
+            function* search(candidate: ColorNode): Generator<undefined> {
+                if (++work % 1024 === 0) yield;
+                for (let id = 0; id < 1 << channels; id++) {
+                    const child = candidate.children.get(id);
+                    if (child && !child.removed) yield* search(child);
+                }
+                if (!candidate.count) return;
+                let distance = 0;
+                for (let c = 0; c < channels; c++) {
+                    const color = c < 3 ? candidate.sums[c + 4]! / candidate.count / 255 : candidate.sums[c]! / candidate.count;
+                    // Native distance associates the already associated target again.
+                    const target = c < 3 ? pixel[c]! * pixel[3]! / 255 : pixel[c]!;
+                    distance += (color - target) ** 2;
+                }
+                if (distance <= closest) { closest = distance; node = candidate; }
+            }
+            yield* search(cube.parent ?? root);
+            bin.color = node.sums.slice(0, 4).map((value, channel) => round(
                 channel < 3 && node.sums[3]! > 0 ? node.sums[channel + 4]! / node.sums[3]! : value / node.count
             ));
         }
     }
     for (let position = 0; position < length; position += 4096) {
         yield;
-        const size = Math.min(4096, length - position), source = yield { kind: "read", position, length: size };
-        if (!source || source.length !== size) throw new Error("Truncated quantization pixels");
-        const data = new Uint8Array(size), pixels = prepare(source);
+        const size = Math.min(4096, length - position), source = yield { kind: "read", highDepth, position, length: size };
+        if (!source || source.length !== size * (highDepth ? 2 : 1)) throw new Error("Truncated quantization pixels");
+        const data = new Float64Array(size), pixels = prepare(source);
         for (let i = 0; i < size; i += 4) data.set(bins.get(key(pixels, i))!.color, i);
-        yield { kind: "write", position, data };
+        yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data) };
     }
 }

@@ -3685,6 +3685,29 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
     // Native posterize dithers only palettes with 2–16 levels.
     if (levelsRaw < 2 || levels > 16) dither = false;
     if (!dither && levelsRaw >= 2) {
+        if (img.hasAlpha) {
+            // Native rounds samples, then reduces the resulting RGBA palette to
+            // levels³ colors. Alpha can make that palette larger than the RGB cube.
+            const colors = Math.min(65536, levels ** 3);
+            const depth = Math.floor(Math.log2(colors) / 2) + 2;
+            const steps = quantizePixelSteps(img.width * img.height * 4, colors, false, depth > 5 ? depth - 1 : depth, true, true);
+            let next = steps.next();
+            while (!next.done) {
+                const request = next.value;
+                if (request?.kind === "read") {
+                    const bytes = (yield { ...request, highDepth: true })!;
+                    const samples = new Uint16Array(bytes.slice().buffer);
+                    for (let i = 0; i < samples.length; i++) {
+                        if (mask[i % 4]) samples[i] = Math.round(Math.round(samples[i]! / 65535 * (levels - 1)) / (levels - 1) * 65535);
+                    }
+                    next = steps.next(new Uint8Array(samples.buffer));
+                } else {
+                    yield request;
+                    next = steps.next();
+                }
+            }
+            return;
+        }
         // Quantize Q16 samples directly; an eight-bit palette loses both input
         // precision and output levels. Transfers stay bounded in caller storage.
         for (let position = 0; position < img.width * img.height * 4; position += 4096) {

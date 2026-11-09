@@ -8,6 +8,7 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { streamCommands } from "../../src/commands/streams.js";
 import { predicateCommands } from "../../src/commands/predicates.js";
 import { readExtension } from "../../src/shell/extensions/read/index.js";
+import { bashExecutable } from "../helpers/bash-oracle.js";
 
 for (const extension of [false, true]) {
   for (const [attribute, expected] of [
@@ -20,7 +21,7 @@ for (const extension of [false, true]) {
       const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()), extensions: extension ? [readExtension()] : [] });
       t.after(() => shell.dispose());
       const source = `declare -a${attribute} fields; read -a fields <<< '2+3 MiX'; code=$?; printf '%s\\n' "\${fields[@]}"; exit "$code"`;
-      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
+      const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
       assert.equal(native.error, undefined);
       assert.equal(native.status, 0);
       assert.equal(native.stderr, "");

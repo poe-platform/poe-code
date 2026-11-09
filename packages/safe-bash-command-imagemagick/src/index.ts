@@ -6708,6 +6708,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const brightness = (geometry.width ?? 100) / 100, saturation = (geometry.height ?? 100) / 100, hueShift = ((geometry.hasOffset ? geometry.x : 100) - 100) * 3 / 100;
         const colorspace = state.modulateColorspace ?? "hsl";
         apply = function* (image) {
+            // Native modulation treats HSL/HSB working channels as sRGB samples.
+            if (image.magickColorspace === "HSL" || image.magickColorspace === "HSB") {
+                const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, ...metadata } = image;
+                image = { ...metadata, space: "srgb" };
+            }
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);

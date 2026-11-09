@@ -100,8 +100,11 @@ export function auAst(): MediaAstPlugin {
     detect: bytes => bytes.length >= 4 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0) === 0x2e736e64,
     parse: parseAu,
     probe(bytes, options = {}) {
-      const result = buildProbeResultFromDoc(parseAu(bytes, { ...options, decodeAudio: false }), bytes.length, options.filename,
+      const doc = parseAu(bytes, { ...options, decodeAudio: false });
+      const probe = buildProbeResultFromDoc(doc, bytes.length, options.filename,
         { ...options, formatName: "au", formatLongName: "Sun AU" });
+      const result = { ...probe, packetData: probe.packets && new Map(probe.packets.map((packet, index) =>
+        [`${packet.pos}:${packet.size}`, doc.tracks[0]!.samples[index]!.data])) };
       const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
       const encoding = header.getUint32(12);
       result.streams = result.streams.map(stream => ({ ...stream,

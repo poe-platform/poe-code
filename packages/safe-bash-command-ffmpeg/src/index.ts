@@ -8925,7 +8925,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = [left, right];
                       } else if (trimmed.startsWith("channelmap=")) {
-                        let map = "";
+                        let map: string | undefined;
                         let layout = "";
                         for (const [index, option] of trimmed.slice("channelmap=".length).split(":").entries()) {
                           const separator = option.indexOf("=");
@@ -8939,7 +8939,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const inputNames = filteredChannelMask
                           ? speakers.filter((_, index) => (filteredChannelMask! & (1 << index)) !== 0)
                           : stretched.length === 1 ? ["FC"] : stretched.length === 2 ? ["FL", "FR"] : [];
-                        const entries = map.split("|").map(value => value.split("-"));
+                        let outputNames = layout === "mono" ? ["FC"] : layout === "stereo" ? ["FL", "FR"] : undefined;
+                        if (layout && !outputNames) throw new Error("channelmap: unsupported channel layout");
+                        const entries = map === undefined && outputNames
+                          ? outputNames.map((_, index) => [String(index)])
+                          : (map ?? "").split("|").map(value => value.split("-"));
                         const numeric = (value: string) => value.length > 0 && [...value].every(char => char >= "0" && char <= "9");
                         const paired = entries[0]!.length === 2;
                         const numericInput = numeric(entries[0]![0]!);
@@ -8950,8 +8954,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             throw new Error("channelmap: mixed or invalid channel mapping");
                           }
                         }
-                        let outputNames = layout === "mono" ? ["FC"] : layout === "stereo" ? ["FL", "FR"] : undefined;
-                        if (layout && !outputNames) throw new Error("channelmap: unsupported channel layout");
                         if (!outputNames && paired && !numericOutput) {
                           const destinations = entries.map(entry => entry[1]!);
                           if (destinations.some(name => !speakers.includes(name))) throw new Error("channelmap: invalid output channel");

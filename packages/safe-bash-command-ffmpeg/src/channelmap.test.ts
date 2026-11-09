@@ -28,6 +28,13 @@ for (const [expression, expected, mask] of [
   ["map=1:channel_layout=mono", [right]],
   ["map=1|0:channel_layout=stereo,areverse", [[...right].reverse(), [...left].reverse()]],
   ["map=0|1:channel_layout=stereo", [left, right]],
+  ["channel_layout=stereo", [left, right]],
+  ["channel_layout=mono", [left]],
+  ["0|1:stereo", [left, right]],
+  ["1:mono", [right]],
+  ["map=0|1:channel_layout=mono", undefined],
+  ["channel_layout=unknown", undefined],
+  ["", undefined],
   ["map=6|0:channel_layout=stereo", undefined],
   ["map=-1|0:channel_layout=stereo", undefined],
   ["map=1.5|0:channel_layout=stereo", undefined],
@@ -39,9 +46,10 @@ for (const [expression, expected, mask] of [
       volume.writeFileSync("/twins.wav", encodeWav({ sampleRate: 8000,
         channels: [left, right].map(samples => Float64Array.from(samples, sample => sample / 32768)) }));
       let stderr = "";
+      const filter = expression ? `channelmap=${expression}` : "channelmap";
       const filters = complex
-        ? ["-filter_complex", `[0:a]channelmap=${expression}[s]`, "-map", "[s]"]
-        : ["-af", `channelmap=${expression}`];
+        ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"]
+        : ["-af", filter];
       const result = await createFfmpegCommand().execute({
         args: ["-y", "-v", "error", "-i", "/twins.wav", ...filters, "/out.wav"],
         cwd: "/", env: {}, signal: new AbortController().signal,

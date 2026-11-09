@@ -663,6 +663,7 @@ interface MagickState {
   loop?: number;
   optimizeLayers?: boolean;
   density: number;
+  densityGeometry?: string;
   orientation?: number;
   units?: "inch" | "cm" | "unknown";
   fuzz: number;
@@ -5632,6 +5633,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.orientation !== undefined) im = { ...im, orientation: state.orientation };
             if (state.units !== undefined) im = applyMagickUnits(im, state.units);
+            if (state.densityGeometry !== undefined) im = applyMagickDensity(im, state.densityGeometry);
             for (const key of ["comment", "label"] as const) {
                 const value = state[key];
                 if (value !== undefined) {
@@ -7819,7 +7821,7 @@ if (t === "-seed") {
             state.quality = Math.max(1, Math.min(100, Number(tokens[++i] ?? 92)));
         }
         else if (t === "-density") {
-            const g = parseMagickGeometry(tokens[++i] ?? "72");
+            const g = parseMagickGeometry(state.densityGeometry = tokens[++i] ?? "72");
             state.density = Math.max(1, Math.round(g.width ?? 72));
         }
         else if (t === "+fuzz") {
@@ -8221,7 +8223,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         if (t === "-density") {
-            const value = tokens[++i] ?? "72";
+            const value = state.densityGeometry = tokens[++i] ?? "72";
             state.density = Math.max(1, Math.round(parseMagickGeometry(value).width ?? 72));
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return applyMagickDensity(image, value); });
             i++;
@@ -10159,7 +10161,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-density") {
-            const value = tokens[++i] ?? "72";
+            const value = state.densityGeometry = tokens[++i] ?? "72";
             state.density = Math.max(1, Math.round(parseMagickGeometry(value).width ?? 72));
             steps.push(async image => image ? applyMagickDensity(image, value) : undefined);
             continue;
@@ -12111,6 +12113,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.orientation!==undefined)image={...image,orientation:state.orientation};
   if(state.units!==undefined)image=applyMagickUnits(image,state.units);
+  if(state.densityGeometry!==undefined)image=applyMagickDensity(image,state.densityGeometry);
  for (const key of ["comment", "label"] as const) {
   const value = state[key];
   if (value !== undefined) {

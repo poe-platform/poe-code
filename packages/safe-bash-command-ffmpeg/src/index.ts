@@ -10718,13 +10718,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const startPts = audioTimestamps[0]?.pts ?? 0;
                         // Validate even an empty stream; expressions use the audio sample time base.
                         if (audioTimestamps.length === 0) parseFilterExpression(expression, "asetpts", {
-                          PTS: 0, STARTPTS: 0, TB: 1 / origRate, SR: origRate, N: 0, NB_SAMPLES: 0
+                          PTS: 0, STARTPTS: 0, T: 0, TB: 1 / origRate, SR: origRate,
+                          N: 0, NB_CONSUMED_SAMPLES: 0, NB_SAMPLES: 0, S: 0
                         });
                         for (const frame of audioTimestamps) {
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           frame.pts = Math.trunc(parseFilterExpression(expression, "asetpts", {
-                            PTS: frame.pts, STARTPTS: startPts, TB: 1 / origRate, SR: origRate,
-                            N: frame.start, NB_SAMPLES: frame.end - frame.start
+                            PTS: frame.pts, STARTPTS: startPts, T: frame.pts / origRate, TB: 1 / origRate, SR: origRate,
+                            N: frame.start, NB_CONSUMED_SAMPLES: frame.start,
+                            NB_SAMPLES: frame.end - frame.start, S: frame.end - frame.start
                           }));
                         }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {

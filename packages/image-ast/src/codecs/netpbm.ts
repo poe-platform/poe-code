@@ -226,6 +226,9 @@ export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {
   const width = core ? view.getUint16(18, true) : Math.abs(view.getInt32(18, true));
   const height = core ? view.getUint16(20, true) : Math.abs(view.getInt32(22, true));
   const bpp = view.getUint16(core ? 24 : 28, true);
+  const compression = core ? 0 : view.getUint32(30, true);
+  if (compression > 5) throw new Error("Unsupported BMP compression");
+  if ((compression === 1 && bpp !== 8) || (compression === 2 && bpp !== 4) || (compression === 3 && bpp !== 16 && bpp !== 32)) throw new Error("Invalid BMP compression bit depth");
   if (![1, 4, 8, 16, 24, 32].includes(bpp)) throw new Error("Unsupported BMP bits per pixel");
   if (!core && [1, 4, 8].includes(bpp) && view.getUint32(46, true) > 2 ** bpp) throw new Error("Invalid BMP palette count");
   const ppmX = core ? 0 : view.getInt32(38, true);
@@ -272,7 +275,6 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   const paletteSize = bpp <= 8 ? Math.min(1 << bpp, (dibHeaderSize >= 40 ? view.getUint32(46, true) : 0) || 1 << bpp) : 0;
 
   if (compression === 1 || compression === 2) {
-    if (bpp !== (compression === 1 ? 8 : 4)) throw new Error("Invalid BMP RLE bit depth");
     const decoder = new BmpRle(meta.width, meta.height, bpp, topDown);
     for (let i = 0; i < rgba.length; i += 4) rgba.set([bytes[paletteOffset + 2] ?? 0, bytes[paletteOffset + 1] ?? 0, bytes[paletteOffset] ?? 0, 255], i);
     let offset = dataOffset;

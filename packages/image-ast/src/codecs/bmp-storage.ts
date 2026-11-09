@@ -45,7 +45,6 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
  const {size:ignoredSize,...raster}=metadata;
  const output=new Output({...raster,position:0},width,height,storage,signal);
  if(compression===1||compression===2) {
-  if(bpp!==(compression===1?8:4)) throw new Error("Invalid BMP RLE bit depth");
   const decoder=new BmpRle(width,height,bpp,topDown);
   // Delta packets and early end markers leave palette-zero pixels behind.
   for(let i=0;i<width*height;i++) await output.pixel(palette[2]!,palette[1]!,palette[0]!,255);

@@ -45,6 +45,11 @@ export function parseFilterExpression(expression: string, filter: string, variab
         }
         else if (name === "isnan" && args.length === 1) value = Number(Number.isNaN(args[0]));
         else if (name === "not" && args.length === 1) value = Number(args[0] === 0);
+        else if (name === "floor" && args.length === 1) value = Math.floor(args[0]!);
+        else if (name === "ceil" && args.length === 1) value = Math.ceil(args[0]!);
+        else if (name === "trunc" && args.length === 1) value = Math.trunc(args[0]!);
+        // FFmpeg rounds halfway values away from zero, including negative values.
+        else if (name === "round" && args.length === 1) value = args[0]! < 0 ? -Math.round(-args[0]!) : Math.round(args[0]!);
         else if (name === "eq" && args.length === 2) value = Number(args[0] === args[1]);
         else if (name === "gte" && args.length === 2) value = Number(args[0]! >= args[1]!);
         else if (name === "lte" && args.length === 2) value = Number(args[0]! <= args[1]!);

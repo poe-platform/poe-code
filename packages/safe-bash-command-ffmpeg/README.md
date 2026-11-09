@@ -332,6 +332,7 @@ These filters also work in labeled single-input audio graphs with `-map`.
 `volume=volume=0.5` and `atempo=tempo=2`, as well as positional values.
 Volume expressions support `lerp(start,end,weight)` for linear interpolation without clamping the weight, such as `volume='lerp(0.25,0.75,t)':eval=frame`.
 Volume expressions support the `PI` constant in arithmetic, such as `volume=PI/4`.
+Filter expressions support `floor`, `ceil`, `trunc`, and `round` (halfway values round away from zero), including stepped volume ramps such as `volume='floor(t*10)/10':eval=frame` and per-sample `aeval='floor(val(ch)*10)/10':c=same`.
 Volume expressions accept SI prefixes (`volume=1k`, `volume=500m`), binary prefixes (`volume=1Ki`), and the byte multiplier `B` (`volume=1KiB`).
 `atempo` accepts arithmetic such as `atempo=1/2`; the result must be between 0.5 and 100.
 Audio filters accept instance labels, such as `areverse@flip`, `volume@quiet=0.5`,

@@ -169,14 +169,14 @@ export function* netpbmSequenceSteps(size: number, page?: number): Generator<num
       }
     }
     if (selected) return { header, pages };
-    while (offset < size) {
-      const c = (yield offset)!;
-      if (c === 35) { while (offset < size && (yield offset) !== 10 && (yield offset) !== 13) offset++; }
-      else if (c <= 32) offset++;
-      else break;
+    if (magic === "P1" || magic === "P2" || magic === "P3") {
+      // P2/P3 consume the final sample delimiter; P1 reads single bits.
+      // ImageMagick then discards through the next LF before probing a frame.
+      if (magic !== "P1") offset++;
+      while (offset < size && (yield offset++) !== 10) { /* remainder of line */ }
     }
-    // PAM readers ignore trailing bytes that do not start another image.
-    if (magic === "P7" && offset < size && (yield offset) !== 0x50) break;
+    // Binary rasters must be adjacent. Whitespace is not a frame signature.
+    if (offset < size && (yield offset) !== 0x50) break;
   }
   if (!first || page !== undefined) throw new RangeError("Netpbm page out of range");
   return { header: first, pages };

@@ -152,7 +152,7 @@ it('resolves explicit HLS segments from cwd and creates their parent directory',
   const result = await runCmd(createFfmpegCommand(), ['-i', '/in.mp4', '-hls_segment_filename', 'hls/nested/seg_%03d.ts', 'hls/index.m3u8'], vfs);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.ok(vfs.store.has('/hls/nested/seg_000.ts'));
-  assert.ok(new TextDecoder().decode(vfs.store.get('/hls/index.m3u8')).includes('nested/seg_000.ts'));
+  assert.ok(new TextDecoder().decode(vfs.store.get('/hls/index.m3u8')).includes('\nseg_000.ts\n'));
 });
 
 it('honors independent input/output start numbers and reads beyond 1000 frames', async () => {

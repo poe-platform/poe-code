@@ -1,3 +1,4 @@
+import { encodeAlacTrack } from "./alac.js";
 import { decodeMovText, encodeMovText } from "./mov-text.js";
 import { rawAudioAsts } from "./containers/raw-audio.js";
 import { readImageMetadata } from "@poe-code/image-ast/portable";
@@ -1393,6 +1394,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
   const movieTimescale = doc.timescale || 1000;
   // Only fragmented MP4 needs track descriptions before any packets are written.
   const materializedTracks = doc.tracks.filter(t => t.disposition?.attached_pic !== 1).map((t) => {
+    if (t.type === "audio" && options.audioCodec === "alac") t = encodeAlacTrack(t, budget);
     const sampleRate = t.codecDescriptions[0]?.sampleRate;
     const targetTimescale = t.type === "subtitle" && t.codecDescriptions[0]?.codecName !== "mov_text"
       ? 1_000_000 : t.codecDescriptions[0]?.codecName === "mp3" ? sampleRate : undefined;

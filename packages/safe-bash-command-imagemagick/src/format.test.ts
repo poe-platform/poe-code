@@ -102,8 +102,8 @@ describe("ImageMagick property formatting", () => {
 
   it("does not decode pixels for literal or metadata-only identify formats", async () => {
     const bytes = await sharp({ create: { width: 2, height: 1, channels: 3, background: "red" } }).png().toBuffer();
-    // The PNG signature and IHDR are sufficient for metadata but cannot be decoded.
-    const header = bytes.subarray(0, 33);
+    // Keep a complete chunk envelope without pixel data: metadata needs no decoding.
+    const header = new Uint8Array([...bytes.subarray(0, 33), ...bytes.subarray(-12)]);
     const result = await runMagickCli(["identify", "-format", "%w|%%[hex:p{0,0}]|%f", "%[mean].png"], new Map([["%[mean].png", header]]));
     expect(result).toMatchObject({ exitCode: 0, stdout: "2|%[hex:p{0,0}]|%[mean].png", stderr: "" });
   });

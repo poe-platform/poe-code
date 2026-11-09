@@ -2,7 +2,7 @@ import { FsError, type FileSystem } from "@poe-code/safe-fs/contracts";
 import { resolvePath } from "safe-bash-contracts/path";
 import { drainCooperativeSteps } from "safe-bash-contracts/yield";
 
-function* matches(pattern: string, name: string): Generator<void, boolean, void> {
+export function* matchesMagickGlob(pattern: string, name: string): Generator<void, boolean, void> {
     let work = 0;
     let positions = new Set([0]);
     for (let i = 0; i < pattern.length; i++) {
@@ -63,7 +63,7 @@ export function* mogrifyTargets(target: string, paths: Iterable<string>): Genera
         if (path.slice(0, path.lastIndexOf("/") + 1) !== directory) continue;
         const name = path.slice(path.lastIndexOf("/") + 1);
         if (name.startsWith(".") && !pattern.startsWith(".")) continue;
-        if (yield* matches(pattern, name)) found.push(path);
+        if (yield* matchesMagickGlob(pattern, name)) found.push(path);
     }
     return found.length ? found.sort() : [target];
 }

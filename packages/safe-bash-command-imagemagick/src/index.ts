@@ -21,7 +21,7 @@ import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
 import { regionPixelSteps, type Region } from "./region.js";
 import { writeMaskPixelSteps } from "./write-mask.js";
-import { mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
+import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { rawRgbInput } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewPixelSteps } from "./deskew.js";
@@ -1472,6 +1472,14 @@ function* formatMagickPropertyStringSteps<Step=never>(
             parts.push(channels[3] !== undefined && channels[3] !== 255
               ? `srgba(${channels.slice(0, 3).join(",")},${formatMetricNum(channels[3] / 255)})`
               : `srgb(${channels.slice(0, 3).join(",")})`);
+          }
+        }
+      } else if (["*", "?", "["].some(character => property.includes(character))) {
+        // Wildcards enumerate stored properties, not computed fields or artifacts.
+        for (const name of Object.keys(meta.properties ?? {}).sort()) {
+          yield;
+          if (!name.toLowerCase().startsWith("artifact:") && (yield* matchesMagickGlob(key, name.toLowerCase()))) {
+            parts.push(`${name}=${meta.properties![name]}\n`);
           }
         }
       } else {

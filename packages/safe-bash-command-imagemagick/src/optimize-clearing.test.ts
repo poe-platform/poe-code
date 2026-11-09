@@ -18,9 +18,12 @@ for (const retained of [false, true]) {
     expect(await runConvertCli(["in.gif", ...(coalesce ? ["-coalesce"] : []), "-layers", "Optimize", "out.gif"], retained ? { filesystem, cwd: "/" } : files)).toMatchObject({ exitCode: 0 });
     const output = retained ? await filesystem.readFile("/out.gif") : files.get("out.gif")!;
     for (let page = 0; page < 2; page++) {
-      expect(decodeImage(output, { page, coalesce: false })).toMatchObject({
-        width: widths[page], height: 1, hasAlpha: false, virtualCanvas: { width: 3, height: 1, x: offsets[page], y: 0 }, disposal
+      const frame = decodeImage(output, { page, coalesce: false });
+      expect(frame).toMatchObject({
+        width: widths[page], height: 1, virtualCanvas: { width: 3, height: 1, x: offsets[page], y: 0 }, disposal
       });
+      // A GIF may reserve a transparent palette entry without using it in the crop.
+      for (let alpha = 3; alpha < frame.data.length; alpha += 4) expect(frame.data[alpha]).toBe(255);
     }
     if (coalesce) {
       // Native removes transparency after cropping and uses red as the canvas background.

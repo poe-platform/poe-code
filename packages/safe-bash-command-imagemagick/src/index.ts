@@ -7674,6 +7674,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
                     yield;
                 }
+                // OptimizePlus treats validated full-canvas frames as independent displays.
+                stack = stack.map(frame => ({ ...frame, disposal: 1 }));
                 state.optimizeLayers = true;
             }
             if (t === "-layers") i++;
@@ -9410,6 +9412,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         if ((frame.virtualCanvas?.width || frame.width) !== frame.width ||
                             (frame.virtualCanvas?.height || frame.height) !== frame.height ||
                             frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
+                        // OptimizePlus chooses new disposal from the displayed pixels.
+                        await stack.set(n, { ...frame, disposal: 1 });
                     }
                 }
                 const frames = new StoredImageStack(backend.storage, signal);

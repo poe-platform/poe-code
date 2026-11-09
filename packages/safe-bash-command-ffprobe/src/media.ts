@@ -461,7 +461,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
 
   const includesEntries = (section: string) => entryFilter.has(section) && entryFilter.get(section)?.size !== 0;
   const includeStreams =
-    opts.showStreams || includesEntries("stream") || includesEntries("stream_tags") || includesEntries("stream_disposition");
+    opts.showStreams || includesEntries("stream") || includesEntries("stream_tags") || includesEntries("stream_disposition") || includesEntries("stream_side_data");
   const includeFormat =
     opts.showFormat || includesEntries("format") || includesEntries("format_tags");
   const includePackets = opts.showPackets || includesEntries("packet");

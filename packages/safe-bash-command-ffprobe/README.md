@@ -12,7 +12,7 @@ ffprobe -show_entries stream=sample_rate,channels:format=duration -of csv record
 Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 `json`, `compact`, `csv`, `default`, `flat`, `ini`, `xml`; `-show_format`, `-show_streams`,
 `-show_error` for structured missing-input errors (with a nonzero exit status),
-`-show_entries section=fields` (including format/stream tags and `stream_disposition`), `-select_streams a:0` (or MPEG-TS programs such as `p:202`, or MP4 track IDs such as `i:77` and `#0x4d`),
+`-show_entries section=fields` (including format/stream tags, `stream_disposition`, and `stream_side_data=rotation`), `-select_streams a:0` (or MPEG-TS programs such as `p:202`, or MP4 track IDs such as `i:77` and `#0x4d`),
 `-sexagesimal` for `H:MM:SS.ffffff` timestamps and durations, and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,
 `-show_programs` (MPEG-TS program membership and service tags), `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`.
 JSON chapter reports honor `-show_entries chapter=id` and other selected chapter fields; use `chapter_tags=title` to select a tag alongside them. `-show_chapters` without a selection reports complete chapters.

@@ -3,20 +3,20 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
-for (const channels of [0, 1]) for (const copy of [false, true]) for (const pipe of [false, true]) {
-  it(`${copy ? "copies" : "decodes"} WAV with ${channels} declared channels from ${pipe ? "pipe" : "file"}`, async () => {
-    const input = Buffer.alloc(48);
-    input.write("RIFF"); input.writeUInt32LE(40, 4); input.write("WAVEfmt ", 8);
+for (const channels of [0, 1]) for (const [codec, format] of [["copy", "s16le"], ["pcm_s16le", "s16le"], ["pcm_s16le", "wav"]]) for (const pipe of [false, true]) {
+  it(`${codec} to ${format} with ${channels} declared channels from ${pipe ? "pipe" : "file"}`, async () => {
+    const input = Buffer.alloc(52);
+    input.write("RIFF"); input.writeUInt32LE(44, 4); input.write("WAVEfmt ", 8);
     input.writeUInt32LE(16, 16); input.writeUInt16LE(1, 20); input.writeUInt16LE(channels, 22);
-    input.writeUInt32LE(8000, 24); input.writeUInt32LE(16000 * channels, 28);
-    input.writeUInt16LE(2 * channels, 32); input.writeUInt16LE(16, 34);
-    input.write("data", 36); input.writeUInt32LE(4, 40);
-    input.writeInt16LE(100, 44); input.writeInt16LE(200, 46);
-    const volume = Volume.fromJSON({});
+    input.writeUInt32LE(8000, 24); input.writeUInt32LE(16000, 28);
+    input.writeUInt16LE(2, 32); input.writeUInt16LE(16, 34);
+    input.write("data", 36); input.writeUInt32LE(8, 40);
+    [1, 2, 3, 4].forEach((value, index) => input.writeInt16LE(value, 44 + index * 2));
+    const volume = Volume.fromJSON({ "/out": "keep" });
     volume.writeFileSync("/in.wav", input);
     let stderr = "";
     const result = await createFfmpegCommand().execute({
-      args: ["-y", "-v", "error", "-i", pipe ? "pipe:0" : "/in.wav", "-c:a", copy ? "copy" : "pcm_s16le", "-f", "s16le", "/out.raw"],
+      args: ["-y", "-v", "error", "-i", pipe ? "pipe:0" : "/in.wav", "-c:a", codec, "-f", format, "/out"],
       cwd: "/", env: {}, signal: new AbortController().signal,
       fs: {
         async readFile(path: string) { return volume.readFileSync(path); },
@@ -27,13 +27,21 @@ for (const channels of [0, 1]) for (const copy of [false, true]) for (const pipe
       stdout: { async write() {} },
       stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
     } as never);
-    if (!channels && !copy) {
+    if (!channels && codec !== "copy") {
       assert.notEqual(result.exitCode, 0);
       assert.match(stderr, /channel layout/);
-      assert.equal(volume.existsSync("/out.raw"), false);
+      assert.equal(volume.readFileSync("/out", "utf8"), "keep");
     } else {
       assert.equal(result.exitCode, 0, stderr);
-      assert.deepEqual(volume.readFileSync("/out.raw"), input.subarray(44));
+      const output = volume.readFileSync("/out") as Buffer;
+      if (format === "wav") {
+        assert.equal(output.toString("ascii", 0, 4), "RIFF");
+        assert.equal(output.readUInt16LE(output.indexOf("fmt ") + 10), 1);
+        const dataOffset = output.indexOf("data") + 8;
+        assert.deepEqual(output.subarray(dataOffset), input.subarray(44));
+      } else {
+        assert.deepEqual(output, input.subarray(44));
+      }
     }
   });
 }

@@ -39,7 +39,7 @@ for (const mode of ["buffered", "command"] as const) {
       stdin: (async function* () {})(), signal: new AbortController().signal,
       stdout: { write: async () => {} }, stderr: { write: async bytes => { stderr += new TextDecoder().decode(bytes); } }
     });
-    expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+    expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(0);
     const output = mode === "buffered" ? files.get("/out.png")! : await fs.readFile("/out.png");
     const decoded = decodeImage(output);
     expect(decoded.data).toEqual(Uint8Array.of(17, 34, 51, 255));

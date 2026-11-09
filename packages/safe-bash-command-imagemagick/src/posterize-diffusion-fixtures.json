@@ -1,0 +1,171 @@
+{
+  "input": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAIAAABChommAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDdUMjM6MjI6MDUrMDA6MDBjFJEhAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA3VDIzOjIyOjA1KzAwOjAwEkkpnQAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wN1QyMzoyMjowNSswMDowMEVcCEIAAAAZSURBVBjTY1TN23773bt3eDHTeyLA8FYEAOvcCrCvb6/xAAAAAElFTkSuQmCC",
+  "cases": [
+    {
+      "levels": 3,
+      "mode": "Riemersma 0%",
+      "options": [
+        "-dither",
+        "Riemersma",
+        "-define",
+        "dither:diffusion-amount=0%"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff80ff80ff"
+    },
+    {
+      "levels": 3,
+      "mode": "Riemersma 25%",
+      "options": [
+        "-dither",
+        "Riemersma",
+        "-define",
+        "dither:diffusion-amount=25%"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff8080ffff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff80ff80ff"
+    },
+    {
+      "levels": 3,
+      "mode": "Riemersma 0.25",
+      "options": [
+        "-dither",
+        "Riemersma",
+        "-define",
+        "dither:diffusion-amount=0.25"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff8080ffff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff80ff80ff"
+    },
+    {
+      "levels": 3,
+      "mode": "Riemersma 100%",
+      "options": [
+        "-dither",
+        "Riemersma",
+        "-define",
+        "dither:diffusion-amount=100%"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff8080ffff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff0080ffff0080ffff0080ff80ff80ff"
+    },
+    {
+      "levels": 3,
+      "mode": "Riemersma reset",
+      "options": [
+        "-dither",
+        "Riemersma",
+        "-define",
+        "dither:diffusion-amount=0%",
+        "+define",
+        "dither:diffusion-amount"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff8080ffff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff0080ffff0080ffff0080ff80ff80ff"
+    },
+    {
+      "levels": 3,
+      "mode": "FloydSteinberg 0%",
+      "options": [
+        "-dither",
+        "FloydSteinberg",
+        "-define",
+        "dither:diffusion-amount=0%"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff80ff80ff"
+    },
+    {
+      "levels": 3,
+      "mode": "FloydSteinberg 25%",
+      "options": [
+        "-dither",
+        "FloydSteinberg",
+        "-define",
+        "dither:diffusion-amount=25%"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff8080ffff8080ffff0080ffff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff80ff00ff"
+    },
+    {
+      "levels": 3,
+      "mode": "FloydSteinberg 0.25",
+      "options": [
+        "-dither",
+        "FloydSteinberg",
+        "-define",
+        "dither:diffusion-amount=0.25"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff8080ffff8080ffff0080ffff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff80ff00ff"
+    },
+    {
+      "levels": 3,
+      "mode": "FloydSteinberg 100%",
+      "options": [
+        "-dither",
+        "FloydSteinberg",
+        "-define",
+        "dither:diffusion-amount=100%"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ff800080ff800000ff80ff80ff808000ff80ff00ff8080ffff0080ffff008080ff0080ffffff0080ff808080ffff0080ffff0000ff80ff80ff808000ff80ff00ff8080ffff0080ffff8080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff8080ffff0080ffff008080ff008080ff000080ffff8080ffff0080ff800080ffffff00ff80ff80ff80ff00ff808000ff8080ffff8080ffff008080ff0000ffffff8080ffff0080ff800080ff80ff00ff80ff80ff808000ff808000ff0080ffff008080ff0080ffff008080ffff8080ffff0080ff800080ffff0000ff80ff80ff808000ff80ff00ff00ffffff8080ffff8080ffff008080ffff8080ffff0080ffff0080ffff0080ff80ff00ff80ff00ff808000ff8080ffff8080ffff008080ff008080ff0000ffffff8080ff800080ff800080ff80ff00ff80ff80ff808000ff80ffffff8080ffff0080ffff0080ffff008080ffff8080ff800080ffff0080ffffff00ff"
+    },
+    {
+      "levels": 3,
+      "mode": "FloydSteinberg reset",
+      "options": [
+        "-dither",
+        "FloydSteinberg",
+        "-define",
+        "dither:diffusion-amount=0%",
+        "+define",
+        "dither:diffusion-amount"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ff800080ff800000ff80ff80ff808000ff80ff00ff8080ffff0080ffff008080ff0080ffffff0080ff808080ffff0080ffff0000ff80ff80ff808000ff80ff00ff8080ffff0080ffff8080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff8080ffff0080ffff008080ff008080ff000080ffff8080ffff0080ff800080ffffff00ff80ff80ff80ff00ff808000ff8080ffff8080ffff008080ff0000ffffff8080ffff0080ff800080ff80ff00ff80ff80ff808000ff808000ff0080ffff008080ff0080ffff008080ffff8080ffff0080ff800080ffff0000ff80ff80ff808000ff80ff00ff00ffffff8080ffff8080ffff008080ffff8080ffff0080ffff0080ffff0080ff80ff00ff80ff00ff808000ff8080ffff8080ffff008080ff008080ff0000ffffff8080ff800080ff800080ff80ff00ff80ff80ff808000ff80ffffff8080ffff0080ffff0080ffff008080ffff8080ff800080ffff0080ffffff00ff"
+    },
+    {
+      "levels": 3,
+      "mode": "disabled 0%",
+      "options": [
+        "+dither",
+        "-define",
+        "dither:diffusion-amount=0%"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff80ff80ff"
+    },
+    {
+      "levels": 3,
+      "mode": "disabled 25%",
+      "options": [
+        "+dither",
+        "-define",
+        "dither:diffusion-amount=25%"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff80ff80ff"
+    },
+    {
+      "levels": 3,
+      "mode": "disabled 0.25",
+      "options": [
+        "+dither",
+        "-define",
+        "dither:diffusion-amount=0.25"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff80ff80ff"
+    },
+    {
+      "levels": 3,
+      "mode": "disabled 100%",
+      "options": [
+        "+dither",
+        "-define",
+        "dither:diffusion-amount=100%"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff80ff80ff"
+    },
+    {
+      "levels": 3,
+      "mode": "disabled reset",
+      "options": [
+        "+dither",
+        "-define",
+        "dither:diffusion-amount=0%",
+        "+define",
+        "dither:diffusion-amount"
+      ],
+      "rgba": "008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff00ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ff800080ff80ff80ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff0080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff800080ff80ff00ff80ff00ff808000ff8080ffff0080ffff0080ffff008080ff008080ffff8080ffff0080ffff0080ff80ff80ff80ff00ff80ff00ff8080ffff8080ffff0080ffff0080ffff008080ffff8080ffff0080ffff0080ff80ff80ff"
+    }
+  ]
+}

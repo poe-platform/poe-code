@@ -3694,7 +3694,7 @@ function parsePosterizeLevels(value: string): number {
     return levels;
 }
 
-function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, levelsRaw: number, dither: MagickState["dither"], channels: MagickState["channels"], signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     let cooperativeWork = 0;
     const levels = Math.max(2, Math.trunc(levelsRaw));
     const step = 255 / (levels - 1);
@@ -3742,7 +3742,7 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
         return;
     }
     const errors = new Float64Array(16 * 4);
-    const weights = Float64Array.from({ length: 16 }, (_, i) => 16 ** (-1 - i / 15));
+    const weights = Float64Array.from({ length: 16 }, (_, i) => diffusionAmount * 16 ** (-1 - i / 15));
     let row = new Float64Array(dither === "floydsteinberg" ? img.width * 4 : 0), nextRow = new Float64Array(row.length);
     function* scan(): Generator<number> {
         for (let y = 0; y < img.height; y++) {
@@ -3843,7 +3843,7 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
             for (let channel = 0; channel < 4; channel++) {
                 // Diffuse the palette value before rounding it to an output byte.
                 const color = Math.round(out[channel]! / step) * step;
-                const error = (target[channel]! - color * (channel === 3 ? 1 : outputAlpha)) / 16;
+                const error = (target[channel]! - color * (channel === 3 ? 1 : outputAlpha)) * diffusionAmount / 16;
                 if (x + direction >= 0 && x + direction < img.width) {
                     row[(x + direction) * 4 + channel]! += error * 7;
                     nextRow[(x + direction) * 4 + channel]! += error;
@@ -6763,7 +6763,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const levels = parsePosterizeLevels(tokens[++i] ?? "");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        apply = image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, state.dither, channels, signal), signal);
+        apply = image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, state.dither, state.diffusionAmount ?? 1, channels, signal), signal);
     } else if (token === "-monochrome") {
         apply = function* (image) { return yield* thresholdImageSteps(yield* grayscaleImageSteps(image), 128, true); };
     } else if (token === "-modulate") {
@@ -8149,7 +8149,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i = setting;
             if (t === "-depth" && state.inputDepth! < 16) {
                 const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-                stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, false, channels, signal), signal));
+                stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, false, 1, channels, signal), signal));
             }
             if (t === "-page") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualCanvas: state.page! }; });
             if (t === "-virtual-pixel" || t === "+virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualPixel: state.virtualPixel ?? "edge" }; });
@@ -10063,7 +10063,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }
             if (token === "-depth" && state.inputDepth! < 16) {
                 const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-                steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, false, channels, signal), signal) : undefined);
+                steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, false, 1, channels, signal), signal) : undefined);
             }
             if (token === "-virtual-pixel" || token === "+virtual-pixel") {
                 const virtualPixel = state.virtualPixel ?? "edge";
@@ -10113,11 +10113,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-posterize") {
             const value = tokens[++i] ?? "", optionProperties = state.optionProperties;
             const levels = value.includes("%[") ? undefined : parsePosterizeLevels(value);
-            const dither = state.dither, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+            const dither = state.dither, diffusionAmount = state.diffusionAmount ?? 1, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expandedLevels = levels ?? parsePosterizeLevels(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
-                return transformStoredMagickRaster(image, backend, posterizePixelSteps(image, expandedLevels, dither, channels, signal), signal);
+                return transformStoredMagickRaster(image, backend, posterizePixelSteps(image, expandedLevels, dither, diffusionAmount, channels, signal), signal);
             });
             continue;
         }

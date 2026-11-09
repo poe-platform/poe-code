@@ -8,9 +8,11 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
     const radians = angle * Math.PI / 180, samples = Math.max(2, Math.floor(Math.abs(4 * radians * Math.sqrt(radius) + 2)));
     if (!Number.isFinite(angle) || samples > 100_000) throw new Error("Rotational blur sample count exceeds limit");
     const cosines = new Float64Array(samples), sines = new Float64Array(samples);
+    // Preserve native operation order: rounding at half-pixel boundaries selects the sample.
+    const angularStep = radians / (samples - 1), offset = angularStep * (samples - 1) / 2;
     for (let j = 0; j < samples; j++) {
         yield;
-        const theta = radians * (j / (samples - 1) - 0.5);
+        const theta = angularStep * j - offset;
         cosines[j] = Math.cos(theta); sines[j] = Math.sin(theta);
     }
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;

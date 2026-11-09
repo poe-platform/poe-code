@@ -4363,11 +4363,11 @@ function magickCropCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCa
     return { ...page, x: page.x + left, y: page.y + top };
 }
 
-function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry) {
+function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry, operation: "repage" | "set") {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     return {
         width: geometry.width ?? page.width,
-        height: geometry.height ?? (geometry.width === undefined ? page.height : geometry.width),
+        height: operation === "repage" && geometry.width === undefined ? page.height : geometry.height ?? (geometry.width === undefined ? page.height : geometry.width),
         x: geometry.hasOffset ? geometry.x + (geometry.forceExact ? page.x : 0) : page.x,
         y: geometry.hasYOffset ? geometry.y + (geometry.forceExact ? page.y : 0) : page.y
     };
@@ -7840,7 +7840,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: Number(expanded) };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
-                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(expanded), forceExact: false }) };
+                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(expanded), forceExact: false }, "set") };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             i++;
@@ -8417,7 +8417,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const geometry = parseMagickGeometry(tokens[++i] ?? "0x0");
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
                     yield;
-                    return { ...image, virtualCanvas: magickRepageCanvas(image, geometry) };
+                    return { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") };
                 });
             }
             else stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -9695,7 +9695,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: Number(expanded) };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
-                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(expanded), forceExact: false }) };
+                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(expanded), forceExact: false }, "set") };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             continue;
@@ -10313,7 +10313,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-repage") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x0");
-            steps.push(async image => image ? { ...image, virtualCanvas: magickRepageCanvas(image, geometry) } : undefined);
+            steps.push(async image => image ? { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") } : undefined);
             continue;
         }
         if (!operandsOnly && (token === "-write" || token === "+write")) {

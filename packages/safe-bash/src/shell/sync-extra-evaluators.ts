@@ -3646,6 +3646,8 @@ const syncExtraRuntimeMethods = {
       const outKind = kind === "command" ? (shellBuiltinNames.has(target) ? "builtin" : "file") : kind === "interpreter" ? "file" : kind;
       return { text: mode === "name" ? target : outKind, status: 0 };
     }
+    const cached = rawState.hashedCommands?.get(target);
+    if (cached) return { text: mode === "name" ? cached.path : "file", status: 0 };
     if (!target.includes("/") && target.length > 0 && this._isMemoryBackingFs && this.canFastMemoryRedirect && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0) && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, "/") !== undefined) {
       const rawPath = stateMonitor(rawState)?.values.get("PATH", rawState.variables.PATH ?? "/usr/local/bin:/usr/bin:/bin") ?? rawState.variables.PATH ?? "/usr/local/bin:/usr/bin:/bin";
       if (typeof rawPath === "string" && rawPath.length <= 512) {

@@ -10768,6 +10768,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = output;
                       } else if (trimmed === "stereowiden" || trimmed.startsWith("stereowiden=")) {
+                        filteredSampleFormat = "flt";
                         if (stretched.length !== 2) throw new Error("stereowiden: stereo input required");
                         let enable: string | undefined;
                         const options = { delay: 20, feedback: 0.3, crossfeed: 0.3, drymix: 0.8 };

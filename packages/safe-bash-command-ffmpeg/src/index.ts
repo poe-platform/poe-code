@@ -4283,6 +4283,7 @@ export function evalSyncFfmpeg(
     let outputStartNumber: number | undefined;
     let outputFormat: string | undefined;
     let outputTimestampOffset = 0;
+    let muxDelay: number | undefined;
     let avoidNegativeTs = "auto";
     let outputSs: number | undefined;
     let outputTo: number | undefined;
@@ -4470,6 +4471,12 @@ export function evalSyncFfmpeg(
         const modes: Record<string, string> = { "-1": "auto", "0": "disabled", "1": "make_non_negative", "2": "make_zero" };
         avoidNegativeTs = modes[value] ?? value;
         if (!["auto", "disabled", "make_non_negative", "make_zero"].includes(avoidNegativeTs)) throw new Error("Invalid avoid_negative_ts");
+      } else if (arg === "-muxdelay") {
+        const value = args[++i];
+        muxDelay = value?.trim() ? Number(value) : NaN;
+        if (!Number.isFinite(muxDelay) || muxDelay < 0 || muxDelay > 2147.483647) {
+          throw new Error("Invalid muxdelay: expected seconds from 0 to 2147.483647");
+        }
       } else if (arg === "-copyts") {
         copyTimestamps = true;
       } else if (arg === "-start_at_zero") {
@@ -5109,7 +5116,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { omitVideoPesLength, mpegtsTablesVersion, mpegtsServiceType, mpegtsLatm: !!(mpegtsFlags & 8), mpegtsOmitRai: !!(mpegtsFlags & 64), live, writeHeader, writeBext, writeCrc32, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeApetag, writeId3v2, writeMpeg2, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { muxDelay, omitVideoPesLength, mpegtsTablesVersion, mpegtsServiceType, mpegtsLatm: !!(mpegtsFlags & 8), mpegtsOmitRai: !!(mpegtsFlags & 64), live, writeHeader, writeBext, writeCrc32, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeApetag, writeId3v2, writeMpeg2, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -5436,6 +5443,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hashAlgorithm: string | undefined;
         let frameHashVersion = 2;
         let outputTimestampOffset = 0;
+        let muxDelay: number | undefined;
         let avoidNegativeTs = "auto";
         let copyPriorStart = true;
         let outputSs: number | undefined;
@@ -6279,6 +6287,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             avoidNegativeTs = modes[value] ?? value;
             if (!["auto", "disabled", "make_non_negative", "make_zero"].includes(avoidNegativeTs)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid avoid_negative_ts\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-muxdelay") {
+            const value = args[++i];
+            muxDelay = value?.trim() ? Number(value) : NaN;
+            if (!Number.isFinite(muxDelay) || muxDelay < 0 || muxDelay > 2147.483647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid muxdelay: expected seconds from 0 to 2147.483647\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-copyts") {
@@ -11051,6 +11066,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 };
                 let segBytes = segPlugin.serialize(segmentDoc, {
                   fragmented: isFmp4,
+                  // HLS keeps the segment timeline without transport mux delay.
+                  muxDelay: 0,
                   skipTrailer: true,
                   limits: options.limits,
                   budget
@@ -11430,6 +11447,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               writeHeader,
               writeBext,
               writeCrc32,
+              muxDelay,
               rf64,
               writePeak,
               peakBlockSize,

@@ -17,7 +17,7 @@ const probe = await shell.exec("ffprobe -show_streams -of json /clip.mp4");
 await shell.dispose();
 ```
 
-MPEG-TS program maps (`-map 0:p:202`) select streams by program ID; `-map 0:p:202:a:0` selects the first audio stream in that program. Missing programs fail unless the map ends in `?`.
+MPEG-TS output defaults to a 0.7-second mux delay: initial PTS is 1.4 seconds and PCR is 0.7 seconds. Use `-muxdelay 0` for zero delay or `-muxdelay 0.2` for PTS 0.4 seconds and PCR 0.2 seconds. MPEG-TS program maps (`-map 0:p:202`) select streams by program ID; `-map 0:p:202:a:0` selects the first audio stream in that program. Missing programs fail unless the map ends in `?`.
 
 MP4/MOV output `-streamid 0:21 -streamid 1:43 -use_stream_ids_as_track_ids 1` assigns track IDs to output stream ordinals after mapping. Without the muxer switch, IDs remain sequential starting at 1; with it, unassigned streams use ID 0. Options apply only to the next output.
 

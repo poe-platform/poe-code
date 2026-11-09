@@ -704,6 +704,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** MPEG-TS mux delay in seconds (default: 0.7); PTS/DTS gain twice this delay. */
+  readonly muxDelay?: number | undefined;
   /** Five-bit PAT, PMT and SDT version (0–31, default 0). */
   readonly mpegtsTablesVersion?: number | undefined;
   /** MPEG-TS SDT service type (default: 1, digital TV; 2 is digital radio). */

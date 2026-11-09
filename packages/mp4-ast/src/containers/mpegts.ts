@@ -449,6 +449,11 @@ export function serializeMpegTs(
   doc: MediaDocument,
   options: SerializeMediaOptions = {}
 ): Uint8Array {
+  const muxDelay = options.muxDelay ?? 0.7;
+  if (!Number.isFinite(muxDelay) || muxDelay < 0 || muxDelay > 2147.483647) {
+    throw new Error("Invalid muxdelay: expected seconds from 0 to 2147.483647");
+  }
+  const delay90k = Math.round(Math.trunc(muxDelay * 1_000_000) * 90000 / 1_000_000);
   const tsPackets: Uint8Array[] = [];
   const ccByPid = new Map<number, number>();
 
@@ -478,6 +483,9 @@ export function serializeMpegTs(
     withPcr: boolean,
     isKeyframe: boolean
   ) => {
+    // FFmpeg leaves two mux delays before presentation, with PCR one delay behind DTS.
+    pts90k += 2 * delay90k;
+    dts90k += 2 * delay90k;
     const hasDts = Math.abs(pts90k - dts90k) > 0;
     const headerDataLen = hasDts ? 10 : 5;
     const pesHeader = new BinaryWriter(9 + headerDataLen);
@@ -521,7 +529,7 @@ export function serializeMpegTs(
         if (adaptFieldLen >= 1) {
           if (needPcr && adaptFieldLen >= 7) {
             pkt[5] = 0x10 | (randomAccess ? 0x40 : 0);
-            const pcrBase = Math.max(0, Math.floor(dts90k));
+            const pcrBase = ((dts90k - delay90k) % 2 ** 33 + 2 ** 33) % 2 ** 33;
             pkt[6] = (pcrBase / 33554432) & 0xff;
             pkt[7] = (pcrBase >>> 17) & 0xff;
             pkt[8] = (pcrBase >>> 9) & 0xff;

@@ -2,9 +2,11 @@ import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 // Shared by convert frames and montage's 15-pixel matte with 3-pixel bevels.
-export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, width: number, height: number,
+export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">>, width: number, height: number,
     border: RgbaColor, matte: RgbaColor, frameX: number, frameY: number, outer: number, inner: number, compositeSource = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (outer < 0 || inner < 0 || outer + inner > Math.min(frameX, frameY)) throw new Error("frame is less than image size");
+    // Native grayscale channel aliases leave the blue matte component in the gray channel.
+    if (source.space === "b-w" || source.space === "grey16") matte = { ...matte, r: matte.b, g: matte.b };
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     const shade = (factor: number, lighten: boolean) => [matte.r, matte.g, matte.b].map(value =>
         Math.round((lighten ? value + (255 - value) * factor / 255 : value * factor / 255) * scale)).concat(Math.round(matte.a * scale));

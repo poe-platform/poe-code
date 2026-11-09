@@ -3144,6 +3144,18 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         });
     }
     if (method === "affine" && (nums.length === 0 || nums.length % 4 !== 0)) throw new Error("Affine requires complete source/destination point pairs");
+    if (method === "affineprojection") {
+        if (nums.length !== 6) throw new Error("AffineProjection needs 6 coefficient values");
+        const [sx, ry, rx, sy, tx, ty] = nums as [number, number, number, number, number, number];
+        const determinant = sx * sy - rx * ry;
+        const reciprocal = 1 / (Math.abs(determinant) >= 1e-12 ? determinant : determinant < 0 ? -1e-12 : 1e-12);
+        const a = sy * reciprocal, b = -rx * reciprocal, c = -ry * reciprocal, d = sx * reciprocal;
+        const e = -(a * tx + b * ty), f = -(c * tx + d * ty);
+        // Coefficients map source edges to destination edges; invert for pixel-center sampling.
+        const plan = result((x, y) => [a * (x + 0.5) + b * (y + 0.5) + e - 0.5, c * (x + 0.5) + d * (y + 0.5) + f - 0.5]);
+        return bestFit({ ...plan, derivatives: () => [a, b, c, d] }, (x, y) =>
+            [sx * (x + 0.5) + rx * (y + 0.5) + tx - 0.5, ry * (x + 0.5) + sy * (y + 0.5) + ty - 0.5]);
+    }
     if (method === "perspective" && (nums.length === 0 || nums.length % 4 !== 0)) throw new Error("Perspective requires complete source/destination point pairs");
     if (method === "perspectiveprojection" && nums.length !== 8) throw new Error("PerspectiveProjection needs 8 coefficient values");
     if ((method === "perspective" && nums.length >= 16) || method === "perspectiveprojection") {

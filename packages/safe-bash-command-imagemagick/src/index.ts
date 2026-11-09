@@ -754,7 +754,7 @@ function validateMagickStatistic(name: string): void {
   }
 }
 
-type MorphologyStep = { mode: "distance"; scale: number; reverse: boolean; source: number } | { mode: "thinning"; kernels: { foreground: number[][]; background: number[][] }[] } | { mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"; source: number } | { mode: "diff"; a: number; b: number };
+type MorphologyStep = { mode: "distance"; scale: number; reverse: boolean; source: number } | { mode: "thinning" | "thicken"; kernels: { foreground: number[][]; background: number[][] }[] } | { mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"; source: number } | { mode: "diff"; a: number; b: number };
 function explicitMorphologyRows(spec: string, match?: 0 | 1): number[][] | undefined {
   const colon = spec.indexOf(":");
   if (colon < 0 || !"0123456789".includes(spec[0] ?? " ")) return undefined;
@@ -789,7 +789,7 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: Mo
       { mode: "distance", scale, reverse: true, source: 1 }
     ] };
   }
-  if (method === "thinning") {
+  if (method === "thinning" || method === "thicken") {
     const specs = kernelSpec.toLowerCase() === "edges" ? [
       "3x3:0,nan,1,0,nan,1,0,nan,1",
       "3x3:1,nan,0,1,nan,0,1,nan,0",
@@ -801,7 +801,7 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: Mo
       if (!foreground || !background) throw new Error(`invalid morphology kernel '${kernelSpec}'`);
       return { foreground, background };
     });
-    return { rows: [], iterations, steps: [{ mode: "thinning", kernels }] };
+    return { rows: [], iterations, steps: [{ mode: method, kernels }] };
   }
   if (method === "hitandmiss") {
     const rows = explicitMorphologyRows(kernelSpec, 1);
@@ -894,11 +894,11 @@ function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kerne
     const plan = magickMorphologyPlan(methodRaw, kernelSpec), images = [img];
     if (plan.iterations === 0) return img;
     for (const step of plan.steps) {
-        if (step.mode === "thinning") {
+        if ("kernels" in step) {
             let source = images.at(-1)!;
             for (let pass = 0; pass < plan.iterations; pass++)
                 for (const kernel of step.kernels)
-                    source = yield* applyMagickRasterSteps(source, hitAndMissPixelSteps(source, kernel.foreground, kernel.background, channels, true), signal);
+                    source = yield* applyMagickRasterSteps(source, hitAndMissPixelSteps(source, kernel.foreground, kernel.background, channels, step.mode), signal);
             images.push(source);
         } else if (step.mode === "diff") {
             const a = images[step.a]!, b = images[step.b]!;
@@ -8853,11 +8853,11 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
     const images = [image], size = image.width * image.height * 4;
     if (plan.iterations === 0) return image;
     for (const step of plan.steps) {
-        if (step.mode === "thinning") {
+        if ("kernels" in step) {
             let source = images.at(-1)!;
             for (let pass = 0; pass < plan.iterations; pass++)
                 for (const kernel of step.kernels)
-                    source = await transformStoredMagickRaster(source, backend, hitAndMissPixelSteps(source, kernel.foreground, kernel.background, channels, true), signal);
+                    source = await transformStoredMagickRaster(source, backend, hitAndMissPixelSteps(source, kernel.foreground, kernel.background, channels, step.mode), signal);
             images.push(source);
         } else if (step.mode === "diff") {
             const position = backend.storage.allocate(size);

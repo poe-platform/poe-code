@@ -6425,8 +6425,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 let r = evaluateSamples[idx]!, g = evaluateSamples[idx + 1]!, b = evaluateSamples[idx + 2]!;
-                // Luminance uses linear light; luma uses encoded sRGB samples.
-                if (space === "rec601luminance" || space === "rec709luminance") {
+                // Native preserves existing gray samples; only color inputs need linearization.
+                if ((space === "rec601luminance" || space === "rec709luminance") && image.space !== "b-w" && image.space !== "grey16") {
                     r = 255 * (r / 255 <= 0.04045 ? r / 255 / 12.92 : ((r / 255 + 0.055) / 1.055) ** 2.4);
                     g = 255 * (g / 255 <= 0.04045 ? g / 255 / 12.92 : ((g / 255 + 0.055) / 1.055) ** 2.4);
                     b = 255 * (b / 255 <= 0.04045 ? b / 255 / 12.92 : ((b / 255 + 0.055) / 1.055) ** 2.4);

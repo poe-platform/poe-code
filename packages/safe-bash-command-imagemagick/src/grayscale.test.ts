@@ -28,6 +28,22 @@ for (const execution of ["buffered", "retained", "sync"] as const) {
         expect([...decodeImage(output).data]).toEqual(gray.flatMap((value, i) => [value, value, value, i === 3 ? 128 : 255]));
     });
 
+    it.each(["Rec601Luminance", "Rec709Luminance"])(`preserves existing gray samples with %s via ${execution}`, async method => {
+        // Native ImageMagick preserves gray samples and alpha before output encoding.
+        const gray = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAQAAABuBnYAAAAAAmJLR0QA/4ePzL8AAAAHdElNRQfqCwcXCA/QA7mAAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDI2LTExLTA3VDIzOjA3OjU3KzAwOjAwAi786QAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyNi0xMS0wN1QyMzowNzo1NyswMDowMHNzRFUAAAAodEVYdGRhdGU6dGltZXN0YW1wADIwMjYtMTEtMDdUMjM6MDg6MTUrMDA6MDDGuCHUAAAARklEQVQI11WMwRGAMAzDDq/QvJlHq3iDTgc7JQvwCIXrTz7LPuYZHr49HA5fVpEUUBQJKD9sEtSLXWjF5aj3v6P9MtF+CQ9GO0OOgXne5AAAAABJRU5ErkJggg==", "base64");
+        for (const fromColor of [false, true]) {
+            const files = new Map([["in.png", gray]]), filesystem = new MemoryFileSystem();
+            await filesystem.writeFile("/in.png", gray);
+            const input = fromColor ? ["-size", "1x1", "xc:srgba(40,100,180,0.5)", "-grayscale", "Mean"] : ["in.png"];
+            const args = [...input, "-grayscale", method, "PNG32:out.png"];
+            const result = execution === "sync" ? runConvertCliSync(args, files)
+                : await runConvertCli(args, execution === "retained" ? { filesystem, cwd: "/" } : files);
+            expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+            const output = execution === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
+            expect([...decodeImage(output).data]).toEqual(fromColor ? [107, 107, 107, 128] : [...decodeImage(gray).data]);
+        }
+    });
+
     it.each(["invalid", "sRGB", "gray"])(`rejects unsupported grayscale %s via ${execution}`, async method => {
         const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
         const args = ["-size", "1x1", "xc:red", "-grayscale", method, "out.png"];

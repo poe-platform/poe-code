@@ -5,6 +5,34 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { Shell } from "../../src/shell/index.js";
 
+for (const name of ["basename", "dirname"]) for (const option of ["--help", "--version"]) {
+  test(`${name} accepts ${option} abbreviations directly and in shell substitution`, async () => {
+    const expected = await run(name, [option], { commands: basicCommands() });
+    assert.equal(expected.exitCode, 0);
+    assert.equal(expected.stderr, "");
+    assert.ok(expected.stdout.startsWith(option === "--help" ? `Usage: ${name} ` : `${name} (`));
+    for (let length = 3; length < option.length; length++) {
+      const prefix = option.slice(0, length);
+      const direct = await run(name, [prefix], { commands: basicCommands() });
+      assert.equal(direct.exitCode, expected.exitCode);
+      assert.equal(direct.stderr, expected.stderr);
+      assert.deepEqual(direct.stdoutBytes, expected.stdoutBytes);
+      for (const middleware of [false, true]) {
+        const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(basicCommands()) });
+        if (middleware) shell.use((_context, next) => next());
+        try {
+          for (const script of [`${name} ${prefix}`, `result=$(${name} ${prefix}); status=$?; printf '%s\\n' "$result"; exit "$status"`]) {
+            const result = await shell.exec(script);
+            assert.equal(result.exitCode, expected.exitCode, script);
+            assert.equal(result.stderr, expected.stderr, script);
+            assert.equal(result.stdout, expected.stdout, script);
+          }
+        } finally { await shell.dispose(); }
+      }
+    }
+  });
+}
+
 for (const entry of [
   { name: "basename", args: ["dir/file", "--help"], output: "file\n" },
   { name: "basename", args: ["dir/file", "--version"], output: "file\n" },
@@ -14,13 +42,20 @@ for (const entry of [
   { name: "dirname", args: ["-z", "dir/file", "--help"], output: "dir\0.\0", information: true },
   { name: "basename", args: ["--", "--help"], output: "--help\n" },
   { name: "dirname", args: ["--", "--help"], output: ".\n" },
+  { name: "basename", args: ["dir/file--he", "--he"], output: "file\n" },
+  { name: "basename", args: ["--su", "--vers", "dir/file--vers"], output: "file\n" },
+  { name: "basename", args: ["-a", "dir/file", "--he"], output: "file\n--he\n" },
+  { name: "dirname", args: ["dir/file", "--he"], output: "dir\n.\n", information: true },
+  { name: "dirname", args: ["dir/file", "--vers"], output: "dir\n.\n", information: true },
+  { name: "basename", args: ["--", "--he"], output: "--he\n" },
+  { name: "dirname", args: ["--", "--vers"], output: ".\n" },
 ]) for (const posix of [undefined, "", "1"]) {
   test(`${entry.name} trailing information ${JSON.stringify(entry.args)} POSIXLY_CORRECT=${JSON.stringify(posix)}`, async () => {
     const result = await run(entry.name, entry.args, { commands: basicCommands(), env: posix === undefined ? {} : { POSIXLY_CORRECT: posix } });
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
     if (entry.information && posix === undefined) {
-      assert.ok(result.stdout.startsWith(entry.args.includes("--help") ? "Usage: dirname " : "dirname ("));
+      assert.ok(result.stdout.startsWith(entry.args.some(arg => arg === "--help" || arg === "--he") ? "Usage: dirname " : "dirname ("));
     } else assert.equal(result.stdout, entry.output);
   });
 }
@@ -34,6 +69,9 @@ for (const middleware of [false, true]) for (const posix of ["", "1"]) {
     { script: "for i in 1 2; do dirname dir/file --help; done", output: "dir\n.\ndir\n.\n" },
     { script: "printf x | dirname dir/file --help", output: "dir\n.\n" },
     { script: "result=$(dirname dir/file --help); printf '%s\\n' \"$result\"", output: "dir\n.\n" },
+    { script: "result=$(dirname dir/file --he); printf '%s\\n' \"$result\"", output: "dir\n.\n" },
+    { script: "result=$(basename dir/file--vers --vers); printf '%s\\n' \"$result\"", output: "file\n" },
+    { script: "result=$(basename -- --he); printf '%s\\n' \"$result\"", output: "--he\n" },
   ]) test(`${entry.script} POSIXLY_CORRECT=${JSON.stringify(posix)} middleware=${middleware}`, async () => {
     const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(basicCommands()) });
     const intercepted: string[] = [];

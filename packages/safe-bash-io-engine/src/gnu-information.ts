@@ -7,8 +7,9 @@ const checksumInfo: PackedInfo = ["Compute or verify file digests.", "-b, --bina
 const sharedEncoder = new TextEncoder();
 
 export function gnuInformationSync(name: string, args: readonly string[], externalInvocation = false, posixlyCorrect = false): string | undefined {
+  const abbreviations = name === "paste" || name === "comm" || name === "basename" || name === "dirname";
   if (!args.some(arg => arg === "--help" || arg === "--version" ||
-    ((name === "paste" || name === "comm") && arg.startsWith("--") && arg.length > 2 && ("--help".startsWith(arg) || "--version".startsWith(arg))))) return undefined;
+    (abbreviations && arg.startsWith("--") && arg.length > 2 && ("--help".startsWith(arg) || "--version".startsWith(arg))))) return undefined;
   if ((name === "true" || name === "false" || name === "echo" || name === "[" || name === "pwd") && (args.length !== 1 || !externalInvocation)) return undefined;
   const raw = information[name] ?? (["md5sum", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum"].includes(name) ? checksumInfo : undefined);
   if (!raw) return undefined;
@@ -25,7 +26,7 @@ export function gnuInformationSync(name: string, args: readonly string[], extern
   for (let index = 0; index < args.length; index++) {
     let arg = args[index]!;
     if (arg === "--") break;
-    if ((name === "paste" || name === "comm") && arg.startsWith("--")) {
+    if (abbreviations && arg.startsWith("--")) {
       const equal = arg.indexOf("="), spelling = equal < 0 ? arg : arg.slice(0, equal);
       if (!flags.has(spelling)) {
         const matches = [...flags.keys()].filter(flag => flag.startsWith(spelling));

@@ -40,6 +40,32 @@ test("other commands retain their information option rules", () => {
   assert.equal(gnuInformationSync("sort", ["-o", "--help"]), undefined);
 });
 
+for (const name of ["basename", "dirname"]) {
+  test(`${name} information prefixes preserve option and operand boundaries`, () => {
+    for (const option of ["--help", "--version"]) {
+      const information = gnuInformationSync(name, [option]);
+      assert.ok(information);
+      for (let length = 3; length <= option.length; length++) {
+        const prefix = option.slice(0, length);
+        for (const posix of [false, true]) {
+          assert.equal(gnuInformationSync(name, [prefix], false, posix), information);
+          assert.equal(gnuInformationSync(name, ["--ze", prefix], false, posix), information);
+          assert.equal(gnuInformationSync(name, ["--", prefix], false, posix), undefined);
+          assert.equal(gnuInformationSync(name, ["dir/file", prefix], false, posix),
+            name === "dirname" && !posix ? information : undefined);
+          assert.equal(gnuInformationSync(name, [`${prefix}=yes`, option], false, posix), undefined);
+          assert.equal(gnuInformationSync(name, ["--unknown", prefix], false, posix), undefined);
+          if (name === "basename") {
+            assert.equal(gnuInformationSync(name, ["--su", prefix, "dir/file"], false, posix), undefined);
+            assert.equal(gnuInformationSync(name, ["--su", ".txt", prefix], false, posix), information);
+            assert.equal(gnuInformationSync(name, ["--su=.txt", prefix], false, posix), information);
+          }
+        }
+      }
+    }
+  });
+}
+
 test("fold leaves information and operand parsing to its command", () => {
   for (const args of [["--help"], ["--version"], ["-w2", "--help"], ["a", "--help"], ["--", "--help"], ["--width", "--help"]]) {
     for (const posix of [false, true]) {

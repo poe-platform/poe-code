@@ -187,7 +187,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
         "gaussiannoise", "impulsenoise", "inverselog", "laplaciannoise", "leftshift", "log", "max", "mean",
         "median", "min", "multiplicativenoise", "multiply", "or", "poissonnoise", "pow", "rightshift",
         "rms", "rootmeansquare", "set", "sin", "sine", "subtract", "sum", "threshold", "thresholdblack",
-        "thresholdwhite", "uniformnoise", "xor"].includes(operation)) {
+        "thresholdwhite", "undefined", "uniformnoise", "xor"].includes(operation)) {
         throw new Error(`unrecognized evaluate operator '-evaluate-sequence' '${raw}'`);
     }
     if (noise) {
@@ -245,7 +245,12 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
         if (position % 16384 === 0) yield;
         const length = Math.min(window, size - position), first = yield* read(0, position, length);
         const data = fractional ? Float64Array.from(first) : highDepth ? Uint16Array.from(first, clamp) : Uint8Array.from(first, clamp);
-        if (["and", "or", "xor"].includes(operation)) {
+        if (operation === "undefined" && frames > 1) {
+            // Native Undefined clears active samples after the first input.
+            for (let offset = 0; offset < length; offset++) {
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = 0;
+            }
+        } else if (["and", "or", "xor"].includes(operation)) {
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);

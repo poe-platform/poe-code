@@ -3287,10 +3287,8 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     let i = start;
     const distort = token === "-distort" || token === "+distort";
     const viewport = distort ? state.distortViewport : undefined;
-    if (distort && state.distortScale !== undefined) {
-        const scale = Number.parseFloat(state.distortScale);
-        if (!Number.isFinite(scale) || scale === 0) throw new Error("invalid argument for option distort:scale");
-    }
+    const scale = distort && state.distortScale !== undefined ? Math.abs(Number.parseFloat(state.distortScale)) : undefined;
+    if (scale !== undefined && (!Number.isFinite(scale) || scale < 0.1)) throw new Error("invalid argument for option distort:scale");
     const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
     if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(spec, token);
     const interpolation = state.interpolation ?? "bilinear";
@@ -3346,6 +3344,27 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             // promotes grayscale to RGB; otherwise native's gray cache uses blue.
             if (gray && virtualPixel !== "background") color = { r: color.b, g: color.b, b: color.b, a: color.a };
             return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, { ...plan, interpolation }, color, "background") };
+        }
+        if (plan && scale !== undefined) {
+            const original = plan, originX = original.virtualCanvas?.x ?? 0, originY = original.virtualCanvas?.y ?? 0;
+            let width = Math.floor(original.width * scale + 0.5), height = Math.floor(original.height * scale + 0.5);
+            if (width === 0 || height === 0) { width = image.width; height = image.height; }
+            const x = Math.trunc(originX * scale + 0.5), y = Math.trunc(originY * scale + 0.5);
+            if (![width, height, x, y, width * height * 8].every(Number.isSafeInteger) || width < 1 || height < 1)
+                throw new Error("Distortion dimensions exceed limit");
+            // Scale destination pixel centers and the inverse-map filter footprint.
+            plan = {
+                ...original, width, height,
+                ...(original.virtualCanvas ? { virtualCanvas: {
+                    width: Math.floor((image.virtualCanvas?.width ?? image.width) * width / image.width + 0.5),
+                    height: Math.floor((image.virtualCanvas?.height ?? image.height) * height / image.height + 0.5), x, y
+                } } : {}),
+                map: (px, py) => original.map((px + x + 0.5) / scale - 0.5 - originX, (py + y + 0.5) / scale - 0.5 - originY),
+                ...(original.derivatives ? { derivatives: (px: number, py: number) => {
+                    const [ux, uy, vx, vy] = original.derivatives!((px + x + 0.5) / scale - 0.5 - originX, (py + y + 0.5) / scale - 0.5 - originY);
+                    return [ux / scale, uy / scale, vx / scale, vy / scale] as const;
+                } } : {})
+            };
         }
         return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, kernel, filter) } : undefined;
     } };

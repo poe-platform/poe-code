@@ -45,6 +45,7 @@ import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { despecklePixelSteps } from "./despeckle-kernel.js";
 import { waveletDenoisePixelSteps } from "./wavelet-denoise-kernel.js";
 import { meanShiftPixelSteps, parseMeanShiftGeometry } from "./mean-shift-kernel.js";
+import { motionBlurPixelSteps } from "./motion-blur-kernel.js";
 import { rotationalBlurPixelSteps } from "./rotational-blur-kernel.js";
 import { kuwaharaPixelSteps } from "./kuwahara-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
@@ -8401,6 +8402,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* applyMagickRasterSteps(im, kuwaharaPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
             });
         }
+        else if (t === "-motion-blur") {
+            const geometry = tokens[++i] ?? "";
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(geometry, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const motion = parseMagickGeometry(expanded);
+                return yield* applyMagickRasterSteps(im, motionBlurPixelSteps(im, motion, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
+            });
+        }
         else if (t === "-rotational-blur") {
             const geometry = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -10343,6 +10352,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-kuwahara") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, kuwaharaPixelSteps(image, geometry, background, virtualPixel, channels), signal) : undefined);
+        } else if (!operandsOnly && token === "-motion-blur") {
+            const geometry = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const motion = parseMagickGeometry(expanded);
+                return transformStoredMagickRaster(image, backend, motionBlurPixelSteps(image, motion, background, virtualPixel, channels), signal);
+            });
         } else if (!operandsOnly && token === "-rotational-blur") {
             const geometry = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
@@ -10720,6 +10737,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-colorize",
         "-blur",
         "-gaussian-blur",
+        "-motion-blur",
         "-rotational-blur",
         "-lat",
         "-mean-shift",

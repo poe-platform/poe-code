@@ -46,7 +46,8 @@ export function* gifAnimationSteps(size:number,start:number,page=0):Generator<nu
   }else if(intro===44){
    if(at+9>size)break;yield {frame:frames++,delay:pending};pending=0;
    const flags=(yield at+8)??0;at+=9;if(flags&128)at+=3*(1<<((flags&7)+1));at=yield* skip(at+1);
-  }else break;
+  }
+  // Ignore stray bytes only between blocks; payloads retain their declared lengths.
  }
  const gifCommentBytes = new Uint8Array(comments);
  // Without a looping extension, an animation plays exactly once.

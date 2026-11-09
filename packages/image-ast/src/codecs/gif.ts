@@ -249,9 +249,8 @@ export function decodeGifImage(
       currentFrame++;
       transparentIdx = -1;
       disposalMethod = 0;
-    } else {
-      break;
     }
+    // Ignore stray bytes only between blocks; payloads retain their declared lengths.
   }
 
   if (options?.coalesce === false) throw new RangeError("GIF frame is out of range");

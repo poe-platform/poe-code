@@ -324,7 +324,8 @@ export async function decodeGifToStorage(
       current++;
       transparent = -1;
       disposal = 0;
-    } else break;
+    }
+    // Ignore stray bytes only between blocks; payloads retain their declared lengths.
   }
   if (options?.coalesce === false && !virtualCanvas) throw new RangeError("GIF frame is out of range");
   await flush();

@@ -11,10 +11,13 @@ export function createTacWithSettings(limits: StreamInspectionLimits): CommandDe
     let separator: Uint8Array = bytesFrom("\n");
     const parsed = options(session.context.args, "brs:", { before: "b", regex: "r", separator: "s" }, false, undefined, (key, index, offset) => {
       if (key === "s") {
-        const raw = arguments_.bytes(index)!.subarray(offset);
-        separator = raw.length ? bytesFrom(raw) : bytesFrom("\0");
+        separator = arguments_.bytes(index)!.subarray(offset);
       }
     });
+    if (!separator.length) {
+      if (parsed.flags.has("r")) throw new FsError("EINVAL", { message: "separator cannot be empty" });
+      separator = bytesFrom("\0");
+    }
     const reversed = Uint8Array.from(separator).reverse();
     const prefix = new Uint32Array(reversed.length);
     for (let index = 1, matched = 0; index < reversed.length; index++) {

@@ -4,6 +4,35 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createTacCommand } from "./index.js";
 
+for (const { name, args, input, output = "", exitCode = 0, error = "" } of [
+ { name: "rejects an empty regex separator on binary input", args: ["-r", "-s", ""], input: "a\0b", exitCode: 1, error: "separator cannot be empty" },
+ { name: "rejects an empty regex separator on text input", args: ["-r", "-s", ""], input: "ab", exitCode: 1, error: "separator cannot be empty" },
+ { name: "rejects an empty regex separator on empty input", args: ["-r", "-s", ""], input: "", exitCode: 1, error: "separator cannot be empty" },
+ { name: "validates the separator after the regex flag", args: ["-s", "", "-r"], input: "a\0b", exitCode: 1, error: "separator cannot be empty" },
+ { name: "rejects an empty long regex separator", args: ["--regex", "--separator="], input: "a\0b", exitCode: 1, error: "separator cannot be empty" },
+ { name: "rejects an empty regex separator before opening files", args: ["-rs", "", "/missing"], input: "", exitCode: 1, error: "separator cannot be empty" },
+ { name: "keeps an empty literal separator as NUL", args: ["-s", ""], input: "a\0b", output: "ba\0" },
+ { name: "preserves input when a nonempty regex does not match", args: ["-r", "-s", "x"], input: "a\0b", output: "a\0b" },
+ { name: "uses the final separator when an empty one is replaced", args: ["-r", "-s", "", "-s", "x"], input: "axb", output: "bax" },
+ { name: "rejects a final empty regex separator", args: ["-r", "-s", "x", "-s", ""], input: "axb", exitCode: 1, error: "separator cannot be empty" },
+]) {
+ test(`tac ${name}`, async () => {
+  const values = createCommandArguments(args);
+  let stdout = "", stderr = "";
+  const result = await createTacCommand().execute({
+   command: "tac", args: values.args, argumentValues: values, cwd: "/", env: {},
+   fs: createMemoryFileSystem(), stdin: toByteSource(input),
+   stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+   stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+   signal: new AbortController().signal,
+  });
+  assert.equal(result.exitCode, exitCode);
+  assert.equal(stdout, output);
+  if (error) assert.ok(stderr.includes(error), stderr);
+  else assert.equal(stderr, "");
+ });
+}
+
 for (const before of [false, true]) {
  for (const [env, unicode] of [
   [{ LC_ALL: "C.UTF-8", LC_CTYPE: "C" }, true],

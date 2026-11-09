@@ -10173,7 +10173,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 isFmp4 ? "#EXT-X-VERSION:7" : independentSegments ? "#EXT-X-VERSION:6" : byteRanges || hlsIframesOnly ? "#EXT-X-VERSION:4" : hlsRoundDurations ? "#EXT-X-VERSION:2" : "#EXT-X-VERSION:3",
                 ...(hlsAllowCache === 0 ? ["#EXT-X-ALLOW-CACHE:NO"] : hlsAllowCache === 1 ? ["#EXT-X-ALLOW-CACHE:YES"] : []),
                 `#EXT-X-TARGETDURATION:${Math.round(targetDuration)}`,
-                `#EXT-X-MEDIA-SEQUENCE:${sequence + firstEntry}`
+                `#EXT-X-MEDIA-SEQUENCE:${hlsSingleFile ? 0 : sequence + firstEntry}`
               ];
 
               if (hlsPlaylistType) playlistLines.push(`#EXT-X-PLAYLIST-TYPE:${hlsPlaylistType.toUpperCase()}`);

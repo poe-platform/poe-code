@@ -7790,6 +7790,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         "aloop", "aresample", "apad", "adelay", "atempo", "aformat", "pan",
                         "channelmap", "channelsplit", "asetpts", "aselect", "atrim", "areverse"
                       ].includes(filterName)) panPcm16 = false;
+                      if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)
+                        && ["extrastereo", "stereotools"].includes(filterName)) {
+                        const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
+                          stretched, filteredChannelMask, false, budget, context.signal);
+                        stretched = stereo.channels;
+                        filteredChannelMask = stereo.channelMask;
+                      }
                       if (trimmed === "adeclick" || trimmed.startsWith("adeclick=")) {
                         stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal);
                         continue;

@@ -294,6 +294,8 @@ The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
 (`phasel`, `phaser`), and all `mode` channel conversions, including `lr>ms` and
 `ms>lr`. For example, `-af stereotools=mutel=1` silences only the left channel.
 Other stereotools options are rejected.
+Both `extrastereo` and `stereotools` convert mono input to stereo before processing,
+with each channel receiving the mono samples at √½ gain.
 `crossfeed=strength=0.5` applies frequency-dependent headphone crossfeed to stereo audio.
 Strength and range default to 0.2 and 0.5 (0–1); slope defaults to 0.5 (0.01–1).
 `level_in` and `level_out` default to 0.9 and 1 (0–1).

@@ -7196,12 +7196,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
-        const parts = raw.split(",");
+        const geometry = [...raw].filter(character => character.trim() !== "").join("");
+        const parts = geometry.split(",");
         // Native recognizes four plain comma coordinates before processing percent signs.
         const coordinates = parts.length >= 4 && parts.slice(0, 3).every(part => part.trim() !== "" && Number.isFinite(Number(part)));
         const scale = raw.includes("%") && !coordinates ? 65535 / 100 : 1;
         // Only the first x separates threshold components; subsequent x values are ignored.
-        const values = (parts.length > 1 ? parts : raw.toLowerCase().split("x").slice(0, 2)).map(part => parseFloat(part) * scale);
+        const values = (parts.length > 1 ? parts : geometry.toLowerCase().split("x").slice(0, 2)).map(part => parseFloat(part) * scale);
         const thresh = values[0]!;
         const thresholds = [thresh, values[1] ?? thresh, values[2] ?? thresh, values[3] ?? 100 * scale];
         const isBlack = token === "-black-threshold";

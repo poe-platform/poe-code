@@ -93,6 +93,30 @@ it.each([
 
 for (const mode of ["command", "buffered", "retained", "sync"] as const) {
     for (const operator of ["-black-threshold", "-white-threshold"]) {
+        it.each(["50%", "50%!", "50% ", "5 0%"])(`${mode} ${operator} parses percentage geometry %j`, async threshold => {
+            const pixels = [37, 120, 203, 30, 100, 120, 203, 30, 200, 120, 203, 30];
+            const input = encodeImage({ width: 3, height: 1, data: Uint8Array.from(pixels), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
+            const files = new Map([["input.png", input]]);
+            const filesystem = new MemoryFileSystem();
+            await filesystem.writeFile("/input.png", input);
+            const argv = ["input.png", "-channel", "R", operator, threshold, "+channel", "PNG32:out.png"];
+            const args = createCommandArguments(argv);
+            const result = mode === "command"
+                ? await createMagickCommand().execute({
+                    command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, signal: new AbortController().signal,
+                    stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} },
+                    registerCleanup() {}, fs: filesystem,
+                } as unknown as CommandContext)
+                : mode === "sync" ? runConvertCliSync(argv, files)
+                : await runConvertCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            expect(result.exitCode).toBe(0);
+            const output = mode === "command" || mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
+            expect([...decodeImage(output).data]).toEqual(operator === "-black-threshold"
+                ? [0, 120, 203, 30, 0, 120, 203, 30, 200, 120, 203, 30]
+                : [37, 120, 203, 30, 100, 120, 203, 30, 255, 120, 203, 30]);
+        });
+    }
+    for (const operator of ["-black-threshold", "-white-threshold"]) {
         it.each([4, 8])(`${mode} ${operator} expands calculated cutoffs for width %i`, async width => {
             const pixel = [75, 120, 203, 30];
             const input = encodeImage({ width, height: 1, data: Uint8Array.from(Array.from({ length: width }, () => pixel).flat()), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;

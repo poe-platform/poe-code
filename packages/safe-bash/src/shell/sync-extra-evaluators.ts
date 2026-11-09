@@ -6573,6 +6573,7 @@ const syncExtraRuntimeMethods = {
     const rawState = monitor ? monitor.raw : state;
     // Array writes must prepare scope observers before creating or mutating bindings.
     const name = resolveSyncNameref(rawState, assignment.name);
+    if (name === "DIRSTACK" && assignment.kind === "element") return false;
     if (hasUnpreparedLocal(state, name)) return false;
     this._syncArithTouched?.delete(name);
     if ( rawState.readonlyVariables?.has(name) || rawState.variableAttributes?.get(name) || rawState.exported.has(name) || controlNames.has(name)) {

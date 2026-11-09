@@ -3416,6 +3416,33 @@ export class Runtime {
     const holding = store.owner.hold();
     let staged: IndexedBinding | undefined;
     try {
+      if (name === "DIRSTACK" && assignment.kind === "element") {
+        const index = (await this.arrayIndex(undefined, assignment.index, state, io, operation, true, state.directoryStack?.entries.length ?? 0))!;
+        const fields = await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0);
+        const tail = state.directoryStack;
+        // Bash only replaces saved directories; assigning index zero never changes cwd.
+        if (!tail || index === 0 || index > tail.entries.length) return;
+        const previous = assignment.append ? tail.entries[index - 1]! : undefined;
+        let value = concatShellValues(fields, io[valueScope]);
+        if (previous !== undefined && !state.variableAttributes?.get(name)?.includes("i")) value = await this.arrayJoin(operation, [previous, value], "");
+        value = await this.attributeValue(state, name, value, io, "assignment", previous);
+        const path = shellValueText(value);
+        const work = new DirectoryStackWork(name, this.signal, io.stdout, this.budget.limits);
+        try {
+          const removedBytes = await work.scan(tail.entries[index - 1]!, "path");
+          const addedBytes = await work.scan(path, "path");
+          const bytes = tail.bytes - removedBytes + addedBytes;
+          if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.budget.limits.maxDirectoryStackBytes) work.fail("directory stack byte limit exceeded");
+          await work.charge(tail.entries.length);
+          await work.flushWork();
+          this.assertArrayWritable(state, name, origin);
+          const entries = [...tail.entries];
+          entries[index - 1] = path;
+          state.directoryStack = { entries, bytes };
+          if (declaration) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+        } finally { await work.flushWork(); }
+        return;
+      }
       let current = store.get(name);
       if (associative !== undefined && current && current.associative !== associative) throw new ArrayFailure("cannot convert array kind");
       const isAssociative = associative ?? current?.associative;

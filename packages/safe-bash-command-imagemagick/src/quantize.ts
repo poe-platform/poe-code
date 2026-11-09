@@ -16,13 +16,16 @@ interface ColorNode {
 export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     const prepare = (source: Uint8Array): Uint8Array => {
-        if (!grayscale) return source;
         const data = new Uint8Array(source);
         for (let i = 0; i < data.length; i += 4) {
-            const luma = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
-            data[i] = data[i + 1] = data[i + 2] = requested === 2 ? (luma >= 127.5 ? 255 : 0) : Math.round(luma);
-            // ImageMagick's two-color gray shortcut produces an opaque bilevel image.
-            if (requested === 2) data[i + 3] = 255;
+            if (grayscale) {
+                const luma = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
+                data[i] = data[i + 1] = data[i + 2] = requested === 2 ? (luma >= 127.5 ? 255 : 0) : Math.round(luma);
+                // ImageMagick's two-color gray shortcut produces an opaque bilevel image.
+                if (requested === 2) data[i + 3] = 255;
+            }
+            // Hidden RGB shares one transparent entry during classification and assignment.
+            if (data[i + 3] === 0) data[i] = data[i + 1] = data[i + 2] = 0;
         }
         return data;
     };

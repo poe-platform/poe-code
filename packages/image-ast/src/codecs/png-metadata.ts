@@ -29,6 +29,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   const decodeWarnings: string[] = [];
   let hasIdat = false;
   let idatEnded = false;
+  let hasEnd = false;
   let pos = 8;
   while (pos + 8 <= size) {
     const header=yield {position:pos,length:8};
@@ -41,7 +42,10 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       idatEnded = true;
     }
     const dataStart=pos+8;
-    if(dataStart+len>size)break;
+    if (dataStart + len + 4 > size) throw new Error("Truncated PNG chunk");
+    if (pos === 8 && type !== "IHDR") throw new Error("Missing PNG IHDR");
+    if (type === "IHDR" && (pos !== 8 || len !== 13)) throw new Error("Invalid PNG IHDR");
+    if (type === "IEND" && len !== 0) throw new Error("Invalid PNG IEND");
     if ((header[4]! & 32) !== 0) {
       let crc = pngCrc32(header.subarray(4));
       for (let offset = 0; offset < len; offset += 4096) {
@@ -172,10 +176,11 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       if (exif.density !== undefined) density = exif.density;
       resolution ??= exif.resolution;
     } else if (type === "IDAT" || type === "IEND") {
-      if (type === "IEND") break;
+      if (type === "IEND") { hasEnd = true; break; }
     }
     pos = dataStart + len + 4;
   }
+  if (!hasEnd) throw new Error("Missing PNG IEND");
 
   if (pixelOffset) {
     virtualCanvas = {width:virtualCanvas?.width ?? width,height:virtualCanvas?.height ?? height,...pixelOffset};

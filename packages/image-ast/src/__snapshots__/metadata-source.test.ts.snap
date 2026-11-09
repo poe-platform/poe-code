@@ -1166,140 +1166,18 @@ exports[`preserves truncated PNG metadata at 8 1`] = `"Invalid PNG header"`;
 
 exports[`preserves truncated PNG metadata at 23 1`] = `"Invalid PNG header"`;
 
-exports[`preserves truncated PNG metadata at 24 1`] = `
-{
-  "bitsPerSample": 8,
-  "channels": 4,
-  "density": 72,
-  "depth": "uchar",
-  "format": "png",
-  "hasAlpha": true,
-  "height": 0,
-  "isProgressive": false,
-  "size": 24,
-  "space": "srgb",
-  "width": 0,
-}
-`;
+exports[`preserves truncated PNG metadata at 24 1`] = `"Truncated PNG chunk"`;
 
-exports[`preserves truncated PNG metadata at 28 1`] = `
-{
-  "bitsPerSample": 8,
-  "channels": 4,
-  "density": 72,
-  "depth": "uchar",
-  "format": "png",
-  "hasAlpha": true,
-  "height": 0,
-  "isProgressive": false,
-  "size": 28,
-  "space": "srgb",
-  "width": 0,
-}
-`;
+exports[`preserves truncated PNG metadata at 28 1`] = `"Truncated PNG chunk"`;
 
-exports[`preserves truncated PNG metadata at 29 1`] = `
-{
-  "bitsPerSample": 8,
-  "channels": 4,
-  "density": 72,
-  "depth": "uchar",
-  "format": "png",
-  "hasAlpha": true,
-  "height": 19,
-  "isProgressive": false,
-  "size": 29,
-  "space": "srgb",
-  "width": 17,
-}
-`;
+exports[`preserves truncated PNG metadata at 29 1`] = `"Truncated PNG chunk"`;
 
-exports[`preserves truncated PNG metadata at 32 1`] = `
-{
-  "bitsPerSample": 8,
-  "channels": 4,
-  "density": 72,
-  "depth": "uchar",
-  "format": "png",
-  "hasAlpha": true,
-  "height": 19,
-  "isProgressive": false,
-  "size": 32,
-  "space": "srgb",
-  "width": 17,
-}
-`;
+exports[`preserves truncated PNG metadata at 32 1`] = `"Truncated PNG chunk"`;
 
-exports[`preserves truncated PNG metadata at 33 1`] = `
-{
-  "bitsPerSample": 8,
-  "channels": 4,
-  "density": 72,
-  "depth": "uchar",
-  "format": "png",
-  "hasAlpha": true,
-  "height": 19,
-  "isProgressive": false,
-  "size": 33,
-  "space": "srgb",
-  "width": 17,
-}
-`;
+exports[`preserves truncated PNG metadata at 33 1`] = `"Missing PNG IEND"`;
 
-exports[`preserves truncated PNG metadata at 45 1`] = `
-{
-  "bitsPerSample": 8,
-  "channels": 4,
-  "density": 72,
-  "depth": "uchar",
-  "format": "png",
-  "hasAlpha": true,
-  "height": 19,
-  "isProgressive": false,
-  "size": 45,
-  "space": "srgb",
-  "width": 17,
-}
-`;
+exports[`preserves truncated PNG metadata at 45 1`] = `"Truncated PNG chunk"`;
 
-exports[`preserves truncated PNG metadata at 76 1`] = `
-{
-  "bitsPerSample": 8,
-  "channels": 4,
-  "density": 144,
-  "depth": "uchar",
-  "format": "png",
-  "hasAlpha": true,
-  "height": 19,
-  "isProgressive": false,
-  "resolution": {
-    "unit": "meter",
-    "x": 5669,
-    "y": 0,
-  },
-  "size": 76,
-  "space": "srgb",
-  "width": 17,
-}
-`;
+exports[`preserves truncated PNG metadata at 76 1`] = `"Truncated PNG chunk"`;
 
-exports[`preserves truncated PNG metadata at 128 1`] = `
-{
-  "bitsPerSample": 8,
-  "channels": 4,
-  "density": 144,
-  "depth": "uchar",
-  "format": "png",
-  "hasAlpha": true,
-  "height": 19,
-  "isProgressive": false,
-  "resolution": {
-    "unit": "meter",
-    "x": 5669,
-    "y": 0,
-  },
-  "size": 128,
-  "space": "srgb",
-  "width": 17,
-}
-`;
+exports[`preserves truncated PNG metadata at 128 1`] = `"Truncated PNG chunk"`;

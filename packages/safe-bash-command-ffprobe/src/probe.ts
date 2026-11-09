@@ -86,15 +86,17 @@ export function parseArguments(args: readonly string[]) {
   const writerOptions: Record<string, readonly string[]> = {
     json: [],
     default: ["nokey", "nk", "noprint_wrappers", "nw"],
-    compact: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
-    csv: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
+    compact: ["nokey", "nk", "print_section", "p", "item_sep", "s", "escape", "e"],
+    csv: ["nokey", "nk", "print_section", "p", "item_sep", "s", "escape", "e"],
     flat: ["s", "sep_char", "h", "hierarchical"],
     ini: ["h", "hierarchical"]
   };
   for (const [key, value] of settings) {
     if (!writerOptions[format!]!.includes(key))
       throw new Error(`Unsupported writer option ${key}`);
-    if (key !== "s" && key !== "item_sep" && key !== "sep_char") parseWriterBoolean(value);
+    if ((key === "escape" || key === "e") && !["c", "csv", "none"].includes(value))
+      throw new Error(`Invalid escape mode ${value}`);
+    if (key !== "s" && key !== "item_sep" && key !== "sep_char" && key !== "escape" && key !== "e") parseWriterBoolean(value);
     if ((format === "compact" || format === "csv") && (key === "item_sep" || key === "s") && new TextEncoder().encode(value).length !== 1)
       throw new Error("Item separator must be a single byte");
   }
@@ -309,9 +311,10 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
     );
     if (format === "compact" || format === "csv") {
       const sep = settings.get("item_sep") ?? settings.get("s") ?? (format === "csv" ? "," : "|");
+      const escape = settings.get("escape") ?? settings.get("e") ?? (format === "csv" ? "csv" : "c");
       const quote = (value: string) =>
-        format === "csv"
-          ? value.includes(sep) || value.includes('"') || value.includes("\n")
+        escape === "none" ? value : escape === "csv"
+          ? value.includes(sep) || value.includes('"') || value.includes("\n") || value.includes("\r")
             ? '"' + value.split('"').join('""') + '"'
             : value
           : value
@@ -323,10 +326,9 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
               .join("\\r")
               .split(sep)
               .join("\\" + sep);
-      const values = fields.map(([k, v]) => {
-        const key = enabled("nokey", "nk", format === "csv") ? "" : k + "=";
-        return format === "csv" ? key + quote(String(v)) : quote(key + v);
-      });
+      const values = fields.map(([k, v]) =>
+        (enabled("nokey", "nk", format === "csv") ? "" : k + "=") + quote(String(v))
+      );
       if (enabled("print_section", "p", true)) values.unshift(section);
       lines.push(values.join(sep));
     } else if (format === "flat") {

@@ -730,10 +730,13 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   }
 
   function probeText(value: unknown, separator = "."): ProbeOutputPart {
-    if (isProbeText(value)) return { text: value, mode: fmt === "csv" || fmt === "flat" ? fmt : "compact", separator };
+    const escape = paramMap.escape ?? paramMap.e ?? (fmt === "csv" ? "csv" : "c");
+    const mode = fmt === "flat" ? "flat" : escape === "none" ? "plain" : escape === "csv" ? "csv" : "compact";
+    if (isProbeText(value)) return { text: value, mode, separator };
     if (fmt === "flat" && typeof value === "number") return String(value);
     const text = String(value);
-    if (fmt === "csv") {
+    if (mode === "plain") return text;
+    if (mode === "csv") {
       return [separator, '"', "\n", "\r"].some(character => text.includes(character))
         ? '"' + text.replaceAll('"', '""') + '"'
         : text;
@@ -993,8 +996,8 @@ function parseProbeArguments(args: readonly string[]) {
   const writerOptions: Record<string, readonly string[]> = {
     json: ["c", "compact"],
     default: ["nokey", "nk", "noprint_wrappers", "nw"],
-    compact: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
-    csv: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
+    compact: ["nokey", "nk", "print_section", "p", "item_sep", "s", "escape", "e"],
+    csv: ["nokey", "nk", "print_section", "p", "item_sep", "s", "escape", "e"],
     flat: ["s", "sep_char", "h", "hierarchical"],
     xml: [],
     ini: ["h", "hierarchical"]
@@ -1005,7 +1008,10 @@ function parseProbeArguments(args: readonly string[]) {
     const key = parameter.split("=")[0]!;
     if (!writerOptions[writer]!.includes(key))
       throw new Error(`Unsupported writer option ${key}`);
-    if (key !== "s" && key !== "item_sep" && key !== "sep_char") {
+    const value = parameter.slice(parameter.indexOf("=") + 1);
+    if ((key === "escape" || key === "e") && !["c", "csv", "none"].includes(value))
+      throw new Error(`Invalid escape mode ${value}`);
+    if (key !== "s" && key !== "item_sep" && key !== "sep_char" && key !== "escape" && key !== "e") {
       const equals = parameter.indexOf("=");
       parseWriterBoolean(equals < 0 ? "1" : parameter.slice(equals + 1));
     }

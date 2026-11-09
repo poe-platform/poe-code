@@ -43,7 +43,7 @@ async function needsQuotes(input: AsyncIterable<string>, separator: string) {
   let tail = "";
   for await (const part of input) {
     const text = tail + part;
-    if (text.includes(separator) || text.includes('"') || text.includes("\n")) return true;
+    if (text.includes(separator) || text.includes('"') || text.includes("\n") || text.includes("\r")) return true;
     tail = text.slice(Math.max(0, text.length - separator.length + 1));
   }
   return false;
@@ -149,23 +149,18 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
       if (enabled("print_section", "p", true)) { yield section; first = false; }
       for await (const field of fields()) {
         if (!first) yield separator; first = false;
-        async function* value() {
-          if (!enabled("nokey", "nk", format === "csv")) {
-            if (field.tag) yield "tag:";
-            yield* parts(field.key); yield "=";
-          }
-          yield* parts(field.value);
+        if (!enabled("nokey", "nk", format === "csv")) {
+          if (field.tag) yield "tag:";
+          yield* parts(field.key); yield "=";
         }
-        if (format === "csv") {
-          if (!enabled("nokey", "nk", true)) {
-            if (field.tag) yield "tag:";
-            yield* parts(field.key); yield "=";
-          }
+        const escape = settings.get("escape") ?? settings.get("e") ?? (format === "csv" ? "csv" : "c");
+        if (escape === "none") yield* parts(field.value);
+        else if (escape === "csv") {
           const quote = await needsQuotes(parts(field.value), separator);
           if (quote) yield '"';
           yield* quote ? replace(parts(field.value), '"', '""') : parts(field.value);
           if (quote) yield '"';
-        } else yield* replace(replace(replace(replace(value(), "\\", "\\\\"), "\n", "\\n"), "\r", "\\r"), separator, "\\" + separator);
+        } else yield* replace(replace(replace(replace(parts(field.value), "\\", "\\\\"), "\n", "\\n"), "\r", "\\r"), separator, "\\" + separator);
       }
       yield "\n";
     } else if (format === "flat") {

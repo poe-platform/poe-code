@@ -572,6 +572,12 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     return filterObject(record, section, `${section}_tags`);
   };
   const format: Record<string, unknown> = { ...probe.format };
+  if (format.format_name === "webvtt") {
+    // Cue timestamps do not declare container timing or an overall bit rate.
+    delete format.start_time;
+    delete format.duration;
+    delete format.bit_rate;
+  }
   if (stdinAudio) {
     delete format.duration;
     delete format.size;

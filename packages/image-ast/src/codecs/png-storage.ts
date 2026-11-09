@@ -114,7 +114,7 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
     }
     if (chunk.name === "IHDR" && chunk.length >= 13) header = await range(source, chunk.start, 13, signal);
     else if (chunk.name === "PLTE") palette = await range(source, chunk.start, Math.min(chunk.length, 768), signal);
-    else if (chunk.name === "tRNS" && !hasIdat && (header?.[9] !== 3 || palette)) transparency = await range(source, chunk.start, Math.min(chunk.length, 256), signal);
+    else if (chunk.name === "tRNS" && !hasIdat && (header?.[9] !== 3 || palette)) transparency ??= await range(source, chunk.start, Math.min(chunk.length, 256), signal);
   }
   if (!header) throw new Error("Invalid PNG header");
   const {size: ignoredSize, ...metadata} = await readPngMetadataFromSource(source, signal);

@@ -228,3 +228,23 @@ it.each([false, true])("checks CRC across bounded reads of a large IDAT, corrupt
     }
   } finally { await storage.close(); }
 });
+
+for (const color of [0, 2, 3]) for (const duplicate of [false, true]) {
+  it(`keeps the first PNG transparency key (color=${color}, duplicate=${duplicate})`, async () => {
+    const gray = color === 0, indexed = color === 3;
+    const extras = indexed ? [chunk("PLTE", Uint8Array.of(17,34,51,68,85,102))] : [];
+    extras.push(chunk("tRNS", Uint8Array.from(indexed ? [0,255] : gray ? [0,17] : [0,17,0,34,0,51])));
+    if (duplicate) extras.push(chunk("tRNS", Uint8Array.from(indexed ? [255,0] : gray ? [0,68] : [0,68,0,85,0,102])));
+    const bytes = png(2,1,Uint8Array.from(indexed ? [0,0,1] : gray ? [0,17,68] : [0,17,34,51,68,85,102]),8,color,extras);
+    const expected = Uint8Array.from(gray ? [17,17,17,0,68,68,68,255] : [17,34,51,0,68,85,102,255]);
+    const {storage} = backing();
+    try {
+      const buffered = decodePngImage(bytes);
+      const stored = await decodePngToStorage(source(bytes),storage,new AbortController().signal);
+      expect(buffered.data).toEqual(expected);
+      expect(await storage.read(stored.position,8)).toEqual(expected);
+      expect(buffered.decodeWarnings ?? []).toEqual(duplicate ? ["Duplicate PNG tRNS"] : []);
+      expect(stored.decodeWarnings ?? []).toEqual(buffered.decodeWarnings ?? []);
+    } finally {await storage.close();}
+  });
+}

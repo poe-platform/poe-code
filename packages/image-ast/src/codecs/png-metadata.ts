@@ -165,6 +165,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       virtualCanvas = {width:view.getUint32(0),height:view.getUint32(4),x:view.getInt32(8),y:view.getInt32(12)};
     } else if (type === "tRNS") {
       if (hasIdat || (colorType === 3 && !palette)) decodeWarnings.push("tRNS: out of place");
+      else if (hasTrns) decodeWarnings.push("Duplicate PNG tRNS");
       else hasTrns = true;
     } else if (type === "orNT" && len === 1) {
       const chunk = yield {position:dataStart,length:1};

@@ -10,7 +10,7 @@ for (const route of ["file", "stdin"]) {
   for (const optional of ["auto", "always", "never"]) {
     it(`omits unknown WebVTT format timing and preserves packet timing via ${route}, optional=${optional}`, async () => {
       const args = ["-v", "error", "-show_entries",
-        "format=size,start_time,duration,bit_rate:packet=pts_time,dts_time,duration_time",
+        "format=size,start_time,duration,bit_rate:packet=pts_time,dts_time,duration_time:packet_side_data=",
         "-show_optional_fields", optional, "-of", "json", route === "file" ? "/voices.vtt" : "-"];
       const fs = new MemoryFileSystem();
       await fs.writeFile("/voices.vtt", bytes);

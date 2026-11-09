@@ -10611,7 +10611,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const checker=lower.startsWith("pattern:")||lower.startsWith("plasma:"),radial=lower.startsWith("radial-gradient:");
   const storedData16=checker?undefined:{position:backend.storage.allocate(width*height*8),length:width*height*4};
   const [first,last]=baseToken.slice(baseToken.indexOf(":")+1).split("-"),a=parseColor(checker?"white":first||"#ffffff"),b=parseColor(checker?"black":last||"#000000");
-  const cx=(width-1)/2,cy=(height-1)/2,radius=Math.max(1,cx,cy);
+  const cx=(width-1)/2,cy=(height-1)/2,radius=Math.max(1,cx,cy),box=state.gradientBoundingBox;
   const projection=gradientProjection(width,height,state.gradientDirection,state.gradientAngle);
   const vectorFactor=gradientVector(width,height,radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial);
   for(let start=0;start<width*height;start+=4096){

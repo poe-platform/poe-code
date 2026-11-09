@@ -26,7 +26,12 @@ export function createTsortCommand(options: TsortCommandsOptions = {}): CommandD
         for (const argument of args) {
           if (!optionsEnded && argument === "--") { optionsEnded = true; continue; }
           if (!optionsEnded && argument.startsWith("--")) throw new TsortError(`unrecognized option '${argument}'`, true);
-          if (!optionsEnded && argument.length > 1 && argument.startsWith("-")) throw new TsortError(`invalid option -- '${argument[1]}'`, true);
+          if (!optionsEnded && argument.length > 1 && argument.startsWith("-")) {
+            for (let index = 1; index < argument.length; index++) {
+              if (argument[index] !== "w") throw new TsortError(`invalid option -- '${argument[index]}'`, true);
+            }
+            continue;
+          }
           files.push(argument);
           if (context.env.POSIXLY_CORRECT !== undefined) optionsEnded = true;
         }

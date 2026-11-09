@@ -1,6 +1,6 @@
 # tsort
 
-Run `tsort` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Enable only the commands your application needs.
+Run `tsort` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Enable only the commands your application needs. Accepts GNU coreutils 9.10’s `-w` compatibility option as a no-op, including repeated `-ww`.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

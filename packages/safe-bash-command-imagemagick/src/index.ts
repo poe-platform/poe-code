@@ -7561,6 +7561,7 @@ function parseChannelAssignments(expression: string): { image: number; source: n
 }
 
 function parseChannelSelections(expression: string): number[][] {
+    if (expression === "") return [[0, 1, 2]];
     const names = [["r", "red"], ["g", "green"], ["b", "blue"], ["a", "alpha"]];
     return expression.split(";").map(group => group.split(",").map(name => {
         const channel = names.findIndex(aliases => aliases.includes(name.trim().toLowerCase()));

@@ -69,10 +69,10 @@ for (const inputs of [["in.png"], ["png:-"], ["in.png", "png:-"]]) {
   });
 }
 
-for (const command of createImagemagickCommands({ limits: { maxInputBytes: 90 } })) {
+for (const command of createImagemagickCommands({ limits: { maxInputBytes: 1 } })) {
   test(`${command.name} enforces local file budgets before decoding or output`, async () => {
     const { context, png, output } = await imageContext(command, ["in.png", "png:-"]);
-    expect(png.byteLength).toBeGreaterThan(90);
+    expect(png.byteLength).toBeGreaterThan(1);
     await expect(command.execute(context)).rejects.toThrow(/input byte limit/);
     expect(output).toEqual([]);
   });

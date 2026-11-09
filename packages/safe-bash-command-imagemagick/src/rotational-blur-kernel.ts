@@ -1,8 +1,9 @@
-import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
-export function* rotationalBlurPixelSteps(image: { width: number; height: number }, angle: number, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, angle: number, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const highDepth = !!(image.data16 || image.storedData16), scale = highDepth ? 257 : 1;
     const { width, height } = image, cx = (width - 1) / 2, cy = (height - 1) / 2, radius = Math.hypot(cx, cy);
     const radians = angle * Math.PI / 180, samples = Math.max(2, Math.floor(Math.abs(4 * radians * Math.sqrt(radius) + 2)));
     if (!Number.isFinite(angle) || samples > 100_000) throw new Error("Rotational blur sample count exceeds limit");
@@ -17,9 +18,9 @@ export function* rotationalBlurPixelSteps(image: { width: number; height: number
     for (let start = 0; start < width * height; start += 1024) {
         yield;
         const count = Math.min(1024, width * height - start);
-        const original = yield { kind: "read", position: start * 4, length: count * 4 };
-        if (!original || original.length !== count * 4) throw new Error("Truncated rotational blur pixels");
-        const data = original.slice();
+        const original = yield { kind: "read", highDepth, position: start * 4, length: count * 4 };
+        if (!original || original.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated rotational blur pixels");
+        const data = highDepth ? new Uint16Array(original.slice().buffer) : original.slice();
         if (angle !== 0) for (let i = 0; i < count; i++) {
             yield;
             const dx = (start + i) % width - cx, dy = Math.floor((start + i) / width) - cy, distance = Math.hypot(dx, dy);
@@ -30,7 +31,7 @@ export function* rotationalBlurPixelSteps(image: { width: number; height: number
                 yield;
                 const cos = cosines[j]!, sin = sines[j]!;
                 let x = Math.trunc(cx + dx * cos - dy * sin + 0.5), y = Math.trunc(cy + dx * sin + dy * cos + 0.5);
-                let pixel: Uint8Array | undefined;
+                let pixel: Uint8Array | Uint16Array | undefined;
                 if (x < 0 || y < 0 || x >= width || y >= height) {
                     if (virtualPixel === "tile" || virtualPixel === "mirror") {
                         const period = virtualPixel === "mirror" ? 2 : 1;
@@ -43,17 +44,21 @@ export function* rotationalBlurPixelSteps(image: { width: number; height: number
                         y = Math.max(0, Math.min(height - 1, y));
                     } else {
                         const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
-                        pixel = Uint8Array.from(virtualPixel === "background" ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255]);
+                        const samples = virtualPixel === "background" ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
+                        pixel = highDepth ? Uint16Array.from(samples, value => value * scale) : Uint8Array.from(samples);
                     }
                 }
-                if (!pixel) pixel = yield { kind: "read", position: (y * width + x) * 4, length: 4 };
-                if (!pixel || pixel.length !== 4) throw new Error("Truncated rotational blur pixels");
+                if (!pixel) {
+                    const bytes = yield { kind: "read", highDepth, position: (y * width + x) * 4, length: 4 };
+                    if (!bytes || bytes.length !== 4 * (highDepth ? 2 : 1)) throw new Error("Truncated rotational blur pixels");
+                    pixel = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
+                }
                 for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * pixel[3]!;
                 sums[3]! += pixel[3]!;
                 total++;
             }
             for (let c = 0; c < 4; c++) if (!mask || mask[c]) data[i * 4 + c] = Math.round(c === 3 ? sums[3]! / total : sums[3] ? sums[c]! / sums[3] : 0);
         }
-        yield { kind: "write", position: start * 4, data };
+        yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
     }
 }

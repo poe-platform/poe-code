@@ -36,11 +36,13 @@ export async function fadeAudio(
       const number = Number(time && value.endsWith("s") ? value.slice(0, scale === 1 ? -1 : -2) : value) * scale;
       if (!value || !Number.isFinite(number) || number < 0) throw new Error(`afade: invalid ${key}`);
       if (key === "ss" || key === "start_sample" || key === "ns" || key === "nb_samples") {
-        if (!Number.isSafeInteger(number)) throw new Error(`afade: invalid ${key}`);
-        if (key === "ss" || key === "start_sample") start = number;
+        // FFmpeg integer options round to nearest, with exact halves going to even.
+        const rounded = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
+        if (!Number.isSafeInteger(rounded)) throw new Error(`afade: invalid ${key}`);
+        if (key === "ss" || key === "start_sample") start = rounded;
         else {
           if (number < 1) throw new Error("afade: nb_samples must be positive");
-          samples = number;
+          samples = rounded;
         }
       } else if (key === "st" || key === "start_time") startTime = number;
       else if (key === "d" || key === "duration") duration = number;

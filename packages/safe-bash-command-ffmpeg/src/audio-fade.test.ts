@@ -57,7 +57,7 @@ for (const [filter, indices, expected] of [
   });
 }
 
-for (const filter of ["afade=ns=0", "afade=ns=0:d=1us", "afade=ss=-1", "afade=ns=1.5", "afade=st=bad",
+for (const filter of ["afade=ns=0", "afade=ns=0:d=1us", "afade=ss=-1", "afade=ns=0.9", "afade=ss=-0.1", "afade=st=bad",
   "afade=d=Infinity", "afade=t=bad", "afade=curve=bad", "afade=unity=1.1",
   "afade=silence=-0.1", "afade=ns=", "afade=unknown=1", "afade=ns=9007199254740992"]) {
   it(`${filter} fails without replacing output`, async () => {

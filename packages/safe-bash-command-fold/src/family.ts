@@ -5,7 +5,11 @@ import { command, RecordBuffer, type StreamInspectionLimits } from "safe-bash-te
 
 export function createFoldCommand(limits: StreamInspectionLimits): CommandDefinition {
   return command("fold", limits, async session => {
-    const parsed = parseFoldArguments(session.context.args, { argumentBytes: limits.maxArgumentBytes });
+    const parsed = parseFoldArguments(session.context.args, { argumentBytes: limits.maxArgumentBytes }, session.context.env.POSIXLY_CORRECT !== undefined);
+    if (parsed.information !== undefined) {
+      await session.output(new TextEncoder().encode(parsed.information));
+      return;
+    }
     const { width, mode } = parsed;
     const locale = (session.context.env.LC_ALL || session.context.env.LC_CTYPE || session.context.env.LANG || "C.UTF-8").toUpperCase().split("@")[0]!;
     const utf8 = locale.endsWith("UTF-8") || locale.endsWith("UTF8");

@@ -152,13 +152,12 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
         }
         retain(extent * 3);
         argumentRetention = extent * 3;
-        if (context.args.length === 1 && (context.args[0] === '--help' || context.args[0] === '--version')) {
-          await diagnostic(context.args[0] === '--help'
-            ? 'Usage: fold [OPTION]... [FILE]...\nWrap input lines to fit the specified width (default 80).\n  -b, --bytes       count bytes\n  -c, --characters  count characters\n  -s, --spaces      break at spaces\n  -w, --width=N     use width N\n      --help        display this help\n      --version     display version information\n'
-            : 'fold (safe-bash) 0.0.1\n', stdout);
+        const parsed = parseFoldArguments(context.args, limits, context.env.POSIXLY_CORRECT !== undefined);
+        if (parsed.information !== undefined) {
+          await diagnostic(parsed.information, stdout);
           return { exitCode: 0, filesRead, filesFailed, accounting: accounting() };
         }
-        options = parseFoldArguments(context.args, limits);
+        options = parsed;
       }
       for (const file of options.files) if (file.includes('\0')) throw new FoldError('OPTION', 'NUL is unavailable in VFS paths');
       engine = createFoldEngine(options, locale, { ...limits, work: limits.work - overheadWork }, signal);

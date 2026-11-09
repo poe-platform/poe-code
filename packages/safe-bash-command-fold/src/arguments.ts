@@ -1,5 +1,5 @@
 import { FoldError, defaultFoldLimits, validateLimits, type FoldLimits, type FoldOptions, type FoldMode } from './contracts.js';
-export function parseFoldArguments(args: readonly string[], configuration: Partial<FoldLimits> = {}): FoldOptions {
+export function parseFoldArguments(args: readonly string[], configuration: Partial<FoldLimits> = {}, posixlyCorrect = false): FoldOptions & { readonly information?: string } {
   const limits = { ...defaultFoldLimits, ...configuration };
   validateLimits(limits);
   let size = 0;
@@ -33,12 +33,12 @@ export function parseFoldArguments(args: readonly string[], configuration: Parti
   };
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!;
-    if (ended || arg === '-' || !arg.startsWith('-')) { files.push(arg); continue; }
+    if (ended || arg === '-' || !arg.startsWith('-')) { files.push(arg); ended ||= posixlyCorrect; continue; }
     if (arg === '--') { ended = true; continue; }
     if (arg.startsWith('--')) {
       const equal = arg.indexOf('=');
       const name = arg.slice(2, equal < 0 ? undefined : equal);
-      const matches = ['bytes', 'characters', 'spaces', 'width'].filter(n => name.length > 0 && n.startsWith(name));
+      const matches = ['bytes', 'characters', 'spaces', 'width', 'help', 'version'].filter(n => name.length > 0 && n.startsWith(name));
       if (matches.length !== 1) throw new FoldError('OPTION', `Unavailable option: ${arg}`);
       const option = matches[0]!;
       if (option === 'width') {
@@ -47,6 +47,12 @@ export function parseFoldArguments(args: readonly string[], configuration: Parti
         setWidth(value);
       } else {
         if (equal >= 0) throw new FoldError('OPTION', `Option takes no argument: ${arg}`);
+        if (option === 'help' || option === 'version') {
+          const information = option === 'help'
+            ? 'Usage: fold [OPTION]... [FILE]...\nWrap input lines to fit the specified width (default 80).\n  -b, --bytes       count bytes\n  -c, --characters  count characters\n  -s, --spaces      break at spaces\n  -w, --width=N     use width N\n      --help        display this help\n      --version     display version information\n'
+            : 'fold (safe-bash) 0.0.1\n';
+          return Object.freeze({ width, mode, spaces, files: Object.freeze(files), information });
+        }
         if (option === 'spaces') spaces = true; else mode = option === 'bytes' ? 'bytes' : 'characters';
       }
       continue;

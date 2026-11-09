@@ -39,3 +39,11 @@ test("other commands retain their information option rules", () => {
   assert.equal(gnuInformationSync("sort", ["--version-sort", "--version"]), "sort (safe-bash virtual implementation)\n");
   assert.equal(gnuInformationSync("sort", ["-o", "--help"]), undefined);
 });
+
+test("fold leaves information and operand parsing to its command", () => {
+  for (const args of [["--help"], ["--version"], ["-w2", "--help"], ["a", "--help"], ["--", "--help"], ["--width", "--help"]]) {
+    for (const posix of [false, true]) {
+      assert.equal(gnuInformationSync("fold", args, false, posix), undefined);
+    }
+  }
+});

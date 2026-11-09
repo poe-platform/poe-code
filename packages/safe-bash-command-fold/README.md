@@ -43,7 +43,11 @@ out-of-range widths are rejected. CLI widths accept the released 64-bit range
 through `18446744073709551606`, including values above JavaScript’s safe-integer
 limit. Larger widths use the checked arithmetic ceiling internally; buffers and
 quotas depend on actual input, not the requested width. SDK widths remain positive
-safe-integer numbers. `--help` and `--version` display information when used as the sole argument, without reading input.
+safe-integer numbers. `--help` and `--version`, including unique abbreviations such as `--hel` and
+`--ver`, display information without reading input. They accept preceding valid
+options and other operands; an earlier invalid option still fails. `--` ends
+option parsing. When `POSIXLY_CORRECT` is set, the first operand also ends option
+parsing, so subsequent names such as `--help` are literal files.
 
 Examples: `fold -w40 /notes`, `fold -s -w20 /notes`,
 `printf abcdef | fold -c -w3` (outputs `abc\ndef`). No operands or `-` reads stdin.
@@ -83,11 +87,13 @@ and their suffix are preserved; native signed-char EOF collisions are not
 reproduced. This table profile
 does not qualify arbitrary libc locales or actual browser/workerd engines.
 
-For lower-level streaming use `parseFoldArguments(args, limits)` and
+For lower-level streaming use `parseFoldArguments(args, limits, posixlyCorrect?)` and
 `createFoldEngine(options, locale, limits, signal?)`. Feed at most 4096 bytes per
 `push`, await writes of its owned output chunks, then write `endFile()` chunks and
 call `dispose()` in `finally`. `accounting()` returns immutable budget snapshots.
-Direct engine callers own source/sink cleanup and returned-output budgets.
+The parser returns an `information` string for help/version requests; print it
+and exit before creating an engine. Direct engine callers own source/sink cleanup
+and returned-output budgets.
 
 Compatibility target: released GNU coreutils 9.10 (2026-02-04), archive SHA256
 `16535a9adf0b10037364e2d612aad3d9f4eca3a344949ced74d12faf4bd51d25`.

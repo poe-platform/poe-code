@@ -65,11 +65,12 @@ it("stops at the shortest input even when that input is not mapped", async () =>
   assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)), [[8000], [-4000]]);
 });
 
-it("checks the sample rate of the third input before replacing output", async () => {
+it("resamples the third input before joining", async () => {
   const { result, stderr, bytes } = await run([
     "-filter_complex", "[0:a][1:a][2:a]join=inputs=3:map=0.0-FL|1.0-FR[o]", "-map", "[o]"
-  ], [[[8000]], [[-4000]], [[6000]]], [8000, 8000, 16000]);
-  assert.notEqual(result.exitCode, 0);
-  assert.ok(stderr.includes("matching sample rates"), stderr);
-  assert.equal(bytes.toString(), "preserve");
+  ], [[Array<number>(64).fill(8000)], [Array<number>(64).fill(-4000)], [Array<number>(128).fill(6000)]], [8000, 8000, 16000]);
+  assert.equal(result.exitCode, 0, stderr);
+  const audio = parseWav(bytes).tracks[0]!.decodedAudio!;
+  assert.equal(audio.sampleRate, 8000);
+  assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)), [Array<number>(64).fill(8000), Array<number>(64).fill(-4000)]);
 });

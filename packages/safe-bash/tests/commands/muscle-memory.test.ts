@@ -74,6 +74,25 @@ cat data.txt
   }
 });
 
+for (const setup of ["unset POSIXLY_CORRECT", "export POSIXLY_CORRECT=1", "export POSIXLY_CORRECT=", "unset POSIXLY_CORRECT; POSIXLY_CORRECT=1"]) {
+  test(`sponge respects exported POSIX option ordering: ${setup}`, async context => {
+    const fs = createMemoryFileSystem();
+    const shell = new Shell({ fs, cwd: "/" }).use(agentCommands());
+    context.after(() => shell.dispose());
+    for (const invocation of ["sponge f -a", "sponge -a f", "POSIXLY_CORRECT=1 sponge f -a", ...(setup.startsWith("export") ? ["sponge f -h"] : [])]) {
+      const expected = invocation === "sponge -a f" || (invocation === "sponge f -a" && !setup.startsWith("export")) ? "OLDx" : "x";
+      for (const command of [`printf x | ${invocation}`, `${invocation} < input`]) {
+        for (const body of [command, `out=$(${command})`, `for ((i=0;i<2;i++)); do printf OLD > f; out=$(${command}); done`]) {
+          await fs.writeFile("/input", new TextEncoder().encode("x"));
+          const result = await shell.exec(`${setup}; printf OLD > f; ${body}`);
+          assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "", ""], body);
+          assert.deepEqual(await fs.readFile("/f"), new TextEncoder().encode(expected), body);
+        }
+      }
+    }
+  });
+}
+
 test("fd finds files with regex/glob, extensions (-e), types (-t), hidden (-H), excludes (-E), and exec (-x/-X)", async () => {
   const fs = createMemoryFileSystem();
   const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands({ muscleMemory: true }));

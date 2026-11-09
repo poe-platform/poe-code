@@ -140,6 +140,7 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
           continue;
         }
         files.push(arg);
+        if (context.env.POSIXLY_CORRECT !== undefined) break;
       }
 
       try {
@@ -244,6 +245,8 @@ export function evalSyncSponge(
   const files: string[] = [];
   let endOfOptions = false;
   for (const arg of opArgs) {
+    // Trailing options depend on the invocation environment, unavailable here.
+    if (!endOfOptions && files.length > 0 && arg.startsWith("-") && arg.length > 1) return undefined;
     if (!endOfOptions && arg === "--") {
       endOfOptions = true;
       continue;

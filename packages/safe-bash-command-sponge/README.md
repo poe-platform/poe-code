@@ -9,3 +9,6 @@ hard links and open readers keep the original contents. Symlinks are followed.
 
 `sponge [FILE]` writes to the first file operand and ignores additional operands.
 Use `-a` to append to that file.
+
+When `POSIXLY_CORRECT` is set (even to an empty value), option parsing stops at
+the destination: `sponge f -a` overwrites `f`, while `sponge -a f` appends.

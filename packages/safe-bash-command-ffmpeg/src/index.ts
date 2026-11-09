@@ -3502,6 +3502,16 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
         if (codec === "webvtt" || codec === "subrip") {
           const text = decodeUtf8(sample.data);
           const parts: string[] = [];
+          const coordinates = sample.subtitlePosition;
+          if (codec === "subrip" && (outputFormat === "ass" || containerCodec === "ass")
+            && coordinates && coordinates.x1 >= 0 && coordinates.y1 >= 0) {
+            const { x1, x2, y1, y2 } = coordinates;
+            const centered = x2 >= x1 && y2 >= y1 && (x2 > x1 || y2 > y1);
+            // FFmpeg maps SubRip's 720x480 coordinates to its 384x288 ASS canvas.
+            const x = Math.trunc((centered ? Math.trunc((x1 + x2) / 2) : x1) * 384 / 720);
+            const y = Math.trunc((centered ? Math.trunc((y1 + y2) / 2) : y1) * 288 / 480);
+            parts.push(`{\\an${centered ? 5 : 1}}{\\pos(${x},${y})}`);
+          }
           const styles: string[] = [];
           const fonts: number[] = [];
           const encodeSrt = codec === "subrip" && outputFormat === "srt";

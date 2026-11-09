@@ -9527,8 +9527,11 @@ export class Runtime {
         const separator = space ? " " : this.ifsSeparator(state, io);
         const fragments: ShellValue[] = [];
         let bytes = 0;
+        const patternScope = this.budget.values.scope();
+        try {
+        const applyPattern = !part.transform && members.length ? await this.prepareParameterPattern(part, state, io, hereString, patternScope) : undefined;
         for (const member of members) {
-          const value = part.transform ? await this.transformValue(member, part.transform, state, io) : await this.parameterPattern(part, member, state, io, hereString);
+          const value = part.transform ? await this.transformValue(member, part.transform, state, io) : await applyPattern!(member);
           bytes += shellValueByteLength(value) + (fragments.length ? shellValueByteLength(separator) : 0);
           if (bytes > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
           io[valueScope]?.reserve(32, 0);
@@ -9536,6 +9539,7 @@ export class Runtime {
           fragments.push(value);
         }
         return concatShellValues(fragments, io[valueScope]);
+        } finally { patternScope.close(); }
       }
       const binding = arrayStore(state)?.get(part.name);
       if (selector?.kind === "element" && binding?.associative) {
@@ -10093,16 +10097,25 @@ export class Runtime {
     const limit = this.budget.limits.maxExpansionBytes;
     if (shellValueByteLength(value) > limit) this.budget.fail("maxExpansionBytes");
     const scratch = this.budget.values.scope();
-    const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation: scratch };
     try {
+      const apply = await this.prepareParameterPattern(part, state, io, hereString, scratch);
+      return await apply(value);
+    } finally { scratch.close(); }
+  }
+  private async prepareParameterPattern(part: Extract<WordPart, { kind: "variable" }>, state: State, io: IO, hereString: boolean, scratch: ValueScope): Promise<(value: ShellValue) => Promise<ShellValue>> {
+    const limit = this.budget.limits.maxExpansionBytes;
+    const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation: scratch };
+    let trimParts: { value: ShellValue; literal: boolean }[] | undefined;
+    let pattern = "";
+    const replacements: { value: string; quoted: boolean }[] = [];
+    const operator = part.operator!;
     if (!part.operator!.startsWith("/")) {
       const parts: { value: ShellValue; literal: boolean }[] = [];
       await this.valueWord(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, true, hereString, false, (_text, literal, original) => {
         scratch.reserveBytes(64);
         parts.push({ value: original, literal });});
-      return await trimParameter(value, parts, part.operator!, byteLocale(state.variables), work, io[valueScope], limit, !!state.extglob);
-    }
-    const text = shellValueText(value);
+      trimParts = parts;
+    } else {
     // The anchor precedes the lexical pattern, so Bash does not expand a following tilde.
     const anchored = part.operator === "/#" || part.operator === "/%";
     const patternWord: Word = anchored
@@ -10116,12 +10129,8 @@ export class Runtime {
       patternUnits += field.length;
     }
     scratch.reserve(patternUnits * 2, 0);
-    const pattern = patternFields.join("");
-    await scanString(text, work);
-    const boundaries = await compilePatternBoundaries(pattern, work, !!state.nocasematch, !!state.extglob);
-    const operator = part.operator!;
+    pattern = patternFields.join("");
     scratch.reserve(64, 0);
-    const replacements: { value: string; quoted: boolean }[] = [];
     let replacementBytes = 0;
     const replacementIO = part.replacement ? this.parameterOperandIO(part.replacement, state, io) : io;
     for (const [index, entry] of (part.replacement?.parts ?? []).entries()) {
@@ -10143,6 +10152,21 @@ export class Runtime {
       scratch.reserve(64 + value.length * 2, 0);
       replacements.push({ value, quoted: entry.quoted });
     }
+    }
+    return async (value) => {
+    const fastRes = this.tryFastParameterPatternSync(part, value, state, io);
+    if (fastRes !== undefined) {
+      io[valueScope]?.reserve(fastRes.length * 2 + 32, 0);
+      return fastRes;
+    }
+    if (shellValueByteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+    const scratch = this.budget.values.scope();
+    const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation: scratch };
+    try {
+    if (trimParts) return await trimParameter(value, trimParts, operator, byteLocale(state.variables), work, io[valueScope], limit, !!state.extglob);
+    const text = shellValueText(value);
+    await scanString(text, work);
+    const boundaries = await compilePatternBoundaries(pattern, work, !!state.nocasematch, !!state.extglob);
     if (!pattern && operator !== "/#" && operator !== "/%") return text;
     // Bash searches an empty value only for a leading star (or a suffix-anchored pattern).
     if (!text && pattern && operator !== "/%" && !pattern.startsWith("*")) return text;
@@ -10213,6 +10237,7 @@ export class Runtime {
     }
     return result;
     } finally { scratch.close(); }
+    };
   }
   async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void): Promise<string[]> {
     return (await this.valueWord(word, state, io, split, pattern, hereString, conditionalPattern, regexAppend)).map(shellValueText);
@@ -10443,16 +10468,19 @@ export class Runtime {
           if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
           else await appendSplit(value);
         }
-      } else if (part.kind === "variable" && (split || io.nameExpansionContext === "case" && part.quoted && selector && selector.kind !== "element" && selector.separator === "@") && expandMembers && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@" || (part.substring || !part.operator && !part.transform && !part.length) && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
+      } else if (part.kind === "variable" && (split || io.nameExpansionContext === "case" && part.quoted && selector && selector.kind !== "element" && selector.separator === "@") && expandMembers && (part.quoted || state.variables.IFS === "" || !memberPatternOperators.includes(part.operator ?? "")) && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@" || (part.substring || !part.operator && !part.transform && !part.length) && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
         const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
         if (selector?.kind === "members" && !part.quoted && state.variables.IFS !== "" && !part.transform && !part.operator) {
           await appendSplit(await this.arrayJoin(requireArrays(state).owner, members, this.ifsSeparator(state, partIO)));
           continue;
         }
+        const patternScope = this.budget.values.scope();
+        try {
+        const applyPattern = !part.transform && memberPatternOperators.includes(part.operator ?? "") && members.length ? await this.prepareParameterPattern(part, state, partIO, hereString, patternScope) : undefined;
         for (let position = 0; position < members.length; position++) {
           if (position > 0) addField();
           const original = members[position]!;
-          const value = part.transform ? await this.transformValue(original, part.transform, state, partIO) : memberPatternOperators.includes(part.operator ?? "") ? await this.parameterPattern(part, original, state, partIO, hereString) : original;
+          const value = part.transform ? await this.transformValue(original, part.transform, state, partIO) : applyPattern ? await applyPattern(original) : original;
           if (part.quoted || state.variables.IFS === "") append(value, !part.quoted, part.quoted || shellValueByteLength(value) > 0);
           else await appendSplit(value);
         }
@@ -10461,6 +10489,7 @@ export class Runtime {
           emptyNameGroups ??= new Set<object>();
           emptyNameGroups.add(quoteGroup);
         }
+        } finally { patternScope.close(); }
       } else if (part.kind === "text" && !splitText) {
         const value: ShellValue = invokedValues.get(part) ?? part.byteValue ?? part.value;
         append(value, !part.quoted, quotedPresence || shellValueByteLength(value) > 0);

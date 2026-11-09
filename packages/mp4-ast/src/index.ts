@@ -30,7 +30,7 @@ export { probeMp4MetadataSource } from './mp4-metadata-source.js';
 
 export { scaleVideoPicture } from "@poe-code/media-codecs";
 
-export { decodeAacTrack } from "./aac.js";
+export { decodeAacTrack, decodeAacFrames } from "./aac.js";
 
 export { assAst, decodeAssText } from "./containers/ass.js";
 

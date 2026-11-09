@@ -1,13 +1,25 @@
 import { decodeAudio } from "@poe-code/media-codecs";
 import type { MediaAudioData, MediaDocument, MediaTrack } from "./types.js";
 
-/** Apply the presentation edits after decoding preroll, never by dropping AAC packets. */
-export function decodeAacTrack(doc: MediaDocument, track: MediaTrack): MediaAudioData {
+/** Decode complete AAC frames, including preroll, in the track time base. */
+export function* decodeAacFrames(track: MediaTrack) {
   const description = track.codecDescriptions[0];
   const extra = description?.esds?.decoderSpecificInfo;
   if (!extra || track.codecDescriptions.length !== 1 || track.samples.some(sample => sample.sampleDescriptionIndex !== 1)) {
     throw new Error("Unsupported AAC sample description");
   }
+  for (const frame of decodeAudio("AAC", track.samples, extra)) {
+    if (frame.sampleRate !== description.sampleRate || frame.channelData.length !== description.channels) {
+      throw new Error("AAC decoded dimensions differ from sample description");
+    }
+    yield frame;
+  }
+}
+
+/** Apply the presentation edits after decoding preroll, never by dropping AAC packets. */
+export function decodeAacTrack(doc: MediaDocument, track: MediaTrack): MediaAudioData {
+  const description = track.codecDescriptions[0];
+  if (!description) throw new Error("Unsupported AAC sample description");
   const sampleRate = description.sampleRate!;
   const channels = description.channels!;
   const edits = track.editList?.length ? track.editList : [{
@@ -32,10 +44,7 @@ export function decodeAacTrack(doc: MediaDocument, track: MediaTrack): MediaAudi
   const channelData = Array.from({ length: channels }, () => new Float32Array(count));
   const covered = regions.map(() => 0);
   let previousEnd = -Infinity;
-  for (const frame of decodeAudio("AAC", track.samples, extra)) {
-    if (frame.sampleRate !== sampleRate || frame.channelData.length !== channels) {
-      throw new Error("AAC decoded dimensions differ from sample description");
-    }
+  for (const frame of decodeAacFrames(track)) {
     const start = Math.round(frame.pts / track.timescale * sampleRate);
     const end = start + frame.channelData[0]!.length;
     if (!Number.isSafeInteger(start) || start < previousEnd) throw new Error("Overlapping AAC frames");

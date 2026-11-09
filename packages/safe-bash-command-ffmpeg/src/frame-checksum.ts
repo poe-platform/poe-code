@@ -1,7 +1,7 @@
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
-import { encodeUtf8, concatBytes, rgbaToYuv420p, type MediaTrack, type MediaVideoFrame, type MediaDocument, type MediaAstPlugin, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { decodeAacFrames, encodeUtf8, concatBytes, rgbaToYuv420p, type MediaTrack, type MediaVideoFrame, type MediaDocument, type MediaAstPlugin, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 export const crc32Table = Uint32Array.from({ length: 256 }, (_, value) => {
   for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
@@ -114,10 +114,44 @@ export function serializeFrameChecksum(
   for (const [index, track] of doc.tracks.entries()) {
     const video = track.type === "video";
     const copy = (video ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) === "copy";
+    if (track.type === "audio" && !rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
+    const decodedAac: Pick<MediaTrack["samples"][number], "dts" | "pts" | "duration" | "data">[] | undefined =
+      track.type === "audio" && !copy && !track.decodedAudio && track.codecDescriptions[0]?.codecName === "aac" ? [] : undefined;
+    if (decodedAac) {
+      const edits = track.editList?.length ? track.editList : [{
+        mediaTime: track.samples[0]?.pts ?? 0,
+        segmentDuration: track.duration / track.timescale * doc.timescale,
+        mediaRateInteger: 1, mediaRateFraction: 0
+      }];
+      for (const edit of edits) {
+        if (edit.mediaRateInteger !== 1 || edit.mediaRateFraction !== 0 || edit.mediaTime < -1) {
+          throw new Error("Unsupported AAC edit rate or media time");
+        }
+      }
+      for (const frame of decodeAacFrames(track)) {
+        budget.checkCpu();
+        let presentation = 0;
+        for (const edit of edits) {
+          const length = edit.segmentDuration / doc.timescale * track.timescale;
+          const skip = Math.max(0, Math.round((edit.mediaTime - frame.pts) / track.timescale * frame.sampleRate));
+          // Drop preroll, but retain the final decoder frame beyond the presentation end.
+          if (edit.mediaTime !== -1 && frame.pts < edit.mediaTime + length && skip < frame.channelData[0]!.length) {
+            const channelData = frame.channelData.map(channel => channel.subarray(skip));
+            const duration = channelData[0]!.length / frame.sampleRate * track.timescale;
+            const pts = presentation + Math.max(0, frame.pts - edit.mediaTime);
+            const data = rawAudio!.serialize({ ...doc, tracks: [{ ...track,
+              decodedAudio: { sampleRate: frame.sampleRate, channels: channelData.length, channelData }
+            }] }, { audioCodec, budget });
+            budget.allocateMemory(data.length);
+            decodedAac.push({ dts: pts, pts, duration, data });
+          }
+          presentation += length;
+        }
+      }
+    }
     const [num, den] = video && !copy ? videoTimeBase(track) : [1, track.timescale];
     const rate = video ? den / num : copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
-    if (track.type === "audio" && !rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
-    const payload = track.type !== "audio" ? new Uint8Array() : rawAudio!.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
+    const payload = track.type !== "audio" || decodedAac ? new Uint8Array() : rawAudio!.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
     let audioPackets = track.samples;
     if (track.type === "audio" && !copy && track.codecDescriptions[0]?.codecName === "mp3" && !track.decodedAudio) {
       // The PCM decoder removes encoder delay and padding, including entire packets.
@@ -139,7 +173,7 @@ export function serializeFrameChecksum(
     const packets = video && !copy ? track.decodedVideoFrames!.map(frame => ({
       dts: frame.ptsSeconds * track.timescale, pts: frame.ptsSeconds * track.timescale,
       duration: frame.durationSeconds * track.timescale, frame
-    })) : audioPackets.length ? audioPackets : payload.length ? [{ dts: 0, pts: 0, duration: track.duration, data: payload }] : [];
+    })) : decodedAac ?? (audioPackets.length ? audioPackets : payload.length ? [{ dts: 0, pts: 0, duration: track.duration, data: payload }] : []);
     for (const packet of packets) {
       budget.checkCpu();
       // MOV's final empty text sample terminates the track; FFmpeg emits no packet for it.
@@ -148,7 +182,7 @@ export function serializeFrameChecksum(
           (packet.data.length === 0 || packet.data.length === 2 && packet.data[0] === 0 && packet.data[1] === 0)) continue;
       const duration = Math.round(packet.duration * rate / track.timescale);
       const bytes = "frame" in packet ? videoBytes(packet.frame, track.codecDescriptions[0]?.pixFmt ?? "rgba", budget)
-        : track.type !== "audio" ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(duration * bytesPerFrame))));
+        : track.type !== "audio" || decodedAac ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(duration * bytesPerFrame))));
       const size = bytes.length;
       offset += size;
       let digest: string;

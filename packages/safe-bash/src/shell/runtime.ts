@@ -5125,6 +5125,10 @@ export class Runtime {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "[[";
         try {
           status = await evaluateConditional(command.expression, {
+            shellPredicates: { descriptorStat: async number => {
+              const descriptor = io.descriptors?.get(number);
+              return descriptor?.closed ? undefined : descriptor?.file?.stat({ signal: this.signal });
+            } },
             fs: this.fs, cwd: state.cwd, signal: this.signal, predicateIdentity: io.capabilities?.predicateIdentity, reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false, locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C", characterLocale: state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C", ignoreCase: !!state.nocasematch, extglob: true, work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation }, expand: async (word, pattern = false) => {
               const fast = !pattern ? this.fastValueWord(word, state, { ...io, nameExpansionContext: "conditional" }, false, false, false, false) : undefined;
               if (typeof fast === "string") return fast;
@@ -6362,7 +6366,10 @@ export class Runtime {
             if (name === "allexport") return !!state.allexport;
             if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
             return false;
-          }, terminal: () => false, };
+          }, terminal: () => false, descriptorStat: async number => {
+            const descriptor = io.descriptors?.get(number);
+            return descriptor?.closed ? undefined : descriptor?.file?.stat({ signal: getScopedSignal() });
+          } };
         variablePresence.set(cachedPredicates, name => this.variablePresent(state, name, io));
       }
       return cachedPredicates;};

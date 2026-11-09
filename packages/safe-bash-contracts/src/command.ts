@@ -279,6 +279,8 @@ export interface CommandContext {
     reference(name: string): boolean;
     option(name: string): boolean;
     terminal(descriptor: number): boolean;
+    /** Metadata of an open virtual file descriptor; undefined when unavailable or closed. */
+    descriptorStat?(descriptor: number): Promise<FileStat | undefined>;
   };
   readonly capabilities?: InvocationCapabilities | undefined;
   readonly admittedHandles?: AdmittedHandles | undefined;

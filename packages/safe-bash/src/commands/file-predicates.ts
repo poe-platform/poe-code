@@ -9,9 +9,20 @@ export interface PredicateIdentity {
   readonly effectiveGid?: number;
 }
 
-type FilePredicateContext = Pick<CommandContext, "fs" | "cwd" | "signal"> & { readonly command?: string };
+type FilePredicateContext = Pick<CommandContext, "fs" | "cwd" | "signal"> & { readonly command?: string; readonly shellPredicates?: Pick<NonNullable<CommandContext["shellPredicates"]>, "descriptorStat"> };
 
 async function metadata(context: FilePredicateContext, path: string): Promise<FileStat | undefined> {
+  const descriptorStat = context.shellPredicates?.descriptorStat;
+  if (descriptorStat) {
+    const name = path.startsWith("/dev/fd/") ? path.slice(8) : "";
+    const descriptor = path === "/dev/stdin" ? 0 : path === "/dev/stdout" ? 1 : path === "/dev/stderr" ? 2
+      : name.length > 0 && [...name].every(character => character >= "0" && character <= "9") ? Number(name) : undefined;
+    if (descriptor !== undefined) {
+      const stat = await descriptorStat(descriptor);
+      context.signal.throwIfAborted();
+      return stat;
+    }
+  }
   const requirementsContext = { ...context, command: context.command ?? "[[" };
   assertCommandRequirements(requirementsContext, predicateRequirements, ["metadata"]);
   try {

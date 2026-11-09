@@ -113,6 +113,48 @@ test("conditional file predicates preserve short circuiting", async () => {
 for (const [command, closing] of [["[[", " ]]"], ["test", ""], ["[", " ]"]] as const) {
   const expression = (operand: string) => `${command} ${operand}${closing}`;
 
+  test(`${command} compares virtual descriptor identity and modification times`, async t => {
+    const { fs, shell } = setup();
+    t.after(() => shell.dispose());
+    for (const definition of predicateCommands()) shell.commands.register(definition);
+    await fs.writeFile("/sample", new Uint8Array([1]));
+    await fs.writeFile("/newer", new Uint8Array([2]));
+    await fs.utimes("/sample", 1000, 1000);
+    await fs.utimes("/newer", 2000, 2000);
+    await fs.link("/sample", "/alias");
+    await fs.mkdir("/dev/fd", { recursive: true });
+    await fs.link("/sample", "/dev/fd/9");
+    const cases: [string, number][] = [
+      ["/dev/fd/3 -ef sample", 0], ["sample -ef /dev/fd/3", 0],
+      ["/dev/fd/4 -ef /dev/fd/3", 0], ["/dev/fd/3 -ef alias", 0],
+      ["/dev/fd/3 -ef newer", 1], ["/dev/fd/3 -ot sample", 1],
+      ["sample -nt /dev/fd/3", 1], ["/dev/fd/3 -nt sample", 1],
+      ["/dev/fd/3 -ot newer", 0], ["newer -nt /dev/fd/3", 0],
+      ["/dev/stdin -ef sample", 0], ["/dev/stdout -ef sample", 0],
+      ["/dev/stderr -ef sample", 0],
+      ["/dev/fd/9 -ef /dev/fd/9", 1], ["/dev/fd/9 -ef sample", 1],
+      ["/dev/fd/9 -ot sample", 0], ["sample -nt /dev/fd/9", 0],
+      ["/dev/fd/9 -nt sample", 1], ["sample -ot /dev/fd/9", 1],
+      ["/dev/fd/9 -nt /dev/fd/9", 1], ["/dev/fd/9 -ot /dev/fd/9", 1],
+    ];
+    for (const [operand, expected] of cases) {
+      const source = `exec 3<sample 4<&3 9<&-; ${expression(operand)} <sample 1<>sample${operand.includes("/dev/stderr") ? " 2<>sample" : ""}`;
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, expected, source);
+      assert.equal(result.stderr, "", source);
+      assert.deepEqual(await fs.readFile("/sample"), new Uint8Array([1]), source);
+    }
+    // Descriptor metadata belongs to the open file even after its name is replaced.
+    shell.commands.register({ name: "replace", async execute() {
+      await fs.rename("/sample", "/retained");
+      await fs.writeFile("/sample", new Uint8Array([3]));
+      return { exitCode: 0 };
+    } });
+    const replaced = await shell.exec(`exec 3<sample; replace; ${expression("/dev/fd/3 -ef retained")}; say $?; ${expression("/dev/fd/3 -ef sample")}; say $?; exec 3<&-; ${expression("/dev/fd/3 -ef retained")}; say $?`);
+    assert.equal(replaced.stdout, "0\n1\n1\n");
+    assert.equal(replaced.stderr, "");
+  });
+
   test(`${command} evaluates file predicates on symlink cycles without diagnostics`, async t => {
     const { fs, shell } = setup();
     t.after(() => shell.dispose());

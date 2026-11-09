@@ -1,7 +1,7 @@
 import { compareUtf8 } from "../byte-encoding.js";
 import { shellValueByteLength } from "../contracts/value.js";
 import { yieldTurn } from "../contracts/yield.js";
-import type { FileSystem } from "../contracts/index.js";
+import type { CommandContext, FileSystem } from "../contracts/index.js";
 import { isFsError } from "../contracts/index.js";
 import { pathOf } from "../commands/internal.js";
 import type { Word } from "./parser.js";
@@ -25,6 +25,7 @@ export class ConditionalUnsupported extends Error {}
 
 interface ConditionalContext {
   readonly fs: FileSystem;
+  readonly shellPredicates?: Pick<NonNullable<CommandContext["shellPredicates"]>, "descriptorStat">;
   readonly cwd: string;
   readonly signal: AbortSignal;
   readonly locale: string;

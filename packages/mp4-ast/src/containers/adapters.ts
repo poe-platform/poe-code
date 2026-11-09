@@ -2398,7 +2398,8 @@ function* webVttBlocks(bytes: Uint8Array): Generator<{ text: string; offset: num
 
 export function parseSubtitleDocument(
   bytes: Uint8Array,
-  format: "srt" | "webvtt" | "subviewer"
+  format: "srt" | "webvtt" | "subviewer",
+  kind = "subtitles"
 ): MediaDocument {
   // Keep SubRip packet bytes intact until the subtitle decoder runs. Demuxing
   // must not turn invalid UTF-8 into valid replacement characters.
@@ -2527,6 +2528,7 @@ export function parseSubtitleDocument(
         timescale: 1000,
         duration: maxEndMs,
         language: "und",
+        disposition: format === "webvtt" && kind !== "subtitles" ? { [kind]: 1 } : undefined,
         enabled: true,
         codecDescriptions: [
           {
@@ -2704,14 +2706,14 @@ export function webvttAst(): MediaAstPlugin {
     detect(bytes, filename) {
       return isWebVttSignature(bytes, filename);
     },
-    parse(bytes) {
-      return parseSubtitleDocument(bytes, "webvtt");
+    parse(bytes, options) {
+      return parseSubtitleDocument(bytes, "webvtt", options?.webvttKind);
     },
     serialize(doc) {
       return serializeSubtitleDocument(doc, "webvtt");
     },
     probe(bytes, options) {
-      const doc = parseSubtitleDocument(bytes, "webvtt");
+      const doc = parseSubtitleDocument(bytes, "webvtt", options?.webvttKind);
       const probe = buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.vtt", {
         ...options,
         formatName: "webvtt",

@@ -4139,6 +4139,7 @@ export function evalSyncFfmpeg(
     let pendingSubtitleFrameRate: number | undefined;
     let pendingSubtitleCharencMode: string | undefined;
     let pendingSubtitleCharset: string | undefined;
+    let pendingWebvttKind: string | undefined;
     let pendingFixSubDuration = false;
     let pendingSkipInitialBytes = 0;
     let pendingIgnoreLength = false;
@@ -4358,7 +4359,10 @@ export function evalSyncFfmpeg(
         if (args.slice(i + 1).includes("-i")) pendingDuration = val;
         else outputDuration = val;
       } else if (arg === "-stream_loop") pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
-      else if (arg === "-sub_charenc") {
+      else if (arg === "-kind") {
+        pendingWebvttKind = args[++i];
+        if (!["subtitles", "captions", "descriptions", "metadata"].includes(pendingWebvttKind ?? "") || !args.slice(i + 1).includes("-i")) return undefined;
+      } else if (arg === "-sub_charenc") {
         pendingSubtitleCharset = args[++i];
         if (!pendingSubtitleCharset || !args.slice(i + 1).includes("-i")) return undefined;
       } else if (arg === "-sub_charenc_mode") {
@@ -4407,6 +4411,7 @@ export function evalSyncFfmpeg(
           subtitleFrameRate: pendingSubtitleFrameRate,
           subtitleCharencMode: pendingSubtitleCharencMode,
           subtitleCharset: pendingSubtitleCharset,
+          webvttKind: pendingWebvttKind,
           fixSubDuration: pendingFixSubDuration,
           syncReference: pendingSyncReference,
           startSeconds: pendingSs,
@@ -4427,6 +4432,7 @@ export function evalSyncFfmpeg(
         pendingSubtitleFrameRate = undefined;
         pendingSubtitleCharencMode = undefined;
         pendingSubtitleCharset = undefined;
+        pendingWebvttKind = undefined;
         pendingFixSubDuration = false;
         pendingSkipInitialBytes = 0;
         pendingIgnoreLength = false;
@@ -4734,7 +4740,7 @@ export function evalSyncFfmpeg(
         if (!plugin || !plugin.canDemux) return undefined;
         if (plugin.id === "au" && rawBytes.length >= 12 &&
           new DataView(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).getUint32(8) === 0) return undefined;
-        doc = plugin.parse(rawBytes, { seekable: !isStdin(inp.path), decodeSubtitles: subtitleCodec !== "copy", decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff", "wv", "mp4", "mov"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)), filename: inp.path, budget, subtitleFrameRate: inp.subtitleFrameRate, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
+        doc = plugin.parse(rawBytes, { seekable: !isStdin(inp.path), decodeSubtitles: subtitleCodec !== "copy", decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff", "wv", "mp4", "mov"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)), filename: inp.path, budget, webvttKind: inp.webvttKind, subtitleFrameRate: inp.subtitleFrameRate, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
         if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
@@ -5184,6 +5190,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingSubtitleFrameRate: number | undefined;
       let pendingSubtitleCharencMode: string | undefined;
       let pendingSubtitleCharset: string | undefined;
+      let pendingWebvttKind: string | undefined;
       let pendingFixSubDuration = false;
       let pendingSkipInitialBytes = 0;
       let pendingIgnoreLength = false;
@@ -6197,6 +6204,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-stream_loop") {
             pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
+          } else if (arg === "-kind") {
+            pendingWebvttKind = args[++i];
+            if (!["subtitles", "captions", "descriptions", "metadata"].includes(pendingWebvttKind ?? "") || !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -kind requires subtitles, captions, descriptions or metadata before an input\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-sub_charenc") {
             pendingSubtitleCharset = args[++i];
             if (!pendingSubtitleCharset || !args.slice(i + 1).includes("-i")) {
@@ -6294,6 +6307,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               subtitleFrameRate: pendingSubtitleFrameRate,
               subtitleCharencMode: pendingSubtitleCharencMode,
               subtitleCharset: pendingSubtitleCharset,
+              webvttKind: pendingWebvttKind,
               fixSubDuration: pendingFixSubDuration,
               safe: pendingSafe,
               autoConvert: pendingAutoConvert,
@@ -6335,6 +6349,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingSubtitleFrameRate = undefined;
             pendingSubtitleCharencMode = undefined;
             pendingSubtitleCharset = undefined;
+            pendingWebvttKind = undefined;
             pendingFixSubDuration = false;
             pendingSkipInitialBytes = 0;
             pendingIgnoreLength = false;
@@ -7346,6 +7361,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 decodeSubtitles: subtitleCodec !== "copy",
                 decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff", "wv", "mp4", "mov"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)),
                 resolveResource,
+                webvttKind: input?.webvttKind,
                 subtitleFrameRate: input?.subtitleFrameRate,
                 sampleRate: input?.sampleRate,
                 channels: input?.channels,

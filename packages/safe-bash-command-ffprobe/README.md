@@ -39,7 +39,7 @@ Numbered image inputs (`in%d.png`, `in%03d.png`) expand consecutive files with `
 
 Packet scans support `-read_intervals START%END` (comma-separated intervals), relative `+` times, omitted endpoints, and `+#N` packet limits. For example, `-read_intervals '0%+0.4' -show_packets` reads 0.4 seconds from the seek point. AIFF PCM seeking starts at the requested sample and reads packets of up to 4096 bytes from that point. Other seeking starts at a preceding keyframe; durations start at the packet actually reached. Packet descriptors replay through caller-backed storage with a bounded cache, preserving interleaving and backward seeks. Decoded-frame intervals are not supported.
 WebVTT packet `pos` matches native ffprobe’s source byte position after each cue separator, or EOF for the last cue.
-WebVTT packets expose nonempty cue identifiers and settings as `WebVTT ID` and `WebVTT Settings` side data, separate from caption payloads. Standalone WebVTT streams report `disposition.default=0`.
+WebVTT packets expose nonempty cue identifiers and settings as `WebVTT ID` and `WebVTT Settings` side data, separate from caption payloads. Standalone WebVTT streams report `disposition.default=0`. Input `-kind captions|descriptions|metadata` sets the matching disposition; `-kind subtitles` is the default.
 MP4 stream reports include the combined movie and track display matrix and its rotation; transforms that cancel to identity omit display side data.
 
 Decoded WebVTT frames use microsecond `pts` values and millisecond display intervals (`start_display_time`, `end_display_time`), with subtitle `format` and `num_rects`; packet timestamps remain in milliseconds. WebVTT stream start timestamps remain unknown until packets or frames are read or counted.

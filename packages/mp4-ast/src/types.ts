@@ -680,6 +680,7 @@ export interface MediaSourceProbeOptions extends ParseMediaOptions {
 }
 
 export interface ParseMediaOptions {
+  readonly webvttKind?: string | undefined;
   /** Whether the original input supports seeking, even when its bytes are buffered. */
   readonly seekable?: boolean | undefined;
   /** WAV input packet byte limit; zero selects the automatic packet size. */

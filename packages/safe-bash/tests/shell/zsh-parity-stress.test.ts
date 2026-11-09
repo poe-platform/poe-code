@@ -1333,7 +1333,7 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     assert.equal(r3.stdout.trim(), "# hi");
   });
 
-  test("69. sync ssh localhost and remote command flags, and sqlite3 NUL byte filtering", async () => {
+  test("69. sync ssh localhost and remote command flags, and sqlite3 NUL byte truncation", async () => {
     const { shell: bash } = setup();
     bash.use(agentCommands());
 
@@ -1342,10 +1342,10 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     assert.equal(r1.exitCode, 0);
     assert.equal(r1.stdout.trim(), "ssh:git@localhost:22 echo -n hi");
 
-    // 2. sqlite3 SELECT char(0) in command substitution must strip NUL byte
+    // 2. sqlite3 list output truncates text at NUL before command substitution.
     const r2 = await bash.exec("x=$(sqlite3 :memory: \"SELECT 'a' || char(0) || 'b';\"); printf '%s:%d' \"$x\" \"${#x}\"");
     assert.equal(r2.exitCode, 0);
-    assert.equal(r2.stdout, "ab:2");
+    assert.equal(r2.stdout, "a:1");
   });
 
   test("70. sync date NUL byte filtering and mmdc NUL rejection", async () => {

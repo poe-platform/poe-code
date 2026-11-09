@@ -6300,7 +6300,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     if (token === "-contrast-stretch" || token === "-linear-stretch") {
         argument = tokens[++end] ?? "";
     }
-    const independent = token === "-auto-gamma" ? !state.channelDefault : state.channelExplicit;
+    const independent = !state.channelDefault;
     const channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
     return { end, highDepth: true, luminance: token === "-linear-stretch" || token === "-equalize" && state.channelSync || (token === "-normalize" || token === "-contrast-stretch") && !independent, transform(histogram, image) {
         if (token === "-contrast-stretch" || token === "-linear-stretch") {

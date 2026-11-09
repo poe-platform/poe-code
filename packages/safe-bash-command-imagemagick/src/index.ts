@@ -3160,16 +3160,29 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
             coefficients = [e - f * i, c * i - b, b * f - c * e, f * g - d, a - c * g, c * d - a * f, d * i - e * g, b * g - a * i, a * e - b * d];
         }
         else {
-            const matrix: number[][] = [], values: number[] = [];
-            for (let p = 0; p < 4; p++) {
-                const sx = nums[p * 4]!, sy = nums[p * 4 + 1]!, dx = nums[p * 4 + 2]!, dy = nums[p * 4 + 3]!;
-                matrix.push([dx, dy, 1, 0, 0, 0, -dx * sx, -dy * sx], [0, 0, 0, dx, dy, 1, -dx * sy, -dy * sy]); values.push(sx, sy);
+            // Accumulate the normal equations for the destination-to-source fit.
+            // All control pairs contribute, with fixed storage for eight coefficients.
+            const matrix = Array.from({ length: 8 }, () => Array<number>(8).fill(0)), values = Array<number>(8).fill(0);
+            for (let p = 0; p + 3 < nums.length; p += 4) {
+                const sx = nums[p]!, sy = nums[p + 1]!, dx = nums[p + 2]!, dy = nums[p + 3]!;
+                const rows = [[dx, dy, 1, 0, 0, 0, -dx * sx, -dy * sx], [0, 0, 0, dx, dy, 1, -dx * sy, -dy * sy]];
+                for (let axis = 0; axis < 2; axis++) {
+                    const row = rows[axis]!, value = axis === 0 ? sx : sy;
+                    for (let i = 0; i < 8; i++) {
+                        values[i]! += row[i]! * value;
+                        for (let j = 0; j < 8; j++) matrix[i]![j]! += row[i]! * row[j]!;
+                    }
+                }
             }
             coefficients = solveLinearSystem(matrix, values);
         }
         if (coefficients.every(c => Math.abs(c) < 1e-12)) return result(() => [0, 0]);
         const [a, b, c, d, e, f, g, i, j = 1] = coefficients as [number, number, number, number, number, number, number, number, number?];
-        const plan = result((x, y) => { const denominator = g * x + i * y + j || 1e-9; return [(a * x + b * y + c) / denominator, (d * x + e * y + f) / denominator]; });
+        const plan = result((x, y) => {
+            // Fit coordinates use pixel edges; the sampler uses pixel centers.
+            const px = x + 0.5, py = y + 0.5, denominator = g * px + i * py + j || 1e-9;
+            return [(a * px + b * py + c) / denominator - 0.5, (d * px + e * py + f) / denominator - 0.5];
+        });
         return bestFit(plan, (x, y) => {
             // Invert the sampling homography and transform physical pixel edges.
             const px = x + 0.5, py = y + 0.5;

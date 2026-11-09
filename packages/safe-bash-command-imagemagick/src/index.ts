@@ -6449,21 +6449,26 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else if (mode === "copy" || mode === "shape") {
+            highDepth = true;
             apply = function* (im) {
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);
+                const data16 = im.data16 ? new Uint16Array(im.data16) : Uint16Array.from(im.data, value => value * 257);
+                const background = [state.background.r, state.background.g, state.background.b];
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
-                    const inten = clampByteVal(magickIntensity(out[idx]!, out[idx + 1]!, out[idx + 2]!, state.intensity, 255, im.magickColorspace === "RGB"));
+                    const intensity = magickIntensity(data16[idx]!, data16[idx + 1]!, data16[idx + 2]!, state.intensity, 65535, im.magickColorspace === "RGB");
                     if (mode === "shape") {
-                        out[idx] = state.background.r;
-                        out[idx + 1] = state.background.g;
-                        out[idx + 2] = state.background.b;
+                        for (let channel = 0; channel < 3; channel++) {
+                            data16[idx + channel] = Math.round(background[channel]! * 257);
+                            out[idx + channel] = clampByteVal(background[channel]!);
+                        }
                     }
-                    out[idx + 3] = inten;
+                    data16[idx + 3] = Math.round(intensity);
+                    out[idx + 3] = clampByteVal(intensity / 257);
                 }
-                return { ...im, data: out, hasAlpha: true, alphaBlend: mode === "shape" };
+                return { ...im, data: out, data16, hasAlpha: true, alphaBlend: mode === "shape" };
             };
         }
         else if (mode === "activate") {

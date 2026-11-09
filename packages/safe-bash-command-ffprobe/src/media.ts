@@ -547,13 +547,16 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   const prepareRecord = (row: unknown, section: string): Record<string, unknown> | undefined => {
     let record = row as Record<string, unknown>;
     if (selectedIndices && !selectedIndices.has(record.stream_index as number)) return;
+    const payload = section === "packet" ? probe.packetData?.get(`${record.pos}:${record.size}`) : undefined;
     if (section === "packet" && record.data_hash === undefined && opts.showDataHash && (!entryFilter.has("packet") || entryFilter.get("packet") === null || entryFilter.get("packet")!.has("data_hash"))) {
-      if (!probe.packetSource) throw new Error("Packet data is unavailable for this input format");
-      record = { ...record, data_hash: packetSourceHash(probe.packetSource, Number(record.pos), Number(record.size), opts.showDataHash) };
+      if (!payload && !probe.packetSource) throw new Error("Packet data is unavailable for this input format");
+      record = { ...record, data_hash: payload ? packetHash(payload, opts.showDataHash)
+        : packetSourceHash(probe.packetSource!, Number(record.pos), Number(record.size), opts.showDataHash) };
     }
     if (section === "packet" && record.data === undefined && opts.showData && (!entryFilter.has("packet") || entryFilter.get("packet") === null || entryFilter.get("packet")!.has("data"))) {
-      if (!probe.packetSource) throw new Error("Packet data is unavailable for this input format");
-      record = { ...record, data: packetSourceData(probe.packetSource, Number(record.pos), Number(record.size)) };
+      if (!payload && !probe.packetSource) throw new Error("Packet data is unavailable for this input format");
+      record = { ...record, data: payload ? "\n" + [...packetHexRows(payload)].join("")
+        : packetSourceData(probe.packetSource!, Number(record.pos), Number(record.size)) };
     }
     if (section === "packet" && opts.unit) {
       record = { ...record };
@@ -1325,8 +1328,9 @@ export function evalSyncFfprobe(
       showPackets,
       showFrames,
     });
-    if ((showData || showDataHash) && !raw && !["wav", "mp3", "flac", "mp4", "mov"].includes(plugin!.id)) return undefined;
+    if ((showData || showDataHash) && !raw && !probeResult.packetData && !["wav", "mp3", "flac", "mp4", "mov"].includes(plugin!.id)) return undefined;
     const packets = showData || showDataHash ? probeResult.packets?.map(packet => {
+      if (probeResult.packetData?.has(`${packet.pos}:${packet.size}`)) return packet;
       const offset = Number(packet.pos), size = Number(packet.size);
       if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(size) || size < 0 || offset + size > bytes.length)
         throw new Error("Invalid packet data span");

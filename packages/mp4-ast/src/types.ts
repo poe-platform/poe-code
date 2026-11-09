@@ -604,6 +604,8 @@ export interface MediaProbeFrame {
 }
 
 export interface MediaProbeResult {
+  /** Demuxed payloads keyed by packet `pos:size` spans when bytes differ from the source. */
+  readonly packetData?: ReadonlyMap<string, Uint8Array> | undefined;
   readonly programs?: readonly {
     readonly program_id: number;
     readonly program_num: number;

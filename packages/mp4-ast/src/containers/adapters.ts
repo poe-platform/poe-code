@@ -2677,11 +2677,13 @@ export function webvttAst(): MediaAstPlugin {
     },
     probe(bytes, options) {
       const doc = parseSubtitleDocument(bytes, "webvtt");
-      return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.vtt", {
+      const probe = buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.vtt", {
         ...options,
         formatName: "webvtt",
         formatLongName: "WebVTT subtitle"
       });
+      return { ...probe, packetData: probe.packets && new Map(probe.packets.map((packet, index) =>
+        [`${packet.pos}:${packet.size}`, doc.tracks[0]!.samples[index]!.data])) };
     },
     concat(docs, options) {
       return concatMp4(docs, options);

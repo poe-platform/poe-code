@@ -6232,7 +6232,10 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum > lowTarget) break; }
                 sum = 0;
                 for (; high > 0; high--) { sum += bins[high]!; if (sum > highTarget) break; }
-                if (high > low) for (let value = 0; value < levels; value++) lookup[channel]![value] = Math.round(Math.max(0, Math.min(levels - 1, (value * scale - low) / (high - low) * (levels - 1))));
+                // Native clips against the black point first, even when the points cross.
+                if (high !== low) for (let value = 0; value < levels; value++) lookup[channel]![value] = value * scale < low ? 0
+                    : value * scale > high ? levels - 1
+                    : Math.round((value * scale - low) / (high - low) * (levels - 1));
             }
         } else if (token === "-equalize") {
             const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];

@@ -590,8 +590,26 @@ export function rotationFromMatrix(matrix: readonly number[]): number {
   return 0;
 }
 
+// QuickTime mdhd language IDs, retaining FFmpeg's legacy spellings.
+const quickTimeLanguages: Readonly<Record<number, string>> = {
+  0: "eng", 1: "fra", 2: "ger", 3: "ita", 4: "dut", 5: "sve", 6: "spa", 7: "dan",
+  8: "por", 9: "nor", 10: "heb", 11: "jpn", 12: "ara", 13: "fin", 14: "gre", 15: "ice",
+  16: "mlt", 17: "tur", 18: "hr ", 19: "chi", 20: "urd", 21: "hin", 22: "tha", 23: "kor",
+  24: "lit", 25: "pol", 26: "hun", 27: "est", 28: "lav", 29: "smi", 30: "fo ", 31: "per",
+  32: "rus", 33: "chi", 35: "iri", 36: "alb", 37: "ron", 38: "ces", 39: "slk",
+  40: "slv", 41: "yid", 42: "sr ", 43: "mac", 44: "bul", 45: "ukr", 46: "bel", 47: "uzb",
+  48: "kaz", 49: "aze", 50: "aze", 51: "arm", 52: "geo", 53: "mol", 54: "kir", 55: "tgk",
+  56: "tuk", 57: "mon", 59: "pus", 60: "kur", 61: "kas", 62: "snd", 63: "tib",
+  64: "nep", 65: "san", 66: "mar", 67: "ben", 68: "asm", 69: "guj", 70: "pa ", 71: "ori",
+  72: "mal", 73: "kan", 74: "tam", 75: "tel", 76: "sin", 77: "bur", 78: "khm", 79: "lao",
+  80: "vie", 81: "ind", 82: "tgl", 83: "may", 84: "may", 85: "amh", 86: "tir", 87: "orm",
+  88: "som", 89: "swa", 90: "kin", 91: "run", 92: "nya", 93: "mlg", 94: "epo",
+  128: "wel", 129: "baq", 130: "cat", 131: "lat", 132: "que", 133: "grn", 134: "aym",
+  135: "tat", 136: "uig", 137: "dzo", 138: "jav"
+};
+
 export function unpackIsoLanguage(packed: number): string {
-  if (packed === 0) return "und";
+  if (packed < 0x400) return quickTimeLanguages[packed] ?? "und";
   const c1 = ((packed >>> 10) & 0x1f) + 0x60;
   const c2 = ((packed >>> 5) & 0x1f) + 0x60;
   const c3 = (packed & 0x1f) + 0x60;

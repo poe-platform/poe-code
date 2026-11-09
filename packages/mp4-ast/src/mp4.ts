@@ -2568,6 +2568,8 @@ export function buildProbeResultFromDoc(
       ? materializeTrackSamples(track) : track;
     let desc = materialized.codecDescriptions[0];
     const firstSample = materialized.samples[0];
+    // Y4M exposes one tick per frame; retain the internal clock for seconds and muxing.
+    const probeTickDuration = doc.containerFormat === "yuv4mpegpipe" ? firstSample?.duration ?? 1 : 1;
     if (firstSample && desc?.h264PictureTiming && desc.fieldOrder !== 'progressive') {
       const steps = h264FieldOrderSteps({ payloadOffset: 0, payloadSize: firstSample.data.length }, desc.h264PictureTiming);
       let next = steps.next();
@@ -2605,6 +2607,10 @@ export function buildProbeResultFromDoc(
         : Math.max(0, Math.round((audioMediaStart - firstSample.pts) * (desc?.sampleRate ?? track.timescale) / track.timescale)),
       hasReorderedSamples: materialized.samples.some((sample, i, samples) => i > 0 && sample.pts < samples[i - 1]!.pts)
     }, idx, doc.containerFormat);
+    if (doc.containerFormat === "yuv4mpegpipe" && firstSample) {
+      stream = { ...stream, time_base: stream.r_frame_rate.split("/").reverse().join("/"),
+        start_pts: firstPts / probeTickDuration, duration_ts: duration / probeTickDuration };
+    }
     if (track.timecodeTrackId !== undefined && (doc.containerFormat === "mp4" || doc.containerFormat === "mov")) {
       const target = doc.tracks.find(candidate => candidate.id === track.timecodeTrackId);
       if (target?.codecDescriptions[0]?.formatFourCC === "tmcd") {
@@ -2638,11 +2644,11 @@ export function buildProbeResultFromDoc(
           packets.push({
             codec_type: track.type,
             stream_index: idx,
-            pts: s.pts,
+            pts: s.pts / probeTickDuration,
             pts_time: ptsTime,
-            dts: s.dts,
+            dts: s.dts / probeTickDuration,
             dts_time: dtsTime,
-            duration: desc?.codecName === "" ? undefined : s.duration,
+            duration: desc?.codecName === "" ? undefined : s.duration / probeTickDuration,
             duration_time: desc?.codecName === "" ? undefined : durTime,
             size: String(s.size),
             pos: String(s.offset ?? (doc.containerFormat === "mp4" || doc.containerFormat === "mov" ? -1 : bytePos)),
@@ -2684,14 +2690,14 @@ export function buildProbeResultFromDoc(
             media_type: track.type,
             stream_index: idx,
             key_frame: frame.isKeyframe ? 1 : 0,
-            pts: frame.pts,
+            pts: frame.pts / probeTickDuration,
             pts_time: ptsTime,
-            pkt_dts: frame.dts,
+            pkt_dts: frame.dts / probeTickDuration,
             pkt_dts_time: dtsTime,
-            best_effort_timestamp: frame.pts,
+            best_effort_timestamp: frame.pts / probeTickDuration,
             best_effort_timestamp_time: ptsTime,
-            ...(["gif", "mp4", "mov"].includes(doc.containerFormat)
-              ? { duration: frame.duration, duration_time: durTime }
+            ...(["gif", "mp4", "mov", "yuv4mpegpipe"].includes(doc.containerFormat)
+              ? { duration: frame.duration / probeTickDuration, duration_time: durTime }
               : { pkt_duration: frame.duration, pkt_duration_time: durTime }),
             ...(["wav", "w64", "matroska", "aiff", "au"].includes(doc.containerFormat) ? { duration: frame.duration, duration_time: durTime } : {}),
             pkt_size: String(frame.size),

@@ -390,7 +390,7 @@ export function y4mAst(): MediaAstPlugin {
         : track.duration;
       const duration = (ticks / track.timescale).toFixed(6);
       return { ...probe,
-        streams: probe.streams.map(stream => ({ ...stream, nb_frames: undefined, duration_ts: ticks, duration,
+        streams: probe.streams.map(stream => ({ ...stream, nb_frames: undefined, duration_ts: ticks / (sample?.duration ?? 1), duration,
           nb_read_packets: String(track.samples.length), nb_read_frames: String(track.samples.length) })),
         format: { ...probe.format, duration,
           bit_rate: ticks > 0 ? String(Math.round(bytes.byteLength * 8 * track.timescale / ticks)) : undefined },

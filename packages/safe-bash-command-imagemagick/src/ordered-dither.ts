@@ -94,6 +94,8 @@ export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "heigh
         const hueBytes = image.magickColorspace && (image.hueSamples || image.storedHueSamples !== undefined)
             ? (yield { kind: "read", hue: true, position, length: count * 4 })! : undefined;
         const hue = hueBytes ? new Float64Array(new Uint8Array(hueBytes).buffer) : undefined;
+        const floats = (yield { kind: "read", evaluate: true, position, length: count * 4 })!;
+        const samples = floats.length ? new Float64Array(floats.slice().buffer) : Float64Array.from(data, value => value * 255 / maximum);
         for (let x = 0; x < count; x++) {
             const threshold = map.values[(y % map.height) * map.width + (left + x) % map.width]!;
             let selected = 0;
@@ -101,15 +103,21 @@ export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "heigh
                 if (!channels[channel] || (channel === 3 && !image.hasAlpha) || (gray && (channel === 1 || channel === 2))) continue;
                 const intervals = levels[selected++]!;
                 if (intervals === 0) continue;
-                const sample = hue ? Math.max(0, Math.min(1, hue[x * 4 + channel]!)) : data[x * 4 + channel]! / maximum;
+                const sample = hue ? Math.max(0, Math.min(1, hue[x * 4 + channel]!)) : samples[x * 4 + channel]! / 255;
                 const scaled = Math.floor(sample * (intervals * (map.divisor - 1) + 1));
                 const level = Math.floor(scaled / (map.divisor - 1)) + (scaled % (map.divisor - 1) >= threshold ? 1 : 0);
-                data[x * 4 + channel] = Math.min(maximum, Math.round(level * maximum / intervals));
+                // Native HDRI keeps fractional Q16 levels until encoding.
+                samples[x * 4 + channel] = Math.fround(Math.min(65535, level * 65535 / intervals)) / 257;
+                data[x * 4 + channel] = Math.round(samples[x * 4 + channel]! * maximum / 255);
                 if (hue) hue[x * 4 + channel] = Math.min(1, level / intervals);
-                if (gray && channel === 0) data[x * 4 + 1] = data[x * 4 + 2] = data[x * 4]!;
+                if (gray && channel === 0) {
+                    data[x * 4 + 1] = data[x * 4 + 2] = data[x * 4]!;
+                    samples[x * 4 + 1] = samples[x * 4 + 2] = samples[x * 4]!;
+                }
             }
         }
         yield { kind: "write", highDepth, position, data: bytes };
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
         if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(hue.buffer) };
     }
 }

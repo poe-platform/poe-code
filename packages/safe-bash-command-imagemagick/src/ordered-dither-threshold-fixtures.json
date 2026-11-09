@@ -1,0 +1,148 @@
+{
+  "source": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4nAHIADf/ACdFVjpQX01baGBmcXNxeoZ8g5mHjKySlQAuVlpBYWNUbGxnd3V6gn6NjYegmJCzo5kANWdeSHJnW31wboh5gZOClJ6Lp6mUurSdADx4Yk+Da2KOdHWZfYikhpuvj666mMHFoQBDiWZWlG9pn3h8qoGPtYqiwJO1y5zI1qUASppqXaVzcLB8g7uFlsaOqdGXvNygz+epAFGrbmS2d3fBgIrMiZ3XkrDim8PtpNb4rQBYvHJrx3t+0oSR3Y2k6Ja385/K/qjdCbGow2ohVBMCVAAAAABJRU5ErkJggg==",
+  "cases": [
+    {
+      "args": [],
+      "rgba": "J0VW/zpQX/9NW2j/YGZx/3Nxev+GfIP/mYeM/6ySlf8uVlr/QWFj/1RsbP9nd3X/eoJ+/42Nh/+gmJD/s6OZ/zVnXv9Icmf/W31w/26Ief+Bk4L/lJ6L/6eplP+6tJ3/PHhi/0+Da/9ijnT/dZl9/4ikhv+br4//rrqY/8HFof9DiWb/VpRv/2mfeP98qoH/j7WK/6LAk/+1y5z/yNal/0qaav9dpXP/cLB8/4O7hf+Wxo7/qdGX/7zcoP/P56n/Uatu/2S2d/93wYD/isyJ/53Xkv+w4pv/w+2k/9b4rf9YvHL/a8d7/37ShP+R3Y3/pOiW/7fzn//K/qj/3Qmx/w=="
+    },
+    {
+      "args": [
+        "-ordered-dither",
+        "o4x4,3"
+      ],
+      "rgba": "gICA/wCAgP+AgID/gICA/4CAgP+AgID//4CA/4CAgP8AAAD/gICA/wAAAP+AgID/gICA/4CAgP+AgID//4CA/4CAgP8AgID/gICA/4CAgP+AgID/gICA//////+AgID/AAAA/4CAgP8AgID/gICA/4CAgP+AgID/gICA////gP+A/4D/gICA/4D/gP+AgID//////4CAgP//////gP+A/wCAgP+A/4D/AICA/4D/gP+AgID///+A/4CAgP///4D/gP+A/4CAgP+A/4D/gP+A////gP+A/4D/////////gP8AgAD/gP+A/4CAgP+A/4D/gICA/4D/gP+A/4D//wD//w=="
+    },
+    {
+      "args": [
+        "-threshold",
+        "50%"
+      ],
+      "rgba": "AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD///////////8AAAD/AAAA/wAAAP8AAAD//////////////////////wAAAP8AAAD/AAAA////////////////////////////AAAA/wAAAP////////////////////////////////8AAAD/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////AAAA/w=="
+    },
+    {
+      "args": [
+        "-ordered-dither",
+        "o4x4,3",
+        "-threshold",
+        "49.9%"
+      ],
+      "rgba": "/////wAAAP////////////////////////////////8AAAD//////wAAAP////////////////////////////////8AAAD/////////////////////////////////AAAA//////8AAAD//////////////////////////////////////////////////////////////////////wAAAP//////AAAA//////////////////////////////////////////////////////////////////////8AAAD/////////////////////////////////AAAA/w=="
+    },
+    {
+      "args": [
+        "-ordered-dither",
+        "o4x4,3",
+        "-threshold",
+        "50%"
+      ],
+      "rgba": "AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD//////wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD//////wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA//////8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA////////////AAAA//////8AAAD//////wAAAP///////////wAAAP//////AAAA//////8AAAD//////wAAAP///////////wAAAP////////////////////////////////8AAAD//////wAAAP//////AAAA////////////AAAA/w=="
+    },
+    {
+      "args": [
+        "-ordered-dither",
+        "o4x4,3",
+        "-threshold",
+        "50.1%"
+      ],
+      "rgba": "AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD//////wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD//////wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA//////8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA////////////AAAA//////8AAAD//////wAAAP///////////wAAAP//////AAAA//////8AAAD//////wAAAP///////////wAAAP////////////////////////////////8AAAD//////wAAAP//////AAAA////////////AAAA/w=="
+    },
+    {
+      "args": [
+        "-ordered-dither",
+        "o4x4,3",
+        "-threshold",
+        "50.2%"
+      ],
+      "rgba": "AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD//////wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD//////wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA//////8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA////////////AAAA//////8AAAD//////wAAAP///////////wAAAP//////AAAA//////8AAAD//////wAAAP///////////wAAAP////////////////////////////////8AAAD//////wAAAP//////AAAA////////////AAAA/w=="
+    },
+    {
+      "args": [
+        "-channel",
+        "RGB",
+        "-ordered-dither",
+        "o4x4,3",
+        "-threshold",
+        "50%"
+      ],
+      "rgba": "AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD//wAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD//wAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA//////8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA////AP8A/wD/AAAA/wD/AP8AAAD//////wAAAP//////AP8A/wAAAP8A/wD/AAAA/wD/AP8AAAD///8A/wAAAP///wD/AP8A/wAAAP8A/wD/AP8A////AP8A/wD/////////AP8AAAD/AP8A/wAAAP8A/wD/AAAA/wD/AP8A/wD//wD//w=="
+    },
+    {
+      "args": [
+        "-channel",
+        "R",
+        "-ordered-dither",
+        "o4x4,3",
+        "-threshold",
+        "50%"
+      ],
+      "rgba": "AEVW/wBQX/8AW2j/AGZx/wBxev8AfIP//4eM/wCSlf8AVlr/AGFj/wBsbP8Ad3X/AIJ+/wCNh/8AmJD//6OZ/wBnXv8Acmf/AH1w/wCIef8Ak4L/AJ6L//+plP8AtJ3/AHhi/wCDa/8AjnT/AJl9/wCkhv8Ar4//ALqY///Fof8AiWb/AJRv/wCfeP8AqoH//7WK/wDAk///y5z/ANal/wCaav8ApXP/ALB8/wC7hf8Axo7//9GX/wDcoP//56n/AKtu/wC2d/8AwYD/AMyJ///Xkv8A4pv//+2k///4rf8AvHL/AMd7/wDShP8A3Y3/AOiW/wDzn/8A/qj//wmx/w=="
+    },
+    {
+      "args": [
+        "-ordered-dither",
+        "o4x4,3",
+        "-threshold",
+        "50%",
+        "-evaluate",
+        "Add",
+        "10%"
+      ],
+      "rgba": "Ghoa/xoaGv8aGhr/Ghoa/xoaGv8aGhr//////xoaGv8aGhr/Ghoa/xoaGv8aGhr/Ghoa/xoaGv8aGhr//////xoaGv8aGhr/Ghoa/xoaGv8aGhr/Ghoa//////8aGhr/Ghoa/xoaGv8aGhr/Ghoa/xoaGv8aGhr/Ghoa////////////Ghoa//////8aGhr//////xoaGv///////////xoaGv//////Ghoa//////8aGhr//////xoaGv///////////xoaGv////////////////////////////////8aGhr//////xoaGv//////Ghoa////////////Ghoa/w=="
+    },
+    {
+      "args": [
+        "-ordered-dither",
+        "o4x4,3",
+        "-ordered-dither",
+        "o4x4,3",
+        "-threshold",
+        "50%"
+      ],
+      "rgba": "AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD//////wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD//////wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA//////8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA////////////AAAA//////8AAAD//////wAAAP///////////wAAAP//////AAAA//////8AAAD//////wAAAP///////////wAAAP////////////////////////////////8AAAD//////wAAAP//////AAAA////////////AAAA/w=="
+    },
+    {
+      "args": [
+        "-alpha",
+        "set",
+        "-channel",
+        "A",
+        "-evaluate",
+        "Set",
+        "50%",
+        "+channel",
+        "-ordered-dither",
+        "o4x4,3",
+        "-threshold",
+        "50%"
+      ],
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//////////AAAAAP////8AAAAA/////wAAAAD//////////wAAAAD/////AAAAAP////8AAAAA/////wAAAAD//////////wAAAAD///////////////////////////////8AAAAA/////wAAAAD/////AAAAAP//////////AAAAAA=="
+    },
+    {
+      "args": [
+        "-alpha",
+        "set",
+        "-channel",
+        "A",
+        "-evaluate",
+        "Set",
+        "50%",
+        "-ordered-dither",
+        "o4x4,3",
+        "-threshold",
+        "50%"
+      ],
+      "rgba": "J0VWADpQXwBNW2gAYGZxAHNxegCGfIMAmYeMAKySlQAuVloAQWFjAFRsbABnd3UAeoJ+AI2NhwCgmJAAs6OZADVnXgBIcmcAW31wAG6IeQCBk4IAlJ6LAKeplAC6tJ0APHhiAE+DawBijnQAdZl9AIikhgCbr48ArrqYAMHFoQBDiWYAVpRvAGmfeAB8qoEAj7WKAKLAkwC1y5wAyNalAEqaagBdpXMAcLB8AIO7hQCWxo4AqdGXALzcoADP56kAUatuAGS2dwB3wYAAisyJAJ3XkgCw4psAw+2kANb4rQBYvHIAa8d7AH7ShACR3Y0ApOiWALfznwDK/qgA3QmxAA=="
+    },
+    {
+      "args": [
+        "-colorspace",
+        "gray",
+        "-ordered-dither",
+        "o4x4,3",
+        "-threshold",
+        "50%"
+      ],
+      "rgba": "AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA//////8AAAD/AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD/AAAA//////8AAAD/AAAA/wAAAP8AAAD//////wAAAP//////AAAA/wAAAP8AAAD/AAAA/wAAAP8AAAD//////wAAAP//////AAAA/wAAAP//////AAAA//////8AAAD///////////8AAAD/AAAA/wAAAP//////AAAA////////////AAAA/w=="
+    }
+  ]
+}

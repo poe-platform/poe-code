@@ -6963,7 +6963,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (image) {
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
-            const samples = data16 ?? out, quantumScale = data16 ? 1 : 257, maximum = data16 ? 65535 : 255;
+            const evaluateSamples = image.evaluateSamples?.slice();
+            const samples = evaluateSamples ?? data16 ?? out, quantumScale = evaluateSamples || !data16 ? 257 : 1, maximum = evaluateSamples || !data16 ? 255 : 65535;
             const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : undefined;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
@@ -6973,6 +6974,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                             const white = samples[idx + channel]! * quantumScale > value;
                             samples[idx + channel] = white ? maximum : 0;
                             out[idx + channel] = white ? 255 : 0;
+                            if (data16) data16[idx + channel] = white ? 65535 : 0;
                         }
                     }
                 } else {
@@ -6980,14 +6982,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     const result = intensity > value ? 255 : 0;
                     samples[idx] = samples[idx + 1] = samples[idx + 2] = result ? maximum : 0;
                     out[idx] = out[idx + 1] = out[idx + 2] = result;
+                    if (data16) data16[idx] = data16[idx + 1] = data16[idx + 2] = result ? 65535 : 0;
                     // Native default threshold assigns the intensity result to alpha too.
                     if (image.hasAlpha) {
                         samples[idx + 3] = result ? maximum : 0;
                         out[idx + 3] = result;
+                        if (data16) data16[idx + 3] = result ? 65535 : 0;
                     }
                 }
             }
-            return { ...image, data: out, ...(data16 ? { data16 } : {}) };
+            return { ...image, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
         };
     } else if (token === "-colorize") {
         highDepth = true;
@@ -7341,7 +7345,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, handlesWriteMask: token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, handlesWriteMask: token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-threshold" || token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelSelections(expression: string): number[][] {

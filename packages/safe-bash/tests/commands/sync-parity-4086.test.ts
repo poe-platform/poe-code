@@ -97,3 +97,25 @@ test("sync column distinguishes header repetition from keeping empty rows", () =
   assert.deepEqual(evaluate.call(Runtime.prototype, ["", "a b"], ["-t", "-L"]), ["   ", "a  b"]);
   assert.deepEqual(evaluate.call(Runtime.prototype, ["   ", "a b"], ["-t", "-L"]), ["   ", "a  b"]);
 });
+
+for (const selector of [" 1", "\t1", "\n1", "\r1", "\v1", "\f1", " 01", " +2"]) {
+ for (const flag of ["-j", "-1", "-2", "-a", "-v"]) {
+  test(`join quoted numeric operand ${flag} ${JSON.stringify(selector)} falls back consistently`, async () => {
+    const second = Number(selector) === 2;
+    const left = (flag === "-j" || flag === "-1") && second ? "A k" : "k A";
+    const right = (flag === "-j" || flag === "-2") && second ? "B k" : "k B";
+    const unpaired = second ? "y Y\n" : "x X\n";
+    const expected = flag === "-v" ? unpaired : "k A B\n" + (flag === "-a" ? unpaired : "");
+    const setup = `printf '%s\\n' '${left}' 'x X' > f1; printf '%s\\n' '${right}' 'y Y' > f2; field='${selector}';`;
+    const command = `join ${flag} "$field" f1 f2`;
+    for (const body of [command, `out=$(${command}); printf '%s\\n' "$out"`, `for i in 1 2; do out=$(${command}); printf '%s\\n' "$out"; done`]) {
+      const result = await execute(`${setup} ${body}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, expected.repeat(body.startsWith("for") ? 2 : 1));
+    }
+    const evaluate = Reflect.get(Runtime.prototype, "evalSyncJoin");
+    assert.equal(evaluate.call({}, undefined, [flag, selector, "f1", "f2"], "/"), undefined);
+  });
+ }
+}

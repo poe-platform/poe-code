@@ -310,3 +310,41 @@ for (const reverse of [false, true]) {
   assert.ok(result.stderr.includes("not in sorted order"));
  });
 }
+
+for (const whitespace of [" ", "\t", "\n", "\r", "\v", "\f", " \t"]) {
+ for (const field of ["1", "+1", "01", "+2", "02"]) {
+  for (const flag of ["-j", "-1", "-2", "-a", "-v"]) {
+   test(`join accepts leading whitespace: ${flag} ${JSON.stringify(whitespace + field)}`, async () => {
+    const second = Number(field) === 2;
+    const left = flag === "-j" || flag === "-1" ? (second ? "A k\n" : "k A\n") : "k A\nx X\n";
+    const right = flag === "-j" || flag === "-2" ? (second ? "B k\n" : "k B\n") : "k B\ny Y\n";
+    const unpaired = second ? "y Y\n" : "x X\n";
+    const expected = flag === "-v" ? unpaired : "k A B\n" + (flag === "-a" ? unpaired : "");
+    for (const args of [[flag, whitespace + field], [flag + whitespace + field]]) {
+     const result = await run([...args, "/a", "/b"], { "/a": left, "/b": right });
+     assert.equal(result.exitCode, 0, result.stderr);
+     assert.equal(result.stdout, expected);
+     assert.equal(result.stderr, "");
+    }
+   });
+  }
+ }
+}
+
+for (const flag of ["-j", "-1", "-2", "-a", "-v"]) {
+ for (const value of [" 0", " -1", " +", " ", " 1 ", " 1\t", " 1\n", " 1x", " 1.0", " 0x1", "\u00a01", "\ufeff1", " 9007199254740992", ...(flag === "-a" || flag === "-v" ? [" 3"] : [])]) {
+  test(`join rejects invalid padded number: ${flag} ${JSON.stringify(value)}`, async () => {
+   const result = await run([flag, value, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+   assert.equal(result.exitCode, 1);
+   assert.equal(result.stdout, "");
+  });
+ }
+}
+
+for (const format of ["1. 2", "1.\t2", "1.\n2", "1.\v2", "1.\f2", "1.\r2"]) {
+ test(`join output field grammar does not accept padding: ${JSON.stringify(format)}`, async () => {
+  const result = await run(["-o", format, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+ });
+}

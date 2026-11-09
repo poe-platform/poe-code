@@ -19,7 +19,7 @@ interface Options {
 }
 
 function number(value: string, label: string): number {
-  if (!/^\+?[0-9]+$/u.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 1) fail(`invalid ${label}: ${value}`);
+  if (!/^[ \t\n\r\v\f]*\+?[0-9]+$/u.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 1) fail(`invalid ${label}: ${value}`);
   return Number(value);
 }
 

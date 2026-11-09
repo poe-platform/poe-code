@@ -785,6 +785,11 @@ other layouts must match.
 Single-input filters on either branch run before multiplication, for example
 `[0:a]volume=0.5[x];[x][1:a]amultiply[out]`.
 
+`amerge` input counts accept numeric expressions such as `1+1` and round to the
+nearest integer with ties to even (`1.5` and `2.5` both select two inputs).
+Repeated assignments use the last value, but every assignment must be valid
+and within 1–64 before rounding. Invalid options preserve existing output.
+
 `[0:a][1:a]amerge=inputs=2[out]` merges channels after resampling the second input
 to the first input’s sample rate,
 ending with the shorter input. Disjoint speaker layouts are combined in speaker

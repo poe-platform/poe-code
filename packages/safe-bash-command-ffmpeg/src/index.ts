@@ -1593,8 +1593,21 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       }
       if (filters[0] === "amerge" || filters[0]?.startsWith("amerge=")) {
         const argument = filters[0].slice("amerge=".length);
-        const count = argument.startsWith("inputs=") ? argument.slice("inputs=".length) : argument;
-        if ((argument && Number(count) !== 2) || sources.length !== 2) {
+        let count = 2;
+        const options = argument ? argument.split(":") : [];
+        if (options.at(-1) === "") options.pop();
+        for (const [index, option] of options.entries()) {
+          const separator = option.indexOf("=");
+          const key = separator < 0 ? (index === 0 ? "inputs" : undefined) : option.slice(0, separator).trim();
+          if (key !== "inputs") throw new Error("amerge: unsupported option");
+          const value = parseFilterExpression(separator < 0 ? option : option.slice(separator + 1),
+            "amerge", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2, min: 1, max: 64, default: 2 });
+          if (value < 1 || value > 64) throw new Error("amerge: inputs out of range");
+          // AVOption integers validate each assignment before rounding, with ties to even.
+          const lower = Math.floor(value);
+          count = value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
+        }
+        if (count !== 2 || sources.length !== 2) {
           throw new Error("amerge requires two inputs (inputs=2)");
         }
         if (sources.some(source => source.expression && source.expression !== "anull")) {

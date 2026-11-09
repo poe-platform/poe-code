@@ -7,7 +7,7 @@ export async function enhanceDialogue(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
   original: number, enhance: number, voice: number,
   budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<Float32Array[]> {
+): Promise<{ channels: Float32Array[]; frameSize: number }> {
   if (channels.length !== 2) throw new Error("dialoguenhance: stereo input required");
   const size = sampleRate > 100000 ? 8192 : sampleRate > 50000 ? 4096 : 2048;
   const hop = size / 4, delay = size - hop, length = channels[0]!.length;
@@ -58,5 +58,5 @@ export async function enhanceDialogue(
     for (let i = 0; i < size; i++) overlap[i] = overlap[i]! + Math.fround(cr[i]! / (size * 1.5)) * window[i]!;
     output[2]!.set(overlap.subarray(0, count), start);
   }
-  return output;
+  return { channels: output, frameSize: hop };
 }

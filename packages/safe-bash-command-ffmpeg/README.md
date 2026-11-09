@@ -715,6 +715,8 @@ three quarters of the analysis window (1536 samples at 44100 Hz). It accepts
 `original` (0–1), `enhance` (0–3), and `voice` (2–32), with defaults `1:1:2`.
 Options accept numeric expressions such as `original=1/2`. Empty, malformed,
 or out-of-range values fail before an existing output is replaced.
+Downstream filters receive analysis hops of 512 samples up to 50 kHz, 1024 up
+to 100 kHz, and 2048 above 100 kHz, with a shorter final frame when needed.
 
 `dcshift=0.125` adds a DC offset to every audio channel, preserving the sample rate and frame count and clipping samples to the full-scale range. `shift=0.125` is also accepted; shifts must be between -1 and 1. Limiter options are unsupported and fail explicitly.
 

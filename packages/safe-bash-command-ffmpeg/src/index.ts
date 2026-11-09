@@ -10064,7 +10064,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           values[key] = value;
                         }
-                        stretched = await enhanceDialogue(stretched, origRate, values[0]!, values[1]!, values[2]!, budget, context.signal);
+                        const dialogue = await enhanceDialogue(stretched, origRate, values[0]!, values[1]!, values[2]!, budget, context.signal);
+                        stretched = dialogue.channels;
+                        const length = stretched[0]?.length ?? 0;
+                        budget.allocateMemory(Math.ceil(length / dialogue.frameSize) * 24);
+                        const previous = audioTimestamps;
+                        audioTimestamps = [];
+                        let frameIndex = 0;
+                        for (let start = 0; start < length; start += dialogue.frameSize) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          while (previous && frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
+                          const frame = previous?.[frameIndex];
+                          audioTimestamps.push({ start, end: Math.min(length, start + dialogue.frameSize),
+                            pts: frame ? frame.pts + start - frame.start : audioStartSample + start });
+                        }
                         filteredChannelMask = 7;
                       } else if (trimmed === "crystalizer" || trimmed.startsWith("crystalizer=")) {
                         let intensity = 2;

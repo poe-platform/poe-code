@@ -340,7 +340,8 @@ With no layout option, each expression produces one output channel (up to 64),
 so `aeval=val(0)|val(1)|0` adds a silent third channel.
 Expressions support arithmetic, `val(channel)`, `ch`,
 `n`, `t`, `s`, `nb_in_channels`, and `nb_out_channels`; `c=same` retains the input
-layout and repeats the last expression when needed. `sin(x)` takes radians, and
+layout and repeats the last expression when needed. `aeval=abs(val(1))` rectifies negative
+right-channel samples; `abs(x)` also accepts constants and arithmetic expressions. `sin(x)` takes radians, and
 `PI` is available for waveforms such as `aeval=sin(PI*n/2)/2`.
 `enable=0` bypasses the filter; `enable=1` applies it. Timeline expressions use
 frame index `n` and timestamp `t`. Empty fields between `|` separators

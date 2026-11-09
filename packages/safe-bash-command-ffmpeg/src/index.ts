@@ -42,6 +42,7 @@ import { enhanceDialogue } from "./audio-dialogue.js";
 import { normalizeLoudness, resampleLoudnorm } from "./audio-loudnorm.js";
 import { measureEbur128 } from "./audio-ebur128.js";
 import { crc32Table, serializeFrameChecksum } from "./frame-checksum.js";
+import { murmur3 } from "./murmur3.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
@@ -260,6 +261,9 @@ function serializeChecksum(
       }
     }
     return encodeUtf8(`CRC32=${((crc ^ 0xffffffff) >>> 0).toString(16).padStart(8, "0")}\n`);
+  }
+  if (name === "murmur3") {
+    return encodeUtf8(`murmur3=${bytesToHex(murmur3(packets.map(packet => packet.bytes), budget))}\n`);
   }
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512 };
   if (!Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);

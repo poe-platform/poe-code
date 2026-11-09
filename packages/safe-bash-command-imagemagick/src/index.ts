@@ -1585,6 +1585,12 @@ function* formatMagickPropertyStringSteps<Step=never>(
           } else {
             if (img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") { parts.push(formatHuePixel(channels, img.magickColorspace, img.hasAlpha)); continue; }
             if (img.space === "cmyk") { parts.push(formatCmykPixel(channels, img.hasAlpha)); continue; }
+            if (img.space === "b-w" || img.space === "grey16") {
+              parts.push(channels[3] !== undefined && channels[3] !== 255
+                ? `graya(${channels[0]},${formatMetricNum(channels[3] / 255)})`
+                : `gray(${channels[0]})`);
+              continue;
+            }
             // Preserve the existing RGB pixel spelling for opaque samples.
             parts.push(channels[3] !== undefined && channels[3] !== 255
               ? `srgba(${channels.slice(0, 3).join(",")},${formatMetricNum(channels[3] / 255)})`
@@ -1644,6 +1650,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  if(key.startsWith("hex:"))return channels.map(value=>value.toString(16).toUpperCase().padStart(hexMaximum === 65535 ? 4 : 2,"0")).join("");
  if(((image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "CIELab"))return formatHuePixel(channels, (image as StoredRgbaImage).magickColorspace as "HSL" | "HSB" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", image.hasAlpha);
  if(image.space === "cmyk")return formatCmykPixel(channels,image.hasAlpha);
+ if(image.space === "b-w" || image.space === "grey16")return channels[3]!==undefined&&channels[3]!==255?`graya(${channels[0]},${formatMetricNum(channels[3]/255)})`:`gray(${channels[0]})`;
  return channels[3]!==undefined&&channels[3]!==255?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3]/255)})`:`srgb(${channels.slice(0,3).join(",")})`;
 }
 

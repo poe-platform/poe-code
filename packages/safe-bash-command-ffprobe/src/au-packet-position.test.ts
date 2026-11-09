@@ -4,13 +4,17 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { auAst } from "@poe-code/mp4-ast";
 import { createFfprobeCommand, evalSyncFfprobe } from "./media.js";
 
-for (const annotation of [Buffer.alloc(8), Buffer.from("Title=Evening\nArtist=Kay\nComment=note\ncustom=solo\n\0")]) {
-  it(`reports AU packet positions from the file start with ${annotation.length} annotation bytes`, async () => {
+for (const [headerOffset, annotation] of [
+  [32, Buffer.alloc(8)],
+  [undefined, Buffer.from("Title=Evening\nArtist=Kay\nComment=note\ncustom=solo\n\0")],
+  [0x80000000, Buffer.alloc(0)], [0xfffffffe, Buffer.alloc(0)], [0xffffffff, Buffer.alloc(0)]
+] as const) {
+  it(`reports AU packet positions from the file start for header offset ${headerOffset ?? 24 + annotation.length}`, async () => {
     const offset = 24 + annotation.length;
     const bytes = Buffer.alloc(offset + 8);
-    [0x2e736e64, offset, 8, 3, 8000, 1].forEach((value, index) => bytes.writeUInt32BE(value, index * 4));
+    [0x2e736e64, headerOffset ?? offset, 8, 3, 8000, 1].forEach((value, index) => bytes.writeUInt32BE(value, index * 4));
     annotation.copy(bytes, 24);
-    Buffer.from("0064ff38012cfe70", "hex").copy(bytes, offset);
+    Buffer.from("000101fffc1903e8", "hex").copy(bytes, offset);
     const expected = { packets: [{ pos: String(offset), size: "8", duration: 4 }], streams: [{ duration_ts: 4 }] };
     expect(auAst().probe(bytes, { showPackets: true })).toMatchObject(expected);
     const args = ["-v", "error", "-show_packets", "-show_entries", "packet=pos,size,duration:stream=duration_ts", "-of", "json", "/in.au"];

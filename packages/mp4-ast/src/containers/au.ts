@@ -17,7 +17,7 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   budget.checkInputBytes(bytes.length);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (bytes.length < 24 || view.getUint32(0) !== 0x2e736e64) throw new Error("Invalid AU header");
-  let offset = view.getUint32(4);
+  let offset = view.getInt32(4);
   const size = view.getUint32(8);
   const format = encodings.get(view.getUint32(12));
   const adpcm = adpcmEncodings.get(view.getUint32(12));
@@ -25,7 +25,7 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   if (offset === 0 || offset > bytes.length) {
     throw new Error("Invalid AU data bounds");
   }
-  // Recover small positive offsets without seeking backwards into the header.
+  // FFmpeg treats the offset as signed and never seeks backwards into the header.
   offset = Math.max(24, offset);
   const sampleRate = view.getUint32(16), channels = view.getUint32(20);
   if (sampleRate > 0x7fffffff) throw new Error("Invalid AU sample rate");

@@ -3,14 +3,14 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
-for (const offset of [0, 1, 16, 23, 24, 25, 100]) {
+for (const offset of [0, 1, 16, 23, 24, 25, 100, 0x7fffffff, 0x80000000, 0xfffffffe, 0xffffffff]) {
   it(`copies AU offset ${offset} without copying header bytes or clobbering output on failure`, async () => {
     const start = offset === 25 ? 25 : 24;
-    const payload = Buffer.from("0064ff38012cfe70", "hex");
+    const payload = Buffer.from("000101fffc1903e8", "hex");
     const input = Buffer.alloc(start + payload.length);
     [0x2e736e64, offset, payload.length, 3, 8000, 1].forEach((value, i) => input.writeUInt32BE(value, i * 4));
     payload.copy(input, start);
-    const volume = Volume.fromJSON({ "/out.bin": "keep", "/in.au": input });
+    const volume = Volume.fromJSON({ "/out.bin": "KEEP", "/in.au": input });
     let stderr = "";
     const result = await createFfmpegCommand().execute({
       args: ["-v", "error", "-y", "-i", "/in.au", "-c:a", "copy", "-f", "s16be", "/out.bin"],
@@ -24,8 +24,8 @@ for (const offset of [0, 1, 16, 23, 24, 25, 100]) {
       stdout: { async write() {} },
       stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
     } as never);
-    const valid = offset > 0 && offset <= input.length;
+    const valid = (offset > 0 && offset <= input.length) || offset >= 0x80000000;
     assert.equal(result.exitCode, valid ? 0 : 1, stderr);
-    assert.deepEqual(volume.readFileSync("/out.bin"), valid ? payload : Buffer.from("keep"));
+    assert.deepEqual(volume.readFileSync("/out.bin"), valid ? payload : Buffer.from("KEEP"));
   });
 }

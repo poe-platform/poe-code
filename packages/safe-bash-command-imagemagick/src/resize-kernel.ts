@@ -7,6 +7,41 @@ export type MagickResizeKernel = ResizeKernel | "gaussian" | "jinc" | "lagrange"
 
 export type ResizeFilterSettings = { blur?: number; support?: number; lobes?: number; b?: number; c?: number; sigma?: number; window?: MagickResizeKernel };
 
+export function* adaptiveResizePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, width: number, height: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const maximum = highDepth ? 65535 : 255;
+    for (let start = 0; start < width * height; start += 256) {
+        yield;
+        const count = Math.min(256, width * height - start);
+        const data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
+        for (let offset = 0; offset < count; offset++) {
+            const x = ((start + offset) % width + 0.5) * image.width / width - 0.5;
+            const y = (Math.floor((start + offset) / width) + 0.5) * image.height / height - 0.5;
+            const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
+            const pixels: (Uint8Array | Uint16Array)[] = [];
+            for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) {
+                const sx = Math.max(0, Math.min(image.width - 1, left + column));
+                const sy = Math.max(0, Math.min(image.height - 1, top + row));
+                const bytes = (yield { kind: "read", highDepth, position: (sy * image.width + sx) * 4, length: 4 })!;
+                pixels.push(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
+            }
+            const luma = pixels.map(p => 0.212656 * p[0]! + 0.715158 * p[1]! + 0.072186 * p[2]!);
+            // Choose the diagonal with the smaller luma difference, then its enclosing triangle.
+            const weights = Math.abs(luma[0]! - luma[3]!) < Math.abs(luma[1]! - luma[2]!)
+                ? dx <= dy ? [1 - dy, 0, dy - dx, dx] : [1 - dx, dx - dy, 0, dy]
+                : dx <= 1 - dy ? [1 - dx - dy, dx, dy, 0] : [0, 1 - dy, 1 - dx, dx + dy - 1];
+            const alpha = pixels.reduce((sum, p, i) => sum + p[3]! * weights[i]!, 0);
+            for (let channel = 0; channel < 4; channel++) {
+                // Native mesh divides unassociated colors by interpolated alpha.
+                const value = channel === 3 ? alpha : pixels.reduce((sum, p, i) => sum + p[channel]! * weights[i]!, 0)
+                    / (image.hasAlpha ? Math.max(1e-12, alpha / maximum) : 1);
+                const scale = highDepth ? 1 : 257;
+                data[offset * 4 + channel] = Math.max(0, Math.min(maximum, Math.round(Math.fround(value * scale) / scale)));
+            }
+        }
+        yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
+    }
+}
+
 function sinc(x: number): number {
     return Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
 }

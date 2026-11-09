@@ -113,7 +113,11 @@ export function basicCommands(): CommandDefinition[] {
       const arguments_ = getCommandArguments(context);
       const operands: number[] = [];
       let suffix: Uint8Array | undefined;
-      const parsed = options(arguments_.args, "as:z", { multiple: "a", suffix: "s", zero: "z" }, true,
+      const parsed = options(arguments_.args, "as:z", {
+        m: "a", mu: "a", mul: "a", mult: "a", multi: "a", multip: "a", multipl: "a", multiple: "a",
+        s: "s", su: "s", suf: "s", suff: "s", suffi: "s", suffix: "s",
+        z: "z", ze: "z", zer: "z", zero: "z",
+      }, true,
         index => { operands.push(index); },
         (_key, index, offset) => { suffix = arguments_.bytes(index)!.subarray(offset); });
       const multiple = parsed.flags.has("a") || parsed.flags.has("s");
@@ -143,7 +147,7 @@ export function basicCommands(): CommandDefinition[] {
     define("dirname", async (context) => {
       const arguments_ = getCommandArguments(context);
       const operands: number[] = [];
-      const parsed = options(arguments_.args, "z", { zero: "z" }, context.env.POSIXLY_CORRECT !== undefined, index => { operands.push(index); });
+      const parsed = options(arguments_.args, "z", { z: "z", ze: "z", zer: "z", zero: "z" }, context.env.POSIXLY_CORRECT !== undefined, index => { operands.push(index); });
       requireOperands(parsed.operands);
       for (const index of operands) {
         const operand = arguments_.bytes(index)!;

@@ -665,6 +665,41 @@ test("dirname strips the slash run before the final component", async () => {
   assert.equal(result.stdout, "/a\na\n/a\n/\n/\n//a\na//b\n");
 });
 
+test("path commands accept GNU long-option prefixes without changing operand handling", async () => {
+  for (const name of ["suffix", "multiple", "zero"]) {
+    for (let length = 1; length <= name.length; length++) {
+      const option = `--${name.slice(0, length)}`;
+      const cases = name === "suffix"
+        ? [[`${option}=a`, "dir/pasta", "dir/jazz"], [option, "a", "dir/pasta", "dir/jazz"]]
+        : name === "multiple" ? [[option, "dir/pasta", "dir/jazz"]] : [[option, "dir/pasta"]];
+      for (const args of cases) {
+        const result = await run("basename", args);
+        assert.equal(result.exitCode, 0, JSON.stringify(args));
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, name === "suffix" ? "past\njazz\n" : name === "multiple" ? "pasta\njazz\n" : "pasta\0");
+      }
+      if (name === "zero") {
+        const result = await run("dirname", [option, "a/b"]);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, "a\0");
+      }
+      assert.equal((await run("basename", ["--", option])).stdout, `${option}\n`);
+      assert.equal((await run("dirname", ["--", option])).stdout, ".\n");
+    }
+  }
+  for (const [command, args] of [
+    ["basename", ["--suf"]], ["basename", ["--mul=yes", "a"]],
+    ["basename", ["--suffixes=a", "a"]], ["dirname", ["--ze=yes", "a/b"]],
+    ["dirname", ["--zeros", "a/b"]],
+  ] as const) {
+    const result = await run(command, args);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.notEqual(result.stderr, "");
+  }
+});
+
 test("basename and dirname handle roots, suffixes, multiple names and zero output", async () => {
   assert.equal((await run("basename", ["/a/name.txt/", ".txt"])).stdout, "name\n");
   assert.equal((await run("basename", ["-s", ".txt", "a.txt", "b.txt"])).stdout, "a\nb\n");
@@ -773,6 +808,7 @@ test("path utilities preserve opaque bytes and compare suffix byte identity", as
     ["basename", [raw(45, 115, 255), raw(98, 254)], [98, 254, 10]],
     ["basename", [raw(45, 45, 115, 117, 102, 102, 105, 120, 61, 255), raw(98, 254)], [98, 254, 10]],
     ["basename", ["-s", raw(254), raw(98, 254)], [98, 10]],
+    ["basename", [raw(45, 45, 115, 117, 102, 61, 254), raw(98, 254)], [98, 10]],
     ["basename", ["-az", raw(98, 255), raw(98, 254)], [98, 255, 0, 98, 254, 0]],
     ["dirname", ["-z", raw(97, 255, 47, 98), raw(97, 254, 47, 98)], [97, 255, 0, 97, 254, 0]],
   ] as const) {

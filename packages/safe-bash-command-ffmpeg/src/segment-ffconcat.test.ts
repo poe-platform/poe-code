@@ -50,8 +50,11 @@ it("writes ffconcat directives for MP4 segments", async () => {
   const doc = parseMp4(createSyntheticMp4({
     width: 32, height: 32, frameCount: 12, fps: 4, includeAudio: false
   }));
-  for (const [index, sample] of doc.tracks[0]!.samples.entries()) sample.isKeyframe = index % 4 === 0;
-  const volume = Volume.fromJSON({ "/in.mp4": Buffer.from(serializeMp4(doc)) });
+  const volume = Volume.fromJSON({ "/in.mp4": Buffer.from(serializeMp4({ ...doc,
+    tracks: doc.tracks.map(track => ({ ...track,
+      samples: track.samples.map((sample, index) => ({ ...sample, isKeyframe: index % 4 === 0 }))
+    }))
+  })) });
   const result = await run(volume, ["-i", "/in.mp4", "-c", "copy", "-f", "segment",
     "-segment_time", "1", "-segment_list", "/list.ffconcat", "/part%02d.mp4"]);
   assert.equal(result.exitCode, 0, result.stderr);

@@ -1,6 +1,7 @@
 import { encodeAlacTrack } from "./alac.js";
 import { decodeAlac } from "./alac-decoder.js";
 import { decodeMovText, encodeMovText } from "./mov-text.js";
+import { parseImaQt } from "./containers/aiff-ima.js";
 import { rawAudioAsts } from "./containers/raw-audio.js";
 import { readImageMetadata } from "@poe-code/image-ast/portable";
 import { h264FieldOrderSteps } from './h264-field-order.js';
@@ -642,6 +643,14 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       if (!config || config.payload.length !== 28) throw new Error("Missing MOV ALAC decoder configuration");
       alacAudio = decodeAlac(samples, config.payload.subarray(4), budget);
     }
+    let imaAudio: MediaAudioData | undefined;
+    if (type === "audio" && options.decodeAudio !== false && audioDescription?.codecName === "adpcm_ima_qt") {
+      const { channels, sampleRate } = audioDescription;
+      if (!channels || !sampleRate) throw new Error("Invalid MOV IMA audio description");
+      const data = concatBytes(samples.map(sample => sample.data));
+      imaAudio = parseImaQt(data, channels, sampleRate, data.length / (34 * channels), options, budget)
+        .tracks[0]!.decodedAudio;
+    }
     tracks.push({
       id: trackId,
       timecodeTrackId: timecodeReference && timecodeReference.payload.length >= 4
@@ -669,6 +678,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
           }).tracks[0]!.decodedAudio
       } : {}),
       ...(alacAudio ? { decodedAudio: alacAudio } : {}),
+      ...(imaAudio ? { decodedAudio: imaAudio } : {}),
       decodedVideoFrames
     });
   }

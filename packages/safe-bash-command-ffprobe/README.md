@@ -14,7 +14,7 @@ Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 `-show_error` for structured missing-input errors (with a nonzero exit status),
 `-show_entries section=fields` (including format/stream tags, `stream_disposition`, and `stream_side_data=rotation`), `-select_streams a:0` (or MPEG-TS programs such as `p:202`, or MP4 track IDs such as `i:77` and `#0x4d`),
 `-sexagesimal` for `H:MM:SS.ffffff` timestamps and durations, and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,
-`-show_programs` (MPEG-TS program membership and service tags), `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`.
+`-show_programs` (MPEG-TS program membership and service tags), `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`. Data stream selectors `d` and `d:N` select MP4 timecode streams and packets, returning an empty list when no stream matches.
 JSON chapter reports honor `-show_entries chapter=id` and other selected chapter fields; use `chapter_tags=title` to select a tag alongside them. `-show_chapters` without a selection reports complete chapters.
 Concat manifests support `-f concat` (or the `ffconcat version 1.0` header), with per-file `duration` and packet tags. Add `-segment_time_metadata 1` to expose `lavf.concatdec.start_time` and known `lavf.concatdec.duration` in microseconds on each packet, with Strings Metadata side data. The default (`0`) omits these generated tags.
 MP4 `nclx` color tags report stream color range, matrix, transfer and primaries; full-range H.264 reports the corresponding `yuvj` pixel format.

@@ -487,9 +487,9 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
         const tag = Object.entries(stream.tags ?? {}).find(([name]) => name.toLowerCase() === key!.toLowerCase());
         if (!tag || (value.length > 0 && tag[1] !== value.join(":"))) return;
       }
-      const type = spec[0] === "v" ? "video" : spec[0] === "a" ? "audio" : spec[0] === "s" ? "subtitle" : undefined;
-      if ((spec === "v" || spec === "a" || spec === "s") && stream.codec_type !== type) return;
-      if (spec.startsWith("v:") || spec.startsWith("a:") || spec.startsWith("s:")) {
+      const type = spec[0] === "v" ? "video" : spec[0] === "a" ? "audio" : spec[0] === "s" ? "subtitle" : spec[0] === "d" ? "data" : undefined;
+      if ((spec === "v" || spec === "a" || spec === "s" || spec === "d") && stream.codec_type !== type) return;
+      if (spec.startsWith("v:") || spec.startsWith("a:") || spec.startsWith("s:") || spec.startsWith("d:")) {
         if (stream.codec_type !== type) return;
         if (typeOrdinal++ !== (parseInt(spec.slice(2), 10) || 0)) return;
       } else if ([...spec].every(c => c >= "0" && c <= "9") && stream.index !== parseInt(spec, 10)) return;
@@ -910,7 +910,7 @@ function parseProbeArguments(args: readonly string[]) {
     const validId = digits.length > 0 && [...digits].every(c =>
       c >= "0" && c <= "9" || hex && c >= "a" && c <= "f") && Number.isSafeInteger(Number(id));
     const valid = kind === "m" && parts.length > 0
-      || ["v", "a", "s"].includes(kind!) && (parts.length === 0 || parts.length === 1 && numeric)
+      || ["v", "a", "s", "d"].includes(kind!) && (parts.length === 0 || parts.length === 1 && numeric)
       || kind === "p" && parts.length === 1 && numeric
       || parts.length === 0 && numeric || validId;
     if (!valid) throw new Error(`Invalid stream specifier: ${selectStreams}`);

@@ -6387,6 +6387,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         const space = imageType === undefined ? (value ?? "gray").toLowerCase()
             : imageType === "truecoloralpha" || imageType === "palette" ? "srgb" : "gray";
+        // ImageMagick 7.1.2 ColorspaceOptions, plus our existing grey and luma aliases.
+        if (token === "-colorspace" && !["undefined", "adobe98", "cat02lms", "cielab", "cmy", "cmyk", "displayp3", "gray", "grey", "hcl", "hclp", "hsb", "hsi", "hsl", "hsv", "hwb", "jzazbz", "lab", "lch", "lchab", "lchuv", "lineargray", "lms", "log", "luv", "ohta", "oklab", "oklch", "prophoto", "rec601luma", "rec601ycbcr", "rec709luma", "rec709ycbcr", "rgb", "scrgb", "srgb", "transparent", "xyy", "xyz", "ycbcr", "ydbdr", "ycc", "yiq", "ypbpr", "yuv"].includes(space)) {
+            throw new Error(`unrecognized colorspace '${value}'`);
+        }
         if (token === "-grayscale" && !["average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(space)) {
             throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
         }
@@ -6431,7 +6435,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (space === "cmyk") return yield* convertCmykPixels(image);
             if (space === "lab" || space === "cielab") return yield* convertHuePixels(image, "CIELab");
             if (space === "hsl" || space === "hsb" || space === "hsv" || space === "hwb" || space === "xyz" || space === "ycbcr" || space === "yuv") return yield* convertHuePixels(image, space === "yuv" ? "YUV" : space === "ycbcr" ? "YCbCr" : space === "xyz" ? "XYZ" : space === "hwb" ? "HWB" : space === "hsv" ? "HSV" : space === "hsb" ? "HSB" : "HSL");
-            if (token !== "-grayscale" && !space.includes("gray") && !space.includes("grey") && space !== "rec709luma" && space !== "rec601luma") return image;
+            if (token !== "-grayscale" && !["gray", "grey", "rec709luma", "rec601luma"].includes(space)) {
+                if (space === "srgb") return image;
+                throw new Error(`unsupported colorspace '${value}'`);
+            }
             const out = new Uint8Array(image.data);
             const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
             for (let idx = 0; idx < out.length; idx += 4) {

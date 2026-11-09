@@ -4569,6 +4569,7 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     const source = (img as MagickImage)[magickInput];
     const background = state.backgroundExplicit ? state.background : img.backgroundColor ?? state.background;
     const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, background, true),
+        ...(img.magickColorspace ? { magickColorspace: img.magickColorspace } : {}),
         ...(img.delay ? { delay: img.delay } : {}), ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (!layout.area) return canvas;
     if (!["over", "srcover"].includes(magickCompositeMode(state.composeRaw).name)) return yield* applyMagickRasterSteps(canvas,
@@ -11057,6 +11058,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const source = (image as StoredMagickImage)[magickInput];
                 const background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;
                 const canvas = { ...await createStoredCanvas(layout.width, layout.height, background, backend, signal, true),
+                    ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}),
                     ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
                     ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
                 if (!layout.area) return canvas;

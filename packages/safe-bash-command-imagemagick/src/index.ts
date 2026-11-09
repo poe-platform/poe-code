@@ -3652,6 +3652,9 @@ function magickSepiaTone(intensity: number, threshold: number, gray: boolean): [
 }
 
 function* applyMagickSolarizeSteps(img: RgbaImage, thresh: number, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    // Native solarize promotes grayscale even when the threshold changes no samples.
+    if (img.space === "b-w" || img.space === "grey16")
+        img = { ...img, space: "srgb", channels: img.hasAlpha ? 4 : 3 };
     let cooperativeWork = 0;
     // Native palette solarize updates the RGB colormap, ignoring the channel mask.
     const mask = img.isPalette ? [true, true, true, false] : [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
@@ -6757,6 +6760,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickSolarizeSteps(image, thresholds[0]!, channels, signal);
     } else if (token === "-ordered-dither") {
+        highDepth = true;
         const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickRasterSteps(image, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a]), signal);
     } else if (token === "-posterize") {

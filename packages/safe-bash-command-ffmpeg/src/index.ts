@@ -8935,21 +8935,46 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (key === "channel_layout") layout = value;
                           else throw new Error(`channelmap: unsupported option ${key}`);
                         }
-                        const selected = map.split("|").map(value => {
-                          if (!value || [...value].some(char => char < "0" || char > "9")) {
-                            throw new Error(`channelmap: invalid input channel ${value}`);
+                        const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR"];
+                        const inputNames = filteredChannelMask
+                          ? speakers.filter((_, index) => (filteredChannelMask! & (1 << index)) !== 0)
+                          : stretched.length === 1 ? ["FC"] : stretched.length === 2 ? ["FL", "FR"] : [];
+                        const entries = map.split("|").map(value => value.split("-"));
+                        const numeric = (value: string) => value.length > 0 && [...value].every(char => char >= "0" && char <= "9");
+                        const paired = entries[0]!.length === 2;
+                        const numericInput = numeric(entries[0]![0]!);
+                        const numericOutput = !paired || numeric(entries[0]![1]!);
+                        for (const entry of entries) {
+                          if (entry.length !== (paired ? 2 : 1) || numeric(entry[0]!) !== numericInput ||
+                              (paired && numeric(entry[1]!) !== numericOutput)) {
+                            throw new Error("channelmap: mixed or invalid channel mapping");
                           }
-                          const channel = Number(value);
-                          if (!Number.isSafeInteger(channel) || channel >= stretched.length) {
-                            throw new Error(`channelmap: unavailable input channel ${value}`);
+                        }
+                        let outputNames = layout === "mono" ? ["FC"] : layout === "stereo" ? ["FL", "FR"] : undefined;
+                        if (layout && !outputNames) throw new Error("channelmap: unsupported channel layout");
+                        if (!outputNames && paired && !numericOutput) {
+                          const destinations = entries.map(entry => entry[1]!);
+                          if (destinations.some(name => !speakers.includes(name))) throw new Error("channelmap: invalid output channel");
+                          outputNames = speakers.filter(name => destinations.includes(name));
+                        }
+                        outputNames ??= entries.length === 1 ? ["FC"] : entries.length === 2 ? ["FL", "FR"] : [];
+                        if (!outputNames.length || entries.length !== outputNames.length) {
+                          throw new Error("channelmap: unsupported or mismatched channel layout");
+                        }
+                        const selected = new Array<(typeof stretched)[number]>(outputNames.length);
+                        for (const [index, entry] of entries.entries()) {
+                          const input = numericInput ? Number(entry[0]) : inputNames.indexOf(entry[0]!);
+                          const output = !paired ? index : numericOutput ? Number(entry[1]) : outputNames.indexOf(entry[1]!);
+                          if (!Number.isSafeInteger(input) || input < 0 || input >= stretched.length) {
+                            throw new Error(`channelmap: unavailable input channel ${entry[0]}`);
                           }
-                          return stretched[channel]!;
-                        });
-                        if (!layout) layout = selected.length === 1 ? "mono" : selected.length === 2 ? "stereo" : "";
-                        const count = layout === "mono" ? 1 : layout === "stereo" ? 2 : 0;
-                        if (!count || selected.length !== count) throw new Error("channelmap: unsupported or mismatched channel layout");
+                          if (!Number.isSafeInteger(output) || output < 0 || output >= selected.length || selected[output]) {
+                            throw new Error("channelmap: invalid or duplicate output channel");
+                          }
+                          selected[output] = stretched[input]!;
+                        }
                         stretched = selected;
-                        filteredChannelMask = count === 1 ? 4 : 3;
+                        filteredChannelMask = outputNames.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0);
                       } else if (trimmed === "channelsplit" || trimmed.startsWith("channelsplit=")) {
                         const { input, selected } = parseChannelSplit(trimmed);
                         if (selected.length !== 1) throw new Error("channelsplit: simple audio filters require exactly one output");

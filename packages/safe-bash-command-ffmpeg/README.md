@@ -311,7 +311,11 @@ the frame count with native signed 16-bit filtering and clipping. Other input
 rates and channel counts are rejected.
 
 Swap stereo PCM channels with `-af 'channelmap=map=1|0:channel_layout=stereo'`.
-Numeric channel maps support mono/stereo output and reject unavailable input channels.
+Unpaired numeric maps support mono/stereo output. Explicit input-output pairs such
+as `0-1|1-0` or `FL-FR|FR-FL` route channels by destination, regardless of pair
+order. Named destinations retain their speaker layout, including `1-FR` and
+`0-FC|1-LFE`. Unavailable inputs, duplicate destinations, and mixed numeric/named
+endpoint syntax are rejected before writing output.
 `aeval=val(1)|val(0)` evaluates separate expressions against the input samples to swap
 stereo channels. Mono/stereo expressions support arithmetic, `val(channel)`, `ch`,
 `n`, `t`, `s`, `nb_in_channels`, and `nb_out_channels`; `c=same` retains the input

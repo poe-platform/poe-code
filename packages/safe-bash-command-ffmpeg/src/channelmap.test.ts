@@ -7,7 +7,21 @@ import { createFfmpegCommand } from "./index.js";
 
 const left = [1000, 2000, 3000, 4000];
 const right = [-4000, -3000, -2000, -1000];
-for (const [expression, expected] of [
+for (const [expression, expected, mask] of [
+  ["0-1|1-0", [right, left]],
+  ["1-0|0-1", [right, left]],
+  ["0-FR|1-FL", [right, left]],
+  ["FL-1|FR-0", [right, left]],
+  ["FL-FR|FR-FL", [right, left]],
+  ["1-FR", [right], 2],
+  ["0-FC|1-LFE", [left, right], 12],
+  ["1-LFE|0-FC", [left, right], 12],
+  ["0-0|1-0", undefined],
+  ["FL-0|1-1", undefined],
+  ["0-FL|1-1", undefined],
+  ["0-0|1-2", undefined],
+  ["0-1|1", undefined],
+  ["0-FR:mono", undefined],
   ["map=1|0:channel_layout=stereo", [right, left]],
   ["1|0:stereo", [right, left]],
   ["map=1|0", [right, left]],
@@ -21,7 +35,7 @@ for (const [expression, expected] of [
 ] as const) {
   for (const complex of [false, true]) {
     it(`maps PCM channels (${complex ? "graph" : "simple"}): ${expression}`, async () => {
-      const volume = Volume.fromJSON({});
+      const volume = Volume.fromJSON({ "/out.wav": "keep" });
       volume.writeFileSync("/twins.wav", encodeWav({ sampleRate: 8000,
         channels: [left, right].map(samples => Float64Array.from(samples, sample => sample / 32768)) }));
       let stderr = "";
@@ -41,11 +55,18 @@ for (const [expression, expected] of [
       } as never);
       if (!expected) {
         assert.notEqual(result.exitCode, 0);
-        assert.equal(volume.existsSync("/out.wav"), false);
+        assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
         return;
       }
       assert.equal(result.exitCode, 0, stderr);
       const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      if (mask !== undefined) {
+        assert.equal(audio.channelMask, mask);
+        const wav = volume.readFileSync("/out.wav") as Buffer;
+        const fmt = wav.indexOf("fmt ");
+        assert.equal(wav.readUInt16LE(fmt + 8), 0xfffe);
+        assert.equal(wav.readUInt32LE(fmt + 28), mask);
+      }
       assert.equal(audio.channels, expected.length);
       assert.equal(audio.sampleRate, 8000);
       assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)), expected);

@@ -7739,15 +7739,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         const setting = applyMagickReadSetting(tokens, state, i);
-        if (setting === undefined && t === "-solarize") {
-            const value = tokens[++i] ?? "50%";
-            stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                return yield* parseMagickPixelOperation(["-solarize", expanded], state, 0, signal)!.apply(image);
-            });
-            i++;
-            continue;
-        }
         const pixelOperation = setting === undefined ? parseMagickPixelOperation(tokens, state, i, signal) : undefined;
         const warpOperation = setting === undefined ? parseMagickWarpOperation(tokens, state, i) : undefined;
         const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
@@ -9450,15 +9441,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (!value.trim() || !Number.isFinite(levels)) throw new Error(`invalid argument '-posterize' '${value}'`);
             const dither = state.dither !== false, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, channels, signal), signal) : undefined);
-            continue;
-        }
-        if (!operandsOnly && token === "-solarize") {
-            const value = tokens[++i] ?? "50%", settings = { ...state };
-            steps.push(async (image, backend) => {
-                if (!image) return;
-                const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                return transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-solarize", expanded], settings, 0, signal)!, signal);
-            });
             continue;
         }
         const pixelOperation = operandsOnly ? undefined : parseMagickPixelOperation(tokens, state, i, signal);

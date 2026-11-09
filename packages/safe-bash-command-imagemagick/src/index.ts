@@ -1470,7 +1470,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   };
   const properties: Record<string, string> = {
     ...meta.properties,
-    profiles: [...(meta.icc ? ["icc"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
+    profiles: [...(meta.icc ? ["icc"] : []), ...(meta.xmp ? ["xmp"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
     gamma: String(meta.gamma ?? 1 / 2.2),
     orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
@@ -4346,7 +4346,7 @@ function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickForm
 
 function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Generator<void, RgbaImage, void> {
     if (thumbnail) {
-        const { virtualCanvas: ignoredCanvas, ...reset } = img;
+        const { virtualCanvas: ignoredCanvas, xmp: ignoredXmp, ...reset } = img;
         img = { ...reset, properties: updateMagickProperty(thumbnailProperties(reset), "comment") };
     }
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczossharp" : undefined));
@@ -4379,7 +4379,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
 
 async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: ReturnType<typeof magickResizeOptions>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Promise<StoredRgbaImage> {
     if (thumbnail) {
-        const { virtualCanvas: ignoredCanvas, ...reset } = image;
+        const { virtualCanvas: ignoredCanvas, xmp: ignoredXmp, ...reset } = image;
         image = { ...reset, properties: updateMagickProperty(thumbnailProperties(reset), "comment") };
     }
     if (!options) return image;
@@ -8232,7 +8232,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-strip") {
             state.strip = true;
-            for (let index = 0; index < stack.length; index++) { const {gifApplications: ignoredGifApplications, icc: ignored, exif: ignoredExif, orientation: ignoredOrientation, properties: ignoredProperties, ...image} = stack[index]!; stack[index] = image; }
+            for (let index = 0; index < stack.length; index++) { const {gifApplications: ignoredGifApplications, icc: ignored, exif: ignoredExif, xmp: ignoredXmp, orientation: ignoredOrientation, properties: ignoredProperties, ...image} = stack[index]!; stack[index] = image; }
         }
         else if (t === "-format") {
             state.formatStr = tokens[++i] ?? "";
@@ -9704,11 +9704,15 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
     return { ...base, storedEvaluateSamples: undefined, position, hasAlpha, channels: hasAlpha ? base.channels : base.channels <= 2 ? 1 : 3 };
 }
 
-function applyMagickProfile<T extends { readonly icc?: Uint8Array; readonly exif?: Uint8Array }>(image: T, name: string, profile?: Uint8Array): T {
+function applyMagickProfile<T extends { readonly icc?: Uint8Array; readonly exif?: Uint8Array; readonly xmp?: Uint8Array }>(image: T, name: string, profile?: Uint8Array): T {
     if (profile) {
         if (profile.length < 128 || String.fromCharCode(...profile.subarray(36, 40)) !== "acsp") throw new Error(`invalid ICC profile '${name}'`);
         if (image.icc && (image.icc.length !== profile.length || image.icc.some((byte, index) => byte !== profile[index]))) throw new Error("ICC color conversion is unsupported");
         return { ...image, icc: profile };
+    }
+    if (["xmp", "*"].includes(name.toLowerCase())) {
+        const { xmp: ignored, ...rest } = image;
+        image = rest as T;
     }
     if (["exif", "*"].includes(name.toLowerCase())) {
         const { exif: ignored, ...rest } = image;
@@ -10610,7 +10614,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-strip") {
             state.strip = true;
-            steps.push(async image => { if (!image) return image; const {gifApplications: ignoredGifApplications, icc: ignored, exif: ignoredExif, orientation: ignoredOrientation, properties: ignoredProperties, ...rest} = image; return rest; });
+            steps.push(async image => { if (!image) return image; const {gifApplications: ignoredGifApplications, icc: ignored, exif: ignoredExif, xmp: ignoredXmp, orientation: ignoredOrientation, properties: ignoredProperties, ...rest} = image; return rest; });
             continue;
         }
         if (!operandsOnly && token === "+repage") {

@@ -90,6 +90,7 @@ export interface RgbaImage {
   readonly gifApplications?: Readonly<Record<string, Uint8Array>> | undefined;
   readonly icc?: Uint8Array;
   readonly exif?: Uint8Array;
+  readonly xmp?: Uint8Array;
   readonly orientation?: number;
   readonly autoOrient?: { readonly width: number; readonly height: number };
   readonly pages?: number;
@@ -130,6 +131,7 @@ export interface ImageMetadata {
   readonly gifApplications?: Readonly<Record<string, Uint8Array>> | undefined;
   readonly icc?: Uint8Array;
   readonly exif?: Uint8Array;
+  readonly xmp?: Uint8Array;
   readonly orientation?: number;
   readonly autoOrient?: { readonly width: number; readonly height: number };
   readonly pages?: number;

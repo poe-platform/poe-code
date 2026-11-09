@@ -2,7 +2,7 @@ import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
+import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, canvasChunk, iccChunk, xmpChunk, textChunks} from "./png-chunks.js";
 import {paethPredictor, writePngPixel} from "./png-pixels.js";
 import { createByteCodec, transformBytes, ByteCodecError } from "@poe-code/compression";
 
@@ -242,6 +242,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     ...(meta.properties === undefined ? {} : {properties: meta.properties}),
     ...(meta.icc === undefined ? {} : {icc: meta.icc}),
     ...(meta.exif === undefined ? {} : {exif: meta.exif}),
+    ...(meta.xmp === undefined ? {} : {xmp: meta.xmp}),
     ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
     ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
   };
@@ -473,6 +474,7 @@ export function encodePngImage(
     ...(!options?.omitPngResolution && (resolution !== undefined || options?.density !== undefined) ? [makeChunk("pHYs", phys)] : []),
     ...exifChunk,
     ...textChunks(img.properties),
+    ...(img.xmp ? [xmpChunk(img.xmp)] : []),
     ...(img.virtualCanvas === undefined ? [] : [canvasChunk(img.virtualCanvas)]),
     makeChunk("IDAT", compressed),
     makeChunk("IEND", new Uint8Array(0))

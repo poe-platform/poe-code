@@ -23,6 +23,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   const properties: Record<string, string> = Object.create(null);
   let icc: Uint8Array | undefined;
   let exifProfile: Uint8Array | undefined;
+  let xmp: Uint8Array | undefined;
   let orientation: number | undefined;
   let backgroundColor: ImageMetadata["backgroundColor"];
   let palette: Uint8Array | undefined;
@@ -129,7 +130,28 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
         for (const part of parts) { value.set(part, offset); offset += part.length; }
       }
       const latin1 = (bytes: Uint8Array) => Array.from(bytes, byte => String.fromCharCode(byte)).join("");
-      properties[latin1(chunk.subarray(0, end))] = type === "iTXt" ? new TextDecoder().decode(value) : latin1(value);
+      const key = latin1(chunk.subarray(0, end));
+      if (key === "XML:com.adobe.xmp") {
+        xmp = value;
+      } else if (key === "Raw profile type xmp") {
+        const lines = new TextDecoder().decode(value).split("\n");
+        const size = lines[2]?.trim() ?? "";
+        const length = Number(size);
+        const hex = lines.slice(3).map(line => line.trim()).join("").toLowerCase();
+        if (size.length && [...size].every(char => char >= "0" && char <= "9") && Number.isSafeInteger(length) && length > 0 && hex.length === length * 2) {
+          const bytes = new Uint8Array(length);
+          let valid = true;
+          for (let i = 0; i < length; i++) {
+            const high = "0123456789abcdef".indexOf(hex[i * 2]!);
+            const low = "0123456789abcdef".indexOf(hex[i * 2 + 1]!);
+            if (high < 0 || low < 0) { valid = false; break; }
+            bytes[i] = high * 16 + low;
+          }
+          if (valid) xmp = bytes;
+        }
+      } else {
+        properties[key] = type === "iTXt" ? new TextDecoder().decode(value) : latin1(value);
+      }
     } else if (type === "iCCP") {
       if (len > 16 * 1024 * 1024) throw new Error("ICC profile exceeds 16 MiB");
       const chunk = yield {position:dataStart,length:len};
@@ -275,6 +297,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
     ...(Object.keys(properties).length ? {properties} : {}),
     ...(icc === undefined ? {} : {icc}),
     ...(exifProfile === undefined ? {} : {exif: exifProfile}),
+    ...(xmp === undefined ? {} : {xmp}),
     ...(decodeWarnings.length ? {decodeWarnings} : {}),
     format: "png",
     ...(colorType === 3 ? {isPalette: true} : {}),

@@ -58,6 +58,14 @@ export function* textChunks(properties: Readonly<Record<string, string>> | undef
   }
 }
 
+export function xmpChunk(xmp: Uint8Array): Uint8Array {
+  const header = new TextEncoder().encode("XML:com.adobe.xmp\0\0\0\0\0");
+  const payload = new Uint8Array(header.length + xmp.length);
+  payload.set(header);
+  payload.set(xmp, header.length);
+  return makeChunk("iTXt", payload);
+}
+
 export function iccChunk(icc: Uint8Array): Uint8Array {
   const compressed = transformBytes(icc, {direction:"encode",format:"zlib"});
   const payload = new Uint8Array(5 + compressed.length);

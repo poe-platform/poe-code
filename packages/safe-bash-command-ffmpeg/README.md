@@ -419,6 +419,8 @@ JACOsub input (`-f jacosub` or automatic detection) reads tick rates and timing 
 
 MPL2 input (`-f mpl2`) reads decisecond cue timing and converts `|` to line breaks.
 
+SubViewer v1 input (`-f subviewer1` or detected script header) reads bracketed timestamps and ends each cue at the next marker, omitting headers and empty trailing cues.
+
 SubViewer input (`-f subviewer` or detected `.sub` timecodes) preserves centisecond timing, skips information headers, and converts `[br]` to line breaks.
 ASS and SRT conversion preserves cue text and timing; ASS output uses a default style and centisecond timestamps. ASS input decodes line breaks and retains the first explicit `\an` alignment override in each cue when converting to SRT. Matroska output with `-c:s ass` encodes basic SRT styling and line breaks; `-c:s copy` retains ASS packets and the original script header.
 Matroska ASS-to-SRT conversion decodes event fields, basic style overrides and escaped line breaks while preserving cue timing.

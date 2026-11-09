@@ -1375,7 +1375,6 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const a = first.decodedAudio;
         const b = sources[1]!.track.decodedAudio;
         if (!a || !b) throw new Error("amultiply requires decoded PCM audio");
-        if (a.sampleRate !== b.sampleRate) throw new Error("amultiply requires matching sample rates");
         const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : undefined);
         const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : undefined);
         const remix = a.channels !== b.channels &&
@@ -1383,7 +1382,15 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         if (!remix && (a.channels !== b.channels || layoutA !== layoutB)) {
           throw new Error("amultiply requires matching layouts or mono/stereo inputs");
         }
-        const length = Math.min(a.channelData[0]!.length, b.channelData[0]!.length);
+        let multiplier = b.channelData;
+        if (a.sampleRate !== b.sampleRate) {
+          const resampledLength = Math.ceil(b.channelData[0]!.length * a.sampleRate / b.sampleRate);
+          budget.checkSamples(resampledLength);
+          budget.checkDuration(resampledLength / a.sampleRate);
+          budget.allocateMemory(resampledLength * b.channels * Float32Array.BYTES_PER_ELEMENT);
+          multiplier = await resampleAudio(b.channelData, resampledLength, b.sampleRate, a.sampleRate, budget, signal);
+        }
+        const length = Math.min(a.channelData[0]!.length, multiplier[0]!.length);
         budget.checkSamples(length);
         budget.checkDuration(length / a.sampleRate);
         budget.allocateMemory(length * a.channels * 8);
@@ -1396,8 +1403,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
               budget.checkCpu();
             }
             // amultiply negotiates floating PCM, so rematrix at equal power without PCM16 normalization.
-            const gain = remix ? (b.channels === 1 ? b.channelData[0]![sample]!
-              : b.channelData[0]![sample]! + b.channelData[1]![sample]!) * Math.SQRT1_2 : b.channelData[channel]![sample]!;
+            const gain = remix ? (b.channels === 1 ? multiplier[0]![sample]!
+              : multiplier[0]![sample]! + multiplier[1]![sample]!) * Math.SQRT1_2 : multiplier[channel]![sample]!;
             channelData[channel]![sample] = a.channelData[channel]![sample]! * gain;
           }
         }

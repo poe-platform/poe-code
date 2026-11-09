@@ -725,7 +725,8 @@ three quarters of the analysis window (1536 samples at 44100 Hz). It accepts
 `alimiter=limit=0.25:level=0:latency=1` limits PCM peaks with linked channels, lookahead attack, and gradual release. `latency=1` preserves sample positions and drains the delayed tail; the default retains the lookahead delay. Supports `level_in`, `level_out`, `limit`, `attack`, `release`, and automatic output leveling (`level`). Automatic release (`asc=1`) is unsupported and fails explicitly.
 
 `[0:a][1:a]amultiply[out]` (also `amultiply@name`) multiplies corresponding PCM samples from two inputs
-with matching sample rates, ending with the shorter input. Mono/stereo inputs are
+resampling the second input to the first input’s sample rate and ending with the
+shorter resampled input. Mono/stereo inputs are
 remixed to the first input’s layout with equal-power gains before multiplication;
 other layouts must match.
 Single-input filters before `amultiply` are not supported.

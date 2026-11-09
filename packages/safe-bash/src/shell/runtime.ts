@@ -4956,6 +4956,9 @@ export class Runtime {
         this.signal.throwIfAborted();
         if (!io[invocationScope].failures.length) await this.publishStatus(state, [error.status], io);
       }
+      if (publicationNegate && error instanceof Flow && (error.kind === "break" || error.kind === "continue")) {
+        throw new Flow(error.kind, Number(error.status === 0), error.levels, error.previousStatus);
+      }
       throw error;
     }
     finally { scope.leaveWork(); }

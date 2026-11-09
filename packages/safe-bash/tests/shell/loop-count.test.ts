@@ -1,6 +1,29 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
+import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
+
+for (const loop of ["for i in one", "for ((i=0; i<1; i++))", "while ((i++ < 1))", "until ((i++ >= 1))"]) {
+  for (const command of ["break", "continue"]) {
+    for (const body of [command, `! ${command}`, `! ! ${command}`, `! builtin ${command}`, `! ${command} >/dev/null`, `! { ${command}; }`, `! { ! ${command}; }`, `! eval '${command}'`, `for j in one; do ! ${command} 2; echo inner-unreachable; done`]) {
+      for (const asyncLoop of [false, true]) {
+        test(`${loop}: ${body} preserves Bash loop status (${asyncLoop ? "async" : "default"})`, async context => {
+          const source = `i=0; ${loop}; do ${body}; echo unreachable; done; echo status:$?; i=0; if ${loop}; do ${body}; echo unreachable; done; then echo yes; else echo no; fi`;
+          const expected = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } });
+          assert.equal(expected.error, undefined);
+          const { shell } = setup();
+          for (const builtin of basicCommands()) shell.commands.register(builtin);
+          context.after(() => shell.dispose());
+          const actual = await shell.exec(source, asyncLoop ? { signal: new AbortController().signal } : {});
+          assert.equal(actual.stdout, expected.stdout);
+          assert.equal(actual.stderr, expected.stderr);
+          assert.equal(actual.exitCode, expected.status);
+        });
+      }
+    }
+  }
+}
 
 for (const command of ["exit", "return"]) {
   for (const [argument, status] of [["9223372036854775807", 255], ["-9223372036854775808", 0], ["9007199254740993", 1], ["-257", 255], ["+000257", 1], [" \t257\n", 1], ["0".repeat(4096) + "257", 1]] as const) {

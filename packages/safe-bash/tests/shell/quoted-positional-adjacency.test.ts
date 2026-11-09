@@ -29,6 +29,48 @@ for (const [word, expected] of [
   assert.deepEqual(JSON.parse(result.stdout), expected);
 });
 
+for (const [prefix, word, expected, argumentsSource = "a b"] of [
+  ["IFS=:", '${v:-$@}', ["a b"]],
+  ["IFS=:", '${v-$@}', ["a b"]],
+  ["IFS=:; v=set", '${v:+$@}', ["a b"]],
+  ["IFS=:; v=set", '${v+$@}', ["a b"]],
+  ["IFS=:", '${v:-${@}}', ["a b"]],
+  ["IFS=:", '${v:-${other:-$@}}', ["a b"]],
+  ["IFS=:", 'pre${v:-$@}post', ["prea bpost"]],
+  ["IFS=:", '${v:-$@}', ["a:b c:d"], "'a:b' 'c:d'"],
+  ["IFS=:", '${v:-$@}', [""], "''"],
+  ["IFS=:", '${v:-$@}', [" "], "'' ''"],
+  ["IFS=:", '${v:-$@}', [], ""],
+  ["IFS=': '", '${v:-$@}', ["a:b", "c d"], "'a:b' 'c d'"],
+  ["IFS=': '", '${v:-$@}', ["", ""], "'' ''"],
+  ["IFS=' : '", '${v:-$@}', ["a", "b", "c", "d"], "'a:b' 'c d'"],
+  ["IFS=:", '${v:-"$@"}', ["a", "b"]],
+  ["IFS=:", '"${v:-$@}"', ["a", "b"]],
+  ["IFS=:", '${v:-$*}', ["a", "b"]],
+  ["IFS=:", '$@', ["a", "b"]],
+  ["IFS=:", '${v:=$@}', ["a b"]],
+  ["IFS=':'; v=kept", '${v:-$@}', ["kept"]],
+  ["IFS=''", '${v:-$@}', ["a", "b"]],
+  ["unset IFS", '${v:-$@}', ["a", "b"]],
+] as const) test(`positional fallback field splitting: ${prefix}; ${word}`, async t => {
+  const { shell } = setup();
+  t.after(() => shell.dispose());
+  const result = await shell.exec(`unset v other; ${prefix}; set -- ${argumentsSource}; set -- ${word}; args "$@"`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(JSON.parse(result.stdout), expected);
+});
+
+test("unquoted positional fallback protects glob characters with colon IFS", async t => {
+  const { shell, fs } = setup();
+  t.after(() => shell.dispose());
+  await fs.writeFile("/match", new Uint8Array());
+  const result = await shell.exec('IFS=:; set -- "*"; args ${v:-$@}');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(JSON.parse(result.stdout), ["*"]);
+});
+
 for (const nounset of [false, true]) for (const [argumentsSource, value, alternate] of [
   ["", "none", ""],
   ['""', "", "yes"],

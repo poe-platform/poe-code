@@ -10523,10 +10523,12 @@ export class Runtime {
       } else if (part.kind === "text" && !splitText) {
         const value: ShellValue = invokedValues.get(part) ?? part.byteValue ?? part.value;
         append(value, !part.quoted, quotedPresence || shellValueByteLength(value) > 0);
-      } else if (part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultMembers && expandMembers) && !part.transform && (split || io.nameExpansionContext === "case")) {
+      } else if (part.kind === "variable" && part.name === "@" && (part.quoted || split && splitText && !part.substring && state.variables.IFS && !state.variables.IFS.startsWith(" ")) && !part.length && (!part.operator || defaultMembers && expandMembers) && !part.transform && (split || io.nameExpansionContext === "case")) {
         const members = part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
         for (let position = 0; position < members.length; position++) {
-          if (position > 0) addField();
+          // A fallback protects unquoted $@ members when IFS starts with a non-space;
+          // only the spaces joining those members are subject to field splitting.
+          if (position > 0) { if (part.quoted) addField(); else await appendSplit(" "); }
           append(members[position]!, false, true);
         }
       } else {

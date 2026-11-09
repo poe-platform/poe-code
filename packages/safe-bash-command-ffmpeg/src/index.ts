@@ -9556,9 +9556,43 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         loudnormResampling = true;
                         if (normalized.report && logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(normalized.report), context.signal);
                       } else if (trimmed === "ebur128" || trimmed.startsWith("ebur128=")) {
+                        let metadata = false;
+                        const options: string[] = [];
+                        for (const option of trimmed.slice("ebur128=".length).split(":").filter(Boolean)) {
+                          if (option.startsWith("metadata=")) {
+                            metadata = parseFilterBoolean(option.slice("metadata=".length), "ebur128: invalid metadata");
+                          } else options.push(option);
+                        }
+                        if (metadata) {
+                          const previous = audioTimestamps;
+                          const previousMetadata = audioMetadata.splice(0);
+                          audioTimestamps = [];
+                          const length = stretched[0]?.length ?? 0;
+                          const size = Math.max(1, Math.floor(origRate / 10));
+                          let inputIndex = 0;
+                          let inputStart = 0;
+                          for (let start = 0; start < length; start += size) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            while (inputStart < start) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              const packet = t.samples[inputIndex];
+                              const end = previous?.[inputIndex]?.end ?? inputStart + (packet
+                                ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024);
+                              if (end > start) break;
+                              inputStart = end;
+                              inputIndex++;
+                            }
+                            const frame = previous?.[inputIndex];
+                            const pts = frame ? frame.pts + start - frame.start : audioStartSample + start;
+                            const tags = new Map(previousMetadata[inputIndex]?.tags);
+                            budget.allocateMemory(64 + tags.size * 64);
+                            audioTimestamps.push({ start, end: Math.min(length, start + size), pts });
+                            audioMetadata.push({ pts, tags });
+                          }
+                        }
                         for await (const report of measureEbur128(stretched, origRate, filteredChannelMask,
-                          trimmed === "ebur128" ? "" : trimmed.slice("ebur128=".length), budget, logLevel, context.signal,
-                          audioTimestamps, audioStartSample)) {
+                          options.join(":"), budget, logLevel, context.signal,
+                          audioTimestamps, audioStartSample, metadata ? audioMetadata : undefined)) {
                           await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                         }
                       } else if (trimmed === "replaygain" || trimmed === "replaygain=") {

@@ -8,7 +8,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function* measureEbur128(
   channels: MediaAudioData["channelData"], sampleRate: number, channelMask: number | undefined,
   options: string, budget: MediaBudgetTracker, logLevel: number, signal?: AbortSignal,
-  timestamps?: { start: number; end: number; pts: number }[], startSample = 0
+  timestamps?: { start: number; end: number; pts: number }[], startSample = 0,
+  metadata?: { tags: Map<string, string> }[]
 ): AsyncGenerator<string> {
   signal?.throwIfAborted();
   budget.checkCpu();
@@ -16,7 +17,7 @@ export async function* measureEbur128(
   let samplePeaks = false;
   let target = -23;
   let scale = 0;
-  let frameLog = 32;
+  let frameLog = metadata ? 40 : 32;
   let dualMono = false;
   let panLaw = -3.01029995663978;
   for (const option of options ? options.split(":") : []) {
@@ -181,6 +182,26 @@ export async function* measureEbur128(
           accumulated -= window.histogram[i]!;
           if (accumulated < upperCount) { high = i / 100 - 70; break; }
         }
+      }
+    }
+    if (metadata) {
+      const tags = metadata[(frame + 1) / interval - 1]!.tags;
+      const values: [string, number][] = [
+        ["M", windows[0]!.loudness + compensation], ["S", windows[1]!.loudness + compensation], ["I", integrated],
+        ["LRA", high - low], ["LRA.low", low], ["LRA.high", high]
+      ];
+      if (samplePeaks) {
+        for (const [ch, s] of state.entries()) values.push([`sample_peaks_ch${ch}`, s.peak]);
+        values.push(["sample_peak", Math.max(...state.map(s => s.peak))]);
+      }
+      if (truePeaks) {
+        for (const [ch, s] of state.entries()) values.push([`true_peaks_ch${ch}`, s.truePeak]);
+        values.push(["true_peak", Math.max(...state.map(s => s.truePeak))]);
+      }
+      for (const [key, value] of values) {
+        const text = value.toFixed(3);
+        budget.allocateMemory(64 + 2 * (11 + key.length + text.length));
+        tags.set(`lavfi.r128.${key}`, text);
       }
     }
     while (timestamps && timestampIndex + 1 < timestamps.length && timestamps[timestampIndex]!.end <= frame) timestampIndex++;

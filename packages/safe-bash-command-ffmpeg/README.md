@@ -104,7 +104,12 @@ Numeric `peak=2` and `peak=3` also enable sample peaks; `peak=0`, `peak=1`,
 `peak=none`, and plain `ebur128` omit them. Use `peak=true` (4 or 5) for intersample true peaks or `peak=sample+true` (6 or 7)
 for both peak measurements, including the final partial interval. True peaks are
 measured at 192 kHz per channel; interval reports include FTPK and cumulative TPK.
-Video and metadata options are unsupported.
+Video output is unsupported.
+`ebur128=metadata=1` attaches `lavfi.r128.M`, `S`, `I`, `LRA`, `LRA.low`, and
+`LRA.high` tags to 100 ms audio frames, plus per-channel and overall peak tags
+when enabled. A final shorter frame retains its samples without a new measurement.
+Use `ametadata=mode=print` downstream to read tags. The final summary remains
+enabled; periodic measurement logs move to verbose level.
 `ebur128=target=-16:scale=relative` reports M/S/I relative to the target in LU;
 `target` ranges from -23 to 0 LUFS (default -23), and `scale=absolute` (default)
 keeps measurements in LUFS. Scale aliases are `LUFS`/`0` and `LU`/`1`.

@@ -103,6 +103,11 @@ export function auAst(): MediaAstPlugin {
       const result = buildProbeResultFromDoc(parseAu(bytes, { ...options, decodeAudio: false }), bytes.length, options.filename,
         { ...options, formatName: "au", formatLongName: "Sun AU" });
       const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const encoding = header.getUint32(12);
+      result.streams = result.streams.map(stream => ({ ...stream,
+        codec_tag: `0x${encoding.toString(16).padStart(4, "0")}`,
+        codec_tag_string: `[${encoding}][0][0][0]`
+      }));
       // An unknown length needs payload bytes before a sample count can be inferred.
       if (header.getUint32(8) === 0xffffffff && header.getUint32(4) === bytes.length) {
         return { ...result, streams: result.streams.map(stream => ({ ...stream, duration_ts: undefined })) };

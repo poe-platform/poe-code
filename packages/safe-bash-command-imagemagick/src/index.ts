@@ -5943,7 +5943,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
     return { end, highDepth: true, luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, transform(histogram, image) {
         const levels = histogram[0]!.length;
-        const lookup = Array.from({ length: 4 }, () => token !== "-equalize" && levels === 65536
+        const lookup = Array.from({ length: 4 }, () => levels === 65536
             ? Uint16Array.from({ length: levels }, (_, value) => value)
             : Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
         const count = Math.max(1, image.width * image.height);
@@ -6017,7 +6017,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 let cumulative = 0, bin = 0;
                 for (let value = 0; value < levels; value++) {
                     for (; bin <= value * scale; bin++) cumulative += bins[bin]!;
-                    lookup[channel]![value] = clampByteVal((cumulative - black) / (count - black) * 255);
+                    lookup[channel]![value] = Math.round((cumulative - black) / (count - black) * (levels - 1));
                 }
             }
         }

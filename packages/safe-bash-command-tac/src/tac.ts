@@ -40,7 +40,9 @@ export function createTacWithSettings(limits: StreamInspectionLimits): CommandDe
       }
       let end = size, matched = 0;
       if (parsed.flags.has("r")) {
-        const matches = reverseEmacsSteps({ kind: "bre-search", pattern: separator, profile: "byte", limits: {
+        const locale = (session.context.env.LC_ALL || session.context.env.LC_CTYPE || session.context.env.LANG || "C").toUpperCase().split("@")[0]!;
+        const utf8 = locale.endsWith("UTF-8") || locale.endsWith("UTF8");
+        const matches = reverseEmacsSteps({ kind: "bre-search", pattern: separator, profile: utf8 ? "utf8-scalar" : "byte", limits: {
           ...exprMatchCeilings, maxSubjectBytes: limits.maxInputBytes, maxSteps: Math.min(limits.maxSteps, exprMatchCeilings.maxSteps),
         } }, bytes.subarray(0, size));
         try {

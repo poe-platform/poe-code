@@ -24,14 +24,15 @@ export function* hilbertPixels(img: { width: number; height: number }): Generato
 
 /** ImageMagick Riemersma diffusion: a 16-entry weighted error queue. */
 export function* riemersmaRemapSteps(image: { width: number; height: number }, paletteImage: { width: number; height: number; hasAlpha: boolean }, highDepth: boolean, diffusionAmount: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const palette: Uint8Array[] = [], seen = new Set<number>();
+    const palette: Float64Array[] = [], seen = new Set<string>();
     for (let position = 0; position < paletteImage.width * paletteImage.height * 4; position += 4096) {
         yield;
         const length = Math.min(4096, paletteImage.width * paletteImage.height * 4 - position);
-        const bytes = (yield { kind: "read", image: 1, position, length })!;
-        for (let i = 0; i < bytes.length; i += 4) {
-            const key = bytes[i]! << 24 | bytes[i + 1]! << 16 | bytes[i + 2]! << 8 | bytes[i + 3]!;
-            if (!seen.has(key)) { seen.add(key); palette.push(bytes.slice(i, i + 4)); }
+        const bytes = (yield { kind: "read", highDepth, image: 1, position, length })!;
+        const samples = highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : Float64Array.from(bytes);
+        for (let i = 0; i < samples.length; i += 4) {
+            const color = samples.slice(i, i + 4), key = color.join(",");
+            if (!seen.has(key)) { seen.add(key); palette.push(color); }
         }
     }
     palette.sort((a, b) => remapColorOrder(b[0]!, b[1]!, b[2]!) - remapColorOrder(a[0]!, a[1]!, a[2]!));
@@ -64,7 +65,7 @@ export function* riemersmaRemapSteps(image: { width: number; height: number }, p
             errors[60 + c] = target[c]! - best[c]! * alpha;
         }
         yield highDepth
-            ? { kind: "write", highDepth: true, position, data: new Uint8Array(Uint16Array.from(best, value => value * 257).buffer) }
-            : { kind: "write", position, data: best };
+            ? { kind: "write", highDepth: true, position, data: new Uint8Array(Uint16Array.from(best, value => Math.round(value * 257)).buffer) }
+            : { kind: "write", position, data: Uint8Array.from(best, Math.round) };
     }
 }

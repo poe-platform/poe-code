@@ -13,18 +13,19 @@ export function remapColorOrder(r: number, g: number, b: number): number {
 }
 
 export async function remapStoredImage(image: StoredRgbaImage, paletteImage: StoredRgbaImage, storage: ImageByteStorage, dither: boolean, diffusionAmount: number, signal: AbortSignal): Promise<StoredRgbaImage> {
-    const palette: number[] = [], seen = new Set<number>();
+    const palette: number[][] = [], seen = new Set<string>();
     for (let offset = 0; offset < paletteImage.width * paletteImage.height * 4; offset += 4096) {
         await yieldTurn(signal);
-        const length = Math.min(4096, paletteImage.width * paletteImage.height * 4 - offset), bytes = await storage.read(paletteImage.position + offset, length, { signal });
-        if (bytes.length !== length) throw new Error("Truncated remap palette");
+        const length = Math.min(4096, paletteImage.width * paletteImage.height * 4 - offset), bytes = await storage.read((paletteImage.storedData16?.position ?? paletteImage.position) + offset * (paletteImage.storedData16 ? 2 : 1), length * (paletteImage.storedData16 ? 2 : 1), { signal });
+        if (bytes.length !== length * (paletteImage.storedData16 ? 2 : 1)) throw new Error("Truncated remap palette");
+        const samples = paletteImage.storedData16 ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : bytes;
         for (let i = 0; i < length; i += 4) {
-            const key = bytes[i]! << 24 | bytes[i + 1]! << 16 | bytes[i + 2]! << 8 | bytes[i + 3]!;
-            if (!seen.has(key)) { seen.add(key); palette.push(key); }
+            const color = Array.from(samples.subarray(i, i + 4)), key = color.join(",");
+            if (!seen.has(key)) { seen.add(key); palette.push(color); }
         }
     }
     if (!palette.length) return image;
-    palette.sort((a, b) => remapColorOrder(b >>> 24, b >>> 16 & 255, b >>> 8 & 255) - remapColorOrder(a >>> 24, a >>> 16 & 255, a >>> 8 & 255));
+    palette.sort((a, b) => remapColorOrder(b[0]!, b[1]!, b[2]!) - remapColorOrder(a[0]!, a[1]!, a[2]!));
     const count = image.width * image.height, cache = new RasterBackingCache(storage, signal);
     const errors = dither ? { position: storage.allocate(count * 16), length: count * 16 } : undefined;
     if (errors) for (let start = 0; start < count; start += 1024) {
@@ -39,7 +40,7 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
         await storage.write(errors.position + start * 16, bytes, { signal });
     }
     const position = storage.allocate(count * 4);
-    const storedData16 = image.storedData16 ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
+    const storedData16 = (image.storedData16 || paletteImage.storedData16) ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
     for (let scanned = 0; scanned < count;) {
         await yieldTurn(signal);
         const y = Math.floor(scanned / image.width), column = scanned % image.width;
@@ -48,6 +49,7 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
         const start = y * image.width + (direction === 1 ? column : image.width - column - length);
         const pixels = new Uint8Array(await storage.read(image.position + start * 4, length * 4, { signal }));
         if (pixels.length !== length * 4) throw new Error("Truncated remap pixels");
+        const samples = storedData16 ? new Uint16Array(length * 4) : undefined;
         for (let step = 0; step < length; step++) {
             const i = direction === 1 ? step : length - 1 - step;
             const current = start + i, offset = i * 4;
@@ -59,22 +61,25 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
             const alpha = paletteImage.hasAlpha ? a / 255 : 1;
             let best = palette[0]!, distance = Infinity;
             for (const color of palette) {
-                const beta = paletteImage.hasAlpha ? (color & 255) / 255 : 1;
-                const next = (r * alpha - (color >>> 24) * beta) ** 2 + (g * alpha - (color >>> 16 & 255) * beta) ** 2 + (b * alpha - (color >>> 8 & 255) * beta) ** 2 + (a - (color & 255)) ** 2;
+                const beta = paletteImage.hasAlpha ? color[3]! / 255 : 1;
+                const next = (r * alpha - color[0]! * beta) ** 2 + (g * alpha - color[1]! * beta) ** 2 + (b * alpha - color[2]! * beta) ** 2 + (a - color[3]!) ** 2;
                 if (next < distance) { best = color; distance = next; }
             }
-            pixels[offset] = best >>> 24; pixels[offset + 1] = best >>> 16 & 255; pixels[offset + 2] = best >>> 8 & 255; pixels[offset + 3] = best & 255;
+            for (let c = 0; c < 4; c++) {
+                pixels[offset + c] = Math.round(best[c]!);
+                if (samples) samples[offset + c] = Math.round(best[c]! * 257);
+            }
             if (errors) {
-                const selectedAlpha = paletteImage.hasAlpha ? (best & 255) / 255 : 1;
+                const selectedAlpha = paletteImage.hasAlpha ? best[3]! / 255 : 1;
                 const x = current % image.width, y = Math.floor(current / image.width);
                 const spread = async (nx: number, ny: number, weight: number) => {
                     if (nx < 0 || nx >= image.width || ny >= image.height) return;
                     const next = (ny * image.width + nx) * 16;
                     weight *= diffusionAmount;
-                    await cache.setFloat32(errors, next, await cache.float32(errors, next) + (r - pixels[offset]! * selectedAlpha) * weight);
-                    await cache.setFloat32(errors, next + 4, await cache.float32(errors, next + 4) + (g - pixels[offset + 1]! * selectedAlpha) * weight);
-                    await cache.setFloat32(errors, next + 8, await cache.float32(errors, next + 8) + (b - pixels[offset + 2]! * selectedAlpha) * weight);
-                    await cache.setFloat32(errors, next + 12, await cache.float32(errors, next + 12) + (a - pixels[offset + 3]!) * weight);
+                    await cache.setFloat32(errors, next, await cache.float32(errors, next) + (r - best[0]! * selectedAlpha) * weight);
+                    await cache.setFloat32(errors, next + 4, await cache.float32(errors, next + 4) + (g - best[1]! * selectedAlpha) * weight);
+                    await cache.setFloat32(errors, next + 8, await cache.float32(errors, next + 8) + (b - best[2]! * selectedAlpha) * weight);
+                    await cache.setFloat32(errors, next + 12, await cache.float32(errors, next + 12) + (a - best[3]!) * weight);
                 };
                 await spread(x + direction, y, 7 / 16);
                 await spread(x - direction, y + 1, 3 / 16);
@@ -83,8 +88,7 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
             }
         }
         await storage.write(position + start * 4, pixels, { signal });
-        if (storedData16) {
-            const samples = Uint16Array.from(pixels, value => value * 257);
+        if (storedData16 && samples) {
             await storage.write(storedData16.position + start * 8, new Uint8Array(samples.buffer), { signal });
         }
         scanned += length;

@@ -1173,15 +1173,15 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
         b: number;
         a: number;
     }> = [];
-    const seen = new Set<number>();
+    const seen = new Set<string>();
     for (let i = 0; i < palImg.data.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        const r = palImg.data[i]!;
-        const g = palImg.data[i + 1]!;
-        const b = palImg.data[i + 2]!;
-        const a = palImg.data[i + 3]!;
-        const key = (r << 24) | (g << 16) | (b << 8) | a;
+        const r = palImg.data16 ? palImg.data16[i]! / 257 : palImg.data[i]!;
+        const g = palImg.data16 ? palImg.data16[i + 1]! / 257 : palImg.data[i + 1]!;
+        const b = palImg.data16 ? palImg.data16[i + 2]! / 257 : palImg.data[i + 2]!;
+        const a = palImg.data16 ? palImg.data16[i + 3]! / 257 : palImg.data[i + 3]!;
+        const key = `${r},${g},${b},${a}`;
         if (!seen.has(key)) {
             seen.add(key);
             palette.push({ r, g, b, a });
@@ -1200,7 +1200,7 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
         for (let c = 0; c < 3; c++) buf[i + c]! *= alpha;
     }
     const out = new Uint8Array(img.data);
-    const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+    const data16 = (img.data16 || palImg.data16) ? new Uint16Array(out.length) : undefined;
     for (let y = 0; y < h; y++) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -1228,12 +1228,15 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
                     best = p;
                 }
             }
-            out[idx] = best.r;
-            out[idx + 1] = best.g;
-            out[idx + 2] = best.b;
-            out[idx + 3] = best.a;
+            out[idx] = Math.round(best.r);
+            out[idx + 1] = Math.round(best.g);
+            out[idx + 2] = Math.round(best.b);
+            out[idx + 3] = Math.round(best.a);
             if (data16) {
-                for (let c = 0; c < 4; c++) data16[idx + c] = out[idx + c]! * 257;
+                data16[idx] = Math.round(best.r * 257);
+                data16[idx + 1] = Math.round(best.g * 257);
+                data16[idx + 2] = Math.round(best.b * 257);
+                data16[idx + 3] = Math.round(best.a * 257);
             }
             if (dither) {
                 const alpha = palImg.hasAlpha ? best.a / 255 : 1;
@@ -8739,7 +8742,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return state.dither === "riemersma"
-                    ? yield* applyMagickRasterSteps(im, riemersmaRemapSteps(im, palImg, !!im.data16, state.diffusionAmount ?? 1), signal, im, [im, palImg])
+                    ? yield* applyMagickRasterSteps(im, riemersmaRemapSteps(im, palImg, !!(im.data16 || palImg.data16), state.diffusionAmount ?? 1), signal, im, [im, palImg])
                     : yield* applyMagickRemapSteps(im, palImg, state.dither !== false, state.diffusionAmount ?? 1, signal);
             });
         }
@@ -10939,7 +10942,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let n = 0; n < stack.length; n++) {
                     const image = (await stack.get(n))!;
                     await stack.set(n, settings.dither === "riemersma"
-                        ? await transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!image.storedData16, settings.diffusionAmount ?? 1), signal, image, [image, colors])
+                        ? await transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!(image.storedData16 || colors.storedData16), settings.diffusionAmount ?? 1), signal, image, [image, colors])
                         : await remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal));
                 }
                 return stack;
@@ -10957,7 +10960,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     : await parseStoredCompareInput(palette, settings, backend, signal);
                 if (!colors) throw new Error(`unable to open image '${palette}'`);
                 return settings.dither === "riemersma"
-                    ? transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!image.storedData16, settings.diffusionAmount ?? 1), signal, image, [image, colors])
+                    ? transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!(image.storedData16 || colors.storedData16), settings.diffusionAmount ?? 1), signal, image, [image, colors])
                     : remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal);
             });
         } else if (!operandsOnly && (token === "-floodfill" || token === "+floodfill")) {

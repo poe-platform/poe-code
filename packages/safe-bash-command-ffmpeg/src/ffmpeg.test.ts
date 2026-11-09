@@ -8864,7 +8864,37 @@ describe("astats", () => {
       if (control === "anull") assert.deepEqual(pcm(vfs.store.get("/out.wav")!), pcm(input));
     });
   }
-  for (const option of ["metadata=1", "reset=1", "reset=nope", "unknown=0"]) {
+  for (const [masks, expected] of [
+    ["measure_perchannel=RMS_level:measure_overall=none",
+      "Channel: 1\nRMS level dB: -17.490106\nChannel: 2\nRMS level dB: -7.268309\n"],
+    ["measure_perchannel=none:measure_overall=RMS_level",
+      "Overall\nRMS level dB: -9.884384\n"],
+    ["measure_perchannel=DC_offset+Min_level+Max_level:measure_overall=none",
+      "Channel: 1\nDC offset: 0.054689\nMin level: -4096.000000\nMax level: 8192.000000\nChannel: 2\nDC offset: -0.371105\nMin level: -16384.000000\nMax level: 512.000000\n"],
+    ["measure_perchannel=none:measure_overall=DC_offset+Min_level+Max_level",
+      "Overall\nDC offset: -0.371105\nMin level: -16384.000000\nMax level: 8192.000000\n"],
+    ["measure_perchannel=none:measure_overall=none", ""],
+    ["measure_perchannel=Peak_level+Number_of_samples:measure_overall=none",
+      "Channel: 1\nPeak level dB: -12.040935\nNumber of samples: 2048\nChannel: 2\nPeak level dB: -6.020335\nNumber of samples: 2048\n"]
+  ]) {
+    it(`honors independent measurement masks and preserves PCM: ${masks}`, async () => {
+      // Reconstruct the native comparison fixture directly in memory.
+      const channels = [new Float64Array(2048), new Float64Array(2048)];
+      for (let i = 0; i < 2048; i++) {
+        channels[0]![i] = (i < 1536 ? [8192, -4096, 0, 4096][i % 4]! : 1024) / 32768;
+        channels[1]![i] = (i < 1536 ? -16384 : 512) / 32768;
+      }
+      const input = encodeWav({ sampleRate: 8000, channels });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-hide_banner", "-nostats", "-y", "-v", "info",
+        "-i", "/in.wav", "-af", `astats=${masks}`, "-c:a", "pcm_s16le", "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, expected);
+      const pcm = (bytes: Uint8Array) => parseWav(bytes).tracks[0]!.samples.map(sample => sample.data);
+      assert.deepEqual(pcm(vfs.store.get("/out.wav")!), pcm(input));
+    });
+  }
+  for (const option of ["metadata=1", "reset=1", "reset=nope", "unknown=0", "measure_perchannel=unknown", "measure_overall=RMS_level+unknown", "measure_perchannel=", "measure_overall=RMS_level=none"]) {
     it(`rejects unsupported astats ${option} without replacing output`, async () => {
       const original = new Uint8Array([1, 2, 3]);
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(4)] }), "/out.wav": original });

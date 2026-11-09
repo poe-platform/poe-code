@@ -363,7 +363,11 @@ the peak and the bin reaching the loudest 0.1% of samples; inputs shorter than
 1000 samples have no histogram.
 `astats` (also `astats=metadata=0:reset=0`) reports per-channel and overall peak/RMS
 levels in dB and the overall sample count on stderr without changing PCM samples.
-Metadata injection, periodic resets, and other statistics options are not supported.
+`measure_perchannel` and `measure_overall` independently select `none` or a `+`-joined
+list of `DC_offset`, `Min_level`, `Max_level`, `Peak_level`, `RMS_level`, and
+`Number_of_samples`. For example, `astats=measure_perchannel=RMS_level:measure_overall=none`
+reports only channel RMS levels. Metadata injection, periodic resets, and other
+statistics options are not supported.
 `crystalizer=i=2` sharpens changes between successive samples independently per channel.
 Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
 Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.

@@ -9468,10 +9468,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
+                        let perChannel = new Set(["Peak_level", "RMS_level"]);
+                        let overall = new Set(["Peak_level", "RMS_level", "Number_of_samples"]);
+                        const supported = ["DC_offset", "Min_level", "Max_level", "Peak_level", "RMS_level", "Number_of_samples"];
                         if (trimmed.startsWith("astats=")) {
                           for (const option of trimmed.slice("astats=".length).split(":")) {
                             const [key, value, extra] = option.split("=");
-                            if ((key !== "metadata" && key !== "reset") || value !== "0" || extra !== undefined) {
+                            if ((key === "measure_perchannel" || key === "measure_overall") && value !== undefined && extra === undefined) {
+                              const metrics = value === "none" ? [] : value.split("+");
+                              if (metrics.some(metric => !supported.includes(metric))) {
+                                throw new Error(`astats: unsupported option ${option}`);
+                              }
+                              if (key === "measure_perchannel") perChannel = new Set(metrics);
+                              else overall = new Set(metrics);
+                            } else if ((key !== "metadata" && key !== "reset") || value !== "0" || extra !== undefined) {
                               throw new Error(`astats: unsupported option ${option}`);
                             }
                           }
@@ -9479,23 +9489,49 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let totalSquares = 0;
                         let totalCount = 0;
                         let overallPeak = 0;
+                        let overallDc = 0;
+                        let overallMin = Infinity;
+                        let overallMax = -Infinity;
                         let report = "";
                         const db = (power: number) => power === 0 ? "-inf" : (10 * Math.log10(power)).toFixed(6);
+                        // Min/max retain native integer units until a filter promotes samples to float.
+                        const levelScale = statsScale === 32768 / 32767 ? 32768
+                          : statsScale === 2147483648 / 2147483647 ? 2147483648 : 1;
+                        const measurements = (mask: Set<string>, dc: number, min: number, max: number, peak: number, squares: number, count: number, samples: number) => {
+                          let result = "";
+                          if (mask.has("DC_offset")) result += `DC offset: ${dc.toFixed(6)}\n`;
+                          if (mask.has("Min_level")) result += `Min level: ${min.toFixed(6)}\n`;
+                          if (mask.has("Max_level")) result += `Max level: ${max.toFixed(6)}\n`;
+                          if (mask.has("Peak_level")) result += `Peak level dB: ${db(peak * peak)}\n`;
+                          if (mask.has("RMS_level")) result += `RMS level dB: ${db(squares / count)}\n`;
+                          if (mask.has("Number_of_samples")) result += `Number of samples: ${samples}\n`;
+                          return result;
+                        };
                         for (const [index, channel] of stretched.entries()) {
                           let squares = 0;
                           let peak = 0;
+                          let sum = 0;
+                          let min = Infinity;
+                          let max = -Infinity;
                           for (const value of channel) {
                             if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             const sample = value * statsScale;
                             squares += sample * sample;
+                            sum += sample;
+                            min = Math.min(min, value * levelScale);
+                            max = Math.max(max, value * levelScale);
                             peak = Math.max(peak, Math.abs(sample));
                           }
-                          report += `Channel: ${index + 1}\nPeak level dB: ${db(peak * peak)}\nRMS level dB: ${db(squares / channel.length)}\n`;
+                          const dc = sum / channel.length;
+                          if (perChannel.size) report += `Channel: ${index + 1}\n${measurements(perChannel, dc, min, max, peak, squares, channel.length, channel.length)}`;
                           totalSquares += squares;
                           totalCount += channel.length;
                           overallPeak = Math.max(overallPeak, peak);
+                          if (Math.abs(dc) > Math.abs(overallDc)) overallDc = dc;
+                          overallMin = Math.min(overallMin, min);
+                          overallMax = Math.max(overallMax, max);
                         }
-                        report += `Overall\nPeak level dB: ${db(overallPeak * overallPeak)}\nRMS level dB: ${db(totalSquares / totalCount)}\nNumber of samples: ${totalCount / stretched.length}\n`;
+                        if (overall.size) report += `Overall\n${measurements(overall, overallDc, overallMin, overallMax, overallPeak, totalSquares, totalCount, totalCount / stretched.length)}`;
                         await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "loudnorm" || trimmed.startsWith("loudnorm=")) {
                         const normalized = await normalizeLoudness(stretched, origRate,

@@ -59,6 +59,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else if (name === "lt" && args.length === 2) value = Number(args[0]! < args[1]!);
         else if (name === "if" && args.length === 3) value = args[0] !== 0 ? args[1]! : args[2]!;
         else if (name === "gt" && args.length === 2) value = Number(args[0]! > args[1]!);
+        else if (name === "pow" && args.length === 2) value = Math.pow(args[0]!, args[1]!);
         else if (name === "mod" && args.length === 2) value = args[0]! - Math.floor(args[0]! / args[1]!) * args[1]!;
         else if (name === "min" && args.length === 2) value = Math.min(args[0]!, args[1]!);
         else if (name === "max" && args.length === 2) value = Math.max(args[0]!, args[1]!);
@@ -85,12 +86,12 @@ export function parseFilterExpression(expression: string, filter: string, variab
         while (source[end] && source[end]! >= "0" && source[end]! <= "9") end++;
         if (end > digits) offset = end;
       }
-      value = sign * Number(source.slice(start, offset));
-      sign = 1;
+      value = Number(source.slice(start, offset));
       if (Number.isNaN(value)) throw new Error(`${filter}: invalid or unsupported expression`);
       // The dB suffix belongs to the signed numeric literal, not the expression.
       if (source.startsWith("dB", offset)) {
-        value = 10 ** (value / 20);
+        value = 10 ** (sign * value / 20);
+        sign = 1;
         offset += 2;
       } else {
         const exponents: Record<string, number> = { y: -24, z: -21, a: -18, f: -15, p: -12, n: -9, u: -6, m: -3, c: -2, d: -1, h: 2, k: 3, K: 3, M: 6, G: 9, T: 12, P: 15, E: 18, Z: 21, Y: 24 };
@@ -107,6 +108,13 @@ export function parseFilterExpression(expression: string, filter: string, variab
           offset++;
         }
       }
+    }
+    // FFmpeg groups powers left to right, before the leading sign.
+    while (minPrecedence <= 3) {
+      while (source[offset] === " ") offset++;
+      if (source[offset] !== "^") break;
+      offset++;
+      value = Math.pow(value, parse(4, depth + 1));
     }
     value *= sign;
     for (;;) {

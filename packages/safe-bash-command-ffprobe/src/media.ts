@@ -350,6 +350,13 @@ type FormatStep = ProbeOutputPart | {
   render: (row: unknown, index: number) => Iterable<ProbeOutputPart>;
 };
 
+function parseStreamId(value: string): number | undefined {
+  const unsigned = value[0] === "+" || value[0] === "-" ? value.slice(1) : value;
+  const id = parseStreamOrdinal(unsigned);
+  if (id === undefined || !Number.isSafeInteger(id)) return undefined;
+  return value[0] === "-" ? -id : id;
+}
+
 function createStreamSelector(selectStreams: string | undefined, programs: ProbeSourceRows["programs"]) {
   let spec = selectStreams ?? "";
   const types: string[] = [];
@@ -363,6 +370,8 @@ function createStreamSelector(selectStreams: string | undefined, programs: Probe
     ? new Set(programs?.filter(program => program.program_id === parseStreamOrdinal(spec.slice(spec[2] === "+" ? 3 : 2)))
       .flatMap(program => program.streams.map(stream => stream.index)))
     : undefined;
+  const streamId = spec.startsWith("i:") ? parseStreamId(spec.slice(2))
+    : spec.startsWith("#") ? parseStreamId(spec.slice(1)) : undefined;
   let typeOrdinal = 0;
   return (stream: MediaProbeSourceStream): boolean => {
     if (types.some(type => stream.codec_type !== type)) return false;
@@ -376,10 +385,7 @@ function createStreamSelector(selectStreams: string | undefined, programs: Probe
         if (stream.codec_type === "video" && (!stream.width || !stream.height
           || !stream.pix_fmt || stream.pix_fmt === "unknown")) return false;
       }
-      if (spec.startsWith("i:") || spec.startsWith("#")) {
-        const id = Number(spec.slice(spec[0] === "#" ? 1 : 2));
-        if (stream.id === undefined || Number(stream.id) !== id) return false;
-      }
+      if (streamId !== undefined && (stream.id === undefined || Number(stream.id) !== streamId)) return false;
       if (spec.startsWith("m:")) {
         const [key, ...value] = spec.slice(2).split(":");
         const tag = Object.entries(stream.tags ?? {}).find(([name]) => name.toLowerCase() === key!.toLowerCase());
@@ -1014,10 +1020,7 @@ function parseProbeArguments(args: readonly string[]) {
     const numeric = parseStreamOrdinal(index) !== undefined;
     const id = spec.startsWith("i:") ? spec.slice(2)
       : spec.startsWith("#") ? spec.slice(1) : "";
-    const hex = id.toLowerCase().startsWith("0x");
-    const digits = hex ? id.slice(2).toLowerCase() : id;
-    const validId = digits.length > 0 && [...digits].every(c =>
-      c >= "0" && c <= "9" || hex && c >= "a" && c <= "f") && Number.isSafeInteger(Number(id));
+    const validId = parseStreamId(id) !== undefined;
     const valid = selectStreams === "u" || spec === "" || kind === "m" && parts.length > 0
       || ["v", "V", "a", "s", "d", "t"].includes(kind!) && parts.length === 0
       || kind === "p" && parts.length === 1 && parseStreamOrdinal(index.startsWith("+") ? index.slice(1) : index) !== undefined

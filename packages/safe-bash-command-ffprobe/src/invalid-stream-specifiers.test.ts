@@ -4,7 +4,7 @@ import { MemoryFileSystem } from '@poe-code/safe-fs/core';
 import { createCommandArguments } from 'safe-bash-contracts/command';
 import { createFfprobeCommand } from './index.js';
 
-it.each(['a:m', 'a:i:', 'a:i:1junk', 'a:#0xgg', 'a:a:0:1', 'a:0:m:title:Bob', 'p:', 'p:banana', 'p:101junk', 'p:-1', 'p:1.5', 'p:999', 'i:', '#', 'i:0x', '#0xgg', 'i:77junk', 'i:77:1', 'i:-1', 'i:1.5', 'i:1e2', 'i:0b11', 'a:banana', 'bad', 'v:banana', 'a:0junk', 'a:1junk', 'a::', 'a:0:1', 'a:-1', 'a:1.5', 's:banana', 'd:', 'd:banana', 'd:0junk', 'd:0:1', 'd:-1', 'd:1.5', 'v', 'a:1', '99', 'a:0', 's:0'])('validates stream selector %s before publishing packets', async selector => {
+it.each(['a:m', 'a:i:', 'a:i:1junk', 'a:#0xgg', 'a:a:0:1', 'a:0:m:title:Bob', 'p:', 'p:banana', 'p:101junk', 'p:-1', 'p:1.5', 'p:999', 'i:', '#', 'i:0x', '#0xgg', 'i:77junk', 'i:77:1', 'i:-1', '#-1', 'i:+257', '#08', 'i:08', '#+08', 'i:-08', '#+', 'i:-', '#++1', 'i:--1', '#+-1', 'i:0o401', 'i:1.5', 'i:1e2', 'i:0b11', 'a:banana', 'bad', 'v:banana', 'a:0junk', 'a:1junk', 'a::', 'a:0:1', 'a:-1', 'a:1.5', 's:banana', 'd:', 'd:banana', 'd:0junk', 'd:0:1', 'd:-1', 'd:1.5', 'v', 'a:1', '99', 'a:0', 's:0'])('validates stream selector %s before publishing packets', async selector => {
   const fs = new MemoryFileSystem();
   await fs.writeFile('/input.wav', encodeWav({ sampleRate: 8000, channels: [new Float64Array(16)] }));
   let stdout = '', stderr = '';
@@ -16,7 +16,7 @@ it.each(['a:m', 'a:i:', 'a:i:1junk', 'a:#0xgg', 'a:a:0:1', 'a:0:m:title:Bob', 'p
     stdout: { async write(chunk) { stdout += new TextDecoder().decode(chunk); } },
     stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } }
   });
-  if (['d:', 'p:999', 'v', 'a:1', '99', 'a:0', 's:0'].includes(selector)) {
+  if (['i:-1', '#-1', 'i:+257', 'd:', 'p:999', 'v', 'a:1', '99', 'a:0', 's:0'].includes(selector)) {
     expect(result.exitCode).toBe(0);
     expect(stderr).toBe('');
     expect(JSON.parse(stdout).packets).toEqual(selector === 'a:0' ? [{ size: '32' }] : []);

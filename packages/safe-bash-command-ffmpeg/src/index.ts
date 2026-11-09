@@ -5033,6 +5033,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let surroundMixLevel: number | undefined;
         let lfeMixLevel: number | undefined;
         let segmentTime = 2;
+        let segmentStartNumber = 0;
         let minSegmentDuration = 0;
         let segmentWrap = 0;
         let segmentTimes: number[] | undefined;
@@ -5307,6 +5308,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (!["passthrough", "cfr", "vfr", "auto", "drop"].includes(videoSync)) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -fps_mode: ${videoSync}\n`), context.signal);
               return { exitCode: 234 };
+            }
+          } else if (arg === "-segment_start_number") {
+            const value = args[++i];
+            segmentStartNumber = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(segmentStartNumber) || segmentStartNumber < 0 || segmentStartNumber > 2147483647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -segment_start_number requires an integer from 0 to 2147483647\n"), context.signal);
+              return { exitCode: 1 };
             }
           } else if (arg === "-segment_time") {
             const value = args[++i];
@@ -9764,7 +9772,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               boundaries.push(workingDoc.durationSeconds);
               const paths = boundaries.slice(1).map((_, index) =>
-                resolvePath(context.cwd, formatImageSequence(outputTarget, segmentWrap ? index % segmentWrap : index)!));
+                resolvePath(context.cwd, formatImageSequence(outputTarget,
+                  segmentWrap ? (segmentStartNumber + index) % segmentWrap : segmentStartNumber + index)!));
               const listPath = segmentList === undefined ? undefined : resolvePath(context.cwd, segmentList);
               if (listPath !== undefined && paths.includes(listPath)) throw new Error("Segment output filenames collide");
               const destinations = new Set(listPath === undefined ? paths : [...paths, listPath]);

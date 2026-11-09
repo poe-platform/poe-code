@@ -475,7 +475,8 @@ export function serializeMpegTs(
     pts90k: number,
     dts90k: number,
     esPayload: Uint8Array,
-    withPcr: boolean
+    withPcr: boolean,
+    isKeyframe: boolean
   ) => {
     const hasDts = Math.abs(pts90k - dts90k) > 0;
     const headerDataLen = hasDts ? 10 : 5;
@@ -506,10 +507,11 @@ export function serializeMpegTs(
 
       const remaining = fullPes.byteLength - offset;
       const needPcr = first && withPcr;
-      const minAdaptation = needPcr ? 8 : 0; // 1 length byte + 1 flags byte + 6 PCR bytes
+      const randomAccess = first && isKeyframe && !options.mpegtsOmitRai;
+      const minAdaptation = needPcr ? 8 : randomAccess ? 2 : 0; // 1 length byte + 1 flags byte + 6 PCR bytes
       const maxPayloadWithMinAdapt = 184 - minAdaptation;
 
-      if (remaining < maxPayloadWithMinAdapt || needPcr) {
+      if (remaining < maxPayloadWithMinAdapt || minAdaptation > 0) {
         const payloadToTake = Math.min(remaining, maxPayloadWithMinAdapt);
         const totalAdaptBytes = 184 - payloadToTake;
         pkt[3] = 0x30 | nextCc(pid); // adaptation + payload
@@ -517,7 +519,7 @@ export function serializeMpegTs(
         pkt[4] = adaptFieldLen;
         if (adaptFieldLen >= 1) {
           if (needPcr && adaptFieldLen >= 7) {
-            pkt[5] = 0x50; // random_access_indicator (0x40) + PCR_flag (0x10)
+            pkt[5] = 0x10 | (randomAccess ? 0x40 : 0);
             const pcrBase = Math.max(0, Math.floor(dts90k));
             pkt[6] = (pcrBase / 33554432) & 0xff;
             pkt[7] = (pcrBase >>> 17) & 0xff;
@@ -526,7 +528,7 @@ export function serializeMpegTs(
             pkt[10] = ((pcrBase & 1) << 7) | 0x7e;
             pkt[11] = 0x00;
           } else {
-            pkt[5] = first ? 0x40 : 0x00;
+            pkt[5] = randomAccess ? 0x40 : 0;
           }
         }
         const payloadPos = 4 + totalAdaptBytes;
@@ -665,7 +667,8 @@ export function serializeMpegTs(
         pts90k,
         dts90k,
         concatBytes([audNalu, annexB]),
-        s.isKeyframe || i === 0
+        s.isKeyframe || i === 0,
+        s.isKeyframe
       );
     }
   }
@@ -701,7 +704,7 @@ export function serializeMpegTs(
         s.data.byteLength >= 7 && s.data[0] === 0xff && (s.data[1]! & 0xf0) === 0xf0
           ? s.data
           : wrapAdtsFrame(s.data, sampleRate, channels));
-      emitPesPackets(audioPid, 0xc0, pts90k, pts90k, frame, !videoTrack);
+      emitPesPackets(audioPid, 0xc0, pts90k, pts90k, frame, !videoTrack, s.isKeyframe);
     }
   }
 

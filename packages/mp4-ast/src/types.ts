@@ -710,6 +710,8 @@ export interface SerializeMediaOptions {
   readonly mpegtsServiceType?: number | undefined;
   /** MPEG-TS: use LOAS/LATM AAC framing and stream type 0x11 instead of ADTS. */
   readonly mpegtsLatm?: boolean | undefined;
+  /** MPEG-TS: suppress random access indicators without suppressing PCR. */
+  readonly mpegtsOmitRai?: boolean | undefined;
   /** Matroska: write CRC-32 children in level-one elements (default: true); ignored for WebM. */
   readonly writeCrc32?: boolean | undefined;
   /** Matroska/WebM live output: unknown Segment size, no Duration or Cues. */

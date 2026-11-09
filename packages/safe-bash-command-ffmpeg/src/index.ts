@@ -4194,8 +4194,8 @@ function parseMpegtsServiceType(value: string): number {
   return type;
 }
 
-function parseMpegtsLatm(value: string, current: boolean): boolean {
-  let enabled = value.startsWith("+") || value.startsWith("-") ? current : false;
+function parseMpegtsFlags(value: string, current: number): number {
+  let enabled = value.startsWith("+") || value.startsWith("-") ? current : 0;
   if (!value) throw new Error("Missing -mpegts_flags value");
   let position = 0;
   while (position < value.length) {
@@ -4204,8 +4204,11 @@ function parseMpegtsLatm(value: string, current: boolean): boolean {
     const start = position;
     while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
     const flag = value.slice(start, position);
-    if (flag === "latm" || flag === "8") enabled = !remove;
-    else if (flag !== "0") throw new Error(`Unsupported -mpegts_flags value: ${flag}`);
+    const bits = flag === "latm" ? 8 : flag === "omit_rai" ? 64 : Number(flag);
+    if (!flag || !Number.isInteger(bits) || bits < 0 || bits > 72 || (bits & ~72) !== 0) {
+      throw new Error(`Unsupported -mpegts_flags value: ${flag}`);
+    }
+    enabled = remove ? enabled & ~bits : enabled | bits;
   }
   return enabled;
 }
@@ -4335,7 +4338,7 @@ export function evalSyncFfmpeg(
     let skipTrailer = false;
     let defaultBaseMoof = false;
     let segmentIndex: "global" | "fragment" | undefined;
-    let mpegtsLatm = false;
+    let mpegtsFlags = 0;
     let mpegtsTablesVersion: number | undefined;
     let mpegtsServiceType: number | undefined;
     let fragmented = false;
@@ -4810,7 +4813,7 @@ export function evalSyncFfmpeg(
       } else if (arg === "-mpegts_service_type") {
         mpegtsServiceType = parseMpegtsServiceType(args[++i] ?? "");
       } else if (arg === "-mpegts_flags") {
-        mpegtsLatm = parseMpegtsLatm(args[++i] ?? "", mpegtsLatm);
+        mpegtsFlags = parseMpegtsFlags(args[++i] ?? "", mpegtsFlags);
       } else if (arg === "-movflags") {
         const flags = args[++i] ?? "";
         validateMovflags(flags);
@@ -5103,7 +5106,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { mpegtsTablesVersion, mpegtsServiceType, mpegtsLatm, live, writeHeader, writeBext, writeCrc32, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeApetag, writeId3v2, writeMpeg2, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { mpegtsTablesVersion, mpegtsServiceType, mpegtsLatm: !!(mpegtsFlags & 8), mpegtsOmitRai: !!(mpegtsFlags & 64), live, writeHeader, writeBext, writeCrc32, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeApetag, writeId3v2, writeMpeg2, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -5565,7 +5568,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let skipTrailer = false;
         let defaultBaseMoof = false;
         let segmentIndex: "global" | "fragment" | undefined;
-        let mpegtsLatm = false;
+        let mpegtsFlags = 0;
         let mpegtsTablesVersion: number | undefined;
         let mpegtsServiceType: number | undefined;
         let fragmented = false;
@@ -6884,7 +6887,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-mpegts_flags") {
             try {
-              mpegtsLatm = parseMpegtsLatm(args[++i] ?? "", mpegtsLatm);
+              mpegtsFlags = parseMpegtsFlags(args[++i] ?? "", mpegtsFlags);
             } catch (error) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
@@ -11450,7 +11453,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               segmentIndex,
               mpegtsTablesVersion,
               mpegtsServiceType,
-              mpegtsLatm,
+              mpegtsLatm: !!(mpegtsFlags & 8),
+              mpegtsOmitRai: !!(mpegtsFlags & 64),
               fragmented,
               fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined),
               fragmentEveryFrame,

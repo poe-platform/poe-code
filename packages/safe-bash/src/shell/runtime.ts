@@ -9958,7 +9958,7 @@ export class Runtime {
         this.requireParameter(value, part.name, state, io, part.line);
         return this.parameterPattern(part, retained ?? "", state, io, hereString);
       }
-      const missing = value === undefined || (part.operator.startsWith(":") && value === "");
+      const missing = value === undefined || ((part.name === "@" || part.name === "*") && state.positional.length === 0) || (part.operator.startsWith(":") && value === "");
       const operator = part.operator.at(-1)!;
       if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
         const operandIO = this.parameterOperandIO(part.alternate!, state, io);

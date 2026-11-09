@@ -1014,6 +1014,7 @@ function assertSource7Discovery(files) {
   ]) assert.ok(files.includes(path), "opt-in array keys test is missing: " + path);
   assert.ok(files.includes("tests/shell/extensions/arrays/indexed-element-operators.test.ts"), "opt-in literal indexed element operators test is missing");
   assert.ok(files.includes("tests/shell/array-parameter-operators.test.ts"), "default array parameter operators test is missing");
+  assert.ok(files.includes("tests/shell/quoted-positional-adjacency.test.ts"), "quoted positional expansion test is missing");
   for (const path of [
     "tests/shell/extensions/arrays/readonly-indexed-review.test.ts",
     "tests/shell/extensions/arrays/readonly-indexed-independent.test.ts",

@@ -2,6 +2,19 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
 
+for (const nounset of [false, true]) for (const [argumentsSource, value, alternate] of [
+  ["", "none", ""],
+  ['""', "", "yes"],
+  ['"value"', "value", "yes"],
+] as const) test(`positional default operators distinguish unset from empty: nounset=${nounset}, set -- ${argumentsSource}`, async t => {
+  const { shell } = setup();
+  t.after(() => shell.dispose());
+  const result = await shell.exec(`${nounset ? "set -u;" : ""} s=none; set -- ${argumentsSource}; args "\${*-$s}|\${*+yes}|\${@+yes}" "\${*-$s}" "\${*+yes}" "\${@+yes}"; say end`);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, `${JSON.stringify([`${value}|${alternate}|${alternate}`, value, alternate, alternate])}end\n`);
+});
+
 for (const word of ['"$@""$@"', '"$@$@"', '"${@}${@}"', '"$@""$@""$@"']) {
   test(`empty adjacent positional expansions disappear: ${word}`, async () => {
     const { shell, fs } = setup();

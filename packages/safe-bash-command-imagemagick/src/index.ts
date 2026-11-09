@@ -6760,11 +6760,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     } else if (token === "-threshold") {
         highDepth = true;
-        const raw = tokens[++i] ?? "", threshold = raw.endsWith("%") ? raw.slice(0, -1) : raw;
-        if (!Number.isFinite(Number(threshold)) || Number.parseFloat(threshold) !== Number(threshold)) {
-            throw new Error(`invalid argument '-threshold' '${raw}'`);
-        }
-        const value = raw.endsWith("%") ? Number(threshold) / 100 * 65535 : Number(threshold);
+        const raw = tokens[++i] ?? "";
+        const fields = raw.split("x");
+        const thresholds = fields.map(field => {
+            const threshold = field.endsWith("%") ? field.slice(0, -1) : field;
+            if (!Number.isFinite(Number(threshold)) || Number.parseFloat(threshold) !== Number(threshold)) {
+                throw new Error(`invalid argument '-threshold' '${raw}'`);
+            }
+            return field.endsWith("%") ? Number(threshold) / 100 * 65535 : Number(threshold);
+        });
+        const value = thresholds[0]!;
         const channels = state.channelExplicit ? state.channels : undefined;
         apply = function* (image) {
             const out = new Uint8Array(image.data);

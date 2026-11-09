@@ -25325,7 +25325,7 @@ const syncExtraRuntimeMethods = {
     if (linesToRead === undefined) return undefined;
     const tokens: string[] = [];
     for (const line of linesToRead) {
-      for (const t of line.split(/[ \t\r\n\f\v]+/)) {
+      for (const t of line.split(/[ \t\n]+/)) {
         if (t.length > 0) tokens.push(t);
       }
     }

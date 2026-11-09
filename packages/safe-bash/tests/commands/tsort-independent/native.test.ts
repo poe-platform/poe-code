@@ -1,3 +1,4 @@
+import "../../../src/shell/sync-extra-evaluators.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell } from "../../../src/shell/shell.js";
@@ -5,6 +6,40 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { printfCommand } from "../../../src/commands/basic.js";
 import { tsortCommands } from "../../../src/commands/tsort/index.js";
 import { nativeCases } from "./native-cases.js";
+
+for (const fixture of [
+  { name: "LF pairs", input: "a b\nb c\n", output: "a\nb\nc" },
+  { name: "space and tab separators", input: " \ta\tb \n\tb\tc\t\n", output: "a\nb\nc" },
+  { name: "CRLF pairs", input: "a b\r\nb c\r\n", output: "a\nb\nb\r\nc\r" },
+  { name: "vertical tab and form feed in names", input: "a\vb c\fd\n", output: "a\vb\nc\fd" },
+  ...["\r", "\v", "\f"].map(separator => ({
+    name: `odd token with ${JSON.stringify(separator)}`,
+    input: `a${separator}b\n`,
+    output: "",
+    odd: true,
+  })),
+]) {
+  for (const command of ["tsort input", "tsort < input", "tsort - < input"]) {
+    for (const saved of [false, true]) {
+      test(`tsort substitution preserves tokens: ${fixture.name}, ${command}, saved=${saved}`, async () => {
+        const fs = new MemoryFileSystem();
+        await fs.mkdir("/work");
+        await fs.writeFile("/work/input", Buffer.from(fixture.input));
+        const shell = new Shell({ fs, cwd: "/work", env: { LC_ALL: "C" } }).use(tsortCommands());
+        shell.commands.register(printfCommand);
+        const source = `value=$(${command}); status=$?; printf '%s:[%s]' "$status" "$value"; exit "$status"`;
+        if (saved) await fs.writeFile("/work/order.sh", Buffer.from(source));
+        try {
+          const result = await shell.exec(saved ? "sh order.sh" : source);
+          const status = "odd" in fixture ? 1 : 0;
+          assert.equal(result.exitCode, status);
+          assert.equal(result.stdout, `${status}:[${fixture.output}]`);
+          assert.equal(result.stderr, status === 0 ? "" : `tsort: ${command === "tsort input" ? "input" : "-"}: input contains an odd number of tokens\n`);
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
 
 for (const shadowed of [false, true]) {
   test(`tsort follows a VFS null-device symlink without reading stdin or backing shadow, shadowed=${shadowed}`, async () => {

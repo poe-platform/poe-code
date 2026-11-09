@@ -5145,7 +5145,9 @@ export class Runtime {
           status = await evaluateConditional(command.expression, {
             shellPredicates: { descriptorStat: async number => {
               const descriptor = io.descriptors?.get(number);
-              return descriptor?.closed ? undefined : descriptor?.file?.stat({ signal: this.signal });
+              if (!descriptor || descriptor.closed) return undefined;
+              if (!descriptor.file) throw new FsError("ENOTSUP", { message: "descriptor metadata is unavailable" });
+              return descriptor.file.stat({ signal: this.signal });
             } },
             fs: this.fs, cwd: state.cwd, signal: this.signal, predicateIdentity: io.capabilities?.predicateIdentity, reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false, locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C", characterLocale: state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C", ignoreCase: !!state.nocasematch, extglob: true, work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation }, expand: async (word, pattern = false) => {
               const fast = !pattern ? this.fastValueWord(word, state, { ...io, nameExpansionContext: "conditional" }, false, false, false, false) : undefined;
@@ -6394,7 +6396,9 @@ export class Runtime {
             return false;
           }, terminal: () => false, descriptorStat: async number => {
             const descriptor = io.descriptors?.get(number);
-            return descriptor?.closed ? undefined : descriptor?.file?.stat({ signal: getScopedSignal() });
+            if (!descriptor || descriptor.closed) return undefined;
+            if (!descriptor.file) throw new FsError("ENOTSUP", { message: "descriptor metadata is unavailable" });
+            return descriptor.file.stat({ signal: getScopedSignal() });
           } };
         variablePresence.set(cachedPredicates, name => this.variablePresent(state, name, io));
       }

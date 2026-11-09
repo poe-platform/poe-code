@@ -116,6 +116,27 @@ test("conditional file predicates preserve short circuiting", async () => {
 for (const [command, closing] of [["[[", " ]]"], ["test", ""], ["[", " ]"]] as const) {
   const expression = (operand: string) => `${command} ${operand}${closing}`;
 
+  test(`${command} refuses metadata comparisons for open streams`, async t => {
+    const { fs, shell } = setup();
+    t.after(() => shell.dispose());
+    for (const definition of predicateCommands()) shell.commands.register(definition);
+    await fs.writeFile("/sample", new Uint8Array([1]));
+    for (const redirect of ["", "3<<<data", "3<&0", "3>&1"]) {
+      const path = redirect ? "/dev/fd/3" : "/dev/stdin";
+      for (const operator of ["-ef", "-nt", "-ot"]) {
+        for (const operand of [`${path} ${operator} sample`, `sample ${operator} ${path}`]) {
+          const source = `${expression(operand)} ${redirect}`;
+          const result = await shell.exec(source);
+          assert.equal(result.exitCode, command === "[[" ? 2 : 1, source);
+          assert.ok(result.stderr.includes(command === "[[" ? "unsupported conditional profile" : "descriptor metadata is unavailable"), source);
+        }
+      }
+    }
+    const pipeline = await shell.exec(`say data | ${expression("sample -nt /dev/stdin")}`);
+    assert.equal(pipeline.exitCode, command === "[[" ? 2 : 1);
+    assert.ok(pipeline.stderr.includes(command === "[[" ? "unsupported conditional profile" : "descriptor metadata is unavailable"));
+  });
+
   test(`${command} compares virtual descriptor identity and modification times`, async t => {
     const { fs, shell } = setup();
     t.after(() => shell.dispose());

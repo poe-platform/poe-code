@@ -220,8 +220,8 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   evaluate denied access as false, and `-N` compares modification and access times.
   Metadata predicates such as `-e`, `-f`, `-s` and `-ef` inspect open virtual files
   through `/dev/fd/N`, `/dev/stdin`, `/dev/stdout` and `/dev/stderr` without
-  consuming input. Closed descriptors and streams without file metadata test
-  false; descriptors remain nonterminal.
+  consuming input. Closed descriptors follow missing-file rules; open streams
+  without file metadata report an unsupported capability. Descriptors remain nonterminal.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
   runs a script in the current shell. `source -p path file [arguments]` (also `. -p`)
   searches a colon-separated path for that call without changing `PATH` or falling

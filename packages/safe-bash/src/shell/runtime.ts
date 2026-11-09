@@ -6086,6 +6086,11 @@ export class Runtime {
             }
           }
         }
+        if (functionCommand) {
+          // Append uses the outer value's attributes before creating the temporary binding.
+          if (assignment.append) value = await this.attributeValue(state, assignment.name, value, io);
+          state.variableAttributes?.delete(assignment.name);
+        }
         await this.writeVariable(state, assignment.name, value, io);
         if (words.length) state.exported.add(assignment.name);
       }};

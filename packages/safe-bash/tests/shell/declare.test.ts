@@ -7,6 +7,37 @@ import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { Shell } from "../../src/shell/shell.js";
 
+for (const extensions of [[], [arraysExtension()]]) {
+  for (const [flag, initial, value, outer, direct, appended] of [
+    ["i", "7", "2+3", "7", "5", "12"],
+    ["u", "old", "mIx", "OLD", "MIX", "OLDMIX"],
+    ["l", "OLD", "mIx", "old", "mix", "oldmix"],
+  ]) {
+    test(`function prefix shadows -${flag} assignment attributes (arrays=${extensions.length})`, async t => {
+      const { shell, commands } = setup({ extensions });
+      for (const command of basicCommands()) commands.register(command);
+      t.after(() => shell.dispose());
+      const result = await shell.exec(`declare -${flag} x=${initial};
+        g() { declare -p x; x=${value}; declare -p x; };
+        f() { declare -p x; x=${value}; declare -p x; x=nested g; declare -p x; };
+        x=${value} f; declare -p x;
+        h() { declare -p x; x=${value}; declare -p x; return 3; };
+        x+=${value} h; printf '%s\\n' "$?"; declare -p x;
+        x=${value}; declare -p x`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, [
+        `declare -x x="${value}"`, `declare -x x="${value}"`,
+        'declare -x x="nested"', `declare -x x="${value}"`,
+        `declare -x x="${value}"`, `declare -${flag} x="${outer}"`,
+        `declare -x x="${appended}"`, `declare -x x="${value}"`, "3",
+        `declare -${flag} x="${outer}"`,
+        `declare -${flag} x="${direct}"`, "",
+      ].join("\n"));
+    });
+  }
+}
+
 for (const middleware of [false, true]) for (const [source, stdout, exitCode] of [
   ['set -a; { say() { echo called; }; }; set +a; bash -c say', 'called\n', 0],
   ['set -o allexport; { say() { echo called; }; }; set +o allexport; bash -c "bash -c say"', 'called\n', 0],

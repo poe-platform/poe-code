@@ -32,7 +32,7 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
                 stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
             }) : mode === "sync" ? runMagickCliSync(argv, files)
                 : await runMagickCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
-            expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+            expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(0);
             const output = decodeImage(mode === "command" || mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
             expect(output.virtualCanvas).toEqual({ width: 10, height: 9, x, y });
             expect([output.width, output.height]).toEqual([4, 3]);

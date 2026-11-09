@@ -62,11 +62,16 @@ test("split uses finite filesystem reads with unlimited default chunks", async (
 for (const [option, start] of [["numeric", "99"], ["hex", "ff"]]) {
  test(`split matches GNU 9.12 fixed chunk suffix width with ${option} start`, () => {
   const parsed = parseArguments(["-n", "2", `--${option}-suffixes=${start}`], settings({}));
+  assert.ok(!("information" in parsed));
   assert.equal(parsed.suffixLength, 2);
-  assert.equal(parseArguments(["-n", "2", "-a", "2", `--${option}-suffixes=${start}`], settings({})).suffixLength, 2);
+  const explicit = parseArguments(["-n", "2", "-a", "2", `--${option}-suffixes=${start}`], settings({}));
+  assert.ok(!("information" in explicit));
+  assert.equal(explicit.suffixLength, 2);
  });
  test(`split matches GNU 9.12 empty ${option} start`, () => {
-  assert.equal(parseArguments([`--${option}-suffixes=`], settings({})).numericStart, "0");
+  const parsed = parseArguments([`--${option}-suffixes=`], settings({}));
+  assert.ok(!("information" in parsed));
+  assert.equal(parsed.numericStart, "0");
  });
 }
 

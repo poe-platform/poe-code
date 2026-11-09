@@ -67,7 +67,7 @@ function number(text: string, label: string, units = false, zero = false): numbe
   return value;
 }
 
-export function parseArguments(args: readonly string[], limits: SplitLimits, argumentValues?: CommandArguments): SplitArguments {
+export function parseArguments(args: readonly string[], limits: SplitLimits, argumentValues?: CommandArguments): SplitArguments | { readonly information: "help" | "version" } {
   if ((argumentValues
     ? argumentValues.values.reduce((total, value) => total + shellValueByteLength(value), 0)
     : args.reduce((total, argument) => total + utf8ByteLength(argument), 0)) > limits.maxArgumentBytes) {
@@ -131,7 +131,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits, arg
     lines: "l", bytes: "b", "line-bytes": "C", "suffix-length": "a",
     "numeric-suffixes": "d", "additional-suffix": "additional-suffix",
     "hex-suffixes": "x", separator: "t", "elide-empty-files": "e", number: "n",
-    unbuffered: "u", verbose: "verbose",
+    unbuffered: "u", verbose: "verbose", help: "help", version: "version",
   };
   for (let index = 0; index < args.length; index++) {
     const argument = args[index]!;
@@ -140,9 +140,13 @@ export function parseArguments(args: readonly string[], limits: SplitLimits, arg
     if (argument.startsWith("--")) {
       const equals = argument.indexOf("=");
       const name = argument.slice(2, equals < 0 ? undefined : equals);
-      const option = long[name];
-      if (!option) throw new PublicDiagnostic(`unrecognized option '${argument}'`);
-      if ((option === "e" || option === "u" || option === "verbose") && equals >= 0) throw new PublicDiagnostic(`option '--${name}' doesn't allow an argument`);
+      const candidates = Object.keys(long).filter(key => key.startsWith(name));
+      if (!Object.hasOwn(long, name) && candidates.length > 1) throw new PublicDiagnostic(`option '${argument}' is ambiguous; possibilities: ${candidates.map(key => `'--${key}'`).join(" ")}`);
+      const selected = Object.hasOwn(long, name) ? name : candidates[0];
+      if (!selected) throw new PublicDiagnostic(`unrecognized option '${argument}'`);
+      const option = long[selected]!;
+      if ((option === "e" || option === "u" || option === "verbose" || option === "help" || option === "version") && equals >= 0) throw new PublicDiagnostic(`option '--${name}' doesn't allow an argument`);
+      if (option === "help" || option === "version") return { information: option };
       const optional = option === "d" || option === "x" || option === "e" || option === "u" || option === "verbose";
       const value = equals < 0 ? (optional ? undefined : args[++index]) : argument.slice(equals + 1);
       if (!optional && value === undefined) throw new PublicDiagnostic(`option '--${name}' requires an argument`);

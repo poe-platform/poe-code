@@ -59,6 +59,10 @@ class LineBytes {
 
 async function run(context: CommandContext, limits: SplitLimits): Promise<void> {
   const args = parseArguments(context.args, limits, getCommandArguments(context));
+  if ("information" in args) {
+    await gnuInformation("split", { ...context, args: [`--${args.information}`] });
+    return;
+  }
   const controller = new AbortController();
   const signal = AbortSignal.any([context.signal, controller.signal]);
   const budget = new Budget(limits, signal);
@@ -191,11 +195,10 @@ export function evalSyncSplit(
   readFileSync?: (filePath: string) => Uint8Array | undefined,
   writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
-  const infoText = gnuInformationSync("split", opArgs);
-  if (infoText !== undefined) return infoText;
   try {
     const limits = settings({});
     const args = parseArguments(opArgs, limits);
+    if ("information" in args) return gnuInformationSync("split", [`--${args.information}`]);
     if (args.input === "-" && inBytes === undefined) return undefined;
     const src = args.input === "-" ? inBytes! : readFileSync?.(args.input);
     if (!src) return undefined;
@@ -355,11 +358,6 @@ export function createSplitCommand(limits: SplitLimits): CommandDefinition {
   const def: CommandDefinition = { name: "split", async execute(context) {
     context.signal.throwIfAborted();
     try {
-      const infoPromise = gnuInformation("split", context);
-      if (infoPromise) {
-        const info = await infoPromise;
-        if (info) return info;
-      }
       const profile = (context.capabilities?.commandLimits as { split?: Partial<SplitLimits> } | undefined)?.split;
       const effective = { ...limits };
       if (profile) {

@@ -2,6 +2,8 @@
 
 MPEG-TS `-muxrate 500000` selects a transport bitrate in bits/s, inserting null packets and pacing PCR from packet positions while preserving copied audio. `0`, `1`, or omission keeps variable-rate output; `k` and `M` suffixes are accepted. `-pcr_period` sets the PCR interval in milliseconds: `-1` or omission selects automatic timing (20 ms at constant rate), and `0` disables PCR. For example, `-muxrate 500000 -pcr_period 100` inserts PCR every 100 ms on the PMT clock PID without changing copied audio. Explicitly mapped SubRip stream copies to MPEG-TS preserve cue payloads and timestamps as private data; player subtitle recognition is not guaranteed.
 
+H.264 encoding honors `-crf 0` through `-crf 51` (including fractional values). CRF 0 preserves YUV420 samples through `hflip` and `vflip`; higher values trade quality for smaller output. Stream copy preserves the original packets.
+
 WavPack (`.wv`) input supports mono/stereo integer lossless audio, raw PCM output, and frame checksums. `-c:a copy -f framemd5` hashes compressed audio blocks without trailing tags. MPEG-TS output repeats PAT/PMT every 0.1 seconds; use `-pat_period 0.05` for 50 ms or `-pat_period 0.5` for 500 ms. Duration suffixes and clock notation are accepted; zero repeats the tables before each media packet. MPEG-TS groups complete AAC frames into PES payloads; `-pes_payload_size N` sets the byte target (default 2930), rounded up to TS capacity, with a maximum duration of half `-muxdelay`. `-mpegts_flags +pat_pmt_at_frames` repeats PAT/PMT before every video frame, including non-keyframes, regardless of `-pat_period`.
 
 Output `-pix_fmt gray` (or `gray8`) removes color before encoding, after video filters.

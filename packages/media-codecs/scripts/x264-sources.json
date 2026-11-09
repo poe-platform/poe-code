@@ -14,8 +14,8 @@
     },
     {
       "path": "scripts/x264-encoder.c",
-      "bytes": 3276,
-      "sha256": "e3615d9432bd8e3ee43f941e4606972b2393ce840ac63285ded001a77a692015"
+      "bytes": 3289,
+      "sha256": "0f565cc4697e888111a9ef5ac8f2f540918ccc819b248f71d42cc3c70a142bd7"
     },
     {
       "path": "scripts/build-x264.mjs",
@@ -24,13 +24,13 @@
     },
     {
       "path": "vendor/x264-encoder.d.ts",
-      "bytes": 607,
-      "sha256": "8c769fc78fc1b1ef6ceecf080ae8ac404d61098fd34a2e0b62a1f388553a8e2b"
+      "bytes": 620,
+      "sha256": "879b274dd54cb2b563edccb87153010d53718342a45c611b9e0b56b786943ab8"
     }
   ],
   "artifact": {
     "path": "vendor/x264-encoder.js",
-    "bytes": 1180841,
-    "sha256": "60592cb05ca23fb7042d923ecda4a0a5e76290f79599d7677ff1c74e358b7448"
+    "bytes": 1180835,
+    "sha256": "6910774d31cb9accbd72a56a1ee8ab1b10e4afdd04d9ba70f13ba9a8e80c23bf"
   }
 }

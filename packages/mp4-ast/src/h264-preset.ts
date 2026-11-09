@@ -6,7 +6,7 @@ import { MediaBudgetTracker, type MediaTrack, type MediaSample } from "./types.j
 /** Encode decoded video with an x264 preset before passing it to any H.264 muxer. */
 export function encodeH264PresetTrack(
   track: MediaTrack, preset: string, budget = new MediaBudgetTracker(),
-  forceKeyFrames?: readonly number[], maxBFrames?: number, qp?: number, bitrate?: number, zeroLatency?: boolean
+  forceKeyFrames?: readonly number[], maxBFrames?: number, qp?: number, bitrate?: number, zeroLatency?: boolean, crf?: number
 ): MediaTrack {
   const frames = track.decodedVideoFrames;
   if (track.type !== "video" || !frames?.length) return track;
@@ -39,7 +39,7 @@ export function encodeH264PresetTrack(
   let avcC;
   let bytes = 0;
   try {
-    for (const packet of encodeH264Preset(pictures(), width, height, timescale, frameDuration, preset, maxBFrames, qp, bitrate, zeroLatency)) {
+    for (const packet of encodeH264Preset(pictures(), width, height, timescale, frameDuration, preset, maxBFrames, qp, bitrate, zeroLatency, crf)) {
       budget.checkCpu();
       const converted = annexBToAvcc(packet.data);
       if (converted.sps.length && converted.pps.length) avcC ??= parseAvcC(buildAvcC(converted.sps, converted.pps));

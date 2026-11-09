@@ -24,7 +24,7 @@ void preset_encoder_free(Encoder *state) {
     free(state);
 }
 
-Encoder *preset_encoder_create(int width, int height, int timescale, int frame_duration, const char *preset, int bframes, int qp, int bitrate, int zero_latency) {
+Encoder *preset_encoder_create(int width, int height, int timescale, int frame_duration, const char *preset, int bframes, int qp, int bitrate, int zero_latency, double crf) {
     if (width <= 0 || height <= 0 || width > 4096 || height > 4096 || ((width | height) & 1) || timescale <= 0 || frame_duration <= 0) return NULL;
     x264_param_t options;
     if (x264_param_default_preset(&options, preset, zero_latency ? "zerolatency" : NULL)) return NULL;
@@ -42,7 +42,7 @@ Encoder *preset_encoder_create(int width, int height, int timescale, int frame_d
     options.b_repeat_headers = 1;
     options.b_annexb = 1;
     options.rc.i_rc_method = X264_RC_CRF;
-    options.rc.f_rf_constant = 23;
+    options.rc.f_rf_constant = crf;
     if (qp >= 0) {
         if (qp > 51) return NULL;
         options.rc.i_rc_method = X264_RC_CQP;

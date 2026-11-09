@@ -43,3 +43,22 @@ it("encodes without Node, network, or runtime WebAssembly compilation", async ()
   });
   assert.equal(count, frames.length);
 });
+
+it("honors lossless, lossy and fractional CRF while flushing all pictures", () => {
+  const input = frames.map(frame => ({ ...frame, y: Uint8Array.from(frame.y, (value, i) => value + i % 19) }));
+  for (const crf of [0, 23.5, 40]) {
+    const packets = [...encodeH264Preset(input, 16, 16, 24, 1, "medium", -1, -1, 0, false, crf)];
+    const decoded = [...decodeH264(packets.map(packet => ({ ...packet, duration: 1 })), new Uint8Array(), 256)];
+    assert.equal(decoded.length, input.length);
+    const differences = decoded.reduce((sum, frame, i) => sum + frame.native!.pixels.subarray(0, 256)
+      .filter((value, j) => value !== input[i]!.y[j]).length, 0);
+    if (crf === 0) assert.equal(differences, 0);
+    else assert.ok(differences > 0);
+  }
+});
+
+it("rejects invalid CRF before allocating an encoder", () => {
+  for (const crf of [-1, 52, NaN, Infinity]) {
+    assert.throws(() => [...encodeH264Preset(frames, 16, 16, 24, 1, "medium", -1, -1, 0, false, crf)], /CRF/);
+  }
+});

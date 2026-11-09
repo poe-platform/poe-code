@@ -2176,6 +2176,22 @@ async function applyVideoFilterChain(
         })) < 0.5) return f;
         const image = makeRgbaImg(f.width, f.height, f.data);
         const out = name === "hflip" ? flopImage(image) : flipImage(image);
+        const native = f.native;
+        if (native?.rgba === f.data && native.width === f.width && native.height === f.height &&
+            [0, 4, 5, 12, 13, 14].includes(native.format)) {
+          const pixels = native.pixels.slice();
+          const chromaWidth = Math.ceil(f.width / ([5, 14].includes(native.format) ? 1 : 2));
+          const chromaHeight = Math.ceil(f.height / ([0, 12].includes(native.format) ? 2 : 1));
+          let offset = 0;
+          for (const [width, height] of [[f.width, f.height], [chromaWidth, chromaHeight], [chromaWidth, chromaHeight]] as const) {
+            for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+              pixels[offset + y * width + x] = native.pixels[offset +
+                (name === "vflip" ? height - 1 - y : y) * width + (name === "hflip" ? width - 1 - x : x)]!;
+            }
+            offset += width * height;
+          }
+          return { ...f, data: out.data, native: { ...native, rgba: out.data, pixels } };
+        }
         return { ...f, data: out.data };
       }, signal);
     } else if (name === "transpose") {
@@ -4466,7 +4482,8 @@ export function evalSyncFfmpeg(
         validateBitstreamFilters(args[++i]);
       }
       else if (arg === "-vsync" || arg === "-fps_mode" || arg.startsWith("-fps_mode:")) return undefined;
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-crf" || arg === "-tag:a") i++;
+      else if (arg === "-crf") return undefined;
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-tag:a") i++;
       else if (arg === "-bf") {
         const value = args[++i];
         maxBFrames = value?.trim() ? Number(value) : NaN;
@@ -5546,6 +5563,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let maxBFrames: number | undefined;
         let videoPreset: string | undefined;
         let forceKeyFrames: number[] | undefined;
+        let crf: number | undefined;
         let rawPixelFormat: string | undefined;
         let audioCodec: string | undefined;
         let audioBitrate: number | undefined;
@@ -5825,7 +5843,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 234 };
             }
             videoQp = qp === -1 ? undefined : qp;
-          } else if (arg === "-threads" || arg === "-crf" || arg === "-tag:a") {
+          } else if (arg === "-crf") {
+            const value = args[++i];
+            crf = Number(value);
+            if (!value?.trim() || !Number.isFinite(crf) || crf < 0 || crf > 51) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid CRF: expected a number from 0 to 51\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-threads" || arg === "-tag:a") {
             i++;
           } else if (arg === "-bf") {
             const value = args[++i];
@@ -8727,7 +8752,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (maxBFrames > 0 && outPlugin?.id !== "mp4" && outPlugin?.id !== "mov") throw new Error("B-frame encoding requires MP4 or MOV output");
             }
 
-            if (zeroLatency && videoCodec !== "copy" && features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
+            if ((zeroLatency || crf !== undefined) && videoCodec !== "copy" && features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
             if (videoPreset !== undefined && videoCodec !== "copy") {
               if (!h264Presets.some(name => name === videoPreset)) throw new Error(`invalid preset '${videoPreset}'`);
               if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
@@ -8741,7 +8766,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async (track, index) => {
-                  if (track.type !== "video" || (!zeroLatency && !imageOutput && videoPreset === undefined && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && videoQp === undefined && !videoBitrate && !track.decodedVideoFrames)) return track;
+                  if (track.type !== "video" || (!zeroLatency && !imageOutput && videoPreset === undefined && crf === undefined && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && videoQp === undefined && !videoBitrate && !track.decodedVideoFrames)) return track;
                   const limit = vfFilters.length === 0 && outputFps === undefined ? streamFrameLimits[index] : undefined;
                   const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
                   return { ...track, samples: [], decodedVideoFrames: frames };
@@ -11000,10 +11025,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
             }
 
-            if ((videoPreset !== undefined || videoQp !== undefined || videoBitrate) && videoCodec !== "copy") {
+            if ((videoPreset !== undefined || videoQp !== undefined || videoBitrate || crf !== undefined) && videoCodec !== "copy") {
               if (videoCodec !== undefined && videoCodec !== "libx264" && videoCodec !== "h264") throw new Error("Presets and video bitrate require H.264 encoding");
               workingDoc = { ...workingDoc, tracks: await mapWork(workingDoc.tracks, track =>
-                encodeH264PresetTrack(track, videoPreset ?? "medium", budget, forceKeyFrames, maxBFrames, videoQp, videoBitrate, zeroLatency), context.signal) };
+                encodeH264PresetTrack(track, videoPreset ?? "medium", budget, forceKeyFrames, maxBFrames, videoQp, videoBitrate, zeroLatency, crf), context.signal) };
             }
 
             let decodeExitCode = demuxExitCode;

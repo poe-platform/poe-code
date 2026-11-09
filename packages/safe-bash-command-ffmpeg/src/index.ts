@@ -3524,7 +3524,9 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
               if (end < 0) break;
               let tag = text.slice(position + 1, end);
               if (codec === "subrip" && ["B", "/B", "I", "/I", "U", "/U"].includes(tag)) tag = tag.toLowerCase();
-              if (["b", "i", "u"].includes(tag)) {
+              if (codec === "subrip" && webvtt && ["br", "br/", "br /"].includes(tag.toLowerCase())) {
+                parts.push("\n");
+              } else if (["b", "i", "u"].includes(tag)) {
                 styles.push(tag);
                 parts.push(`<${tag}>`);
               } else if (["/b", "/i", "/u"].includes(tag)) {

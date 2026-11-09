@@ -40,7 +40,8 @@ export function parseOrderedDither(argument: string) {
     return { map, levels };
 }
 
-export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, { map, levels }: ReturnType<typeof parseOrderedDither>, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">>, { map, levels }: ReturnType<typeof parseOrderedDither>, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const gray = image.space === "b-w" || image.space === "grey16";
     const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
     for (let y = 0; y < image.height; y++) for (let left = 0; left < image.width; left += 1024) {
         yield;
@@ -52,12 +53,13 @@ export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "heigh
             const threshold = map.values[(y % map.height) * map.width + (left + x) % map.width]!;
             let selected = 0;
             for (let channel = 0; channel < 4; channel++) {
-                if (!channels[channel] || (channel === 3 && !image.hasAlpha)) continue;
+                if (!channels[channel] || (channel === 3 && !image.hasAlpha) || (gray && (channel === 1 || channel === 2))) continue;
                 const intervals = levels[selected++]!;
                 if (intervals === 0) continue;
                 const scaled = Math.floor(data[x * 4 + channel]! / maximum * (intervals * (map.divisor - 1) + 1));
                 const level = Math.floor(scaled / (map.divisor - 1)) + (scaled % (map.divisor - 1) >= threshold ? 1 : 0);
                 data[x * 4 + channel] = Math.min(maximum, Math.round(level * maximum / intervals));
+                if (gray && channel === 0) data[x * 4 + 1] = data[x * 4 + 2] = data[x * 4]!;
             }
         }
         yield { kind: "write", highDepth, position, data: bytes };

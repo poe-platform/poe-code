@@ -33,6 +33,7 @@ import { shiftAudioPhase } from "./audio-aphaseshift.js";
 import { correlateAudio } from "./audio-axcorrelate.js";
 import { gateAudio } from "./audio-sidechaingate.js";
 import { listenDynamicEqualizer } from "./audio-adynamicequalizer.js";
+import { tiltAudio } from "./audio-atilt.js";
 import { softClipAudio } from "./audio-asoftclip.js";
 import { limitAudio } from "./audio-alimiter.js";
 import { applyAudioGate } from "./audio-agate.js";
@@ -8615,6 +8616,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await vibratoAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "adynamicequalizer" || trimmed.startsWith("adynamicequalizer=")) {
                         stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal);
+                        statsScale = 1;
+                      } else if (trimmed === "atilt" || trimmed.startsWith("atilt=")) {
+                        stretched = await tiltAudio(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "asoftclip" || trimmed.startsWith("asoftclip=")) {
                         stretched = await softClipAudio(stretched, trimmed, budget, context.signal);

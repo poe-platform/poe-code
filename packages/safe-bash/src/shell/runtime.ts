@@ -7937,7 +7937,11 @@ export class Runtime {
       await writeDiagnostic(context.stderr, `${state.arg0 ?? context.scriptName ?? "shell"}: ${explanation} -- ${result.diagnostic.option}\n`);
     }
     this.signal.throwIfAborted();
-    await this.writeVariable(state, "OPTIND", String(result.optind), context, "getopts");
+    try { await this.writeVariable(state, "OPTIND", String(result.optind), context, "getopts"); }
+    catch (error) {
+      if (!(error instanceof PublicDiagnostic)) throw error;
+      await this.diagnostic(context, error.message);
+    }
     const savedIndex = assignments.get("OPTIND");
     if (savedIndex) {
       // getopts publishes its index beyond its own temporary assignment.
@@ -7946,8 +7950,17 @@ export class Runtime {
       savedIndex.value = state.variables.OPTIND;
       savedIndex.getopts = cloneGetoptsBinding(state);
     }
-    if (result.argument.kind === "set") await this.writeVariable(state, "OPTARG", result.argument.value, context, "getopts");
-    else this.unsetVariable(state, "OPTARG", true);
+    try {
+      if (result.argument.kind === "set") await this.writeVariable(state, "OPTARG", result.argument.value, context, "getopts");
+      else {
+        // EOF and verbose option errors remove even a readonly OPTARG binding.
+        if (result.kind !== "option") state.readonlyVariables?.delete("OPTARG");
+        this.unsetVariable(state, "OPTARG", true);
+      }
+    } catch (error) {
+      if (!(error instanceof PublicDiagnostic)) throw error;
+      await this.diagnostic(context, error.message);
+    }
     if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new PublicDiagnostic(`getopts: \`${name}': not a valid identifier`);
     try { await this.assignVariable(state, name, result.option, context, "getopts"); }
     catch (error) {

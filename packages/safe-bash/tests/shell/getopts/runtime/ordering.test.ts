@@ -95,20 +95,57 @@ async function observe(action: (states: ObservedState[], closeObservation: () =>
   assert.deepEqual(lateAttempts, [], "post-settlement state mutation or publication");
 }
 
-test("D01 readonly OPTIND stops before OPTARG/name but retains hidden progress", async () => observe(async states => {
+test("readonly OPTIND diagnoses each scan without blocking OPTARG/name or hidden progress", async () => observe(async states => {
   const { shell } = runtimeSetup();
   const result = await shell.exec('OPTARG=old; opt=old; readonly OPTIND; getopts ab opt -ab; say "$?:$OPTIND:$OPTARG:$opt"; getopts ab opt -ab; say "$?:$OPTIND:$OPTARG:$opt"');
-  assert.equal(result.stdout, "1:1:old:old\n1:1:old:old\n");
+  assert.equal(result.stdout, "0:1::a\n0:1::b\n");
   assert.deepEqual(states[0]!.getopts?.cursor, { index: 2 });
   assert.equal(result.stderr.match(/OPTIND: readonly variable/gu)?.length, 2);
 }));
 
-test("D01/N13 readonly OPTARG retains value and attribute for set, no-arg and EOF", async () => {
+test("readonly OPTARG retains its value until EOF removes the binding and attribute", async () => {
   const { shell } = runtimeSetup();
-  const result = await shell.exec('opt=old; readonly OPTARG=old; getopts a:b opt -a value -b; say "$?:$OPTIND:$OPTARG:$opt"; getopts a:b opt -a value -b; say "$?:$OPTIND:$OPTARG:$opt"; getopts a:b opt -a value -b; say "$?:$OPTIND:$OPTARG:$opt"; unset OPTARG; say "$?:$OPTARG"');
-  assert.equal(result.stdout, "1:3:old:old\n1:4:old:old\n1:4:old:old\n1:old\n");
-  assert.equal(result.stderr.match(/OPTARG: (?:cannot unset: )?readonly variable/gu)?.length, 4);
+  const result = await shell.exec('opt=old; readonly OPTARG=old; getopts a:b opt -a value -b; say "$?:$OPTIND:$OPTARG:$opt"; getopts a:b opt -a value -b; say "$?:$OPTIND:$OPTARG:$opt"; getopts a:b opt -a value -b; say "$?:$OPTIND:${OPTARG-unset}:$opt"; OPTARG=new; say "$?:$OPTARG"');
+  assert.equal(result.stdout, "0:3:old:a\n0:4:old:b\n1:4:unset:?\n0:new\n");
+  assert.equal(result.stderr, "shell: line 1: OPTARG: readonly variable\n".repeat(2));
 });
+
+for (const [declaration, expected, diagnostics] of [
+  ["readonly OPTIND", "0:b:value:1\n0:a:unset:1\n1:?:unset:1\n1:?:unset:1\n", ["OPTIND", "OPTIND", "OPTIND", "OPTIND"]],
+  ["readonly OPTARG=old", "0:b:old:3\n0:a:old:4\n1:?:unset:4\n1:?:unset:4\n", ["OPTARG", "OPTARG"]],
+  ["readonly OPTIND OPTARG=old", "0:b:old:1\n0:a:old:1\n1:?:unset:1\n1:?:unset:1\n", ["OPTIND", "OPTARG", "OPTIND", "OPTARG", "OPTIND", "OPTIND"]],
+] as const) {
+  test(`getopts returns options and EOF with ${declaration}`, async () => {
+    const { shell } = runtimeSetup();
+    try {
+      const result = await shell.exec(`${declaration}; set -- -b value -a; for n in 1 2 3 4; do getopts ab: o; printf '%s:%s:%s:%s\\n' "$?" "\${o-unset}" "\${OPTARG-unset}" "$OPTIND"; done`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, expected);
+      assert.equal(result.stderr, diagnostics.map(name => `shell: line 1: ${name}: readonly variable\n`).join(""));
+    } finally { await shell.dispose(); }
+  });
+
+  test(`while getopts visits every option with ${declaration}`, async () => {
+    const { shell } = runtimeSetup();
+    try {
+      const result = await shell.exec(`${declaration}; set -- -ab value; while getopts ab: o; do say "$o"; done; say "end:$o"`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "a\nb\nend:?\n");
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const [args, diagnostic] of [["-z", "illegal option -- z"], ["-b", "option requires an argument -- b"]]) {
+  test(`verbose getopts error removes readonly OPTARG for ${args}`, async () => {
+    const { shell } = runtimeSetup();
+    try {
+      const result = await shell.exec(`readonly OPTARG=old; getopts ab: o ${args}; say "$?:$o:\${OPTARG-unset}:$OPTIND"; OPTARG=new; say "$OPTARG"`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "0:?:unset:2\nnew\n");
+      assert.equal(result.stderr, `shell: ${diagnostic}\n`);
+    } finally { await shell.dispose(); }
+  });
+}
 
 test("late name validation preserves OPTIND/OPTARG and does not execute name syntax", async () => {
   const { shell, fs } = runtimeSetup();

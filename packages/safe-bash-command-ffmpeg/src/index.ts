@@ -9520,7 +9520,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let delay = 0;
                         let phase = 0;
                         let base = 0;
-                        const flags = { mutel: false, muter: false, phasel: false, phaser: false };
+                        const flags = { mutel: false, muter: false, phasel: false, phaser: false, softclip: false };
+                        let sclevel = 1;
                         const levels = { level_in: 1, level_out: 1, mlev: 1, slev: 1 };
                         const balance = { mpan: 0, sbal: 0, balance_in: 0, balance_out: 0 };
                         const balanceModes = { bmode_in: 0, bmode_out: 0 };
@@ -9535,6 +9536,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error(`stereotools: ${key} must be in the range [0.015625, 64]`);
                             }
                             levels[key] = level;
+                          } else if (key === "sclevel") {
+                            sclevel = parseFilterExpression(value, "stereotools", {});
+                            if (!Number.isFinite(sclevel) || sclevel < 1 || sclevel > 100) {
+                              throw new Error("stereotools: sclevel must be in the range [1, 100]");
+                            }
                           } else if (key === "mpan" || key === "sbal" || key === "balance_in" || key === "balance_out") {
                             const valueNumber = parseFilterExpression(value, "stereotools", {});
                             if (!Number.isFinite(valueNumber) || valueNumber < -1 || valueNumber > 1) {
@@ -9569,7 +9575,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (!Number.isInteger(mode) || mode < 0 || mode >= modes.length) {
                               throw new Error("stereotools: invalid mode");
                             }
-                          } else if (key === "mutel" || key === "muter" || key === "phasel" || key === "phaser") {
+                          } else if (key === "mutel" || key === "muter" || key === "phasel" || key === "phaser" || key === "softclip") {
                             flags[key] = parseFilterBoolean(value, `stereotools: invalid ${key}`);
                           } else {
                             throw new Error(`stereotools: unsupported option ${key}`);
@@ -9595,8 +9601,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const [inputLeft, inputRight] = balanceGains(balance.balance_in, balanceModes.bmode_in);
                         const [outputLeftGain, outputRightGain] = balanceGains(balance.balance_out, balanceModes.bmode_out);
                         const width = base < 0 ? base / 2 : base;
-                        const left = new Float32Array(stretched[0]!.length);
-                        const right = new Float32Array(left.length);
+                        budget.allocateMemory(stretched[0]!.length * 2 * Float64Array.BYTES_PER_ELEMENT);
+                        const left = new Float64Array(stretched[0]!.length);
+                        const right = new Float64Array(left.length);
+                        const clipScale = 1 / Math.atan(sclevel);
                         // Native FFmpeg rounds the interleaved delay down to an even sample count.
                         const delayFrames = Math.floor(origRate * (Math.abs(delay) / 1000) / 2);
                         budget.allocateMemory(delayFrames * 8);
@@ -9609,8 +9617,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const delayed = new Float64Array(delayFrames);
                         for (let i = 0; i < left.length; i++) {
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          const l = stretched[0]![i]! * levels.level_in * inputLeft;
-                          const r = stretched[1]![i]! * levels.level_in * inputRight;
+                          let l = stretched[0]![i]! * levels.level_in * inputLeft;
+                          let r = stretched[1]![i]! * levels.level_in * inputRight;
+                          if (flags.softclip) {
+                            l = clipScale * Math.atan(l * sclevel);
+                            r = clipScale * Math.atan(r * sclevel);
+                          }
                           let outputLeft = l;
                           let outputRight = r;
                           switch (mode) {

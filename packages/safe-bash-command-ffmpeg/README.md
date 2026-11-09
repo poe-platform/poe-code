@@ -332,7 +332,11 @@ polarity, delay, and width, and precedes output balance and gain.
 Input and output gains (`level_in`, `level_out`) default to 1, range from 0.015625
 to 64, and apply before and after channel processing. For example,
 `stereotools=level_in=2:level_out=0.5` preserves the original levels without
-clipping the intermediate signal. Signed `delay` accepts -20 to 20 (default 0):
+clipping the intermediate signal. `softclip=1` enables arctangent soft clipping
+after input gain/balance and before channel conversion. `sclevel` controls its
+shape (default 1, range 1–100) and has no effect when soft clipping is disabled.
+For example, `stereotools=softclip=1:sclevel=2` soft-clips both channels.
+Signed `delay` accepts -20 to 20 (default 0):
 positive values delay the right channel, negative values delay the left, with
 silence at the start and no change in output length. Native FFmpeg's rounding
 applies: `delay=1` shifts four stereo frames at 8 kHz.

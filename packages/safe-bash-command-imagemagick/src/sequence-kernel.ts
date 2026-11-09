@@ -148,7 +148,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
         return data;
     }
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
-    highDepth &&= operation === "mean";
+    highDepth &&= operation === "mean" || operation === "median";
     if (!["abs", "add", "addmodulus", "and", "cos", "cosine", "divide", "exp", "exponential",
         "gaussiannoise", "impulsenoise", "inverselog", "laplaciannoise", "leftshift", "log", "max", "mean",
         "median", "min", "multiplicativenoise", "multiply", "or", "poissonnoise", "pow", "rightshift",
@@ -201,17 +201,17 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                 }
             }
         } else if (median) {
-            const pixels = length / 4, histogram = new Float64Array(pixels * 32), ranks = new Float64Array(pixels), sums = new Uint16Array(pixels);
+            const pixels = length / 4, histogram = new Float64Array(pixels * 32), ranks = new Float64Array(pixels), sums = new Uint32Array(pixels);
             ranks.fill(Math.floor(frames / 2));
-            // Two radix passes keep histograms independent of both frame count and image size.
-            for (const shift of [5, 0]) {
+            // Bounded radix passes cover 10-bit byte sums or 18-bit quantum sums.
+            for (const shift of highDepth ? [15, 10, 5, 0] : [5, 0]) {
                 histogram.fill(0);
                 for (let image = 0; image < frames; image++) {
                     if (++work % 64 === 0) yield;
                     const bytes = yield* read(image, position, length);
                     for (let pixel = 0; pixel < pixels; pixel++) {
                         const offset = pixel * 4, sum = bytes[offset]! + bytes[offset + 1]! + bytes[offset + 2]! + bytes[offset + 3]!;
-                        if (shift === 5 || (sum >> 5) === (sums[pixel]! >> 5)) histogram[pixel * 32 + ((sum >> shift) & 31)]!++;
+                        if ((sum >> (shift + 5)) === (sums[pixel]! >> (shift + 5))) histogram[pixel * 32 + ((sum >> shift) & 31)]!++;
                     }
                 }
                 for (let pixel = 0; pixel < pixels; pixel++) for (let bucket = 0; bucket < 32; bucket++) {

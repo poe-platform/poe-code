@@ -52,7 +52,9 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
   const durationSec = track.duration / Math.max(1, track.timescale);
   const totalBytes = stats.totalBytes;
   const bitRate =
-    codecName === 'aac' && (containerFormat === 'mp4' || containerFormat === 'mov') && stats.ticks > 0
+    containerFormat === "aiff" && codecName.startsWith("pcm_") && desc?.sampleRate && desc.channels && desc.bitsPerSample
+      ? String(desc.sampleRate * desc.channels * desc.bitsPerSample)
+      : codecName === 'aac' && (containerFormat === 'mp4' || containerFormat === 'mov') && stats.ticks > 0
       // Empty sample tables use the demuxer's rounded fragment estimate;
       // classic tables include encoder lead-in samples and truncate.
       ? String((track.declaredSampleCount === 0 ? Math.round : Math.trunc)(totalBytes * 8 * track.timescale / stats.ticks))

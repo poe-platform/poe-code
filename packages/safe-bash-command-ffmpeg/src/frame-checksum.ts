@@ -108,7 +108,8 @@ export function serializeFrameChecksum(
       .filter((_, bit) => (mask & (2 ** bit)) !== 0) : [];
     const layout = mask && speakers.length === channels
       ? layouts[mask] ?? `${channels} channels (${speakers.join("+")})`
-      : ["0 channels", "mono", "stereo", "2.1", "4.0", "5.0", "5.1", "6.1", "7.1"][channels] ?? `${channels} channels`;
+      : (track.codecDescriptions[0]?.channels === channels ? track.codecDescriptions[0]?.channelLayout : undefined) ??
+        ["0 channels", "mono", "stereo", "2.1", "4.0", "5.0", "5.1", "6.1", "7.1"][channels] ?? `${channels} channels`;
     lines.push(`#tb ${index}: 1/${copy ? track.timescale : rate}`, `#media_type ${index}: audio`,
       `#codec_id ${index}: ${copy ? track.codecDescriptions[0]?.codecName : audioCodec ?? "pcm_s16le"}`,
       `#sample_rate ${index}: ${track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? rate}`, `#channel_layout_name ${index}: ${layout}`);

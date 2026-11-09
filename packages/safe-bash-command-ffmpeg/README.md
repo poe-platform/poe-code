@@ -160,7 +160,7 @@ Raw PCM decoding ignores an incomplete trailing frame when complete frames prece
 Input `-sample_rate 8000` also sets the raw PCM sample rate; place it before `-i`.
 Channel counts accept stream selectors on input and output: `-ac:a`, `-ac:a:0`, and `-ac:0`. Only matching audio streams change; the last matching option wins. For example, `-i input.wav -ac:a:0 1 output.wav` downmixes the first audio stream to mono.
 
-Input `-ch_layout stereo` or `-channel_layout stereo` sets two channels, equivalent to `-ac 2`; `mono` sets one channel. Place these options before `-i`.
+Input `-ch_layout stereo` or `-channel_layout stereo` sets two channels, equivalent to `-ac 2`; `mono` sets one channel. Place these options before `-i`. Input `-guess_layout_max N` limits channel-layout guessing for unmasked WAV audio to at most N channels. With stereo input, 0 or 1 retains an unknown two-channel layout; 2 guesses stereo. Explicit layouts remain unchanged, and the option resets for each input.
 WAV input `-max_size 2049` limits PCM16 mono packets to 2048 bytes after sample alignment. Place it before the affected `-i`; zero (the default) selects automatic packet sizing. This is independent of the output file limit `-fs`.
 
 WAV input `-ignore_length 1` reads audio through EOF when a recording outgrows its data header. Place it before the affected `-i`; `-ignore_length 0` (the default) honors the declared length.

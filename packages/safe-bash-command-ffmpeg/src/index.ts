@@ -4908,6 +4908,7 @@ function matchesImageGlob(pattern: string, name: string, budget: MediaBudgetTrac
 }
 
 interface InputSpec {
+  readonly guessLayoutMax?: number | undefined;
   readonly videoSize?: string | undefined;
   readonly pixelFormat?: string | undefined;
   readonly dumpAttachments?: readonly [string, string][];
@@ -5022,6 +5023,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingStartNumber: number | undefined;
       let pendingStartNumberRange: number | undefined;
       let pendingPatternType: InputSpec["patternType"];
+      let pendingGuessLayoutMax: number | undefined;
+      let pendingChannelLayout = false;
       let overwrite: boolean | undefined;
       let exitOnError = false;
       let maxErrorRate = Math.fround(2 / 3);
@@ -5794,6 +5797,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-guess_layout_max") {
+            const value = args[++i];
+            const threshold = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(threshold) || threshold < -2147483648 || threshold > 2147483647 ||
+                !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -guess_layout_max requires a signed 32-bit integer before an input\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingGuessLayoutMax = threshold;
           } else if (arg === "-ch_layout" || arg === "-channel_layout") {
             const layout = args[++i];
             const beforeInput = args.slice(i + 1).includes("-i");
@@ -5804,6 +5816,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             audioChannelOptions.push(["", layout === "mono" ? 1 : 2]);
+            if (beforeInput) pendingChannelLayout = true;
           } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats" || arg === "-nostats") {
             // no-op
           } else if (arg === "-f") {
@@ -6029,6 +6042,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingAudioDecoder = undefined;
             const path = args[++i] ?? "";
             inputs.push({
+              guessLayoutMax: pendingChannelLayout ? undefined : pendingGuessLayoutMax,
               dumpAttachments: pendingDumpAttachments,
               path,
               format: pendingFormat,
@@ -6061,6 +6075,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               startNumberRange: pendingStartNumberRange
             });
             pendingDumpAttachments = [];
+            pendingGuessLayoutMax = undefined;
+            pendingChannelLayout = false;
             audioRate = undefined;
             audioChannelOptions = [];
             pendingFormat = undefined;
@@ -7263,6 +7279,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
               doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
               doc = applyInputDisplayTransforms(doc, inp.displayTransforms);
+              if (inp.guessLayoutMax !== undefined) {
+                doc = { ...doc, tracks: doc.tracks.map(track => {
+                  const codec = track.codecDescriptions[0];
+                  const fmt = codec?.rawWavFormatBytes;
+                  if (track.type !== "audio" || !fmt || !codec.channels || codec.channels <= inp.guessLayoutMax! ||
+                      codec.channelLayout || track.decodedAudio?.channelMask) return track;
+                  const view = new DataView(fmt.buffer, fmt.byteOffset, fmt.byteLength);
+                  if (fmt.length >= 24 && view.getUint16(0, true) === 0xfffe && view.getUint32(20, true)) return track;
+                  // Preserve an unknown WAV layout independently of its channel count.
+                  return { ...track, codecDescriptions: track.codecDescriptions.map(description => ({ ...description,
+                    channelLayout: `${description.channels} channels`
+                  })) };
+                }) };
+              }
               if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));

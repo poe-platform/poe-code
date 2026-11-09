@@ -2246,7 +2246,9 @@ async function applyVideoFilterChain(
         if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, "rotate enable", {
           n, t: f.ptsSeconds, w: f.width, h: f.height
         })) < 0.5) return f;
-        const angle = parseFilterExpression(angleExpression, "rotate", { PI: Math.PI, n, t: f.ptsSeconds });
+        const angle = parseFilterExpression(angleExpression, "rotate", {
+          PI: Math.PI, n, t: f.ptsSeconds, iw: f.width, in_w: f.width, ih: f.height, in_h: f.height
+        });
         const cos = Math.abs(Math.cos(angle)) < 1e-15 ? 0 : Math.cos(angle);
         const sin = Math.abs(Math.sin(angle)) < 1e-15 ? 0 : Math.sin(angle);
         const dimensions = { PI: Math.PI, iw: f.width, ih: f.height, in_w: f.width, in_h: f.height,

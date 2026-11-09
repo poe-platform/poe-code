@@ -2608,7 +2608,7 @@ export function buildProbeResultFromDoc(
     (doc.containerFormat === "aiff" && duration === 0);
   const overallBitRate =
     duration > 0
-      ? String((doc.containerFormat === 'mp4' || doc.containerFormat === 'mov' ? Math.trunc : Math.round)((byteLength * 8) / duration))
+      ? String((doc.containerFormat === 'mp4' || doc.containerFormat === 'mov' || doc.containerFormat === 'aiff' ? Math.trunc : Math.round)((byteLength * 8) / duration))
       : "0";
 
   return {

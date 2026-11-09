@@ -7754,10 +7754,12 @@ function* prepareGifFrames(stack: readonly MagickImage[], dither: MagickState["d
 
 async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareFileSession, signal: AbortSignal, dither: MagickState["dither"] = false, diffusionAmount = 1): Promise<StoredRgbaImage> {
     const first = await prepareStoredMagickOutput((await stack.get(0))!, "gif", backend, signal, dither, diffusionAmount);
+    let hasAlpha = first.hasAlpha;
     let width = first.width, height = first.height;
     for (let index = 1; index < stack.length; index++) {
         const frame = (await stack.get(index))!;
         width = Math.max(width, frame.width); height = Math.max(height, frame.height);
+        hasAlpha ||= frame.hasAlpha;
     }
     const size = width * height * 4, position = backend.storage.allocate(size * stack.length);
     for (let index = 0; index < stack.length; index++) {
@@ -7770,7 +7772,7 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
         }
     }
     const { storedData16: ignored, ...metadata } = first;
-    return { ...metadata, position, width, height: height * stack.length, pages: stack.length, pageHeight: height,
+    return { ...metadata, position, width, height: height * stack.length, pages: stack.length, pageHeight: height, hasAlpha,
         storedGifFrame: { async at(index) {
             const frame = (await stack.get(index))!;
             return { icc: frame.icc, gifApplications: frame.gifApplications, comment: frame.properties?.comment, gifCommentBytes: frame.gifCommentBytes, width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 };

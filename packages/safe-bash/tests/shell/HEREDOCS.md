@@ -59,9 +59,12 @@ explicit cancellation signal.
 Reference observed on 2026-08-26: `/bin/bash`, GNU Bash
 `3.2.57(1)-release (arm64-apple-darwin25)`. The nested punctuation test records
 its incorrect Bash 3.2 result but asserts the literal-body grammar. Bash 3.2
-also omits EOF warnings, and its `$*` in a document with custom IFS has a
-historical space-joining discrepancy; the implementation uses scalar
-double-quoted parameter expansion instead of that historical quirk.
+also omits EOF warnings. Space-separated `$*` and array `@` expansions in
+documents are also observed in Bash 5.2.21, including array pattern removal
+and slices. When an `@` list is expanded, Bash splits plain `$*` using the
+final IFS (space when IFS is empty), then rejoins fields with spaces;
+array members and literal document text stay protected. The byte-exact
+regressions in `heredoc-field-separators.test.ts` cover these rules.
 Its missing-parameter document error returns 127 rather than this shell's 1;
 both fail the redirection, preserve prior stderr routing, and allow subsequent
 commands. Error text/source labels are not byte-identical.

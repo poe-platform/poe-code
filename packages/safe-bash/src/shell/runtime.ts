@@ -1005,6 +1005,7 @@ export interface IO {
   readonly admittedHandles?: CommandContext["admittedHandles"];
   readonly processSignals?: CommandContext["processSignals"];
   readonly nameExpansionContext?: "document" | "conditional" | undefined;
+  readonly documentExpansion?: { hasAt: boolean; emptySlice: boolean };
   readonly [invocationScope]: InvocationScope;
   readonly [valueScope]?: ValueScope;
   readonly parameterDepth?: number;
@@ -5519,25 +5520,64 @@ export class Runtime {
     let size = 0;
     let words = 0;
     const warnings: string[] = [];
+    const expansion = { hasAt: false, emptySlice: false };
+    const starFragments = new Set<number>();
+    const emptyFragments = new Set<number>();
+    const append = (part: ShellValue, unquoted = false, preserveEmpty = false): void => {
+      if (!fragments && typeof part === "string" && !unquoted && !preserveEmpty) value += part;
+      else {
+        if (!fragments) {
+          allocation.reserve(64 + value.length * 2, 2);
+          fragments = value ? [value] : [];
+          value = "";
+        }
+        allocation.reserve(32 + (typeof part === "string" ? part.length * 2 : 0), 1);
+        if (unquoted) { allocation.reserve(32, 1); starFragments.add(fragments.length); }
+        if (preserveEmpty) { allocation.reserve(32, 1); emptyFragments.add(fragments.length); }
+        fragments.push(part);
+      }
+    };
     try {
       for (const word of hereDocumentWords(document, line, byteLocale(state.variables), warnings, this.budget.parsing, state.extensions?.syntax, !!state.extglob)) {
         this.signal.throwIfAborted();
         for (const warning of warnings.splice(0)) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
         if (++words % 128 === 0) await yieldTurn(this.signal);
-        for (const part of await this.valueWord(word, state, { ...io, nameExpansionContext: "document" }, false, false, false, false, undefined, true, false)) {
+        const unquotedStar = word.parts.some(part => part.kind === "variable" && part.name === "*" && !part.length && !part.operator && !part.substring && !part.transform);
+        expansion.emptySlice = false;
+        for (const part of await this.valueWord(word, state, { ...io, nameExpansionContext: "document", documentExpansion: expansion }, false, false, false, false, undefined, true, false)) {
           size += shellValueByteLength(part);
           if (size > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
-          if (!fragments && typeof part === "string") value += part;
-          else {
-            if (!fragments) {
-              allocation.reserve(64 + value.length * 2, 2);
-              fragments = [value];
-              value = "";
-            }
-            allocation.reserve(32 + (typeof part === "string" ? part.length * 2 : 0), 1);
-            fragments.push(part);
+          append(part, unquotedStar, expansion.emptySlice && shellValueByteLength(part) === 0);
+        }
+      }
+      if (expansion.hasAt && starFragments.size && fragments) {
+        // Bash splits unquoted $* only when the document also expands an @ list.
+        // Protected text on either side keeps boundary fields; empty IFS uses space.
+        const original = fragments;
+        fragments = undefined;
+        const ifs = state.variables.IFS ?? " \t\n";
+        const separators = ifs === "" ? " " : stateMonitor(state)?.values.get("IFS", ifs) ?? ifs;
+        let present = false;
+        let boundary = false;
+        let pendingSpaces = 0;
+        const field = (part: ShellValue): void => {
+          if (boundary) { pendingSpaces++; boundary = false; }
+          if (pendingSpaces) { append(" ".repeat(pendingSpaces)); pendingSpaces = 0; }
+          append(part);
+          present = true;
+        };
+        for (const [index, part] of original.entries()) {
+          if (!starFragments.has(index)) {
+            if (shellValueByteLength(part) > 0 || emptyFragments.has(index)) field(part);
+            continue;
+          }
+          for await (const piece of this.splitRawValue(part, separators, { ...io, [valueScope]: allocation }, byteLocale(state.variables))) {
+            if (!piece.separator) field(piece.value);
+            else if (piece.whitespace) { if (present) boundary = true; }
+            else { pendingSpaces++; present = false; boundary = false; }
           }
         }
+        if (pendingSpaces > 1) append(" ".repeat(pendingSpaces - 1));
       }
       return fragments ? concatShellValues(fragments, io[valueScope] ?? allocation) : value;
     } finally {
@@ -9402,6 +9442,9 @@ export class Runtime {
       }
       if (operator === "+") return "";
     }
+    if (io.nameExpansionContext === "document" && io.documentExpansion && part.kind === "variable" && !part.length && !["a", "A", "K", "k"].includes(part.transform ?? "")) {
+      io.documentExpansion.hasAt ||= part.name === "@" || memberSelector !== undefined && memberSelector.kind !== "element" && memberSelector.separator === "@";
+    }
     const element = getArraySelector(part);
     if (part.kind === "variable" && element?.kind === "element") {
       const store = requireArrays(state);
@@ -9444,7 +9487,7 @@ export class Runtime {
       if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
         const members = selector ? await this.arrayMembers(part.name, state, io, part.keys) : this.positionalValues(state);
         // GNU Bash passes assignment flags for replacement/case operators, but not pattern removal or transforms.
-        const space = (selector?.kind === "members" ? selector.separator === "@" : part.name === "@") && (state.variables.IFS === "" || !split && !part.quoted && !part.transform && !["#", "##", "%", "%%"].includes(part.operator ?? ""));
+        const space = (selector?.kind === "members" ? selector.separator === "@" : part.name === "@") && (io.nameExpansionContext === "document" || state.variables.IFS === "" || !split && !part.quoted && !part.transform && !["#", "##", "%", "%%"].includes(part.operator ?? ""));
         const separator = space ? " " : this.ifsSeparator(state, io);
         const fragments: ShellValue[] = [];
         let bytes = 0;
@@ -9833,11 +9876,13 @@ export class Runtime {
       }
       if (part.length) return String(binding?.values.size ?? (this.presenceArrayEntries(state, part.name)?.length ?? (state.variables[part.name] === undefined ? 0 : 1)));
       const values = await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring);
-      const space = (selector.kind === "keys" || part.keys === true) ? Boolean(hereDocument || (selector.separator === "@" ? !part.quoted && !split || state.variables.IFS === "" : !part.quoted && split && state.variables.IFS === "")) : (!split && selector.separator === "@" && (!part.substring || !part.quoted || state.variables.IFS === ""));
+      if (io.nameExpansionContext === "document" && io.documentExpansion && part.substring && selector.separator === "@" && values.length === 1 && shellValueByteLength(values[0]!) === 0) io.documentExpansion.emptySlice = true;
+      const space = (selector.kind === "keys" || part.keys === true) ? Boolean(hereDocument || (selector.separator === "@" ? !part.quoted && !split || state.variables.IFS === "" : !part.quoted && split && state.variables.IFS === "")) : (!split && selector.separator === "@" && (io.nameExpansionContext === "document" || !part.substring || !part.quoted || state.variables.IFS === ""));
       return this.arrayJoin(store.owner, values, space ? " " : this.ifsSeparator(state, io));
     }
     if (part.substring && (part.name === "@" || part.name === "*")) {
       const values = await this.positionalSlice(part, state, io);
+      if (io.nameExpansionContext === "document" && io.documentExpansion && part.name === "@" && values.length === 1 && shellValueByteLength(values[0]!) === 0) io.documentExpansion.emptySlice = true;
       const separator = io.nameExpansionContext === "document" || part.name === "@" && (state.variables.IFS === "" || !split && !part.quoted) ? " " : this.ifsSeparator(state, io);
       return concatShellValues(values.flatMap((entry, index) => index ? [separator, entry] : [entry]), io[valueScope]);
     }

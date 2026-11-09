@@ -6411,6 +6411,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const listDir = filePath === "-" ? context.cwd : dirnameOf(resolvePath(context.cwd, filePath));
                 const concatDocs: MediaDocument[] = [];
                 const streamIds: number[] = [];
+                const streamTags: Record<string, string>[] = [];
                 const chapters: NonNullable<MediaDocument["chapters"]>[number][] = [];
                 const startTimesSeconds: number[] = [];
                 let nextStartSeconds = 0;
@@ -6468,6 +6469,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   };
                   if (keyword === "stream") {
                     streamIds.push(0);
+                    streamTags.push({});
+                  } else if (keyword === "stream_meta") {
+                    const tags = streamTags.at(-1);
+                    if (!tags) throw new Error(`Line ${l + 1}: stream_meta without stream`);
+                    const key = readToken();
+                    const value = readToken();
+                    if (!key || !value) throw new Error(`Line ${l + 1}: string required`);
+                    streamTags[streamTags.length - 1] = { ...tags, [key]: value };
                   } else if (keyword === "exact_stream_id") {
                     if (!streamIds.length) throw new Error(`Line ${l + 1}: exact_stream_id without stream`);
                     const token = readToken();
@@ -6605,8 +6614,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   if (streamIds.length) {
                     // WAV has demuxer stream ID zero; the AST uses a one-based track ID.
-                    const tracks = streamIds.flatMap(id => itemDoc.tracks.filter(track =>
-                      id === (itemDoc.containerFormat === "wav" ? 0 : track.id)));
+                    const tracks = streamIds.flatMap((id, index) => itemDoc.tracks.filter(track =>
+                      id === (itemDoc.containerFormat === "wav" ? 0 : track.id)).map(track => ({
+                        ...track, metadata: { ...track.metadata, ...streamTags[index] }
+                      })));
                     itemDoc = { ...itemDoc, tracks };
                   }
                   startTimesSeconds.push(nextStartSeconds);

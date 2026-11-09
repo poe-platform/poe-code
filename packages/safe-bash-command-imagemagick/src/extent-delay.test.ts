@@ -15,7 +15,7 @@ for (const retained of [false, true]) {
         .toMatchObject({ exitCode: 0 });
       const output = decodeImage(retained ? await filesystem.readFile("/out.gif") : files.get("out.gif")!, { animated: true });
       expect(output).toMatchObject({ width: 4, height: 6, pages: 2, pageHeight: 3, delay: reverse ? [310, 120] : [120, 310] });
-      const colors = geometry === "4x3+99+99" ? [[255, 255, 255, 255], [255, 255, 255, 255]] : reverse ? [[0, 0, 255, 255], [255, 0, 0, 255]] : [[255, 0, 0, 255], [0, 0, 255, 255]];
+      const colors = geometry === "4x3+99+99" ? (reverse ? [[255, 255, 255, 255], [255, 0, 0, 255]] : [[255, 0, 0, 255], [255, 255, 255, 255]]) : reverse ? [[0, 0, 255, 255], [255, 0, 0, 255]] : [[255, 0, 0, 255], [0, 0, 255, 255]];
       expect(output.data).toEqual(Uint8Array.from(colors.flatMap(color => Array.from({ length: 12 }, () => color).flat())));
     });
   }

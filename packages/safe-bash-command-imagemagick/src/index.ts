@@ -4512,7 +4512,8 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     if (!layout) return img;
     const virtualCanvas = magickResizeCanvas(img, layout.width, layout.height);
     const source = (img as MagickImage)[magickInput];
-    const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, state.background, !!img.data16),
+    const background = state.backgroundExplicit ? state.background : img.backgroundColor ?? state.background;
+    const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, background, !!img.data16),
         ...(img.delay ? { delay: img.delay } : {}), ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (!layout.area) return canvas;
     if (img.data16 && canvas.data16) {
@@ -4520,7 +4521,7 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
             yield;
             const start = ((layout.area.top + y) * img.width + layout.area.left + x) * 4;
             const samples = img.data16.slice(start, start + Math.min(4096, layout.area.width - x) * 4);
-            extentSamplesOverBackground(samples, state.background);
+            extentSamplesOverBackground(samples, background);
             const target = ((layout.top + y) * layout.width + layout.left + x) * 4;
             canvas.data16.set(samples, target);
             canvas.data.set(Uint8Array.from(samples, value => Math.round(value / 257)), target);
@@ -7747,7 +7748,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "0x0";
             validateMagickSpliceGeometry(geom);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickSpliceSteps(im, geom, state.background, state.gravity, signal));
+                return (yield* applyMagickSpliceSteps(im, geom, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal));
             });
         }
         else if (t === "-chop") {
@@ -8710,10 +8711,11 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         xs = [{ source: 0, target: 0, length: x0 }, { source: x1, target: x0, length: w - x1 }];
         ys = [{ source: 0, target: 0, length: y0 }, { source: y1, target: y0, length: h - y1 }];
     }
-    const position = token === "-splice" ? (await createStoredCanvas(width, height, state.background, backend, signal)).position : backend.storage.allocate(width * height * 4);
+    const background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
+    const position = token === "-splice" ? (await createStoredCanvas(width, height, background, backend, signal)).position : backend.storage.allocate(width * height * 4);
     const storedData16 = image.storedData16 ? { position: backend.storage.allocate(width * height * 8), length: width * height * 4 } : undefined;
     if (storedData16 && token === "-splice") {
-        const color = [state.background.r, state.background.g, state.background.b, state.background.a].map(value => Math.round(value * 257));
+        const color = [background.r, background.g, background.b, background.a].map(value => Math.round(value * 257));
         for (let offset = 0; offset < storedData16.length; offset += 16384) {
             await yieldTurn(signal);
             const samples = new Uint16Array(Math.min(16384, storedData16.length - offset));
@@ -9828,7 +9830,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!layout) return image;
                 const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
                 const source = (image as StoredMagickImage)[magickInput];
-                const canvas = { ...await createStoredCanvas(layout.width, layout.height, captured.background, backend, signal, !!image.storedData16),
+                const background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;
+                const canvas = { ...await createStoredCanvas(layout.width, layout.height, background, backend, signal, !!image.storedData16),
                     ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
                     ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
                 if (!layout.area) return canvas;
@@ -9838,7 +9841,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         const start = ((layout.area.top + y) * image.width + layout.area.left + x) * 4;
                         const bytes = await backend.storage.read(image.storedData16.position + start * 2, Math.min(4096, layout.area.width - x) * 8);
                         const samples = new Uint16Array(bytes.slice().buffer);
-                        extentSamplesOverBackground(samples, captured.background);
+                        extentSamplesOverBackground(samples, background);
                         const target = ((layout.top + y) * layout.width + layout.left + x) * 4;
                         await backend.storage.write(canvas.storedData16.position + target * 2, new Uint8Array(samples.buffer));
                         await backend.storage.write(canvas.position + target, Uint8Array.from(samples, value => Math.round(value / 257)));

@@ -3208,8 +3208,16 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
             nums[0]! - (nums[5]! - nums[1]!), nums[1]! + (nums[4]! - nums[0]!),
             nums[2]! - (nums[7]! - nums[3]!), nums[3]! + (nums[6]! - nums[2]!)
         );
-        const matrix: number[][] = [], xs: number[] = [], ys: number[] = [];
-        for (let p = 0; p < 3; p++) { matrix.push([nums[p * 4 + 2]!, nums[p * 4 + 3]!, 1]); xs.push(nums[p * 4]!); ys.push(nums[p * 4 + 1]!); }
+        // Fit destination to source using every pair, with fixed-size normal equations.
+        const matrix = Array.from({ length: 3 }, () => Array<number>(3).fill(0)), xs = Array<number>(3).fill(0), ys = Array<number>(3).fill(0);
+        for (let p = 0; p + 3 < nums.length; p += 4) {
+            const row = [nums[p + 2]!, nums[p + 3]!, 1];
+            for (let i = 0; i < 3; i++) {
+                xs[i]! += row[i]! * nums[p]!;
+                ys[i]! += row[i]! * nums[p + 1]!;
+                for (let j = 0; j < 3; j++) matrix[i]![j]! += row[i]! * row[j]!;
+            }
+        }
         const rx = solveLinearSystem(matrix, xs), ry = solveLinearSystem(matrix, ys);
         // Control points use pixel edges; sampling uses pixel centers.
         const plan = { ...result((x, y) => [rx[0]! * (x + 0.5) + rx[1]! * (y + 0.5) + rx[2]! - 0.5, ry[0]! * (x + 0.5) + ry[1]! * (y + 0.5) + ry[2]! - 0.5]),

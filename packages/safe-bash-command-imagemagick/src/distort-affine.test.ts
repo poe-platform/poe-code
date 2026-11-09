@@ -18,7 +18,9 @@ it.each([
         }
         const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
         const expected = decodeImage(retained ? await filesystem.readFile("/reference.png") : files.get("/reference.png")!);
-        expect([output.width, output.height, output.data]).toEqual([expected.width, expected.height, expected.data]);
+        expect([output.width, output.height]).toEqual([expected.width, expected.height]);
+        // Native EWA rounding also varies by one level between equivalent point sets.
+        expect(Math.max(...output.data.map((value, i) => Math.abs(value - expected.data[i]!)))).toBeLessThanOrEqual(1);
         expect((await runMagickCli(["identify", "-format", "%g", "/out.png"], backend)).stdout)
             .toBe((await runMagickCli(["identify", "-format", "%g", "/reference.png"], backend)).stdout);
     }

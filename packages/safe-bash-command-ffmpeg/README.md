@@ -157,6 +157,8 @@ with input format, rate, and channel options:
 `ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
 Raw PCM decoding ignores an incomplete trailing frame when complete frames precede it; input containing only an incomplete frame fails. Stream copy preserves all payload bytes.
 Input `-sample_rate 8000` also sets the raw PCM sample rate; place it before `-i`.
+Channel counts accept stream selectors on input and output: `-ac:a`, `-ac:a:0`, and `-ac:0`. Only matching audio streams change; the last matching option wins. For example, `-i input.wav -ac:a:0 1 output.wav` downmixes the first audio stream to mono.
+
 Input `-ch_layout stereo` or `-channel_layout stereo` sets two channels, equivalent to `-ac 2`; `mono` sets one channel. Place these options before `-i`.
 WAV input `-max_size 2049` limits PCM16 mono packets to 2048 bytes after sample alignment. Place it before the affected `-i`; zero (the default) selects automatic packet sizing. This is independent of the output file limit `-fs`.
 

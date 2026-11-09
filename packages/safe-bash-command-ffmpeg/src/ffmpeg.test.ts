@@ -16,6 +16,71 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("audio channel stream specifiers", () => {
+  const left = [100, 300, 500, 700];
+  const right = [-200, -400, -600, -800];
+  for (const option of ["-ac", "-ac:a", "-ac:a:0", "-ac:0", "-ac:a:1", "-ac:1", "-ac:v:0"]) {
+    const matches = !["-ac:a:1", "-ac:1", "-ac:v:0"].includes(option);
+    it(`selects output channels with ${option}`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000,
+        channels: [left, right].map(samples => Float64Array.from(samples, n => n / 32768)) }) });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", option, "1", "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+      assert.deepEqual(audio.channelData.map(samples => Array.from(samples, n => n * 32768)),
+        matches ? [[-50, -50, -50, -50]] : [left, right]);
+    });
+    for (const sync of [false, true]) it(`selects raw input channels with ${option} (sync=${sync})`, async () => {
+      const raw = new Uint8Array(16);
+      const view = new DataView(raw.buffer);
+      for (let i = 0; i < left.length; i++) {
+        view.setInt16(i * 4, left[i]!, true);
+        view.setInt16(i * 4 + 2, right[i]!, true);
+      }
+      const vfs = createTestVfs({ "/in.raw": raw });
+      const args = ["-y", "-f", "s16le", option, "2", "-i", "/in.raw", "/out.wav"];
+      if (sync) {
+        assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
+          (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
+      } else {
+        const result = await runCmd(createFfmpegCommand(), args, vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+      const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 44100);
+      assert.deepEqual(audio.channelData.map(samples => Array.from(samples, n => n * 32768)),
+        matches ? [left, right] : [left.flatMap((n, i) => [n, right[i]!])]);
+    });
+  }
+  for (const options of [["-ac", "2", "-ac:a:0", "1"], ["-ac:a:0", "2", "-ac", "1"], ["-ac:a", "1", "-ac:a:1", "2"]]) {
+    it(`uses the last matching channel option: ${options.join(" ")}`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000,
+        channels: [left, right].map(samples => Float64Array.from(samples, n => n / 32768)) }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", ...options, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channels, 1);
+    });
+  }
+  it("applies channel counts independently to mapped streams and outputs", async () => {
+    const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000,
+      channels: [left, right].map(samples => Float64Array.from(samples, n => n / 32768)) }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-map", "0:a", "-map", "0:a",
+      "-ac:a:1", "1", "-f", "streamhash", "-hash", "md5", "/hash.txt", "/out.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const stereo = new Uint8Array(16);
+    const mono = new Uint8Array(8);
+    for (let i = 0; i < left.length; i++) {
+      new DataView(stereo.buffer).setInt16(i * 4, left[i]!, true);
+      new DataView(stereo.buffer).setInt16(i * 4 + 2, right[i]!, true);
+      new DataView(mono.buffer).setInt16(i * 2, -50, true);
+    }
+    assert.equal(new TextDecoder().decode(vfs.store.get("/hash.txt")),
+      `0,a,MD5=${createHash("md5").update(stereo).digest("hex")}\n1,a,MD5=${createHash("md5").update(mono).digest("hex")}\n`);
+    assert.equal(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channels, 2);
+  });
+
+});
+
 describe("channel count remix routing", () => {
   for (const channels of [8, 9, 10, 16]) {
     it(`handles stereo to ${channels} channels according to default speaker routing`, async () => {

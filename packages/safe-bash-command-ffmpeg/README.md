@@ -479,6 +479,9 @@ Downstream `ashowinfo` reports packed double (`dbl`) frames before output encodi
 Mono input is converted to stereo at √½ gain per channel before crossfeed is applied.
 Strength and range default to 0.2 and 0.5 (0–1); slope defaults to 0.5 (0.01–1).
 `level_in` and `level_out` default to 0.9 and 1 (0–1).
+`asendcmd=c='0.064 crossfeed@x level_out 0',crossfeed@x` changes output gain
+at the next audio frame without resetting filter history. Commands target the
+first matching instance; unmatched targets and invalid gains leave it unchanged.
 `crossfeed=strength=0:level_in=1:level_out=1` preserves every stereo input sample.
 Block processing (`block_size`) is unsupported.
 `stereowiden=delay=5:feedback=0.3:crossfeed=0.3:drymix=0.8` widens stereo

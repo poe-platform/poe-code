@@ -9428,11 +9428,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const [target, action, expression] = words;
                           const supported = action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
+                            || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
                             || action === "dry" && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
                             || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME alimiter[@NAME] limit LIMIT or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME alimiter[@NAME] limit LIMIT or TIME dialoguenhance[@NAME] original GAIN");
                           }
                           return { time, target, expression };
                         });
@@ -10701,6 +10702,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           options[key] = value;
                         }
+                        const commands = audioCommands.filter(command => command.target === "crossfeed" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        // Native sends each command to the first matching filter instance.
+                        audioCommands = audioCommands.filter(command => command.target !== "crossfeed" && command.target !== filterTarget);
+                        let nextCommand = 0;
                         // Low-shelf the stereo difference signal, preserving the mid signal.
                         const gain = 10 ** (-30 * options.strength / 40);
                         const omega = 2 * Math.PI * (1 - options.range) * 2100 / origRate;
@@ -10721,6 +10727,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             await yieldTurn(context.signal);
                             context.signal?.throwIfAborted();
                             budget.checkCpu();
+                          }
+                          while (nextCommand < commands.length && commands[nextCommand]!.sample <= i) {
+                            const command = commands[nextCommand++]!;
+                            try {
+                              const value = parseFilterExpression(command.expression, "crossfeed", {});
+                              if (Number.isFinite(value) && value >= 0 && value <= 1) options.level_out = value;
+                            } catch { /* Rejected runtime commands leave the current gain unchanged. */ }
                           }
                           const mid = (stretched[0]![i]! + stretched[1]![i]!) * options.level_in * 0.5;
                           const side = (stretched[0]![i]! - stretched[1]![i]!) * options.level_in * 0.5;

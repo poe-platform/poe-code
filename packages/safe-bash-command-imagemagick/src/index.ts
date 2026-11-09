@@ -1482,6 +1482,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
     x: String(resolution ? Number((resolution.x / resolutionScale).toPrecision(6)) : meta.density ?? 72),
     y: String(resolution ? Number((resolution.y / resolutionScale).toPrecision(6)) : meta.density ?? 72),
+    U: resolution?.unit === "meter" ? "PixelsPerCentimeter" : "Undefined",
     s: String(context.sceneIdx ?? 0), p: String(context.listIndex ?? context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
     N: (context.listIndex ?? context.sceneIdx ?? 0) === (context.sceneCount ?? meta.pages ?? 1) - 1 ? `${context.sceneCount ?? meta.pages ?? 1}\n` : "",
     // Native uses this sentinel when ImageInfo.number_scenes is unset.
@@ -1501,7 +1502,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     w: short.w!, width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
     depth: bitDepth, size: short.b!, compression, quality: short.Q!, page: short.P!,
     "resolution.x": short.x!, "resolution.y": short.y!,
-    units: resolution?.unit === "meter" ? "PixelsPerCentimeter" : "Undefined"
+    units: short.U!
   };
   let img: RgbaImage | undefined;
   let pixels: Record<string, string> | undefined;

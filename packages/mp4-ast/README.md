@@ -1,5 +1,7 @@
 # @poe-code/mp4-ast
 
+FFmetadata chapter parsing rejects zero and negative `TIMEBASE` denominators instead of substituting positive timings. Unlike native FFmpeg versions that retain these unusable rationals, parsing fails explicitly; ffmpeg command execution leaves existing output untouched. Positive denominators retain their original timing.
+
 Decoded H.264 frames retain native pixels for `scaleVideoPicture(frame, width, height)`
 to resize before RGB conversion. Treat frame buffers as immutable; replaced RGBA
 buffers or dimensions make native scaling unavailable.

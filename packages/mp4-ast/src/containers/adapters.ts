@@ -2597,7 +2597,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   const flushChapter = () => {
     if (section !== "chapter") return;
     if (curEnd !== undefined && curEnd < curStart) throw new Error(`Chapter end time ${curEnd} before start ${curStart}`);
-    const factor = tbNum / Math.max(1, tbDen);
+    const factor = tbNum / tbDen;
     if (missingEndChapter) {
       chapters[missingEndChapter.id] = {
         ...missingEndChapter,
@@ -2606,7 +2606,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     }
     const chapter: Mp4Chapter = {
       id: chapters.length,
-      timeBase: { numerator: tbNum, denominator: Math.max(1, tbDen) },
+      timeBase: { numerator: tbNum, denominator: tbDen },
       startTimeSeconds: curStart * factor,
       endTimeSeconds: (curEnd ?? curStart) * factor,
       title: curTitle,
@@ -2651,7 +2651,9 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
         if (key === "TIMEBASE") {
           const [n, d] = val.split("/");
           tbNum = parseInt(n ?? "1", 10) || 1;
-          tbDen = parseInt(d ?? "1000", 10) || 1000;
+          tbDen = parseInt(d ?? "1000", 10);
+          if (tbDen <= 0) throw new Error("FFmetadata chapter TIMEBASE denominator must be positive");
+          tbDen = tbDen || 1000;
           continue;
         }
       }

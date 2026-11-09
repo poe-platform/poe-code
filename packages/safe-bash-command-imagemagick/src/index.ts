@@ -10974,6 +10974,9 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let compose = "over";
     type Rotation = { rotation: string; settings: MagickState };
     type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined };
+    const pixelOperations: MagickPixelOperation[] = [];
+    const operationFlushes = new Map<number, readonly MagickPixelOperation[]>();
+    let pending = false;
     const operands: string[] = [];
     const operandOperations: CompareOperation[][] = [];
     let leadingOperations: CompareOperation[] = [];
@@ -10985,6 +10988,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
+        if ((t.startsWith("-") || t.startsWith("+")) && t.length > 1) pending = operands.length > 0;
         // An option after an input ends the leading operator group.
         if (operands.length > groupStart && (t.startsWith("-") || t.startsWith("+"))) leadingOperations = [];
         if (t === "--help" || t === "-help" || t === "-h") {
@@ -11040,6 +11044,12 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const operation = { separate: channels?.slice() };
             if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push(operation);
             else leadingOperations.push(operation);
+        }
+        else if (t === "-negate" || t === "+negate") {
+            pixelOperations.push(parseMagickPixelOperation(argv, { ...state, channelExplicit: channels !== undefined,
+                channels: { r: channels?.includes(0) ?? true, g: channels?.includes(1) ?? true,
+                    b: channels?.includes(2) ?? true, a: channels?.includes(3) ?? true }
+            }, i, signal)!);
         }
         else if (t === "-precision") {
             const value = argv[++i];
@@ -11170,6 +11180,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return { exitCode: 2, stdout: "", stderr: `compare: unrecognized option '${t}'\n` };
         }
         else {
+            if (pending) operationFlushes.set(operands.length, [...pixelOperations]);
+            pending = false;
             operands.push(t);
             operandOperations.push(leadingOperations.map(operation => typeof operation === "object" && "geometry" in operation ? { ...operation, gravity: state.gravity } : operation));
         }
@@ -11265,7 +11277,27 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
     }
     // Compare consumes the first two images in the combined input sequence.
-    for (const [operandIndex, operand] of operands.slice(0, -1).entries()) {
+    for (const [operandIndex, operand] of operands.entries()) {
+        const final = operandIndex === operands.length - 1;
+        // Native compare flushes pending operators before the next input, then
+        // replays them over the combined sequence when finalizing the comparison.
+        for (const operation of (final ? pixelOperations : operationFlushes.get(operandIndex)) ?? []) {
+            if (imgA) {
+                if ("data" in imgA) imgA = yield* operation.apply(imgA);
+                else {
+                    const image = imgA;
+                    yield { async run() { imgA = await transformStoredMagickPixels(image, backend!, operation, signal!); } };
+                }
+            }
+            if (imgB) {
+                if ("data" in imgB) imgB = yield* operation.apply(imgB);
+                else {
+                    const image = imgB;
+                    yield { async run() { imgB = await transformStoredMagickPixels(image, backend!, operation, signal!); } };
+                }
+            }
+        }
+        if (final) break;
         const operations = operandOperations[operandIndex]!;
         try {
             let found = false;

@@ -5607,7 +5607,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               outputDuration = val;
             }
           } else if (arg === "-pattern_type") {
-            const value = args[++i];
+            const selector = args[++i];
+            const value = selector === "1" ? "glob" : selector === "2" ? "sequence" : selector === "3" ? "none" : selector;
             if (value !== "glob" && value !== "none" && value !== "sequence") {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid image2 pattern type: ${value ?? ""}\n`), context.signal);
               return { exitCode: 1 };

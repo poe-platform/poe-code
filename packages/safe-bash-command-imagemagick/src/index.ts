@@ -1888,15 +1888,19 @@ function parseMagickShaveGeometry(raw: string, image: Pick<RgbaImage, "width" | 
     return { ...geometry, isPercent: false, width, height: hasDimensions ? height : width };
 }
 
-function resolveMagickChopGeometry(g: MagickGeometry, raw: string, width: number, height: number) {
+function resolveMagickChopGeometry(raw: string, width: number, height: number) {
+    // Chop ignores the # geometry modifier without dropping dimensions or offsets.
+    const g = parseMagickGeometry(raw.replaceAll("#", ""));
     if (g.aspectRatio !== undefined) {
         return {
+            ...g,
             width: Math.max(0, Math.round(Math.min(width, height * g.aspectRatio))),
             height: Math.max(0, Math.round(Math.min(height, width / g.aspectRatio)))
         };
     }
     const offsetOnly = g.hasOffset && g.width === undefined && g.height === undefined;
     return {
+        ...g,
         width: offsetOnly ? width : Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? width / 100 : 1))),
         height: offsetOnly ? height : Math.max(0, Math.round((g.height ?? (g.isPercent || raw.toLowerCase().includes("x") ? 0 : height)) * (g.isPercent ? height / 100 : 1)))
     };
@@ -2008,8 +2012,8 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
 
 function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
-    const g = parseMagickGeometry(geomStr);
-    const { width: cw, height: ch } = resolveMagickChopGeometry(g, geomStr, img.width, img.height);
+    const g = resolveMagickChopGeometry(geomStr, img.width, img.height);
+    const { width: cw, height: ch } = g;
     // Native chop truncates geometry offsets before applying gravity.
     // Zero axes use the native page/image bitwise union only for gravity placement.
     const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height,
@@ -9884,7 +9888,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         xs = [{ source: 0, target: 0, length: x }, { source: x, target: x + spliceWidth, length: Math.max(0, width - x - spliceWidth) }];
         ys = [{ source: 0, target: 0, length: y }, { source: y, target: y + sh, length: Math.max(0, h - y) }];
     } else {
-        const { width: cw, height: ch } = resolveMagickChopGeometry(g, geometry, w, h);
+        const g = resolveMagickChopGeometry(geometry, w, h);
+        const { width: cw, height: ch } = g;
         // Zero axes use the native page/image bitwise union only for gravity placement.
         const { x, y } = gravityAdjustBox(w, h,
             cw || ((image.virtualCanvas?.width ?? 0) | w), ch || ((image.virtualCanvas?.height ?? 0) | h),

@@ -6438,20 +6438,20 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         else if (mode === "associate" || mode === "disassociate") {
             apply = function* (im) {
-                const out = new Uint8Array(im.data);
-                const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
+                const out = new Uint8Array(im.data), data16 = new Uint16Array(im.data.length);
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (idx % 65536 === 0) yield;
-                    const alpha = im.hasAlpha ? (data16 ? data16[idx + 3]! / 65535 : out[idx + 3]! / 255) : 1;
+                    const alpha = im.hasAlpha ? (im.data16 ? im.data16[idx + 3]! / 65535 : im.data[idx + 3]! / 255) : 1;
                     const scale = mode === "associate" ? alpha : 1 / Math.max(alpha, 1e-12);
                     for (let channel = 0; channel < 3; channel++) {
-                        if (data16) {
-                            data16[idx + channel] = Math.min(65535, Math.round(data16[idx + channel]! * scale));
-                            out[idx + channel] = clampByteVal(data16[idx + channel]! / 257);
-                        } else out[idx + channel] = clampByteVal(out[idx + channel]! * scale);
+                        const source = im.data16 ? im.data16[idx + channel]! : im.data[idx + channel]! * 257;
+                        const scaled = Math.min(65535, source * scale);
+                        data16[idx + channel] = Math.round(scaled);
+                        out[idx + channel] = clampByteVal(scaled / 257);
                     }
+                    data16[idx + 3] = im.data16 ? im.data16[idx + 3]! : im.data[idx + 3]! * 257;
                 }
-                return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: false };
+                return { ...im, data: out, data16, hasAlpha: false };
             };
         }
         else if (mode === "deactivate" || mode === "discrete") {

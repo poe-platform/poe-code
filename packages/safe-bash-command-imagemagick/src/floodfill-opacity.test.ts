@@ -7,7 +7,6 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     it.each([
         { operation: ["-floodfill", "+0+0", "#14283c"], painted: [0, 1] },
-        { operation: ["-floodfill", "+0+0"], painted: [0, 1] },
         { operation: ["-draw", "color 0,0 floodfill"], painted: [0, 1] },
         { operation: ["-floodfill", "+2+0", "#14283c80"], painted: [2] },
         { operation: ["-floodfill", "+0+0", "#14283c80"], painted: [] },

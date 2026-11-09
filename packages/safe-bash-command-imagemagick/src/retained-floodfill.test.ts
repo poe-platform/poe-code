@@ -3,11 +3,11 @@ import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 const operators = [
-    ["-fill", "red", "-floodfill", "+0+0"],
-    ["-fill", "#12345680", "-floodfill", "+4+4"],
-    ["-fill", "none", "-fuzz", "100%", "-floodfill", "+0+0"],
-    ["-fill", "blue", "-fuzz", "20%", "-floodfill", "4x7"],
-    ["-fill", "green", "-floodfill", "+999+999"],
+    ["-fill", "red", "-floodfill", "+0+0", "black"],
+    ["-fill", "#12345680", "-floodfill", "+4+4", "black"],
+    ["-fill", "none", "-fuzz", "100%", "-floodfill", "+0+0", "black"],
+    ["-fill", "blue", "-fuzz", "20%", "-floodfill", "4x7", "black"],
+    ["-fill", "green", "-floodfill", "+999+999", "black"],
     ["-fill", "blue", "-floodfill", "+0+0", "red"],
     ["-fill", "blue", "-floodfill", "+0+0", "#000000"],
     ["-fill", "#10203040", "-fuzz", "100%", "-floodfill", "+5+7", "white"]
@@ -106,7 +106,7 @@ it("preserves disconnected regions and opacity boundaries across cached pages", 
         const value = Reflect.get(target, key, target);
         return typeof value === "function" ? value.bind(target) : value;
     } });
-    expect((await runConvertCli(["input", "-fill", "red", "-floodfill", "+6+6", "out.png"], { filesystem, cwd: "/" })).exitCode).toBe(0);
+    expect((await runConvertCli(["input", "-fill", "red", "-floodfill", "+6+6", "#00000080", "out.png"], { filesystem, cwd: "/" })).exitCode).toBe(0);
     const actual = decodeImage(await fs.readFile("/out.png"));
     for (let y = 6; y < height - 6; y++) for (let x = 6; x < 128; x++) {
         const offset = (y * width + x) * 4;

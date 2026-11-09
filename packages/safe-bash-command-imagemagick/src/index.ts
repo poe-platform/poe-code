@@ -8637,17 +8637,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = (yield* applyMagickMorphSteps(stack, count, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.kernel, signal, state.resizeFilter));
         }
         else if (t === "-floodfill" || t === "+floodfill") {
-            const geom = tokens[++i] ?? "+0+0";
-            const nextTok = tokens[i + 1];
-            let targetColor: RgbaColor | undefined;
-            if (nextTok && !nextTok.startsWith("-") && !nextTok.startsWith("+")) {
-                try {
-                    targetColor = parseColor(nextTok);
-                    i++;
-                }
-                catch {
-                    // Optional target color omitted
-                }
+            if (i + 2 >= tokens.length) throw new Error(`missing argument '${t}'`);
+            const geom = tokens[++i]!, value = tokens[++i]!;
+            let targetColor: RgbaColor;
+            try { targetColor = parseColor(value); }
+            catch {
+                analysis.warnings += `magick: unrecognized color \`${value}'\n`;
+                targetColor = { r: 0, g: 0, b: 0, a: 255 };
             }
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickFloodfillSteps(im, geom, targetColor, state.fill, state.alphaFuzz, signal, false, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, t === "+floodfill"));
@@ -10893,11 +10889,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     : remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal);
             });
         } else if (!operandsOnly && (token === "-floodfill" || token === "+floodfill")) {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "+0+0"), candidate = tokens[i + 1], replacement = state.fill, fuzz = state.alphaFuzz;
+            if (i + 2 >= tokens.length) throw new Error(`missing argument '${token}'`);
+            const geometry = parseMagickGeometry(tokens[++i]!), value = tokens[++i]!, replacement = state.fill, fuzz = state.alphaFuzz;
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
-            let target: RgbaColor | undefined;
-            if (candidate && !candidate.startsWith("-") && !candidate.startsWith("+")) {
-                try { target = parseColor(candidate); i++; } catch { /* Optional color omitted. */ }
+            let target: RgbaColor;
+            try { target = parseColor(value); }
+            catch {
+                analysis.warnings += `magick: unrecognized color \`${value}'\n`;
+                target = { r: 0, g: 0, b: 0, a: 255 };
             }
             steps.push(async (image, backend) => {
                 if (!image) return;

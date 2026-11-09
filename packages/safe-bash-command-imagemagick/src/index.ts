@@ -3124,7 +3124,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         const length = Number.isNaN(wavelength) ? 1 : wavelength;
         // Native uses a safe reciprocal and stores the sine displacement as a float.
         const reciprocal = Math.abs(length) >= 1e-12 ? 1 / length : (length < 0 ? -1 : 1) / 1e-12;
-        return result((x, y) => [x, y - Math.fround(padding + amplitude * Math.sin(2 * Math.PI * x * reciprocal))], w, h + Math.round(padding * 2));
+        return result((x, y) => [x, y - Math.fround(padding + amplitude * Math.sin(2 * Math.PI * x * reciprocal))], w, h + Math.trunc(padding * 2));
     }
     const method = spec.toLowerCase().replace(/[-_]/g, ""), nums = args.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number);
     if (method === "arc") throw new Error("Unsupported distortion method: Arc");

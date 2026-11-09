@@ -4,7 +4,7 @@ import { expect, it } from "vitest";
 import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
-import { createImagemagickCommand, runConvertCliSync } from "./index.js";
+import { createImagemagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 const checkerboard = readFileSync(new URL("./fixtures/wave-checkerboard.png", import.meta.url));
 const nativeAvailable = spawnSync("magick", ["-version"]).status === 0;
@@ -71,3 +71,41 @@ it.each([
         expect([...output.data]).toEqual([...native.stdout]);
     }
 });
+
+// ImageMagick 7.1.2-35 Q16-HDRI: 7x5 RGB PNG, -wave 0.8x4 -depth 8 rgba:-.
+const fractionalInput = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAcAAAAFCAIAAAAG+GGPAAAAJUlEQVR4nGMUtojNxwCMMo5pWERVvTAF8xn1giuwiJrHNGKKAgAm2itiRBt5eAAAAABJRU5ErkJggg==", "base64");
+const fractionalPixels = Buffer.from("0Nff///////80Nj/YIWq//X90f//////7/b9/xU6X//N3Ov/8xg9/2mOs//R9hv/ssHP/6/Uxv8eQ2j/hqvQ/8khRv9yl7z/2swk/0JnjP+43QL/J0xx/4+02f8FKk//e6DF/+MILf9LcJX/weYL/zBVev+YveL/DjNY/4Spzv/sETb/VHme/8rvFP9ffZr/ocbr/0Rhf///////9UZk/12Cp//a+En/", "base64");
+
+for (const mode of ["command", "buffered", "retained", "sync"] as const) {
+    it.each([
+        { amplitude: 0, height: 5 },
+        { amplitude: 0.2, height: 5 },
+        { amplitude: 0.5, height: 6 },
+        { amplitude: 0.8, height: 6 },
+        { amplitude: 1.25, height: 7 },
+        { amplitude: 1.75, height: 8 },
+        { amplitude: 2, height: 9 },
+    ])(`${mode}: matches native wave height for amplitude $amplitude`, async ({ amplitude, height }) => {
+        const args = ["/input.png", "-wave", `${amplitude}x4`, "/output.png"];
+        const files = new Map<string, Uint8Array>([["/input.png", fractionalInput]]);
+        const fs = createMemoryFileSystem();
+        await fs.writeFile("/input.png", fractionalInput);
+        const result = mode === "command" ? await createImagemagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write() {} }, stderr: { async write() {} },
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        const output = decodeImage(mode === "command" || mode === "retained"
+            ? await fs.readFile("/output.png") : files.get("/output.png")!);
+        expect([output.width, output.height]).toEqual([7, height]);
+        if (amplitude === 0.8) expect([...output.data]).toEqual([...fractionalPixels]);
+        if (amplitude === 0) expect(output.data).toEqual(decodeImage(fractionalInput).data);
+        if (nativeAvailable) {
+            const native = spawnSync("magick", ["png:-", "-wave", `${amplitude}x4`, "-depth", "8", "rgba:-"], { input: fractionalInput });
+            expect(native.status).toBe(0);
+            expect([...output.data]).toEqual([...native.stdout]);
+        }
+    });
+}

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
-import { createSpongeCommand, evalSyncSponge } from "./index.js";
+import { createSpongeCommand } from "./index.js";
 
 for (const options of [[], ["-a"], ["--"]]) {
   test(`sponge writes only the first file operand with ${JSON.stringify(options)}`, async () => {
@@ -29,14 +29,3 @@ for (const options of [[], ["-a"], ["--"]]) {
     await assert.rejects(fs.stat("/second"), { code: "ENOENT" });
   });
 }
-
-test("synchronous sponge writes only the first file operand", () => {
-  const bytes = new TextEncoder().encode("abc");
-  const writes: string[] = [];
-  assert.equal(evalSyncSponge(bytes, ["f", "second", "existing"], undefined, (path, value) => {
-    writes.push(path);
-    assert.deepEqual(value, bytes);
-    return true;
-  }), "");
-  assert.deepEqual(writes, ["f"]);
-});

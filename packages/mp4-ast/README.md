@@ -74,6 +74,7 @@ Use `fragmentType: "every_frame"` to place one fragment per frame inside each se
 Set `mpdProfile: "dvb_dash"` to declare the DVB DASH profile, or `"dash+dvb_dash"` for both DVB and the default ISO live profile.
 Set `minPlaybackRate` and/or `maxPlaybackRate` to advertise DASH playback bounds in `ServiceDescription`; the omitted bound defaults to 1. Both accept 0.5–1.5; reversed bounds and the default 1/1 pair omit `PlaybackRate`.
 Set `windowSize` to bound each DASH timeline or segment list to its last N segments (`0` retains all), preserving segment numbers and resource references.
+H.264/AAC DASH adaptation sets advertise independent segment access and bitstream switching when every representation uses one codec description and starts every segment at a keyframe.
 For DASH output, `serializeDashDocument(doc, { segmentDuration: 1 })` splits at the requested duration
 (in seconds, default 5), aligning video cuts to keyframes, and returns `{ manifest, resources }`.
 VP9 representations declare their profile, level, and bit depth in `codecs` (for example, `vp09.00.10.08`) while preserving the encoded packets.

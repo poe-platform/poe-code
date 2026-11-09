@@ -432,6 +432,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     render: (count: number) => string[];
   }[] = [];
   const adaptationAttributes: string[] = [];
+  const independentSegments: boolean[] = [];
   const minPlaybackRate = options.minPlaybackRate ?? 1;
   const maxPlaybackRate = options.maxPlaybackRate ?? 1;
   for (const rate of [minPlaybackRate, maxPlaybackRate]) {
@@ -494,6 +495,9 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       if ((track.type === "audio" || sample.isKeyframe) &&
           sample.dts - origin >= starts.length * segmentDuration * track.timescale) starts.push(i);
     }
+    independentSegments[index] = track.codecDescriptions.length === 1 &&
+      track.codecDescriptions.some(description => description.codecName === "h264" || description.codecName === "aac") &&
+      starts.every(start => track.samples[start]?.isKeyframe);
     const firstSegment = windowSize ? Math.max(0, starts.length - windowSize) : 0;
     let trackBytes = 0;
     let initialization = new Uint8Array();
@@ -702,6 +706,11 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         ];
       }
     });
+  }
+  for (const adaptation of adaptations) {
+    if (adaptation.indices.every(index => independentSegments[index])) {
+      adaptationAttributes[adaptation.indices[0]!] += ' startWithSAP="1" bitstreamSwitching="true"';
+    }
   }
   const lines = [
     '<?xml version="1.0" encoding="utf-8"?>',

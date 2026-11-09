@@ -240,6 +240,8 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   files from `>` redirection; `>|` overrides it and `>>` still appends.
   `GLOBIGNORE` filters expanded paths: `*.log` excludes local log files,
   while `logs/*.log` excludes log files from `logs/*`.
+  `GLOBSORT=name` and `GLOBSORT=size` order glob matches by name or file size;
+  prefix either with `-` for descending order. Size ties are ordered by name.
   Assigning a nonempty `GLOBIGNORE` enables `dotglob`; assigning an empty value
   leaves it unchanged, and unsetting `GLOBIGNORE` disables it. A subsequent
   `shopt -u dotglob` excludes dotfiles even while `GLOBIGNORE` remains set.

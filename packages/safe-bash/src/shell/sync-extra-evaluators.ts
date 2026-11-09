@@ -12906,6 +12906,7 @@ const syncExtraRuntimeMethods = {
     return Boolean(p0 && p0.kind === "variable" && p0.name === "@" && p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined);
   },
   tryExpandSyncMemoryGlobWord(w: Word, rawState: State, dryRun: boolean): string[] | undefined {
+    if (rawState.variables.GLOBSORT) return undefined;
     if (rawState.globskipdots === false) return undefined;
     if (!this._isMemoryBackingFs || !this.canFastMemoryRedirect || (this._fileWrites !== undefined && this._fileWrites.size !== 0) || (this._outputFiles !== undefined && this._outputFiles.size !== 0)) return undefined;
     if (rawState.noglob || rawState.nocaseglob || rawState.extglob || rawState.globstar || rawState.failglob || Boolean(rawState.variables.GLOBIGNORE)) return undefined;

@@ -236,9 +236,14 @@ const syncResolved = Symbol.for("safe-bash.syncResolved");
 const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
 export const devNullSyncSink: ByteSink = { write: () => resolvedVoid };
 syncSinks.set(devNullSyncSink, () => {});
-async function sortExpansionStrings(values: string[], work: StringWork, utf8 = false): Promise<void> {
+async function sortExpansionStrings(values: string[], work: StringWork, utf8 = false, sizes?: ReadonlyMap<string, number>): Promise<void> {
   if (values.length <= 1) return;
   const compareSyncOrAsync = (left: string, right: string): number | Promise<number> => {
+    const sizeDifference = sizes ? sizes.get(left)! - sizes.get(right)! : 0;
+    if (sizeDifference) {
+      const pending = stringCheckpoint(work);
+      return pending ? pending.then(() => sizeDifference) : sizeDifference;
+    }
     let first = 0, second = 0;
     while (first < left.length && second < right.length) {
       const pending = stringCheckpoint(work);
@@ -10906,6 +10911,31 @@ export class Runtime {
     } finally { await binding.release(); }
     } finally { holding.release(); }
   }
+  private async sortGlob(found: string[], state: State, work: StringWork): Promise<void> {
+    const value = state.variables.GLOBSORT ?? "";
+    const key = (value.startsWith("-") || value.startsWith("+") ? value.slice(1) : value) || "name";
+    const scratch = this.budget.values.scope();
+    try {
+      let sizes: Map<string, number> | undefined;
+      if (key === "size" && found.length > 1) {
+        scratch.reserveBytes(found.length * 64);
+        sizes = new Map();
+        for (const name of found) {
+          this.signal.throwIfAborted();
+          try {
+            const stat = await interruptible(this.fs.stat(pathOf(state, name), { signal: this.signal }), this.signal);
+            sizes.set(name, stat.size);
+          } catch (error) {
+            this.signal.throwIfAborted();
+            if (!["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "")) throw error;
+            sizes.set(name, 0);
+          }
+        }
+      }
+      await sortExpansionStrings(found, work, true, sizes);
+      if (value.startsWith("-") && (key === "name" || key === "size")) found.reverse();
+    } finally { scratch.close(); }
+  }
   private async recursiveGlob(value: string, pattern: string, state: State): Promise<string[]> {
     const failWalk = (message: string): never => {
       const error = new FsError("EFBIG", { syscall: "glob", message });
@@ -11036,7 +11066,7 @@ export class Runtime {
           found.push(candidate.path + slash);
         } catch (error) { if (!ignored(error)) throw error; }
       }
-      await sortExpansionStrings(found, work, true);
+      await this.sortGlob(found, state, work);
       if (!found.length && state.failglob) throw new FailglobFailure(`no match: ${value}`);
       return found.length ? found : state.nullglob ? [] : [value];
     } finally { scratch.close(); }
@@ -11172,7 +11202,7 @@ export class Runtime {
     }
     const sortingWork: StringWork = {
       remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 * (Math.ceil(Math.log2(found.length + 1)) + 1) + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), };
-    await sortExpansionStrings(found, sortingWork, true);
+    await this.sortGlob(found, state, sortingWork);
     if (!found.length && state.failglob) throw new FailglobFailure(`no match: ${value}`);
     return found.length ? found : state.nullglob ? [] : [value];
   }

@@ -4204,8 +4204,8 @@ function parseMpegtsFlags(value: string, current: number): number {
     const start = position;
     while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
     const flag = value.slice(start, position);
-    const bits = flag === "pat_pmt_at_frames" ? 16 : flag === "latm" ? 8 : flag === "omit_rai" ? 64 : Number(flag);
-    if (!flag || !Number.isInteger(bits) || bits < 0 || bits > 88 || (bits & ~88) !== 0) {
+    const bits = flag === "pat_pmt_at_frames" ? 16 : flag === "initial_discontinuity" ? 32 : flag === "latm" ? 8 : flag === "omit_rai" ? 64 : Number(flag);
+    if (!flag || !Number.isInteger(bits) || bits < 0 || bits > 120 || (bits & ~120) !== 0) {
       throw new Error(`Unsupported -mpegts_flags value: ${flag}`);
     }
     enabled = remove ? enabled & ~bits : enabled | bits;
@@ -5133,7 +5133,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { patPmtAtFrames: (mpegtsFlags & 16) !== 0, patPeriod, muxDelay, omitVideoPesLength, mpegtsTablesVersion, mpegtsServiceType, mpegtsLatm: !!(mpegtsFlags & 8), mpegtsOmitRai: !!(mpegtsFlags & 64), live, writeHeader, writeBext, writeCrc32, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, mpegtsServiceId, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeApetag, writeId3v2, writeMpeg2, mpegtsStartPid, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { patPmtAtFrames: (mpegtsFlags & 16) !== 0, patPeriod, muxDelay, omitVideoPesLength, mpegtsTablesVersion, mpegtsServiceType, mpegtsLatm: !!(mpegtsFlags & 8), initialDiscontinuity: !!(mpegtsFlags & 32), mpegtsOmitRai: !!(mpegtsFlags & 64), live, writeHeader, writeBext, writeCrc32, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, mpegtsServiceId, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeApetag, writeId3v2, writeMpeg2, mpegtsStartPid, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -11521,6 +11521,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               mpegtsServiceType,
               omitVideoPesLength,
               mpegtsLatm: !!(mpegtsFlags & 8),
+              initialDiscontinuity: !!(mpegtsFlags & 32),
               mpegtsOmitRai: !!(mpegtsFlags & 64),
               fragmented,
               fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined),

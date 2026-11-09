@@ -704,6 +704,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** Mark only the first packet of each MPEG-TS PID as discontinuous. */
+  readonly initialDiscontinuity?: boolean | undefined;
   /** MPEG-TS: repeat PAT/PMT before every video frame, regardless of patPeriod. */
   readonly patPmtAtFrames?: boolean | undefined;
   /** MPEG-TS PAT/PMT repetition interval in seconds (default: 0.1); zero repeats for each packet. */

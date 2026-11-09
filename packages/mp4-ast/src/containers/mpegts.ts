@@ -483,6 +483,7 @@ export function serializeMpegTs(
   let lastPatDts: number | undefined;
   const tsPackets: Uint8Array[] = [];
   const ccByPid = new Map<number, number>();
+  const discontinuityPids = new Set<number>();
 
   const nextCc = (pid: number): number => {
     const cc = ccByPid.get(pid) ?? 0;
@@ -497,9 +498,15 @@ export function serializeMpegTs(
       pkt[0] = 0x47;
       pkt[1] = (first ? 0x40 : 0) | ((pid >>> 8) & 0x1f);
       pkt[2] = pid & 0xff;
-      pkt[3] = 0x10 | nextCc(pid);
-      if (first) pkt[4] = 0x00; // pointer_field = 0
-      const start = first ? 5 : 4;
+      const discontinuity = options.initialDiscontinuity && !discontinuityPids.has(pid);
+      pkt[3] = (discontinuity ? 0x30 : 0x10) | nextCc(pid);
+      let start = 4;
+      if (discontinuity) {
+        pkt[start++] = 1; // adaptation_field_length
+        pkt[start++] = 0x80; // discontinuity_indicator
+        discontinuityPids.add(pid);
+      }
+      if (first) pkt[start++] = 0; // pointer_field
       const size = Math.min(188 - start, section.byteLength - offset);
       pkt.set(section.subarray(offset, offset + size), start);
       tsPackets.push(pkt);
@@ -557,7 +564,8 @@ export function serializeMpegTs(
       const remaining = fullPes.byteLength - offset;
       const needPcr = first && withPcr;
       const randomAccess = first && isKeyframe && !options.mpegtsOmitRai;
-      const minAdaptation = needPcr ? 8 : randomAccess ? 2 : 0; // 1 length byte + 1 flags byte + 6 PCR bytes
+      const discontinuity = options.initialDiscontinuity && !discontinuityPids.has(pid);
+      const minAdaptation = needPcr ? 8 : randomAccess || discontinuity ? 2 : 0; // 1 length byte + 1 flags byte + 6 PCR bytes
       const maxPayloadWithMinAdapt = 184 - minAdaptation;
 
       if (remaining < maxPayloadWithMinAdapt || minAdaptation > 0) {
@@ -579,6 +587,10 @@ export function serializeMpegTs(
           } else {
             pkt[5] = randomAccess ? 0x40 : 0;
           }
+        }
+        if (discontinuity) {
+          pkt[5] = pkt[5]! | 0x80;
+          discontinuityPids.add(pid);
         }
         const payloadPos = 4 + totalAdaptBytes;
         pkt.set(fullPes.subarray(offset, offset + payloadToTake), payloadPos);

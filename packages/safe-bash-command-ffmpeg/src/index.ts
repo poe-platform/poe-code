@@ -3514,6 +3514,8 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           }
           const styles: string[] = [];
           const fonts: number[] = [];
+          const assFonts: Record<string, string>[] = [{}];
+          const encodeAss = codec === "subrip" && (outputFormat === "ass" || containerCodec === "ass");
           const encodeSrt = codec === "subrip" && outputFormat === "srt";
           const webvtt = outputFormat === "webvtt" || containerCodec === "webvtt";
           let position = 0;
@@ -3554,13 +3556,15 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
                 }
               } else if (encodeSrt && ["s", "/s"].includes(tag)) {
                 parts.push(`<${tag}>`);
-              } else if (codec === "subrip" && ((!webvtt && !encodeSrt) || Array.from(tag.split(" ", 1)[0]!).some(char =>
+              } else if (codec === "subrip" && !(encodeAss && (tag.startsWith("font ") || tag === "font" || tag === "/font"))
+                && ((!webvtt && !encodeSrt) || Array.from(tag.split(" ", 1)[0]!).some(char =>
                 !(char >= "0" && char <= "9" || char >= "a" && char <= "z"
                   || char >= "A" && char <= "Z" || char === "_" || char === "/")))) {
                 // SubRip timestamp-like text is literal, unlike WebVTT timestamp tags.
                 parts.push(`<${tag}>`);
               }
-              if (encodeSrt && tag.startsWith("font ")) {
+              if ((encodeSrt || encodeAss) && (tag.startsWith("font ") || tag === "font")) {
+                const assFont = { ...assFonts[assFonts.length - 1]! };
                 let attributes = tag.slice(5).trimStart();
                 let count = 0;
                 while (attributes) {
@@ -3577,15 +3581,29 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
                   if (!["face", "size", "color"].includes(name)) continue;
                   if (name === "color") {
                     try {
-                      value = "#" + parseColorRgba(value).slice(0, 3)
-                        .map(channel => channel.toString(16).padStart(2, "0")).join("");
+                      const [red, green, blue] = parseColorRgba(value);
+                      value = encodeAss ? "&H" + (red | green << 8 | blue << 16).toString(16).toUpperCase() + "&"
+                        : "#" + [red, green, blue].map(channel => channel.toString(16).padStart(2, "0")).join("");
                     } catch { continue; }
                   }
                   if (name === "size" && !(Number(value) > 0)) continue;
-                  parts.push(`<font ${name}="${value}">`);
-                  count++;
+                  if (encodeAss) {
+                    const property = name === "face" ? "fn" : name === "size" ? "fs" : "c";
+                    assFont[property] = value;
+                    parts.push(`{\\${property}${value}}`);
+                  } else {
+                    parts.push(`<font ${name}="${value}">`);
+                    count++;
+                  }
                 }
-                fonts.push(count);
+                if (encodeAss) assFonts.push(assFont);
+                else fonts.push(count);
+              } else if (encodeAss && tag === "/font" && assFonts.length > 1) {
+                const current = assFonts.pop()!;
+                const parent = assFonts[assFonts.length - 1]!;
+                for (const property of ["fs", "c", "fn"]) {
+                  if (current[property] !== parent[property]) parts.push(`{\\${property}${parent[property] ?? ""}}`);
+                }
               } else if (encodeSrt && tag === "/font") {
                 parts.push("</font>".repeat(fonts.pop() ?? 0));
               }

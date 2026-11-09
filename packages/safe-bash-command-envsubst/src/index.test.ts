@@ -40,3 +40,19 @@ test("envsubst substitutes variables, restricts via SHELL-FORMAT, and supports -
   const r3 = await runEnvsubst(["-v", "$FOO and ${BAR} and $FOO"], "", {});
   assert.equal(r3.stdout, "FOO\nBAR\nFOO\n");
 });
+
+for (const args of [["-"], ["--", "-"], ["-v", "-"], ["--variables", "-"], ["-v", "--", "-"]]) {
+  test(`envsubst ${args.join(" ")} treats a lone dash as a format operand`, async () => {
+    const result = await runEnvsubst(args, "$A", { A: "blue" });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, args.includes("-v") || args.includes("--variables") ? "" : "$A");
+  });
+}
+
+for (const option of ["-x", "--invalid"]) {
+  test(`envsubst still rejects ${option}`, async () => {
+    const result = await runEnvsubst([option], "$A", { A: "blue" });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+  });
+}

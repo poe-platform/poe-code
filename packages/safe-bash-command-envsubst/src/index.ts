@@ -238,7 +238,7 @@ export function createEnvsubstCommand(options: EnvsubstCommandsOptions = {}): Co
           variablesMode = true;
           continue;
         }
-        if (!endOfOptions && arg.startsWith("-")) {
+        if (!endOfOptions && arg !== "-" && arg.startsWith("-")) {
           await writeText(context.stderr, `envsubst: invalid option '${arg}'\n`);
           return { exitCode: 1 };
         }

@@ -25386,7 +25386,7 @@ const syncExtraRuntimeMethods = {
       const a = opArgs[i]!;
       if (!endOfOptions && a === "--") { endOfOptions = true; continue; }
       if (!endOfOptions && (a === "-v" || a === "--variables")) { variablesMode = true; continue; }
-      if (!endOfOptions && a.startsWith("-")) return undefined;
+      if (!endOfOptions && a !== "-" && a.startsWith("-")) return undefined;
       operands.push(a);
     }
     if (operands.length > 1) return undefined;

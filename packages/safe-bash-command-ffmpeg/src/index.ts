@@ -6414,7 +6414,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 let nextStartSeconds = 0;
                 const segments: { path: string; inpoint: number | undefined; outpoint: number | undefined; duration: number | undefined; ignoreEditList?: boolean; tags?: Record<string, string> }[] = [];
 
-                const lines = listText.split(/\r?\n/);
+                const lines = listText.replaceAll("\r\n", "\n").replaceAll("\r", "\n").split("\n");
                 for (let l = 0; l < lines.length; l++) {
                   const line = lines[l]!.trimStart();
                   if (!line || line.startsWith("#")) continue;

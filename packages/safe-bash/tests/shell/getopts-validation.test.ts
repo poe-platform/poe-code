@@ -307,7 +307,49 @@ for (const [name, source, expected] of [
   });
 }
 
+for (const synchronous of [false, true]) {
+  test(`getopts retains a cluster across empty input (${synchronous ? "sync" : "async"} scanner)`, async () => {
+    let state = scanner.createGetoptsState();
+    for (const [args, option, optind, status] of [
+      [["-ab"], "a", 1, 0],
+      [[], "?", 1, 1],
+      [[], "?", 1, 1],
+      [["-ab"], "b", 2, 0],
+      [["-ab"], "?", 2, 1],
+    ] as const) {
+      const result = synchronous
+        ? scanner.scanGetoptsSync(state, "ab", args)
+        : await scanner.scanGetopts(state, "ab", args, options());
+      assert.ok(result);
+      assert.equal(result.option, option);
+      assert.equal(result.optind, optind);
+      assert.equal(result.status, status);
+      assert.deepEqual(result.argument, { kind: "unset" });
+      assert.equal(result.diagnostic, null);
+      state = result.state;
+    }
+  });
+}
+
 for (const bounded of [false, true]) {
+  for (const [body, status] of [
+    ["getopts ab inner", 1],
+    [":", 0],
+    ["local OPTIND=1; getopts ab inner", 1],
+  ] as const) {
+    test(`getopts resumes after an argumentless helper with ${body} (${bounded ? "bounded" : "unlimited"})`, async () => {
+      const { shell } = setup(bounded ? { limits: { maxExpansionBytes: 4096 } } : {});
+      try {
+        const result = await shell.exec(`set -- -ab
+getopts ab flag; say "$flag:$OPTIND"
+f(){ ${body}; }; f; say "helper:$?"
+getopts ab flag; say "$flag:$OPTIND"`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, `a:1\nhelper:${status}\nb:2\n`);
+      } finally { await shell.dispose(); }
+    });
+  }
   for (const [explicit, expected] of [
     ["-- -x", "first:a:1\nexplicit:1:?:2\nnext:0:b:3\n"],
     ["-ab -x", "first:a:1\nexplicit:0:b:2\nnext:0:c:4\n"],

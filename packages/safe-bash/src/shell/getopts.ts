@@ -238,7 +238,8 @@ export async function scanGetopts(state: GetoptsState, optstring: string, input:
   };
   if (index > args.length) {
     index = args.length + 1;
-    return end();
+    // Bash retains the cluster cursor when a helper has no remaining arguments.
+    return finish("end", "?", { kind: "unset" }, null);
   }
   if (active && (args[active.argument] === undefined || active.offset >= args[active.argument]!.length)) active = undefined;
   if (!active) {
@@ -301,7 +302,8 @@ export function scanGetoptsSync(state: GetoptsState, optstring: string, args: re
   let active = state.index === 0 ? undefined : state.active;
   if (index > args.length) {
     index = args.length + 1;
-    return { state: { index }, kind: "end", status: 1, option: "?", optind: index, argument: { kind: "unset" }, diagnostic: null };
+    // Bash retains the cluster cursor when a helper has no remaining arguments.
+    return { state: active === undefined ? { index } : { index, active: { ...active } }, kind: "end", status: 1, option: "?", optind: index, argument: { kind: "unset" }, diagnostic: null };
   }
   if (active && (args[active.argument] === undefined || active.offset >= args[active.argument]!.length)) active = undefined;
   if (!active) {

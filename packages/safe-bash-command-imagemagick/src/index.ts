@@ -2003,6 +2003,25 @@ function hasSignedMagickShaveDimensions(raw: string): boolean {
     return geometry.startsWith("+") || geometry.startsWith("-") || geometry.includes("x+") || geometry.includes("x-");
 }
 
+function resolveMagickFrameGeometry(raw: string, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">) {
+    const area = raw.includes("@");
+    const geometry = parseMagickGeometry(raw.replaceAll("@", "").replace(":", "x"));
+    const hasAxes = raw.toLowerCase().includes("x");
+    let width = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? (hasAxes ? 0 : image.width)));
+    let height = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? (hasAxes ? 0 : area ? image.virtualCanvas?.height || image.height : geometry.width ?? image.height)));
+    if (area) {
+        // ParsePageGeometry limits the requested frame rectangle, then copies a
+        // scalar width to height. The second explicit axis is not an area limit.
+        const scale = Math.sqrt(((geometry.width ?? 0) + 1e-6) / (width * height));
+        if (scale < 1) {
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+        }
+        if (!hasAxes && geometry.height === undefined) height = width;
+    }
+    return { ...geometry, width, height };
+}
+
 function parseMagickBorderGeometry(raw: string): MagickGeometry {
     validateMagickTransformGeometry(raw, "-border");
     const geometry = parseMagickGeometry(raw.replace(":", "x"));
@@ -8464,10 +8483,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
-                const g = parseMagickGeometry(expanded.replace(":", "x"));
-                const hasAxes = expanded.toLowerCase().includes("x");
-                const fw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? (hasAxes ? 0 : im.width)));
-                const fh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? (hasAxes ? 0 : g.width ?? im.height)));
+                const g = resolveMagickFrameGeometry(expanded, im);
+                const fw = g.width, fh = g.height;
                 const width = im.width + 2 * fw, height = im.height + 2 * fh;
                 const canvas = { ...yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, state.matteColor, fw, fh, g.x, g.y, state.composeRaw.toLowerCase() === "over"), signal,
                     { width, height, hasAlpha: im.hasAlpha || state.matteColor.a < 255 || state.borderColor.a < 255 }), virtualCanvas: magickBorderCanvas(im, fw, fh) };
@@ -10646,10 +10663,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, token);
-                const hasAxes = expanded.toLowerCase().includes("x");
-                const geometry = parseMagickGeometry(expanded.replace(":", "x"));
-                const left = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? (hasAxes ? 0 : image.width)));
-                const top = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? (hasAxes ? 0 : geometry.width ?? image.height)));
+                const geometry = resolveMagickFrameGeometry(expanded, image);
+                const left = geometry.width, top = geometry.height;
                 const width = image.width + 2 * left, height = image.height + 2 * top;
                 const canvas = { ...await transformStoredMagickRaster(image, backend, magickFramePixels(image, width, height, borderColor, matteColor, left, top, geometry.x, geometry.y, composeRaw.toLowerCase() === "over"), signal,
                     { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 || borderColor.a < 255 }), virtualCanvas: magickBorderCanvas(image, left, top) };

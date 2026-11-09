@@ -1487,26 +1487,37 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const a = first.decodedAudio;
         const b = sources[1]!.track.decodedAudio;
         if (!a || !b) throw new Error("amerge requires decoded PCM audio");
-        if (a.channels !== 1 || b.channels !== 1 ||
-          (a.channelMask !== undefined && a.channelMask !== 0 && a.channelMask !== 4) ||
-          (b.channelMask !== undefined && b.channelMask !== 0 && b.channelMask !== 4) ||
-          a.sampleRate !== b.sampleRate) {
-          throw new Error("amerge requires mono inputs with matching sample rates");
+        if (a.sampleRate !== b.sampleRate) throw new Error("amerge requires matching sample rates");
+        const masks = [a, b].map(audio => audio.channelMask ||
+          [0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][audio.channels] || 0);
+        const inputs = [a, b].flatMap((audio, input) => {
+          const speakers = Array.from({ length: 32 }, (_, bit) => 2 ** bit)
+            .filter(speaker => (masks[input]! & speaker) !== 0);
+          if (speakers.length !== audio.channels) throw new Error("amerge requires known speaker layouts");
+          return audio.channelData.map((samples, channel) => ({ samples, speaker: speakers[channel]! }));
+        });
+        let channelMask = 3;
+        if ((masks[0]! & masks[1]!) === 0) {
+          inputs.sort((left, right) => left.speaker - right.speaker);
+          channelMask = (masks[0]! | masks[1]!) >>> 0;
+        } else if (a.channels !== 1 || b.channels !== 1) {
+          throw new Error("amerge requires disjoint layouts or two mono inputs");
         }
         const length = Math.min(a.channelData[0]!.length, b.channelData[0]!.length);
         budget.checkSamples(length);
         budget.checkDuration(length / a.sampleRate);
-        budget.allocateMemory(length * 2 * 8);
-        const channelData = [new Float64Array(length), new Float64Array(length)];
+        budget.allocateMemory(length * inputs.length * 8);
+        const channelData = inputs.map(() => new Float64Array(length));
         for (let offset = 0; offset < length; offset += 4096) {
           await yieldTurn(signal);
           signal?.throwIfAborted();
           budget.checkCpu();
-          channelData[0]!.set(a.channelData[0]!.subarray(offset, Math.min(offset + 4096, length)), offset);
-          channelData[1]!.set(b.channelData[0]!.subarray(offset, Math.min(offset + 4096, length)), offset);
+          for (const [channel, input] of inputs.entries()) {
+            channelData[channel]!.set(input.samples.subarray(offset, Math.min(offset + 4096, length)), offset);
+          }
         }
         return { track: { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
-          decodedAudio: { ...a, channels: 2, channelMask: 3, channelData } },
+          decodedAudio: { ...a, channels: channelData.length, channelMask, channelData } },
           expression: filters.slice(1).join(",") || "anull" };
       }
       if (filters[0] === "join" || filters[0]?.startsWith("join=")) {

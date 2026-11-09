@@ -702,10 +702,13 @@ three quarters of the analysis window (1536 samples at 44100 Hz). It accepts
 with matching sample rates and channel layouts, ending with the shorter input.
 Single-input filters before `amultiply` are not supported.
 
-`[0:a][1:a]amerge=inputs=2[out]` merges two mono inputs at the same sample rate
-into stereo, in input order, ending with the shorter input. `amerge` defaults to
-two inputs; filters after the merge are supported. Other input layouts and
-filters before the merge are currently unsupported.
+`[0:a][1:a]amerge=inputs=2[out]` merges two inputs at the same sample rate,
+ending with the shorter input. Disjoint speaker layouts are combined in speaker
+order: FR plus FL produces stereo ordered FL, FR; mono center plus stereo
+produces 3.0 ordered FL, FR, FC. Two mono inputs with overlapping speaker positions
+produce stereo in input order. `amerge` defaults to two inputs; filters after the
+merge are supported. Overlapping multichannel layouts and filters before the
+merge are currently unsupported.
 
 `[0:a][1:a]astreamselect=inputs=2:map=1[out]` selects the second decoded PCM
 input, preserving its channels and samples and ending with the shortest input.

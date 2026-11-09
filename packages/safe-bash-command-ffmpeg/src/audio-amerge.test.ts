@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
-import { parseWav } from "@poe-code/mp4-ast";
+import { parseWav, serializeWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
 for (const reverse of [false, true]) {
@@ -33,6 +33,68 @@ for (const reverse of [false, true]) {
       }
     });
   }
+}
+
+const left = [100, 200, 300, 400, 500, 600];
+const right = [-1100, -1200, -1300, -1400];
+const center = [2100, 2200, 2300, 2400, 2500];
+
+for (const { name, masks, channels, expected, outputMask } of [
+  { name: "FR and FL", masks: [2, 1], channels: [[right], [left]], expected: [left, right], outputMask: 3 },
+  { name: "FC and stereo", masks: [4, 3], channels: [[center], [left.slice(0, 4), right]],
+    expected: [left, right, center], outputMask: 7 },
+  { name: "FL+FC and FR", masks: [5, 2], channels: [[left.slice(0, 5), center], [right]],
+    expected: [left, right, center], outputMask: 7 },
+  { name: "back and front stereo", masks: [0x30, 3], channels: [[right, right], [left, left]],
+    expected: [left, left, right, right], outputMask: 0x33 },
+  { name: "overlapping FR", masks: [2, 2], channels: [[right], [left]],
+    expected: [right, left], outputMask: 3 }
+]) {
+  for (const reverse of [false, true]) {
+    for (const gain of [1, 0.5]) {
+      it(`amerge routes ${name} by speaker (reversed=${reverse}, gain=${gain})`, async () => {
+        const volume = Volume.fromJSON({});
+        for (const [index, input] of channels.entries()) {
+          const doc = parseWav(encodeWav({ sampleRate: 8000,
+            channels: input.map(samples => Float64Array.from(samples, sample => sample / 32768)) }));
+          const track = doc.tracks[0]!;
+          volume.writeFileSync(`/${index}.wav`, serializeWav({ ...doc, tracks: [{ ...track,
+            decodedAudio: { ...track.decodedAudio!, channelMask: masks[index]! }
+          }] }, { audioCodec: "pcm_s16le" }));
+        }
+        const result = await run(volume, ["-v", "error", "-y", "-i", reverse ? "/1.wav" : "/0.wav",
+          "-i", reverse ? "/0.wav" : "/1.wav", "-filter_complex",
+          `[0:a][1:a]amerge=inputs=2${gain === 1 ? "" : ",volume=0.5"}[mix]`,
+          "-map", "[mix]", "-c:a", "pcm_s16le", "/out.wav"]);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+        const length = Math.min(...channels.flat().map(samples => samples.length));
+        const ordered = masks[0] === masks[1] && reverse ? [...expected].reverse() : expected;
+        assert.equal(audio.channels, expected.length);
+        assert.equal(audio.channelMask ?? 3, outputMask);
+        assert.equal(audio.sampleRate, 8000);
+        assert.deepEqual(audio.channelData.map(samples => Array.from(samples, sample => Math.round(sample * 32768))),
+          ordered.map(samples => samples.slice(0, length).map(sample => sample * gain)));
+      });
+    }
+  }
+}
+
+for (const [mask, samples] of [[1, left], [2, right]] as const) {
+  it(`direct mapping preserves mono speaker mask ${mask}`, async () => {
+    const doc = parseWav(encodeWav({ sampleRate: 8000,
+      channels: [Float64Array.from(samples, sample => sample / 32768)] }));
+    const track = doc.tracks[0]!;
+    const volume = Volume.fromJSON({});
+    volume.writeFileSync("/in.wav", serializeWav({ ...doc, tracks: [{ ...track,
+      decodedAudio: { ...track.decodedAudio!, channelMask: mask }
+    }] }, { audioCodec: "pcm_s16le" }));
+    const result = await run(volume, ["-i", "/in.wav", "-map", "0:a", "-c:a", "pcm_s16le", "/out.wav"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    assert.equal(audio.channelMask, mask);
+    assert.deepEqual(Array.from(audio.channelData[0]!, sample => Math.round(sample * 32768)), samples);
+  });
 }
 
 for (const graph of ["[0:a]amerge=inputs=2[out]", "[0:a][1:a]amerge=inputs=3[out]",

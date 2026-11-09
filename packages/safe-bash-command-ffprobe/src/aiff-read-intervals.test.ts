@@ -31,5 +31,6 @@ for (const [interval, samples] of [
   expect(result.exitCode, diagnostic).toBe(0);
   expect(JSON.parse(output)).toMatchObject({ packets: samples.map(pts => ({
     pts, duration: Math.min(2048, 5000 - pts), size: String(Math.min(2048, 5000 - pts) * 2), pos: String(61 + pts * 2)
-  })), streams: [{ nb_read_packets: String(samples.length) }] });
+  })) });
+  expect(JSON.parse(output).streams).toEqual([samples.length ? { nb_read_packets: String(samples.length) } : {}]);
 });

@@ -5063,6 +5063,7 @@ export class Runtime {
         if (bodyLine !== undefined) body.line = bodyLine - offset;
         functionDiagnostics.set(body, { offset, ...(bodyLine === undefined ? {} : { lines: io.functionCommandLines! }) });
         state.functions.set(command.name, body);
+        if (state.allexport) (state.exportedFunctions ??= new Set()).add(command.name);
         status = 0;
       }
       return { status, io, diagnosticFailure };

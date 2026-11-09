@@ -2,8 +2,30 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
-import { createStandardCommands } from "../../src/commands/index.js";
+import { createStandardCommands, standardCommands } from "../../src/commands/index.js";
 import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
+import { Shell } from "../../src/shell/shell.js";
+
+for (const middleware of [false, true]) for (const [source, stdout, exitCode] of [
+  ['set -a; { say() { echo called; }; }; set +a; bash -c say', 'called\n', 0],
+  ['set -o allexport; { say() { echo called; }; }; set +o allexport; bash -c "bash -c say"', 'called\n', 0],
+  ['set -a; { say() { echo old; }; }; set +a; say() { echo called; }; bash -c say', 'called\n', 0],
+  ['say() { echo called; }; export -f say; bash -c say', 'called\n', 0],
+  ['say() { echo called; }; bash -c say', '', 127],
+  ['set -a; { say() { echo called; }; }; set +a; export -fn say; bash -c say', '', 127],
+] as const) {
+  test(`function allexport (middleware=${middleware}): ${source}`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    context.after(() => shell.dispose());
+    if (middleware) shell.use((_invocation, next) => next());
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.exitCode, exitCode);
+    if (exitCode === 0) assert.equal(result.stderr, '');
+    else assert.ok(result.stderr.includes('say: command not found'));
+  });
+}
 
 for (const extensions of [[], [arraysExtension()]]) for (const command of ["declare", "typeset"]) {
   for (const initial of ["unset V", "V=old", "export V=old"]) {

@@ -9150,6 +9150,7 @@ const syncExtraRuntimeMethods = {
         functionDiagnostics.set(body, { offset, ...(bodyLine === undefined ? {} : { lines: io.functionCommandLines! }) });
       }
       rawState.functions.set(command.name, body);
+      if (rawState.allexport) (rawState.exportedFunctions ??= new Set()).add(command.name);
       const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       this.budget.tick();
       rawState.substitutionStatus = 0;

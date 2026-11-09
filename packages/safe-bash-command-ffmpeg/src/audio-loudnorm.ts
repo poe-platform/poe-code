@@ -1,5 +1,6 @@
 import type { MediaAudioData, MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { createResampleKernel } from "./audio-resample-kernel.js";
 import { limitAudio } from "./audio-alimiter.js";
 
 // loudnorm negotiates double precision at 192 kHz. Use the swresample default
@@ -17,27 +18,7 @@ export async function resampleLoudnorm(
   const output = channels.map(() => new Float64Array(count));
   if (!length) return output;
   if (from === to) { for (let c = 0; c < channels.length; c++) output[c]!.set(channels[c]!); return output; }
-  const factor = Math.min(to * 0.97 / from, 1);
-  const taps = Math.ceil(Math.ceil(32 / factor) / 2) * 2;
-  const center = (taps - 2) / 2;
-  const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
-  const phases = Math.min(1024, to / gcd(from, to));
-  budget.allocateMemory(phases * taps * 8);
-  const bessel = (x: number) => {
-    let sum = 1, term = 1;
-    for (let k = 1; k < 40; k++) { term *= x * x / (4 * k * k); sum += term; if (term < sum * 1e-16) break; }
-    return sum;
-  };
-  let norm = 0;
-  const kernels = Array.from({ length: phases }, (_, phase) => {
-    const kernel = Float64Array.from({ length: taps }, (_, i) => {
-      const distance = i - center - phase / phases;
-      const x = Math.PI * distance * factor;
-      return (x === 0 ? 1 : Math.sin(x) / x) * bessel(9 * Math.sqrt(Math.max(0, 1 - (2 * distance / taps) ** 2)));
-    });
-    if (phase === 0) norm = kernel.reduce((sum, x) => sum + x, 0);
-    return kernel.map(x => x / norm);
-  });
+  const { taps, center, phases, kernels } = createResampleKernel(from, to, budget);
   let work = 0;
   for (let i = 0; i < count; i++) {
     const position = i * from / to;

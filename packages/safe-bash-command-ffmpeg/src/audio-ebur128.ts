@@ -1,5 +1,6 @@
 import type { MediaAudioData, MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { createResampleKernel } from "./audio-resample-kernel.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
 // BS.1770 K-weighting, 400 ms overlapping gates and 3 s loudness range.
@@ -9,6 +10,9 @@ export async function* measureEbur128(
   options: string, budget: MediaBudgetTracker, logLevel: number, signal?: AbortSignal,
   timestamps?: { start: number; end: number; pts: number }[], startSample = 0
 ): AsyncGenerator<string> {
+  signal?.throwIfAborted();
+  budget.checkCpu();
+  let truePeaks = false;
   let samplePeaks = false;
   let target = -23;
   let scale = 0;
@@ -30,9 +34,17 @@ export async function* measureEbur128(
       else scale = rounded;
       continue;
     }
-    if (option === "peak=sample" || option === "peak=2" || option === "peak=3") samplePeaks = true;
-    else if (option === "peak=none" || option === "peak=0" || option === "peak=1") samplePeaks = false;
-    else if (option === "framelog=info" || option === "framelog=32") frameLog = 32;
+    if (option.startsWith("peak=")) {
+      const [name, value, extra] = option.split("=");
+      const modes = value?.split("+") ?? [];
+      if (name !== "peak" || extra !== undefined || !modes.length ||
+          modes.some(mode => !["none", "0", "1", "sample", "2", "3", "true", "4", "5", "6", "7"].includes(mode))) {
+        throw new Error(`ebur128: unsupported option ${option}`);
+      }
+      const peaks = modes.reduce((mask, mode) => mask | (mode === "sample" ? 2 : mode === "true" ? 4 : mode === "none" ? 0 : Number(mode)), 0);
+      samplePeaks = Boolean(peaks & 2);
+      truePeaks = Boolean(peaks & 4);
+    } else if (option === "framelog=info" || option === "framelog=32") frameLog = 32;
     else if (option === "framelog=verbose" || option === "framelog=40") frameLog = 40;
     else if (option.startsWith("dualmono=")) {
       const value = option.slice("dualmono=".length).toLowerCase();
@@ -47,6 +59,8 @@ export async function* measureEbur128(
       }
     } else throw new Error(`ebur128: unsupported option ${option}`);
   }
+  const resampler = truePeaks && sampleRate !== 192000
+    ? createResampleKernel(sampleRate, 192000, budget) : undefined;
   const compensation = channels.length === 1 && dualMono ? -panLaw : 0;
   const offset = scale === 1 ? target : 0;
   const mask = channelMask || [0, 4, 3, 7, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels.length];
@@ -70,7 +84,7 @@ export async function* measureEbur128(
   const rq = 0.5003270373238773;
   const ra1 = 2 * (r * r - 1) / (1 + r / rq + r * r);
   const ra2 = (1 - r / rq + r * r) / (1 + r / rq + r * r);
-  const state = channels.map(() => ({ x1: 0, x2: 0, y1: 0, y2: 0, z1: 0, z2: 0, peak: 0 }));
+  const state = channels.map(() => ({ x1: 0, x2: 0, y1: 0, y2: 0, z1: 0, z2: 0, peak: 0, truePeak: 0, framePeak: 0 }));
   const windows = [Math.floor(sampleRate * 0.4), sampleRate * 3].map(size => ({
     cache: new Float64Array(size), sum: 0, loudness: -120.691,
     histogram: new Float64Array(8001), keptSum: 0, keptCount: 0, threshold: 0, gate: 0
@@ -86,7 +100,38 @@ export async function* measureEbur128(
   const frames = channels[0]?.length ?? 0;
   const interval = Math.max(1, Math.floor(sampleRate / 10));
   let timestampIndex = 0;
+  let peakPosition = 0;
+  let peakWork = 0;
   for (let frame = 0; frame < frames; frame++) {
+    if (truePeaks && frame % interval === 0) {
+      for (const s of state) s.framePeak = 0;
+      const end = Math.min(frames, frame + interval);
+      // swresample retains the right half of its kernel. ebur128 does not flush
+      // that delay, but it does measure the final partial input interval.
+      const peakEnd = resampler
+        ? end <= resampler.taps ? 0 : Math.ceil((end - (resampler.taps - resampler.center - 1)) * 192000 / sampleRate)
+        : end;
+      budget.checkSamples(peakEnd);
+      for (; peakPosition < peakEnd; peakPosition++) {
+        const position = peakPosition * sampleRate / 192000;
+        const base = Math.floor(position);
+        const kernel = resampler?.kernels[Math.min(resampler.phases - 1,
+          Math.round((position - base) * resampler.phases))];
+        for (const [ch, s] of state.entries()) {
+          let value = 0;
+          if (resampler && kernel) {
+            for (let j = 0; j < kernel.length; j++) {
+              value += channels[ch]![Math.abs(base + j - resampler.center)]! * kernel[j]!;
+            }
+          } else value = channels[ch]![peakPosition]!;
+          s.framePeak = Math.max(s.framePeak, Math.abs(value));
+          s.truePeak = Math.max(s.truePeak, s.framePeak);
+        }
+        if ((peakWork += (kernel?.length ?? 1) * channels.length) >= 32768) {
+          peakWork = 0; budget.checkCpu(); await yieldTurn(signal); signal?.throwIfAborted();
+        }
+      }
+    }
     let power = 0;
     for (const [ch, s] of state.entries()) {
       if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(signal); signal?.throwIfAborted(); }
@@ -142,7 +187,7 @@ export async function* measureEbur128(
     const timestamp = timestamps?.[timestampIndex];
     const time = (timestamp ? timestamp.pts + frame - timestamp.start : startSample + frame) / sampleRate;
     const timeText = String(Number(Math.abs(time) < 1 ? time.toPrecision(6) : time.toFixed(6)));
-    if (logLevel >= frameLog) yield `t: ${timeText.padEnd(10)} TARGET:${target} LUFS    M:${(windows[0]!.loudness + compensation - offset).toFixed(1).padStart(6)} S:${(windows[1]!.loudness + compensation - offset).toFixed(1).padStart(6)}     I:${(integrated - offset).toFixed(1).padStart(6)} ${scale === 1 ? "LU" : "LUFS"}       LRA:${(high - low).toFixed(1).padStart(6)} LU${samplePeaks ? `  SPK: ${state.map(s => db(s.peak)).join(" ")} dBFS` : ""}\n`;
+    if (logLevel >= frameLog) yield `t: ${timeText.padEnd(10)} TARGET:${target} LUFS    M:${(windows[0]!.loudness + compensation - offset).toFixed(1).padStart(6)} S:${(windows[1]!.loudness + compensation - offset).toFixed(1).padStart(6)}     I:${(integrated - offset).toFixed(1).padStart(6)} ${scale === 1 ? "LU" : "LUFS"}       LRA:${(high - low).toFixed(1).padStart(6)} LU${samplePeaks ? `  SPK: ${state.map(s => db(s.peak)).join(" ")} dBFS` : ""}${truePeaks ? `  FTPK: ${state.map(s => db(s.framePeak)).join(" ")} dBFS  TPK: ${state.map(s => db(s.truePeak)).join(" ")} dBFS` : ""}\n`;
   }
-  if (logLevel >= 32) yield `Summary:\n\n  Integrated loudness:\n    I:         ${integrated.toFixed(1)} LUFS\n    Threshold: ${(windows[0]!.threshold + compensation).toFixed(1)} LUFS\n\n  Loudness range:\n    LRA:       ${(high - low).toFixed(1)} LU\n    Threshold: ${(windows[1]!.threshold + compensation).toFixed(1)} LUFS\n    LRA low:   ${(low + compensation).toFixed(1)} LUFS\n    LRA high:  ${(high + compensation).toFixed(1)} LUFS${samplePeaks ? `\n\n  Sample peak:\n    Peak:      ${db(Math.max(...state.map(s => s.peak)))} dBFS` : ""}\n`;
+  if (logLevel >= 32) yield `Summary:\n\n  Integrated loudness:\n    I:         ${integrated.toFixed(1)} LUFS\n    Threshold: ${(windows[0]!.threshold + compensation).toFixed(1)} LUFS\n\n  Loudness range:\n    LRA:       ${(high - low).toFixed(1)} LU\n    Threshold: ${(windows[1]!.threshold + compensation).toFixed(1)} LUFS\n    LRA low:   ${(low + compensation).toFixed(1)} LUFS\n    LRA high:  ${(high + compensation).toFixed(1)} LUFS${samplePeaks ? `\n\n  Sample peak:\n    Peak:      ${db(Math.max(...state.map(s => s.peak)))} dBFS` : ""}${truePeaks ? `\n\n  True peak:\n    Peak:      ${db(Math.max(...state.map(s => s.truePeak)))} dBFS` : ""}\n`;
 }

@@ -101,7 +101,10 @@ Use `ebur128=dualmono=true` to compensate mono loudness for stereo playback;
 `panlaw` sets the pan law from -10 to 0 dB (default -3.0103 dB).
 Stereo and multichannel measurements are unaffected.
 Numeric `peak=2` and `peak=3` also enable sample peaks; `peak=0`, `peak=1`,
-`peak=none`, and plain `ebur128` omit them. True peaks, video, and metadata options are unsupported.
+`peak=none`, and plain `ebur128` omit them. Use `peak=true` (4 or 5) for intersample true peaks or `peak=sample+true` (6 or 7)
+for both peak measurements, including the final partial interval. True peaks are
+measured at 192 kHz per channel; interval reports include FTPK and cumulative TPK.
+Video and metadata options are unsupported.
 `ebur128=target=-16:scale=relative` reports M/S/I relative to the target in LU;
 `target` ranges from -23 to 0 LUFS (default -23), and `scale=absolute` (default)
 keeps measurements in LUFS. Scale aliases are `LUFS`/`0` and `LU`/`1`.

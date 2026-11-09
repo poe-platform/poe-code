@@ -5,6 +5,30 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
+// Native FFmpeg references: consecutive peaks wrap a two-sample lookahead.
+for (const [attack, latency, scales, expected] of [
+  [0.25, 1, [1], [[2000, 1303, 8192, -1212, -3000, -6000]]],
+  [0.25, 0, [1], [[0, 2000, 1303, 8192, -1212, -3000]]],
+  [1, 1, [1], [[955, 781, 8192, 8192, -7737, -8192]]],
+  [0.125, 1, [1], [[2000, 2000, 8192, 8192, -8192, -8192]]],
+  [0.375, 1, [1], [[1536, 1071, 8192, 1923, 3864, -3000]]],
+  [0.25, 1, [1, -0.5], [[2000, 1303, 8192, 8192, -7737, -8192], [-1000, -652, -4096, -4096, 3868, 4096]]]
+] as const) it(`alimiter consecutive peaks with attack=${attack}, latency=${latency}, ${scales.length} channels`, async () => {
+  const fs = Volume.fromJSON({});
+  fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000,
+    channels: scales.map(scale => Float64Array.from([2000, 2000, 27000, 27000, -24000, -24000], sample => sample * scale / 32768)) }));
+  const errors: Uint8Array[] = [];
+  const result = await createFfmpegCommand().execute({
+    args: ["-i", "/in.wav", "-af", `alimiter=limit=0.25:level=0:latency=${latency}:attack=${attack}:release=1`, "-c:a", "pcm_s16le", "/out.wav"],
+    cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
+    stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { errors.push(b); } }
+  } as never);
+  assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+  const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+  assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)), expected);
+});
+
 // Native FFmpeg PCM16 references for quiet/loud/quiet transitions.
 for (const [filter, length, scales, indices, expected] of [
   ["alimiter=limit=0.25:level=0:latency=1", 32000, [1], [4000, 12000, 16000, 20000, 24000, 28000, 31999], [[500, 4000, 8192, 8192, 513, 1000, -1000]]],

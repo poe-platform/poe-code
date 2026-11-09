@@ -45,7 +45,8 @@ export async function limitAudio(
   if (window < 1) throw new AlimiterError("alimiter: Attack is too small", "configuration");
   const length = channels[0]?.length ?? 0;
   const delay = options.latency ? window - 1 : 0;
-  budget.allocateMemory(length * channels.length * 8 + window * (20 + channels.length * 8));
+  const queueSize = window * channels.length;
+  budget.allocateMemory(length * channels.length * 8 + window * (8 + channels.length * 8) + Math.max(2, queueSize) * 12);
   const output = channels.map(() => new Float64Array(length));
   const buffered = channels.map(() => new Float64Array(window));
   const outputFrames: { start: number; end: number; pts: number }[] = [];
@@ -58,8 +59,10 @@ export async function limitAudio(
   let destination = 0;
   if (enable !== undefined && length === 0) parseFilterExpression(enable, "alimiter enable", { t: 0, n: 0, w: 0, h: 0 });
   const peaks = new Float64Array(window);
-  const positions = new Int32Array(window).fill(-1);
-  const slopes = new Float64Array(window);
+  // FFmpeg indexes the peak queue by interleaved sample slots, including its
+  // cleared-entry sentinel when a short lookahead wraps the queue.
+  const positions = new Int32Array(Math.max(2, queueSize)).fill(-1);
+  const slopes = new Float64Array(Math.max(2, queueSize));
   const releaseSamples = sampleRate * options.release / 1000;
   const gain = outputGain * (options.level ? 1 / limit : 1);
   let attenuation = 1;
@@ -107,7 +110,8 @@ export async function limitAudio(
           slope = attackSlope;
           head = 0;
           count = 1;
-          positions[0] = slot;
+          positions[0] = slot * channels.length;
+          positions[1] = -1;
           slopes[0] = releaseSlope;
         } else {
           for (let offset = 0; offset < count; offset++) {
@@ -116,16 +120,18 @@ export async function limitAudio(
               signal?.throwIfAborted();
               budget.checkCpu();
             }
-            const entry = (head + offset) % window;
+            const entry = (head + offset) % queueSize;
             const position = positions[entry]!;
-            const distance = (window - position + slot) % window;
-            const nextSlope = (target - limit / peaks[position]!) / distance;
+            const distance = ((queueSize - position + slot * channels.length) % queueSize) / channels.length;
+            const previousPeak = position < 0 ? 0 : peaks[position / channels.length]!;
+            const nextSlope = (target - limit / previousPeak) / distance;
             if (nextSlope < slopes[entry]!) {
               slopes[entry] = nextSlope;
               count = offset + 2;
-              const next = (entry + 1) % window;
-              positions[next] = slot;
+              const next = (entry + 1) % queueSize;
+              positions[next] = slot * channels.length;
               slopes[next] = releaseSlope;
+              positions[(next + 1) % queueSize] = -1;
               break;
             }
           }
@@ -141,17 +147,19 @@ export async function limitAudio(
         }
         destination++;
       }
-      if (count && oldest === positions[head]) {
+      if (oldest * channels.length === positions[head]) {
         slope = slopes[head]!;
         attenuation = limit / peaks[oldest]!;
         count--;
-        head = (head + 1) % window;
+        positions[head] = -1;
+        head = (head + 1) % queueSize;
       }
       if (attenuation > 1) {
         attenuation = 1;
         slope = 0;
         count = 0;
         head = 0;
+        positions[0] = -1;
       }
       if (attenuation <= 0) {
         attenuation = 1e-13;

@@ -2712,14 +2712,14 @@ function escapeFfmetadata(value: string): string {
 export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
   const lines: string[] = [";FFMETADATA1"];
   const m = doc.metadata;
-  if (m.title) lines.push(`title=${escapeFfmetadata(m.title)}`);
-  if (m.artist) lines.push(`artist=${escapeFfmetadata(m.artist)}`);
-  if (m.album) lines.push(`album=${escapeFfmetadata(m.album)}`);
-  if (m.date) lines.push(`date=${escapeFfmetadata(m.date)}`);
-  if (m.comment) lines.push(`comment=${escapeFfmetadata(m.comment)}`);
-  if (m.copyright) lines.push(`copyright=${escapeFfmetadata(m.copyright)}`);
-  if (m.genre) lines.push(`genre=${escapeFfmetadata(m.genre)}`);
-  if (m.encoder) lines.push(`encoder=${escapeFfmetadata(m.encoder)}`);
+  if (m.title !== undefined) lines.push(`title=${escapeFfmetadata(m.title)}`);
+  if (m.artist !== undefined) lines.push(`artist=${escapeFfmetadata(m.artist)}`);
+  if (m.album !== undefined) lines.push(`album=${escapeFfmetadata(m.album)}`);
+  if (m.date !== undefined) lines.push(`date=${escapeFfmetadata(m.date)}`);
+  if (m.comment !== undefined) lines.push(`comment=${escapeFfmetadata(m.comment)}`);
+  if (m.copyright !== undefined) lines.push(`copyright=${escapeFfmetadata(m.copyright)}`);
+  if (m.genre !== undefined) lines.push(`genre=${escapeFfmetadata(m.genre)}`);
+  if (m.encoder !== undefined) lines.push(`encoder=${escapeFfmetadata(m.encoder)}`);
   for (const [key, value] of Object.entries(m.custom ?? {})) {
     lines.push(`${key}=${escapeFfmetadata(value)}`);
   }

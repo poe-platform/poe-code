@@ -3,6 +3,7 @@ import { setPacketTimestamps } from "./setts.js";
 import { rechunkPcm } from "./pcm-rechunk.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { rewriteH264Sps } from "./h264-metadata.js";
+import { setAv1Timing } from "./av1-metadata.js";
 import { parseAdtsStream, parseMp4Boxes, makeBox, decodeFourCC, parseAvcC, concatBytes, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 /** Apply packet filters in command-line order, preserving packet payloads unless explicitly changed. */
@@ -106,6 +107,10 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
     if (type !== "video") throw new Error(`Unsupported audio bitstream filter: ${filter}`);
     if (filter === "vp9_metadata" || filter.startsWith("vp9_metadata=")) {
       tracks = setVp9Metadata(tracks, filter, budget);
+      continue;
+    }
+    if (filter === "av1_metadata" || filter.startsWith("av1_metadata=")) {
+      tracks = setAv1Timing(tracks, filter, budget);
       continue;
     }
     if (filter === "h264_mp4toannexb") {

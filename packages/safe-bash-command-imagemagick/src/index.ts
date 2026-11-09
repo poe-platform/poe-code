@@ -532,6 +532,7 @@ interface MagickState {
   gradientDirection?: string;
   gradientAngle?: number;
   gradientVector?: string;
+  gradientCenter?: { x: number; y: number };
   ftxtFormat?: string;
   comment?: string;
   label?: string;
@@ -1597,13 +1598,13 @@ function writeGradientPixel(data: Uint8Array, samples: Uint16Array, offset: numb
     samples[offset + 3] = Math.round(alpha * 257);
     data[offset + 3] = clampByteVal(samples[offset + 3]! / 257);
 }
-function* createGradientImageSteps(width: number, height: number, c1: RgbaColor, c2: RgbaColor, radial: boolean, direction?: string, angle?: number, vector?: string, box?: MagickGeometry): Generator<void, RgbaImage, void> {
+function* createGradientImageSteps(width: number, height: number, c1: RgbaColor, c2: RgbaColor, radial: boolean, direction?: string, angle?: number, vector?: string, box?: MagickGeometry, center?: { x: number; y: number }): Generator<void, RgbaImage, void> {
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
     const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     const data16 = new Uint16Array(w * h * 4);
-    const vectorFactor = gradientVector(w, h, radial || angle === undefined ? vector : undefined, radial);
+    const vectorFactor = gradientVector(w, h, (radial && center) ? undefined : radial || angle === undefined ? vector : undefined, radial);
     if (!radial && direction === undefined && angle === undefined && !vectorFactor && box === undefined) {
         const u64 = new BigUint64Array(data16.buffer);
         const u32 = new Uint32Array(data.buffer, 0, w * h);
@@ -1620,9 +1621,9 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
             u32.fill(tmp32[0]!, i * span, (i + 1) * span);
         }
     } else {
-        const cx = (w - 1) / 2;
-        const cy = (h - 1) / 2;
-        const maxR = Math.max(1, cx, cy);
+        const cx = center?.x ?? (w - 1) / 2;
+        const cy = center?.y ?? (h - 1) / 2;
+        const maxR = Math.max(1, (w - 1) / 2, (h - 1) / 2);
         const projection = gradientProjection(w, h, direction, angle);
         for (let y = 0; y < h; y++) {
             if (++work % 16384 === 0)
@@ -5314,7 +5315,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const [c1Str, c2Str] = spec ? spec.split("-") : [];
         const c1 = parseColor(c1Str || "#ffffff");
         const c2 = parseColor(c2Str || "#000000");
-        return yield* applyMod([(yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientVector, state.gradientBoundingBox))]);
+        return yield* applyMod([(yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientVector, state.gradientBoundingBox, state.gradientCenter))]);
     }
     if (lower.startsWith("pattern:") || lower.startsWith("plasma:")) {
         return yield* applyMod([(yield* createCheckerboardImageSteps(state.sizeWidth, state.sizeHeight))]);
@@ -7154,6 +7155,7 @@ if (t === "-seed") {
             if (key === "gradient:direction") delete state.gradientDirection;
             if (key === "gradient:angle") delete state.gradientAngle;
             if (key === "gradient:vector") delete state.gradientVector;
+            if (key === "gradient:center") delete state.gradientCenter;
             if (key === "filename:literal") delete state.filenameLiteral;
             if (key === "ftxt:format") delete state.ftxtFormat;
             if (key === "icon:auto-resize") delete state.iconAutoResize;
@@ -7199,6 +7201,10 @@ if (t === "-seed") {
             const [filterKey, filterValue] = defStr.toLowerCase().split("=");
             if (filterKey === "gradient:bounding-box") state.gradientBoundingBox = parseMagickGeometry(filterValue ?? "");
             if (filterKey === "gradient:vector") state.gradientVector = filterValue ?? "";
+            if (filterKey === "gradient:center") {
+              const coordinates = (filterValue ?? "").replaceAll(",", " ").split(" ").filter(Boolean).map(Number);
+              if (coordinates.length === 2 && coordinates.every(Number.isFinite)) state.gradientCenter = { x: coordinates[0]!, y: coordinates[1]! };
+            }
             if (filterKey === "gradient:direction") state.gradientDirection = filterValue ?? "south";
             if (filterKey === "gradient:angle") state.gradientAngle = Number.parseFloat(filterValue ?? "") || 0;
             if (filterKey === "filename:literal") state.filenameLiteral = filterValue === undefined || ["true", "1", "yes", "on"].includes(filterValue);
@@ -10611,9 +10617,9 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const checker=lower.startsWith("pattern:")||lower.startsWith("plasma:"),radial=lower.startsWith("radial-gradient:");
   const storedData16=checker?undefined:{position:backend.storage.allocate(width*height*8),length:width*height*4};
   const [first,last]=baseToken.slice(baseToken.indexOf(":")+1).split("-"),a=parseColor(checker?"white":first||"#ffffff"),b=parseColor(checker?"black":last||"#000000");
-  const cx=(width-1)/2,cy=(height-1)/2,radius=Math.max(1,cx,cy),box=state.gradientBoundingBox;
+  const cx=state.gradientCenter?.x??(width-1)/2,cy=state.gradientCenter?.y??(height-1)/2,radius=Math.max(1,(width-1)/2,(height-1)/2),box=state.gradientBoundingBox;
   const projection=gradientProjection(width,height,state.gradientDirection,state.gradientAngle);
-  const vectorFactor=gradientVector(width,height,radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial);
+  const vectorFactor=gradientVector(width,height,(radial&&state.gradientCenter)?undefined:radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial);
   for(let start=0;start<width*height;start+=4096){
    if(start%262144===0)await yieldTurn(signal);
    const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4);

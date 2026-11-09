@@ -7296,7 +7296,7 @@ function parseMagickDisposal(value: string): number {
 }
 
 function parseMagickOrientation(value: string): number {
-    const orientation = ["undefined", "topleft", "topright", "bottomright", "bottomleft", "lefttop", "righttop", "rightbottom", "leftbottom"].indexOf(value.toLowerCase());
+    const orientation = ["undefined", "topleft", "topright", "bottomright", "bottomleft", "lefttop", "righttop", "rightbottom", "leftbottom"].indexOf(value.toLowerCase().replaceAll("-", "").replaceAll("_", ""));
     if (orientation < 0) throw new Error(`unrecognized image orientation '-orient' '${value}'`);
     return orientation;
 }

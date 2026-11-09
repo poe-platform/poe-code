@@ -20,7 +20,7 @@ export function* gifAnimationSteps(size:number,start:number,page=0):Generator<nu
     if(at+length<=size)for(let i=0;i<length;i++)name+=String.fromCharCode((yield at+i)??0);
     at+=length;
     while(at<size){const n=(yield at++)??0;if(!n)break;
-     if((name.startsWith("NETSCAPE")||name.startsWith("ANIMEXTS"))&&n>=3&&(yield at)===1){const value=yield* word(at+1);loop=value===0?0:value+1;}
+     if(name==="NETSCAPE2.0"&&n>=3&&(yield at)===1){const value=yield* word(at+1);loop=value===0?0:value+1;}
      at+=n;
     }
    }else if(label===254){

@@ -48,6 +48,12 @@ relative to the current directory, and leaves stdin available to children.
 Without an argument file, children receive empty default-origin stdin.
 `-L N` / `--max-lines=N` batches nonempty input lines, retaining quoted and
 escaped arguments. Trailing unquoted spaces or tabs continue a logical line.
+Ordinary input containing NUL emits one warning per invocation and retains only
+the affected argument’s prefix before NUL. Parsing still honors quotes and escapes
+to find the next argument (or replacement line); no NUL reaches child arguments.
+`-0` continues to treat NUL as the argument delimiter without this warning.
+An unmatched final backslash is discarded at EOF; unmatched quotes remain errors.
+With `-0` or `-d`, backslashes are literal.
 With `-0` or `-d`, each delimited item counts as a line. Line batching implies
 failure when a batch exceeds the command size bound. Child cwd/environment
 changes do not change the parent Shell.

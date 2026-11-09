@@ -1,6 +1,6 @@
 import { equalBytes } from "../byte-encoding.js";
 import { createEnvCommand } from "./env/index.js";
-import { getCommandArguments, readBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
+import { getCommandArguments, readBytes, type ByteSink, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { writeDiagnostic } from "../escaping.js";
 import { shellValueByteLength } from "../contracts/value.js";
 import { builtInDirectContextExecutors, define, emptyInput, encoder, escapeBytes, integer, input as fileInput, options, pathOf, syncCommandEvaluators, UsageError, value } from "./internal.js";
@@ -29,9 +29,11 @@ export function directExecutor(fallback: CommandHandler): CommandHandler {
   };
 }
 
-async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replacement = false, lines = false): AsyncGenerator<Uint8Array | null> {
+async function* argumentsFrom(source: ByteSource, signal: AbortSignal, stderr: ByteSink, replacement = false, lines = false): AsyncGenerator<Uint8Array | null> {
   const current: number[] = [];
   let active = false;
+  let truncated = false;
+  let warned = false;
   let escaped = false;
   let quote = 0;
   let lineActive = false;
@@ -39,27 +41,31 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
   for await (const chunk of readBytes(source, signal)) {
     signal.throwIfAborted();
     for (const byte of chunk) {
-      if (byte === 0) throw new UsageError("NUL in non-NUL-delimited input is not supported");
+      if (byte === 0 && !warned) {
+        await writeDiagnostic(stderr, "xargs: WARNING: a NUL character occurred in the input.  It cannot be passed through in the argument list.  Did you mean to use the --null option?\n", signal);
+        warned = true;
+      }
       const blank = byte === 32 || byte === 9;
       if (byte === 10 && !quote && !escaped) {
-        if (active) { yield Uint8Array.from(current); current.length = 0; active = false; }
+        if (active) { yield Uint8Array.from(current); current.length = 0; active = false; truncated = false; }
         if (lines && lineActive && !trailingBlank) { yield null; lineActive = false; }
         trailingBlank = false;
         continue;
       }
       if (!blank || quote || escaped) lineActive = true;
       trailingBlank = blank && !quote && !escaped;
-      if (escaped) { current.push(byte); active = true; escaped = false; }
+      if (byte === 0) truncated = true;
+      if (escaped) { if (!truncated) current.push(byte); active = true; escaped = false; }
       else if (quote) {
         if (byte === 10) throw new UsageError("unmatched quote in input");
         if (byte === quote) quote = 0;
-        else current.push(byte);
+        else if (!truncated) current.push(byte);
       } else if (byte === 92) { escaped = true; }
       else if (byte === 39 || byte === 34) { quote = byte; active = true; }
       else if (!replacement && blank) {
-        if (active) { yield Uint8Array.from(current); current.length = 0; active = false; }
+        if (active) { yield Uint8Array.from(current); current.length = 0; active = false; truncated = false; }
       } else if (replacement && !active && blank) continue;
-      else { current.push(byte); active = true; }
+      else { if (!truncated) current.push(byte); active = true; }
     }
   }
   if (quote) throw new UsageError("unmatched quote in input");
@@ -240,7 +246,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       try {
         if (delimiter !== undefined && eof !== undefined && eof !== "") await writeDiagnostic(context.stderr, "xargs: warning: the -E option has no effect if -0 or -d is used.\n\n", context.signal);
         const incoming = delimiter === undefined
-          ? argumentsFrom(source, inputSignal, replacement !== undefined, maxLines !== undefined && replacement === undefined)
+          ? argumentsFrom(source, inputSignal, context.stderr, replacement !== undefined, maxLines !== undefined && replacement === undefined)
           : delimitedArguments(source, inputSignal, context.signal, delimiter.charCodeAt(0), replacement === undefined ? maxBytes - baseBytes - 1 : maxBytes - 1);
         for await (const argument of incoming) {
           if (argument === null) {

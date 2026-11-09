@@ -6167,9 +6167,10 @@ function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" 
 
 type MagickHistogram = Float64Array[];
 type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">): MagickPixelOperation["apply"] };
-function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram, method: string, linear: boolean): Generator<void, void, void> {
+function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram, method: string, linear: boolean, selection?: Uint8Array): Generator<void, void, void> {
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
+        if (selection && !selection[i / 4]) continue;
         for (let channel = 0; channel < 4; channel++) histogram[channel]![data[i + channel]!]!++;
         // Keep ImageMagick's 16-bit histogram precision for fractional luma.
         if (histogram[4]) histogram[4][Math.round((data instanceof Uint16Array ? 1 : 257) * magickIntensity(data[i]!, data[i + 1]!, data[i + 2]!, method, data instanceof Uint16Array ? 65535 : 255, linear))]!++;
@@ -6291,6 +6292,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             : Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
         const count = Math.max(1, image.width * image.height);
         if (token === "-auto-gamma") {
+            const count = Math.max(1, histogram[0]!.reduce((sum, frequency) => sum + frequency, 0));
             const channelCount = image.hasAlpha ? 4 : 3;
             const sums = [0, 0, 0, 0];
             for (let channel = 0; channel < channelCount; channel++) for (let value = 0; value < levels; value++) sums[channel]! += histogram[channel]![value]! * value;
@@ -8156,7 +8158,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties })
                 ], state, 0)! : analysisOperation;
                 const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || analysisOperation.highDepth && image.data16 ? 65536 : 256));
-                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB");
+                const selection = t === "-auto-gamma" ? yield* readMaskSelectionSteps(image, 0, image.data.length) : undefined;
+                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB", selection);
                 return yield* operation.transform(histogram, image)(image);
             });
         }
@@ -10193,7 +10196,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (offset % 1048576 === 0) await yieldTurn(signal);
                     const original = analysisOperation.highDepth ? image.storedData16 : undefined;
                     const bytes = await backend.storage.read((original?.position ?? image.position) + offset * (original ? 2 : 1), Math.min(16384, size - offset) * (original ? 2 : 1));
-                    await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB"), signal);
+                    const selection = token === "-auto-gamma" ? await drainIdentifySteps(readMaskSelectionSteps(image as StoredRgbaImage, offset, Math.min(16384, size - offset), function* (position, length): Generator<IdentifyStep, Uint8Array, void> {
+                        let data!: Uint8Array;
+                        yield { async run() { data = await backend.storage.read((image as StoredRgbaImage).readMask!.position! + position, length); } };
+                        return data;
+                    }), signal) : undefined;
+                    await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB", selection), signal);
                 }
                 return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, apply: operation.transform(histogram, image) }, signal, analysisOperation.highDepth);
             });

@@ -3191,11 +3191,19 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
                 ((f * g - d * j) * px + (a * j - c * g) * py + c * d - a * f) / denominator - 0.5];
         });
     }
-    if (method === "affine" && nums.length >= 12) {
+    if ((method === "affine" && nums.length >= 12) || (method === "perspective" && [4, 8, 12].includes(nums.length))) {
+        // Perspective falls back to affine mapping with fewer than four pairs.
+        // One pair translates; two pairs fix rotation and uniform scale.
+        if (nums.length === 4) nums.push(nums[0]! + 1, nums[1]!, nums[2]! + 1, nums[3]!);
+        if (nums.length === 8) nums.push(
+            nums[0]! - (nums[5]! - nums[1]!), nums[1]! + (nums[4]! - nums[0]!),
+            nums[2]! - (nums[7]! - nums[3]!), nums[3]! + (nums[6]! - nums[2]!)
+        );
         const matrix: number[][] = [], xs: number[] = [], ys: number[] = [];
         for (let p = 0; p < 3; p++) { matrix.push([nums[p * 4 + 2]!, nums[p * 4 + 3]!, 1]); xs.push(nums[p * 4]!); ys.push(nums[p * 4 + 1]!); }
         const rx = solveLinearSystem(matrix, xs), ry = solveLinearSystem(matrix, ys);
-        const plan = result((x, y) => [rx[0]! * x + rx[1]! * y + rx[2]!, ry[0]! * x + ry[1]! * y + ry[2]!]);
+        // Control points use pixel edges; sampling uses pixel centers.
+        const plan = result((x, y) => [rx[0]! * (x + 0.5) + rx[1]! * (y + 0.5) + rx[2]! - 0.5, ry[0]! * (x + 0.5) + ry[1]! * (y + 0.5) + ry[2]! - 0.5]);
         return bestFit(plan, (x, y) => {
             const px = x + 0.5 - rx[2]!, py = y + 0.5 - ry[2]!;
             const determinant = rx[0]! * ry[1]! - rx[1]! * ry[0]!;

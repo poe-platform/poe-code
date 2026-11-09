@@ -25,7 +25,7 @@ import { encipherPixelSteps } from "./encipher-kernel.js";
 import { regionPixelSteps, type Region } from "./region.js";
 import { writeMaskPixelSteps } from "./write-mask.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
-import { rawRgbInput } from "./raw-rgb.js";
+import { rawNetpbmInput } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewPixelSteps } from "./deskew.js";
 import { compareLayerBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
@@ -589,6 +589,7 @@ interface MagickState {
   page?: NonNullable<RgbaImage["virtualCanvas"]>;
   iconAutoResize?: number[];
   inputDepth?: number;
+  inputOffset?: number;
   netpbmAscii?: boolean;
   bmpFormat?: "bmp2" | "bmp3" | "bmp4";
   bmp3Alpha?: boolean;
@@ -5268,6 +5269,26 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         }
         return yield* applyMod(selected);
     }
+    if (lower.startsWith("gray:") || (!lower.includes(":") && lower.endsWith(".gray"))) {
+        if (!state.hasSize) throw new Error("must specify image size for GRAY input");
+        const path = lower.startsWith("gray:") ? baseToken.slice(5) : baseToken;
+        const source = path === "-" ? stdinBytes : files.get(path);
+        if (!source) return undefined;
+        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, "lsb", source.length, 1, state.inputOffset);
+        const frames: RgbaImage[] = [];
+        for (const page of selectedInputPages(pageSpec, raw.pages)) {
+            const bytes = new Uint8Array(raw.size);
+            for (let position = 0; position < raw.size; position += 8192) {
+                yield;
+                const steps = raw.read(position, Math.min(8192, raw.size - position), page);
+                let next = steps.next();
+                while (!next.done) next = steps.next(source.subarray(next.value.position, next.value.position + next.value.length));
+                bytes.set(next.value, position);
+            }
+            frames.push(Object.assign(decodeImage(bytes), { [magickInput]: { filePath: path, byteLen: source.length, sceneIdx: page } }));
+        }
+        return yield* applyMod(frames);
+    }
     const rgb = lower.startsWith("rgb:"), ftxt = lower.startsWith("ftxt:");
     let cleanToken = ftxt ? baseToken.slice(5) : rgb ? baseToken.slice(4) : baseToken;
     const prefixMatch = /^([a-zA-Z0-9]+):(.*)$/.exec(cleanToken);
@@ -5294,7 +5315,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (rgb) {
         if (!state.hasSize) throw new Error("must specify image size for RGB input");
-        const raw = rawRgbInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", rawBytes.length);
+        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", rawBytes.length, 3);
         const bytes = new Uint8Array(raw.size);
         for (let position = 0; position < raw.size; position += 8192) {
             yield;
@@ -10831,11 +10852,27 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    return parseStoredCompareInput(`ppm:${token.slice(5)}`,state,backend,signal,{...readOptions,source:{size,async read(offset,length){return backend.storage.read(position+offset,length);}}});
   };
   return readOptions.source===null?undefined:readOptions.source?consume(readOptions.source):backend.read(baseToken.slice(5),consume);
+ }else if(lower.startsWith("gray:")||(!lower.includes(":")&&lower.endsWith(".gray"))){
+  if(!state.hasSize)throw new Error("must specify image size for GRAY input");
+  const path=lower.startsWith("gray:")?baseToken.slice(5):baseToken;
+  const consume=async(source:ImageByteSource)=>{
+   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,"lsb",source.size,1,state.inputOffset);
+   for(const page of selectedInputPages(pageSpec,raw.pages)){
+    image=await parseStoredCompareInput(`pgm:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
+     const steps=raw.read(position,length,page);let next=steps.next();
+     while(!next.done)next=steps.next(await source.read(next.value.position,next.value.length,{signal}));
+     return next.value;
+    }}});
+    if(!readOptions.visit&&!readOptions.lastPage)break;
+   }
+   return image;
+  };
+  return readOptions.source===null?undefined:readOptions.source?consume(readOptions.source):backend.read(path,consume);
  }else if(lower.startsWith("rgb:")){
   if(!state.hasSize)throw new Error("must specify image size for RGB input");
   const path=baseToken.slice(4);
   const consume=async(source:ImageByteSource)=>{
-   const raw=rawRgbInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size);
+   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size,3);
    return parseStoredCompareInput(`ppm:${token.slice(4)}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
     const steps=raw.read(position,length);let next=steps.next();
     while(!next.done)next=steps.next(await source.read(next.value.position,next.value.length,{signal}));
@@ -10989,6 +11026,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let extract: string | undefined;
     const operands: { token: string; extract: string | undefined }[] = [];
     const operandOperations: CompareOperation[][] = [];
+    const operandSettings: MagickState[] = [];
     let leadingOperations: CompareOperation[] = [];
     let groupStart = 0;
     const groups: number[] = [];
@@ -11147,6 +11185,24 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if (t === "-similarity-threshold") similarityThreshold = threshold;
             else dissimilarityThreshold = threshold;
         }
+        else if (t === "-size" || t === "-depth") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 2, stdout: "", stderr: `compare: missing an argument for option '${t}'\n` };
+            if (t === "-depth") {
+                state.inputDepth = Number(value);
+                if (!Number.isInteger(state.inputDepth) || state.inputDepth < 1) return { exitCode: 2, stdout: "", stderr: "compare: invalid input depth\n" };
+            } else {
+                try { validateMagickTransformGeometry(value, t); }
+                catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
+                const geometry = parseMagickGeometry(value);
+                state.sizeWidth = Math.max(1, Math.round(geometry.width ?? 1));
+                state.sizeHeight = Math.max(1, Math.round(geometry.height ?? state.sizeWidth));
+                state.inputOffset = geometry.x;
+                state.hasSize = true;
+            }
+        }
+        else if (t === "+size") { state.hasSize = false; delete state.inputOffset; }
+        else if (t === "+depth") { delete state.inputDepth; }
         else if (t === "-density") {
             const g = parseMagickGeometry(argv[++i] ?? "72");
             state.density = Math.max(1, Math.round(g.width ?? 72));
@@ -11232,6 +11288,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if (pending) operationFlushes.set(operands.length, [...pixelOperations]);
             pending = false;
             operands.push({ token: t, extract });
+            operandSettings.push({ ...state });
             operandOperations.push(leadingOperations.map(operation => typeof operation === "object" && "geometry" in operation ? { ...operation, gravity: state.gravity } : operation));
         }
     }
@@ -11375,14 +11432,14 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         try {
             let found = false;
             if (backend) yield { async run() {
-                await parseStoredCompareInput(operand, state, backend, signal!, { ...(extract === undefined ? {} : { extract }), visit: async image => {
+                await parseStoredCompareInput(operand, operandSettings[operandIndex]!, backend, signal!, { ...(extract === undefined ? {} : { extract }), visit: async image => {
                     found = true;
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
                     await drainIdentifySteps(acceptImage(image, operations), signal);
                 } });
             } };
             else {
-                const images = yield* parseInputOperandsSteps(operand, files, state, stdinBytes, undefined, extract);
+                const images = yield* parseInputOperandsSteps(operand, files, operandSettings[operandIndex]!, stdinBytes, undefined, extract);
                 found = Boolean(images?.length);
                 for (const image of images ?? []) {
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;

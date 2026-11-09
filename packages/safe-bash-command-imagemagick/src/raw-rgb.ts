@@ -1,13 +1,15 @@
-// Present headerless RGB as PPM so both decoding paths retain 16-bit samples.
-export function rawRgbInput(width: number, height: number, depth: number, endian: string, byteLength: number) {
-    if (depth !== 8 && depth !== 16) throw new Error(`unsupported RGB input depth '${depth}'`);
-    const length = width * height * 3 * (depth / 8);
-    if (!Number.isSafeInteger(length) || length > byteLength) throw new Error("unexpected end-of-file in RGB input");
-    const header = new TextEncoder().encode(`P6\n${width} ${height}\n${depth === 8 ? 255 : 65535}\n`);
+// Present headerless RGB/GRAY as Netpbm so both decoding paths retain 16-bit samples.
+export function rawNetpbmInput(width: number, height: number, depth: number, endian: string, byteLength: number, channels: 1 | 3, offset = 0) {
+    const coder = channels === 1 ? "GRAY" : "RGB";
+    if (depth !== 8 && depth !== 16) throw new Error(`unsupported ${coder} input depth '${depth}'`);
+    const frameLength = width * height * channels * (depth / 8);
+    if (!Number.isSafeInteger(frameLength) || frameLength > byteLength - offset || !Number.isSafeInteger(offset) || offset < 0) throw new Error(`unexpected end-of-file in ${coder} input`);
+    const header = new TextEncoder().encode(`P${channels === 1 ? 5 : 6}\n${width} ${height}\n${depth === 8 ? 255 : 65535}\n`);
     const swap = depth === 16 && endian !== "msb";
     return {
-        size: header.length + length,
-        *read(position: number, size: number): Generator<{ position: number; length: number }, Uint8Array, Uint8Array> {
+        size: header.length + frameLength,
+        pages: Math.floor((byteLength - offset) / frameLength),
+        *read(position: number, size: number, page = 0): Generator<{ position: number; length: number }, Uint8Array, Uint8Array> {
             const bytes = new Uint8Array(size);
             const headerLength = Math.max(0, Math.min(size, header.length - position));
             bytes.set(header.subarray(position, position + headerLength));
@@ -15,12 +17,12 @@ export function rawRgbInput(width: number, height: number, depth: number, endian
                 const start = Math.max(0, position - header.length), end = start + size - headerLength;
                 const alignedStart = swap ? start - start % 2 : start;
                 const alignedEnd = swap ? end + end % 2 : end;
-                for (let offset = alignedStart; offset < alignedEnd; offset += 8192) {
-                    const length = Math.min(8192, alignedEnd - offset);
-                    const input = yield { position: offset, length };
-                    if (input.length !== length) throw new Error("unexpected end-of-file in RGB input");
-                    for (let i = Math.max(start, offset); i < Math.min(end, offset + length); i++) {
-                        bytes[headerLength + i - start] = input[(swap ? i ^ 1 : i) - offset]!;
+                for (let cursor = alignedStart; cursor < alignedEnd; cursor += 8192) {
+                    const length = Math.min(8192, alignedEnd - cursor);
+                    const input = yield { position: offset + page * frameLength + cursor, length };
+                    if (input.length !== length) throw new Error(`unexpected end-of-file in ${coder} input`);
+                    for (let i = Math.max(start, cursor); i < Math.min(end, cursor + length); i++) {
+                        bytes[headerLength + i - start] = input[(swap ? i ^ 1 : i) - cursor]!;
                     }
                 }
             }

@@ -6,6 +6,9 @@ import { createIdentifyCommand, createMagickCommand, runConvertCliSync, runIdent
 
 for (const mode of ["buffered", "retained", "sync", "identify", "magick"] as const) {
     it.each([
+        { name: "literal active format property", args: ["-format", "X%[format]Y", "/photo.png"], expected: "XX%[format]YY" },
+        { name: "format property preserves tokens and escapes", args: ["-format", "%m|%[format]|%w\\n", "/photo.png"], expected: "PNG|%m|%[format]|%w\\n|3\n" },
+        { name: "format property follows each operand", args: ["-format", "A%[format];", "/photo.png", "-format", "B%[format];", "/other.png"], expected: "AA%[format];;BB%[format];;" },
         { name: "repeated filenames", args: ["-format", "one;", "/photo.png", "-format", "two;", "/photo.png"], expected: "one;two;" },
         { name: "filename and dimension expansion", args: ["-format", "%f:%wx%h;", "/photo.png", "-format", "%h/%w:%f;", "/other.png"], expected: "photo.png:3x2;4/5:other.png;" },
         { name: "initial default format", args: ["/photo.png", "-format", "two;", "/other.png"], expected: "default" },

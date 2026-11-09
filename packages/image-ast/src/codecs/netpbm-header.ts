@@ -81,6 +81,7 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
     if (!hasDigit) break;
     tokens.push(num);
   }
+  if (format === "pgm" && tokens[2] === 0) throw new Error("Invalid Netpbm maxval");
   // Only ASCII rasters allow comments after the final header delimiter.
   let look = pos;
   if (magic === "P1" || magic === "P2" || magic === "P3") {

@@ -34,6 +34,8 @@ describe("ImageMagick property formatting", () => {
         .toBe(`80x40+0+0|80x40|%|srgb  3.0|80x40|8|1|Zip|92|${bytes.byteLength}B${newline}`);
       expect(await format(bytes, "%%w|%%[mean]|%%%w|%%%%|\\n\\t%w|%[unknown]|%j|%[unfinished"))
         .toBe(`%w|%[mean]|%80|%%|\n\t80|%[unknown]|%j|%[unfinished${newline}`);
+      expect(await format(bytes, "50%x1|50%w|%x|50%[width]|50%%|%w%h"))
+        .toBe(`50%x1|50%w|72|5080|50%|8040${newline}`);
     });
 
     it.each([

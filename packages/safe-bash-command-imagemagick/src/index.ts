@@ -1380,6 +1380,9 @@ function* formatMagickPropertyStringSteps<Step=never>(
   let previous = 0;
   let match: RegExpExecArray | null;
   while ((match = tokens.exec(fmt)) !== null) {
+    // Native single-letter escapes stay literal immediately after a digit.
+    if (match[0].startsWith("%") && match[0] !== "%[" && match[0] !== "%%"
+      && "0123456789".includes(fmt[match.index - 1] ?? " ")) continue;
     parts.push(fmt.slice(previous, match.index));
     let token = match[0];
     if (token === "%[") {
@@ -6472,16 +6475,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-solarize") {
         highDepth = true;
         const value = tokens[++i] ?? "50%";
-        const threshold = (value.endsWith("%") ? value.slice(0, -1) : value).trim();
-        const unsigned = threshold.startsWith("-") || threshold.startsWith("+") ? threshold.slice(1) : threshold;
-        const hexadecimal = unsigned.toLowerCase().startsWith("0x");
-        const raw = hexadecimal ? Number(unsigned) * (threshold.startsWith("-") ? -1 : 1) : Number(threshold);
-        if (!Number.isFinite(raw) || (!hexadecimal && Number.parseFloat(threshold) !== raw)) {
-            throw new Error(`invalid argument '-solarize' '${value}'`);
-        }
+        const geometry = value.trim().toLowerCase();
+        const firstDigit = geometry.startsWith("-") || geometry.startsWith("+") ? 1 : 0;
+        const separator = geometry.indexOf("x", geometry.startsWith("0x", firstDigit) ? firstDigit + 2 : 0);
+        const fields = (separator < 0 ? [geometry] : [geometry.slice(0, separator), geometry.slice(separator + 1)]).map(field => field.trim());
+        const thresholds = fields.map(field => {
+            const threshold = (field.endsWith("%") ? field.slice(0, -1) : field).trim();
+            const unsigned = threshold.startsWith("-") || threshold.startsWith("+") ? threshold.slice(1) : threshold;
+            const hexadecimal = unsigned.startsWith("0x");
+            const raw = hexadecimal ? Number(unsigned) * (threshold.startsWith("-") ? -1 : 1) : Number(threshold);
+            if (!Number.isFinite(raw) || (!hexadecimal && Number.parseFloat(threshold) !== raw)) {
+                throw new Error(`invalid argument '-solarize' '${value}'`);
+            }
+            return field.endsWith("%") ? (raw / 100) * 65535 : raw;
+        });
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        const thresh = value.endsWith("%") ? (raw / 100) * 65535 : raw;
-        apply = image => applyMagickSolarizeSteps(image, thresh, channels, signal);
+        apply = image => applyMagickSolarizeSteps(image, thresholds[0]!, channels, signal);
     } else if (token === "-ordered-dither") {
         const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickRasterSteps(image, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a]), signal);

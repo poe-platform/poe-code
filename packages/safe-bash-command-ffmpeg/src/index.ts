@@ -1504,8 +1504,23 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const length = Math.min(...sources.map(source => source.track.decodedAudio!.channelData[0]!.length));
         budget.checkSamples(length);
         budget.checkDuration(length / audio.sampleRate);
+        const target = sources[0]!.track.decodedAudio!;
+        const inputLayout = audio.channelMask || (audio.channels === 1 ? 4 : audio.channels === 2 ? 3 : undefined);
+        const targetLayout = target.channelMask || (target.channels === 1 ? 4 : target.channels === 2 ? 3 : undefined);
+        let channelData = audio.channelData.map(channel => channel.subarray(0, length));
+        if (audio.channels !== target.channels || inputLayout !== targetLayout) {
+          if (!(inputLayout === 4 && targetLayout === 3 || inputLayout === 3 && targetLayout === 4)) {
+            throw new Error("astreamselect requires matching layouts or mono/stereo inputs");
+          }
+          budget.allocateMemory(length * target.channels * Float32Array.BYTES_PER_ELEMENT);
+          const expression = target.channels === 1 ? "mono|c0=0.5*c0+0.5*c1"
+            : `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`;
+          const pcm16 = ["pcm_s16le", "pcm_s16be"].includes(track.codecDescriptions[0]?.codecName ?? "");
+          const mixed = await panAudio(expression, channelData, inputLayout, pcm16, budget, signal);
+          channelData = mixed.channels;
+        }
         return { track: { ...track, duration: length * track.timescale / audio.sampleRate, editList: undefined,
-          decodedAudio: { ...audio, channelData: audio.channelData.map(channel => channel.subarray(0, length)) } },
+          decodedAudio: { ...audio, channels: target.channels, channelMask: targetLayout, channelData } },
           expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "axcorrelate" || filters[0]?.startsWith("axcorrelate=")) {

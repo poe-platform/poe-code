@@ -8847,7 +8847,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickRasterSteps(im, embossPixelSteps(im, geometry), signal));
-            });
+            }, undefined, true);
         }
         else if (t === "-white-balance") {
             const toLab = parseMagickPixelOperation(["-colorspace", "Lab"], state, 0, signal)!;
@@ -11138,7 +11138,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry), signal) : undefined);
+            steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => image ? transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry), signal) : undefined, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-canny") {
             const spec = tokens[++i] ?? "0x1+10%+30%", channels = state.channelExplicit ? { ...state.channels } : undefined, virtualPixel = state.virtualPixel, background = state.background;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, cannyPixelSteps(image, spec, channels, virtualPixel, background), signal, { ...image, hasAlpha: false }) : undefined);

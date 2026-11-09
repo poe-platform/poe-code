@@ -6561,7 +6561,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = (image, pixelOffset = 0) => {
             if ((operation === "uniformnoise" || operation === "gaussiannoise" || operation === "impulsenoise" || operation === "laplaciannoise" || operation === "multiplicativenoise" || operation === "poissonnoise") && pixelOffset === 0)
                 random = createMagickRandom(state.seed ?? 0);
-            return applyMagickEvaluateSteps(image, operation, value, channels, random, signal);
+            return applyMagickEvaluateSteps({ ...image, isPalette: false }, operation, value, channels, random, signal);
         };
     } else if (token === "-function") {
         highDepth = true;
@@ -8670,7 +8670,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-blur" || t === "-gaussian-blur") {
             const g = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps(im, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined), signal);
+                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined), signal);
             });
         }
         else if (t === "-enhance") {
@@ -10715,7 +10715,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined);
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined);
         } else if (!operandsOnly && token === "-enhance") {
             const { background, virtualPixel } = state;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, enhancePixelSteps(image, background, virtualPixel), signal) : undefined);

@@ -2310,12 +2310,14 @@ export function parseSubtitleDocument(
     text = decodeUtf8(bytes).replace(/^\uFEFF/, "").replaceAll("\r\n", "\n");
   }
   // Native WebVTT demuxing produces no cues when the header is missing.
-  const blocks = format === "webvtt" && !text.startsWith("WEBVTT") ? [] : text.split(/\n[ \t\n]*\n/);
+  // SubRip dialogue continues across blank lines until the next timed cue.
+  const blocks = format === "srt" ? splitAdjacentSrtCues(text)
+    : format === "webvtt" && !text.startsWith("WEBVTT") ? [] : text.split(/\n[ \t\n]*\n/);
   const samples: MediaSample[] = [];
   const seenCues = new Set<string>();
   let maxEndMs = 0;
 
-  for (const rawBlock of format === "srt" ? blocks.flatMap(splitAdjacentSrtCues) : blocks) {
+  for (const rawBlock of blocks) {
     const lines = rawBlock
       .split("\n")
       .map((l) => format === "webvtt" ? l : format === "srt" ? l.replace(/[ \t]+$/, "") : l.trimEnd())

@@ -142,6 +142,22 @@ for (const file of [1, 2]) {
  }
 }
 
+for (const separator of ["\n", "\0"]) {
+ for (const tail of [" ", "\t", "  \t "]) {
+  for (const args of [[], ["-e", "NA"], ["-o", "auto"], ["-e", "NA", "-o", "auto"]]) {
+   test(`join ignores trailing blanks: separator=${JSON.stringify(separator)}, tail=${JSON.stringify(tail)}, args=${JSON.stringify(args)}`, async () => {
+    const flags = separator === "\0" ? ["-z"] : [];
+    const result = await run([...flags, ...args, "/a", "/b"], {
+     "/a": `k A${tail}${separator}`, "/b": `k X${tail}${separator}`,
+    });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, `k A X${separator}`);
+    assert.equal(result.stderr, "");
+   });
+  }
+ }
+}
+
 // Verified against GNU coreutils 9.4 with LC_ALL=C.
 for (const [option, minimum, left, right, expected, exitCode] of [
  ["--header", 5, "k A\nk B\nq C\n", "k X\nk Y\np Z\n", "k A X\nk B Y\n", 0],

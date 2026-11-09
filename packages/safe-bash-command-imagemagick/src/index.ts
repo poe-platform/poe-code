@@ -8675,6 +8675,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-floodfill" || t === "+floodfill") {
             if (i + 2 >= tokens.length) throw new Error(`missing argument '${t}'`);
             const geom = tokens[++i]!, value = tokens[++i]!;
+            // Native accepts a bare minus as zero offsets.
+            if (geom.trim() !== "-") validateMagickTransformGeometry(geom, t);
             let targetColor: RgbaColor;
             try { targetColor = parseColor(value, true); }
             catch {
@@ -10931,7 +10933,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && (token === "-floodfill" || token === "+floodfill")) {
             if (i + 2 >= tokens.length) throw new Error(`missing argument '${token}'`);
-            const geometry = parseMagickGeometry(tokens[++i]!), value = tokens[++i]!, replacement = state.fill, fuzz = state.alphaFuzz;
+            const geom = tokens[++i]!;
+            if (geom.trim() !== "-") validateMagickTransformGeometry(geom, token);
+            const geometry = parseMagickGeometry(geom), value = tokens[++i]!, replacement = state.fill, fuzz = state.alphaFuzz;
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             let target: RgbaColor;
             try { target = parseColor(value, true); }

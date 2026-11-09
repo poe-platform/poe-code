@@ -6987,7 +6987,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
-            const samples = data16 ?? out, range = data16 ? 65535 : 255;
+            const evaluateSamples = im.evaluateSamples?.slice() ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
@@ -6996,16 +6996,18 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         yield;
                     if (!mask[c])
                         continue;
-                    const u = samples[idx + c]! / range;
+                    const u = evaluateSamples[idx + c]! / 255;
                     // Match ImageMagick's epsilon clamp so saturated endpoints stay finite.
                     const value = inverse
                         ? alpha + (2 / beta) * Math.atanh(Math.max(-1 + 1e-12, Math.min(1 - 1e-12, span * u + s0)))
                         : (sig(u) - s0) / span;
-                    samples[idx + c] = Math.max(0, Math.min(range, Math.round(value * range)));
-                    if (data16) out[idx + c] = clampByteVal(data16[idx + c]! / 257);
+                    // Preserve native Q16-HDRI float samples for subsequent operations.
+                    evaluateSamples[idx + c] = Math.fround(Math.max(0, Math.min(1, value)) * 65535) / 257;
+                    out[idx + c] = clampByteVal(evaluateSamples[idx + c]!);
+                    if (data16) data16[idx + c] = Math.round(evaluateSamples[idx + c]! * 257);
                 }
             }
-            return { ...im, data: out, ...(data16 ? { data16 } : {}) };
+            return { ...im, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
         };
     }
     else if (token === "-level" || token === "+level") {
@@ -7109,7 +7111,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelSelections(expression: string): number[][] {

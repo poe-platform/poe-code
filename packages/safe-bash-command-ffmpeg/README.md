@@ -555,3 +555,5 @@ MP4/MOV output accepts `-timecode 01:02:03:04`, `-metadata timecode=01:02:03:04`
 Audio `aac_adtstoasc` accepts AAC packets and rejects incompatible codecs such as PCM before writing output. AAC demuxers already provide raw access units and AudioSpecificConfig, so AAC stream-copy payloads remain unchanged.
 
 Output `-avoid_negative_ts make_non_negative` shifts leading negative decode timestamps to zero; `make_zero` shifts the first decode timestamp to zero even when positive. All streams receive the same shift and stream-copy packet bytes are preserved, including AAC priming. `disabled` and the default `auto` retain existing MP4/MOV timestamp behavior. Numeric values `1`, `2`, `0`, and `-1` are also accepted, respectively. The option resets for each output.
+
+VPlayer input uses the next timestamp to close each subtitle cue, including empty closing lines, and converts `|` to line breaks. FFmpeg accepts `-f vplayer` or detects the content in generic `.txt` files.

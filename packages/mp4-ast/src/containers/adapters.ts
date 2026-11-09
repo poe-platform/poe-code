@@ -8,6 +8,7 @@ import { pjsAst } from "./pjs.js";
 import { realtextAst } from "./realtext.js";
 import { samiAst } from "./sami.js";
 import { lrcAst } from "./lrc.js";
+import { vplayerAst } from "./vplayer.js";
 import { mpl2Ast } from "./mpl2.js";
 import { jacosubAst } from "./jacosub.js";
 import { microdvdAst } from "./microdvd.js";
@@ -3003,6 +3004,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     microdvdAst(),
     jacosubAst(),
     mpl2Ast(),
+    vplayerAst(),
     pjsAst(),
     assAst(),
     webvttAst(),

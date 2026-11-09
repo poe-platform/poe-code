@@ -8,7 +8,7 @@ it("reports MPEG-TS PIDs without changing stream indices or MP4 IDs", async () =
   const mp4 = createSyntheticMp4({ width: 16, height: 16, frameCount: 1, includeAudio: true });
   const ts = serializeMpegTs(parseMp4(mp4));
   for (const [filename, bytes, streams] of [
-    ["/input.ts", ts, [{ index: 0, id: "0x101", codec_name: "aac" }, { index: 1, id: "0x100", codec_name: "h264" }]],
+    ["/input.ts", ts, [{ index: 0, id: "0x100", codec_name: "h264" }, { index: 1, id: "0x101", codec_name: "aac" }]],
     ["/input.mp4", mp4, [{ index: 0, id: "0x1", codec_name: "h264" }, { index: 1, id: "0x2", codec_name: "aac" }]]
   ] as const) {
     const args = ["-v", "error", "-show_entries", "stream=index,id,codec_name", "-of", "json", filename];

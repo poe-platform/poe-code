@@ -106,19 +106,34 @@ test("legacy counts still reject modern split modes and invalid final counts bef
   }
 });
 
-test("chunk modes preserve lines, distribute records, and select stdout", async () => {
-  for (const [mode, outputs] of [
-    ["l/2", ["abc\nd\n", "ef\n"]],
-    ["r/2", ["abc\nef\n", "d\n"]],
-    ["2", ["abc\nd", "\nef\n"]],
-  ] as const) {
+for (const padding of ["", " ", "\t", "\n", "\v", "\f", "\r", " \t\n\v\f\r"]) {
+  test(`chunk modes preserve lines, distribute records, and select stdout with leading ${JSON.stringify(padding)}`, async () => {
+    for (const [mode, outputs] of [
+      ["l/2", ["abc\nd\n", "ef\n"]],
+      ["r/2", ["abc\nef\n", "d\n"]],
+      ["2", ["abc\nd", "\nef\n"]],
+    ] as const) {
+      const result = await run(["-n", `${padding}${mode}`], "abc\nd\nef\n");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(await files(result.fs), { xaa: hex(outputs[0]), xab: hex(outputs[1]) });
+      const selector = `${padding}${mode === "2" ? "2/2" : `${mode[0]}/2/2`}`;
+      for (const args of [["-n", selector], [`-n${selector}`], ["--number", selector], [`--number=${selector}`]]) {
+        const selected = await run(args, "abc\nd\nef\n");
+        assert.equal(selected.exitCode, 0, selected.stderr);
+        assert.equal(selected.stdout, outputs[1]);
+        assert.deepEqual(await files(selected.fs), {});
+        assert.equal(evalSyncSplit(Buffer.from("abc\nd\nef\n"), args), outputs[1]);
+      }
+    }
+  });
+}
+
+test("chunk mode selectors reject trailing and non-ASCII whitespace before writing", async () => {
+  for (const mode of ["l/2 ", "r/2\t", "l /2", "r\t/2", "\u00a0l/2", "\u2003r/2", " \t", " r/0", " l/3/2"]) {
     const result = await run(["-n", mode], "abc\nd\nef\n");
-    assert.equal(result.exitCode, 0, result.stderr);
-    assert.deepEqual(await files(result.fs), { xaa: hex(outputs[0]), xab: hex(outputs[1]) });
-    const selected = await run(["-n", mode === "2" ? "2/2" : `${mode[0]}/2/2`], "abc\nd\nef\n");
-    assert.equal(selected.exitCode, 0, selected.stderr);
-    assert.equal(selected.stdout, outputs[1]);
-    assert.deepEqual(await files(selected.fs), {});
+    assert.equal(result.exitCode, 1, JSON.stringify(mode));
+    assert.equal(result.stdout, "");
+    assert.deepEqual(await files(result.fs), {});
   }
 });
 

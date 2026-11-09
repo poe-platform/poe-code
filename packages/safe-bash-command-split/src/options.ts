@@ -108,7 +108,9 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
       if (mode) throw new PublicDiagnostic("cannot split in more than one way");
       mode = option === "l" ? "lines" : option === "b" ? "bytes" : option === "n" ? "chunks" : "line-bytes";
       if (option === "n") {
-        const parts = value!.split("/");
+        let start = 0;
+        while (start < value!.length && " \t\n\v\f\r".includes(value![start]!)) start++;
+        const parts = value!.slice(start).split("/");
         if (parts[0] === "l" || parts[0] === "r") chunkMode = parts.shift() === "l" ? "lines" : "round-robin";
         if (parts.length < 1 || parts.length > 2) throw new PublicDiagnostic(`invalid number of chunks: '${value}'`);
         size = number(parts[parts.length - 1]!, "number of chunks");

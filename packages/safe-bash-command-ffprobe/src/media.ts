@@ -1134,6 +1134,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           metadata: !!selectStreams || !(showPackets || showFrames) || showStreams || showFormat || showChapters || countFrames || countPackets || [...entryFilter.keys()].some(section => section !== "packet" && section !== "frame") } : undefined;
         const packetPlugins = mp4Records ? [registry.findByFormatName("mp4"), registry.findByFormatName("mov")] : [];
         let audioInput: AudioProbeInput | undefined;
+        let intervalPcm: { sampleRate: number; blockAlign: number } | undefined;
         let automaticAudio = !options.asts && !explicitFormat && !showPackets && !showFrames && !showChapters && !showPrograms && !countFrames && !countPackets;
         if (automaticAudio) { try { parseAudioArguments(args); } catch { automaticAudio = false; } }
         const automaticPlugins = !explicitFormat
@@ -1207,6 +1208,10 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
               showPackets: showPackets || countPackets,
               showFrames: showFrames || countFrames
             });
+            const stream = probe.streams[0];
+            if (readIntervals && plugin.id === "aiff" && stream?.codec_name?.startsWith("pcm_") && stream.bits_per_sample && stream.channels) {
+              intervalPcm = { sampleRate: Number(stream.sample_rate), blockAlign: stream.channels * stream.bits_per_sample / 8 };
+            }
             probeResult = exportPathMetadata && plugin.id === "image2" && !isStdin(inputTarget)
               ? { ...probe, packets: probe.packets?.map(packet => ({ ...packet, ...imagePathMetadata(inputTarget) })) } : probe;
             if ((showData || showDataHash) && ["wav", "mp3", "flac", "mp4", "mov"].includes(plugin.id)) probeResult = { ...probeResult, packetSource: { size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } } };
@@ -1215,7 +1220,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         }
 
         if (readIntervals && "packets" in probeResult && probeResult.packets) {
-          const selection = await readPacketIntervals(probeResult.packets, readIntervals, context, budget, retain, selectStreams);
+          const selection = await readPacketIntervals(probeResult.packets, readIntervals, context, budget, retain, selectStreams, intervalPcm);
           const streams = probeResult.streams;
           probeResult = { ...probeResult, packets: selection.packets, streams: { async *[Symbol.asyncIterator]() {
             for await (const stream of streams) yield { ...stream, nb_read_packets: String(selection.counts.get(stream.index) ?? 0) };

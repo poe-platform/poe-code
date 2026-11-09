@@ -44,7 +44,7 @@ export function parseReadIntervals(value: string): ReadInterval[] {
 export async function readPacketIntervals(
   packets: Iterable<MediaProbePacket> | AsyncIterable<MediaProbePacket>, intervals: readonly ReadInterval[],
   context: CommandContext, budget: MediaBudgetTracker, retain: (close: () => Promise<void>) => void,
-  selectStreams?: string
+  selectStreams?: string, pcm?: { sampleRate: number; blockAlign: number }
 ): Promise<{ packets: AsyncIterable<MediaProbePacket>; counts: Map<number, number> }> {
   const storage = new PagedStorage(context, 4);
   retain(storage.close.bind(storage));
@@ -86,7 +86,26 @@ export async function readPacketIntervals(
   const primary = ordered.find(([index, stream]) => selected.has(index) && stream.type === "video")
     ?? ordered.find(([index]) => selected.has(index));
   const counts = new Map<number, number>();
+  // PCM seeks establish a new packet grid at the requested sample, even between
+  // the demuxer's original packet boundaries. The payload stays in the input.
+  const pcmFirst = pcm && ordered[0] ? (await read(ordered[0][1].first))!.packet : undefined;
+  const pcmLast = pcm && ordered[0] ? (await read(ordered[0][1].last))!.packet : undefined;
+  function pcmHead(pts: number): Head | undefined {
+    if (!pcm || !pcmFirst || !pcmLast) return;
+    const pos = Number(pcmFirst.pos) + pts * pcm.blockAlign;
+    const remaining = Number(pcmLast.pos) + Number(pcmLast.size) - pos;
+    if (remaining <= 0) return;
+    const size = Math.min(Math.max(1, Math.floor(4096 / pcm.blockAlign)) * pcm.blockAlign, remaining);
+    const duration = Math.floor(size / pcm.blockAlign);
+    const time = (pts / pcm.sampleRate).toFixed(6);
+    return { position: 0, next: 0, packet: { ...pcmFirst, pts, dts: pts, pts_time: time, dts_time: time,
+      pos: String(pos), size: String(size), duration, duration_time: (duration / pcm.sampleRate).toFixed(6) } };
+  }
   async function seek(stream: (typeof ordered)[number][1], target: number) {
+    if (pcm) {
+      stream.head = pcmHead(Math.max(0, Math.round(target * pcm.sampleRate)));
+      return;
+    }
     let chosen = await read(stream.first);
     for (let head = chosen; head; head = await read(head.next)) {
       if (Number(head.packet.pts_time) <= target && head.packet.flags.includes("K")) chosen = head;
@@ -94,7 +113,7 @@ export async function readPacketIntervals(
     stream.head = chosen;
   }
   async function* scan(): AsyncGenerator<MediaProbePacket> {
-    for (const [, stream] of ordered) stream.head = await read(stream.first);
+    for (const [, stream] of ordered) stream.head = pcm ? pcmHead(0) : await read(stream.first);
     let current = primary?.[1].head ? Number(primary[1].head.packet.pts_time) : 0;
     for (const interval of intervals) {
       if (interval.start !== undefined && primary) {
@@ -105,6 +124,7 @@ export async function readPacketIntervals(
       let count = 0, end = interval.end;
       let first = true;
       while (true) {
+        if (pcm) await checkpoint();
         let next: (typeof ordered)[number] | undefined;
         for (const entry of ordered) {
           if (!entry[1].head) continue;
@@ -115,7 +135,7 @@ export async function readPacketIntervals(
         }
         if (!next) break;
         const packet = next[1].head!.packet;
-        next[1].head = await read(next[1].head!.next);
+        next[1].head = pcm ? pcmHead(packet.pts + Math.ceil(Number(packet.size) / pcm.blockAlign)) : await read(next[1].head!.next);
         if (!selected.has(next[0])) continue;
         current = Number(packet.pts_time);
         if (first && interval.relativeEnd && !interval.packets && end !== undefined) end += current;

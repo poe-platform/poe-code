@@ -133,9 +133,9 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     duration_ts: matroska || containerFormat === "wav" && track.duration === 0 ? undefined : track.duration,
     duration: matroska || containerFormat === "wav" && track.duration === 0 ? undefined : durationSec.toFixed(6),
     bit_rate: bitRate,
-    nb_frames: matroska || containerFormat === "wav" || track.declaredSampleCount === 0
+    nb_frames: matroska || containerFormat === "wav" || containerFormat === "webvtt" || track.declaredSampleCount === 0
       ? undefined : String(track.declaredSampleCount ?? nbFrames),
-    ...(!matroska && track.declaredSampleCount === undefined ? {} : {
+    ...(!matroska && containerFormat !== "webvtt" && track.declaredSampleCount === undefined ? {} : {
       nb_read_packets: String(stats.count),
       nb_read_frames: String(stats.count)
     }),

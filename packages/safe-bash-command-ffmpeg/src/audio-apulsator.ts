@@ -6,7 +6,7 @@ export async function pulsateAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
-  if (channels.length !== 2) throw new Error("apulsator: stereo input required");
+  if (channels.length !== 1 && channels.length !== 2) throw new Error("apulsator: stereo input required");
   let mode = "sine";
   const options = { hz: 2, amount: 1, offset_l: 0, offset_r: 0.5, width: 1 };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
@@ -32,7 +32,7 @@ export async function pulsateAudio(
   }
   const length = channels[0]!.length;
   budget.allocateMemory(length * 2 * 8);
-  const output = channels.map(() => new Float64Array(length));
+  const output = [new Float64Array(length), new Float64Array(length)];
   const width = Math.min(1.99, Math.max(0.01, options.width));
   let phase = 0;
   for (let frame = 0; frame < length; frame++) {
@@ -55,7 +55,9 @@ export async function pulsateAudio(
         case "sawdown": wave = 1 - position * 2; break;
         default: wave = Math.sin(position * 2 * Math.PI);
       }
-      const input = channels[channel]![frame]!;
+      // Native mono-to-stereo mixing uses double precision and -3 dB per channel.
+      const input = channels.length === 1
+        ? channels[0]![frame]! * Math.SQRT1_2 : channels[channel]![frame]!;
       output[channel]![frame] = input * (wave * options.amount * 0.5 + options.amount / 2) + input * (1 - options.amount);
     }
     // Advance incrementally, preserving native phase across audio packet boundaries.

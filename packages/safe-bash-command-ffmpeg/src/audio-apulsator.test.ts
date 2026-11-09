@@ -6,8 +6,8 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
-// SHA-256 of decoded native FFmpeg 7.0.2/9.0.1 PCM, 8 kHz stereo, 2048 frames.
-for (const [filter, hash] of [
+// SHA-256 of native FFmpeg 7.0.2/9.0.1 PCM, 8 kHz, 2048 frames.
+for (const [filter, hash, mono = false] of [
   [
     "apulsator=mode=sine",
     "8e51fdb427f4e806fe3de9e39097860a06414283abb2d1880df29d9028040abb"
@@ -79,11 +79,15 @@ for (const [filter, hash] of [
   [
     "apulsator=amount=0",
     "2d1f2da800b2a477fbc52839146c0d3fd2c94a18c404a368f734448dbdf3d8ef"
-  ]
+  ],
+  ["apulsator", "a948a544338994f736b29f45b12a3dcd69f4b3cf322b14a63bd323fb288973e1", true],
+  ["apulsator,pan=stereo|c0=FR|c1=FL", "a0e7d31a9ef6fe66d4cfac7b7742ed6ad87e45bcae3bb16f24e93f73f39d44be", true],
+  ["apulsator=amount=0", "361d259755dfcd0aac527e1db911afb68486a9bf5f6ca6af96d992830a54257b", true],
+  ["apulsator=hz=7:offset_l=0.25:offset_r=0.75", "f87cc3f54cd830bbe8ad90162572b6bba18f3098287a0f972cdaf7a9da53ae5b", true]
 ] as const) {
   for (const graph of [false, true]) {
-    it(`${filter} matches native PCM and rate (${graph ? "graph" : "simple"})`, async () => {
-      const { volume, result, stderr } = await run(filter, graph);
+    it(`${filter} matches native PCM and rate (${mono ? "mono" : "stereo"}, ${graph ? "graph" : "simple"})`, async () => {
+      const { volume, result, stderr } = await run(filter, graph, mono);
       assert.equal(result.exitCode, 0, stderr);
       const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
       assert.equal(audio.sampleRate, 8000);
@@ -110,8 +114,8 @@ for (const filter of [
   });
 }
 
-async function run(filter: string, graph = false) {
-  const channels = [
+async function run(filter: string, graph = false, mono = false) {
+  const channels = mono ? [new Float64Array(2048).fill(10000 / 32768)] : [
     Float64Array.from({ length: 2048 }, (_, i) => ((i * 67) % 14000 - 7000) / 32768),
     Float64Array.from({ length: 2048 }, (_, i) => (6000 - (i * 53) % 12000) / 32768)
   ];

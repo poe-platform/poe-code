@@ -9602,6 +9602,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await tremoloAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "apulsator" || trimmed.startsWith("apulsator=")) {
                         stretched = await pulsateAudio(stretched, origRate, trimmed, budget, context.signal);
+                        filteredChannelMask = 3;
+                        filteredSampleFormat = "dbl";
+                        statsScale = 1;
                       } else if (trimmed === "vibrato" || trimmed.startsWith("vibrato=")) {
                         stretched = await vibratoAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "adynamicequalizer" || trimmed.startsWith("adynamicequalizer=")) {

@@ -10176,11 +10176,14 @@ const syncExtraRuntimeMethods = {
                     if (this._syncArithRawWriteOnly && this._syncArithTouched) this._syncArithTouched.add("OPTARG");
                     else monitor.values.invalidate("OPTARG");
                   }
-                  if (this._syncArithRawWriteOnly && this._syncArithTouched) {
-                    rawState.variables[optVar] = res.option;
-                    this._syncArithTouched.add(optVar);
-                  } else monitor.publishStringVariable(optVar, res.option);
-                  if (rawState.allexport) monitor.proxy.exported.add(optVar);
+                  // Error OPTARG wins over the destination; success and EOF keep the option.
+                  if (optVar !== "OPTARG" || res.kind === "option" || res.kind === "end") {
+                    if (this._syncArithRawWriteOnly && this._syncArithTouched) {
+                      rawState.variables[optVar] = res.option;
+                      this._syncArithTouched.add(optVar);
+                    } else monitor.publishStringVariable(optVar, res.option);
+                    if (rawState.allexport) monitor.proxy.exported.add(optVar);
+                  }
                   if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
                   return this.finishSyncPipeStatus(rawState, monitor, monitor.store, monitor.store?.get("PIPESTATUS"), elem0, scope, finalStatus, restEpoch);
                 }

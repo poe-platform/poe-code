@@ -1,10 +1,57 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { setImmediate } from "node:timers/promises";
 import { test } from "node:test";
 import { Runtime } from "../../../../src/shell/runtime.js";
 import type { State } from "../../../../src/shell/runtime.js";
 import { StateMonitor, stateMonitor } from "../../../../src/shell/arrays/state.js";
 import { runtimeSetup } from "./helpers.js";
+
+for (const bounded of [false, true]) {
+  for (const destination of ["OPTARG", "ref"]) {
+    for (const mode of ["silent", "verbose", "suppressed"]) {
+      for (const args of ["-j", "-b", "-byes", "-a", "--"]) {
+        test(`getopts OPTARG destination: ${destination}, ${mode}, ${args}, bounded=${bounded}`, async () => {
+          const source = `OPTARG=old; ${destination === "ref" ? "declare -n ref=OPTARG;" : ""}
+${mode === "suppressed" ? "OPTERR=0;" : ""}
+getopts '${mode === "silent" ? ":ab:" : "ab:"}' ${destination} ${args}
+printf '%s|%s|%s\\n' "$?" "\${OPTARG-unset}" "$OPTIND"`;
+          const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source, "shell"], { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } });
+          assert.equal(native.status, 0, native.stderr);
+          const { shell } = runtimeSetup(bounded ? { limits: { maxExpansionBytes: 4096 } } : {});
+          try {
+            const result = await shell.exec(source);
+            assert.equal(result.stdout, native.stdout);
+            assert.equal(result.stderr, native.stderr);
+            assert.equal(result.exitCode, native.status);
+          } finally { await shell.dispose(); }
+        });
+      }
+    }
+  }
+}
+
+for (const optstring of ["ab:", ":ab:"]) {
+  for (const args of ["-j", "-b"]) {
+    for (const [setup, command] of [
+      ["OPTARG=old", "OPTARG=temporary getopts"],
+      ["readonly OPTARG=old", "getopts"],
+    ]) {
+      test(`getopts error publishes OPTARG with ${setup}, ${optstring}, ${args}`, async () => {
+        const source = `${setup}; ${command} '${optstring}' OPTARG ${args}; printf '%s|%s|%s\\n' "$?" "\${OPTARG-unset}" "$OPTIND"`;
+        const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source, "shell"], { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } });
+        assert.equal(native.status, 0, native.stderr);
+        const { shell } = runtimeSetup();
+        try {
+          const result = await shell.exec(source);
+          assert.equal(result.stdout, native.stdout);
+          assert.equal(result.stderr, native.stderr);
+          assert.equal(result.exitCode, native.status);
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
 
 type ObservedState = {
   readonly boundary: "caller-abort" | "simple-exit";

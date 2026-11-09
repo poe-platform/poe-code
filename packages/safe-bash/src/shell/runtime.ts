@@ -8033,47 +8033,57 @@ export class Runtime {
       savedIndex.value = state.variables.OPTIND;
       savedIndex.getopts = cloneGetoptsBinding(state);
     }
-    try {
-      if (argument !== undefined) await this.assignVariable(state, "OPTARG", argument, context, "getopts");
-      else if (result.kind === "option") {
-        const target = this.referenceName(state, "OPTARG");
-        if (state.readonlyVariables?.has(target)) throw new PublicDiagnostic(`${target}: readonly variable`);
-        // A successful flag clears the value but retains its variable attributes.
-        // Integer bindings convert the absent argument to zero.
-        if (state.variableAttributes?.get(target)?.includes("i")) await this.writeVariable(state, target, "", context, "getopts", false);
-        else delete state.variables[target];
-      } else {
-        // EOF and verbose option errors remove OPTARG itself, even readonly or nameref bindings.
-        state.readonlyVariables?.delete("OPTARG");
-        this.unsetVariable(state, "OPTARG", true, false);
-      }
-    } catch (error) {
-      if (!(error instanceof PublicDiagnostic)) throw error;
-      await this.diagnostic(context, error.message);
-    }
-    const savedArgument = assignments.get("OPTARG");
-    if (savedArgument) {
-      // Preserve both assigned arguments and unsets when the prefix is restored.
-      const current = saveVariable(state, "OPTARG");
-      savedArgument.heldValue?.release();
-      delete savedArgument.heldValue;
-      savedArgument.value = current.value;
-      if (current.heldValue) savedArgument.heldValue = current.heldValue;
-    }
-    if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new PublicDiagnostic(`getopts: \`${name}': not a valid identifier`);
-    try { await this.assignVariable(state, name, result.option, context, "getopts"); }
-    catch (error) {
+    const publishArgument = async (): Promise<void> => {
       this.signal.throwIfAborted();
-      if (error instanceof ExpansionFailure) throw new ExecutionFailure(error, context, `getopts: ${error.message}`);
-      if (error instanceof PublicDiagnostic && result.status === 0) throw new CommandFailure(error.message, 2);
-      throw error;
-    }
-    const savedResult = assignments.get(name);
-    if (savedResult) {
-      savedResult.heldValue?.release();
-      delete savedResult.heldValue;
-      savedResult.value = state.variables[name];
-      if (name === "OPTIND") savedResult.getopts = cloneGetoptsBinding(state);
+      try {
+        if (argument !== undefined) await this.assignVariable(state, "OPTARG", argument, context, "getopts");
+        else if (result.kind === "option") {
+          const target = this.referenceName(state, "OPTARG");
+          if (state.readonlyVariables?.has(target)) throw new PublicDiagnostic(`${target}: readonly variable`);
+          // A successful flag clears the value but retains its variable attributes.
+          // Integer bindings convert the absent argument to zero.
+          if (state.variableAttributes?.get(target)?.includes("i")) await this.writeVariable(state, target, "", context, "getopts", false);
+          else delete state.variables[target];
+        } else {
+          // EOF and verbose option errors remove OPTARG itself, even readonly or nameref bindings.
+          state.readonlyVariables?.delete("OPTARG");
+          this.unsetVariable(state, "OPTARG", true, false);
+        }
+      } catch (error) {
+        if (!(error instanceof PublicDiagnostic)) throw error;
+        await this.diagnostic(context, error.message);
+      }
+      const savedArgument = assignments.get("OPTARG");
+      if (savedArgument) {
+        // Preserve both assigned arguments and unsets when the prefix is restored.
+        const current = saveVariable(state, "OPTARG");
+        savedArgument.heldValue?.release();
+        delete savedArgument.heldValue;
+        savedArgument.value = current.value;
+        if (current.heldValue) savedArgument.heldValue = current.heldValue;
+      }
+    };
+    // Bash writes the destination before OPTARG only for option errors.
+    const optionError = result.kind === "unknown-option" || result.kind === "missing-argument";
+    if (!optionError) await publishArgument();
+    try {
+      if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new PublicDiagnostic(`getopts: \`${name}': not a valid identifier`);
+      try { await this.assignVariable(state, name, result.option, context, "getopts"); }
+      catch (error) {
+        this.signal.throwIfAborted();
+        if (error instanceof ExpansionFailure) throw new ExecutionFailure(error, context, `getopts: ${error.message}`);
+        if (error instanceof PublicDiagnostic && result.status === 0) throw new CommandFailure(error.message, 2);
+        throw error;
+      }
+      const savedResult = assignments.get(name);
+      if (savedResult) {
+        savedResult.heldValue?.release();
+        delete savedResult.heldValue;
+        savedResult.value = state.variables[name];
+        if (name === "OPTIND") savedResult.getopts = cloneGetoptsBinding(state);
+      }
+    } finally {
+      if (optionError) await publishArgument();
     }
     return result.status;
   }

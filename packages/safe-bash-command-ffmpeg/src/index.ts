@@ -5133,6 +5133,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsSegmentFilename: string | undefined;
         let hlsFmp4InitFilename = "init.mp4";
         let hlsSingleFile = false;
+        let hlsTempFile = false;
         let hlsSegmentSize = 0;
         let hlsSecondLevelSegmentIndex = false;
         let hlsSegmentType: string | undefined;
@@ -5576,6 +5577,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (!value.startsWith("+") && !value.startsWith("-")) {
               hlsDeleteSegments = false;
               hlsSingleFile = false;
+              hlsTempFile = false;
               hlsSecondLevelSegmentIndex = false;
               hlsOmitEndlist = false;
               hlsDiscontStart = false;
@@ -5591,6 +5593,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const enabled = !flag.startsWith("-");
               const name = enabled ? flag : flag.slice(1);
               if (name === "single_file") hlsSingleFile = enabled;
+              else if (name === "temp_file") hlsTempFile = enabled;
               else if (name === "second_level_segment_index") hlsSecondLevelSegmentIndex = enabled;
               else if (name === "delete_segments") hlsDeleteSegments = enabled;
               else if (name === "iframes_only") hlsIframesOnly = enabled;
@@ -10289,7 +10292,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 } else {
                   budget.checkOutputBytes(segBytes.byteLength);
                   await context.fs.mkdir(fullSegPath.slice(0, fullSegPath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
-                  await writeFileOutput(context, segBytes, data => context.fs.writeFile(fullSegPath, data, { signal: context.signal }));
+                  const destination = hlsTempFile ? `${fullSegPath}.tmp` : fullSegPath;
+                  await writeFileOutput(context, segBytes, data => context.fs.writeFile(destination, data, { signal: context.signal }));
+                  if (destination !== fullSegPath) await context.fs.rename(destination, fullSegPath, { signal: context.signal });
                 }
                 if (sIdx >= firstSegment) {
                   if ((hlsDiscontStart || hlsAppendList) && sIdx === 0) playlistLines.push("#EXT-X-DISCONTINUITY");
@@ -10311,7 +10316,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   const bytes = concatBytes(singleFileChunks);
                   await context.fs.mkdir(singleFilePath.slice(0, singleFilePath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
-                  await writeFileOutput(context, bytes, data => context.fs.writeFile(singleFilePath, data, { signal: context.signal }));
+                  const destination = hlsTempFile && !hlsSingleFile ? `${singleFilePath}.tmp` : singleFilePath;
+                  await writeFileOutput(context, bytes, data => context.fs.writeFile(destination, data, { signal: context.signal }));
+                  if (destination !== singleFilePath) await context.fs.rename(destination, singleFilePath, { signal: context.signal });
                   singleFileChunks.length = 0;
                   singleFileSize = 0;
                   mediaFileNumber++;
@@ -10343,7 +10350,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               playlistLines.push("");
               const m3u8Bytes = encodeUtf8(playlistLines.join("\n"));
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
-              await writeFileOutput(context, m3u8Bytes, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
+              const destination = hlsTempFile ? `${outResolved}.tmp` : outResolved;
+              await writeFileOutput(context, m3u8Bytes, data => context.fs.writeFile(destination, data, { signal: context.signal }));
+              if (destination !== outResolved) await context.fs.rename(destination, outResolved, { signal: context.signal });
               if (hlsMasterName) {
                 const masterPath = resolvePath(outDir, hlsMasterName);
                 const masterDir = masterPath.slice(0, masterPath.lastIndexOf("/")) || "/";
@@ -10363,7 +10372,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (codecs.length) attributes.push(`CODECS="${codecs.join(",")}"`);
                 const master = encodeUtf8(["#EXTM3U", playlistLines[1], `#EXT-X-STREAM-INF:${attributes.join(",")}`, mediaUri, ""].join("\n"));
                 await context.fs.mkdir(masterDir, { recursive: true, signal: context.signal });
-                await writeFileOutput(context, master, data => context.fs.writeFile(masterPath, data, { signal: context.signal }));
+                const destination = hlsTempFile ? `${masterPath}.tmp` : masterPath;
+                await writeFileOutput(context, master, data => context.fs.writeFile(destination, data, { signal: context.signal }));
+                if (destination !== masterPath) await context.fs.rename(destination, masterPath, { signal: context.signal });
               }
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };

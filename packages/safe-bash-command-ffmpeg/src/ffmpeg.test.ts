@@ -4364,6 +4364,56 @@ describe("HLS unrecognized flags", () => {
   }
 });
 
+describe("HLS temp_file", () => {
+  for (const type of ["mpegts", "fmp4"]) {
+    for (const [flags, temporary] of [
+      [["temp_file"], true], [["+temp_file"], true],
+      [["temp_file", "-temp_file"], false],
+      [["temp_file", "round_durations"], false],
+      [["temp_file", "+round_durations"], true],
+      [["single_file+temp_file"], true]
+    ] as const) {
+      it(`publishes ${type} files with flags ${flags.join(",")}`, async () => {
+        const input = createSyntheticMp4({ width: 32, height: 32, fps: 1, frameCount: 3, includeAudio: false });
+        const vfs = createTestVfs({ "/in.mp4": input });
+        const operations: string[] = [];
+        const write = vfs.fs.writeFile;
+        const fs = {
+          ...vfs.fs,
+          async writeFile(path: string, bytes: Uint8Array) {
+            operations.push(`write ${path}`);
+            await write(path, bytes);
+          },
+          async rename(from: string, to: string) {
+            operations.push(`rename ${from} ${to}`);
+            assert.ok(vfs.store.has(from));
+            vfs.store.set(to, vfs.store.get(from)!);
+            vfs.store.delete(from);
+          }
+        };
+        const args = ["-i", "/in.mp4", "-c", "copy", "-hls_time", "1", "-hls_segment_type", type,
+          "-master_pl_name", "master.m3u8", "/out/main.m3u8"];
+        const result = await runCmd(createFfmpegCommand(), [
+          ...flags.flatMap(flag => ["-hls_flags", flag]), ...args
+        ], { ...vfs, fs });
+        assert.equal(result.exitCode, 0, result.stderr);
+        const ordinary = createTestVfs({ "/in.mp4": input });
+        const baseline = await runCmd(createFfmpegCommand(), [
+          ...flags.flatMap(flag => flag.includes("round_durations") ? ["-hls_flags", "round_durations"]
+            : flag.includes("single_file") ? ["-hls_flags", "single_file"] : []), ...args
+        ], ordinary);
+        assert.equal(baseline.exitCode, 0, baseline.stderr);
+        assert.deepEqual(vfs.store, ordinary.store);
+        const expected = [...ordinary.store.keys()].filter(path => path !== "/in.mp4").flatMap(path =>
+          temporary && path !== "/out/init.mp4" &&
+          !(flags.some(flag => flag.includes("single_file")) && !path.endsWith(".m3u8"))
+            ? [`write ${path}.tmp`, `rename ${path}.tmp ${path}`] : [`write ${path}`]);
+        assert.deepEqual(operations, expected);
+      });
+    }
+  }
+});
+
 describe("HLS omit_endlist", () => {
   for (const [flags, omit] of [
     [[], false],

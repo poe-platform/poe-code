@@ -497,7 +497,8 @@ feed the delay history, so re-enabling retains their delayed contributions.
 Downstream `ashowinfo` reports packed float (`flt`) frames before output encoding.
 `haas` applies the default stereo enhancer: the channel average plus a 2.05 ms
 delayed tap on the right and minus a 2.12 ms delayed tap on the left. It preserves
-the sample rate and frame count. Custom Haas options are not supported.
+the sample rate and frame count. Mono input is first mixed to stereo with
+1/√2 gain per channel. Custom Haas options are not supported.
 `[0:a][1:a][2:a]headphone=map=FL|FR:type=time[h]` renders a stereo source
 through separate stereo impulse responses for its left and right channels.
 Both `type=time` and `type=freq` use bounded direct convolution, preserve the source

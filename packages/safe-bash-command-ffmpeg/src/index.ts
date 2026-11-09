@@ -10811,6 +10811,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredSampleFormat = "s16";
                         panPcm16 = true;
                       } else if (trimmed === "haas") {
+                        if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
+                          const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
+                            stretched, filteredChannelMask, false, budget, context.signal);
+                          stretched = stereo.channels;
+                          filteredChannelMask = stereo.channelMask;
+                        }
                         if (stretched.length !== 2) throw new Error("haas: stereo input required");
                         const leftDelay = Math.floor(2.05 * 0.001 * origRate);
                         const rightDelay = Math.floor(2.12 * 0.001 * origRate);

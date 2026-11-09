@@ -313,6 +313,10 @@ rates and channel counts are rejected.
 Swap stereo PCM channels with `-af 'channelmap=map=1|0:channel_layout=stereo'`.
 With only `channel_layout=stereo`, `channelmap` preserves the input channels;
 with only `channel_layout=mono`, it selects the first input channel without downmixing.
+Output layouts accept `mono`, `stereo`, `quad`, `5.1`, the count aliases `1c`,
+`2c`, `6c`, speaker lists such as `FL+FR`, and decimal or hexadecimal speaker masks
+such as `0x3`. Explicit layouts must match the map length and preserve the output
+speaker metadata, including `1:FR` and `0|1|1|0:quad`.
 Omitted layouts use native defaults for one through eight channels, including
 2.1 for three channels and 4.0 (not quad) for four channels. Explicit input-output pairs such
 as `0-1|1-0` or `FL-FR|FR-FL` route channels by destination, regardless of pair

@@ -8939,8 +8939,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const inputNames = filteredChannelMask
                           ? speakers.filter((_, index) => (filteredChannelMask! & (1 << index)) !== 0)
                           : stretched.length === 1 ? ["FC"] : stretched.length === 2 ? ["FL", "FR"] : [];
-                        let outputNames = layout === "mono" ? ["FC"] : layout === "stereo" ? ["FL", "FR"] : undefined;
-                        if (layout && !outputNames) throw new Error("channelmap: unsupported channel layout");
+                        let outputNames: string[] | undefined;
+                        if (layout) {
+                          const digits = layout.startsWith("0x") ? layout.slice(2) : layout;
+                          const alphabet = layout.startsWith("0x") ? "0123456789abcdefABCDEF" : "0123456789";
+                          if (digits.length && [...digits].every(digit => alphabet.includes(digit))) {
+                            const mask = Number(layout);
+                            if (!Number.isSafeInteger(mask) || mask <= 0 || mask >= 1 << speakers.length) {
+                              throw new Error("channelmap: unsupported channel layout");
+                            }
+                            outputNames = speakers.filter((_, index) => (mask & (1 << index)) !== 0);
+                          } else {
+                            outputNames = layout === "quad" ? ["FL", "FR", "BL", "BR"] : parseSplitChannelLayout(layout);
+                            if (outputNames.some(name => !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length) {
+                              throw new Error("channelmap: unsupported channel layout");
+                            }
+                            outputNames = speakers.filter(name => outputNames!.includes(name));
+                          }
+                        }
                         const entries = map === undefined && outputNames
                           ? outputNames.map((_, index) => [String(index)])
                           : (map ?? "").split("|").map(value => value.split("-"));

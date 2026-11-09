@@ -55,16 +55,13 @@ async function* lzw(reader:SourceBytes,start:number,length:number,expected:numbe
   if(previous>=0&&next<4096){prefix[next]=previous;suffix[next]=first;next++;if(next===511||next===1023||next===2047)width++;}
   previous=current;
  }
- // Existing TIFF semantics pad incomplete streams to the expected strip length.
- while(written++<expected)yield 0;
 }
 async function* packBits(reader:SourceBytes,start:number,length:number,expected:number) {
  let at=start,written=0;
  while(at<start+length&&written<expected){const n=await reader.at(at++)??0;
   if(n<128){for(let i=0;i<=n&&at<start+length&&written<expected;i++){yield await reader.at(at++)??0;written++;}}
-  else if(n!==128){const value=at<start+length?await reader.at(at++)??0:0;for(let i=0;i<257-n&&written<expected;i++){yield value;written++;}}
+  else if(n!==128){if(at>=start+length)break;const value=await reader.at(at++)??0;for(let i=0;i<257-n&&written<expected;i++){yield value;written++;}}
  }
- while(written++<expected)yield 0;
 }
 
 /** Classic TIFF and BigTIFF strips/tiles and tags stay in the caller's source and scratch storage. */
@@ -129,8 +126,8 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  for(let at=0;at<total;at+=4096){await write(combined+at,zeros.subarray(0,Math.min(4096,total-at)));if(at%65536===0)await defaultRuntime.yieldTurn(signal);}
  const jpegStorage=new BackingArena(storage);
  const decompress=async(off:number,rawLength:number,expected:number,max:number,rowSamples:number)=>{
-  // Uint8Array.subarray clamps source offsets in the compatibility decoder.
-  const start=Math.min(source.size,Math.max(0,Math.trunc(off))),end=Math.max(start,Math.min(source.size,Math.trunc(off+rawLength))),position=scratch;
+  if(!Number.isSafeInteger(off)||off<0||!Number.isSafeInteger(rawLength)||rawLength<0||off>source.size-rawLength)throw new Error("Truncated TIFF strip or tile range");
+  const start=off,end=off+rawLength,position=scratch;
   let length=0;
   const append=async(bytes:Uint8Array)=>{const size=Math.min(bytes.length,max-length);if(size>0){await write(position+length,bytes.subarray(0,size));length+=size;}};
   if(compression===3||compression===4){
@@ -162,6 +159,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   }
   if(compression===1&&bits===1){
    const packedStride=Math.ceil(rowSamples/8);
+   if(rawLength<packedStride*(expected/rowSamples))throw new Error("Truncated TIFF strip or tile pixels");
    for(let at=0;at<expected;at+=4096){
     const bytes=new Uint8Array(Math.min(4096,expected-at));
     for(let i=0;i<bytes.length;i++){
@@ -203,14 +201,14 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
     signal.throwIfAborted();buffer[used++]=value;if(used===4096){await append(buffer);used=0;if(++work%16===0)await defaultRuntime.yieldTurn(signal);}
    }if(used)await append(buffer.subarray(0,used));return {position,length};
   }
-  if(compression===8||compression===32946){const codec=createByteCodec({direction:"decode",format:"zlib-or-gzip",chunkSize:4096});let invalid=false;
+  if(compression===8||compression===32946){const codec=createByteCodec({direction:"decode",format:"zlib-or-gzip",chunkSize:4096});
    try {
     for(let at=start;at<end&&!codec.complete;at+=4096){const input=new Uint8Array(Math.min(4096,end-at));for(let i=0;i<input.length;i++)input[i]=await reader.at(at+i)??0;
-     const iterator=codec.push(input);while(true){let next:IteratorResult<Uint8Array>;try{next=iterator.next();}catch{invalid=true;break;}if(next.done)break;await append(next.value);await defaultRuntime.yieldTurn(signal);}if(invalid)break;
+     for(const bytes of codec.push(input)){await append(bytes);await defaultRuntime.yieldTurn(signal);}
     }
-    if(!invalid&&!codec.complete){const iterator=codec.push(new Uint8Array(),true);while(true){let next:IteratorResult<Uint8Array>;try{next=iterator.next();}catch{invalid=true;break;}if(next.done)break;await append(next.value);await defaultRuntime.yieldTurn(signal);}}
+    if(!codec.complete)for(const bytes of codec.push(new Uint8Array(),true)){await append(bytes);await defaultRuntime.yieldTurn(signal);}
    }finally{codec.close();}
-   if(!invalid)return {position,length};length=0;
+   return {position,length};
   }
   for(let at=start;at<end&&length<max;at+=4096){const bytes=new Uint8Array(Math.min(4096,end-at,max-length));for(let i=0;i<bytes.length;i++)bytes[i]=await reader.at(at+i)??0;await append(bytes);}
   return {position,length};
@@ -241,8 +239,10 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
    }
    const remaining=planar?planeBytes-destination%planeBytes:total-destination;
    const off=(await offsets.at(i))!,raw=await counts.at(i)??Math.max(0,source.size-off),expected=Math.min(remaining,stripRows*stride),strip=await decompress(off,raw,expected,remaining,stride);
+   if(strip.length<expected)throw new Error("Truncated TIFF strip pixels");
    await copy(strip.position,combined+destination,strip.length);destination+=strip.length;
   }
+  if(destination<total)throw new Error("Truncated TIFF strips");
   await predict(combined,total,height*(planar?samples:1),stride);
  }
  const palette=photometric===3,paletteSize=2**bits;

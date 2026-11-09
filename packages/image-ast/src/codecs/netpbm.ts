@@ -472,13 +472,14 @@ function decodePackBits(src: Uint8Array, expectedLen: number): Uint8Array {
       }
     } else if (n !== -128) {
       const count = 1 - n;
-      const val = src[sp++] ?? 0;
+      if (sp >= src.length) break;
+      const val = src[sp++]!;
       for (let i = 0; i < count && dp < expectedLen; i++) {
         out[dp++] = val;
       }
     }
   }
-  return out;
+  return out.subarray(0, dp);
 }
 
 function decodeTiffLzw(src: Uint8Array, expectedLen: number): Uint8Array {
@@ -546,7 +547,7 @@ function decodeTiffLzw(src: Uint8Array, expectedLen: number): Uint8Array {
     }
     prevEntry = entry;
   }
-  return out;
+  return out.subarray(0, dp);
 }
 
 export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
@@ -637,7 +638,8 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
   const combined = new Uint8Array(totalExpectedBytes);
 
   const decompressChunk = (off: number, rawLen: number, expectedBytes: number, rowSamples: number): Uint8Array => {
-    const rawSlice = bytes.subarray(off, Math.min(bytes.length, off + rawLen));
+    if (!Number.isSafeInteger(off) || off < 0 || !Number.isSafeInteger(rawLen) || rawLen < 0 || off > bytes.length - rawLen) throw new Error("Truncated TIFF strip or tile range");
+    const rawSlice = bytes.subarray(off, off + rawLen);
     if (compression === 3 || compression === 4) {
       if (bitsPerSample !== 1 || samplesPerPixel !== 1 || (faxOptions & 2)) throw new Error("Unsupported TIFF CCITT options");
       const input = fillOrder === 2 ? rawSlice.map(byte => {
@@ -655,6 +657,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
     }
     if (compression === 1 && bitsPerSample === 1) {
       const unpacked = new Uint8Array(expectedBytes), packedStride = Math.ceil(rowSamples / 8);
+      if (rawLen < packedStride * (expectedBytes / rowSamples)) throw new Error("Truncated TIFF strip or tile pixels");
       for (let i = 0; i < unpacked.length; i++) {
         const x = i % rowSamples, byte = rawSlice[Math.floor(i / rowSamples) * packedStride + (x >>> 3)] ?? 0;
         unpacked[i] = ((byte >>> (fillOrder === 2 ? x % 8 : 7 - x % 8)) & 1) * 255;
@@ -690,11 +693,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
       return outChunk;
     }
     if (compression === 8 || compression === 32946) {
-      try {
-        return transformBytes(rawSlice, { direction: "decode", format: "zlib-or-gzip" });
-      } catch {
-        return rawSlice;
-      }
+      return transformBytes(rawSlice, { direction: "decode", format: "zlib-or-gzip" });
     }
     if (compression === 5) return decodeTiffLzw(rawSlice, expectedBytes);
     if (compression === 32773) return decodePackBits(rawSlice, expectedBytes);
@@ -775,11 +774,13 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
       const expectedStripBytes = Math.min(remainingBytes, effectiveRowsPerStrip * rowByteWidth);
       const rawLen = stripByteCounts[s] ?? Math.max(0, bytes.length - off);
       const decodedStrip = decompressChunk(off, rawLen, expectedStripBytes, rowByteWidth);
+      if (decodedStrip.length < expectedStripBytes) throw new Error("Truncated TIFF strip pixels");
       const copyLen = Math.min(decodedStrip.length, remainingBytes);
       combined.set(decodedStrip.subarray(0, copyLen), dstOff);
       dstOff += copyLen;
     }
 
+    if (dstOff < totalExpectedBytes) throw new Error("Truncated TIFF strips");
     if (predictor === 2) {
       applyHorizontalPredictor(combined, height * (planar ? samplesPerPixel : 1), rowByteWidth);
     }

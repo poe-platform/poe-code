@@ -18,18 +18,32 @@ test("paste help works through the standalone portable factory", async () => {
  assert.ok(output.length > 0);
 });
 
-async function run(args: string[], files: Record<string, string>) {
+async function run(args: string[], files: Record<string, string>, env: Record<string, string> = {}, stdin = "") {
  const fs = createMemoryFileSystem();
  for (const [path, content] of Object.entries(files)) await fs.writeFile(path, new TextEncoder().encode(content));
  const values = createCommandArguments(args);
  let stdout = "", stderr = "", combined = "";
  const result = await createPasteCommand().execute({
-  command: "paste", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
-  stdin: toByteSource(""), signal: new AbortController().signal,
+  command: "paste", args: values.args, argumentValues: values, cwd: "/", env, fs,
+  stdin: toByteSource(stdin), signal: new AbortController().signal,
   stdout: { async write(bytes) { const text = new TextDecoder().decode(bytes); stdout += text; combined += text; } },
   stderr: { async write(bytes) { const text = new TextDecoder().decode(bytes); stderr += text; combined += text; } },
  });
  return { ...result, stdout, stderr, combined };
+}
+
+for (const env of [{}, { POSIXLY_CORRECT: "1" }, { POSIXLY_CORRECT: "" }] as Record<string, string>[]) {
+ for (const args of [["rows", "-s"], ["--", "rows", "-s"], ["-d", ":", "rows", "-s"], ["-", "-s"]]) {
+  test(`paste operand ordering for ${JSON.stringify(args)} with ${JSON.stringify(env)}`, async () => {
+   const result = await run(args, { "/rows": "A\nB\n", "/-s": "x\ny\n" }, env, "A\nB\n");
+   const literal = env.POSIXLY_CORRECT !== undefined || args[0] === "--";
+   const delimiter = args[0] === "-d" ? ":" : "\t";
+   const expected = literal ? `A${delimiter}x\nB${delimiter}y\n` : `A${delimiter}B\n`;
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stderr, "");
+   assert.equal(result.stdout, expected);
+  });
+ }
 }
 
 test("serial paste flushes the record terminator before a missing-file diagnostic", async () => {

@@ -11,4 +11,6 @@ shell.use(pasteCommands());
 const result = await shell.exec("paste --help");
 ```
 
+With `POSIXLY_CORRECT` set, options must precede the first filename or `-` operand. `--` explicitly ends option parsing in either mode.
+
 The module also exports `createPasteCommand`, its command-list factory, and typed options and limits.

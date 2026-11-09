@@ -18115,7 +18115,7 @@ const syncExtraRuntimeMethods = {
         } else if (sName === "nl") {
           if (this.evalSyncNl([], sArgs, (i === 0 && cmd0FileStage) ? rawState.cwd : undefined) === undefined) return undefined;
         } else if (sName === "paste") {
-          if (this.evalSyncPaste([], sArgs, (i === 0 && cmd0FileStage) ? rawState.cwd : undefined, true) === undefined) return undefined;
+          if (this.evalSyncPaste([], sArgs, (i === 0 && cmd0FileStage) ? rawState.cwd : undefined, true, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined) === undefined) return undefined;
         } else if (sName === "numfmt") {
           if (this.evalSyncNumfmt([], sArgs) === undefined) return undefined;
         } else if (sName === "column") {
@@ -18129,7 +18129,7 @@ const syncExtraRuntimeMethods = {
         } else if (sName === "strings") {
           if ((i === 0 && cmd0FileStage) ? this.evalSyncMultiFileText("strings", sArgs, rawState.cwd, false) === undefined : this.evalSyncStrings([], sArgs) === undefined) return undefined;
         } else if (sName === "comm") {
-          if (this.evalSyncComm([], sArgs, rawState.cwd, true) === undefined) return undefined;
+          if (this.evalSyncComm([], sArgs, rawState.cwd, true, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined) === undefined) return undefined;
         } else if (sName === "join") {
           if (this.evalSyncJoin([], sArgs, rawState.cwd) === undefined) return undefined;
         } else if (sName === "bc") {
@@ -18597,7 +18597,7 @@ const syncExtraRuntimeMethods = {
               if (nlRes === undefined) return undefined;
               outLines = nlRes;
             } else if (isInlinePaste) {
-              const pasteRes = this.evalSyncPaste((sIdx === 0 && cmd0FileStage) ? undefined : rawLines, stageArgs, rawState.cwd, true);
+              const pasteRes = this.evalSyncPaste((sIdx === 0 && cmd0FileStage) ? undefined : rawLines, stageArgs, rawState.cwd, true, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined);
               if (pasteRes === undefined) return undefined;
               outLines = pasteRes;
             } else if (isInlineNumfmt) {
@@ -18626,7 +18626,7 @@ const syncExtraRuntimeMethods = {
               outLines = strRes;
             } else if (isInlineComm) {
               if (sIdx === 0 && cmd0FileStage && stageArgs.includes("-")) return undefined;
-              const commRes = this.evalSyncComm(rawLines, stageArgs, rawState.cwd, true);
+              const commRes = this.evalSyncComm(rawLines, stageArgs, rawState.cwd, true, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined);
               if (commRes === undefined) return undefined;
               outLines = commRes;
             } else if (isInlineJoin) {
@@ -19484,9 +19484,9 @@ const syncExtraRuntimeMethods = {
           ? (hereStrVal!.endsWith("\n") ? hereStrVal!.slice(0, -1).split("\n") : (hereStrVal!.length === 0 ? [] : hereStrVal!.split("\n")))
           : undefined;
         let cjLines: string[] | undefined;
-        if (w0Plain === "comm") cjLines = this.evalSyncComm(stdinLines, allArgs, rawState.cwd);
+        if (w0Plain === "comm") cjLines = this.evalSyncComm(stdinLines, allArgs, rawState.cwd, false, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined);
         else if (w0Plain === "join") cjLines = this.evalSyncJoin(stdinLines, allArgs, rawState.cwd);
-        else if (w0Plain === "paste") cjLines = this.evalSyncPaste(stdinLines, allArgs, rawState.cwd);
+        else if (w0Plain === "paste") cjLines = this.evalSyncPaste(stdinLines, allArgs, rawState.cwd, false, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined);
         else if (w0Plain === "factor") cjLines = this.evalSyncFactor(stdinLines, allArgs);
         else if (w0Plain === "tsort") cjLines = this.evalSyncTsort(stdinLines, allArgs, rawState.cwd);
         else if (w0Plain === "jq") cjLines = this.evalSyncJq(undefined, allArgs, rawState.cwd);
@@ -19655,10 +19655,10 @@ const syncExtraRuntimeMethods = {
               const nlRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncNl(rawLines, opArgs, rawState.cwd) : this.evalSyncNl(undefined, allArgs, rawState.cwd);
               if (nlRes !== undefined) fileRes = renderLines(nlRes);
             } else if (w0Plain === "paste") {
-              const pasteRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncPaste(rawLines, opArgs, rawState.cwd) : this.evalSyncPaste(undefined, allArgs, rawState.cwd);
+              const pasteRes = this.evalSyncPaste((hasSingleHereStringRedir || hasSingleStdinRedir) ? rawLines : undefined, (hasSingleHereStringRedir || hasSingleStdinRedir) ? opArgs : allArgs, rawState.cwd, false, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined);
               if (pasteRes !== undefined) fileRes = renderLines(pasteRes);
             } else if (w0Plain === "comm") {
-              const commRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncComm(rawLines, opArgs, rawState.cwd) : this.evalSyncComm(undefined, allArgs, rawState.cwd);
+              const commRes = this.evalSyncComm((hasSingleHereStringRedir || hasSingleStdinRedir) ? rawLines : undefined, (hasSingleHereStringRedir || hasSingleStdinRedir) ? opArgs : allArgs, rawState.cwd, false, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined);
               if (commRes !== undefined) fileRes = renderLines(commRes);
             } else if (w0Plain === "join") {
               const joinRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncJoin(rawLines, opArgs, rawState.cwd) : this.evalSyncJoin(undefined, allArgs, rawState.cwd);
@@ -23494,7 +23494,7 @@ const syncExtraRuntimeMethods = {
     return out;
   }
 ,
-  evalSyncPaste(this: any, rawLines: readonly string[] | undefined, opArgs: readonly string[], cwd?: string, allowZero = false): string[] | undefined {
+  evalSyncPaste(this: any, rawLines: readonly string[] | undefined, opArgs: readonly string[], cwd?: string, allowZero = false, posixlyCorrect = false): string[] | undefined {
     let serial = false;
     let zeroTerm = false;
     let delims: string[] = ["\t"];
@@ -23521,7 +23521,7 @@ const syncExtraRuntimeMethods = {
     };
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (literal || a === "-" || !a.startsWith("-")) { files.push(a); continue; }
+      if (literal || a === "-" || !a.startsWith("-")) { files.push(a); literal ||= posixlyCorrect; continue; }
       if (a === "--") { literal = true; continue; }
       if (a === "--serial") { serial = true; continue; }
       if (a === "--zero-terminated") { if (!allowZero) return undefined; zeroTerm = true; continue; }
@@ -23629,7 +23629,7 @@ const syncExtraRuntimeMethods = {
     return str.length === 0 ? [] : str.slice(0, -1).split(sep);
   }
 ,
-  evalSyncComm(this: any, stdinLines: readonly string[] | undefined, opArgs: readonly string[], cwd: string, allowZero = false): string[] | undefined {
+  evalSyncComm(this: any, stdinLines: readonly string[] | undefined, opArgs: readonly string[], cwd: string, allowZero = false, posixlyCorrect = false): string[] | undefined {
     let sup1 = false, sup2 = false, sup3 = false;
     let zeroTerm = false;
     let outDelim = "\t";
@@ -23642,6 +23642,7 @@ const syncExtraRuntimeMethods = {
       const a = opArgs[i]!;
       if (literal || a === "-" || !a.startsWith("-")) {
         files.push(a);
+        literal ||= posixlyCorrect;
         continue;
       }
       if (a === "--") { literal = true; continue; }

@@ -29,7 +29,11 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
     let serial = false, separator = 10, list = [Uint8Array.of(9)] as readonly Uint8Array[], literal = false;
     for (let index = 0; index < context.args.length; index++) {
       const token = context.args[index]!;
-      if (literal || token === "-" || !token.startsWith("-")) { files.push(token); continue; }
+      if (literal || token === "-" || !token.startsWith("-")) {
+        files.push(token);
+        literal ||= context.env.POSIXLY_CORRECT !== undefined;
+        continue;
+      }
       if (token === "--") { literal = true; continue; }
       if (token.startsWith("--")) {
         if ("--serial".startsWith(token)) { serial = true; continue; }

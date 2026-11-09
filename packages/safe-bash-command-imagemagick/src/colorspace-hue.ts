@@ -69,7 +69,8 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HSL" 
             // ImageMagick HWB uses -1 for achromatic hue, 1 for red, and an HDRI epsilon for zero blackness.
             r = hwb ? !delta ? -1 : hue === 0 ? 1 : hue / 6 : hue / 6; g = hwb ? min : delta ? delta / (hsb ? max : 1 - Math.abs(2 * lightness - 1)) : 0; b = hwb ? Math.max(2 ** -64, 1 - max) : hsb ? max : lightness;
         } else {
-            const hue = (r < 0 || r === 1 ? 0 : r) * 6, chroma = hwb ? Math.max(0, 1 - g - b) : (hsb ? b : 1 - Math.abs(2 * b - 1)) * g, x = chroma * (1 - Math.abs(hue % 2 - 1)), m = hwb ? g : b - chroma / (hsb ? 1 : 2);
+            // Edited HWB channels can sum above one; native preserves the negative chroma.
+            const hue = (r < 0 || r === 1 ? 0 : r) * 6, chroma = hwb ? 1 - g - b : (hsb ? b : 1 - Math.abs(2 * b - 1)) * g, x = chroma * (1 - Math.abs(hue % 2 - 1)), m = hwb ? g : b - chroma / (hsb ? 1 : 2);
             [r, g, b] = hue < 1 ? [chroma, x, 0] : hue < 2 ? [x, chroma, 0] : hue < 3 ? [0, chroma, x] : hue < 4 ? [0, x, chroma] : hue < 5 ? [x, 0, chroma] : [chroma, 0, x];
             r += m; g += m; b += m;
         }

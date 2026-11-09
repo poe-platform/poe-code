@@ -1,0 +1,25 @@
+{
+  "input": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4nAHIADf/ACdFVjpQX01baGBmcXNxeoZ8g5mHjKySlQAuVlpBYWNUbGxnd3V6gn6NjYegmJCzo5kANWdeSHJnW31wboh5gZOClJ6Lp6mUurSdADx4Yk+Da2KOdHWZfYikhpuvj666mMHFoQBDiWZWlG9pn3h8qoGPtYqiwJO1y5zI1qUASppqXaVzcLB8g7uFlsaOqdGXvNygz+epAFGrbmS2d3fBgIrMiZ3XkrDim8PtpNb4rQBYvHJrx3t+0oSR3Y2k6Ja385/K/qjdCbGow2ohVBMCVAAAAABJRU5ErkJggg==",
+  "cases": [
+    {"args": ["-colorspace", "sRGB", "-ordered-dither", "o4x4,2", "+channel", "-colorspace", "sRGB"], "first": [255, 255, 255, 255], "hash": "1c049ef23a2f303a90cc7abfea4284bb49343934c0aaa50da21c235290a85afb"},
+    {"args": ["-colorspace", "sRGB", "-channel", "R", "-ordered-dither", "o4x4,2", "+channel", "-colorspace", "sRGB"], "first": [255, 69, 86, 255], "hash": "bd037f359570c0a1524d8fc11101a812d616a3a524f93fa0d9b524f292e358e9"},
+    {"args": ["-colorspace", "sRGB", "-ordered-dither", "o4x4,1", "+channel", "-colorspace", "sRGB"], "first": [39, 69, 86, 255], "hash": "7310fc4eba47f0710139218c85bb927fcde9b004731f0abc6630fe3c568da716"},
+    {"args": ["-colorspace", "sRGB", "-ordered-dither", "o4x4,3", "+channel", "-colorspace", "sRGB"], "first": [128, 128, 128, 255], "hash": "f35b58d5673d9f7dc2604c22ca83e66f84f73a107ff12eccf9b84cd0afe0d898"},
+    {"args": ["-colorspace", "HSL", "-ordered-dither", "o4x4,2", "+channel", "-colorspace", "sRGB"], "first": [255, 255, 255, 255], "hash": "5824eac0c6f77c9537e7895952df2c172bff7cb7da6a19397123bfa14307e7c2"},
+    {"args": ["-colorspace", "HSL", "-channel", "R", "-ordered-dither", "o4x4,2", "+channel", "-colorspace", "sRGB"], "first": [86, 39, 39, 255], "hash": "6e140bdfd011fd7c0c056892aeeb4b4fbf4786193801c7b9a74a05b3f6aafdb3"},
+    {"args": ["-colorspace", "HSL", "-ordered-dither", "o4x4,1", "+channel", "-colorspace", "sRGB"], "first": [39, 69, 86, 255], "hash": "7310fc4eba47f0710139218c85bb927fcde9b004731f0abc6630fe3c568da716"},
+    {"args": ["-colorspace", "HSL", "-ordered-dither", "o4x4,3", "+channel", "-colorspace", "sRGB"], "first": [191, 64, 64, 255], "hash": "364b3d11df2447d230cd9e9f7514b649dd62f769c266b3a7a24d255d62d65d06"},
+    {"args": ["-colorspace", "HSB", "-ordered-dither", "o4x4,2", "+channel", "-colorspace", "sRGB"], "first": [255, 0, 0, 255], "hash": "7675b735947337aaad0523c914000e133c2ddcc9745156515a3e17123cecfeec"},
+    {"args": ["-colorspace", "HSB", "-channel", "R", "-ordered-dither", "o4x4,2", "+channel", "-colorspace", "sRGB"], "first": [86, 39, 39, 255], "hash": "6e140bdfd011fd7c0c056892aeeb4b4fbf4786193801c7b9a74a05b3f6aafdb3"},
+    {"args": ["-colorspace", "HSB", "-ordered-dither", "o4x4,1", "+channel", "-colorspace", "sRGB"], "first": [39, 69, 86, 255], "hash": "7310fc4eba47f0710139218c85bb927fcde9b004731f0abc6630fe3c568da716"},
+    {"args": ["-colorspace", "HSB", "-ordered-dither", "o4x4,3", "+channel", "-colorspace", "sRGB"], "first": [128, 0, 0, 255], "hash": "2d6e922fc632781fe5dd54fd771745ad5d2bb8271ad2c0530433689ccfdd4e2b"},
+    {"args": ["-colorspace", "HSV", "-ordered-dither", "o4x4,2", "+channel", "-colorspace", "sRGB"], "first": [255, 0, 0, 255], "hash": "7675b735947337aaad0523c914000e133c2ddcc9745156515a3e17123cecfeec"},
+    {"args": ["-colorspace", "HSV", "-channel", "R", "-ordered-dither", "o4x4,2", "+channel", "-colorspace", "sRGB"], "first": [86, 39, 39, 255], "hash": "6e140bdfd011fd7c0c056892aeeb4b4fbf4786193801c7b9a74a05b3f6aafdb3"},
+    {"args": ["-colorspace", "HSV", "-ordered-dither", "o4x4,1", "+channel", "-colorspace", "sRGB"], "first": [39, 69, 86, 255], "hash": "7310fc4eba47f0710139218c85bb927fcde9b004731f0abc6630fe3c568da716"},
+    {"args": ["-colorspace", "HSV", "-ordered-dither", "o4x4,3", "+channel", "-colorspace", "sRGB"], "first": [128, 0, 0, 255], "hash": "2d6e922fc632781fe5dd54fd771745ad5d2bb8271ad2c0530433689ccfdd4e2b"},
+    {"args": ["-colorspace", "HWB", "-ordered-dither", "o4x4,2", "+channel", "-colorspace", "sRGB"], "first": [0, 255, 255, 255], "hash": "2c961260c5f15849c2590158a362ab9dced322f8357399a5cac1a9fc617d21b1"},
+    {"args": ["-colorspace", "HWB", "-channel", "R", "-ordered-dither", "o4x4,2", "+channel", "-colorspace", "sRGB"], "first": [86, 39, 39, 255], "hash": "6e140bdfd011fd7c0c056892aeeb4b4fbf4786193801c7b9a74a05b3f6aafdb3"},
+    {"args": ["-colorspace", "HWB", "-ordered-dither", "o4x4,1", "+channel", "-colorspace", "sRGB"], "first": [39, 69, 86, 255], "hash": "7310fc4eba47f0710139218c85bb927fcde9b004731f0abc6630fe3c568da716"},
+    {"args": ["-colorspace", "HWB", "-ordered-dither", "o4x4,3", "+channel", "-colorspace", "sRGB"], "first": [0, 128, 128, 255], "hash": "ff767bc08952da08d66fca64924e1d93913341a120389c5a7763c9a05ce24c88"}
+  ]
+}

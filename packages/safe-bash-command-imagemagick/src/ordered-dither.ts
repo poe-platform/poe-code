@@ -1,5 +1,6 @@
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import type { HueMetadata } from "./colorspace-hue.js";
 
 // ImageMagick's built-in threshold maps (thresholds.xml).
 const maps: Record<string, { width: number; height: number; divisor: number; values: number[]; alias?: string }> = {
@@ -81,7 +82,7 @@ export function parseOrderedDither(argument: string) {
     return { map, levels };
 }
 
-export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">>, { map, levels }: ReturnType<typeof parseOrderedDither>, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata, { map, levels }: ReturnType<typeof parseOrderedDither>, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const gray = image.space === "b-w" || image.space === "grey16";
     const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
     for (let y = 0; y < image.height; y++) for (let left = 0; left < image.width; left += 1024) {
@@ -90,6 +91,9 @@ export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "heigh
         const input = (yield { kind: "read", highDepth, position, length: count * 4 })!;
         const bytes = new Uint8Array(input);
         const data = highDepth ? new Uint16Array(bytes.buffer) : bytes;
+        const hueBytes = image.magickColorspace && (image.hueSamples || image.storedHueSamples !== undefined)
+            ? (yield { kind: "read", hue: true, position, length: count * 4 })! : undefined;
+        const hue = hueBytes ? new Float64Array(new Uint8Array(hueBytes).buffer) : undefined;
         for (let x = 0; x < count; x++) {
             const threshold = map.values[(y % map.height) * map.width + (left + x) % map.width]!;
             let selected = 0;
@@ -97,12 +101,15 @@ export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "heigh
                 if (!channels[channel] || (channel === 3 && !image.hasAlpha) || (gray && (channel === 1 || channel === 2))) continue;
                 const intervals = levels[selected++]!;
                 if (intervals === 0) continue;
-                const scaled = Math.floor(data[x * 4 + channel]! / maximum * (intervals * (map.divisor - 1) + 1));
+                const sample = hue ? Math.max(0, Math.min(1, hue[x * 4 + channel]!)) : data[x * 4 + channel]! / maximum;
+                const scaled = Math.floor(sample * (intervals * (map.divisor - 1) + 1));
                 const level = Math.floor(scaled / (map.divisor - 1)) + (scaled % (map.divisor - 1) >= threshold ? 1 : 0);
                 data[x * 4 + channel] = Math.min(maximum, Math.round(level * maximum / intervals));
+                if (hue) hue[x * 4 + channel] = Math.min(1, level / intervals);
                 if (gray && channel === 0) data[x * 4 + 1] = data[x * 4 + 2] = data[x * 4]!;
             }
         }
         yield { kind: "write", highDepth, position, data: bytes };
+        if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(hue.buffer) };
     }
 }

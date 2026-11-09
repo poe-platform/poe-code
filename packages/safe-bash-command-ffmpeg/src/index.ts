@@ -5114,6 +5114,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let initialOffset = 0;
         let segmentFrames: number[] | undefined;
         let segmentList: string | undefined;
+        let segmentHeaderFilename: string | undefined;
         let segmentListEntryPrefix = "";
         let segmentListSize = 0;
         let segmentListType: "flat" | "csv" | undefined;
@@ -5483,6 +5484,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             segmentListEntryPrefix = value;
+          } else if (arg === "-segment_header_filename") {
+            segmentHeaderFilename = args[++i];
+            if (!segmentHeaderFilename) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing segment_header_filename value\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-segment_list") {
             segmentList = args[++i];
             if (!segmentList) {
@@ -10029,6 +10036,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (formatImageSequence(outputTarget, 0) === undefined) {
                 throw new Error("segment output requires a numbered filename pattern");
               }
+              if (segmentHeaderFilename !== undefined && segmentPlugin.id !== "wav") {
+                throw new Error("segment_header_filename requires WAV segment output");
+              }
               validateRawAudioCodec(workingDoc, segmentPlugin, audioCodec);
               validateStreamCopy(workingDoc, segmentPlugin.id, { audio: audioCodec, video: videoCodec });
               if (!writeHeaderTrailer && !audioSegment) {
@@ -10069,7 +10079,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   segmentWrap ? (segmentStartNumber + index) % segmentWrap : segmentStartNumber + index)!));
               const listPath = segmentList === undefined ? undefined : resolvePath(context.cwd, segmentList);
               if (listPath !== undefined && paths.includes(listPath)) throw new Error("Segment output filenames collide");
+              const headerPath = segmentHeaderFilename === undefined ? undefined : resolvePath(context.cwd, segmentHeaderFilename);
+              if (headerPath !== undefined && (paths.includes(headerPath) || listPath === headerPath)) {
+                throw new Error("Segment output filenames collide");
+              }
               const destinations = new Set(listPath === undefined ? paths : [...paths, listPath]);
+              if (headerPath !== undefined) destinations.add(headerPath);
               for (const path of destinations) {
                 if (inputs.some(input => input.format !== "lavfi" && resolvePath(context.cwd, input.path) === path)) {
                   throw new Error(`Output ${path} is also an input; cannot edit existing files in-place`);
@@ -10109,8 +10124,44 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       (index === 0 || (sample.dts - audioOffset) / track.timescale >= start) &&
                       (index === paths.length - 1 || (sample.dts - audioOffset) / track.timescale < end))
                   })) };
-                const bytes = segmentPlugin.serialize(!audioSegment
-                  ? shiftTimestamps(segment, initialOffset - (resetTimestamps ? start : 0), budget) : segment, { writeHeader: writeHeader && (segmentPlugin.id !== "wav" || writeHeaderTrailer && (individualHeaderTrailer || index === 0)), writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, reserveIndexSpace, budget, limits: options.limits });
+                let bytes = segmentPlugin.serialize(!audioSegment
+                  ? shiftTimestamps(segment, initialOffset - (resetTimestamps ? start : 0), budget) : segment, { writeHeader: headerPath !== undefined || (writeHeader && (segmentPlugin.id !== "wav" || writeHeaderTrailer && (individualHeaderTrailer || index === 0))), writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, reserveIndexSpace, budget, limits: options.limits });
+                if (headerPath !== undefined) {
+                  // A separate WAV header is nonseekable: sizes stay unknown and
+                  // media files contain data only, without RIFF padding or trailers.
+                  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+                  const chunks = [bytes.subarray(0, 12)];
+                  let data: Uint8Array | undefined;
+                  let dataSize: number | undefined;
+                  for (let offset = 12; offset + 8 <= bytes.length;) {
+                    budget.checkCpu();
+                    const id = decodeUtf8(bytes.subarray(offset, offset + 4));
+                    const size = view.getUint32(offset + 4, true);
+                    if (id === "data") {
+                      data = bytes.subarray(offset + 8, offset + 8 + (dataSize ?? size));
+                      chunks.push(bytes.subarray(offset, offset + 8));
+                      break;
+                    }
+                    const end = offset + 8 + size + (size & 1);
+                    if (id === "ds64") dataSize = Number(view.getBigUint64(offset + 16, true));
+                    if (id !== "fact") {
+                      const chunk = bytes.subarray(offset, end);
+                      if (id === "ds64") chunk.fill(0, 8);
+                      chunks.push(chunk);
+                    }
+                    offset = end;
+                  }
+                  if (!data) throw new Error("WAV segment is missing its data chunk");
+                  if (index === 0) {
+                    const header = concatBytes(chunks);
+                    const headerView = new DataView(header.buffer, header.byteOffset, header.byteLength);
+                    headerView.setUint32(4, 0xffffffff, true);
+                    headerView.setUint32(header.byteLength - 4, 0xffffffff, true);
+                    budget.checkOutputBytes(header.byteLength);
+                    await writeFileOutput(context, header, data => context.fs.writeFile(headerPath, data, { signal: context.signal }));
+                  }
+                  bytes = data;
+                }
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));

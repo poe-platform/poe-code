@@ -2128,6 +2128,12 @@ async function applyVideoFilterChain(
       const px = Math.floor((x < 0 || x > pw - iw ? Math.trunc((pw - iw) / 2) : x) / hsub) * hsub;
       const py = Math.floor((y < 0 || y > ph - ih ? Math.trunc((ph - ih) / 2) : y) / vsub) * vsub;
       const col = parseColorRgba(named.color ?? (positional[4]?.includes("=") ? undefined : positional[4]) ?? "black");
+      if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "ya8") {
+        // Pad uses full-range BT.601 luma for grayscale frames.
+        const gray = Math.round(0.299 * col[0] + 0.587 * col[1] + 0.114 * col[2]);
+        col[0] = col[1] = col[2] = gray;
+        if (pixelFormat !== "ya8") col[3] = 255;
+      }
       current = await mapWork(current, async (f) => {
 
 

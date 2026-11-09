@@ -9908,7 +9908,11 @@ export class Runtime {
         this.requireParameter(value === undefined ? undefined : shellValueText(value), `${part.name}[${selector.index}]`, state, io, part.line);
         return part.length ? this.valueLength(value ?? "", state, io) : value ?? "";
       }
-      if (part.length) return String(binding?.values.size ?? (this.presenceArrayEntries(state, part.name)?.length ?? (state.variables[part.name] === undefined ? 0 : 1)));
+      if (part.length) {
+        const entries = this.presenceArrayEntries(state, part.name);
+        if (state.nounset && (binding ? !binding.assigned : entries === undefined)) throw new NounsetFailure(`${part.name}: unbound variable`, io.diagnosticLine ?? part.line);
+        return String(binding?.values.size ?? entries?.length ?? (state.variables[part.name] === undefined ? 0 : 1));
+      }
       const values = await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring);
       if (io.nameExpansionContext === "document" && io.documentExpansion && part.substring && selector.separator === "@" && values.length === 1 && shellValueByteLength(values[0]!) === 0) io.documentExpansion.emptySlice = true;
       const space = (selector.kind === "keys" || part.keys === true) ? Boolean(hereDocument || (selector.separator === "@" ? !part.quoted && !split || state.variables.IFS === "" : !part.quoted && split && state.variables.IFS === "")) : (!split && selector.separator === "@" && (io.nameExpansionContext === "document" || !part.substring || !part.quoted || state.variables.IFS === ""));

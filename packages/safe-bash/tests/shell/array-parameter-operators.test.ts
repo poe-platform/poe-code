@@ -3,6 +3,30 @@ import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { setup } from './helpers.js';
 
+for (const selector of ['@', '*']) for (const nounset of [true, false]) {
+  for (const [initialization, count, assigned] of [
+    ['unset a', 0, false],
+    ['a=abc', 1, false],
+    ['declare -a a', 0, false],
+    ['declare -A a', 0, false],
+    ['a=()', 0, true],
+    ['declare -A a=()', 0, true],
+    ['a=([3]=three [8]=eight)', 2, true],
+    ['declare -A a=([key]=value)', 1, true],
+    ['a=(value); unset "a[0]"', 0, true],
+    ['a=(value); unset "a[@]"', 0, true],
+    ['a=abc; declare -a a', 1, true],
+  ] as const) test(`array member count with set ${nounset ? '-' : '+'}u: ${initialization}, [${selector}]`, async t => {
+    const { shell } = setup();
+    t.after(() => shell.dispose());
+    const result = await shell.exec(`set ${nounset ? '-' : '+'}u; ${initialization}; args "\${#a[${selector}]}"; say end`);
+    const unbound = nounset && !assigned;
+    assert.equal(result.exitCode, unbound ? 1 : 0);
+    assert.equal(result.stdout, unbound ? '' : `["${count}"]end\n`);
+    assert.equal(result.stderr, unbound ? 'shell: line 1: a: unbound variable\n' : '');
+  });
+}
+
 for (const bounded of [false, true]) for (const [source, expected, diagnostic] of [
   ['set -u; s=none; a=abc; say "${#a[0]}"; say end', '', 'a[0]: unbound variable'],
   ['set -u; a=abc; say "${#a}"; say end', '3\nend\n', ''],

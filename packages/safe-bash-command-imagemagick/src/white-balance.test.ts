@@ -1,0 +1,42 @@
+import { expect, it } from "vitest";
+import sharp, { decodeImage } from "@poe-code/image-ast";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
+import fixtures from "./white-balance-fixtures.json" with { type: "json" };
+
+// ImageMagick 7.1.2-35 Q16-HDRI: input.png -white-balance PNG32:output.png,
+// decoded with: magick output.png -depth 8 rgba:-.
+for (const mode of ["sync", "buffered", "retained", "command"] as const) {
+    it.each([...fixtures.map(fixture => ({ ...fixture, copies: 1 })), { ...fixtures[0]!, name: "gradient across chunk boundaries", copies: 65 }])(`white-balances $name with native pixels via ${mode}`, async ({ input, rgba, copies }) => {
+        let bytes: Uint8Array = Buffer.from(input, "base64");
+        if (copies > 1) {
+            const image = decodeImage(bytes);
+            bytes = await sharp(Buffer.concat(Array.from({ length: copies }, () => image.data)), {
+                raw: { width: image.width, height: image.height * copies, channels: 4 }
+            }).png().toBuffer();
+        }
+        const files = new Map([["input.png", bytes]]);
+        const fs = new MemoryFileSystem();
+        await fs.writeFile("/input.png", bytes);
+        const filesystem = new Proxy(fs, { get(target, key) {
+            if (key === "readFile" || key === "writeFile") return () => { throw new Error("Whole-file white balance forbidden"); };
+            const value = Reflect.get(target, key, target);
+            return typeof value === "function" ? value.bind(target) : value;
+        } });
+        const args = ["input.png", "-white-balance", "PNG32:output.png"];
+        let stdout = "", stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect({ stdout, stderr, ...result }).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+        const output = decodeImage((mode === "retained" || mode === "command") ? await fs.readFile("/output.png") : files.get("output.png")!);
+        const original = decodeImage(bytes);
+        expect([output.width, output.height]).toEqual([original.width, original.height]);
+        expect(Buffer.from(output.data).toString("hex")).toBe(rgba.repeat(copies));
+    });
+}

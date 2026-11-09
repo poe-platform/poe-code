@@ -1,3 +1,4 @@
+import { whiteBalancePixelSteps } from "./white-balance-kernel.js";
 import { compareColorspaceSteps } from "./compare-colorspace.js";
 import { magickIntensity } from "./intensity.js";
 import { sortPixelSteps } from "./sort-pixels.js";
@@ -8091,6 +8092,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return (yield* applyMagickRasterSteps(im, embossPixelSteps(im, geometry), signal));
             });
         }
+        else if (t === "-white-balance") {
+            const toLab = parseMagickPixelOperation(["-colorspace", "Lab"], state, 0, signal)!;
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const lab = yield* toLab.apply(image);
+                const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, ...metadata } = lab;
+                return yield* applyMagickRasterSteps({ ...metadata, isPalette: false }, whiteBalancePixelSteps(lab), signal, lab, [lab]);
+            });
+        }
         else if (t === "-charcoal") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -10099,6 +10108,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-canny") {
             const spec = tokens[++i] ?? "0x1+10%+30%", channels = state.channelExplicit ? { ...state.channels } : undefined, virtualPixel = state.virtualPixel, background = state.background;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, cannyPixelSteps(image, spec, channels, virtualPixel, background), signal, { ...image, hasAlpha: false }) : undefined);
+        } else if (!operandsOnly && token === "-white-balance") {
+            const toLab = parseMagickPixelOperation(["-colorspace", "Lab"], state, 0, signal)!;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const lab = await transformStoredMagickPixels(image, backend, toLab, signal);
+                const { magickColorspace: ignoredSpace, storedHueSamples: ignoredHue, ...metadata } = lab;
+                return transformStoredMagickRaster({ ...metadata, isPalette: false }, backend, whiteBalancePixelSteps(lab), signal, lab, [lab]);
+            });
         } else if (!operandsOnly && token === "-charcoal") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             steps.push(async (image, backend) => {
@@ -10632,7 +10649,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-enhance", "-antialias", "+antialias",
         "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
-        "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors", "-sort-pixels",
+        "-auto-level", "-auto-gamma", "-white-balance", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors", "-sort-pixels",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin", "+remap",
         "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+treedepth", "+compress", "+depth", "+endian", "+size",

@@ -2942,7 +2942,7 @@ describe("pad position expressions", () => {
     }
   }
 
-  for (const expression of ["unknown", "1junk", "1/0", "(ow-iw", "sin(0)"]) {
+  for (const expression of ["unknown", "1junk", "1/0", "(ow-iw", "unknown(0)"]) {
     for (const axis of ["x", "y"]) {
       it(`rejects unsupported ${axis}=${expression} without overwriting output`, async () => {
         const vfs = createTestVfs({ "/pad.png": "original" });
@@ -3666,7 +3666,7 @@ describe("drawbox position expressions", () => {
     });
   }
 
-  for (const expression of ["unknown", "1junk", "1/0", "(iw-2", "sin(0)"]) {
+  for (const expression of ["unknown", "1junk", "1/0", "(iw-2", "unknown(0)"]) {
     for (const axis of ["x", "y"]) {
       it(`rejects ${axis}=${expression} without overwriting output`, async () => {
         const vfs = createTestVfs({ "/out.png": "original" });
@@ -5150,7 +5150,7 @@ describe("decoded audio editing", () => {
     }
   });
 
-  for (const expression of ["banana", "1junk", "", "dB", "bananadB", "6junkdB", "NaN", "Infinity", "(1+2", "sin(0)"]) {
+  for (const expression of ["banana", "1junk", "", "dB", "bananadB", "6junkdB", "NaN", "Infinity", "(1+2", "unknown(0)"]) {
     for (const existing of [false, true]) {
       it(`rejects volume=${expression} with existing output=${existing}`, async () => {
         const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(80).fill(0.125)] });
@@ -5522,7 +5522,7 @@ describe("native ffmpeg parity", () => {
     });
   }
 
-  for (const position of ["x=unknown:y=0", "x=0:y=2garbage", "x=iw/:y=0", "x=1/0:y=0", "x=sin(1):y=0"]) {
+  for (const position of ["x=unknown:y=0", "x=0:y=2garbage", "x=iw/:y=0", "x=1/0:y=0", "x=unknown(1):y=0"]) {
     for (const existing of [false, true]) {
       it(`rejects crop position ${position} and preserves ${existing ? "existing" : "absent"} output`, async () => {
         const vfs = createTestVfs(existing ? { "/crop.png": "original" } : {});

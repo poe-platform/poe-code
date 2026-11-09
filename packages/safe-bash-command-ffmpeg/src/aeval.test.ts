@@ -18,6 +18,7 @@ for (const [expression, expected] of [
   ["val(-1)|val(4)", [left, right]],
   ["val(1):c=stereo", [right, right]],
   ["val(ch):c=same", [left, right]],
+  ["tanh(val(ch)):c=same", [[1000, 1998, 2992, 3980], [-3980, -2992, -1998, -1000]]],
   ["val(0)*0|val(1)", [[0, 0, 0, 0], right]],
   ["n/32768|t*s/32768", [[0, 1, 2, 3], [0, 1, 2, 3]]],
   ["val(0):c=unknown", undefined],

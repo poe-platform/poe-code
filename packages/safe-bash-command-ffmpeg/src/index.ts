@@ -308,7 +308,7 @@ function parseScaledFrameLimit(value: string | undefined): number {
   return number.trim() && (!binary || power !== undefined) ? Number(number) * scale : NaN;
 }
 
-function parseAudioBitrate(value: string | undefined): number | undefined {
+function parseBitrate(value: string | undefined): number | undefined {
   const suffix = value?.slice(-1);
   const scale = suffix === "k" || suffix === "K" ? 1000 : suffix === "M" ? 1000000 : 1;
   const number = scale === 1 ? value : value?.slice(0, -1);
@@ -4455,14 +4455,15 @@ export function evalSyncFfmpeg(
         validateBitstreamFilters(args[++i]);
       }
       else if (arg === "-vsync" || arg === "-fps_mode" || arg.startsWith("-fps_mode:")) return undefined;
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-crf" || arg === "-b:v" || arg === "-tag:a") i++;
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-crf" || arg === "-tag:a") i++;
       else if (arg === "-bf") {
         const value = args[++i];
         maxBFrames = value?.trim() ? Number(value) : NaN;
         if (!Number.isInteger(maxBFrames) || maxBFrames < -1 || maxBFrames > 2147483647) return undefined;
       }
+      else if (arg === "-b:v") return undefined;
       else if (arg === "-b:a") {
-        audioBitrate = parseAudioBitrate(args[++i]);
+        audioBitrate = parseBitrate(args[++i]);
         if (audioBitrate === undefined) return undefined;
       }
       else if (arg === "-map_chapters") {
@@ -4850,7 +4851,7 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         pcrPeriod = value?.trim() ? Number(value) : NaN;
       } else if (arg === "-muxrate") {
-        muxRate = parseAudioBitrate(args[++i]);
+        muxRate = parseBitrate(args[++i]);
         if (muxRate === undefined) return undefined;
       } else if (arg === "-movie_timescale") {
         const value = args[++i];
@@ -5537,6 +5538,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let rawPixelFormat: string | undefined;
         let audioCodec: string | undefined;
         let audioBitrate: number | undefined;
+        let videoBitrate: number | undefined;
         let subtitleCodec: string | undefined;
         let kaiserBeta = 9;
         let filterType: "kaiser" | "blackman_nuttall" = "kaiser";
@@ -5812,7 +5814,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 234 };
             }
             videoQp = qp === -1 ? undefined : qp;
-          } else if (arg === "-threads" || arg === "-crf" || arg === "-b:v" || arg === "-tag:a") {
+          } else if (arg === "-threads" || arg === "-crf" || arg === "-tag:a") {
             i++;
           } else if (arg === "-bf") {
             const value = args[++i];
@@ -5834,8 +5836,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Missing value for ${arg}\n`), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-b:v") {
+            videoBitrate = parseBitrate(args[++i]);
+            if (videoBitrate === undefined) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid video bitrate\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-b:a") {
-            audioBitrate = parseAudioBitrate(args[++i]);
+            audioBitrate = parseBitrate(args[++i]);
             if (audioBitrate === undefined) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid audio bitrate\n"), context.signal);
               return { exitCode: 1 };
@@ -6992,7 +7000,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const value = args[++i];
             pcrPeriod = value?.trim() ? Number(value) : NaN;
           } else if (arg === "-muxrate") {
-            muxRate = parseAudioBitrate(args[++i]);
+            muxRate = parseBitrate(args[++i]);
             if (muxRate === undefined) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid muxrate: expected an integer from 0 to 2147483647 bits/s\n"), context.signal);
               return { exitCode: 1 };
@@ -8714,7 +8722,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
             }
 
-            if (videoQp !== undefined && videoCodec !== "copy" && features.videoTranscode === false) {
+            if ((videoQp !== undefined || videoBitrate) && videoCodec !== "copy" && features.videoTranscode === false) {
               throw new Error("Video transcoding is disabled by consumer feature configuration");
             }
             // Output frame counts refer to displayed pictures, never encoded packets.
@@ -8722,7 +8730,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async (track, index) => {
-                  if (track.type !== "video" || (!zeroLatency && !imageOutput && videoPreset === undefined && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && videoQp === undefined && !track.decodedVideoFrames)) return track;
+                  if (track.type !== "video" || (!zeroLatency && !imageOutput && videoPreset === undefined && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && videoQp === undefined && !videoBitrate && !track.decodedVideoFrames)) return track;
                   const limit = vfFilters.length === 0 && outputFps === undefined ? streamFrameLimits[index] : undefined;
                   const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
                   return { ...track, samples: [], decodedVideoFrames: frames };
@@ -10941,10 +10949,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
             }
 
-            if ((videoPreset !== undefined || videoQp !== undefined) && videoCodec !== "copy") {
-              if (videoCodec !== undefined && videoCodec !== "libx264" && videoCodec !== "h264") throw new Error("Presets require H.264 encoding");
+            if ((videoPreset !== undefined || videoQp !== undefined || videoBitrate) && videoCodec !== "copy") {
+              if (videoCodec !== undefined && videoCodec !== "libx264" && videoCodec !== "h264") throw new Error("Presets and video bitrate require H.264 encoding");
               workingDoc = { ...workingDoc, tracks: await mapWork(workingDoc.tracks, track =>
-                encodeH264PresetTrack(track, videoPreset ?? "medium", budget, forceKeyFrames, maxBFrames, videoQp, undefined, zeroLatency), context.signal) };
+                encodeH264PresetTrack(track, videoPreset ?? "medium", budget, forceKeyFrames, maxBFrames, videoQp, videoBitrate, zeroLatency), context.signal) };
             }
 
             let decodeExitCode = demuxExitCode;

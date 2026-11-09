@@ -1526,12 +1526,9 @@ function* formatMagickPropertyStringSteps<Step=never>(
         if (fmt[end] === "[") depth++;
         else if (fmt[end] === "]") depth--;
       }
-      if (depth !== 0) {
-        parts.push(fmt.slice(match.index));
-        previous = fmt.length;
-        break;
-      }
+      if (depth !== 0) throw new Error(`unbalanced braces '${fmt.slice(match.index)}'`);
       token = fmt.slice(match.index, end);
+      if (token === "%[]") throw new Error("unknown image property '%[]'");
       tokens.lastIndex = end;
     }
     previous = tokens.lastIndex;

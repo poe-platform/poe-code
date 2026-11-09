@@ -51,3 +51,5 @@ export { lrcAst } from "./containers/lrc.js";
 export { encodeTga } from "./containers/tga.js";
 
 export { nutAst } from "./containers/nut.js";
+
+export { vocAst } from "./containers/voc.js";

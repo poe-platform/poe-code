@@ -179,6 +179,9 @@ Read and write CAF audio (`.caf` or `-f caf`) with signed 8/16/24/32-bit PCM or 
 
 Copy PCM audio into native-readable NUT with `ffmpeg -i input.wav -c copy output.nut`.
 
+Read Creative Voice PCM16 and G.711 audio, including continuation blocks, with
+`ffmpeg -i input.voc -c:a pcm_s16le output.wav`; use `-f voc` before `-i` for explicit input selection.
+
 Read and write Sun AU audio with `ffmpeg -i input.wav output.au` or
 `ffmpeg -i input.au -c:a pcm_s16le output.wav`. AU defaults to big-endian PCM16.
 Read native IRCAM PCM16, mu-law, and A-law files by automatic detection or `-f ircam -i input`; stereo channels are preserved.

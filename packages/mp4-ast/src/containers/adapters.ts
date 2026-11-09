@@ -1,3 +1,4 @@
+import { vocAst } from "./voc.js";
 import { decodeTga, encodeTga } from "./tga.js";
 import { icoAst } from "./ico.js";
 export { icoAst } from "./ico.js";
@@ -2971,6 +2972,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     wavAst(),
     wavAst("w64"),
     auAst(),
+    vocAst(),
     ircamAst(),
     cafAst(),
     aiffAst(),

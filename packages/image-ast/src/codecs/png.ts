@@ -139,6 +139,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
   ): number => {
     if (subW <= 0 || subH <= 0) return inOffset;
     const rowBytes = Math.ceil((subW * bitsPerPixel) / 8);
+    if (inOffset + subH * (1 + rowBytes) > inflated.length) throw new Error("Truncated PNG image data");
     const rawData = inflated.subarray(inOffset, inOffset + subH * rowBytes);
     let curOffset = inOffset;
 
@@ -193,6 +194,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     return curOffset;
   };
 
+  let consumed = 0;
   if (meta.isProgressive) {
     const passes = [
       { x0: 0, y0: 0, dx: 8, dy: 8 },
@@ -203,15 +205,15 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
       { x0: 1, y0: 0, dx: 2, dy: 2 },
       { x0: 0, y0: 1, dx: 1, dy: 2 }
     ];
-    let inOff = 0;
     for (const p of passes) {
       const pw = Math.ceil((width - p.x0) / p.dx);
       const ph = Math.ceil((height - p.y0) / p.dy);
-      inOff = decodePass(pw, ph, inOff, p.x0, p.y0, p.dx, p.dy);
+      consumed = decodePass(pw, ph, consumed, p.x0, p.y0, p.dx, p.dy);
     }
   } else {
-    decodePass(width, height, 0, 0, 0, 1, 1);
+    consumed = decodePass(width, height, 0, 0, 0, 1, 1);
   }
+  const decodeWarnings = inflated.length > consumed ? [...(meta.decodeWarnings ?? []), "IDAT: Too much image data"] : meta.decodeWarnings;
   if (rgba.buffer !== inflated.buffer && typeof (inflated.buffer as any).transfer === "function") {
     try { (inflated.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
   } else if (rgba.byteOffset === 0 && rgba.byteLength < rgba.buffer.byteLength && typeof (rgba.buffer as any).transfer === "function") {
@@ -236,7 +238,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     ...(meta.resolution ? {resolution: meta.resolution} : {}),
     hasAlpha: meta.hasAlpha,
     ...(meta.virtualCanvas === undefined ? {} : {virtualCanvas: meta.virtualCanvas}),
-    ...(meta.decodeWarnings === undefined ? {} : {decodeWarnings: meta.decodeWarnings}),
+    ...(decodeWarnings === undefined ? {} : {decodeWarnings}),
     ...(meta.properties === undefined ? {} : {properties: meta.properties}),
     ...(meta.icc === undefined ? {} : {icc: meta.icc}),
     ...(meta.exif === undefined ? {} : {exif: meta.exif}),

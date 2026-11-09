@@ -200,7 +200,12 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
     }
     // Drain the bounded decoder so trailing corruption and truncation retain
     // codec diagnostics even after all expected pixels have been produced.
-    while (!(await iterator.next()).done) signal.throwIfAborted();
+    let excess = used < pending.length;
+    for await (const bytes of iterator) {
+      signal.throwIfAborted();
+      if (bytes.length) excess = true;
+    }
+    if (excess) metadata.decodeWarnings = [...(metadata.decodeWarnings ?? []), "IDAT: Too much image data"];
   } finally {await iterator.return(undefined);}
   return {...metadata, position, ...(storedPngIndices && palette ? { storedPngIndices, pngPalette: { bytes: palette, depth, ...(transparency ? { transparency } : {}) } } : {}), ...(storedData16 ? {storedData16} : {}), space: color === 0 && transparency ? "srgb" : metadata.space, channels: color === 0 && transparency ? 4 : metadata.channels};
 }

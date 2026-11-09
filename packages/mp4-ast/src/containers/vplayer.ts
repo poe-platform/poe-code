@@ -47,7 +47,9 @@ export function vplayerAst(): MediaAstPlugin {
     extensions: [], mimeTypes: [], canDemux: true, canMux: false,
     supportedVideoCodecs: [], supportedAudioCodecs: [],
     detect(bytes) {
-      return readLine(decodeUtf8(bytes.subarray(0, 4096)).split("\n")[0] ?? "") !== undefined;
+      const cue = readLine(decodeUtf8(bytes.subarray(0, 4096)).split("\n")[0] ?? "");
+      // Native VPlayer probing excludes a digit after the third colon.
+      return cue !== undefined && cue.text.length > 0 && !(cue.text[0]! >= "0" && cue.text[0]! <= "9");
     },
     parse: parseVplayer,
     serialize() {

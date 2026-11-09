@@ -10,6 +10,7 @@ import { samiAst } from "./sami.js";
 import { lrcAst } from "./lrc.js";
 import { vplayerAst } from "./vplayer.js";
 import { mpl2Ast } from "./mpl2.js";
+import { stlAst } from "./stl.js";
 import { jacosubAst } from "./jacosub.js";
 import { subviewer1Ast } from "./subviewer1.js";
 import { aqtitleAst } from "./aqtitle.js";
@@ -3008,6 +3009,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     microdvdAst(),
     jacosubAst(),
     mpl2Ast(),
+    stlAst(),
     vplayerAst(),
     pjsAst(),
     assAst(),

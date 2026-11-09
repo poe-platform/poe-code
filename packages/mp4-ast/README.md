@@ -88,3 +88,5 @@ FLAC `{ exactRiceParameters: 1 }` minimizes Rice residual bit cost; `0` (default
 VPlayer input uses the next timestamp to close each subtitle cue, including empty closing lines, and converts `|` to line breaks. FFmpeg accepts `-f vplayer` or detects the content in generic `.txt` files.
 
 AQTitle input (`-f aqtitle` or automatic detection) converts frame markers at 25 fps by default; `-subfps 50` before the input overrides the rate. Multiline captions are preserved and empty closing markers end the preceding cue. The media parser accepts the same override as `subtitleFrameRate`.
+
+Spruce text STL input requires `-f stl`; colon-separated clocks use hundredths of a second and `|` becomes a line break. Binary EBU STL is not supported.

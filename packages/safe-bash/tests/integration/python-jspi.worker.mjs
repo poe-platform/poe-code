@@ -2359,7 +2359,8 @@ PY`);
     }
     const executor = createExecutor();
     try {
-      const exitCode = await executor.run({ invocation: { args: ['-c', program + (mode === '/llm-standard' ? standardLlm : mode === '/finalization' ? finalization : mode === '/background' ? background : mode === '/tasks' ? tasks : mode === '/cancel' ? cancelled : '')], cwd: '/work', env: {} },
+      const exitCode = await executor.run({ invocation: { args: ['-c', program + (mode === '/llm-standard' || mode === '/metadata-bundled' ? standardLlm : mode === '/finalization' ? finalization : mode === '/background' ? background : mode === '/tasks' ? tasks : mode === '/cancel' ? cancelled : '')], cwd: '/work', env: {} },
+        ...(mode === '/metadata-bundled' ? {packages:{session:'metadata',requirements:[],offline:true}} : {}),
         signal: controller.signal, runtimeMount: '/.runtime', maxTransferBytes: 32, onReady() {},
         async dispatch(operation) {
           activeRequests++;
@@ -2367,6 +2368,7 @@ PY`);
           requests.push({ op: operation.op, path: typeof operation.args[0] === 'string' ? operation.args[0] : undefined });
           try {
             await new Promise(resolve => setTimeout(resolve, 1));
+            if (mode === '/metadata-bundled' && operation.op === 'package-root') throw new Error('metadata backing unavailable');
             if (operation.op === 'stdout' || operation.op === 'stderr') {
               (operation.op === 'stdout' ? stdout : stderr).push(...operation.args[0]);
               return operation.args[0].length;

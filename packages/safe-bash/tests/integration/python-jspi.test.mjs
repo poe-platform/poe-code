@@ -425,6 +425,17 @@ test('real workerd provides the original llm Python package', {timeout:120000}, 
   assert.deepEqual(runtimeErrors, []);
 });
 
+test('real workerd discovers bundled llm metadata without caller scratch storage', {timeout:120000}, async () => {
+  const response = await nativeFixture.miniflare.dispatchFetch('http://fixture/metadata-bundled');
+  const result = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(result));
+  assert.equal(result.exitCode, 0, new TextDecoder().decode(Uint8Array.from(result.stderr)));
+  assert.equal(new TextDecoder().decode(Uint8Array.from(result.stdout.slice(3))), 'llm-reference-api\n');
+  assert.equal(result.requests.some(request => request.op === 'package-root'), false);
+  assert.deepEqual(result.failures, []);
+  assert.deepEqual(nativeFixture.runtimeErrors, []);
+});
+
 test('real workerd preserves standard llm Python workflows', {timeout:120000}, async () => {
   const response = await nativeFixture.miniflare.dispatchFetch('http://fixture/llm-api');
   const result = await response.json();

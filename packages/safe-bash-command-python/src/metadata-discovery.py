@@ -40,10 +40,18 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
   os.rmdir(root)
  class Store:
   def __init__(self):
-   self.root = tempfile.mkdtemp(dir=installation_root() if callable(installation_root) else installation_root, prefix='.metadata-')
-   self.cleanup = weakref.finalize(self, retire, self.root)
+   self._root = None
+   self._cleanup = None
    self.count = 0
    self.archive = None
+  @property
+  def root(self):
+   if self._root is None:
+    self._root = tempfile.mkdtemp(dir=installation_root() if callable(installation_root) else installation_root, prefix='.metadata-')
+    self._cleanup = weakref.finalize(self, retire, self._root)
+   return self._root
+  def cleanup(self):
+   if self._cleanup is not None:self._cleanup()
  class Rows:
   def __init__(self, store, path):
    self.store, self.path = store, path
@@ -64,14 +72,20 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
  class Groups:
   def __init__(self, store):
    self.store = store
-   self.root = os.path.join(store.root, str(store.count))
+   self.number = store.count
    store.count += 1
-   os.makedirs(self.root)
-   self.order = os.path.join(self.root, 'order')
+   self.root = self.order = None
    self.frozen = False
   def __contains__(self, name):
-   return os.path.exists(os.path.join(group_path(self.root, name), 'rows'))
+   return self.root is not None and os.path.exists(os.path.join(group_path(self.root, name), 'rows'))
   def __getitem__(self, name):
+   # Most caller sys.path directories have no distributions. Allocate backing
+   # only for discovered metadata, so bundled plugins need no caller writes.
+   if self.root is None:
+    if self.frozen:return ()
+    self.root = os.path.join(self.store.root, str(self.number))
+    os.makedirs(self.root)
+    self.order = os.path.join(self.root, 'order')
    # Reversible keys avoid filesystem spelling rules and hash collisions. Each
    # component is bounded independently of a backend's filename length limit.
    directory = group_path(self.root, name)
@@ -88,7 +102,7 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
      output.write(json.dumps(name) + '\n')
    return Rows(self.store, filename)
   def values(self):
-   if os.path.exists(self.order):
+   if self.order is not None and os.path.exists(self.order):
     with open(self.order, encoding='utf-8') as source:
      for line in source:
       yield self[json.loads(line)]

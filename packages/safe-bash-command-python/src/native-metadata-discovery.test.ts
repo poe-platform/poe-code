@@ -96,7 +96,16 @@ with contextlib.ExitStack() as stack:
  assert metadata.Lookup is installed,'metadata adapter installed twice'
  if plain:
   root_denied=True
-  try:metadata.Lookup(Root([]))
+  for entries in [[],['module.py','data','README.md']]:
+   names[:]=entries
+   lookup=metadata.Lookup(Root(entries))
+   assert list(lookup.search(Prepared(None)))==[]
+   assert list(lookup.search(Prepared('absent')))==[]
+   del lookup;collect()
+  assert not root_requests,'metadata-free paths acquired caller scratch storage'
+  assert not allocations,'metadata-free paths allocated backing tables'
+  names[:]=['plugin-1.dist-info']
+  try:metadata.Lookup(Root(names))
   except PermissionError as error:assert str(error)=='root backing denied'
   else:raise AssertionError('root acquisition failure swallowed')
   assert not files

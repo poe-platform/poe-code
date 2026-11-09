@@ -7686,6 +7686,27 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     frames.push(current);
                     continue;
                 }
+                if (optimizePlus) {
+                    const clearing = compareLayerBounds(previous, current, 0, "compareclear");
+                    let clear = clearing.next();
+                    while (!clear.done) {
+                        if (!clear.value) { yield; clear = clearing.next(); }
+                        else {
+                            const { image, position, length } = clear.value;
+                            clear = clearing.next((image ? current : previous).data.subarray(position, position + length));
+                        }
+                    }
+                    if (clear.value) {
+                        // Keep the previous display, then clear only the pixels the next frame erases.
+                        const prior = frames[frames.length - 1]!;
+                        frames[frames.length - 1] = { ...prior, disposal: 1, delay: Array(prior.delay?.length ?? 1).fill(0) };
+                        frames.push({ ...yield* extractImageSteps(previous, clear.value),
+                            virtualCanvas: magickCropCanvas(previous, clear.value.left, clear.value.top),
+                            disposal: 2, delay: Array(previous.delay?.length ?? 1).fill(prior.delay?.[(prior as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0) });
+                        frames.push(current);
+                        continue;
+                    }
+                }
                 const bounds = compareLayerBounds(previous, current, state.alphaFuzz, method);
                 let next = bounds.next();
                 while (!next.done) {
@@ -9383,6 +9404,34 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         await frames.push(current);
                         previous = current;
                         continue;
+                    }
+                    if (optimizePlus) {
+                        const clearing = compareLayerBounds(previous!, current, 0, "compareclear");
+                        let clear = clearing.next();
+                        while (!clear.done) {
+                            if (!clear.value) { await yieldTurn(signal); clear = clearing.next(); }
+                            else {
+                                const { image, position, length } = clear.value;
+                                clear = clearing.next(await backend.storage.read((image ? current : previous!).position + position, length));
+                            }
+                        }
+                        if (clear.value) {
+                            const prior = (await frames.get(frames.length - 1))!;
+                            await frames.set(frames.length - 1, { ...prior, disposal: 1,
+                                storedDelay: { length: prior.storedDelay?.length ?? prior.delay?.length ?? 1, async at() { return 0; } } });
+                            await frames.push({ ...await transformStoredImage(previous!, backend.storage, { kind: "extract", ...clear.value }, signal),
+                                virtualCanvas: magickCropCanvas(previous!, clear.value.left, clear.value.top),
+                                disposal: 2, storedDelay: {
+                                    length: previous!.storedDelay?.length ?? previous!.delay?.length ?? 1,
+                                    async at() {
+                                        const scene = prior[magickInput]?.sceneIdx ?? 0;
+                                        return await prior.storedDelay?.at(scene, { signal }) ?? prior.delay?.[scene] ?? 0;
+                                    },
+                                } });
+                            await frames.push(current);
+                            previous = current;
+                            continue;
+                        }
                     }
                     const bounds = compareLayerBounds(previous!, current, fuzz, method);
                     let next = bounds.next();

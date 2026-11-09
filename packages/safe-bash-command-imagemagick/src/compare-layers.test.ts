@@ -65,7 +65,7 @@ for (const retained of [false, true]) for (const fixture of comparisons) for (co
     const output = retained ? await filesystem.readFile("/out.gif") : files.get("out.gif")!;
     const tiles = method === "CompareOverlay" ? fixture.overlay : fixture.clear;
     expect(rectangles(output)).toEqual([[3, 1, 0, 0], ...tiles]);
-    expect(decodeImage(output, { animated: true }).loop).toBe(decodeImage(bytes, { animated: true }).loop);
+    expect(decodeImage(output, { animated: true }).loop).toBe(tiles.length ? decodeImage(bytes, { animated: true }).loop : undefined);
     expect(decodeImage(output, { animated: true }).delay).toEqual(tiles.length ? [80, 130] : [80]);
   });
 }

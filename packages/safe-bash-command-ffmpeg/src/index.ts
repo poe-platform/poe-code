@@ -221,7 +221,8 @@ function serializeChecksum(
     budget.checkCpu();
     return a.dts * b.timescale - b.dts * a.timescale;
   });
-  if (format === "crc") {
+  const name = algorithm.toLowerCase();
+  if (format === "crc" || name === "adler32") {
     // FFmpeg's crc muxer uses Adler-32 rather than a CRC polynomial.
     let a = 1;
     let b = 0;
@@ -232,9 +233,8 @@ function serializeChecksum(
         b = (b + a) % 65521;
       }
     }
-    return encodeUtf8(`CRC=0x${((b * 65536 + a) >>> 0).toString(16).padStart(8, "0")}\n`);
+    return encodeUtf8(`${format === "crc" ? "CRC=0x" : "adler32="}${((b * 65536 + a) >>> 0).toString(16).padStart(8, "0")}\n`);
   }
-  const name = algorithm.toLowerCase();
   if (name === "crc32") {
     let crc = 0xffffffff;
     for (const { bytes } of packets) {

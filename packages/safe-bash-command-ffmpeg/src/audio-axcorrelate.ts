@@ -25,12 +25,15 @@ export async function correlateAudio(
       if (!value || !["slow", "fast", "best"].includes(algo)) throw new Error("axcorrelate: invalid algo");
     } else throw new Error(`axcorrelate: unsupported option ${key}`);
   }
-  const length = Math.min(a.channelData[0]!.length, b.channelData[0]!.length);
+  // FFmpeg fills the first input beyond the window before requesting the second.
+  // If the first input ends sooner, EOF is reached without any paired samples.
+  const length = a.channelData[0]!.length <= size ? 0
+    : Math.min(a.channelData[0]!.length, b.channelData[0]!.length);
   budget.checkSamples(length);
   budget.checkDuration(length / a.sampleRate);
   budget.allocateMemory(length * a.channels * 8);
   const channelData = a.channelData.map(() => new Float64Array(length));
-  for (let c = 0; c < a.channels; c++) {
+  for (let c = 0; c < a.channels && length > 0; c++) {
     const x = a.channelData[c]!;
     const y = b.channelData[c]!;
     let sx = 0, sy = 0, xx = 0, yy = 0, xy = 0;

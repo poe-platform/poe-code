@@ -320,8 +320,10 @@ average/maximum channel linking, upward/downward modes, input gain, makeup and w
 sample rates and channel layouts, stopping at the shorter input. For example,
 `[0:a][1:a]axcorrelate=size=128:algo=slow[mix]`. `size` accepts 2–131072 samples
 (default 256); `algo` accepts `slow`, `fast` (assumes zero means), or `best`
-(default). Windows look forward and use silence past each input's end. Filters
-can follow axcorrelate; preceding single-input filters are rejected.
+(default). If the first input has at most `size` samples, no audio is emitted;
+a short second input still produces audio when the first exceeds `size`. Windows
+look forward and use silence past each input's end. Filters can follow axcorrelate;
+preceding single-input filters are rejected.
 
 `sidechaingate` uses the second audio input to gate the first, stopping at the shorter
 input. For example, `[0:a][1:a]sidechaingate=threshold=0.1:ratio=8:attack=1:release=20[mix]`

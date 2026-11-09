@@ -488,6 +488,7 @@ Setting `feedback=0:crossfeed=0:drymix=1` preserves the input samples.
 Downstream `ashowinfo` reports packed float (`flt`) frames before output encoding.
 `enable` selects frames by time (`t`) or frame number (`n`); bypassed frames still
 feed the delay history, so re-enabling retains their delayed contributions.
+Downstream `ashowinfo` reports packed float (`flt`) frames before output encoding.
 `haas` applies the default stereo enhancer: the channel average plus a 2.05 ms
 delayed tap on the right and minus a 2.12 ms delayed tap on the left. It preserves
 the sample rate and frame count. Custom Haas options are not supported.

@@ -19,7 +19,9 @@ for (const reverse of [false, true]) {
         "-filter_complex", `${reverse ? "[1:a][0:a]" : "[0:a][1:a]"}${filter}[mix]`,
         "-map", "[mix]", "-c:a", "pcm_s16le", "/out.wav"]);
       assert.equal(result.exitCode, 0, result.stderr);
-      const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      const wav = volume.readFileSync("/out.wav") as Buffer;
+      assert.equal(wav.readUInt16LE(wav.indexOf("fmt ") + 8), 1);
+      const audio = parseWav(wav).tracks[0]!.decodedAudio!;
       assert.equal(audio.channels, 2);
       assert.equal(audio.sampleRate, 8000);
       assert.deepEqual(audio.channelData.map(channel => channel.length), [4096, 4096]);

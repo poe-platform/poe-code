@@ -938,7 +938,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   // FFmpeg's default layouts from 2.1 through 7.1; explicit masks take precedence.
   const channelMask = audioTrack?.decodedAudio?.channelMask ?? (decodedAudio ? decodedAudio.channelMask : undefined) ??
     [0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels - 3];
-  const extensible = channelMask !== undefined || channels > 2 || sampleRate > 48000 ||
+  const extensible = (channelMask !== undefined && channelMask !== (channels === 1 ? 4 : 3)) ||
+    channels > 2 || sampleRate > 48000 ||
     (formatTag === 1 && bitsPerSample > 16);
   const fmtSize = formatBytes?.length ?? (extensible ? 40 : formatTag === 3 || formatTag === 6 || formatTag === 7 ? 18 : 16);
   const wave64 = format === "w64";

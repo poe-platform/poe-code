@@ -9088,7 +9088,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-wavelet-denoise") {
             const geometry = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps(im, waveletDenoisePixelSteps(im, geometry), signal);
+                const expanded = yield* formatMagickPropertyStringSteps(geometry, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                return yield* applyMagickRasterSteps(im, waveletDenoisePixelSteps(im, expanded), signal);
             });
         }
         else if (t === "-clahe") {
@@ -11270,8 +11271,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseLocalContrastGeometry(tokens[++i] ?? ""), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, localContrastPixelSteps(image, geometry, background, virtualPixel, channels), signal) : undefined);
         } else if (!operandsOnly && token === "-wavelet-denoise") {
-            const geometry = tokens[++i] ?? "";
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, waveletDenoisePixelSteps(image, geometry), signal) : undefined);
+            const geometry = tokens[++i] ?? "", optionProperties = state.optionProperties;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                return transformStoredMagickRaster(image, backend, waveletDenoisePixelSteps(image, expanded), signal);
+            });
         } else if (!operandsOnly && token === "-clahe") {
             const geometry = parseClaheGeometry(tokens[++i] ?? ""), { background, virtualPixel } = state;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, clahePixelSteps(image, geometry, background, virtualPixel), signal) : undefined);

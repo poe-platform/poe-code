@@ -22,9 +22,9 @@ export function readVint(
   return { value, length, unknownSize };
 }
 
-export function writeVintSize(size: number): Uint8Array {
+export function writeVintSize(size: number, minLength = 1): Uint8Array {
   if (!Number.isSafeInteger(size) || size < 0) throw new Error("Invalid EBML size");
-  let length = 1;
+  let length = minLength;
   while (size >= 2 ** (7 * length) - 1 && length < 8) length++;
   const bytes = new Uint8Array(length);
   let remaining = size;

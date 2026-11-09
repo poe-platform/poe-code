@@ -64,9 +64,9 @@ function writeEbmlId(id: number): Uint8Array {
   ]);
 }
 
-function makeEbmlElement(id: number, payload: Uint8Array): Uint8Array {
+function makeEbmlElement(id: number, payload: Uint8Array, sizeLength = 1): Uint8Array {
   const idBytes = writeEbmlId(id);
-  const sizeBytes = writeVintSize(payload.byteLength);
+  const sizeBytes = writeVintSize(payload.byteLength, sizeLength);
   return concatBytes([idBytes, sizeBytes, payload]);
 }
 
@@ -807,7 +807,7 @@ export function serializeMkv(
   const isWebm = options.webm ?? (options.format !== undefined ? options.format === "webm" : doc.containerFormat === "webm");
   const docType = isWebm ? "webm" : "matroska";
   const writeCrc32 = !isWebm && options.writeCrc32 !== false;
-  const makeLevelOneElement = (id: number, payload: Uint8Array): Uint8Array => {
+  const makeLevelOneElement = (id: number, payload: Uint8Array, sizeLength = 1): Uint8Array => {
     if (writeCrc32) {
       let crc = 0xffffffff;
       for (const byte of payload) crc = (crc >>> 8) ^ crc32Table[(crc ^ byte) & 255]!;
@@ -815,8 +815,16 @@ export function serializeMkv(
       new DataView(checksum.buffer).setUint32(0, (crc ^ 0xffffffff) >>> 0, true);
       payload = concatBytes([makeEbmlElement(0xbf, checksum), payload]);
     }
-    return makeEbmlElement(id, payload);
+    return makeEbmlElement(id, payload, sizeLength);
   };
+
+  const budget = options.budget ?? new MediaBudgetTracker(options.limits);
+  const reserveIndexSpace = options.reserveIndexSpace ?? 0;
+  if (!Number.isInteger(reserveIndexSpace) || reserveIndexSpace < 0 || reserveIndexSpace > 2147483647) {
+    throw new Error("Invalid reserve_index_space: expected an integer from 0 to 2147483647");
+  }
+  budget.checkOutputBytes(reserveIndexSpace);
+  budget.allocateMemory(reserveIndexSpace);
 
   // 1. EBML Header
   const ebmlHeader = makeEbmlElement(
@@ -1182,26 +1190,63 @@ export function serializeMkv(
       position += cluster.byteLength;
       return start;
     });
-    new DataView(seekPayload.buffer, seekPayload.byteOffset, seekPayload.byteLength)
-      .setBigUint64(seekPayload.byteLength - 8, BigInt(position), false);
-    segmentChildren[0] = makeLevelOneElement(0x114d9b74, seekPayload);
-    const cuesElement = makeLevelOneElement(0x1c53bb6b, concatBytes(
-      cues.sort((a, b) => a.time - b.time || a.track - b.track).map(cue =>
+    const headerSize = clusterPositions[0]!;
+    const front = options.cuesToFront || reserveIndexSpace > 0;
+    let frontSpace = reserveIndexSpace;
+    cues.sort((a, b) => a.time - b.time || a.track - b.track);
+    let cuesElement: Uint8Array;
+    // Growing offsets can grow the integer fields inside Cues. Recompute until
+    // the index fits, before copying any cluster data into the final output.
+    for (;;) {
+      const payload = concatBytes(cues.map(cue =>
         makeEbmlElement(0xbb, concatBytes([
           makeEbmlUint(0xb3, cue.time), // CueTime in the segment's millisecond ticks
           makeEbmlElement(0xb7, concatBytes([
             makeEbmlUint(0xf7, cue.track),
-            makeEbmlUint(0xf1, clusterPositions[cue.cluster]!), // Relative to Segment data
+            makeEbmlUint(0xf1, clusterPositions[cue.cluster]! + frontSpace),
             makeEbmlUint(0xf0, cue.relativePosition) // Relative to Cluster data
           ]))
         ]))
-      )
-    ));
-    segmentChildren.push(...clusters, cuesElement);
+      ));
+      cuesElement = makeLevelOneElement(0x1c53bb6b, payload);
+      if (!front || cuesElement.byteLength <= frontSpace) {
+        // A one-byte gap cannot hold a Void, so widen the Cues size field.
+        if (front && frontSpace - cuesElement.byteLength === 1) {
+          cuesElement = makeLevelOneElement(0x1c53bb6b, payload, writeVintSize(payload.byteLength + (writeCrc32 ? 6 : 0)).length + 1);
+        }
+        break;
+      }
+      if (!options.cuesToFront) throw new Error("Insufficient reserved index space: increase reserve_index_space or enable cues_to_front");
+      frontSpace = cuesElement.byteLength;
+    }
+    budget.allocateMemory(Math.max(0, frontSpace - reserveIndexSpace) + (front ? 0 : cuesElement.byteLength));
+    new DataView(seekPayload.buffer, seekPayload.byteOffset, seekPayload.byteLength)
+      .setBigUint64(seekPayload.byteLength - 8, BigInt(front ? headerSize : position), false);
+    segmentChildren[0] = makeLevelOneElement(0x114d9b74, seekPayload);
+    if (front) {
+      segmentChildren.push(cuesElement);
+      const padding = frontSpace - cuesElement.byteLength;
+      if (padding > 0) {
+        let sizeLength = 1;
+        while (padding - 1 - sizeLength >= 2 ** (7 * sizeLength) - 1) sizeLength++;
+        segmentChildren.push(makeEbmlElement(0xec, new Uint8Array(padding - 1 - sizeLength), sizeLength));
+      }
+      segmentChildren.push(...clusters);
+    } else {
+      segmentChildren.push(...clusters, cuesElement);
+    }
   } else {
+    if (reserveIndexSpace > 0) {
+      const padding = Math.max(2, reserveIndexSpace);
+      let sizeLength = 1;
+      while (padding - 1 - sizeLength >= 2 ** (7 * sizeLength) - 1) sizeLength++;
+      segmentChildren.push(makeEbmlElement(0xec, new Uint8Array(padding - 1 - sizeLength), sizeLength));
+    }
     segmentChildren.push(...clusters);
   }
 
+  const segmentSize = segmentChildren.reduce((size, element) => size + element.byteLength, 0);
+  budget.checkOutputBytes(ebmlHeader.byteLength + 4 + (options.live ? 8 : writeVintSize(segmentSize).length) + segmentSize);
   const segmentElem = options.live
     ? concatBytes([writeEbmlId(0x18538067), new Uint8Array([0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]), ...segmentChildren])
     : makeEbmlElement(0x18538067, concatBytes(segmentChildren));

@@ -836,8 +836,10 @@ export interface SerializeMediaOptions {
   readonly writeId3v1?: boolean | undefined;
   /** FLAC metadata padding bytes; -1 selects 8192, zero disables padding. */
   readonly metadataHeaderPadding?: number | undefined;
-  /** AVI index reservation in bytes per stream; zero uses the default reservation. */
+  /** AVI per-stream index reservation (zero uses its default), or Matroska/WebM front cue space in bytes. */
   readonly reserveIndexSpace?: number | undefined;
+  /** Move Matroska/WebM cues before clusters, growing reserved space when necessary. */
+  readonly cuesToFront?: boolean | undefined;
   /** Matroska/WebM cluster time limit in milliseconds; -1 or omitted selects 5000. */
   readonly clusterTimeLimit?: number | undefined;
   /** GIF final frame delay in centiseconds; -1 preserves the source delay. */

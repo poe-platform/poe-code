@@ -6046,7 +6046,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let precision = 6;
     let locateMaximum = false;
     let locateLimit = 0;
-    const targets: { path: string; sceneCount?: number }[] = [];
+    const targets: { path: string; sceneCount?: number; customFormat: string | undefined }[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -6092,7 +6092,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
         }
         else if (a === "-" || !a.startsWith("-")) {
-            targets.push({ path: a });
+            targets.push({ path: a, customFormat });
         }
     }
     if (targets.length === 0) {
@@ -6114,6 +6114,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let exitCode = 0;
     for (let targetIndex = 0; targetIndex < targets.length; targetIndex++) {
         const target = targets[targetIndex]!;
+        const { customFormat } = target;
         let inPath = target.path;
         yield;
         const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
@@ -6142,7 +6143,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                         let offset = 0;
                         for (const page of selectedInputPages(parsed.pageSpec, metadata.pages ?? 1)) {
                             yield;
-                            targets.splice(targetIndex + ++offset, 0, { path: `${baseInPath}[${page}]` });
+                            targets.splice(targetIndex + ++offset, 0, { path: `${baseInPath}[${page}]`, customFormat });
                         }
                         for (let index = 1; index <= offset; index++) targets[targetIndex + index]!.sceneCount = offset;
                     }
@@ -6176,7 +6177,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             if (pageIdx === undefined && (meta.format === "tiff" || meta.format === "gif") && (meta.pages ?? 1) > 1) {
                 for (let page = 1; page < meta.pages!; page++) {
                     yield;
-                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, sceneCount: meta.pages! });
+                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, sceneCount: meta.pages!, customFormat });
                 }
                 inPath = `${baseInPath}[0]`;
             }

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { Volume } from "memfs";
-import { MediaBudgetTracker, parseMkv, type MediaSample } from "@poe-code/mp4-ast";
+import { MediaBudgetTracker, parseMkv, parseMp4, type MediaSample } from "@poe-code/mp4-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 import { mergeVp9Superframes } from "./vp9-superframe.js";
 
@@ -14,7 +14,7 @@ assert.equal(expected.length, 20);
 
 for (const sync of [false, true]) {
   for (const input of ["vp9-split.mkv", "vp9-packed.webm"]) {
-    for (const extension of ["mkv", "webm"]) {
+    for (const extension of ["mkv", "webm", "mp4"]) {
       it(`${sync ? "sync" : "async"} copies ${input} to ${extension} with native VP9 packet grouping`, async () => {
         const bytes = readFileSync(new URL(`./fixtures/${input}`, import.meta.url));
         const volume = Volume.fromJSON({ "/in.mkv": bytes });
@@ -37,9 +37,9 @@ for (const sync of [false, true]) {
           } as never);
           assert.equal(result.exitCode, 0, stderr);
         }
-        const output = parseMkv(new Uint8Array(volume.readFileSync(`/out.${extension}`) as Buffer));
+        const output = (extension === "mp4" ? parseMp4 : parseMkv)(new Uint8Array(volume.readFileSync(`/out.${extension}`) as Buffer));
         assert.equal(output.tracks[0]!.samples.length, 20);
-        assert.deepEqual(output.tracks[0]!.samples.map(({ pts, data }) => ({ pts, data })), expected);
+        assert.deepEqual(output.tracks[0]!.samples.map(({ pts, data }) => ({ pts: pts * 1000 / output.tracks[0]!.timescale, data })), expected);
       });
     }
   }

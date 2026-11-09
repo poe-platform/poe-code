@@ -1,6 +1,6 @@
 import { BitReader, type MediaBudgetTracker, type MediaSample, type MediaTrack } from "@poe-code/mp4-ast";
 
-/** Join invisible VP9 frames to the next displayed frame, as Matroska's automatic BSF does. */
+/** Join invisible VP9 frames to the next displayed frame, as the muxer's automatic BSF does. */
 export function mergeVp9Superframes(tracks: readonly MediaTrack[], budget: MediaBudgetTracker): readonly MediaTrack[] {
   return tracks.map(track => {
     if (track.type !== "video" || track.codecDescriptions[0]?.codecName !== "vp9") return track;

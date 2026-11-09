@@ -3,16 +3,17 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { Volume } from "memfs";
-import { parseMkv } from "@poe-code/mp4-ast";
+import { parseMkv, parseMp4 } from "@poe-code/mp4-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 const input = readFileSync(new URL("./fixtures/vp9-split.mkv", import.meta.url));
 // Native FFmpeg 7.0.2 stream copy, inspected with ffprobe -show_packets -show_data_hash sha256.
 const expected = JSON.parse(readFileSync(new URL("./fixtures/vp9-autobsf-packets.json", import.meta.url), "utf8"));
 
-function packets(bytes: Uint8Array) {
-  return parseMkv(bytes).tracks[0]!.samples.map(sample => ({
-    pts: sample.pts,
+function packets(bytes: Uint8Array, extension = "mkv") {
+  const track = (extension === "mp4" ? parseMp4(bytes) : parseMkv(bytes)).tracks[0]!;
+  return track.samples.map(sample => ({
+    pts: sample.pts * 1000 / track.timescale,
     size: String(sample.data.length),
     data_hash: `SHA256:${createHash("sha256").update(sample.data).digest("hex")}`
   }));
@@ -41,20 +42,27 @@ async function copy(args: string[], sync = false) {
   return volume;
 }
 
-for (const sync of [false, true]) for (const extension of ["mkv", "webm"]) {
+for (const sync of [false, true]) for (const extension of ["mkv", "webm", "mp4"]) {
   for (const flag of [undefined, "+autobsf", "-autobsf", "autobsf", "bitexact", "+bitexact"]) {
     it(`${sync ? "sync" : "async"} ${extension} VP9 copy matches native packets with fflags=${flag ?? "default"}`, async () => {
       const output = `/out.${extension}`;
       const volume = await copy(["-v", "error", "-y", "-i", "/in.mkv", ...(sync ? [] : ["-map", "0:v"]), "-c", "copy",
         ...(flag ? ["-fflags", flag] : []), output], sync);
-      assert.deepEqual(packets(volume.readFileSync(output) as Buffer),
-        flag === "-autobsf" || flag === "bitexact" ? expected.disabled : expected.enabled);
+      const actual = packets(volume.readFileSync(output) as Buffer, extension);
+      const reference = flag === "-autobsf" || flag === "bitexact" ? expected.disabled : expected.enabled;
+      if (extension === "mp4") {
+        // MP4 adjusts duplicate timestamps to its time base; compare the stored payloads.
+        assert.deepEqual(actual.map(packet => packet.data_hash),
+          reference.map((packet: { data_hash: string }) => packet.data_hash));
+      } else {
+        assert.deepEqual(actual, reference);
+      }
     });
   }
   it(`${sync ? "sync" : "async"} input fflags do not disable output autobsf for ${extension}`, async () => {
     const output = `/out.${extension}`;
     const volume = await copy(["-y", "-fflags", "-autobsf", "-i", "/in.mkv", "-c", "copy", output], sync);
-    assert.deepEqual(packets(volume.readFileSync(output) as Buffer), expected.enabled);
+    assert.deepEqual(packets(volume.readFileSync(output) as Buffer, extension), expected.enabled);
   });
 }
 

@@ -5041,7 +5041,7 @@ export function evalSyncFfmpeg(
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale), subtitleBitstreamFilter, budget, "subtitle", workingDoc.timescale) };
-    if (autobsf && videoCodec === "copy" && (outPlugin?.id === "mkv" || outPlugin?.id === "webm")) {
+    if (autobsf && videoCodec === "copy" && (outPlugin?.id === "mkv" || outPlugin?.id === "webm" || outPlugin?.id === "mp4")) {
       workingDoc = { ...workingDoc, tracks: mergeVp9Superframes(workingDoc.tracks, budget) };
     }
     workingDoc = applyVideoTag(workingDoc, outPlugin.id, videoCodec, videoTag);
@@ -10460,7 +10460,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale), subtitleBitstreamFilter, budget, "subtitle", workingDoc.timescale) };
-            if (autobsf && videoCodec === "copy" && (outPlugin?.id === "mkv" || outPlugin?.id === "webm")) {
+            if (autobsf && videoCodec === "copy" && (outPlugin?.id === "mkv" || outPlugin?.id === "webm" || outPlugin?.id === "mp4")) {
               workingDoc = { ...workingDoc, tracks: mergeVp9Superframes(workingDoc.tracks, budget) };
             }
 

@@ -24,5 +24,6 @@ export function flacFormatTags(nodes: readonly AudioNode[]): AudioTags {
     }
     for (const [key, entry] of block) tags.set(key, entry);
   }
-  return Object.fromEntries(tags.values());
+  return tags.size ? Object.fromEntries(tags.values())
+    : { ...nodes.find(node => node.type === "ID3")?.fields?.tags as AudioTags | undefined };
 }

@@ -1,3 +1,5 @@
+import { id3HeaderSize } from "./id3-header.js";
+import { parseId3 } from "./id3.js";
 import { Reader, duration } from "./binary.js";
 import { parseComments, parsePicture } from "./vorbis.js";
 import type { AudioAst, AudioNode, AudioTags, AudioPicture, AudioStream } from "./types.js";
@@ -5,8 +7,12 @@ export function parseFlac(bytes: Uint8Array): AudioAst {
   const r = new Reader(bytes),
     nodes: AudioNode[] = [],
     pictures: AudioPicture[] = [];
+  const prefix = id3HeaderSize(bytes);
+  const id3 = prefix ? parseId3(bytes) : undefined;
+  if (id3) nodes.push({ type: "ID3", offset: 0, size: prefix, data: bytes.subarray(0, prefix),
+    children: id3.nodes, fields: { tags: id3.tags } });
   const tags: AudioTags = {};
-  let offset = 4,
+  let offset = prefix + 4,
     last = false,
     stream: AudioStream | undefined;
   while (!last) {
@@ -33,7 +39,7 @@ export function parseFlac(bytes: Uint8Array): AudioAst {
     nodes.push(node);
     const block = new Reader(data);
     if (type === 0) {
-      if (stream || offset !== 4 || size !== 34)
+      if (stream || offset !== prefix + 4 || size !== 34)
         throw new Error("FLAC requires first unique STREAMINFO");
       stream = flacStream(block, bytes.length);
       const { sampleRate, channels, bitsPerSample, samples } = stream;
@@ -68,6 +74,7 @@ export function parseFlac(bytes: Uint8Array): AudioAst {
     offset += 4 + size;
   }
   if (!stream) throw new Error("Missing FLAC STREAMINFO");
+  if (!Object.keys(tags).length && id3) Object.assign(tags, id3.tags);
   if (offset < bytes.length)
     nodes.push({
       type: "FRAMES",

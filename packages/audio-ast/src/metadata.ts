@@ -145,7 +145,7 @@ export function rewriteMetadata(
       ]);
     case "flac": {
       const blocks = ast.nodes
-        .filter((n) => !["FRAMES", "VORBIS_COMMENT", "PICTURE", "PADDING"].includes(n.type))
+        .filter((n) => !["ID3", "FRAMES", "VORBIS_COMMENT", "PICTURE", "PADDING"].includes(n.type))
         .map((n) => ({ type: ast.data[n.offset]! & 127, data: n.data }));
       const vendor = ast.nodes.find((n) => n.type === "VORBIS_COMMENT")?.fields?.vendor;
       blocks.push({

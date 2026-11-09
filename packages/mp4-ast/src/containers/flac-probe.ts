@@ -1,4 +1,4 @@
-import { parseAudio } from "@poe-code/audio-ast";
+import { parseAudio, id3HeaderSize, flacFormatTags } from "@poe-code/audio-ast";
 import type { Mp4Chapter } from "../types.js";
 
 export function flacChapters(tags: Record<string, string>, duration: number): Mp4Chapter[] {
@@ -60,6 +60,7 @@ export class FlacFrameScanner {
   readonly header = new Uint8Array(42);
   readonly pictureBlocks: Uint8Array[] = [];
   hasReplayGain = false;
+  readonly tags: Record<string, string> = {};
   private metadataBlock: Uint8Array | undefined;
   private readonly chapterTags: Record<string, string> = {};
   private readonly cueBlocks: Uint8Array[] = [];
@@ -68,6 +69,7 @@ export class FlacFrameScanner {
   private pending = new Uint8Array();
   private offset = 0;
   private metadataEnd = 4;
+  private prefix: number | undefined;
   private audio = false;
   private lastMetadata = false;
   private crc = 0;
@@ -103,7 +105,6 @@ export class FlacFrameScanner {
   }
 
   push(chunk: Uint8Array, final = false): void {
-    if (this.size < 42) this.header.set(chunk.subarray(0, 42 - this.size), this.size);
     this.size += chunk.length;
     let bytes = chunk;
     if (this.pending.length) {
@@ -113,6 +114,13 @@ export class FlacFrameScanner {
     let pos = 0;
     const end = final ? bytes.length : Math.max(0, bytes.length - 16);
     for (; pos < end; pos++, this.offset++) {
+      if (this.prefix === undefined) {
+        if (bytes.length - pos < 10 && !final) break;
+        this.prefix = id3HeaderSize(bytes.subarray(pos));
+        this.metadataEnd = this.prefix + 4;
+      }
+      if (this.offset < this.prefix) continue;
+      if (this.offset < this.prefix + 42) this.header[this.offset - this.prefix] = bytes[pos]!;
       if (!this.audio) {
         if (this.offset < this.metadataEnd) {
           if (this.metadataBlock) this.metadataBlock[this.metadataBlock.length - (this.metadataEnd - this.offset)] = bytes[pos]!;
@@ -121,7 +129,9 @@ export class FlacFrameScanner {
             metadata.set(this.header); metadata[4] = 0;
             metadata.set(this.metadataBlock, 42); metadata[42] = 132;
             try {
-              for (const [key, value] of Object.entries(parseAudio(metadata).tags)) {
+              const audio = parseAudio(metadata);
+              Object.assign(this.tags, flacFormatTags(audio.nodes));
+              for (const [key, value] of Object.entries(audio.tags)) {
                 if (key.startsWith("CHAPTER")) this.chapterTags[key] = value;
                 if (key === "REPLAYGAIN_TRACK_GAIN" || key === "REPLAYGAIN_ALBUM_GAIN") this.hasReplayGain = true;
               }

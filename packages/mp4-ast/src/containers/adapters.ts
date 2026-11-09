@@ -36,7 +36,7 @@ import { decodeMp3Track, encodeMp3 } from "../mp3.js";
 import { decodeVorbisTrack } from "../vorbis.js";
 import { decodeAacTrack } from "../aac.js";
 import { wavInfoTags, isWave64Signature, wave64Guid, readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
-import { parseAudio, mpegFrame, flacFormatTags, writeAudioMetadata, encodeId3, type AudioStream } from "@poe-code/audio-ast";
+import { parseAudio, id3HeaderSize, mpegFrame, flacFormatTags, writeAudioMetadata, encodeId3, type AudioStream } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import { decodeFlac, encodeFlacPackets } from "./flac.js";
 import { FlacFrameScanner, flacChapters } from "./flac-probe.js";
@@ -1284,7 +1284,10 @@ export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
 
 export function isMp3Signature(bytes: Uint8Array): boolean {
   if (bytes.byteLength < 4) return false;
-  if (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) return true; // ID3
+  if (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) {
+    const offset = id3HeaderSize(bytes);
+    return bytes.length < offset + 4 || decodeFourCC(bytes, offset) !== "fLaC";
+  }
   return bytes[0] === 0xff && (bytes[1]! & 0xe0) === 0xe0 && (bytes[1]! & 0x06) !== 0x00;
 }
 
@@ -1551,7 +1554,7 @@ function flacProbe(scanner: FlacFrameScanner, options: MediaSourceProbeOptions =
   }
   const result = buildProbeResultFromDoc({ ...doc, tracks, chapters: scanner.chapters(doc.timescale) }, scanner.size,
     options.filename ?? "input.flac", { ...options, formatName: "flac", formatLongName: "raw FLAC" });
-  return { ...result,
+  return { ...result, format: { ...result.format, tags: scanner.tags },
     streams: result.streams.map(stream => stream.index === 0 ? { ...stream, nb_frames: undefined,
       ...(scanner.hasReplayGain ? { side_data_list: [{ side_data_type: "Replay Gain" }] } : {}),
       nb_read_packets: String(samples.length), nb_read_frames: String(samples.length) } : stream),
@@ -1597,12 +1600,9 @@ export function flacAst(): MediaAstPlugin {
     canMux: true,
     supportedVideoCodecs: ["png", "mjpeg"],
     supportedAudioCodecs: ["flac"],
-    detect(bytes, filename) {
-      if (bytes.byteLength >= 4 && decodeFourCC(bytes, 0) === "fLaC") return true;
-      if (filename && filename.toLowerCase().endsWith(".flac") && bytes.byteLength >= 4) {
-        return decodeFourCC(bytes, 0) === "fLaC";
-      }
-      return false;
+    detect(bytes) {
+      const offset = id3HeaderSize(bytes);
+      return bytes.length >= offset + 4 && decodeFourCC(bytes, offset) === "fLaC";
     },
     parse(bytes, options = {}) {
       const budget = options.budget ?? new MediaBudgetTracker(options.limits);
@@ -1611,9 +1611,10 @@ export function flacAst(): MediaAstPlugin {
       const stream = parsed.streams[0]!;
       const scanner = new FlacFrameScanner();
       scanner.push(bytes, true);
-      const doc = flacDocument(bytes, bytes.byteLength);
-      const blocks: Uint8Array[] = [bytes.subarray(0, 4)];
-      let offset = 4;
+      const prefix = id3HeaderSize(bytes);
+      const doc = flacDocument(bytes.subarray(prefix), bytes.byteLength);
+      const blocks: Uint8Array[] = [bytes.subarray(prefix, prefix + 4)];
+      let offset = prefix + 4;
       for (;;) {
         const type = bytes[offset]! & 127;
         const size = bytes[offset + 1]! * 65536 + bytes[offset + 2]! * 256 + bytes[offset + 3]!;

@@ -1,3 +1,4 @@
+export { id3HeaderSize } from "./id3-header.js";
 export { flacFormatTags, flacFormatTagName } from "./flac-tags.js";
 export { encodeId3, parseId3 } from "./id3.js";
 export { readOgg } from "./ogg.js";
@@ -16,6 +17,7 @@ export type { MetadataOptions } from "./metadata.js";
 import { Reader } from "./binary.js";
 import { parseWav } from "./wav.js";
 import { parseMp3 } from "./mp3.js";
+import { id3HeaderSize } from "./id3-header.js";
 import { parseFlac } from "./flac.js";
 import { parseOgg } from "./ogg.js";
 import { parseMp4 } from "./mp4.js";
@@ -26,7 +28,8 @@ export function parseAudio(data: Uint8Array, options: AudioParseOptions = {}): A
   const reader = new Reader(data),
     marker = reader.text(0, 4);
   if (marker === "RIFF") return parseWav(data);
-  if (marker === "fLaC") return parseFlac(data);
+  const audioOffset = id3HeaderSize(data);
+  if (data.length >= audioOffset + 4 && reader.text(audioOffset, 4) === "fLaC") return parseFlac(data);
   if (marker === "OggS") return parseOgg(data);
   if (data.length >= 8 && reader.text(4, 4) === "ftyp") return parseMp4(data, options);
   if (marker.startsWith("ID3") || (reader.u8(0) === 255 && (reader.u8(1) & 224) === 224))

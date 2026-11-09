@@ -18,7 +18,7 @@ import { formatTaggedAudio, formatTaggedRows, type TaggedAudioRow, type StoredAu
 import { writeProbeOutput } from "./probe-output.js";
 import { openProbeStream, sniffMediaStream, withStagedProbeSource } from "./stream-input.js";
 import { isStdin, probe as probeAudio, parseArguments as parseAudioArguments, formatAudioProbe } from "./probe.js";
-import { parseAudio, flacFormatTags, probeWavSource, probeFlacSource, probeMp3Source, type AudioAst } from "@poe-code/audio-ast";
+import { parseAudio, id3HeaderSize, probeId3Source, flacFormatTags, probeWavSource, probeFlacSource, probeMp3Source, type AudioAst } from "@poe-code/audio-ast";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { wavPacketFrames, probeMp4Source, scanMp4Frames, scanMp4Packets, allMediaAsts, probeOggFlacSource, probeOggStreamMetadata, createMediaAstRegistry, encodeUtf8, parseStreamingManifest, MediaBudgetTracker,
@@ -328,7 +328,6 @@ export function* formatFfprobeResultChunks(probe: SyncProbeRows, opts: FfprobeFo
   if (audio !== undefined) { yield audio; return; }
   if (audioInput && "bytes" in audioInput && probe.format?.format_name === "flac") {
     try {
-      parseAudioArguments(audioInput.args);
       probe = { ...probe, format: { ...probe.format, tags: flacFormatTags(parseAudio(audioInput.bytes).nodes) } };
     } catch { /* Preserve the general-media fallback for extended options or malformed audio. */ }
   }
@@ -350,7 +349,6 @@ export async function* formatFfprobeSourceChunks(probe: ProbeSourceRows, opts: F
   if (audio !== undefined) { yield audio; return; }
   if (audioInput && "bytes" in audioInput && probe.format?.format_name === "flac") {
     try {
-      parseAudioArguments(audioInput.args);
       probe = { ...probe, format: { ...probe.format, tags: flacFormatTags(parseAudio(audioInput.bytes).nodes) } };
     } catch { /* Preserve the general-media fallback for extended options or malformed audio. */ }
   }
@@ -955,7 +953,9 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
   } };
   let plugin = plugins[0];
   if (detect) {
-    const header = await source.read(0, Math.min(12, input.size));
+    let header = await source.read(0, Math.min(12, input.size));
+    const prefix = id3HeaderSize(header);
+    if (prefix) header = await source.read(prefix, Math.min(12, input.size - prefix));
     context.signal.throwIfAborted();
     plugin = plugins.find(candidate => candidate.detect(header, filename));
   }
@@ -985,22 +985,29 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
   }
   const result: MediaProbeSourceRecords = await (plugin.probeRecords ?? plugin.probeMetadata)!.call(plugin, source, { ...records, filename, seekable: !isStdin(filename), signal: context.signal, budget, limits: budget.limits });
   if (result.close) retain(result.close.bind(result));
-  if (onAudio && !(plugin.formatName === "wav" && result.format?.tags?.time_reference !== undefined)) {
-    const tags = plugin.formatName === "flac" ? new FlacTags(source, context, { flac: true }) : new SourceAudioTags(source, context);
-    retain(tags.close);
+  if ((onAudio || plugin.formatName === "flac") && !(plugin.formatName === "wav" && result.format?.tags?.time_reference !== undefined)) {
+    const initialTags = plugin.formatName === "flac" ? new FlacTags(source, context, { flac: true }) : new SourceAudioTags(source, context);
+    retain(initialTags.close);
     let checkpoints = 0;
     try {
-      const audio = tags instanceof FlacTags
+      const audio = initialTags instanceof FlacTags
         ? await probeFlacSource(source, { signal: context.signal, onComment: async span => {
-          try { await tags.add(span); } catch (error) { sourceFailed = true; throw error; }
+          try { await initialTags.add(span); } catch (error) { sourceFailed = true; throw error; }
         } })
         : plugin.formatName === "mp3" ? await probeMp3Source(source, { signal: context.signal, checkpoint: async () => { if (++checkpoints % 256 === 0) await yieldTurn(context.signal); }, onTag: async span => {
-          try { await tags.add(span); } catch (error) { sourceFailed = true; throw error; }
+          try { await initialTags.add(span); } catch (error) { sourceFailed = true; throw error; }
         } })
         : await probeWavSource(source, { signal: context.signal, onTag: async span => {
-          try { await tags.add(span); } catch (error) { sourceFailed = true; throw error; }
+          try { await initialTags.add(span); } catch (error) { sourceFailed = true; throw error; }
         } });
-      if (Array.isArray(result.streams) && result.streams.some(stream => stream.codec_type !== "audio" || stream.side_data_list?.length)) {
+      let tags = initialTags;
+      if (tags instanceof FlacTags && tags.count === 0 && id3HeaderSize(await source.read(0, Math.min(10, source.size)))) {
+        const id3Tags = new SourceAudioTags(source, context);
+        retain(id3Tags.close);
+        await probeId3Source(source, { signal: context.signal, onTag: span => id3Tags.add(span) });
+        tags = id3Tags;
+      }
+      if (!onAudio || Array.isArray(result.streams) && result.streams.some(stream => stream.codec_type !== "audio" || stream.side_data_list?.length)) {
         const formatTags: Record<string, MediaProbeText> = {};
         for await (const entry of tags.entries()) {
           let key = "";
@@ -1162,7 +1169,12 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
               context.inputBudget?.check(total); budget.checkInputBytes(total);
             });
             const automaticPlugin = explicitPlugin ?? streamPlugins.find(plugin => plugin.detect(sniffed.prefix, inputTarget));
-            if (automaticPlugin) {
+            if (!explicitPlugin && id3HeaderSize(sniffed.prefix)) {
+              probeResult = await withStagedProbeSource(context, sniffed.stream, source => probeSourceMetadata(context, streamPlugins, source, inputTarget, budget,
+                { showPackets, showFrames, ignoreLength, maxSize, ...(mp4Records ? { mp4Records } : {}) },
+                automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, true), retain);
+              if (!probeResult) throw new Error("Unsupported audio after ID3 tag");
+            } else if (automaticPlugin) {
               if (!showData && !showDataHash && !automaticAudio && !automaticPlugin.probeRecords && automaticPlugin.probeMetadataStream) {
                 // Sniff replay already admits each source chunk exactly once.
                 probeResult = await automaticPlugin.probeMetadataStream(sniffed.stream, {

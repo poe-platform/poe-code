@@ -1,3 +1,5 @@
+import { id3HeaderSize } from "./id3-header.js";
+import { probeId3Source } from "./id3-source.js";
 import { Reader } from "./binary.js";
 import { flacStream } from "./flac.js";
 import { addVorbisComment } from "./vorbis.js";
@@ -21,15 +23,16 @@ export async function probeFlacSource(source: AudioProbeSource, options: { signa
     if (bytes.length !== length) throw new Error("Truncated or invalid audio structure");
     return new Reader(bytes);
   };
-  if ((await read(0, 4)).text(0, 4) !== "fLaC") throw new Error("Expected FLAC signature");
-  let offset = 4, last = false, stream: AudioStream | undefined;
+  const prefix = id3HeaderSize((await read(0, Math.min(10, source.size))).bytes);
+  if ((await read(prefix, 4)).text(0, 4) !== "fLaC") throw new Error("Expected FLAC signature");
+  let offset = prefix + 4, last = false, stream: AudioStream | undefined;
   const tags: AudioTags = {};
   while (!last) {
     const header = await read(offset, 4), type = header.u8(0) & 127, length = header.u24(1), start = offset + 4, end = start + length;
     last = !!(header.u8(0) & 128);
     check(start, length);
     if (type === 0) {
-      if (stream || offset !== 4 || length !== 34) throw new Error("FLAC requires first unique STREAMINFO");
+      if (stream || offset !== prefix + 4 || length !== 34) throw new Error("FLAC requires first unique STREAMINFO");
       stream = flacStream(await read(start, 34, end), source.size);
     } else if (type === 4) {
       const vendorLength = (await read(start, 4, end)).u32(0, true);
@@ -69,5 +72,6 @@ export async function probeFlacSource(source: AudioProbeSource, options: { signa
   }
   if (!stream) throw new Error("Missing FLAC STREAMINFO");
   options.signal?.throwIfAborted();
+  if (prefix && !options.onComment && !Object.keys(tags).length) Object.assign(tags, (await probeId3Source(source, options)).tags);
   return { format: "flac", streams: [stream], tags, duration: stream.duration, bitrate: stream.bitrate };
 }

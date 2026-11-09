@@ -655,6 +655,7 @@ interface MagickState {
   fuzz: number;
   alphaFuzz: number;
   trimPercentBackground?: number;
+  trimBackgroundColor?: RgbaColor;
   houghAccumulator?: boolean;
   deskewAutoCrop?: string;
   trimEdges?: string;
@@ -7291,6 +7292,7 @@ if (t === "-seed") {
             if (key === "connected-components:exclude-ids") delete state.connectedExcludeIds;
             if (key === "connected-components:mean-color") delete state.connectedMeanColor;
             if (key === "trim:percent-background") delete state.trimPercentBackground;
+            if (key === "trim:background-color") delete state.trimBackgroundColor;
             if (key === "tiff:tile-geometry") delete state.tiffTile;
             if (key === "quantum:format") { delete state.tiffFloatingPoint; delete state.tiffSigned; }
             if (key === "tiff:alpha") delete state.tiffAlpha;
@@ -7407,6 +7409,7 @@ if (t === "-seed") {
             if (defStr.toLowerCase().startsWith("hough-lines:accumulator=")) state.houghAccumulator = ["true", "1", "yes", "on"].includes(defStr.split("=")[1]!.toLowerCase());
             if (defStr.toLowerCase().startsWith("deskew:auto-crop=")) state.deskewAutoCrop = defStr.slice("deskew:auto-crop=".length).toLowerCase();
             if (defStr.toLowerCase().startsWith("trim:percent-background=")) state.trimPercentBackground = Number.parseFloat(defStr.slice("trim:percent-background=".length)) || 0;
+            if (filterKey === "trim:background-color") state.trimBackgroundColor = parseColor(filterValue ?? "", true);
             if (defStr.toLowerCase().startsWith("trim:edges=")) state.trimEdges = defStr.slice("trim:edges=".length);
             if (defStr.toLowerCase().startsWith("trim:minsize=")) state.trimMinSize = parseMagickGeometry(defStr.slice("trim:minsize=".length));
             if (defStr.toLowerCase().startsWith("quantum:format=")) state.tiffFloatingPoint = defStr.slice("quantum:format=".length).toLowerCase() === "floating-point";
@@ -8261,7 +8264,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-trim") {
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* trimMagickSteps(im, state.alphaFuzz, state.trimEdges, state.trimMinSize, state.trimPercentBackground, analysis));
+                return (yield* trimMagickSteps(im, state.alphaFuzz, state.trimEdges, state.trimMinSize, state.trimPercentBackground, analysis, state.trimBackgroundColor));
             }));
         }
         else if (t === "-rotate") {
@@ -10365,8 +10368,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     virtualCanvas: magickBorderCanvas(image, -width, -height) };
             });
         } else if (!operandsOnly && token === "-trim") {
-            const fuzz = state.alphaFuzz, edges = state.trimEdges, minSize = state.trimMinSize, percentBackground = state.trimPercentBackground;
-            steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal, edges, minSize, percentBackground, analysis) : undefined);
+            const fuzz = state.alphaFuzz, edges = state.trimEdges, minSize = state.trimMinSize, percentBackground = state.trimPercentBackground, background = state.trimBackgroundColor;
+            steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal, edges, minSize, percentBackground, analysis, background) : undefined);
         } else if (!operandsOnly && token === "-despeckle") {
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, despecklePixelSteps(image, channels), signal) : undefined);

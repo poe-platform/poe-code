@@ -69,17 +69,36 @@ export function serializeFrameChecksum(
   const name = algorithm.toLowerCase();
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512, ripemd128, ripemd160, ripemd256, ripemd320, "sha512/224": sha512_224, "sha512/256": sha512_256 };
   if (format !== "framecrc" && name !== "crc32" && !Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
-  const lines = format === "framecrc" ? [] : ["#format: frame checksums", `#version: ${formatVersion}`, `#hash: ${name.toUpperCase()}`];
-  if (format === "framecrc") {
-    for (const [index, track] of doc.tracks.entries()) {
-      if ((track.type === "video" ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) !== "copy") continue;
-      const codec = track.codecDescriptions[0];
-      let extra = codec?.extraData;
-      // The FLAC AST retains the file metadata for remuxing; codec extradata is STREAMINFO only.
-      if (codec?.codecName === "flac" && extra && extra[0] === 0x66 && extra[1] === 0x4c &&
-          extra[2] === 0x61 && extra[3] === 0x43) extra = extra.subarray(8, 42);
-      if (extra?.length) lines.push(`#extradata ${index}: ${String(extra.length).padStart(8)}, ${frameCrc(extra, budget)}`);
+  function checksum(bytes: Uint8Array): string {
+    if (format === "framecrc") {
+      return frameCrc(bytes, budget);
+    } else if (name === "crc32") {
+      let crc = 0xffffffff;
+      for (let i = 0; i < bytes.length; i++) {
+        if (i % 4096 === 0) budget.checkCpu();
+        crc = (crc >>> 8) ^ crc32Table[(crc ^ bytes[i]!) & 255]!;
+      }
+      return ((crc ^ 0xffffffff) >>> 0).toString(16).padStart(8, "0");
+    } else {
+      const hash = hashes[name as keyof typeof hashes].create();
+      for (let i = 0; i < bytes.length; i += 65536) {
+        budget.checkCpu();
+        hash.update(bytes.subarray(i, i + 65536));
+      }
+      return bytesToHex(hash.digest());
     }
+  }
+  const lines = format === "framecrc" ? [] : ["#format: frame checksums", `#version: ${formatVersion}`, `#hash: ${name.toUpperCase()}`];
+  for (const [index, track] of doc.tracks.entries()) {
+    if ((track.type === "video" ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) !== "copy") continue;
+    const codec = track.codecDescriptions[0];
+    let extra = codec?.extraData;
+    // The FLAC AST retains the file metadata for remuxing; codec extradata is STREAMINFO only.
+    if (codec?.codecName === "flac" && extra && extra[0] === 0x66 && extra[1] === 0x4c &&
+        extra[2] === 0x61 && extra[3] === 0x43) extra = extra.subarray(8, 42);
+    if (extra?.length) lines.push(format === "framecrc"
+      ? `#extradata ${index}: ${String(extra.length).padStart(8)}, ${checksum(extra)}`
+      : `#extradata ${index}, ${String(extra.length).padStart(31)}, ${checksum(extra)}`);
   }
   if (format === "framecrc" && !bitexact) lines.push("#software: Lavf61.7.100");
   for (const [index, track] of doc.tracks.entries()) {
@@ -244,24 +263,7 @@ export function serializeFrameChecksum(
         : track.type !== "audio" || decodedAudioPackets ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(duration * bytesPerFrame))));
       const size = bytes.length;
       offset += size;
-      let digest: string;
-      if (format === "framecrc") {
-        digest = frameCrc(bytes, budget);
-      } else if (name === "crc32") {
-        let crc = 0xffffffff;
-        for (let i = 0; i < bytes.length; i++) {
-          if (i % 4096 === 0) budget.checkCpu();
-          crc = (crc >>> 8) ^ crc32Table[(crc ^ bytes[i]!) & 255]!;
-        }
-        digest = ((crc ^ 0xffffffff) >>> 0).toString(16).padStart(8, "0");
-      } else {
-        const hash = hashes[name as keyof typeof hashes].create();
-        for (let i = 0; i < bytes.length; i += 65536) {
-          budget.checkCpu();
-          hash.update(bytes.subarray(i, i + 65536));
-        }
-        digest = bytesToHex(hash.digest());
-      }
+      const digest = checksum(bytes);
       let annotations = "";
       if (format === "framecrc" && copiedAudio && "data" in packet) {
         const discard = codec?.codecName === "aac" && packet.pts + packet.duration <= mediaStart;

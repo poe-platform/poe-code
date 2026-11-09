@@ -1,0 +1,16 @@
+#format: frame checksums
+#version: 2
+#hash: MD5
+#extradata 0,                              36, 6ad6f3d1f435d03181653f003f87270e
+#software: Lavf61.1.100
+#tb 0: 1/48000
+#media_type 0: audio
+#codec_id 0: alac
+#sample_rate 0: 48000
+#channel_layout_name 0: mono
+#stream#, dts,        pts, duration,     size, hash
+0,          0,          0,     4096,     1623, 04e4b4b310b214fe4fd9b09e8605f0d7
+0,       4096,       4096,     4096,     1622, aeb81c0bef529e908316508c543d7248
+0,       8192,       8192,     4096,     1623, aa6d4d130d2d6e9b594a0de3c87950f5
+0,      12288,      12288,     4096,     1600, b2b49acdeae4b6b3450bdf44ba669be2
+0,      16384,      16384,     2816,     1133, 86630dc6f82ccafee6a4169979e6cba5

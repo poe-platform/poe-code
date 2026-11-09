@@ -47,6 +47,12 @@ export async function* scanMp4CodecDescriptions(source: MediaProbeSource, range:
             const aspect = new BinaryReader(await prefix(8)); applyCodecMetadata(state, { type: 'pasp', sarWidth: aspect.readU32BE(), sarHeight: aspect.readU32BE() });
           }
         } else if (state.kind === 'audio') {
+          if (format === 'alac' && child.type === 'alac') state.metadata.extraDataRange = { offset: child.offset, length: child.size };
+          else if (format === 'alac' && child.type === 'wave') {
+            for await (const nested of scanMp4Boxes(source, { offset: child.payloadOffset, length: child.payloadSize, ...options })) {
+              if (nested.type === 'alac') state.metadata.extraDataRange = { offset: nested.offset, length: nested.size };
+            }
+          }
           if (child.type === 'esds') applyCodecMetadata(state, { type: 'esds', config: await probeEsdsSource(source, child, options) });
           else if (child.type === 'dOps') applyCodecMetadata(state, { ...parseDOps(await prefix(11)), type: 'dOps' });
         }

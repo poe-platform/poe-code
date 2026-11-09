@@ -1,0 +1,16 @@
+#format: frame checksums
+#version: 2
+#hash: SHA512
+#extradata 0,                              36, 6728db49573f47307631c74dca2969d67ac28bfc9547495db301b6753aa3f99e26dd89eec545d2ee38cad039b19cac75c7bc1886260d0b678bb36d21c33e1bdf
+#software: Lavf61.1.100
+#tb 0: 1/48000
+#media_type 0: audio
+#codec_id 0: alac
+#sample_rate 0: 48000
+#channel_layout_name 0: mono
+#stream#, dts,        pts, duration,     size, hash
+0,          0,          0,     4096,     1623, 9cfadd97c7943744398dd620b5951f31a0701673abece58fa63dc9265ed2cebf26a54811b9d86e69a1c7897bcdeb40f0acb3ea3d5d77e42df4e8bb63fa2ebe9a
+0,       4096,       4096,     4096,     1622, 2c77222baad854b779f5152e74ab20c2e08cbb9b2a46462db8738eb3dee39332f249d22b3bc1725fb3b72ff90592177fddbdabab2ed11e6ec3b837a89fdace2e
+0,       8192,       8192,     4096,     1623, f71259f49e40713b825c4833620a7aeeaa69561f7f639a4ca34a9bf5edd2d252eec5577db7f70d87e071d66df7ddc28bca6730f8d8615b5759344d3f31b21d3e
+0,      12288,      12288,     4096,     1600, 0479bb6a2256ff8551cebd5748ac678f2cb0d4281a799ead11718bebc797609d4c331b090f95cbb3e9c416c314c31bb3328d1b2c092497409436fd885ab806f8
+0,      16384,      16384,     2816,     1133, cc275172a50291085b8907fbba69fc956e753c6a9fe6d174f4e41bfc0ff6ef112cdb25d31d4779f28245238cc8ad128aceebe0a83703bae7bea54f262d3bc3cc

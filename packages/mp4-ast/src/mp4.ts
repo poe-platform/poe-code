@@ -139,6 +139,7 @@ function parseStsdBox(payload: Uint8Array): MediaCodecDescription[] {
     const start = reader.offset, size = reader.readU32BE(), format = reader.readFourCC();
     if (size < 8 || start + size > payload.length) break;
     const body = payload.subarray(start + 8, start + size), state = sampleEntryHeader(format, body);
+    let alacData: Uint8Array | undefined;
     let avcC: ReturnType<typeof parseAvcC> | undefined, hvcC: ReturnType<typeof parseHvcC> | undefined,
       av1C: ReturnType<typeof parseAv1C> | undefined, vpcC: ReturnType<typeof parseVpcC> | undefined,
       esds: ReturnType<typeof parseEsds> | undefined, dOps: ReturnType<typeof parseDOps> | undefined;
@@ -155,6 +156,9 @@ function parseStsdBox(payload: Uint8Array): MediaCodecDescription[] {
             applyCodecMetadata(state, { type: 'pasp', sarWidth: aspect.readU32BE(), sarHeight: aspect.readU32BE() });
           }
         } else if (state.kind === 'audio') {
+          const alac = child.type === 'alac' ? child : format === 'alac' && child.type === 'wave'
+            ? findBox(parseMp4Boxes(child.payload, child.offset + child.headerSize), 'alac') : undefined;
+          if (format === 'alac' && alac) alacData = body.subarray(state.childOffset + alac.offset, state.childOffset + alac.offset + alac.size);
           if (child.type === 'esds') { esds = parseEsds(child.payload); applyCodecMetadata(state, { type: 'esds', config: esds }); }
           else if (child.type === 'dOps') { dOps = parseDOps(child.payload); applyCodecMetadata(state, { ...dOps, type: 'dOps' }); }
           else if (child.type === 'wave' && child.children) {
@@ -164,7 +168,7 @@ function parseStsdBox(payload: Uint8Array): MediaCodecDescription[] {
         }
       }
     }
-    descriptions.push({ ...finishCodecMetadata(state), extraData: avcC?.rawBytes ?? (esds?.decoderSpecificInfoSize ? esds.decoderSpecificInfo : undefined), avcC, hvcC, av1C, vpcC, esds, dOps, rawStsdEntryBytes: payload.subarray(start, start + size) });
+    descriptions.push({ ...finishCodecMetadata(state), extraData: alacData ?? avcC?.rawBytes ?? (esds?.decoderSpecificInfoSize ? esds.decoderSpecificInfo : undefined), avcC, hvcC, av1C, vpcC, esds, dOps, rawStsdEntryBytes: payload.subarray(start, start + size) });
     reader.seek(start + size);
   }
   return descriptions;

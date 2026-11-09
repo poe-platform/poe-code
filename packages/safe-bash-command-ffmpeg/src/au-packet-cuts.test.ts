@@ -3,12 +3,12 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
-// Native FFmpeg 7.0.2 packet boundaries for the same 16000-byte PCM payload.
+// AU demuxer packet boundaries from ffprobe N-66595-gc2b38619c0-static.
 for (const [sampleRate, channels, knownSize, packetBytes] of [
-  [8000, 1, false, 1024],
-  [8000, 1, true, 1024],
-  [48000, 1, false, 8192],
-  [8000, 2, false, 2048]
+  [8000, 1, false, 640],
+  [8000, 1, true, 640],
+  [48000, 1, false, 2048],
+  [8000, 2, false, 1280]
 ] as const) {
   for (const operation of ["copy", "frames", "duration", "seek", "encode"] as const) {
     it(`cuts AU ${sampleRate} Hz/${channels} ch, known size=${knownSize}, ${operation} at native boundaries`, async () => {
@@ -17,8 +17,10 @@ for (const [sampleRate, channels, knownSize, packetBytes] of [
         .forEach((value, index) => input.writeUInt32BE(value, index * 4));
       for (let index = 0; index < 8000; index++) input.writeInt16BE(index, 24 + index * 2);
       const payload = input.subarray(24);
-      const expected = operation === "seek" ? payload.subarray(packetBytes)
-        : operation === "frames" || operation === "duration" ? payload.subarray(0, packetBytes)
+      const cutBytes = Math.ceil(sampleRate * 0.03 * channels * 2 / packetBytes) * packetBytes;
+      const expected = operation === "seek" ? payload.subarray(cutBytes)
+        : operation === "frames" ? payload.subarray(0, packetBytes)
+        : operation === "duration" ? payload.subarray(0, cutBytes)
         : operation === "encode" ? payload.subarray(0, sampleRate * 0.03 * channels * 2) : payload;
       const cut = operation === "frames" ? ["-frames:a", "1"]
         : operation === "duration" || operation === "encode" ? ["-t", "0.03"]

@@ -7639,8 +7639,16 @@ it("rejects invalid volume precision without replacing output", async () => {
 
 describe("image2 pattern_type", () => {
   for (const [mode, pattern, indices] of [
-    ["glob", "f*.png", [0, 1, 2]],
+    ["glob", "f*.png", [0, 1, 2, 3]],
     ["glob", "f0[12].png", [1, 2]],
+    ["glob", "f0{2,0,2}.png", [2, 0, 2]],
+    ["glob", "f0{0,1}.png", [0, 1]],
+    ["glob", "f0{2,[01],2}.png", [2, 0, 1, 2]],
+    ["glob", "f0{2,{1,0}}.png", [2, 1, 0]],
+    ["glob", "{frames/,}f0{2,0}.png", [2, 0, 2, 0]],
+    ["glob", "f0{missing,1}.png", [1]],
+    ["glob", "f0\\{0,1\\}.png", [3]],
+    ["none", "f0{0,1}.png", [3]],
     ["glob", "f0[!1].png", [0, 2]],
     ["glob", "f0[0-1].png", [0, 1]],
     ["glob", "literal\\%02d.png", [3]],
@@ -7658,6 +7666,7 @@ describe("image2 pattern_type", () => {
       const vfs = createTestVfs({
         "/f02.png": images[2]!, "/f00.png": images[0]!, "/f01.png": images[1]!,
         "/literal%02d.png": images[3]!, "/literal00.png": images[0]!, "/literal01.png": images[1]!,
+        "/f0{0,1}.png": images[3]!,
         "/.f03.png": images[3]!, "/other.png": images[3]!,
         "/frames/f02.png": images[2]!, "/frames/f00.png": images[0]!, "/frames/f01.png": images[1]!
       });

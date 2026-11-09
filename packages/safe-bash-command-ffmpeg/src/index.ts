@@ -4576,6 +4576,40 @@ function formatImageSequence(pattern: string, number: number): string | undefine
   return numbered ? filename : undefined;
 }
 
+function* expandImageGlob(pattern: string, budget: MediaBudgetTracker): Generator<string> {
+  const pending = [pattern];
+  while (pending.length > 0) {
+    budget.checkCpu();
+    const current = pending.pop()!;
+    let start = -1;
+    let depth = 0;
+    const separators: number[] = [];
+    let expanded = false;
+    for (let i = 0; i < current.length; i++) {
+      budget.checkCpu();
+      const token = current[i];
+      if (token === "\\") { i++; continue; }
+      if (token === "{") {
+        if (depth++ === 0) start = i;
+      } else if (token === "," && depth === 1) {
+        separators.push(i);
+      } else if (token === "}" && depth > 0 && --depth === 0) {
+        if (separators.length > 0) {
+          const boundaries = [start, ...separators, i];
+          // Stack in reverse so alternatives are visited in their original order.
+          for (let j = boundaries.length - 2; j >= 0; j--) {
+            budget.checkCpu();
+            pending.push(current.slice(0, start) + current.slice(boundaries[j]! + 1, boundaries[j + 1]) + current.slice(i + 1));
+          }
+          expanded = true;
+          break;
+        }
+      }
+    }
+    if (!expanded) yield current;
+  }
+}
+
 function matchesImageGlob(pattern: string, name: string, budget: MediaBudgetTracker): boolean {
   const characters = Array.from(name);
   let positions = new Set([0]);
@@ -6240,29 +6274,33 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               let pipeOffset = 0;
               let globPaths: string[] | undefined;
               if (!pipeBytes && input?.patternType === "glob") {
-                globPaths = ["/"];
-                for (const component of resolvePath(context.cwd, filePath).split("/").filter(Boolean)) {
-                  const matches: string[] = [];
-                  for (const directory of globPaths) {
-                    budget.checkCpu();
-                    context.signal.throwIfAborted();
-                    let entries;
-                    try {
-                      entries = await context.fs.readdir(directory, { signal: context.signal });
-                    } catch (error) {
-                      rethrowRuntimeError(context, error);
-                      if (["ENOENT", "ENOTDIR"].includes((error as { code?: string }).code ?? "")) continue;
-                      throw error;
-                    }
-                    for (const entry of entries) {
+                globPaths = [];
+                for (const pattern of expandImageGlob(filePath, budget)) {
+                  let alternativePaths = ["/"];
+                  for (const component of resolvePath(context.cwd, pattern).split("/").filter(Boolean)) {
+                    const matches: string[] = [];
+                    for (const directory of alternativePaths) {
                       budget.checkCpu();
-                      if (entry.name.startsWith(".") && !component.startsWith(".") && !component.startsWith("\\.")) continue;
-                      if (matchesImageGlob(component, entry.name, budget)) matches.push(resolvePath(directory, entry.name));
+                      context.signal.throwIfAborted();
+                      let entries;
+                      try {
+                        entries = await context.fs.readdir(directory, { signal: context.signal });
+                      } catch (error) {
+                        rethrowRuntimeError(context, error);
+                        if (["ENOENT", "ENOTDIR"].includes((error as { code?: string }).code ?? "")) continue;
+                        throw error;
+                      }
+                      for (const entry of entries) {
+                        budget.checkCpu();
+                        if (entry.name.startsWith(".") && !component.startsWith(".") && !component.startsWith("\\.")) continue;
+                        if (matchesImageGlob(component, entry.name, budget)) matches.push(resolvePath(directory, entry.name));
+                      }
                     }
+                    alternativePaths = matches;
                   }
-                  globPaths = matches;
+                  alternativePaths.sort();
+                  for (const path of alternativePaths) globPaths.push(path);
                 }
-                globPaths.sort();
               }
 
               const planeInput = !pipeBytes && filePath.endsWith(".Y") && (!explicitFormat || explicitFormat === "image2");

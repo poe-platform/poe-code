@@ -7455,6 +7455,42 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...im, ...(colorEndpoints && im.writeMask ? { writeMask: { ...im.writeMask } } : {}), ...(colored && (im.space === "b-w" || im.space === "grey16") ? { space: "srgb" as const, channels: im.hasAlpha ? 4 as const : 3 as const } : {}), data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
         };
     }
+    else if (token === "-color-threshold") {
+        highDepth = true;
+        const raw = tokens[++i];
+        if (raw === undefined) throw new Error(`missing argument '${token}'`);
+        let nesting = 0, separator = -1;
+        for (let index = 0; index < raw.length; index++) {
+            if (raw[index] === "(") nesting++;
+            else if (raw[index] === ")") nesting--;
+            else if (raw[index] === "-" && nesting === 0) { separator = index; break; }
+        }
+        const endpoints = separator < 0 ? undefined : [parseColor(raw.slice(0, separator), true), parseColor(raw.slice(separator + 1), true)];
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        const selected = [channels.r, channels.g, channels.b, channels.a];
+        const bounds = endpoints?.map(color => [color.r, color.g, color.b, color.a]);
+        apply = function* (image) {
+            const out = new Uint8Array(image.data.length);
+            const data16 = image.data16 ? new Uint16Array(out.length) : undefined;
+            for (let offset = 0; offset < out.length; offset += 4) {
+                if (offset % 65536 === 0) yield;
+                let inside = bounds !== undefined;
+                for (let channel = 0; inside && channel < 4; channel++) {
+                    if (!selected[channel] || channel === 3 && !image.hasAlpha) continue;
+                    const value = image.evaluateSamples?.[offset + channel] ?? (image.data16 ? image.data16[offset + channel]! / 257 : image.data[offset + channel]!);
+                    inside = value >= bounds![0]![channel]! && value <= bounds![1]![channel]!;
+                }
+                out.fill(inside ? 255 : 0, offset, offset + 3);
+                out[offset + 3] = 255;
+                if (data16) {
+                    data16.fill(inside ? 65535 : 0, offset, offset + 3);
+                    data16[offset + 3] = 65535;
+                }
+            }
+            const { hueSamples: ignoredHue, evaluateSamples: ignoredEvaluate, ...metadata } = image;
+            return { ...metadata, data: out, ...(data16 ? { data16 } : {}), hasAlpha: false, channels: 3, isPalette: false };
+        };
+    }
     else if (token === "-black-threshold" || token === "-white-threshold") {
         highDepth = true;
         const raw = tokens[++i] ?? "50%";
@@ -7496,7 +7532,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, handlesWriteMask: token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-blue-shift" || token === "-threshold" || token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, handlesWriteMask: token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-color-threshold" || token === "-blue-shift" || token === "-threshold" || token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelAssignments(expression: string): { image: number; source: number; target: number }[] {
@@ -11917,6 +11953,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-threshold",
         "-range-threshold",
         "-random-threshold",
+        "-color-threshold",
         "-black-threshold",
         "-white-threshold",
         "-sigmoidal-contrast",

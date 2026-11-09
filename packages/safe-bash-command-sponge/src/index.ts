@@ -142,11 +142,6 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
         files.push(arg);
       }
 
-      if (files.length > 1) {
-        await writeText(context.stderr, "sponge: too many arguments\n");
-        return { exitCode: 2 };
-      }
-
       try {
         const maxBytes = Math.min(limits.maxBufferedBytes, (context as { limits?: { maxInputBytes?: number } }).limits?.maxInputBytes ?? limits.maxBufferedBytes);
         const buffered = await collectSourceBytes(context.stdin, maxBytes, context.signal, admit);
@@ -268,7 +263,7 @@ export function evalSyncSponge(
     }
     files.push(arg);
   }
-  if (files.length > 1 || inBytes === undefined) return undefined;
+  if (inBytes === undefined) return undefined;
   const payload = inBytes;
   if (files.length === 0 || files[0] === "-") {
     if (payload.some(b => b === 0 || b >= 128)) return undefined;

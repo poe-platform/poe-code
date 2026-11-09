@@ -882,6 +882,22 @@ function buildAudioStsdEntry(desc: MediaCodecDescription): Uint8Array {
     writer.writeBytes(makeBox("damr", Uint8Array.of(70, 70, 77, 80, 0, desc.codecName === "amr_wb" ? 1 : 0x81, 0xff, 0, 1)));
   } else if (desc.dOps) {
     writer.writeBytes(makeBox("dOps", desc.dOps.rawBytes));
+  } else if (desc.codecName === "opus") {
+    const head = desc.extraData;
+    if (!head || head.length < 19 || decodeUtf8(head.subarray(0, 8)) !== "OpusHead" ||
+        !head[9] || (head[18] === 0 ? head[9] > 2 : head.length < 21 + head[9]!)) {
+      throw new Error("Invalid OpusHead configuration for MP4");
+    }
+    // dOps uses version zero and big-endian fields; the mapping table is unchanged.
+    const input = new DataView(head.buffer, head.byteOffset, head.byteLength);
+    const config = new BinaryWriter(head.length - 8);
+    config.writeU8(0);
+    config.writeU8(head[9]!);
+    config.writeU16BE(input.getUint16(10, true));
+    config.writeU32BE(input.getUint32(12, true));
+    config.writeI16BE(input.getInt16(16, true));
+    config.writeBytes(head.subarray(18));
+    writer.writeBytes(makeBox("dOps", config.toUint8Array()));
   }
 
   const format = desc.codecName === "pcm_s16le" ? "sowt"
@@ -1467,8 +1483,9 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     }
     if (t.type === "audio" && options.audioCodec === "alac") t = encodeAlacTrack(t, budget);
     const sampleRate = t.codecDescriptions[0]?.sampleRate;
+    const isOpus = t.codecDescriptions[0]?.codecName === "opus";
     const targetTimescale = t.type === "subtitle" && t.codecDescriptions[0]?.codecName !== "mov_text"
-      ? 1_000_000 : t.codecDescriptions[0]?.codecName === "mp3" ? sampleRate : undefined;
+      ? 1_000_000 : isOpus ? 48000 : t.codecDescriptions[0]?.codecName === "mp3" ? sampleRate : undefined;
     if (targetTimescale && targetTimescale !== t.timescale) {
       const scale = targetTimescale / t.timescale;
       t = { ...t, timescale: targetTimescale, duration: Math.round(t.duration * scale),
@@ -1532,7 +1549,8 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     }
     const origin = materialized.samples[0]?.dts ?? 0;
     const edits = t.editList?.length ? t.editList : [{
-      segmentDuration: Math.round((t.duration + Math.min(0, origin)) * movieTimescale / t.timescale),
+      // Opus demuxers already exclude pre-skip from the presentation duration.
+      segmentDuration: Math.round((t.duration + (isOpus ? 0 : Math.min(0, origin))) * movieTimescale / t.timescale),
       mediaTime: 0, mediaRateInteger: 1, mediaRateFraction: 0
     }];
     const track = origin !== 0 && !options.fragmented ? { ...t, editList: edits.flatMap(edit => {

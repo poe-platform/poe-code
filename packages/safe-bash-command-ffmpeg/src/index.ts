@@ -3960,8 +3960,12 @@ function parseTimestampScale(option: string, value: string | undefined): [string
   return [specifier, scale];
 }
 
-function inputStartTime(doc: MediaDocument, budget: MediaBudgetTracker): number | undefined {
-  if (doc.containerFormat !== "mp4" && doc.containerFormat !== "mov") return undefined;
+function inputStartTime(doc: MediaDocument, budget: MediaBudgetTracker, outputFormat: string | undefined): number | undefined {
+  // MP4 retains Matroska's packet spacing but starts its presentation at zero,
+  // unless -copyts requests the original timeline (including codec delay).
+  const matroskaToMp4 = (doc.containerFormat === "matroska" || doc.containerFormat === "webm") &&
+    (outputFormat === "mp4" || outputFormat === "mov");
+  if (doc.containerFormat !== "mp4" && doc.containerFormat !== "mov" && !matroskaToMp4) return undefined;
   let start = Infinity;
   for (const track of doc.tracks) {
     budget.checkCpu();
@@ -4838,6 +4842,7 @@ export function evalSyncFfmpeg(
     if (!isNullMux && !writeFileSync) return undefined;
     if (noOverwrite !== false && !isNullMux && (!readFileSync || readFileSync(outputTarget))) return undefined;
 
+    const outPlugin = outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget);
     const loadedDocs: MediaDocument[] = [];
     const inputStarts: (number | undefined)[] = [];
     for (const inp of inputs) {
@@ -4864,7 +4869,7 @@ export function evalSyncFfmpeg(
         if (imageOutput && videoCodec === "copy") return undefined;
         if ((imageOutput || (maxVideoFrames !== undefined && videoCodec !== "copy")) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
       }
-      const sourceStart = inputStartTime(doc, budget);
+      const sourceStart = inputStartTime(doc, budget, outPlugin?.id);
       inputStarts.push(sourceStart);
       if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
       doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
@@ -4891,7 +4896,6 @@ export function evalSyncFfmpeg(
 
     if (outputFormat === "image2pipe") return undefined;
     synchronizeInputs(loadedDocs, inputs, inputStarts, copyTimestamps, startAtZero, budget);
-    const outPlugin = outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget);
     if (outPlugin?.id === "image2" && outputStartNumber !== undefined && outputStartNumber > 2147483647) return undefined;
     // MP4/MOV have no default subtitle encoder for automatic stream selection.
     if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) stripSubtitles = true;
@@ -7552,6 +7556,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { ...document, tracks, durationSeconds, duration: Math.round(durationSeconds * document.timescale) };
             };
 
+            // Resolve output AST plugin from `outputFormat` or `outputTarget` filename
+            const outPlugin = outputFormat
+              ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat))
+              : registry.findByFilename(outputTarget);
+
             // Load all inputs and apply per-input slicing / looping
             const loadedDocs: MediaDocument[] = [];
             const inputStarts: (number | undefined)[] = [];
@@ -7716,7 +7725,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }, context.signal)
                 };
               }
-              const sourceStart = inputStartTime(doc, budget);
+              const sourceStart = inputStartTime(doc, budget, outPlugin?.id);
               inputStarts.push(sourceStart);
               if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
               doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
@@ -7785,10 +7794,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             synchronizeInputs(loadedDocs, inputs, inputStarts, copyTimestamps, startAtZero, budget);
 
-            // Resolve output AST plugin from `outputFormat` or `outputTarget` filename
-            const outPlugin = outputFormat
-              ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat))
-              : registry.findByFilename(outputTarget);
             if (outPlugin?.id === "image2" && outputStartNumber !== undefined && outputStartNumber > 2147483647) {
               throw new Error("invalid start_number: expected an integer from 0 to 2147483647");
             }

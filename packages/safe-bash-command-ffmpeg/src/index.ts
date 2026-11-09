@@ -10831,32 +10831,69 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = output;
                         filteredSampleFormat = "s16";
                         panPcm16 = true;
-                      } else if (trimmed === "haas") {
-                        if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
-                          const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
-                            stretched, filteredChannelMask, false, budget, context.signal);
-                          stretched = stereo.channels;
-                          filteredChannelMask = stereo.channelMask;
-                        }
+                      } else if (trimmed === "haas" || trimmed.startsWith("haas=")) {
                         if (stretched.length !== 2) throw new Error("haas: stereo input required");
-                        const leftDelay = Math.floor(2.05 * 0.001 * origRate);
-                        const rightDelay = Math.floor(2.12 * 0.001 * origRate);
+                        const options = {
+                          level_in: 1, level_out: 1, side_gain: 1, middle_source: 2, middle_phase: 0,
+                          left_delay: 2.05, left_balance: -1, left_gain: 1, left_phase: 0,
+                          right_delay: 2.12, right_balance: 1, right_gain: 1, right_phase: 1
+                        };
+                        const argument = trimmed.slice("haas=".length);
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? Object.keys(options)[index] : option.slice(0, separator).trim();
+                          if (!key || !Object.hasOwn(options, key)) throw new Error(`haas: unsupported option ${key}`);
+                          const name = key as keyof typeof options;
+                          const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          const phase = key.endsWith("_phase");
+                          const value = phase
+                            ? ["1", "true", "yes", "on"].includes(raw) ? 1
+                              : ["0", "false", "no", "off"].includes(raw) ? 0 : NaN
+                            : parseFilterExpression(raw, "haas", key === "middle_source"
+                              ? { left: 0, right: 1, mid: 2, side: 3 } : {});
+                          const delay = key.endsWith("_delay");
+                          const balance = key.endsWith("_balance");
+                          const min = balance ? -1 : delay || phase || key === "middle_source" ? 0 : 0.015625;
+                          const max = balance || phase ? 1 : delay ? 40 : key === "middle_source" ? 3 : 64;
+                          if (!Number.isFinite(value) || value < min || value > max) {
+                            throw new Error(`haas: ${key} must be in the range [${min}, ${max}]`);
+                          }
+                          options[name] = key === "middle_source" ? roundToEven(value) : value;
+                        }
+                        const leftDelay = Math.floor(options.left_delay * 0.001 * origRate);
+                        const rightDelay = Math.floor(options.right_delay * 0.001 * origRate);
+                        let size = 1;
+                        while (size < Math.floor(origRate * 40 * 0.001)) size *= 2;
+                        budget.allocateMemory((size + stretched[0]!.length * 2) * Float64Array.BYTES_PER_ELEMENT);
+                        const history = new Float64Array(size);
                         const output = stretched.map(channel => new Float64Array(channel.length));
+                        const leftGain = options.left_gain * (options.left_phase ? 1 : -1);
+                        const rightGain = options.right_gain * (options.right_phase ? 1 : -1);
+                        const leftBalance = (options.left_balance + 1) / 2;
+                        const rightBalance = (options.right_balance + 1) / 2;
                         for (let i = 0; i < stretched[0]!.length; i++) {
                           if (i % 4096 === 0) {
                             await yieldTurn(context.signal);
                             context.signal?.throwIfAborted();
                             budget.checkCpu();
                           }
-                          const mid = (stretched[0]![i]! + stretched[1]![i]!) * 0.5;
-                          // Native Haas defaults add the earlier tap on the right
-                          // and subtract the later tap on the left.
-                          output[0]![i] = mid - (i >= rightDelay
-                            ? (stretched[0]![i - rightDelay]! + stretched[1]![i - rightDelay]!) * 0.5 : 0);
-                          output[1]![i] = mid + (i >= leftDelay
-                            ? (stretched[0]![i - leftDelay]! + stretched[1]![i - leftDelay]!) * 0.5 : 0);
+                          const left = stretched[0]![i]!;
+                          const right = stretched[1]![i]!;
+                          let mid = (options.middle_source === 0 ? left : options.middle_source === 1 ? right
+                            : options.middle_source === 2 ? (left + right) * 0.5 : (left - right) * 0.5) * options.level_in;
+                          // The taps retain the source phase; middle_phase changes only the direct signal.
+                          history[i % size] = mid;
+                          const leftTap = history[(i + size - leftDelay) % size]! * options.side_gain;
+                          const rightTap = history[(i + size - rightDelay) % size]! * options.side_gain;
+                          if (options.middle_phase) mid = -mid;
+                          output[0]![i] = (mid + (leftTap * (leftBalance * leftGain)
+                            - rightTap * (rightBalance * rightGain))) * options.level_out;
+                          output[1]![i] = (mid + (rightTap * ((1 - rightBalance) * rightGain)
+                            - leftTap * ((1 - leftBalance) * leftGain))) * options.level_out;
                         }
                         stretched = output;
+                        filteredSampleFormat = "dbl";
+                        panPcm16 = false;
                       } else if (trimmed === "stereowiden" || trimmed.startsWith("stereowiden=")) {
                         filteredSampleFormat = "flt";
                         if (stretched.length !== 2) throw new Error("stereowiden: stereo input required");

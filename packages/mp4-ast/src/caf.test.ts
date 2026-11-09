@@ -142,3 +142,16 @@ it("retains known CAF layouts, including native quad(side), within the output bu
     }).length, output.length);
   }
 });
+
+for (let length = 1; length < 12; length++) {
+  it(`ignores a ${length}-byte incomplete CAF header only after data`, () => {
+    const ast = cafAst();
+    const tail = Buffer.from("667265650000000000000003", "hex").subarray(0, length);
+    const trailing = Buffer.concat([native, tail]);
+    assert.deepEqual(ast.parse(trailing).tracks, ast.parse(native).tracks);
+    assert.deepEqual(ast.probe(trailing).streams, ast.probe(native).streams);
+    const beforeData = Buffer.concat([native.subarray(0, 52), tail]);
+    assert.throws(() => ast.parse(beforeData), /Truncated CAF chunk header/);
+    assert.throws(() => ast.probe(beforeData), /Truncated CAF chunk header/);
+  });
+}

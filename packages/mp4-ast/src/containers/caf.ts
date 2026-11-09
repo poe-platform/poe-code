@@ -28,7 +28,11 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   const metadata: { title?: string; artist?: string } = {};
   for (let offset = 8; offset < bytes.length;) {
     budget.checkCpu();
-    if (offset + 12 > bytes.length) throw new Error("Truncated CAF chunk header");
+    if (offset + 12 > bytes.length) {
+      // An incomplete trailing header does not invalidate audio already read.
+      if (data) break;
+      throw new Error("Truncated CAF chunk header");
+    }
     const id = view.getUint32(offset), start = offset + 12;
     if (offset === 8 && id !== 0x64657363) throw new Error("CAF description must be the first chunk");
     const length = view.getBigInt64(offset + 4);

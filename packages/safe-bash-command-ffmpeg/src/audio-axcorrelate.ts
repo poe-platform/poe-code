@@ -48,6 +48,10 @@ export async function correlateAudio(
   budget.checkSamples(length);
   budget.checkDuration(length / a.sampleRate);
   budget.allocateMemory(length * a.channels * 8);
+  // PCM inputs negotiate float planar samples in native axcorrelate.
+  const double = first.codecDescriptions[0]?.codecName === "pcm_f64le";
+  const round = double ? (value: number) => value : Math.fround;
+  const small = double ? 1e-9 : round(1e-6);
   const channelData = a.channelData.map(() => new Float64Array(length));
   for (let c = 0; c < a.channels && length > 0; c++) {
     const x = a.channelData[c]!.subarray(0, received[0]);
@@ -56,33 +60,43 @@ export async function correlateAudio(
     // Pad past the last packet received, even if the source has more samples.
     for (let i = 0; i < size; i++) {
       if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-      const u = x[i] ?? 0, v = y[i] ?? 0;
-      sx += u; sy += v; xx += u * u; yy += v * v; xy += u * v;
+      const u = round(x[i] ?? 0), v = round(y[i] ?? 0);
+      sx = round(sx + u); sy = round(sy + v);
+      // Keep multiply-add fused until the float32 accumulator is stored.
+      xx = round(xx + u * u); yy = round(yy + v * v); xy = round(xy + u * v);
     }
     for (let i = 0; i < length; i++) {
       if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
       let numerator = xy;
       let varianceX = xx, varianceY = yy;
+      const meanX = round(sx / size), meanY = round(sy / size);
       if (algo === "slow") {
         numerator = 0; varianceX = 0; varianceY = 0;
         for (let j = 0; j < size; j++) {
           if ((i * size + j) % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-          const u = (x[i + j] ?? 0) - sx / size, v = (y[i + j] ?? 0) - sy / size;
-          numerator += u * v; varianceX += u * u; varianceY += v * v;
+          const u = round(round(x[i + j] ?? 0) - meanX), v = round(round(y[i + j] ?? 0) - meanY);
+          numerator = round(numerator + round(u * v));
+          varianceX = round(varianceX + round(u * u)); varianceY = round(varianceY + round(v * v));
         }
       } else if (algo === "best") {
-        numerator -= sx * sy / size;
-        varianceX -= sx * sx / size; varianceY -= sy * sy / size;
+        numerator = round(numerator - round(size * meanX) * meanY);
+        varianceX = round(varianceX - round(size * meanX) * meanX);
+        varianceY = round(varianceY - round(size * meanY) * meanY);
       }
-      const denominator = Math.sqrt(Math.max(0, varianceX)) * Math.sqrt(Math.max(0, varianceY));
-      channelData[c]![i] = denominator <= 1e-6 * (algo === "best" ? 1 : size) ? 0
-        : Math.max(-1, Math.min(1, numerator / denominator));
-      const oldX = x[i] ?? 0, oldY = y[i] ?? 0;
-      const newX = x[i + size] ?? 0, newY = y[i + size] ?? 0;
-      sx += newX - oldX; sy += newY - oldY;
-      xx = Math.max(0, xx + newX * newX - oldX * oldX);
-      yy = Math.max(0, yy + newY * newY - oldY * oldY);
-      xy += newX * newY - oldX * oldY;
+      const denominator = algo === "best"
+        ? round(round(Math.sqrt(Math.max(0, varianceX))) * round(Math.sqrt(Math.max(0, varianceY))))
+        : round(Math.sqrt(round(round(round(varianceX * varianceY) / size) / size)));
+      if (algo !== "best") numerator = round(numerator / size);
+      channelData[c]![i] = denominator <= small ? 0
+        : Math.max(-1, Math.min(1, round(numerator / denominator)));
+      const oldX = round(x[i] ?? 0), oldY = round(y[i] ?? 0);
+      const newX = round(x[i + size] ?? 0), newY = round(y[i + size] ?? 0);
+      // Native removes the outgoing sample before adding the incoming one,
+      // rounding each operation so cancellation retains the same residuals.
+      sx = round(round(sx - oldX) + newX); sy = round(round(sy - oldY) + newY);
+      xx = Math.max(0, round(round(xx - oldX * oldX) + newX * newX));
+      yy = Math.max(0, round(round(yy - oldY * oldY) + newY * newY));
+      xy = round(round(xy - oldX * oldY) + newX * newY);
     }
   }
   return { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,

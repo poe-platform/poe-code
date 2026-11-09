@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Volume } from "memfs";
@@ -5,12 +6,12 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
-async function run(filter: string, channels = 1, secondLength = 4096, firstLength = 8192) {
+async function run(filter: string, channels = 1, secondLength = 4096, firstLength = 8192, inputs?: [Uint8Array, Uint8Array]) {
   const fs = Volume.fromJSON({});
   const a = Float64Array.from({ length: firstLength }, (_, i) => (i % 8 < 4 ? 8192 : -8192) / 32768);
   const b = Float64Array.from({ length: secondLength }, (_, i) => (i < 2048 ? -16384 : 1024) / 32768);
-  fs.writeFileSync("/a.wav", encodeWav({ sampleRate: 8000, channels: Array.from({ length: channels }, () => a) }));
-  fs.writeFileSync("/b.wav", encodeWav({ sampleRate: 8000, channels: Array.from({ length: channels }, (_, c) => c ? b.map(x => -x) : b) }));
+  fs.writeFileSync("/a.wav", inputs?.[0] ?? encodeWav({ sampleRate: 8000, channels: Array.from({ length: channels }, () => a) }));
+  fs.writeFileSync("/b.wav", inputs?.[1] ?? encodeWav({ sampleRate: 8000, channels: Array.from({ length: channels }, (_, c) => c ? b.map(x => -x) : b) }));
   const errors: Uint8Array[] = [];
   const result = await createFfmpegCommand().execute({
     args: ["-i", "/a.wav", "-i", "/b.wav", ...(filter.startsWith("[") ? ["-filter_complex", filter, "-map", "[mix]"] : ["-map", filter]), "-c:a", "pcm_s16le", "/out.wav"],
@@ -87,4 +88,26 @@ for (const length of [512, 513, 1025]) for (const reverse of [false, true]) for 
       assert.ok(Math.abs(channel[index]! * 32768 - expected[i]!) <= 1, `sample ${index}: ${channel[index]! * 32768}`);
     });
   });
+}
+
+// Native FFmpeg 9.0.1, -filter_complex_threads 1, with each input passed
+// through asetnsamples=n=4096:p=0 before axcorrelate=128:ALGO.
+// Buffer the entire short input to avoid native threaded EOF scheduling races.
+// Output: -map '[o]' -f s16le expected.pcm
+for (const [a, b] of [["d", "e"], ["aquiet", "bquiet"]]) {
+  for (const algo of ["best", "fast", "slow"]) {
+    it(`axcorrelate ${algo} matches every native sample for ${a}/${b}, including the tail`, async () => {
+      const fixture = (name: string) => readFileSync(new URL(`./fixtures/axcorrelate/${name}`, import.meta.url));
+      const expected = fixture(`${a}-${algo}.pcm`);
+      const { result, error, audio } = await run(`[0:a][1:a]axcorrelate=128:${algo}[mix]`, 1, 3109, 3109,
+        [fixture(`${a}.wav`), fixture(`${b}.wav`)]);
+      assert.equal(result.exitCode, 0, error);
+      const actual = audio!.channelData[0]!;
+      assert.equal(actual.length, expected.length / 2);
+      for (let i = 0; i < actual.length; i++) {
+        assert.ok(Math.abs(actual[i]! * 32768 - expected.readInt16LE(i * 2)) <= 1,
+          `sample ${i}: got ${actual[i]! * 32768}, expected ${expected.readInt16LE(i * 2)}`);
+      }
+    });
+  }
 }

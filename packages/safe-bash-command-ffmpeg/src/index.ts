@@ -4394,6 +4394,12 @@ export function evalSyncFfmpeg(
     if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
       outPlugin?.id, subtitleCodec);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
+      if (audioCodec === "copy" && outputSs !== undefined) {
+        workingDoc = { ...workingDoc, tracks: workingDoc.tracks.map(track =>
+          workingDoc.containerFormat === "au" || track.codecDescriptions[0]?.codecName === `pcm_${workingDoc.containerFormat}`
+            ? { ...track, samples: track.samples.filter(sample => sample.pts >= outputSs * track.timescale) }
+            : track) };
+      }
       workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration, copyAudio: audioCodec === "copy" });
       if (outputSs !== undefined) workingDoc = discardOutputPreroll(workingDoc, { video: videoCodec, audio: audioCodec }, copyInitialNonKeyframes);
     }
@@ -7282,7 +7288,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             ) {
               if (audioCodec === "copy" && outputSs !== undefined) {
                 workingDoc = { ...workingDoc, tracks: workingDoc.tracks.map(track =>
-                  track.codecDescriptions[0]?.codecName === `pcm_${workingDoc.containerFormat}`
+                  workingDoc.containerFormat === "au" || track.codecDescriptions[0]?.codecName === `pcm_${workingDoc.containerFormat}`
                     ? { ...track, samples: track.samples.filter(sample => sample.pts >= outputSs * track.timescale) }
                     : track) };
               }

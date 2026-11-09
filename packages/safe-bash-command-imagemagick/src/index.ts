@@ -8002,7 +8002,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         const pixelOperation = setting === undefined ? parseMagickPixelOperation(tokens, state, i, signal) : undefined;
-        const warpOperation = setting === undefined ? parseMagickWarpOperation(tokens, state, i, analysis) : undefined;
+        const warpOperation = setting === undefined && t !== "-rotate" ? parseMagickWarpOperation(tokens, state, i, analysis) : undefined;
         const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
         if (setting !== undefined) {
             i = setting;
@@ -8562,9 +8562,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-rotate") {
-            const { angle: deg, applies } = parseMagickRotation(tokens[++i] ?? "0");
+            const spec = tokens[++i] ?? "0";
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const operation = parseMagickWarpOperation(["-rotate", expanded], state, 0, analysis);
+                const { angle: deg, applies } = parseMagickRotation(expanded);
                 if (!applies(im)) return im;
+                const plan = operation?.plan(im);
+                if (plan) return { ...yield* applyMagickRasterSteps(im, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
                 return { ...yield* rotateImageSteps(im, deg, state.background), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) };
             }));
         }
@@ -9680,7 +9685,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }
             continue;
         }
-        const warpOperation = operandsOnly ? undefined : parseMagickWarpOperation(tokens, state, i, analysis);
+        const warpOperation = operandsOnly || token === "-rotate" ? undefined : parseMagickWarpOperation(tokens, state, i, analysis);
         if (warpOperation) {
             i = warpOperation.end;
             const geometry = ["-wave", "-swirl", "-implode"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
@@ -10450,11 +10455,20 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return { ...await transformStoredImage(rotated, backend.storage, { kind: "extract", left: bounds.virtualCanvas!.x - plan.virtualCanvas.x, top: bounds.virtualCanvas!.y - plan.virtualCanvas.y, width: bounds.width, height: bounds.height }, signal), virtualCanvas: bounds.virtualCanvas! };
             });
         } else if (!operandsOnly && token === "-rotate") {
-            const { angle, applies } = parseMagickRotation(tokens[++i] ?? "0"), background = state.background;
-            steps.push(async (image, backend) => image && applies(image) ? {
-                ...await transformStoredImage(image, backend.storage, { kind: "rotate", angle, background }, signal),
-                ...(image.virtualCanvas ? { virtualCanvas: magickRotateCanvas(image, angle) } : {})
-            } : image);
+            const spec = tokens[++i] ?? "0", settings = { ...state };
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const operation = parseMagickWarpOperation(["-rotate", expanded], settings, 0, analysis);
+                const { angle, applies } = parseMagickRotation(expanded);
+                if (!applies(image)) return image;
+                const plan = operation?.plan(image);
+                if (plan) return { ...await transformStoredMagickRaster(image, backend, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
+                return {
+                    ...await transformStoredImage(image, backend.storage, { kind: "rotate", angle, background: settings.background }, signal),
+                    ...(image.virtualCanvas ? { virtualCanvas: magickRotateCanvas(image, angle) } : {})
+                };
+            });
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined);

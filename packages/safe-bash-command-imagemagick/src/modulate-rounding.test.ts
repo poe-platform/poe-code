@@ -3,7 +3,7 @@ import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
-import fixtures from "./modulate-rounding-fixtures.json";
+import fixtures from "./modulate-rounding-fixtures.json" with { type: "json" };
 
 // ImageMagick 7.1.2-35 Q16-HDRI: rgba.png -modulate VALUE PNG32:out.png,
 // then out.png -depth 8 rgba:-. The 16x16 ramp includes RGB half-step samples.

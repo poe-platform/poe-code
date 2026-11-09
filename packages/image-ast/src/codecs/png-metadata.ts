@@ -164,8 +164,8 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       const view = new DataView(chunk.buffer,chunk.byteOffset,chunk.byteLength);
       virtualCanvas = {width:view.getUint32(0),height:view.getUint32(4),x:view.getInt32(8),y:view.getInt32(12)};
     } else if (type === "tRNS") {
-      if (hasTrns) decodeWarnings.push("Duplicate PNG tRNS");
-      hasTrns = true;
+      if (hasIdat || (colorType === 3 && !palette)) decodeWarnings.push("tRNS: out of place");
+      else hasTrns = true;
     } else if (type === "orNT" && len === 1) {
       const chunk = yield {position:dataStart,length:1};
       if (chunk[0]! <= 8) orientation = chunk[0]!;

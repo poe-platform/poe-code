@@ -85,7 +85,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     } else if (type === "PLTE") {
       palette = chunk;
     } else if (type === "tRNS") {
-      trns ??= chunk;
+      if (idatChunks.length === 0 && (colorType !== 3 || palette)) trns = chunk;
     } else if (type === "IDAT") {
       idatChunks.push(chunk);
     } else if (type === "IEND") {
@@ -494,7 +494,6 @@ export function decodePngToCanvas(
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   let bitDepth = 8;
   let colorType = 6;
-  let hasTrns = false;
   const idatChunks: Uint8Array[] = [];
 
   let pos = 8;
@@ -515,8 +514,6 @@ export function decodePngToCanvas(
     if (type === "IHDR" && len >= 13) {
       bitDepth = chunk[8]!;
       colorType = chunk[9]!;
-    } else if (type === "tRNS") {
-      hasTrns = true;
     } else if (type === "IDAT") {
       idatChunks.push(chunk);
     } else if (type === "IEND") {
@@ -525,7 +522,7 @@ export function decodePngToCanvas(
     pos = dataStart + len + 4;
   }
 
-  if (bitDepth !== 8 || (colorType !== 2 && colorType !== 6) || hasTrns || idatChunks.length === 0) {
+  if (bitDepth !== 8 || (colorType !== 2 && colorType !== 6) || (colorType === 2 && meta.hasAlpha) || idatChunks.length === 0) {
     return undefined;
   }
 

@@ -94,7 +94,9 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
   signal.throwIfAborted();
   if (!Number.isSafeInteger(source.size) || source.size < 24 || !isPngBytes(await range(source, 0, 8, signal))) throw new Error("Invalid PNG header");
   let header: Uint8Array | undefined, palette: Uint8Array | undefined, transparency: Uint8Array | undefined;
+  let hasIdat = false;
   for await (const chunk of chunks(source, signal)) {
+    if (chunk.name === "IDAT") hasIdat = true;
     if ((chunk.typeBytes[0]! & 32) === 0 || chunk.name === "tRNS") {
       let crc = pngCrc32(chunk.typeBytes);
       for (let offset = 0; offset < chunk.length; offset += 4096) {
@@ -112,7 +114,7 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
     }
     if (chunk.name === "IHDR" && chunk.length >= 13) header = await range(source, chunk.start, 13, signal);
     else if (chunk.name === "PLTE") palette = await range(source, chunk.start, Math.min(chunk.length, 768), signal);
-    else if (chunk.name === "tRNS") transparency ??= await range(source, chunk.start, Math.min(chunk.length, 256), signal);
+    else if (chunk.name === "tRNS" && !hasIdat && (header?.[9] !== 3 || palette)) transparency = await range(source, chunk.start, Math.min(chunk.length, 256), signal);
   }
   if (!header) throw new Error("Invalid PNG header");
   const {size: ignoredSize, ...metadata} = await readPngMetadataFromSource(source, signal);

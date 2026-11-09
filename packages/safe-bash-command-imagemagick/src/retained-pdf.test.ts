@@ -19,11 +19,13 @@ for (const operand of ["input.pdf", "input.pdf[-1]", "input.pdf[1,0]"])
         } });
         const convert = ["-density", density, operand, "-flip", "out.png"];
         expect(await runConvertCli(convert, { filesystem, cwd: "/" })).toEqual(await runConvertCli(convert, files));
-        expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
+        const outputs = [...files.keys()].filter(name => name.startsWith("out"));
+        expect(outputs).toHaveLength(operand === "input.pdf" ? 3 : operand === "input.pdf[1,0]" ? 2 : 1);
+        for (const name of outputs) expect(decodeImage(await fs.readFile(`/${name}`))).toEqual(decodeImage(files.get(name)!));
         const compare = ["-density", density, operand, "input.pdf[0]", "diff.png"];
         expect(await runCompareCli(compare, { filesystem, cwd: "/" })).toEqual(await runCompareCli(compare, files));
         expect(decodeImage(await fs.readFile("/diff.png"))).toEqual(decodeImage(files.get("diff.png")!));
         const identify = ["-format", "%f %m %wx%h %[mean] %[hex:p{2,2}]\n", operand];
         expect(await runIdentifyCli(identify, { filesystem, cwd: "/" })).toEqual(await runIdentifyCli(identify, files));
-        expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["diff.png", "input.pdf", "out.png"]);
+        expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["diff.png", "input.pdf", ...outputs].sort());
     });

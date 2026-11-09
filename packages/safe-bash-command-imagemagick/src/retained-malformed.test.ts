@@ -33,7 +33,8 @@ it(`rejects large unknown images with bounded memory via ${entry}, failure=${fai
     finally { vi.unstubAllGlobals(); }
     if (failureMode === "none") expect(actual).toEqual(expected);
     expect(maxAllocation).toBeLessThanOrEqual(65536);
-    expect(readBytes).toBeLessThan(size + 16384);
+    // Compare diagnoses both operands, including repeated input paths.
+    expect(readBytes).toBeLessThan((entry === "compare" ? 2 : 1) * (size + 16384));
     expect(closed).toBe(opened);
     expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["input"]);
 });

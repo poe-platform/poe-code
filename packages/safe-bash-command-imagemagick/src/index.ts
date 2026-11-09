@@ -1501,7 +1501,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
     "exif:orientation": meta.orientation === undefined ? "" : String(meta.orientation),
     colorspace: space, channels: `${space === "LinearGray" ? "gray" : space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.writeMask || meta.storedWriteMask ? 1 : 0)}.0`,
-    w: short.w!, width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
+    width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
     depth: bitDepth, size: short.b!, compression, quality: short.Q!, page: short.P!,
     "resolution.x": short.x!, "resolution.y": short.y!,
     units: short.U!
@@ -1569,7 +1569,9 @@ function* formatMagickPropertyStringSteps<Step=never>(
     } else {
       const property = token.slice(2, -1);
       const key = property.toLowerCase();
-      if (Object.hasOwn(properties, key)) {
+      if (property.length === 1 && Object.hasOwn(short, property)) {
+        parts.push(short[property]!);
+      } else if (Object.hasOwn(properties, key)) {
         parts.push(properties[key]!);
       } else if (Object.hasOwn(properties, `artifact:${key}`)) {
         parts.push(properties[`artifact:${key}`]!);

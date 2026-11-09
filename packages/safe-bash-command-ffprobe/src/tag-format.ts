@@ -113,7 +113,7 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
     if (streamOpen) yield (firstStream ? "" : "\n    ") + "]";
     yield (first ? "" : "\n") + "}\n"; return;
   }
-  const enabled = (a: string, b: string, fallback: boolean) => { const value = settings.get(a) ?? settings.get(b); return value === undefined ? fallback : parseWriterBoolean(value); };
+  const enabled = (key: string, fallback: boolean) => { const value = settings.get(key); return value === undefined ? fallback : parseWriterBoolean(value); };
   if (format === "ini") {
     yield "# ffprobe output\n";
     if (["stream", "stream_tags"].some(key => sections.has(key) && sections.get(key)?.length !== 0)) yield "\n\n";
@@ -128,7 +128,7 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
       }
     }
     if (format === "ini") {
-      const path = section === "stream" ? `${!parseWriterBoolean(settings.get("h") ?? settings.get("hierarchical") ?? "1") ? "" : "streams."}stream.${streamIndex++}` : section;
+      const path = section === "stream" ? `${!parseWriterBoolean(settings.get("hierarchical") ?? "1") ? "" : "streams."}stream.${streamIndex++}` : section;
       yield `\n[${path}]\n`;
       for (const [key, value] of Object.entries(row)) {
         if (typeof value === "object") continue;
@@ -144,16 +144,16 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
         }
       }
     } else if (format === "compact" || format === "csv") {
-      const separator = settings.get("item_sep") ?? settings.get("s") ?? (format === "csv" ? "," : "|");
+      const separator = settings.get("item_sep") ?? (format === "csv" ? "," : "|");
       let first = true;
-      if (enabled("print_section", "p", true)) { yield section; first = false; }
+      if (enabled("print_section", true)) { yield section; first = false; }
       for await (const field of fields()) {
         if (!first) yield separator; first = false;
-        if (!enabled("nokey", "nk", format === "csv")) {
+        if (!enabled("nokey", format === "csv")) {
           if (field.tag) yield "tag:";
           yield* parts(field.key); yield "=";
         }
-        const escape = settings.get("escape") ?? settings.get("e") ?? (format === "csv" ? "csv" : "c");
+        const escape = settings.get("escape") ?? (format === "csv" ? "csv" : "c");
         if (escape === "none") yield* parts(field.value);
         else if (escape === "csv") {
           const quote = await needsQuotes(parts(field.value), separator);
@@ -164,20 +164,20 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
       }
       yield "\n";
     } else if (format === "flat") {
-      const sep = settings.get("s") ?? settings.get("sep_char") ?? ".";
-      const prefix = section === "stream" ? `${!parseWriterBoolean(settings.get("h") ?? settings.get("hierarchical") ?? "1") ? "" : "streams" + sep}stream${sep}${streamIndex++}` : "format";
+      const sep = settings.get("sep_char") ?? ".";
+      const prefix = section === "stream" ? `${!parseWriterBoolean(settings.get("hierarchical") ?? "1") ? "" : "streams" + sep}stream${sep}${streamIndex++}` : "format";
       for await (const field of fields()) {
         yield prefix + sep + (field.tag ? "tags" + sep : ""); yield* parts(field.key); yield "=";
         if (typeof field.value === "number") yield String(field.value); else yield* jsonString(parts(field.value));
         yield "\n";
       }
     } else {
-      if (!enabled("noprint_wrappers", "nw", false)) yield "[" + section.toUpperCase() + "]\n";
+      if (!enabled("noprint_wrappers", false)) yield "[" + section.toUpperCase() + "]\n";
       for await (const field of fields()) {
-        if (!enabled("nokey", "nk", false)) { if (field.tag) yield "TAG:"; yield* parts(field.key); yield "="; }
+        if (!enabled("nokey", false)) { if (field.tag) yield "TAG:"; yield* parts(field.key); yield "="; }
         yield* parts(field.value); yield "\n";
       }
-      if (!enabled("noprint_wrappers", "nw", false)) yield "[/" + section.toUpperCase() + "]\n";
+      if (!enabled("noprint_wrappers", false)) yield "[/" + section.toUpperCase() + "]\n";
     }
   }
 }

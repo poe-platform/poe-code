@@ -8,3 +8,13 @@ export function resolveFfprobeLimits(options: MediaResourceLimits | undefined) {
   }
   return limits;
 }
+
+export const writerOptionAliases = new Map([
+  ["nk", "nokey"],
+  ["nw", "noprint_wrappers"],
+  ["p", "print_section"],
+  ["s", "item_sep"],
+  ["h", "hierarchical"],
+  ["c", "compact"],
+  ["e", "escape"]
+]);

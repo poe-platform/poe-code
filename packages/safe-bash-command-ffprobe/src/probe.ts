@@ -1,3 +1,4 @@
+import { writerOptionAliases } from "./options.js";
 import { parseWriterBoolean } from "./writer-boolean.js";
 import { optionalFields, parseOptionalFields } from "./optional-fields.js";
 import { iniSection, sexagesimalRow } from "./probe-text.js";
@@ -80,7 +81,7 @@ export function parseArguments(args: readonly string[]) {
     options.map((option) => {
       const [k, v] = option.split("=");
       if (!k || v === undefined) throw new Error("Invalid writer option");
-      return [k, v];
+      return [k === "s" && format === "flat" ? "sep_char" : writerOptionAliases.get(k) ?? k, v];
     })
   );
   const writerOptions: Record<string, readonly string[]> = {
@@ -292,13 +293,13 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
     let output = "# ffprobe output\n", index = 0;
     if (rows.some(row => row.section === "stream")) output += "\n\n";
     for (const { section, row } of rows) {
-      const path = section === "stream" ? `${!parseWriterBoolean(settings.get("h") ?? settings.get("hierarchical") ?? "1") ? "" : "streams."}stream.${index++}` : section;
+      const path = section === "stream" ? `${!parseWriterBoolean(settings.get("hierarchical") ?? "1") ? "" : "streams."}stream.${index++}` : section;
       for (const part of iniSection(row, path)) output += part;
     }
     return output;
   }
-  const enabled = (a: string, b: string, fallback: boolean) => {
-    const value = settings.get(a) ?? settings.get(b);
+  const enabled = (key: string, fallback: boolean) => {
+    const value = settings.get(key);
     return value === undefined ? fallback : parseWriterBoolean(value);
   };
   const lines: string[] = [];
@@ -310,8 +311,8 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
         : [[key, value] as const]
     );
     if (format === "compact" || format === "csv") {
-      const sep = settings.get("item_sep") ?? settings.get("s") ?? (format === "csv" ? "," : "|");
-      const escape = settings.get("escape") ?? settings.get("e") ?? (format === "csv" ? "csv" : "c");
+      const sep = settings.get("item_sep") ?? (format === "csv" ? "," : "|");
+      const escape = settings.get("escape") ?? (format === "csv" ? "csv" : "c");
       const quote = (value: string) =>
         escape === "none" ? value : escape === "csv"
           ? value.includes(sep) || value.includes('"') || value.includes("\n") || value.includes("\r")
@@ -327,26 +328,26 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
               .split(sep)
               .join("\\" + sep);
       const values = fields.map(([k, v]) =>
-        (enabled("nokey", "nk", format === "csv") ? "" : k + "=") + quote(String(v))
+        (enabled("nokey", format === "csv") ? "" : k + "=") + quote(String(v))
       );
-      if (enabled("print_section", "p", true)) values.unshift(section);
+      if (enabled("print_section", true)) values.unshift(section);
       lines.push(values.join(sep));
     } else if (format === "flat") {
-      const sep = settings.get("s") ?? settings.get("sep_char") ?? ".";
-      const prefix = section === "stream" ? `${!parseWriterBoolean(settings.get("h") ?? settings.get("hierarchical") ?? "1") ? "" : "streams" + sep}stream${sep}${streamIndex++}` : "format";
+      const sep = settings.get("sep_char") ?? ".";
+      const prefix = section === "stream" ? `${!parseWriterBoolean(settings.get("hierarchical") ?? "1") ? "" : "streams" + sep}stream${sep}${streamIndex++}` : "format";
       for (const [key, value] of fields)
         lines.push(
           `${prefix}${sep}${key.startsWith("tag:") ? "tags" + sep + key.slice(4) : key}=${typeof value === "number" ? value : JSON.stringify(value)}`
         );
     } else {
-      if (!enabled("noprint_wrappers", "nw", false)) lines.push("[" + section.toUpperCase() + "]");
+      if (!enabled("noprint_wrappers", false)) lines.push("[" + section.toUpperCase() + "]");
       for (const [key, value] of fields)
         lines.push(
-          (enabled("nokey", "nk", false)
+          (enabled("nokey", false)
             ? ""
             : (key.startsWith("tag:") ? "TAG:" + key.slice(4) : key) + "=") + value
         );
-      if (!enabled("noprint_wrappers", "nw", false)) lines.push("[/" + section.toUpperCase() + "]");
+      if (!enabled("noprint_wrappers", false)) lines.push("[/" + section.toUpperCase() + "]");
     }
   }
   return lines.length ? lines.join("\n") + "\n" : "";

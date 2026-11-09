@@ -14,7 +14,7 @@ import { probeStoredOgg } from "./ogg-probe.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { FlacTags } from "./flac-tags.js";
 import { SourceAudioTags } from "./source-tags.js";
-import { resolveFfprobeLimits } from "./options.js";
+import { resolveFfprobeLimits, writerOptionAliases } from "./options.js";
 import { formatTaggedAudio, formatTaggedRows, type TaggedAudioRow, type StoredAudioTags } from "./tag-format.js";
 import { writeProbeOutput } from "./probe-output.js";
 import { openProbeStream, sniffMediaStream, withStagedProbeSource } from "./stream-input.js";
@@ -659,9 +659,11 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   for (const p of allParams) {
     const eq = p.indexOf("=");
     if (eq >= 0) {
-      paramMap[p.slice(0, eq).trim()] = p.slice(eq + 1).trim();
+      const key = p.slice(0, eq).trim();
+      paramMap[key === "s" && fmt === "flat" ? "sep_char" : writerOptionAliases.get(key) ?? key] = p.slice(eq + 1).trim();
     } else if (p.trim()) {
-      paramMap[p.trim()] = "1";
+      const key = p.trim();
+      paramMap[key === "s" && fmt === "flat" ? "sep_char" : writerOptionAliases.get(key) ?? key] = "1";
     }
   }
 
@@ -679,7 +681,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     if (includeChapters) sections.push({ name: "chapters", rows: probe.chapters });
     if (probe.error) sections.push({ name: "error", value: probe.error });
     if (finalFormat !== undefined) sections.push({ name: "format", value: finalFormat });
-    const compact = parseWriterBoolean(paramMap.c ?? paramMap.compact ?? "0");
+    const compact = parseWriterBoolean(paramMap.compact ?? "0");
     yield "{";
     let firstSection = true;
     for (const section of sections) {
@@ -718,8 +720,8 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     return;
   }
   const noWrappers =
-    parseWriterBoolean(paramMap.noprint_wrappers ?? paramMap.nw ?? "0");
-  const noKey = parseWriterBoolean(paramMap.nokey ?? paramMap.nk ?? (fmt === "csv" ? "1" : "0"));
+    parseWriterBoolean(paramMap.noprint_wrappers ?? "0");
+  const noKey = parseWriterBoolean(paramMap.nokey ?? (fmt === "csv" ? "1" : "0"));
 
   function probeEntries(section: Record<string, unknown>, tagPrefix: string, dispositionPrefix: string): [string, unknown][] {
     return Object.entries(section).flatMap(([key, value]) =>
@@ -730,7 +732,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   }
 
   function probeText(value: unknown, separator = "."): ProbeOutputPart {
-    const escape = paramMap.escape ?? paramMap.e ?? (fmt === "csv" ? "csv" : "c");
+    const escape = paramMap.escape ?? (fmt === "csv" ? "csv" : "c");
     const mode = fmt === "flat" ? "flat" : escape === "none" ? "plain" : escape === "csv" ? "csv" : "compact";
     if (isProbeText(value)) return { text: value, mode, separator };
     if (fmt === "flat" && typeof value === "number") return String(value);
@@ -758,15 +760,15 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     if (fmt === "xml") {
       yield* xmlSection(section, name, name === "format" || name === "error" ? 1 : 2);
     } else if (fmt === "ini") {
-      const hierarchical = parseWriterBoolean(paramMap.h ?? paramMap.hierarchical ?? "1");
+      const hierarchical = parseWriterBoolean(paramMap.hierarchical ?? "1");
       const parent = includePackets && includeFrames && (name === "packet" || name === "frame") ? "packets_and_frames" : name + "s";
       const path = name === "format" || name === "error" ? name : `${hierarchical ? parent + "." : ""}${name}.${index}`;
       const { streams: members, ...fields } = section;
       yield* iniSection(fields, parentPath + path);
       if (Array.isArray(members)) for (const [i, member] of members.entries()) yield* render(member, "stream", i, path + ".");
     } else if (fmt === "csv" || fmt === "compact") {
-      const sep = paramMap.item_sep ?? paramMap.s ?? (fmt === "csv" ? "," : "|");
-      const printSection = parseWriterBoolean(paramMap.p ?? paramMap.print_section ?? "1");
+      const sep = paramMap.item_sep ?? (fmt === "csv" ? "," : "|");
+      const printSection = parseWriterBoolean(paramMap.print_section ?? "1");
       let first = true;
       if (printSection) { yield name; first = false; }
       for (const [key, value] of probeEntries(section, "tag:", "disposition:")) {
@@ -782,8 +784,8 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       }
       yield "\n";
     } else if (fmt === "flat") {
-      const sep = paramMap.s ?? paramMap.sep_char ?? ".";
-      const hierarchical = parseWriterBoolean(paramMap.h ?? paramMap.hierarchical ?? "1");
+      const sep = paramMap.sep_char ?? ".";
+      const hierarchical = parseWriterBoolean(paramMap.hierarchical ?? "1");
       const prefix = parentPath + (["program", "stream", "packet", "frame"].includes(name)
         ? `${hierarchical ? name + "s" + sep : ""}${name}${sep}${index}${sep}`
         : `${name}${sep}`);

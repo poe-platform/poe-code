@@ -325,6 +325,9 @@ attack/release, peak/RMS detection, channel linking, input/makeup gain, and down
 `acompressor=threshold=0.1:ratio=4:attack=1:release=20` compresses changing PCM levels
 with attack and release in milliseconds. It supports soft knees, peak/RMS detection,
 average/maximum channel linking, upward/downward modes, input gain, makeup and wet/dry mix.
+Both `acompressor` and `sidechaincompress` accept numeric expressions such as
+`threshold=1/4` and `ratio=2*2`, including positional options. Invalid expressions
+and out-of-range results fail without replacing existing output.
 
 `axcorrelate` computes per-channel cross-correlation from two PCM inputs with compatible
 channel layouts, resampling the second input to the first input’s sample rate and

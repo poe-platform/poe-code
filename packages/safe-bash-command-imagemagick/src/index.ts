@@ -3509,8 +3509,10 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         if (state.kernel === "nearest" && state.interpolation === "mesh") throw new Error("Unsupported rotation interpolation: mesh");
         const nearest = state.kernel === "nearest" && state.interpolation === "nearest";
         if (!Number.isFinite(angle) || angle % 90 === 0) return;
+        const scale = state.distortScale === undefined ? undefined : Math.abs(Number.parseFloat(state.distortScale));
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "backgroundColor" | "virtualCanvas">): (WarpPlan & { space?: RgbaImage["space"]; steps: ReturnType<typeof warpPixelSteps> }) | undefined => {
             if (!applies(image)) return;
+            if (scale !== undefined && (!Number.isFinite(scale) || scale < 0.1)) throw new Error("invalid argument for option distort:scale");
             const plan = { ...magickWarpPlan(image, "+distort", "SRT", String(angle % 360))!, nearest };
             const page = image.virtualCanvas;
             // RotateImage scales the page dimensions to the best-fit raster, but

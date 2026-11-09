@@ -3697,7 +3697,7 @@ function parsePosterizeLevels(value: string): number {
     return levels;
 }
 
-function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     let cooperativeWork = 0;
     const levels = Math.max(2, Math.trunc(levelsRaw));
     const step = 255 / (levels - 1);
@@ -3707,6 +3707,8 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
     // Native posterize dithers only palettes with 2–16 levels.
     if (levelsRaw < 2 || levels > 16) dither = false;
     if (!dither && levelsRaw >= 2) {
+        // Gray occupies all RGB slots, but only the red channel mask selects it.
+        if (img.space === "b-w" || img.space === "grey16") mask[1] = mask[2] = channels.r;
         if (img.hasAlpha || !channels.r || !channels.g || !channels.b) {
             // Native rounds samples, then reduces the resulting RGBA palette to
             // levels³ colors. Alpha and unselected RGB channels can exceed that limit.

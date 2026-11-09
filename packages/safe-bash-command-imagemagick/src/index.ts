@@ -6203,7 +6203,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 if (active[channel] && range > 0) for (let value = 0; value < levels; value++) lookup[channel]![value] = Math.round(Math.max(0, Math.min(levels - 1, (value - mins[channel]!) / range * (levels - 1))));
             }
         } else if (token === "-linear-stretch") {
-            const [black, white] = argument.split("x"), percentage = argument.includes("%");
+            const [black, white] = argument.replaceAll(",", "x").replaceAll("/", "x").split("x"), percentage = argument.includes("%");
             const lowTarget = (parseFloat(black || "0") || 0) * (percentage ? count / 100 : 1);
             // An omitted white point is the remaining pixel count, not the black point.
             const highTarget = white === undefined || white === "" ? count - lowTarget : (parseFloat(white) || 0) * (percentage ? count / 100 : 1);

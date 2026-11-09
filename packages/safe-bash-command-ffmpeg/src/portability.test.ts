@@ -182,7 +182,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes headerless RGB input and the current container graph (1,117,724 bytes).
   // Includes the current command graph, retained image packets, and separate image2 planes.
   // Includes configurable PCM resampling support (measured 1,145,221 bytes).
-  assert.ok(otherCodeBytes < 1_146_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes WAV ADPCM/G.726 encoding and G.711 container handling (measured 1,161,162 bytes).
+  assert.ok(otherCodeBytes < 1_162_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -275,6 +276,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes speaker-layout validation and the current media dependency graph (10,458,818 bytes).
   // Includes headerless RGB input and the current media dependency graph (10,474,196 bytes).
   // Current command graph and media dependencies, including image2 planes, measure 10,700,030 bytes.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_705_000,
+  // Includes the current WAV encoders and G.711 container graph (measured 10,720,719 bytes).
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 10_722_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

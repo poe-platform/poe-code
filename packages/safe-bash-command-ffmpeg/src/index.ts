@@ -8752,12 +8752,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
 
                   if (maxAudioFrames !== undefined) {
+                    let inputFrames = maxAudioFrames;
+                    if (audioCodec === "adpcm_ima_wav" && maxAudioFrames > 0) {
+                      const channels = audioChannels === undefined || audioChannels === -1 ? stretched.length : audioChannels;
+                      const blockSamples = 1 + (1024 - 4 * channels) * 2 / channels;
+                      const required = maxAudioFrames * blockSamples * origRate / (audioRate ?? origRate);
+                      // Consume complete input frames, then flush the encoder's partial block.
+                      let end = 0;
+                      inputFrames = 0;
+                      while (end < required && end < (stretched[0]?.length ?? 0)) {
+                        end = audioTimestamps?.[inputFrames]?.end ?? end +
+                          (t.samples[inputFrames] ? t.samples[inputFrames]!.duration * origRate / t.timescale : 1024);
+                        inputFrames++;
+                      }
+                    }
                     const end = audioTimestamps
-                      ? maxAudioFrames === 0 ? 0 : audioTimestamps[Math.min(maxAudioFrames, audioTimestamps.length) - 1]?.end ?? 0
-                      : Math.round(t.samples.slice(0, maxAudioFrames).reduce((total, sample) => total + sample.duration, 0) * origRate / t.timescale)
-                        + Math.max(0, maxAudioFrames - t.samples.length) * 1024;
+                      ? inputFrames === 0 ? 0 : audioTimestamps[Math.min(inputFrames, audioTimestamps.length) - 1]?.end ?? 0
+                      : Math.round(t.samples.slice(0, inputFrames).reduce((total, sample) => total + sample.duration, 0) * origRate / t.timescale)
+                        + Math.max(0, inputFrames - t.samples.length) * 1024;
                     stretched = stretched.map(channel => channel.subarray(0, end));
-                    audioTimestamps = audioTimestamps?.slice(0, maxAudioFrames);
+                    audioTimestamps = audioTimestamps?.slice(0, inputFrames);
                   }
 
                   const audioEnd = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));

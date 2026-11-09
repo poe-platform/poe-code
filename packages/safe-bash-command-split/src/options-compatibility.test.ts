@@ -47,6 +47,44 @@ test("legacy numeric line option splits records", async () => {
   assert.deepEqual(await files(result.fs), { xaa: hex("1\n2\n"), xab: hex("3\n4\n") });
 });
 
+test("repeated legacy counts use the last short-option group", async () => {
+  for (const args of [["-2", "-1"], ["-0", "-1"]]) {
+    const result = await run(args, "a\nb\nc\nd\n");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await files(result.fs), { xaa: hex("a\n"), xab: hex("b\n"), xac: hex("c\n"), xad: hex("d\n") });
+  }
+  const result = await run(["-1", "-2"], "a\nb\nc\nd\n");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(await files(result.fs), { xaa: hex("a\nb\n"), xab: hex("c\nd\n") });
+});
+
+test("legacy digits combine within short-option groups", async () => {
+  for (const args of [["-d1"], ["-1d"], ["-2", "-d1"]]) {
+    const result = await run(args, "a\nb\n");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await files(result.fs), { x00: hex("a\n"), x01: hex("b\n") });
+  }
+  for (const arg of ["-12d", "-1d2"]) {
+    const result = await run([arg], "a\n".repeat(13));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await files(result.fs), { x00: hex("a\n".repeat(12)), x01: hex("a\n") });
+  }
+});
+
+test("legacy counts still reject modern split modes and invalid final counts before writing", async () => {
+  for (const args of [["-l1", "-l2"], ["-1", "-l2"], ["-l2", "-1"], ["-b2", "-1"], ["-1", "-n2"]]) {
+    const result = await run(args, "a\nb\n");
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes("cannot split in more than one way"));
+    assert.deepEqual(await files(result.fs), {});
+  }
+  for (const args of [["-1", "-0"], ["-d0"], ["-9007199254740992"]]) {
+    const result = await run(args, "a\nb\n");
+    assert.equal(result.exitCode, 1);
+    assert.deepEqual(await files(result.fs), {});
+  }
+});
+
 test("chunk modes preserve lines, distribute records, and select stdout", async () => {
   for (const [mode, outputs] of [
     ["l/2", ["abc\nd\n", "ef\n"]],

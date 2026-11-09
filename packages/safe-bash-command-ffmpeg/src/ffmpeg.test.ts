@@ -8942,6 +8942,75 @@ describe("ebur128", () => {
 
 
 
+describe("ebur128 dual mono", () => {
+  for (const [options, level, correction] of [
+    ["dualmono=false", -15.4, 0], ["dualmono=true", -12.4, 3.01029995663978],
+    ["dualmono=1:panlaw=-6", -9.4, 6], ["dualmono=true:panlaw=0", -15.4, 0],
+    ["dualmono=true:panlaw=-10", -5.4, 10], ["panlaw=-6", -15.4, 0],
+    ["dualmono=0:panlaw=-6", -15.4, 0]
+  ] as const) {
+    it(`matches native mono compensation for ${options}`, async () => {
+      // Native FFmpeg fixture: 3.5 s of 700 Hz followed by 20 ms at PCM 30000.
+      const samples = Float64Array.from({ length: 28160 }, (_, i) =>
+        (i < 28000 ? Math.trunc(8192 * Math.sin(2 * Math.PI * 700 * i / 8000)) : 30000) / 32768);
+      const input = encodeWav({ sampleRate: 8000, channels: [samples] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af",
+        `ebur128=${options}:peak=sample`, "-c:a", "pcm_s16le", "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const measurements = result.stderr.split("\n").filter(line => line.startsWith("t:"));
+      assert.ok(measurements[0]!.includes(`M:${(-120.691 + correction).toFixed(1).padStart(6)}`));
+      assert.match(measurements[0]!, /I:\s+-70.0 LUFS/);
+      for (const field of ["M:", "S:", "I:"]) {
+        assert.equal(Number(measurements.at(-1)!.split(field)[1]!.trim().split(" ")[0]), level);
+      }
+      const summary = result.stderr.slice(result.stderr.indexOf("Summary:"));
+      assert.ok(summary.includes(`I:         ${level.toFixed(1)} LUFS`), summary);
+      assert.ok(summary.includes(`Threshold: ${(level - 10).toFixed(1)} LUFS`), summary);
+      assert.ok(summary.includes(`Threshold: ${(level - 20).toFixed(1)} LUFS`), summary);
+      assert.ok(summary.includes(`LRA low:   ${level.toFixed(1)} LUFS`), summary);
+      assert.ok(summary.includes(`LRA high:  ${level.toFixed(1)} LUFS`), summary);
+      assert.match(summary, /LRA:\s+0.0 LU/);
+      assert.match(summary, /Peak:\s+-0.8 dBFS/);
+      assert.deepEqual(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData,
+        parseWav(input).tracks[0]!.decodedAudio!.channelData);
+    });
+  }
+  for (const amplitude of [0, 0.0001]) {
+    it(`keeps ungated mono integrated loudness at -70 for amplitude ${amplitude}`, async () => {
+      const samples = Float64Array.from({ length: 3200 }, (_, i) => amplitude * Math.sin(2 * Math.PI * 700 * i / 8000));
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [samples] }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", "ebur128=dualmono=true:panlaw=-6", "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const summary = result.stderr.slice(result.stderr.indexOf("Summary:"));
+      assert.match(summary, /I:\s+-70.0 LUFS/);
+      assert.match(summary, /Threshold:\s+6.0 LUFS/);
+      assert.match(summary, /LRA low:\s+6.0 LUFS\n\s+LRA high:\s+6.0 LUFS/);
+    });
+  }
+  it("ignores compensation for stereo input", async () => {
+    const samples = Float64Array.from({ length: 3200 }, (_, i) => Math.sin(i) / 4);
+    const input = encodeWav({ sampleRate: 8000, channels: [samples, samples] });
+    const outputs = [];
+    for (const options of ["", "=dualmono=true:panlaw=-6"]) {
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", `ebur128${options}`, "/out.wav"],
+        createTestVfs({ "/in.wav": input }));
+      assert.equal(result.exitCode, 0, result.stderr);
+      outputs.push(result.stderr);
+    }
+    assert.equal(outputs[0], outputs[1]);
+  });
+  for (const options of ["dualmono=maybe", "dualmono=2", "panlaw=1", "panlaw=-11", "panlaw=NaN", "panlaw=", "panlaw=-Infinity"]) {
+    it(`rejects invalid ${options} without overwriting output`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }), "/out.wav": "keep" });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", `ebur128=${options}`, "/out.wav"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /ebur128: invalid/);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
+    });
+  }
+});
+
 describe("ebur128 edge cases", () => {
   for (const peak of ["0", "1", "2", "3", "none", "sample"]) {
     it(`accepts peak=${peak} and preserves PCM including a final partial interval`, async () => {

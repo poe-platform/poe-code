@@ -95,6 +95,9 @@ filesystem. Records include
 Progress emits a final record after processing. `speed` reports processed media seconds per elapsed second with an `x` suffix, or `N/A` when either duration is zero.
 `ebur128=peak=sample` reports loudness every 100 ms and a final integrated
 loudness, loudness range, and sample-peak summary without changing PCM samples.
+Use `ebur128=dualmono=true` to compensate mono loudness for stereo playback;
+`panlaw` sets the pan law from -10 to 0 dB (default -3.0103 dB).
+Stereo and multichannel measurements are unaffected.
 Numeric `peak=2` and `peak=3` also enable sample peaks; `peak=0`, `peak=1`,
 `peak=none`, and plain `ebur128` omit them. True peaks, video, and metadata options are unsupported.
 `loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json` normalizes mono or stereo

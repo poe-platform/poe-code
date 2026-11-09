@@ -8,11 +8,25 @@ export async function* measureEbur128(
   options: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): AsyncGenerator<string> {
   let samplePeaks = false;
+  let dualMono = false;
+  let panLaw = -3.01029995663978;
   for (const option of options ? options.split(":") : []) {
     if (option === "peak=sample" || option === "peak=2" || option === "peak=3") samplePeaks = true;
     else if (option === "peak=none" || option === "peak=0" || option === "peak=1") samplePeaks = false;
-    else throw new Error(`ebur128: unsupported option ${option}`);
+    else if (option.startsWith("dualmono=")) {
+      const value = option.slice("dualmono=".length).toLowerCase();
+      if (["1", "true", "yes", "on"].includes(value)) dualMono = true;
+      else if (["0", "false", "no", "off"].includes(value)) dualMono = false;
+      else throw new Error(`ebur128: invalid option ${option}`);
+    } else if (option.startsWith("panlaw=")) {
+      const value = option.slice("panlaw=".length).trim();
+      panLaw = Number(value);
+      if (!value || !Number.isFinite(panLaw) || panLaw < -10 || panLaw > 0) {
+        throw new Error(`ebur128: invalid option ${option}`);
+      }
+    } else throw new Error(`ebur128: unsupported option ${option}`);
   }
+  const compensation = channels.length === 1 && dualMono ? -panLaw : 0;
   const mask = channelMask || [0, 4, 3, 7, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels.length];
   if (!mask) throw new Error("ebur128: unsupported channel layout");
   const weights: number[] = [];
@@ -84,7 +98,8 @@ export async function* measureEbur128(
         count += window.histogram[i]!;
         sum += window.histogram[i]! * energies[i]!;
       }
-      if (index === 0) integrated = loudness(sum / count);
+      // Compensate reported loudness, leaving the absolute and relative gates unchanged.
+      if (index === 0) integrated = loudness(sum / count) + compensation;
       else {
         let accumulated = 0;
         const lowerCount = Math.floor(count * 0.1 + 0.5);
@@ -102,7 +117,7 @@ export async function* measureEbur128(
     }
     const time = frame / sampleRate;
     const timeText = String(Number(time < 1 ? time.toPrecision(6) : time.toFixed(6)));
-    yield `t: ${timeText.padEnd(10)} TARGET:-23 LUFS    M:${windows[0]!.loudness.toFixed(1).padStart(6)} S:${windows[1]!.loudness.toFixed(1).padStart(6)}     I:${integrated.toFixed(1).padStart(6)} LUFS       LRA:${(high - low).toFixed(1).padStart(6)} LU${samplePeaks ? `  SPK: ${state.map(s => db(s.peak)).join(" ")} dBFS` : ""}\n`;
+    yield `t: ${timeText.padEnd(10)} TARGET:-23 LUFS    M:${(windows[0]!.loudness + compensation).toFixed(1).padStart(6)} S:${(windows[1]!.loudness + compensation).toFixed(1).padStart(6)}     I:${integrated.toFixed(1).padStart(6)} LUFS       LRA:${(high - low).toFixed(1).padStart(6)} LU${samplePeaks ? `  SPK: ${state.map(s => db(s.peak)).join(" ")} dBFS` : ""}\n`;
   }
-  yield `Summary:\n\n  Integrated loudness:\n    I:         ${integrated.toFixed(1)} LUFS\n    Threshold: ${windows[0]!.threshold.toFixed(1)} LUFS\n\n  Loudness range:\n    LRA:       ${(high - low).toFixed(1)} LU\n    Threshold: ${windows[1]!.threshold.toFixed(1)} LUFS\n    LRA low:   ${low.toFixed(1)} LUFS\n    LRA high:  ${high.toFixed(1)} LUFS${samplePeaks ? `\n\n  Sample peak:\n    Peak:      ${db(Math.max(...state.map(s => s.peak)))} dBFS` : ""}\n`;
+  yield `Summary:\n\n  Integrated loudness:\n    I:         ${integrated.toFixed(1)} LUFS\n    Threshold: ${(windows[0]!.threshold + compensation).toFixed(1)} LUFS\n\n  Loudness range:\n    LRA:       ${(high - low).toFixed(1)} LU\n    Threshold: ${(windows[1]!.threshold + compensation).toFixed(1)} LUFS\n    LRA low:   ${(low + compensation).toFixed(1)} LUFS\n    LRA high:  ${(high + compensation).toFixed(1)} LUFS${samplePeaks ? `\n\n  Sample peak:\n    Peak:      ${db(Math.max(...state.map(s => s.peak)))} dBFS` : ""}\n`;
 }

@@ -4877,7 +4877,7 @@ export function evalSyncFfmpeg(
       if (audioCodec === "copy" && (startSeconds !== undefined || outputSs !== undefined) &&
           doc.tracks.some(track => track.codecDescriptions[0]?.codecName === `pcm_${doc.containerFormat}`)) return undefined;
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
-        doc = sliceMp4(doc, { startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds, copyAudio: audioCodec === "copy" });
+        doc = sliceMp4(doc, { inputSeek: startSeconds !== undefined, startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds, copyAudio: audioCodec === "copy" });
         if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputPreroll(doc, { video: videoCodec }, copyInitialNonKeyframes);
       }
       if (inp.streamLoop === -1) {
@@ -7765,6 +7765,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
                 // An empty raw seek is already sliced; retain its PCM codec and decoded audio.
                 if (!rawSeek || doc.durationSeconds > 0) doc = sliceMp4(doc, {
+                  inputSeek: startSeconds !== undefined,
                   startSeconds: rawSeek || concatInputSeek ? 0 : startSeconds,
                   endSeconds: (rawSeek || concatInputSeek) && inp.endSeconds !== undefined ? inp.endSeconds - startSeconds! : inp.endSeconds,
                   durationSeconds: inp.durationSeconds,

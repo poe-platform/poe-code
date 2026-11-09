@@ -2281,6 +2281,22 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
     // copy must retain that timeline instead of replacing it with an edit list.
     const preserveTimeline = options.copyAudio && track.type === "audio" &&
       !track.decodedAudio && track.codecDelayNs !== undefined && !track.editList && startSec === 0;
+    if (options.inputSeek && options.copyAudio && doc.containerFormat === "ogg" &&
+        track.codecDescriptions[0]?.codecName === "opus" && !track.decodedAudio) {
+      // Ogg seeks return the whole page at or before the requested timestamp.
+      // The final EOS page cannot establish an Opus seek timestamp, so native
+      // FFmpeg falls back to the preceding page (or the beginning of the stream).
+      actualStartIdx = 0;
+      const finalPage = materialized.samples.at(-1)?.offset;
+      for (let i = 1; i < materialized.samples.length; i++) {
+        if (++work % 256 === 0) yield;
+        const sample = materialized.samples[i]!;
+        if (sample.dts > startTick) break;
+        if (sample.offset !== undefined && sample.offset !== finalPage &&
+            sample.offset !== materialized.samples[i - 1]!.offset) actualStartIdx = i;
+      }
+    }
+
     const slicedSamples: MediaSample[] = [];
     let runningDts = 0;
 

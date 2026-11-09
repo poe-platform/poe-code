@@ -13,6 +13,8 @@ export function oggCrc(bytes: Uint8Array, crc = 0, pageOffset = 0): number {
   return crc >>> 0;
 }
 export interface OggPacket {
+  /** Byte offset of the page where this packet begins. */
+  offset?: number;
   data: Uint8Array;
   serial: number;
   granule: bigint;
@@ -22,6 +24,7 @@ export interface OggPacket {
 interface Logical {
   packets: OggPacket[];
   pending: Uint8Array[];
+  packetOffset: number;
   sequence: number;
   ended: boolean;
 }
@@ -45,7 +48,7 @@ export function readOgg(bytes: Uint8Array): { nodes: AudioNode[]; packets: OggPa
     let state = logical.get(serial);
     if (!state) {
       if (!(flags & 2) || sequence !== 0) throw new Error("Missing Ogg beginning-of-stream");
-      state = { packets: [], pending: [], sequence: -1, ended: false };
+      state = { packets: [], pending: [], packetOffset: offset, sequence: -1, ended: false };
       logical.set(serial, state);
     }
     if (
@@ -58,10 +61,12 @@ export function readOgg(bytes: Uint8Array): { nodes: AudioNode[]; packets: OggPa
     const completed: OggPacket[] = [];
     let pos = offset + 27 + count;
     for (const lace of laces) {
+      if (!state.pending.length) state.packetOffset = offset;
       state.pending.push(r.slice(pos, lace));
       pos += lace;
       if (lace < 255) {
         const packet: OggPacket = {
+          offset: state.packetOffset,
           data: join(state.pending),
           serial,
           granule: 0xffffffffffffffffn,

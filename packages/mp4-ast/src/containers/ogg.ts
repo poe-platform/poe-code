@@ -293,7 +293,7 @@ export function demuxOggOpus(bytes: Uint8Array, doc: MediaDocument, decodeAudio 
       position += duration;
       const padding = packet.eos ? position - Number(packet.granule) : 0;
       if (padding < 0 || padding > duration) throw new Error("Invalid Opus final granule");
-      samples.push({ data, pts, dts: pts, cts: 0, duration: duration - padding,
+      samples.push({ ...(packet.offset === undefined ? {} : { offset: packet.offset }), data, pts, dts: pts, cts: 0, duration: duration - padding,
         size: data.length, isKeyframe: true, sampleDescriptionIndex: 1,
         ...(padding ? { discardPaddingNs: Math.round(padding * 1e9 / 48000) } : {}) });
       pts += duration - padding;

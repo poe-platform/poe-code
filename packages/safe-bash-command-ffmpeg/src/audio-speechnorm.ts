@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function normalizeSpeech(
   channels: readonly (Float32Array | Float64Array)[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -14,7 +15,7 @@ export async function normalizeSpeech(
     const name = key && (aliases[key] ?? names.find(name => name === key));
     if (!name) throw new Error(`speechnorm: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    const number = Number(value);
+    const number = parseFilterExpression(value, "speechnorm", {});
     const factor = name === "expansion" || name === "compression";
     if (!value || !Number.isFinite(number) || number < (factor ? 1 : 0) || number > (factor ? 50 : 1)) {
       throw new Error(`speechnorm: invalid ${name}`);

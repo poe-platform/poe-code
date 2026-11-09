@@ -1365,6 +1365,12 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       const sources = [];
       for (const input of node.inputs) sources.push(await resolve(input, new Set(visiting)));
       const filters = parseFilterChain(node.expression);
+      const first = filters[0]!;
+      const equals = first.indexOf("=");
+      const instance = first.indexOf("@");
+      if (instance >= 0 && (equals < 0 || instance < equals)) {
+        filters[0] = first.slice(0, instance) + (equals < 0 ? "" : first.slice(equals));
+      }
       if (filters[0] === "headphone" || filters[0]?.startsWith("headphone=")) {
         if (sources.some(source => source.expression && source.expression !== "anull")) {
           throw new Error("headphone does not support preceding single-input filters");

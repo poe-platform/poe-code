@@ -787,6 +787,8 @@ produces 3.0 ordered FL, FR, FC. Two mono inputs with overlapping speaker positi
 produce stereo in input order. `amerge` defaults to two inputs; filters after the
 merge are supported. Overlapping multichannel layouts and filters before the
 merge are currently unsupported.
+Named instances such as `acrossfade@join=ns=4` and `amerge@pair=inputs=2`
+use the same input handling and options as their unnamed forms.
 
 `[0:a][1:a]astreamselect=inputs=2:map=1[out]` selects the second decoded PCM
 input, preserving its channels and samples and ending with the shortest input.

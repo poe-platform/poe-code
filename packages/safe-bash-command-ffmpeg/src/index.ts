@@ -1127,6 +1127,8 @@ async function panAudio(
       while (expression[offset]?.trim() === "") offset++;
       const gainStart = offset;
       if (expression[offset] === "+" || expression[offset] === "-") offset++;
+      const special = ["infinity", "inf", "nan"].find(value =>
+        expression.slice(offset, offset + value.length).toLowerCase() === value);
       const hexadecimal = expression[offset] === "0" && expression[offset + 1]?.toLowerCase() === "x";
       if (hexadecimal) offset += 2;
       const digitsStart = offset;
@@ -1142,6 +1144,7 @@ async function panAudio(
         while (offset < expression.length && expression[offset]! >= "0" && expression[offset]! <= "9") offset++;
         if (offset > exponentDigits) exponent = Number(expression.slice(exponentStart, offset));
       }
+      if (special) offset += special.length;
       const hasGain = offset > gainStart;
       let gain = sign * (hasGain ? Number(expression.slice(gainStart, offset)) : 1);
       if (hexadecimal) {
@@ -1155,7 +1158,8 @@ async function panAudio(
         gain = sign * (expression[gainStart] === "-" ? -1 : 1) *
           (Number(`0x${integer || "0"}`) + fractional) * 2 ** exponent;
       }
-      if (!Number.isFinite(gain)) throw new Error("pan: invalid gain");
+      if (special && special !== "nan") gain = sign * (expression[gainStart] === "-" ? -Infinity : Infinity);
+      if (!special && Number.isNaN(gain)) throw new Error("pan: invalid gain");
       while (expression[offset]?.trim() === "") offset++;
       if (hasGain && expression[offset] === "*") offset++;
       const channelStart = offset;

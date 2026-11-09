@@ -359,7 +359,8 @@ gains and rounds half steps toward positive infinity, including native 32-bit ov
 for large gains; floating-point filter paths retain floating-point mixing. Weighted sums use `=`,
 and `<` divides gains by the sum of their magnitudes, preserving polarity, for example `pan=mono|c0<2*c0+-1*c1`.
 Terms accept hexadecimal gains (`0x1`, `0x1p-1`), subtraction (`c0-c1`), compact gains (`.5c1`), and signed exponents
-(`1e+0*c1` or `5e-1c1`).
+(`1e+0*c1` or `5e-1c1`). Nonfinite gains such as `nan`, `inf`, and `1e999` are accepted;
+`pan=mono|c0=nan*c0` produces silence on PCM16 input/output. Floating-point paths retain nonfinite samples.
 Stereo layouts also accept `0x3` and `FL+FR`. `pan=5.1|FC=c1|LFE=c0` routes
 stereo into center and LFE; unassigned speakers stay silent. Output preserves
 the layout’s speaker order and channel mask.

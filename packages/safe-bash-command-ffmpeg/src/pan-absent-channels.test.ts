@@ -27,7 +27,7 @@ for (const [expression, expected] of [
   ["mono|FR=FL", null],
   ["mono|c1=c0", null],
   ["mono|c0=c2+Bogus", null],
-  ["mono|c0=NaN*c2", null]
+  ["mono|c0=NaN*c2", silence]
 ] as const) {
   for (const complex of [false, true]) {
     it(`validates absent pan inputs (${complex ? "graph" : "simple"}): ${expression}`, async () => {

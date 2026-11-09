@@ -54,7 +54,7 @@ it(`${mode}: ${lookup.operation} respects the source mask, removed before=${remo
 
 for (const mode of ["buffered", "retained", "sync"] as const)
 for (const operation of ["-clut", "-hald-clut"])
-it(`${mode}: ${operation} preserves protected 16-bit RGBA samples and its mask for later edits`, async () => {
+it(`${mode}: ${operation} blends protected 16-bit RGBA samples and retains its mask for later edits`, async () => {
     const samples = Uint16Array.of(12345, 23456, 34567, 45678, 11111, 22222, 33333, 44444);
     const input = encodeImage({
         format: "png", width: 2, height: 1, space: "srgb", channels: 4, hasAlpha: true, depth: "ushort", density: 72,
@@ -62,10 +62,11 @@ it(`${mode}: ${operation} preserves protected 16-bit RGBA samples and its mask f
     }, { format: "png" }).data;
     const files = new Map([["/in.png", input]]), filesystem = new MemoryFileSystem();
     await filesystem.writeFile("/in.png", input);
-    const args = ["/in.png", "-write-mask", "xc:white", "xc:black", operation, "-negate", "+write-mask", "/out.png"];
+    const args = ["/in.png", "-size", "2x1", "-write-mask", "xc:white", "xc:black", operation, "-negate", "+write-mask", "/out.png"];
     expect(mode === "sync" ? runMagickCliSync(args, files)
         : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files))
         .toEqual({ exitCode: 0, stdout: "", stderr: "" });
     const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
-    expect(output.data16).toEqual(samples);
+    // Native ImageMagick 7.1.2-35 Q16-HDRI, with the mask spanning both pixels.
+    expect(output.data16).toEqual(Uint16Array.of(11224, 15911, 20598, 45678, 11117, 15447, 19777, 44444));
 });

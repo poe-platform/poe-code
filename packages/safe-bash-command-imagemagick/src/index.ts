@@ -6860,7 +6860,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const sign = token === "-contrast" ? 1 : -1;
         apply = function* (image) {
             const out = new Uint8Array(image.data);
-            const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+            const data16 = image.data16 ? new Uint16Array(image.data16)
+                : image.writeMask || image.region || ("storedWriteMask" in image && image.storedWriteMask) ? Uint16Array.from(out, value => value * 257) : undefined;
             const samples = data16 ?? out, range = data16 ? 65535 : 255;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
@@ -7806,6 +7807,17 @@ function magickRegion(image: Pick<RgbaImage, "width" | "height">, spec: string, 
 }
 
 function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack?: RgbaImage[], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = createConvertAnalysis(), registers = new Map<string, RgbaImage[]>()): Generator<void, RgbaImage[], void> {
+    function* mapMagickImagesSteps(images: readonly RgbaImage[], transform: (image: RgbaImage) => Generator<void, RgbaImage, void>, maskAlpha?: MagickPixelOperation["maskAlpha"]): Generator<void, RgbaImage[], void> {
+        return yield* mapSteps(images, function* (original) {
+            let result = yield* transform(original);
+            if (original.region && result.data !== original.data && result.width === original.width && result.height === original.height) {
+                result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, original.region, !!(result.data16 || original.data16), state.channels), undefined, result, [result, original]);
+            }
+            if (maskAlpha === "transparent" || !original.writeMask || (result.writeMask && result.writeMask !== original.writeMask) || result.data === original.data || result.width !== original.width || result.height !== original.height) return result;
+            return yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask, !!(result.data16 || original.data16), maskAlpha === "opaque", state.channels), undefined, result, [result, original, original.writeMask]);
+        });
+    }
+
     let cooperativeWork = 63;
     let stack: RgbaImage[] = [];
     let operandsOnly = false;
@@ -8313,7 +8325,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 let result = yield* applyMagickRollSteps(im, expanded, signal);
                 if (im.writeMask) {
                     // Roll honors the destination mask before moving it with the pixels.
-                    result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!(result.data16 || im.data16)), signal, result, [result, im, im.writeMask]);
+                    result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!(result.data16 || im.data16), false, state.channels), signal, result, [result, im, im.writeMask]);
                     result.writeMask = yield* applyMagickRollSteps(im.writeMask, expanded, signal);
                 }
                 return result;
@@ -8388,8 +8400,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const { magickColorspace: ignoredColorspace, ...metadata } = im;
                 const colorspace = t === "-hald-clut" ? lut.magickColorspace : im.magickColorspace;
                 let result = yield* applyMagickRasterSteps({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: "srgb", channels: hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? im.hasAlpha && (state.channels.a || !state.channelExplicit) : state.channels.a || !state.channelExplicit], !!(im.data16 || lut.data16), state.interpolation), signal, { ...im, hasAlpha }, [im, lut]);
-                if (im.region) result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!result.data16), signal, result, [result, im]);
-                if (im.writeMask) result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!result.data16), signal, result, [result, im, im.writeMask]);
+                if (im.region) result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!result.data16, state.channels), signal, result, [result, im]);
+                if (im.writeMask) result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!result.data16, false, state.channels), signal, result, [result, im, im.writeMask]);
                 stack = [result];
             }
         }
@@ -9541,6 +9553,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
     let output: ReturnType<typeof inferOutputFormat>;
     await yieldTurn(signal);
     let state = createDefaultState();
+    let maskChannels = state.channels;
     const tokens = argv.slice(0, -1), scopes: { state: MagickState; end: number }[] = [];
     type StackStep = (stack: StoredImageStack, backend: CompareFileSession, parents: StoredImageStack[]) => Promise<StoredImageStack>;
     type Step = (((image: StoredRgbaImage | undefined, backend: CompareFileSession) => Promise<StoredRgbaImage | undefined>) & Pick<MagickPixelOperation, "maskAlpha">) | { runStack: StackStep };
@@ -9571,7 +9584,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (scopes.at(-1)?.end === i) {
             state = scopes.pop()!.state; operandsOnly = false;
-            stackStep(async (stack, _backend, parents) => { const parent = parents.pop()!; for (let n = 0; n < stack.length; n++) await parent.push((await stack.get(n))!); return parent; });
+            const channels = state.channels;
+            stackStep(async (stack, _backend, parents) => { maskChannels = channels; const parent = parents.pop()!; for (let n = 0; n < stack.length; n++) await parent.push((await stack.get(n))!); return parent; });
             continue;
         }
         if (!operandsOnly && ["+clone", "-clone", "+duplicate", "-duplicate", "+delete", "-delete", "+swap", "-swap", "-reverse", "+insert", "-insert"].includes(token)) {
@@ -9632,8 +9646,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const { magickColorspace: ignoredColorspace, ...metadata } = image;
                     const colorspace = token === "-hald-clut" ? lut.magickColorspace : image.magickColorspace;
                     let result = await transformStoredMagickRaster({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16), settings.interpolation), signal, { ...image, hasAlpha }, [image, lut]);
-                    if (image.region) result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!result.storedData16), signal, result, [result, image]);
-                    if (image.storedWriteMask) result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!result.storedData16), signal, result, [result, image, { ...image, ...image.storedWriteMask }]);
+                    if (image.region) result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!result.storedData16, settings.channels), signal, result, [result, image]);
+                    if (image.storedWriteMask) result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!result.storedData16, false, settings.channels), signal, result, [result, image, { ...image, ...image.storedWriteMask }]);
                     await stack.set(0, result);
                     stack.length = 1;
                 } else if (token === "-separate") {
@@ -9802,6 +9816,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) {
             i = setting;
+            if (token === "-channel" || token === "+channel") {
+                const channels = state.channels;
+                stackStep(async stack => { maskChannels = channels; return stack; });
+            }
             if (token === "-depth" && state.inputDepth! < 16) {
                 const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
                 steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, false, channels, signal), signal) : undefined);
@@ -10635,7 +10653,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let result = await transformStoredMagickCoordinates(image, backend, token, expanded, captured, signal, analysis);
                 if (token === "-roll" && image.storedWriteMask) {
                     // Roll honors the destination mask before moving it with the pixels.
-                    result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!(result.storedData16 || image.storedData16)), signal, result, [result, image, image.storedWriteMask]);
+                    result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!(result.storedData16 || image.storedData16), false, captured.channels), signal, result, [result, image, image.storedWriteMask]);
                     result.storedWriteMask = await transformStoredMagickCoordinates(image.storedWriteMask, backend, token, expanded, captured, signal, analysis);
                 }
                 return result;
@@ -10935,10 +10953,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const original = (await stack.get(n))! as StoredRgbaImage;
                     let result = await step(original, backend);
                     if (result && step.maskAlpha !== "transparent" && original.storedWriteMask && (!result.storedWriteMask || result.storedWriteMask === original.storedWriteMask) && result.position !== original.position && result.width === original.width && result.height === original.height) {
-                        result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask, !!(result.storedData16 || original.storedData16), step.maskAlpha === "opaque"), signal, result, [result, original, { ...original, ...original.storedWriteMask }]);
+                        result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask, !!(result.storedData16 || original.storedData16), step.maskAlpha === "opaque", maskChannels), signal, result, [result, original, { ...original, ...original.storedWriteMask }]);
                     }
                     if (result && original.region && result.position !== original.position && result.width === original.width && result.height === original.height) {
-                        result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, original.region), signal, result, [result, original]);
+                        result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, original.region, !!(result.storedData16 || original.storedData16), maskChannels), signal, result, [result, original]);
                     }
                     if (result) await stack.set(n, result);
                 }
@@ -13551,16 +13569,6 @@ export function createImagemagickCommands(options: ImagemagickCommandsOptions = 
 
 
 
-function* mapMagickImagesSteps(images: readonly RgbaImage[], transform: (image: RgbaImage) => Generator<void, RgbaImage, void>, maskAlpha?: MagickPixelOperation["maskAlpha"]): Generator<void, RgbaImage[], void> {
-    return yield* mapSteps(images, function* (original) {
-        let result = yield* transform(original);
-        if (original.region && result.data !== original.data && result.width === original.width && result.height === original.height) {
-            result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, original.region), undefined, result, [result, original]);
-        }
-        if (maskAlpha === "transparent" || !original.writeMask || (result.writeMask && result.writeMask !== original.writeMask) || result.data === original.data || result.width !== original.width || result.height !== original.height) return result;
-        return yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask, !!(result.data16 || original.data16), maskAlpha === "opaque"), undefined, result, [result, original, original.writeMask]);
-    });
-}
 
 function* mapSteps<T, U>(values: readonly T[], mapper: (value: T) => Generator<void, U, void>): Generator<void, U[], void> {
   const result: U[] = new Array(values.length);

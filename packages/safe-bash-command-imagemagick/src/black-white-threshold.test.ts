@@ -90,3 +90,31 @@ it.each([
     expect(stderr).toBe("");
     expect([...decodeImage(Buffer.concat(output)).data]).toEqual(expected);
 });
+
+for (const mode of ["command", "buffered", "retained", "sync"] as const) {
+    for (const operator of ["-black-threshold", "-white-threshold"]) {
+        it.each([4, 8])(`${mode} ${operator} expands calculated cutoffs for width %i`, async width => {
+            const pixel = [75, 120, 203, 30];
+            const input = encodeImage({ width, height: 1, data: Uint8Array.from(Array.from({ length: width }, () => pixel).flat()), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
+            for (const threshold of [String(width * 3212.5), "%[fx:w*3212.5]"]) {
+                const files = new Map([["input.png", input]]);
+                const filesystem = new MemoryFileSystem();
+                await filesystem.writeFile("/input.png", input);
+                const argv = ["input.png", "-channel", "R", operator, threshold, "+channel", "PNG32:out.png"];
+                const args = createCommandArguments(argv);
+                const result = mode === "command"
+                    ? await createMagickCommand().execute({
+                        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, signal: new AbortController().signal,
+                        stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} },
+                        registerCleanup() {}, fs: filesystem,
+                    } as unknown as CommandContext)
+                    : mode === "sync" ? runConvertCliSync(argv, files)
+                    : await runConvertCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
+                expect(result.exitCode).toBe(0);
+                const output = mode === "command" || mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
+                const red = operator === "-black-threshold" ? (width === 8 ? 0 : 75) : (width === 4 ? 255 : 75);
+                expect([...decodeImage(output).data]).toEqual(Array.from({ length: width }, () => [red, 120, 203, 30]).flat());
+            }
+        });
+    }
+}

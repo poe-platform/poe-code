@@ -9728,7 +9728,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioStartSample = firstPts;
                         audioTimestamps = undefined;
                       } else if (trimmed === "apad" || trimmed.startsWith("apad=")) {
-                        const options: Record<string, number> = {};
+                        const options: Record<string, number | undefined> = {};
                         const argument = trimmed.slice("apad=".length);
                         for (const option of argument ? argument.split(":") : []) {
                           const [key, value, extra] = option.split("=");
@@ -9738,10 +9738,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const duration = key!.endsWith("_dur");
                           const number = duration ? parseHlsDuration(value ?? "") : Number(value);
                           const samples = duration ? Math.round(number * origRate) : number;
-                          if (!value?.trim() || extra !== undefined || number < 0 || !Number.isSafeInteger(samples)) {
+                          if (!value?.trim() || extra !== undefined || number < (duration ? 0 : -1) || !Number.isSafeInteger(samples)) {
                             throw new Error(`apad: invalid ${key}`);
                           }
-                          options[key!] = samples;
+                          options[key!] = samples === -1 ? undefined : samples;
                         }
                         const padding = options.pad_dur ?? options.pad_len;
                         const minimum = options.whole_dur ?? options.whole_len;

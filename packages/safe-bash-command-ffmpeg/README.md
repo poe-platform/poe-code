@@ -799,8 +799,9 @@ Other channel layouts must match. Selection preserves frame boundaries for
 downstream filters. Selection starts when all inputs have begun and ends at the earliest
 final packet timestamp, retaining whole selected packets and honoring relative
 input timestamps such as `-itsoffset`.
-Inputs must share a sample rate. `inputs` defaults to two; `map` must select one
-input. Map indices follow FFmpeg's integer-prefix parsing: decimal, leading-zero
+Mixed-rate inputs are resampled to the first input’s sample rate before selection,
+preserving resampler frame boundaries and buffering. `inputs` defaults to two;
+`map` must select one input. Map indices follow FFmpeg's integer-prefix parsing: decimal, leading-zero
 octal, and `0x` hexadecimal, with an optional sign. Suffixes stop parsing, so
 `1foo` and `1.5` select input 1, while `0b1` and `0.5` select input 0.
 Single-input filters on each branch run before selection, for example

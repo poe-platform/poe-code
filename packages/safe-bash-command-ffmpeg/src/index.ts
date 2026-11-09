@@ -74,6 +74,7 @@ import { isStdin, rethrowRuntimeError, createInputReader, loadManifestResources,
 export type { MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-command-ffprobe/media";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
+import { resampleStreamselectInput } from "./audio-astreamselect-resample.js";
 import { resampleSoxr } from "./audio-soxr.js";
 import { filterUnityTempo, stretchAudio } from "./audio-tempo.js";
 import { datascopeFrame } from "./datascope.js";
@@ -1495,12 +1496,17 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             source.track = await filterAudio(source.track, source.expression);
           }
         }
-        const track = sources[selected]!.track;
-        const audio = track.decodedAudio;
-        if (!audio || sources.some(source => !source.track.decodedAudio ||
-          source.track.decodedAudio.sampleRate !== audio.sampleRate)) {
-          throw new Error("astreamselect requires decoded PCM inputs with matching sample rates");
+        if (sources.some(source => !source.track.decodedAudio)) {
+          throw new Error("astreamselect requires decoded PCM inputs");
         }
+        const sampleRate = sources[0]!.track.decodedAudio!.sampleRate;
+        for (const source of sources) {
+          if (source.track.decodedAudio!.sampleRate !== sampleRate) {
+            source.track = await resampleStreamselectInput(source.track, sampleRate, budget, signal);
+          }
+        }
+        const track = sources[selected]!.track;
+        const audio = track.decodedAudio!;
         // Framesync waits for every input to start and stops just after the
         // earliest final packet timestamp. It forwards whole selected frames.
         let firstPts = -Infinity;

@@ -4600,15 +4600,16 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
     return image;
 }
 
-type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number });
+type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor });
 type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | { kind: "floodfill"; x: number; y: number; color: RgbaColor; alphaOnly: boolean };
 
 function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape, highDepth = false, tile?: Pick<RgbaImage, "width" | "height">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const quantum = highDepth ? 65535 : 255, scale = highDepth ? 257 : 1;
-    const x0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.x : shape.x - shape.radius - 1));
-    const y0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.y : shape.y - shape.radius - 1));
-    const x1 = Math.min(image.width, Math.ceil(shape.shape === "rectangle" ? shape.x + shape.width : shape.x + shape.radius + 1));
-    const y1 = Math.min(image.height, Math.ceil(shape.shape === "rectangle" ? shape.y + shape.height : shape.y + shape.radius + 1));
+    const radius = shape.shape === "circle" ? shape.radius : shape.shape === "line" ? shape.width / 2 : 0;
+    const x0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.x : Math.min(shape.x, shape.shape === "line" ? shape.x1 : shape.x) - radius - 1));
+    const y0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.y : Math.min(shape.y, shape.shape === "line" ? shape.y1 : shape.y) - radius - 1));
+    const x1 = Math.min(image.width, Math.ceil(shape.shape === "rectangle" ? shape.x + shape.width : Math.max(shape.x, shape.shape === "line" ? shape.x1 : shape.x) + radius + 1));
+    const y1 = Math.min(image.height, Math.ceil(shape.shape === "rectangle" ? shape.y + shape.height : Math.max(shape.y, shape.shape === "line" ? shape.y1 : shape.y) + radius + 1));
     for (let start = 0; start < image.width * image.height; start += 1024) {
         yield;
         const count = Math.min(1024, image.width * image.height - start), bytes = yield { kind: "read", position: start * 4, length: count * 4, highDepth };
@@ -4617,16 +4618,29 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
         for (let i = 0; i < count; i++) {
             const x = (start + i) % image.width, y = Math.floor((start + i) / image.width);
             if (x < x0 || x >= x1 || y < y0 || y >= y1) continue;
-            let coverage = shape.shape === "rectangle" ? 1 : Math.max(0, Math.min(1, shape.radius + 0.5 - Math.hypot(x - shape.x, y - shape.y)));
+            let coverage = shape.shape === "circle" ? Math.max(0, Math.min(1, shape.radius + 0.5 - Math.hypot(x - shape.x, y - shape.y))) : 1;
             // Native circle coverage outside the radius is (1 - distance)^2;
             // disabling antialiasing thresholds it at one half.
             if (shape.shape === "circle" && shape.antialias === false)
                 coverage = Math.hypot(x - shape.x, y - shape.y) <= shape.radius + 1 - Math.SQRT1_2 ? 1 : 0;
             let color = shape.color;
+            if (shape.shape === "line") {
+                const dx = shape.x1 - shape.x, dy = shape.y1 - shape.y;
+                const lengthSquared = dx * dx + dy * dy;
+                const t = lengthSquared === 0 ? 0 : Math.max(0, Math.min(1, ((x - shape.x) * dx + (y - shape.y) * dy) / lengthSquared));
+                const distance = Math.hypot(x - shape.x - t * dx, y - shape.y - t * dy);
+                if (distance > shape.width / 2) continue;
+                if (distance <= 0.5 && shape.fill.a > 0) {
+                    const alpha = shape.fill.a / 255, offset = i * 4, da = data[offset + 3]! / quantum;
+                    const outA = alpha + da * (1 - alpha);
+                    for (const [channel, value] of [shape.fill.r, shape.fill.g, shape.fill.b].entries()) data[offset + channel] = Math.round((value * scale * alpha + data[offset + channel]! * da * (1 - alpha)) / outA);
+                    data[offset + 3] = Math.round(outA * quantum);
+                }
+            }
             if (shape.tile && tile) {
                 const source = yield { kind: "read", image: 1, position: ((y % tile.height) * tile.width + x % tile.width) * 4, length: 4 };
                 if (!source || source.length !== 4) throw new Error("Truncated drawing tile");
-                color = { r: source[0]!, g: source[1]!, b: source[2]!, a: source[3]! };
+                color = { r: source[0]!, g: source[1]!, b: source[2]!, a: source[3]! * shape.color.a / 255 };
             }
             const alpha = color.a / 255 * coverage, offset = i * 4;
             if (alpha >= 0.999) {
@@ -4678,8 +4692,10 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     let tile = state.tile !== undefined;
     let stroke = rgbaToCss(state.stroke);
     let strokeWidth = state.strokeWidth;
+    let fillOpacity: number | undefined;
+    let strokeOpacity: number | undefined;
     let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
-    const contexts: { fill: string; tile: boolean; stroke: string; strokeWidth: number; affine: typeof affine }[] = [];
+    const contexts: { fill: string; tile: boolean; stroke: string; strokeWidth: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
     const tokens: string[] = [];
     for (let offset = 0; offset < drawCmd.length;) {
         if (++cooperativeWork % 65536 === 0) yield;
@@ -4708,15 +4724,23 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (++cooperativeWork % 65536 === 0)
             yield;
         const cmd = tokens[i++]!.toLowerCase();
+        const fillColor = { ...parseColor(fill) }, strokeColor = { ...parseColor(stroke) };
+        if (fillOpacity !== undefined && fill !== "none") fillColor.a = fillOpacity * 255;
+        if (strokeOpacity !== undefined && stroke !== "none") strokeColor.a = strokeOpacity * 255;
+        const paintFill = rgbaToCss(fillColor), paintStroke = rgbaToCss(strokeColor);
+        if ((fillOpacity !== undefined || strokeOpacity !== undefined) && svgElements.length > 0 && ["point", "line", "rectangle", "circle"].includes(cmd)) {
+            yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
+            svgElements.length = 0;
+        }
         const elementStart = svgElements.length;
         const transformed = affine.some((value, index) => value !== (index === 0 || index === 3 ? 1 : 0));
         if (cmd === "push" || cmd === "pop") {
             if (tokens[i++]?.toLowerCase() !== "graphic-context") throw new Error(`${cmd} drawing requires graphic-context`);
-            if (cmd === "push") contexts.push({ fill, tile, stroke, strokeWidth, affine });
+            if (cmd === "push") contexts.push({ fill, tile, stroke, strokeWidth, affine, fillOpacity, strokeOpacity });
             else {
                 const context = contexts.pop();
                 if (!context) throw new Error("Cannot pop graphic-context without a matching push");
-                ({ fill, tile, stroke, strokeWidth, affine } = context);
+                ({ fill, tile, stroke, strokeWidth, affine, fillOpacity, strokeOpacity } = context);
             }
         }
         else if (cmd === "translate" || cmd === "scale" || cmd === "rotate" || cmd === "affine") {
@@ -4738,6 +4762,14 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         else if (cmd === "stroke") {
             stroke = rgbaToCss(parseColor(tokens[i++] ?? "#000000"));
         }
+        else if (cmd === "fill-opacity" || cmd === "stroke-opacity") {
+            const raw = tokens[i++];
+            const value = raw?.endsWith("%") ? Number(raw.slice(0, -1)) / 100 : Number(raw);
+            if (!raw || !Number.isFinite(value)) throw new Error(`${cmd} drawing requires a finite opacity`);
+            const opacity = Math.max(0, Math.min(1, value));
+            if (cmd === "fill-opacity") fillOpacity = opacity;
+            else strokeOpacity = opacity;
+        }
         else if (cmd === "stroke-width" || cmd === "strokewidth") {
             strokeWidth = Math.max(0, num());
         }
@@ -4749,7 +4781,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
                 svgElements.length = 0;
             }
-            yield { kind: "floodfill", x: Math.max(0, Math.min(img.width - 1, Math.round(x))), y: Math.max(0, Math.min(img.height - 1, Math.round(y))), color: parseColor(fill), alphaOnly: cmd === "alpha" };
+            yield { kind: "floodfill", x: Math.max(0, Math.min(img.width - 1, Math.round(x))), y: Math.max(0, Math.min(img.height - 1, Math.round(y))), color: fillColor, alphaOnly: cmd === "alpha" };
         }
         else if (cmd === "rectangle") {
             const x0 = num();
@@ -4760,14 +4792,14 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const ry = Math.min(y0, y1);
             const rw = Math.max(1, Math.abs(x1 - x0) + 1);
             const rh = Math.max(1, Math.abs(y1 - y0) + 1);
-            if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0 && !transformed) {
-                yield { kind: "shape", shape: "rectangle", tile, color: parseColor(fill), x: rx, y: ry, width: rw, height: rh };
+            if (fill !== "none" && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0 && !transformed) {
+                yield { kind: "shape", shape: "rectangle", tile, color: fillColor, x: rx, y: ry, width: rw, height: rh };
             } else {
                 if (fill !== "none") {
-                    svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${fill}"/>`);
+                    svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${paintFill}"/>`);
                 }
                 if (stroke !== "none" && strokeWidth > 0) {
-                    svgElements.push(`<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+                    svgElements.push(`<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
                 }
             }
         }
@@ -4783,10 +4815,10 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const rw = Math.max(1, Math.abs(x1 - x0) + 1);
             const rh = Math.max(1, Math.abs(y1 - y0) + 1);
             if (fill !== "none") {
-                svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="${wc}" ry="${hc}" fill="${fill}"/>`);
+                svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="${wc}" ry="${hc}" fill="${paintFill}"/>`);
             }
             if (stroke !== "none" && strokeWidth > 0) {
-                svgElements.push(`<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+                svgElements.push(`<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
             }
         }
         else if (cmd === "circle") {
@@ -4795,10 +4827,10 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const px = num();
             const py = num();
             const r = Math.max(1, Math.hypot(px - cx, py - cy));
-            if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0 && !transformed) {
-                yield { kind: "shape", shape: "circle", tile, color: parseColor(fill), x: cx, y: cy, radius: r, antialias: state.antialias !== false };
+            if (fill !== "none" && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0 && !transformed) {
+                yield { kind: "shape", shape: "circle", tile, color: fillColor, x: cx, y: cy, radius: r, antialias: state.antialias !== false };
             } else {
-                svgElements.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+                svgElements.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
             }
         }
         else if (cmd === "ellipse") {
@@ -4808,27 +4840,32 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const ry = num();
             num();
             num();
-            svgElements.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+            svgElements.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
         }
         else if (cmd === "line") {
             const x0 = num();
             const y0 = num();
             const x1 = num();
             const y1 = num();
-            const lineStroke = stroke === "none" ? fill : stroke;
-            svgElements.push(`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
+            const lineStroke = stroke === "none" ? paintFill : paintStroke;
+            if ((fillOpacity !== undefined || strokeOpacity !== undefined) && !transformed && svgElements.length === 0) {
+                yield { kind: "shape", shape: "line", tile: false, color: stroke === "none" ? fillColor : strokeColor, fill: stroke === "none" ? { ...fillColor, a: 0 } : fillColor, x: x0, y: y0, x1, y1, width: Math.max(1, strokeWidth) };
+            } else {
+                svgElements.push(`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
+            }
         }
         else if (cmd === "point") {
             const px = num(), py = num();
             const x = affine[0] * px + affine[2] * py + affine[4], y = affine[1] * px + affine[3] * py + affine[5];
             if (!Number.isFinite(x) || !Number.isFinite(y)) throw new Error("Drawing requires finite point coordinates");
-            svgElements.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${fill}"/>`);
+            if (fillOpacity !== undefined && !transformed && svgElements.length === 0) yield { kind: "shape", shape: "rectangle", tile: false, color: fillColor, x, y, width: 1, height: 1 };
+            else svgElements.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${paintFill}"/>`);
         }
         else if (cmd === "text") {
             const x = num();
             const y = num();
             const txt = tokens[i++] ?? "";
-            svgElements.push(`<text x="${x}" y="${y}" font-size="${state.pointsize}" fill="${fill}">${escapeXml(txt)}</text>`);
+            svgElements.push(`<text x="${x}" y="${y}" font-size="${state.pointsize}" fill="${paintFill}">${escapeXml(txt)}</text>`);
         }
         else if (cmd === "polygon" || cmd === "polyline") {
             const pts: string[] = [];
@@ -4841,10 +4878,10 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             }
             if (pts.length < (cmd === "polygon" ? 3 : 1)) throw new Error(`${cmd} drawing has too few points`);
             if (cmd === "polygon") {
-                svgElements.push(`<polygon points="${pts.join(" ")}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+                svgElements.push(`<polygon points="${pts.join(" ")}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
             }
             else {
-                const lineStroke = stroke === "none" ? fill : stroke;
+                const lineStroke = stroke === "none" ? paintFill : paintStroke;
                 svgElements.push(`<polyline points="${pts.join(" ")}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
             }
         }
@@ -4860,18 +4897,16 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             }
             if (pts.length < 3) throw new Error("bezier drawing has too few points");
             if (pts.length === 3) {
-                const lineStroke = stroke === "none" ? fill : stroke;
-                svgElements.push(`<path d="M ${pts[0]!.x} ${pts[0]!.y} Q ${pts[1]!.x} ${pts[1]!.y} ${pts[2]!.x} ${pts[2]!.y}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
+                svgElements.push(`<path d="M ${pts[0]!.x} ${pts[0]!.y} Q ${pts[1]!.x} ${pts[1]!.y} ${pts[2]!.x} ${pts[2]!.y}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
             }
             else if (pts.length >= 4) {
-                const lineStroke = stroke === "none" ? fill : stroke;
                 const rest = pts.slice(1).map((p) => `${p.x} ${p.y}`).join(" ");
-                svgElements.push(`<path d="M ${pts[0]!.x} ${pts[0]!.y} C ${rest}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
+                svgElements.push(`<path d="M ${pts[0]!.x} ${pts[0]!.y} C ${rest}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
             }
         }
         else if (cmd === "path") {
             const d = tokens[i++] ?? "";
-            svgElements.push(`<path d="${escapeXml(d)}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+            svgElements.push(`<path d="${escapeXml(d)}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
         }
         else {
             throw new Error(`Unsupported drawing primitive: ${cmd}`);

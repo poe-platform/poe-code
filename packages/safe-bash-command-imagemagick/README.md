@@ -104,7 +104,7 @@ Use `TIFF64:out.tif` to write BigTIFF at `out.tif`, including intermediate `-wri
 
 `-colorspace CMYK` converts to working cyan, magenta, yellow, and black samples for pixel inspection and connected-component analysis, preserving alpha separately. Convert back with `-colorspace sRGB`. CMYK JPEG output writes four components, including progressive output. CMYK and Lab TIFF output remain unsupported and return an error before writing the requested output.
 
-Use `+antialias` for hard-edged drawing and `-antialias` to restore smoothing for subsequent draws. Filled circles preserve untouched 16-bit source pixels.
+Drawing `fill-opacity` and `stroke-opacity` accept fractions or percentages, remain independent, and are saved by `push graphic-context` / `pop graphic-context`. Use `+antialias` for hard-edged drawing and `-antialias` to restore smoothing for subsequent draws. Filled circles preserve untouched 16-bit source pixels.
 
 `-draw` supports `translate x,y`, `scale x,y`, `rotate degrees`, and `affine sx,rx,ry,sy,tx,ty`, composed in declaration order for subsequent primitives and floodfill seeds. Transforms reset between `-draw` options. Nested `push graphic-context` / `pop graphic-context` save and restore the transform, fill, tile fill, stroke, and stroke width. A pop without a matching push fails without replacing the output.
 

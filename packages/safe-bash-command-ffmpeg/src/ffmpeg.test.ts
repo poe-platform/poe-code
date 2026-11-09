@@ -8729,6 +8729,29 @@ it("probes DASH manifest language and preserves it when copying to MP4", async (
 
 
 describe("volumedetect", () => {
+  for (const [name, samples, expected] of [
+    ["sparse peaks", [32767, 16384, 16384, ...Array(4).fill(8192), ...Array(3993).fill(1024)],
+      Array.from({ length: 13 }, (_, db) => `histogram_${db}db: ${db === 0 ? 1 : db === 6 ? 2 : db === 12 ? 4 : 0}`)],
+    ["integer threshold", [32767, ...Array(1998).fill(1024)], ["histogram_0db: 1"]],
+    ["fewer than 1000 samples", Array(999).fill(16384), []],
+    ["silence", Array(1000).fill(0), ["histogram_91db: 1000"]],
+    ["negative full scale", Array(1000).fill(-32768), ["histogram_0db: 1000"]],
+    ["truncated decibels", Array(1000).fill(12000), ["histogram_8db: 1000"]]
+  ] as const) {
+    it(`reports native peak histogram for ${name} without changing PCM`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from(samples, n => n / 32768)] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      for (const filter of ["volumedetect", "anull"]) {
+        const result = await runCmd(createFfmpegCommand(), ["-hide_banner", "-nostats", "-y", "-v", "info",
+          "-i", "/in.wav", "-af", filter, "-c:a", "pcm_s16le", "/out.wav"], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.deepEqual(result.stderr.split("\n").filter(line => line.startsWith("histogram_")),
+          filter === "volumedetect" ? expected : []);
+        assert.deepEqual(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData,
+          parseWav(input).tracks[0]!.decodedAudio!.channelData);
+      }
+    });
+  }
   for (const [filter, control, mean, peak] of [
     ["volumedetect", "anull", "-12.0", "-6.0"],
     ["volume=0.5,volumedetect", "volume=0.5", "-18.1", "-12.0"],

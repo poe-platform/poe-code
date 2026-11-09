@@ -9512,6 +9512,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let count = 0;
                         let sumSquares = 0;
                         let peak = 0;
+                        const histogram = new Float64Array(92);
                         // FFmpeg measures signed 16-bit samples, including every channel.
                         for (const channel of stretched) {
                           for (const value of channel) {
@@ -9520,6 +9521,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             count++;
                             sumSquares += sample * sample;
                             peak = Math.max(peak, Math.abs(sample));
+                            const db = sample === 0 ? 91 : Math.floor(-10 * Math.log10(sample * sample / (32768 * 32768)));
+                            histogram[db]!++;
                           }
                         }
                         let report = `n_samples: ${count}\n`;
@@ -9528,6 +9531,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const meanDb = meanSquare === 0 ? -91 : 10 * Math.log10(meanSquare / (32768 * 32768));
                           const peakDb = peak === 0 ? -91 : 10 * Math.log10(peak * peak / (32768 * 32768));
                           report += `mean_volume: ${meanDb.toFixed(1)} dB\nmax_volume: ${peakDb.toFixed(1)} dB\n`;
+                          let db = 0;
+                          while (db < histogram.length && histogram[db] === 0) db++;
+                          // Native FFmpeg includes the bin that reaches the loudest 0.1% of samples.
+                          for (let sum = 0; db < histogram.length && sum < Math.floor(count / 1000); db++) {
+                            report += `histogram_${db}db: ${histogram[db]}\n`;
+                            sum += histogram[db]!;
+                          }
                         }
                         await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "volume" || trimmed.startsWith("volume=")) {

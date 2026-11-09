@@ -356,8 +356,11 @@ ReplayGain weighting windows and the loudest 5% of windows. Stereo audio at
 ReplayGain's standard sample rates (8–192 kHz) is supported; other rates,
 channel layouts, and filter options are rejected.
 
-`volumedetect` reports interleaved sample count, mean volume, and maximum volume
-in dB on stderr, measuring audio after preceding filters without changing PCM samples.
+`volumedetect` reports interleaved sample count, mean and maximum volume in dB,
+and the native peak-level histogram on stderr, measuring audio after preceding
+filters without changing PCM samples. The histogram includes empty bins between
+the peak and the bin reaching the loudest 0.1% of samples; inputs shorter than
+1000 samples have no histogram.
 `astats` (also `astats=metadata=0:reset=0`) reports per-channel and overall peak/RMS
 levels in dB and the overall sample count on stderr without changing PCM samples.
 Metadata injection, periodic resets, and other statistics options are not supported.

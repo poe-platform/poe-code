@@ -10575,9 +10575,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               const track = workingDoc.tracks.find(track => track.type === "video") ?? workingDoc.tracks[0];
               if (!track || !segmentPlugin?.canMux || !(segmentPlugin.id === "mp4" ||
-                  ((audioSegment || (segmentPlugin.id === "mkv" && audioCodec === "copy")) &&
+                  ((audioSegment || (["mkv", "aac"].includes(segmentPlugin.id) && audioCodec === "copy")) &&
                     workingDoc.tracks.length === 1 && track.type === "audio"))) {
-                throw new Error("segment output requires MP4 format or a single audio track with WAV/raw audio format or Matroska stream copy");
+                throw new Error("segment output requires MP4 format or a single audio track with WAV/raw audio format or Matroska/ADTS stream copy");
               }
               if (formatImageSequence(outputTarget, 0) === undefined) {
                 throw new Error("segment output requires a numbered filename pattern");
@@ -10617,7 +10617,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
               }
               const lastPacket = track.samples.at(-1);
-              boundaries.push(segmentPlugin.id === "wav"
+              boundaries.push(segmentPlugin.id === "wav" ||
+                (workingDoc.tracks.length === 1 && track.type === "audio" && audioCodec === "copy")
                 ? lastPacket ? (lastPacket.pts + lastPacket.duration - audioOffset) / track.timescale : track.duration / track.timescale
                 : workingDoc.durationSeconds);
               const paths = boundaries.slice(1).map((_, index) =>

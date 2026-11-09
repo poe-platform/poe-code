@@ -456,7 +456,7 @@ test("29. synchronous memory glob expansion matches filenames in (pattern, name)
     shopt -s dotglob
     out3=""; for f in /tmp/sb_glob_test/*.txt; do out3+="$f,"; done
     shopt -u dotglob
-    GLOBIGNORE="*/skip.txt"
+    GLOBIGNORE="/tmp/sb_glob_test/skip.txt"
     out4=""; for f in /tmp/sb_glob_test/*.txt; do out4+="$f,"; done
     echo "1:$out1"
     echo "2:$out2"

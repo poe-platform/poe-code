@@ -217,6 +217,8 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   Bash-profile `set -f` / `set -o noglob` disables pathname
   expansion, and `set +f` restores it. `set -C` (or `set -o noclobber`) protects existing output
   files from `>` redirection; `>|` overrides it and `>>` still appends.
+  `GLOBIGNORE` filters expanded paths: `*.log` excludes local log files,
+  while `logs/*.log` excludes log files from `logs/*`.
   `shopt -s dotglob` includes dotfiles in globs. `failglob` rejects unmatched
   patterns; `lastpipe` retains the final foreground pipeline stage's shell changes;
   `inherit_errexit` carries `set -e` into command substitutions. Enable

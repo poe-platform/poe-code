@@ -160,15 +160,15 @@ async function tokens(pattern: string, work: StringWork, ignoreCase = false, ext
   return { patternTokens: result, reservation };
 }
 
-function acceptsSingleChar(token: Exclude<PatternToken, { kind: "star" | "extglob" }>, ch: string, ignoreCase: boolean): boolean {
-  if (token.kind === "any") return true;
+function acceptsSingleChar(token: Exclude<PatternToken, { kind: "star" | "extglob" }>, ch: string, ignoreCase: boolean, pathname = false): boolean {
+  if (token.kind === "any") return !pathname || ch !== "/";
   if (token.kind === "literal") {
     return token.value === ch || (ignoreCase && token.value.toLowerCase() === ch.toLowerCase());
   }
   return token.expression.test(ch);
 }
 
-function createExtglobEvaluator(chars: readonly string[], work: StringWork, ignoreCase: boolean) {
+function createExtglobEvaluator(chars: readonly string[], work: StringWork, ignoreCase: boolean, pathname = false) {
   const N = chars.length;
   const branchMemo = new Map<PatternToken, Map<number, Uint8Array>>();
 
@@ -209,6 +209,8 @@ function createExtglobEvaluator(chars: readonly string[], work: StringWork, igno
         for (let p = startCp; p <= N; p++) {
           if (cur[p]) seen = 1;
           if (seen) next[p] = 1;
+          // Bash's terminal star accepts the remainder, including slashes.
+          if (pathname && tIdx + 1 < seq.length && chars[p] === "/") seen = 0;
         }
       } else if (token.kind === "extglob") {
         for (let p = startCp; p <= N; p++) {
@@ -235,7 +237,7 @@ function createExtglobEvaluator(chars: readonly string[], work: StringWork, igno
         }
       } else {
         for (let p = startCp; p < N; p++) {
-          if (cur[p] && acceptsSingleChar(token, chars[p]!, ignoreCase)) {
+          if (cur[p] && acceptsSingleChar(token, chars[p]!, ignoreCase, pathname)) {
             next[p + 1] = 1;
           }
         }
@@ -248,17 +250,17 @@ function createExtglobEvaluator(chars: readonly string[], work: StringWork, igno
   return { allEnds, N };
 }
 
-export async function compilePattern(pattern: string, work: StringWork, ignoreCase = false, extglob = false): Promise<(value: string, start?: number, end?: number) => boolean | Promise<boolean>> {
+export async function compilePattern(pattern: string, work: StringWork, ignoreCase = false, extglob = false, pathname = false): Promise<(value: string, start?: number, end?: number) => boolean | Promise<boolean>> {
   work.signal.throwIfAborted();
   const { patternTokens } = await tokens(pattern, work, ignoreCase, extglob);
   if (hasExtglobTokens(patternTokens)) {
     return (value, start = 0, end = value.length) => {
       const chars = Array.from(value.slice(start, end));
-      const evaluator = createExtglobEvaluator(chars, work, ignoreCase);
+      const evaluator = createExtglobEvaluator(chars, work, ignoreCase, pathname);
       return evaluator.allEnds(patternTokens, 0)[evaluator.N] === 1;
     };
   }
-  return (value, start = 0, end = value.length) => matchTokens(patternTokens, value, work, start, end, ignoreCase);
+  return (value, start = 0, end = value.length) => matchTokens(patternTokens, value, work, start, end, ignoreCase, pathname);
 }
 
 const defaultArrayFrom = Array.from;
@@ -505,7 +507,7 @@ export async function compilePatternBoundaries(pattern: string, work: StringWork
   };
 }
 
-function matchTokens(patternTokens: PatternToken[], value: string, work: StringWork, start: number, end: number, ignoreCase = false): boolean | Promise<boolean> {
+function matchTokens(patternTokens: PatternToken[], value: string, work: StringWork, start: number, end: number, ignoreCase = false, pathname = false): boolean | Promise<boolean> {
   work.signal.throwIfAborted();
   let position = start;
   let tokenIndex = 0;
@@ -513,15 +515,15 @@ function matchTokens(patternTokens: PatternToken[], value: string, work: StringW
   let retry = start;
   while (position < end) {
     const pending = stringCheckpoint(work);
-    if (pending) return matchTokensAsync(patternTokens, value, work, end, ignoreCase, position, tokenIndex, star, retry, pending);
+    if (pending) return matchTokensAsync(patternTokens, value, work, end, ignoreCase, pathname, position, tokenIndex, star, retry, pending);
     work.signal.throwIfAborted();
     const token = patternTokens[tokenIndex];
     const point = value.codePointAt(position)!;
     if (token?.kind === "star") { star = tokenIndex++; retry = position; }
-    else if (token && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.kind === "class" && token.expression.test(String.fromCodePoint(point))))) {
+    else if (token && (token.kind === "any" ? !pathname || point !== 47 : (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.kind === "class" && token.expression.test(String.fromCodePoint(point))))) {
       position += point > 0xffff ? 2 : 1;
       tokenIndex++;
-    } else if (star !== -1) { tokenIndex = star + 1; retry = nextCodePointOffset(value, retry); position = retry; }
+    } else if (star !== -1 && (!pathname || star === patternTokens.length - 1 || value[retry] !== "/")) { tokenIndex = star + 1; retry = nextCodePointOffset(value, retry); position = retry; }
     else return false;
   }
   work.signal.throwIfAborted();
@@ -535,6 +537,7 @@ async function matchTokensAsync(
   work: StringWork,
   end: number,
   ignoreCase: boolean,
+  pathname: boolean,
   position: number,
   tokenIndex: number,
   star: number,
@@ -547,10 +550,10 @@ async function matchTokensAsync(
     const token = patternTokens[tokenIndex];
     const point = value.codePointAt(position)!;
     if (token?.kind === "star") { star = tokenIndex++; retry = position; }
-    else if (token && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.kind === "class" && token.expression.test(String.fromCodePoint(point))))) {
+    else if (token && (token.kind === "any" ? !pathname || point !== 47 : (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.kind === "class" && token.expression.test(String.fromCodePoint(point))))) {
       position += point > 0xffff ? 2 : 1;
       tokenIndex++;
-    } else if (star !== -1) { tokenIndex = star + 1; retry = nextCodePointOffset(value, retry); position = retry; }
+    } else if (star !== -1 && (!pathname || star === patternTokens.length - 1 || value[retry] !== "/")) { tokenIndex = star + 1; retry = nextCodePointOffset(value, retry); position = retry; }
     else return false;
     const pending = stringCheckpoint(work);
     if (pending) await pending;

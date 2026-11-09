@@ -10689,7 +10689,7 @@ export class Runtime {
         const scratch = this.budget.values.scope();
         work.allocation = scratch;
         try {
-          const matchers = await Promise.all(ignorePats.map(p => compilePattern(p, work, !!state.nocaseglob, !!state.extglob)));
+          const matchers = await Promise.all(ignorePats.map(p => compilePattern(p, work, !!state.nocaseglob, !!state.extglob, true)));
           let writeIdx = 0;
           for (let fi = 0; fi < found.length; fi++) {
             const cand = found[fi]!;

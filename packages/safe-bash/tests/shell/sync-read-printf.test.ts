@@ -7,6 +7,31 @@ import { CommandRegistry } from "../../src/contracts/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { streamCommands } from "../../src/commands/streams.js";
 import { predicateCommands } from "../../src/commands/predicates.js";
+import { readExtension } from "../../src/shell/extensions/read/index.js";
+
+for (const extension of [false, true]) {
+  for (const [attribute, expected] of [
+    ["i", "5\n0\n"],
+    ["u", "2+3\nMIX\n"],
+    ["l", "2+3\nmix\n"],
+    ["", "2+3\nMiX\n"],
+  ] as const) {
+    test(`read -a honors ${attribute || "plain"} array attributes, extension=${extension}`, async t => {
+      const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()), extensions: extension ? [readExtension()] : [] });
+      t.after(() => shell.dispose());
+      const source = `declare -a${attribute} fields; read -a fields <<< '2+3 MiX'; code=$?; printf '%s\\n' "\${fields[@]}"; exit "$code"`;
+      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
+      assert.equal(native.error, undefined);
+      assert.equal(native.status, 0);
+      assert.equal(native.stderr, "");
+      assert.equal(native.stdout, expected);
+      const result = await shell.exec(source, { env: { LC_ALL: "C" } });
+      assert.equal(result.exitCode, native.status);
+      assert.equal(result.stderr, native.stderr);
+      assert.equal(result.stdout, native.stdout);
+    });
+  }
+}
 
 const cases = [
   ["UTF-8 read", "", 'read a <<< "héllo"', 'a=$a', 'a=héllo'],

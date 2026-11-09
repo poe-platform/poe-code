@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function fadeAudio(
@@ -17,7 +18,21 @@ export async function fadeAudio(
   let unity = 1;
   let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const options: string[] = [];
+  let option = "";
+  let quoted = false;
+  // The filter chain has already removed one quoting/escaping layer.
+  for (let i = 0; i < argument.length; i++) {
+    const char = argument[i]!;
+    if (char === "'") quoted = !quoted;
+    else if (!quoted && char === "\\" && i + 1 < argument.length) option += argument[++i]!;
+    else if (!quoted && char === ":") {
+      options.push(option);
+      option = "";
+    } else option += char;
+  }
+  if (argument) options.push(option);
+  for (const [index, option] of options.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["type", "start_sample", "nb_samples", "start_time", "duration", "curve", "silence", "unity"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
@@ -32,9 +47,8 @@ export async function fadeAudio(
       parseFilterExpression(enable, "afade enable", { n: 0, t: 0 });
     } else {
       const time = key === "st" || key === "start_time" || key === "d" || key === "duration";
-      const scale = time && value.endsWith("ms") ? 0.001 : time && value.endsWith("us") ? 0.000001 : 1;
       const number = time
-        ? Number(value.endsWith("s") ? value.slice(0, scale === 1 ? -1 : -2) : value) * scale
+        ? parseHlsDuration(value)
         : parseFilterExpression(value, "afade", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
       if (!value || !Number.isFinite(number) || number < 0) throw new Error(`afade: invalid ${key}`);
       if (key === "ss" || key === "start_sample" || key === "ns" || key === "nb_samples") {

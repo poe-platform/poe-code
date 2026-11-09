@@ -6152,7 +6152,7 @@ export class Runtime {
           }
           state.substitutionStatus = redirectState.substitutionStatus;
           for (const [name, value] of Object.entries(variables)) {
-            if (!previous.has(name)) publishVariable(state, name, stateMonitor(redirectState)!.values.get(name, value));
+            if (!previous.has(name) && !state.readonlyVariables?.has(name)) publishVariable(state, name, stateMonitor(redirectState)!.values.get(name, value));
           }
           for (const [name, saved] of previous) {
             const typed = typedSavedVariables.get(saved);

@@ -3532,6 +3532,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
               }
               position = end + 1;
             } else {
+              if (codec === "webvtt" && (text[position] === "{" || text[position] === "}")) parts.push("\\");
               parts.push(text[position]!);
               position++;
             }

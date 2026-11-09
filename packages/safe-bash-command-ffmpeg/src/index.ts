@@ -10183,20 +10183,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 lastAudioSample ? (lastAudioSample.dts + lastAudioSample.duration) / referenceTrack!.timescale
                   : vTrk ? vTrk.duration / Math.max(1, vTrk.timescale) : (workingDoc.durationSeconds || 1)
               );
-              const segDur = Math.max(0.2, hlsTime);
-              const initialDuration = hlsInitTime > 0 && hlsListSize > 0 && !hlsAppendList ? hlsInitTime : segDur;
+              const initialDuration = hlsInitTime > 0 && hlsListSize > 0 && !hlsAppendList ? hlsInitTime : hlsTime;
               const boundaries = [0];
               const nextBoundary = () => {
                 const completed = boundaries.length - 1;
                 // Native HLS changes its cumulative cut schedule once the first window slides.
-                return initialDuration !== segDur && !hlsPlaylistType && completed > hlsListSize
-                  ? hlsListSize * initialDuration + (completed - hlsListSize) * segDur
+                return initialDuration !== hlsTime && !hlsPlaylistType && completed > hlsListSize
+                  ? hlsListSize * initialDuration + (completed - hlsListSize) * hlsTime
                   : boundaries.length * initialDuration;
               };
               if (referenceTrack?.samples.length) {
                 for (const sample of referenceTrack.samples) {
                   const seconds = sample.dts / referenceTrack.timescale;
-                  if ((!vTrk || hlsSplitByTime || sample.isKeyframe) && seconds >= nextBoundary() - 1e-6 && seconds < totalSec) {
+                  if ((!vTrk || hlsSplitByTime || sample.isKeyframe) && seconds > boundaries.at(-1)! && seconds >= nextBoundary() - 1e-6 && seconds < totalSec) {
                     boundaries.push(seconds);
                   }
                 }

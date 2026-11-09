@@ -8035,10 +8035,17 @@ export class Runtime {
     }
     try {
       if (argument !== undefined) await this.writeVariable(state, "OPTARG", argument, context, "getopts");
-      else {
+      else if (result.kind === "option") {
+        const target = this.referenceName(state, "OPTARG");
+        if (state.readonlyVariables?.has(target)) throw new PublicDiagnostic(`${target}: readonly variable`);
+        // A successful flag clears the value but retains its variable attributes.
+        // Integer bindings convert the absent argument to zero.
+        if (state.variableAttributes?.get(target)?.includes("i")) await this.writeVariable(state, target, "", context, "getopts", false);
+        else delete state.variables[target];
+      } else {
         // EOF and verbose option errors remove OPTARG itself, even readonly or nameref bindings.
-        if (result.kind !== "option") state.readonlyVariables?.delete("OPTARG");
-        this.unsetVariable(state, "OPTARG", true, result.kind === "option");
+        state.readonlyVariables?.delete("OPTARG");
+        this.unsetVariable(state, "OPTARG", true, false);
       }
     } catch (error) {
       if (!(error instanceof PublicDiagnostic)) throw error;

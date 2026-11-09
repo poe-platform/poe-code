@@ -10172,7 +10172,7 @@ const syncExtraRuntimeMethods = {
                     if (rawState.allexport) monitor.proxy.exported.add("OPTARG");
                   } else {
                     delete rawState.variables.OPTARG;
-                    rawState.exported.delete("OPTARG");
+                    if (res.kind !== "option") rawState.exported.delete("OPTARG");
                     if (this._syncArithRawWriteOnly && this._syncArithTouched) this._syncArithTouched.add("OPTARG");
                     else monitor.values.invalidate("OPTARG");
                   }
@@ -15630,7 +15630,7 @@ const syncExtraRuntimeMethods = {
               touched.add("OPTARG");
             } else {
               delete rawState.variables.OPTARG;
-              monitor.proxy.exported.delete("OPTARG");
+              if (res.kind !== "option") monitor.proxy.exported.delete("OPTARG");
               touched.add("OPTARG");
             }
             rawState.variables[whileGetoptsSpec.optVar] = res.option;

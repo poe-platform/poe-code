@@ -6,6 +6,51 @@ import { arraysExtension } from "../../../../src/shell/extensions/arrays/index.j
 import { runtimeSetup } from "./helpers.js";
 
 for (const bounded of [false, true]) {
+  test(`getopts loop retains exported OPTARG until EOF (bounded=${bounded})`, async () => {
+    const source = `export OPTARG=7
+set -- -a -b 2+3
+while getopts ab: o; do
+  if [ "$o" = b ]; then break; fi
+done
+declare -p OPTARG
+getopts ab: o
+OPTARG=after
+declare -p OPTARG`;
+    const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } });
+    assert.equal(native.status, 0, native.stderr);
+    const { shell } = runtimeSetup(bounded ? { limits: { maxExpansionBytes: 4096 } } : {});
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, native.stdout);
+    } finally { await shell.dispose(); }
+  });
+  for (const declaration of ["declare -i", "export", "declare"]) {
+    for (const first of ["-a", "--", "-x", "-b"]) {
+      test(`getopts preserves OPTARG attributes only for a successful flag (${declaration}, ${first}, bounded=${bounded})`, async () => {
+        const source = `${declaration} OPTARG=7
+getopts ab: o ${first}
+printf '%s|%s|%s|%s\\n' "$?" "$o" "\${OPTARG-unset}" "$OPTIND"
+OPTIND=1
+getopts ab: o -b 2+3
+printf '%s|%s|%s|%s\\n' "$?" "$o" "$OPTARG" "$OPTIND"
+declare -p OPTARG`;
+        const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } });
+        assert.equal(native.status, 0, native.stderr);
+        const { shell } = runtimeSetup(bounded ? { limits: { maxExpansionBytes: 4096 } } : {});
+        try {
+          const result = await shell.exec(source);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stdout, native.stdout);
+          if (first === "-a" || first === "--") assert.equal(result.stderr, "");
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
+
+for (const bounded of [false, true]) {
   for (const command of ["getopts --help", "getopts --help ab flag -a", "command getopts --help", "builtin getopts --help"]) {
     test(`${command} prints Bash help without changing option state (bounded=${bounded})`, async () => {
       const source = `flag=old; OPTARG=old

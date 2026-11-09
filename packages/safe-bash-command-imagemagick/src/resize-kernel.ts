@@ -191,7 +191,7 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
     const range = highDepth ? 65535 : 255, stride = inks ? 5 : 4;
     // ImageMagick sharpens the sinc window by narrowing its support.
     const blur = Math.max(1e-12, (settings.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485
-        : kernel === "lanczossharp" || thumbnail && kernel === "lanczos3" ? 0.9812505644269356 : 1));
+        : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
     const thumbnailFactor = thumbnail ? Math.floor(Math.min(image.width / width, image.height / height)) : 0;
     for (let left = 0; left < width; left += 256) {
         const count = Math.min(256, width - left), horizontal = Array.from({ length: count }, (_, x) => contributions(left + x, image.width, width, blur, scale, kernel, thumbnailFactor, settings));

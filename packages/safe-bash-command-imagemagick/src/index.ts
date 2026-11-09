@@ -4349,7 +4349,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
         const { virtualCanvas: ignoredCanvas, ...reset } = img;
         img = { ...reset, properties: updateMagickProperty(thumbnailProperties(reset), "comment") };
     }
-    const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczos3" : undefined));
+    const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczossharp" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
@@ -10918,7 +10918,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
             const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter, sampleOffset = state.sampleOffset;
             validateMagickTransformGeometry(geometry, token);
-            steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczos3" : undefined)); return resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, sampleOffset); });
+            steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczossharp" : undefined)); return resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, sampleOffset); });
         } else if (!operandsOnly && token === "-sort-pixels") {
             const intensity = state.intensity;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, sortPixelSteps(image, intensity), signal) : undefined);
@@ -13324,11 +13324,11 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         }
                         if (rotation !== 0) image = await transformStoredImage(image, backend.storage, { kind: "rotate", angle: rotation, background: state.background }, signal);
                         if (thumbnail !== undefined) {
-                            const resize = magickResizeOptions(image, thumbnail, state.kernel ?? "lanczos3");
+                            const resize = magickResizeOptions(image, thumbnail, state.kernel ?? "lanczossharp");
                             if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true, false, false, state.resizeFilter);
                         }
                         if (cellW !== undefined || cellH !== undefined) {
-                            const resize = magickResizeOptions(image, geometry, state.kernel ?? "lanczos3");
+                            const resize = magickResizeOptions(image, geometry, state.kernel ?? "lanczossharp");
                             if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true, false, false, state.resizeFilter);
                         }
                         if (!frame && borderW > 0) {

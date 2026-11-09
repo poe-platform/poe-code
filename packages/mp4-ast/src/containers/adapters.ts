@@ -695,6 +695,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     // Preserve precision for signed PCM32 and 64-bit samples.
     const SampleArray = bitsPerSample === 64 || (formatTag === 1 || formatTag === 0xfffe) && bitsPerSample === 32 ? Float64Array : Float32Array;
     const channelData = Array.from({ length: channels }, () => new SampleArray(totalPcmSamples));
+    const integer64 = bitsPerSample === 64 && formatTag !== 3 ? new DataView(new ArrayBuffer(8)) : undefined;
     let frameStart = 0;
     for (const chunk of chunks) {
       const pcmData = bytes.subarray(chunk.offset, chunk.offset + chunk.size);
@@ -704,9 +705,20 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         for (let ch = 0; ch < channels; ch++) {
           const byteOff = (i * channels + ch) * (bitsPerSample >>> 3);
           if (bitsPerSample === 64 && byteOff + 8 <= pcmData.byteLength) {
-            channelData[ch]![frameStart + i] = formatTag === 3
-              ? pcmView.getFloat64(byteOff, littleEndian)
-              : Number(pcmView.getBigInt64(byteOff, littleEndian)) / 2 ** 63;
+            if (integer64) {
+              const value = pcmView.getBigInt64(byteOff, littleEndian);
+              let sample = Number(value);
+              // Round toward negative infinity so normalization cannot move a
+              // signed integer across a boundary used by PCM narrowing.
+              if (BigInt(sample) > value) {
+                integer64.setFloat64(0, sample);
+                integer64.setBigUint64(0, integer64.getBigUint64(0) + (sample < 0 ? 1n : -1n));
+                sample = integer64.getFloat64(0);
+              }
+              channelData[ch]![frameStart + i] = sample / 2 ** 63;
+            } else {
+              channelData[ch]![frameStart + i] = pcmView.getFloat64(byteOff, littleEndian);
+            }
           } else if (formatTag === 1 && bitsPerSample === 32 && header.validBitsPerSample === 24 && littleEndian && byteOff + 4 <= pcmData.byteLength) {
             // FFmpeg pcm_f24le stores floats scaled to the signed 24-bit range.
             channelData[ch]![frameStart + i] = pcmView.getFloat32(byteOff, true) / 8388608;

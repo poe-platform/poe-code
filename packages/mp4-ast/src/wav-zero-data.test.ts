@@ -20,7 +20,7 @@ for (const samples of [[], [11, 22, 33, 44, -55, -66, -77, -88], [24932, 24948, 
     for (const chunkSize of [1, 7, 1024]) {
       assert.deepEqual(await readWavStreamHeader((async function* () {
         for (let offset = 0; offset < bytes.length; offset += chunkSize) yield bytes.subarray(offset, offset + chunkSize);
-      })()), header);
+      })(), undefined, false, true), header);
     }
   });
 }

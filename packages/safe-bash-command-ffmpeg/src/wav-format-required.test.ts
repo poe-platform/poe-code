@@ -20,10 +20,10 @@ function fixture(formatLength: number | undefined, afterData = false): Buffer {
   return Buffer.concat([head, body]);
 }
 
-for (const length of [undefined, 0, 10, 14, 15, 16]) for (const pipe of [false, true]) {
-  it(`validates format length ${length} before output (${pipe ? "pipe" : "file"})`, async () => {
-    const input = fixture(length, true);
-    const valid = length !== undefined && length >= 14;
+for (const length of [undefined, 0, 10, 14, 15, 16]) for (const pipe of [false, true]) for (const afterData of [false, true]) {
+  it(`validates format length ${length} before output (${pipe ? "pipe" : "file"}, format ${afterData ? "after" : "before"} data)`, async () => {
+    const input = fixture(length, afterData);
+    const valid = length !== undefined && length >= 14 && !(pipe && afterData);
     const volume = Volume.fromJSON({ "/out.wav": "sentinel" });
     volume.writeFileSync("/in.wav", input);
     for (const probe of [false, true]) {

@@ -557,7 +557,7 @@ function wavFrames(header: WavHeader): number {
 }
 
 export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
-  const header = readWavHeader(bytes, options.ignoreLength);
+  const header = readWavHeader(bytes, options.ignoreLength, options.seekable);
   if (options.decodeAudio !== false && header.channels === 0) throw new Error("Decoder requires channel layout to be set");
   const { formatTag, channels, sampleRate, bitsPerSample, littleEndian } = header;
   if (options.decodeAudio !== false && bitsPerSample !== 0 &&
@@ -1193,14 +1193,14 @@ type WavMetadataOnlyOptions = MediaSourceProbeOptions & { showPackets?: false; s
 export function probeWavSource(source: MediaProbeSource, options?: WavMetadataOnlyOptions): Promise<MediaProbeResult>;
 export function probeWavSource(source: MediaProbeSource, options: MediaSourceProbeOptions): Promise<MediaProbeRecords>;
 export async function probeWavSource(source: MediaProbeSource, options: MediaSourceProbeOptions = {}): Promise<MediaProbeRecords> {
-  return wavRecords(await readWavSourceHeader(source, options.signal, options.ignoreLength), options);
+  return wavRecords(await readWavSourceHeader(source, options.signal, options.ignoreLength, options.seekable), options);
 }
 
 /** Consumes sequential borrowed chunks through EOF without retaining sample payloads. */
 export function probeWavStream(source: AsyncIterable<Uint8Array>, options?: WavMetadataOnlyOptions): Promise<MediaProbeResult>;
 export function probeWavStream(source: AsyncIterable<Uint8Array>, options: MediaSourceProbeOptions): Promise<MediaProbeRecords>;
 export async function probeWavStream(source: AsyncIterable<Uint8Array>, options: MediaSourceProbeOptions = {}): Promise<MediaProbeRecords> {
-  return wavRecords(await readWavStreamHeader(source, options.signal, options.ignoreLength), options);
+  return wavRecords(await readWavStreamHeader(source, options.signal, options.ignoreLength, options.seekable), options);
 }
 
 export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
@@ -1230,7 +1230,7 @@ export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
       return serializeWav(doc, options, format);
     },
     probe(bytes, options) {
-      const header = readWavHeader(bytes, options?.ignoreLength);
+      const header = readWavHeader(bytes, options?.ignoreLength, options?.seekable);
       if (header.formatTag === 17) {
         const records = wavRecords(header, options ?? {});
         return { ...records, packets: records.packets ? Array.from(records.packets) : undefined,

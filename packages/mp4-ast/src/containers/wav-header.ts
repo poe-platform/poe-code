@@ -52,7 +52,7 @@ interface WavHeaderRead {
 }
 
 /** Shared range requests preserve the byte parser's permissive chunk semantics. */
-export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Generator<{ offset: number; length: number }, WavHeader, WavHeaderRead> {
+export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seekable = true): Generator<{ offset: number; length: number }, WavHeader, WavHeaderRead> {
   if (byteLength < 12) throw new Error("Invalid WAV file: missing RIFF WAVE signature");
   const signature = yield { offset: 0, length: 12 };
   if (signature.end !== undefined) byteLength = signature.end;
@@ -269,6 +269,8 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
           header.factSampleCount = new DataView(read.bytes.buffer, read.bytes.byteOffset, 4).getUint32(0, littleEndian);
       }
     } else if (id === "data") {
+      if (!seekable && header.formatOffset === undefined)
+        throw new Error("found no 'fmt ' tag before the 'data' tag");
       header.dataOffset = start;
       header.dataSize = end - start;
       header.declaredDataSize = size;
@@ -289,8 +291,8 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
   return header;
 }
 
-export function readWavHeader(bytes: Uint8Array, ignoreLength = false): WavHeader {
-  const scan = scanWavHeader(bytes.byteLength, ignoreLength);
+export function readWavHeader(bytes: Uint8Array, ignoreLength = false, seekable = true): WavHeader {
+  const scan = scanWavHeader(bytes.byteLength, ignoreLength, seekable);
   let step = scan.next();
   while (!step.done) {
     const { offset, length } = step.value;
@@ -299,10 +301,10 @@ export function readWavHeader(bytes: Uint8Array, ignoreLength = false): WavHeade
   return step.value;
 }
 
-export async function readWavSourceHeader(source: MediaProbeSource, signal?: AbortSignal, ignoreLength = false): Promise<WavHeader> {
+export async function readWavSourceHeader(source: MediaProbeSource, signal?: AbortSignal, ignoreLength = false, seekable = true): Promise<WavHeader> {
   signal?.throwIfAborted();
   if (!Number.isSafeInteger(source.size) || source.size < 0) throw new RangeError("Invalid WAV source size");
-  const scan = scanWavHeader(source.size, ignoreLength);
+  const scan = scanWavHeader(source.size, ignoreLength, seekable);
   let step = scan.next();
   while (!step.done) {
     const { offset, length } = step.value;
@@ -327,9 +329,9 @@ export async function readWavSourceHeader(source: MediaProbeSource, signal?: Abo
  * Parsing errors are deferred until admission completes, matching the buffered
  * path's precedence when an upstream reader fails after malformed input.
  */
-export async function readWavStreamHeader(source: AsyncIterable<Uint8Array>, signal?: AbortSignal, ignoreLength = false): Promise<WavHeader> {
+export async function readWavStreamHeader(source: AsyncIterable<Uint8Array>, signal?: AbortSignal, ignoreLength = false, seekable = false): Promise<WavHeader> {
   signal?.throwIfAborted();
-  const scan = scanWavHeader(Infinity, ignoreLength);
+  const scan = scanWavHeader(Infinity, ignoreLength, seekable);
   let step = scan.next(), bytes = new Uint8Array(step.done ? 0 : step.value.length);
   let size = 0, filled = 0;
   let failure: { error: unknown } | undefined;

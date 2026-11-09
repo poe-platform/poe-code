@@ -38,6 +38,13 @@ for (const length of [14, 15, 16]) for (const afterData of [false, true]) {
     assert.equal(result.streams[0]!.bits_per_sample, length === 14 ? 8 : 16);
     assert.deepEqual(wavAst().probe(bytes), result);
     assert.equal(parseWav(bytes).tracks[0]!.decodedAudio!.channelData[0]!.length, length === 14 ? 8 : 4);
-    assert.equal((await readWavStreamHeader((async function* () { yield bytes; })())).bitsPerSample, length === 14 ? 8 : 16);
+    const stream = () => (async function* () { yield bytes; })();
+    if (afterData) {
+      assert.throws(() => parseWav(bytes, { seekable: false }), /found no 'fmt ' tag before the 'data' tag/);
+      assert.throws(() => wavAst().probe(bytes, { seekable: false }), /found no 'fmt ' tag before the 'data' tag/);
+      await assert.rejects(probeWavSource({ size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } }, { seekable: false }), /found no 'fmt ' tag before the 'data' tag/);
+      await assert.rejects(readWavStreamHeader(stream()), /found no 'fmt ' tag before the 'data' tag/);
+    } else assert.equal((await readWavStreamHeader(stream())).bitsPerSample, length === 14 ? 8 : 16);
+    assert.equal((await readWavStreamHeader(stream(), undefined, false, true)).bitsPerSample, length === 14 ? 8 : 16);
   });
 }

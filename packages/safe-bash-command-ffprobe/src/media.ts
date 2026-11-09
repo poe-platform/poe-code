@@ -983,7 +983,7 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
     const ogg = await probeStoredOgg(source, context, retain);
     return onAudio ? { oggRows: ogg.rows } : probeOggStreamMetadata(ogg.first, source.size, probeOptions);
   }
-  const result: MediaProbeSourceRecords = await (plugin.probeRecords ?? plugin.probeMetadata)!.call(plugin, source, { ...records, filename, signal: context.signal, budget, limits: budget.limits });
+  const result: MediaProbeSourceRecords = await (plugin.probeRecords ?? plugin.probeMetadata)!.call(plugin, source, { ...records, filename, seekable: !isStdin(filename), signal: context.signal, budget, limits: budget.limits });
   if (result.close) retain(result.close.bind(result));
   if (onAudio && !(plugin.formatName === "wav" && result.format?.tags?.time_reference !== undefined)) {
     const tags = plugin.formatName === "flac" ? new FlacTags(source, context, { flac: true }) : new SourceAudioTags(source, context);
@@ -1057,7 +1057,7 @@ async function probeStreamMetadata(context: CommandContext, plugin: MediaAstPlug
     }
     context.signal.throwIfAborted();
   }
-  const result = await plugin.probeMetadataStream(admitted(source), { ...records, filename, signal: context.signal, budget, limits: budget.limits });
+  const result = await plugin.probeMetadataStream(admitted(source), { ...records, filename, seekable: !isStdin(filename), signal: context.signal, budget, limits: budget.limits });
   context.signal.throwIfAborted();
   return result;
 }
@@ -1165,7 +1165,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
               if (!showData && !showDataHash && !automaticAudio && !automaticPlugin.probeRecords && automaticPlugin.probeMetadataStream) {
                 // Sniff replay already admits each source chunk exactly once.
                 probeResult = await automaticPlugin.probeMetadataStream(sniffed.stream, {
-                  showPackets, showFrames, ignoreLength, maxSize, filename: inputTarget, signal: context.signal, budget, limits: budget.limits
+                  showPackets, showFrames, ignoreLength, maxSize, filename: inputTarget, seekable: !isStdin(inputTarget), signal: context.signal, budget, limits: budget.limits
                 });
                 context.signal.throwIfAborted();
               } else {
@@ -1199,7 +1199,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
 
             const resolveResource = await loadManifestResources(plugin, bytes, inputTarget, context.cwd, readInput, budget, allowedExtensions);
             const probe = plugin.probe(bytes, {
-              ignoreLength, maxSize,
+              ignoreLength, maxSize, seekable: !isStdin(inputTarget),
               resolveResource,
               filename: inputTarget,
               limits: options.limits,
@@ -1322,7 +1322,7 @@ export function evalSyncFfprobe(
     if (explicitFormat !== "rawvideo" && (!plugin || !plugin.canDemux)) return undefined;
     const raw = explicitFormat === "rawvideo" ? probeRawVideo(bytes, inputTarget, videoSize, pixelFormat, frameRate, budget) : undefined;
     const probeResult = raw ? { ...raw, packets: Array.from(raw.packets ?? []), frames: Array.from(raw.frames ?? []) } : plugin!.probe(bytes, {
-      ignoreLength, maxSize,
+      ignoreLength, maxSize, seekable: !isStdin(inputTarget),
       filename: inputTarget,
       budget,
       showPackets: showPackets || countPackets,

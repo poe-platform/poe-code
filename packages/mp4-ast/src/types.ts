@@ -666,6 +666,8 @@ export interface MediaSourceProbeOptions extends ParseMediaOptions {
 }
 
 export interface ParseMediaOptions {
+  /** Whether the original input supports seeking, even when its bytes are buffered. */
+  readonly seekable?: boolean | undefined;
   /** WAV input packet byte limit; zero selects the automatic packet size. */
   readonly maxSize?: number | undefined;
   /** Read WAV audio through EOF instead of its declared data chunk length. */

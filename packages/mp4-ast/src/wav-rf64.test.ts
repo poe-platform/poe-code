@@ -29,7 +29,7 @@ it("detects RF64 and decodes only ds64's PCM extent, excluding trailing chunks",
     read: async (offset, length) => bytes.subarray(offset, offset + Math.min(length, 3)) }), header);
   assert.deepEqual(await readWavStreamHeader((async function* () {
     for (let offset = 0; offset < bytes.length; offset += 7) yield bytes.subarray(offset, offset + 7);
-  })()), header);
+  })(), undefined, false, true), header);
   const audio = parseWav(bytes).tracks[0]!.decodedAudio!;
   assert.equal(audio.sampleRate, 8000);
   assert.equal(audio.channelData.length, 2);
@@ -66,7 +66,7 @@ it("resolves ds64 table sizes for sentinel chunks and preserves odd padding", as
   bytes.writeUInt32LE(0xffffffff, 4192);
   const expected = readWavHeader(bytes);
   assert.equal(expected.dataSize, 4096);
-  assert.deepEqual(await readWavStreamHeader((async function* () { yield bytes; })()), expected);
+  assert.deepEqual(await readWavStreamHeader((async function* () { yield bytes; })(), undefined, false, true), expected);
   bytes.write("MISS", 48);
   assert.throws(() => readWavHeader(bytes), /Missing RF64 chunk size/);
 });

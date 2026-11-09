@@ -79,7 +79,7 @@ it("preserves padded unknown chunks, first fmt and last data selection", async (
   view.setUint16(64, 1, true); view.setUint16(66, 1, true); view.setUint32(68, 1000, true); view.setUint16(78, 8, true);
   bytes.set(new TextEncoder().encode("data"), 80); view.setUint32(84, 100, true);
   async function* source() { for (let offset = 0; offset < bytes.length; offset += 5) yield bytes.subarray(offset, offset + 5); }
-  const result = await probeWavStream(source());
+  const result = await probeWavStream(source(), { seekable: true });
   assert.deepEqual(result, wavAst().probe(bytes));
   assert.equal(result.streams[0]!.duration, "0.000125"); assert.equal(result.streams[0]!.sample_rate, "8000");
 });

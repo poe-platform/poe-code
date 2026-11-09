@@ -5576,11 +5576,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-hls_list_size") {
             const value = args[++i];
-            hlsListSize = value?.trim() ? Number(value) : NaN;
-            if (!Number.isSafeInteger(hlsListSize) || hlsListSize < 0 || hlsListSize > 2147483647) {
+            try {
+              hlsListSize = parseFilterExpression(value ?? "", "hls_list_size", {});
+            } catch {
+              hlsListSize = NaN;
+            }
+            if (!Number.isFinite(hlsListSize) || hlsListSize < 0 || hlsListSize > 2147483647) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_list_size\n"), context.signal);
               return { exitCode: 1 };
             }
+            hlsListSize = roundToEven(hlsListSize);
           } else if (arg === "-hls_flags") {
             const value = args[++i];
             if (!value) {

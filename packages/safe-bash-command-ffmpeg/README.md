@@ -327,6 +327,12 @@ Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
 Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.
 `extrastereo=m=0` averages left and right while retaining stereo; `m=-1` swaps them.
 The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
+`surround` upmixes stereo to 5.1 (FL, FR, FC, LFE, BL, BR) using a
+windowed frequency transform, retaining the sample rate and frame count.
+`surround=chl_out=5.1:win_size=1024:lfe=0` silences only LFE. The default
+window is 4096 samples; powers of two from 1024 to 65536 are supported.
+Other layouts and surround options are rejected.
+
 `stereotools` supports stereo channel mute (`mutel`, `muter`), phase inversion
 (`phasel`, `phaser`), stereo pair rotation (`phase=0`–`360` degrees), and all `mode`
 channel conversions, including `lr>ms` and

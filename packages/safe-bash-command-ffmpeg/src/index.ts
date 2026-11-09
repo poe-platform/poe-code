@@ -1,4 +1,5 @@
 import { applyOutputColors, parseOutputColorOption, type OutputColorOption } from "./color-options.js";
+import { surroundAudio } from "./audio-surround.js";
 import { denoiseWavelets } from "./audio-afwtdn.js";
 import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { parseTee, selectTeeTracks } from "./tee.js";
@@ -8317,6 +8318,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       }
                       if (filterName === "adeclick" || filterName === "adeclip") {
                         stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal);
+                        continue;
+                      }
+                      if (filterName === "surround") {
+                        if (filteredChannelMask && filteredChannelMask !== 3) throw new Error("surround: stereo input required");
+                        stretched = await surroundAudio(stretched, origRate, trimmed, budget, context.signal);
+                        filteredChannelMask = 0x3f;
                         continue;
                       }
                       if (filterName === "afwtdn") {

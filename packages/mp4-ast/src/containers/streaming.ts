@@ -1,6 +1,6 @@
 import { cbc } from "@noble/ciphers/aes.js";
 import { parseXml, type XmlElement } from "@poe-code/xml-ast";
-import { concatBytes, decodeUtf8, encodeUtf8, gcd } from "../binary.js";
+import { concatBytes, decodeUtf8, encodeUtf8, gcd, makeBox } from "../binary.js";
 import { buildProbeResultFromDoc, concatMp4, muxMp4, parseMp4, parseMp4Boxes, serializeMp4 } from "../mp4.js";
 import { parseMpegTs } from "./mpegts.js";
 import { isAdtsSignature, parseAacAdts } from "./adapters.js";
@@ -448,9 +448,10 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     let sequence = 0;
     for (let segment = 0; segment < starts.length; segment++) {
       const samples = track.samples.slice(starts[segment], starts[segment + 1]);
-      const fragments: Uint8Array[] = [];
+      // Separate DASH files carry segment brands; byte-range segments use sidx instead.
+      const fragments: Uint8Array[] = options.singleFile ? [] : [makeBox("styp", encodeUtf8("msdh\0\0\0\0msdhmsix"))];
       const fragmentSize = options.fragmentType === "every_frame" ? 1 : Math.max(1, samples.length);
-      let mediaBytes = 0;
+      let mediaBytes = fragments[0]?.length ?? 0;
       for (let start = 0; start < Math.max(1, samples.length); start += fragmentSize) {
         const bytes = serializeMp4({ ...doc, tracks: [{ ...track, samples: samples.slice(start, start + fragmentSize) }] }, { ...options, budget, fragmented: true, skipTrailer: true });
         const moof = parseMp4Boxes(bytes, 0, 0, budget).find(b => b.type === "moof");

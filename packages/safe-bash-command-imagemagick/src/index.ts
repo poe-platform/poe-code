@@ -1,3 +1,5 @@
+import { magickIntensity } from "./intensity.js";
+import { sortPixelSteps } from "./sort-pixels.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import { builtinPattern } from "./builtin-patterns.js";
 import { gradientRadii } from "./gradient-radii.js";
@@ -5065,7 +5067,7 @@ function inferMaxDecodeDimensionFromUpcomingTokens(
         }
     }
     const coordDependentOps = new Set([
-        "-crop", "-chop", "-splice", "-trim", "-roll", "-shave",
+        "-crop", "-chop", "-splice", "-trim", "-roll", "-shave", "-sort-pixels",
         "-extent", "-border", "-frame", "-draw", "-annotate",
         "-region", "-floodfill", "+floodfill", "-repage", "+repage", "-distort"
     ]);
@@ -5736,29 +5738,6 @@ function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" 
       else if (operation === "clone") throw new Error(`invalid image index ${num}`);
     }
   }
-}
-
-function magickIntensity(r: number, g: number, b: number, method: string, quantum: number, linear: boolean): number {
-    switch (method) {
-        case "average": case "mean": return (r + g + b) / 3;
-        case "brightness": return Math.max(r, g, b);
-        case "lightness": return (Math.min(r, g, b) + Math.max(r, g, b)) / 2;
-        case "ms": return (r * r + g * g + b * b) / (3 * quantum);
-        case "rms": return Math.sqrt((r * r + g * g + b * b) / 3);
-    }
-    const luminance = method === "rec601luminance" || method === "rec709luminance";
-    if (luminance && !linear) {
-        r = quantum * (r / quantum <= 0.04045 ? r / quantum / 12.92 : ((r / quantum + 0.055) / 1.055) ** 2.4);
-        g = quantum * (g / quantum <= 0.04045 ? g / quantum / 12.92 : ((g / quantum + 0.055) / 1.055) ** 2.4);
-        b = quantum * (b / quantum <= 0.04045 ? b / quantum / 12.92 : ((b / quantum + 0.055) / 1.055) ** 2.4);
-    } else if (!luminance && linear) {
-        r = quantum * (r / quantum <= 0.0031308 ? r / quantum * 12.92 : 1.055 * (r / quantum) ** (1 / 2.4) - 0.055);
-        g = quantum * (g / quantum <= 0.0031308 ? g / quantum * 12.92 : 1.055 * (g / quantum) ** (1 / 2.4) - 0.055);
-        b = quantum * (b / quantum <= 0.0031308 ? b / quantum * 12.92 : 1.055 * (b / quantum) ** (1 / 2.4) - 0.055);
-    }
-    return method === "rec601luma" || method === "rec601luminance"
-        ? 0.298839 * r + 0.586811 * g + 0.11435 * b
-        : 0.212656 * r + 0.715158 * g + 0.072186 * b;
 }
 
 type MagickHistogram = Float64Array[];
@@ -8187,6 +8166,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return { ...yield* rotateImageSteps(im, deg, state.background), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) };
             }));
         }
+        else if (t === "-sort-pixels") {
+            stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, sortPixelSteps(image, state.intensity), signal));
+        }
         else if (t === "-flip") {
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* flipImageSteps(im), virtualCanvas: magickMirrorCanvas(im, "flip") };
@@ -10104,6 +10086,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter, sampleOffset = state.sampleOffset;
             validateMagickTransformGeometry(geometry, token);
             steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczos3" : undefined)); return options ? resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, sampleOffset) : image; });
+        } else if (!operandsOnly && token === "-sort-pixels") {
+            const intensity = state.intensity;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, sortPixelSteps(image, intensity), signal) : undefined);
         } else if (!operandsOnly && ["-flip", "-flop", "-auto-orient"].includes(token)) {
             if (token === "-auto-orient") stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
@@ -10584,7 +10569,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-antialias", "+antialias",
         "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
-        "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors",
+        "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors", "-sort-pixels",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin", "+remap",
         "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+treedepth", "+compress", "+depth", "+endian", "+size",

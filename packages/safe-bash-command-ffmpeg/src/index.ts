@@ -5047,14 +5047,15 @@ export function evalSyncFfmpeg(
       if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
       if (audioCodec === "copy" && (startSeconds !== undefined || outputSs !== undefined) &&
           doc.tracks.some(track => track.codecDescriptions[0]?.codecName === `pcm_${doc.containerFormat}`)) return undefined;
+      if (inp.streamLoop && inp.streamLoop > 0) {
+        doc = concatMp4(Array.from({ length: inp.streamLoop + 1 }, () => doc), { budget });
+      }
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
         doc = sliceMp4(doc, { inputSeek: startSeconds !== undefined, startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds, copyAudio: audioCodec === "copy" });
         if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputPreroll(doc, { video: videoCodec }, copyInitialNonKeyframes);
       }
       if (inp.streamLoop === -1) {
         doc = loopToOutputEnd(doc, outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration, budget);
-      } else if (inp.streamLoop && inp.streamLoop > 0) {
-        doc = concatMp4(Array.from({ length: inp.streamLoop + 1 }, () => doc), { budget });
       }
       if (subtitleCodec !== "copy" && inp.subtitleCharencMode !== "ignore") doc = validateSubtitleText(doc, false);
       loadedDocs.push(shiftTimestamps(doc, inp.timestampOffset ?? 0, budget));
@@ -8058,6 +8059,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
               if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
+              if (inp.streamLoop && inp.streamLoop > 0) {
+                const copies = Array.from({ length: inp.streamLoop + 1 }, () => doc);
+                doc = concatMp4(copies, { limits: options.limits, budget });
+              }
               if (
                 startSeconds !== undefined ||
                 inp.endSeconds !== undefined ||
@@ -8110,9 +8115,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               if (inp.streamLoop === -1) {
                 doc = loopToOutputEnd(doc, outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration, budget);
-              } else if (inp.streamLoop && inp.streamLoop > 0) {
-                const copies = Array.from({ length: inp.streamLoop + 1 }, () => doc);
-                doc = concatMp4(copies, { limits: options.limits, budget });
               }
               if (subtitleCodec !== "copy" && inp.subtitleCharencMode !== "ignore") doc = validateSubtitleText(doc, exitOnError);
               loadedDocs.push(shiftTimestamps(doc, inp.timestampOffset ?? 0, budget));

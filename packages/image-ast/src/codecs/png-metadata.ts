@@ -92,6 +92,10 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
         }
       }
       let value = chunk.subarray(start);
+      if (type === "tEXt") {
+        const zero = value.indexOf(0);
+        if (zero >= 0) value = value.subarray(0, zero);
+      }
       if (compressed) {
         const codec = createByteCodec({direction:"decode",format:"zlib"});
         const parts: Uint8Array[] = []; let length = 0;

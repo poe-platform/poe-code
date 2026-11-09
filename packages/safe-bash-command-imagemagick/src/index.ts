@@ -8194,8 +8194,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-vignette") {
-            const geometry = parseMagickVignetteGeometry(tokens[++i] ?? "0x1");
+            const argument = tokens[++i] ?? "0x1";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(argument, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const geometry = parseMagickVignetteGeometry(expanded);
                 const layout = vignetteLayout(im);
                 return { ...yield* applyMagickRasterSteps(im, vignettePixelSteps(im, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, geometry, state.channelExplicit ? state.channels : undefined), signal, layout), virtualCanvas: layout.virtualCanvas };
             });
@@ -10300,10 +10302,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const background = state.background, kind = token === "-transpose" ? "flip" : "flop";
             steps.push(async (image, backend) => image ? { ...await transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal), virtualCanvas: magickTransposeCanvas(image, kind === "flop") } : undefined);
         } else if (!operandsOnly && token === "-vignette") {
-            const geometry = parseMagickVignetteGeometry(tokens[++i] ?? "0x1");
-            const background = state.background, backgroundExplicit = state.backgroundExplicit, channels = state.channelExplicit ? { ...state.channels } : undefined;
+            const argument = tokens[++i] ?? "0x1";
+            const background = state.background, backgroundExplicit = state.backgroundExplicit, channels = state.channelExplicit ? { ...state.channels } : undefined, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const geometry = parseMagickVignetteGeometry(expanded);
                 const layout = vignetteLayout(image);
                 return { ...await transformStoredMagickRaster(image, backend, vignettePixelSteps(image, backgroundExplicit ? background : image.backgroundColor ?? background, geometry, channels), signal, layout), virtualCanvas: layout.virtualCanvas };
             });

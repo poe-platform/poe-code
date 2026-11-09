@@ -1084,7 +1084,8 @@ async function panAudio(
   if (!["FC", "FL+FR", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR"].includes(names.join("+"))) {
     throw new Error(`pan: unsupported output layout ${layout}`);
   }
-  const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR"];
+  const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR",
+    "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"];
   const inputNames = channelMask
     ? speakers.filter((_, index) => (channelMask & (1 << index)) !== 0)
     : channels.length === 1 ? ["FC"] : channels.length === 2 ? ["FL", "FR"] : [];
@@ -1128,7 +1129,9 @@ async function panAudio(
       const channelStart = offset;
       while (offset < expression.length && expression[offset] !== "+" && expression[offset] !== "-") offset++;
       const inputName = expression.slice(channelStart, offset).trim();
-      const input = channelIndex(inputName, inputNames, channels.length);
+      const input = channelIndex(inputName, [
+        ...speakers, "DL", "DR", "WL", "WR", "SDL", "SDR", "TSL", "TSR", "BFC", "BFL", "BFR"
+      ], 64);
       const numbered = inputName.startsWith("c");
       if (numberedInputs !== undefined && numberedInputs !== numbered) {
         throw new Error("pan: cannot mix named and numbered input channels");
@@ -1136,7 +1139,8 @@ async function panAudio(
       numberedInputs = numbered;
       if (referenced.has(input)) throw new Error(`pan: Can not reference in channel ${input} twice`);
       referenced.add(input);
-      gains[output]![input] = gain;
+      const source = numbered ? input : inputNames.indexOf(inputName);
+      if (source >= 0 && source < channels.length) gains[output]![source] = gain;
       if (offset === expression.length) break;
       sign = expression[offset] === "-" ? -1 : 1;
       offset++;

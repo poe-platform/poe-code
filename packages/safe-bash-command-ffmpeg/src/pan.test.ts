@@ -26,7 +26,7 @@ for (const [expression, expected] of [
   ["mono|c0<2*c0+c1", [[-667, 333, 1333, 2333]]],
   ["mono|c0=0.5*c0+0.5*c1", [[-1500, -500, 500, 1500]]],
   ["stereo|c1=c0", [[0, 0, 0, 0], left]],
-  ["mono|c0=c2", null],
+  ["mono|c0=c2", [[0, 0, 0, 0]]],
   ["mono|c0=NaN*c0", null],
   ["mono|c0=c0|c0=c1", null],
   ["mono|c0=c0+c0", null],

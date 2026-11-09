@@ -357,6 +357,10 @@ Each input channel may appear only once per output equation, including zero-gain
 terms; the same input may be used in separate output equations.
 All input references in a pan filter must use the same style: named or numbered.
 Output labels may mix styles, as in `pan=stereo|FL=c0|c1=c1`.
+Valid input channels absent from the input contribute silence: on stereo,
+`pan=mono|c0=FC` is silent and `pan=mono|c0=c0+c2` preserves the left channel.
+Numbered input channels range from `c0` to `c63`. Invalid identifiers and output
+channels outside the selected layout fail without replacing existing output.
 Use `-ch_layout mono` or `-channel_layout mono` for mono output, equivalent to `-ac 1`. Other output layouts are not supported by these options.
 `aformat=channel_layouts=mono` (or `aformat=cl=mono`) downmixes stereo by
 averaging left and right samples, or preserves mono input.

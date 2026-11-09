@@ -704,6 +704,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** MPEG-TS PAT/PMT repetition interval in seconds (default: 0.1); zero repeats for each packet. */
+  readonly patPeriod?: number | undefined;
   /** MPEG-TS program/service ID in PAT, PMT and SDT (1–65535; default: 1). */
   readonly mpegtsServiceId?: number | undefined;
   /** First MPEG-TS elementary PID (32–8186, default: 256); must not collide with PMT PID 4096. */

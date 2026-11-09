@@ -1,6 +1,6 @@
 # safe-bash-command-ffmpeg Headerless `-f rawvideo` output preserves YUV420 planes and supports packed `rgb24`, `bgr24`, and `rgba` via `-pix_fmt`; `-c:v copy` retains original packet bytes, including AVI row padding.
 
-WavPack (`.wv`) input supports mono/stereo integer lossless audio, raw PCM output, and frame checksums. `-c:a copy -f framemd5` hashes compressed audio blocks without trailing tags.
+WavPack (`.wv`) input supports mono/stereo integer lossless audio, raw PCM output, and frame checksums. `-c:a copy -f framemd5` hashes compressed audio blocks without trailing tags. MPEG-TS output repeats PAT/PMT every 0.1 seconds; use `-pat_period 0.05` for 50 ms or `-pat_period 0.5` for 500 ms. Duration suffixes and clock notation are accepted; zero repeats the tables before each media packet.
 
 Headerless RGB and YUV420 input supports `-f rawvideo -pixel_format rgb24 -video_size WIDTHxHEIGHT -framerate FPS` (use `-pixel_format yuv420p` for YUV420; also `-pix_fmt`, `-s`, and `-r` before `-i`). Stream copy preserves partial final packets; decoding emits complete frames only.
 

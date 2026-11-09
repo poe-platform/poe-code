@@ -477,6 +477,12 @@ export function serializeMpegTs(
   const videoPid = startPid + (videoTrack ? tracks.indexOf(videoTrack) : 0);
   const audioPid = startPid + (audioTrack ? tracks.indexOf(audioTrack) : 0);
   const pcrPid = videoTrack ? videoPid : audioPid;
+  const patPeriod = options.patPeriod ?? 0.1;
+  if (!Number.isFinite(patPeriod) || patPeriod < 0) {
+    throw new Error("Invalid pat_period: expected nonnegative seconds");
+  }
+  const patPeriod90k = Math.round(patPeriod * 90000);
+  let lastPatDts: number | undefined;
   const tsPackets: Uint8Array[] = [];
   const ccByPid = new Map<number, number>();
 
@@ -538,6 +544,13 @@ export function serializeMpegTs(
     let first = true;
 
     while (offset < fullPes.byteLength) {
+      if (lastPatDts === undefined) {
+        lastPatDts = dts90k;
+      } else if (dts90k - lastPatDts >= patPeriod90k) {
+        emitSectionPacket(0x0000, patSection);
+        emitSectionPacket(0x1000, pmtSection);
+        lastPatDts = dts90k;
+      }
       const pkt = new Uint8Array(188).fill(0xff);
       pkt[0] = 0x47;
       pkt[1] = (first ? 0x40 : 0x00) | ((pid >>> 8) & 0x1f);

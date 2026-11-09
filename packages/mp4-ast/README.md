@@ -1,6 +1,6 @@
 # @poe-code/mp4-ast
 
-FFmetadata exposes each `[STREAM]` section as a data track, including empty sections, in input order. FFmetadata chapter parsing rejects zero and negative `TIMEBASE` denominators instead of substituting positive timings. Unlike native FFmpeg versions that retain these unusable rationals, parsing fails explicitly; ffmpeg command execution leaves existing output untouched. Positive denominators retain their original timing.
+FFmetadata exposes each `[STREAM]` section as a data track, including empty sections, in input order. FFmetadata chapter parsing rejects zero and negative `TIMEBASE` denominators instead of substituting positive timings. Unlike native FFmpeg versions that retain these unusable rationals, parsing fails explicitly; ffmpeg command execution leaves existing output untouched. Positive denominators retain their original timing. MPEG-TS serialization repeats PAT/PMT every 0.1 seconds; `patPeriod` sets the interval in seconds, with zero repeating before each media packet.
 
 Decoded H.264 frames retain native pixels for `scaleVideoPicture(frame, width, height)`
 to resize before RGB conversion. Treat frame buffers as immutable; replaced RGBA

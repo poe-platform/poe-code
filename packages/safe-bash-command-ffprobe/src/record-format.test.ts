@@ -9,7 +9,7 @@ for (const printFormat of ["ini", "json", "json=c=1", "json:compact=1", "csv", "
   it(`preserves ${printFormat} output with one-shot packet/frame iterators`, () => {
     const opts = { printFormat, showFormat: true, showStreams: true, showPackets: true, showFrames: true, showChapters: true, showPrograms: true };
     const expected = printFormat.startsWith("json")
-      ? JSON.stringify({ programs: [], packets_and_frames: probe.packets!.flatMap((packet, index) => [{ type: "packet", ...packet }, { type: "frame", ...probe.frames![index] }]), streams: probe.streams, chapters: probe.chapters, format: probe.format }, null, printFormat === "json" ? 2 : undefined) + "\n"
+      ? JSON.stringify({ programs: [], packets_and_frames: probe.packets!.flatMap((packet, index) => [{ type: "packet", ...packet }, { type: "frame", ...probe.frames![index] }]), streams: probe.streams.map(stream => ({ ...stream, nb_read_frames: "5", nb_read_packets: "5" })), chapters: probe.chapters, format: probe.format }, null, printFormat === "json" ? 2 : undefined) + "\n"
       : formatFfprobeResult(probe, opts);
     const records = { ...probe, packets: (function* () { yield* probe.packets!; })(), frames: (function* () { yield* probe.frames!; })() };
     const parts = [...formatFfprobeResultChunks(records, opts)];

@@ -1,3 +1,4 @@
+import { decodePngImage } from "./png.js";
 import {tiffTextProperties,tiffPhotometricNames} from "./tiff-properties.js";
 import {decodeCcittFax} from "@poe-code/pdf-ast";
 import {tiffPageSteps} from "./tiff-pages.js";
@@ -243,6 +244,12 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const dataOffset = view.getUint32(10, true);
   const dibHeaderSize = view.getUint32(14, true);
+  const compression = dibHeaderSize >= 40 ? view.getUint32(30, true) : 0;
+  if (compression === 4 || compression === 5) {
+    if (dataOffset < 14 + dibHeaderSize || dataOffset >= bytes.length) throw new Error("Invalid BMP payload offset");
+    const image = (compression === 4 ? decodeJpegImage : decodePngImage)(bytes.subarray(dataOffset));
+    return { ...image, format: "bmp", density: meta.density, ...(meta.resolution ? { resolution: meta.resolution } : {}) };
+  }
   const topDown = dibHeaderSize !== 12 && view.getInt32(22, true) < 0;
   const bpp = view.getUint16(dibHeaderSize === 12 ? 24 : 28, true);
   const rowStride = Math.floor((meta.width * bpp + 31) / 32) * 4;
@@ -251,7 +258,6 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   const paletteOffset = 14 + dibHeaderSize;
   const paletteStep = dibHeaderSize === 12 ? 3 : 4;
 
-  const compression = dibHeaderSize >= 40 ? view.getUint32(30, true) : 0;
   if (compression === 1 || compression === 2) {
     if (bpp !== (compression === 1 ? 8 : 4)) throw new Error("Invalid BMP RLE bit depth");
     const decoder = new BmpRle(meta.width, meta.height, bpp, topDown);

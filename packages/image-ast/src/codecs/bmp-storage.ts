@@ -1,3 +1,5 @@
+import { decodePngToStorage } from "./png-storage.js";
+import { decodeJpegToStorage } from "./jpeg-input-storage.js";
 import { BmpRleEncoder } from "./bmp-rle-encoder.js";
 import {BmpPalette} from "./bmp-palette.js";
 import {BmpRle,bmpRlePacketSize} from "./bmp-rle.js";
@@ -19,12 +21,22 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)) throw new RangeError("Invalid BMP dimensions");
  checkLimitInputPixels(width,height,options);
  const dataOffset=view.getUint32(10,true),dibHeaderSize=view.getUint32(14,true),topDown=dibHeaderSize!==12&&view.getInt32(22,true)<0,bpp=view.getUint16(dibHeaderSize===12?24:28,true),rowStride=Math.floor((width*bpp+31)/32)*4;
+ const compression=dibHeaderSize>=40?view.getUint32(30,true):0;
+ if(compression===4||compression===5) {
+  if(dataOffset<14+dibHeaderSize||dataOffset>=source.size) throw new Error("Invalid BMP payload offset");
+  const payload:ImageByteSource={size:source.size-dataOffset,async read(position,length) {
+   signal.throwIfAborted();
+   if(position<0||length<0||position+length>source.size-dataOffset) throw new Error("Invalid BMP payload range");
+   return source.read(dataOffset+position,length,{signal});
+  }};
+  const image=await (compression===4?decodeJpegToStorage:decodePngToStorage)(payload,storage,signal,options);
+  return {...image,format:"bmp",density:metadata.density,...(metadata.resolution?{resolution:metadata.resolution}:{})};
+ }
  const bitfieldMasks=readBmpMasks(view);
  const palette=new Uint8Array(bpp<=8?(bpp===8?256:bpp===4?16:bpp===1?2:1)*3:0),paletteOffset=14+dibHeaderSize,paletteStep=dibHeaderSize===12?3:4;
  for(let i=0;i<palette.length/3;i++) for(let c=0;c<3;c++) palette[i*3+c]=await reader.at(paletteOffset+i*paletteStep+c)??0;
  const {size:ignoredSize,...raster}=metadata;
  const output=new Output({...raster,position:0},width,height,storage,signal);
- const compression=dibHeaderSize>=40?view.getUint32(30,true):0;
  if(compression===1||compression===2) {
   if(bpp!==(compression===1?8:4)) throw new Error("Invalid BMP RLE bit depth");
   const decoder=new BmpRle(width,height,bpp,topDown);

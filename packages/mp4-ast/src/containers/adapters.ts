@@ -247,13 +247,13 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
       cursor + ySize + uvSize,
       cursor + ySize + uvSize * 2
     );
-    const rgba = yuv420pToRgba(yPlane, uPlane, vPlane, width, height, horizontalShift, verticalShift);
+    const rgba = yuv420pToRgba(yPlane, uPlane, vPlane, width, height, horizontalShift, verticalShift, colorRange === "pc");
     frames.push({
       width,
       height,
       data: rgba,
       native: { rgba, pixels: bytes.subarray(cursor, cursor + frameByteSize), width, height,
-        format, colorspace: 5, fullRange: 0 },
+        format, colorspace: 5, fullRange: colorRange === "pc" ? 1 : 0 },
       ptsSeconds: frameIdx / fps,
       durationSeconds: 1 / fps,
       keyframe: true

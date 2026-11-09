@@ -728,7 +728,7 @@ export function rgbaToYuv420p(
 }
 
 /**
- * Convert planar YUV (`Y`, `U`, `V`) to RGBA, defaulting to 4:2:0 subsampling.
+ * Convert BT.601 planar YUV (`Y`, `U`, `V`) to RGBA, defaulting to limited-range 4:2:0.
  */
 export function yuv420pToRgba(
   yPlane: Uint8Array,
@@ -737,22 +737,29 @@ export function yuv420pToRgba(
   width: number,
   height: number,
   horizontalShift = 1,
-  verticalShift = 1
+  verticalShift = 1,
+  fullRange = false
 ): Uint8Array {
   const rgba = new Uint8Array(width * height * 4);
   const uvWidth = Math.ceil(width / (1 << horizontalShift));
+  const yOffset = fullRange ? 0 : 16;
+  const yScale = fullRange ? 256 : 298;
+  const rv = fullRange ? 359 : 409;
+  const gu = fullRange ? 88 : 100;
+  const gv = fullRange ? 183 : 208;
+  const bu = fullRange ? 454 : 516;
 
   for (let row = 0; row < height; row++) {
     const uRow = row >>> verticalShift;
     for (let col = 0; col < width; col++) {
       const uCol = col >>> horizontalShift;
-      const y = (yPlane[row * width + col] ?? 16) - 16;
+      const y = (yPlane[row * width + col] ?? yOffset) - yOffset;
       const u = (uPlane[uRow * uvWidth + uCol] ?? 128) - 128;
       const v = (vPlane[uRow * uvWidth + uCol] ?? 128) - 128;
-      const c = Math.max(0, y) * 298;
-      const r = Math.max(0, Math.min(255, (c + 409 * v + 128) >> 8));
-      const g = Math.max(0, Math.min(255, (c - 100 * u - 208 * v + 128) >> 8));
-      const b = Math.max(0, Math.min(255, (c + 516 * u + 128) >> 8));
+      const c = Math.max(0, y) * yScale;
+      const r = Math.max(0, Math.min(255, (c + rv * v + 128) >> 8));
+      const g = Math.max(0, Math.min(255, (c - gu * u - gv * v + 128) >> 8));
+      const b = Math.max(0, Math.min(255, (c + bu * u + 128) >> 8));
       const idx = (row * width + col) * 4;
       rgba[idx] = r;
       rgba[idx + 1] = g;

@@ -1,7 +1,7 @@
 import { type MediaAstPlugin, type MediaDocument, type MediaSample, type ParseMediaOptions, MediaBudgetTracker } from "../types.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
 import { decodeG722 } from "./g722.js";
-import { decodeG726 } from "./au-g726.js";
+import { decodeG726, encodeG726 } from "./au-g726.js";
 import { rawAudioAsts } from "./raw-audio.js";
 
 const encodings = new Map([[1, "mulaw"], [2, "s8"], [3, "s16be"], [4, "s24be"],
@@ -96,7 +96,7 @@ export function auAst(): MediaAstPlugin {
     id: "au", formatName: "au", formatLongName: "Sun AU",
     extensions: ["au", "snd"], mimeTypes: ["audio/basic"],
     canDemux: true, canMux: true, supportedVideoCodecs: [],
-    supportedAudioCodecs: [...encodings.values()].map(format => `pcm_${format}`),
+    supportedAudioCodecs: [...[...encodings.values()].map(format => `pcm_${format}`), "g726le"],
     detect: bytes => bytes.length >= 4 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0) === 0x2e736e64,
     parse: parseAu,
     probe(bytes, options = {}) {
@@ -115,21 +115,31 @@ export function auAst(): MediaAstPlugin {
       const description = track.codecDescriptions[0];
       const codec = options.audioCodec === "copy" ? description?.codecName : options.audioCodec ?? "pcm_s16be";
       const encoding = [...encodings].find(([, format]) => `pcm_${format}` === codec);
-      if (!encoding) throw new Error(`Unsupported AU audio codec '${codec}'`);
+      if (!encoding && codec !== "g726le") throw new Error(`Unsupported AU audio codec '${codec}'`);
       const sampleRate = track.decodedAudio?.sampleRate ?? description?.sampleRate;
       const channels = track.decodedAudio?.channels ?? description?.channels;
       if (!sampleRate || !channels) throw new Error("AU output requires sample rate and channels");
-      const data = raw.find(plugin => plugin.id === encoding[1])!.serialize(doc, options);
+      const budget = options.budget ?? new MediaBudgetTracker(options.limits);
+      let data: Uint8Array;
+      if (codec === "g726le") {
+        if (channels !== 1) throw new Error("G.726 requires mono audio");
+        if (sampleRate !== 8000) throw new Error("G.726 requires an 8000 Hz sample rate");
+        if ((options.audioBitrate ?? 32000) !== 32000) throw new Error("AU G.726 encoding requires a 32000 bit/s bitrate");
+        if (!track.decodedAudio) throw new Error("G.726 encoding requires decoded audio");
+        data = encodeG726(track.decodedAudio.channelData[0]!, 4, budget, true);
+      } else {
+        data = raw.find(plugin => plugin.id === encoding![1])!.serialize(doc, options);
+      }
       const metadata = options.metadata ?? doc.metadata;
       const annotation = new TextEncoder().encode((["title", "artist"] as const)
         .filter(key => metadata[key])
         .map(key => `${key[0]!.toUpperCase()}${key.slice(1)}=${metadata[key]}`)
         .join("\n"));
       const offset = 24 + Math.max(8, Math.ceil((annotation.length + 1) / 8) * 8);
-      options.budget?.checkOutputBytes(offset + data.length);
+      budget.checkOutputBytes(offset + data.length);
       const bytes = new Uint8Array(offset + data.length);
       const view = new DataView(bytes.buffer);
-      [0x2e736e64, offset, options.seekable === false ? 0xffffffff : data.length, encoding[0], sampleRate, channels].forEach((value, i) => view.setUint32(i * 4, value));
+      [0x2e736e64, offset, options.seekable === false ? 0xffffffff : data.length, encoding?.[0] ?? 23, sampleRate, channels].forEach((value, i) => view.setUint32(i * 4, value));
       bytes.set(annotation, 24);
       bytes.set(data, offset);
       return bytes;

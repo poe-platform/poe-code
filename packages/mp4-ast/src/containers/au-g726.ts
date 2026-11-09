@@ -81,7 +81,7 @@ export function decodeG726(data: Uint8Array, bits: 2 | 3 | 4 | 5, budget: MediaB
   return output;
 }
 
-export function encodeG726(samples: Float32Array | Float64Array, bits: 2 | 3 | 4 | 5, budget: MediaBudgetTracker): Uint8Array {
+export function encodeG726(samples: Float32Array | Float64Array, bits: 2 | 3 | 4 | 5, budget: MediaBudgetTracker, littleEndian = false): Uint8Array {
   const length = Math.ceil(samples.length * bits / 8);
   budget.allocateMemory(length);
   const output = new Uint8Array(length);
@@ -97,9 +97,9 @@ export function encodeG726(samples: Float32Array | Float64Array, bits: 2 | 3 | 4
     if (difference < 0) code = (1 << bits) - 1 - code;
     else if (code === 0 && bits !== 2) code = (1 << bits) - 1;
     const bit = frame * bits, byte = Math.floor(bit / 8);
-    const packed = code << (16 - bits - bit % 8);
-    output[byte] = output[byte]! | (packed >> 8);
-    if (byte + 1 < output.length) output[byte + 1] = output[byte + 1]! | (packed & 255);
+    const packed = code << (littleEndian ? bit % 8 : 16 - bits - bit % 8);
+    output[byte] = output[byte]! | (littleEndian ? packed & 255 : packed >> 8);
+    if (byte + 1 < output.length) output[byte + 1] = output[byte + 1]! | (littleEndian ? packed >> 8 : packed & 255);
     return code;
   });
   return output;

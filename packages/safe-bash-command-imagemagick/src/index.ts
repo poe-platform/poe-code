@@ -11033,7 +11033,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const operandLevels: MagickPixelOperation[][] = [];
     let readMask: RgbaImage | StoredRgbaImage | undefined;
     type Rotation = { rotation: string; settings: MagickState };
-    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number } | { property: { key: string; value: string } };
+    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number } | { property: { key: string; value: string } } | { profile: Uint8Array; name: string };
     const pixelOperations: MagickPixelOperation[] = [];
     const operationFlushes = new Map<number, readonly MagickPixelOperation[]>();
     let pending = false;
@@ -11081,6 +11081,32 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 signal?.throwIfAborted();
                 if (err instanceof CompareInputFailure) throw err.reason;
                 return { exitCode: 2, stdout: "", stderr: `compare: ${(err as Error).message}\n` };
+            }
+        }
+        else if (t === "-profile") {
+            const name = argv[++i];
+            if (!name) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-profile'\n" };
+            try {
+                let profile = files.get(name);
+                if (backend) yield { async run() {
+                    profile = await backend.read(name, async source => {
+                        const bytes = new Uint8Array(source.size);
+                        for (let offset = 0; offset < source.size; offset += 16384) {
+                            await yieldTurn(signal);
+                            bytes.set(await source.read(offset, Math.min(16384, source.size - offset), { signal: signal! }), offset);
+                        }
+                        return bytes;
+                    });
+                } };
+                if (!profile) throw new Error(`unable to open profile '${name}'`);
+                applyMagickProfile({}, name, profile);
+                const operation = { profile, name };
+                if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push(operation);
+                else leadingOperations.push(operation);
+            } catch (error) {
+                signal?.throwIfAborted();
+                if (error instanceof CompareInputFailure) throw error.reason;
+                return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` };
             }
         }
         else if (t === "-quiet" || t === "+quiet") quiet = t === "-quiet";
@@ -11497,6 +11523,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             yield* acceptImage({ ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) }, operations, index + 1);
             return;
         }
+        if (typeof operation === "object" && "profile" in operation) {
+            yield* acceptImage(applyMagickProfile(image, operation.name, operation.profile), operations, index + 1);
+            return;
+        }
         if (typeof operation === "object" && "trim" in operation) {
             let trimmed = image;
             if ("data" in image) trimmed = yield* trimMagickSteps(image, operation.trim);
@@ -11762,7 +11792,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const colorType = pngOutputColorType(pngColorType, format, pngWarnings);
         const opaque = colorType === 0 || colorType === 2;
         const outputMetadata = density === undefined ? imgA : applyMagickDensity(imgA, density);
-        const metadata = { width, height, format: "png" as const, channels: opaque ? 3 as const : 4 as const, depth: "uchar" as const, density: outputMetadata.density, ...(outputMetadata.resolution ? { resolution: outputMetadata.resolution } : {}), space: "srgb" as const, hasAlpha: !opaque };
+        const metadata = { width, height, ...(imgA.icc ? { icc: imgA.icc } : {}), format: "png" as const, channels: opaque ? 3 as const : 4 as const, depth: "uchar" as const, density: outputMetadata.density, ...(outputMetadata.resolution ? { resolution: outputMetadata.resolution } : {}), space: "srgb" as const, hasAlpha: !opaque };
         const encoding = { ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth), pngBitDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, miffDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, tiffIntegerDepth: state.inputDepth <= 8 ? 8 as const : state.inputDepth <= 16 ? 16 as const : 32 as const }), format, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4" as const, ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngColorType: colorType, ...(opaque ? { forceOpaque: true } : {}), ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) };
         const split = hasSceneOutputPattern(path) || (subimageSearch && !["gif", "miff", "tiff"].includes(format));
         let stdoutBytes: Uint8Array | undefined;

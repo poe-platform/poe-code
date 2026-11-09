@@ -12,6 +12,13 @@ import { createFfmpegCommand } from "./index.js";
 // The reported FFmpeg 7.0.2 samples also match the first fixture.
 for (const [filter, hash] of [
   ["compensationdelay=cm=34:mm=3:dry=0:wet=1", "4ce51f5a2ac1fee9abe14afaad24f7e5400faa6821dae39a53b5c4991a33746b"],
+  ["compensationdelay=m=1:enable=0", "2d1f2da800b2a477fbc52839146c0d3fd2c94a18c404a368f734448dbdf3d8ef"],
+  ["compensationdelay=m=1:enable=1", "c07df5f57b0f0f0fe64356654c7cc92474485adda262facf67efd41925406fcf"],
+  ["compensationdelay=m=1:enable='gte(t,0.064)'", "403f8068bf69f82d92d0dca124da8ce0c6b373be3ae30dd21910fca9c19fa72c"],
+  ["compensationdelay=m=1:enable='lt(t,0.064)+gte(t,0.128)'", "accb4642a5d2f477d6d0dd70d09634e14cbeff6c6bb2f3809718725aca762ac9"],
+  ["compensationdelay=m=1:enable='gt(n,0)'", "403f8068bf69f82d92d0dca124da8ce0c6b373be3ae30dd21910fca9c19fa72c"],
+  ["asetnsamples=1024:0,compensationdelay=m=1:enable='gt(n,0)'", "8658536057cd1632798704f7d46de8837b90edf0b24d1db6e223fc934790647c"],
+  ["asetpts=PTS+512,compensationdelay=m=1:enable='gte(t,0.128)'", "403f8068bf69f82d92d0dca124da8ce0c6b373be3ae30dd21910fca9c19fa72c"],
   ["compensationdelay", "2d1f2da800b2a477fbc52839146c0d3fd2c94a18c404a368f734448dbdf3d8ef"],
   ["compensationdelay=3:34:0:0.25:0.5:0", "b17e22de2240284a72145f47c078a0d4819d9ef02cddcb1b3679bd1bfa2119c2"],
   ["compensationdelay=m=1:temp=-50", "584bcd57fb73fce499afb7c7a70881ed5ea9195cf7b15b3b95e670ed6199fdd7"],
@@ -39,6 +46,15 @@ for (const filter of ["compensationdelay=mm=-1", "compensationdelay=cm=101", "co
     const { volume, result, stderr } = await run(filter);
     assert.notEqual(result.exitCode, 0);
     assert.ok(stderr.includes("compensationdelay: invalid option"), stderr);
+    assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+  });
+}
+
+for (const enable of ["", "unknown", "gte(t,)"]) {
+  it(`rejects invalid enable=${enable} without replacing output`, async () => {
+    const { volume, result, stderr } = await run(`compensationdelay=m=1:enable='${enable}'`);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(stderr.includes("compensationdelay enable"), stderr);
     assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
   });
 }

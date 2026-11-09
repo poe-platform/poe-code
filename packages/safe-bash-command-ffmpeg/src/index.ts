@@ -52,6 +52,7 @@ import { normalizeAudio } from "./audio-dynaudnorm.js";
 import { CompandError, compandAudio } from "./audio-compand.js";
 import { multibandCompandAudio } from "./audio-mcompand.js";
 import { removeSilence } from "./audio-silenceremove.js";
+import { compensateAudioDelay } from "./audio-compensationdelay.js";
 import { fadeAudio } from "./audio-fade.js";
 import { acrossfadeAudio } from "./audio-acrossfade.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
@@ -9584,7 +9585,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade") {
+                      } else if (filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -9601,7 +9602,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        if (filterName === "afade") {
+                        if (filterName === "compensationdelay") {
+                          filteredSampleFormat = "dblp";
+                          stretched = await compensateAudioDelay(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                        } else if (filterName === "afade") {
                           stretched = await fadeAudio(stretched, origRate, trimmed, audioTimestamps, audioStartSample, budget, context.signal, panPcm16);
                         } else if (filterName === "alimiter") {
                           filteredSampleFormat = "dbl";
@@ -10223,34 +10227,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             context.signal?.throwIfAborted();
                             budget.checkCpu();
                             output.set(channel.subarray(start, start + 16384), start);
-                          }
-                          return output;
-                        }, context.signal);
-                      } else if (trimmed === "compensationdelay" || trimmed.startsWith("compensationdelay=")) {
-                        const names = ["mm", "cm", "m", "dry", "wet", "temp"];
-                        const values = [0, 0, 0, 0, 1, 20];
-                        const argument = trimmed.slice("compensationdelay=".length);
-                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
-                          const separator = option.indexOf("=");
-                          const key = separator < 0 ? index : names.indexOf(option.slice(0, separator).trim());
-                          const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
-                          const value = Number(raw);
-                          if (key < 0 || key >= names.length || !raw || !Number.isFinite(value) ||
-                              value < (key === 5 ? -50 : 0) || value > [10, 100, 100, 1, 1, 50][key]! ||
-                              ((key < 3 || key === 5) && !Number.isInteger(value))) {
-                            throw new Error("compensationdelay: invalid option");
-                          }
-                          values[key] = value;
-                        }
-                        // Native converts distance to whole samples using temperature-dependent sound speed.
-                        const speed = 1.85325 * (643.95 * Math.sqrt((values[5]! + 273.15) / 273.15)) * 100000 / 3600;
-                        const delay = Math.trunc((values[2]! * 100 + values[1]! + values[0]! * 0.1) * (1 / speed) * origRate);
-                        budget.allocateMemory((stretched[0]?.length ?? 0) * stretched.length * Float64Array.BYTES_PER_ELEMENT);
-                        stretched = await mapWork(stretched, async channel => {
-                          const output = new Float64Array(channel.length);
-                          for (let i = 0; i < channel.length; i++) {
-                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            output[i] = values[3]! * channel[i]! + values[4]! * (i < delay ? 0 : channel[i - delay]!);
                           }
                           return output;
                         }, context.signal);

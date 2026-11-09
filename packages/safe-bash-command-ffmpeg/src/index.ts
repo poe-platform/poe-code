@@ -29,6 +29,7 @@ import { pulsateAudio } from "./audio-apulsator.js";
 import { tremoloAudio } from "./audio-tremolo.js";
 import { decorrelateAudio } from "./audio-adecorrelate.js";
 import { phaseAudio } from "./audio-aphaser.js";
+import { shiftAudioPhase } from "./audio-aphaseshift.js";
 import { correlateAudio } from "./audio-axcorrelate.js";
 import { gateAudio } from "./audio-sidechaingate.js";
 import { listenDynamicEqualizer } from "./audio-adynamicequalizer.js";
@@ -8603,6 +8604,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await decorrelateAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "aphaser" || trimmed.startsWith("aphaser=")) {
                         stretched = await phaseAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
+                      } else if (trimmed === "aphaseshift" || trimmed.startsWith("aphaseshift=")) {
+                        stretched = await shiftAudioPhase(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
+                        statsScale = 1;
                       } else if (trimmed === "tremolo" || trimmed.startsWith("tremolo=")) {
                         stretched = await tremoloAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "apulsator" || trimmed.startsWith("apulsator=")) {

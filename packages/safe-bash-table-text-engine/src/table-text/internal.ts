@@ -301,7 +301,7 @@ export class OrderCheck {
   private warned = new Set<number>();
   // Only the transition into each current row matters when default checking starts.
   private pending = new Set<number>();
-  constructor(readonly mode: OrderMode, readonly context: CommandContext, readonly budget: Budget) {}
+  constructor(readonly mode: OrderMode, readonly context: CommandContext, readonly budget: Budget, private readonly compareRecords = compare) {}
   async markUnpaired(): Promise<void> {
     if (this.unpaired) return;
     this.unpaired = true;
@@ -310,7 +310,7 @@ export class OrderCheck {
   }
   check(previous: Uint8Array | undefined, next: Uint8Array | undefined, file: number, fold = false): void | Promise<void> {
     if (this.mode === "none" || this.warned.has(file)) return;
-    const disordered = previous !== undefined && next !== undefined && compare(previous, next, fold) > 0;
+    const disordered = previous !== undefined && next !== undefined && this.compareRecords(previous, next, fold) > 0;
     if (this.mode === "default" && !this.unpaired) {
       if (disordered) this.pending.add(file);
       else this.pending.delete(file);

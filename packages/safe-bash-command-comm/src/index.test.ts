@@ -266,3 +266,59 @@ test("comm applies abbreviated order modes in argument order", async () => {
  assert.equal(result.stdout, "\t\tb\n\t\ta\n");
  assert.equal(result.stderr, "");
 });
+
+for (const env of [
+ { LC_ALL: "en_US.utf8" },
+ { LANG: "C", LC_COLLATE: "en_US.utf8" },
+ { LANG: "en_US.UTF-8", LC_ALL: "", LC_COLLATE: "" },
+]) {
+ test(`comm uses selected collation for merging and order checks: ${JSON.stringify(env)}`, async () => {
+  for (const mode of [[], ["--check-order"], ["--nocheck-order"]]) {
+   const files = { "/a": "alpha\nBeta\n", "/b": "Beta\n" };
+   const result = await run([...mode, "-12", "/a", "/b"], files, env);
+   assert.equal(result.stdout, "Beta\n");
+   assert.equal(result.stderr, "");
+   assert.equal(result.exitCode, 0);
+   const totals = await run([...mode, "-123", "--total", "/a", "/b"], files, env);
+   assert.equal(totals.stdout, "1\t0\t1\ttotal\n");
+   assert.equal(totals.stderr, "");
+   assert.equal(totals.exitCode, 0);
+  }
+  for (const file of ["/a", "/b"]) {
+   const result = await run(["--check-order", "/a", "/b"], { "/a": "", "/b": "", [file]: "Beta\nalpha\n" }, env);
+   assert.equal(result.exitCode, 1);
+   assert.equal(result.stderr, `comm: file ${file === "/a" ? 1 : 2} is not in sorted order\n`);
+  }
+ });
+}
+
+for (const locale of ["C", "POSIX", "C.UTF-8", "C.utf8"]) {
+ test(`comm preserves byte ordering with ${locale} overriding LC_COLLATE`, async () => {
+  const result = await run(["--check-order", "-12", "/a", "/b"], { "/a": "Beta\nalpha\n", "/b": "alpha\n" }, { LC_ALL: locale, LC_COLLATE: "en_US.utf8" });
+  assert.equal(result.stdout, "alpha\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+ });
+}
+
+test("comm keeps delimiter equality byte based under locale collation", async () => {
+ const result = await run(["--out=é", "--out=e\u0301", "/a", "/a"], { "/a": "x\n" }, { LC_ALL: "en_US.utf8" });
+ assert.equal(result.exitCode, 1);
+ assert.match(result.stderr, /multiple conflicting output delimiters/u);
+});
+
+test("comm uses locale collation for NUL records and collation-equivalent text", async () => {
+ const result = await run(["-z12", "--check-order", "/a", "/b"], { "/a": "alpha\0é\0", "/b": "e\u0301\0" }, { LC_ALL: "en_US.utf8" });
+ assert.equal(result.stdout, "é\0");
+ assert.equal(result.stderr, "");
+ assert.equal(result.exitCode, 0);
+});
+
+for (const locale of ["invalid_locale", "en_US.utf8@unsupported"]) {
+ test(`comm rejects unsupported collation ${locale}`, async () => {
+  const result = await run(["/a", "/a"], { "/a": "x\n" }, { LC_ALL: locale });
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.stderr.includes(`unsupported collation locale '${locale}'`));
+  assert.equal(result.stdout, "");
+ });
+}

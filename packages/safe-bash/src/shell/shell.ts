@@ -823,6 +823,7 @@ export class Shell implements PluginHost {
           }
           exported = new Set(Object.keys(variables));
         }
+        variables.BASH_ARGV0 = "virtual-bash";
         variables.OPTIND = "1";
         variables.OPTERR = "1";
         variables.IFS ??= " \t\n";

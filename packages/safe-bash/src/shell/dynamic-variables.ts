@@ -1,5 +1,7 @@
 /** Primitive fields keep dynamic bindings independent when shell state is forked. */
 export interface DynamicVariableState {
+  arg0?: string;
+  bashArgv0Disabled?: boolean;
   randomSeed?: number;
   randomDisabled?: boolean;
   secondsOrigin?: number;
@@ -7,6 +9,7 @@ export interface DynamicVariableState {
 }
 
 export function writeDynamicVariable(state: DynamicVariableState, name: string, value: string): void {
+  if (name === "BASH_ARGV0" && !state.bashArgv0Disabled) state.arg0 = value;
   if (name !== "RANDOM" && name !== "SECONDS") return;
   const number = Number.parseInt(value, 10) || 0;
   if (name === "RANDOM" && !state.randomDisabled) {

@@ -92,6 +92,79 @@ test("inherited OLDPWD validation preserves filesystem cancellation", async (con
   await assert.rejects(shell.exec("OLDPWD=/old bash -c 'echo unexpected'", { signal: controller.signal }), error => error === reason);
 });
 
+for (const entry of ["bash --noprofile --norc -c", "bash /program", "/program"]) {
+  test(`BASH_ARGV0 follows and updates the shell name: ${entry}`, async context => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs }).use(standardCommands());
+    context.after(() => shell.dispose());
+    const source = `printf "<%s>\\n" "$0:$BASH_ARGV0" "$#" "$@"
+BASH_ARGV0=tool
+printf "<%s>\\n" "$0:$BASH_ARGV0" "$#" "$@"`;
+    await script(fs, "/program", `#!/bin/bash\n${source}`);
+    const commandString = entry.endsWith("-c");
+    const result = await shell.exec(`${entry}${commandString ? ` '${source}' label` : ""} one '' 'two words'`);
+    const name = commandString ? "label" : "/program";
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `<${name}:${name}>\n<3>\n<one>\n<>\n<two words>\n<tool:tool>\n<3>\n<one>\n<>\n<two words>\n`);
+  });
+}
+
+test("BASH_ARGV0 starts fresh on repeated top-level executions", async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (let index = 0; index < 3; index++) {
+    const result = await shell.exec('printf "%s\\n" "$0:$BASH_ARGV0"; BASH_ARGV0=tool; printf "%s\\n" "$0:$BASH_ARGV0"; unset BASH_ARGV0');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "virtual-bash:virtual-bash\ntool:tool\n");
+  }
+});
+
+for (const maxExpansionBytes of [undefined, 65536]) {
+  test(`BASH_ARGV0 assignment and shell isolation match Bash, budget ${maxExpansionBytes}`, async context => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs, limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } }).use(standardCommands());
+    context.after(() => shell.dispose());
+    const source = `
+      printf '%s\\n' "$0:$BASH_ARGV0" "$#:$1:$2"
+      BASH_ARGV0=tool; printf '%s\\n' "$0:$BASH_ARGV0"
+      ( BASH_ARGV0=subshell; printf '%s\\n' "$0:$BASH_ARGV0" )
+      printf '%s\\n' "$(BASH_ARGV0=substitution; printf '%s' "$0:$BASH_ARGV0")" "$0:$BASH_ARGV0"
+      bash -c 'printf "%s\\n" "$0:$BASH_ARGV0"; BASH_ARGV0=child; printf "%s\\n" "$0:$BASH_ARGV0"' nested
+      printf -v BASH_ARGV0 '%s' formatted; printf '%s\\n' "$0:$BASH_ARGV0"
+      read -r BASH_ARGV0 <<< read; printf '%s\\n' "$0:$BASH_ARGV0"
+      declare BASH_ARGV0=declared; printf '%s\\n' "$0:$BASH_ARGV0"
+      BASH_ARGV0=; printf '<%s>\\n' "$0:$BASH_ARGV0"
+      unset BASH_ARGV0; BASH_ARGV0=ordinary; printf '%s\\n' "$0:$BASH_ARGV0" "$#:$1:$2"
+    `;
+    const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source, "label", "one", "two words"], { encoding: "utf8", env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000 });
+    assert.equal(native.status, 0, native.stderr);
+    assert.equal(native.stderr, "");
+    await script(fs, "/program", source);
+    const result = await shell.exec("bash -c 'source /program' label one 'two words'");
+    assert.equal(result.exitCode, native.status, result.stderr);
+    assert.equal(result.stderr, native.stderr);
+    assert.equal(result.stdout, native.stdout);
+  });
+
+  test(`BASH_ARGV0 preserves raw argument bytes, budget ${maxExpansionBytes}`, async context => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs, env: { LC_ALL: "C" }, limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } }).use(standardCommands());
+    context.after(() => shell.dispose());
+    const source = `printf '%s:' "$0" "$BASH_ARGV0"
+BASH_ARGV0=$'\\xfe'; printf '%s:' "$0" "$BASH_ARGV0" "\${@:0}"
+set -- next; printf '%s:' "$0" "$BASH_ARGV0" "$1"
+( unset BASH_ARGV0; BASH_ARGV0=ordinary; printf '%s:' "$0" "$BASH_ARGV0" )
+BASH_ARGV0=tool; printf '%s:' "$0" "$BASH_ARGV0"`;
+    await script(fs, "/program", source);
+    const result = await shell.exec("bash -c 'source /program' $'\\xff' one");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.from("\xff:\xff:\xfe:\xfe:\xfe:one:\xfe:\xfe:next:\xfe:ordinary:tool:tool:", "latin1"));
+  });
+}
+
 for (const entry of ["./program", "/program", "bash program", "bash -- ./program", "sh program", "sh -- ./program"]) {
   test(`VFS script entry preserves literal arguments and argv0: ${entry}`, async () => {
     const { shell, fs } = setup();

@@ -1787,7 +1787,9 @@ export function publishVariable(state: State, name: string, value: ShellValue): 
       return;
     }
     const text = shellValueText(value);
-    monitor.values.publish(name, value, () => { state.variables[name] = text; return true; });
+    const publish = () => monitor.values.publish(name, value, () => { state.variables[name] = text; return true; });
+    if (name === "BASH_ARGV0" && !state.bashArgv0Disabled) monitor.positionals.publish(zeroPositionKey, value, publish);
+    else publish();
     return;
   }
   state.variables[name] = shellValueText(value);
@@ -2987,6 +2989,7 @@ export class Runtime {
     if (name === "GLOBIGNORE") state.dotglob = false;
     if (name === "RANDOM") state.randomDisabled = true;
     if (name === "SECONDS") state.secondsDisabled = true;
+    if (name === "BASH_ARGV0") state.bashArgv0Disabled = true;
     state.exported.delete(name);
     state.variableAttributes?.delete(name);
     if (name === "OPTIND" && !internal) this.syncGetopts(state);
@@ -7058,6 +7061,7 @@ export class Runtime {
       }
     }
     this.replacePositionals(child, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, arg0);
+    publishVariable(child, "BASH_ARGV0", arg0);
     return child;
   }
   async interpreter(context: CommandContext, state: State, io: IO, loadedSource?: { path: string; source: string }): Promise<number> {

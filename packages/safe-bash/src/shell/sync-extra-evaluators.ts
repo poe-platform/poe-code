@@ -3420,16 +3420,19 @@ const syncExtraRuntimeMethods = {
         if (k !== "PWD" && k !== "OPTIND" && k !== "OPTERR" && k !== "IFS") delete curVars[k];
       }
       curVars.PWD = expectedCwd;
+      curVars.BASH_ARGV0 = "virtual-bash";
       curVars.OPTIND = "1";
       curVars.OPTERR = "1";
       curVars.IFS = " \t\n";
     } else {
-      rawRoot.variables = { PWD: expectedCwd, OPTIND: "1", OPTERR: "1", IFS: " \t\n" };
+      rawRoot.variables = { PWD: expectedCwd, BASH_ARGV0: "virtual-bash", OPTIND: "1", OPTERR: "1", IFS: " \t\n" };
       if (monitor) {
         (monitor as unknown as { _variablesProxy?: unknown; _wrapped?: unknown })._variablesProxy = undefined;
         (monitor as unknown as { _variablesProxy?: unknown; _wrapped?: unknown })._wrapped = undefined;
       }
     }
+    delete rawRoot.arg0;
+    delete rawRoot.bashArgv0Disabled;
     rawRoot.status = 0;
     rawRoot.substitutionStatus = 0;
     rawRoot.lastArgument = "";

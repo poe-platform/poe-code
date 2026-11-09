@@ -444,6 +444,10 @@ Expressions support arithmetic, `val(channel)`, `ch`,
 layout and repeats the last expression when needed. `aeval=abs(val(1))` rectifies negative
 right-channel samples; `abs(x)` also accepts constants and arithmetic expressions. `sin(x)` takes radians, and
 `PI` is available for waveforms such as `aeval=sin(PI*n/2)/2`.
+`aeval=val(0)*random(0)` applies a deterministic random gain to each sample, matching
+FFmpeg 7. Random state persists across samples, stays independent for each output
+channel and register index (0–9), and starts fresh for each filter execution.
+Use `st(index,seed)` to seed or reset a generator; `ld(index)` reads its last unsigned 64-bit value as a floating-point number.
 `aeval=sqrt(val(ch)):c=same` takes each channel sample’s square root. Negative
 roots remain NaN during evaluation and encode as zero in PCM16 output.
 `sgn(x)` returns -1, 0, or 1 for negative, zero, or positive values;

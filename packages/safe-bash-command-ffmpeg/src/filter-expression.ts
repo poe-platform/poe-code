@@ -1,4 +1,4 @@
-export function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>, sampleValue?: (channel: number) => number, registers?: Float64Array): number {
+export function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>, sampleValue?: (channel: number) => number, registers?: Float64Array, randomStates?: BigUint64Array[]): number {
   let offset = 0;
   const source = expression.trim();
   function parse(minPrecedence = 0, depth = 0, evaluate = true): number {
@@ -44,8 +44,27 @@ export function parseFilterExpression(expression: string, filter: string, variab
         if (name === "val" && args.length === 1 && sampleValue) value = evaluate ? sampleValue(args[0]!) : 0;
         else if (registers && ((name === "st" && args.length === 2) || (name === "ld" && args.length === 1))) {
           const index = Math.max(0, Math.min(9, Math.trunc(args[0]!) || 0));
-          if (name === "st" && evaluate) registers[index] = args[1]!;
+          if (name === "st" && evaluate) {
+            registers[index] = args[1]!;
+            if (randomStates) delete randomStates[index];
+          }
           value = name === "st" ? args[1]! : registers[index]!;
+        }
+        else if (name === "random" && args.length === 1 && registers && randomStates) {
+          value = 0;
+          if (evaluate) {
+            const index = Math.max(0, Math.min(9, Math.trunc(args[0]!) || 0));
+            let state = randomStates[index];
+            if (!state) {
+              const seed = BigInt(Math.trunc(registers[index]!) || 0);
+              state = randomStates[index] = new BigUint64Array([seed, seed, seed, 1n]);
+              // FFmpeg 7 initializes SFC64 with twelve discarded draws.
+              for (let i = 0; i < 12; i++) nextRandom(state);
+            }
+            const random = Number(nextRandom(state));
+            registers[index] = random;
+            value = random / 2 ** 64;
+          }
         }
         else if (filter === "rotate" && args.length === 1 && (name === "rotw" || name === "roth")) {
           const sin = Math.abs(Math.sin(args[0]!));
@@ -154,4 +173,14 @@ export function parseFilterExpression(expression: string, filter: string, variab
   const angle = parse();
   if (offset !== source.length || (!Number.isFinite(angle) && filter !== "volume" && !((filter === "aeval" || filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
   return angle;
+}
+
+function nextRandom(state: BigUint64Array): bigint {
+  const a = state[0]!, b = state[1]!, c = state[2]!, counter = state[3]!;
+  const next = BigInt.asUintN(64, a + b + counter);
+  state[0] = b ^ (b >> 11n);
+  state[1] = c * 9n;
+  state[2] = ((c << 24n) | (c >> 40n)) + next;
+  state[3] = counter + 1n;
+  return next;
 }

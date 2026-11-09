@@ -9978,6 +9978,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         const output = Array.from({ length: count }, () => new Float64Array(stretched[0]!.length));
                         const registers = Array.from({ length: count }, () => new Float64Array(10));
+                        const randomStates = Array.from({ length: count }, () => new Array<BigUint64Array>(10));
                         const variables = { PI: Math.PI, ch: 0, n: 0, t: 0, s: origRate, nb_in_channels: stretched.length, nb_out_channels: count };
                         const sampleValue = (channel: number) => stretched[Math.max(0, Math.min(stretched.length - 1, Math.trunc(channel)))]![variables.n]!;
                         let frameEnd = 0;
@@ -10005,7 +10006,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           variables.t = i / origRate;
                           for (let c = 0; c < count; c++) {
                             variables.ch = c;
-                            output[c]![i] = !enabled ? sampleValue(c) : parseFilterExpression(exprs[Math.min(c, exprs.length - 1)]!, "aeval", variables, sampleValue, registers[c]);
+                            output[c]![i] = !enabled ? sampleValue(c) : parseFilterExpression(exprs[Math.min(c, exprs.length - 1)]!, "aeval", variables, sampleValue, registers[c], randomStates[c]);
                           }
                         }
                         stretched = output;

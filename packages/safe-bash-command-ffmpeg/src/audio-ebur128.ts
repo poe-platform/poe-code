@@ -9,8 +9,8 @@ export async function* measureEbur128(
 ): AsyncGenerator<string> {
   let samplePeaks = false;
   for (const option of options ? options.split(":") : []) {
-    if (option === "peak=sample") samplePeaks = true;
-    else if (option === "peak=none" || option === "peak=0") samplePeaks = false;
+    if (option === "peak=sample" || option === "peak=2" || option === "peak=3") samplePeaks = true;
+    else if (option === "peak=none" || option === "peak=0" || option === "peak=1") samplePeaks = false;
     else throw new Error(`ebur128: unsupported option ${option}`);
   }
   const mask = channelMask || [0, 4, 3, 7, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels.length];

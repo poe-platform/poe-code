@@ -8943,6 +8943,23 @@ describe("ebur128", () => {
 
 
 describe("ebur128 edge cases", () => {
+  for (const peak of ["0", "1", "2", "3", "none", "sample"]) {
+    it(`accepts peak=${peak} and preserves PCM including a final partial interval`, async () => {
+      const samples = Float64Array.from({ length: 28160 }, (_, i) =>
+        (i < 28000 ? Math.round(8192 * Math.sin(2 * Math.PI * 1000 * i / 8000)) : 30000) / 32768);
+      const input = encodeWav({ sampleRate: 8000, channels: [samples] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const result = await runCmd(createFfmpegCommand(), ["-hide_banner", "-nostats", "-y", "-v", "info",
+        "-i", "/in.wav", "-af", `ebur128=peak=${peak}`, "-c:a", "pcm_s16le", "/out.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const reportsPeak = ["2", "3", "sample"].includes(peak);
+      assert.equal(result.stderr.includes("Sample peak:"), reportsPeak);
+      assert.equal(result.stderr.includes("SPK:"), reportsPeak);
+      if (reportsPeak) assert.match(result.stderr, /Sample peak:\n\s+Peak:\s+-0.8 dBFS/);
+      assert.deepEqual(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData,
+        parseWav(input).tracks[0]!.decodedAudio!.channelData);
+    });
+  }
   for (const [filter, peak] of [["ebur128", false], ["volume=0,ebur128=peak=sample", true]] as const) {
     it(`reports silence for ${filter}`, async () => {
       const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(800)] });
@@ -8968,7 +8985,7 @@ describe("ebur128 edge cases", () => {
     assert.match(summary, /Peak:\s+-12.0 dBFS/);
     assert.equal(result.stderr.split("\n").filter(line => line.startsWith("t:")).length, 35);
   });
-  for (const option of ["peak=true", "metadata=1", "peak=bogus"]) {
+  for (const option of ["peak=true", "metadata=1", "peak=bogus", "peak=banana", "peak=4", "peak=6"]) {
     it(`rejects unsupported ${option} without replacing the output`, async () => {
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }), "/out.wav": "keep" });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", `ebur128=${option}`, "/out.wav"], vfs);

@@ -36,7 +36,7 @@ for (const sync of [false, true]) for (const [depth, maxval, hex] of [
     }
 });
 
-for (const sync of [false, true]) it(`keeps implicit 8-bit output and captures write depth, sync=${sync}`, async () => {
+for (const sync of [false, true]) it(`resets output to quantum depth and captures write depth, sync=${sync}`, async () => {
     const input = Buffer.concat([Buffer.from("P6\n1 1\n255\n"), Buffer.from([17, 68, 136])]);
     const argv = ["in.ppm", "-depth", "4", "-write", "low.ppm", "+depth", "out.ppm"];
     const files = new Map<string, Uint8Array>([["in.ppm", input]]);
@@ -45,6 +45,6 @@ for (const sync of [false, true]) it(`keeps implicit 8-bit output and captures w
     const result = sync ? runMagickCliSync(argv, files) : await runMagickCli(argv, { filesystem: fs, cwd: "/" });
     expect(result.stderr).toBe("");
     expect(result.exitCode).toBe(0);
-    expect(Buffer.from(sync ? files.get("out.ppm")! : await fs.readFile("/out.ppm"))).toEqual(input);
+    expect(Buffer.from(sync ? files.get("out.ppm")! : await fs.readFile("/out.ppm"))).toEqual(Buffer.concat([Buffer.from("P6\n1 1\n65535\n"), Buffer.from([17, 17, 68, 68, 136, 136])]));
     expect(Buffer.from(sync ? files.get("low.ppm")! : await fs.readFile("/low.ppm"))).toEqual(Buffer.concat([Buffer.from("P6\n1 1\n15\n"), Buffer.from([1, 4, 8])]));
 });

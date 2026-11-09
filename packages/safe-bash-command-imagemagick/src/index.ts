@@ -7696,6 +7696,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return image;
                 }
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
+                if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: Number(expanded) };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(expanded), forceExact: false }) };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
@@ -7735,6 +7736,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
         if (setting !== undefined) {
             i = setting;
+            if (t === "-depth" && state.inputDepth! < 16) {
+                const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+                stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, false, channels, signal), signal));
+            }
             if (t === "-page") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualCanvas: state.page! }; });
         }
         else if (t === "-connected-components" || t === "+connected-components") {
@@ -9342,6 +9347,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return image;
                 }
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
+                if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: Number(expanded) };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(expanded), forceExact: false }) };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
@@ -9378,6 +9384,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) {
             i = setting;
+            if (token === "-depth" && state.inputDepth! < 16) {
+                const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+                steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, false, channels, signal), signal) : undefined);
+            }
             if (token === "-page") {
                 const page = state.page!;
                 steps.push(async image => image ? { ...image, virtualCanvas: page } : undefined);

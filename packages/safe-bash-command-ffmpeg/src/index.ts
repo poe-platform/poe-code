@@ -9754,7 +9754,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           throw new Error("apad: pad_len and whole_len are mutually exclusive");
                         }
                         if (padding === undefined && minimum === undefined) {
-                          throw new Error("apad: a finite padding or minimum length is required");
+                          const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
+                          if (endSeconds === undefined) {
+                            throw new Error("apad: a finite padding or minimum length is required");
+                          }
+                          minimum = Math.max(0, Math.round(endSeconds * origRate) - audioStartSample);
                         }
                         const inputLength = stretched[0]?.length ?? 0;
                         const length = padding !== undefined ? inputLength + padding : Math.max(inputLength, minimum!);

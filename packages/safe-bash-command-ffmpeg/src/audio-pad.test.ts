@@ -91,6 +91,34 @@ for (const [filter, frames, padding] of [
   }
 }
 
+for (const graph of [false, true]) {
+  for (const options of [["-t", "0.002"], ["-to", "0.002"], ["-ss", "0.001", "-t", "0.002"]]) {
+    it(`bare apad honors ${options.join(" ")} (${graph ? "graph" : "simple"})`, async () => {
+      const volume = Volume.fromJSON({});
+      const samples = [1000, -2000, 3000, -4000].map(value => value / 32768);
+      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [Float64Array.from(samples)] }));
+      const errors: Uint8Array[] = [];
+      const result = await createFfmpegCommand().execute({
+        args: ["-y", "-i", "/in.wav", ...(graph
+          ? ["-filter_complex", "[0:a]apad[out]", "-map", "[out]"] : ["-af", "apad"]),
+          ...options, "-c:a", "pcm_s16le", "/out.wav"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+      const actual = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      assert.deepEqual(Array.from(actual.channelData[0]!), options[0] === "-ss"
+        ? Array(16).fill(0) : [...samples, ...Array(12).fill(0)]);
+    });
+  }
+}
+
 for (const filter of ["apad", "apad=pad_len=-2", "apad=pad_len=1.5x", "apad=pad_dur=bad",
   "apad=whole_len=", "apad=pad_len=2:whole_len=10", "apad=unknown=1",
   "apad=pad_len=-1", "apad=whole_len=-1", "apad=pad_len=-1:whole_len=-1",
@@ -104,12 +132,12 @@ for (const filter of ["apad", "apad=pad_len=-2", "apad=pad_len=1.5x", "apad=pad_
   "apad=pad_len=40000*2", "apad=whole_len=40000*2",
   "apad=pad_len=9007199254740992", "apad=pad_len=80000",
   "apad=pad_dur=0.001:pad_len=-2", "apad=whole_dur=0.002:whole_len=1.5x",
-  "apad=pad_dur=2:pad_len=0", "apad=whole_dur=2:whole_len=0"]) {
+  "apad=pad_dur=2:pad_len=0", "apad=whole_dur=2:whole_len=0", "apad -t 2"]) {
   it(`${filter} fails safely without replacing the destination`, async () => {
     const volume = Volume.fromJSON({ "/out.wav": "keep" });
     volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));
     const result = await createFfmpegCommand({ limits: { maxDurationSeconds: 1 } }).execute({
-      args: ["-y", "-i", "/in.wav", "-af", filter, "/out.wav"],
+      args: ["-y", "-i", "/in.wav", "-af", ...filter.split(" "), "/out.wav"],
       cwd: "/", env: {}, signal: new AbortController().signal,
       fs: {
         async readFile(path: string) { return volume.readFileSync(path); },

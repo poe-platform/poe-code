@@ -1087,11 +1087,22 @@ function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows
         named = new Array<number>(size * size).fill(1);
     }
     const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
+    if (!named && afterColon.trimEnd().endsWith(","))
+        throw new Error("Invalid color matrix: unexpected trailing comma");
     const m = named ?? afterColon
         .trim()
         .split(/[\s,]+/)
         .filter((s) => s.length > 0)
-        .map(s => Number(s.endsWith("%") ? s.slice(0, -1) : s));
+        .map((s, index) => {
+            const value = Number(s.endsWith("%") ? s.slice(0, -1) : s);
+            if (!Number.isNaN(value)) return value;
+            if (!Number.isNaN(Number.parseFloat(s)))
+                throw new Error("Invalid color matrix: unexpected numeric suffix");
+            // Native text coefficients are zero, not NaN: other terms in the
+            // same row must still contribute. Preserve native NaN markers.
+            if ((!spec.includes(":") && index === 0) || s.toLowerCase() === "nan" || s === "-") return NaN;
+            return 0;
+        });
     if (!spec.includes(":") && !Number.isFinite(m[0]))
         throw new Error("Invalid color matrix: expected a numeric first coefficient");
     const geometry = !named && spec.includes(":") ? parseMagickGeometry(spec.slice(0, spec.indexOf(":"))) : undefined;

@@ -83,8 +83,11 @@ export class TimeZone {
     if (numericOffset) this.fixedOffset = signedOffset(name);
     else if (["", "UTC", "UTC0", "GMT", "GMT0", "Etc/UTC", "Etc/GMT", "Z"].includes(name)) this.fixedOffset = 0;
     else {
-      const fixed = /^(UTC|GMT)([+-])(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?$/.exec(name);
-      if (fixed) this.fixedOffset = -signedOffset(`${fixed[2]}${fixed[3]!.padStart(2, "0")}:${fixed[4] ?? "00"}:${fixed[5] ?? "00"}`);
+      const fixed = /^([A-Za-z]{3,}|<[A-Za-z0-9+-]{3,}>)([+-]?)(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?$/.exec(name);
+      if (fixed) {
+        this.label = fixed[1]!.startsWith("<") ? fixed[1]!.slice(1, -1) : fixed[1]!;
+        this.fixedOffset = -signedOffset(`${fixed[2] || "+"}${fixed[3]!.padStart(2, "0")}:${fixed[4] ?? "00"}:${fixed[5] ?? "00"}`);
+      }
       else {
         if (!/^[A-Za-z_+-][A-Za-z0-9_+.-]*(?:\/[A-Za-z0-9_+.-]+)*$/.test(name)) throw new CommandFailure(`unsupported virtual TZ: ${input}`);
         try {

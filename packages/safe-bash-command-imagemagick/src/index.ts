@@ -12638,12 +12638,12 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 if (thumbnail !== undefined) {
                     const previous = thumb;
                     thumb = yield* applyMagickResizeSteps(thumb, thumbnail, state.kernel, true, false, false, state.resizeFilter);
-                    if (thumb !== previous) detachRgbaBuffer(previous.data);
+                    if (thumb.data.buffer !== previous.data.buffer) detachRgbaBuffer(previous.data);
                 }
                 if (cellW !== undefined || cellH !== undefined) {
                     const previous = thumb;
                     thumb = (yield* applyMagickResizeSteps(thumb, geometry, state.kernel, true, false, false, state.resizeFilter));
-                    if (thumb !== previous) detachRgbaBuffer(previous.data);
+                    if (thumb.data.buffer !== previous.data.buffer) detachRgbaBuffer(previous.data);
                 }
                 if (!frame && borderW > 0) {
                     const prev = thumb;

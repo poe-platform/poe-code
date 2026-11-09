@@ -78,7 +78,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
   let alphabet = "abcdefghijklmnopqrstuvwxyz";
   let numericStartValue: bigint | undefined;
   let additionalSuffix = "";
-  let separator = 10;
+  let separator: number | undefined;
   let elideEmpty = false;
   let verbose = false;
   const operands: string[] = [];
@@ -97,6 +97,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
     else if (option === "t") {
       const bytes = bytesFrom(value === "\\0" ? "\0" : value!);
       if (bytes.length !== 1) throw new PublicDiagnostic("separator must be exactly one byte");
+      if (separator !== undefined && separator !== bytes[0]) throw new PublicDiagnostic("multiple separator characters specified");
       separator = bytes[0]!;
     }
     else if (option === "additional-suffix") {
@@ -178,6 +179,6 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
     mode: mode ?? "lines", size, chunkMode, selectedChunk, input: operands[0] ?? "-", prefix: operands[1] ?? "x",
     alphabet,
     suffixLength, automatic,
-    numericStart: numericStart ?? "0", additionalSuffix, separator, elideEmpty, verbose,
+    numericStart: numericStart ?? "0", additionalSuffix, separator: separator ?? 10, elideEmpty, verbose,
   };
 }

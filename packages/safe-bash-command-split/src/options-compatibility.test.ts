@@ -1,8 +1,37 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { files, run } from "./test-helpers.js";
 
 const hex = (text: string) => Buffer.from(text).toString("hex");
+
+test("conflicting separators fail without changing files", async () => {
+  for (const args of [
+    ["-t", ":", "-t", ","],
+    ["--separator=:", "--separator", ","],
+    ["-t:", "--separator=,"],
+    ["--separator=:", "-t,"],
+    ["-t", "\n", "-t:"],
+    ["-t", "\\0", "-t:"],
+  ]) {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/in", Buffer.from("a:b,c"));
+    await fs.writeFile("/xaa", Buffer.from("OLD"));
+    const result = await run([...args, "-l1", "in"], "", {}, { fs });
+    assert.equal(result.exitCode, 1, JSON.stringify(args));
+    assert.equal(result.stderr, "split: multiple separator characters specified\n");
+    assert.deepEqual(await files(fs), { in: hex("a:b,c"), xaa: hex("OLD") });
+  }
+});
+
+test("identical separators remain valid across short and long options", async () => {
+  for (const separator of [":", "\n", "\\0"]) {
+    const byte = separator === "\\0" ? "\0" : separator;
+    const result = await run(["-t", separator, `--separator=${separator}`, "-l1"], `a${byte}b`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await files(result.fs), { xaa: hex(`a${byte}`), xab: hex("b") });
+  }
+});
 
 test("hexadecimal suffix starts use hexadecimal digits and radix", async () => {
   for (const [start, first, second] of [["10", "10", "11"], ["1A", "1a", "1b"], ["000f", "0f", "10"]]) {

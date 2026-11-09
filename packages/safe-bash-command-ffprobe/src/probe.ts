@@ -318,9 +318,10 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
               .join("\\r")
               .split(sep)
               .join("\\" + sep);
-      const values = fields.map(([k, v]) =>
-        quote((enabled("nokey", "nk", format === "csv") ? "" : k + "=") + v)
-      );
+      const values = fields.map(([k, v]) => {
+        const key = enabled("nokey", "nk", format === "csv") ? "" : k + "=";
+        return format === "csv" ? key + quote(String(v)) : quote(key + v);
+      });
       if (enabled("print_section", "p", true)) values.unshift(section);
       lines.push(values.join(sep));
     } else if (format === "flat") {

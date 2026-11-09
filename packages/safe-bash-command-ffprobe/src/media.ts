@@ -718,7 +718,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   }
   const noWrappers =
     paramMap.noprint_wrappers === "1" || paramMap.nw === "1";
-  const noKey = paramMap.nokey === "1" || paramMap.nk === "1";
+  const noKey = (paramMap.nokey ?? paramMap.nk ?? (fmt === "csv" ? "1" : "0")) === "1";
 
   function probeEntries(section: Record<string, unknown>, tagPrefix: string, dispositionPrefix: string): [string, unknown][] {
     return Object.entries(section).flatMap(([key, value]) =>
@@ -769,7 +769,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
         if (value === undefined || typeof value === "object" && !isProbeText(value)) continue;
         if (!first) yield sep;
         first = false;
-        if (!noKey && fmt !== "csv") yield `${key}=`;
+        if (!noKey) yield `${key}=`;
         yield probeText(value, sep);
       }
       if (Array.isArray(section.streams)) for (const [i, member] of section.streams.entries()) {

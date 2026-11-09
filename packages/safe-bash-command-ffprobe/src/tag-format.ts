@@ -156,9 +156,13 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
           yield* parts(field.value);
         }
         if (format === "csv") {
-          const quote = await needsQuotes(value(), separator);
+          if (!enabled("nokey", "nk", true)) {
+            if (field.tag) yield "tag:";
+            yield* parts(field.key); yield "=";
+          }
+          const quote = await needsQuotes(parts(field.value), separator);
           if (quote) yield '"';
-          yield* quote ? replace(value(), '"', '""') : value();
+          yield* quote ? replace(parts(field.value), '"', '""') : parts(field.value);
           if (quote) yield '"';
         } else yield* replace(replace(replace(replace(value(), "\\", "\\\\"), "\n", "\\n"), "\r", "\\r"), separator, "\\" + separator);
       }

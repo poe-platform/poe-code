@@ -21,7 +21,7 @@ it.each([false, true].flatMap(retained => ["-distort", "+distort"].map(operator 
             stdin: (async function* () {})(), signal: new AbortController().signal,
             stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
         }) : await runMagickCli(args, backend);
-        expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+        expect(result, stderr).toMatchObject({ exitCode: 0 });
         outputs.push(decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!));
     }
     expect(outputs[0]!.data).toEqual(outputs[1]!.data);

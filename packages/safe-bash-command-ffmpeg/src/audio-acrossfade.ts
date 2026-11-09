@@ -33,9 +33,11 @@ export async function acrossfadeAudio(
     } else throw new Error(`acrossfade: unsupported option ${key}`);
   }
   if (duration > 0) samples = Math.round(duration * a.sampleRate);
+  // FFmpeg ends after the first input when a positive duration rounds to no samples.
+  if (samples === 0) return first;
   const aLength = a.channelData[0]!.length;
   const bLength = b.channelData[0]!.length;
-  if (samples < 1 || samples > aLength || samples > bLength) {
+  if (samples > aLength || samples > bLength) {
     throw new Error("acrossfade: transition must fit both inputs");
   }
   const length = aLength + bLength - (overlap ? samples : 0);

@@ -6,6 +6,56 @@ import { standardCommands } from "../../src/commands/index.js";
 import { Shell } from "../../src/shell/index.js";
 
 for (const middleware of [false, true]) {
+  for (const [inner, outerArgs, innerArgs, outerValue, callerValue] of [
+    ["set -- inner", "", "", "inner", "inner"],
+    ["set -- inner", "", " temp", "inner", "inner"],
+    ["set -- inner", " outer", "", "inner", "inner"],
+    ["set -- inner", " outer", " temp", "inner", "entry"],
+    ["shift", "", "", "", ""],
+    ["shift", "", " temp", "entry", "entry"],
+    ["shift", " outer", "", "", "entry"],
+    ["shift", " outer", " temp", "outer", "entry"],
+    [":", "", "", "entry", "entry"],
+    [":", "", " temp", "entry", "entry"],
+    [":", " outer", "", "outer", "entry"],
+    [":", " outer", " temp", "outer", "entry"],
+  ]) {
+    test(`nested source positionals: ${inner}, outer args=${outerArgs}, inner args=${innerArgs}, middleware=${middleware}`, async t => {
+      const fs = new MemoryFileSystem();
+      await fs.writeFile("/inner", new TextEncoder().encode(inner));
+      await fs.writeFile("/outer", new TextEncoder().encode(`. /inner${innerArgs}; echo "outer=<$1>"`));
+      const shell = new Shell({ fs }).use(standardCommands());
+      t.after(() => shell.dispose());
+      if (middleware) shell.use((_context, next) => next());
+      const result = await shell.exec(`set -- entry; . /outer${outerArgs}; echo "caller=<$1>"`);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, `outer=<${outerValue}>\ncaller=<${callerValue}>\n`);
+    });
+  }
+
+  for (const [before, inner, innerArgs, after, outerValue, callerValue] of [
+    ["set -- before", ":", "", ":", "before", "entry"],
+    ["set -- before", ":", " temp", ":", "before", "entry"],
+    ["set -- before", "set -- inner", "", ":", "inner", "inner"],
+    ["set -- before", "set -- inner", " temp", ":", "inner", "entry"],
+    [":", "set -- inner", "", "set -- after", "after", "after"],
+    [":", "set -- inner", " temp", "set -- after", "after", "after"],
+  ]) {
+    test(`source positional changes around nesting: ${before}, ${inner}, args=${innerArgs}, ${after}, middleware=${middleware}`, async t => {
+      const fs = new MemoryFileSystem();
+      await fs.writeFile("/inner", new TextEncoder().encode(inner));
+      await fs.writeFile("/outer", new TextEncoder().encode(`${before}; . /inner${innerArgs}; ${after}; echo "outer=<$1>"`));
+      const shell = new Shell({ fs }).use(standardCommands());
+      t.after(() => shell.dispose());
+      if (middleware) shell.use((_context, next) => next());
+      const result = await shell.exec('set -- entry; . /outer outer; echo "caller=<$1>"');
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, `outer=<${outerValue}>\ncaller=<${callerValue}>\n`);
+    });
+  }
+
   test(`BASH_SOURCE loads siblings and retains function definition paths, middleware=${middleware}`, async t => {
     const fs = new MemoryFileSystem();
     await fs.mkdir("/work/lib", { recursive: true });

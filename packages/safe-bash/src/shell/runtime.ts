@@ -7567,7 +7567,6 @@ export class Runtime {
       throw new CommandFailure(diagnostic, error instanceof CommandFailure ? error.status : 1);
     }
     const positional = state.positional;
-    const version = state.positionalSetVersion ?? 0;
     const sourceDepth = state.sourceDepth ?? 0;
     const monitor = stateMonitor(state);
     const restoration = monitor?.restoration(true);
@@ -7581,6 +7580,7 @@ export class Runtime {
       }
       const entry = () => {
         if (args.length) this.replacePositionals(state, getCommandArguments(context).values.slice(context.args.length - args.length), () => { state.positional = args; });
+        state.positionalSetVersion = 0;
         const raw = stateMonitor(state)?.raw ?? state;
         (raw.callerFrames ??= []).unshift(captureCallerFrame(raw, io, "source"));
         (raw.sourceNames ??= []).unshift(target);
@@ -7619,11 +7619,12 @@ export class Runtime {
         state.sourceDepth = sourceDepth;
         (stateMonitor(state)?.raw ?? state).callerFrames?.shift();
         (stateMonitor(state)?.raw ?? state).sourceNames?.shift();
-        if (savedPositionals && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === version)) {
+        if (savedPositionals && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === 0)) {
           monitor!.positionals.restore(savedPositionals, () => {
-            state.positional = positional;
-            state.positionalSetVersion = version;});
-        }};
+            state.positional = positional;});
+        }
+        // A source with arguments consumes its set -- marker, even when retaining the new values.
+        if (savedPositionals) state.positionalSetVersion = 0;};
       try {
         if (restoration) restoration.apply(restore);
         else restore();

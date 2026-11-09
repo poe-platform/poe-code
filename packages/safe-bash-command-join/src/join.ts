@@ -68,7 +68,9 @@ function parse(context: CommandContext, budget: Budget): Options {
         return;
       }
       if (options.format === "auto") fail("conflicting output format specifications");
-      const values = value.split(/[, \t]+/u);
+      const values = value.split(/[, \t]/u);
+      // GNU 9.10 permits one final separator, but no empty field before it.
+      if (values.length > 1 && values.at(-1) === "") values.pop();
       budget.check(values.length, budget.limits.maxFields, "field");
       const fields = values.map(specification => {
         if (specification === "0") return { file: 0, index: 0 };

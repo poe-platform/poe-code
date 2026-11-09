@@ -68,6 +68,25 @@ import { byteCommands } from "../../src/commands/bytes/index.js";
 import { dos2unixCommands } from "../../src/commands/line-endings/index.js";
 import { iconvCommands, evalSyncIconv } from "../../src/commands/iconv/index.js";
 
+for (const format of ["", ",", ",0", " 0", "0,,1.2", "0  1.2", "0\t\t1.2", "0, 1.2", "0,,", "0  ", "0,1.2", "0 1.2", "0\t1.2", "0,1.2,", "0 1.2 ", "0\t1.2\t", "0,"]) {
+  for (const capture of [false, true]) {
+    test(`join output field separators: ${JSON.stringify(format)}, capture=${capture}`, async () => {
+      const fs = new MemoryFileSystem();
+      const shell = new Shell({ fs });
+      shell.use(standardCommands()).use(tableTextCommands());
+      await fs.writeFile("/a", new TextEncoder().encode("k A\n"));
+      await fs.writeFile("/b", new TextEncoder().encode("k B\n"));
+      const command = `join -o '${format}' /a /b`;
+      const valid = ["0,1.2", "0 1.2", "0\t1.2", "0,1.2,", "0 1.2 ", "0\t1.2\t", "0,"].includes(format);
+      const result = await shell.exec(capture ? `value=$(${command}); status=$?; printf '%s' "$value"; exit "$status"` : command);
+      assert.equal(result.exitCode, valid ? 0 : 1, result.stderr);
+      assert.equal(result.stdout, valid ? (format === "0," ? "k" : "k A") + (capture ? "" : "\n") : "");
+      if (valid) assert.equal(result.stderr, "");
+      else assert.ok(result.stderr.includes("invalid output field"));
+    });
+  }
+}
+
 for (const [separator, flags] of [["\t", ["--tabs"]], [";", ["-d", ";"]], [";", ["--delimiter=;"]]] as const) {
   for (const command of ["csvstack", "csvjoin"] as const) {
     test(`${command} sync input dialect: ${flags.join(" ")}`, () => {

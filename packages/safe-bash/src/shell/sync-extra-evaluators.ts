@@ -23768,7 +23768,8 @@ const syncExtraRuntimeMethods = {
           outSpec = [{ file: 0, idx: -1 }];
         } else {
           if (outAuto) return undefined;
-          const parts = rawO.split(/[ ,\t]+/).filter(Boolean);
+          const parts = rawO.split(/[ ,\t]/);
+          if (parts.length > 1 && parts.at(-1) === "") parts.pop();
           if (parts.length === 0) return undefined;
           if (!outSpec) outSpec = [];
           for (const p of parts) {

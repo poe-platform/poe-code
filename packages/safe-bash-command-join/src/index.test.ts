@@ -32,6 +32,24 @@ async function run(args: string[], files: Record<string, string>) {
  return { ...result, stdout, stderr, combined };
 }
 
+for (const format of ["", ",", ",0", " 0", "0,,1.2", "0  1.2", "0\t\t1.2", "0, 1.2", "0,,", "0  "]) {
+ test(`join rejects empty output fields: ${JSON.stringify(format)}`, async () => {
+  const result = await run(["-o", format, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.ok(result.stderr.includes("invalid output field"));
+ });
+}
+
+for (const format of ["0,1.2", "0 1.2", "0\t1.2", "0,1.2,", "0 1.2 ", "0\t1.2\t", "0,"]) {
+ test(`join accepts single output separators including the final separator: ${JSON.stringify(format)}`, async () => {
+  const result = await run(["-o", format, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, format === "0," ? "k\n" : "k A\n");
+  assert.equal(result.stderr, "");
+ });
+}
+
 // Verified against GNU coreutils 9.12 with LC_ALL=C.
 for (const reverse of [false, true]) {
  for (const [left, right, stdout] of [

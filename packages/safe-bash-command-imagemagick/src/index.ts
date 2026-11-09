@@ -3707,12 +3707,12 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
     // Native posterize dithers only palettes with 2–16 levels.
     if (levelsRaw < 2 || levels > 16) dither = false;
     if (!dither && levelsRaw >= 2) {
-        if (img.hasAlpha) {
+        if (img.hasAlpha || !channels.r || !channels.g || !channels.b) {
             // Native rounds samples, then reduces the resulting RGBA palette to
-            // levels³ colors. Alpha can make that palette larger than the RGB cube.
+            // levels³ colors. Alpha and unselected RGB channels can exceed that limit.
             const colors = Math.min(65536, levels ** 3);
             const depth = Math.floor(Math.log2(colors) / 2) + 2;
-            const steps = quantizePixelSteps(img.width * img.height * 4, colors, false, depth > 5 ? depth - 1 : depth, true, true);
+            const steps = quantizePixelSteps(img.width * img.height * 4, colors, false, img.hasAlpha && depth > 5 ? depth - 1 : depth, img.hasAlpha, true);
             let next = steps.next();
             while (!next.done) {
                 const request = next.value;

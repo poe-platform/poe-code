@@ -20,7 +20,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     throw new Error("Invalid CAF header");
   }
   let sampleRate = 0, channels = 0;
-  let framesPerPacket = 0, bytesPerPacket = 0;
+  let framesPerPacket = 0, bytesPerPacket = 0, bytesPerFrame = 0;
   let format: string | undefined;
   let channelLayout: string | undefined;
   let data: Uint8Array | undefined;
@@ -66,9 +66,12 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
       }
       framesPerPacket = view.getUint32(start + 20);
       bytesPerPacket = view.getUint32(start + 16);
+      bytesPerFrame = channels * bits / 8;
       if (format === "ima4" ? (channels < 1 || channels > 65535 || framesPerPacket !== 64 || bytesPerPacket !== 34 * channels)
-        : framesPerPacket === 0 || (format !== "alac" && (bytesPerPacket === 0 ||
-          bytesPerPacket !== framesPerPacket * channels * bits / 8))) {
+        : format === "alac" ? framesPerPacket === 0
+        : channels < 1 || channels > 65535 ||
+          ((format === "mulaw" || format === "alaw") && (!bytesPerPacket || !framesPerPacket)) ||
+          (bytesPerPacket !== 0 && framesPerPacket !== 0 && bytesPerPacket !== framesPerPacket * bytesPerFrame)) {
         throw new Error("Unsupported CAF audio encoding");
       }
     } else if (id === 0x6b756b69) {
@@ -189,31 +192,69 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     };
     return doc;
   }
-  // CAF batches single-frame packets into at most 4096 bytes, aligned to
-  // complete frames; multi-frame packets retain their declared boundaries.
-  const packetBytes = framesPerPacket === 1
-    ? Math.max(1, Math.floor(4096 / bytesPerPacket)) * bytesPerPacket : bytesPerPacket;
-  budget.checkSamples(Math.ceil(data.length / packetBytes));
-  const doc = raw.find(plugin => plugin.id === format)!.parse(data, { ...options, budget, sampleRate, channels });
   const samples: MediaSample[] = [];
-  for (let start = 0; start < data.length; start += packetBytes) {
-    budget.checkCpu();
-    const packet = data.subarray(start, start + packetBytes);
-    const pts = start * framesPerPacket / bytesPerPacket;
-    samples.push({
-      data: packet, size: packet.length, offset: data.byteOffset - bytes.byteOffset + start,
-      dts: pts, pts, cts: 0, duration: Math.floor(packet.length * framesPerPacket / bytesPerPacket),
-      isKeyframe: true, sampleDescriptionIndex: 1
-    });
+  let duration = 0;
+  const variablePackets = bytesPerPacket === 0 || framesPerPacket === 0;
+  if (variablePackets) {
+    if (!packetTable || packetTable.length < 24) throw new Error("Missing CAF packet table");
+    const pv = new DataView(packetTable.buffer, packetTable.byteOffset, packetTable.byteLength);
+    const count = Number(pv.getBigInt64(0));
+    if (!Number.isSafeInteger(count) || count < 0) throw new Error("Invalid CAF packet count");
+    budget.checkSamples(count);
+    let cursor = 24, offset = 0;
+    for (let index = 0; index < count; index++) {
+      budget.checkCpu();
+      const fields = [bytesPerPacket, framesPerPacket];
+      for (let field = 0; field < fields.length; field++) {
+        if (fields[field]) continue;
+        let value = 0;
+        for (let octets = 0;; octets++) {
+          if (cursor >= packetTable.length || octets === 8) throw new Error("Invalid CAF packet integer");
+          const byte = packetTable[cursor++]!;
+          value = value * 128 + (byte & 127);
+          if (!Number.isSafeInteger(value)) throw new Error("Invalid CAF packet integer");
+          if (!(byte & 128)) break;
+        }
+        fields[field] = value;
+      }
+      const size = fields[0]!, frames = fields[1]!;
+      if (!frames || !size || size > data.length - offset || size !== frames * bytesPerFrame) {
+        throw new Error("Invalid CAF packet bounds");
+      }
+      samples.push({ data: data.subarray(offset, offset + size), size,
+        offset: data.byteOffset - bytes.byteOffset + offset,
+        dts: duration, pts: duration, cts: 0, duration: frames, isKeyframe: true, sampleDescriptionIndex: 1 });
+      offset += size;
+      duration += frames;
+      budget.checkDuration(duration / sampleRate);
+    }
+    if (offset !== data.length || cursor !== packetTable.length) throw new Error("Invalid CAF packet table length");
+  } else {
+    // CAF batches single-frame packets into at most 4096 bytes, aligned to
+    // complete frames; multi-frame packets retain their declared boundaries.
+    const packetBytes = framesPerPacket === 1
+      ? Math.max(1, Math.floor(4096 / bytesPerPacket)) * bytesPerPacket : bytesPerPacket;
+    budget.checkSamples(Math.ceil(data.length / packetBytes));
+    for (let start = 0; start < data.length; start += packetBytes) {
+      budget.checkCpu();
+      const packet = data.subarray(start, start + packetBytes);
+      const pts = start * framesPerPacket / bytesPerPacket;
+      samples.push({
+        data: packet, size: packet.length, offset: data.byteOffset - bytes.byteOffset + start,
+        dts: pts, pts, cts: 0, duration: Math.floor(packet.length * framesPerPacket / bytesPerPacket),
+        isKeyframe: true, sampleDescriptionIndex: 1
+      });
+    }
+    // CAF estimates stream duration from bytes, while packet durations and
+    // decoded audio count only complete sample frames.
+    duration = Math.round(data.length * framesPerPacket / bytesPerPacket);
   }
-  // CAF estimates stream duration from bytes, while packet durations and
-  // decoded audio count only complete sample frames.
-  let duration = Math.round(data.length * framesPerPacket / bytesPerPacket);
   if (packetTable && bytesPerPacket && framesPerPacket) {
     const pv = new DataView(packetTable.buffer, packetTable.byteOffset, packetTable.byteLength);
     duration = Number(pv.getBigInt64(0)) * framesPerPacket;
     if (!Number.isSafeInteger(duration) || duration < 0) throw new Error("Invalid CAF packet duration");
   }
+  const doc = raw.find(plugin => plugin.id === format)!.parse(data, { ...options, budget, sampleRate, channels });
   budget.checkDuration(duration / sampleRate);
   return { ...doc, duration, durationSeconds: duration / sampleRate,
     metadata: { ...doc.metadata, ...metadata }, containerFormat: "caf", byteLength: bytes.length,

@@ -29,7 +29,7 @@ it("validates fixed CAF packet sizes and packet budgets", () => {
   for (const [offset, value] of [[36, 3], [40, 0]]) {
     const bytes = Buffer.from(input);
     bytes.writeUInt32BE(value!, offset!);
-    assert.throws(() => cafAst().parse(bytes), /encoding/);
+    assert.throws(() => cafAst().parse(bytes), /encoding|packet table/);
   }
   assert.throws(() => cafAst().parse(input, { limits: { maxSamplesPerTrack: 1 } }), /limit/i);
 });

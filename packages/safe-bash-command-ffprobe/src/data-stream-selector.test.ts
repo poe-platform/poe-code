@@ -15,7 +15,7 @@ const packet = {
 
 for (const fixture of ["data-timecode", "data-absent"]) {
   const bytes = readFileSync(new URL(`./fixtures/${fixture}.mp4`, import.meta.url));
-  for (const selector of ["d", "d:0", "d:1"]) {
+  for (const selector of ["d", "d:", "d:0", "d:1"]) {
     for (const section of ["streams", "packets", "interval"]) {
       for (const route of ["file", "stdin", "sync"]) {
         if (section === "interval" && route === "sync") continue;

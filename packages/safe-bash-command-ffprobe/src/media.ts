@@ -998,7 +998,7 @@ function parseProbeArguments(args: readonly string[]) {
     const digits = hex ? id.slice(2).toLowerCase() : id;
     const validId = digits.length > 0 && [...digits].every(c =>
       c >= "0" && c <= "9" || hex && c >= "a" && c <= "f") && Number.isSafeInteger(Number(id));
-    const valid = kind === "m" && parts.length > 0
+    const valid = spec === "" || kind === "m" && parts.length > 0
       || ["v", "a", "s", "d", "t"].includes(kind!) && parts.length === 0
       || kind === "p" && parts.length === 1 && numeric
       || parts.length === 0 && numeric || validId;

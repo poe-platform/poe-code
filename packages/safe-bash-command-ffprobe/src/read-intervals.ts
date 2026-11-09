@@ -81,7 +81,7 @@ export async function readPacketIntervals(
   const type = selectStreams?.startsWith("v") ? "video" : selectStreams?.startsWith("a") ? "audio" : selectStreams?.startsWith("s") ? "subtitle" : selectStreams?.startsWith("d") ? "data" : selectStreams?.startsWith("t") ? "attachment" : undefined;
   const candidates = type ? ordered.filter(([, stream]) => stream.type === type) : ordered;
   const selected = new Set(!selectStreams ? ordered.map(([index]) => index)
-    : type ? (selectStreams.includes(":") ? candidates.slice(Number(selectStreams.slice(2)), Number(selectStreams.slice(2)) + 1) : candidates).map(([index]) => index)
+    : type ? (selectStreams.length > 2 ? candidates.slice(Number(selectStreams.slice(2)), Number(selectStreams.slice(2)) + 1) : candidates).map(([index]) => index)
     : [Number(selectStreams)]);
   const primary = ordered.find(([index, stream]) => selected.has(index) && stream.type === "video")
     ?? ordered.find(([index]) => selected.has(index));

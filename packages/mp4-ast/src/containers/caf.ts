@@ -382,7 +382,7 @@ export function cafAst(): MediaAstPlugin {
       }
       bytes.set(extra, 52 + infoSize + chanSize);
       view.setUint32(52 + infoSize + chanSize + extra.length, 0x64617461);
-      view.setBigInt64(56 + infoSize + chanSize + extra.length, BigInt(data.length + 4));
+      view.setBigInt64(56 + infoSize + chanSize + extra.length, options.seekable === false ? -1n : BigInt(data.length + 4));
       bytes.set(data, 68 + infoSize + chanSize + extra.length);
       return bytes;
     },

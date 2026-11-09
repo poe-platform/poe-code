@@ -3517,7 +3517,8 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
             } else if (text[position] === "<") {
               const end = text.indexOf(">", position + 1);
               if (end < 0) break;
-              const tag = text.slice(position + 1, end);
+              let tag = text.slice(position + 1, end);
+              if (codec === "subrip" && ["B", "/B", "I", "/I", "U", "/U"].includes(tag)) tag = tag.toLowerCase();
               if (["b", "i", "u"].includes(tag)) {
                 styles.push(tag);
                 parts.push(`<${tag}>`);

@@ -125,7 +125,7 @@ for (const middleware of [false, true]) {
       `;
       const source = `source /dev/stdin; echo "rc:$?"; f; echo "after:\${BASH_SOURCE[*]}:\${#BASH_SOURCE[@]}"`;
       const nativeSource = source.replace("source /dev/stdin;", `source /dev/stdin <<'SOURCE'\n${input}\nSOURCE\n`);
-      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", nativeSource], { encoding: "utf8", timeout: 2000 });
+      const native = spawnSync(process.env.SAFE_BASH_TEST_BASH ?? "/bin/bash", ["--noprofile", "--norc", "-c", nativeSource], { encoding: "utf8", timeout: 2000 });
       assert.equal(native.status, 0, native.stderr);
       assert.equal(native.stderr, "");
       const fs = new MemoryFileSystem();

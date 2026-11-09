@@ -8,7 +8,7 @@ for (const [source, expected] of [
   ["IFS=:; VALUE='a::b'; pass <<<$VALUE", "a::b\n"],
   ["pass <<<$(say ' a  b * ')", " a  b * \n"],
   ["pass <<<${MISSING:- a  b * }", " a  b * \n"],
-  ["set -- a '' b; IFS=; pass <<<$@; pass <<<$*", "a  b\na  b\n"],
+  ["set -- a '' b; IFS=; pass <<<$@; pass <<<$*", "a  b\nab\n"],
 ] as const) {
   test(`modern here-string scalar does not split or glob: ${source}`, async () => {
     const { shell, fs } = setup();

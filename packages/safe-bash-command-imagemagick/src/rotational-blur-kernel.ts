@@ -24,7 +24,7 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
         const original = yield { kind: "read", highDepth, position: start * 4, length: count * 4 };
         if (!original || original.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated rotational blur pixels");
         const data = highDepth ? new Uint16Array(original.slice().buffer) : original.slice();
-        if (angle !== 0) for (let i = 0; i < count; i++) {
+        for (let i = 0; i < count; i++) {
             yield;
             const dx = (start + i) % width - cx, dy = Math.floor((start + i) / width) - cy, distance = Math.hypot(dx, dy);
             const step = distance === 0 ? 1 : Math.max(1, Math.min(samples - 1, Math.floor(radius / distance)));

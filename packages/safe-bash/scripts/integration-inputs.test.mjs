@@ -169,6 +169,11 @@ test("loop substitution and portable search regressions remain in active discove
 
 
 
+test("envsubst information regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/envsubst-information.test.ts"));
+});
+
 test("basic command audit regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const selected = discoverTests(root, loadBoundaries(root));

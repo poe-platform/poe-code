@@ -8,7 +8,7 @@ for (const [name, formSize, truncate, succeeds] of [
   ["oversized FORM", 9999, 0, true],
   ["FORM one byte short", 53, 0, true],
   ["FORM without chunks", 4, 0, false],
-  ["truncated sound", 9999, 1, false],
+  ["truncated sound", 9999, 1, true],
   ["truncated chunk header", 9999, 23, false]
 ] as const) {
   it(`copies AIFF with ${name} safely through the public command`, async () => {
@@ -29,6 +29,6 @@ for (const [name, formSize, truncate, succeeds] of [
       stderr: { async write(data: Uint8Array) { stderr += new TextDecoder().decode(data); } }
     } as never);
     assert.equal(result.exitCode, succeeds ? 0 : 1, stderr);
-    assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"), succeeds ? "1234fedc7fff8000" : Buffer.from("keep").toString("hex"));
+    assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"), succeeds ? bytes.subarray(54, bytes.length - truncate).toString("hex") : Buffer.from("keep").toString("hex"));
   });
 }

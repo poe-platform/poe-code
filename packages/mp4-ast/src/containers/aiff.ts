@@ -26,7 +26,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
     // FORM limits chunk starts; complete chunks may extend beyond its declared size.
     if (offset + 8 > bytes.length) throw new Error("Truncated AIFF chunk header");
     const id = text(offset, 4), size = view.getUint32(offset + 4), start = offset + 8;
-    if (start + size + size % 2 > bytes.length) throw new Error("Truncated AIFF chunk");
+    if (id !== "SSND" && start + size + size % 2 > bytes.length) throw new Error("Truncated AIFF chunk");
     if (id === "COMM") {
       if (size < (compressed ? 22 : 18)) throw new Error("Invalid AIFF COMM chunk");
       if (compressed) {
@@ -50,10 +50,11 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       else if (id === "(c) ") metadata.copyright = value;
       else metadata.comment = value;
     } else if (id === "SSND") {
-      if (size < 8) throw new Error("Invalid AIFF SSND chunk");
+      const available = Math.min(size, bytes.length - start);
+      if (available < 8) throw new Error("Invalid AIFF SSND chunk");
       const skip = view.getUint32(start);
-      if (skip > size - 8) throw new Error("Invalid AIFF sound offset");
-      sound = bytes.subarray(start + 8 + skip, start + size);
+      if (skip > available - 8) throw new Error("Invalid AIFF sound offset");
+      sound = bytes.subarray(start + 8 + skip, start + available);
       // Pipes cannot seek back after scanning later sound chunks.
       if (channels && ["-", "pipe:", "pipe:0"].includes(options.filename ?? "")) break;
     }

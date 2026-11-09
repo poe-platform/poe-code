@@ -40,7 +40,7 @@ for (const mode of ["sync", "memory", "retained", "compare", "magick"] as const)
                 result = mode === "sync" ? runCompareCliSync(argv, files)
                     : await runCompareCli(argv, mode === "memory" ? files : { filesystem, cwd: "/" });
             }
-            expect(result).toEqual({ exitCode: identical ? 0 : 1, stdout: "", stderr: identical ? "0 (0)" : "14538.1 (0.221837)" });
+            expect(result).toEqual({ exitCode: identical ? 0 : 1, stdout: "", stderr: identical ? "0 (0)\n" : "14538.1 (0.221837)\n" });
             const read = (name: string) => mode === "sync" || mode === "memory" ? files.get(name)! : filesystem.readFile(`/${name}`);
             const image = decodeImage(await read("diff.ppm"));
             expect([image.width, image.height]).toEqual([4, 2]);
@@ -50,4 +50,35 @@ for (const mode of ["sync", "memory", "retained", "compare", "magick"] as const)
             expect(await read(`b.${format}`)).toEqual(inputs[1]);
         });
     }
+}
+
+for (const mode of ["sync", "memory", "retained", "compare", "magick"] as const) {
+    it(`preserves default 16-bit grayscale comparison samples: ${mode}`, async () => {
+        // Native Q16-HDRI output retains low bits: 52628, 54067, 58428, 60872, 63428, 64716.
+        const input = Uint8Array.from(Buffer.from("50350a3320320a36353533350a03e820017531a4eed6d8f002", "hex"));
+        const expected = Uint8Array.from(Buffer.from("50350a3320320a36353533350acd94d333e43cedc8f7c4fccc", "hex"));
+        const files = new Map([["hi.pgm", input]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/hi.pgm", input);
+        const argv = ["-metric", "RMSE", "hi.pgm", "hi.pgm", "diff.pgm"];
+        let result;
+        if (mode === "compare" || mode === "magick") {
+            const command = mode === "magick" ? createMagickCommand() : createCompareCommand();
+            const args = createCommandArguments([...(mode === "magick" ? ["compare"] : []), ...argv]);
+            let stdout = "", stderr = "";
+            const status = await command.execute({ command: command.name, args: args.args, argumentValues: args,
+                cwd: "/", env: {}, fs: filesystem, signal: new AbortController().signal,
+                stdin: (async function* () {})(),
+                stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+                stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+            });
+            result = { ...status, stdout, stderr };
+        } else {
+            result = mode === "sync" ? runCompareCliSync(argv, files)
+                : await runCompareCli(argv, mode === "memory" ? files : { filesystem, cwd: "/" });
+        }
+        expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "0 (0)\n" });
+        expect(mode === "sync" || mode === "memory" ? files.get("diff.pgm") : await filesystem.readFile("/diff.pgm")).toEqual(expected);
+        expect(mode === "sync" || mode === "memory" ? files.get("hi.pgm") : await filesystem.readFile("/hi.pgm")).toEqual(input);
+    });
 }

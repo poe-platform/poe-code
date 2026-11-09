@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function gateAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, sidechain: readonly (Float32Array | Float64Array)[], signal?: AbortSignal
@@ -17,7 +18,7 @@ export async function gateAudio(
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
   }
   const number = (key: string, min: number, max: number): number => {
-    const value = Number(options[key]);
+    const value = parseFilterExpression(options[key]!, "sidechaingate", {});
     if (!options[key] || !Number.isFinite(value) || value < min || value > max) throw new Error(`sidechaingate: invalid ${key}`);
     return value;
   };

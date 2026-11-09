@@ -310,6 +310,8 @@ input. For example, `[0:a][1:a]sidechaingate=threshold=0.1:ratio=8:attack=1:rele
 attenuates the program when the control signal becomes quiet. Supports `range`,
 `knee`, `detection=peak|rms`, `link=average|maximum`, `mode=downward|upward`,
 `level_in`, `level_sc`, and `makeup`; the control input can have a different channel count.
+Numeric options accept expressions such as `level_sc=1/2`, `attack=2+3`, and
+`makeup=sqrt(4)`. Invalid or out-of-range values fail without replacing output.
 Inputs must share a sample rate. Filters after the gate are supported; filters before
 the gate are currently unsupported.
 

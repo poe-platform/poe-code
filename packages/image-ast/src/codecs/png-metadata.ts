@@ -100,6 +100,8 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
           pos = dataStart + len + 4;
           continue;
         }
+        // Preserve the actual PNG text. ImageMagick 7.1.2 can instead read
+        // part of the translated keyword; that corruption is not emulated.
         start = translatedEnd + 1;
       }
       let value = chunk.subarray(start);

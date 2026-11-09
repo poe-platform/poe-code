@@ -94,9 +94,9 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
           return evaluateFilePredicate(context, operator, token, right);
         };
       }
-      if (unary.has(token)) {
-        const operand = args[offset++];
-        if (operand === undefined) throw new UsageError("unary operator requires an operand");
+      // A final word is a string test, even when it names a unary operator.
+      if (unary.has(token) && offset < args.length) {
+        const operand = args[offset++]!;
         return async () => {
           if (token === "-n") return operand !== "";
           if (token === "-z") return operand === "";

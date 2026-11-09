@@ -39,6 +39,31 @@ const cases: readonly (readonly [readonly string[], number])[] = [
 ];
 
 for (const command of ["test", "["]) {
+  test(`${command} treats a trailing negated unary-looking word as a string`, async () => {
+    const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry([...basicCommands(), ...predicateCommands()]) });
+    try {
+      for (const value of ["-n", "-z", "-f", "-a", "-o", "-v", "x", ""]) {
+        for (const [prefix, expected] of [
+          [["x", "-a", "!"], value ? 1 : 0],
+          [["", "-o", "!"], value ? 1 : 0],
+          [["x", "-a", "!", "!"], value ? 0 : 1],
+          [["!"], value ? 1 : 0],
+        ] as const) {
+          const args = [...prefix, value, ...(command === "[" ? ["]"] : [])];
+          const result = await run(command, args, { commands: predicateCommands() });
+          assert.equal(result.exitCode, expected, JSON.stringify(args));
+          assert.equal(result.stdout, "");
+          assert.equal(result.stderr, "");
+          const source = `v='${value}'; ${command} ${prefix.map(arg => `'${arg}'`).join(" ")} "$v"${command === "[" ? " ]" : ""}`;
+          const invoked = await shell.exec(source);
+          assert.equal(invoked.exitCode, expected, source);
+          assert.equal(invoked.stdout, "");
+          assert.equal(invoked.stderr, "");
+        }
+      }
+    } finally { await shell.dispose(); }
+  });
+
   test(`${command} applies recursive negation grammar throughout compound expressions`, async () => {
     const expressions = [
       ["x", "-a", "!", "!=", "x"],

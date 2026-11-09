@@ -5,6 +5,38 @@ import { basicCommands, formatPrintf } from "../../src/commands/basic.js";
 import { CommandRegistry, createCommandArguments, toByteSource } from "../../src/contracts/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
+import { parsePrintfDirective } from "../../src/commands/printf-format.js";
+
+for (const [format, expected] of [
+  ["%(stamp(%Y)_%m)T", "stamp(1970)_01"],
+  ["%((%F))T", "(1970-01-01)"],
+  ["%(a((%Y))b(%m))T", "a((1970))b(01)"],
+  ["%(%F %T %z)T", "1970-01-01 00:00:00 +0000"],
+] as const) for (const assignment of [false, true]) {
+  test(`printf balanced time format ${format} assignment=${assignment}`, async () => {
+    const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(basicCommands()) });
+    try {
+      const result = await shell.exec(assignment
+        ? `printf -v stamp '${format}' 0; rc=$?; printf '%s:<%s>\\n' "$rc" "$stamp"`
+        : `printf '${format}|%s' 0 tail`, { env: { TZ: "UTC0", LC_ALL: "C" } });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, assignment ? `0:<${expected}>\n` : `${expected}|tail`);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const raw of [false, true]) {
+  test(`printf time parser balances parentheses raw=${raw}`, async () => {
+    const format = "%((%Y)T)Ttail";
+    const result = await parsePrintfDirective(raw ? Buffer.from(format) : format, 0, new AbortController().signal);
+    assert.equal(result.timeFormat, "(%Y)T");
+    assert.equal(result.end, 9);
+    for (const invalid of ["%((%Y)T", "%((%Y))s", "%(%Y))T"]) {
+      await assert.rejects(parsePrintfDirective(raw ? Buffer.from(invalid) : invalid, 0, new AbortController().signal), /invalid time format/);
+    }
+  });
+}
 
 for (const entry of [
   { value: "foo", quoted: "'foo'" },

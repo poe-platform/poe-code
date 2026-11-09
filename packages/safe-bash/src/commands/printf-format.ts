@@ -40,7 +40,10 @@ export async function parsePrintfDirective(format: string | Uint8Array, start: n
   if (character() === ".") { offset++; precision = await field(); }
   if (character() === "(") {
     const beginning = ++offset;
-    while (character() && character() !== ")") {
+    let depth = 1;
+    while (character()) {
+      if (character() === "(") depth++;
+      else if (character() === ")" && --depth === 0) break;
       offset++;
       if ((offset - start) % 1024 === 0) await yieldTurn(signal);
     }

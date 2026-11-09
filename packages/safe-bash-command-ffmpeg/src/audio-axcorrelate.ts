@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { resampleAudio } from "./audio-resample.js";
 
 export async function correlateAudio(
   first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -8,7 +9,6 @@ export async function correlateAudio(
   const a = first.decodedAudio;
   const b = second.decodedAudio;
   if (!a || !b) throw new Error("axcorrelate requires decoded PCM audio");
-  if (a.sampleRate !== b.sampleRate) throw new Error("axcorrelate requires matching sample rates");
   const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : undefined);
   const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : undefined);
   const remix = a.channels !== b.channels &&
@@ -37,10 +37,18 @@ export async function correlateAudio(
       algo = ["slow", "fast", "best"][rounded]!;
     } else throw new Error(`axcorrelate: unsupported option ${key}`);
   }
+  let secondChannels = b.channelData;
+  if (a.sampleRate !== b.sampleRate) {
+    const length = Math.ceil(b.channelData[0]!.length * a.sampleRate / b.sampleRate);
+    budget.checkSamples(length);
+    budget.checkDuration(length / a.sampleRate);
+    budget.allocateMemory(length * b.channels * Float32Array.BYTES_PER_ELEMENT);
+    secondChannels = await resampleAudio(b.channelData, length, b.sampleRate, a.sampleRate, budget, signal);
+  }
   // Native requests the first input whose FIFO has at most one window left.
   // Once either input reports EOF, only already received packets are drained.
   const tracks = [first, second];
-  const lengths = [a.channelData[0]!.length, b.channelData[0]!.length];
+  const lengths = [a.channelData[0]!.length, secondChannels[0]!.length];
   const received = [0, 0];
   const packets = [0, 0];
   const frames: MediaSample[] = [];
@@ -85,15 +93,15 @@ export async function correlateAudio(
     for (let i = 0; i < remixed.length; i++) {
       if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
       // Floating PCM uses equal-power mixing without PCM16 normalization.
-      const left = round(b.channelData[0]![i]!);
+      const left = round(secondChannels[0]![i]!);
       remixed[i] = b.channels === 1 ? left * gain
-        : round(left * gain) + round(round(b.channelData[1]![i]!) * gain);
+        : round(left * gain) + round(round(secondChannels[1]![i]!) * gain);
     }
   }
   const channelData = a.channelData.map(() => new Float64Array(length));
   for (let c = 0; c < a.channels && length > 0; c++) {
     const x = a.channelData[c]!.subarray(0, received[0]);
-    const y = remixed ?? b.channelData[c]!.subarray(0, received[1]);
+    const y = remixed ?? secondChannels[c]!.subarray(0, received[1]);
     let sx = 0, sy = 0, xx = 0, yy = 0, xy = 0;
     // Pad past the last packet received, even if the source has more samples.
     for (let i = 0; i < size; i++) {

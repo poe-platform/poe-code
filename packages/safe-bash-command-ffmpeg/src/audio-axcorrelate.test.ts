@@ -224,3 +224,63 @@ for (const algo of ["slow", "fast", "best"]) {
     });
   }
 }
+
+// Native FFmpeg 7.0.2 negotiates the first input's rate for these half-second tones.
+for (const rates of [[8000, 16000], [16000, 8000], [8000, 8000]]) {
+  for (const channels of [1, 2]) {
+    it(`axcorrelate negotiates ${rates.join("/")} Hz (${channels} channels)`, async () => {
+      const inputs = rates.map(sampleRate => encodeWav({ sampleRate,
+        channels: Array.from({ length: channels }, (_, channel) =>
+          Float64Array.from({ length: sampleRate / 2 }, (_, i) =>
+            Math.round(12000 * Math.sin(2 * Math.PI * (channel ? 500 : 250) * i / sampleRate)) / 32768))
+      })) as [Uint8Array, Uint8Array];
+      const { result, error, audio } = await run("[0:a][1:a]axcorrelate=128:best[mix]", channels, 0, 0, inputs);
+      assert.equal(result.exitCode, 0, error);
+      assert.equal(audio!.sampleRate, rates[0]);
+      assert.equal(audio!.channels, channels);
+      for (const [index, channel] of audio!.channelData.entries()) {
+        assert.equal(channel.length, rates[0]! / 2);
+        assert.equal(channel.length / audio!.sampleRate, 0.5);
+        for (const index of [128, 1024, channel.length - 256]) {
+          assert.equal(channel[index]! * 32768, 32767, `sample ${index}`);
+        }
+        if (rates[0] === rates[1]) assert.ok(channel.every(sample => sample * 32768 === 32767));
+        else {
+          const tail = rates[0] === 8000
+            ? index === 0 ? [32767, 32767, 32767, 32766, 32765, 32763, 32756, 32767]
+              : [32764, 32764, 32764, 32764, 32763, 32760, 32749, 32766]
+            : index === 0 ? [32728, 32712, 32686, 32638, 32538, 32309, 31946, 32767]
+              : [32708, 32692, 32666, 32617, 32516, 32289, 31943, 32767];
+          for (const [i, expected] of tail.entries()) {
+            const actual = channel[channel.length - tail.length + i]! * 32768;
+            assert.ok(Math.abs(actual - expected) <= 4, `tail sample ${i}: ${actual}, expected ${expected}`);
+          }
+        }
+      }
+    });
+  }
+}
+
+
+it("axcorrelate bounds resampling before replacing output", async () => {
+  const fs = Volume.fromJSON({ "/out.wav": "keep" });
+  for (const [path, sampleRate, length] of [["/a.wav", 16000, 64], ["/b.wav", 8000, 128]] as const) {
+    fs.writeFileSync(path, encodeWav({ sampleRate, channels: [new Float64Array(length).fill(0.25)] }));
+  }
+  const errors: Uint8Array[] = [];
+  const result = await createFfmpegCommand({ limits: { maxSamplesPerTrack: 128 } }).execute({
+    args: ["-y", "-i", "/a.wav", "-i", "/b.wav", "-filter_complex", "[0:a][1:a]axcorrelate=128:best[mix]",
+      "-map", "[mix]", "-c:a", "pcm_s16le", "/out.wav"],
+    cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: {
+      async readFile(path: string) { return fs.readFileSync(path); },
+      async writeFile(path: string, bytes: Uint8Array) { fs.writeFileSync(path, bytes); },
+      async stat(path: string) { return fs.statSync(path); }
+    },
+    stdin: (async function* () {})(), stdout: { async write() {} },
+    stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+  } as never);
+  assert.notEqual(result.exitCode, 0);
+  assert.ok(Buffer.concat(errors).toString().includes("maxSamplesPerTrack"));
+  assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
+});

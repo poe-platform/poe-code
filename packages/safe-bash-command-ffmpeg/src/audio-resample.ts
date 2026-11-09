@@ -40,7 +40,8 @@ export async function resampleAudio(
   const output = channels.map(() => new Float32Array(outputLength));
   if (length === 0) return output;
   const center = Math.floor((filterLength - 1) / 2);
-  const period = Math.max(1, 2 * (length - 1));
+  // Startup reflects around the first sample; flushing repeats the last sample.
+  const period = Math.max(1, 2 * length - 1);
   const sums = new Float64Array(channels.length);
   let phaseCount = 2 ** phaseShift;
   if (exactRational) {

@@ -2,7 +2,7 @@ import { IntegerTable, PagedStorage, type PagedStorageContext } from "@poe-code/
 import { readId3Text, type AudioProbeSource, type WavTagSpan, type Mp3Tag } from "@poe-code/audio-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
-/** Fixed-width WAV/ID3 keys, ordered records and source spans in caller backing. */
+/** Arbitrary WAV/ID3 keys, ordered records and source spans in caller backing. */
 export class SourceAudioTags {
   private readonly storage: PagedStorage;
   private readonly keys: IntegerTable;
@@ -46,23 +46,37 @@ export class SourceAudioTags {
       for (const unit of part) { units += unit.length; if (unit.trimEnd()) kept = units; }
       if (zero >= 0) break;
     }
-    // Raw INFO identifiers have four Windows-1252 code units (< 0x8000).
-    // Longer canonical names are distinct ASCII letter sequences (up to 11 letters),
-    // packed in five bits per letter in the disjoint high-bit namespace.
-    let key = 0n;
-    for (let i = 0; i < span.key.length; i++) key = (key << (span.key.length > 4 ? 5n : 16n)) | BigInt(span.key.length > 4 ? span.key.charCodeAt(i) & 31 : span.key.charCodeAt(i));
-    if (span.key.length > 4) key |= 1n << 63n;
-    const existing = await this.keys.get(key);
-    const position = existing === undefined ? this.storage.allocate(64) : Number(existing);
-    const bytes = existing === undefined ? new Uint8Array(64) : await this.storage.read(position, 64);
+    let hash = 2166136261;
+    for (let i = 0; i < span.key.length; i++) {
+      hash = Math.imul(hash ^ span.key.charCodeAt(i), 16777619) >>> 0;
+      if (i % 8192 === 8191) await yieldTurn(this.context.signal);
+    }
+    const first = Number(await this.keys.get(BigInt(hash)) ?? 0n);
+    let existing = 0;
+    for (let candidate = first; candidate;) {
+      const bytes = await this.storage.read(candidate, 64), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      if (view.getFloat64(40, true) === span.key.length && await this.keyText(view.getFloat64(32, true), span.key.length) === span.key) { existing = candidate; break; }
+      candidate = view.getFloat64(48, true);
+    }
+    // Records: insertion-next, value offset/length/units, key offset/units, collision-next, encoding/unsync.
+    const position = existing || this.storage.allocate(64);
+    const bytes = existing ? await this.storage.read(position, 64) : new Uint8Array(64);
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
     view.setFloat64(8, span.offset, true); view.setFloat64(16, span.length, true); view.setFloat64(24, kept, true);
-    view.setUint16(32, span.key.length, true);
-    for (let i = 0; i < span.key.length; i++) view.setUint16(34 + i * 2, span.key.charCodeAt(i), true);
+    if (!existing) {
+      const offset = this.storage.allocate(span.key.length * 2);
+      for (let at = 0; at < span.key.length; at += 8192) {
+        const part = new Uint8Array(Math.min(8192, span.key.length - at) * 2), key = new DataView(part.buffer);
+        for (let i = 0; i < part.length / 2; i++) key.setUint16(i * 2, span.key.charCodeAt(at + i), true);
+        await this.storage.write(offset + at * 2, part);
+        if (at + 8192 < span.key.length) await yieldTurn(this.context.signal);
+      }
+      view.setFloat64(32, offset, true); view.setFloat64(40, span.key.length, true); view.setFloat64(48, first, true);
+    }
     bytes[56] = encoding; bytes[57] = unsynchronized ? 1 : 0;
     await this.storage.write(position, bytes);
-    if (existing !== undefined) return;
-    await this.keys.set(key, BigInt(position)); this.count++;
+    if (existing) return;
+    await this.keys.set(BigInt(hash), BigInt(position)); this.count++;
     const numeric = Number(span.key);
     if (Number.isInteger(numeric) && numeric >= 0 && numeric < 0xffffffff && String(numeric) === span.key) await this.numeric.set(BigInt(numeric), BigInt(position));
     else {
@@ -72,9 +86,19 @@ export class SourceAudioTags {
     }
   }
 
+  private async keyText(offset: number, units: number) {
+    let key = "";
+    for (let at = 0; at < units; at += 8192) {
+      const bytes = await this.storage.read(offset + at * 2, Math.min(8192, units - at) * 2), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      for (let i = 0; i < bytes.length; i += 2) key += String.fromCharCode(view.getUint16(i, true));
+      if (at + 8192 < units) await yieldTurn(this.context.signal);
+    }
+    return key;
+  }
+
   private async record(position: number) {
     const bytes = await this.storage.read(position, 64), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
-    let key = ""; for (let i = 0; i < view.getUint16(32, true); i++) key += String.fromCharCode(view.getUint16(34 + i * 2, true));
+    const key = await this.keyText(view.getFloat64(32, true), view.getFloat64(40, true));
     const offset = view.getFloat64(8, true), length = view.getFloat64(16, true), kept = view.getFloat64(24, true), decoded = this.decoded.bind(this), encoding = bytes[56]!, unsynchronized = !!bytes[57];
     return { key, next: view.getFloat64(0, true), async *text() {
       let remaining = kept;

@@ -1945,6 +1945,8 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     const sy = Math.max(0, box.y + anchor.top);
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+    const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
+    const workingBackground = [bg.r, bg.g, bg.b, bg.a].map(value => value / 255);
     const background = [bg.r, bg.g, bg.b, bg.a].map(value => Math.round(value * 257));
     for (let y = 0; y < outH; y++) {
         if (++cooperativeWork % 65536 === 0)
@@ -1961,6 +1963,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 out[dstIdx + 2] = unset ? 0 : Math.round(bg.b);
                 out[dstIdx + 3] = unset ? img.hasAlpha || bg.a < 255 ? 0 : 255 : Math.round(bg.a);
                 if (data16) data16.set(unset ? [0, 0, 0, out[dstIdx + 3]! * 257] : background, dstIdx);
+                if (hueSamples) hueSamples.set(unset ? [0, 0, 0, out[dstIdx + 3]! / 255] : workingBackground, dstIdx);
             }
             else {
                 const origX = x < sx ? x : x - spliceWidth;
@@ -1972,6 +1975,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                         ? [bg.r, bg.g, bg.b, bg.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
                     out.set(color.map(Math.round), dstIdx);
                     if (data16) data16.set(color.map(value => Math.round(value * 257)), dstIdx);
+                    if (hueSamples) hueSamples.set(color.map(value => value / 255), dstIdx);
                     continue;
                 }
                 out[dstIdx] = img.data[srcIdx]!;
@@ -1979,13 +1983,14 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 out[dstIdx + 2] = img.data[srcIdx + 2]!;
                 out[dstIdx + 3] = img.data[srcIdx + 3]!;
                 if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
+                if (hueSamples) hueSamples.set(img.hueSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
             }
         }
     }
     if ((img.space === "b-w" || img.space === "grey16") && (bg.r !== bg.g || bg.g !== bg.b))
         img = { ...img, space: "srgb", channels: 4 };
     const virtualCanvas = magickResizeCanvas(img, outW, outH);
-    return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), hasAlpha: true, ...(virtualCanvas ? { virtualCanvas } : {}) };
+    return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), hasAlpha: true, ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {
@@ -2016,6 +2021,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     const outH = img.height - choppedH;
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+    const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
     const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
     for (let y = 0; y < outH; y++) {
         if (++cooperativeWork % 65536 === 0)
@@ -2032,11 +2038,12 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
             out[dstIdx + 2] = img.data[srcIdx + 2]!;
             out[dstIdx + 3] = img.data[srcIdx + 3]!;
             if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
+            if (hueSamples) hueSamples.set(img.hueSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
             if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
         }
     }
     const virtualCanvas = magickResizeCanvas(img, outW, outH);
-    return { ...img, width: outW, height: outH, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
+    return { ...img, width: outW, height: outH, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
@@ -2127,6 +2134,7 @@ function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSi
     const h = img.height;
     const out = new Uint8Array(img.data.length);
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+    const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
     const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
     for (let y = 0; y < h; y++) {
         if (++cooperativeWork % 65536 === 0)
@@ -2143,10 +2151,11 @@ function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSi
             out[dstIdx + 2] = img.data[srcIdx + 2]!;
             out[dstIdx + 3] = img.data[srcIdx + 3]!;
             if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
+            if (hueSamples) hueSamples.set(img.hueSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
             if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
         }
     }
-    return { ...img, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
+    return { ...img, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }
 
 function parseMagickMorphCount(argument: string): number {
@@ -9580,13 +9589,15 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     const position = token === "-splice" ? (await createStoredCanvas(width, height, background, backend, signal)).position : backend.storage.allocate(width * height * 4);
     const storedData16 = image.storedData16 ? { position: backend.storage.allocate(width * height * 8), length: width * height * 4 } : undefined;
     const storedEvaluateSamples = image.storedEvaluateSamples === undefined ? undefined : backend.storage.allocate(width * height * 32);
-    if (storedEvaluateSamples !== undefined && token === "-splice") {
-        const color = [background.r, background.g, background.b, background.a];
+    const storedHueSamples = image.storedHueSamples === undefined ? undefined : backend.storage.allocate(width * height * 32);
+    for (const [target, range] of [[storedEvaluateSamples, 1], [storedHueSamples, 255]] as const) {
+        if (target === undefined || token !== "-splice") continue;
+        const color = [background.r, background.g, background.b, background.a].map(value => value / range);
         for (let offset = 0; offset < width * height * 4; offset += 2048) {
             await yieldTurn(signal);
             const samples = new Float64Array(Math.min(2048, width * height * 4 - offset));
             for (let i = 0; i < samples.length; i += 4) samples.set(color, i);
-            await backend.storage.write(storedEvaluateSamples + offset * 8, new Uint8Array(samples.buffer));
+            await backend.storage.write(target + offset * 8, new Uint8Array(samples.buffer));
         }
     }
     if (storedData16 && token === "-splice") {
@@ -9599,7 +9610,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         }
     }
     let work = 0;
-    for (const plane of [{ source: image.position, target: position, stride: 4 }, ...(storedData16 ? [{ source: image.storedData16!.position, target: storedData16.position, stride: 8 }] : []), ...(storedEvaluateSamples === undefined ? [] : [{ source: image.storedEvaluateSamples!, target: storedEvaluateSamples, stride: 32 }])]) {
+    for (const plane of [{ source: image.position, target: position, stride: 4 }, ...(storedData16 ? [{ source: image.storedData16!.position, target: storedData16.position, stride: 8 }] : []), ...(storedEvaluateSamples === undefined ? [] : [{ source: image.storedEvaluateSamples!, target: storedEvaluateSamples, stride: 32 }]), ...(storedHueSamples === undefined ? [] : [{ source: image.storedHueSamples!, target: storedHueSamples, stride: 32 }])]) {
         if (token === "-splice" && image.region) {
             // Keep horizontal insertions colored, including their intersections with columns.
             const start = xs[0]!.length, end = Math.min(width, xs[1]!.target);
@@ -9610,7 +9621,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
                     const length = Math.min(4096, end - x) * 4;
                     const samples = plane.stride === 32 ? new Float64Array(length)
                         : plane.stride === 8 ? new Uint16Array(length) : new Uint8Array(length);
-                    for (let i = 3; i < length; i += 4) samples[i] = plane.stride === 8 ? alpha * 257 : alpha;
+                    for (let i = 3; i < length; i += 4) samples[i] = plane.target === storedHueSamples ? alpha / 255 : plane.stride === 8 ? alpha * 257 : alpha;
                     await backend.storage.write(plane.target + ((y.target + row) * width + x) * plane.stride, new Uint8Array(samples.buffer));
                 }
             }
@@ -9633,7 +9644,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
                             const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
                             const color = method === "background" || method?.endsWith("-tile")
                                 ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255];
-                            const samples = plane.stride === 32 ? Float64Array.from(color) : plane.stride === 8
+                            const samples = plane.stride === 32 ? Float64Array.from(color, value => plane.target === storedHueSamples ? value / 255 : value) : plane.stride === 8
                                 ? Uint16Array.from(color, value => Math.round(value * 257)) : Uint8Array.from(color, Math.round);
                             extended.set(new Uint8Array(samples.buffer), i);
                         }
@@ -9647,7 +9658,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     if (token === "-splice" && (image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
         image = { ...image, space: "srgb", channels: 4 };
     const virtualCanvas = token !== "-roll" ? magickResizeCanvas(image, width, height) : undefined;
-    return { ...image, position, width, height, ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { hasAlpha: true } : {}),
+    return { ...image, position, width, height, ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { hasAlpha: true } : {}),
         ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 

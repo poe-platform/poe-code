@@ -1099,6 +1099,8 @@ function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows
     const rows = geometry ? geometry.height ?? cols : cols;
     if (cols <= 0 || rows <= 0 || !Number.isInteger(cols) || !Number.isInteger(rows) || cols * rows !== m.length)
         throw new Error("Invalid color matrix: coefficient count must match the dimensions or be a nonzero square");
+    if (geometry && (geometry.x < 0 || geometry.x >= cols || geometry.y < 0 || geometry.y >= rows))
+        throw new Error("Invalid color matrix: origin must be within the dimensions");
     return { m, cols, rows };
 }
 

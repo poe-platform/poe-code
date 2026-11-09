@@ -83,7 +83,7 @@ PNG and JPEG preserve embedded ICC profiles. `+append` and `-append` retain only
 
 Use `-region WIDTHxHEIGHT+X+Y` to limit subsequent pixel edits, including `-clut` and `-hald-clut` color lookups, to a rectangle. Placement follows `-gravity`, and rectangles are clipped to the image. Use `+region` to restore edits across the whole image.
 
-Use `-write-mask mask.png` to restrict subsequent pixel edits on the current images: black permits edits, white protects pixels, and gray blends the result. Lookup operations `-clut` and `-hald-clut` honor the source image’s mask, including protected 16-bit samples. Use `+write-mask` to remove the mask. The legacy `-clip-mask mask.png` and `+clip-mask` spellings are also supported. Missing mask files return an error.
+Use `-write-mask mask.png` to restrict subsequent pixel edits on the current images: black permits edits, white protects pixels, and gray blends the result. Lookup operations `-clut` and `-hald-clut` honor the source image’s mask, including protected 16-bit samples. `-flop`, `-crop`, and `-roll` move the mask with the pixels so later edits protect the correct coordinates. Use `+write-mask` to remove the mask. The legacy `-clip-mask mask.png` and `+clip-mask` spellings are also supported. Missing mask files return an error.
 
 Use `-interpolate nearest-neighbor -filter point -rotate ANGLE` to rotate using the nearest source pixel. `+interpolate` restores the default interpolation. Rotation angles expand image properties and FX expressions, for example `-rotate '%[fx:w*10+20]'` or `-set option:turn 90 -rotate '%[turn]'`.
 

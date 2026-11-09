@@ -27,3 +27,19 @@ export function* writeMaskPixelSteps(image: { width: number; height: number }, m
         }
     }
 }
+
+/** Attach mask pixels at image coordinates, extending the mask's edge as needed. */
+export function* writeMaskExtentSteps(image: { width: number; height: number }, mask: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    for (let y = 0; y < image.height; y++) {
+        for (let x = 0; x < image.width; x += 4096) {
+            yield;
+            const count = Math.min(4096, image.width - x), maskX = Math.min(x, mask.width - 1);
+            const maskCount = Math.min(count, mask.width - maskX);
+            const pixels = (yield { kind: "read", position: (Math.min(y, mask.height - 1) * mask.width + maskX) * 4, length: maskCount * 4 })!;
+            const data = new Uint8Array(count * 4);
+            data.set(pixels);
+            for (let i = maskCount; i < count; i++) data.set(pixels.subarray(pixels.length - 4), i * 4);
+            yield { kind: "write", position: (y * image.width + x) * 4, data };
+        }
+    }
+}

@@ -25,7 +25,7 @@ import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
 import { regionPixelSteps, type Region } from "./region.js";
-import { writeMaskPixelSteps } from "./write-mask.js";
+import { writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { rawNetpbmInput } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
@@ -100,7 +100,7 @@ import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16">> & { position?: number };
 type RgbaImage = BaseRgbaImage & HueMetadata & { alphaBlend?: boolean | undefined; evaluateSamples?: Float64Array | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { alphaBlend?: boolean | undefined; storedEvaluateSamples?: number | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: Pick<BaseStoredRgbaImage, "width" | "height" | "position" | "hasAlpha"> | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { alphaBlend?: boolean | undefined; storedEvaluateSamples?: number | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -4199,7 +4199,10 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
         }
         resized = { ...resized, storedData16 };
     }
-    if (sample && image.storedWriteMask) resized = { ...resized, storedWriteMask: { width, height, hasAlpha: false, position: resized.position } };
+    if (sample && image.storedWriteMask) {
+        const { storedData16: ignoredData16, ...mask } = image.storedWriteMask;
+        resized = { ...resized, storedWriteMask: { ...mask, width, height, hasAlpha: false, position: resized.position } };
+    }
     const virtualCanvas = magickResizeCanvas(image, width, height);
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
@@ -4283,7 +4286,11 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
                 virtualCanvas: { ...magickCropCanvas(img, 0, 0), x: -1, y: -1 } });
             continue;
         }
-        tiles.push(area ? { ...(yield* extractImageSteps(img, area)), virtualCanvas: magickCropCanvas(img, area.left, area.top) } : img);
+        tiles.push(area ? {
+            ...(yield* extractImageSteps(img, area)),
+            ...(img.writeMask ? { writeMask: yield* extractImageSteps(img.writeMask, area) } : {}),
+            virtualCanvas: magickCropCanvas(img, area.left, area.top)
+        } : img);
     }
     return tiles;
 }
@@ -7634,7 +7641,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t.startsWith("-") && !path) throw new Error(`missing argument '${t}'`);
             const mask = path ? yield* parseInputOperandSteps(path, files, state, stdinBytes) : undefined;
             if (path && !mask) throw new Error(`unable to open image '${path}'`);
-            stack = stack.map(image => ({ ...image, writeMask: mask }));
+            stack = yield* mapSteps(stack, function* (image) {
+                const writeMask = mask && (mask.width !== image.width || mask.height !== image.height)
+                    ? yield* applyMagickRasterSteps(mask, writeMaskExtentSteps(image, mask), signal, { ...mask, width: image.width, height: image.height }) : mask;
+                return { ...image, writeMask };
+            });
             i++;
             continue;
         }
@@ -7991,7 +8002,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
                 validateMagickTransformGeometry(expanded, t);
-                return (yield* applyMagickRollSteps(im, expanded, signal));
+                let result = yield* applyMagickRollSteps(im, expanded, signal);
+                if (im.writeMask) {
+                    // Roll honors the destination mask before moving it with the pixels.
+                    result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!(result.data16 || im.data16)), signal, result, [result, im, im.writeMask]);
+                    result.writeMask = yield* applyMagickRollSteps(im.writeMask, expanded, signal);
+                }
+                return result;
             });
         }
         else if (t === "-morph") {
@@ -8269,7 +8286,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-flop") {
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                return { ...yield* flopImageSteps(im), virtualCanvas: magickMirrorCanvas(im, "flop") };
+                return { ...yield* flopImageSteps(im),
+                    ...(im.writeMask ? { writeMask: yield* flopImageSteps(im.writeMask) } : {}),
+                    virtualCanvas: magickMirrorCanvas(im, "flop") };
             }));
         }
         else if (t === "-transpose") {
@@ -9389,8 +9408,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 const mask = path ? await parseStoredCompareInput(path, settings, backend, signal) : undefined;
                 if (path && !mask) throw new Error(`unable to open image '${path}'`);
-                const storedWriteMask = mask ? { width: mask.width, height: mask.height, position: mask.position, hasAlpha: mask.hasAlpha } : undefined;
-                for (let n = 0; n < stack.length; n++) await stack.set(n, { ...(await stack.get(n))!, storedWriteMask } as StoredRgbaImage);
+                for (let n = 0; n < stack.length; n++) {
+                    const image = (await stack.get(n))!;
+                    const storedWriteMask = mask && (mask.width !== image.width || mask.height !== image.height)
+                        ? await transformStoredMagickRaster(mask, backend, writeMaskExtentSteps(image, mask), signal, { ...mask, width: image.width, height: image.height }) : mask;
+                    await stack.set(n, { ...image, storedWriteMask } as StoredRgbaImage);
+                }
                 return stack;
             });
             continue;
@@ -10188,7 +10211,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, (image as StoredMagickImage)[magickInput] ?? {}, async () => ({ image, storage: backend.storage }), signal);
                 if (token === "-splice") validateMagickSpliceGeometry(expanded);
                 else validateMagickTransformGeometry(expanded, token);
-                return transformStoredMagickCoordinates(image, backend, token, expanded, captured, signal, analysis);
+                let result = await transformStoredMagickCoordinates(image, backend, token, expanded, captured, signal, analysis);
+                if (token === "-roll" && image.storedWriteMask) {
+                    // Roll honors the destination mask before moving it with the pixels.
+                    result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!(result.storedData16 || image.storedData16)), signal, result, [result, image, image.storedWriteMask]);
+                    result.storedWriteMask = await transformStoredMagickCoordinates(image.storedWriteMask, backend, token, expanded, captured, signal, analysis);
+                }
+                return result;
             });
         } else if (!operandsOnly && token === "-resample") {
             const value = tokens[++i] ?? "72", kernel = state.kernel, settings = state.resizeFilter;
@@ -10228,7 +10257,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const kind = token === "-flip" ? "flip" : token === "-flop" ? "flop" : "autoOrient", orientation = state.orientation;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                let output = await transformStoredImage(image, backend.storage, { kind }, signal);
+                let output: StoredRgbaImage = await transformStoredImage(image, backend.storage, { kind }, signal);
+                if (kind === "flop" && image.storedWriteMask) output.storedWriteMask = await transformStoredImage(image.storedWriteMask, backend.storage, { kind }, signal);
                 if (kind === "autoOrient" && orientation !== undefined) output = { ...output, orientation };
                 const virtualCanvas = kind === "autoOrient" ? magickAutoOrientCanvas(image) : magickMirrorCanvas(image, kind);
                 return virtualCanvas ? { ...output, virtualCanvas } : output;
@@ -10298,7 +10328,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 const frames = new StoredImageStack(backend.storage, signal);
                 for (let n = 0; n < stack.length; n++) {
-                    const image = (await stack.get(n))!;
+                    const image = (await stack.get(n))! as StoredRgbaImage & StoredMagickImage;
                     for (const area of magickCropAreas(image, geometry, gravity)) {
                         await yieldTurn(signal);
                         if (area === null) {
@@ -10311,6 +10341,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                         await frames.push(area ? {
                             ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
+                            ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, backend.storage, { kind: "extract", ...area }, signal) } : {}),
                             virtualCanvas: magickCropCanvas(image, area.left, area.top)
                         } : image);
                     }
@@ -10437,7 +10468,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 else for (let n = 0; n < stack.length; n++) {
                     const original = (await stack.get(n))! as StoredRgbaImage;
                     let result = await step(original, backend);
-                    if (result && step.maskAlpha !== "transparent" && original.storedWriteMask && result.position !== original.position && result.width === original.width && result.height === original.height) {
+                    if (result && step.maskAlpha !== "transparent" && original.storedWriteMask && (!result.storedWriteMask || result.storedWriteMask === original.storedWriteMask) && result.position !== original.position && result.width === original.width && result.height === original.height) {
                         result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask, !!(result.storedData16 || original.storedData16), step.maskAlpha === "opaque"), signal, result, [result, original, { ...original, ...original.storedWriteMask }]);
                     }
                     if (result && original.region && result.position !== original.position && result.width === original.width && result.height === original.height) {
@@ -13055,7 +13086,7 @@ function* mapMagickImagesSteps(images: readonly RgbaImage[], transform: (image: 
         if (original.region && result.data !== original.data && result.width === original.width && result.height === original.height) {
             result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, original.region), undefined, result, [result, original]);
         }
-        if (maskAlpha === "transparent" || !original.writeMask || result.data === original.data || result.width !== original.width || result.height !== original.height) return result;
+        if (maskAlpha === "transparent" || !original.writeMask || (result.writeMask && result.writeMask !== original.writeMask) || result.data === original.data || result.width !== original.width || result.height !== original.height) return result;
         return yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask, !!(result.data16 || original.data16), maskAlpha === "opaque"), undefined, result, [result, original, original.writeMask]);
     });
 }

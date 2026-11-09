@@ -4,6 +4,37 @@ import { ShellLimitError } from "../../src/shell/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 
+for (const [options, input, value, rest, tail, status] of [
+  ["", "a\\\0b\nTAIL\n", "ab", "TAIL", "", "0"],
+  ["-n2", "a\\\0b\nTAIL\n", "ab", "", "TAIL\n", "0"],
+  ["-N2", "a\\\0b\nTAIL\n", "ab", "", "TAIL\n", "0"],
+  ["-r", "a\\\0b\nTAIL\n", "a\\b", "TAIL", "", "0"],
+  ["-rn2", "a\\\0b\nTAIL\n", "a\\", "b", "TAIL\n", "0"],
+  ["-d ''", "a\0b\nTAIL\n", "a", "b", "TAIL\n", "0"],
+  ["-rd ''", "a\\\0b\nTAIL\n", "a\\", "b", "TAIL\n", "0"],
+  ["-d ''", "a\\\0b\n", "ab\n", "", "", "1"],
+  ["-N2 -d ''", "a\\\0b\nTAIL\n", "ab", "", "TAIL\n", "0"],
+  ["", "a\\\0\nb\n", "a", "b", "", "0"],
+  ["", "a\0b\nTAIL\n", "ab", "TAIL", "", "0"],
+  ["", "a\\b\nTAIL\n", "ab", "TAIL", "", "0"],
+  ["", "a\\\x01b\nTAIL\n", "a\x01b", "TAIL", "", "0"],
+  ["", "a\\\x7fb\nTAIL\n", "a\x7fb", "TAIL", "", "0"],
+] as const) {
+  for (const streamed of [false, true]) {
+    test(`read NUL and escape handling: ${options}, ${JSON.stringify(input)}, streamed=${streamed}`, async context => {
+      const { shell, fs } = setup();
+      context.after(() => shell.dispose());
+      const bytes = new TextEncoder().encode(input);
+      await fs.writeFile("/record", bytes);
+      const stdin = streamed ? { async *[Symbol.asyncIterator]() { for (const byte of bytes) yield Uint8Array.of(byte); } } : undefined;
+      const result = await shell.exec(`{ IFS= read ${options} value; rc=$?; IFS= read -r rest; args "$rc" "$value" "$rest"; pass; }${streamed ? "" : " < /record"}`, { stdin, env: { LC_ALL: "C" } });
+      assert.equal(result.stdout, JSON.stringify([status, value, rest]) + tail);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    });
+  }
+}
+
 test("read count uses Unicode characters across input chunks", async () => {
   const { shell } = setup();
   const stdin = { async *[Symbol.asyncIterator]() { for (const byte of new TextEncoder().encode("é😀z")) yield Uint8Array.of(byte); } };

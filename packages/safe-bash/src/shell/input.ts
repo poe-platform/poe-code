@@ -1662,15 +1662,12 @@ export class ShellInput implements ByteSource, CommandInput {
           if (!quoted && !raw && first === 92) { account(); escaping = true; continue; }
           if (!quoted && !exact && first === delimiter) { terminated = true; outcome.reason = "delimiter"; break; }
           account();
-          if (!quoted && first === 0) continue;
-          if (quoted && visible && first !== 0) {
+          if (first === 0) continue;
+          if (quoted && visible) {
             scope.reserve(64, 2);
             escapedByteOffsets.push(buffer.length);
           }
-          if (visible && first === 0) {
-            if (quoted && !buffer.length) buffer.append(1);
-            visible = false;
-          } else if (visible) buffer.append(first);
+          if (visible) buffer.append(first);
           const width = byteCount ? 1 : utf8Length(first);
           const committedLength = buffer.length;
           for (let position = 1; position < width; position++) {

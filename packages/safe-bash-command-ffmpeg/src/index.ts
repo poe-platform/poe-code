@@ -9401,7 +9401,35 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "alimiter" || trimmed.startsWith("alimiter=")) {
-                        stretched = await limitAudio(stretched, origRate, trimmed, budget, context.signal);
+                        const limited = await limitAudio(stretched, origRate, trimmed, budget, context.signal);
+                        stretched = limited.channels;
+                        if (limited.delay) {
+                          const previous = audioTimestamps;
+                          audioTimestamps = [];
+                          const length = stretched[0]?.length ?? 0;
+                          let drainPts = audioStartSample;
+                          for (let start = 0, n = 0; start < length; n++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const frame = previous?.[n];
+                            const packet = t.samples[n];
+                            const count = frame ? frame.end - frame.start
+                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const end = Math.min(length, start + count);
+                            const skipped = Math.min(end - start, Math.max(0, limited.delay - start));
+                            const pts = (frame?.pts ?? audioStartSample + start) + skipped - limited.delay;
+                            drainPts = pts + end - start - skipped;
+                            if (end > limited.delay) {
+                              budget.allocateMemory(24);
+                              audioTimestamps.push({ start: Math.max(0, start - limited.delay), end: end - limited.delay, pts });
+                            }
+                            start = end;
+                          }
+                          if (length) {
+                            budget.allocateMemory(24);
+                            audioTimestamps.push({ start: Math.max(0, length - limited.delay), end: length,
+                              pts: length < limited.delay ? previous?.[0]?.pts ?? audioStartSample : drainPts });
+                          }
+                        }
                         statsScale = 1;
                       } else if (trimmed === "speechnorm" || trimmed.startsWith("speechnorm=")) {
                         stretched = await normalizeSpeech(stretched, trimmed, budget, context.signal);

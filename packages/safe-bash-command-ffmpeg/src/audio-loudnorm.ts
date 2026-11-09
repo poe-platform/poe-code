@@ -171,8 +171,8 @@ export async function normalizeLoudness(
     input.add(samples, start, Math.min(start + block, length));
     await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
   }
-  const limited = linear ? normalized : await limitAudio(normalized, 192000,
-    `alimiter=limit=${ceiling}:attack=10:release=100:level=0:latency=1`, budget, signal);
+  const limited = linear ? normalized : (await limitAudio(normalized, 192000,
+    `alimiter=limit=${ceiling}:attack=10:release=100:level=0:latency=1`, budget, signal)).channels;
   for (let start = 0; start < length; start += block) {
     output.add(limited, start, Math.min(start + block, length));
     await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();

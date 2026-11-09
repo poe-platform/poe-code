@@ -3,7 +3,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 
 export async function limitAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<Float64Array[]> {
+): Promise<{ channels: Float64Array[]; delay: number }> {
   const options = { level_in: 1, level_out: 1, limit: 1, attack: 5, release: 50, asc: 0, asc_level: 0.5, level: 1, latency: 0 };
   const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], limit: [0.0625, 1], attack: [0.1, 80], release: [1, 8000], asc: [0, 0], asc_level: [0, 1], level: [0, 1], latency: [0, 1] };
   const names = Object.keys(options) as (keyof typeof options)[];
@@ -113,5 +113,5 @@ export async function limitAudio(
     if (1 - attenuation < 1e-13) attenuation = 1;
     if (Math.abs(slope) < 1e-14) slope = 0;
   }
-  return output;
+  return { channels: output, delay };
 }

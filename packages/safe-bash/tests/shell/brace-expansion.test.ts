@@ -37,6 +37,10 @@ for (const [pattern, expected] of [["@(a){1..2}", ["a1"]], ["!(a){1..2}", ["b1"]
 
 for (const [source, expected] of [
   ["args pre{a,b}post", ["preapost", "prebpost"]],
+  ["unset v; args {a,${v:-{x,y}}}", ["a", "{x,y}"]],
+  ["unset v; args {a,${v:-x}}", ["a", "x"]],
+  ['unset v; args {a,"${v:-{x,y}}"}', ["a", "{x,y}"]],
+  ["v=set; args {a,${v:-{x,y}}}", ["a", "set}"]],
   ["args {1..5..2} {e..a..2} {-02..2}", ["1", "3", "5", "e", "c", "a", "-02", "-01", "000", "001", "002"]],
   ["args {a,{b,c}}{1,2}", ["a1", "a2", "b1", "b2", "c1", "c2"]],
   ["args '{a,b}' \\{a,b\\} {a\\,b,c} {a,\"b c\"}", ["{a,b}", "{a,b}", "a,b", "c", "a", "b c"]],

@@ -254,13 +254,42 @@ export async function* expandBraces(word: Word, budget: Budget, signal: AbortSig
     admit();
     const frames: Frame[] = [{ branches: [[]] }];
     const append = (node: Node): void => { frames.at(-1)!.branches.at(-1)!.push(node); };
+    // Brace expansion balances literal braces inside ${...}, whereas parameter
+    // parsing ends at the first unquoted }. Keep the remaining closers in this
+    // alternative instead of letting them close an enclosing brace list.
+    let parameterBraces = 0;
+    const parameterOperand = async (operand: Word): Promise<void> => {
+      for (const part of operand.parts) {
+        await checkpoint();
+        if (part.quoted) continue;
+        if (part.kind === "text") {
+          for (let offset = 0; offset < part.value.length; offset++) {
+            if (offset % 1024 === 0) await checkpoint();
+            if (part.value[offset] === "{") parameterBraces++;
+            else if (part.value[offset] === "}" && parameterBraces) parameterBraces--;
+          }
+        } else if (part.kind === "variable") {
+          if (part.alternate) await parameterOperand(part.alternate);
+          if (part.replacement) await parameterOperand(part.replacement);
+        }
+      }
+    };
     for (const part of word.parts) {
       await checkpoint();
+      if (part.kind === "variable" && !part.quoted) {
+        if (part.alternate) await parameterOperand(part.alternate);
+        if (part.replacement) await parameterOperand(part.replacement);
+      }
       if (part.kind !== "text" || part.quoted || part.byteValue) { append(partNode(part)); continue; }
       let start = 0;
       for (let offset = 0; offset < part.value.length; offset++) {
         if (offset % 1024 === 0) { budget.parsing.admit(); await checkpoint(); }
         const character = part.value[offset]!;
+        if (parameterBraces) {
+          if (character === "{") parameterBraces++;
+          else if (character === "}") parameterBraces--;
+          continue;
+        }
         if (character !== "{" && character !== "}" && character !== ",") continue;
         if (start < offset) {
           admit((offset - start) * 2);

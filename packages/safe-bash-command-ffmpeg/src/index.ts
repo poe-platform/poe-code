@@ -4380,6 +4380,8 @@ export function evalSyncFfmpeg(
     if (shortest) workingDoc = limitCopyPackets(workingDoc, [], { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec }, true);
     if (workingDoc.tracks.length === 0 && outPlugin?.id !== "ffmetadata") return undefined;
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
+    if (audioCodec === "adpcm_ima_wav" && workingDoc.tracks.some(track =>
+      track.type === "audio" && (track.decodedAudio?.channels ?? track.codecDescriptions[0]?.channels ?? 0) > 2)) return undefined;
     if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
       outPlugin?.id, subtitleCodec);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
@@ -7393,7 +7395,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio
-            if ((audioRate !== undefined || audioChannels !== undefined || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined) && audioCodec !== "copy") {
+            if ((audioRate !== undefined || audioChannels !== undefined || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined || audioCodec === "adpcm_ima_wav") && audioCodec !== "copy") {
               let audioOrdinal = 0;
               workingDoc = {
                 ...workingDoc,
@@ -7404,7 +7406,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (t.type !== "audio") return t;
                   const ordinal = audioOrdinal++;
                   const filter = afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal).at(-1);
-                  if (audioRate === undefined && audioChannels === undefined && rematrixVolume === 1 && !filter && maxAudioFrames === undefined) return t;
+                  if (audioRate === undefined && audioChannels === undefined && rematrixVolume === 1 && !filter && maxAudioFrames === undefined && audioCodec !== "adpcm_ima_wav") return t;
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
                     ? decodeAacTrack(workingDoc, t) : undefined);
                   if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
@@ -8781,15 +8783,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (cutoff) stretched = stretched.map(channel => channel.subarray(0, cutoff.start));
                   }
 
-                  if (!filter && audioRate === undefined && audioChannels === undefined) {
+                  if (!filter && audioRate === undefined && audioChannels === undefined && audioCodec !== "adpcm_ima_wav") {
                     return { ...t, duration: (stretched[0]?.length ?? 0) * t.timescale / origRate,
                       samples: [], decodedAudio: { ...audio, channelData: stretched } };
                   }
 
                   const origCh = stretched.length;
                   const targetRate = audioRate ?? origRate;
-                  const targetCh = audioChannels === -1 ? origCh : audioChannels ?? origCh;
-                  const channelMask = filteredChannelMask;
+                  const targetCh = audioChannels === -1 ? origCh : audioChannels ??
+                    (audioCodec === "adpcm_ima_wav" ? Math.min(origCh, 2) : origCh);
+                  if (audioCodec === "adpcm_ima_wav" && targetCh > 2) {
+                    throw new Error(`adpcm_ima_wav: unsupported channel count ${targetCh}`);
+                  }
+                  // FFmpeg guesses 2.1 for three-channel PCM without an explicit layout.
+                  const channelMask = filteredChannelMask ?? (origCh === 3 ? 11 : undefined);
                   if (origCh === 2 && channelMask && channelMask !== 3 && channelMask !== 12 &&
                       audioChannels !== undefined && audioChannels !== -1) {
                     throw new Error(`Unsupported input channel layout (mask ${channelMask})`);

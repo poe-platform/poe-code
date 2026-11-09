@@ -19,8 +19,11 @@ export async function correlateAudio(
     const key = separator < 0 ? ["size", "algo"][index] : option.slice(0, separator);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "size") {
-      size = Number(value);
-      if (!Number.isInteger(size) || size < 2 || size > 131072) throw new Error("axcorrelate: invalid size");
+      size = parseFilterExpression(value, "axcorrelate", {});
+      if (size < 2 || size > 131072) throw new Error("axcorrelate: invalid size");
+      // Native integer options round to nearest, with halfway values going to even.
+      const floor = Math.floor(size);
+      size = size - floor === 0.5 ? floor + floor % 2 : Math.round(size);
     } else if (key === "algo") {
       const numeric = parseFilterExpression(value, "axcorrelate", { slow: 0, fast: 1, best: 2 });
       if (numeric < 0 || numeric > 2) throw new Error("axcorrelate: invalid algo");

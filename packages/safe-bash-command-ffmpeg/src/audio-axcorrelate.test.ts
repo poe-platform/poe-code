@@ -19,7 +19,8 @@ async function run(filter: string, channels = 1, secondLength = 4096, firstLengt
     fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
     stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { errors.push(b); } }
   } as never);
-  return { result, error: Buffer.concat(errors).toString(), audio: fs.existsSync("/out.wav") ? parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio! : undefined };
+  const bytes = fs.existsSync("/out.wav") ? fs.readFileSync("/out.wav") as Buffer : undefined;
+  return { result, error: Buffer.concat(errors).toString(), bytes, audio: bytes ? parseWav(bytes).tracks[0]!.decodedAudio! : undefined };
 }
 
 for (const channels of [1, 2]) for (const algo of ["slow", "best", "0", "2"]) {
@@ -47,7 +48,7 @@ it("direct input maps preserve their original PCM and lengths", async () => {
   }
 });
 
-for (const option of ["size=1", "size=131073", "size=2.5", "algo=unknown", "unknown=1"]) {
+for (const option of ["size=1", "size=1.9", "size=131073", "size=131072.1", "size=2*131072", "size=1/0", "size=0/0", "size=2*", "size=", "algo=unknown", "unknown=1"]) {
   it(`axcorrelate rejects ${option}`, async () => {
     const { result, error, audio } = await run(`[0:a][1:a]axcorrelate=${option}[mix]`);
     assert.notEqual(result.exitCode, 0);
@@ -111,3 +112,29 @@ for (const [a, b] of [["d", "e"], ["aquiet", "bquiet"]]) {
     });
   }
 }
+
+for (const [expression, literal] of [["2*4", "8"], ["2.5", "2"], ["2.6", "3"], ["3.5", "4"], ["8.4", "8"]]) {
+  for (const named of [false, true]) {
+    it(`axcorrelate ${named ? "named" : "positional"} size ${expression} matches ${literal} output bytes`, async () => {
+      const actual = await run(`[0:a][1:a]axcorrelate=${named ? "size=" : ""}${expression}:algo=slow[mix]`);
+      const expected = await run(`[0:a][1:a]axcorrelate=size=${literal}:algo=slow[mix]`);
+      assert.equal(actual.result.exitCode, 0, actual.error);
+      assert.equal(expected.result.exitCode, 0, expected.error);
+      assert.ok(expected.bytes!.length > 44);
+      assert.deepEqual(actual.bytes, expected.bytes);
+      if (expression === "2.5") {
+        const roundedUp = await run("[0:a][1:a]axcorrelate=size=3:algo=slow[mix]");
+        assert.equal(roundedUp.result.exitCode, 0, roundedUp.error);
+        assert.notDeepEqual(actual.bytes, roundedUp.bytes);
+      }
+    });
+  }
+}
+
+it("axcorrelate accepts expressions at the maximum window size", async () => {
+  const actual = await run("[0:a][1:a]axcorrelate=size=2^17:algo=fast[mix]");
+  const expected = await run("[0:a][1:a]axcorrelate=size=131072:algo=fast[mix]");
+  assert.equal(actual.result.exitCode, 0, actual.error);
+  assert.equal(expected.result.exitCode, 0, expected.error);
+  assert.deepEqual(actual.bytes, expected.bytes);
+});

@@ -322,3 +322,57 @@ for (const locale of ["invalid_locale", "en_US.utf8@unsupported"]) {
   assert.equal(result.stdout, "");
  });
 }
+
+for (const option of ["help", "version"]) {
+ for (let length = 1; length <= option.length; length++) {
+  const prefix = `--${option.slice(0, length)}`;
+  test(`comm information prefix ${prefix} matches its full spelling`, async () => {
+   const expected = await run([`--${option}`], {});
+   assert.equal(expected.exitCode, 0);
+   assert.notEqual(expected.stdout, "");
+   assert.equal(expected.stderr, "");
+   for (const before of [[], ["--tot"], ["--total"], ["--z"], ["--zero-terminated"], ["--c"], ["--n"], ["--out=:"], ["--out", ":"], ["-123z"], ["missing"], ["-"]]) {
+    assert.deepEqual(await run([...before, prefix], {}), expected, JSON.stringify(before));
+   }
+  });
+ }
+}
+
+for (const option of ["--he", "--help", "--ver", "--version"]) {
+ test(`comm keeps ${option} literal after option boundaries`, async () => {
+  const files = { "/left": "a\n", [`/${option}`]: "x\n" };
+  const expected = await run(["left", option.slice(2)], { "/left": "a\n", [`/${option.slice(2)}`]: "x\n" });
+  assert.equal(expected.exitCode, 0);
+  assert.equal(expected.stdout, "a\n\tx\n");
+  assert.deepEqual(await run(["--", "left", option], files), expected);
+  for (const posix of ["", "1"]) {
+   assert.deepEqual(await run(["left", option], files, { POSIXLY_CORRECT: posix }), expected);
+   const stdin = await run(["-", option], files, { POSIXLY_CORRECT: posix });
+   assert.equal(stdin.exitCode, 0, stdin.stderr);
+   assert.equal(stdin.stdout, "\tx\n");
+   assert.equal(stdin.stderr, "");
+  }
+ });
+ test(`comm consumes ${option} as a required delimiter argument`, async () => {
+  const files = { "/left": "a\n", "/right": "a\n" };
+  for (const args of [["--out", option], [`--out=${option}`], ["--output-delimiter", option]]) {
+   const result = await run([...args, "left", "right"], files);
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stdout, `${option}${option}a\n`);
+   assert.equal(result.stderr, "");
+   assert.deepEqual(await run([...args, "--ver"], {}), await run(["--version"], {}));
+  }
+ });
+}
+
+test("comm information scan respects option order and invalid options", async () => {
+ for (const [first, second] of [["--he", "--ver"], ["--ver", "--he"]]) {
+  const full = first === "--he" ? "--help" : "--version";
+  assert.deepEqual(await run([first!, second!], {}), await run([full], {}));
+ }
+ for (const invalid of ["--he=yes", "--ver=", "--tot=yes", "--z=", "--unknown", "--helpful"]) {
+  const result = await run([invalid, "--he"], {});
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+ }
+});

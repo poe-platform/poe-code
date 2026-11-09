@@ -81,3 +81,18 @@ for (const option of ["-vx", "-xv", "-hx", "-Vx", "-xV", "-vhx"]) {
     assert.deepEqual(await runEnvsubst([option, "$A"], "", {}), { exitCode: 1, stdout: "" });
   });
 }
+
+for (const posix of [undefined, "", "1"]) {
+  test(`envsubst option ordering with POSIXLY_CORRECT=${JSON.stringify(posix)}`, async () => {
+    const env = posix === undefined ? {} : { POSIXLY_CORRECT: posix };
+    for (const flag of ["-v", "--variables"]) {
+      assert.deepEqual(await runEnvsubst(["$A", flag], "[$A]", env), posix === undefined
+        ? { exitCode: 0, stdout: "A\n" }
+        : { exitCode: 1, stdout: "" });
+      assert.deepEqual(await runEnvsubst([flag, "$A"], "[$A]", env), { exitCode: 0, stdout: "A\n" });
+    }
+    assert.deepEqual(await runEnvsubst(["--", "$A", "-v"], "[$A]", env), {
+      exitCode: 1, stdout: "",
+    });
+  });
+}

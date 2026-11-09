@@ -25388,6 +25388,7 @@ const syncExtraRuntimeMethods = {
       if (!endOfOptions && (a === "-v" || a === "--variables")) { variablesMode = true; continue; }
       if (!endOfOptions && a !== "-" && a.startsWith("-")) return undefined;
       operands.push(a);
+      if (rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined) endOfOptions = true;
     }
     if (operands.length > 1) return undefined;
     const extractVars = (fmt: string): string[] => {

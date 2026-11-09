@@ -257,6 +257,7 @@ export function createEnvsubstCommand(options: EnvsubstCommandsOptions = {}): Co
           return { exitCode: 1 };
         }
         operands.push(arg);
+        if (context.env.POSIXLY_CORRECT !== undefined) endOfOptions = true;
       }
 
       if (version || help) {

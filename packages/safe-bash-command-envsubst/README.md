@@ -4,7 +4,7 @@ Substitute environment variable placeholders in templates and configuration file
 
 Resource limits default to `Infinity`; configure finite quotas through command options when needed.
 
-Expand `$VAR` and `${VAR}` references from the shell environment with optional `SHELL-FORMAT` allowlisting and `-v` variable discovery.
+Expand `$VAR` and `${VAR}` references from the shell environment with optional `SHELL-FORMAT` allowlisting and `-v` variable discovery. When `POSIXLY_CORRECT` is set, even to an empty value, option parsing stops at `SHELL-FORMAT`; otherwise options may follow it.
 
 ## Features
 

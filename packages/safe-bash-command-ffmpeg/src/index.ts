@@ -5382,11 +5382,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingStartNumberRange = value;
           } else if (arg === "-start_number") {
             const val = Number(args[++i]);
-            if (!Number.isSafeInteger(val) || val < 0) {
+            const isInput = args.slice(i + 1).includes("-i");
+            if (!Number.isSafeInteger(val) || (isInput ? val < -2147483648 || val > 2147483647 : val < 0)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid start_number\n"), context.signal);
               return { exitCode: 1 };
             }
-            if (args.slice(i + 1).includes("-i")) pendingStartNumber = val;
+            if (isInput) pendingStartNumber = val;
             else outputStartNumber = val;
           } else if (arg === "-resampler") {
             const raw = args[++i];

@@ -10972,11 +10972,16 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let verbose = false;
     let regardWarnings = false;
     let compose = "over";
+    type Crop = { geometry: string; gravity: GravityPosition };
     const operands: string[] = [];
+    const operandCrops: Crop[][] = [];
+    let leadingCrops: Crop[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
+        // An option after an input ends the leading operator group.
+        if (operands.length && (t.startsWith("-") || t.startsWith("+"))) leadingCrops = [];
         if (t === "--help" || t === "-help" || t === "-h") {
             return {
                 exitCode: 0,
@@ -11098,6 +11103,24 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const g = parseMagickGeometry(argv[++i] ?? "72");
             state.density = Math.max(1, Math.round(g.width ?? 72));
         }
+        else if (t === "-gravity") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-gravity'\n" };
+            if (!["undefined", "none", "northwest", "north", "northeast", "west", "center", "east", "southwest", "south", "southeast"].includes(value.toLowerCase()))
+                return { exitCode: 2, stdout: "", stderr: `compare: unrecognized gravity type '${value}'\n` };
+            state.gravity = ["undefined", "none"].includes(value.toLowerCase()) ? "northwest" : parseGravity(value);
+        }
+        else if (t === "+gravity") state.gravity = "northwest";
+        else if (t === "-crop") {
+            const geometry = argv[++i];
+            if (geometry === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-crop'\n" };
+            try { validateMagickTransformGeometry(geometry, t); }
+            catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
+            const crop = { geometry, gravity: state.gravity };
+            if (operands.length) for (const crops of operandCrops) crops.push(crop);
+            else leadingCrops.push(crop);
+        }
+        else if (t === "+crop") leadingCrops = [];
         else if (t === "-quality") {
             state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
         }
@@ -11106,6 +11129,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         else {
             operands.push(t);
+            operandCrops.push(leadingCrops.map(crop => ({ ...crop, gravity: state.gravity })));
         }
     }
     if (operands.length < 2) {
@@ -11121,16 +11145,42 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let imgB: RgbaImage | StoredRgbaImage | undefined;
     let inputErrors = "";
     let imageDetails = "";
+    function* acceptImage(image: RgbaImage | StoredRgbaImage, crops: readonly Crop[], index = 0): Generator<IdentifyStep, void, void> {
+        const crop = crops[index];
+        if (!crop) {
+            if (!imgA) imgA = image;
+            else if (!imgB) imgB = image;
+            return;
+        }
+        if ("data" in image) {
+            for (const tile of yield* applyMagickCropToStackSteps(image, crop.geometry, crop.gravity))
+                yield* acceptImage(tile, crops, index + 1);
+        } else {
+            for (const area of magickCropAreas(image, crop.geometry, crop.gravity)) {
+                let tile = image;
+                if (area !== undefined) yield { async run() {
+                    tile = area === null ? {
+                        ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend!, signal!),
+                        virtualCanvas: { ...magickCropCanvas(image, 0, 0), x: -1, y: -1 }
+                    } : {
+                        ...await transformStoredImage(image, backend!.storage, { kind: "extract", ...area }, signal!),
+                        virtualCanvas: magickCropCanvas(image, area.left, area.top)
+                    };
+                } };
+                yield* acceptImage(tile, crops, index + 1);
+            }
+        }
+    }
     // Compare consumes the first two images in the combined input sequence.
-    for (const operand of operands.slice(0, -1)) {
+    for (const [operandIndex, operand] of operands.slice(0, -1).entries()) {
+        const crops = operandCrops[operandIndex]!;
         try {
             let found = false;
             if (backend) yield { async run() {
                 await parseStoredCompareInput(operand, state, backend, signal!, { visit: async image => {
                     found = true;
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
-                    if (!imgA) imgA = image;
-                    else if (!imgB) imgB = image;
+                    await drainIdentifySteps(acceptImage(image, crops), signal);
                 } });
             } };
             else {
@@ -11138,8 +11188,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 found = Boolean(images?.length);
                 for (const image of images ?? []) {
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
-                    if (!imgA) imgA = image;
-                    else if (!imgB) imgB = image;
+                    yield* acceptImage(image, crops);
                 }
             }
             if (!found) inputErrors += `compare: unable to open image '${operand}': No such file or directory\n`;

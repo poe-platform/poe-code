@@ -266,6 +266,7 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
   const frameTicks = Math.max(1, fpsDen);
   const samples: MediaSample[] = frames.map((f, idx) => ({
     data: f.data,
+    offset: f.native!.pixels.byteOffset - bytes.byteOffset,
     dts: idx * frameTicks,
     pts: idx * frameTicks,
     cts: 0,
@@ -375,11 +376,13 @@ export function y4mAst(): MediaAstPlugin {
     },
     probe(bytes, options) {
       const doc = parseY4m(bytes);
-      return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.y4m", {
+      const probe = buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.y4m", {
         ...options,
         formatName: "yuv4mpegpipe",
         formatLongName: "YUV4MPEG pipe"
       });
+      return { ...probe, packetData: probe.packets && new Map(probe.packets.map((packet, index) =>
+        [`${packet.pos}:${packet.size}`, doc.tracks[0]!.decodedVideoFrames![index]!.native!.pixels])) };
     },
     concat(docs, options) {
       return concatMp4(docs, options);

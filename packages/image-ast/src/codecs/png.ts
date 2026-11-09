@@ -2,7 +2,7 @@ import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, makeChunk, gammaChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
+import {PNG_SIGNATURE, pngCrc32, makeChunk, gammaChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
 import {paethPredictor, writePngPixel} from "./png-pixels.js";
 import { createByteCodec, transformBytes, ByteCodecError } from "@poe-code/compression";
 
@@ -69,7 +69,11 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
       bytes[pos + 7]!
     );
     const dataStart = pos + 8;
-    if (dataStart + len > bytes.length) break;
+    if (dataStart + len + 4 > bytes.length) throw new Error("Truncated PNG chunk");
+    if ((bytes[pos + 4]! & 32) === 0 &&
+        pngCrc32(bytes.subarray(pos + 4, dataStart + len)) !== view.getUint32(dataStart + len, false)) {
+      throw new Error(`PNG ${type} CRC mismatch`);
+    }
     const chunk = bytes.subarray(dataStart, dataStart + len);
     if (type === "IHDR" && len >= 13) {
       bitDepth = chunk[8]!;
@@ -490,7 +494,11 @@ export function decodePngToCanvas(
     const len = view.getUint32(pos, false);
     const type = String.fromCharCode(bytes[pos + 4]!, bytes[pos + 5]!, bytes[pos + 6]!, bytes[pos + 7]!);
     const dataStart = pos + 8;
-    if (dataStart + len > bytes.length) break;
+    if (dataStart + len + 4 > bytes.length) throw new Error("Truncated PNG chunk");
+    if ((bytes[pos + 4]! & 32) === 0 &&
+        pngCrc32(bytes.subarray(pos + 4, dataStart + len)) !== view.getUint32(dataStart + len, false)) {
+      throw new Error(`PNG ${type} CRC mismatch`);
+    }
     const chunk = bytes.subarray(dataStart, dataStart + len);
     if (type === "IHDR" && len >= 13) {
       bitDepth = chunk[8]!;

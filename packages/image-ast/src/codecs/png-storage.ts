@@ -2,7 +2,7 @@ import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, makeChunk, gammaChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
+import {PNG_SIGNATURE, pngCrc32, makeChunk, gammaChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
 import {buildExifApp1Segment} from "./exif.js";
 import {createByteCodec, defaultRuntime} from "@poe-code/compression";
 import {checkLimitInputPixels} from "../limits.js";
@@ -55,7 +55,7 @@ async function* chunks(source: ImageByteSource, signal: AbortSignal) {
     const name = String.fromCharCode(...header.subarray(4));
     const start = position + 8;
     if (start + length + 4 > source.size) throw new Error("Truncated PNG chunk");
-    yield {name, start, length};
+    yield {name, start, length, typeBytes: header.subarray(4)};
     if (name === "IEND") return;
     position = start + length + 4;
   }
@@ -95,6 +95,15 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
   if (!Number.isSafeInteger(source.size) || source.size < 24 || !isPngBytes(await range(source, 0, 8, signal))) throw new Error("Invalid PNG header");
   let header: Uint8Array | undefined, palette: Uint8Array | undefined, transparency: Uint8Array | undefined;
   for await (const chunk of chunks(source, signal)) {
+    if ((chunk.typeBytes[0]! & 32) === 0) {
+      let crc = pngCrc32(chunk.typeBytes);
+      for (let offset = 0; offset < chunk.length; offset += 4096) {
+        crc = pngCrc32(await range(source, chunk.start + offset, Math.min(4096, chunk.length - offset), signal), crc);
+        if (offset % (64 * 4096) === 0) await defaultRuntime.yieldTurn(signal);
+      }
+      const checksum = await range(source, chunk.start + chunk.length, 4, signal);
+      if (crc !== new DataView(checksum.buffer).getUint32(0)) throw new Error(`PNG ${chunk.name} CRC mismatch`);
+    }
     if (chunk.name === "IHDR" && chunk.length >= 13) header = await range(source, chunk.start, 13, signal);
     else if (chunk.name === "PLTE") palette = await range(source, chunk.start, Math.min(chunk.length, 768), signal);
     else if (chunk.name === "tRNS") transparency = await range(source, chunk.start, Math.min(chunk.length, 256), signal);

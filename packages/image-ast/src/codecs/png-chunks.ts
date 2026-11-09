@@ -13,13 +13,10 @@ const CRC_TABLE = (() => {
   return table;
 })();
 
-function crc32(typeBytes: Uint8Array, data: Uint8Array): number {
-  let c = 0xffffffff;
-  for (let i = 0; i < typeBytes.length; i++) {
-    c = CRC_TABLE[(c ^ typeBytes[i]!) & 0xff]! ^ (c >>> 8);
-  }
-  for (let i = 0; i < data.length; i++) {
-    c = CRC_TABLE[(c ^ data[i]!) & 0xff]! ^ (c >>> 8);
+export function pngCrc32(data: Uint8Array, crc = 0): number {
+  let c = crc ^ 0xffffffff;
+  for (const byte of data) {
+    c = CRC_TABLE[(c ^ byte) & 0xff]! ^ (c >>> 8);
   }
   return (c ^ 0xffffffff) >>> 0;
 }
@@ -37,7 +34,7 @@ export function makeChunk(type: string, data: Uint8Array): Uint8Array {
   view.setUint32(0, data.length, false);
   out.set(typeBytes, 4);
   out.set(data, 8);
-  view.setUint32(8 + data.length, crc32(typeBytes, data), false);
+  view.setUint32(8 + data.length, pngCrc32(data, pngCrc32(typeBytes)), false);
   if (type === "IDAT" && data.byteOffset === 0 && typeof (data.buffer as any).transfer === "function") {
     try { (data.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
   }

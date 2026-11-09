@@ -208,3 +208,23 @@ it.each([
     expect(new Uint16Array(samples16.buffer, samples16.byteOffset, samples16.length / 2)).toEqual(buffered.data16);
   } finally {await storage.close();}
 });
+
+it.each([false, true])("checks CRC across bounded reads of a large IDAT, corrupt=%s", async corrupt => {
+  const raw = new Uint8Array(8193);
+  for (let i = 1; i < raw.length; i++) raw[i] = i % 251;
+  const idat = chunk("IDAT", deflateSync(raw, {level: 0}));
+  expect(idat.length).toBeGreaterThan(8192);
+  if (corrupt) idat[5000]! ^= 1;
+  const bytes = Buffer.concat([
+    png(2048, 1, raw).subarray(0, 33), idat, chunk("IEND", new Uint8Array())
+  ]);
+  const {storage} = backing();
+  try {
+    const decoded = decodePngToStorage(source(bytes), storage, new AbortController().signal);
+    if (corrupt) await expect(decoded).rejects.toThrow("PNG IDAT CRC mismatch");
+    else {
+      const image = await decoded;
+      expect(await storage.read(image.position, 4096)).toEqual(raw.subarray(1, 4097));
+    }
+  } finally { await storage.close(); }
+});

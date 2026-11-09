@@ -1,3 +1,4 @@
+import { makeChunk } from "./codecs/png-chunks.js";
 import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/core";
 import type {FileSystem} from "@poe-code/safe-fs/contracts";
@@ -174,10 +175,10 @@ it("checks the effective PNG dimensions before allocating pixel storage", async 
   const {fs, bytes} = await fixture();
   // The legacy metadata parser uses the final IHDR; the streaming path must
   // enforce the same pixel budget even when the first header advertises 1x1.
-  const small = bytes.slice(8,33);
+  const small = bytes.slice(16,29);
   const view = new DataView(small.buffer);
-  view.setUint32(8,1); view.setUint32(12,1);
-  await fs.writeFile("/input.png", Buffer.concat([bytes.subarray(0,8),small,bytes.subarray(8)]));
+  view.setUint32(0,1); view.setUint32(4,1);
+  await fs.writeFile("/input.png", Buffer.concat([bytes.subarray(0,8),makeChunk("IHDR", small),bytes.subarray(8)]));
   const opened = vi.fn(fs.open.bind(fs));
   await expect(sharp("/input.png", {filesystem:injected(fs,{open:opened}),limitInputPixels:1}).png().toFile("/output.png")).rejects.toThrow("pixel limit");
   expect(opened).not.toHaveBeenCalled();

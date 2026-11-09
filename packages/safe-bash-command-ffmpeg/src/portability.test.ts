@@ -286,6 +286,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes ordered image2 brace alternatives and the current dependency graph (10,745,986 bytes).
   // Current dependencies plus asubcut measure 10,868,764 bytes (baseline 10,865,858).
   // Current dependencies and apad frame boundaries measure 12,780,764 bytes.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 12_790_000,
+  // Current dependencies and the volumedetect histogram measure 12,790,767 bytes.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 12_792_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

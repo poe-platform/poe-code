@@ -4,9 +4,19 @@ import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
+import curves from "./audio-fade-curves-fixtures.json" with { type: "json" };
 
 const positions = [999, 1000, 1500, 2000, 2999, 3000];
+// FFmpeg 7.0.2: stereo PCM16 at 8 kHz, constant +12000/-12000 samples.
+// Each fixture includes samples before, within, and after the fade.
+const curveCases: [string, number[], number[]][] = curves.flatMap(row =>
+  [row.curve, String(row.id)].flatMap(curve => [
+    [`afade=t=in:ss=2:ns=8:c=${curve}`, row.in.map((_, i) => i), row.in],
+    [`afade=t=out:ss=2:ns=8:curve=${curve}`, row.out.map((_, i) => i), row.out],
+    [`afade=in:2:8:0:0:${curve}:0.25:0.75`, row.gains.map((_, i) => i), row.gains]
+  ] as [string, number[], number[]][]));
 for (const [filter, indices, expected] of [
+  ...curveCases,
   ["afade=t=in:ss=1000:ns=2000", positions, [0, 0, 3000, 6000, 11994, 12000]],
   ["afade=t=in:ss=1000:ns=2000:curve=qua", positions, [0, 0, 750, 3000, 11988, 12000]],
   ["afade=t=out:st=0.125:d=0.25", positions, [12000, 12000, 9000, 6000, 6, 0]],
@@ -57,7 +67,28 @@ for (const [filter, indices, expected] of [
   });
 }
 
-for (const filter of ["afade=ns=0", "afade=ns=0:d=1us", "afade=ss=-1", "afade=ns=0.9", "afade=ss=-0.1", "afade=st=bad",
+for (const curve of ["qsin", "1", "par", "10", "nofade", "-1"]) {
+  it(`afade ${curve} preserves native PCM16 truncation`, async () => {
+    const fs = Volume.fromJSON({});
+    fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [
+      Float64Array.from({ length: 64 }, (_, i) => (i % 2 ? -1001 : 1001) / 32768)
+    ] }));
+    const result = await createFfmpegCommand().execute({
+      args: ["-i", "/in.wav", "-af", `afade=ns=4:c=${curve}`, "-c:a", "pcm_s16le", "/out.wav"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
+      stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }
+    } as never);
+    assert.equal(result.exitCode, 0);
+    const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    const expected = ["qsin", "1"].includes(curve) ? [0, -383, 707, -924, 1001]
+      : ["par", "10"].includes(curve) ? [0, -134, 293, -500, 1001] : [1001, -1001, 1001, -1001, 1001];
+    assert.deepEqual(Array.from(audio.channelData[0]!.slice(0, 5), sample => sample * 32768), expected);
+  });
+}
+
+for (const filter of ["afade=c=-2", "afade=c=23", "afade=c=NaN", "afade=c=", "afade=c=__proto__",
+  "afade=ns=0", "afade=ns=0:d=1us", "afade=ss=-1", "afade=ns=0.9", "afade=ss=-0.1", "afade=st=bad",
   "afade=d=Infinity", "afade=t=bad", "afade=curve=bad", "afade=unity=1.1",
   "afade=silence=-0.1", "afade=ns=", "afade=unknown=1", "afade=ns=9007199254740992"]) {
   it(`${filter} fails without replacing output`, async () => {

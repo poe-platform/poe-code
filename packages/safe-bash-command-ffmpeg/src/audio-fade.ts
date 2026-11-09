@@ -3,6 +3,39 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 import { parseFilterExpression } from "./filter-expression.js";
 
+// FFmpeg's curve enum runs from nofade (-1) through hsin2 (22).
+const curves: Record<string, (gain: number) => number> = {
+  nofade: () => 1,
+  tri: gain => gain,
+  qsin: gain => Math.sin(gain * Math.PI / 2),
+  esin: gain => 1 - Math.cos(Math.PI / 4 * ((2 * gain - 1) ** 3 + 1)),
+  hsin: gain => (1 - Math.cos(gain * Math.PI)) / 2,
+  log: gain => Math.max(0, Math.min(1, 1 + 0.2 * Math.log10(gain))),
+  ipar: gain => 1 - (1 - gain) * (1 - gain),
+  qua: gain => gain * gain,
+  cub: gain => gain * gain * gain,
+  squ: Math.sqrt,
+  cbr: Math.cbrt,
+  par: gain => 1 - Math.sqrt(1 - gain),
+  exp: gain => Math.exp(-11.512925464970227 * (1 - gain)),
+  iqsin: gain => 0.6366197723675814 * Math.asin(gain),
+  ihsin: gain => 0.3183098861837907 * Math.acos(1 - 2 * gain),
+  dese: gain => gain <= 0.5 ? Math.cbrt(2 * gain) / 2 : 1 - Math.cbrt(2 * (1 - gain)) / 2,
+  desi: gain => gain <= 0.5 ? (2 * gain) ** 3 / 2 : 1 - (2 * (1 - gain)) ** 3 / 2,
+  losi: gain => {
+    const a = 1 / (1 - 0.787) - 1;
+    const low = 1 / (1 + Math.exp(a));
+    const high = 1 / (1 + Math.exp(-a));
+    return (1 / (1 + Math.exp(-(gain - 0.5) * a * 2)) - low) / (high - low);
+  },
+  sinc: gain => gain >= 1 ? 1 : Math.sin(Math.PI * (1 - gain)) / (Math.PI * (1 - gain)),
+  isinc: gain => gain <= 0 ? 0 : 1 - Math.sin(Math.PI * gain) / (Math.PI * gain),
+  quat: gain => gain * gain * gain * gain,
+  quatr: gain => gain ** 0.25,
+  qsin2: gain => Math.sin(gain * Math.PI / 2) ** 2,
+  hsin2: gain => ((1 - Math.cos(gain * Math.PI)) / 2) ** 2
+};
+
 export async function fadeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number }[] | undefined, startSample: number,
@@ -13,7 +46,7 @@ export async function fadeAudio(
   let samples = 44100;
   let startTime = 0;
   let duration = 0;
-  let curve = "tri";
+  let curve = curves.tri!;
   let silence = 0;
   let unity = 1;
   let enable: string | undefined;
@@ -40,8 +73,9 @@ export async function fadeAudio(
       if (!["in", "out", "0", "1"].includes(value)) throw new Error("afade: invalid type");
       type = value === "1" || value === "out" ? "out" : "in";
     } else if (key === "c" || key === "curve") {
-      if (!["tri", "qua", "0", "6"].includes(value)) throw new Error("afade: supported curves are tri and qua");
-      curve = value === "qua" || value === "6" ? "qua" : "tri";
+      const entry = Object.entries(curves).find(([name], index) => value === name || value === String(index - 1));
+      if (!entry) throw new Error("afade: invalid curve");
+      curve = entry[1];
     } else if (key === "enable") {
       enable = value;
       parseFilterExpression(enable, "afade enable", { n: 0, t: 0 });
@@ -96,7 +130,7 @@ export async function fadeAudio(
     const fraction = samples === 0
       ? (type === "out" ? (pts < start ? 1 : 0) : (pts > start ? 1 : 0))
       : type === "out" ? 1 - progress : progress;
-    const gain = enabled ? silence + (unity - silence) * (curve === "qua" ? fraction * fraction : fraction) : 1;
+    const gain = enabled ? silence + (unity - silence) * curve(fraction) : 1;
     for (let c = 0; c < channels.length; c++) {
       const sample = channels[c]![i]! * gain;
       // Native integer fades truncate before the next filter consumes the samples.

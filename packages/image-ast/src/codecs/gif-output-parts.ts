@@ -187,7 +187,7 @@ export function gifFrameHeader(
   const nul = bytes.indexOf(0);
   const comment = nul < 0 ? bytes : bytes.subarray(0, nul);
   const commentSize = bytes.length ? 3 + comment.length + Math.ceil(comment.length / 255) : 0;
-  const icc = image.gifFrames ? rectangle.icc : image.icc;
+  const icc = "icc" in rectangle ? rectangle.icc : image.icc;
   const applications = options.gifVersion === "87a" ? [] : Object.entries({ ...(rectangle.gifApplications ?? (frame === 0 ? image.gifApplications : undefined)), ...(icc ? { ICCRGBG1012: icc } : {}) });
   const applicationSize = applications.reduce((size, [name, payload]) => size + (name.length === 11 ? 15 + payload.length + Math.ceil(payload.length / 255) : 0), 0);
   const gce = options.gifVersion !== "87a" && (frames > 1 || transparent || options.delay !== undefined || frameDisposal !== undefined),

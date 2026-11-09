@@ -42,7 +42,8 @@ for (const command of [
     await fs.rm("/workspace/a/b/c/d/new", { recursive: true, force: true });
     const rejected = await shell.exec(deep, { limits: { maxPathnameComponents: 3 } });
     assert.notEqual(rejected.exitCode, 0, rejected.stdout);
-    assert.match(rejected.stderr, /ENAMETOOLONG/);
+    if (command.startsWith("jq ")) assert.equal(rejected.stderr, "jq: error: Could not open file /workspace/a/b/c/d/file.json: Name too long\n");
+    else assert.match(rejected.stderr, /ENAMETOOLONG/);
     assert.deepEqual(await fs.readFile("/workspace/a/b/c/d/file.json"), bytes);
     await assert.rejects(fs.stat("/workspace/a/b/c/d/new"), { code: "ENOENT" });
     const admitted = await shell.exec(command.replaceAll("PATH", "/shallow/ok"), { limits: { maxPathnameComponents: 3 } });

@@ -5,11 +5,17 @@ import { command, type StreamInspectionLimits } from "safe-bash-text-stream-engi
 import { reverseEmacsSteps } from "safe-bash-command-expr/bre-engine";
 import { ExprMatchError, exprMatchCeilings } from "safe-bash-regex-engine/execution/protocol";
 
+// These option names have distinct initials, so every nonempty prefix is unique.
+const longOptions = Object.fromEntries(
+  Object.entries({ before: "b", regex: "r", separator: "s" }).flatMap(([name, key]) =>
+    Array.from({ length: name.length }, (_, index) => [name.slice(0, index + 1), key])),
+);
+
 export function createTacWithSettings(limits: StreamInspectionLimits): CommandDefinition {
   return command("tac", limits, async session => {
     const arguments_ = getCommandArguments(session.context);
     let separator: Uint8Array = bytesFrom("\n");
-    const parsed = options(session.context.args, "brs:", { before: "b", regex: "r", separator: "s" }, false, undefined, (key, index, offset) => {
+    const parsed = options(session.context.args, "brs:", longOptions, session.context.env.POSIXLY_CORRECT !== undefined, undefined, (key, index, offset) => {
       if (key === "s") {
         separator = arguments_.bytes(index)!.subarray(offset);
       }

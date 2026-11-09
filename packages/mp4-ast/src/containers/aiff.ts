@@ -145,11 +145,15 @@ export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions
       !Number.isSafeInteger(sampleRate) || sampleRate < 1 || sampleRate > 0xffffffff || frames > 0xffffffff) {
     throw new Error("Invalid AIFF audio dimensions");
   }
-  const title = new TextEncoder().encode((options.metadata ?? doc.metadata).title ?? "");
+  const metadata = options.metadata ?? doc.metadata;
+  const textChunks = [
+    ["NAME", metadata.title], ["AUTH", metadata.custom?.author],
+    ["(c) ", metadata.copyright], ["ANNO", metadata.comment]
+  ].flatMap(([id, value]) => value ? [{ id: id!, data: new TextEncoder().encode(value) }] : []);
   const compression = ima ? "ima4" : g711 ? (codec === "pcm_alaw" ? "alaw" : "ulaw") : codec === "pcm_s16le" ? "sowt" : codec.startsWith("pcm_f") ? `fl${bits}` : undefined;
   const comm = compression ? 24 : 12;
-  const titleOffset = comm + (compression ? 32 : 26);
-  const sound = titleOffset + (title.length ? 8 + title.length + title.length % 2 : 0);
+  let textOffset = comm + (compression ? 32 : 26);
+  const sound = textOffset + textChunks.reduce((sum, chunk) => sum + 8 + chunk.data.length + chunk.data.length % 2, 0);
   const id3Offset = sound + 16 + data.length + data.length % 2;
   const size = id3Offset + (id3 ? 8 + id3.length + id3.length % 2 : 0);
   if (size - 8 > 0xffffffff) throw new Error("AIFF output exceeds FORM size limit");
@@ -169,9 +173,10 @@ export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions
   view.setUint32(comm + 18, Math.floor(mantissa / 2 ** 32)); view.setUint32(comm + 22, mantissa % 2 ** 32);
   text(sound, "SSND"); view.setUint32(sound + 4, data.length + 8);
   bytes.set(data, sound + 16);
-  if (title.length) {
-    text(titleOffset, "NAME"); view.setUint32(titleOffset + 4, title.length);
-    bytes.set(title, titleOffset + 8);
+  for (const chunk of textChunks) {
+    text(textOffset, chunk.id); view.setUint32(textOffset + 4, chunk.data.length);
+    bytes.set(chunk.data, textOffset + 8);
+    textOffset += 8 + chunk.data.length + chunk.data.length % 2;
   }
   if (id3) {
     text(id3Offset, "ID3 "); view.setUint32(id3Offset + 4, id3.length);

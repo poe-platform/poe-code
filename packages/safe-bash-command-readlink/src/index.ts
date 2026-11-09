@@ -55,7 +55,7 @@ export function createReadlinkCommand(configuration: ReadlinkCommandsOptions = {
         }
         await output(context, result + (parsed.flags.has("n") && parsed.operands.length === 1 ? "" : parsed.flags.has("z") ? "\0" : "\n"));
       });
-    });
+    }, 1, 1);
  return definition;
 }
 export function createReadlinkCommands(options: ReadlinkCommandsOptions = {}): readonly CommandDefinition[] { return [createReadlinkCommand(options)]; }

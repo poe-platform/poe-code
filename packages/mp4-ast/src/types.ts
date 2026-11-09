@@ -707,6 +707,8 @@ export interface SerializeMediaOptions {
   readonly sampleFormat?: string | undefined;
   /** FLAC samples per frame, 16–65535; 0 selects the default (2048). */
   readonly frameSize?: number | undefined;
+  /** IMA WAV encoder block bytes: power of two from 32 through 8192 (default: 1024). */
+  readonly blockSize?: number | undefined;
   /** FLAC stereo decorrelation: indep, left_side, right_side or mid_side. */
   readonly channelMode?: string | undefined;
   /** FLAC compression effort, 0–12; -1 selects the default. */

@@ -182,7 +182,7 @@ Copy PCM audio into native-readable NUT with `ffmpeg -i input.wav -c copy output
 Read and write Sun AU audio with `ffmpeg -i input.wav output.au` or
 `ffmpeg -i input.au -c:a pcm_s16le output.wav`. AU defaults to big-endian PCM16.
 
-Decode mono or stereo Microsoft ADPCM WAV (`adpcm_ms`) to PCM, including padded final blocks. Encode mono or stereo IMA ADPCM WAV with `-c:a adpcm_ima_wav output.wav`. Three-channel input defaults to stereo; an explicit output `-ac 3` is rejected.
+Decode mono or stereo Microsoft ADPCM WAV (`adpcm_ms`) to PCM, including padded final blocks. Encode mono or stereo IMA ADPCM WAV with `-c:a adpcm_ima_wav output.wav`; `-block_size` selects a power-of-two block size from 32 through 8192 bytes (default: 1024). Three-channel input defaults to stereo; an explicit output `-ac 3` is rejected.
 
 MP3 output supports `-id3v2_version 0|3|4` (default `4`; `0` omits ID3v2) and `-write_id3v1 0|1` (default `0`). Stream copy preserves audio packets while rewriting tags.
 

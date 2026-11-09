@@ -763,7 +763,10 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     new DataView(factBytes.buffer).setUint32(0, codec === "aac"
       ? decodedAudio.channelData[0]!.length + encoded.delay : packets.length * frameSize, true);
   } else if (decodedAudio && options.audioCodec === "adpcm_ima_wav") {
-    const blockAlign = 1024;
+    const blockAlign = options.blockSize ?? 1024;
+    if (!Number.isInteger(blockAlign) || blockAlign < 32 || blockAlign > 8192 || (blockAlign & (blockAlign - 1)) !== 0) {
+      throw new Error("Invalid block_size: expected a power of two from 32 to 8192");
+    }
     const frames = imaBlockFrames(blockAlign, channels);
     pcmBytes = encodeImaWav(decodedAudio.channelData, blockAlign);
     formatBytes = new Uint8Array(20);

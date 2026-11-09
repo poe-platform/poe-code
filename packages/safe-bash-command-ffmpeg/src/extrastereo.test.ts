@@ -15,6 +15,15 @@ for (const [expression, expected] of [
   ["m=10", [[23500, 24500, 25500, 26500], [-26500, -25500, -24500, -23500]]],
   ["m=10,volume=2,extrastereo=m=1:c=0,volume=0.5", [[23500, 24500, 25500, 26500], [-26500, -25500, -24500, -23500]]],
   ["m=10,volume=2,extrastereo=1:1,volume=0.5", [[16384, 16384, 16384, 16384], [-16384, -16384, -16384, -16384]]],
+  ...["true", "True", "TRUE", "YeS", "ON", "Y", "Enable", "ENABLED", "+01"].flatMap(value => [
+    [`m=10,volume=2,extrastereo=m=1:c=${value},volume=0.5`, [[16384, 16384, 16384, 16384], [-16384, -16384, -16384, -16384]]] as const,
+    [`m=10,volume=2,extrastereo=1:${value},volume=0.5`, [[16384, 16384, 16384, 16384], [-16384, -16384, -16384, -16384]]] as const
+  ]),
+  ...["false", "False", "FALSE", "No", "OFF", "N", "Disable", "DISABLED", "-0", ""].flatMap(value => [
+    [`m=10,volume=2,extrastereo=m=1:c=${value},volume=0.5`, [[23500, 24500, 25500, 26500], [-26500, -25500, -24500, -23500]]] as const,
+    [`m=10,volume=2,extrastereo=1:${value},volume=0.5`, [[23500, 24500, 25500, 26500], [-26500, -25500, -24500, -23500]]] as const
+  ]),
+  ...["2", "-1", "auto", "1.0", "0x1", "1e0", "+", "Trueish", "Nope"].map(value => [`c=${value}`, null] as const),
   ["m=NaN", null],
   ["m=11", null],
   ["c=invalid", null],

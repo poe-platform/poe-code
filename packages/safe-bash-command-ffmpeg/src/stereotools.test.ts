@@ -15,6 +15,17 @@ for (const [expression, expected] of [
   ["phasel=yes", [left.map(x => -x), right]],
   ["phaser=1", [left, right.map(x => -x)]],
   ["mutel=0:muter=false:phasel=no:phaser=off", [left, right]],
+  ...["true", "True", "TRUE", "YeS", "ON", "Y", "Enable", "ENABLED", "+01"].flatMap(value => [
+    [`mutel=${value}`, [[0, 0, 0, 0], right]] as const,
+    [`muter=${value}`, [left, [0, 0, 0, 0]]] as const,
+    [`phasel=${value}`, [left.map(x => -x), right]] as const,
+    [`phaser=${value}`, [left, right.map(x => -x)]] as const
+  ]),
+  ...["false", "False", "FALSE", "No", "OFF", "N", "Disable", "DISABLED", "-0", ""].map(value => [
+    `mutel=${value}:muter=${value}:phasel=${value}:phaser=${value}`, [left, right]
+  ] as const),
+  ...["mutel", "muter", "phasel", "phaser"].flatMap(key =>
+    ["2", "-1", "auto", "1.0", "0x1", "1e0", "+", "Trueish", "Nope"].map(value => [`${key}=${value}`, undefined] as const)),
   ["mode=lr>lr", [left, right]],
   ["mode=lr>ms", [[-1500, -500, 500, 1500], [2500, 2500, 2500, 2500]]],
   ["mode=ms>lr", [[-3000, -1000, 1000, 3000], [5000, 5000, 5000, 5000]]],
@@ -33,6 +44,8 @@ for (const [expression, expected] of [
   ["mode=11", undefined],
   ["mode=1.5", undefined],
   ["mode=unknown", undefined],
+  ["mode=LR>LR", undefined],
+  ["MUTEL=True", undefined],
   ["delay=1", undefined]
 ] as const) {
   for (const complex of [false, true]) {

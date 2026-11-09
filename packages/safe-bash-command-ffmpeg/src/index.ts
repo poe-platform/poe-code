@@ -942,6 +942,19 @@ async function renderBitmapTextToRgba(
   return out;
 }
 
+function parseFilterBoolean(value: string, error: string): boolean {
+  const word = value.toLowerCase();
+  if (["true", "y", "yes", "enable", "enabled", "on"].includes(word)) return true;
+  if (["false", "n", "no", "disable", "disabled", "off", ""].includes(word)) return false;
+  const digits = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
+  const number = Number(value);
+  if (!digits.length || ![...digits].every(char => char >= "0" && char <= "9") ||
+      (number !== 0 && number !== 1)) {
+    throw new Error(error);
+  }
+  return number === 1;
+}
+
 function parseFilterChain(filterChainStr: string): string[] {
   const filters: string[] = [];
   let filter = "";
@@ -8723,10 +8736,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error("extrastereo: m must be in the range [-10, 10]");
                             }
                           } else if (key === "c") {
-                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value)) {
-                              throw new Error("extrastereo: invalid clipping option");
-                            }
-                            clip = ["1", "true", "yes", "on"].includes(value);
+                            clip = parseFilterBoolean(value, "extrastereo: invalid clipping option");
                           } else throw new Error(`extrastereo: unsupported option ${key}`);
                         }
                         if (stretched.length !== 2) throw new Error("extrastereo: stereo input required");
@@ -8998,10 +9008,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error("stereotools: invalid mode");
                             }
                           } else if (key === "mutel" || key === "muter" || key === "phasel" || key === "phaser") {
-                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value)) {
-                              throw new Error(`stereotools: invalid ${key}`);
-                            }
-                            flags[key] = ["1", "true", "yes", "on"].includes(value);
+                            flags[key] = parseFilterBoolean(value, `stereotools: invalid ${key}`);
                           } else {
                             throw new Error(`stereotools: unsupported option ${key}`);
                           }

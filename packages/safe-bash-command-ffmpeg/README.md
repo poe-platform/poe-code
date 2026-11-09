@@ -788,10 +788,11 @@ Single-input filters on either branch run before multiplication, for example
 `[0:a][1:a]amerge=inputs=2[out]` merges two inputs at the same sample rate,
 ending with the shorter input. Disjoint speaker layouts are combined in speaker
 order: FR plus FL produces stereo ordered FL, FR; mono center plus stereo
-produces 3.0 ordered FL, FR, FC. Two mono inputs with overlapping speaker positions
-produce stereo in input order. `amerge` defaults to two inputs; filters after the
-merge are supported. Overlapping multichannel layouts and filters before the
-merge are currently unsupported.
+produces 3.0 ordered FL, FR, FC. Overlapping speaker layouts concatenate channels
+in input order using the default layout for the total channel count: two mono
+inputs produce stereo, and two stereo inputs produce 4.0 (WAV mask `0x107`).
+`amerge` defaults to two inputs; filters after the merge are supported. Filters
+before the merge are currently unsupported.
 Named instances such as `acrossfade@join=ns=4` and `amerge@pair=inputs=2`
 use the same input handling and options as their unnamed forms.
 

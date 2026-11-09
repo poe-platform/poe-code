@@ -1605,15 +1605,15 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const b = sources[1]!.track.decodedAudio;
         if (!a || !b) throw new Error("amerge requires decoded PCM audio");
         if (a.sampleRate !== b.sampleRate) throw new Error("amerge requires matching sample rates");
-        const masks = [a, b].map(audio => audio.channelMask ||
-          [0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][audio.channels] || 0);
+        const defaultMasks = [0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f];
+        const masks = [a, b].map(audio => audio.channelMask || defaultMasks[audio.channels] || 0);
         const inputs = [a, b].flatMap((audio, input) => {
           const speakers = Array.from({ length: 32 }, (_, bit) => 2 ** bit)
             .filter(speaker => (masks[input]! & speaker) !== 0);
           if (speakers.length !== audio.channels) throw new Error("amerge requires known speaker layouts");
           return audio.channelData.map((samples, channel) => ({ samples, speaker: speakers[channel]! }));
         });
-        let channelMask = 3;
+        let channelMask = defaultMasks[inputs.length] ?? 0;
         if ((masks[0]! & masks[1]!) === 0) {
           inputs.sort((left, right) => left.speaker - right.speaker);
           channelMask = (masks[0]! | masks[1]!) >>> 0;

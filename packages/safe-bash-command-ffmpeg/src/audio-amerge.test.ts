@@ -68,6 +68,8 @@ for (const reverse of [false, true]) {
 const left = [100, 200, 300, 400, 500, 600];
 const right = [-1100, -1200, -1300, -1400];
 const center = [2100, 2200, 2300, 2400, 2500];
+const stereoA = [-4000, 8000].map(sample => Array<number>(4096).fill(sample));
+const stereoB = [1000, 2000].map(sample => Array<number>(2048).fill(sample));
 
 for (const { name, masks, channels, expected, outputMask } of [
   { name: "FR and FL", masks: [2, 1], channels: [[right], [left]], expected: [left, right], outputMask: 3 },
@@ -78,7 +80,11 @@ for (const { name, masks, channels, expected, outputMask } of [
   { name: "back and front stereo", masks: [0x30, 3], channels: [[right, right], [left, left]],
     expected: [left, left, right, right], outputMask: 0x33 },
   { name: "overlapping FR", masks: [2, 2], channels: [[right], [left]],
-    expected: [right, left], outputMask: 3 }
+    expected: [right, left], outputMask: 3 },
+  { name: "overlapping stereo", masks: [3, 3], channels: [stereoA, stereoB],
+    expected: [...stereoA, ...stereoB], outputMask: 0x107 },
+  { name: "stereo and overlapping FL", masks: [3, 1], channels: [[left.slice(0, 4), right], [center]],
+    expected: [left, right, center], outputMask: 0xb }
 ]) {
   for (const reverse of [false, true]) {
     for (const gain of [1, 0.5]) {
@@ -99,7 +105,7 @@ for (const { name, masks, channels, expected, outputMask } of [
         assert.equal(result.exitCode, 0, result.stderr);
         const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
         const length = Math.min(...channels.flat().map(samples => samples.length));
-        const ordered = masks[0] === masks[1] && reverse ? [...expected].reverse() : expected;
+        const ordered = (masks[0]! & masks[1]!) !== 0 && reverse ? [...channels].reverse().flat() : expected;
         assert.equal(audio.channels, expected.length);
         assert.equal(audio.channelMask ?? 3, outputMask);
         assert.equal(audio.sampleRate, 8000);

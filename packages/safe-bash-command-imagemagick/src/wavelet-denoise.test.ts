@@ -2,7 +2,34 @@ import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runMogrifyCli } from "./index.js";
+import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runMogrifyCli } from "./index.js";
+
+for (const mode of ["command", "memory"] as const)
+it.each(["0b10", "0o10", "0", "6%"])(`validates threshold %s before replacing the destination (${mode})`, async threshold => {
+    const input = await sharp(new Uint8Array(8 * 8 * 4).fill(255), { raw: { width: 8, height: 8, channels: 4 } }).png().toBuffer();
+    const keep = new TextEncoder().encode("KEEP");
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", input);
+    await fs.writeFile("/out.png", keep);
+    const files = new Map([["/input.png", input], ["/out.png", keep]]);
+    const args = ["/input.png", "-wavelet-denoise", threshold, "PNG32:/out.png"];
+    const argumentValues = createCommandArguments(args);
+    const context = {
+        command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write() {} }, registerCleanup() {}
+    } as unknown as CommandContext;
+    const result = mode === "command" ? await createMagickCommand().execute(context) : await runConvertCli(args, files);
+    const output = mode === "command" ? await fs.readFile("/out.png") : files.get("/out.png")!;
+    if (threshold === "0" || threshold === "6%") {
+        expect(result.exitCode).toBe(0);
+        expect(decodeImage(output).data).toEqual(new Uint8Array(8 * 8 * 4).fill(255));
+    } else {
+        expect(result.exitCode).not.toBe(0);
+        expect(output).toEqual(keep);
+    }
+});
 
 for (const retained of [false, true]) for (const mogrify of [false, true])
 it.each(["impulse", "zero", "constant", "softness", "quantum"])(`denoises %s like native ImageMagick (retained=${retained}, mogrify=${mogrify})`, async kind => {

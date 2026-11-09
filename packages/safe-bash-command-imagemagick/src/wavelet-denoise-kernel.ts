@@ -6,7 +6,7 @@ export function* waveletDenoisePixelSteps(image: { width: number; height: number
     const scale = geometry.includes("%") ? 65535 / 100 : 1;
     const threshold = Number(thresholdText) * scale;
     const softness = Number(softnessText) * scale;
-    if (!thresholdText || extra.length || !Number.isFinite(threshold) || !Number.isFinite(softness)) throw new Error("Invalid wavelet denoise geometry");
+    if (!thresholdText.trim() || !Array.from(thresholdText.trim()).every(char => "0123456789.eE+-".includes(char)) || extra.length || !Number.isFinite(threshold) || !Number.isFinite(softness)) throw new Error("Invalid wavelet denoise geometry");
     const { width, height } = image, size = width * height;
     const noise = [0.8002, 0.2735, 0.1202, 0.0585, 0.0291];
     let levels = 5;

@@ -572,11 +572,32 @@ export function aacAst(): MediaAstPlugin {
     serialize: serializeAacAdts,
     probe(bytes, options) {
       const doc = parseAacAdts(bytes);
-      const probe = buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.aac", {
+      const result = buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.aac", {
         ...options,
         formatName: "aac",
         formatLongName: "raw ADTS AAC (Advanced Audio Coding)"
       });
+      // FFmpeg's ADTS demuxer clock is common to every AAC sample rate.
+      // Rescale probe ticks only; seconds, decoded samples and parsed media stay intact.
+      const timeBase = 28224000;
+      const scale = timeBase / doc.tracks[0]!.timescale;
+      const probe = {
+        ...result,
+        streams: result.streams.map(stream => ({
+          ...stream, time_base: `1/${timeBase}`,
+          start_pts: stream.start_pts! * scale, duration_ts: stream.duration_ts! * scale
+        })),
+        packets: result.packets?.map(packet => ({
+          ...packet, pts: packet.pts * scale, dts: packet.dts * scale,
+          duration: packet.duration! * scale
+        })),
+        frames: result.frames?.map(frame => ({
+          ...frame, pts: frame.pts * scale, pkt_dts: frame.pkt_dts! * scale,
+          best_effort_timestamp: frame.best_effort_timestamp! * scale,
+          pkt_duration: frame.pkt_duration! * scale,
+          duration: frame.pkt_duration! * scale, duration_time: frame.pkt_duration_time!
+        }))
+      };
       if (!probe.packets) return probe;
       // Demuxed AAC samples omit ADTS headers; ffprobe packets include them.
       const frames = parseAdtsStream(bytes, true).frames;

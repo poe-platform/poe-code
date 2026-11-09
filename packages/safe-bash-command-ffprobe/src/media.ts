@@ -390,7 +390,8 @@ function createStreamSelector(selectStreams: string | undefined, programs: Probe
         if (stream.codec_type === "video" && (!stream.width || !stream.height
           || !stream.pix_fmt || stream.pix_fmt === "unknown")) return false;
       }
-      if (streamId !== undefined && (stream.id === undefined || Number(stream.id) !== streamId)) return false;
+      // An omitted display ID still has ffprobe's default stream ID of zero.
+      if (streamId !== undefined && Number(stream.id ?? 0) !== streamId) return false;
       if (spec.startsWith("m:")) {
         const [key, ...value] = spec.slice(2).split(":");
         const tag = Object.entries(stream.tags ?? {}).find(([name]) => name.toLowerCase() === key!.toLowerCase());

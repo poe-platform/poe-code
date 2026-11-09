@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 
 export async function acrossfadeAudio(
   first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -22,7 +23,7 @@ export async function acrossfadeAudio(
       samples = Number(value);
       if (!Number.isSafeInteger(samples) || samples < 1 || samples > 214748364) throw new Error("acrossfade: invalid sample count");
     } else if (key === "d" || key === "duration") {
-      duration = Number(value);
+      duration = parseHlsDuration(value);
       if (!value || !Number.isFinite(duration) || duration < 0) throw new Error("acrossfade: invalid duration");
     } else if (key === "o" || key === "overlap") {
       if (!["0", "1", "false", "true"].includes(value)) throw new Error("acrossfade: invalid overlap");

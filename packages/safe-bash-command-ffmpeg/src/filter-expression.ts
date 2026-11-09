@@ -52,6 +52,9 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else if (name === "if" && args.length === 3) value = args[0] !== 0 ? args[1]! : args[2]!;
         else if (name === "gt" && args.length === 2) value = Number(args[0]! > args[1]!);
         else if (name === "mod" && args.length === 2) value = args[0]! - Math.floor(args[0]! / args[1]!) * args[1]!;
+        else if (name === "min" && args.length === 2) value = Math.min(args[0]!, args[1]!);
+        else if (name === "max" && args.length === 2) value = Math.max(args[0]!, args[1]!);
+        else if (name === "clip" && args.length === 3) value = args[1]! > args[2]! ? NaN : Math.max(args[1]!, Math.min(args[2]!, args[0]!));
         else if (name === "between" && args.length === 3) value = Number(args[0]! >= args[1]! && args[0]! <= args[2]!);
         else throw new Error(`${filter}: invalid or unsupported expression`);
       } else {

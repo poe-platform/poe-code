@@ -80,6 +80,7 @@ test("byte command composition regressions remain in active discovery", () => {
 test("shell builtin parity regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/builtin-parity.test.ts"));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/function-prefix-unset.test.ts"));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/bash-source.test.ts"));
 });
 

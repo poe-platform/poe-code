@@ -891,6 +891,7 @@ export interface SavedVariable {
   readOnly?: boolean;
   getopts?: GetoptsBinding;
   superseded?: boolean;
+  functionPrefix?: boolean;
 }
 interface TypedSavedVariable {
   readonly owner: ArrayOwner;
@@ -6525,6 +6526,7 @@ export class Runtime {
           const functionRestoration = stateMonitor(state)?.restoration(true);
           let getoptsRestoration: Restoration | undefined;
           const locals = new Map<string, SavedVariable>();
+          const hasAssignments = assignments.size > 0;
           const callerSetOptions = state.localSetOptions;
           try {
             getoptsRestoration = stateMonitor(state)?.restoration();
@@ -6537,6 +6539,12 @@ export class Runtime {
               this.replacePositionals(state, context.argumentValues.values, () => { state.positional = preparedArguments; });
               state.functionDepth++;
               state.depth++;
+              // Prefix bindings sit outside the function's explicit locals so
+              // unset can remove them and expose the caller's saved binding.
+              if (hasAssignments) {
+                for (const saved of assignments.values()) saved.functionPrefix = true;
+                stack.push(assignments);
+              }
               stack.push(preparedLocals);
               state.localSetOptions = undefined;
               const rawState = stateMonitor(state)?.raw ?? state;
@@ -6628,6 +6636,7 @@ export class Runtime {
               }
               state.localSetOptions = callerSetOptions;
               state.locals.pop();
+              if (hasAssignments) state.locals.pop();
               const rawState = stateMonitor(state)?.raw ?? state;
               rawState.functionNames?.shift();
               rawState.sourceNames?.shift();
@@ -9165,8 +9174,16 @@ export class Runtime {
           }
         }
         if (enclosingFrame) {
-          const saved = enclosingFrame.get(resolved)!;
+          let saved = enclosingFrame.get(resolved)!;
           enclosingFrame.delete(resolved);
+          const prefixFrame = state.locals[state.locals.indexOf(enclosingFrame) - 1];
+          const prefix = prefixFrame?.get(resolved);
+          if (prefix?.functionPrefix) {
+            // An explicit local redeclares its function prefix in the same scope.
+            prefixFrame!.delete(resolved);
+            await this.discardVariable(saved);
+            saved = prefix;
+          }
           await restoreVariable(state, resolved, saved);
           continue;
         }

@@ -652,6 +652,32 @@ test("wave 100 sync loop: multi-stage pipeline sort -u, head -c, cut ranges, awk
   }
 });
 
+for (const [args, expected] of [
+  ["-sa dir/pasta dir/jazz", "past\njazz"],
+  ["-sz dir/jazz dir/pasta", "jaz\npasta"],
+  ["-s a dir/pasta dir/jazz", "past\njazz"],
+  ["--suffix=a dir/pasta dir/jazz", "past\njazz"],
+  ["-as a dir/pasta dir/jazz", "past\njazz"],
+] as const) {
+  test(`basename suffix options preserve filenames: ${args}`, async context => {
+    const { createStandardCommands } = await import("../../src/commands/index.js");
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+    context.after(() => shell.dispose());
+    const capture = `v=$(basename ${args}); rc=$?; printf '%s:<%s>' "$rc" "$v"`;
+    for (const [source, stdout] of [
+      [`basename ${args}`, `${expected}\n`],
+      [capture, `0:<${expected}>`],
+      [`v=$(basename ${args} | cat); rc=$?; printf '%s:<%s>' "$rc" "$v"`, `0:<${expected}>`],
+      [`for ((i=0; i<3; i++)); do ${capture}; done`, `0:<${expected}>`.repeat(3)],
+    ] as const) {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, source);
+      assert.equal(result.stderr, "", source);
+      assert.equal(result.stdout, stdout, source);
+    }
+  });
+}
+
 test("wave 101 sync loop: basename --/-a/-s, dirname --/multi-arg, and wc -m/-L", async () => {
   const { createStandardCommands } = await import("../../src/commands/index.js");
   const commands = new CommandRegistry(createStandardCommands());

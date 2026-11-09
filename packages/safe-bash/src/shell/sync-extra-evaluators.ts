@@ -6115,7 +6115,7 @@ const syncExtraRuntimeMethods = {
       if (a === "-a" || a === "--multiple") { multiple = true; continue; }
       if (a === "-z" || a === "--zero") { zero = true; continue; }
       if (a === "-az" || a === "-za") { multiple = true; zero = true; continue; }
-      if ((a === "-s" || a === "--suffix" || a === "-as" || a === "-sa" || a === "-zs" || a === "-sz") && idx + 1 < args.length) {
+      if ((a === "-s" || a === "--suffix" || a === "-as" || a === "-zs") && idx + 1 < args.length) {
         multiple = true;
         if (a.includes("z")) zero = true;
         suffix = args[++idx]!;

@@ -1577,45 +1577,55 @@ function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, vo
     return lines.join("\n") + "\n";
 }
 
-function writeGradientPixel(data: Uint8Array, offset: number, first: RgbaColor, last: RgbaColor, t: number): void {
+function writeGradientPixel(data: Uint8Array, samples: Uint16Array, offset: number, first: RgbaColor, last: RgbaColor, t: number): void {
     const firstAlpha = first.a * (1 - t);
     const lastAlpha = last.a * t;
     const alpha = firstAlpha + lastAlpha;
     const divisor = alpha || 1;
-    data[offset] = clampByteVal((first.r * firstAlpha + last.r * lastAlpha) / divisor);
-    data[offset + 1] = clampByteVal((first.g * firstAlpha + last.g * lastAlpha) / divisor);
-    data[offset + 2] = clampByteVal((first.b * firstAlpha + last.b * lastAlpha) / divisor);
-    data[offset + 3] = clampByteVal(alpha);
+    samples[offset] = Math.round((first.r * firstAlpha + last.r * lastAlpha) / divisor * 257);
+    data[offset] = clampByteVal(samples[offset]! / 257);
+    samples[offset + 1] = Math.round((first.g * firstAlpha + last.g * lastAlpha) / divisor * 257);
+    data[offset + 1] = clampByteVal(samples[offset + 1]! / 257);
+    samples[offset + 2] = Math.round((first.b * firstAlpha + last.b * lastAlpha) / divisor * 257);
+    data[offset + 2] = clampByteVal(samples[offset + 2]! / 257);
+    samples[offset + 3] = Math.round(alpha * 257);
+    data[offset + 3] = clampByteVal(samples[offset + 3]! / 257);
 }
-function* createGradientImageSteps(width: number, height: number, c1: RgbaColor, c2: RgbaColor, radial: boolean): Generator<void, RgbaImage, void> {
+function* createGradientImageSteps(width: number, height: number, c1: RgbaColor, c2: RgbaColor, radial: boolean, direction?: string, angle?: number): Generator<void, RgbaImage, void> {
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
     const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
+    const data16 = new Uint16Array(w * h * 4);
     if (!radial) {
+        const u64 = new BigUint64Array(data16.buffer);
         const u32 = new Uint32Array(data.buffer, 0, w * h);
         const tmp = new Uint8Array(4);
+        const samples = new Uint16Array(4);
+        const tmp64 = new BigUint64Array(samples.buffer);
         const tmp32 = new Uint32Array(tmp.buffer);
         const steps = h === 1 ? w : h;
         const span = h === 1 ? 1 : w;
         for (let i = 0; i < steps; i++) {
             const t = steps <= 1 ? 0 : i / (steps - 1);
-            writeGradientPixel(tmp, 0, c1, c2, t);
+            writeGradientPixel(tmp, samples, 0, c1, c2, t);
+            u64.fill(tmp64[0]!, i * span, (i + 1) * span);
             u32.fill(tmp32[0]!, i * span, (i + 1) * span);
         }
     } else {
         const cx = (w - 1) / 2;
         const cy = (h - 1) / 2;
         const maxR = Math.max(1, Math.hypot(cx, cy));
+        const projection = gradientProjection(w, h, direction, angle);
         for (let y = 0; y < h; y++) {
             if (++work % 16384 === 0)
                 yield;
             for (let x = 0; x < w; x++) {
                 if (++work % 16384 === 0)
                     yield;
-                const t = Math.min(1, Math.hypot(x - cx, y - cy) / maxR);
+                const t = radial ? Math.min(1, Math.hypot(x - cx, y - cy) / maxR) : Math.max(0, Math.min(1, projection.offset + x * projection.x + y * projection.y));
                 const idx = (y * w + x) * 4;
-                writeGradientPixel(data, idx, c1, c2, t);
+                writeGradientPixel(data, data16, idx, c1, c2, t);
             }
         }
     }
@@ -1628,7 +1638,8 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
         density: 72,
         space: "srgb",
         hasAlpha: c1.a < 255 || c2.a < 255,
-        data
+        data,
+        data16
     };
 }
 
@@ -10582,19 +10593,22 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(lower.startsWith("gradient:")||lower.startsWith("radial-gradient:")||lower.startsWith("pattern:")||lower.startsWith("plasma:")){
   const width=Math.max(1,Math.round(state.sizeWidth)),height=Math.max(1,Math.round(state.sizeHeight)),position=backend.storage.allocate(width*height*4);
   const checker=lower.startsWith("pattern:")||lower.startsWith("plasma:"),radial=lower.startsWith("radial-gradient:");
+  const storedData16=checker?undefined:{position:backend.storage.allocate(width*height*8),length:width*height*4};
   const [first,last]=baseToken.slice(baseToken.indexOf(":")+1).split("-"),a=parseColor(checker?"white":first||"#ffffff"),b=parseColor(checker?"black":last||"#000000");
   const cx=(width-1)/2,cy=(height-1)/2,radius=Math.max(1,Math.hypot(cx,cy));
+  const projection=gradientProjection(width,height,state.gradientDirection,state.gradientAngle);
   for(let start=0;start<width*height;start+=4096){
    if(start%262144===0)await yieldTurn(signal);
-   const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4);
+   const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4);
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
     if(checker){const cell=((Math.floor(x/8)+Math.floor(y/8))&1)===0?102:153;bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
-    else{const t=radial?Math.min(1,Math.hypot(x-cx,y-cy)/radius):height===1?(width<=1?0:x/(width-1)):y/(height-1);writeGradientPixel(bytes,offset,a,b,t);}
+    else{const t=radial?Math.min(1,Math.hypot(x-cx,y-cy)/radius):Math.max(0,Math.min(1,projection.offset+x*projection.x+y*projection.y));writeGradientPixel(bytes,samples!,offset,a,b,t);}
    }
    await backend.storage.write(position+start*4,bytes);
+   if(storedData16&&samples)await backend.storage.write(storedData16.position+start*8,new Uint8Array(samples.buffer));
   }
-  image={position,width,height,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
+  image={position,width,height,...(storedData16?{storedData16}:{}),format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   image=await decodeStoredMagickSvg(createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),state.density,backend,signal);
  }else{

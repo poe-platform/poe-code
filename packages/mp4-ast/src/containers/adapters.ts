@@ -786,7 +786,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     samples.push({ data: pcmData, offset: header.dataOffset, dts: 0, pts: 0, cts: 0, duration: 0,
       size: pcmData.length, isKeyframe: true, sampleDescriptionIndex: 1 });
   }
-  let doc = wavDocument(header, samples, decodedAudio, bytes);
+  let doc = wavDocument(header, samples, options.seekable, decodedAudio, bytes);
   if (!options.ignoreLength && !compressed && header.declaredDataSize !== undefined && pcmData.length < header.declaredDataSize &&
       pcmData.length % (chunkFrames * bytesPerFrame) !== 0) {
     doc = { ...doc, tracks: doc.tracks.map(track => ({ ...track,
@@ -808,7 +808,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   return doc;
 }
 
-function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: MediaAudioData, bytes?: Uint8Array): MediaDocument {
+function wavDocument(header: WavHeader, samples: MediaSample[], seekable = true, decodedAudio?: MediaAudioData, bytes?: Uint8Array): MediaDocument {
   const { formatTag, channels, sampleRate, bitsPerSample, byteLength } = header;
   // ffprobe estimates block ADPCM stream duration from coded bits, including block headers.
   // Decoded audio and individual packet durations still use the actual block sample counts.
@@ -823,9 +823,11 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
   const durationSeconds = totalPcmSamples / Math.max(1, sampleRate);
   // Resolve distinct starts backwards while preserving the original chapter order.
   const cueEnds = new Map<number, number>();
-  let nextCueStart = totalPcmSamples;
+  // Buffered stdin length does not establish a demuxer duration. A fact chunk
+  // can supply one; otherwise the last cue ends at its own start.
+  let nextCueStart = seekable ? totalPcmSamples : header.factSampleCount || Infinity;
   for (const start of [...new Set(header.cues?.map(cue => cue.start))].sort((a, b) => b - a)) {
-    cueEnds.set(start, Math.max(start, nextCueStart));
+    cueEnds.set(start, Math.max(start, Number.isFinite(nextCueStart) ? nextCueStart : start));
     nextCueStart = Math.min(start, nextCueStart);
   }
   return {
@@ -1296,9 +1298,9 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
 }
 
 /** Metadata-only WAV probing without payload or per-packet allocation. */
-function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResult {
+function wavMetadata(header: WavHeader, filename = "input.wav", seekable = true): MediaProbeResult {
   if (header.channels === 0) throw new Error("Decoder requires channel layout to be set");
-  const doc = wavDocument(header, []);
+  const doc = wavDocument(header, [], seekable);
   const result = buildProbeResultFromDoc(doc, header.byteLength, filename, {
     formatName: header.containerFormat, formatLongName: header.containerFormat === "w64" ? "Sony Wave64" : "WAV / WAVE (Waveform Audio)"
   });
@@ -1309,7 +1311,7 @@ function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResul
 }
 
 function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaProbeRecords {
-  let metadata = wavMetadata(header, options.filename);
+  let metadata = wavMetadata(header, options.filename, options.seekable);
   const stream = metadata.streams[0]!;
   const bytesPerFrame = header.formatTag === 0x45 ? header.bitsPerSample / 8 : header.formatTag === 32 ? header.channels / 2 : Math.max(1, header.bitsPerSample ? header.channels * (header.bitsPerSample >>> 3) : header.blockAlign);
   const samples = header.formatTag === 17 && !options.showFrames ? 0 : wavFrames(header), rate = Math.max(1, header.sampleRate);
@@ -1381,7 +1383,7 @@ export async function probeWavSource(source: MediaProbeSource, options: MediaSou
 export function probeWavStream(source: AsyncIterable<Uint8Array>, options?: WavMetadataOnlyOptions): Promise<MediaProbeResult>;
 export function probeWavStream(source: AsyncIterable<Uint8Array>, options: MediaSourceProbeOptions): Promise<MediaProbeRecords>;
 export async function probeWavStream(source: AsyncIterable<Uint8Array>, options: MediaSourceProbeOptions = {}): Promise<MediaProbeRecords> {
-  return wavRecords(await readWavStreamHeader(source, options.signal, options.ignoreLength, options.seekable), options);
+  return wavRecords(await readWavStreamHeader(source, options.signal, options.ignoreLength, options.seekable), { ...options, seekable: options.seekable ?? false });
 }
 
 export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
@@ -1417,7 +1419,7 @@ export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
         return { ...records, packets: records.packets ? Array.from(records.packets) : undefined,
           frames: records.frames ? Array.from(records.frames) : undefined };
       }
-      const metadata = wavMetadata(header, options?.filename);
+      const metadata = wavMetadata(header, options?.filename, options?.seekable);
       if (!options?.showPackets && !options?.showFrames) return metadata;
       const doc = parseWav(bytes, { ...options, decodeAudio: false });
       return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.wav", {

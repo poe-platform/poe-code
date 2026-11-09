@@ -42,6 +42,9 @@ const expected = [
   { id: 2, time_base: "1/8000", start: 2000, start_time: "0.250000", end: 8000, end_time: "1.000000", tags: { title: "Demo" } }
 ];
 
+const pipeExpected = expected.map(chapter => chapter.id === 2
+  ? { ...chapter, end: chapter.start, end_time: chapter.start_time } : chapter);
+
 for (const labelsFirst of [false, true]) {
   it(`probes cue chapters with labels ${labelsFirst ? "before" : "after"} cues across all WAV readers`, async () => {
     const bytes = wav(labelsFirst);
@@ -49,7 +52,7 @@ for (const labelsFirst of [false, true]) {
     expect((await probeWavSource({ size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } })).chapters).toEqual(expected);
     expect((await probeWavStream((async function* () {
       for (let offset = 0; offset < bytes.length; offset += 7) yield bytes.subarray(offset, offset + 7);
-    })())).chapters).toEqual(expected);
+    })())).chapters).toEqual(pipeExpected);
   });
 }
 
@@ -66,8 +69,8 @@ for (const target of ["/input.wav", "-"]) {
       stderr: { async write(chunk) { throw new Error(new TextDecoder().decode(chunk)); } }
     });
     expect(result.exitCode).toBe(0);
-    expect(JSON.parse(output).chapters).toEqual(expected);
-    expect(JSON.parse(evalSyncFfprobe(target === "-" ? bytes : undefined, args, () => bytes)!).chapters).toEqual(expected);
+    expect(JSON.parse(output).chapters).toEqual(target === "-" ? pipeExpected : expected);
+    expect(JSON.parse(evalSyncFfprobe(target === "-" ? bytes : undefined, args, () => bytes)!).chapters).toEqual(target === "-" ? pipeExpected : expected);
   });
 }
 
@@ -99,7 +102,7 @@ for (const titles of [[], ["", "ok"]]) {
       expect((await probeWavSource({ size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } })).chapters).toEqual(probeChapters);
       expect((await probeWavStream((async function* () {
         for (let offset = 0; offset < bytes.length; offset += 7) yield bytes.subarray(offset, offset + 7);
-      })())).chapters).toEqual(probeChapters);
+      })(), { seekable: true })).chapters).toEqual(probeChapters);
       const fs = new MemoryFileSystem(); await fs.writeFile("/input.wav", bytes);
       let output = "";
       const args = ["-v", "error", "-show_chapters", "-of", "json", "/input.wav"];

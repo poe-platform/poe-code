@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function compandAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -20,16 +21,21 @@ export async function compandAudio(
     if (!value.trim() || !Number.isFinite(parsed) || parsed < min || parsed > max) throw new Error(`compand: invalid value ${value}`);
     return parsed;
   };
+  const numericOption = (key: string, min: number, max: number): number => {
+    const parsed = parseFilterExpression(options[key]!, "compand", {});
+    if (parsed < min || parsed > max) throw new Error(`compand: invalid ${key}`);
+    return parsed;
+  };
   const items = (value: string) => value.split("|").flatMap(part => part.split(" ")).filter(Boolean);
   const attacks = items(options.attacks!).map(value => number(value, 0));
   const decays = items(options.decays!).map(value => number(value, 0));
   if (!attacks.length || !decays.length || Math.min(attacks.length, channels.length) !== Math.min(decays.length, channels.length)) {
     throw new Error("compand: attacks and decays must have matching channel counts");
   }
-  const knee = number(options["soft-knee"]!, 0.01, 900);
-  const gain = number(options.gain!, -900, 900);
-  const initial = 10 ** (number(options.volume!, -900, 0) / 20);
-  if (number(options.delay!, 0, 20) !== 0) throw new Error("compand: nonzero delay is unsupported");
+  const knee = numericOption("soft-knee", 0.01, 900);
+  const gain = numericOption("gain", -900, 900);
+  const initial = 10 ** (numericOption("volume", -900, 0) / 20);
+  if (numericOption("delay", 0, 20) !== 0) throw new Error("compand: nonzero delay is unsupported");
   const points = items(options.points!).map(value => {
     const pair = value.split("/");
     if (pair.length !== 2) throw new Error("compand: expected input/output points");

@@ -199,7 +199,7 @@ export function evalSyncSplit(
     if (args.input === "-" && inBytes === undefined) return undefined;
     const src = args.input === "-" ? inBytes! : readFileSync?.(args.input);
     if (!src) return undefined;
-    const fatalDecoder = new TextDecoder("utf-8", { fatal: true });
+    const fatalDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
     const decodeSyncSlice = (bytes: Uint8Array): string | undefined => {
       if (bytes.includes(0)) return undefined;
       try { return fatalDecoder.decode(bytes); } catch { return undefined; }

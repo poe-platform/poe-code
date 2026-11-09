@@ -5939,7 +5939,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     let end = start;
     const argument = token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";
     const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
-    return { end, highDepth: token !== "-linear-stretch", luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, transform(histogram, image) {
+    return { end, highDepth: true, luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, transform(histogram, image) {
         const levels = histogram[0]!.length;
         const lookup = Array.from({ length: 4 }, () => token !== "-equalize" && levels === 65536
             ? Uint16Array.from({ length: levels }, (_, value) => value)
@@ -5985,9 +5985,9 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];
             for (let channel = 0; channel < 4; channel++) {
                 if (!active[channel]) continue;
-                for (let value = 0; value < 256; value++) lookup[channel]![value] = high === low
-                    ? (value * 257 > low ? 255 : 0)
-                    : clampByteVal((value * 257 - low) / (high - low) * 255);
+                for (let value = 0; value < levels; value++) lookup[channel]![value] = high === low
+                    ? (value * 65535 / (levels - 1) > low ? levels - 1 : 0)
+                    : Math.round(Math.max(0, Math.min(levels - 1, (value * 65535 / (levels - 1) - low) / (high - low) * (levels - 1))));
             }
         } else if (token === "-normalize" || token === "-contrast-stretch") {
             const [black, white] = argument.split("x"), percentage = argument.includes("%");

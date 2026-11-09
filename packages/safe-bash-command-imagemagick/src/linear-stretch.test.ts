@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import sharp, { decodeImage } from "@poe-code/image-ast";
+import sharp, { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
@@ -31,5 +31,30 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect(result).toMatchObject({ exitCode: 0 });
         const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
         expect([...decodeImage(output).data]).toEqual(expected);
+    });
+}
+
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each([
+        { argument: "1x1", channel: [], expected: [0, 21845, 43690, 65535] },
+        { argument: "25%x25%", channel: [], expected: [0, 21845, 43690, 65535] },
+        { argument: "0x0", channel: [], expected: [10000, 10016, 10032, 10048] },
+        { argument: "1x1", channel: ["-channel", "R"], expected: [0, 21845, 43690, 65535] },
+    ])(`preserves low-order samples via ${mode}: %j`, async ({ argument, channel, expected }) => {
+        const samples = [10000, 10016, 10032, 10048].flatMap(value => [value, value, value, 65535]);
+        const input = encodeImage({ width: 4, height: 1,
+            data: Uint8Array.from(samples, value => Math.round(value / 257)), data16: Uint16Array.from(samples),
+            format: "png", space: "srgb", channels: 3, depth: "ushort", density: 72, hasAlpha: false
+        }, { format: "png" }).data;
+        const files = new Map([["input.png", input]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const args = ["input.png", ...channel, "-linear-stretch", argument, "PNG48:out.png"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result).toMatchObject({ exitCode: 0 });
+        const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
+        expect([...decodeImage(output).data16!]).toEqual(samples.map((value, index) =>
+            (channel.length ? index % 4 === 0 : index % 4 < 3) ? expected[Math.floor(index / 4)]! : value));
     });
 }

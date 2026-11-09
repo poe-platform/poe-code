@@ -716,6 +716,32 @@ test("nested SDK invocations inherit masks without changing the caller", async (
 });
 
 
+for (const [operand, mask, fileMode, directoryMode] of [
+  ["g=uo", "0077", 0o600, 0o700],
+  ["g=ou", "0007", 0o660, 0o770],
+  ["g=o", "0077", 0o600, 0o700],
+  ["g=u", "0007", 0o660, 0o770],
+  ["g=ruo", "0077", 0o600, 0o700],
+  ["g=our", "0007", 0o660, 0o770],
+  ["g=or", "0037", 0o640, 0o740],
+  ["g=ro", "0077", 0o600, 0o700],
+  ["g+uo", "0077", 0o600, 0o700],
+  ["g+ou", "0007", 0o660, 0o770],
+] as const) {
+  test(`umask uses the last permission copy source: ${operand}`, async () => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      const result = await shell.exec(`umask 077; umask ${operand}; echo status:$?; umask; : > f; mkdir d`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `status:0\n${mask}\n`);
+      assert.equal((await fs.stat("/f")).mode & 0o777, fileMode);
+      assert.equal((await fs.stat("/d")).mode & 0o777, directoryMode);
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("umask retains symbolic permission copies and multiple operations", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() });
   try {

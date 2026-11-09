@@ -8065,6 +8065,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ) {
                 const rawTrack = doc.tracks[0];
                 const rawCodec = rawTrack?.codecDescriptions[0];
+                const packetFrames = rawTrack?.samples[0]?.duration;
+                if (doc.containerFormat === "wav" && rawTrack?.decodedAudio && packetFrames &&
+                    rawCodec?.codecName?.startsWith("pcm_") && !isStdin(inp.path) && !concatInputSeek &&
+                    startSeconds !== undefined && startSeconds > 0) {
+                  // Seeking a WAV starts a full packet at the selected sample, before filtering.
+                  const bytesPerFrame = rawTrack.samples[0]!.data.length / packetFrames;
+                  const bytes = concatBytes(rawTrack.samples.map(sample => sample.data));
+                  const samples: MediaTrack["samples"][number][] = [];
+                  for (let frame = Math.round(startSeconds * rawTrack.timescale);
+                    frame * bytesPerFrame < bytes.length; frame += packetFrames) {
+                    budget.checkCpu();
+                    const data = bytes.subarray(frame * bytesPerFrame, (frame + packetFrames) * bytesPerFrame);
+                    samples.push({ data, dts: frame, pts: frame, cts: 0, size: data.length,
+                      duration: data.length / bytesPerFrame, isKeyframe: true, sampleDescriptionIndex: 1 });
+                  }
+                  doc = { ...doc, tracks: [{ ...rawTrack, samples }] };
+                }
                 const rawSeek = rawCodec !== undefined && startSeconds !== undefined && startSeconds > 0 &&
                   (audioCodec === "copy" || startSeconds > doc.durationSeconds) &&
                   (rawCodec?.codecName === `pcm_${doc.containerFormat}` ||

@@ -174,9 +174,10 @@ export function commandSpelling(command: Extract<Command, { kind: "simple" | "ar
   } else {
     const redirects = command.redirects.map(redirect => {
       const target = redirect.target.spelling ?? redirect.target.plain ?? "";
-      if (redirect.operator === ">&" || redirect.operator === "<&") return `${redirect.descriptor}${redirect.operator}${target}`;
+      const descriptor = typeof redirect.descriptor === "string" ? `{${redirect.descriptor}}` : redirect.descriptor;
+      if (redirect.operator === ">&" || redirect.operator === "<&") return `${descriptor}${redirect.operator}${target}`;
       const implicit = redirect.operator.startsWith("<") ? 0 : 1;
-      return `${redirect.descriptor === implicit ? "" : redirect.descriptor}${redirect.operator} ${target}`;});
+      return `${descriptor === implicit ? "" : descriptor}${redirect.operator} ${target}`;});
     computed = [...command.words.map(word => word.spelling ?? word.plain ?? ""), ...redirects].join(" ");
   }
   if (Object.isExtensible(command)) {
@@ -4995,6 +4996,7 @@ export class Runtime {
     if (command.redirects.length && !terminal) {
       const frame = execDescriptorFrames.get(execState);
       for (const redirect of command.redirects) {
+        if (typeof redirect.descriptor === "string") continue;
         for (const number of redirect.operator === "&>" || redirect.operator === "&>>" ? [1, 2] : [redirect.descriptor]) {
           if (savedExecDescriptors.has(number)) continue;
           const descriptor = originalIO.descriptors?.get(number)
@@ -5540,7 +5542,22 @@ export class Runtime {
       } finally { allocation.close(); }
     }
   }
-  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
+  private async persistDescriptor(state: State, number: number, descriptor: Descriptor = { closed: true }): Promise<void> {
+    const raw = stateMonitor(state)?.raw ?? state;
+    let frame = execDescriptorFrames.get(raw);
+    if (!frame) {
+      frame = { version: 0, descriptors: new Map(), revisions: new Map(), releases: new Map() };
+      execDescriptorFrames.set(raw, frame);
+      this.budget.executionCleanup.register(() => closeExecDescriptors(raw));
+    }
+    const release = descriptor.lifetime?.acquire();
+    const previousRelease = frame.releases.get(number);
+    if (release) frame.releases.set(number, release); else frame.releases.delete(number);
+    frame.descriptors.set(number, descriptor);
+    frame.revisions.set(number, ++frame.version);
+    await previousRelease?.();
+  }
+  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number, descriptorState = state): Promise<IO> {
     this.signal.throwIfAborted();
     if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
     io.descriptors ??= new Map<number, Descriptor>([
@@ -5562,7 +5579,13 @@ export class Runtime {
     const replaced = new Set<number>();
     const references = new PipeDescriptorFrame(io[invocationScope]);
     inputs.add(references);
+    let variable: string | undefined;
     const replaceDescriptor = async (number: number, next?: Descriptor): Promise<void> => {
+      if (variable && next) {
+        if (number > 255) throw new PublicDiagnostic("Too many open file descriptors");
+        await this.assignVariable(state, variable, String(number), currentIO());
+        await this.persistDescriptor(descriptorState, number, next);
+      }
       const previous = descriptors.get(number)?.pipe;
       if (previous && references.references.has(previous)) await previous.close();
       if (next) descriptors.set(number, next);
@@ -5579,7 +5602,12 @@ export class Runtime {
         ...(io.execFrame === undefined ? {} : { execFrame: io.execFrame }),
         capabilities: io.capabilities, ...(io.argv0 === undefined ? {} : { argv0: io.argv0 }), [invocationScope]: io[invocationScope], ...(io.admittedHandles === undefined ? {} : { admittedHandles: io.admittedHandles }), ...(io.processSignals === undefined ? {} : { processSignals: io.processSignals }), ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }), ...(io.execution === undefined ? {} : { execution: io.execution }), ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }), ...(io.diagnosticOffset === undefined ? {} : { diagnosticOffset: io.diagnosticOffset }), ...(io.assignmentDiagnosticContext === undefined ? {} : { assignmentDiagnosticContext: io.assignmentDiagnosticContext }), ...(io.functionCommandLines === undefined ? {} : { functionCommandLines: io.functionCommandLines }), ...(io.diagnosticCommandLines === undefined ? {} : { diagnosticCommandLines: io.diagnosticCommandLines }), ...(io.scriptName === undefined ? {} : { scriptName: io.scriptName }), ...(io.substitutionDiagnosticLine === undefined ? {} : { substitutionDiagnosticLine: io.substitutionDiagnosticLine }), ...(io.substitutionDiagnosticLines === undefined ? {} : { substitutionDiagnosticLines: io.substitutionDiagnosticLines }), ...(io.processSubstitutions === undefined ? {} : { processSubstitutions: io.processSubstitutions }), stdin: descriptor?.input ?? closedSource, ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }), stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink, stderr: descriptors.get(2)?.closed ? closedSink : descriptors.get(2)?.output ?? closedSink, descriptors, };};
     try { for (const redirect of redirects) {
-      replaced.add(redirect.descriptor);
+      variable = typeof redirect.descriptor === "string" ? redirect.descriptor : undefined;
+      let number = typeof redirect.descriptor === "number" ? redirect.descriptor : 10;
+      if (variable) {
+        while (descriptors.has(number) && !descriptors.get(number)!.closed) number++;
+      }
+      replaced.add(number);
       if (redirect.document || redirect.operator === "<<<") {
         const hereString = redirect.operator === "<<<";
         let value: ShellValue;
@@ -5600,7 +5628,7 @@ export class Runtime {
         const lifetime = new DescriptorLifetime(async () => { try { await input.close(); } finally { await prepared.close(); } });
         inputs.add({ close: () => lifetime.release() });
         io[invocationScope].register(() => lifetime.release());
-        await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false, lifetime });
+        await replaceDescriptor(number, { input, stdinIsDefault: false, lifetime });
         continue;
       }
       const targets = await this.word(redirect.target, state, currentIO());
@@ -5610,7 +5638,14 @@ export class Runtime {
       const bothOutput = redirect.operator === "&>" || redirect.operator === "&>>"
         || redirect.operator === ">&" && !redirect.explicitDescriptor && target !== "-" && !/^\d+-?$/u.test(target);
       if (redirect.operator.endsWith("&") && !bothOutput) {
-        if (target === "-") await replaceDescriptor(redirect.descriptor);
+        if (target === "-") {
+          if (variable) {
+            const value = this.variable(state, variable);
+            if (value === undefined || !/^\d+$/u.test(value) || Number(value) > 255) throw new PublicDiagnostic(`${variable}: ambiguous redirect`);
+            number = Number(value);
+          }
+          await replaceDescriptor(number);
+        }
         else {
           if (!/^\d+-?$/u.test(target)) throw new PublicDiagnostic(`${target}: Bad file descriptor`);
           const move = target.endsWith("-");
@@ -5619,8 +5654,8 @@ export class Runtime {
           const descriptor = descriptors.get(sourceDescriptor);
           if (!descriptor || descriptor.closed || (!move && (redirect.operator === "<&" ? !descriptor.input : !descriptor.output))) throw new PublicDiagnostic(`${move ? sourceDescriptor : target}: Bad file descriptor`);
           const pipe = descriptor.pipe && references.acquire(descriptor.pipe);
-          await replaceDescriptor(redirect.descriptor, { ...descriptor, ...(pipe ? { pipe } : {}) });
-          if (move && sourceDescriptor !== redirect.descriptor) {
+          await replaceDescriptor(number, { ...descriptor, ...(pipe ? { pipe } : {}) });
+          if (move && sourceDescriptor !== number) {
             descriptors.delete(sourceDescriptor);
             if (descriptor.pipe && (references.references.has(descriptor.pipe) || persistMoves && !replaced.has(sourceDescriptor))) await descriptor.pipe.close();
             if (persistMoves && !replaced.has(sourceDescriptor)) descriptor.closed = true;
@@ -5667,7 +5702,7 @@ export class Runtime {
               offset += written;
             }
           } }, this.commandSignal) : undefined;
-          await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false, lifetime, ...(file ? { file } : {}), ...(output ? { output } : {}) });
+          await replaceDescriptor(number, { input, stdinIsDefault: false, lifetime, ...(file ? { file } : {}), ...(output ? { output } : {}) });
         } else {
           const append = redirect.operator === ">>" || redirect.operator === "&>>";
           let flag: "a" | "wx" | "w" = append ? "a" : state.noclobber && redirect.operator !== ">|" ? "wx" : "w";
@@ -5780,7 +5815,7 @@ export class Runtime {
           if (canonical) budgetedSinks.set(output, { budget: this.budget, write: output.write });
           budgetedSinks.get(output)!.file = Object.freeze({ path });
           const binding: Descriptor = { output, lifetime, ...(target.descriptor ? { file: target.descriptor } : {}) };
-          await replaceDescriptor(redirect.descriptor, binding);
+          await replaceDescriptor(number, binding);
           if (bothOutput) {
             replaced.add(2);
             await replaceDescriptor(2, { ...binding });
@@ -6045,7 +6080,7 @@ export class Runtime {
         }
         const epoch = stateMonitor(state)?.epoch;
         try {
-          io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, isolatedInlineInput, !isolatedInlineInput, false, command.line ?? 1);
+          io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, isolatedInlineInput, !isolatedInlineInput, false, command.line ?? 1, state);
           if (parentStore && stateMonitor(state)!.epoch !== epoch) throw new ArrayFailure("stale state snapshot");
         } finally {
           try {
@@ -6089,7 +6124,8 @@ export class Runtime {
       }
       if (!inlineInput && assignments.length > 0) await assign();
       if (fileShortcut) {
-        const input = io.descriptors?.get(command.redirects[0]!.descriptor)?.input;
+        const descriptor = command.redirects[0]!.descriptor;
+        const input = typeof descriptor === "number" ? io.descriptors?.get(descriptor)?.input : undefined;
         if (!input) throw new PublicDiagnostic("Bad file descriptor");
         await pipeBytes(input, io.stdout, this.signal);
         return 0;
@@ -6105,23 +6141,11 @@ export class Runtime {
       if (!words.length) return state.substitutionStatus;
       if (words[declarationIndex] === "exec" && !functionCommand && !state.extensions?.builtins.has("exec")) {
         snapshotHolder.persistentRedirects = true;
-        const raw = stateMonitor(state)?.raw ?? state;
-        let frame = execDescriptorFrames.get(raw);
-        if (!frame) {
-          frame = { version: 0, descriptors: new Map(), revisions: new Map(), releases: new Map() };
-          execDescriptorFrames.set(raw, frame);
-          this.budget.executionCleanup.register(() => closeExecDescriptors(raw));
-        }
         for (const redirect of command.redirects) {
-          const numbers = redirect.operator === "&>" || redirect.operator === "&>>" ? [1, 2] : [redirect.descriptor];
+          const descriptor = typeof redirect.descriptor === "string" ? Number(this.variable(state, redirect.descriptor)) : redirect.descriptor;
+          const numbers = redirect.operator === "&>" || redirect.operator === "&>>" ? [1, 2] : [descriptor];
           for (const number of numbers) {
-            const descriptor = io.descriptors?.get(number) ?? { closed: true };
-            const release = descriptor.lifetime?.acquire();
-            const previousRelease = frame.releases.get(number);
-            if (release) frame.releases.set(number, release); else frame.releases.delete(number);
-            frame.descriptors.set(number, descriptor);
-            frame.revisions.set(number, ++frame.version);
-            await previousRelease?.();
+            await this.persistDescriptor(state, number, io.descriptors?.get(number));
           }
         }
       }
@@ -9719,7 +9743,7 @@ export class Runtime {
       child.depth++;
       const pipeline = part.script.lists.length === 1 && part.script.lists[0]!.pipelines.length === 1 ? part.script.lists[0]!.pipelines[0] : undefined;
       const command = pipeline && !pipeline.negate && pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;
-      const fileShortcut = command?.kind === "simple" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === "<";
+      const fileShortcut = command?.kind === "simple" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === "<" && command.redirects[0]!.descriptor === 0;
       const warningLine = io.substitutionDiagnosticLine ?? io.diagnosticLine ?? part.line;
       let substitutionDiagnosticLines: Map<Command, number> | undefined;
       if (part.script.printedLines?.size) {

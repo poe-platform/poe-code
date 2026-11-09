@@ -190,7 +190,10 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
 - Pipelines (`|`, `|&`), lists (`;`, `&&`, `||`, `!`), file redirection (`<`, `>`,
   `>>`, `<>`), combined output redirection (`&>`, `>& file`, `&>>`), descriptor
   redirection such as `2>&1`, here-documents, and here-strings. `<>` opens without
-  truncation and requires a filesystem with descriptor support.
+  truncation and requires a filesystem with descriptor support. Named redirections
+  such as `exec {input}<rows` allocate an available descriptor from 10 through 255;
+  use `exec {input}<&-` to close it. Output descriptors also remain open after
+  ordinary commands such as `: {output}>log`.
 - `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,
   groups `{ …; }`, subshells `( … )` (including adjacent nested subshells and
   `BASH_SUBSHELL` nesting levels),

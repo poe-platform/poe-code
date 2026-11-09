@@ -133,7 +133,7 @@ export class HereDocumentSyntaxError extends Error {
 }
 
 export interface Redirect {
-  readonly descriptor: number;
+  readonly descriptor: number | string;
   readonly operator: string;
   readonly target: Word;
   readonly move?: boolean;
@@ -1821,18 +1821,22 @@ class Parser {
   }
 
   redirect(): Redirect | undefined {
-    let descriptor: number | undefined;
+    let descriptor: number | string | undefined;
     const c0 = this.current.value.charCodeAt(0);
     if (this.current.kind === "word" && c0 >= 48 && c0 <= 57 && /^\d+$/u.test(this.current.value)) {
       const next = this.peek();
       if (next.kind === "operator" && REDIRECT_FD_NEXT_SET.has(next.value) && this.current.end === next.offset) descriptor = Number(this.advance().value);
+    }
+    if (this.current.kind === "word" && this.current.value.startsWith("{") && this.current.value.endsWith("}") && /^[a-zA-Z_][a-zA-Z0-9_]*$/u.test(this.current.value.slice(1, -1))) {
+      const next = this.peek();
+      if (next.kind === "operator" && REDIRECT_FD_NEXT_SET.has(next.value) && this.current.end === next.offset) descriptor = this.advance().value.slice(1, -1);
     }
     if (this.current.kind !== "operator" || !REDIRECT_OPS_SET.has(this.current.value)) return undefined;
     this.budget.admit();
     const operator = this.advance().value;
     const explicitDescriptor = descriptor !== undefined;
     descriptor ??= operator.startsWith("<") ? 0 : 1;
-    if (!Number.isSafeInteger(descriptor) || descriptor > 255) this.error("File descriptor must be between 0 and 255");
+    if (typeof descriptor === "number" && (!Number.isSafeInteger(descriptor) || descriptor > 255)) this.error("File descriptor must be between 0 and 255");
     if (!this.current.word) this.error("Expected redirect target");
     const target = this.advance();
     const rLine = this.lexer.lineAt(Math.max(target.offset, target.end - 1)); const isMove = (operator === "<&" || operator === ">&") && this.lexer.source[target.end - 1] === "-"; return (!explicitDescriptor && !isMove && !target.document) ? ({ descriptor, operator, target: target.word!, line: rLine, _cachedRedirectFile: undefined } as Redirect) : ({ descriptor, ...(explicitDescriptor ? { explicitDescriptor: true } : {}), operator, target: target.word!, line: rLine, ...(isMove ? { move: true } : {}), ...(target.document ? { document: target.document } : {}), _cachedRedirectFile: undefined } as Redirect);

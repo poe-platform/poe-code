@@ -32,7 +32,8 @@ export function commandText(command: Command, indent: string): string {
   for (const redirect of command.redirects) {
     if (redirect.implicitPipeline) continue;
     const defaultDescriptor = redirect.operator.startsWith("<") ? 0 : 1;
-    text += ` ${redirect.descriptor === defaultDescriptor ? "" : redirect.descriptor}${redirect.operator} ${spelling(redirect.target)}${redirect.move ? "-" : ""}`;
+    const descriptor = typeof redirect.descriptor === "string" ? `{${redirect.descriptor}}` : redirect.descriptor;
+    text += ` ${descriptor === defaultDescriptor ? "" : descriptor}${redirect.operator} ${spelling(redirect.target)}${redirect.move ? "-" : ""}`;
     if (redirect.document) text += `\n${redirect.document.body}${redirect.document.delimiter}\n`;
   }
   return text;

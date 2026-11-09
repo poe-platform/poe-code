@@ -54,6 +54,26 @@ test("fast redirected commands share effective IO on new and reused contexts", a
 });
 
 for (const [name, source, expected] of [
+  ["named exec input", 'printf "first\\nsecond\\n" > rows; exec {input}<rows; IFS= read -r a <&"$input"; IFS= read -r b <&"$input"; exec {input}<&-; printf "%s/%s\\n" "$a" "$b"', 'first/second\n'],
+  ["named output skips occupied descriptors", 'exec 10>occupied; : {out}>log; say "$out"; printf sample >&"$out"; exec {out}>&-; pass <log', '11\nsample'],
+  ["named close releases descriptor", ': {out}>log; exec {out}>&-; : {next}>other; say "$out/$next"; say reused >&"$next"; exec {next}>&-; pass <other', '10/10\nreused\n'],
+  ["named command close restores descriptor", ': {out}>log; : {out}>&-; : {next}>other; say "$out/$next"; say restored >&"$out"; exec {out}>&-; pass <log', '10/11\nrestored\n'],
+  ["named allocations follow redirection order", ': {first}>first {second}>&"$first"; say "$first/$second"; say shared >&"$second"; exec {first}>&- {second}>&-; pass <first', '10/11\nshared\n'],
+  ["named reassignment keeps previous descriptor open", ': {out}>first; old=$out; : {out}>second; say "$old/$out"; say first >&"$old"; say second >&"$out"; exec {old}>&- {out}>&-; pass <first; pass <second', '10/11\nfirst\nsecond\n'],
+  ["named allocation failure leaves variable unchanged", 'out=old; : 2>/dev/null {out}</missing; say "$?:$out"; : {next}>log; say "$next"', '1:old\n10\n'],
+  ["named readonly assignment does not leak descriptor", 'readonly out=old; : 2>/dev/null {out}>log; say "$?:$out"; : {next}>other; say "$next"', '1:old\n10\n'],
+  ["named input assignment prefix", 'prefix=old; prefix=new : {input}<<<hello; read -r value <&"$input"; exec {input}<&-; say "$prefix/$value"', 'old/hello\n'],
+  ["named input substitution does not read the file", 'say data >rows; value=$({input}<rows); say "<$value>/${input-unset}"', '<>/unset\n'],
+  ["named function serialization", 'f(){ : {out}>log; }; eval "$(declare -f f)"; f; say saved >&"$out"; exec {out}>&-; pass <log', 'saved\n'],
+  ["named append", 'say first >log; : {out}>>log; say second >&"$out"; exec {out}>&-; pass <log', 'first\nsecond\n'],
+  ["named readwrite", 'say abcdef >log; : {both}<>log; printf xy >&"$both"; read -r value <&"$both"; exec {both}>&-; say "$value"', 'cdef\n'],
+  ["named nameref", 'declare -n ref=out; : {ref}>log; say "$ref/$out"; say saved >&"$out"; exec {ref}>&-; pass <log', '10/10\nsaved\n'],
+  ["named duplicate survives original close", 'exec 3>log; : {out}>&3; exec 3>&-; say kept >&"$out"; : {out}>&-; pass <log', 'kept\n'],
+  ["named here string", ': {input}<<<hello; read -r value <&"$input"; : {input}<&-; say "$value"', 'hello\n'],
+  ["named output on external command", 'say visible {out}>log; say saved >&"$out"; : {out}>&-; pass <log', 'visible\nsaved\n'],
+  ["named compound output", '{ say "$out"; } {out}>log; say saved >&"$out"; : {out}>&-; pass <log', '10\nsaved\n'],
+  ["quoted descriptor name stays an argument", 'args "{out}">log; pass <log; say "${out-unset}"', '["{out}"]unset\n'],
+  ["spaced descriptor name stays an argument", 'args {out} >log; pass <log; say "${out-unset}"', '["{out}"]unset\n'],
   ["subshell substitution", 'say $((say a); (say b))', 'a b\n'],
   ["quoted arithmetic substitution", 'say $(( $(say "))" >/dev/null; say 5) + 1 ))', '6\n'],
   ["read descriptor", 'say first > in; say second >> in; { read -r -u 3 a; read -r -u 3 b; } 3< in; say "$a|$b"', 'first|second\n'],
@@ -94,6 +114,7 @@ for (const [name, source, expected] of [
   ["bare array arithmetic", 'a=(10 20); say "$((a+5))"; say "$((a=5)):${a[@]}"', '15\n5:5 20\n'],
 ] as const) test(`standard shell: ${name}`, async () => {
   const { shell } = setup(name === "empty background pid" ? { extensions: [jobsExtension()] } : {});
+  if (name.startsWith("named")) shell.use(standardCommands());
   try {
     const result = await shell.exec(source);
     assert.equal(result.stderr, "");
@@ -131,6 +152,17 @@ for (const source of ['say wrong 1>& out', 'say wrong >&9', 'say wrong 2>& out']
     } finally { await shell.dispose(); }
   });
 }
+
+test("named descriptors respect the descriptor bound and can close when full", async () => {
+  const { shell } = setup();
+  try {
+    const occupied = Array.from({ length: 246 }, (_, index) => `${index + 10}>/dev/null`).join(" ");
+    const result = await shell.exec(`exec ${occupied}; fd=10; : 2>/dev/null {out}>log; say "$?:\${out-unset}"; exec {fd}>&-; : {out}>log; say "$out"`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "1:unset\n10\n");
+  } finally { await shell.dispose(); }
+});
 
 test("readwrite redirection drains short descriptor writes", async () => {
   const { shell, fs } = setup();

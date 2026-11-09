@@ -32,6 +32,34 @@ for (const [filter, hash] of [
   }
 }
 
+for (const [expression, literal] of [
+  ["tremolo=d=1/2", "tremolo"],
+  ["tremolo=d=(1+2)/4", "tremolo=d=0.75"],
+  ["tremolo=d=sin(PI/6)", "tremolo=d=0.5"],
+  ["tremolo=d=500m", "tremolo=d=0.5"],
+  ["tremolo=10/2:2^-1", "tremolo=5:0.5"]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${expression} matches literal options (${graph ? "graph" : "simple"})`, async () => {
+      const expected = await run(literal, graph);
+      const actual = await run(expression, graph);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.deepEqual(actual.volume.readFileSync("/out.wav"), expected.volume.readFileSync("/out.wav"));
+    });
+  }
+}
+
+for (const filter of ["tremolo=d=0b1", "tremolo=d=0o1", "tremolo=d=1/0", "tremolo=d=1+1", "tremolo=d=1-2", "tremolo=d=1/", "tremolo=f=1/20", "tremolo=f=20000+1"]) {
+  for (const graph of [false, true]) {
+    it(`${filter} rejects invalid expressions without replacing output (${graph ? "graph" : "simple"})`, async () => {
+      const { volume, result } = await run(filter, graph);
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+    });
+  }
+}
+
 for (const filter of ["tremolo=f=0", "tremolo=f=20001", "tremolo=d=-1", "tremolo=d=1.1", "tremolo=f=NaN", "tremolo=d=", "tremolo=unknown=1"]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);

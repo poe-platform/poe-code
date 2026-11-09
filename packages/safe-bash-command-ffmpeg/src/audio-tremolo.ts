@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function tremoloAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -13,8 +14,8 @@ export async function tremoloAudio(
     const key = separator < 0 ? ["f", "d"][index] : option.slice(0, separator).trim();
     if (key !== "f" && key !== "d") throw new Error(`tremolo: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    const number = Number(value);
-    if (!value || !Number.isFinite(number) || number < (key === "f" ? 0.1 : 0) || number > (key === "f" ? 20000 : 1)) {
+    const number = parseFilterExpression(value, "tremolo", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 });
+    if (number < (key === "f" ? 0.1 : 0) || number > (key === "f" ? 20000 : 1)) {
       throw new Error(`tremolo: invalid ${key}`);
     }
     if (key === "f") frequency = number;

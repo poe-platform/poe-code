@@ -4448,6 +4448,8 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, background, !!img.data16),
         ...(img.delay ? { delay: img.delay } : {}), ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (!layout.area) return canvas;
+    if (img.evaluateSamples) return yield* applyMagickRasterSteps(canvas,
+        extentEvaluateSamples(img, layout, background), signal, canvas, [img]);
     if (img.data16 && canvas.data16) {
         for (let y = 0; y < layout.area.height; y++) for (let x = 0; x < layout.area.width; x += 4096) {
             yield;
@@ -4474,6 +4476,31 @@ async function decodeStoredMagickSvg(svg: string, density: number, backend: Comp
     }
     return decodeImageToStorage({ size, async read(position, length) { return backend.storage.read(base + position, length); } }, backend.storage, signal, { density });
 }
+function* extentEvaluateSamples(image: Pick<RgbaImage, "width">, layout: NonNullable<ReturnType<typeof magickExtentLayout>>, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const color = [background.r, background.g, background.b, background.a];
+    for (let y = 0; y < layout.height; y++) for (let x = 0; x < layout.width; x += 4096) {
+        yield;
+        const count = Math.min(4096, layout.width - x), samples = new Float64Array(count * 4);
+        for (let i = 0; i < samples.length; i += 4) samples.set(color, i);
+        const area = layout.area, left = Math.max(x, layout.left), right = Math.min(x + count, layout.left + (area?.width ?? 0));
+        if (area && y >= layout.top && y < layout.top + area.height && right > left) {
+            const position = ((area.top + y - layout.top) * image.width + area.left + left - layout.left) * 4;
+            const bytes = (yield { kind: "read", evaluate: true, position, length: (right - left) * 4 })!;
+            const source = new Float64Array(bytes.slice().buffer);
+            for (let i = 0; i < source.length; i += 4) {
+                const alpha = source[i + 3]! / 255, behind = background.a / 255 * (1 - alpha), combined = alpha + behind;
+                for (let c = 0; c < 3; c++) source[i + c] = combined ? (source[i + c]! * alpha + color[c]! * behind) / combined : 0;
+                source[i + 3] = combined * 255;
+            }
+            samples.set(source, (left - x) * 4);
+        }
+        const position = (y * layout.width + x) * 4;
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
+        yield { kind: "write", highDepth: true, position,
+            data: new Uint8Array(Uint16Array.from(samples, value => Math.max(0, Math.min(65535, Math.round(value * 257)))).buffer) };
+    }
+}
+
 function extentSamplesOverBackground(samples: Uint16Array, background: RgbaColor): void {
     const color = [background.r * 257, background.g * 257, background.b * 257];
     for (let i = 0; i < samples.length; i += 4) {
@@ -10673,6 +10700,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
                     ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
                 if (!layout.area) return canvas;
+                if (image.storedEvaluateSamples !== undefined) return transformStoredMagickRaster(canvas, backend,
+                    extentEvaluateSamples(image, layout, background), signal, canvas, [image]);
                 if (image.storedData16 && canvas.storedData16) {
                     for (let y = 0; y < layout.area.height; y++) for (let x = 0; x < layout.area.width; x += 4096) {
                         await yieldTurn(signal);

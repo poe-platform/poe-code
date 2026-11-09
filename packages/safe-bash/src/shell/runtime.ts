@@ -6154,6 +6154,11 @@ export class Runtime {
             else await restoreVariable(state, key, saved);});
           await originalIO[invocationScope].cleanup(() => stateMonitor(state)?.closeOverlay(previous!));
         }
+        if (previous!.has("OPTIND") && !functionCommand && !this.signal.aborted) {
+          // Bash rebinds OPTIND when a temporary environment ends, resetting a
+          // cluster at index 1. Explicit local bindings retain their snapshot.
+          this.syncGetopts(state);
+        }
       } else if (previous) for (const saved of previous.values()) saved.heldValue?.release();
     }
   }
@@ -6551,6 +6556,12 @@ export class Runtime {
                 else restoreGetopts();});
               await scope.cleanup(() => getoptsRestoration?.close());
               await scope.cleanup(() => functionRestoration?.close());
+            }
+            const savedIndex = assignments.get("OPTIND");
+            if (savedIndex?.getopts && !this.signal.aborted) {
+              // A function prefix acts as a local OPTIND: restore the scanner
+              // captured after applying the prefix, before scanning its args.
+              savedIndex.getopts.cursor = getoptsEntry.cursor;
             }
           }
           if (checkpointFailure) {
@@ -7672,7 +7683,7 @@ export class Runtime {
     this.signal.throwIfAborted();
     return Number(value === 0n);
   }
-  private async getoptsBuiltin(context: CommandContext & IO, state: State): Promise<number> {
+  private async getoptsBuiltin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>): Promise<number> {
     this.signal.throwIfAborted();
     const { maxExpansionBytes: bytes, maxExpansionFields: fields } = this.budget.limits;
     const admit = (value: unknown): void => {
@@ -7751,6 +7762,14 @@ export class Runtime {
     }
     this.signal.throwIfAborted();
     await this.writeVariable(state, "OPTIND", String(result.optind), context, "getopts");
+    const savedIndex = assignments.get("OPTIND");
+    if (savedIndex) {
+      // getopts publishes its index beyond its own temporary assignment.
+      savedIndex.heldValue?.release();
+      delete savedIndex.heldValue;
+      savedIndex.value = state.variables.OPTIND;
+      savedIndex.getopts = cloneGetoptsBinding(state);
+    }
     if (result.argument.kind === "set") await this.writeVariable(state, "OPTARG", result.argument.value, context, "getopts");
     else this.unsetVariable(state, "OPTARG", true);
     if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new PublicDiagnostic(`getopts: \`${name}': not a valid identifier`);
@@ -8347,7 +8366,7 @@ export class Runtime {
     }
     if (command === "let") return this.letBuiltin(context, state);
     if (command === "mapfile" || command === "readarray") return this.mapfileBuiltin(context, state);
-    if (command === "getopts") return this.getoptsBuiltin(context, state);
+    if (command === "getopts") return this.getoptsBuiltin(context, state, assignments);
     if (command === "pushd" || command === "dirs" || command === "popd") return this.directoryStackBuiltin(context, state, diagnose);
     if (command === "pwd") {
       let physical = false;

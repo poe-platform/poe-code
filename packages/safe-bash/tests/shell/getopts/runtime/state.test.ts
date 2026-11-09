@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import { arraysExtension } from "../../../../src/shell/extensions/arrays/index.js";
 import { runtimeSetup } from "./helpers.js";
 
 interface FrozenCase {
@@ -36,12 +37,38 @@ for (const item of frozen.scripts.filter(item => ["N01", "N02", "N03", "N06", "N
   });
 }
 
-test("D01 exact temporary prefix restoration deliberately differs from native N04", async () => {
+test("temporary OPTIND restoration resets the scanner like Bash", async () => {
   const { shell } = runtimeSetup();
   const result = await shell.exec('getopts abc opt -abc; say "$opt"; OPTIND=1 getopts abc opt -abc; say "$opt"; getopts abc opt -abc; say "$opt"; getopts abc opt -abc; say "$opt"');
-  assert.equal(result.stdout, "a\na\nb\nc\n");
+  assert.equal(result.stdout, "a\na\na\nb\n");
   assert.equal(result.stderr, "");
 });
+
+for (const arrays of [false, true]) {
+  for (const [name, source, expected] of [
+    ["direct prefix", 'OPTIND=1 getopts abc: k -c arg; printf "%s:%s:%s\\n" "$k" "$OPTARG" "$OPTIND"', "c:arg:3\n"],
+    ["separate assignment", 'OPTIND=1; getopts abc: k -c arg; echo "$k:$OPTARG:$OPTIND"', "c:arg:3\n"],
+    ["command prefix", 'OPTIND=7; OPTIND=1 command getopts abc: k -c arg; echo "$k:$OPTARG:$OPTIND"', "c:arg:3\n"],
+    ["builtin prefix", 'OPTIND=7; OPTIND=1 builtin getopts abc: k -c arg; echo "$k:$OPTARG:$OPTIND"', "c:arg:3\n"],
+    ["helper prefix", 'set -- -ab -c val; getopts abc: k; f(){ getopts abc: k; }; OPTIND=1 f -c other; getopts abc: k; echo "$k:$OPTIND"', "a:1\n"],
+    ["helper local", 'set -- -ab -c val; getopts abc: k; f(){ local OPTIND=1; getopts abc: k; }; f -c other; getopts abc: k; echo "$k:$OPTIND"', "b:2\n"],
+    ["helper restores prefix cursor with outer index 2", 'OPTIND=2; f(){ getopts ab k; }; OPTIND=1 f -ab; echo "$OPTIND"; getopts ab k -ab; echo "$k:$OPTIND"', "2\na:1\n"],
+    ["prefix without scan retains outer cluster above index 1", 'getopts abc k -a -bc; getopts abc k -a -bc; OPTIND=1 :; getopts abc k -a -bc; echo "$k:$OPTIND"', "c:3\n"],
+    ["end of options publishes index", 'OPTIND=7; OPTIND=1 getopts abc k --; echo "$?:$k:$OPTIND"', "1:?:2\n"],
+    ["missing argument publishes index", 'OPTIND=7; OPTIND=1 getopts :c: k -c; echo "$?:$k:$OPTARG:$OPTIND"', "0:::c:2\n"],
+    ["non-scanning prefix", 'getopts abc k -abc; OPTIND=9 :; getopts abc k -abc; echo "$k:$OPTIND"', "a:1\n"],
+  ] as const) {
+    test(`OPTIND command scope: ${name} (arrays=${arrays})`, async () => {
+      const { shell } = runtimeSetup({ extensions: arrays ? [arraysExtension()] : [] });
+      try {
+        const result = await shell.exec(source);
+        assert.equal(result.stdout, expected);
+        assert.equal(result.stderr, "");
+        assert.equal(result.exitCode, 0);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
 
 test("N05 correction retains function-entry snapshot and repeated local reset", async () => {
   const { shell } = runtimeSetup();
@@ -203,5 +230,5 @@ test("groups/source/eval share state while pipelines, substitutions and subshell
 test("prefix function redirection scratch and substitution installation isolate metadata", async () => {
   const { shell } = runtimeSetup();
   const result = await shell.exec('getopts abc opt -abc; f() { getopts abc opt -abc; say "$opt"; }; OPTIND=1 f <<< "$(getopts abc opt -abc; say "$opt")"; getopts abc opt -abc; say "$opt"');
-  assert.equal(result.stdout, "a\nb\n");
+  assert.equal(result.stdout, "a\na\n");
 });

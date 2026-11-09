@@ -7,6 +7,7 @@ import { measureReplayGain } from "./audio-replaygain.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { autoConvertConcatTrack } from "./concat-auto-convert.js";
 import { filterBitstream } from "./bitstream.js";
+import { mergeVp9Superframes } from "./vp9-superframe.js";
 import { authorTimecode } from "./timecode.js";
 import { parseRawVideo, serializeRawVideo } from "./rawvideo.js";
 import { formatYuv } from "./format-yuv.js";
@@ -4906,6 +4907,9 @@ export function evalSyncFfmpeg(
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale), subtitleBitstreamFilter, budget, "subtitle", workingDoc.timescale) };
+    if (videoCodec === "copy" && (outPlugin?.id === "mkv" || outPlugin?.id === "webm")) {
+      workingDoc = { ...workingDoc, tracks: mergeVp9Superframes(workingDoc.tracks, budget) };
+    }
     workingDoc = applyVideoTag(workingDoc, outPlugin.id, videoCodec, videoTag);
     validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
@@ -10264,6 +10268,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale), subtitleBitstreamFilter, budget, "subtitle", workingDoc.timescale) };
+            if (videoCodec === "copy" && (outPlugin?.id === "mkv" || outPlugin?.id === "webm")) {
+              workingDoc = { ...workingDoc, tracks: mergeVp9Superframes(workingDoc.tracks, budget) };
+            }
 
             // Count processed media, not container headers or checksum text.
             workingDoc = applyDisplayAspects(workingDoc, displayAspects);

@@ -33,6 +33,8 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         ["0,50,100", [0, 13, 229, 128]],
         ["0%,50%", [0, 13, 133, 128]],
         ["50%", [0, 13, 181, 128]],
+        ["%[fx:w+49]", [0, 13, 181, 128]],
+        ["%[fx:w-1],%[fx:h+49],%[fx:100]", [0, 13, 229, 128]],
         ["5 0", [0, 13, 181, 128]],
         [" 5 0 % ", [0, 13, 181, 128]],
         [" 0 % , 5 0 % , 1 0 0 % ", [0, 13, 229, 128]],
@@ -109,5 +111,36 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
             ? await filesystem.readFile("/out.png") : files.get("/out.png")!;
         expect(output[24]).toBe(16);
         expect(Array.from(decodeImage(output).data16 ?? [])).toEqual(expected);
+    });
+}
+
+// Width-dependent strength on the reported gray strip, including transparent pixels.
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    it(`${mode}: expands tint strength before applying the curve to a gray strip`, async () => {
+        const pixels = [0, 0, 0, 255, 48, 48, 48, 0, 128, 128, 128, 128, 192, 192, 192, 255, 255, 255, 255, 255];
+        const input = await sharp(new Uint8Array(pixels), { raw: { width: 5, height: 1, channels: 4 } }).png().toBuffer();
+        const outputs: number[][] = [];
+        for (const strength of ["50", "%[fx:w+45]"]) {
+            const files = new Map([["/input.png", input]]);
+            const filesystem = new MemoryFileSystem();
+            await filesystem.writeFile("/input.png", input);
+            const args = ["/input.png", "-fill", "#dc501e", "-tint", strength, "PNG32:/out.png"];
+            const result = mode === "command"
+                ? await createMagickCommand().execute({
+                    command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+                    stdin: (async function* () {})(), signal: new AbortController().signal,
+                    stdout: { write: async () => {} }, stderr: { write: async () => {} },
+                })
+                : mode === "sync" ? runConvertCliSync(args, files)
+                : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            expect(result.exitCode).toBe(0);
+            const output = mode === "command" || mode === "retained"
+                ? await filesystem.readFile("/out.png") : files.get("/out.png")!;
+            outputs.push([...decodeImage(output).data]);
+        }
+        expect(outputs[1]).toEqual(outputs[0]);
+        expect(outputs[1]!.slice(8, 12)).toEqual([132, 62, 37, 128]);
+        expect(outputs[1]!.slice(16)).toEqual([255, 255, 255, 255]);
+        expect(outputs[1]!.filter((_, index) => index % 4 === 3)).toEqual([255, 0, 128, 255, 255]);
     });
 }

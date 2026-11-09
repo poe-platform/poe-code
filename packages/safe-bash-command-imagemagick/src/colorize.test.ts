@@ -56,6 +56,29 @@ it.each([
     expect(output.space).toBe(fill === "red" ? "srgb" : "b-w");
 });
 
+// Native ImageMagick ignores whitespace in the strength and preserves alpha, including hidden RGB.
+for (const mode of ["buffered", "retained", "sync", "command"] as const)
+for (const fill of ["#b4506e40", "#b4506e"])
+it.each(["50", "5 0", " 5 0 % ", "5\t0"])(`${mode}: reads whitespace inside colorize strength %s with ${fill}`, async strength => {
+    const input = await sharp(new Uint8Array([40, 90, 160, 0, 40, 90, 160, 128, 40, 90, 160, 255]), { raw: { width: 3, height: 1, channels: 4 } }).png().toBuffer();
+    const files = new Map([["/input.png", input]]);
+    const filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/input.png", input);
+    const args = ["/input.png", "-fill", fill, "-colorize", strength, "PNG32:/out.png"];
+    const result = mode === "command"
+        ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { write: async () => {} }, stderr: { write: async () => {} },
+        })
+        : mode === "sync" ? runConvertCliSync(args, files)
+        : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    expect(result.exitCode).toBe(0);
+    expect([...decodeImage(mode === "command" || mode === "retained"
+        ? await filesystem.readFile("/out.png") : files.get("/out.png")!).data])
+        .toEqual([110, 85, 135, 0, 110, 85, 135, 128, 110, 85, 135, 255]);
+});
+
 // Native ImageMagick leaves alpha untouched even when A or RGBA is selected.
 for (const mode of ["buffered", "retained", "sync", "command"] as const)
 it.each([

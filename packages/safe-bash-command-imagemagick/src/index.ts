@@ -6623,7 +6623,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-colorize") {
         highDepth = true;
         const value = tokens[++i] ?? "";
-        const strengths = value.replaceAll("x", ",").split(",").map(part => {
+        const strengths = [...value].filter(character => character.trim() !== "").join("").replaceAll("x", ",").split(",").map(part => {
             const percent = part.endsWith("%") ? part.slice(0, -1) : part;
             if (!Number.isFinite(Number(percent)) || Number.parseFloat(percent) !== Number(percent)) {
                 throw new Error(`invalid argument '-colorize' '${value}'`);
@@ -7784,8 +7784,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         const setting = applyMagickReadSetting(tokens, state, i);
-        if (setting === undefined && (t === "-solarize" || (t === "-modulate" && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast")) {
-            const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" ? "" : "1");
+        if (setting === undefined && (t === "-solarize" || (t === "-modulate" && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
+            const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 return yield* parseMagickPixelOperation([t, expanded], state, 0, signal)!.apply(image);
@@ -7814,10 +7814,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (analysisOperation) {
             i = analysisOperation.end;
+            const argument = tokens[i] ?? "80%";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const operation = t === "-sepia-tone" ? parseMagickAnalysisOperation([t,
+                    yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties })
+                ], state, 0)! : analysisOperation;
                 const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || analysisOperation.highDepth && image.data16 ? 65536 : 256));
                 yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB");
-                return yield* analysisOperation.transform(histogram, image)(image);
+                return yield* operation.transform(histogram, image)(image);
             });
         }
         else if (t === "-cycle") {
@@ -9674,8 +9678,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, channels, signal), signal) : undefined);
             continue;
         }
-        if (!operandsOnly && (token === "-solarize" || (token === "-modulate" && tokens[i + 1]?.includes("%[")) || ((token === "-level" || token === "+level") && tokens[i + 1]?.includes("%[")) || token === "-color-matrix" || token === "-gamma" || token === "+gamma" || token === "-brightness-contrast")) {
-            const value = tokens[++i] ?? (token === "-solarize" ? "50%" : token === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : token === "-brightness-contrast" ? "" : "1"), settings = { ...state };
+        if (!operandsOnly && (token === "-solarize" || (token === "-modulate" && tokens[i + 1]?.includes("%[")) || ((token === "-level" || token === "+level") && tokens[i + 1]?.includes("%[")) || token === "-color-matrix" || token === "-gamma" || token === "+gamma" || token === "-brightness-contrast" || token === "-tint")) {
+            const value = tokens[++i] ?? (token === "-solarize" ? "50%" : token === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : token === "-brightness-contrast" || token === "-tint" ? "" : "1"), settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
@@ -9745,9 +9749,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         const analysisOperation = operandsOnly ? undefined : parseMagickAnalysisOperation(tokens, state, i);
         if (analysisOperation) {
             i = analysisOperation.end;
-            const intensity = state.intensity;
+            const intensity = state.intensity, argument = tokens[i] ?? "80%", settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const operation = token === "-sepia-tone" ? parseMagickAnalysisOperation([token,
+                    await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal)
+                ], settings, 0)! : analysisOperation;
                 const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || analysisOperation.highDepth && image.storedData16 ? 65536 : 256)), size = image.width * image.height * 4;
                 for (let offset = 0; offset < size; offset += 16384) {
                     if (offset % 1048576 === 0) await yieldTurn(signal);
@@ -9755,7 +9762,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const bytes = await backend.storage.read((original?.position ?? image.position) + offset * (original ? 2 : 1), Math.min(16384, size - offset) * (original ? 2 : 1));
                     await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB"), signal);
                 }
-                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, apply: analysisOperation.transform(histogram, image) }, signal, analysisOperation.highDepth);
+                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, apply: operation.transform(histogram, image) }, signal, analysisOperation.highDepth);
             });
             continue;
         }

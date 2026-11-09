@@ -4,7 +4,7 @@ import { setVp9Metadata } from "./vp9-metadata.js";
 import { setPacketTimestamps } from "./setts.js";
 import { rechunkPcm } from "./pcm-rechunk.js";
 import { parseFilterExpression } from "./filter-expression.js";
-import { rewriteH264Sps } from "./h264-metadata.js";
+import { h264DisplayOrientation, removeH264DisplayOrientation, rewriteH264Sps } from "./h264-metadata.js";
 import { setAv1Metadata } from "./av1-metadata.js";
 import { parseAdtsStream, parseMp4Boxes, makeBox, decodeFourCC, parseAvcC, concatBytes, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
@@ -134,6 +134,9 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
     let userData: Uint8Array | undefined;
     let level: number | undefined;
     let primaries: number | undefined;
+    let orientation = "pass";
+    let rotate: number | undefined;
+    let flip = 0;
     const metadata = filter.startsWith("h264_metadata=");
     if (metadata) {
       for (const option of filter.slice("h264_metadata=".length).split(":")) {
@@ -145,7 +148,12 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
         else if (key === "aud" && value === "insert") insertAud = true;
         else if (key === "level" && ["1", "1.0", "1.1", "1.2", "1.3", "2", "2.0", "2.1", "2.2", "3", "3.0", "3.1", "3.2", "4", "4.0", "4.1", "4.2", "5", "5.0", "5.1", "5.2", "6", "6.0", "6.1", "6.2"].includes(value)) level = Math.round(Number(value) * 10);
         else if (key === "colour_primaries" && [...value].every(c => c >= "0" && c <= "9") && Number(value) <= 255) primaries = Number(value);
-        else throw new Error(`Unsupported bitstream filter option: ${option}`);
+        else if (key === "display_orientation" && ["pass", "insert", "remove", "0", "1", "2"].includes(value)) {
+          orientation = ["pass", "insert", "remove"][Number(value)] ?? value;
+        } else if (key === "rotate" && value.trim() && Number.isFinite(Number(value)) && Math.abs(Number(value)) <= 360) rotate = Number(value);
+        else if (key === "flip" && ["0", "1", "2", "3", "horizontal", "vertical", "horizontal+vertical", "vertical+horizontal"].includes(value)) {
+          flip = value === "horizontal" ? 1 : value === "vertical" ? 2 : value.includes("+") ? 3 : Number(value);
+        } else throw new Error(`Unsupported bitstream filter option: ${option}`);
       }
     }
     const remove = new Set<number>();
@@ -190,6 +198,8 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
         ])) : undefined;
         return { ...description, rawStsdEntryBytes, ...(level === undefined ? {} : { level }), avcC: parseAvcC(rawBytes) };
       });
+      const orientationNal = orientation === "insert" && (rotate !== undefined || flip !== 0)
+        ? h264DisplayOrientation(rotate ?? 0, flip) : undefined;
       return { ...track, codecDescriptions, samples: track.samples.flatMap((sample, sampleIndex) => {
         const units: Uint8Array[] = [];
         let hasAud = false;
@@ -205,9 +215,11 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
           hasAud ||= type === 9;
           seekPoint ||= type === 7;
           offset += size;
-          if (type === 7 && (level !== undefined || primaries !== undefined)) {
-            const updated = rewriteH264Sps(sample.data.subarray(offset - size, offset), level, primaries, budget);
-            if (updated.length >= 256 ** lengthSize) throw new Error("H.264 SPS exceeds NAL length");
+          if ((type === 7 && (level !== undefined || primaries !== undefined)) || (type === 6 && orientation !== "pass")) {
+            const nal = sample.data.subarray(offset - size, offset);
+            const updated = type === 7 ? rewriteH264Sps(nal, level, primaries, budget) : removeH264DisplayOrientation(nal, budget);
+            if (!updated.length) continue;
+            if (updated.length >= 256 ** lengthSize) throw new Error("H.264 NAL exceeds length field");
             const prefix = new Uint8Array(lengthSize);
             let length = updated.length;
             for (let i = lengthSize - 1; i >= 0; i--) { prefix[i] = length & 255; length = Math.floor(length / 256); }
@@ -222,6 +234,12 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
           const sei = appendH264UserData(existing, userData, lengthSize, budget);
           if (seiIndex >= 0) units[seiIndex] = sei;
           else units.splice(sliceIndex < 0 ? units.length : sliceIndex, 0, sei);
+        }
+        if (orientationNal && seekPoint) {
+          const prefix = new Uint8Array(lengthSize);
+          prefix[lengthSize - 1] = orientationNal.length;
+          const sliceIndex = units.findIndex(unit => (unit[lengthSize]! & 31) < 5);
+          units.splice(sliceIndex < 0 ? units.length : sliceIndex, 0, concatBytes([prefix, orientationNal]));
         }
         if (insertAud && !hasAud) {
           const aud = new Uint8Array(lengthSize + 2);

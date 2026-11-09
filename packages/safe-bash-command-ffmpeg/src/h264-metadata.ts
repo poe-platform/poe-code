@@ -1,4 +1,4 @@
-import { BitReader, BitWriter, escapeRbsp, unescapeRbsp, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { BitReader, BitWriter, concatBytes, escapeRbsp, unescapeRbsp, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 /** Patch SPS syntax while preserving unrelated VUI fields and encoded picture data. */
 export function rewriteH264Sps(nal: Uint8Array, level: number | undefined, primaries: number | undefined, budget: MediaBudgetTracker): Uint8Array {
@@ -83,4 +83,54 @@ export function rewriteH264Sps(nal: Uint8Array, level: number | undefined, prima
     writer.writeRbspTrailingBits();
   }
   return escapeRbsp(writer.toUint8Array());
+}
+
+/** Display-orientation SEI, with the one-picture repetition used by FFmpeg. */
+export function h264DisplayOrientation(rotate: number, flip: number): Uint8Array {
+  const turns = (rotate < 0 ? rotate + 360 : rotate) * 65536 / 360;
+  const floor = Math.floor(turns);
+  const rotation = turns - floor === 0.5 ? floor + (floor & 1) : Math.round(turns);
+  const bits = new BitWriter();
+  bits.writeBit(0); // display_orientation_cancel_flag
+  bits.writeBit(flip & 1);
+  bits.writeBit((flip >>> 1) & 1);
+  bits.writeBits(rotation & 65535, 16);
+  bits.writeUE(1); // display_orientation_repetition_period
+  bits.writeBit(0); // display_orientation_extension_flag
+  bits.writeRbspTrailingBits(); // SEI payload alignment
+  return escapeRbsp(concatBytes([Uint8Array.of(6, 47, 3), bits.toUint8Array(), Uint8Array.of(128)]));
+}
+
+/** Remove only orientation payloads; retain other messages in the same NAL. */
+export function removeH264DisplayOrientation(nal: Uint8Array, budget: MediaBudgetTracker): Uint8Array {
+  const rbsp = unescapeRbsp(nal);
+  const parts: Uint8Array[] = [rbsp.subarray(0, 1)];
+  let removed = false;
+  let offset = 1;
+  const field = () => {
+    let value = 0;
+    let byte: number;
+    do {
+      budget.checkCpu();
+      if (offset >= rbsp.length - 1) throw new Error("Truncated H.264 SEI header");
+      byte = rbsp[offset++]!;
+      value += byte;
+    } while (byte === 255);
+    return value;
+  };
+  while (offset < rbsp.length - 1) {
+    budget.checkCpu();
+    const start = offset;
+    const type = field();
+    const size = field();
+    if (size > rbsp.length - 1 - offset) throw new Error("Truncated H.264 SEI payload");
+    offset += size;
+    if (type === 47) removed = true;
+    else parts.push(rbsp.subarray(start, offset));
+  }
+  if (rbsp[offset] !== 128) throw new Error("Invalid H.264 SEI trailing bits");
+  if (!removed) return nal;
+  if (parts.length === 1) return new Uint8Array();
+  parts.push(Uint8Array.of(128));
+  return escapeRbsp(concatBytes(parts));
 }

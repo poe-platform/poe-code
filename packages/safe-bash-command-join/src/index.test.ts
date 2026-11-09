@@ -32,6 +32,45 @@ async function run(args: string[], files: Record<string, string>) {
  return { ...result, stdout, stderr, combined };
 }
 
+for (const args of [
+ ["-o", "0", "1.2", "2.2", "left", "right"],
+ ["-o0", "1.2,2.2", "left", "right"],
+ ["-o", "0", "1.2", "-o", "2.2", "left", "right"],
+ ["-o", "0", "1.2", "2.2", "--", "left", "right"],
+ ["left", "-o", "0", "1.2", "2.2", "right"],
+]) {
+ test(`join accepts output lists across arguments: ${args.join(" ")}`, async () => {
+  const result = await run(args, { "/left": "k A\n", "/right": "k B\n" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, args.lastIndexOf("-o") !== args.indexOf("-o") ? "k B A\n" : "k A B\n");
+ });
+}
+
+for (const args of [
+ ["-o", "0", "1.2", "2.2"],
+ ["-o", "0", "--", "1.2", "2.2"],
+ ["-o", "0", "1.2", "--", "1.2", "2.2"],
+]) {
+ test(`join preserves field-like filenames: ${args.join(" ")}`, async () => {
+  const result = await run(args, { "/1.2": "k A\n", "/2.2": "k B\n" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, args.length === 6 ? "k A\n" : "k\n");
+ });
+}
+
+for (const args of [
+ ["-o", "0", "-i", "1.2", "left", "right"],
+ ["-o", "auto", "1.2", "left", "right"],
+ ["-o", "0", "--", "1.2", "left", "right"],
+ ["-o", "0", "invalid", "left", "right"],
+]) {
+ test(`join rejects invalid extra operands: ${args.join(" ")}`, async () => {
+  const result = await run(args, { "/left": "k A\n", "/right": "k B\n" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+ });
+}
+
 for (const format of ["", ",", ",0", " 0", "0,,1.2", "0  1.2", "0\t\t1.2", "0, 1.2", "0,,", "0  "]) {
  test(`join rejects empty output fields: ${JSON.stringify(format)}`, async () => {
   const result = await run(["-o", format, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });

@@ -29,9 +29,9 @@ function parse(context: CommandContext, budget: Budget): Options {
   let delimiterChoice: number | undefined;
   const explicitFields: [number | undefined, number | undefined] = [undefined, undefined];
   let explicitReplacement: string | undefined;
-  const fieldCandidates: ("1" | "2" | undefined)[] = [];
+  const fieldCandidates: ("1" | "2" | "o" | undefined)[] = [];
   const pendingFields = { "1": 0, "2": 0 };
-  let nextFieldCandidate: "1" | "2" | undefined;
+  let nextFieldCandidate: "1" | "2" | "o" | undefined;
   const setField = (fileIndex: 0 | 1, field: number): void => {
     const existing = explicitFields[fileIndex];
     if (existing !== undefined && existing !== field) fail(`incompatible join fields ${existing}, ${field}`);
@@ -87,18 +87,19 @@ function parse(context: CommandContext, budget: Budget): Options {
     const candidate = nextFieldCandidate;
     nextFieldCandidate = undefined;
     if (literal || token === "-" || !token.startsWith("-")) {
-      // GNU defers -j1/-j2 until excess operands reveal a separate field.
+      // GNU defers -j1/-j2 and -o continuations until excess operands reveal them.
       if (options.files.length === 2) {
         const position = fieldCandidates.findIndex(field => field !== undefined);
         if (position < 0) fail("join requires exactly two files");
         const field = fieldCandidates[position]!;
         apply(field, options.files[position]!);
-        pendingFields[field]--;
+        if (field !== "o") pendingFields[field]--;
         options.files.splice(position, 1);
         fieldCandidates.splice(position, 1);
       }
       options.files.push(token);
       fieldCandidates.push(literal ? undefined : candidate);
+      if (!literal && candidate === "o") nextFieldCandidate = "o";
       continue;
     }
     if (token === "--") { literal = true; continue; }
@@ -121,7 +122,9 @@ function parse(context: CommandContext, budget: Budget): Options {
         }
         let value: string;
         [value, index] = argument(context.args, index, rest || undefined, `-${flag}`);
-        apply(flag, value); break;
+        apply(flag, value);
+        if (flag === "o" && value !== "auto") nextFieldCandidate = "o";
+        break;
       } else fail(`unsupported option -${flag}`);
     }
   }

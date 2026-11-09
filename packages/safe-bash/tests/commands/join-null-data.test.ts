@@ -5,6 +5,27 @@ import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { fixture, runTable } from "./table-text/helpers.js";
 
+for (const capture of [false, true]) {
+  test(`join split output list preserves filenames through Shell: capture=${capture}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/1.2", Buffer.from("k A\n"));
+    await fs.writeFile("/2.2", Buffer.from("k B\n"));
+    const shell = new Shell({ fs, cwd: "/", env: { LC_ALL: "C" } }).use(agentCommands());
+    try {
+      for (const [command, expected] of [
+        ["join -o 0 1.2 2.2 1.2 2.2", "k A B\n"],
+        ["join -o 0 1.2 2.2", "k\n"],
+        ["join -o 0 1.2 -- 1.2 2.2", "k A\n"],
+      ]) {
+        const actual = await shell.exec(capture ? `result=$(${command}); printf '%s\\n' "$result"` : command!);
+        assert.equal(actual.exitCode, 0, actual.stderr);
+        assert.equal(actual.stderr, "");
+        assert.equal(actual.stdout, expected);
+      }
+    } finally { await shell.dispose(); }
+  });
+}
+
 // Expected bytes were checked against GNU coreutils 9.4 with LC_ALL=C.
 for (const [name, left, right, args, expected] of [
   ["LF-terminated files", "a 1\n", "a x\n", [], "a 1  x \0"],

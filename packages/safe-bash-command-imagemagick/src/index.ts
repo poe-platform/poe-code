@@ -1186,7 +1186,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   let gray = true;
   let bilevel = true;
   let bitDepth = 1;
-  const colors = new Set<number>();
+  const colors = new Set<string>();
   const uniqueColors = countColors ? new Set<string>() : undefined;
   let count = 0;
   for(let offset=0;offset<img.width*img.height*4;offset+=8192){
@@ -1209,7 +1209,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     bilevel &&= (r === 0 || r === range) && (g === 0 || g === range) && (b === 0 || b === range);
     // Only palette classification needs distinct colors; stop growing at 257.
     if (colors.size <= 256) {
-      colors.add(((chunk.data[i]! * 256 + chunk.data[i + 1]!) * 256 + chunk.data[i + 2]!) * 256 + (img.hasAlpha ? chunk.data[i + 3]! : 255));
+      colors.add(`${r},${g},${b},${a}`);
     }
     for (let c = 0; c < channels; c++) {
       const value = samples[i + c]!;

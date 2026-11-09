@@ -2,6 +2,20 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { gnuInformationSync } from "./gnu-information.js";
 
+test("comm information scanning stops at the first POSIX operand", () => {
+  for (const option of ["--help", "--version"]) {
+    const information = gnuInformationSync("comm", [option]);
+    assert.ok(information);
+    for (const operand of ["left", "-"]) {
+      assert.equal(gnuInformationSync("comm", [operand, option], false, true), undefined);
+      assert.equal(gnuInformationSync("comm", [operand, option]), information);
+      assert.equal(gnuInformationSync("comm", ["--", operand, option]), undefined);
+    }
+    assert.equal(gnuInformationSync("comm", ["--output-delimiter", ":", option], false, true), information);
+    assert.equal(gnuInformationSync("comm", ["--output-delimiter", option], false, true), undefined);
+  }
+});
+
 test("paste information prefixes use the synchronous option scan", () => {
   for (const [args, option] of [
     [["--he"], "--help"],

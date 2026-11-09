@@ -18,7 +18,7 @@ test("comm help works through the standalone portable factory", async () => {
  assert.ok(output.length > 0);
 });
 
-async function run(args: ShellValue[], files: Record<string, string>, env: Record<string, string> = {}) {
+async function run(args: ShellValue[], files: Record<string, string>, env: Record<string, string> = {}, stdin = "") {
  const fs = createMemoryFileSystem();
  for (const [path, content] of Object.entries(files)) await fs.writeFile(path, new TextEncoder().encode(content));
  const values = createCommandArguments(args);
@@ -26,11 +26,31 @@ async function run(args: ShellValue[], files: Record<string, string>, env: Recor
  const stdoutBytes: number[] = [];
  const result = await createCommCommand().execute({
   command: "comm", args: values.args, argumentValues: values, cwd: "/", env, fs,
-  stdin: toByteSource(""), signal: new AbortController().signal,
+  stdin: toByteSource(stdin), signal: new AbortController().signal,
   stdout: { async write(bytes) { stdoutBytes.push(...bytes); const text = new TextDecoder().decode(bytes); stdout += text; combined += text; } },
   stderr: { async write(bytes) { const text = new TextDecoder().decode(bytes); stderr += text; combined += text; } },
  });
  return { ...result, stdout, stdoutBytes, stderr, combined };
+}
+
+for (const option of ["--help", "--version"]) {
+ for (const value of [undefined, "", "1"]) {
+  test(`comm ${option} operand with POSIXLY_CORRECT=${JSON.stringify(value)}`, async () => {
+   const env = value === undefined ? {} : { POSIXLY_CORRECT: value };
+   const files = { "/left": "a\nb\nc\n", [`/${option}`]: "b\n" };
+   const information = await run([option], {}, env);
+   assert.equal(information.exitCode, 0);
+   assert.ok(information.stdout.includes(option === "--help" ? "Usage: comm" : "comm (safe-bash"));
+   for (const first of ["left", "-"]) {
+    for (const explicit of [false, true]) {
+     const result = await run([...(explicit ? ["--"] : []), first, option], files, env, files["/left"]);
+     assert.equal(result.exitCode, 0, result.stderr);
+     assert.equal(result.stderr, "");
+     assert.equal(result.stdout, explicit || value !== undefined ? "a\n\t\tb\nc\n" : information.stdout);
+    }
+   }
+  });
+ }
 }
 
 for (const value of [undefined, "", "1"]) {

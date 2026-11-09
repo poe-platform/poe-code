@@ -70,7 +70,7 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
     while (pos < bytes.length) {
       const c = bytes[pos]!;
       if (c === 0x23) {
-        while (pos < bytes.length && bytes[pos] !== 0x0a) pos++;
+        while (pos < bytes.length && bytes[pos] !== 0x0a && bytes[pos] !== 0x0d) pos++;
       } else if (c <= 0x20) {
         pos++;
       } else {

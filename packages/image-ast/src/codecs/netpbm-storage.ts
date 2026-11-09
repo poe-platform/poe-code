@@ -36,7 +36,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  const ascii=async():Promise<number>=>{
   while(position<source.size) {
    const value=(await reader.at(position))!;
-   if(value===35) {while(position<source.size&&(await reader.at(position))!==10) position++;}
+   if(value===35) {while(position<source.size&&(await reader.at(position))!==10&&(await reader.at(position))!==13) position++;}
    else if(value<=32) position++;
    else break;
   }

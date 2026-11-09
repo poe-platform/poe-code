@@ -304,13 +304,15 @@ It accepts `window`/`w`, `overlap`/`o`, `arorder`/`a`, `threshold`/`t`,
 `method`/`m` (`add` or `save`), with native defaults; channels are restored independently.
 `[0:a][1:a]join=inputs=2:channel_layout=stereo:map=1.0-FL|0.0-FR[mix]`
 routes the second input's first channel to left and the first input's first channel
-to right, stopping at the shorter input. Join supports two decoded PCM inputs with
-matching sample rates and stereo output. Numeric input maps to `FL` and `FR` are
+to right, stopping at the shortest input. Join accepts the declared `inputs` count
+(default 2) of decoded PCM inputs with matching sample rates. Output layouts include
+mono, stereo, `3.0`, quad, `5.1`, explicit speaker lists, and stereo mask `0x3`.
+Numeric input maps to output speakers are
 optional and may assign only one output channel. Unmapped outputs first use unused
 inputs with matching speaker positions, then the first unused input channels.
 For example, `[0:a][1:a]join[mix]` selects both channels of a stereo second input
 when the first input is mono. Filters after join are supported; filters before
-join and other output layouts are rejected.
+join are rejected.
 `agate=threshold=0.05:ratio=4:attack=0.1:release=1` attenuates quiet PCM sections
 while preserving sample count and timing. It supports native defaults, range, knee,
 attack/release, peak/RMS detection, channel linking, input/makeup gain, and downward/upward modes.

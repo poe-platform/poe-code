@@ -1,3 +1,4 @@
+import { parseAudioChannelLayout } from "./audio-channel-layout.js";
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
@@ -12,19 +13,29 @@ export async function joinAudio(
     if (!key || !["inputs", "channel_layout", "map"].includes(key)) throw new Error(`join: unsupported option ${key}`);
     options[key] = separator < 0 ? option : option.slice(separator + 1);
   }
-  if (options.inputs !== "2" || tracks.length !== 2) throw new Error("join requires two inputs");
-  if (options.channel_layout !== "stereo") throw new Error("join: only stereo output is supported");
+  const count = Number(options.inputs);
+  if (!Number.isInteger(count) || count < 1 || count > 32767 || count !== tracks.length) {
+    throw new Error("join: inputs must match the number of connected inputs");
+  }
+  const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR",
+    "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"];
+  const outputNames = parseAudioChannelLayout(options.channel_layout!);
+  if (outputNames.some(name => !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length) {
+    throw new Error(`join: unsupported channel layout ${options.channel_layout}`);
+  }
+  outputNames.sort((a, b) => speakers.indexOf(a) - speakers.indexOf(b));
+  const outputMask = outputNames.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0);
   const audio = tracks.map(track => {
     if (!track.decodedAudio) throw new Error("join requires decoded PCM audio");
     return track.decodedAudio;
   });
-  if (audio[0]!.sampleRate !== audio[1]!.sampleRate) throw new Error("join requires matching sample rates");
+  if (audio.some(input => input.sampleRate !== audio[0]!.sampleRate)) throw new Error("join requires matching sample rates");
   const used = audio.map(() => new Set<number>());
   const selected = new Map<string, Float32Array | Float64Array>();
   for (const mapping of options.map ? options.map.split("|") : []) {
     const [source, output, ...extra] = mapping.split("-");
     const indices = source!.split(".");
-    if (extra.length || !["FL", "FR"].includes(output ?? "") || selected.has(output!) ||
+    if (extra.length || !outputNames.includes(output ?? "") || selected.has(output!) ||
         indices.length !== 2 || indices.some(value => !value || [...value].some(char => char < "0" || char > "9"))) {
       throw new Error("join: invalid channel map");
     }
@@ -35,12 +46,13 @@ export async function joinAudio(
   }
   // Reserve matching speakers before filling any gaps with unused channels.
   for (const matchSpeaker of [true, false]) {
-    for (const [outputIndex, name] of ["FL", "FR"].entries()) {
+    for (const name of outputNames) {
       if (selected.has(name)) continue;
       for (const [inputIndex, input] of audio.entries()) {
-        const mask = input.channelMask || (input.channels === 1 ? 4 : input.channels === 2 ? 3 : 0);
+        const mask = input.channelMask || ([0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][input.channels] ?? 0);
+        const inputNames = speakers.filter((_, index) => (mask & (1 << index)) !== 0);
         const channelIndex = matchSpeaker
-          ? (mask & (1 << outputIndex) ? (outputIndex === 1 && (mask & 1) ? 1 : 0) : -1)
+          ? inputNames.indexOf(name)
           : input.channelData.findIndex((_, index) => !used[inputIndex]!.has(index));
         const channel = input.channelData[channelIndex];
         if (!channel || used[inputIndex]!.has(channelIndex)) continue;
@@ -50,21 +62,21 @@ export async function joinAudio(
       }
     }
   }
-  if (selected.size !== 2) throw new Error("join: not enough unused input channels");
+  if (selected.size !== outputNames.length) throw new Error("join: not enough unused input channels");
   const length = Math.min(...audio.map(input => input.channelData[0]!.length));
   const sampleRate = audio[0]!.sampleRate;
   budget.checkSamples(length);
   budget.checkDuration(length / sampleRate);
-  budget.allocateMemory(length * 2 * 8);
-  const channelData = [new Float64Array(length), new Float64Array(length)];
+  budget.allocateMemory(length * outputNames.length * 8);
+  const channelData = outputNames.map(() => new Float64Array(length));
   for (let start = 0; start < length; start += 4096) {
     await yieldTurn(signal);
     signal?.throwIfAborted();
     budget.checkCpu();
-    for (const [index, name] of ["FL", "FR"].entries()) {
+    for (const [index, name] of outputNames.entries()) {
       channelData[index]!.set(selected.get(name)!.subarray(start, Math.min(start + 4096, length)), start);
     }
   }
   return { ...tracks[0]!, timescale: sampleRate, duration: length, samples: [], editList: undefined,
-    decodedAudio: { ...audio[0]!, channels: 2, channelMask: 3, channelData } };
+    decodedAudio: { ...audio[0]!, channels: outputNames.length, channelMask: outputMask, channelData } };
 }

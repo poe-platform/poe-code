@@ -499,7 +499,10 @@ Numbered input channels range from `c0` to `c63`. Invalid identifiers and output
 channels outside the selected layout fail without replacing existing output.
 Use `-ch_layout mono` or `-channel_layout mono` for mono output, equivalent to `-ac 1`. Other output layouts are not supported by these options.
 `aformat=channel_layouts=mono` (or `aformat=cl=mono`) downmixes stereo by
-averaging left and right samples, or preserves mono input.
+averaging left and right samples, or preserves mono input. `stereo` preserves
+stereo input or converts mono with equal-power gains. Lists such as `mono|stereo`
+and `stereo|mono` preserve either input layout regardless of list order.
+Every entry must be `mono` or `stereo`; invalid lists fail without replacing output.
 `aformat=sample_fmts=u8` or `s16` (alias `f`) quantizes samples through that
 intermediate PCM format, even when the output codec has higher precision.
 `aformat=sample_rates=16000` (alias `r`) resamples at that point in the chain,

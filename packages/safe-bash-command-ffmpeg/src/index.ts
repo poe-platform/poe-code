@@ -10085,12 +10085,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             continue;
                           }
                           if (key !== "channel_layouts" && key !== "cl") throw new Error(`aformat: unsupported option ${key}`);
-                          if (value !== "mono") throw new Error(`aformat: unsupported channel layout ${value}`);
-                          if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) continue;
-                          if (stretched.length !== 2 || (filteredChannelMask && filteredChannelMask !== 3)) {
-                            throw new Error("aformat: mono conversion requires mono or stereo input");
+                          const layouts = value.split("|");
+                          if (layouts.some(layout => layout !== "mono" && layout !== "stereo")) {
+                            throw new Error(`aformat: unsupported channel layout ${value}`);
                           }
-                          const mixed = await panAudio("mono|c0=0.5*c0+0.5*c1", stretched, filteredChannelMask, panPcm16, budget, context.signal);
+                          const inputLayout = stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ? "mono"
+                            : stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3) ? "stereo" : undefined;
+                          if (!inputLayout) throw new Error("aformat: layout conversion requires mono or stereo input");
+                          if (layouts.includes(inputLayout)) continue;
+                          const expression = layouts[0] === "mono" ? "mono|c0=0.5*c0+0.5*c1"
+                            : `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`;
+                          const mixed = await panAudio(expression, stretched, filteredChannelMask, panPcm16, budget, context.signal);
                           stretched = mixed.channels;
                           filteredChannelMask = mixed.channelMask;
                         }

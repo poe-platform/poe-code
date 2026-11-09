@@ -134,7 +134,8 @@ function parseMask(value: string, previous: number): number | undefined {
         else if (permission === "x") bits |= 0o111;
         else if ("ugo".includes(permission)) {
           const shift = permission === "u" ? 6 : permission === "g" ? 3 : 0;
-          const triad = (allowed >> shift) & 7;
+          // Bash copies from the permissions at the start of this invocation.
+          const triad = (~previous >> shift) & 7;
           bits |= triad | triad << 3 | triad << 6;
         } else return undefined;
       }

@@ -564,6 +564,22 @@ test("umask supports symbolic modes and reusable output, and rejects invalid inp
   assert.equal((await shell.exec("umask 077; umask -pS")).stdout, "umask -S u=rwx,g=,o=\n");
 });
 
+for (const [commands, mask, fileMode, directoryMode] of [
+  ["umask g=u,o=g", "0007", 0o660, 0o770],
+  ["umask g=u; umask o=g", "0000", 0o666, 0o777],
+] as const) {
+  test(`umask copies permissions from the start of each invocation: ${commands}`, async () => {
+    const fs = createMemoryFileSystem();
+    const shell = new Shell({ fs }).use(agentCommands());
+    const result = await shell.exec(`umask 077; ${commands}; echo status:$?; umask; : > f; mkdir d`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `status:0\n${mask}\n`);
+    assert.equal((await fs.stat("/f")).mode & 0o777, fileMode);
+    assert.equal((await fs.stat("/d")).mode & 0o777, directoryMode);
+  });
+}
+
 test("umask reaches sequential-only redirect adapters and respects explicit mkdir modes", async () => {
   const fs = createMemoryFileSystem();
   const sequential = new Proxy(fs, {
@@ -706,7 +722,7 @@ test("umask retains symbolic permission copies and multiple operations", async (
     const result = await shell.exec("umask 027; umask u=g,g=o,o=u; umask; umask u+rw-w+rx,g=r; umask");
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stderr, "");
-    assert.equal(result.stdout, "0272\n0232\n");
+    assert.equal(result.stdout, "0270\n0230\n");
   } finally { await shell.dispose(); }
 });
 

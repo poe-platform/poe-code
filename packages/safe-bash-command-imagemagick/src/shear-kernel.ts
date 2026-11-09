@@ -3,8 +3,9 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Native shear uses pixel-edge centers and crops the bordered, sequential X/Y shear. */
 export function shearPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, spec: string) {
-    const [xAngle = "0", yAngle = "0"] = spec.toLowerCase().split("x");
-    const tx = -Math.tan((parseFloat(xAngle) || 0) * Math.PI / 180), ty = Math.tan((parseFloat(yAngle) || 0) * Math.PI / 180);
+    const [xAngle = 0, yAngle = 0] = spec.toLowerCase().split("x").map(value => parseFloat(value) || 0);
+    if ((xAngle !== 0 && xAngle % 90 === 0) || (yAngle !== 0 && yAngle % 90 === 0)) throw new Error("angle is discontinuous");
+    const tx = -Math.tan(xAngle * Math.PI / 180), ty = Math.tan(yAngle * Math.PI / 180);
     const w = image.width, h = image.height;
     const spanX = w + Math.abs(tx) * h, spanY = Math.abs(ty) * w + Math.abs(1 + tx * ty) * h;
     const width = Math.max(1, Math.round(spanX)), height = Math.max(1, Math.round(spanY));

@@ -6,8 +6,48 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
-// SHA-256 of decoded native FFmpeg 9.0.1 PCM, 8 kHz stereo, 2048 frames.
+// SHA-256 of decoded native FFmpeg 7.0.2/9.0.1 PCM, 8 kHz stereo, 2048 frames.
 for (const [filter, hash] of [
+  [
+    "apulsator=mode=sine",
+    "8e51fdb427f4e806fe3de9e39097860a06414283abb2d1880df29d9028040abb"
+  ],
+  [
+    "apulsator=mode=sine:hz=7:amount=0.6:offset_l=0.25:offset_r=1",
+    "6c41ba7e328a40abd58f9d9b7f92e528ade1b3f280d465319aa23162a125b638"
+  ],
+  [
+    "apulsator=mode=triangle",
+    "978d4024e5706d6ce8587cdc24078d5cb9e92f1cfceda58428de25b4d4c6c8dc"
+  ],
+  [
+    "apulsator=mode=triangle:hz=7:amount=0.6:offset_l=0.25:offset_r=1",
+    "0056d5473edcf601a8b4c7830a660e75584d0aca37f821c4ffeb41b65c3e8e59"
+  ],
+  [
+    "apulsator=mode=square",
+    "502845b3c47e4226e63fa8075af232f8cac26483cbdad1707743717151a4c9f5"
+  ],
+  [
+    "apulsator=mode=square:hz=7:amount=0.6:offset_l=0.25:offset_r=1",
+    "4104d24727c2545cff4a14cac98319e2781539cc2101a0acef1b6f79c5c49fbd"
+  ],
+  [
+    "apulsator=mode=sawup",
+    "24a08fce435199b4ddb0a8d275c7fce6bcb71f9c142523bca28210d4c605f690"
+  ],
+  [
+    "apulsator=mode=sawup:hz=7:amount=0.6:offset_l=0.25:offset_r=1",
+    "c1ecdc4dcce7ea077e571368d46433889fdf854937e5ec166bb6895d67d1d932"
+  ],
+  [
+    "apulsator=mode=sawdown",
+    "aec0f9bde777f35124fda4c9d2af572e28382074fc0f32bd13b29c94db9c91ff"
+  ],
+  [
+    "apulsator=mode=sawdown:hz=7:amount=0.6:offset_l=0.25:offset_r=1",
+    "31e6e912733d6f47c52858f80248fdfc0d1acf52be35dd85e2bd1778fd9bad63"
+  ],
   ...["1/2", "0.5", "sin(PI/6)", "0x1/2", "500m"].map(value => [
     `apulsator=amount=${value}`,
     "8a9cfd8759cebe8295e08e216d98b6991818f0cc2a068fbb550543a979727a85"
@@ -61,7 +101,7 @@ for (const [filter, hash] of [
 for (const filter of [
   ...["hz", "amount", "offset_l", "offset_r"].map(key => `apulsator=${key}=0b1`),
   ...["0o1", "1/0", "2/1", "1/", ""].map(value => `apulsator=amount=${value}`),
-  "apulsator=hz=0", "apulsator=amount=2", "apulsator=offset_r=-1", "apulsator=offset_l=NaN", "apulsator=mode=bad", "apulsator=unknown=1"
+  "apulsator=hz=0", "apulsator=amount=2", "apulsator=offset_r=-1", "apulsator=offset_l=NaN", "apulsator=mode=bad", "apulsator=mode=", "apulsator=unknown=1"
 ]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);

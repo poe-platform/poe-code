@@ -7,13 +7,21 @@ export async function pulsateAudio(
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   if (channels.length !== 2) throw new Error("apulsator: stereo input required");
+  let mode = "sine";
   const options = { hz: 2, amount: 1, offset_l: 0, offset_r: 0.5 };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
-    const key = option.slice(0, separator).trim() as keyof typeof options;
-    if (separator < 0 || !Object.hasOwn(options, key)) throw new Error(`apulsator: unsupported option ${option}`);
+    const key = option.slice(0, separator).trim() as keyof typeof options | "mode";
+    if (separator < 0 || (key !== "mode" && !Object.hasOwn(options, key))) throw new Error(`apulsator: unsupported option ${option}`);
     const value = option.slice(separator + 1).trim();
+    if (key === "mode") {
+      if (!["sine", "triangle", "square", "sawup", "sawdown"].includes(value)) {
+        throw new Error("apulsator: invalid mode");
+      }
+      mode = value;
+      continue;
+    }
     const number = parseFilterExpression(value, "apulsator", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
     const min = key === "hz" ? 0.01 : 0;
     const max = key === "hz" ? 100 : 1;
@@ -35,7 +43,17 @@ export async function pulsateAudio(
     for (let channel = 0; channel < 2; channel++) {
       let position = phase + (channel === 0 ? options.offset_l : options.offset_r);
       if (position > 1) position %= 1;
-      const wave = Math.sin(position * 2 * Math.PI);
+      let wave: number;
+      switch (mode) {
+        case "triangle":
+          wave = position > 0.75 ? (position - 0.75) * 4 - 1
+            : position > 0.25 ? -4 * position + 2 : position * 4;
+          break;
+        case "square": wave = position < 0.5 ? -1 : 1; break;
+        case "sawup": wave = position * 2 - 1; break;
+        case "sawdown": wave = 1 - position * 2; break;
+        default: wave = Math.sin(position * 2 * Math.PI);
+      }
       const input = channels[channel]![frame]!;
       output[channel]![frame] = input * (wave * options.amount * 0.5 + options.amount / 2) + input * (1 - options.amount);
     }

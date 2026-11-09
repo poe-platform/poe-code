@@ -483,6 +483,9 @@ Strength and range default to 0.2 and 0.5 (0â€“1); slope defaults to 0.5 (0.01â€
 at the next audio frame without resetting filter history. Commands target the
 first matching instance; unmatched targets and invalid gains leave it unchanged.
 `crossfeed=strength=0:level_in=1:level_out=1` preserves every stereo input sample.
+Timeline expressions such as `crossfeed=enable='gte(t,0.064)'` evaluate at audio
+frame boundaries using frame time `t` or frame number `n`. Bypassed frames retain
+the input samples while the filter history continues updating.
 Block processing (`block_size`) is unsupported.
 `stereowiden=delay=5:feedback=0.3:crossfeed=0.3:drymix=0.8` widens stereo
 with delayed cross-channel subtraction. Mono input is automatically converted to stereo

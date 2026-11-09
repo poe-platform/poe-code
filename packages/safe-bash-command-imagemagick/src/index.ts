@@ -3210,7 +3210,8 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         for (let p = 0; p < 3; p++) { matrix.push([nums[p * 4 + 2]!, nums[p * 4 + 3]!, 1]); xs.push(nums[p * 4]!); ys.push(nums[p * 4 + 1]!); }
         const rx = solveLinearSystem(matrix, xs), ry = solveLinearSystem(matrix, ys);
         // Control points use pixel edges; sampling uses pixel centers.
-        const plan = result((x, y) => [rx[0]! * (x + 0.5) + rx[1]! * (y + 0.5) + rx[2]! - 0.5, ry[0]! * (x + 0.5) + ry[1]! * (y + 0.5) + ry[2]! - 0.5]);
+        const plan = { ...result((x, y) => [rx[0]! * (x + 0.5) + rx[1]! * (y + 0.5) + rx[2]! - 0.5, ry[0]! * (x + 0.5) + ry[1]! * (y + 0.5) + ry[2]! - 0.5]),
+            derivatives: () => [rx[0]!, rx[1]!, ry[0]!, ry[1]!] as const };
         return bestFit(plan, (x, y) => {
             const px = x + 0.5 - rx[2]!, py = y + 0.5 - ry[2]!;
             const determinant = rx[0]! * ry[1]! - rx[1]! * ry[0]!;

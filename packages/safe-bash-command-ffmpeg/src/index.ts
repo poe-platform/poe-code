@@ -5124,7 +5124,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let dashMpdProfile: string | undefined;
         let dashAdaptationSets: string | undefined;
         let dashSegmentDuration = 5;
-        let dashFragmentType: "none" | "every_frame" = "none";
+        let dashFragmentType: "none" | "every_frame" | "duration" = "none";
         let dashStreaming = false;
         let dashLowLatency = false;
         let dashMinPlaybackRate = 1;
@@ -5204,6 +5204,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let fragmentKeyframes = false;
         let fragmentEveryFrame = false;
         let fragmentDuration: number | undefined;
+        let fragmentDurationArg: string | undefined;
         let fragmentIndex: number | undefined;
         let emptyMoov = false;
         let writeId3v2: boolean | undefined;
@@ -5550,8 +5551,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-frag_type") {
             const value = args[++i];
-            if (value !== "none" && value !== "every_frame") {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: unsupported frag_type (expected none or every_frame)\n"), context.signal);
+            if (value !== "none" && value !== "every_frame" && value !== "duration") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: unsupported frag_type (expected none, every_frame or duration)\n"), context.signal);
               return { exitCode: 234 };
             }
             dashFragmentType = value;
@@ -6366,12 +6367,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
           } else if (arg === "-frag_duration") {
-            const value = args[++i];
-            fragmentDuration = value?.trim() ? Number(value) : NaN;
-            if (!Number.isInteger(fragmentDuration) || fragmentDuration < 0 || fragmentDuration > 2147483647) {
-              throw new Error("-frag_duration requires an integer from 0 to 2147483647 microseconds");
-            }
-            if (fragmentDuration > 0) fragmented = true;
+            fragmentDurationArg = args[++i] ?? "";
           } else if (arg === "-movflags") {
             const flags = args[++i] ?? "";
             try {
@@ -6590,6 +6586,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
         // A filename closes its option group; trailing options have no output.
         if (!outputTarget) break;
+        if (fragmentDurationArg !== undefined) {
+          // DASH accepts seconds, while the MP4 muxer uses integer microseconds.
+          const dash = outputFormat === "dash" || outputTarget.toLowerCase().endsWith(".mpd");
+          fragmentDuration = dash ? Math.round(parseHlsDuration(fragmentDurationArg) * 1_000_000)
+            : fragmentDurationArg.trim() ? Number(fragmentDurationArg) : NaN;
+          if (!Number.isInteger(fragmentDuration) || fragmentDuration < 0 || fragmentDuration > 2147483647) {
+            await writeBytes(context.stderr, encodeUtf8(dash ? "ffmpeg: invalid DASH frag_duration\n"
+              : "ffmpeg: -frag_duration requires an integer from 0 to 2147483647 microseconds\n"), context.signal);
+            return { exitCode: 1 };
+          }
+          if (!dash && fragmentDuration > 0) fragmented = true;
+        }
         if (outputFps !== undefined && !["auto", "-1", "cfr", "1"].includes(videoSync)) {
           await writeBytes(context.stderr,
             encodeUtf8("ffmpeg: output -r is contradictory to a non-CFR -vsync/-fps_mode\n"), context.signal);
@@ -10221,7 +10229,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (!registry.findByFormatName("dash")?.canMux) throw new Error("DASH AST is not registered");
               const outResolved = resolvePath(context.cwd, outputTarget);
               const outDir = outResolved.slice(0, outResolved.lastIndexOf("/")) || "/";
-              const { manifest, resources } = serializeDashDocument(workingDoc, { mpdProfile: dashMpdProfile, hlsPlaylist: dashHlsPlaylist, adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.$ext$", minPlaybackRate: dashMinPlaybackRate, maxPlaybackRate: dashMaxPlaybackRate, segmentDuration: dashSegmentDuration, fragmentType: dashFragmentType, streaming: dashStreaming, lowLatency: dashLowLatency, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
+              const { manifest, resources } = serializeDashDocument(workingDoc, { mpdProfile: dashMpdProfile, hlsPlaylist: dashHlsPlaylist, adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.$ext$", minPlaybackRate: dashMinPlaybackRate, maxPlaybackRate: dashMaxPlaybackRate, segmentDuration: dashSegmentDuration, fragmentType: dashFragmentType, fragmentDuration, streaming: dashStreaming, lowLatency: dashLowLatency, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
               for (const [uri, bytes] of resources) {
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(outDir, uri), data, { signal: context.signal }));

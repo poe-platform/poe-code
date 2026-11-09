@@ -549,7 +549,7 @@ beside it. Use `-init_seg_name 'i-$RepresentationID$.mp4'` and
 Use `-mpd_profile dvb_dash` to declare the DVB DASH profile, or `-mpd_profile dash+dvb_dash` for both DVB and the default ISO live profile.
 MP4 media chunks include a local `sidx` index covering their fragments. Use `-streaming 1` to omit indexes and write one fragment per frame (`0` is the default).
 Use `-ldash 1` to enable per-frame streaming and low-latency GOP-based buffering without changing segment boundaries; `-ldash 0` is the default. `-streaming 1` alone retains standard buffer timing.
-Use `-frag_type every_frame` for one fragment per frame inside each media segment, keeping `-seg_duration` unchanged; `none` (default) writes one fragment per segment.
+Use `-frag_type every_frame` for one fragment per frame inside each media segment, keeping `-seg_duration` unchanged; `none` (default) writes one fragment per segment. Use `-frag_type duration -frag_duration 0.5` for half-second fragments inside each segment; DASH uses seconds, while MP4 uses integer microseconds. Zero disables duration cuts, and fragment duration cannot exceed segment duration.
 Use `-use_template 0` for explicit `SegmentList` output; the default (`1`) retains `SegmentTemplate`.
 Use `-min_playback_rate 0.9` and/or `-max_playback_rate 1.1` to advertise playback bounds in DASH `ServiceDescription`. Each defaults to 1 and accepts 0.5–1.5; reversed bounds and the default 1/1 pair omit `PlaybackRate`.
 Use `-use_timeline 0` for fixed-duration templates without a timeline (`-seg_duration` defaults to 5 seconds); `1` retains the default timeline.

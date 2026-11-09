@@ -66,7 +66,7 @@ VP9 DASH uses WebM initialization and Cluster segments with `.webm` names; H.264
 Separate MP4 DASH media files start with an `styp` box carrying the `msdh`/`msix` brands.
 MP4 media segments contain a local `sidx` index covering their fragments. Set `streaming: true` to omit indexes and write one fragment per frame.
 Set `lowLatency: true` to enable per-frame streaming and derive `minBufferTime` from GOP timing, without changing segment boundaries. Ordinary streaming retains the standard segment-based buffer time.
-Use `fragmentType: "every_frame"` to place one fragment per frame inside each segment, independently of `segmentDuration`; the default (`"none"`) writes one fragment per segment.
+Use `fragmentType: "every_frame"` to place one fragment per frame inside each segment, independently of `segmentDuration`; the default (`"none"`) writes one fragment per segment. Use `fragmentType: "duration", fragmentDuration: 500000` for half-second fragments (microseconds), cutting at packet boundaries within each segment.
 Set `mpdProfile: "dvb_dash"` to declare the DVB DASH profile, or `"dash+dvb_dash"` for both DVB and the default ISO live profile.
 Set `minPlaybackRate` and/or `maxPlaybackRate` to advertise DASH playback bounds in `ServiceDescription`; the omitted bound defaults to 1. Both accept 0.5–1.5; reversed bounds and the default 1/1 pair omit `PlaybackRate`.
 Set `windowSize` to bound each DASH timeline or segment list to its last N segments (`0` retains all), preserving segment numbers and resource references.

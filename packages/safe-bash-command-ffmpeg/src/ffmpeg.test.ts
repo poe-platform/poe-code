@@ -8672,7 +8672,7 @@ for (const segmentDuration of [1, 5]) {
 }
 
 
-for (const value of [undefined, "unsupported", "duration"]) {
+for (const value of [undefined, "unsupported"]) {
   it(`rejects unsupported DASH frag_type ${value}`, async () => {
     const vfs = createTestVfs({});
     const result = await runCmd(createFfmpegCommand(), ["-frag_type", ...(value === undefined ? [] : [value])], vfs);

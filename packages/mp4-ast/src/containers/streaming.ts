@@ -436,6 +436,9 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   if (!Number.isInteger(windowSize) || windowSize < 0 || windowSize > 2_147_483_647) throw new Error("Invalid DASH window size");
   const segmentDuration = options.segmentDuration ?? 5;
   if (!Number.isFinite(segmentDuration) || segmentDuration < 0) throw new Error("Invalid DASH segment duration");
+  const fragmentDuration = options.fragmentType === "duration" ? options.fragmentDuration ?? 0 : 0;
+  if (!Number.isFinite(fragmentDuration) || fragmentDuration < 0) throw new Error("Invalid DASH fragment duration");
+  if (fragmentDuration > segmentDuration * 1_000_000) throw new Error("Fragment duration is longer than DASH segment duration");
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   const resources = new Map<string, Uint8Array>();
   const streams = buildProbeResultFromDoc(doc, 0).streams;
@@ -484,7 +487,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     for (let segment = 0; segment < starts.length; segment++) {
       const samples = track.samples.slice(starts[segment], starts[segment + 1]);
       const fragments: Uint8Array[] = [];
-      const fragmentSize = streaming || options.fragmentType === "every_frame" ? 1 : Math.max(1, samples.length);
+      const everyFrame = streaming || options.fragmentType === "every_frame";
       let mediaBytes = 0;
       if (webm) {
         const bytes = serializeMkv({ ...doc, tracks: [{ ...track, samples }] }, { ...options, webm: true });
@@ -511,24 +514,34 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
           totalBytes += initialization.length;
         }
         fragments.push(bytes.subarray(offset));
-      } else for (let start = 0; start < Math.max(1, samples.length); start += fragmentSize) {
-        const bytes = serializeMp4({ ...doc, tracks: [{ ...track, samples: samples.slice(start, start + fragmentSize) }] }, { ...options, budget, fragmented: true, skipTrailer: true });
-        const moof = parseMp4Boxes(bytes, 0, 0, budget).find(b => b.type === "moof");
-        if (!moof) throw new Error("DASH output requires fragmented MP4 samples");
-        if (segment === 0 && start === 0) {
-          initialization = bytes.slice(0, moof.offset);
-          trackBytes += moof.offset;
-          totalBytes += moof.offset;
+      } else for (let start = 0, end = 0; start < Math.max(1, samples.length); start = end) {
+        end = everyFrame || fragmentDuration > 0 ? start + 1 : Math.max(1, samples.length);
+        if (!everyFrame && fragmentDuration > 0) {
+          while (end < samples.length) {
+            budget.checkCpu();
+            if (Math.round((samples[end]!.dts - samples[start]!.dts) * 1_000_000 / track.timescale) >= fragmentDuration) break;
+            end++;
+          }
         }
-        const fragment = bytes.slice(moof.offset);
+        const bytes = serializeMp4({ ...doc, tracks: [{ ...track, samples: samples.slice(start, end) }] }, { ...options, budget, fragmented: true, fragmentDuration: undefined, segmentIndex: fragmentDuration > 0 && !streaming ? "fragment" : undefined, skipTrailer: true });
+        const boxes = parseMp4Boxes(bytes, 0, 0, budget);
+        const moof = boxes.find(b => b.type === "moof");
+        if (!moof) throw new Error("DASH output requires fragmented MP4 samples");
+        const offset = boxes.find(b => b.type === "sidx")?.offset ?? moof.offset;
+        if (segment === 0 && start === 0) {
+          initialization = bytes.slice(0, offset);
+          trackBytes += offset;
+          totalBytes += offset;
+        }
+        const fragment = bytes.slice(offset);
         // mfhd is the first moof child; sequence numbers increase per representation.
-        new DataView(fragment.buffer, fragment.byteOffset, fragment.byteLength).setUint32(20, ++sequence);
+        new DataView(fragment.buffer, fragment.byteOffset, fragment.byteLength).setUint32(moof.offset - offset + 20, ++sequence);
         mediaBytes += fragment.length;
         budget.checkOutputBytes(totalBytes + mediaBytes);
         fragments.push(fragment);
       }
       let media = concatBytes(fragments);
-      if (!streaming && !webm) {
+      if (!streaming && !webm && fragmentDuration === 0) {
         // Version 1 sidx: one reference to all fragments in this media segment.
         const indexBytes = new Uint8Array(52);
         const view = new DataView(indexBytes.buffer);

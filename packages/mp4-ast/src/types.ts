@@ -752,7 +752,7 @@ export interface SerializeMediaOptions {
   /** Target DASH segment duration in seconds (default: 5); video cuts at keyframes. */
   readonly segmentDuration?: number | undefined;
   /** DASH fragment subdivision within each media segment (default: none). */
-  readonly fragmentType?: "none" | "every_frame" | undefined;
+  readonly fragmentType?: "none" | "every_frame" | "duration" | undefined;
   /** DASH: write per-frame fragments without local segment indexes. */
   readonly streaming?: boolean | undefined;
   /** DASH: enable per-frame streaming and constrain buffer time to GOP timing. */
@@ -794,7 +794,7 @@ export interface SerializeMediaOptions {
   readonly fragmentKeyframes?: boolean | undefined;
   /** Start a new MP4 fragment at each sample, including non-keyframes. Requires fragmented output. */
   readonly fragmentEveryFrame?: boolean | undefined;
-  /** Maximum MP4 fragment duration in microseconds; zero disables time-based cuts. Requires fragmented output. */
+  /** Maximum fragment duration in microseconds; zero disables time-based cuts. MP4 requires fragmented output; DASH requires fragmentType: "duration". */
   readonly fragmentDuration?: number | undefined;
   /** Sequence number of the first MP4 fragment (default: 1). */
   readonly fragmentIndex?: number | undefined;

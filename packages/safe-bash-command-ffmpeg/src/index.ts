@@ -1501,22 +1501,44 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           source.track.decodedAudio.sampleRate !== audio.sampleRate)) {
           throw new Error("astreamselect requires decoded PCM inputs with matching sample rates");
         }
-        const shortest = Math.min(...sources.map(source => source.track.decodedAudio!.channelData[0]!.length));
-        // Framesync stops at peer EOF, but emits each selected frame whole.
-        let length = 0;
-        for (let n = 0; length < shortest; n++) {
-          if (n % 1024 === 0) { budget.checkCpu(); await yieldTurn(signal); signal?.throwIfAborted(); }
-          const packet = track.samples[n];
-          length += packet ? Math.max(0, Math.round(packet.duration * audio.sampleRate / track.timescale)
-            - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+        // Framesync waits for every input to start and stops just after the
+        // earliest final packet timestamp. It forwards whole selected frames.
+        let firstPts = -Infinity;
+        let lastPts = Infinity;
+        for (const { track: input } of sources) {
+          budget.checkCpu();
+          const length = input.decodedAudio!.channelData[0]!.length;
+          firstPts = Math.max(firstPts, length === 0 ? Infinity :
+            (input.samples[0]?.pts ?? 0) / input.timescale);
+          lastPts = Math.min(lastPts, length === 0 ? -Infinity : input.samples.length
+            ? input.samples.at(-1)!.pts / input.timescale : (length - 1) / audio.sampleRate);
         }
-        length = Math.min(length, audio.channelData[0]!.length);
+        let start = 0;
+        let end = 0;
+        let firstPacket = 0;
+        let lastPacket = 0;
+        if (firstPts <= lastPts) {
+          for (let position = 0, index = 0; position < audio.channelData[0]!.length; index++) {
+            if (index % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            const packet = track.samples[index];
+            const count = packet ? Math.max(0, Math.round(packet.duration * audio.sampleRate / track.timescale)
+              - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+            if (count === 0) continue;
+            const pts = packet ? packet.pts / track.timescale : position / audio.sampleRate;
+            if (pts > lastPts) break;
+            if (pts <= firstPts) { start = position; firstPacket = index; }
+            lastPacket = index + 1;
+            end = Math.min(audio.channelData[0]!.length, position + count);
+            position = end;
+          }
+        }
+        const length = end - start;
         budget.checkSamples(length);
         budget.checkDuration(length / audio.sampleRate);
         const target = sources[0]!.track.decodedAudio!;
         const inputLayout = audio.channelMask || (audio.channels === 1 ? 4 : audio.channels === 2 ? 3 : undefined);
         const targetLayout = target.channelMask || (target.channels === 1 ? 4 : target.channels === 2 ? 3 : undefined);
-        let channelData = audio.channelData.map(channel => channel.subarray(0, length));
+        let channelData = audio.channelData.map(channel => channel.subarray(start, end));
         if (audio.channels !== target.channels || inputLayout !== targetLayout) {
           if (!(inputLayout === 4 && targetLayout === 3 || inputLayout === 3 && targetLayout === 4)) {
             throw new Error("astreamselect requires matching layouts or mono/stereo inputs");
@@ -1528,7 +1550,9 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           const mixed = await panAudio(expression, channelData, inputLayout, pcm16, budget, signal);
           channelData = mixed.channels;
         }
-        return { track: { ...track, duration: length * track.timescale / audio.sampleRate, editList: undefined,
+        budget.allocateMemory(Math.max(0, Math.min(lastPacket, track.samples.length) - firstPacket) * 8);
+        return { track: { ...track, duration: length * track.timescale / audio.sampleRate,
+          samples: track.samples.slice(firstPacket, lastPacket), editList: undefined,
           decodedAudio: { ...audio, channels: target.channels, channelMask: targetLayout, channelData } },
           expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }

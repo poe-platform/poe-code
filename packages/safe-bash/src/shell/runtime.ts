@@ -8034,7 +8034,7 @@ export class Runtime {
       savedIndex.getopts = cloneGetoptsBinding(state);
     }
     try {
-      if (argument !== undefined) await this.writeVariable(state, "OPTARG", argument, context, "getopts");
+      if (argument !== undefined) await this.assignVariable(state, "OPTARG", argument, context, "getopts");
       else if (result.kind === "option") {
         const target = this.referenceName(state, "OPTARG");
         if (state.readonlyVariables?.has(target)) throw new PublicDiagnostic(`${target}: readonly variable`);

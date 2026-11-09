@@ -51,6 +51,29 @@ declare -p OPTARG`;
 }
 
 for (const bounded of [false, true]) {
+  for (const declaration of ["declare -a", "declare -A"]) {
+    for (const assignment of ["getopts b: opt -b new", "OPTARG=new"]) {
+      test(`${assignment} preserves ${declaration} OPTARG siblings (bounded=${bounded})`, async () => {
+        const source = `${declaration} OPTARG=([0]=old [1]=keep)
+${assignment}
+printf '%s|%s|%s\\n' "$?" "\${OPTARG[0]-unset}" "\${OPTARG[1]-unset}"`;
+        const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } });
+        assert.equal(native.status, 0, native.stderr);
+        assert.equal(native.stderr, "");
+        assert.equal(native.stdout, "0|new|keep\n");
+        const { shell } = runtimeSetup(bounded ? { limits: { maxExpansionBytes: 4096 } } : {});
+        try {
+          const result = await shell.exec(source);
+          assert.equal(result.stdout, native.stdout);
+          assert.equal(result.stderr, "");
+          assert.equal(result.exitCode, 0);
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
+
+for (const bounded of [false, true]) {
   for (const command of ["getopts --help", "getopts --help ab flag -a", "command getopts --help", "builtin getopts --help"]) {
     test(`${command} prints Bash help without changing option state (bounded=${bounded})`, async () => {
       const source = `flag=old; OPTARG=old

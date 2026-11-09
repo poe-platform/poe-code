@@ -9429,6 +9429,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             mono = ["1", "true", "yes", "on"].includes(value.toLowerCase());
                           } else throw new Error(`silencedetect: unsupported option ${key}`);
                         }
+                        // Native s16 detection truncates noise in signed PCM units.
+                        if (panPcm16) noise = Math.trunc(noise * 32767) / 32768;
                         const channels = stretched.length;
                         const counts = new Array<number>(mono ? channels : 1).fill(0);
                         const starts = new Array<number | undefined>(counts.length).fill(undefined);

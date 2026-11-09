@@ -1025,15 +1025,27 @@ function* applyMagickCustomConvolveSteps(img: RgbaImage, spec: string, signal?: 
 
 function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
+    const separator = spec.indexOf(":");
+    const name = (separator < 0 ? spec : spec.slice(0, separator)).trim().toLowerCase();
+    const argument = separator < 0 ? undefined : Number(spec.slice(separator + 1));
+    let named: number[] | undefined;
+    if (name === "unity") named = [argument ?? 1];
+    else if (name === "sobel" && (argument === undefined || argument === 0)) named = [1, 0, -1, 2, 0, -2, 1, 0, -1];
+    else if (name === "square" && (argument === undefined || Number.isFinite(argument))) {
+        // Only RGB, black, alpha and the constant column affect a color matrix.
+        // Larger all-ones kernels have the same effect as a 6x6 matrix.
+        const size = Math.min(6, Math.max(3, Math.floor(2 * Math.abs(argument ?? 1) + 1)));
+        named = new Array<number>(size * size).fill(1);
+    }
     const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
-    const m = afterColon
+    const m = named ?? afterColon
         .trim()
         .split(/[\s,]+/)
         .filter((s) => s.length > 0)
         .map(Number);
     if (!spec.includes(":") && !Number.isFinite(m[0]))
         throw new Error("Invalid color matrix: expected a numeric first coefficient");
-    const geometry = spec.includes(":") ? parseMagickGeometry(spec.slice(0, spec.indexOf(":"))) : undefined;
+    const geometry = !named && spec.includes(":") ? parseMagickGeometry(spec.slice(0, spec.indexOf(":"))) : undefined;
     const cols = geometry ? geometry.width ?? 0 : Math.sqrt(m.length);
     const rows = geometry ? geometry.height ?? cols : cols;
     if (cols <= 0 || rows <= 0 || !Number.isInteger(cols) || !Number.isInteger(rows) || cols * rows !== m.length)

@@ -29,6 +29,12 @@ for (const retained of [false, true]) {
         });
 
         it.each([
+            { matrix: "Sobel", expected: [150, 255, 150, 128] },
+            { matrix: "Unity", expected: [200, 100, 50, 128] },
+            { matrix: "Square:1", expected: [255, 255, 255, 128] },
+            { matrix: "Square:0.2", expected: [255, 255, 255, 128] },
+            { matrix: "Square:3", expected: [255, 255, 255, 255] },
+            { matrix: "Unity:0.5", expected: [100, 100, 50, 128] },
             { matrix: "2x1: 0 1", expected: [100, 100, 50, 128] },
             { matrix: "1x2: 0 1", expected: [0, 255, 50, 128] },
             { matrix: "3x3: 0 1 0 1 0 0 0 0 1", expected: [100, 200, 50, 128] },

@@ -2,7 +2,9 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
 export async function fadeAudio(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
+  frames: readonly { start: number; end: number; pts: number }[] | undefined, startSample: number,
+  budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   let type = "in";
   let start = 0;
@@ -50,13 +52,17 @@ export async function fadeAudio(
   const length = channels[0]?.length ?? 0;
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
+  let frameIndex = 0;
   for (let i = 0; i < length; i++) {
     if (i % 4096 === 0) {
       await yieldTurn(signal);
       signal?.throwIfAborted();
       budget.checkCpu();
     }
-    const progress = Math.max(0, Math.min(1, (i - start) / samples));
+    while (frames && frameIndex + 1 < frames.length && frames[frameIndex]!.end <= i) frameIndex++;
+    const frame = frames?.[frameIndex];
+    const pts = frame ? frame.pts + i - frame.start : startSample + i;
+    const progress = Math.max(0, Math.min(1, (pts - start) / samples));
     const fraction = type === "out" ? 1 - progress : progress;
     const gain = silence + (unity - silence) * (curve === "qua" ? fraction * fraction : fraction);
     for (let c = 0; c < channels.length; c++) output[c]![i] = channels[c]![i]! * gain;

@@ -9434,7 +9434,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
                         });
                       } else if (trimmed === "afade" || trimmed.startsWith("afade=")) {
-                        stretched = await fadeAudio(stretched, origRate, trimmed, budget, context.signal);
+                        stretched = await fadeAudio(stretched, origRate, trimmed, audioTimestamps, audioStartSample, budget, context.signal);
                       } else if (trimmed === "dynaudnorm" || trimmed.startsWith("dynaudnorm=")) {
                         filteredSampleFormat = "dblp";
                         const normalized = await normalizeAudio(stretched, origRate, trimmed, budget, context.signal, async message => {

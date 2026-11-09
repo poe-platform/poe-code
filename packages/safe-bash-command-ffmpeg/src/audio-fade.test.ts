@@ -15,6 +15,13 @@ for (const [filter, indices, expected] of [
   ["afade=t=in:ss=0:ns=4:silence=0.25:unity=0.75", [0, 1, 2, 3, 4, 5], [3000, 4500, 6000, 7500, 9000, 9000]],
   ["afade=t=out:ns=4:silence=0.25:unity=0.75", [0, 1, 2, 3, 4, 5], [9000, 7500, 6000, 4500, 3000, 3000]],
   ["afade=ns=4,volume=0.5", [0, 1, 2, 3, 4], [0, 1500, 3000, 4500, 6000]],
+  ["asetpts=PTS+8,afade=ns=4", [0, 1, 2, 3, 4], [12000, 12000, 12000, 12000, 12000]],
+  ["asetpts=PTS+2,afade=ns=4", [0, 1, 2, 3, 4], [6000, 9000, 12000, 12000, 12000]],
+  ["asetpts=PTS-2,afade=ns=4", [0, 1, 2, 3, 4, 6], [0, 0, 0, 3000, 6000, 12000]],
+  ["asetpts=PTS+2,afade=t=out:d=0.0005", [0, 1, 2, 3, 4], [6000, 3000, 0, 0, 0]],
+  ["asetnsamples=2:0,asetpts=2*PTS,afade=ns=8", [0, 1, 2, 3, 4], [0, 1500, 6000, 7500, 12000]],
+  ["asetnsamples=2:0,asetpts=0,afade=ns=4", [0, 1, 2, 3, 4], [0, 3000, 0, 3000, 0]],
+  ["asetpts=PTS+8,asetpts=PTS-STARTPTS,afade=ns=4", [0, 1, 2, 3, 4], [0, 3000, 6000, 9000, 12000]],
   ["afade=type=0:start_sample=1000:nb_samples=2000:c=6", positions, [0, 0, 750, 3000, 11988, 12000]],
   ["afade=ss=2:ns=4:st=125ms:d=250ms", positions, [0, 0, 3000, 6000, 11994, 12000]],
   ["afade", [0, 2205, 4410], [0, 600, 1200]]

@@ -9335,8 +9335,12 @@ export class Runtime {
           }
           const target = this.variableTarget(this.referenceName(state, names[index]!))!;
           if (state.readonlyVariables?.has(target.name)) {
+            const binding = arrayStore(state)?.get(target.name);
+            if (target.subscript !== undefined && !binding?.associative) {
+              await this.arrayIndex(binding, { decimal: target.subscript, source: target.subscript }, state, context, requireArrays(state).owner, true, binding?.maximum ?? (state.variables[target.name] === undefined ? -1 : 0));
+            }
             await this.diagnostic(context, `${target.name}: readonly variable`);
-            return target.subscript !== undefined || index === names.length - 1 ? 1 : 2;
+            return index === names.length - 1 ? 1 : 2;
           }
           await this.assignVariable(state, names[index]!, fields[index]?.value ?? "", context);
         }

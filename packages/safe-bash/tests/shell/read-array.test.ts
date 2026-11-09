@@ -4,9 +4,14 @@ import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 import { agentCommands, createMemoryFileSystem, Shell } from "../../src/core.js";
+import { bashExecutable, modernBashSkip } from "../helpers/bash-oracle.js";
 import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 
 for (const [label, source] of [
+  ["readonly indexed condition", 'a=(old); readonly -a a; if read "a[0]" <<< new; then echo success; else echo recovered; fi; echo "first=${a[0]}"'],
+  ["readonly indexed subscript side effect", 'a=(old); readonly -a a; i=0; if read "a[i++]" <<< new; then echo success; else echo "recovered:$?"; fi; echo "first=${a[0]} i=$i"'],
+  ["writable indexed subscript side effect", 'a=(old); i=0; if read "a[i++]" <<< new; then echo success; else echo recovered; fi; echo "first=${a[0]} i=$i"'],
+  ["readonly read array condition", 'a=(old); readonly -a a; if read -a a <<< new; then echo success; else echo "recovered:$?"; fi; echo "first=${a[0]}"'],
   ["readonly scalar subscript", 'readonly locked=old; read "locked[0]" <<< new; printf "continued:%s <%s>\\n" "$?" "$locked"'],
   ["readonly indexed member", 'readonly -a locked=(old keep); read "locked[0]" <<< new; printf "continued:%s <%s> <%s>\\n" "$?" "${locked[@]}"'],
   ["readonly associative member", 'declare -A locked=([key]=old); readonly locked; read "locked[key]" <<< new; printf "continued:%s <%s>\\n" "$?" "${locked[key]}"'],
@@ -17,12 +22,12 @@ for (const [label, source] of [
   ["readonly scalar control", 'readonly locked=old; read locked <<< new; printf "continued:%s <%s>\\n" "$?" "$locked"'],
   ["writable subscript control", 'read "open[0]" <<< new; printf "continued:%s <%s>\\n" "$?" "${open[0]}"'],
 ] as const) {
-  test(`read destination failure matches Bash: ${label}`, async () => {
+  test(`read destination failure matches Bash: ${label}`, { skip: modernBashSkip }, async () => {
     const { shell, commands } = setup({ extensions: [arraysExtension()] });
     for (const command of basicCommands()) commands.register(command);
     const stdin = "one two three\nTAIL\n";
     try {
-      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source, "shell"], { input: stdin, encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
+      const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source, "shell"], { input: stdin, encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
       assert.equal(native.error, undefined);
       assert.equal(native.signal, null);
       const result = await shell.exec(source, { stdin });
@@ -40,12 +45,12 @@ for (const [destinations, first, last] of [
   ["x z bad-name", "one", "two"],
   ["x second z", "one", ""],
 ] as const) {
-  test(`ordinary read validates destinations and assigns in order: ${destinations}`, async () => {
+  test(`ordinary read validates destinations and assigns in order: ${destinations}`, { skip: modernBashSkip }, async () => {
     const { shell, commands } = setup();
     for (const command of basicCommands()) commands.register(command);
     const source = `printf 'one two\\nnext\\n' | { x=old; z=old; read ${destinations}; rc=$?; read y; printf '%s|%s|%s|%s\\n' "$rc" "$x" "$y" "$z"; }`;
     try {
-      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
+      const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
       assert.equal(native.error, undefined);
       assert.equal(native.status, 0);
       const expected = `${destinations.includes("bad-name") ? 1 : 0}|${first}|${destinations.startsWith("bad-name") ? "one two" : "next"}|${last}\n`;
@@ -85,7 +90,7 @@ for (const target of ["items", "'items[0]'", "'fresh[0]'"]) {
       for (const command of basicCommands()) commands.register(command);
       const source = `${initialize} declare -a items=(one two); marker=original; IFS=: marker=temporary read ${target} <<< 'a:b'; printf '<%s>' "\${IFS+x}" "$IFS" "$marker" "\${items[@]}" "\${fresh[@]}"`;
       try {
-        const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
+        const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
         assert.equal(native.error, undefined);
         assert.equal(native.status, 0);
         const result = await shell.exec(source);
@@ -105,7 +110,7 @@ for (const option of ["-u 0", "-u0", "-u +00", "-p SYNTHETIC_PROMPT", "-pSYNTHET
       assert.equal(result.stdout, '["abcd","TAIL"]');
       assert.equal(result.stderr, "");
       assert.equal(result.exitCode, 0);
-      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", `read ${option} first; code=$?; read -r rest; printf '["%s","%s"]' "$first" "$rest"; exit "$code"`], { input: "abcd\nTAIL\n", encoding: "utf8", env: { LC_ALL: "C", TZ: "UTC" }, timeout: 10000 });
+      const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", `read ${option} first; code=$?; read -r rest; printf '["%s","%s"]' "$first" "$rest"; exit "$code"`], { input: "abcd\nTAIL\n", encoding: "utf8", env: { LC_ALL: "C", TZ: "UTC" }, timeout: 10000 });
       assert.equal(native.error, undefined);
       assert.equal(result.stdout, native.stdout);
       assert.equal(result.stderr, native.stderr);

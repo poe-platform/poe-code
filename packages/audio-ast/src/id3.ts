@@ -59,6 +59,13 @@ function terminated(bytes: Uint8Array, start: number, encoding: number): number 
     if (bytes[i] === 0 && (width === 1 || bytes[i + 1] === 0)) return i;
   throw new Error("Unterminated ID3 text field");
 }
+/** ffprobe's printable representation of a private frame's binary payload. */
+export function id3PrivateText(bytes: Uint8Array): string {
+  let value = "";
+  for (const byte of bytes) value += byte < 32 || byte > 126 || byte === 92
+    ? "\\x" + byte.toString(16).padStart(2, "0") : String.fromCharCode(byte);
+  return value;
+}
 export interface Id3Result {
   size: number;
   nodes: AudioNode[];
@@ -123,6 +130,11 @@ function parseFrames(r: Reader, pos: number, version: number, flags: number, off
         const encoding = data[0]!, end = terminated(data, 1, encoding),
           width = encoding === 1 || encoding === 2 ? 2 : 1;
         tags[text(data.subarray(1, end), encoding)] = text(data.subarray(end + width), encoding);
+      } else if (id === "PRIV") {
+        const end = terminated(data, 0, 0);
+        let owner = "";
+        for (const byte of data.subarray(0, end)) owner += String.fromCharCode(byte);
+        tags["id3v2_priv." + owner] = id3PrivateText(data.subarray(end + 1));
       } else if (id === "COMM" || id === "COM") {
         const encoding = data[0]!,
           end = terminated(data, 4, encoding),
@@ -190,6 +202,7 @@ export function encodeId3(
     else new DataView(size.buffer).setUint32(0, data.length);
     frames.push(join([ascii(id), size, new Uint8Array(2), data]));
   }
+  const privateTags = new Set<string>();
   for (const node of retained) {
     const flags = Number(node.fields?.flags ?? 0);
     if (flags & (node.fields?.version === 3 ? 0x00c0 : 0x000c)) {
@@ -205,10 +218,19 @@ export function encodeId3(
     )
       continue;
     // Only retain v2.3/v2.4 frames whose byte representation is independent of flags/version.
-    if (node.type.length === 4 && !node.fields?.flags) frame(node.type, node.data);
+    if (node.type.length === 4 && !node.fields?.flags) {
+      frame(node.type, node.data);
+      if (node.type === "PRIV") {
+        const end = terminated(node.data, 0, 0);
+        let owner = "";
+        for (const byte of node.data.subarray(0, end)) owner += String.fromCharCode(byte);
+        privateTags.add("id3v2_priv." + owner);
+      }
+    }
     else throw new Error(`Cannot safely rewrite ID3 frame ${node.type}`);
   }
   for (const [name, value] of Object.entries(tags)) {
+    if (privateTags.has(name)) continue;
     const id = version === 3 && name === "date" ? "TYER" : Object.keys(names).find((key) => key.length === 4 && names[key] === name) ?? name;
     if (name === "comment")
       frame(

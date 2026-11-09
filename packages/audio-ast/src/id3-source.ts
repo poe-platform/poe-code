@@ -1,5 +1,5 @@
 import { Reader, cleanText } from "./binary.js";
-import { id3TagName, id3TextEncoding, synchsafe } from "./id3.js";
+import { id3PrivateText, id3TagName, id3TextEncoding, synchsafe } from "./id3.js";
 import type { AudioTags } from "./types.js";
 import type { AudioProbeSource } from "./wav-source.js";
 
@@ -10,6 +10,8 @@ export interface Id3TextSpan {
   readonly length: number;
   readonly unsynchronized: boolean;
   readonly encoding: number;
+  /** PRIV bytes are escaped, without NUL termination or whitespace trimming. */
+  readonly binary?: boolean;
 }
 interface SourceOptions { signal?: AbortSignal; checkpoint?: () => Promise<void>; }
 
@@ -80,9 +82,14 @@ class Cursor {
   }
 }
 
-/** Replay bounded decoded fragments. The consumer applies NUL termination and trailing trimming. */
+/** Replay bounded decoded fragments. Only text spans need NUL termination and trailing trimming. */
 export async function* readId3Text(source: AudioProbeSource, span: Id3TextSpan, options: SourceOptions = {}): AsyncGenerator<string> {
   const cursor = new Cursor(source, span.offset, span.offset + span.length, span.unsynchronized, options);
+  if (span.binary) {
+    while (cursor.position < cursor.end) yield id3PrivateText(await cursor.read(16384, true));
+    options.signal?.throwIfAborted();
+    return;
+  }
   const first = await cursor.read(Math.min(2, span.length), true);
   const decoder = new TextDecoder(id3TextEncoding(span.encoding, first));
   yield decoder.decode(first, { stream: true });
@@ -136,6 +143,13 @@ export async function probeId3Source(source: AudioProbeSource, options: SourceOp
       for await (const part of readId3Text(source, { key, offset, length: frame.position - offset,
         unsynchronized: frame.unsynchronized, encoding }, options)) key += part;
       key = cleanText(key);
+    } else if (id === "PRIV") {
+      encoding = 0; key = "id3v2_priv.";
+      while (true) {
+        const byte = (await frame.read(1))[0]!;
+        if (byte === 0) break;
+        key += String.fromCharCode(byte);
+      }
     } else if (id === "COMM" || id === "COM") {
       encoding = (await frame.read(1, true))[0];
       await frame.terminated(3, encoding!); key = "comment";
@@ -149,9 +163,9 @@ export async function probeId3Source(source: AudioProbeSource, options: SourceOp
     }
     if (key !== undefined) {
       id3TextEncoding(encoding!, new Uint8Array());
-      const span: Id3TextSpan = { key, offset: frame.position, length: frame.end - frame.position, unsynchronized: frame.unsynchronized, encoding: encoding! };
+      const span: Id3TextSpan = { key, offset: frame.position, length: frame.end - frame.position, unsynchronized: frame.unsynchronized, encoding: encoding!, ...(id === "PRIV" ? { binary: true } : {}) };
       if (options.onTag) { await options.onTag(span); options.signal?.throwIfAborted(); }
-      else { let value = ""; for await (const text of readId3Text(source, span, options)) value += text; tags[key] = cleanText(value); }
+      else { let value = ""; for await (const text of readId3Text(source, span, options)) value += text; tags[key] = span.binary ? value : cleanText(value); }
     }
   }
   if (footer) {

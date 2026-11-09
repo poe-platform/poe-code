@@ -37,10 +37,27 @@ for (const [label, bytes] of [
     ["zero packet", hdr([2, 2, 0, 8, 0], "-Y 1 +X 8")],
     ["oversized packet", hdr([2, 2, 0, 8, 137, 128], "-Y 1 +X 8")],
     ["wrong scanline width", hdr([2, 2, 0, 9], "-Y 1 +X 8")],
-    ["unsupported XYZE", hdr([], "-Y 1 +X 2", "32-bit_rle_xyze")],
+    ["unsupported format", hdr([], "-Y 1 +X 2", "32-bit_rle_unknown")],
     ["invalid dimensions", hdr([], "-Y 0 +X 2")]
 ] as const) it(`rejects ${label}`, () => expect(() => decodeImage(bytes)).toThrow(/Radiance/));
 
 it("checks input pixel limits before allocating pixels", () => {
     expect(() => decodeImage(hdr([], "-Y 100000 +X 100000"), { limitInputPixels: 100 })).toThrow("pixel limit");
+});
+
+for (const [encoding, raster] of [
+    ["flat", Array.from({ length: 8 }, () => [128, 0, 0, 129]).flat()],
+    ["planar RLE", [2, 2, 0, 8, 136, 128, 136, 0, 136, 0, 136, 129]],
+] as const) it(`converts XYZ channels to sRGB for ${encoding}`, () => {
+    const bytes = hdr([...raster], "-Y 1 +X 8", "32-bit_rle_xyze");
+    expect(readImageMetadata(bytes)).toMatchObject({ format: "hdr", width: 8, height: 1, hasAlpha: false });
+    const image = decodeImage(bytes);
+    expect(Array.from(image.data)).toEqual(Array.from({ length: 8 }, () => [255, 0, 255, 255]).flat());
+    expect(image.dataFloat![0]).toBeGreaterThan(1);
+    expect(image.dataFloat![2]).toBeGreaterThan(1);
+});
+
+it("decodes a zero XYZE exponent as opaque black", () => {
+    const image = decodeImage(hdr([128, 64, 32, 0], "-Y 1 +X 1", "32-bit_rle_xyze"));
+    expect(Array.from(image.dataFloat!)).toEqual([0, 0, 0, 1]);
 });

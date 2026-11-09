@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
+import { createCommandArguments } from "safe-bash-contracts/command";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { decodeImage } from "@poe-code/image-ast/portable";
-import { runConvertCli, runConvertCliSync } from "./index.js";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 // ImageMagick-generated RGBE: 8x2, RGB pixel i = [(i*17)%256,(10+i*31)%256,(40+i*47)%256].
 const fixture = "Iz9SQURJQU5DRQpHQU1NQT0xClBSSU1BUklFUz0wIDAgMCAwIDAgMCAwIDAKRk9STUFUPTMyLWJpdF9ybGVfcmdiZQoKLVkgMiArWCA4CgICAAgIAAsQEA4uIi8IGC1CRT3AjcQIrcP07MYDDSoIe31+f4B/gIACAgAICH5RZv6audqACAADDTo1VoBaCLOf/Q0bQn1oCH+AgH+AgICB";
@@ -83,4 +84,30 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
             });
         }
     }
+}
+
+// Same sample bytes in both formats; XYZ must be transformed before PNG encoding.
+for (const mode of ["sync", "buffered", "retained", "command"] as const) {
+    for (const [format, expected] of [
+        ["xyze", [255, 0, 255, 255, 0, 255, 213, 255, 0, 255, 255, 255]],
+        ["rgbe", [255, 0, 0, 255, 0, 128, 0, 255, 0, 0, 255, 255]],
+    ] as const) it(`converts Radiance ${format} channels to PNG32 (${mode})`, async () => {
+        const header = new TextEncoder().encode(`#?RADIANCE\nFORMAT=32-bit_rle_${format}\n\n-Y 2 +X 3\n`);
+        const bytes = new Uint8Array([...header, 128, 0, 0, 129, 0, 128, 0, 128, 0, 0, 128, 130, 128, 128, 0, 127, 0, 128, 128, 127, 128, 0, 128, 127]);
+        const files = new Map([["/in.hdr", bytes]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.hdr", bytes);
+        const args = ["/in.hdr", "PNG32:/out.png"];
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { write: async () => {} },
+            stderr: { write: async chunk => { stderr += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } },
+        }) : mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const image = decodeImage(mode === "retained" || mode === "command" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+        expect([image.width, image.height]).toEqual([3, 2]);
+        expect(Array.from(image.data.slice(0, 12))).toEqual(expected);
+    });
 }

@@ -6,7 +6,7 @@ export function isRadianceBytes(bytes: Uint8Array): boolean {
     return signature.startsWith("#?RADIANCE\n") || signature.startsWith("#?RADIANCE\r") || signature.startsWith("#?RGBE\n") || signature.startsWith("#?RGBE\r");
 }
 
-export function* radianceHeader(size: number): Generator<number, { metadata: ImageMetadata & { magickColorspace: "RGB" }; offset: number; axes: string[]; counts: number[] }, number | undefined> {
+export function* radianceHeader(size: number): Generator<number, { metadata: ImageMetadata & { magickColorspace?: "RGB" }; offset: number; axes: string[]; counts: number[]; xyz: boolean }, number | undefined> {
     let offset = 0;
     function* line(): Generator<number, string, number | undefined> {
         let value = "";
@@ -22,12 +22,12 @@ export function* radianceHeader(size: number): Generator<number, { metadata: Ima
     if (magic !== "#?RADIANCE" && magic !== "#?RGBE") throw new Error("Invalid Radiance signature");
     let format = "", entry: string;
     while ((entry = yield* line()) !== "") if (entry.startsWith("FORMAT=")) format = entry.slice(7);
-    if (format !== "32-bit_rle_rgbe") throw new Error("Unsupported Radiance pixel format");
+    if (format !== "32-bit_rle_rgbe" && format !== "32-bit_rle_xyze") throw new Error("Unsupported Radiance pixel format");
     const parts = (yield* line()).split(" ").flatMap(part => part.split("\t")).filter(Boolean);
     const axes = [parts[0]!, parts[2]!], counts = [Number(parts[1]), Number(parts[3])];
     if (parts.length !== 4 || axes.some(axis => !["+X", "-X", "+Y", "-Y"].includes(axis)) || axes[0]![1] === axes[1]![1] || counts.some(count => !Number.isSafeInteger(count) || count <= 0) || !Number.isSafeInteger(counts[0]! * counts[1]! * 16)) throw new Error("Invalid Radiance dimensions");
     const width = counts[axes[0]![1] === "X" ? 0 : 1]!, height = counts[axes[0]![1] === "Y" ? 0 : 1]!;
-    return { metadata: { format: "hdr", width, height, channels: 3, depth: "float", space: "srgb", magickColorspace: "RGB", gamma: 1, hasAlpha: false, density: 72, size }, offset, axes, counts };
+    return { metadata: { format: "hdr", width, height, channels: 3, depth: "float", space: "srgb", ...(format === "32-bit_rle_rgbe" ? { magickColorspace: "RGB" as const, gamma: 1 } : {}), hasAlpha: false, density: 72, size }, offset, axes, counts, xyz: format === "32-bit_rle_xyze" };
 }
 
 export function readRadianceHeader(bytes: Uint8Array) {
@@ -82,12 +82,28 @@ export function* radianceRows(header: Header, options?: SharpInputOptions): Gene
                 const coordinates = [row, column].map((value, axis) => header.axes[axis] === "+X" || header.axes[axis] === "-Y" || (options?.hdrPreserveScanlineOrder && header.axes[axis] === "+Y") ? value : header.counts[axis]! - 1 - value);
                 const x = coordinates[header.axes[0]![1] === "X" ? 0 : 1]!, y = coordinates[header.axes[0]![1] === "Y" ? 0 : 1]!;
                 indices.push((y * header.metadata.width + x) * 4);
+                const scale = pixel[3] === 0 ? 0 : 2 ** (pixel[3]! - 136);
+                let r = pixel[0]! * scale, g = pixel[1]! * scale, b = pixel[2]! * scale;
+                if (header.xyz) {
+                    const linear = [
+                        3.24096994190452 * r - 1.53738317757009 * g - 0.498610760293003 * b,
+                        -0.96924363628088 * r + 1.87596750150772 * g + 0.0415550574071756 * b,
+                        0.0556300796969937 * r - 0.203976958888977 * g + 1.05697151424288 * b,
+                    ];
+                    // Match ImageMagick's gamut shift before encoding XYZ as sRGB.
+                    const minimum = Math.min(0, ...linear);
+                    [r, g, b] = linear.map(sample => {
+                        const value = sample - minimum;
+                        return value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
+                    }) as [number, number, number];
+                }
+                const samples = [r, g, b, 1];
                 for (let channel = 0; channel < 4; channel++) {
-                    const value = channel === 3 ? 1 : pixel[3] === 0 ? 0 : pixel[channel]! * 2 ** (pixel[3]! - 136);
+                    const value = samples[channel]!;
                     const bounded = Math.min(1, value), index = i * 4 + channel;
                     dataFloat[index] = value;
                     data16[index] = Math.round(bounded * 65535);
-                    data[index] = data16[index]! >>> 8;
+                    data[index] = header.xyz ? Math.round(bounded * 255) : data16[index]! >>> 8;
                 }
             }
             yield { indices, data, data16, dataFloat };

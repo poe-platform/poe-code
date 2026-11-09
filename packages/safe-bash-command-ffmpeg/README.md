@@ -507,7 +507,15 @@ Downstream `ashowinfo` reports packed float (`flt`) frames before output encodin
 `haas` applies the default stereo enhancer: the channel average plus a 2.05 ms
 delayed tap on the right and minus a 2.12 ms delayed tap on the left. It preserves
 the sample rate and frame count. Mono input is first mixed to stereo with
-1/√2 gain per channel. Custom Haas options are not supported.
+1/√2 gain per channel. Named and positional options follow FFmpeg order:
+`level_in`, `level_out`, `side_gain`, `middle_source`, `middle_phase`,
+`left_delay`, `left_balance`, `left_gain`, `left_phase`,
+`right_delay`, `right_balance`, `right_gain`, `right_phase`.
+For example, `haas=left_delay=1:right_delay=2` sets the tap delays in milliseconds
+(range 0–40, truncated to whole samples). `middle_source=left|right|mid|side`
+selects the source for both the direct signal and taps; `middle_phase=1` inverts
+only the direct signal. Gains range from 0.015625 to 64; tap balances range from
+-1 to 1, and each tap has its own phase switch.
 `[0:a][1:a][2:a]headphone=map=FL|FR:type=time[h]` renders a stereo source
 through separate stereo impulse responses for its left and right channels.
 Both `type=time` and `type=freq` use bounded direct convolution, preserve the source

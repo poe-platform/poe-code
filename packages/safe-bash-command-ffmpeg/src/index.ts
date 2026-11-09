@@ -7846,6 +7846,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               };
             }
 
+            const segmentPlugin = outputFormat === "segment"
+              ? segmentFormat === undefined ? registry.findByFilename(outputTarget)
+                : (registry.findById(segmentFormat) ?? registry.findByFormatName(segmentFormat))
+              : undefined;
+            const audioSegment = segmentPlugin?.id === "wav" ||
+              segmentPlugin?.supportedAudioCodecs.includes(`pcm_${segmentPlugin.id}`);
+            // Keep decoded PCM frame timing separate from encoded packet payloads.
+            let segmentAudioPackets: { pts: number; isKeyframe: boolean }[] | undefined;
             // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio
             if ((audioRate !== undefined || audioChannels !== undefined || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined || (audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms")) && audioCodec !== "copy") {
               let audioOrdinal = 0;
@@ -7877,6 +7885,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let audioStartSample = 0;
                   const audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   let audioTimestamps: { start: number; end: number; pts: number }[] | undefined;
+                  if (audioSegment) {
+                    segmentAudioPackets = [];
+                    audioTimestamps = [];
+                    const length = stretched[0]?.length ?? 0;
+                    for (let start = 0, n = 0; start < length; n++) {
+                      if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                      const packet = t.samples[n];
+                      const count = packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                      const end = Math.min(length, start + count);
+                      budget.allocateMemory(24);
+                      audioTimestamps.push({ start, end, pts: start });
+                      start = end;
+                    }
+                  }
                   // astats normalizes integer PCM against its maximum positive value.
                   let statsScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 / 32767
                     : t.codecDescriptions[0]?.codecName === "pcm_s32le" ? 2147483648 / 2147483647 : 1;
@@ -9336,6 +9358,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioStartSample += start;
                       } else if (trimmed === "areverse") {
                         stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);
+                        if (audioTimestamps) {
+                          let start = 0;
+                          const firstPts = audioTimestamps[0]?.pts ?? audioStartSample;
+                          audioTimestamps.reverse();
+                          for (const frame of audioTimestamps) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const count = frame.end - frame.start;
+                            frame.start = start;
+                            frame.end = start + count;
+                            frame.pts = firstPts + start;
+                            start += count;
+                          }
+                        }
                       } else {
                         throw new Error(`Unsupported audio filter: ${trimmed}`);
                       }
@@ -9386,7 +9421,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (cutoff) stretched = stretched.map(channel => channel.subarray(0, cutoff.start));
                   }
 
-                  if (!filter && audioRate === undefined && audioChannels === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") {
+                  if (!segmentAudioPackets && !filter && audioRate === undefined && audioChannels === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") {
                     return { ...t, duration: (stretched[0]?.length ?? 0) * t.timescale / origRate,
                       samples: [], decodedAudio: { ...audio, channelData: stretched } };
                   }
@@ -9422,7 +9457,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const surroundStereo = origCh === 6 && targetCh === 2;
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
                   const pcm16Output = audioCodec === "pcm_s16le" || audioCodec === undefined &&
-                    (outputFormat === "segment" ? registry.findByFilename(outputTarget)?.id : outPlugin?.id) === "wav";
+                    (outputFormat === "segment" ? segmentPlugin?.id : outPlugin?.id) === "wav";
                   const pcm16MonoStereo = monoStereo && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const pcm16CenterDownmix = centerDownmix && !filter && targetRate === origRate &&
@@ -9574,6 +9609,29 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       }
                     }
                     newChannelData.push(dst);
+                  }
+
+                  if (segmentAudioPackets && audioTimestamps) {
+                    const ratio = targetRate / origRate;
+                    const cutoff = Math.min((resampleCutoff || 0.97) * ratio, 1);
+                    const filterLength = filterSize <= cutoff ? 1 : 2 * Math.ceil(filterSize / 2 / cutoff);
+                    // swresample emits one packet per input frame, holding the
+                    // right half of its filter until more input arrives or EOF.
+                    const delay = targetRate === origRate ? 0 : filterLength / 2;
+                    let start = 0;
+                    for (const frame of audioTimestamps) {
+                      if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                      if (delay && frame.end <= filterLength) continue;
+                      const end = Math.min(targetSamples, Math.max(0, Math.ceil((frame.end - delay) * ratio)));
+                      if (end <= start) continue;
+                      budget.allocateMemory(16);
+                      segmentAudioPackets.push({ pts: start, isKeyframe: true });
+                      start = end;
+                    }
+                    if (start < targetSamples) {
+                      budget.allocateMemory(16);
+                      segmentAudioPackets.push({ pts: start, isKeyframe: true });
+                    }
                   }
 
                   const nextDescs = t.codecDescriptions.map((d) => ({
@@ -9764,10 +9822,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (segmentTimes === undefined && segmentFrames === undefined && minSegmentDuration > segmentTime) {
                 throw new Error("min_seg_duration cannot be greater than segment_time");
               }
-              const segmentPlugin = segmentFormat === undefined ? registry.findByFilename(outputTarget)
-                : (registry.findById(segmentFormat) ?? registry.findByFormatName(segmentFormat));
-              const audioSegment = segmentPlugin?.id === "wav" ||
-                segmentPlugin?.supportedAudioCodecs.includes(`pcm_${segmentPlugin.id}`);
               const track = workingDoc.tracks.find(track => track.type === "video") ?? workingDoc.tracks[0];
               if (!track || !segmentPlugin?.canMux || !(segmentPlugin.id === "mp4" ||
                   (audioSegment && workingDoc.tracks.length === 1 && track.type === "audio"))) {
@@ -9779,7 +9833,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               validateRawAudioCodec(workingDoc, segmentPlugin, audioCodec);
               validateStreamCopy(workingDoc, segmentPlugin.id, { audio: audioCodec, video: videoCodec });
               const boundaries = [0];
-              for (const [frame, packet] of track.samples.entries()) {
+              for (const [frame, packet] of (segmentAudioPackets ?? track.samples).entries()) {
                 budget.checkCpu();
                 const seconds = packet.pts / track.timescale;
                 const reached = segmentFrames === undefined

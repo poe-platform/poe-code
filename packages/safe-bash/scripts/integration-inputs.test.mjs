@@ -97,6 +97,7 @@ test("shell option and alias regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/checkhash.test.ts"));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/shopt-runtime.test.ts"));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/hashall.test.ts"));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/shopt-invocation.test.ts"));
 });
 

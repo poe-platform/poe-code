@@ -78,6 +78,7 @@ export function captureShellSessionState(state: State, exitCode: number): ShellS
     varredir_close: Boolean(state.varredir_close),
     extglob: Boolean((state as { extglob?: boolean }).extglob),
     braceexpand: state.braceexpand !== false,
+    hashall: state.hashall !== false,
     noglob: Boolean(state.noglob),
     noclobber: Boolean(state.noclobber),
     allexport: Boolean(state.allexport),
@@ -238,6 +239,7 @@ export async function restoreShellSessionState(
     if (opts.varredir_close !== undefined) state.varredir_close = opts.varredir_close;
     if (opts.extglob !== undefined) (state as { extglob?: boolean }).extglob = opts.extglob;
     if (opts.braceexpand !== undefined) state.braceexpand = opts.braceexpand;
+    if (opts.hashall !== undefined) state.hashall = opts.hashall;
     if (opts.noglob !== undefined) state.noglob = opts.noglob;
     if (opts.noclobber !== undefined) state.noclobber = opts.noclobber;
     if (opts.allexport !== undefined) state.allexport = opts.allexport;

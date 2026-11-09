@@ -11,7 +11,7 @@ for (const command of ["sh", "bash"]) {
       try {
         const result = await shell.exec(`${command} ${flags} /owned.sh arg ''`);
         assert.equal(result.exitCode, 0);
-        assert.equal(result.stdout, `Independent\n</owned.sh><arg><>[${flags.includes("e") && flags !== "-o nounset" ? "e" : ""}uB]`);
+        assert.equal(result.stdout, `Independent\n</owned.sh><arg><>[${flags.includes("e") && flags !== "-o nounset" ? "e" : ""}huB]`);
         assert.equal(result.stderr, "");
       } finally { await shell.dispose(); }
     });

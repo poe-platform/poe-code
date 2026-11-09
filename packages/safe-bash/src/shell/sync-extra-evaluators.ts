@@ -3564,6 +3564,7 @@ const syncExtraRuntimeMethods = {
         const extension = state.extensions?.options.get(name);
         if (extension) return extension.enabled;
         if (name === "braceexpand") return state.braceexpand !== false;
+        if (name === "hashall") return state.hashall !== false;
         if (name === "allexport") return !!state.allexport;
         if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
         return false;
@@ -3646,7 +3647,7 @@ const syncExtraRuntimeMethods = {
       const outKind = kind === "command" ? (shellBuiltinNames.has(target) ? "builtin" : "file") : kind === "interpreter" ? "file" : kind;
       return { text: mode === "name" ? target : outKind, status: 0 };
     }
-    const cached = rawState.hashedCommands?.get(target);
+    const cached = rawState.hashall === false ? undefined : rawState.hashedCommands?.get(target);
     if (cached) return { text: mode === "name" ? cached.path : "file", status: 0 };
     if (!target.includes("/") && target.length > 0 && this._isMemoryBackingFs && this.canFastMemoryRedirect && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0) && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, "/") !== undefined) {
       const rawPath = stateMonitor(rawState)?.values.get("PATH", rawState.variables.PATH ?? "/usr/local/bin:/usr/bin:/bin") ?? rawState.variables.PATH ?? "/usr/local/bin:/usr/bin:/bin";

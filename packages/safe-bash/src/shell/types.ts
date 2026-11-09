@@ -117,6 +117,7 @@ export interface ShellSessionOptionsSnapshot {
   readonly varredir_close?: boolean | undefined;
   readonly extglob?: boolean | undefined;
   readonly braceexpand?: boolean | undefined;
+  readonly hashall?: boolean | undefined;
   readonly noglob?: boolean | undefined;
   readonly noclobber?: boolean | undefined;
   readonly allexport?: boolean | undefined;

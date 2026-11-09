@@ -37,8 +37,8 @@ test("literal invoke child interpreter honors its own option in tested parent", 
 
 test("e presence only, state isolation across exec and nested child", async () => {
   const { shell } = setup();
-  assert.equal((await shell.exec('printf "[%s]" "$-"; set -e; printf "[%s]" "${-}"; bash -c \'printf "[%s]" "$-"\'; printf "[%s]" "$-"')).stdout, "[B][eB][B][eB]");
-  assert.equal((await shell.exec('printf "[%s]" "$-"')).stdout, "[B]");
+  assert.equal((await shell.exec('printf "[%s]" "$-"; set -e; printf "[%s]" "${-}"; bash -c \'printf "[%s]" "$-"\'; printf "[%s]" "$-"')).stdout, "[hB][ehB][hB][ehB]");
+  assert.equal((await shell.exec('printf "[%s]" "$-"')).stdout, "[hB]");
 });
 
 for (const [name, source, limits] of [
@@ -274,12 +274,12 @@ test("set named braceexpand option toggles B without changing errexit", async ()
   try {
     const result = await shell.exec('set -e; set +o braceexpand; printf "[%s]" "$-"; printf "<%s>" {a,b}; set -o braceexpand; printf "[%s]" "$-"; printf "<%s>" {a,b}');
     assert.equal(result.exitCode, 0);
-    assert.equal(result.stdout, "[e]<{a,b}>[eB]<a><b>");
+    assert.equal(result.stdout, "[eh]<{a,b}>[ehB]<a><b>");
     assert.equal(result.stderr, "");
   } finally { await shell.dispose(); }
 });
 
-for (const name of ["emacs", "hashall", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace"]) {
+for (const name of ["emacs", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace"]) {
   test(`set named option retains explicit capability denial for valid name: ${name}`, async () => {
     const { shell } = setup();
     try {

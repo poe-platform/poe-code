@@ -30,9 +30,9 @@ echo "$SHELLOPTS|$BASHOPTS"
 bash -o pipefail -c 'echo "$SHELLOPTS|$BASHOPTS"; false | true; echo "rc=$?"'
 `, { onState() {} });
     assert.equal(result.stderr, "");
-    assert.equal(result.stdout, "braceexpand|globskipdots\nbraceexpand:pipefail|globskipdots:nullglob\nbraceexpand|globskipdots\nbraceexpand:pipefail|globskipdots:nullglob\nbraceexpand:pipefail|globskipdots\nrc=1\n");
+    assert.equal(result.stdout, "braceexpand:hashall|globskipdots\nbraceexpand:hashall:pipefail|globskipdots:nullglob\nbraceexpand:hashall|globskipdots\nbraceexpand:hashall:pipefail|globskipdots:nullglob\nbraceexpand:hashall:pipefail|globskipdots\nrc=1\n");
     const restored = await shell.exec('echo "$SHELLOPTS|$BASHOPTS"', { state: result.state });
-    assert.equal(restored.stdout, "braceexpand:pipefail|globskipdots:nullglob\n");
+    assert.equal(restored.stdout, "braceexpand:hashall:pipefail|globskipdots:nullglob\n");
   } finally { await shell.dispose(); }
 });
 
@@ -54,7 +54,7 @@ set -o pipefail
 shopt -s nullglob
 bash -c 'echo "$SHELLOPTS|$BASHOPTS"'`, { env: { SHELLOPTS: "pipefail", BASHOPTS: "nullglob" } });
     assert.equal(result.stderr, "");
-    assert.equal(result.stdout, "braceexpand|globskipdots\nbraceexpand|globskipdots\n");
+    assert.equal(result.stdout, "braceexpand:hashall|globskipdots\nbraceexpand:hashall|globskipdots\n");
   } finally { await shell.dispose(); }
 });
 
@@ -76,9 +76,9 @@ set +B
 shopt -u globskipdots
 echo "$SHELLOPTS|$BASHOPTS"`);
     assert.equal(result.stderr, "");
-    assert.equal(result.stdout, "allexport:braceexpand:errexit:noclobber:noglob:nounset:pipefail:zeta|alpha:checkhash:dotglob:expand_aliases:extglob:failglob:globskipdots:globstar:inherit_errexit:lastpipe:nocaseglob:nocasematch:nullglob:varredir_close:xpg_echo\nallexport:errexit:noclobber:noglob:nounset:pipefail|checkhash:dotglob:expand_aliases:extglob:failglob:globstar:inherit_errexit:lastpipe:nocaseglob:nocasematch:nullglob:varredir_close:xpg_echo\n");
+    assert.equal(result.stdout, "allexport:braceexpand:errexit:hashall:noclobber:noglob:nounset:pipefail:zeta|alpha:checkhash:dotglob:expand_aliases:extglob:failglob:globskipdots:globstar:inherit_errexit:lastpipe:nocaseglob:nocasematch:nullglob:varredir_close:xpg_echo\nallexport:errexit:hashall:noclobber:noglob:nounset:pipefail|checkhash:dotglob:expand_aliases:extglob:failglob:globstar:inherit_errexit:lastpipe:nocaseglob:nocasematch:nullglob:varredir_close:xpg_echo\n");
     const noexec = await shell.exec("set -n", { onState() {} });
-    assert.equal(noexec.state?.variables.SHELLOPTS, "braceexpand:noexec:zeta");
+    assert.equal(noexec.state?.variables.SHELLOPTS, "braceexpand:hashall:noexec:zeta");
   } finally { await shell.dispose(); }
 });
 

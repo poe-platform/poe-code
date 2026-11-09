@@ -155,7 +155,7 @@ export const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval
 export const defaultCommandPath = "/bin:/usr/bin";
 const zeroPositionKey = "-1";
 const unsupportedSetOptionNames = new Set([
-  "emacs", "errtrace", "functrace", "hashall", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace", ]);
+  "emacs", "errtrace", "functrace", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace", ]);
 export const shellKeywords = new Set(["if", "then", "else", "elif", "fi", "for", "while", "until", "do", "done", "case", "esac", "in", "function", "{", "}", "!", "[[", "]]", "time", "select", "coproc"]);
 type Discovery = { kind: "keyword" | "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
 const commandSpellingSymbol = Symbol("safe-bash.commandSpelling");
@@ -933,7 +933,7 @@ export interface State extends DynamicVariableState {
   functionDepth: number;
   locals: Map<string, SavedVariable>[];
   localSetOptions?: {
-    readonly values: Pick<State, "allexport" | "braceexpand" | "errexit" | "noclobber" | "noexec" | "noglob" | "nounset" | "pipefail">;
+    readonly values: Pick<State, "allexport" | "braceexpand" | "errexit" | "hashall" | "noclobber" | "noexec" | "noglob" | "nounset" | "pipefail">;
     readonly extensions: ReadonlyMap<string, boolean>;
   } | undefined;
   getopts?: GetoptsBinding | undefined;
@@ -956,6 +956,7 @@ export interface State extends DynamicVariableState {
   xpg_echo?: boolean;
   varredir_close?: boolean;
   braceexpand?: boolean;
+  hashall?: boolean;
   noglob?: boolean;
   noclobber?: boolean;
   allexport?: boolean;
@@ -5134,7 +5135,7 @@ export class Runtime {
               const fast = !pattern ? this.fastValueWord(word, state, { ...io, nameExpansionContext: "conditional" }, false, false, false, false) : undefined;
               if (typeof fast === "string") return fast;
               return (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join("");
-            }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }), option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });
+            }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }), option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "hashall" ? state.hashall !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });
         } catch (error) {
           this.signal.throwIfAborted();
           if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }
@@ -6369,6 +6370,7 @@ export class Runtime {
             const extension = state.extensions?.options.get(name);
             if (extension) return extension.enabled;
             if (name === "braceexpand") return state.braceexpand !== false;
+            if (name === "hashall") return state.hashall !== false;
             if (name === "allexport") return !!state.allexport;
             if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
             return false;
@@ -6745,14 +6747,14 @@ export class Runtime {
             return { exitCode: await this.interpreter(virtualName ? this.virtualExecutionContext(context, virtualName) : context, state, io) };
           }
           if (context.command.includes("/") || !defaultPath && state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
-          let cached = defaultPath ? undefined : state.hashedCommands?.get(context.command);
+          let cached = defaultPath || state.hashall === false ? undefined : state.hashedCommands?.get(context.command);
           if (cached && state.checkhash && !(await this.searchPaths(pathOf(state, cached.path), state, false, true)).length) {
             state.hashedCommands!.delete(context.command);
             cached = undefined;
           }
           const target = cached?.path ?? (await this.searchPaths(context.command, state, false, false, defaultPath))[0];
           if (target !== undefined) {
-            if (!defaultPath) {
+            if (!defaultPath && state.hashall !== false) {
               const entry = cached ?? { path: target, hits: 0 };
               entry.hits++;
               (state.hashedCommands ??= new Map()).set(context.command, entry);
@@ -6917,7 +6919,7 @@ export class Runtime {
       if (mode === "path" && (matches[0]?.kind === "command" && !shellBuiltinNames.has(name)
         || matches[0]?.kind === "interpreter")) matches = [];
       if (all || !matches.length) {
-        const cached = !all && !defaultPath ? state.hashedCommands?.get(name) : undefined;
+        const cached = !all && !defaultPath && state.hashall !== false ? state.hashedCommands?.get(name) : undefined;
         const paths = cached ? [cached.path] : await this.searchPaths(name, state, all, true, defaultPath);
         matches.push(...paths.map(path => {
           const absolute = command && mode === "describe";
@@ -7007,8 +7009,8 @@ export class Runtime {
     const shoptArguments: string[][] = [];
     let commandString = false;
     let standardInput = false;
-    const options = { allexport: false, braceexpand: true, errexit: false, noclobber: false, noexec: false, noglob: false, nounset: false, pipefail: false };
-    const flagsByName = { a: "allexport", B: "braceexpand", e: "errexit", C: "noclobber", n: "noexec", f: "noglob", u: "nounset" } as const;
+    const options = { allexport: false, braceexpand: true, errexit: false, hashall: true, noclobber: false, noexec: false, noglob: false, nounset: false, pipefail: false };
+    const flagsByName = { a: "allexport", B: "braceexpand", e: "errexit", h: "hashall", C: "noclobber", n: "noexec", f: "noglob", u: "nounset" } as const;
     while (args.length && (args[0]!.startsWith("-") || args[0]!.startsWith("+"))) {
       const option = args.shift()!;
       if (option === "--" || option === "-") break;
@@ -7025,8 +7027,8 @@ export class Runtime {
         continue;
       }
       const flags = option.slice(1);
-      if (!flags.length || [...flags].some(flag => !Object.hasOwn(flagsByName, flag) && !(enabled && (flag === "c" || flag === "s" || flag === "l" || flag === "i")))) {
-        await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-u, +/-n, +/-B, +/-f, +/-C and +/-o ${Object.keys(options).join(", ")}\n`);
+      if (!flags.length || [...flags].some(flag => flag !== "O" && !Object.hasOwn(flagsByName, flag) && !(enabled && (flag === "c" || flag === "s" || flag === "l" || flag === "i")))) {
+        await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-h, +/-u, +/-n, +/-B, +/-f, +/-C, +/-O shopt-option and +/-o ${Object.keys(options).join(", ")}\n`);
         return 2;
       }
       for (const flag of flags) {
@@ -7704,6 +7706,7 @@ export class Runtime {
         else if (flag === "a") state.allexport = enabled;
         else if (flag === "u") state.nounset = enabled;
         else if (flag === "f") state.noglob = enabled;
+        else if (flag === "h") state.hashall = enabled;
         else if (flag === "C") state.noclobber = enabled;
         else if (flag === "n") state.noexec = enabled;
         else if ([...state.extensions?.options.values() ?? []].some(option => option.flag === flag)) {
@@ -7720,6 +7723,7 @@ export class Runtime {
             else if (name === "nounset") state.nounset = enabled;
             else if (name === "pipefail") state.pipefail = enabled;
             else if (name === "braceexpand") state.braceexpand = enabled;
+            else if (name === "hashall") state.hashall = enabled;
             else if (name === "noglob") state.noglob = enabled;
             else if (name === "noclobber") state.noclobber = enabled;
             else if (name === "noexec") state.noexec = enabled;
@@ -7734,7 +7738,7 @@ export class Runtime {
         } else valid = false;
       }
       if (!valid) {
-        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- a/e/u/f/n/B/C clusters, -- arguments and terminal o with allexport, braceexpand, noclobber, noexec, noglob, pipefail, errexit or nounset\n");
+        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- a/e/h/u/f/n/B/C clusters, -- arguments and terminal o with allexport, braceexpand, hashall, noclobber, noexec, noglob, pipefail, errexit or nounset\n");
         return 1;
       }
       index++;
@@ -8377,6 +8381,10 @@ export class Runtime {
     if (command === "false") return 1;
     if (command === "umask") return umaskBuiltin(context, state);
     if (command === "hash") {
+      if (state.hashall === false) {
+        await this.diagnostic(context, "hash: hashing disabled");
+        return 1;
+      }
       const hashArgs = [...args];
       let reset = false;
       let listMode = false;
@@ -8817,7 +8825,7 @@ export class Runtime {
           state.localSetOptions ??= {
             values: {
               allexport: !!state.allexport, braceexpand: state.braceexpand !== false,
-              errexit: !!state.errexit, noclobber: !!state.noclobber,
+              errexit: !!state.errexit, hashall: state.hashall !== false, noclobber: !!state.noclobber,
               noexec: !!state.noexec, noglob: !!state.noglob,
               nounset: !!state.nounset, pipefail: state.pipefail,
             },
@@ -9912,7 +9920,7 @@ export class Runtime {
     let value = namerefName ? state.variables[part.name] === undefined ? undefined : this.referenceName(state, part.name)
       : part.specialParameter ? specialValue === undefined ? undefined : shellValueText(specialValue)
       : part.name === "?" ? String(state.status)
-      : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}`
+      : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.hashall !== false ? "h" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}`
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(io.nameExpansionContext === "document" || part.name === "@" && (!split || hereString) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"

@@ -41,7 +41,7 @@ test("noclobber is visible in option queries and does not persist across exec", 
   const { shell } = setup();
   const queried = await shell.exec('set -C; args "$-"; [[ -o noclobber ]]');
   assert.equal(queried.exitCode, 0);
-  assert.equal(queried.stdout, '["BC"]');
+  assert.equal(queried.stdout, '["hBC"]');
   const listed = await shell.exec("set -C; set +o");
   assert.ok(listed.stdout.includes("set -o noclobber\n"));
   assert.equal((await shell.exec("[[ -o noclobber ]]")).exitCode, 1);

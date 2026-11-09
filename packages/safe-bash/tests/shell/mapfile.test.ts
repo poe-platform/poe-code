@@ -20,6 +20,28 @@ for (const extension of [false, true]) {
         } finally { await shell.dispose(); }
       });
     }
+    for (const flag of ["n", "s", "c"]) {
+      test(`${command} rejects overflowing -${flag} before array or input changes, extension=${extension}`, async () => {
+        const { shell, fs } = setup({ extensions: extension ? [mapfileExtension()] : [] });
+        try {
+          await fs.writeFile("/data", new TextEncoder().encode("ONE\nTWO\n"));
+          const result = await shell.exec(`A=(old); exec 3</data; ${command} -u3 -t -${flag} 4294967296 A; code=$?; IFS= read -ru3 next; args "$code" "\${A[@]}" "$next"`);
+          assert.equal(result.exitCode, 0);
+          assert.equal(result.stdout, '["1","old","ONE"]');
+          assert.notEqual(result.stderr, "");
+        } finally { await shell.dispose(); }
+      });
+
+      test(`${command} accepts maximum -${flag} count, extension=${extension}`, async () => {
+        const { shell } = setup({ extensions: extension ? [mapfileExtension()] : [] });
+        try {
+          const result = await shell.exec(`A=(old); ${command} -t -${flag} 4294967295 A; code=$?; args "$code" "\${A[@]}"`, { stdin: "ONE\nTWO\n" });
+          assert.equal(result.exitCode, 0);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, flag === "s" ? '["0"]' : '["0","ONE","TWO"]');
+        } finally { await shell.dispose(); }
+      });
+    }
     for (const alias of [false, true]) {
       for (const redirect of ["exec 3</other", "exec 3<&5", "exec 3<&-"]) {
         for (const count of [1, 2]) test(`${command} callback redirects input: extension=${extension}, alias=${alias}, ${redirect}, count=${count}`, async () => {

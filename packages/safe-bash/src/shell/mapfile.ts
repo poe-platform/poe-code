@@ -74,7 +74,7 @@ export async function mapfileOptions(context: CommandContext, work: StringWork, 
         options.delimiter = bytes[attached ? index + 1 : 0] ?? 0;
       } else if (flag === "C") options.callback = operand;
       else {
-        const value = await numeric(operand, flag === "O" ? 2147483647 : Number.MAX_SAFE_INTEGER);
+        const value = await numeric(operand, flag === "O" ? 2147483647 : flag === "u" ? Number.MAX_SAFE_INTEGER : 4294967295);
         if (flag === "u") {
           options.descriptor = value;
         } else if (flag === "c") { if (!value) throw new MapfileUsageError("0: invalid callback quantum", 1); options.quantum = value; }

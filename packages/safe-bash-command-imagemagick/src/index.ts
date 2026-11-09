@@ -11044,7 +11044,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let leadingOperations: CompareOperation[] = [];
     let groupStart = 0;
     const groups: number[] = [];
-    const stackSteps: { operand: number; token: string; spec?: string }[] = [];
+    const stackSteps: { operand: number; token: string; spec?: string; quality?: number }[] = [];
     // Compare reapplies ungrouped trailing rotations to the difference image.
     let outputRotations: Rotation[] = [];
     for (let i = 0; i < argv.length; i++) {
@@ -11252,6 +11252,11 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             leadingOperations = [];
             outputRotations = [];
         }
+        else if (t === "-write") {
+            const spec = argv[++i];
+            if (spec === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-write'\n" };
+            stackSteps.push({ operand: operands.length, token: t, spec, quality: state.quality });
+        }
         else if (t === "-delete" || t === "+delete") {
             const spec = t === "+delete" ? "-1" : argv[++i];
             if (spec === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-delete'\n" };
@@ -11430,6 +11435,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const storedImages = backend ? new StoredImageStack(backend.storage, signal!) : undefined;
     const frameStarts = [0];
     let stackStep = 0;
+    const snapshotChunks: Uint8Array[] = [];
     let inputErrors = "";
     let imageDetails = "";
     function* acceptImage(image: RgbaImage | StoredRgbaImage, operations: readonly CompareOperation[], index = 0): Generator<IdentifyStep, void, void> {
@@ -11516,6 +11522,25 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             else {
                 const start = frameStarts[frameStarts.length - 1]!;
                 if (length === start) return { exitCode: 2, stdout: "", stderr: `compare: no images found for operation '${step.token}'\n` };
+                if (step.token === "-write") {
+                    if (step.spec!.toLowerCase() === "null:") continue;
+                    let image: RgbaImage | StoredRgbaImage = images[start]!;
+                    if (storedImages) yield { async run() { image = (await storedImages.get(start))!; } };
+                    const { path, ...output } = inferOutputFormat(step.spec!, image.format);
+                    const encoding = { ...output, quality: step.quality! };
+                    if ("data" in image) {
+                        const { data } = encodeImage(image, encoding);
+                        if (path === "-") snapshotChunks.push(data);
+                        else files.set(path, data);
+                    } else {
+                        const snapshot = image;
+                        yield { async run() {
+                            const bytes = await backend!.stage(snapshot, path, encoding);
+                            if (bytes) snapshotChunks.push(bytes);
+                        } };
+                    }
+                    continue;
+                }
                 const indices = parseMagickIndexSpec(step.spec!, length - start, "delete");
                 if (storedImages) yield { async run() {
                     await storedImages.remove((function* () { for (const index of indices) yield start + index; })());
@@ -11667,7 +11692,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const encoding = { ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth), pngBitDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, miffDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, tiffIntegerDepth: state.inputDepth <= 8 ? 8 as const : state.inputDepth <= 16 ? 16 as const : 32 as const }), format, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4" as const, ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngColorType: colorType, ...(opaque ? { forceOpaque: true } : {}), ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) };
         const split = hasSceneOutputPattern(path) || (subimageSearch && !["gif", "miff", "tiff"].includes(format));
         let stdoutBytes: Uint8Array | undefined;
-        const stdoutChunks: Uint8Array[] = [];
+        const stdoutChunks = snapshotChunks;
         if (backend) yield { async run() {
             const active = signal ?? new AbortController().signal;
             const stack = new StoredImageStack(backend.storage, active);
@@ -11713,16 +11738,22 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             for (const image of stack) detachRgbaBuffer(image.data);
         }
         if (stdoutChunks.length) {
+            if (stdoutBytes) stdoutChunks.push(stdoutBytes);
             stdoutBytes = new Uint8Array(stdoutChunks.reduce((sum, bytes) => sum + bytes.length, 0));
             let position = 0;
             for (const bytes of stdoutChunks) { stdoutBytes.set(bytes, position); position += bytes.length; }
         }
         return { exitCode: regardWarnings && pngWarnings.warnings ? 2 : exitCode, stdout, stderr: comparisonStderr + (quiet ? "" : pngWarnings.warnings), ...(stdoutBytes ? { stdoutBytes } : {}) };
     }
+    if (backend) yield { async run() { await backend.publishPending(); } };
+    const snapshotBytes = new Uint8Array(snapshotChunks.reduce((size, chunk) => size + chunk.length, 0));
+    let snapshotOffset = 0;
+    for (const chunk of snapshotChunks) { snapshotBytes.set(chunk, snapshotOffset); snapshotOffset += chunk.length; }
     return {
         exitCode,
         stdout,
-        stderr: comparisonStderr
+        stderr: comparisonStderr,
+        ...(snapshotChunks.length ? { stdoutBytes: snapshotBytes } : {})
     };
 }
 export async function runCompareCli(argv: readonly string[], files: Map<string, Uint8Array>|CompareFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {

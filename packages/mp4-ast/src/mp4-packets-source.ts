@@ -82,11 +82,12 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     if (trak.type !== 'trak') continue;
     const index = trackIndex++; budget.checkStreams(trackIndex);
     const tkhd = await first(trak, 'tkhd'), header = await read(tkhd, withCodec ? 96 : 36);
+    let matrix: number[] | undefined;
     let id = index + 1, headerDuration = 0, width: number | undefined, height: number | undefined, enabled = true, rotation = 0;
     if ((tkhd?.payloadSize ?? 0) >= 24) {
       const version = header.readU8(); enabled = (header.readU24BE() & 1) !== 0; header.skip(version === 1 ? 16 : 8);
       id = header.readU32BE(); header.skip(4); headerDuration = version === 1 ? header.readU64BE() : header.readU32BE();
-      if (withCodec) { header.skip(16); const matrix = Array.from({ length: 9 }, () => header.readI32BE()); rotation = rotationFromMatrix(matrix); const w = Math.round(header.readFixed16_16()), h = Math.round(header.readFixed16_16()); if (w > 0) width = w; if (h > 0) height = h; }
+      if (withCodec) { header.skip(16); matrix = Array.from({ length: 9 }, () => header.readI32BE()); rotation = rotationFromMatrix(matrix); const w = Math.round(header.readFixed16_16()), h = Math.round(header.readFixed16_16()); if (w > 0) width = w; if (h > 0) height = h; }
     }
     const mdia = await first(trak, 'mdia'), mdhd = await first(mdia, 'mdhd'), media = await read(mdhd, 34);
     let timescale = movieTimescale, declaredDuration = 0, language = 'und';
@@ -121,7 +122,7 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     sizeReader.skip(8);
     const declaredSampleCount = (tables.stsz?.payloadSize ?? 0) >= 12 ? sizeReader.readU32BE() : 0;
     // Sample descriptions contain pixel dimensions; tkhd contains display dimensions.
-    const track = { index, id, type, declaredSampleCount, timescale, width: codec?.width || width, height: codec?.height || height, codec, enabled, rotation, language, handlerName };
+    const track = { index, id, type, declaredSampleCount, timescale, width: codec?.width || width, height: codec?.height || height, codec, enabled, rotation, matrix, language, handlerName };
     let defaults: Mp4FragmentDefaults = { defaultSampleDescriptionIndex: 1, defaultSampleDuration: type === 'video' ? 3000 : 1024, defaultSampleSize: 0, defaultSampleFlags: 0 };
     if (mvex?.children) for await (const box of scanMp4Boxes(source, { ...mvex.children, ...work })) {
       if (box.type !== 'trex' || box.payloadSize < 24) continue;

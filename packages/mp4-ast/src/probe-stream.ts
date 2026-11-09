@@ -1,8 +1,8 @@
-import { gcd } from './binary.js';
+import { gcd, IDENTITY_MATRIX } from './binary.js';
 import { probeSampleFormat, type Mp4CodecMetadata } from './mp4-codec-metadata.js';
 import type { MediaTrack, MediaProbeStream, MediaProbeText } from './types.js';
 
-export type ProbeStreamTrack<T> = Pick<MediaTrack, 'id' | 'type' | 'timescale' | 'duration' | 'width' | 'height' | 'language' | 'rotation' | 'enabled' | 'declaredSampleCount' | 'metadata' | 'disposition'> & { handlerName?: T | undefined };
+export type ProbeStreamTrack<T> = Pick<MediaTrack, 'id' | 'type' | 'timescale' | 'duration' | 'width' | 'height' | 'language' | 'rotation' | 'matrix' | 'enabled' | 'declaredSampleCount' | 'metadata' | 'disposition'> & { handlerName?: T | undefined };
 export interface ProbeSampleStats { totalBytes: number; count: number; ticks: number; firstPts: number; initialPadding?: number; hasReorderedSamples: boolean }
 const CODEC_LONG_NAMES: Record<string, string> = {
   h264: "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
@@ -81,6 +81,11 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
   if (track.handlerName) streamTags.handler_name = track.handlerName;
   if (desc?.compressorName) streamTags.encoder = desc.compressorName;
   if (track.rotation) streamTags.rotate = String(track.rotation);
+
+  const matrix = track.matrix;
+  const hasDisplayMatrix = matrix?.length === 9 && matrix.some((value, index) => value !== IDENTITY_MATRIX[index]);
+  const scaleX = matrix ? Math.hypot(matrix[0]!, matrix[3]!) : 0;
+  const scaleY = matrix ? Math.hypot(matrix[1]!, matrix[4]!) : 0;
 
   return {
     index: idx,
@@ -165,8 +170,15 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
       ...track.disposition
     },
     tags: containerFormat === "webvtt" && Object.keys(streamTags).length === 0 ? undefined : streamTags,
-    side_data_list: track.rotation
-      ? [{ side_data_type: "Display Matrix", rotation: ((180 - track.rotation) % 360 + 360) % 360 - 180 }]
-      : undefined
+    side_data_list: hasDisplayMatrix
+      ? [{ side_data_type: "Display Matrix",
+          displaymatrix: "\n" + [0, 1, 2].map(row =>
+            `${String(row).padStart(8, "0")}:  ${matrix.slice(row * 3, row * 3 + 3).map(value => String(value).padStart(11, " ")).join(" ")}\n`
+          ).join(""),
+          rotation: scaleX && scaleY ? Math.trunc(-Math.atan2(matrix[1]! / scaleY, matrix[0]! / scaleX) * 180 / Math.PI) || 0 : -2147483648 }]
+      : track.rotation && !matrix
+        ? [{ side_data_type: "Display Matrix", rotation: ((180 - track.rotation) % 360 + 360) % 360 - 180 }]
+        : undefined
+
   };
 }

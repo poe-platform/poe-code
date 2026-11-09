@@ -15,7 +15,7 @@ const cases = [
 for (const { matrix, rotation } of cases) {
   const base = parseMp4(createSyntheticMp4({ width: 32, height: 16, frameCount: 1, includeAudio: false }));
   const bytes = serializeMp4({ ...base, tracks: base.tracks.map(track => ({ ...track, rotation: undefined, matrix })) });
-  const expected = rotation === undefined ? undefined : [{ side_data_type: "Display Matrix", rotation }];
+  const expected = rotation === undefined ? undefined : [expect.objectContaining({ side_data_type: "Display Matrix", rotation })];
   const args = ["-v", "error", "-show_streams", "-of", "json", "turn.mp4"];
 
   it(`reports native rotation ${rotation} through resident probes`, () => {

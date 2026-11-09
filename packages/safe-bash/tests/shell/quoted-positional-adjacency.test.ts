@@ -2,6 +2,24 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
 
+for (const bounded of [false, true]) for (const selector of ["@", "*"]) for (const quoted of [false, true]) {
+  for (const [operator, argumentsSource, values] of [
+    ["", "one.txt two.txt", ["one.txt", "two.txt"]],
+    ["%.txt", "one.txt two.txt", ["one", "two"]],
+    ["%%.*", "one.part.txt two.part.txt", ["one", "two"]],
+    ["#dir/", "dir/one dir/two", ["one", "two"]],
+    ["##*/", "dir/sub/one dir/sub/two", ["one", "two"]],
+  ] as const) test(`empty IFS positional expansion: ${selector}${operator}, quoted=${quoted}, bounded=${bounded}`, async t => {
+    const { shell } = setup(bounded ? { limits: { maxExpansionBytes: 1024 * 1024 } } : {});
+    t.after(() => shell.dispose());
+    const expansion = `\${${selector}${operator}}`;
+    const result = await shell.exec(`IFS=; set -- ${argumentsSource}; set -- ${quoted ? `"${expansion}"` : expansion}; args "$@"`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(JSON.parse(result.stdout), quoted && selector === "*" ? [values.join("")] : values);
+  });
+}
+
 for (const operator of ["-", ":-", "+", ":+"]) for (const [argumentsSource, expected] of [
   ["", []],
   ['""', [""]],

@@ -31,7 +31,7 @@ for (const mode of ["sync", "async", "magick", "retained"] as const) {
             const result = mode === "sync" ? runCompareCliSync(argv, files)
                 : mode === "magick" ? await runMagickCli(["compare", ...argv], files)
                 : await runCompareCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
-            expect(result, args.join(" ")).toEqual({ exitCode: metric === "0 (0)" ? 0 : 1, stdout: "", stderr: `${metric}\n` });
+            expect(result, args.join(" ")).toEqual({ exitCode: metric === "0 (0)" ? 0 : 1, stdout: "", stderr: metric });
             const output = mode === "retained" ? await filesystem.readFile("/diff.png") : files.get("diff.png")!;
             expect(await sharp(output).metadata()).toMatchObject({ width, height: 2 });
             if (metric === "0 (0)") expect(Array.from(await sharp(output).removeAlpha().raw().toBuffer()))
@@ -65,7 +65,7 @@ it("applies gravity crops through the public magick command", async () => {
         const result = await createMagickCommand().execute({ command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs, signal: new AbortController().signal,
             stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
         expect(result).toEqual({ exitCode: gravity === "West" ? 0 : 1 });
-        expect(stderr).toBe(gravity === "West" ? "0 (0)\n" : "32767.5 (0.5)\n");
+        expect(stderr).toBe(gravity === "West" ? "0 (0)" : "32767.5 (0.5)");
         expect(await sharp(await fs.readFile("/diff.png")).metadata()).toMatchObject({ width: 2, height: 2 });
     }
 });

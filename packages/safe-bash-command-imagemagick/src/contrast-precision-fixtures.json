@@ -1,0 +1,97 @@
+{
+  "input": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDhUMDA6MDk6MTQrMDA6MDB7CxdkAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA4VDAwOjA5OjE0KzAwOjAwClav2AAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wOFQwMDowOToxNCswMDowMF1DjgcAAAETSURBVBjTAQgB9/4AJXjLHo7hNIf3Sp3wYLMGWckcb8Iyhdgrm+5BlARXqv0AbcATZtYpfM8/kuU4qPtOoRFktwp6zSBz4zaJ3Eyf8kUAtQhbrh5xxBeH2i2A8EOW6Vms/1LCFWi7K37RJJTnOo0A/VCj9ma5DF/PInXIOIveMaH0R5oKXbADc8YZbNwvgtUARZjrPq4BVKcXar0QgNMmeek8j+JSpfhLuw5htCR3yh0AjeAzhvZJnO9fsgVYyBtuwTGE1yqa7UCTA1ap/Gy/EmUA1Sh7zj6R5Den+k2gEGO2CXnMH3LiNYjbS57xRLQHWq0AHXDDFobZLH/vQpXoWKv+UcEUZ7oqfdAjk+Y5jPxPovUcJoEBTbp3hAAAAABJRU5ErkJggg==",
+  "cases": [
+    {
+      "options": [],
+      "rgba": "2578cb1e8ee13487f74a9df060b30659c91c6fc23285d82b9bee41940457aafd6dc01366d6297ccf3f92e538a8fb4ea11164b70a7acd2073e33689dc4c9ff245b5085bae1e71c41787da2d80f04396e959acff52c21568bb2b7ed12494e73a8dfd50a3f666b90c5fcf2275c8388bde31a1f4479a0a5db00373c6196cdc2f82d54598eb3eae0154a7176abd1080d32679e93c8fe252a5f84bbb0e61b42477ca1d8de03386f6499cef5fb20558c81b6ec13184d72a9aed40930356a9fc6cbf1265d5287bce3e91e437a7fa4da01063b60979cc1f72e23588db4b9ef144b4075aad1d70c31686d92c7fef4295e858abfe51c11467ba2a7dd02393e6398cfc4fa2f5"
+    },
+    {
+      "options": [
+        "-contrast"
+      ],
+      "rgba": "2780d81e95ec3687fb4b9ff066bf0659d61e76c2358de42ba0f54394045cb5fd75cd1466e32b83cf4298ef38a9fd4fa1126bc40a82da2273ed388fdc4ea3f845c10961ae2079d1178ee62f80f6459ae959acff52cf166fbb2e86de249af03c8dfe50a4f66dc60d5fdc247cc83b92e931a4f9489a0b63bc037bd31b6ce83189d5479df33eb90159a71971ca1088e02879f23e94e253a7fb4bc80f68b4267fd71d94eb3586fa4a9fef65be0558d51d75c1348ce32a9ff44293035bb3fc73cc1365e22a82ce4197ee37a9fc4ea0116ac20981d92172ec378edb4da2f744c00760ad1f78d0168de52e7ff64499e858abfe51ce156eba2d85dd2399f03b8cfd4fa3f5"
+    },
+    {
+      "options": [
+        "+contrast"
+      ],
+      "rgba": "2370be1e87d63287f3499bf05aa70659bc1a68c22f7dcc2b96e73f9404529ffd65b31266c92775cf3c8cdb38a7f94da1105daa0a72c01e73d93483dc4a9bec45a90755ae1c69b71780ce2b80ea4192e959acff52b51461bb2876c4248ede388dfc50a2f65fac0b5fc2206ec83584d3319eef469a0957a4036bb9176cd02d7bd54393e33ea3014fa71563b01078c62479e03a8ae251a3f54bae0d5ab4226fbd1d86d53186f24899ef59a60558bb1967c12e7ccb2a95e63e9303519ffc65b21165c82674ce3b8bda37a5f84ca00f5caa0971bf1d72d83382db499aeb44a80754ad1b68b6167fcd2a7fe84091e858abfe51b41360ba2775c3238ddc378cfb4fa1f5"
+    },
+    {
+      "options": [
+        "-contrast",
+        "-contrast"
+      ],
+      "rgba": "2a87e51e9af43887fd4ca1f06ecc0759e3207dc23793ee2ba3fa44940563c1fd7cdb1666ed2d89cf449df638aafe4fa11372d10a89e62473f53a94dc4fa5fb45cf0968ae2280de1794ef3180fa469ce959acff52dc1876bb308de9249ef73e8dfe50a4f674d30e5fe82683c83d97f231a6fc499a0b6ac90382e01c6cf1338ed549a1f83ec60160a71a79d7108eeb2a79f74098e254a8fd4bd5106fb42986e41d99f33786fc4ba0ef6ccb0658e21f7cc13692ee2aa2f943930361c0fc7bda1465ec2c88ce439cf537a9fe4ea01271d00988e52372f43993db4ea4fb44cd0867ad217fdd1694ef307ffa459ce858acff51dc1775ba2f8ce9239df63d8cfe50a3f5"
+    },
+    {
+      "options": [
+        "+contrast",
+        "+contrast"
+      ],
+      "rgba": "2068b11e7fca2f87ee4797f0549d0559af1860c22c75be2b90de3d94044d97fd5fa71166bc246dcf3984cf38a5f64da10f57a00a6ab21c73cd317bdc4896e5459e0750ae1a62aa1777c12880e13f8de959acff52a8125abb266eb72487d2358dfb4fa1f659a10a5fb51e66c8327cc63199e8449a09529b0364ac166cc32a73d5408cd93e9a014aa7145ca41070b92179d53783e24fa0f04ba30c54b41f67b01d7ec82e86ec4696ef539c0458ae1760c12b74bd2a8fdc3b93034c96fc5ea61065bb236cce3883ce37a3f44ba00e579f0969b21b72cb307adb4795e3449e064fad1961a91676c0277fdf3e8be858aafd51a81159ba256db62386d1348cf84ea0f5"
+    },
+    {
+      "options": [
+        "-contrast",
+        "+contrast"
+      ],
+      "rgba": "2579cc1e90e43587f94a9ef05fb20659ca1c70c23386da2b9df142940456a8fd6dc01366d8297dcf4094e838a9fc4ea11164b60a7bce2073e6378bdc4da1f445b4085aae1e71c41789dc2e80f24498e959acff52c21568bb2b7fd32496ea3b8dfd50a3f666b80c5fd12276c8398de131a2f6489a0a5caf0373c7196cdf3084d5469aee3ead0153a7176abd1081d52679ec3d91e252a6f94bba0e61b42478cb1d8fe33486f84a9def5eb10558c91b6ec13285d92a9cf041930355a7fc6cbf1265d7287cce3f93e737a8fb4da01062b5097acd1f72e5368adb4ca0f344b30759ad1d70c31687db2c7ff24397e858abfe51c11467ba2a7ed22395e93a8cfd4fa2f5"
+    },
+    {
+      "options": [
+        "-contrast",
+        "-contrast",
+        "-contrast",
+        "-contrast",
+        "-contrast",
+        "-contrast",
+        "-contrast",
+        "-contrast",
+        "-contrast",
+        "-contrast",
+        "-contrast",
+        "-contrast"
+      ],
+      "rgba": "2e97ff1ea1ff3b87ff4ca2f089ff0959ff248dc23b9dff2ba6ff46940682fffd91ff1966ff3194cf46a3ff38abff4fa1188bff0a98ff2873ff3d9adc50a8ff45ff0b80ae2793ff179eff3580ff479fe959acff52ff1c89bb349aff24a3ff408dff51a4f68dff115fff2a90c840a0ff31a8ff4a9a0e87ff0394ff206cff3697d54ba5ff3eff017ba71f8fff109bff2e79ff429ce254aaff4bff1384b42d96ff1da1ff3a86ff4ca2ef88ff0758ff228cc13a9dff2aa6ff45930582fffc90ff1865ff3093ce45a2ff37aaff4fa0168bff0997ff2772ff3c99db4fa7ff44ff0a7fad2692ff169dff347fff469fe858acff51ff1a88ba3399ff23a3ff3f8cff50a4f5"
+    },
+    {
+      "options": [
+        "-colorspace",
+        "RGB",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "2578cb1e8ee13487f74a9df060b30659c91c6fc23285d82b9bee41940457aafd6dc01366d6297ccf3f92e538a8fb4ea11164b70a7acd2073e33689dc4c9ff245b5085bae1e71c41787da2d80f04396e959acff52c21568bb2b7ed12494e73a8dfd50a3f666b90c5fcf2275c8388bde31a1f4479a0a5db00373c6196cdc2f82d54598eb3eae0154a7176abd1080d32679e93c8fe252a5f84bbb0e61b42477ca1d8de03386f6499cef5fb20558c81b6ec13184d72a9aed40930356a9fc6cbf1265d5287bce3e91e437a7fa4da01063b60979cc1f72e23588db4b9ef144b4075aad1d70c31686d92c7fef4295e858abfe51c11467ba2a7dd02393e6398cfc4fa2f5"
+    },
+    {
+      "options": [
+        "-colorspace",
+        "RGB",
+        "-contrast",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "267acf1e92e83687fa4b9ff05fb00659cd1d71c23489de2b9ff443940454a5fd6ec11366dc2a80cf4196ec38a9fd4fa11163b60a7dd12173ea388ddc4ea2f745b3085aae1e72c6178be02f80f54599e959acff52c41569bb2c81d62498ee3c8dfe50a4f666b80c5fd42378c83a8fe531a4f8489a0a5bad0375c91a6ce33186d5479cf13eaa0152a7176abd1083d82779ef3e93e253a7fb4bbb0e61b42579ce1d91e73586fa4a9eef5daf0558cb1c70c13388dd2a9ef342930353a3fc6dc01265db297ece4095eb37a9fc4ea01062b4097cd02072e9378cdb4da1f644b20759ad1d71c5168adf2e7ff44499e858abfe51c31468ba2b80d52397ed3b8cfd4fa3f5"
+    },
+    {
+      "options": [
+        "-colorspace",
+        "HSL",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "2578cb1e8ee13487f74a9df060b30659c91c6fc23285d82b9bee41940457aafd6dc01366d6297ccf3f92e538a8fb4ea11164b70a7acd2073e33689dc4c9ff245b5085bae1e71c41787da2d80f04396e959acff52c21568bb2b7ed12494e73a8dfd50a3f666b90c5fcf2275c8388bde31a1f4479a0a5db00373c6196cdc2f82d54598eb3eae0154a7176abd1080d32679e93c8fe252a5f84bbb0e61b42477ca1d8de03386f6499cef5fb20558c81b6ec13184d72a9aed40930356a9fc6cbf1265d5287bce3e91e437a7fa4da01063b60979cc1f72e23588db4b9ef144b4075aad1d70c31686d92c7fef4295e858abfe51c11467ba2a7dd02393e6398cfc4fa2f5"
+    },
+    {
+      "options": [
+        "-colorspace",
+        "HSL",
+        "-contrast",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "2255de1e86e93f87fa5282f05bbb0459d31a4fc23b68e02b95f44d94024caffd62d20e66da2e5fcf4b75ed38a6fd53a10d43c70a6fe21c73e73c6ddc588af745be053aae1a4bd8177fe23780f44a7be959acff52cc1348bb3161da248dee468dfe539bf65dc6085fd92055c8436ee6319df9519a0745bc0367da146ce03465d5527ef23eaf014fa71345d01077df2a79ed4273e25a97fb4bc50b41b42053dd1d85e83e86f95181ef5bb90358d2194ec13a68df2a94f34c93024eadfc61d00e65db2b5ece4a74ec37a5fc53a00c43c6096de01b72e63b6cdb5788f644bd043bad194ad7167ee1357ff3497ae85aa9fe51cb1247ba2f5fdb238cee458cfd5396f5"
+    }
+  ]
+}

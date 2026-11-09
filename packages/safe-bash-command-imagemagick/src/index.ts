@@ -7077,18 +7077,23 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16)
                 : image.writeMask || image.region || ("storedWriteMask" in image && image.storedWriteMask) ? Uint16Array.from(out, value => value * 257) : undefined;
-            const samples = data16 ?? out, range = data16 ? 65535 : 255;
+            const hueSamples = image.hueSamples?.slice();
+            const samples = hueSamples ?? image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
+            const range = hueSamples ? 1 : 255;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 // Native ContrastImage changes HSV brightness, preserving hue, saturation and alpha.
                 const brightness = Math.max(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!) / range;
                 const adjusted = brightness + sign * 0.5 * (0.5 * (Math.sin(Math.PI * (brightness - 0.5)) + 1) - brightness);
                 for (let channel = 0; channel < 3; channel++) {
-                    samples[idx + channel] = Math.max(0, Math.min(range, Math.round(brightness === 0 ? 0 : samples[idx + channel]! * adjusted / brightness)));
-                    if (data16) out[idx + channel] = clampByteVal(data16[idx + channel]! / 257);
+                    // Keep native Q16-HDRI fractions between operations; round only the encoding views.
+                    const value = Math.fround(Math.max(0, Math.min(range, brightness === 0 ? 0 : samples[idx + channel]! * adjusted / brightness)) * (65535 / range)) / (65535 / range);
+                    samples[idx + channel] = value;
+                    out[idx + channel] = clampByteVal(value * (255 / range));
+                    if (data16) data16[idx + channel] = Math.round(value * (65535 / range));
                 }
             }
-            return { ...image, data: out, ...(data16 ? { data16 } : {}) };
+            return { ...image, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : { evaluateSamples: samples }) };
         };
     }
     else if (token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") {
@@ -7241,7 +7246,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelSelections(expression: string): number[][] {

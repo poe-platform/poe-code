@@ -151,7 +151,10 @@ export function* netpbmSequenceSteps(size: number, page?: number): Generator<num
           else break;
         }
         const start = offset;
-        while (offset < size && (yield offset)! >= 48 && (yield offset)! <= 57) offset++;
+        while (offset < size && (yield offset)! >= 48 && (yield offset)! <= 57) {
+          offset++;
+          if (magic === "P1") break;
+        }
         if (start === offset) { offset = size; break; }
       }
     }

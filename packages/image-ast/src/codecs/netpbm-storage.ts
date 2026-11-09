@@ -45,6 +45,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
    const digit=(await reader.at(position))!;
    if(digit<48||digit>57) break;
    value=value*10+(digit-48);position++;
+   if(magic==="P1") break;
   }
   return value;
  };
@@ -57,7 +58,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
   if(magic==="P4") {
    const value=await reader.at(dataOffset+y*Math.ceil(width/8)+(x>>>3))??0,g=(value>>>(7-(x&7)))&1?0:255;
    await output.pixel(g,g,g,255);
-  } else if(magic==="P1") {const g=await ascii()===1?0:255;await output.pixel(g,g,g,255);}
+  } else if(magic==="P1") {const g=await ascii()===0?255:0;await output.pixel(g,g,g,255);}
   else {
    const r=await sample(),g=channels>=3?await sample():r,b=channels>=3?await sample():r,k=cmyk?await sample():0,a=hasAlpha?await sample():maxval;
    const values=cmyk?[(maxval-r)*(maxval-k)/maxval,(maxval-g)*(maxval-k)/maxval,(maxval-b)*(maxval-k)/maxval,a]:[r,g,b,a];

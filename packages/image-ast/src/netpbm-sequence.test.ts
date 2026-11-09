@@ -4,6 +4,8 @@ import { readImageMetadataFromSource } from "./codecs/metadata-source.js";
 import { decodeNetpbmToStorage } from "./codecs/netpbm-storage.js";
 
 const frames = [
+  { header: "P1\n4 1\n", raster: Buffer.from("0110\n"), pixels: [255,255,255,255,0,0,0,255,0,0,0,255,255,255,255,255] },
+  { header: "P1\n4 1\n", raster: Buffer.from("0 2 # nonzero is black\n0 3\n"), pixels: [255,255,255,255,0,0,0,255,255,255,255,255,0,0,0,255] },
   { header: "P1\n2 1\n", raster: Buffer.from("0 # white\n1\n"), pixels: [255,255,255,255,0,0,0,255] },
   { header: "P2\n1 1\n255\n", raster: Buffer.from("17\n"), pixels: [17,17,17,255] },
   { header: "P3\n1 1\n255\n", raster: Buffer.from("255 0 0\n"), pixels: [255,0,0,255] },

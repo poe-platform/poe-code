@@ -81,6 +81,7 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
     while (pos < bytes.length && bytes[pos]! >= 0x30 && bytes[pos]! <= 0x39) {
       val = val * 10 + (bytes[pos]! - 0x30);
       pos++;
+      if (magic === "P1") break;
     }
     return val;
   };
@@ -116,7 +117,7 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
   } else if (magic === "P1") {
     for (let i = 0; i < width * height; i++) {
       const bit = readNextAsciiInt();
-      const g = bit === 1 ? 0 : 255;
+      const g = bit === 0 ? 255 : 0;
       rgba[i * 4] = g;
       rgba[i * 4 + 1] = g;
       rgba[i * 4 + 2] = g;

@@ -6204,7 +6204,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             const [black, white] = argument.split("x"), percentage = argument.includes("%");
             const lowTarget = (parseFloat(black || "0") || 0) * (percentage ? count / 100 : 1);
             // An omitted white point is the remaining pixel count, not the black point.
-            const highTarget = white === undefined ? count - lowTarget : (parseFloat(white) || 0) * (percentage ? count / 100 : 1);
+            const highTarget = white === undefined || white === "" ? count - lowTarget : (parseFloat(white) || 0) * (percentage ? count / 100 : 1);
             const bins = histogram[4]!;
             let low = 0, high = bins.length - 1, sum = 0;
             for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum >= lowTarget) break; }
@@ -6219,7 +6219,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             }
         } else if (token === "-normalize" || token === "-contrast-stretch") {
             const [black, white] = argument.split("x"), percentage = argument.includes("%");
-            const blackValue = parseFloat(black || "0") || 0, whiteValue = white === undefined ? blackValue : parseFloat(white) || 0;
+            const blackValue = parseFloat(black || "0") || 0, whiteValue = white === undefined || white === "" ? blackValue : parseFloat(white) || 0;
             const lowTarget = token === "-normalize" ? 0.02 * count : percentage ? blackValue / 100 * count : blackValue;
             const highTarget = token === "-normalize" ? 0.01 * count : percentage ? whiteValue / 100 * count : whiteValue;
             const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];

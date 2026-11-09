@@ -32,7 +32,10 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
         const length = Math.min(1024, count - start), pixels = await storage.read(image.position + start * 4, length * 4, { signal });
         if (pixels.length !== length * 4) throw new Error("Truncated remap pixels");
         const bytes = new Uint8Array(length * 16), view = new DataView(bytes.buffer);
-        for (let i = 0; i < length; i++) for (let c = 0; c < 4; c++) view.setFloat32(i * 16 + c * 4, pixels[i * 4 + c]!, true);
+        for (let i = 0; i < length; i++) for (let c = 0; c < 4; c++) {
+            const alpha = paletteImage.hasAlpha && c < 3 ? pixels[i * 4 + 3]! / 255 : 1;
+            view.setFloat32(i * 16 + c * 4, pixels[i * 4 + c]! * alpha, true);
+        }
         await storage.write(errors.position + start * 16, bytes, { signal });
     }
     const position = storage.allocate(count * 4);
@@ -48,25 +51,29 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
         for (let step = 0; step < length; step++) {
             const i = direction === 1 ? step : length - 1 - step;
             const current = start + i, offset = i * 4;
-            const r = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16))) : pixels[offset]!;
-            const g = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16 + 4))) : pixels[offset + 1]!;
-            const b = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16 + 8))) : pixels[offset + 2]!;
+            const inputAlpha = paletteImage.hasAlpha ? pixels[offset + 3]! / 255 : 1;
+            const r = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16))) : pixels[offset]! * inputAlpha;
+            const g = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16 + 4))) : pixels[offset + 1]! * inputAlpha;
+            const b = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16 + 8))) : pixels[offset + 2]! * inputAlpha;
             const a = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16 + 12))) : pixels[offset + 3]!;
+            const alpha = paletteImage.hasAlpha ? a / 255 : 1;
             let best = palette[0]!, distance = Infinity;
             for (const color of palette) {
-                const next = (r - (color >>> 24)) ** 2 + (g - (color >>> 16 & 255)) ** 2 + (b - (color >>> 8 & 255)) ** 2 + (a - (color & 255)) ** 2;
+                const beta = paletteImage.hasAlpha ? (color & 255) / 255 : 1;
+                const next = (r * alpha - (color >>> 24) * beta) ** 2 + (g * alpha - (color >>> 16 & 255) * beta) ** 2 + (b * alpha - (color >>> 8 & 255) * beta) ** 2 + (a - (color & 255)) ** 2;
                 if (next < distance) { best = color; distance = next; }
             }
             pixels[offset] = best >>> 24; pixels[offset + 1] = best >>> 16 & 255; pixels[offset + 2] = best >>> 8 & 255; pixels[offset + 3] = best & 255;
             if (errors) {
+                const selectedAlpha = paletteImage.hasAlpha ? (best & 255) / 255 : 1;
                 const x = current % image.width, y = Math.floor(current / image.width);
                 const spread = async (nx: number, ny: number, weight: number) => {
                     if (nx < 0 || nx >= image.width || ny >= image.height) return;
                     const next = (ny * image.width + nx) * 16;
                     weight *= diffusionAmount;
-                    await cache.setFloat32(errors, next, await cache.float32(errors, next) + (r - pixels[offset]!) * weight);
-                    await cache.setFloat32(errors, next + 4, await cache.float32(errors, next + 4) + (g - pixels[offset + 1]!) * weight);
-                    await cache.setFloat32(errors, next + 8, await cache.float32(errors, next + 8) + (b - pixels[offset + 2]!) * weight);
+                    await cache.setFloat32(errors, next, await cache.float32(errors, next) + (r - pixels[offset]! * selectedAlpha) * weight);
+                    await cache.setFloat32(errors, next + 4, await cache.float32(errors, next + 4) + (g - pixels[offset + 1]! * selectedAlpha) * weight);
+                    await cache.setFloat32(errors, next + 8, await cache.float32(errors, next + 8) + (b - pixels[offset + 2]! * selectedAlpha) * weight);
                     await cache.setFloat32(errors, next + 12, await cache.float32(errors, next + 12) + (a - pixels[offset + 3]!) * weight);
                 };
                 await spread(x + direction, y, 7 / 16);

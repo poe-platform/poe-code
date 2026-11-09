@@ -23,7 +23,7 @@ export function* hilbertPixels(img: { width: number; height: number }): Generato
 }
 
 /** ImageMagick Riemersma diffusion: a 16-entry weighted error queue. */
-export function* riemersmaRemapSteps(image: { width: number; height: number }, paletteImage: { width: number; height: number }, highDepth: boolean, diffusionAmount: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* riemersmaRemapSteps(image: { width: number; height: number }, paletteImage: { width: number; height: number; hasAlpha: boolean }, highDepth: boolean, diffusionAmount: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const palette: Uint8Array[] = [], seen = new Set<number>();
     for (let position = 0; position < paletteImage.width * paletteImage.height * 4; position += 4096) {
         yield;
@@ -42,6 +42,7 @@ export function* riemersmaRemapSteps(image: { width: number; height: number }, p
         if (++work % 1024 === 0) yield;
         const input = (yield { kind: "read", position, length: 4 })!;
         const target = Float64Array.from(input);
+        if (paletteImage.hasAlpha) for (let c = 0; c < 3; c++) target[c]! *= input[3]! / 255;
         for (let channel = 0; channel < 4; channel++) {
             for (let entry = 0; entry < 16; entry++) target[channel]! += weights[entry]! * errors[entry * 4 + channel]!;
             target[channel] = Math.max(0, Math.min(255, target[channel]!));
@@ -50,11 +51,18 @@ export function* riemersmaRemapSteps(image: { width: number; height: number }, p
         for (const color of palette) {
             if (++work % 65536 === 0) yield;
             let next = 0;
-            for (let c = 0; c < 4; c++) next += (target[c]! - color[c]!) ** 2;
+            for (let c = 0; c < 4; c++) {
+                const alpha = paletteImage.hasAlpha && c < 3 ? target[3]! / 255 : 1;
+                const beta = paletteImage.hasAlpha && c < 3 ? color[3]! / 255 : 1;
+                next += (target[c]! * alpha - color[c]! * beta) ** 2;
+            }
             if (next < distance) { best = color; distance = next; }
         }
         errors.copyWithin(0, 4);
-        for (let c = 0; c < 4; c++) errors[60 + c] = target[c]! - best[c]!;
+        for (let c = 0; c < 4; c++) {
+            const alpha = paletteImage.hasAlpha && c < 3 ? best[3]! / 255 : 1;
+            errors[60 + c] = target[c]! - best[c]! * alpha;
+        }
         yield highDepth
             ? { kind: "write", highDepth: true, position, data: new Uint8Array(Uint16Array.from(best, value => value * 257).buffer) }
             : { kind: "write", position, data: best };

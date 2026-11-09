@@ -1110,6 +1110,12 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
     const w = img.width;
     const h = img.height;
     const buf = new Float32Array(img.data);
+    // Native diffusion works on associated RGB; ClosestColor applies alpha again.
+    if (palImg.hasAlpha) for (let i = 0; i < buf.length; i += 4) {
+        if (++cooperativeWork % 65536 === 0) yield;
+        const alpha = buf[i + 3]! / 255;
+        for (let c = 0; c < 3; c++) buf[i + c]! *= alpha;
+    }
     const out = new Uint8Array(img.data);
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
     for (let y = 0; y < h; y++) {
@@ -1126,12 +1132,14 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
             const oldG = Math.max(0, Math.min(255, buf[idx + 1]!));
             const oldB = Math.max(0, Math.min(255, buf[idx + 2]!));
             const oldA = Math.max(0, Math.min(255, buf[idx + 3]!));
+            const alpha = palImg.hasAlpha ? oldA / 255 : 1;
             let best = palette[0]!;
             let bestDist = Infinity;
             for (const p of palette) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
-                const d = (oldR - p.r) ** 2 + (oldG - p.g) ** 2 + (oldB - p.b) ** 2 + (oldA - p.a) ** 2;
+                const beta = palImg.hasAlpha ? p.a / 255 : 1;
+                const d = (oldR * alpha - p.r * beta) ** 2 + (oldG * alpha - p.g * beta) ** 2 + (oldB * alpha - p.b * beta) ** 2 + (oldA - p.a) ** 2;
                 if (d < bestDist) {
                     bestDist = d;
                     best = p;
@@ -1145,9 +1153,10 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
                 for (let c = 0; c < 4; c++) data16[idx + c] = out[idx + c]! * 257;
             }
             if (dither) {
-                const errR = (oldR - best.r) * diffusionAmount;
-                const errG = (oldG - best.g) * diffusionAmount;
-                const errB = (oldB - best.b) * diffusionAmount;
+                const alpha = palImg.hasAlpha ? best.a / 255 : 1;
+                const errR = (oldR - best.r * alpha) * diffusionAmount;
+                const errG = (oldG - best.g * alpha) * diffusionAmount;
+                const errB = (oldB - best.b * alpha) * diffusionAmount;
                 const errA = (oldA - best.a) * diffusionAmount;
                 const spread = (nx: number, ny: number, wgt: number) => {
                     if (nx < 0 || nx >= w || ny < 0 || ny >= h)

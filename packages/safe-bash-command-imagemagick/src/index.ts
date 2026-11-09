@@ -3902,6 +3902,7 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
     let hueSamples: Float64Array | undefined;
     let evaluateSamples: Float64Array | undefined;
     let data16: Uint16Array | undefined;
+    let pngIndices: Uint8Array | undefined;
     let next = steps.next();
     while (!next.done) {
         signal?.throwIfAborted();
@@ -3909,6 +3910,10 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
         if (!request) { yield; next = steps.next(); }
         else if (request.kind === "read") {
             const source = sources[request.image ?? 0]!;
+            if (request.pngIndices) {
+                next = steps.next(source.pngIndices?.length === source.width * source.height ? source.pngIndices.subarray(request.position, request.position + request.length) : new Uint8Array());
+                continue;
+            }
             if (request.hue) {
                 const inks = source.hueSamples?.subarray(request.position, request.position + request.length);
                 next = steps.next(inks ? new Uint8Array(inks.buffer, inks.byteOffset, inks.byteLength) : new Uint8Array());
@@ -3924,7 +3929,10 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
                 ? samples ? new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength) : new Uint8Array(Uint16Array.from(source.data.subarray(request.position, request.position + request.length), value => value * 257).buffer)
                 : source.data.subarray(request.position, request.position + request.length));
         } else {
-            if (request.hue) {
+            if (request.pngIndices) {
+                pngIndices ??= new Uint8Array(dimensions.width * dimensions.height);
+                pngIndices.set(request.data, request.position);
+            } else if (request.hue) {
                 hueSamples ??= new Float64Array(data.length);
                 hueSamples.set(new Float64Array(request.data.slice().buffer), request.position);
             } else if (request.evaluate) {
@@ -3941,7 +3949,7 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
     }
     // Raster steps replace the pixels; original depth and arithmetic samples are stale.
     const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, ...metadata } = img;
-    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
+    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(pngIndices ? { pngIndices } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
 function resolveGravityOffset(
@@ -9637,13 +9645,17 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
     let storedHueSamples: number | undefined;
     let storedEvaluateSamples: number | undefined;
     let storedData16: StoredRgbaImage["storedData16"];
+    let storedPngIndices: StoredRgbaImage["storedPngIndices"];
     let next = steps.next();
     while (!next.done) {
         signal.throwIfAborted();
         const request = next.value;
         if (!request) { await yieldTurn(signal); await checkpoint?.(); next = steps.next(); }
         else if (request.kind === "write") {
-            if (request.hue) {
+            if (request.pngIndices) {
+                storedPngIndices ??= { position: backend.storage.allocate(dimensions.width * dimensions.height), width: dimensions.width, height: dimensions.height };
+                await backend.storage.write(storedPngIndices.position + request.position, request.data);
+            } else if (request.hue) {
                 storedHueSamples ??= backend.storage.allocate(dimensions.width * dimensions.height * 32);
                 await backend.storage.write(storedHueSamples + request.position * 8, request.data);
             } else if (request.evaluate) {
@@ -9659,6 +9671,11 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
         }
         else {
             const source = typeof sources === "function" ? await sources(request.image ?? 0) : sources[request.image ?? 0]!;
+            if (request.pngIndices) {
+                const indices = source.storedPngIndices;
+                next = steps.next(indices && indices.width === source.width && indices.height === source.height ? await backend.storage.read(indices.position + request.position, request.length) : new Uint8Array());
+                continue;
+            }
             if (request.hue) {
                 next = steps.next(source.storedHueSamples === undefined ? new Uint8Array() : await backend.storage.read(source.storedHueSamples + request.position * 8, request.length * 8));
                 continue;
@@ -9686,7 +9703,7 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
         }
     }
     const { storedData16: ignoredData16, storedEvaluateSamples: ignoredEvaluateSamples, ...metadata } = image;
-    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }) };
+    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedPngIndices ? { storedPngIndices } : {}), ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }) };
 }
 
 async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal, channels?: readonly boolean[], virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Promise<StoredRgbaImage> {

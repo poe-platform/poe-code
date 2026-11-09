@@ -17,12 +17,20 @@ export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "in
         const source = yield { kind: "read", position, length: size };
         if (!source || source.length !== size) throw new Error("Truncated cycle pixels");
         const data = source.slice();
+        const original = yield { kind: "read", pngIndices: true, position: position / 4, length: size / 4 };
+        const rotated = original?.length === size / 4 ? new Uint8Array(size / 4) : undefined;
         for (let i = 0; i < size; i += 4) {
-            const index = indices.get(data[i + 3]! * 16777216 + data[i]! * 65536 + data[i + 1]! * 256 + data[i + 2]!);
+            const pixel = data[i + 3]! * 16777216 + data[i]! * 65536 + data[i + 1]! * 256 + data[i + 2]!;
+            const previous = rotated ? original![i / 4] : undefined;
+            // Other raster operations may have changed the pixels since decoding.
+            const index = previous !== undefined && palette[previous] === pixel ? previous : indices.get(pixel);
             if (index === undefined) throw new Error("cycle requires an indexed image");
-            const color = palette[(index + shift) % palette.length]!;
+            const target = (index + shift) % palette.length;
+            if (rotated) rotated[i / 4] = target;
+            const color = palette[target]!;
             data[i] = color >>> 16; data[i + 1] = color >>> 8; data[i + 2] = color; data[i + 3] = color >>> 24;
         }
         yield { kind: "write", position, data };
+        if (rotated) yield { kind: "write", pngIndices: true, position: position / 4, data: rotated };
     }
 }

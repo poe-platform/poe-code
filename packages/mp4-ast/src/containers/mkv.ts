@@ -1,3 +1,4 @@
+import { rawAudioAsts } from "./raw-audio.js";
 import { demuxVorbisTrack } from "../vorbis.js";
 import { decodeH264Samples } from "../h264.js";
 import { readVint, writeVintSize } from "./ebml.js";
@@ -517,6 +518,17 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   const tracks: MediaTrack[] = [];
 
   for (const [trkNum, info] of trackMap.entries()) {
+    let g711Tag: number | undefined;
+    if (info.codecId === "A_MS/ACM" && info.codecPrivate && info.codecPrivate.byteLength >= 18) {
+      const wave = new DataView(info.codecPrivate.buffer, info.codecPrivate.byteOffset, info.codecPrivate.byteLength);
+      const tag = wave.getUint16(0, true);
+      if (tag === 6 || tag === 7) {
+        g711Tag = tag;
+        info.channels = wave.getUint16(2, true);
+        info.sampleRate = wave.getUint32(4, true);
+        info.bitDepth = 8;
+      }
+    }
     const rawSamples = samplesByTrack.get(trkNum) ?? [];
     const codecDelayTicks = Math.round((info.codecDelayNs ?? 0) / timecodeScale);
     for (let i = 0; i < rawSamples.length; i++) {
@@ -526,7 +538,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       const previous = rawSamples[i - 1];
       const inferred = next && next.dts > cur.dts ? next.dts - cur.dts
         : defaultTicks || previous?.duration || Math.max(1, timescale / (info.trackType === 1 ? 30 : 44100 / 1024));
-      const pcmTicks = info.codecId.startsWith("A_PCM/") &&
+      const pcmTicks = (info.codecId.startsWith("A_PCM/") || g711Tag !== undefined) &&
         (info.sampleRate ?? 0) > 0 && (info.channels ?? 0) > 0 && (info.bitDepth ?? 0) > 0
         ? Math.floor(Math.floor(cur.size / (info.channels! * Math.ceil(info.bitDepth! / 8))) * timescale / info.sampleRate!)
         : undefined;
@@ -612,6 +624,9 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     } else if (info.codecId.includes("A_FLAC")) {
       codecName = "flac";
       formatFourCC = "fLaC";
+    } else if (g711Tag !== undefined) {
+      codecName = g711Tag === 6 ? "pcm_alaw" : "pcm_mulaw";
+      formatFourCC = g711Tag === 6 ? "alaw" : "ulaw";
     } else if (info.codecId.includes("A_PCM")) {
       const floating = info.codecId === "A_PCM/FLOAT/IEEE";
       const bigEndian = info.codecId === "A_PCM/INT/BIG";
@@ -704,7 +719,12 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       height,
       codecDescriptions: [desc],
       samples: rawSamples,
-      decodedVideoFrames
+      decodedVideoFrames,
+      ...(g711Tag !== undefined && options.decodeAudio !== false ? {
+        decodedAudio: rawAudioAsts().find(plugin => plugin.id === (g711Tag === 6 ? "alaw" : "mulaw"))!
+          .parse(concatBytes(rawSamples.map(sample => sample.data)), { ...options, budget, sampleRate, channels })
+          .tracks[0]!.decodedAudio
+      } : {})
     });
   }
 
@@ -858,6 +878,19 @@ export function serializeMkv(
       else if (desc?.codecName === "vorbis") codecId = "A_VORBIS";
       else if (desc?.codecName === "mp3") codecId = "A_MPEG/L3";
       else if (desc?.codecName === "flac") codecId = "A_FLAC";
+      else if (desc?.codecName === "pcm_mulaw" || desc?.codecName === "pcm_alaw") {
+        codecId = "A_MS/ACM";
+        codecPrivate = new Uint8Array(18);
+        const wave = new DataView(codecPrivate.buffer);
+        const channels = desc.channels ?? 2;
+        const sampleRate = desc.sampleRate ?? trk.timescale ?? 44100;
+        wave.setUint16(0, desc.codecName === "pcm_mulaw" ? 7 : 6, true);
+        wave.setUint16(2, channels, true);
+        wave.setUint32(4, sampleRate, true);
+        wave.setUint32(8, sampleRate * channels, true);
+        wave.setUint16(12, channels, true);
+        wave.setUint16(14, 8, true);
+      }
       else if (desc?.codecName.startsWith("pcm_")) {
         codecId = desc.codecName.startsWith("pcm_f") ? "A_PCM/FLOAT/IEEE"
           : desc.codecName.endsWith("be") ? "A_PCM/INT/BIG" : "A_PCM/INT/LIT";

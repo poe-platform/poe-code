@@ -38,8 +38,9 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
   const codecName = desc?.formatFourCC === "tmcd" ? "" : desc?.codecName ?? (track.type === "video" ? "h264" : "aac");
   const codecLongName = CODEC_LONG_NAMES[codecName] ?? codecName;
   const matroska = containerFormat === "matroska" || containerFormat === "webm";
-  // Internal MP4/QuickTime aliases are not tags in standalone WebVTT or Matroska PCM.
-  const noCodecTag = containerFormat === "webvtt" || containerFormat === "matroska" && codecName === "pcm_s16le"
+  const adts = containerFormat === "aac";
+  // Internal MP4/QuickTime aliases are not tags in ADTS, WebVTT or Matroska PCM.
+  const noCodecTag = adts || containerFormat === "webvtt" || containerFormat === "matroska" && codecName === "pcm_s16le"
     || containerFormat === "aiff" && desc?.formatFourCC === "\0\0\0\0";
   const rawTag = desc?.formatFourCC ?? (track.type === "video" ? "avc1" : "mp4a");
   const tagFourCC = Array.from(rawTag).map(c => c.charCodeAt(0) < 32 ? `[${c.charCodeAt(0)}]` : c).join("");
@@ -88,7 +89,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
 
   const streamTags: Record<string, string | T> = {
     ...track.metadata,
-    ...(containerFormat === "webvtt" || (matroska || containerFormat === "avi") && track.language === "und" ||
+    ...(adts || containerFormat === "webvtt" || (matroska || containerFormat === "avi") && track.language === "und" ||
       containerFormat === "wav" && track.disposition?.attached_pic === 1
       ? {} : { language: track.language || "und" })
   };
@@ -103,7 +104,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
 
   return {
     index: idx,
-    id: matroska || containerFormat === "webvtt" ? undefined : `0x${track.id.toString(16)}`,
+    id: adts || matroska || containerFormat === "webvtt" ? undefined : `0x${track.id.toString(16)}`,
     codec_name: codecName || undefined,
     mime_codec_string: desc?.mimeCodecString,
     codec_long_name: codecLongName || undefined,
@@ -158,14 +159,14 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     duration_ts: matroska || containerFormat === "webvtt" || containerFormat === "wav" && track.duration === 0 ? undefined : track.duration,
     duration: matroska || containerFormat === "webvtt" || containerFormat === "wav" && track.duration === 0 ? undefined : durationSec.toFixed(6),
     bit_rate: containerFormat === "webvtt" ? undefined : bitRate,
-    nb_frames: matroska || containerFormat === "au" || containerFormat === "wav" || containerFormat === "webvtt" || track.declaredSampleCount === 0
+    nb_frames: adts || matroska || containerFormat === "au" || containerFormat === "wav" || containerFormat === "webvtt" || track.declaredSampleCount === 0
       ? undefined : String(track.declaredSampleCount ?? nbFrames),
-    ...(!matroska && containerFormat !== "au" && containerFormat !== "webvtt" && track.declaredSampleCount === undefined ? {} : {
+    ...(!adts && !matroska && containerFormat !== "au" && containerFormat !== "webvtt" && track.declaredSampleCount === undefined ? {} : {
       nb_read_packets: String(stats.count),
       nb_read_frames: String(track.type === "data" ? 0 : stats.count)
     }),
     disposition: {
-      default: containerFormat !== "webvtt" && track.enabled ? 1 : 0,
+      default: !adts && containerFormat !== "webvtt" && track.enabled ? 1 : 0,
       dub: 0,
       original: 0,
       comment: 0,
@@ -186,7 +187,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
       multilayer: 0,
       ...track.disposition
     },
-    tags: containerFormat === "webvtt" && Object.keys(streamTags).length === 0 ? undefined : streamTags,
+    tags: (adts || containerFormat === "webvtt") && Object.keys(streamTags).length === 0 ? undefined : streamTags,
     side_data_list: hasDisplayMatrix
       ? [{ side_data_type: "Display Matrix",
           displaymatrix: "\n" + [0, 1, 2].map(row =>

@@ -2,6 +2,22 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
 
+for (const command of ["exit", "return"]) {
+  for (const [args, operand] of [["x 4", "x"], ["-- x 4", "x"], ["9223372036854775808 4", "9223372036854775808"]]) {
+    test(`${command} validates the first status before extra operands: ${args}`, async context => {
+      const { shell } = setup();
+      context.after(() => shell.dispose());
+      const script = command === "exit"
+        ? `exit ${args}; say "AFTER:$?"`
+        : `f() { return ${args}; say BODY_AFTER; }; f; say "AFTER:$?"`;
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "AFTER:2\n");
+      assert.equal(result.stderr, `${command}: ${operand}: numeric argument required\n`);
+    });
+  }
+}
+
 for (const [script, exitCode, stdout] of [
   ['exit junk; say "AFTER:$?"', 0, "AFTER:2\n"],
   ["exit junk", 2, ""],

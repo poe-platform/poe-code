@@ -9300,13 +9300,13 @@ export class Runtime {
       if (command === "return" && state.functionDepth === 0 && !state.sourceDepth) { await writeDiagnostic(stderr, "return: can only `return' from a function or sourced script\n"); return 2; }
       const offset = args[0] === "--" ? 1 : 0;
       const operand = args[offset];
-      if (args.length - offset > 1) { await writeDiagnostic(stderr, `${command}: too many arguments\n`); return 1; }
       const value = operand === undefined ? BigInt(state.status) : await signedLong(operand, this.budget, this.signal);
       if (value === undefined || value === "overflow") {
         await writeDiagnostic(stderr, `${command}: ${operand}: numeric argument required\n`);
         if (command === "exit") return 2;
         throw completedExit(2, command);
       }
+      if (args.length - offset > 1) { await writeDiagnostic(stderr, `${command}: too many arguments\n`); return 1; }
       const status = operand === undefined ? (command === "exit" && state.extensions?.exiting ? state.extensions.exitStatus ?? state.status : state.status) : Number((value % 256n + 256n) % 256n);
       throw completedExit(status, command, 1, state.status);
     }

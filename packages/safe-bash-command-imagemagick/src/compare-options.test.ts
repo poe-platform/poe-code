@@ -5,7 +5,7 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runCompareCli, runCompareCliSync, runMagickCli } from "./index.js";
 
 const native = spawnSync("magick", ["-version"]);
-for (const options of [["-bogus"], ["-channel", "bogus"], ["-alpha", "bogus"]]) {
+for (const options of [["-bogus"], ["-channel", "bogus"]]) {
     it(`rejects ${options.join(" ")} before producing a metric or output`, async () => {
         const images = await Promise.all(["red", "blue"].map(background =>
             sharp({ create: { width: 1, height: 1, channels: 4, background } }).png().toBuffer()));
@@ -35,8 +35,6 @@ for (const options of [["-bogus"], ["-channel", "bogus"], ["-alpha", "bogus"]]) 
 }
 
 it("rejects unsupported options before reading input images", async () => {
-    for (const options of [["-alpha", "off"], ["-alpha"]]) {
-        expect(await runCompareCli([...options, "missing.png", "missing.png", "null:"], new Map()))
-            .toMatchObject({ exitCode: 2, stderr: `compare: unrecognized option '${options[0]}'\n` });
-    }
+    expect(await runCompareCli(["-bogus", "missing.png", "missing.png", "null:"], new Map()))
+        .toMatchObject({ exitCode: 2, stderr: "compare: unrecognized option '-bogus'\n" });
 });

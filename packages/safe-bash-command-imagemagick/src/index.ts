@@ -1494,6 +1494,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     c: meta.properties?.comment ?? "", l: meta.properties?.label ?? "", C: compression, Q: String(context.quality ?? meta.quality ?? 92)
   };
   const properties: Record<string, string> = {
+    compose: "Over",
     ...meta.properties,
     magick: short.m!,
     directory: short.d!, basename: short.t!, extension: short.e!,

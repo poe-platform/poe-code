@@ -148,8 +148,12 @@ for (let length = 1; length < 12; length++) {
     const ast = cafAst();
     const tail = Buffer.from("667265650000000000000003", "hex").subarray(0, length);
     const trailing = Buffer.concat([native, tail]);
-    assert.deepEqual(ast.parse(trailing).tracks, ast.parse(native).tracks);
-    assert.deepEqual(ast.probe(trailing).streams, ast.probe(native).streams);
+    const duration = 9 + Math.round(length / 2);
+    assert.deepEqual(ast.parse(trailing).tracks, ast.parse(native).tracks.map(track => ({ ...track, duration })));
+    assert.deepEqual(ast.probe(trailing).streams, ast.probe(native).streams.map(stream => ({
+      ...stream, duration_ts: duration, duration: (duration / 8000).toFixed(6),
+      bit_rate: String(Math.round(18 * 8 * 8000 / duration))
+    })));
     const beforeData = Buffer.concat([native.subarray(0, 52), tail]);
     assert.throws(() => ast.parse(beforeData), /Truncated CAF chunk header/);
     assert.throws(() => ast.probe(beforeData), /Truncated CAF chunk header/);

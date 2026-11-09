@@ -14,7 +14,7 @@ export async function decodeRadianceToStorage(source: ImageByteSource, storage: 
     const header = await readRadianceFromSource(source, signal), { width, height } = header.metadata;
     checkLimitInputPixels(width, height, options);
     const length = width * height * 4, position = storage.allocate(length), storedData16 = { position: storage.allocate(length * 2), length }, storedDataFloat = { position: storage.allocate(length * 4), length };
-    const reader = new SourceBytes(source, signal, "Radiance"), steps = radianceRows(header); let next = steps.next();
+    const reader = new SourceBytes(source, signal, "Radiance"), steps = radianceRows(header, options); let next = steps.next();
     while (!next.done) {
         if (typeof next.value === "number") next = steps.next(await reader.at(next.value));
         else {

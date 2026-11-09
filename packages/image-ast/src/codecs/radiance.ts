@@ -39,7 +39,7 @@ export function readRadianceHeader(bytes: Uint8Array) {
 type Header = ReturnType<typeof readRadianceHeader>;
 
 // Shared byte parser: buffered and retained inputs use identical RLE validation.
-export function* radianceRows(header: Header): Generator<number | { indices: number[]; data: Uint8Array; data16: Uint16Array; dataFloat: Float32Array }, void, number | undefined> {
+export function* radianceRows(header: Header, options?: SharpInputOptions): Generator<number | { indices: number[]; data: Uint8Array; data16: Uint16Array; dataFloat: Float32Array }, void, number | undefined> {
     let offset = header.offset, previous = [0, 0, 0, 0], pending = 0, shift = 0, seen = false;
     function* byte(): Generator<number, number, number | undefined> {
         const value = yield offset++;
@@ -84,7 +84,7 @@ export function* radianceRows(header: Header): Generator<number | { indices: num
                     }
                     pixel = previous; pending--;
                 }
-                const coordinates = [row, column].map((value, axis) => header.axes[axis] === "+X" || header.axes[axis] === "-Y" ? value : header.counts[axis]! - 1 - value);
+                const coordinates = [row, column].map((value, axis) => header.axes[axis] === "+X" || header.axes[axis] === "-Y" || (options?.hdrPreserveScanlineOrder && header.axes[axis] === "+Y") ? value : header.counts[axis]! - 1 - value);
                 const x = coordinates[header.axes[0]![1] === "X" ? 0 : 1]!, y = coordinates[header.axes[0]![1] === "Y" ? 0 : 1]!;
                 indices.push((y * header.metadata.width + x) * 4);
                 for (let channel = 0; channel < 4; channel++) {
@@ -104,7 +104,7 @@ export function decodeRadianceImage(bytes: Uint8Array, options?: SharpInputOptio
     const header = readRadianceHeader(bytes), { width, height } = header.metadata;
     checkLimitInputPixels(width, height, options);
     const data = new Uint8Array(width * height * 4), data16 = new Uint16Array(data.length), dataFloat = new Float32Array(data.length);
-    const steps = radianceRows(header); let next = steps.next();
+    const steps = radianceRows(header, options); let next = steps.next();
     while (!next.done) {
         if (typeof next.value === "number") next = steps.next(bytes[next.value]);
         else {

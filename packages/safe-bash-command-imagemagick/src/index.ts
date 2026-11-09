@@ -5868,6 +5868,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         if (++work % 16384 === 0)
             yield;
         let img = decodeImage(rawBytes, {
+            hdrPreserveScanlineOrder: true,
             coalesce: false,
             density: state.density,
             ...(effectiveMaxDecodeDim !== undefined ? { maxDecodeDimension: effectiveMaxDecodeDim } : {}),

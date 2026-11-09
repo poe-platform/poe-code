@@ -4,7 +4,7 @@ import type { FileSystem } from "@poe-code/safe-fs/contracts";
 /** Raster file adapters keep PDF indexes and pixels in the caller's storage. */
 export async function decodeFileImage(source: ImageByteSource, storage: ImageByteStorage, filesystem: FileSystem, cwd: string, signal: AbortSignal, options: SharpInputOptions): Promise<StoredRgbaImage> {
     try {
-        return await decodeImageToStorage(source, storage, signal, options);
+        return await decodeImageToStorage(source, storage, signal, { ...options, hdrPreserveScanlineOrder: true });
     } catch (error) {
         if (!(error instanceof UnsupportedStoredResource) || error instanceof UnsupportedImageFormat) throw error;
         const pdf = await tryPdfDecode(source, storage, filesystem, cwd, signal, options);

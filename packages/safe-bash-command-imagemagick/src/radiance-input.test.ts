@@ -6,8 +6,9 @@ import { runConvertCli, runConvertCliSync } from "./index.js";
 // ImageMagick-generated RGBE: 8x2, RGB pixel i = [(i*17)%256,(10+i*31)%256,(40+i*47)%256].
 const fixture = "Iz9SQURJQU5DRQpHQU1NQT0xClBSSU1BUklFUz0wIDAgMCAwIDAgMCAwIDAKRk9STUFUPTMyLWJpdF9ybGVfcmdiZQoKLVkgMiArWCA4CgICAAgIAAsQEA4uIi8IGC1CRT3AjcQIrcP07MYDDSoIe31+f4B/gIACAgAICH5RZv6audqACAADDTo1VoBaCLOf/Q0bQn1oCH+AgH+AgICB";
 for (const mode of ["sync", "buffered", "retained"] as const) {
-    it(`decodes native Radiance RGBE colors (${mode})`, async () => {
+    for (const axis of ["+Y", "-Y"]) it(`decodes native Radiance RGBE colors (${mode}, ${axis})`, async () => {
         const bytes = new Uint8Array(Buffer.from(fixture, "base64"));
+        bytes[new TextDecoder().decode(bytes).indexOf("-Y 2")] = axis.charCodeAt(0);
         const files = new Map([["/in.hdr", bytes]]);
         const filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/in.hdr", bytes);
@@ -38,4 +39,26 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
         files.set("/in.hdr", invalid); await filesystem.writeFile("/in.hdr", invalid);
         expect(await run()).toMatchObject({ exitCode: 1, stderr: expect.stringContaining("Invalid Radiance repeat run") });
     });
+}
+
+for (const mode of ["sync", "buffered", "retained"] as const) {
+    for (const axis of ["+Y", "-Y"]) {
+        for (const autoOrient of [false, true]) {
+            it(`preserves native HDR scanline order (${mode}, ${axis}, auto-orient=${autoOrient})`, async () => {
+                // Native ImageMagick preserves these rows for either Y sign, with Undefined orientation.
+                const header = new TextEncoder().encode(`#?RADIANCE\nFORMAT=32-bit_rle_rgbe\n\n${axis} 2 +X 3\n`);
+                const bytes = new Uint8Array([...header,
+                    128, 0, 0, 129, 0, 128, 0, 128, 0, 0, 128, 130,
+                    128, 128, 0, 127, 0, 128, 128, 127, 128, 0, 128, 127]);
+                const files = new Map([["/in.hdr", bytes]]), filesystem = new MemoryFileSystem();
+                await filesystem.writeFile("/in.hdr", bytes);
+                const args = ["/in.hdr", ...(autoOrient ? ["-auto-orient"] : []), "PNG32:/out.png"];
+                const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+                expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+                const image = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+                expect([image.width, image.height]).toEqual([3, 2]);
+                expect(Buffer.from(image.data).toString("hex")).toBe("ff0000ff008000ff0000ffff404000ff004040ff400040ff");
+            });
+        }
+    }
 }

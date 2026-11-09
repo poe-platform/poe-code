@@ -1461,8 +1461,10 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       }
       if (filters[0] === "sidechaincompress" || filters[0]?.startsWith("sidechaincompress=")) {
         if (sources.length !== 2) throw new Error("sidechaincompress requires two inputs");
-        if (sources.some(source => source.expression && source.expression !== "anull")) {
-          throw new Error("sidechaincompress does not support preceding single-input filters");
+        for (const source of sources) {
+          if (source.expression && source.expression !== "anull") {
+            source.track = await filterAudio(source.track, source.expression);
+          }
         }
         const first = sources[0]!.track;
         const a = first.decodedAudio;

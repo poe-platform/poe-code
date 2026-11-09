@@ -353,7 +353,8 @@ the gate are currently unsupported.
 `sidechaincompress` uses a second audio input to control compression of the first,
 for example `[0:a][1:a]sidechaincompress=threshold=0.05:ratio=8:attack=1:release=20[mix]`.
 Output retains the first input’s channels and ends with the shorter input. Inputs
-must have matching sample rates; preceding filters other than `anull` are unsupported.
+must have matching sample rates after any upstream filters. Filters on either input
+are applied before compression; downstream filters apply to the compressed output.
 
 `dynaudnorm=f=100:g=5:p=0.5` normalizes changing PCM levels with smoothed frame gains and coupled channels. Supports frame length (`f`/`framelen`), Gaussian window (`g`/`gausssize`), peak (`p`/`peak`), and maximum gain (`m`/`maxgain`); other options fail explicitly. Fractional frame lengths and window sizes round to the nearest integer with ties to even, then window sizes increase to an odd value. Limits are checked before rounding. Named and positional values accept numeric expressions, such as `dynaudnorm=f=10*2:g=3:p=1/2`; results must satisfy the option ranges.
 

@@ -34,3 +34,40 @@ for (const adjusted of [false, true]) for (const quiet of [false, true]) for (co
     }
   });
 }
+
+for (const input of ["program", "detector", "both"]) {
+  it(`sidechaincompress applies upstream filters to ${input} before compression`, async () => {
+    const fs = Volume.fromJSON({});
+    const program = Float64Array.from({ length: 2048 }, (_, i) => (i % 8 < 4 ? 8192 : -8192) / 32768);
+    const key = Float64Array.from({ length: 3072 }, (_, i) => (i < 1024 ? 16384 : 1024) / 32768);
+    const filterProgram = input !== "detector";
+    const filterDetector = input !== "program";
+    for (const [name, samples, filtered] of [["a", program, filterProgram], ["b", key, filterDetector]] as const) {
+      fs.writeFileSync(`/${name}.wav`, encodeWav({ sampleRate: 8000, channels: [samples] }));
+      fs.writeFileSync(`/${name}-filtered.wav`, encodeWav({ sampleRate: 8000,
+        channels: [filtered ? samples.slice(0, 1536).map(x => x * 0.5) : samples] }));
+    }
+    const upstream = [
+      filterProgram ? "[0:a]volume=0.5,atrim=end_sample=1536[program];" : "",
+      filterDetector ? "[1:a]volume=0.5,atrim=end_sample=1536[detector];" : ""
+    ].join("");
+    const compressor = "sidechaincompress,volume=0.5[out]";
+    for (const reference of [true, false]) {
+      const errors: Uint8Array[] = [];
+      const result = await createFfmpegCommand().execute({
+        args: ["-i", reference ? "/a-filtered.wav" : "/a.wav", "-i", reference ? "/b-filtered.wav" : "/b.wav",
+          "-filter_complex", reference ? `[0:a][1:a]${compressor}`
+            : `${upstream}[${filterProgram ? "program" : "0:a"}][${filterDetector ? "detector" : "1:a"}]${compressor}`,
+          "-map", "[out]", "-c:a", "pcm_s16le", reference ? "/expected.wav" : "/actual.wav"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
+        stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { errors.push(b); } }
+      } as never);
+      assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+    }
+    const actual = parseWav(fs.readFileSync("/actual.wav") as Buffer).tracks[0]!.decodedAudio!;
+    const expected = parseWav(fs.readFileSync("/expected.wav") as Buffer).tracks[0]!.decodedAudio!;
+    assert.equal(actual.channelData[0]!.length, 1536);
+    assert.deepEqual(actual, expected);
+  });
+}

@@ -21,6 +21,8 @@ export function *flipImageSteps(img: RgbaImage): Generator<void, RgbaImage, void
   let work = 0;
   const { width, height, data } = img;
   const out = new Uint8Array(data.length);
+  const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+  const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
   const rowBytes = width * 4;
   for (let y = 0; y < height; y++) {
     if (++work % 16384 === 0) yield;
@@ -32,18 +34,22 @@ export function *flipImageSteps(img: RgbaImage): Generator<void, RgbaImage, void
  for (let copyOffset = 0; copyOffset < copySource.length; copyOffset += 65536) {
   const copyEnd = Math.min(copySource.length, copyOffset + 65536);
   out.set(copySource.subarray(copyOffset, copyEnd), copyTargetOffset + copyOffset);
+  if (data16) data16.set(img.data16!.subarray(srcOffset + copyOffset, srcOffset + copyEnd), copyTargetOffset + copyOffset);
+  if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcOffset + copyOffset, srcOffset + copyEnd), copyTargetOffset + copyOffset);
   work += (copyEnd - copyOffset) / 4;
   if (work >= 16384) { work %= 16384; yield; }
  }
 }
   }
-  return { ...img, data: out };
+  return { ...img, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
 export function *flopImageSteps(img: RgbaImage): Generator<void, RgbaImage, void> {
   let work = 0;
   const { width, height, data } = img;
   const out = new Uint8Array(data.length);
+  const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+  const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
   for (let y = 0; y < height; y++) {
     if (++work % 16384 === 0) yield;
     for (let x = 0; x < width; x++) {
@@ -54,9 +60,11 @@ export function *flopImageSteps(img: RgbaImage): Generator<void, RgbaImage, void
       out[dstIdx + 1] = data[srcIdx + 1]!;
       out[dstIdx + 2] = data[srcIdx + 2]!;
       out[dstIdx + 3] = data[srcIdx + 3]!;
+      if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
+      if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
     }
   }
-  return { ...img, data: out };
+  return { ...img, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
 function *rotate90CWSteps(img: RgbaImage): Generator<void, RgbaImage, void> {
@@ -65,6 +73,8 @@ function *rotate90CWSteps(img: RgbaImage): Generator<void, RgbaImage, void> {
   const dstW = height;
   const dstH = width;
   const out = new Uint8Array(data.length);
+  const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+  const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
   for (let y = 0; y < height; y++) {
     if (++work % 16384 === 0) yield;
     for (let x = 0; x < width; x++) {
@@ -77,15 +87,19 @@ function *rotate90CWSteps(img: RgbaImage): Generator<void, RgbaImage, void> {
       out[dstIdx + 1] = data[srcIdx + 1]!;
       out[dstIdx + 2] = data[srcIdx + 2]!;
       out[dstIdx + 3] = data[srcIdx + 3]!;
+      if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
+      if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
     }
   }
-  return { ...img, width: dstW, height: dstH, data: out };
+  return { ...img, width: dstW, height: dstH, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
 function *rotate180Steps(img: RgbaImage): Generator<void, RgbaImage, void> {
   let work = 0;
   const { width, height, data } = img;
   const out = new Uint8Array(data.length);
+  const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+  const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
   const total = width * height;
   for (let i = 0; i < total; i++) {
     if (++work % 16384 === 0) yield;
@@ -95,8 +109,10 @@ function *rotate180Steps(img: RgbaImage): Generator<void, RgbaImage, void> {
     out[dstIdx + 1] = data[srcIdx + 1]!;
     out[dstIdx + 2] = data[srcIdx + 2]!;
     out[dstIdx + 3] = data[srcIdx + 3]!;
+    if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
+    if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
   }
-  return { ...img, data: out };
+  return { ...img, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
 function *rotate270CWSteps(img: RgbaImage): Generator<void, RgbaImage, void> {
@@ -105,6 +121,8 @@ function *rotate270CWSteps(img: RgbaImage): Generator<void, RgbaImage, void> {
   const dstW = height;
   const dstH = width;
   const out = new Uint8Array(data.length);
+  const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+  const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
   for (let y = 0; y < height; y++) {
     if (++work % 16384 === 0) yield;
     for (let x = 0; x < width; x++) {
@@ -117,9 +135,11 @@ function *rotate270CWSteps(img: RgbaImage): Generator<void, RgbaImage, void> {
       out[dstIdx + 1] = data[srcIdx + 1]!;
       out[dstIdx + 2] = data[srcIdx + 2]!;
       out[dstIdx + 3] = data[srcIdx + 3]!;
+      if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
+      if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
     }
   }
-  return { ...img, width: dstW, height: dstH, data: out };
+  return { ...img, width: dstW, height: dstH, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
 export function *applyExifOrientationSteps(img: RgbaImage): Generator<void, RgbaImage, void> {
@@ -205,6 +225,8 @@ export function *extractImageSteps(
     const pages = img.pages;
     const pageH = img.pageHeight;
     const out = new Uint8Array(width * height * pages * 4);
+    const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+    const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
     for (let p = 0; p < pages; p++) {
     if (++work % 16384 === 0) yield;
       for (let y = 0; y < height; y++) {
@@ -216,15 +238,19 @@ export function *extractImageSteps(
  for (let copyOffset = 0; copyOffset < copySource.length; copyOffset += 65536) {
   const copyEnd = Math.min(copySource.length, copyOffset + 65536);
   out.set(copySource.subarray(copyOffset, copyEnd), copyTargetOffset + copyOffset);
+  if (data16) data16.set(img.data16!.subarray(srcStart + copyOffset, srcStart + copyEnd), copyTargetOffset + copyOffset);
+  if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcStart + copyOffset, srcStart + copyEnd), copyTargetOffset + copyOffset);
   work += (copyEnd - copyOffset) / 4;
   if (work >= 16384) { work %= 16384; yield; }
  }
 }
       }
     }
-    return { ...img, width, height: height * pages, pageHeight: height, pages, data: out };
+    return { ...img, width, height: height * pages, pageHeight: height, pages, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
   }
   const out = new Uint8Array(new ArrayBuffer(width * height * 4 + height), 0, width * height * 4);
+  const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+  const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
   for (let y = 0; y < height; y++) {
     if (++work % 16384 === 0) yield;
     const srcStart = ((top + y) * img.width + left) * 4;
@@ -234,12 +260,14 @@ export function *extractImageSteps(
  for (let copyOffset = 0; copyOffset < copySource.length; copyOffset += 65536) {
   const copyEnd = Math.min(copySource.length, copyOffset + 65536);
   out.set(copySource.subarray(copyOffset, copyEnd), copyTargetOffset + copyOffset);
+  if (data16) data16.set(img.data16!.subarray(srcStart + copyOffset, srcStart + copyEnd), copyTargetOffset + copyOffset);
+  if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcStart + copyOffset, srcStart + copyEnd), copyTargetOffset + copyOffset);
   work += (copyEnd - copyOffset) / 4;
   if (work >= 16384) { work %= 16384; yield; }
  }
 }
   }
-  return { ...img, width, height, data: out };
+  return { ...img, width, height, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
 export function *trimImageSteps(

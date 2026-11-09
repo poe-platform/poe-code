@@ -20,8 +20,9 @@ export interface ImageByteStorage extends Pick<ImageByteSource, "read"> {
   allocate(length: number): number;
   write(position: number, bytes: Uint8Array, options?: {readonly signal?: AbortSignal}): Promise<void>;
 }
-export interface StoredRgbaImage extends Omit<RgbaImage, "hueSamples" | "data" | "data16" | "dataFloat" | "pngIndices" | "miffPages" | "tiffPages" | "icoPages"> {
+export interface StoredRgbaImage extends Omit<RgbaImage, "evaluateSamples" | "hueSamples" | "data" | "data16" | "dataFloat" | "pngIndices" | "miffPages" | "tiffPages" | "icoPages"> {
   readonly storedHueSamples?: number;
+  storedEvaluateSamples?: number | undefined;
   readonly storedMiffPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
   readonly storedIcoPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
   readonly storedTiffPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };

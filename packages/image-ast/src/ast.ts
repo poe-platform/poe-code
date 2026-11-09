@@ -67,6 +67,8 @@ export interface RgbaImage {
   readonly height: number;
   readonly data: Uint8Array;
   readonly data16?: Uint16Array;
+  /** Unclamped arithmetic samples in the 0–255 working range. */
+  evaluateSamples?: Float64Array | undefined;
   /** Normalized working color samples; CMYK stores inks separately from RGBA. */
   readonly hueSamples?: Float64Array;
   /** Normalized, unclamped RGBA float samples. */

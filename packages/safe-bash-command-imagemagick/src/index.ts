@@ -107,8 +107,8 @@ import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16">> & { position?: number };
-type RgbaImage = BaseRgbaImage & HueMetadata & { alphaBlend?: boolean | undefined; evaluateSamples?: Float64Array | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { alphaBlend?: boolean | undefined; storedEvaluateSamples?: number | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & { alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -1963,6 +1963,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     const outH = img.height - choppedH;
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+    const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
     for (let y = 0; y < outH; y++) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -1978,10 +1979,11 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
             out[dstIdx + 2] = img.data[srcIdx + 2]!;
             out[dstIdx + 3] = img.data[srcIdx + 3]!;
             if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
+            if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
         }
     }
     const virtualCanvas = magickResizeCanvas(img, outW, outH);
-    return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
+    return { ...img, width: outW, height: outH, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
@@ -2065,6 +2067,8 @@ function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSi
     const w = img.width;
     const h = img.height;
     const out = new Uint8Array(img.data.length);
+    const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+    const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
     for (let y = 0; y < h; y++) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -2079,9 +2083,11 @@ function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSi
             out[dstIdx + 1] = img.data[srcIdx + 1]!;
             out[dstIdx + 2] = img.data[srcIdx + 2]!;
             out[dstIdx + 3] = img.data[srcIdx + 3]!;
+            if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
+            if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
         }
     }
-    return { ...img, data: out };
+    return { ...img, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
 function parseMagickMorphCount(argument: string): number {
@@ -9335,6 +9341,16 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     const background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
     const position = token === "-splice" ? (await createStoredCanvas(width, height, background, backend, signal)).position : backend.storage.allocate(width * height * 4);
     const storedData16 = image.storedData16 ? { position: backend.storage.allocate(width * height * 8), length: width * height * 4 } : undefined;
+    const storedEvaluateSamples = image.storedEvaluateSamples === undefined ? undefined : backend.storage.allocate(width * height * 32);
+    if (storedEvaluateSamples !== undefined && token === "-splice") {
+        const color = [background.r, background.g, background.b, background.a];
+        for (let offset = 0; offset < width * height * 4; offset += 2048) {
+            await yieldTurn(signal);
+            const samples = new Float64Array(Math.min(2048, width * height * 4 - offset));
+            for (let i = 0; i < samples.length; i += 4) samples.set(color, i);
+            await backend.storage.write(storedEvaluateSamples + offset * 8, new Uint8Array(samples.buffer));
+        }
+    }
     if (storedData16 && token === "-splice") {
         const color = [background.r, background.g, background.b, background.a].map(value => Math.round(value * 257));
         for (let offset = 0; offset < storedData16.length; offset += 16384) {
@@ -9345,7 +9361,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         }
     }
     let work = 0;
-    for (const plane of [{ source: image.position, target: position, stride: 4 }, ...(storedData16 ? [{ source: image.storedData16!.position, target: storedData16.position, stride: 8 }] : [])]) {
+    for (const plane of [{ source: image.position, target: position, stride: 4 }, ...(storedData16 ? [{ source: image.storedData16!.position, target: storedData16.position, stride: 8 }] : []), ...(storedEvaluateSamples === undefined ? [] : [{ source: image.storedEvaluateSamples!, target: storedEvaluateSamples, stride: 32 }])]) {
         for (const y of ys) for (let row = 0; row < y.length; row++) for (const x of xs) {
             for (let offset = 0; offset < x.length; offset += 4096) {
                 if (work++ % 64 === 0) await yieldTurn(signal);
@@ -9365,7 +9381,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         }
     }
     const virtualCanvas = token !== "-roll" ? magickResizeCanvas(image, width, height) : undefined;
-    return { ...image, position, width, height, ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { hasAlpha: true } : {}),
+    return { ...image, position, width, height, ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { hasAlpha: true } : {}),
         ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 

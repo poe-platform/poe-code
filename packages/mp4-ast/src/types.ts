@@ -704,6 +704,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** MPEG-TS transport bitrate in bits/s; 0 or 1 (default) keeps variable-rate output. */
+  readonly muxRate?: number | undefined;
   /** Mark only the first packet of each MPEG-TS PID as discontinuous. */
   readonly initialDiscontinuity?: boolean | undefined;
   /** MPEG-TS: repeat PAT/PMT before every video frame, regardless of patPeriod. */

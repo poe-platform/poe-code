@@ -459,6 +459,11 @@ export function serializeMpegTs(
   if (!Number.isInteger(serviceId) || serviceId < 1 || serviceId > 65535) {
     throw new Error("Invalid mpegts_service_id: expected an integer from 1 to 65535");
   }
+  const muxRate = options.muxRate ?? 1;
+  if (!Number.isInteger(muxRate) || muxRate < 0 || muxRate > 2147483647) {
+    throw new Error("Invalid muxrate: expected an integer from 0 to 2147483647 bits/s");
+  }
+  const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   const muxDelay = options.muxDelay ?? 0.7;
   if (!Number.isFinite(muxDelay) || muxDelay < 0 || muxDelay > 2147.483647) {
     throw new Error("Invalid muxdelay: expected seconds from 0 to 2147.483647");
@@ -483,6 +488,45 @@ export function serializeMpegTs(
   let lastPatDts: number | undefined;
   const tsPackets: Uint8Array[] = [];
   const ccByPid = new Map<number, number>();
+  let clockOrigin90k = 0;
+  let lastPcrPacket = -Infinity;
+  const pcrInterval = Math.max(1, Math.ceil(muxRate * 0.02 / (188 * 8)));
+
+  const appendPacket = (packet: Uint8Array) => {
+    budget.checkCpu();
+    budget.checkOutputBytes((tsPackets.length + 1) * 188);
+    budget.allocateMemory(188);
+    tsPackets.push(packet);
+  };
+
+  const writePcr = (packet: Uint8Array, dts90k: number) => {
+    const ticks = muxRate > 1
+      ? clockOrigin90k * 300 + Math.floor((tsPackets.length * 188 + 11) * 8 * 27000000 / muxRate)
+      : (dts90k - delay90k) * 300;
+    const wrapped = ((ticks % (2 ** 33 * 300)) + 2 ** 33 * 300) % (2 ** 33 * 300);
+    const base = Math.floor(wrapped / 300);
+    const extension = wrapped % 300;
+    packet[6] = (base / 33554432) & 0xff;
+    packet[7] = (base >>> 17) & 0xff;
+    packet[8] = (base >>> 9) & 0xff;
+    packet[9] = (base >>> 1) & 0xff;
+    packet[10] = ((base & 1) << 7) | 0x7e | (extension >>> 8);
+    packet[11] = extension & 0xff;
+    lastPcrPacket = tsPackets.length;
+  };
+
+  const emitPcrPacket = () => {
+    const packet = new Uint8Array(188).fill(0xff);
+    packet[0] = 0x47;
+    packet[1] = (pcrPid >>> 8) & 0x1f;
+    packet[2] = pcrPid & 0xff;
+    // Adaptation-only packets retain the last payload continuity counter.
+    packet[3] = 0x20 | (((ccByPid.get(pcrPid) ?? 1) - 1) & 15);
+    packet[4] = 183;
+    packet[5] = 0x10;
+    writePcr(packet, 0);
+    appendPacket(packet);
+  };
   const discontinuityPids = new Set<number>();
 
   const nextCc = (pid: number): number => {
@@ -492,6 +536,8 @@ export function serializeMpegTs(
   };
 
   const emitSectionPacket = (pid: number, section: Uint8Array) => {
+    if (muxRate > 1 && Number.isFinite(lastPcrPacket)
+        && tsPackets.length - lastPcrPacket >= pcrInterval) emitPcrPacket();
     for (let offset = 0; offset < section.byteLength;) {
       const first = offset === 0;
       const pkt = new Uint8Array(188).fill(0xff);
@@ -509,7 +555,7 @@ export function serializeMpegTs(
       if (first) pkt[start++] = 0; // pointer_field
       const size = Math.min(188 - start, section.byteLength - offset);
       pkt.set(section.subarray(offset, offset + size), start);
-      tsPackets.push(pkt);
+      appendPacket(pkt);
       offset += size;
     }
   };
@@ -526,6 +572,19 @@ export function serializeMpegTs(
     // FFmpeg leaves two mux delays before presentation, with PCR one delay behind DTS.
     pts90k += 2 * delay90k;
     dts90k += 2 * delay90k;
+    if (muxRate > 1) {
+      const targetPackets = Math.ceil((dts90k - delay90k - clockOrigin90k) * muxRate / (90000 * 188 * 8));
+      budget.checkOutputBytes(targetPackets * 188);
+      while (tsPackets.length < targetPackets) {
+        if (tsPackets.length - lastPcrPacket >= pcrInterval) {
+          emitPcrPacket();
+        } else {
+          const packet = new Uint8Array(188).fill(0xff);
+          packet.set([0x47, 0x1f, 0xff, 0x10]);
+          appendPacket(packet);
+        }
+      }
+    }
     const hasDts = Math.abs(pts90k - dts90k) > 0;
     const headerDataLen = hasDts ? 10 : 5;
     const pesHeader = new BinaryWriter(9 + headerDataLen);
@@ -556,13 +615,16 @@ export function serializeMpegTs(
         emitSectionPacket(0x1000, pmtSection);
         lastPatDts = dts90k;
       }
+      if (muxRate > 1 && pid !== pcrPid && tsPackets.length - lastPcrPacket >= pcrInterval) emitPcrPacket();
       const pkt = new Uint8Array(188).fill(0xff);
       pkt[0] = 0x47;
       pkt[1] = (first ? 0x40 : 0x00) | ((pid >>> 8) & 0x1f);
       pkt[2] = pid & 0xff;
 
       const remaining = fullPes.byteLength - offset;
-      const needPcr = first && withPcr;
+      const needPcr = muxRate > 1
+        ? pid === pcrPid && tsPackets.length - lastPcrPacket >= pcrInterval
+        : first && withPcr;
       const randomAccess = first && isKeyframe && !options.mpegtsOmitRai;
       const discontinuity = options.initialDiscontinuity && !discontinuityPids.has(pid);
       const minAdaptation = needPcr ? 8 : randomAccess || discontinuity ? 2 : 0; // 1 length byte + 1 flags byte + 6 PCR bytes
@@ -577,13 +639,7 @@ export function serializeMpegTs(
         if (adaptFieldLen >= 1) {
           if (needPcr && adaptFieldLen >= 7) {
             pkt[5] = 0x10 | (randomAccess ? 0x40 : 0);
-            const pcrBase = ((dts90k - delay90k) % 2 ** 33 + 2 ** 33) % 2 ** 33;
-            pkt[6] = (pcrBase / 33554432) & 0xff;
-            pkt[7] = (pcrBase >>> 17) & 0xff;
-            pkt[8] = (pcrBase >>> 9) & 0xff;
-            pkt[9] = (pcrBase >>> 1) & 0xff;
-            pkt[10] = ((pcrBase & 1) << 7) | 0x7e;
-            pkt[11] = 0x00;
+            writePcr(pkt, dts90k);
           } else {
             pkt[5] = randomAccess ? 0x40 : 0;
           }
@@ -601,7 +657,7 @@ export function serializeMpegTs(
         offset += 184;
       }
 
-      tsPackets.push(pkt);
+      appendPacket(pkt);
       first = false;
     }
   };
@@ -783,6 +839,7 @@ export function serializeMpegTs(
 
   // Merge by decode time, retaining track order and per-PID continuity.
   const pending = streams.map(stream => stream.next());
+  clockOrigin90k = pending.reduce((earliest, packet) => packet.done ? earliest : Math.min(earliest, packet.value[3]), Infinity) + delay90k;
   while (true) {
     let next = -1;
     for (let i = 0; i < pending.length; i++) {
@@ -796,7 +853,10 @@ export function serializeMpegTs(
     pending[next] = streams[next]!.next();
   }
 
-  return concatBytes(tsPackets);
+  budget.allocateMemory(tsPackets.length * 188);
+  const output = concatBytes(tsPackets);
+  budget.releaseMemory(tsPackets.length * 188 * 2);
+  return output;
 }
 
 export function probeMpegTs(

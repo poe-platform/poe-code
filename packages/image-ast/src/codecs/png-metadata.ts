@@ -1,4 +1,4 @@
-import {createByteCodec} from "@poe-code/compression";
+import {ByteCodecError, createByteCodec} from "@poe-code/compression";
 import type {ImageMetadata} from "../ast.js";
 import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32} from "./png-chunks.js";
 import {exifMetadataSteps,type MetadataRead} from "./exif-metadata.js";
@@ -80,7 +80,11 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       const chunk = yield {position:dataStart,length:len};
       let start = end + 1, compressed = type === "zTXt";
       if (type === "zTXt") {
-        if (chunk[start++] !== 0) throw new Error("Invalid PNG text compression");
+        if (chunk[start++] !== 0) {
+          decodeWarnings.push("PNG zTXt: invalid text compression method");
+          pos = dataStart + len + 4;
+          continue;
+        }
       } else if (type === "iTXt") {
         const flag = chunk[start++];
         if (flag !== 0 && flag !== 1 || chunk[start++] !== 0) throw new Error("Invalid PNG text compression");
@@ -105,6 +109,11 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
             if (length > 16 * 1024 * 1024) throw new Error("PNG text exceeds 16 MiB");
             parts.push(part);
           }
+        } catch (error) {
+          if (type !== "zTXt" || !(error instanceof ByteCodecError)) throw error;
+          decodeWarnings.push(`PNG zTXt: ${error.message}`);
+          pos = dataStart + len + 4;
+          continue;
         } finally { codec.close(); }
         value = new Uint8Array(length); let offset = 0;
         for (const part of parts) { value.set(part, offset); offset += part.length; }

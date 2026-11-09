@@ -9425,9 +9425,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const time = Number(words.shift());
                           if (words[0] === "[enter]") words.shift();
                           const [target, action, expression] = words;
-                          if (!Number.isFinite(time) || time < 0 || words.length !== 3 || action !== "volume"
-                            || !(target === "volume" || target?.startsWith("volume@")) || !expression) {
-                            throw new Error("asendcmd: expected TIME volume[@NAME] volume GAIN");
+                          const supported = action === "volume" && (target === "volume" || target?.startsWith("volume@"))
+                            || action === "dry" && (target === "compensationdelay" || target?.startsWith("compensationdelay@"));
+                          if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
+                            throw new Error("asendcmd: expected TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN");
                           }
                           return { time, target, expression };
                         });
@@ -9604,7 +9605,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (filterName === "compensationdelay") {
                           filteredSampleFormat = "dblp";
-                          stretched = await compensateAudioDelay(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                          const commands = gainCommands.filter(command => command.target === "compensationdelay" || command.target === filterTarget)
+                            .sort((a, b) => a.sample - b.sample);
+                          stretched = await compensateAudioDelay(stretched, origRate, trimmed, audioTimestamps, commands, budget, context.signal);
                         } else if (filterName === "afade") {
                           stretched = await fadeAudio(stretched, origRate, trimmed, audioTimestamps, audioStartSample, budget, context.signal, panPcm16);
                         } else if (filterName === "alimiter") {

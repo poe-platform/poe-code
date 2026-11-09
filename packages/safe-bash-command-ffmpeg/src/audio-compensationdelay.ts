@@ -5,6 +5,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function compensateAudioDelay(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number }[],
+  commands: readonly { sample: number; expression: string }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   const names = ["mm", "cm", "m", "dry", "wet", "temp"];
@@ -35,7 +36,13 @@ export async function compensateAudioDelay(
   const length = channels[0]?.length ?? 0;
   budget.allocateMemory(length * channels.length * Float64Array.BYTES_PER_ELEMENT);
   const output = channels.map(() => new Float64Array(length));
+  let nextCommand = 0;
   for (const [n, frame] of frames.entries()) {
+    while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
+      const gain = Number(commands[nextCommand++]!.expression);
+      // Failed runtime commands leave the current option unchanged.
+      if (Number.isFinite(gain) && gain >= 0 && gain <= 1) values[3] = gain;
+    }
     const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "compensationdelay enable", {
       n, t: frame.pts / sampleRate
     })) >= 0.5;

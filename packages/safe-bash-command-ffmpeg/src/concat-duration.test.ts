@@ -7,6 +7,9 @@ import { allMediaAsts, createFfmpegCommand } from "./index.js";
 
 for (const [directives, start, end, nextStart] of [
   [["duration 0.25"], 0, 8000, 0.25],
+  [["duration +0.25"], 0, 8000, 0.25],
+  [["duration +1.0"], 0, 8000, 1],
+  [["inpoint +0.25", "duration +0.1"], 2000, 8000, 0.1],
   [["duration\t0.25"], 0, 8000, 0.25],
   [["inpoint\t0.25", "duration \t 0.1"], 2000, 8000, 0.1],
   [["duration 2"], 0, 8000, 2],

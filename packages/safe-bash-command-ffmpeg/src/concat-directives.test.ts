@@ -8,6 +8,12 @@ import { createFfmpegCommand } from "./index.js";
 for (const separator of ["", "# marker\n", "\n", "  \n  # marker\n\n"]) {
   for (const [directives, start, end] of [
     [["inpoint 0.25"], 2000, 8000],
+    [["inpoint +0.5"], 4000, 8000],
+    [["inpoint +00:00:00.25"], 2000, 8000],
+    [["inpoint +250ms"], 2000, 8000],
+    [["inpoint +250000us"], 2000, 8000],
+    [["outpoint +0.5"], 0, 4096],
+    [["inpoint +0.25", "outpoint +0.75"], 2000, 6096],
     [["inpoint\t0.25"], 2000, 8000],
     [["inpoint \t 0.25", "outpoint\t 0.75"], 2000, 6096],
     [["inpoint 00:00:00.25"], 2000, 8000],
@@ -150,7 +156,7 @@ for (const [manifest, keyword, line] of [
 }
 
 for (const directive of ["inpoint", "outpoint", "duration"]) {
-  for (const value of ["xyz", "abc", "nonsense", "0.25junk", "00:00:xyz", "1:2:3:4", "NaN", "Infinity", "1e3", "", "00:60:00", "0.25msjunk", "9".repeat(400)]) {
+  for (const value of ["+", "++0.5", "+-0.5", "-+0.5", "+0.5junk", "+NaN", "+Infinity", "+1e3", "+00:60:00", "xyz", "abc", "nonsense", "0.25junk", "00:00:xyz", "1:2:3:4", "NaN", "Infinity", "1e3", "", "00:60:00", "0.25msjunk", "9".repeat(400)]) {
     for (const existingOutput of [false, true]) {
       it(`concat rejects ${directive} value ${JSON.stringify(value)} with existing output ${existingOutput}`, async () => {
         const volume = Volume.fromJSON({ "/list.ffconcat": `file a.wav\nfile b.wav\n${directive} ${value}\n` });

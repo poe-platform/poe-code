@@ -9,8 +9,8 @@ for (const [directive, start, end] of [
   ["outpoint", 0, 2048],
   ["duration", 0, 8000]
 ] as const) {
-  for (const value of ["0.25", "0.25 # offset", "0.25 ignored", "\t0.25\tignored", "0.25junk ignored", "invalid # offset", "# missing", ""]) {
-    const invalid = !value.trimStart().startsWith("0.25") || value.startsWith("0.25junk");
+  for (const value of ["0.25", "+0.25", "+0.25 # offset", "0.25 # offset", "0.25 ignored", "\t0.25\tignored", "0.25junk ignored", "invalid # offset", "# missing", ""]) {
+    const invalid = !(value.trimStart().startsWith("0.25") || value.startsWith("+0.25")) || value.startsWith("0.25junk");
     const channels = 1;
     it(`concat ${directive} reads one duration token from ${JSON.stringify(value)}`, async () => {
       const volume = Volume.fromJSON({

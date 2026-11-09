@@ -28,7 +28,7 @@ function parse(context: CommandContext, budget: Budget): Options {
   let literal = false;
   let delimiterChoice: number | undefined;
   const explicitFields: [number | undefined, number | undefined] = [undefined, undefined];
-  let explicitReplacement: string | undefined;
+  let replacementSet = false;
   const fieldCandidates: ("1" | "2" | "o" | undefined)[] = [];
   const pendingFields = { "1": 0, "2": 0 };
   let nextFieldCandidate: "1" | "2" | "o" | undefined;
@@ -49,9 +49,10 @@ function parse(context: CommandContext, budget: Budget): Options {
       options.unpaired.add(file - 1);
       if (flag === "v") options.paired = false;
     } else if (flag === "e") {
-      if (explicitReplacement !== undefined && explicitReplacement !== value) fail("conflicting empty-field replacement strings");
-      explicitReplacement = value;
-      options.replacement = encode(value);
+      const bytes = rawValue ?? encode(value);
+      if (replacementSet && compare(options.replacement, bytes) !== 0) fail("conflicting empty-field replacement strings");
+      replacementSet = true;
+      options.replacement = bytes;
     }
     else if (flag === "t") {
       const bytes = rawValue ?? encode(value);
@@ -124,7 +125,7 @@ function parse(context: CommandContext, budget: Budget): Options {
         }
         let value: string;
         [value, index] = argument(context.args, index, rest || undefined, `-${flag}`);
-        apply(flag, value, flag === "t" ? getCommandArguments(context).bytes(index)!.subarray(rest ? offset + 1 : 0) : undefined);
+        apply(flag, value, flag === "t" || flag === "e" ? getCommandArguments(context).bytes(index)!.subarray(rest ? offset + 1 : 0) : undefined);
         if (flag === "o" && value !== "auto") nextFieldCandidate = "o";
         break;
       } else fail(`unsupported option -${flag}`);

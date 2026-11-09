@@ -201,6 +201,107 @@ for (const flag of ["-a", "-v"]) {
  }
 }
 
+for (const prefix of ["", "-e", "-ie"]) {
+ for (const replacement of [Uint8Array.of(0xff), Uint8Array.of(0xfe, 0xff), new TextEncoder().encode("é"), new Uint8Array()]) {
+  if (prefix && !replacement.length) continue;
+  test(`join preserves replacement bytes ${[...replacement]} with prefix=${prefix}`, async () => {
+   const option = prefix
+    ? [shellValueFromBytes(Uint8Array.from([...new TextEncoder().encode(prefix), ...replacement]))]
+    : ["-e", shellValueFromBytes(replacement)];
+   const result = await run([...option, ...option, "-o", "1.3", "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stderr, "");
+   assert.deepEqual(result.stdoutBytes, [...replacement, 10]);
+  });
+ }
+ for (const other of [Uint8Array.of(0xfe), new TextEncoder().encode("�"), new Uint8Array()]) {
+  test(`join rejects byte-distinct replacements ${[...other]} with prefix=${prefix}`, async () => {
+   const first = prefix
+    ? [shellValueFromBytes(Uint8Array.from([...new TextEncoder().encode(prefix), 0xff]))]
+    : ["-e", shellValueFromBytes(Uint8Array.of(0xff))];
+   const result = await run([...first, "-e", shellValueFromBytes(other), "-o", "1.3", "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+   assert.equal(result.exitCode, 1);
+   assert.equal(result.stderr, "join: EINVAL: conflicting empty-field replacement strings\n");
+   assert.deepEqual(result.stdoutBytes, []);
+  });
+ }
+}
+
+for (const separator of ["\n", "\0"]) {
+ for (const tail of [" ", "\t", "  \t "]) {
+  for (const args of [[], ["-e", "NA"], ["-o", "auto"], ["-e", "NA", "-o", "auto"]]) {
+   test(`join ignores trailing blanks: separator=${JSON.stringify(separator)}, tail=${JSON.stringify(tail)}, args=${JSON.stringify(args)}`, async () => {
+    const flags = separator === "\0" ? ["-z"] : [];
+    const result = await run([...flags, ...args, "/a", "/b"], {
+     "/a": `k A${tail}${separator}`, "/b": `k X${tail}${separator}`,
+    });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, `k A X${separator}`);
+    assert.equal(result.stderr, "");
+   });
+  }
+ }
+}
+
+for (const flag of ["-a", "-v"]) {
+ for (const [selector, unpaired] of [
+  ["1", "z ZZ\n"], ["+1", "z ZZ\n"], ["01", "z ZZ\n"], ["+001", "z ZZ\n"],
+  ["2", "y YY\n"], ["+2", "y YY\n"], ["02", "y YY\n"], ["+002", "y YY\n"],
+ ] as const) {
+  test(`join ${flag} accepts decimal file selector ${selector}`, async () => {
+   for (const args of [[flag, selector], [flag + selector]]) {
+    const result = await run([...args, "/left", "/right"], { "/left": "k AA\nz ZZ\n", "/right": "k BB\ny YY\n" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, (flag === "-a" ? "k AA BB\n" : "") + unpaired);
+    assert.equal(result.stderr, "");
+   }
+  });
+ }
+ for (const selector of ["0", "3", "-1", "", "+", "1.0", "1e0", "0x1", "1 ", "1x", "++1"]) {
+  test(`join ${flag} rejects invalid file selector ${JSON.stringify(selector)}`, async () => {
+   const result = await run([flag, selector, "/left", "/right"], { "/left": "k AA\n", "/right": "k BB\n" });
+   assert.equal(result.exitCode, 1);
+   assert.equal(result.stdout, "");
+   assert.equal(result.stderr, `join: EINVAL: invalid file number: ${selector}\n`);
+  });
+ }
+}
+
+// Verified against GNU coreutils 9.4 with LC_ALL=C.
+for (const [option, minimum, left, right, expected, exitCode] of [
+ ["--header", 5, "k A\nk B\nq C\n", "k X\nk Y\np Z\n", "k A X\nk B Y\n", 0],
+ ["--ignore-case", 3, "A left\n", "a right\n", "A left right\n", 0],
+ ["--check-order", 3, "b\na\n", "b\na\n", "", 1],
+ ["--nocheck-order", 3, "b\na\n", "b\na\n", "b\na\n", 0],
+ ["--zero-terminated", 3, "a left\0", "a right\0", "a left right\0", 0],
+] as const) {
+ test(`join accepts every unique prefix of ${option}`, async () => {
+  for (let length = minimum; length <= option.length; length++) {
+   const prefix = option.slice(0, length);
+   const result = await run([prefix, "/a", "/b"], { "/a": left, "/b": right });
+   assert.equal(result.exitCode, exitCode, `${prefix}: ${result.stderr}`);
+   assert.equal(result.stdout, expected, prefix);
+   if (exitCode === 0) assert.equal(result.stderr, "", prefix);
+   else assert.ok(result.stderr.includes("not in sorted order"), result.stderr);
+  }
+ });
+}
+
+for (const option of ["--h", "--he", "--nochi", "--headers", "--Header", "--hea=1", "--ignore=", "--check=yes", "--nocheck=no", "--zero=0"]) {
+ test(`join rejects invalid or ambiguous option ${option}`, async () => {
+  const result = await run([option, "/a", "/b"], { "/a": "a\n", "/b": "a\n" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.ok(result.stderr.includes(`unsupported option ${option}`), result.stderr);
+ });
+}
+
+test("join preserves abbreviated option names as operands after --", async () => {
+ const result = await run(["--", "--hea", "--ignore"], { "/--hea": "a left\n", "/--ignore": "a right\n" });
+ assert.equal(result.exitCode, 0, result.stderr);
+ assert.equal(result.stdout, "a left right\n");
+});
+
 // Verified against GNU coreutils 9.12 with LC_ALL=C.
 for (const reverse of [false, true]) {
  for (const [left, right, stdout] of [

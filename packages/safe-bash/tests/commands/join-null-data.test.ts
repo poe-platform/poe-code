@@ -55,6 +55,31 @@ for (const capture of [false, true]) {
   });
 }
 
+for (const capture of [false, true]) {
+ for (const [options, expected, exitCode] of [
+  ["-e $'\\xff'", [255, 10], 0],
+  ["-ie$'\\xfe\\xff'", [254, 255, 10], 0],
+  ["-e $'\\xff' -e $'\\xff'", [255, 10], 0],
+  ["-e $'\\xfe' -e $'\\xff'", [], 1],
+  ["-e $'\\xff' -e '�'", [], 1],
+  ["-e NA", [78, 65, 10], 0],
+ ] as const) {
+  test(`join replacement bytes through Shell: capture=${capture}, ${options}`, async () => {
+   const fs = createMemoryFileSystem();
+   await fs.writeFile("/left", new TextEncoder().encode("k A\n"));
+   await fs.writeFile("/right", new TextEncoder().encode("k B\n"));
+   const shell = new Shell({ fs, env: { LC_ALL: "C" } }).use(standardCommands()).use(joinCommands());
+   const command = `join -o 1.3 ${options} /left /right`;
+   try {
+    const actual = await shell.exec(capture ? `value=$(${command}); status=$?; if [ "$status" = 0 ]; then printf '%s\\n' "$value"; fi; exit "$status"` : command);
+    assert.equal(actual.exitCode, exitCode, actual.stderr);
+    assert.deepEqual(actual.stdoutBytes, Uint8Array.from(expected));
+    assert.equal(actual.stderr, exitCode ? "join: EINVAL: conflicting empty-field replacement strings\n" : "");
+   } finally { await shell.dispose(); }
+  });
+ }
+}
+
 for (const option of ["-t $'\\xff'", "-t$'\\xff'", "-it$'\\xff'"]) {
  for (const capture of [false, true]) {
   test(`join preserves a raw delimiter through Shell: ${option}, capture=${capture}`, async context => {

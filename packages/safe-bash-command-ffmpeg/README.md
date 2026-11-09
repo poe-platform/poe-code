@@ -171,7 +171,7 @@ WAV input `-max_size 2049` limits PCM16 mono packets to 2048 bytes after sample 
 
 WAV ID3 `CHAP` frames supply chapter times and nested titles to ffprobe and FFmetadata output; `-map_chapters -1` suppresses them.
 
-Piped WAV input requires `fmt ` before the first `data` chunk; invalid order fails before opening output. Seekable filename input still accepts data before the format. WAV input `-ignore_length 1` reads audio through EOF when a recording outgrows its data header. Place it before the affected `-i`; `-ignore_length 0` (the default) honors the declared length.
+Piped WAV input requires `fmt ` before the first `data` chunk; invalid order fails before opening output. Seekable filename input still accepts data before the format. WAV input `-ignore_length 1` reads audio through EOF when a recording outgrows its data header. Piped WAV input preserves every PCM data chunk for decoding, stream copy, and ffprobe packet reports; filename input selects the last data chunk. Place it before the affected `-i`; `-ignore_length 0` (the default) honors the declared length.
 
 Quad WAV supports `-ac 1` and `-ac 2`, mixing back speakers into their matching front sides with normalized FFmpeg weights. Stream copy retains all four speakers and the quad channel mask.
 

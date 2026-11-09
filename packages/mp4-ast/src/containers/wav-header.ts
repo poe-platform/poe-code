@@ -28,6 +28,7 @@ export interface WavHeader {
   factSampleCount?: number;
   dataOffset: number;
   dataSize: number;
+  dataChunks?: { offset: number; size: number }[];
   declaredDataSize?: number;
   chapters?: Mp4Chapter[];
   cues?: { id: number; start: number; title: string }[];
@@ -274,10 +275,13 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seek
       header.dataOffset = start;
       header.dataSize = end - start;
       header.declaredDataSize = size;
+      if (!seekable && !wave64 && [1, 3, 6, 7].includes(header.formatTag))
+        (header.dataChunks ??= []).push({ offset: start, size: end - start });
       if (!wave64 && (ignoreLength || !rf64 && size === 0)) {
         // Ignored or zero RIFF data lengths continue through EOF, including later chunk headers.
         if (!Number.isFinite(byteLength)) acceptEnd((yield { offset: Infinity, length: 0 }).end);
         header.dataSize = byteLength - start;
+        if (header.dataChunks) header.dataChunks[header.dataChunks.length - 1]!.size = header.dataSize;
         break;
       }
     }
@@ -287,6 +291,10 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seek
   if (wave64 && (header.formatOffset === undefined || !header.dataOffset)) throw new Error("Missing Wave64 fmt or data chunk");
   if (header.formatOffset === undefined) throw new Error("Missing WAV fmt chunk");
   if (!header.dataOffset) throw new Error("Missing WAV data chunk");
+  if (header.dataChunks) {
+    for (const chunk of header.dataChunks) chunk.size = Math.min(chunk.size, Math.max(0, header.byteLength - chunk.offset));
+    header.dataSize = header.dataChunks.reduce((sum, chunk) => sum + chunk.size, 0);
+  }
   for (const cue of header.cues ?? []) cue.title = labels.get(cue.id) ?? "";
   return header;
 }

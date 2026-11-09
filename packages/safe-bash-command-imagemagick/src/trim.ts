@@ -96,9 +96,10 @@ function* trimBounds(width: number, height: number, fuzz: number, scale: number,
     return { left: Math.min(left, width - retainedWidth), top: Math.min(top, height - retainedHeight), width: retainedWidth, height: retainedHeight };
 }
 
-export function* trimGeometrySteps<Step = never>(
+export function* formatTrimBoundsSteps<Step = never>(
     image: Pick<RgbaImage, "width" | "height">,
     load: (position: number, length: number) => Generator<Step, { data: Uint8Array; data16?: Uint16Array }, void>,
+    format: "trim-geometry" | "bounding-box",
     analysis?: { warnings: string }
 ): Generator<Step | void, string, void> {
     const first = yield* load(0, 4);
@@ -111,10 +112,11 @@ export function* trimGeometrySteps<Step = never>(
             next = steps.next(chunk.data16 ?? chunk.data);
         }
     }
-    const area = next.value;
-    if (area) return `${area.width}x${area.height}+${area.left}+${area.top}`;
-    if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
-    return `0x0+${image.width}+${image.height}`;
+    if (!next.value && analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    const area = next.value ?? { left: image.width, top: image.height, width: 0, height: 0 };
+    return format === "bounding-box"
+        ? `${area.left},${area.top} ${area.left + area.width},${area.top + area.height}`
+        : `${area.width}x${area.height}+${area.left}+${area.top}`;
 }
 
 function emptyTrimPixel(image: RgbaImage | StoredRgbaImage): Uint8Array {

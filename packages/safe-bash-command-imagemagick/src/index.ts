@@ -60,7 +60,7 @@ import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { magickFramePixels, montageShadowPixels } from "./montage-frame.js";
 import { borderPixels } from "./border.js";
 import { adaptiveResizePixelSteps, morphPixelSteps, pointResizePixelSteps, resizePixelSteps, type MagickResizeKernel as ResizeKernel, type ResizeFilterSettings } from "./resize-kernel.js";
-import { trimGeometrySteps, trimMagickSteps, trimStoredMagick } from "./trim.js";
+import { formatTrimBoundsSteps, trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { gifDitherSteps } from "./gif-dither.js";
 import { quantizeImageListSteps, quantizePixelSteps } from "./quantize.js";
@@ -1553,12 +1553,14 @@ function* formatMagickPropertyStringSteps<Step=never>(
     } else if (token === "%#" || token.toLowerCase() === "%[signature]") {
       signature ??= resolvePixels ? yield* resolvePixels("signature") : yield* signatureSteps(img ??= getImage());
       parts.push(signature);
-    } else if (token === "%@") {
-      short["@"] ??= resolvePixels ? yield* resolvePixels("trim-geometry") : yield* trimGeometrySteps(img ??= getImage(), function*(position, length) {
+    } else if (token === "%@" || token.toLowerCase() === "%[bounding-box]") {
+      const key = token === "%@" ? "@" : "bounding-box";
+      const property = key === "@" ? "trim-geometry" : "bounding-box";
+      short[key] ??= resolvePixels ? yield* resolvePixels(property) : yield* formatTrimBoundsSteps(img ??= getImage(), function*(position, length) {
         yield;
         return { data: img!.data.subarray(position, position + length), ...(img!.data16 ? { data16: img!.data16.subarray(position, position + length) } : {}) };
-      }, context.analysis);
-      parts.push(short["@"]);
+      }, property, context.analysis);
+      parts.push(short[key]!);
     } else if (token === "%T") {
       const delay = resolvePixels ? yield* resolvePixels("delay") : String((meta.delay ?? (img ??= getImage()).delay)?.[(meta as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0] ?? 0);
       parts.push(String(Number(delay) / 10));
@@ -1707,7 +1709,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    }};
    return chunk;
   }
-  if(property === "trim-geometry")return yield*trimGeometrySteps(raster!.image,load,context.analysis);
+  if(property === "trim-geometry" || property === "bounding-box")return yield*formatTrimBoundsSteps(raster!.image,load,property,context.analysis);
   if(property === "signature")return yield*signatureSteps(raster!.image,load);
   if(!properties || (property === "colors" && properties.colors === undefined))properties=yield*magickPixelPropertiesSteps(raster!.image,load,statistics,property === "colors", function*(position, length): Generator<IdentifyStep, Uint8Array, void> {
    let data!: Uint8Array;

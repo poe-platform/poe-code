@@ -5290,7 +5290,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         cursor += vertical ? im.height : im.width;
     }
     const first = stack[0]! as MagickImage;
-    return { ...canvas, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
+    return { ...canvas, channels: hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
 }
 
 function expandFilenameProperties(spec: string, properties: ImageMetadata["properties"]): string {
@@ -9887,6 +9887,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     else result = await compositeStoredMagick(result, frame, backend, signal, flatten ? frame.virtualCanvas?.x ?? 0 : 0, flatten ? frame.virtualCanvas?.y ?? 0 : 0, settings.compose, undefined, true, true);
                     cursor += vertical ? frame.height : frame.width;
                 }
+                if (append) result = { ...result, channels: result.hasAlpha ? 4 : 3 };
                 if (!append) {
                     const first = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;
                     result = { ...result, delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };

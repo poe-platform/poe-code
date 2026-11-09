@@ -253,16 +253,27 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   const channels = gray ? alpha ? [0,3] : [0] : alpha ? [0,1,2,3] : [0,1,2];
   const monochrome = !coder && options.pngBitDepth === 1 && gray && !alpha && !palette;
   if (!coder && options.pngBitDepth === 1 && !monochrome) throw new Error("1-bit PNG requires grayscale without alpha");
-  const sampleBytes = monochrome ? 1 : palette ? 1 : !coder && options.pngBitDepth ? options.pngBitDepth / 8 : coder === "png48" || coder === "png64" || (!coder && image.storedData16) ? 2 : 1;
+  const sampleBytes = monochrome ? 1 : palette ? 1 : !coder && options.pngBitDepth ? options.pngBitDepth / 8 : coder === "png48" || coder === "png64" || (!coder && image.storedData16 && !(gray && !alpha && (image.depth === "uchar" || image.depth === "bit"))) ? 2 : 1;
   let exactPalette = options.palette && !options.forceOpaque && !options.pngCoder && options.pngBitDepth === undefined && requestedColor === undefined && !options.pngBitDepth && !gray && sampleBytes === 1 ? new PngPalette() : undefined;
   if (options.pngPreserveColormap && !options.forceOpaque && image.pngPalette && !coder && requestedColor === undefined && !options.pngBitDepth && sampleBytes === 1) exactPalette = new PngPalette(image.pngPalette);
   for (let offset = 0; exactPalette && offset < width * height * 4; offset += 4096) {
     if (!exactPalette.add(await read(position + offset, Math.min(4096, width * height * 4 - offset)))) exactPalette = undefined;
   }
+  let grayDepth = monochrome ? 1 : 8;
+  if (gray && !alpha && !palette && !exactPalette && !coder && options.pngBitDepth === undefined && sampleBytes === 1) {
+    grayDepth = 1;
+    for (let offset = 0; offset < width * height * 4 && grayDepth < 8; offset += 4096) {
+      const bytes = await read(position + offset, Math.min(4096, width * height * 4 - offset));
+      for (let i = 0; i < bytes.length && grayDepth < 8; i += 4) {
+        while (bytes[i]! % (255 / (2 ** grayDepth - 1)) !== 0) grayDepth *= 2;
+      }
+    }
+  }
+  const packedGray = grayDepth < 8;
   const source16 = sampleBytes === 2 ? image.storedData16 : undefined;
   const sourceBytes = source16 ? 2 : 1;
   const header = new Uint8Array(13), view = new DataView(header.buffer);
-  view.setUint32(0,width); view.setUint32(4,height); header[8] = exactPalette?.depth ?? (monochrome ? 1 : sampleBytes * 8); header[9] = exactPalette || palette ? 3 : gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
+  view.setUint32(0,width); view.setUint32(4,height); header[8] = exactPalette?.depth ?? (packedGray ? grayDepth : sampleBytes * 8); header[9] = exactPalette || palette ? 3 : gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
   header[12] = options.pngInterlace ? 1 : 0;
   yield new Uint8Array(PNG_SIGNATURE);
   signal.throwIfAborted(); yield makeChunk("IHDR",header);
@@ -300,7 +311,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
       if (!passWidth) continue;
       for (let y=y0;y<height;y+=dy) {
         signal.throwIfAborted();
-        for (const bytes of encoder.push(Uint8Array.of(exactPalette || monochrome ? 0 : 1))) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}
+        for (const bytes of encoder.push(Uint8Array.of(exactPalette || packedGray ? 0 : 1))) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}
         const previous = new Uint8Array(channels.length * sampleBytes);
         const chunkPixels = 1024 / sampleBytes / dx;
         for (let x=0;x<passWidth;x+=chunkPixels) {
@@ -315,9 +326,12 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
             for (const bytes of encoder.push(exactPalette.pack(pixels, indices))) {signal.throwIfAborted(); yield makeChunk("IDAT", bytes);}
             continue;
           }
-          if (monochrome) {
-            const raw = new Uint8Array(Math.ceil(count / 8));
-            for (let i = 0; i < count; i++) if (pixels[i * 4]! >= 128) raw[i >> 3]! |= 1 << (7 - (i & 7));
+          if (packedGray) {
+            const raw = new Uint8Array(Math.ceil(count * grayDepth / 8));
+            for (let i = 0; i < count; i++) {
+              const value = Math.round(pixels[i * 4]! * (2 ** grayDepth - 1) / 255);
+              raw[(i * grayDepth) >> 3]! |= value << (8 - grayDepth - i * grayDepth % 8);
+            }
             for (const bytes of encoder.push(raw)) {signal.throwIfAborted(); yield makeChunk("IDAT", bytes);}
             continue;
           }

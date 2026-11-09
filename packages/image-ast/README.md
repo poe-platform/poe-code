@@ -88,6 +88,7 @@ callers; this does not add native HEVC or AV1 decoding.
 `encodePngFromStorage(image, storage, signal)` produces bounded PNG chunks
 under downstream backpressure. Pass `{ pngInterlace: true }` as the fourth argument
 for Adam7 PNG output; `encodeImage` and `encodePngImage` accept the same option.
+Opaque grayscale PNG output uses 1, 2, or 4 bits when its eight-bit samples fit exactly; explicit PNG depths and alpha output keep their requested layout.
 The caller owns source and storage cleanup.
 `transformStoredImage(image, storage, operation, signal)` applies flips, crops,
 right-angle rotations and EXIF orientation in small tiles, plus bounded color,

@@ -2344,6 +2344,31 @@ function splitAdjacentSrtCues(block: string): string[] {
   return cues;
 }
 
+function* webVttBlocks(bytes: Uint8Array): Generator<{ text: string; offset: number }> {
+  let cursor = 0;
+  while (cursor < bytes.length) {
+    while (bytes[cursor] === 10 || bytes[cursor] === 13) cursor++;
+    const start = cursor;
+    let end = start, lineBreaks = 0, buffered = 0, lastWasCr = false;
+    while (cursor < bytes.length) {
+      const byte = bytes[cursor++]!;
+      if (byte === 0) break;
+      if (byte === 10 || byte === 13) {
+        if (byte === 10 || lastWasCr) lineBreaks++;
+        if (lineBreaks === 2 || ++buffered === 4) break;
+        lastWasCr = byte === 13;
+      } else {
+        end = cursor;
+        lineBreaks = buffered = 0;
+      }
+    }
+    if (end === start) break;
+    // Native WebVTT records the position after consuming the cue separator,
+    // or EOF. Scan source bytes so CRLF, BOM and UTF-8 retain their byte widths.
+    yield { text: decodeUtf8(bytes.subarray(start, end)).replaceAll("\r\n", "\n"), offset: cursor };
+  }
+}
+
 export function parseSubtitleDocument(
   bytes: Uint8Array,
   format: "srt" | "webvtt" | "subviewer"
@@ -2364,14 +2389,15 @@ export function parseSubtitleDocument(
   }
   // Native WebVTT demuxing produces no cues when the header is missing.
   // SubRip dialogue continues across blank lines until the next timed cue.
-  const blocks = format === "srt" ? splitAdjacentSrtCues(text)
-    : format === "webvtt" && !text.startsWith("WEBVTT") ? [] : text.split(/\n[ \t\n]*\n/);
+  const blocks = format === "webvtt" ? text.startsWith("WEBVTT") ? webVttBlocks(bytes) : []
+    : (format === "srt" ? splitAdjacentSrtCues(text) : text.split(/\n[ \t\n]*\n/))
+      .map(text => ({ text, offset: undefined }));
   const samples: MediaSample[] = [];
   const seenCues = new Set<string>();
   let maxEndMs = 0;
 
-  for (const rawBlock of blocks) {
-    const lines = rawBlock
+  for (const block of blocks) {
+    const lines = block.text
       .split("\n")
       .map((l) => format === "subviewer" ? l.trimEnd() : l)
       .filter((l) => l.length > 0);
@@ -2433,7 +2459,7 @@ export function parseSubtitleDocument(
     samples.push({
       data: payload,
       ...(position.x1 >= 0 ? { subtitlePosition: position } : {}),
-      ...(format === "webvtt" ? { webvtt: {
+      ...(block.offset !== undefined ? { offset: block.offset, webvtt: {
         identifier: arrowLineIdx > 0 ? lines[arrowLineIdx - 1]! : "",
         settings: (rightWithSettings ?? "").trim().slice(rightRaw.length).trimStart()
       } } : {}),

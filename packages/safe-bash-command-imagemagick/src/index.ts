@@ -748,6 +748,12 @@ function parseMagickMorphologyMethod(raw: string): { method: string; iterations:
   return { method, iterations };
 }
 
+function validateMagickStatistic(name: string): void {
+  if (!["minimum", "maximum", "mean", "median", "mode", "nonpeak", "standarddeviation", "rootmeansquare", "rms", "gradient", "contrast"].includes(name.toLowerCase())) {
+    throw new Error(`unrecognized statistic type '-statistic' '${name}'`);
+  }
+}
+
 type MorphologyStep = { mode: "distance"; scale: number; reverse: boolean; source: number } | { mode: "thinning"; kernels: { foreground: number[][]; background: number[][] }[] } | { mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"; source: number } | { mode: "diff"; a: number; b: number };
 function explicitMorphologyRows(spec: string, match?: 0 | 1): number[][] | undefined {
   const colon = spec.indexOf(":");
@@ -859,6 +865,7 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: Mo
     case "mean": steps = [filter(0, "mean")]; break;
     case "open": steps = [filter(0, "min"), filter(1, "max")]; break;
     case "close": steps = [filter(0, "max"), filter(1, "min")]; break;
+    case "smooth": steps = [filter(0, "min"), filter(1, "max"), filter(2, "max"), filter(3, "min")]; break;
     case "edgein": steps = [filter(0, "min"), diff(0, 1)]; break;
     case "edgeout": steps = [filter(0, "max"), diff(1, 0)]; break;
     case "edge": case "gradient": steps = [filter(0, "max"), filter(0, "min"), diff(1, 2)]; break;
@@ -8312,7 +8319,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else if (t === "-statistic") {
-            const statType = (tokens[++i] ?? "median").toLowerCase();
+            const statType = tokens[++i] ?? "median";
+            validateMagickStatistic(statType);
             const geom = tokens[++i] ?? "3x3";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickMorphology4ChSteps(im, statType, geom, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined));
@@ -10013,7 +10021,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && (token === "-morphology" || token === "-statistic")) {
             const method = (tokens[++i] ?? (token === "-morphology" ? "dilate" : "median")).toLowerCase();
             let spec = "";
-            if (token === "-statistic") spec = tokens[++i] ?? "3x3";
+            if (token === "-statistic") {
+                validateMagickStatistic(tokens[i] ?? "median");
+                spec = tokens[++i] ?? "3x3";
+            }
             else if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) spec = tokens[++i]!;
             if (token === "-morphology" && (method.split(":")[0] === "convolve" || method.split(":")[0] === "correlate")) {
                 const { iterations } = parseMagickMorphologyMethod(method);

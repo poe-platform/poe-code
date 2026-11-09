@@ -1,3 +1,4 @@
+import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 // ImageMagick's built-in threshold maps (thresholds.xml).
@@ -39,12 +40,14 @@ export function parseOrderedDither(argument: string) {
     return { map, levels };
 }
 
-export function* orderedDitherPixelSteps(image: { width: number; height: number; hasAlpha: boolean }, { map, levels }: ReturnType<typeof parseOrderedDither>, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, { map, levels }: ReturnType<typeof parseOrderedDither>, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
     for (let y = 0; y < image.height; y++) for (let left = 0; left < image.width; left += 1024) {
         yield;
         const count = Math.min(1024, image.width - left), position = (y * image.width + left) * 4;
-        const input = (yield { kind: "read", position, length: count * 4 })!;
-        const data = new Uint8Array(input);
+        const input = (yield { kind: "read", highDepth, position, length: count * 4 })!;
+        const bytes = new Uint8Array(input);
+        const data = highDepth ? new Uint16Array(bytes.buffer) : bytes;
         for (let x = 0; x < count; x++) {
             const threshold = map.values[(y % map.height) * map.width + (left + x) % map.width]!;
             let selected = 0;
@@ -52,11 +55,11 @@ export function* orderedDitherPixelSteps(image: { width: number; height: number;
                 if (!channels[channel] || (channel === 3 && !image.hasAlpha)) continue;
                 const intervals = levels[selected++]!;
                 if (intervals === 0) continue;
-                const scaled = Math.floor(data[x * 4 + channel]! / 255 * (intervals * (map.divisor - 1) + 1));
+                const scaled = Math.floor(data[x * 4 + channel]! / maximum * (intervals * (map.divisor - 1) + 1));
                 const level = Math.floor(scaled / (map.divisor - 1)) + (scaled % (map.divisor - 1) >= threshold ? 1 : 0);
-                data[x * 4 + channel] = Math.min(255, Math.round(level * 255 / intervals));
+                data[x * 4 + channel] = Math.min(maximum, Math.round(level * maximum / intervals));
             }
         }
-        yield { kind: "write", position, data };
+        yield { kind: "write", highDepth, position, data: bytes };
     }
 }

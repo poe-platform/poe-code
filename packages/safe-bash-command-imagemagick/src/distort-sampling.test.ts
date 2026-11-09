@@ -78,6 +78,6 @@ it.each([false, true].flatMap(retained => ["0,0", "0,0,0,1,2,3,4", "NaN,0,0"].ma
     await filesystem.writeFile("/out.png", original);
     const result = await runConvertCli(["-size", "9x7", "xc:black", "-distort", "BarrelInverse", args, "out.png"], retained ? { filesystem, cwd: "/" } : files);
     expect(result.exitCode).not.toBe(0);
-    expect(result.stderr).toContain("Invalid BarrelInverse arguments");
+    expect(result.stderr).toContain(args.includes("NaN") ? "invalid list of numbers" : "Invalid BarrelInverse arguments");
     expect(retained ? await filesystem.readFile("/out.png") : files.get("out.png")).toEqual(original);
 });

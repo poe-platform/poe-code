@@ -3,7 +3,7 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/core";
 import sharp, {decodeImage} from "./index.js";
 
 it("retains header comments in memory and file metadata without consuming hash-valued pixels", async () => {
-  const bytes = Buffer.concat([Buffer.from("P6\n#first\n1 #second\n1\n255 #last\n"), Buffer.from([35, 10, 13])]);
+  const bytes = Buffer.concat([Buffer.from("P6\n#first\n1 #second\n1\n#last\n255\n"), Buffer.from([35, 10, 13])]);
   const fs = new MemoryFileSystem();
   await fs.writeFile("/in.ppm", bytes);
   const properties = {comment: "first\nsecond\nlast\n"};
@@ -12,6 +12,15 @@ it("retains header comments in memory and file metadata without consuming hash-v
   expect((await sharp(bytes).metadata()).properties).toEqual(properties);
   expect((await sharp("/in.ppm", {filesystem: fs}).metadata()).properties).toEqual(properties);
   expect(Array.from(await sharp("/in.ppm", {filesystem: fs}).raw().toBuffer())).toEqual([35, 10, 13]);
+});
+
+it.each([" ", "\t", "\n"])("preserves hash-valued PGM pixels after delimiter %j", async delimiter => {
+  const bytes = Buffer.from(`P5\n2 1\n255${delimiter}#X`);
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/in.pgm", bytes);
+  expect(Array.from(decodeImage(bytes).data)).toEqual([35, 35, 35, 255, 88, 88, 88, 255]);
+  expect(decodeImage(bytes).properties).toBeUndefined();
+  expect(Array.from(await sharp("/in.pgm", {filesystem: fs}).raw().toBuffer())).toEqual([35, 88]);
 });
 
 it("does not invent a comment property from the binary raster", () => {

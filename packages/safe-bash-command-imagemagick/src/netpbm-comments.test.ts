@@ -2,6 +2,19 @@ import {expect, it} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/core";
 import {createCommandArguments} from "safe-bash-contracts/command";
 import {createMagickCommand, runMagickCliSync} from "./index.js";
+import {decodeImage} from "@poe-code/image-ast";
+
+it.each([" ", "\t", "\n"])("converts a PGM hash pixel after delimiter %j to MIFF", async delimiter => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input.pgm", Buffer.from(`P5\n2 1\n255${delimiter}#X`));
+  await fs.writeFile("/out.miff", Buffer.from("keep"));
+  const args = createCommandArguments(["input.pgm", "out.miff"]);
+  let stderr = "";
+  const result = await createMagickCommand().execute({command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs, signal: new AbortController().signal, stdin: (async function* () {})(), stdout: {async write() {}}, stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}});
+  expect(stderr).toBe("");
+  expect(result.exitCode).toBe(0);
+  expect(Array.from(decodeImage(await fs.readFile("/out.miff")).data)).toEqual([35, 35, 35, 255, 88, 88, 88, 255]);
+});
 
 // Native ImageMagick P7 headers and rasters for the two RGB pixels below.
 const fixtures = [

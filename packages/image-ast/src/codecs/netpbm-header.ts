@@ -81,9 +81,11 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
     if (!hasDigit) break;
     tokens.push(num);
   }
-  // If there is horizontal whitespace followed by a # comment on the final header line, skip to newline
+  // Only ASCII rasters allow comments after the final header delimiter.
   let look = pos;
-  while (look < size && ((yield look) === 0x20 || (yield look) === 0x09)) look++;
+  if (magic === "P1" || magic === "P2" || magic === "P3") {
+    while (look < size && ((yield look) === 0x20 || (yield look) === 0x09)) look++;
+  }
   if (look < size && (yield look) === 0x23) {
     pos = look + 1;
     while (pos < size && (yield pos) !== 0x0a && (yield pos) !== 0x0d) comment += String.fromCharCode((yield pos++)!);

@@ -425,7 +425,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   let totalBytes = 0;
   const lines = [
     '<?xml version="1.0" encoding="utf-8"?>',
-    `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S" minBufferTime="PT1S" profiles="urn:mpeg:dash:profile:isoff-live:2011">`,
+    `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" maxSegmentDuration="PT${segmentDuration.toFixed(6)}S" mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S" minBufferTime="PT1S" profiles="urn:mpeg:dash:profile:isoff-live:2011">`,
     '<Period id="0" start="PT0S">'
   ];
   for (let index = 0; index < doc.tracks.length; index++) {

@@ -548,7 +548,7 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
 
 function parseDelay(value: string): number {
   const [delay, ticks = "100"] = value.split("x");
-  return Math.floor(Number(delay) * 100 / (Number(ticks) || 1)) * 10;
+  return Math.floor(Math.round(Number(delay)) * 100 / (Number(ticks) || 1)) * 10;
 }
 
 interface MagickState {

@@ -9541,7 +9541,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             sum += histogram[db]!;
                           }
                         }
-                        await writeBytes(context.stderr, encodeUtf8(report), context.signal);
+                        if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "volume" || trimmed.startsWith("volume=")) {
                         const argument = trimmed === "volume" ? "1" : trimmed.slice("volume=".length).trim();
                         let volSpec = "1";

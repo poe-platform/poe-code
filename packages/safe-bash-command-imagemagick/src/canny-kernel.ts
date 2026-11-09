@@ -1,3 +1,4 @@
+import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -32,18 +33,13 @@ export function* cannyPixelSteps(image: { width: number; height: number; hasAlph
     for (let k = 0; k < weights.length; k++) weights[k]! /= total;
     const { width, height } = image, size = width * height;
     const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
-    const fill = method === "background" && background ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255];
+    const fill = (method === "background" || method?.endsWith("-tile")) && background ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255];
     const fillIntensity = fill[0]! * 0.212656 + fill[1]! * 0.715158 + fill[2]! * 0.072186;
     const pixelIndex = (x: number, y: number): number => {
         if (x < 0 || x >= width || y < 0 || y >= height) {
-            if (method === "tile" || method === "mirror") {
-                const period = method === "mirror" ? 2 : 1;
-                x = (x % (width * period) + width * period) % (width * period);
-                y = (y % (height * period) + height * period) % (height * period);
-                if (x >= width) x = width * 2 - x - 1;
-                if (y >= height) y = height * 2 - y - 1;
-            } else if (method === "edge") {
-                x = Math.max(0, Math.min(width - 1, x)); y = Math.max(0, Math.min(height - 1, y));
+            const index = virtualPixelIndex(x, y, width, height, method);
+            if (index >= 0) {
+                x = index % width; y = Math.floor(index / width);
             } else return -1;
         }
         return y * width + x;

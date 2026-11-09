@@ -1,3 +1,4 @@
+import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -8,16 +9,8 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
     const half = radius > 0 ? Math.ceil(radius) : 2;
     if (!Number.isFinite(half) || half > 5000) throw new Error("Edge radius exceeds 5000");
     const { width, height } = image, area = (2 * half + 1) ** 2;
-    const map = (value: number, size: number) => {
-        if (virtualPixel === "tile" || virtualPixel === "mirror") {
-            const period = size * (virtualPixel === "mirror" ? 2 : 1);
-            const wrapped = ((value % period) + period) % period;
-            return wrapped < size ? wrapped : period - wrapped - 1;
-        }
-        return virtualPixel === "edge" ? Math.max(0, Math.min(size - 1, value)) : value < 0 || value >= size ? -1 : value;
-    };
     const gray = virtualPixel === "white" ? maximum : virtualPixel === "gray" ? 128 * (maximum / 255) : 0;
-    const fill = virtualPixel === "background" && background
+    const fill = (virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
         ? [background.r, background.g, background.b, background.a].map(value => value * (maximum / 255))
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : maximum];
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {
@@ -26,24 +19,24 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
         const first = left - half, length = (count + 2 * half) * 4;
         for (let ky = -half; ky <= half; ky++) {
             yield;
-            const sy = map(y + ky, height);
+            const map = (x: number) => virtualPixelIndex(x, y + ky, width, height, virtualPixel);
             const samples = highDepth ? new Uint16Array(length) : new Uint8Array(length);
             for (let x = 0; x < length / 4;) {
                 yield;
-                const sx = map(first + x, width);
-                if (sy < 0 || sx < 0) {
+                const sx = map(first + x);
+                if (sx < 0) {
                     samples.set(fill, x * 4);
                     x++;
                     continue;
                 }
                 let run = 1;
-                const direction = map(first + x + 1, width) - sx;
+                const direction = map(first + x + 1) - sx;
                 if (direction >= -1 && direction <= 1) {
-                    while (x + run < length / 4 && map(first + x + run, width) === sx + run * direction && sx + run * direction >= 0) run++;
+                    while (x + run < length / 4 && map(first + x + run) === sx + run * direction && sx + run * direction >= 0) run++;
                 }
                 const start = direction === -1 ? sx - run + 1 : sx;
                 const readLength = (direction === 0 ? 1 : run) * 4;
-                const bytes = yield { kind: "read", highDepth, position: (sy * width + start) * 4, length: readLength };
+                const bytes = yield { kind: "read", highDepth, position: start * 4, length: readLength };
                 if (!bytes || bytes.length !== readLength * (highDepth ? 2 : 1)) throw new Error("Truncated edge pixels");
                 const row = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes;
                 if (direction === 1) samples.set(row, x * 4);

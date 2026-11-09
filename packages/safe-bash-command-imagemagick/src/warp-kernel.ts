@@ -1,3 +1,4 @@
+import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { resizeFilter, type MagickResizeKernel, type ResizeFilterSettings } from "./resize-kernel.js";
@@ -10,7 +11,7 @@ export interface WarpPlan {
     derivatives?(x: number, y: number): readonly [number, number, number, number];
     map(x: number, y: number): readonly [number, number];
 }
-export type VirtualPixelMethod = "edge" | "background" | "transparent" | "black" | "white" | "gray" | "tile" | "mirror";
+export type VirtualPixelMethod = "edge" | "background" | "transparent" | "black" | "white" | "gray" | "tile" | "mirror" | "horizontal-tile" | "vertical-tile" | "checker-tile" | "horizontal-tile-edge" | "vertical-tile-edge";
 
 // ImageMagick's default radial Robidoux filter, indexed by squared distance.
 const robidoux = Float64Array.from({ length: 1024 }, (_, i) => {
@@ -81,18 +82,12 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     let [x, y, weight] = sample;
                     let pixel: ArrayLike<number> | undefined;
                     if (x < 0 || y < 0 || x >= width || y >= height) {
-                        if (virtualPixel === "tile" || virtualPixel === "mirror") {
-                            const period = virtualPixel === "mirror" ? 2 : 1;
-                            x = ((x % (width * period)) + width * period) % (width * period);
-                            y = ((y % (height * period)) + height * period) % (height * period);
-                            if (x >= width) x = width * 2 - x - 1;
-                            if (y >= height) y = height * 2 - y - 1;
-                        } else if (virtualPixel === "edge") {
-                            x = Math.max(0, Math.min(width - 1, x));
-                            y = Math.max(0, Math.min(height - 1, y));
+                        const index = virtualPixelIndex(x, y, width, height, virtualPixel);
+                        if (index >= 0) {
+                            x = index % width; y = Math.floor(index / width);
                         } else {
                             const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
-                            pixel = virtualPixel === "background"
+                            pixel = (virtualPixel === "background" || virtualPixel?.endsWith("-tile"))
                                 ? [background.r * scale, background.g * scale, background.b * scale, background.a * scale]
                                 : [gray * scale, gray * scale, gray * scale, virtualPixel === "transparent" ? 0 : maximum];
                         }

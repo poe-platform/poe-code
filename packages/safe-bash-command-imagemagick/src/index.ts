@@ -1,3 +1,4 @@
+import { virtualPixelIndex } from "./virtual-pixel.js";
 import { builtinPattern } from "./builtin-patterns.js";
 import { gradientRadii } from "./gradient-radii.js";
 import { gradientVector } from "./gradient-vector.js";
@@ -992,7 +993,7 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
     const w = stack.reduce((width, image) => Math.max(width, image.width), 0);
     const h = stack.reduce((height, image) => Math.max(height, image.height), 0);
     const normalized = (yield* mapSteps(stack, function* (im) {
-        if (state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255) im = { ...im, hasAlpha: true };
+        if (state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) im = { ...im, hasAlpha: true };
         if (im.width === w && im.height === h) return im;
         return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, state.virtualPixel, state.background), signal, { ...im, width: w, height: h });
     }));
@@ -3012,18 +3013,12 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
         let px = Math.round(x), py = Math.round(y);
         if (!Number.isFinite(px) || !Number.isFinite(py)) return NaN;
         if (px < 0 || py < 0 || px >= target.width || py >= target.height) {
-            if (method === "tile" || method === "mirror") {
-                const period = method === "mirror" ? 2 : 1;
-                px = ((px % (target.width * period)) + target.width * period) % (target.width * period);
-                py = ((py % (target.height * period)) + target.height * period) % (target.height * period);
-                if (px >= target.width) px = target.width * 2 - px - 1;
-                if (py >= target.height) py = target.height * 2 - py - 1;
-            } else if (method && method !== "edge") {
-                const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
-                return sampleFxPixel(method === "background" ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255], 0, channel);
+            const index = virtualPixelIndex(px, py, target.width, target.height, method ?? "edge");
+            if (index >= 0) {
+                px = index % target.width; py = Math.floor(index / target.width);
             } else {
-                px = Math.max(0, Math.min(target.width - 1, px));
-                py = Math.max(0, Math.min(target.height - 1, py));
+                const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
+                return sampleFxPixel(method === "background" || method?.endsWith("-tile") === true ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255], 0, channel);
             }
         }
         const position = (py * target.width + px) * 4;
@@ -7229,7 +7224,7 @@ if (t === "-seed") {
         }
         else if (t === "-virtual-pixel") {
             const method = (tokens[++i] ?? "").toLowerCase();
-            if (method !== "edge" && method !== "background" && method !== "transparent" && method !== "black" && method !== "white" && method !== "gray" && method !== "tile" && method !== "mirror") throw new Error(`Unsupported virtual-pixel method: ${method}`);
+            if (method !== "edge" && method !== "background" && method !== "transparent" && method !== "black" && method !== "white" && method !== "gray" && method !== "tile" && method !== "mirror" && method !== "horizontal-tile" && method !== "vertical-tile" && method !== "checker-tile" && method !== "horizontal-tile-edge" && method !== "vertical-tile-edge") throw new Error(`Unsupported virtual-pixel method: ${method}`);
             state.virtualPixel = method;
         }
         else if (t === "+virtual-pixel") {
@@ -8144,7 +8139,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const expr = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             if (stack.length > 0) {
                 const base = stack[0]!;
-                stack = [yield* applyMagickRasterSteps(base, magickFxPixelSteps(stack, expr, channels, state.virtualPixel, state.background, state.interpolation), signal, { ...base, hasAlpha: base.hasAlpha || channels.a && (state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255) }, stack)];
+                stack = [yield* applyMagickRasterSteps(base, magickFxPixelSteps(stack, expr, channels, state.virtualPixel, state.background, state.interpolation), signal, { ...base, hasAlpha: base.hasAlpha || channels.a && (state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) }, stack)];
             }
         }
         else if (t === "-shadow") {
@@ -9294,7 +9289,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
                         width = Math.max(width, image.width); height = Math.max(height, image.height);
-                        frames.push({ ...image, hasAlpha: image.hasAlpha || settings.virtualPixel === "transparent" || settings.virtualPixel === "background" && settings.background.a < 255 });
+                        frames.push({ ...image, hasAlpha: image.hasAlpha || settings.virtualPixel === "transparent" || (settings.virtualPixel === "background" || settings.virtualPixel?.endsWith("-tile") === true) && settings.background.a < 255 });
                         highDepth ||= !!image.storedData16;
                     }
                     for (let index = 0; index < stack.length; index++) {
@@ -10011,7 +10006,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     // Metadata retained during replay is bounded by expression references, not the number of input frames.
                     reset() { if (frames.size > 32) { frames.clear(); frames.set(0, base); } }
                 };
-                const result = await transformStoredMagickRaster(base, backend, magickFxPixelSteps(source, expression, channels, virtualPixel, background, interpolation), signal, { ...base, hasAlpha: base.hasAlpha || channels.a && (virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255) }, async index => index === stack.length ? { ...base, ...((base as StoredRgbaImage).readMask!) } : (await stack.get(index))!, async () => {
+                const result = await transformStoredMagickRaster(base, backend, magickFxPixelSteps(source, expression, channels, virtualPixel, background, interpolation), signal, { ...base, hasAlpha: base.hasAlpha || channels.a && (virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255) }, async index => index === stack.length ? { ...base, ...((base as StoredRgbaImage).readMask!) } : (await stack.get(index))!, async () => {
                     if (demanded === undefined) return; const index = demanded; demanded = undefined; const frame = (await stack.get(index))!; frames.set(index, frame); indices.set(frame, index);
                 });
                 stack.length = 0; await stack.push(result); return stack;

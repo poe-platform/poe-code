@@ -1,3 +1,4 @@
+import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
@@ -20,17 +21,12 @@ export function* localThresholdPixelSteps(image: { width: number; height: number
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : [true, true, true, image.hasAlpha];
     const blocks = new Map<number, Uint16Array>();
     const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
-    const fill = (method === "background" ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255]).map(value => value * 257);
+    const fill = ((method === "background" || method?.endsWith("-tile")) ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255]).map(value => value * 257);
     function* sample(x: number, y: number): Generator<ConvolveRequest | undefined, ArrayLike<number>, Uint8Array | undefined> {
         if (x < 0 || y < 0 || x >= width || y >= height) {
-            if (method === "tile" || method === "mirror") {
-                const period = method === "mirror" ? 2 : 1;
-                x = (x % (width * period) + width * period) % (width * period);
-                y = (y % (height * period) + height * period) % (height * period);
-                if (x >= width) x = width * 2 - x - 1;
-                if (y >= height) y = height * 2 - y - 1;
-            } else if (method === "edge") {
-                x = Math.max(0, Math.min(width - 1, x)); y = Math.max(0, Math.min(height - 1, y));
+            const index = virtualPixelIndex(x, y, width, height, method);
+            if (index >= 0) {
+                x = index % width; y = Math.floor(index / width);
             } else return fill;
         }
         const position = y * width + x, start = Math.floor(position / 1024) * 1024;

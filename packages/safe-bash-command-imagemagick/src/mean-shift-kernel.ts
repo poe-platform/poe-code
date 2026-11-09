@@ -1,3 +1,4 @@
+import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
@@ -38,17 +39,12 @@ export function* meanShiftPixelSteps(image: Pick<RgbaImage, "width" | "height" |
                     let x = Math.sign(mx + u) * Math.floor(Math.abs(mx + u) + 0.5), y = Math.sign(my + v) * Math.floor(Math.abs(my + v) + 0.5);
                     let pixel: ArrayLike<number> | undefined;
                     if (x < 0 || y < 0 || x >= width || y >= height) {
-                        if (virtualPixel === "tile" || virtualPixel === "mirror") {
-                            const period = virtualPixel === "mirror" ? 2 : 1;
-                            x = ((x % (width * period)) + width * period) % (width * period);
-                            y = ((y % (height * period)) + height * period) % (height * period);
-                            if (x >= width) x = width * 2 - x - 1;
-                            if (y >= height) y = height * 2 - y - 1;
-                        } else if (virtualPixel === "edge") {
-                            x = Math.max(0, Math.min(width - 1, x)); y = Math.max(0, Math.min(height - 1, y));
+                        const index = virtualPixelIndex(x, y, width, height, virtualPixel);
+                        if (index >= 0) {
+                            x = index % width; y = Math.floor(index / width);
                         } else {
                             const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
-                            pixel = (virtualPixel === "background" ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255]).map(value => value * scale);
+                            pixel = ((virtualPixel === "background" || virtualPixel?.endsWith("-tile")) ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255]).map(value => value * scale);
                         }
                     }
                     if (!pixel) {

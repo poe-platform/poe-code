@@ -165,6 +165,11 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seek
           value === [0, 0, 0, 0, 16, 0, 128, 0, 0, 170, 0, 56, 155, 113][index]))
           throw new Error("Unsupported WAV subformat GUID");
         header.formatTag = new DataView(subtype.bytes.buffer, subtype.bytes.byteOffset, 16).getUint16(0, true);
+        // FFmpeg selects the PCM codec from valid precision, not the storage slot.
+        // Its 32/24 little-endian format is the separate pcm_f24le float codec.
+        if (header.formatTag === 1 && header.validBitsPerSample > 0 && header.validBitsPerSample <= 32 &&
+            !(littleEndian && header.bitsPerSample === 32 && header.validBitsPerSample === 24))
+          header.bitsPerSample = Math.ceil(header.validBitsPerSample / 8) * 8;
       }
     } else if (!wave64 && id === "cue ") {
       if (size < 4) throw new Error("Invalid WAV cue chunk");

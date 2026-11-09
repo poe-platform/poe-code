@@ -1375,8 +1375,13 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const a = first.decodedAudio;
         const b = sources[1]!.track.decodedAudio;
         if (!a || !b) throw new Error("amultiply requires decoded PCM audio");
-        if (a.sampleRate !== b.sampleRate || a.channels !== b.channels || a.channelMask !== b.channelMask) {
-          throw new Error("amultiply requires matching sample rates and channel layouts");
+        if (a.sampleRate !== b.sampleRate) throw new Error("amultiply requires matching sample rates");
+        const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : undefined);
+        const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : undefined);
+        const remix = a.channels !== b.channels &&
+          (layoutA === 4 && layoutB === 3 || layoutA === 3 && layoutB === 4);
+        if (!remix && (a.channels !== b.channels || layoutA !== layoutB)) {
+          throw new Error("amultiply requires matching layouts or mono/stereo inputs");
         }
         const length = Math.min(a.channelData[0]!.length, b.channelData[0]!.length);
         budget.checkSamples(length);
@@ -1390,7 +1395,10 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
               signal?.throwIfAborted();
               budget.checkCpu();
             }
-            channelData[channel]![sample] = a.channelData[channel]![sample]! * b.channelData[channel]![sample]!;
+            // amultiply negotiates floating PCM, so rematrix at equal power without PCM16 normalization.
+            const gain = remix ? (b.channels === 1 ? b.channelData[0]![sample]!
+              : b.channelData[0]![sample]! + b.channelData[1]![sample]!) * Math.SQRT1_2 : b.channelData[channel]![sample]!;
+            channelData[channel]![sample] = a.channelData[channel]![sample]! * gain;
           }
         }
         return { track: { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,

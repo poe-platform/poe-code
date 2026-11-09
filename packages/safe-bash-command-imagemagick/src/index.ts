@@ -7695,6 +7695,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return image;
                 }
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
+                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(expanded), forceExact: false }) };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             i++;
@@ -9339,6 +9340,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return image;
                 }
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
+                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(expanded), forceExact: false }) };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             continue;

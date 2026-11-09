@@ -426,7 +426,7 @@ describe("obscure find, fd, rg, grep, and xargs deep parity matrix", () => {
     });
   });
 
-  it("16. xargs option and input validation exits 2 on invalid counts, empty replacement, invalid slot var, NUL in default input, unmatched quote, and trailing backslash", async () => {
+  it("16. xargs rejects invalid options and malformed input, preserving arguments before unmatched quotes", async () => {
     await withE2EHarness({}, async (h) => {
       const optCases = [
         "printf 'a\\n' | xargs -L 0 echo",
@@ -446,16 +446,19 @@ describe("obscure find, fd, rg, grep, and xargs deep parity matrix", () => {
       }
 
       const nulInput = await h.exec("printf 'a\\0b\\n' | xargs echo");
-      assert.equal(nulInput.exitCode, 2);
-      assert.match(nulInput.stderr, /NUL in non-NUL-delimited input/);
+      assert.equal(nulInput.exitCode, 0);
+      assert.equal(nulInput.stdout, "a\n");
+      assert.match(nulInput.stderr, /a NUL character occurred in the input/);
 
       const unmatchedQuote = await h.exec("printf 'hello \"world\\n' | xargs echo");
-      assert.equal(unmatchedQuote.exitCode, 2);
+      assert.equal(unmatchedQuote.exitCode, 1);
+      assert.equal(unmatchedQuote.stdout, "hello\n");
       assert.match(unmatchedQuote.stderr, /unmatched quote/);
 
       const trailingBackslash = await h.exec("printf 'hello \\\\' | xargs echo");
-      assert.equal(trailingBackslash.exitCode, 2);
-      assert.match(trailingBackslash.stderr, /trailing backslash/);
+      assert.equal(trailingBackslash.exitCode, 0);
+      assert.equal(trailingBackslash.stdout, "hello\n");
+      assert.equal(trailingBackslash.stderr, "");
     });
   });
 

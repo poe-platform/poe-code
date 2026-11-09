@@ -29,6 +29,8 @@ export function directExecutor(fallback: CommandHandler): CommandHandler {
   };
 }
 
+class UnmatchedQuoteError extends Error {}
+
 async function* argumentsFrom(source: ByteSource, signal: AbortSignal, stderr: ByteSink, replacement = false, lines = false): AsyncGenerator<Uint8Array | null> {
   const current: number[] = [];
   let active = false;
@@ -57,7 +59,7 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, stderr: B
       if (byte === 0) truncated = true;
       if (escaped) { if (!truncated) current.push(byte); active = true; escaped = false; }
       else if (quote) {
-        if (byte === 10) throw new UsageError("unmatched quote in input");
+        if (byte === 10) throw new UnmatchedQuoteError("unmatched quote in input");
         if (byte === quote) quote = 0;
         else if (!truncated) current.push(byte);
       } else if (byte === 92) { escaped = true; }
@@ -68,7 +70,7 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, stderr: B
       else { if (!truncated) current.push(byte); active = true; }
     }
   }
-  if (quote) throw new UsageError("unmatched quote in input");
+  if (quote) throw new UnmatchedQuoteError("unmatched quote in input");
   if (active) yield Uint8Array.from(current);
 }
 
@@ -150,6 +152,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       let lines = 0;
       let executed = false;
       let status = 0;
+      let unmatchedQuote = false;
       let stop = false;
       let terminal = false;
       let failure: { reason: unknown } | undefined;
@@ -248,32 +251,37 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
         const incoming = delimiter === undefined
           ? argumentsFrom(source, inputSignal, context.stderr, replacement !== undefined, maxLines !== undefined && replacement === undefined)
           : delimitedArguments(source, inputSignal, context.signal, delimiter.charCodeAt(0), replacement === undefined ? maxBytes - baseBytes - 1 : maxBytes - 1);
-        for await (const argument of incoming) {
-          if (argument === null) {
-            if (++lines === maxLines && batch.length) {
+        try {
+          for await (const argument of incoming) {
+            if (argument === null) {
+              if (++lines === maxLines && batch.length) {
+                await dispatch();
+                await capacity();
+                if (stop) break;
+              }
+              continue;
+            }
+            if (stop || delimiter === undefined && eofBytes !== undefined && equalBytes(typeof argument === "string" ? encoder.encode(argument) : argument, eofBytes)) break;
+            const size = (typeof argument === "string" ? shellValueByteLength(argument) : argument.byteLength) + 1;
+            if (replacement === undefined && baseBytes + size > maxBytes) throw new UsageError("single argument exceeds command size limit");
+            if (batch.length && (batch.length === maxArgs || bytes + size > maxBytes)) {
+              if ((parsed.flags.has("x") || maxLines !== undefined) && batch.length < maxArgs) throw new UsageError("command size limit exceeded");
               await dispatch();
               await capacity();
               if (stop) break;
             }
-            continue;
+            batch.push(argument); bytes += size;
+            if (batch.length === maxArgs || delimiter !== undefined && maxLines !== undefined && ++lines === maxLines) {
+              await dispatch();
+              await capacity();
+              if (stop) break;
+            }
           }
-          if (stop || delimiter === undefined && eofBytes !== undefined && equalBytes(typeof argument === "string" ? encoder.encode(argument) : argument, eofBytes)) break;
-          const size = (typeof argument === "string" ? shellValueByteLength(argument) : argument.byteLength) + 1;
-          if (replacement === undefined && baseBytes + size > maxBytes) throw new UsageError("single argument exceeds command size limit");
-          if (batch.length && (batch.length === maxArgs || bytes + size > maxBytes)) {
-            if ((parsed.flags.has("x") || maxLines !== undefined) && batch.length < maxArgs) throw new UsageError("command size limit exceeded");
-            await dispatch();
-            await capacity();
-            if (stop) break;
-          }
-          batch.push(argument); bytes += size;
-          if (batch.length === maxArgs || delimiter !== undefined && maxLines !== undefined && ++lines === maxLines) {
-            await dispatch();
-            await capacity();
-            if (stop) break;
-          }
+        } catch (error) {
+          if (!(error instanceof UnmatchedQuoteError)) throw error;
+          unmatchedQuote = true;
         }
-        if (!stop && (batch.length || !executed && !parsed.flags.has("r") && replacement === undefined)) await dispatch();
+        if (!stop && (batch.length || !unmatchedQuote && !executed && !parsed.flags.has("r") && replacement === undefined)) await dispatch();
       } catch (error) {
         if (error !== inputStopped) fail(error);
       } finally {
@@ -283,7 +291,8 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       }
       context.signal.throwIfAborted();
       if (failure) throw failure.reason;
-      return { exitCode: status };
+      if (unmatchedQuote) await writeDiagnostic(context.stderr, "xargs: unmatched quote in input\n", context.signal);
+      return { exitCode: status || (unmatchedQuote ? 1 : 0) };
     }),
   ];
   if (configuration.maxParallelProcesses === undefined && configuration.envSplitLimits === undefined) {

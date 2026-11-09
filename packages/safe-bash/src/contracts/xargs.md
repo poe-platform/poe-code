@@ -79,8 +79,14 @@ their values. Terminal results stop input admission and drain admitted children
 without cancelling otherwise healthy siblings. Later ordinary statuses cannot
 overwrite a terminal result.
 
-An execution/input/output failure stops admission, cancels admitted work
-cooperatively, and drains before the existing public error mapping applies.
+An unmatched quote discards the unfinished argument, executes any complete
+arguments still in the batch, and drains admitted children without cancelling
+them. It reports a diagnostic and returns status 1 unless a child failure selects
+a higher-priority status above. A malformed first argument never starts an empty
+invocation, including when `-r` is absent.
+
+Other execution/input/output failures stop admission, cancel admitted work
+cooperatively, and drain before the existing public error mapping applies.
 `define("xargs", ...)` remains the boundary: usage errors still produce status 2;
 ordinary direct host rejections still produce the existing diagnostic/status 1.
 Ordinary child errors already mapped by Shell remain numeric child results.

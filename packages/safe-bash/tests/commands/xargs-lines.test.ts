@@ -4,6 +4,45 @@ import { Shell } from "../../src/shell/shell.js";
 import { agentCommands } from "../../src/plugins/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
+for (const fixture of [
+  { option: "", stdin: "a\n'bad", stdout: "[a]" },
+  { option: "", stdin: 'a\n"bad', stdout: "[a]" },
+  { option: "", stdin: "a b'bad\nignored", stdout: "[a]" },
+  { option: "", stdin: 'a b"bad\nignored', stdout: "[a]" },
+  { option: "", stdin: "'bad", stdout: "" },
+  { option: "-r", stdin: '"bad', stdout: "" },
+  { option: "-L1", stdin: "a\n'bad", stdout: "[a]" },
+  { option: "-L2", stdin: "a\n'bad", stdout: "[a]" },
+  { option: "-n2", stdin: "a b c 'bad", stdout: "[a][b][c]" },
+  { option: "-I{}", stdin: "a\nb 'bad", stdout: "[a]", argument: "{}" },
+  { option: "-I{}", stdin: "a 'bad", stdout: "", argument: "{}" },
+]) test(`xargs keeps complete arguments before an unmatched quote: ${JSON.stringify(fixture)}`, async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode(fixture.stdin));
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    const command = `xargs ${fixture.option} printf '[%s]' ${fixture.argument ?? ""}`;
+    for (const script of [command, `${command} < /input`, `cat /input | ${command}`, `xargs -a /input ${fixture.option} printf '[%s]' ${fixture.argument ?? ""}`]) {
+      const result = await shell.exec(script, { stdin: fixture.stdin });
+      assert.equal(result.stdout, fixture.stdout, script);
+      assert.equal(result.exitCode, 1, script);
+      assert.equal(result.stderr, "xargs: unmatched quote in input\n", script);
+    }
+    const substitution = await shell.exec(`result=$(${command} < /input); status=$?; printf '%s:%s' "$status" "$result"`);
+    assert.equal(substitution.stdout, `1:${fixture.stdout}`);
+    assert.equal(substitution.stderr, "xargs: unmatched quote in input\n");
+  } finally { await shell.dispose(); }
+});
+
+test("xargs preserves child failure status when flushing before an unmatched quote", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  try {
+    const result = await shell.exec("xargs false", { stdin: "a\n'bad" });
+    assert.equal(result.exitCode, 123);
+    assert.equal(result.stderr, "xargs: unmatched quote in input\n");
+  } finally { await shell.dispose(); }
+});
+
 for (const option of ["--arg-file=input", "--arg-file input", "-a input", "-ainput"]) test(`xargs argument file ${option}`, async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/input", new TextEncoder().encode("a b\n"));

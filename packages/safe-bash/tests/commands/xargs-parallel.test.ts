@@ -204,21 +204,27 @@ test("verbose write cancellation cannot admit the described child", async () => 
   } finally { release.resolve(); await run.completion.catch(() => {}); }
 });
 
-test("parallel parser error drains admitted children before reporting usage", async () => {
+test("unmatched quotes drain admitted children without cancelling them", async () => {
   const release = deferred();
   let signal: AbortSignal | undefined;
-  const run = launch(["-P2", "-n1", "capture"], { stdin: toByteSource("one 'bad"), invoke: async (_name, _args, options) => {
+  let inputClosed = false;
+  const stdin = (async function* () {
+    try { yield new TextEncoder().encode("one 'bad"); }
+    finally { inputClosed = true; }
+  })();
+  const run = launch(["-P2", "-n1", "capture"], { stdin, invoke: async (_name, _args, options) => {
     signal = options!.signal!;
     await release.promise;
     return { exitCode: 0 };
   } });
   try {
-    await until(() => signal?.aborted === true || run.settled);
-    assert.equal(signal?.aborted, true);
+    await until(() => inputClosed || run.settled);
+    assert.equal(signal?.aborted, false);
     assert.equal(run.settled, false);
     assert.deepEqual(run.stderr, []);
     release.resolve();
-    assert.equal((await run.completion).exitCode, 2);
+    assert.equal((await run.completion).exitCode, 1);
+    assert.equal(signal?.aborted, false);
     assert.equal(new TextDecoder().decode(Uint8Array.from(run.stderr)), "xargs: unmatched quote in input\n");
   } finally { release.resolve(); await run.completion.catch(() => {}); }
 });

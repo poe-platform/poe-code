@@ -9407,35 +9407,25 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         statsScale = 1;
                       } else if (trimmed === "alimiter" || trimmed.startsWith("alimiter=")) {
                         filteredSampleFormat = "dbl";
-                        const limited = await limitAudio(stretched, origRate, trimmed, budget, context.signal);
-                        stretched = limited.channels;
-                        if (limited.delay) {
-                          const previous = audioTimestamps;
+                        if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
-                          let drainPts = audioStartSample;
                           for (let start = 0, n = 0; start < length; n++) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            const frame = previous?.[n];
                             const packet = t.samples[n];
-                            const count = frame ? frame.end - frame.start
-                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const count = packet ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
+                              - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+                            if (count === 0) continue;
                             const end = Math.min(length, start + count);
-                            const skipped = Math.min(end - start, Math.max(0, limited.delay - start));
-                            const pts = (frame?.pts ?? audioStartSample + start) + skipped - limited.delay;
-                            drainPts = pts + end - start - skipped;
-                            if (end > limited.delay) {
-                              budget.allocateMemory(24);
-                              audioTimestamps.push({ start: Math.max(0, start - limited.delay), end: end - limited.delay, pts });
-                            }
+                            const pts = packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start;
+                            budget.allocateMemory(24);
+                            audioTimestamps.push({ start, end, pts });
                             start = end;
                           }
-                          if (length) {
-                            budget.allocateMemory(24);
-                            audioTimestamps.push({ start: Math.max(0, length - limited.delay), end: length,
-                              pts: length < limited.delay ? previous?.[0]?.pts ?? audioStartSample : drainPts });
-                          }
                         }
+                        const limited = await limitAudio(stretched, origRate, trimmed, budget, context.signal, audioTimestamps);
+                        stretched = limited.channels;
+                        audioTimestamps = limited.frames;
                         statsScale = 1;
                       } else if (trimmed === "speechnorm" || trimmed.startsWith("speechnorm=")) {
                         stretched = await normalizeSpeech(stretched, trimmed, budget, context.signal);

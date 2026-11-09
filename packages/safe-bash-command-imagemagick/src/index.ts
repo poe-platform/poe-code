@@ -8760,7 +8760,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const rIm = stack[0]!;
                 const sources = stack.slice(0, 4);
                 const result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(sources, sources.some(image => !!image.data16)), signal, rIm, sources);
-                stack = [{ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 }];
+                // The first plane's evaluation cache no longer describes the combined pixels.
+                const { evaluateSamples: ignoredEvaluate, ...combined } = result;
+                stack = [{ ...combined, space: "srgb", channels: 4, hasAlpha: sources.length === 4 }];
             }
         }
         else if (t === "-draw") {
@@ -9567,7 +9569,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const sources: StoredRgbaImage[] = [];
                     for (let index = 0; index < Math.min(4, stack.length); index++) sources.push((await stack.get(index))!);
                     const base = sources[0]!, result = await transformStoredMagickRaster(base, backend, combinePixelSteps(sources, sources.some(image => !!image.storedData16)), signal, base, sources);
-                    stack.length = 0; await stack.push({ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 });
+                    // The first plane's evaluation cache no longer describes the combined pixels.
+                    const { storedEvaluateSamples: ignoredEvaluate, ...combined } = result;
+                    stack.length = 0; await stack.push({ ...combined, space: "srgb", channels: 4, hasAlpha: sources.length === 4 });
                 } else if (token === "-morph") {
                     const image = await stack.get(0);
                     const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal) : argument;

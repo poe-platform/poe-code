@@ -1103,7 +1103,6 @@ function materializeTrackSamples(track: MediaTrack, forceKeyFrames?: readonly nu
     const avcCBytes = buildAvcC([sps], [pps]);
     const avcC = parseAvcC(avcCBytes);
     const samples: MediaSample[] = [];
-    let dts = 0;
     const refBuffer: { y?: Uint8Array; u?: Uint8Array; v?: Uint8Array } = {};
     // FFmpeg rounds forced timestamps to the encoder time base before comparing PTS.
     const forcedTicks = forceKeyFrames?.map(time => Math.round(time / firstFrameDur)).sort((a, b) => a - b) ?? [];
@@ -1147,16 +1146,16 @@ function materializeTrackSamples(track: MediaTrack, forceKeyFrames?: readonly nu
       detachBytesBuffer(frame.data);
       samples.push({
         data: encoded,
-        dts,
+        // Frames are encoded in display order, so input decode preroll no longer applies.
+        dts: pts,
         pts,
-        cts: pts - dts,
+        cts: 0,
         duration,
         size: encoded.byteLength,
         // The encoder emits one length-prefixed NAL unit, including predicted pictures.
         isKeyframe: (picture[4]! & 0x1f) === 5,
         sampleDescriptionIndex: 1
       });
-      dts += duration;
     }
     detachBytesBuffer(refBuffer.y);
     detachBytesBuffer(refBuffer.u);

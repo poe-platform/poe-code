@@ -55,10 +55,22 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
     }
     if (files.length !== 2) fail("comm requires exactly two files");
     const compareRecords = recordComparison(context.env);
-    const inputs = new Inputs(context, budget, separator), order = new OrderCheck(mode, context, budget, compareRecords), terminator = Uint8Array.of(separator);
+    const input = context.stdinInput;
+    const stdin = input ? (async function* () {
+      while (true) {
+        const chunk = input.readAvailable
+          ? await input.readAvailable(Math.min(65536, limits.maxChunkBytes), context.signal, separator)
+          : await input.read(1, context.signal);
+        if (chunk.done) return;
+        yield chunk.value;
+      }
+    })() : context.stdin;
+    const inputs = new Inputs({ ...context, stdin }, budget, separator), order = new OrderCheck(mode, context, budget, compareRecords), terminator = Uint8Array.of(separator);
     try {
-      const readers = [await inputs.open(files[0]!), await inputs.open(files[1]!)];
-      const rows = [await readers[0]!.next(), await readers[1]!.next()];
+      const readers = [await inputs.open(files[0]!)];
+      const rows = [await readers[0]!.next()];
+      readers.push(await inputs.open(files[1]!));
+      rows.push(await readers[1]!.next());
       const totals = [0n, 0n, 0n];
       while (rows[0] !== undefined || rows[1] !== undefined) {
         const step = budget.step(); if (step) await step;

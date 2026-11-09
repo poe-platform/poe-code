@@ -6,6 +6,45 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { commCommands } from "../../src/commands/comm/index.js";
 
+for (const input of ["one\ntwo\nthree\n", "one\n"]) {
+  for (const operand of ["missing", "directory"]) {
+    for (const reverse of [false, true]) {
+      test(`comm reads one initial record before ${operand} fails, reversed=${reverse}, input=${JSON.stringify(input)}`, async context => {
+        const fs = new MemoryFileSystem();
+        await fs.writeFile("/records", new TextEncoder().encode(input));
+        await fs.mkdir("/directory");
+        const shell = new Shell({ fs }).use(standardCommands()).use(commCommands());
+        context.after(() => shell.dispose());
+        const result = await shell.exec(`exec 3<records
+comm ${reverse ? `${operand} -` : `- ${operand}`} <&3 2>/dev/null; rc=$?
+IFS= read -ru3 next; printf '%s|%s|<%s>\\n' "$rc" "$?" "$next"`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, reverse ? "1|0|<one>\n" : input === "one\n" ? "1|1|<>\n" : "1|0|<two>\n");
+      });
+    }
+  }
+}
+
+for (const [operands, output, status] of [
+  ["- empty", "one\ntwo\n", 0],
+  ["- -", "one\n\ttwo\n", 1],
+] as const) {
+  test(`comm ${operands} consumes stdin normally`, async context => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/records", new TextEncoder().encode("one\ntwo\n"));
+    await fs.writeFile("/empty", new Uint8Array());
+    const shell = new Shell({ fs }).use(standardCommands()).use(commCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`exec 3<records
+comm ${operands} <&3 2>/dev/null; rc=$?
+IFS= read -ru3 next; printf '%s|%s|<%s>\\n' "$rc" "$?" "$next"`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `${output}${status}|1|<>\n`);
+  });
+}
+
 for (const [environment, posix] of [
   ["unset POSIXLY_CORRECT", false],
   ["export POSIXLY_CORRECT=1", true],

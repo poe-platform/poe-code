@@ -73,7 +73,9 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   if (!channels || !sound || (!compressedFormat && (bits < 1 || bits > 32))) throw new Error("Missing or unsupported AIFF audio format");
   if (compressedFormat === "ima4") {
     const doc = parseImaQt(sound, channels, sampleRate, frames, options, budget);
-    return { ...doc, metadata, byteLength: bytes.length };
+    return { ...doc, metadata, byteLength: bytes.length, tracks: doc.tracks.map(track => ({ ...track,
+      samples: track.samples.map(sample => ({ ...sample, offset: sample.data.byteOffset - bytes.byteOffset }))
+    })) };
   }
   bits = Math.ceil(bits / 8) * 8;
   budget.checkDuration(frames / sampleRate);
@@ -84,6 +86,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
     tracks: doc.tracks.map(track => {
       const bytesPerFrame = channels * track.codecDescriptions[0]!.bitsPerSample! / 8;
       return { ...track, duration: frames,
+        samples: track.samples.map(sample => ({ ...sample, offset: sample.data.byteOffset - bytes.byteOffset })),
         ...(options.decodeAudio !== false && sound.length % bytesPerFrame ? {
           decodeErrors: [`Invalid PCM packet: ${sound.length % bytesPerFrame} trailing bytes cannot form a ${bytesPerFrame}-byte sample frame`]
         } : {})

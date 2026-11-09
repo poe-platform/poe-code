@@ -23,7 +23,7 @@ it("probes compressed packet timing without allocating decoded audio", async () 
   const probe = await aiffAst().probe!(bytes, { showPackets: true });
   assert.equal(probe.streams[0]!.codec_name, "adpcm_ima_qt");
   assert.equal(probe.streams[0]!.duration, "0.024000");
-  assert.deepEqual(Array.from(probe.packets!).map(p => [p.pts, p.duration, p.size]), [[0, 64, "68"], [64, 64, "68"], [128, 64, "68"]]);
+  assert.deepEqual(Array.from(probe.packets!).map(p => [p.pts, p.duration, p.size, p.pos]), [[0, 64, "68", "72"], [64, 64, "68", "140"], [128, 64, "68", "208"]]);
 });
 it("rejects invalid step indexes, truncated packets and decoded memory over budget", () => {
   const bytes = Buffer.from(fixtures[0][1], "hex");

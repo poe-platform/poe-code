@@ -217,7 +217,11 @@ export function encodePbm(img: RgbaImage, ascii = false): Uint8Array {
 
 export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const core = view.getUint32(14, true) === 12;
+  if (bytes.byteLength < 18) throw new Error("Truncated BMP DIB header");
+  const dibHeaderSize = view.getUint32(14, true);
+  if (![12, 40, 52, 56, 64, 108, 124].includes(dibHeaderSize)) throw new Error("Invalid BMP DIB header size");
+  if (bytes.byteLength < 14 + dibHeaderSize) throw new Error("Truncated BMP DIB header");
+  const core = dibHeaderSize === 12;
   if (view.getUint16(core ? 22 : 26, true) !== 1) throw new Error("Invalid BMP plane count: expected 1");
   const width = core ? view.getUint16(18, true) : Math.abs(view.getInt32(18, true));
   const height = core ? view.getUint16(20, true) : Math.abs(view.getInt32(22, true));

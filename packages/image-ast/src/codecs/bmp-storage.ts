@@ -14,7 +14,7 @@ import {Pixels,Output} from "../ops/storage-raster.js";
 /** Decode BMP rows and bounded palettes into caller-owned storage. */
 export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByteStorage,signal:AbortSignal,options?:SharpInputOptions):Promise<StoredRgbaImage> {
  signal.throwIfAborted();
- const reader=new SourceBytes(source,signal,"BMP"),header=new Uint8Array(Math.min(70,source.size));
+ const reader=new SourceBytes(source,signal,"BMP"),header=new Uint8Array(Math.min(138,source.size));
  for(let i=0;i<header.length;i++) header[i]=(await reader.at(i))!;
  if(header[0]!==66||header[1]!==77) throw new Error("Invalid BMP signature");
  const metadata=readBmpMetadata(header),view=new DataView(header.buffer),{width,height}=metadata;

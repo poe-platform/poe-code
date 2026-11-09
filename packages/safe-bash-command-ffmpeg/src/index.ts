@@ -10234,9 +10234,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                 const formattedSeg = segmentFileName(byteRanges ? mediaFileNumber : sIdx + nextSequence);
                 const fullSegPath = resolvePath(hlsSegmentFilename === undefined ? outDir : context.cwd, formattedSeg);
-                const relSegName = fullSegPath.startsWith(outDir === "/" ? "/" : `${outDir}/`)
-                  ? fullSegPath.slice(outDir === "/" ? 1 : outDir.length + 1)
-                  : formattedSeg;
+                const relSegName = fullSegPath.slice(fullSegPath.lastIndexOf("/") + 1);
 
                 if (isFmp4) {
                   const moof = parseMp4Boxes(segBytes, 0, 0, budget).find(box => box.type === "moof");

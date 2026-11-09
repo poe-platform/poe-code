@@ -4719,6 +4719,32 @@ describe("HLS single_file", () => {
   }
 });
 
+describe("HLS segment basenames", () => {
+  for (const template of [undefined, "out/sub/p%02d.ts", "/elsewhere/sub/p%02d.ts"]) {
+    for (const baseUrl of ["", "cdn/"]) {
+      it(`keeps segment locations and lists basenames (${template ?? "default"}, ${baseUrl})`, async () => {
+        const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps: 1, frameCount: 4, includeAudio: false }));
+        const input = serializeMp4({ ...source, tracks: source.tracks.map(track => ({
+          ...track, samples: track.samples.map(sample => ({ ...sample, isKeyframe: true }))
+        })) });
+        const vfs = createTestVfs({ "/in.mp4": input });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/in.mp4", "-c", "copy", "-f", "hls", "-hls_time", "1",
+          ...(template ? ["-hls_segment_filename", template] : []),
+          "-hls_base_url", baseUrl, "/out/main.m3u8"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const names = Array.from({ length: 4 }, (_, i) => template ? `p0${i}.ts` : `main${i}.ts`);
+        const directory = template?.startsWith("/") ? "/elsewhere/sub" : template ? "/out/sub" : "/out";
+        assert.deepEqual([...vfs.store.keys()].sort(), ["/in.mp4", "/out/main.m3u8", ...names.map(name => `${directory}/${name}`)].sort());
+        for (const name of names) assert.ok(vfs.store.get(`${directory}/${name}`)?.byteLength);
+        const playlist = new TextDecoder().decode(vfs.store.get("/out/main.m3u8"));
+        assert.deepEqual(playlist.split("\n").filter(line => line && !line.startsWith("#")), names.map(name => baseUrl + name));
+      });
+    }
+  }
+});
+
 describe("HLS start_number", () => {
   for (const [pattern, names] of [
     [undefined, ["out5.ts", "out6.ts"]],
@@ -4869,7 +4895,7 @@ describe("HLS expired segment deletion", () => {
       assert.equal(new TextDecoder().decode(vfs.store.get("/segments/unrelated.ts")), "keep");
       assert.equal(new TextDecoder().decode(vfs.store.get("/out.m3u8")), [
         "#EXTM3U", "#EXT-X-VERSION:3", "#EXT-X-TARGETDURATION:1", `#EXT-X-MEDIA-SEQUENCE:${sequence}`,
-        ...Array.from({ length: 5 - sequence }, (_, i) => [`#EXTINF:1.000000,`, `segments/out${sequence + i}.ts`]).flat(),
+        ...Array.from({ length: 5 - sequence }, (_, i) => [`#EXTINF:1.000000,`, `out${sequence + i}.ts`]).flat(),
         "#EXT-X-ENDLIST", ""
       ].join("\n"));
     });

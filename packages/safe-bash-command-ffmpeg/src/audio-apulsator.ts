@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function pulsateAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -13,10 +14,10 @@ export async function pulsateAudio(
     const key = option.slice(0, separator).trim() as keyof typeof options;
     if (separator < 0 || !Object.hasOwn(options, key)) throw new Error(`apulsator: unsupported option ${option}`);
     const value = option.slice(separator + 1).trim();
-    const number = Number(value);
+    const number = parseFilterExpression(value, "apulsator", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
     const min = key === "hz" ? 0.01 : 0;
     const max = key === "hz" ? 100 : 1;
-    if (!value || !Number.isFinite(number) || number < min || number > max) {
+    if (number < min || number > max) {
       throw new Error(`apulsator: invalid ${key}`);
     }
     options[key] = number;

@@ -8,6 +8,22 @@ import { createFfmpegCommand } from "./index.js";
 
 // SHA-256 of decoded native FFmpeg 9.0.1 PCM, 8 kHz stereo, 2048 frames.
 for (const [filter, hash] of [
+  ...["1/2", "0.5", "sin(PI/6)", "0x1/2", "500m"].map(value => [
+    `apulsator=amount=${value}`,
+    "8a9cfd8759cebe8295e08e216d98b6991818f0cc2a068fbb550543a979727a85"
+  ] as const),
+  [
+    "apulsator=hz=2*3:amount=1/2:offset_l=1/4:offset_r=3/4",
+    "116b6cd02f5930ce1817ff86809ea76cb09814de24110df27a4fcb046c46ae0a"
+  ],
+  [
+    "apulsator=amount=1/E",
+    "2aaf6afed8ed59e5bb7346bcde35b94e0911eba34c07d5e27a522a2aba0dc638"
+  ],
+  [
+    "apulsator=amount=1/PHI",
+    "554c4bd370395611eebc1e73b51458bb9d3e3ffc81af98e43c6475ff9bb70e1a"
+  ],
   [
     "apulsator=hz=2:amount=0.8:offset_l=0:offset_r=0.5",
     "08f0d2c855f88953ea4ed0c3e0025d24e24173997c376f9cdaeba43fe59062e5"
@@ -42,7 +58,11 @@ for (const [filter, hash] of [
   }
 }
 
-for (const filter of ["apulsator=hz=0", "apulsator=amount=2", "apulsator=offset_r=-1", "apulsator=offset_l=NaN", "apulsator=mode=bad", "apulsator=unknown=1"]) {
+for (const filter of [
+  ...["hz", "amount", "offset_l", "offset_r"].map(key => `apulsator=${key}=0b1`),
+  ...["0o1", "1/0", "2/1", "1/", ""].map(value => `apulsator=amount=${value}`),
+  "apulsator=hz=0", "apulsator=amount=2", "apulsator=offset_r=-1", "apulsator=offset_l=NaN", "apulsator=mode=bad", "apulsator=unknown=1"
+]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);
     assert.notEqual(result.exitCode, 0);

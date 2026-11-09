@@ -1456,6 +1456,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   };
 }
 
+const MAGICK_VERSION = "ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)";
+
 function* formatMagickPropertyStringSteps<Step=never>(
   fmt: string,
   meta: ImageMetadata & Pick<RgbaImage, "readMask" | "writeMask"> & Pick<StoredRgbaImage, "storedWriteMask">,
@@ -1497,6 +1499,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     compose: "Over",
     ...meta.properties,
     magick: short.m!,
+    version: MAGICK_VERSION,
     directory: short.d!, basename: short.t!, extension: short.e!,
     interlace: meta.isProgressive ? meta.format.toUpperCase() : "None",
     scene: short.s!, scenes: short.n!,
@@ -6070,7 +6073,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         if (a === "--version" || a === "-version") {
             return {
                 exitCode: 0,
-                stdout: "Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n",
+                stdout: `Version: ${MAGICK_VERSION}\n`,
                 stderr: ""
             };
         }
@@ -9889,7 +9892,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
     if (optionArgs.includes("--version") || optionArgs.includes("-version")) {
         return {
             exitCode: 0,
-            stdout: "Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n",
+            stdout: `Version: ${MAGICK_VERSION}\n`,
             stderr: ""
         };
     }
@@ -12047,7 +12050,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         }];
     }
     if (optionArgs.includes("-version") || optionArgs.includes("--version")) {
-        return [{ exitCode: 0, stdout: "Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n", stderr: "" }];
+        return [{ exitCode: 0, stdout: `Version: ${MAGICK_VERSION}\n`, stderr: "" }];
     }
     const plans: ({ target: string; identify: boolean; verbose: boolean; regardWarnings: boolean; args: (target: string) => string[] } | ImageMagickCliResult)[] = [];
     let cooperativeWork = 63;

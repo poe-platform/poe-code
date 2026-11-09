@@ -18,6 +18,7 @@ it("decodes and copies CAF LPCM with two frames per packet", () => {
   ]);
   const probe = ast.probe(input, { showPackets: true });
   assert.equal(probe.streams[0]!.duration_ts, 4);
+  assert.equal(probe.streams[0]!.nb_frames, "4");
   assert.deepEqual(probe.packets!.map(({ pos, size, duration }) => ({ pos, size, duration })), [
     { pos: "68", size: "4", duration: 2 },
     { pos: "72", size: "4", duration: 2 }
@@ -44,6 +45,7 @@ for (const info of [Buffer.alloc(0), Buffer.from("696e666f0000000000000004000000
     const ast = cafAst();
     const probe = ast.probe(bytes, { showPackets: true });
     assert.equal(probe.streams[0]!.duration_ts, 6000);
+    assert.equal(probe.streams[0]!.nb_frames, "6000");
     assert.deepEqual(probe.packets!.map(({ pos, size, duration, pts }) => ({ pos, size, duration, pts })), [
       { pos: String(68 + info.length), size: "4096", duration: 2048, pts: 0 },
       { pos: String(4164 + info.length), size: "4096", duration: 2048, pts: 2048 },

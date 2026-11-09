@@ -210,6 +210,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   return { ...doc, duration, durationSeconds: duration / sampleRate,
     metadata: { ...doc.metadata, ...metadata }, containerFormat: "caf", byteLength: bytes.length,
     tracks: doc.tracks.map(track => ({ ...track, duration,
+      declaredSampleCount: doc.duration,
       codecDescriptions: track.codecDescriptions.map(desc => ({ ...desc, channelLayout })),
       samples
     })) };

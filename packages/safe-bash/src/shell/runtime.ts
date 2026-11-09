@@ -8309,7 +8309,7 @@ export class Runtime {
           continue;
         }
         if (printTarget) {
-          const existing = table.get(name) ?? (await this.searchPaths(name, state, false, true, false))[0];
+          const existing = table.get(name);
           if (existing === undefined) {
             await this.diagnostic(context, `hash: ${name}: not found`);
             status = 1;

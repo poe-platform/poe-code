@@ -26,6 +26,7 @@ import { rawRgbInput } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewPixelSteps } from "./deskew.js";
 import { compareLayerBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
+import { plasmaPixelSteps } from "./plasma.js";
 import { createMagickRandom } from "./random.js";
 import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
 import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
@@ -5326,9 +5327,15 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const c2 = parseColor(c2Str || "#000000");
         return yield* applyMod([(yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientVector, state.gradientBoundingBox, state.gradientCenter, state.gradientRadii, state.gradientExtent))]);
     }
-    if (lower.startsWith("pattern:") || lower.startsWith("plasma:")) {
-        const pattern = builtinPattern(lower.startsWith("pattern:") ? baseToken.slice(8) : "checkerboard");
-        return yield* applyMod([(yield* createPatternImageSteps(state.hasSize || lower.startsWith("plasma:") ? state.sizeWidth : pattern.width, state.hasSize || lower.startsWith("plasma:") ? state.sizeHeight : pattern.height, pattern))]);
+    if (lower.startsWith("plasma:")) {
+        const spec = baseToken.slice(7), fractal = spec.toLowerCase() === "fractal";
+        const [first, last] = fractal ? [] : spec.split("-");
+        const metadata = { width: state.sizeWidth, height: state.sizeHeight, format: "png" as const, channels: 3 as const, depth: "ushort" as const, space: "srgb" as const, density: 72, hasAlpha: false };
+        return yield* applyMod([yield* applyMagickRasterSteps({ ...metadata, data: new Uint8Array() }, plasmaPixelSteps(metadata.width, metadata.height, parseColor(first || (fractal ? "#808080" : "white")), parseColor(last || "black"), fractal, state.seed ?? 0))]);
+    }
+    if (lower.startsWith("pattern:")) {
+        const pattern = builtinPattern(baseToken.slice(8));
+        return yield* applyMod([(yield* createPatternImageSteps(state.hasSize ? state.sizeWidth : pattern.width, state.hasSize ? state.sizeHeight : pattern.height, pattern))]);
     }
     if (lower === "rose:" || lower === "logo:" || lower === "wizard:" || lower === "granite:") {
         return yield* applyMod([(yield* createRoseImageSteps())]);
@@ -10634,8 +10641,12 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white"),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   image={...await createStoredCanvas(width,height,color,backend,signal),hasAlpha:color.a<255,...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{})};
- }else if(lower.startsWith("gradient:")||lower.startsWith("radial-gradient:")||lower.startsWith("pattern:")||lower.startsWith("plasma:")){
-  const pattern=lower.startsWith("pattern:")?builtinPattern(baseToken.slice(8)):lower.startsWith("plasma:")?builtinPattern("checkerboard"):undefined;
+ }else if(lower.startsWith("plasma:")){
+  const spec=baseToken.slice(7),fractal=spec.toLowerCase()==="fractal",[first,last]=fractal?[]:spec.split("-");
+  const metadata={width:state.sizeWidth,height:state.sizeHeight,format:"png" as const,channels:3 as const,depth:"ushort" as const,space:"srgb" as const,density:72,hasAlpha:false};
+  image=await transformStoredMagickRaster({...metadata,position:0},backend,plasmaPixelSteps(metadata.width,metadata.height,parseColor(first||(fractal?"#808080":"white")),parseColor(last||"black"),fractal,state.seed??0),signal);
+ }else if(lower.startsWith("gradient:")||lower.startsWith("radial-gradient:")||lower.startsWith("pattern:")){
+  const pattern=lower.startsWith("pattern:")?builtinPattern(baseToken.slice(8)):undefined;
   const width=Math.max(1,Math.round(pattern&&!state.hasSize&&lower.startsWith("pattern:")?pattern.width:state.sizeWidth)),height=Math.max(1,Math.round(pattern&&!state.hasSize&&lower.startsWith("pattern:")?pattern.height:state.sizeHeight)),position=backend.storage.allocate(width*height*4);
   const checker=!!pattern,radial=lower.startsWith("radial-gradient:");
   const storedData16=checker?undefined:{position:backend.storage.allocate(width*height*8),length:width*height*4};

@@ -4,6 +4,8 @@ ImageMagick (`magick`, `convert`, `mogrify`, `composite`, `montage`, `compare`, 
 
 `pattern:NAME` renders the requested built-in ImageMagick tile, including stripes, crosshatches, bricks and gray density patterns. Use `-size 32x17 pattern:vertical out.png` to repeat it across a canvas; without `-size`, the native tile dimensions are used. Unknown names fail without replacing the output.
 
+`-seed 123 -size 64x64 plasma:fractal out.png` creates reproducible plasma noise. Use `plasma:red-blue` for a color gradient with plasma displacement; changing the seed changes the pixels.
+
 PNG iTXt comments preserve the actual UTF-8 text when a translated keyword is present. This intentionally differs from ImageMagick 7.1.2-31/35, which reads and rewrites the comment `hello` with translated keyword `Title` as `itle`. Language tags alone do not change the comment.
 
 Legacy PNG Latin-1 `tEXt` comments are rewritten as valid UTF-8 `iTXt`: `café` ends in bytes `c3 a9`. This intentionally differs from ImageMagick 7.1.2-31/35, which copies byte `e9` into `iTXt` despite its UTF-8 requirement. The character is preserved; ASCII comment bytes agree.

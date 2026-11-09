@@ -19,7 +19,9 @@ export function createReadlinkCommand(configuration: ReadlinkCommandsOptions = {
   if (max !== Infinity) { let bytes = 0; for (const value of getCommandArguments(context).values) { bytes += shellValueByteLength(value); if (bytes > max) throw new FsError("EFBIG", { message: "argument byte limit exceeded" }); } }
       const canonicalOptions: Record<string, string> = { canonicalize: "f", "canonicalize-existing": "e", "canonicalize-missing": "m" };
       let verboseMode = "default" as "default" | "verbose" | "quiet";
-      const parsed = options(context.args, "femnzvqs", { ...canonicalOptions, zero: "z", "no-newline": "n", verbose: "v", quiet: "q", silent: "s" }, false, undefined, undefined, key => {
+      const arguments_ = getCommandArguments(context);
+      const operandIndices: number[] = [];
+      const parsed = options(context.args, "femnzvqs", { ...canonicalOptions, zero: "z", "no-newline": "n", verbose: "v", quiet: "q", silent: "s" }, false, index => operandIndices.push(index), undefined, key => {
         if (key === "v") verboseMode = "verbose";
         else if (key === "q" || key === "s") verboseMode = "quiet";
       });
@@ -42,7 +44,15 @@ export function createReadlinkCommand(configuration: ReadlinkCommandsOptions = {
             if (!text.includes("EINVAL") && !text.includes("ENOENT")) await context.stderr.write(bytes);
           } } }
         : context;
+      let operandIndex = 0;
+      const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
       return eachOperand(operandContext, parsed.operands, async operand => {
+        const value = arguments_.values[operandIndices[operandIndex++]!]!;
+        if (typeof value !== "string") {
+          // A string-only filesystem cannot address malformed UTF-8 without changing its identity.
+          try { operand = decoder.decode(shellValueBytes(value)); }
+          catch { throw new FsError("ENOENT", { path: operand, syscall: "readlink" }); }
+        }
         const path = pathOf(context, operand);
         await admitFilesystemModes(context, "readlink", [mode === "link" ? "link" : "canonical"], [path]);
         let result: string;
@@ -62,4 +72,4 @@ export function createReadlinkCommands(options: ReadlinkCommandsOptions = {}): r
 export function readlinkCommands(options: ReadlinkCommandsOptions = {}): VirtualShellPlugin { const commands = createReadlinkCommands(options); return { name: "readlink-commands", setup(host) { if (!options.replace) for (const command of commands) if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`); for (const command of commands) host.commands.register(command, {replace: options.replace ?? false}); } }; }
 
 import { getCommandArguments } from "safe-bash-contracts";
-import { shellValueByteLength } from "safe-bash-contracts/value";
+import { shellValueByteLength, shellValueBytes } from "safe-bash-contracts/value";

@@ -760,6 +760,20 @@ function* lavfiSteps(
   };
 }
 
+// FFmpeg retains the last decoded AAC frame beyond the container's presentation
+// duration. Decode before user time cuts so explicit -t/-to still trim PCM exactly.
+function decodeAacInput(doc: MediaDocument): MediaDocument {
+  if (!doc.tracks.some(track => track.codecDescriptions[0]?.codecName === "aac" && !track.decodedAudio)) return doc;
+  const tracks = doc.tracks.map(track => {
+    if (track.codecDescriptions[0]?.codecName !== "aac" || track.decodedAudio) return track;
+    const decodedAudio = decodeAacTrack(doc, track, true);
+    return { ...track, decodedAudio,
+      duration: decodedAudio.channelData[0]!.length * track.timescale / decodedAudio.sampleRate };
+  });
+  const durationSeconds = Math.max(doc.durationSeconds, ...tracks.map(track => track.duration / track.timescale));
+  return { ...doc, tracks, durationSeconds, duration: Math.round(durationSeconds * doc.timescale) };
+}
+
 async function ensureDecodedFrames(
   track: MediaTrack,
   movieTimescale: number,
@@ -4536,6 +4550,7 @@ export function evalSyncFfmpeg(
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
         ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
+      if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
       if (audioCodec === "copy" && (startSeconds !== undefined || outputSs !== undefined) &&
           doc.tracks.some(track => track.codecDescriptions[0]?.codecName === `pcm_${doc.containerFormat}`)) return undefined;
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
@@ -7206,6 +7221,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
+              if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
               if (
                 startSeconds !== undefined ||
                 inp.endSeconds !== undefined ||

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { inflateSync } from "node:zlib";
 import { it } from "node:test";
-import { parseMp4, parseWav, serializeWav } from "./index.js";
+import { decodeAacTrack, parseMp4, parseWav, serializeWav } from "./index.js";
 
 // External H.264/AAC source; reference: ffmpeg -i aac-external.mp4 -vn -c:a pcm_f32le -f f32le.
 const source = readFileSync(new URL("./fixtures/aac-external.mp4", import.meta.url));
@@ -46,4 +46,17 @@ it("rejects corrupt packets, missing presentation segments and unsupported edit 
   }
   assert.throws(() => serializeWav({ ...doc, tracks: [{ ...track,
     editList: track.editList!.map(edit => ({ ...edit, mediaRateInteger: 2 })) }] }), /AAC edit/);
+});
+
+it("retains the final decoded frame only when requested by the caller", () => {
+  const doc = parseMp4(source);
+  const track = doc.tracks.find(track => track.type === "audio")!;
+  const exact = decodeAacTrack(doc, track).channelData[0]!;
+  const full = decodeAacTrack(doc, track, true).channelData[0]!;
+  assert.equal(exact.length, 192000);
+  assert.equal(full.length, 192512);
+  assert.deepEqual(full.subarray(0, exact.length), exact);
+  const aligned = { ...track, editList: [{ segmentDuration: 1024, mediaTime: 1024,
+    mediaRateInteger: 1, mediaRateFraction: 0 }] };
+  assert.equal(decodeAacTrack(doc, aligned, true).channelData[0]!.length, 1024);
 });

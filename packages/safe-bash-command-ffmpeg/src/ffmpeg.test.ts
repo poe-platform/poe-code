@@ -6289,7 +6289,8 @@ it("extracts external AAC to WAV and leaves existing output intact on corrupt AA
   const wav = vfs.store.get("/audio.wav")!;
   const audio = parseWav(wav).tracks[0]!.decodedAudio!;
   assert.equal(audio.sampleRate, 24000);
-  assert.equal(audio.channelData[0]!.length, 192000);
+  // Native FFmpeg 7.0.2 retains the final AAC frame beyond the 8-second edit.
+  assert.equal(audio.channelData[0]!.length, 192512);
   const parsed = parseMp4(source);
   const broken = { ...parsed, tracks: parsed.tracks.map(track => track.type !== "audio" ? track : {
     ...track, samples: track.samples.map((sample, index) => index === 20 ? { ...sample, data: Uint8Array.of(255) } : sample)
@@ -6302,7 +6303,7 @@ it("extracts external AAC to WAV and leaves existing output intact on corrupt AA
   vfs.store.set("/control.wav", wav);
   const control = await runCmd(command, ["-y", "-i", "control.wav", "-c:a", "pcm_s16le", "audio.wav"], vfs);
   assert.equal(control.exitCode, 0, control.stderr);
-  assert.equal(parseWav(vfs.store.get("/audio.wav")!).durationSeconds, 8);
+  assert.equal(parseWav(vfs.store.get("/audio.wav")!).durationSeconds, 192512 / 24000);
 });
 
 // ffmpeg -f lavfi -i testsrc2=size=64x48:rate=10:duration=1 -c:v libx264 -bf 3 -g 30 fixture.mp4

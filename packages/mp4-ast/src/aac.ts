@@ -16,8 +16,8 @@ export function* decodeAacFrames(track: MediaTrack) {
   }
 }
 
-/** Apply the presentation edits after decoding preroll, never by dropping AAC packets. */
-export function decodeAacTrack(doc: MediaDocument, track: MediaTrack): MediaAudioData {
+/** Apply presentation edits after preroll; FFmpeg may retain the final decoded frame tail. */
+export function decodeAacTrack(doc: MediaDocument, track: MediaTrack, preserveFinalFrame = false): MediaAudioData {
   const description = track.codecDescriptions[0];
   if (!description) throw new Error("Unsupported AAC sample description");
   const sampleRate = description.sampleRate!;
@@ -43,6 +43,7 @@ export function decodeAacTrack(doc: MediaDocument, track: MediaTrack): MediaAudi
   }
   const channelData = Array.from({ length: channels }, () => new Float32Array(count));
   const covered = regions.map(() => 0);
+  let tail: readonly Float32Array[] | undefined;
   let previousEnd = -Infinity;
   for (const frame of decodeAacFrames(track)) {
     const start = Math.round(frame.pts / track.timescale * sampleRate);
@@ -60,6 +61,9 @@ export function decodeAacTrack(doc: MediaDocument, track: MediaTrack): MediaAudi
             channelData[channel]!.set(frame.channelData[channel]!.subarray(left - start, right - start), offset + left - region.start);
           }
           covered[index]! += right - left;
+          if (preserveFinalFrame && index === regions.length - 1 && right === region.start + region.count && end > right) {
+            tail = frame.channelData.map(channel => channel.slice(right - start));
+          }
         }
       }
       offset += region.count;
@@ -67,6 +71,16 @@ export function decodeAacTrack(doc: MediaDocument, track: MediaTrack): MediaAudi
   }
   if (regions.some((region, index) => region.start !== -1 && covered[index] !== region.count)) {
     throw new Error("AAC stream did not decode the complete presentation interval");
+  }
+  if (tail) {
+    const length = count + tail[0]!.length;
+    if (length * channels * 4 > 128 * 1024 * 1024) throw new Error("Unsupported AAC PCM dimensions");
+    for (let channel = 0; channel < channels; channel++) {
+      const extended = new Float32Array(length);
+      extended.set(channelData[channel]!);
+      extended.set(tail[channel]!, count);
+      channelData[channel] = extended;
+    }
   }
   return { sampleRate, channels, channelData };
 }

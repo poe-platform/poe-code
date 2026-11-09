@@ -352,8 +352,10 @@ type FormatStep = ProbeOutputPart | {
 function createStreamSelector(selectStreams: string | undefined, programs: ProbeSourceRows["programs"]) {
   let spec = selectStreams ?? "";
   const types: string[] = [];
-  while (["v", "a", "s", "d", "t"].includes(spec.split(":")[0]!)) {
-    types.push(spec[0] === "v" ? "video" : spec[0] === "a" ? "audio" : spec[0] === "s" ? "subtitle" : spec[0] === "d" ? "data" : "attachment");
+  let excludePictures = false;
+  while (["v", "V", "a", "s", "d", "t"].includes(spec.split(":")[0]!)) {
+    if (spec[0] === "V") excludePictures = true;
+    types.push(spec[0] === "v" || spec[0] === "V" ? "video" : spec[0] === "a" ? "audio" : spec[0] === "s" ? "subtitle" : spec[0] === "d" ? "data" : "attachment");
     spec = spec.slice(2);
   }
   const programIndices = spec.startsWith("p:")
@@ -363,6 +365,7 @@ function createStreamSelector(selectStreams: string | undefined, programs: Probe
   let typeOrdinal = 0;
   return (stream: MediaProbeSourceStream): boolean => {
     if (types.some(type => stream.codec_type !== type)) return false;
+    if (excludePictures && (stream.disposition?.attached_pic || stream.disposition?.timed_thumbnails)) return false;
     if (programIndices && !programIndices.has(stream.index)) return false;
     if (spec) {
       if (spec === "u") {
@@ -1001,7 +1004,7 @@ function parseProbeArguments(args: readonly string[]) {
   if (!inputTarget) throw new Error("must specify an input file");
   if (selectStreams) {
     let spec = selectStreams;
-    while (["v", "a", "s", "d", "t"].includes(spec.split(":")[0]!) && spec.includes(":")) {
+    while (["v", "V", "a", "s", "d", "t"].includes(spec.split(":")[0]!) && spec.includes(":")) {
       spec = spec.slice(2);
     }
     const [kind, ...parts] = spec.split(":");
@@ -1014,7 +1017,7 @@ function parseProbeArguments(args: readonly string[]) {
     const validId = digits.length > 0 && [...digits].every(c =>
       c >= "0" && c <= "9" || hex && c >= "a" && c <= "f") && Number.isSafeInteger(Number(id));
     const valid = selectStreams === "u" || spec === "" || kind === "m" && parts.length > 0
-      || ["v", "a", "s", "d", "t"].includes(kind!) && parts.length === 0
+      || ["v", "V", "a", "s", "d", "t"].includes(kind!) && parts.length === 0
       || kind === "p" && parts.length === 1 && numeric
       || parts.length === 0 && numeric || validId;
     if (!valid) throw new Error(`Invalid stream specifier: ${selectStreams}`);

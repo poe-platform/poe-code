@@ -1973,6 +1973,13 @@ function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSi
     return { ...img, data: out };
 }
 
+function parseMagickMorphCount(argument: string): number {
+    validateMagickTransformGeometry(argument, "-morph");
+    const count = Number.parseInt(argument, 10) || 0;
+    if (!Number.isFinite(count)) throw new Error(`invalid argument for option '-morph': ${argument}`);
+    return Math.max(0, count);
+}
+
 function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, channels: readonly boolean[] | undefined, kernel: ResizeKernel | undefined, signal?: AbortSignal, settings?: ResizeFilterSettings): Generator<void, RgbaImage[], void> {
     let cooperativeWork = 0;
     const count = Math.max(0, Math.trunc(countRaw));
@@ -8311,8 +8318,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-morph") {
             const argument = tokens[++i] ?? "1", image = stack[0];
             const expanded = image ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : argument;
-            const count = Number(expanded);
-            if (!expanded.trim() || !Number.isFinite(count)) throw new Error(`invalid argument for option '-morph': ${expanded}`);
+            const count = parseMagickMorphCount(expanded);
             stack = (yield* applyMagickMorphSteps(stack, count, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.kernel, signal, state.resizeFilter));
         }
         else if (t === "-floodfill" || t === "+floodfill") {
@@ -9499,8 +9505,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 } else if (token === "-morph") {
                     const image = await stack.get(0);
                     const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal) : argument;
-                    if (!expanded.trim() || !Number.isFinite(Number(expanded))) throw new Error(`invalid argument for option '-morph': ${expanded}`);
-                    const count = Math.max(0, Math.trunc(Number(expanded)));
+                    const count = parseMagickMorphCount(expanded);
                     if (stack.length === 1 && count > 1) {
                         const image = (await stack.get(0))!;
                         for (let index = 1; index < count; index++) {

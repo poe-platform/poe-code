@@ -4,7 +4,7 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["map", "sync", "filesystem"] as const) {
-    for (const count of ["junk", "", " ", "NaN", "Infinity", "0", "2"]) {
+    for (const count of ["junk", "2junk", "2%junk", "", " ", "NaN", "Infinity", "0", "2"]) {
         for (const existing of [false, true]) {
             it(`validates morph count before writing: ${mode}, ${JSON.stringify(count)}, existing=${existing}`, async () => {
                 const red = await sharp(Uint8Array.of(255, 0, 0, 255), { raw: { width: 1, height: 1, channels: 4 } }).png().toBuffer();

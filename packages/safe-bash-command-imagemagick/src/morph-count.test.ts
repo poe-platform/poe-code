@@ -1,12 +1,19 @@
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
-for (const mode of ["map", "sync", "filesystem"])
+for (const mode of ["map", "sync", "filesystem", "command"])
 for (const [count, middle] of [
     ["0", []],
     ["0.9", []],
+    [".9", []],
+    ["0x2", []],
+    ["1e1", [128, 0, 128, 255]],
+    ["2x3", [170, 0, 85, 255, 85, 0, 170, 255]],
+    ["2%", [170, 0, 85, 255, 85, 0, 170, 255]],
+    ["  +02x3", [170, 0, 85, 255, 85, 0, 170, 255]],
     ["1.5", [128, 0, 128, 255]],
     ["2", [170, 0, 85, 255, 85, 0, 170, 255]]
 ] as const)
@@ -16,10 +23,14 @@ it(`matches native morph frame counts and pixels: ${mode}, count=${count}`, asyn
     const files = new Map([["/red.png", red], ["/blue.png", blue]]), fs = new MemoryFileSystem();
     for (const [path, bytes] of files) await fs.writeFile(path, bytes);
     const args = ["/red.png", "/blue.png", "-morph", count, "+append", "/out.png"];
-    const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "map" ? files : { filesystem: fs, cwd: "/" });
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} },
+    }) : mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "map" ? files : { filesystem: fs, cwd: "/" });
     expect(result).toMatchObject({ exitCode: 0 });
-    const output = decodeImage(mode === "filesystem" ? await fs.readFile("/out.png") : files.get("/out.png")!);
-    // ImageMagick 7.1.2 Q16-HDRI truncates the count before interpolating.
+    const output = decodeImage((mode === "filesystem" || mode === "command") ? await fs.readFile("/out.png") : files.get("/out.png")!);
+    // ImageMagick 7.1.2 Q16-HDRI reads the leading decimal integer, ignoring geometry suffixes.
     expect([output.width, output.height]).toEqual([2 + middle.length / 4, 1]);
     expect([...output.data]).toEqual([255, 0, 0, 255, ...middle, 0, 0, 255, 255]);
 });

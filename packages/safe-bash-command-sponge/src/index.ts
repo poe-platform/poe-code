@@ -41,6 +41,7 @@ import {
   type CommandContext,
   type CommandDefinition,
   type CommandResult,
+  type FileStat,
   type VirtualShellPlugin,
 } from "safe-bash-contracts";
 
@@ -156,6 +157,12 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
         }
 
         const targetPath = pathPosix.resolve(context.cwd, files[0]!);
+        let targetStat: FileStat | undefined;
+        try {
+          targetStat = await context.fs.lstat(targetPath, { signal: context.signal });
+        } catch (error) {
+          if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+        }
         if (append) {
           let existing: Uint8Array = new Uint8Array(0);
           try {
@@ -172,10 +179,33 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
           if (existing.byteLength + buffered.byteLength > maxBytes) {
             throw new PublicDiagnostic(`combined output exceeds maximum buffered size of ${maxBytes} bytes`);
           }
-          await writeFileOutput(context, buffered, data => context.fs.appendFile(targetPath, data, { signal: context.signal }));
-        } else {
-          await writeFileOutput(context, buffered, data => context.fs.writeFile(targetPath, data, { signal: context.signal }));
         }
+        await writeFileOutput(context, buffered, async data => {
+          if (targetStat?.type !== "file") {
+            if (append) await context.fs.appendFile(targetPath, data, { signal: context.signal });
+            else await context.fs.writeFile(targetPath, data, { signal: context.signal });
+            return;
+          }
+          const temporary = pathPosix.join(pathPosix.dirname(targetPath), `.sponge-${crypto.randomUUID()}`);
+          let created = false;
+          try {
+            if (append) {
+              await context.fs.copyFile(targetPath, temporary, { exclusive: true, signal: context.signal });
+              created = true;
+              await context.fs.appendFile(temporary, data, { signal: context.signal });
+            } else {
+              await context.fs.writeFile(temporary, new Uint8Array(), { flag: "wx", mode: 0o600, signal: context.signal });
+              created = true;
+              await context.fs.writeFile(temporary, data, { signal: context.signal });
+            }
+            if (!context.fs.chmod) throw new FsError("ENOTSUP", { path: targetPath, syscall: "chmod" });
+            await context.fs.chmod(temporary, targetStat.mode & 0o7777, { signal: context.signal });
+            await context.fs.rename(temporary, targetPath, { signal: context.signal });
+            created = false;
+          } finally {
+            if (created) await context.fs.rm(temporary, { force: true });
+          }
+        });
         return { exitCode: 0 };
       } catch (err) {
         context.signal.throwIfAborted();
@@ -213,10 +243,9 @@ const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
 export function evalSyncSponge(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
-  readFileSync?: (filePath: string) => Uint8Array | undefined,
-  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
+  _readFileSync?: (filePath: string) => Uint8Array | undefined,
+  _writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
 ): string | undefined {
-  let append = false;
   const files: string[] = [];
   let endOfOptions = false;
   for (const arg of opArgs) {
@@ -224,7 +253,7 @@ export function evalSyncSponge(
       endOfOptions = true;
       continue;
     }
-    if (!endOfOptions && arg === "--append") { append = true; continue; }
+    if (!endOfOptions && arg === "--append") continue;
     if (!endOfOptions && (arg === "--help" || arg === "-h")) {
       return "Usage: sponge [-a] [FILE]\nSoak up standard input and write to FILE (or stdout).\n";
     }
@@ -233,8 +262,7 @@ export function evalSyncSponge(
     }
     if (!endOfOptions && arg.startsWith("-") && arg.length > 1) {
       for (let i = 1; i < arg.length; i++) {
-        if (arg[i] === "a") append = true;
-        else return undefined;
+        if (arg[i] !== "a") return undefined;
       }
       continue;
     }
@@ -246,9 +274,7 @@ export function evalSyncSponge(
     if (payload.some(b => b === 0 || b >= 128)) return undefined;
     return decoder.decode(payload);
   }
-  if (append || !writeFileSync) return undefined;
-  const target = files[0]!;
-  if (target.endsWith("/") || target.endsWith("/.") || target.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/.test(target)) return undefined;
-  if (!writeFileSync(target, payload)) return undefined;
-  return "";
+  // The synchronous writer mutates existing inodes. Use the command executor
+  // for file destinations so hard links and open descriptors retain old data.
+  return undefined;
 }

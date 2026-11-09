@@ -18,15 +18,11 @@ test("sponge input quotas are optional with equivalent flat and nested options",
   for (const value of [-Infinity, NaN, -1, 0, 1.5]) assert.throws(() => settings({ maxBufferedBytes: value }), RangeError);
 });
 
-test("sponge owns synchronous byte writes and declines append and binary text decoding", () => {
+test("sponge declines synchronous file writes that cannot replace the destination", () => {
   const bytes = new Uint8Array([0, 255, 10]);
-  let output: Uint8Array | undefined;
-  assert.equal(evalSyncSponge(bytes, ["out"], undefined, (path, value) => {
-    assert.equal(path, "out");
-    output = value.slice();
-    return true;
-  }), "");
-  assert.deepEqual(output, bytes);
+  assert.equal(evalSyncSponge(bytes, ["out"], undefined, () => {
+    assert.fail("in-place writer must not be called");
+  }), undefined);
   assert.equal(evalSyncSponge(bytes, []), undefined);
   assert.equal(evalSyncSponge(bytes, ["-a", "out"]), undefined);
 });

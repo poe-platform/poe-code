@@ -3,3 +3,6 @@
 Collect a pipeline before writing its output with `sponge` inside
 `@poe-platform/safe-bash`. `maxBufferedBytes` defaults to `Infinity`; set a finite
 value to limit retained input. Explicit `Infinity` disables the quota.
+
+Regular file destinations are replaced while preserving permissions, so other
+hard links and open readers keep the original contents. Symlinks are followed.

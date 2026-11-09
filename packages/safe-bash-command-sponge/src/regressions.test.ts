@@ -117,3 +117,42 @@ for (const maxBufferedBytes of [8, Infinity]) {
     });
   }
 }
+
+for (const append of [false, true]) {
+  test(`sponge ${append ? "append" : "overwrite"} replaces regular files without changing hard links`, async () => {
+    const run = fixture(append ? ["-a", "output"] : ["output"], "NEW");
+    const fs = run.context.fs;
+    await fs.writeFile("/output", new TextEncoder().encode("OLD"));
+    await fs.chmod!("/output", 0o640);
+    await fs.link!("/output", "/alias");
+    assert.equal((await createSpongeCommand().execute(run.context)).exitCode, 0);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/alias")), "OLD");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/output")), append ? "OLDNEW" : "NEW");
+    assert.equal((await fs.stat("/output")).mode & 0o7777, 0o640);
+    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["alias", "output"]);
+  });
+
+  test(`sponge ${append ? "append" : "overwrite"} follows symlinks without replacing them`, async () => {
+    const run = fixture(append ? ["-a", "output"] : ["output"], "NEW");
+    const fs = run.context.fs;
+    await fs.writeFile("/target", new TextEncoder().encode("OLD"));
+    await fs.link!("/target", "/alias");
+    await fs.symlink!("/target", "/output");
+    assert.equal((await createSpongeCommand().execute(run.context)).exitCode, 0);
+    assert.equal(await fs.readlink!("/output"), "/target");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/alias")), append ? "OLDNEW" : "NEW");
+  });
+}
+
+for (const append of [false, true]) {
+  test(`sponge preserves the destination and removes staging after rename failure (append=${append})`, async () => {
+    const run = fixture(append ? ["-a", "output"] : ["output"], "NEW");
+    const fs = run.context.fs;
+    await fs.writeFile("/output", new TextEncoder().encode("OLD"));
+    const failure = new Error("rename failed");
+    fs.rename = async () => { throw failure; };
+    await assert.rejects(async () => createSpongeCommand().execute(run.context), error => error === failure);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/output")), "OLD");
+    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["output"]);
+  });
+}

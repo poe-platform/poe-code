@@ -7,6 +7,39 @@ import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { Shell } from "../../src/shell/shell.js";
 
+for (const extensions of [[], [arraysExtension()]]) for (const [declaration, expected] of [
+  ["declare OPTIND", "a:1"],
+  ["typeset OPTIND", "a:1"],
+  ["declare -i OPTIND", "a:1"],
+  ["typeset -i OPTIND", "a:1"],
+  ["declare -x OPTIND", "a:1"],
+  ["declare -p OPTIND >/dev/null", "b:2"],
+  ["typeset -p OPTIND >/dev/null", "b:2"],
+  ["export OPTIND", "b:2"],
+  ["OPTIND=1", "a:1"],
+]) {
+  test(`OPTIND declaration preserves Bash getopts behavior (arrays=${extensions.length}): ${declaration}`, async t => {
+    const { shell, commands } = setup({ extensions });
+    for (const command of basicCommands()) commands.register(command);
+    t.after(() => shell.dispose());
+    const result = await shell.exec(`set -- -ab; getopts ab flag; echo "$flag:$OPTIND"; ${declaration}; getopts ab flag; echo "$flag:$OPTIND"`);
+    assert.equal(result.stdout, `a:1\n${expected}\n`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  });
+}
+
+for (const command of ["declare", "typeset"]) {
+  test(`${command} OPTIND preserves progress within a later getopts cluster`, async t => {
+    const { shell } = setup();
+    t.after(() => shell.dispose());
+    const result = await shell.exec(`set -- -a -bcd; getopts abcd flag; getopts abcd flag; ${command} OPTIND; getopts abcd flag; say "$flag:$OPTIND"`);
+    assert.equal(result.stdout, "c:2\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  });
+}
+
 for (const extensions of [[], [arraysExtension()]]) for (const command of ["declare", "typeset", "local"]) {
   for (const [source, expected] of [
     [`set -a; ${command} +x V=new`, "V=new\nparent:new\n"],

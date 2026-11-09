@@ -9188,7 +9188,7 @@ export class Runtime {
               await this.assignVariable(state, name, value, context);
             }
           }
-        } else if (command === "local" && name === "OPTIND") this.syncGetopts(state);
+        } else if ((command === "local" || command === "declare") && name === "OPTIND") this.syncGetopts(state);
         if (command === "export" && !enabled.has("n") || enabled.has("x")) state.exported.add(attributeName);
         if (command === "export" && enabled.has("n")) state.exported.delete(attributeName);
         if (command === "readonly" || enabled.has("r")) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(attributeName); }

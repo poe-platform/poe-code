@@ -56,6 +56,8 @@ ICO output supports 1–256 pixel dimensions and preserves RGBA transparency in 
 of at most 4 KiB, including wide scanlines and Adam7 interlacing. Supply a
 retained byte-range source and backing storage with `allocate`, `read`, and
 `write`; the returned `position` addresses packed RGBA pixels in that storage.
+PNG readers discard ancillary chunks with invalid checksums; `decodeWarnings`
+reports the discarded chunks without failing the decode.
 `decodeNetpbmToStorage(source, storage, signal)` accepts P1–P7
 Netpbm images, including PAM alpha, 16-bit samples and comments.
 Radiance HDR output (`format: "hdr"`) writes linear RGBE samples without alpha, using planar scanlines for widths from 8 to 32767 pixels. OpenEXR output (`format: "exr"`) writes uncompressed float32 RGB or RGBA scanlines. OpenEXR scanline input supports uncompressed, RLE, ZIPS and ZIP RGB/RGBA or grayscale channels, preserving negative and above-white samples for PFM output. Tiled, multipart, deep and other compression modes are rejected. Radiance RGBE (`.hdr`) input supports flat pixels and both RLE encodings, preserves float samples, and matches native ImageMagick’s 16-bit PNG colors. PFM input reads the declared byte order and bottom-to-top rows, preserving unclamped float32 samples for PFM round trips and 16-bit precision for PNG output. `encodeImage` and `encodeStoredImage` also write PFM (`format: "pfm"`): normalized big-endian float32 RGB or grayscale samples, with bottom-to-top rows and no alpha.

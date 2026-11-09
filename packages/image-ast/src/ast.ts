@@ -52,6 +52,7 @@ export type ColorInput =
     };
 
 export interface RgbaImage {
+  readonly decodeWarnings?: readonly string[];
   /** Original indexed colormap as unsigned 0xAARRGGBB values, in file order. */
   readonly indexedColors?: readonly number[];
   readonly miffPages?: readonly RgbaImage[];
@@ -103,6 +104,7 @@ export interface RgbaImage {
 }
 
 export interface ImageMetadata {
+  readonly decodeWarnings?: readonly string[];
   readonly jpegSamplingFactor?: string;
   readonly quality?: number;
   readonly isPalette?: boolean;

@@ -70,9 +70,10 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     );
     const dataStart = pos + 8;
     if (dataStart + len + 4 > bytes.length) throw new Error("Truncated PNG chunk");
-    if ((bytes[pos + 4]! & 32) === 0 &&
-        pngCrc32(bytes.subarray(pos + 4, dataStart + len)) !== view.getUint32(dataStart + len, false)) {
-      throw new Error(`PNG ${type} CRC mismatch`);
+    if (pngCrc32(bytes.subarray(pos + 4, dataStart + len)) !== view.getUint32(dataStart + len, false)) {
+      if ((bytes[pos + 4]! & 32) === 0) throw new Error(`PNG ${type} CRC mismatch`);
+      pos = dataStart + len + 4;
+      continue;
     }
     if ((bytes[pos + 4]! & 32) === 0 && type !== "IHDR" && type !== "PLTE" && type !== "IDAT" && type !== "IEND") {
       throw new Error(`PNG unhandled critical chunk ${type}`);
@@ -234,6 +235,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     ...(meta.resolution ? {resolution: meta.resolution} : {}),
     hasAlpha: meta.hasAlpha,
     ...(meta.virtualCanvas === undefined ? {} : {virtualCanvas: meta.virtualCanvas}),
+    ...(meta.decodeWarnings === undefined ? {} : {decodeWarnings: meta.decodeWarnings}),
     ...(meta.properties === undefined ? {} : {properties: meta.properties}),
     ...(meta.icc === undefined ? {} : {icc: meta.icc}),
     ...(meta.exif === undefined ? {} : {exif: meta.exif}),
@@ -498,9 +500,10 @@ export function decodePngToCanvas(
     const type = String.fromCharCode(bytes[pos + 4]!, bytes[pos + 5]!, bytes[pos + 6]!, bytes[pos + 7]!);
     const dataStart = pos + 8;
     if (dataStart + len + 4 > bytes.length) throw new Error("Truncated PNG chunk");
-    if ((bytes[pos + 4]! & 32) === 0 &&
-        pngCrc32(bytes.subarray(pos + 4, dataStart + len)) !== view.getUint32(dataStart + len, false)) {
-      throw new Error(`PNG ${type} CRC mismatch`);
+    if (pngCrc32(bytes.subarray(pos + 4, dataStart + len)) !== view.getUint32(dataStart + len, false)) {
+      if ((bytes[pos + 4]! & 32) === 0) throw new Error(`PNG ${type} CRC mismatch`);
+      pos = dataStart + len + 4;
+      continue;
     }
     if ((bytes[pos + 4]! & 32) === 0 && type !== "IHDR" && type !== "PLTE" && type !== "IDAT" && type !== "IEND") {
       throw new Error(`PNG unhandled critical chunk ${type}`);

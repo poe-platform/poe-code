@@ -1,6 +1,6 @@
 import {createByteCodec} from "@poe-code/compression";
 import type {ImageMetadata} from "../ast.js";
-import {PNG_SIGNATURE} from "./png-chunks.js";
+import {PNG_SIGNATURE, pngCrc32} from "./png-chunks.js";
 import {exifMetadataSteps,type MetadataRead} from "./exif-metadata.js";
 
 export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetadata,Uint8Array> {
@@ -26,6 +26,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   let backgroundColor: ImageMetadata["backgroundColor"];
   let palette: Uint8Array | undefined;
 
+  const decodeWarnings: string[] = [];
   let pos = 8;
   while (pos + 8 <= size) {
     const header=yield {position:pos,length:8};
@@ -33,6 +34,18 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
     const type=String.fromCharCode(header[4]!,header[5]!,header[6]!,header[7]!);
     const dataStart=pos+8;
     if(dataStart+len>size)break;
+    if ((header[4]! & 32) !== 0) {
+      let crc = pngCrc32(header.subarray(4));
+      for (let offset = 0; offset < len; offset += 4096) {
+        crc = pngCrc32(yield {position:dataStart + offset,length:Math.min(4096,len - offset)}, crc);
+      }
+      const checksum = dataStart + len + 4 <= size ? yield {position:dataStart + len,length:4} : undefined;
+      if (!checksum || crc !== new DataView(checksum.buffer,checksum.byteOffset,checksum.byteLength).getUint32(0)) {
+        decodeWarnings.push(`PNG ${type} CRC mismatch`);
+        pos = dataStart + len + 4;
+        continue;
+      }
+    }
 
     if (type === "IHDR" && len >= 13) {
       const chunk=yield {position:dataStart,length:13};
@@ -192,6 +205,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
     ...(Object.keys(properties).length ? {properties} : {}),
     ...(icc === undefined ? {} : {icc}),
     ...(exifProfile === undefined ? {} : {exif: exifProfile}),
+    ...(decodeWarnings.length ? {decodeWarnings} : {}),
     format: "png",
     ...(colorType === 3 ? {isPalette: true} : {}),
     width,

@@ -7390,6 +7390,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (operandsOnly) {
             const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes);
             if (!loaded) throw new Error(`unable to open image '${t}'`);
+            for (const warning of loaded[0]?.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
             stack.push(...loaded);
             i++;
             continue;
@@ -8480,6 +8481,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 state.background = prevBg;
             }
             if (!loaded) throw new Error(`unable to open image '${t}'`);
+            for (const warning of loaded[0]?.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
             if (mergeOntoCanvas && loaded[0]) {
                 yield* blitOverRgbaInPlaceSteps(stack[0]!, loaded[0], 0, 0);
                 detachRgbaBuffer(loaded[0].data);
@@ -10013,6 +10015,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const merge = !literal && (lower.startsWith("label:") || lower.startsWith("caption:")) && base && captured.hasSize && base.width === captured.sizeWidth && base.height === captured.sizeHeight && Object.values(captured.background).every(value => value === 255);
                 const settings = merge ? { ...captured, background: { r: 0, g: 0, b: 0, a: 0 } } : captured;
                 const loaded = await parseStoredCompareInput(token, settings, backend, signal, { visit: async image => {
+                    for (const warning of image.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
                     if (merge) {
                         const composed = await compositeStoredMagick(base, image, backend, signal, 0, 0, "over");
                         await stack.set(0, { ...composed, hasAlpha: base.hasAlpha, channels: base.channels });

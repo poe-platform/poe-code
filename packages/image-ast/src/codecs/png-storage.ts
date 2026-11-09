@@ -95,14 +95,17 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
   if (!Number.isSafeInteger(source.size) || source.size < 24 || !isPngBytes(await range(source, 0, 8, signal))) throw new Error("Invalid PNG header");
   let header: Uint8Array | undefined, palette: Uint8Array | undefined, transparency: Uint8Array | undefined;
   for await (const chunk of chunks(source, signal)) {
-    if ((chunk.typeBytes[0]! & 32) === 0) {
+    if ((chunk.typeBytes[0]! & 32) === 0 || chunk.name === "tRNS") {
       let crc = pngCrc32(chunk.typeBytes);
       for (let offset = 0; offset < chunk.length; offset += 4096) {
         crc = pngCrc32(await range(source, chunk.start + offset, Math.min(4096, chunk.length - offset), signal), crc);
         if (offset % (64 * 4096) === 0) await defaultRuntime.yieldTurn(signal);
       }
       const checksum = await range(source, chunk.start + chunk.length, 4, signal);
-      if (crc !== new DataView(checksum.buffer).getUint32(0)) throw new Error(`PNG ${chunk.name} CRC mismatch`);
+      if (crc !== new DataView(checksum.buffer).getUint32(0)) {
+        if ((chunk.typeBytes[0]! & 32) === 0) throw new Error(`PNG ${chunk.name} CRC mismatch`);
+        continue;
+      }
     }
     if ((chunk.name.charCodeAt(0) & 32) === 0 && chunk.name !== "IHDR" && chunk.name !== "PLTE" && chunk.name !== "IDAT" && chunk.name !== "IEND") {
       throw new Error(`PNG unhandled critical chunk ${chunk.name}`);

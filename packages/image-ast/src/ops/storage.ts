@@ -64,6 +64,7 @@ export async function transformStoredImage(image:StoredRgbaImage, storage:ImageB
   const position=storage.allocate(width*height*4);
   const storedData16=image.storedData16?{position:storage.allocate(width*height*8),length:width*height*4}:undefined;
   const storedEvaluateSamples=image.storedEvaluateSamples===undefined?undefined:storage.allocate(width*height*32);
+  const storedHueSamples=image.storedHueSamples===undefined?undefined:storage.allocate(width*height*32);
   let work=0;
   const read=async(offset:number,length:number):Promise<Uint8Array>=>{
     signal.throwIfAborted();
@@ -84,7 +85,7 @@ export async function transformStoredImage(image:StoredRgbaImage, storage:ImageB
       const destinationX=transform===2 || transform===3?image.width-x-tileWidth:transform===5 || transform===8?y:transform===6 || transform===7?image.height-y-tileHeight:x;
       const destinationY=transform===3 || transform===4?image.height-y-tileHeight:transform===5 || transform===6?x:transform===7 || transform===8?image.width-x-tileWidth:y;
       const outputWidth=transform>=5?tileHeight:tileWidth,outputHeight=transform>=5?tileWidth:tileHeight;
-      for(const plane of [{source:image.position,target:position,stride:4},...(storedData16?[{source:image.storedData16!.position,target:storedData16.position,stride:8}]:[]),...(storedEvaluateSamples===undefined?[]:[{source:image.storedEvaluateSamples!,target:storedEvaluateSamples,stride:32}])]) {
+      for(const plane of [{source:image.position,target:position,stride:4},...(storedData16?[{source:image.storedData16!.position,target:storedData16.position,stride:8}]:[]),...(storedEvaluateSamples===undefined?[]:[{source:image.storedEvaluateSamples!,target:storedEvaluateSamples,stride:32}]),...(storedHueSamples===undefined?[]:[{source:image.storedHueSamples!,target:storedHueSamples,stride:32}])]) {
         const data=new Uint8Array(tileWidth*tileHeight*plane.stride);
         for(let row=0;row<tileHeight;row++) {
           const bytes=await read(plane.source+((sourceY+row)*image.width+left+x)*plane.stride,tileWidth*plane.stride);
@@ -103,5 +104,5 @@ export async function transformStoredImage(image:StoredRgbaImage, storage:ImageB
     }
     y+=tileHeight;
   }
-  return {...image,position,width,height,...(storedEvaluateSamples===undefined?{}:{storedEvaluateSamples}),...(storedData16?{storedData16}:{}),...(pageHeight===undefined?{}:{pageHeight}),...(operation.kind==="autoOrient"?{orientation:1}:{})};
+  return {...image,position,width,height,...(storedEvaluateSamples===undefined?{}:{storedEvaluateSamples}),...(storedHueSamples===undefined?{}:{storedHueSamples}),...(storedData16?{storedData16}:{}),...(pageHeight===undefined?{}:{pageHeight}),...(operation.kind==="autoOrient"?{orientation:1}:{})};
 }

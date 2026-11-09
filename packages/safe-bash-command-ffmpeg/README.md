@@ -102,6 +102,10 @@ Use `ebur128=dualmono=true` to compensate mono loudness for stereo playback;
 Stereo and multichannel measurements are unaffected.
 Numeric `peak=2` and `peak=3` also enable sample peaks; `peak=0`, `peak=1`,
 `peak=none`, and plain `ebur128` omit them. True peaks, video, and metadata options are unsupported.
+`ebur128=target=-16:scale=relative` reports M/S/I relative to the target in LU;
+`target` ranges from -23 to 0 LUFS (default -23), and `scale=absolute` (default)
+keeps measurements in LUFS. Scale aliases are `LUFS`/`0` and `LU`/`1`.
+The final summary always stays absolute; loudness range and sample peaks are unchanged.
 `loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json` normalizes mono or stereo
 samples and reports measured input/output loudness, peaks, range, and thresholds.
 Use `-ar 48000` to resample its 192 kHz output. Supports `I`, `TP`, `LRA`

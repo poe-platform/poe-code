@@ -1,5 +1,6 @@
 import type { MediaAudioData, MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 // BS.1770 K-weighting, 400 ms overlapping gates and 3 s loudness range.
 // Histogram resolution and reporting follow FFmpeg's ebur128 filter.
@@ -9,10 +10,26 @@ export async function* measureEbur128(
   timestamps?: { start: number; end: number; pts: number }[], startSample = 0
 ): AsyncGenerator<string> {
   let samplePeaks = false;
+  let target = -23;
+  let scale = 0;
   let frameLog = 32;
   let dualMono = false;
   let panLaw = -3.01029995663978;
   for (const option of options ? options.split(":") : []) {
+    if (option.startsWith("target=") || option.startsWith("scale=")) {
+      const key = option.slice(0, option.indexOf("="));
+      const value = parseFilterExpression(option.slice(key.length + 1), "ebur128",
+        key === "scale" ? { absolute: 0, LUFS: 0, relative: 1, LU: 1 } : {});
+      if (!Number.isFinite(value) || value < (key === "target" ? -23 : 0) || value > (key === "target" ? 0 : 1)) {
+        throw new Error(`ebur128: invalid ${key}`);
+      }
+      // AVOption integers round to nearest, with ties to even.
+      const lower = Math.floor(value);
+      const rounded = value - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(value);
+      if (key === "target") target = rounded;
+      else scale = rounded;
+      continue;
+    }
     if (option === "peak=sample" || option === "peak=2" || option === "peak=3") samplePeaks = true;
     else if (option === "peak=none" || option === "peak=0" || option === "peak=1") samplePeaks = false;
     else if (option === "framelog=info" || option === "framelog=32") frameLog = 32;
@@ -31,6 +48,7 @@ export async function* measureEbur128(
     } else throw new Error(`ebur128: unsupported option ${option}`);
   }
   const compensation = channels.length === 1 && dualMono ? -panLaw : 0;
+  const offset = scale === 1 ? target : 0;
   const mask = channelMask || [0, 4, 3, 7, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels.length];
   if (!mask) throw new Error("ebur128: unsupported channel layout");
   const weights: number[] = [];
@@ -124,7 +142,7 @@ export async function* measureEbur128(
     const timestamp = timestamps?.[timestampIndex];
     const time = (timestamp ? timestamp.pts + frame - timestamp.start : startSample + frame) / sampleRate;
     const timeText = String(Number(Math.abs(time) < 1 ? time.toPrecision(6) : time.toFixed(6)));
-    if (logLevel >= frameLog) yield `t: ${timeText.padEnd(10)} TARGET:-23 LUFS    M:${(windows[0]!.loudness + compensation).toFixed(1).padStart(6)} S:${(windows[1]!.loudness + compensation).toFixed(1).padStart(6)}     I:${integrated.toFixed(1).padStart(6)} LUFS       LRA:${(high - low).toFixed(1).padStart(6)} LU${samplePeaks ? `  SPK: ${state.map(s => db(s.peak)).join(" ")} dBFS` : ""}\n`;
+    if (logLevel >= frameLog) yield `t: ${timeText.padEnd(10)} TARGET:${target} LUFS    M:${(windows[0]!.loudness + compensation - offset).toFixed(1).padStart(6)} S:${(windows[1]!.loudness + compensation - offset).toFixed(1).padStart(6)}     I:${(integrated - offset).toFixed(1).padStart(6)} ${scale === 1 ? "LU" : "LUFS"}       LRA:${(high - low).toFixed(1).padStart(6)} LU${samplePeaks ? `  SPK: ${state.map(s => db(s.peak)).join(" ")} dBFS` : ""}\n`;
   }
   if (logLevel >= 32) yield `Summary:\n\n  Integrated loudness:\n    I:         ${integrated.toFixed(1)} LUFS\n    Threshold: ${(windows[0]!.threshold + compensation).toFixed(1)} LUFS\n\n  Loudness range:\n    LRA:       ${(high - low).toFixed(1)} LU\n    Threshold: ${(windows[1]!.threshold + compensation).toFixed(1)} LUFS\n    LRA low:   ${(low + compensation).toFixed(1)} LUFS\n    LRA high:  ${(high + compensation).toFixed(1)} LUFS${samplePeaks ? `\n\n  Sample peak:\n    Peak:      ${db(Math.max(...state.map(s => s.peak)))} dBFS` : ""}\n`;
 }

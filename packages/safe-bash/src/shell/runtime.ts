@@ -9139,7 +9139,9 @@ export class Runtime {
           } else if (guestArrays(state)) await this.prepareVariable(state, name, saved);
           locals!.set(name, saved);
           if (!enabled.has("I")) state.variableAttributes?.delete(name);
-          if (!assignments.has(name) && (match[2] === undefined || append) && !enabled.has("I")) {
+          // Function-call assignments remain visible through nested local declarations.
+          if (!assignments.has(name) && (match[2] === undefined || append) && !enabled.has("I")
+            && !state.locals.some(frame => frame.get(name)?.functionPrefix)) {
             if (name === "PIPESTATUS") state.variables[name] = "";
             else {
               delete state.variables[name];

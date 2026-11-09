@@ -11450,6 +11450,8 @@ const syncExtraRuntimeMethods = {
         if (allValidLocal && parsedLocals.length > 0) {
           if ((rawState.locals.length === 0 || isGlobalDecl) && !declAttr && parsedLocals.some(item => item.val === undefined && !rawState.variableAttributes?.has(item.name))) return undefined;
           const locals = (!isGlobalDecl && rawState.locals.length > 0) ? rawState.locals[rawState.locals.length - 1]! : undefined;
+          if (locals && parsedLocals.some(item => !locals.has(item.name) && (item.val === undefined || item.append)
+            && rawState.locals.some(frame => frame.get(item.name)?.functionPrefix))) return undefined;
           const computedVals: Array<string | undefined> = [];
           for (let idx = 0; idx < parsedLocals.length; idx++) {
             const item = parsedLocals[idx]!;

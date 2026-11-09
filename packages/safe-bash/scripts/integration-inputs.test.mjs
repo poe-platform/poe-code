@@ -867,6 +867,7 @@ function assertSource7Discovery(files) {
     "tests/shell/env-split-host.test.ts",
     "tests/shell/array-ifs-empty-fields.test.ts",
     "tests/shell/declare.test.ts",
+    "tests/shell/local-prefix.test.ts",
     "tests/shell/umask.test.ts",
     "tests/shell/command-portable-path.test.ts",
     "tests/shell/registered-command-paths.test.ts",

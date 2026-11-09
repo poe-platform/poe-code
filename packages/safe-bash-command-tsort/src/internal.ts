@@ -58,14 +58,17 @@ export function pathText(value: string): string {
   catch { throw new TsortError("filesystem paths must be valid UTF-8"); }
 }
 
-export function quote(value: string): string {
-  const escapes: Readonly<Record<string, string>> = { "\x07": "\\a", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t", "\v": "\\v", "\\": "\\\\", "'": "\\'" };
-  let result = "'";
+export function quote(value: string, env: CommandContext["env"]): string {
+  const locale = (env.LC_ALL || env.LC_CTYPE || env.LANG || "C").toUpperCase().split("@")[0]!;
+  const utf8 = locale.endsWith("UTF-8") || locale.endsWith("UTF8");
+  const escapes: Readonly<Record<string, string>> = { "\x07": "\\a", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t", "\v": "\\v", "\\": "\\\\", "'": utf8 ? "'" : "\\'" };
+  // Diagnostics use byte-valued strings, including the UTF-8 quotation marks.
+  let result = utf8 ? "\xe2\x80\x98" : "'";
   for (const character of value) {
     const code = character.charCodeAt(0);
     result += escapes[character] ?? (code >= 32 && code < 127 ? character : `\\${code.toString(8).padStart(3, "0")}`);
   }
-  return `${result}'`;
+  return result + (utf8 ? "\xe2\x80\x99" : "'");
 }
 
 export function fileQuote(value: string): string {

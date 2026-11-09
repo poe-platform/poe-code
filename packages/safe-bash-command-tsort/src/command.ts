@@ -35,7 +35,7 @@ export function createTsortCommand(options: TsortCommandsOptions = {}): CommandD
           files.push(argument);
           if (context.env.POSIXLY_CORRECT !== undefined) optionsEnded = true;
         }
-        if (files.length > 1) throw new TsortError(`extra operand ${quote(files[1]!)}`, true);
+        if (files.length > 1) throw new TsortError(`extra operand ${quote(files[1]!, context.env)}`, true);
         const reader = new Reader(files[0] ?? "-", lifecycle);
         await reader.open();
         exitCode = await sort(reader, lifecycle);

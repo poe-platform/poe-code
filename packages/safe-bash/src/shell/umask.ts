@@ -129,6 +129,8 @@ function parseMask(value: string, previous: number): number | undefined {
       let bits = 0;
       while (index < clause.length && !"+-=".includes(clause[index]!)) {
         const permission = clause[index++]!;
+        // Special bits are valid but do not affect the permission-bit mask.
+        if (permission === "s" || permission === "t") continue;
         if (permission === "r") bits |= 0o444;
         else if (permission === "w") bits |= 0o222;
         else if (permission === "x") bits |= 0o111;

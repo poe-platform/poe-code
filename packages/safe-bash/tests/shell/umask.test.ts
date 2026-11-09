@@ -696,6 +696,41 @@ test("umask conditional execute uses permissions before the entire symbolic expr
   } finally { await shell.dispose(); }
 });
 
+// Special-bit operands are accepted by GNU Bash 5.3, unlike Bash 5.2.
+for (const row of [
+  { operand: "a+s", mask: "0077", file: 0o600, directory: 0o700 },
+  { operand: "g+t", mask: "0077", file: 0o600, directory: 0o700 },
+  { operand: "a-st", mask: "0077", file: 0o600, directory: 0o700 },
+  { operand: "a=st", mask: "0777", file: 0o000, directory: 0o000 },
+  { operand: "g=st", mask: "0077", file: 0o600, directory: 0o700 },
+  { operand: "a+rwst", mask: "0011", file: 0o666, directory: 0o766 },
+  { operand: "u=rwxs,g=rt,o=t", mask: "0037", file: 0o640, directory: 0o740 },
+  { operand: "u-st+rx,g+st+r,o=st", mask: "0037", file: 0o640, directory: 0o740 },
+]) {
+  test(`umask accepts symbolic special bits in ${row.operand} under errexit`, async () => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      const result = await shell.exec(`set -e; umask 077; umask ${row.operand}; echo status:$?; umask; : > f; mkdir d`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `status:0\n${row.mask}\n`);
+      assert.equal((await fs.stat("/f")).mode & 0o7777, row.file);
+      assert.equal((await fs.stat("/d")).mode & 0o7777, row.directory);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("umask rejects invalid permissions after special bits without changing the mask", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  try {
+    const result = await shell.exec('umask 077; umask a+r,a+stq; status=$?; umask; exit "$status"');
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "0077\n");
+    assert.equal(result.stderr, "umask: a+r,a+stq: invalid mode\n");
+  } finally { await shell.dispose(); }
+});
+
 test("umask output and symbolic operations agree with Bash", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() });
   try {

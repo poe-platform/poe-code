@@ -6935,7 +6935,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         // Only the first x separates threshold components; subsequent x values are ignored.
         const values = (parts.length > 1 ? parts : raw.toLowerCase().split("x").slice(0, 2)).map(part => parseFloat(part) * scale);
         const thresh = values[0]!;
-        const thresholds = [thresh, values[1] ?? thresh, values[2] ?? thresh, values[3] ?? 65535];
+        const thresholds = [thresh, values[1] ?? thresh, values[2] ?? thresh, values[3] ?? 100 * scale];
         const isBlack = token === "-black-threshold";
         const channels = state.channels;
         apply = function* (im) {

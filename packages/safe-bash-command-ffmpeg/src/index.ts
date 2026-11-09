@@ -5528,6 +5528,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-hls_segment_type") {
             hlsSegmentType = args[++i];
+            if (hlsSegmentType === "0") hlsSegmentType = "mpegts";
+            else if (hlsSegmentType === "1") hlsSegmentType = "fmp4";
             if (hlsSegmentType !== "mpegts" && hlsSegmentType !== "fmp4") {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_segment_type\n"), context.signal);
               return { exitCode: 1 };

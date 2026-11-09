@@ -987,6 +987,20 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     pcmBytes = concatBytes(audioTrack!.samples.map(s => s.data));
 
     const fmt = new DataView(formatBytes.buffer, formatBytes.byteOffset, formatBytes.byteLength);
+    if (formatBytes.length >= 40 && fmt.getUint16(0, true) === 0xfffe && fmt.getUint32(24, true) === 1 &&
+        fmt.getUint16(18, true) <= fmt.getUint16(14, true)) {
+      // The codec width comes from valid bits, but copied packets retain their storage alignment.
+      const validBits = fmt.getUint16(18, true) || fmt.getUint16(14, true);
+      bitsPerSample = Math.ceil(validBits / 8) * 8;
+      const mask = fmt.getUint32(20, true);
+      const extensible = channels > 2 || sampleRate > 48000 || bitsPerSample > 16 ||
+        (mask !== 0 && mask !== (channels === 1 ? 4 : 3));
+      formatBytes = new Uint8Array(formatBytes.subarray(0, extensible ? 40 : 16));
+      const output = new DataView(formatBytes.buffer);
+      output.setUint16(0, extensible ? 0xfffe : 1, true);
+      output.setUint16(14, bitsPerSample, true);
+      if (extensible) output.setUint16(18, bitsPerSample, true);
+    }
     if (fmt.getUint16(0, true) === 85 && fmt.getUint32(8, true) === 0 && pcmBytes.length >= 4) {
       // WAV demuxing obtains a missing MP3 rate from the MPEG frame header.
       const header = new DataView(pcmBytes.buffer, pcmBytes.byteOffset, 4).getUint32(0);

@@ -9421,7 +9421,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const key = separator < 0 ? ["noise", "duration", "mono"][index] : option.slice(0, separator);
                           const value = separator < 0 ? option : option.slice(separator + 1);
                           if (key === "noise" || key === "n") {
-                            noise = value.endsWith("dB") ? 10 ** (Number(value.slice(0, -2)) / 20) : Number(value);
+                            noise = parseFilterExpression(value, "silencedetect", {});
                             if (!value || !Number.isFinite(noise) || noise < 0) throw new Error("silencedetect: invalid noise");
                           } else if (key === "duration" || key === "d") {
                             duration = parseHlsDuration(value);

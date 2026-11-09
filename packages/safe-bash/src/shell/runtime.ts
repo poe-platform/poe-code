@@ -9504,7 +9504,7 @@ export class Runtime {
         }
         return operator === "+" ? "" : value ?? "";
       }
-      this.requireParameter(value === undefined ? undefined : shellValueText(value), part.name, state, io, part.line);
+      if (!(part.length && binding?.assigned)) this.requireParameter(value === undefined ? undefined : shellValueText(value), part.name, state, io, part.line);
       if (part.length) return this.valueLength(value ?? "", state, io);
       if (part.substring) return this.substring(part, value, state, io);
       if (part.transform) return part.transform === "a" || part.transform === "A" || part.transform === "K" || part.transform === "k" ? this.variableMetaTransform(part, state, io) : value === undefined ? "" : this.transformValue(value, part.transform, state, io);

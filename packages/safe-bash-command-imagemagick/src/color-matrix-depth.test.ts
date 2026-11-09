@@ -10,7 +10,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
             ["1 0 0 0 1 0 0 0 1", [0x4321, 0x8765, 0xabcd, alpha]],
             ["0 1 0 1 0 0 0 0 1", [0x8765, 0x4321, 0xabcd, alpha]]
         ] as const) {
-            it.each(["-color-matrix", "-recolor"])(`${mode}, alpha=${alpha}: preserves native 16-bit samples for ${geometry} with %s`, async option => {
+            it(`${mode}, alpha=${alpha}: preserves native 16-bit samples for ${geometry} with -color-matrix`, async () => {
                 const samples = [0x4321, 0x8765, 0xabcd, alpha];
                 const input = encodeImage({ width: 1, height: 1,
                     data: Uint8Array.from(samples, value => Math.round(value / 257)),
@@ -19,7 +19,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
                 }, { format: "png" }).data;
                 const files = new Map([["in.png", input]]), fs = new MemoryFileSystem();
                 await fs.writeFile("/in.png", input);
-                const argv = ["in.png", option, geometry, "out.png"];
+                const argv = ["in.png", "-color-matrix", geometry, "out.png"];
                 const args = createCommandArguments(argv);
                 const result = mode === "command" ? await createMagickCommand().execute({
                     command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,

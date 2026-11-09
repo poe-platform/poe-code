@@ -6546,7 +6546,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             return { ...image, data, ...(data16 ? { data16 } : {}), hasAlpha, space: "srgb", channels: hasAlpha ? 4 : 3 };
         };
-    } else if (token === "-color-matrix" || token === "-recolor") {
+    } else if (token === "-recolor") {
+        throw new Error('option has been replaced \'-recolor\', use "-color-matrix"');
+    } else if (token === "-color-matrix") {
         highDepth = true;
         const matrix = tokens[++i] ?? "1,0,0 0,1,0 0,0,1";
         apply = image => applyMagickColorMatrixSteps(image, matrix, signal);
@@ -6999,7 +7001,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, ...(warning ? { warning } : {}), evaluate: token === "-color-matrix" || token === "-recolor" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, ...(warning ? { warning } : {}), evaluate: token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelSelections(expression: string): number[][] {
@@ -7908,7 +7910,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         const setting = applyMagickReadSetting(tokens, state, i);
-        if (setting === undefined && (t === "-solarize" || t === "-color-matrix" || t === "-recolor")) {
+        if (setting === undefined && (t === "-solarize" || t === "-color-matrix")) {
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : "1,0,0 0,1,0 0,0,1");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
@@ -9622,7 +9624,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, channels, signal), signal) : undefined);
             continue;
         }
-        if (!operandsOnly && (token === "-solarize" || token === "-color-matrix" || token === "-recolor")) {
+        if (!operandsOnly && (token === "-solarize" || token === "-color-matrix")) {
             const value = tokens[++i] ?? (token === "-solarize" ? "50%" : "1,0,0 0,1,0 0,0,1"), settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;

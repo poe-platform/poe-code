@@ -2,7 +2,7 @@ import { setPacketTimestamps } from "./setts.js";
 import { rechunkPcm } from "./pcm-rechunk.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { rewriteH264Sps } from "./h264-metadata.js";
-import { parseMp4Boxes, makeBox, decodeFourCC, parseAvcC, concatBytes, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { parseAdtsStream, parseMp4Boxes, makeBox, decodeFourCC, parseAvcC, concatBytes, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 /** Apply packet filters in command-line order, preserving packet payloads unless explicitly changed. */
 export function filterBitstream(tracks: readonly MediaTrack[], chain: string | undefined, budget: MediaBudgetTracker, type: "video" | "audio" | "subtitle" = "video", movieTimescale = 1000): readonly MediaTrack[] {
@@ -52,7 +52,17 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
           if (codec.codecName !== "aac") throw new Error(`aac_adtstoasc bitstream filter does not support codec ${codec.codecName}`);
         }
       }
-      // Demuxers already expose AAC access units and AudioSpecificConfig.
+      tracks = tracks.map(track => track.type !== type ? track : {
+        ...track,
+        samples: track.samples.map(sample => {
+          budget.checkCpu();
+          const data = sample.data;
+          if (data.length < 7 || data[0] !== 0xff || (data[1]! & 0xf6) !== 0xf0) return sample;
+          const frame = parseAdtsStream(data).frames[0];
+          if (!frame) throw new Error("aac_adtstoasc: invalid ADTS packet");
+          return { ...sample, data: frame, size: frame.length };
+        })
+      });
       continue;
     }
     if (filter === "chomp") {

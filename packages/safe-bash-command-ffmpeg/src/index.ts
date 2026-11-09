@@ -97,6 +97,7 @@ import {
   createSyntheticMp4,
   decodeH264Samples,
   decodeAacTrack,
+  parseAdtsStream,
   scaleVideoPicture,
   decodeUtf8,
   encodeUtf8,
@@ -6443,6 +6444,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id !== "wav")) {
           throw new Error("-fs currently requires WAV output with audio stream copy");
         }
+        const frameChecksumOutput = outputFormat === "framemd5" || outputFormat === "framehash" || outputFormat === "framecrc";
+        const checksumOutput = frameChecksumOutput || outputFormat === "streamhash" || outputFormat === "hash" || outputFormat === "md5" || outputFormat === "crc";
         const target = outputTarget;
         const progressOutputIndex = outputs.length;
         const firstOutput = outputs.length === 0;
@@ -7004,6 +7007,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 limits: options.limits,
                 budget
               });
+              if (plugin.id === "aac" && audioCodec === "copy" && checksumOutput) {
+                // Checksum muxers receive original ADTS packets; container muxers
+                // and decoders continue to receive raw AAC access units.
+                const packets = parseAdtsStream(rawBytes, true).frames;
+                return { ...document, tracks: document.tracks.map(track => {
+                  const timescale = 28224000; // FFmpeg's ADTS clock covers every AAC sample rate.
+                  const scale = timescale / track.timescale;
+                  return { ...track, timescale, duration: track.duration * scale,
+                    samples: track.samples.map((sample, index) => ({ ...sample,
+                      data: packets[index]!, size: packets[index]!.length,
+                      dts: sample.dts * scale, pts: sample.pts * scale,
+                      cts: sample.cts * scale, duration: sample.duration * scale
+                    })) };
+                }) };
+              }
               if (!ignoreEditList || (plugin.id !== "mp4" && plugin.id !== "mov")) return document;
               const tracks = document.tracks.map(track => ({ ...track, editList: undefined,
                 duration: track.samples.reduce((end, sample) => Math.max(end, sample.dts + sample.duration), 0)
@@ -7860,7 +7878,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               };
             }
 
-            const frameChecksumOutput = outputFormat === "framemd5" || outputFormat === "framehash" || outputFormat === "framecrc";
             const segmentPlugin = outputFormat === "segment"
               ? segmentFormat === undefined ? registry.findByFilename(outputTarget)
                 : (registry.findById(segmentFormat) ?? registry.findByFormatName(segmentFormat))
@@ -10509,7 +10526,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: decodeExitCode };
             }
 
-            const checksumOutput = frameChecksumOutput || outputFormat === "streamhash" || outputFormat === "hash" || outputFormat === "md5" || outputFormat === "crc";
             if (!checksumOutput && (!outPlugin || !outPlugin.canMux)) {
               const fmtDesc = outputFormat ?? outputTarget;
               throw new Error(

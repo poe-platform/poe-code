@@ -107,7 +107,7 @@ export function serializeFrameChecksum(
       : ["0 channels", "mono", "stereo", "2.1", "4.0", "5.0", "5.1", "6.1", "7.1"][channels] ?? `${channels} channels`;
     lines.push(`#tb ${index}: 1/${copy ? track.timescale : rate}`, `#media_type ${index}: audio`,
       `#codec_id ${index}: ${copy ? track.codecDescriptions[0]?.codecName : audioCodec ?? "pcm_s16le"}`,
-      `#sample_rate ${index}: ${rate}`, `#channel_layout_name ${index}: ${layout}`);
+      `#sample_rate ${index}: ${track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? rate}`, `#channel_layout_name ${index}: ${layout}`);
   }
   if (format !== "framecrc") lines.push("#stream#, dts,        pts, duration,     size, hash");
   const rows: { dts: number; rate: number; line: string }[] = [];

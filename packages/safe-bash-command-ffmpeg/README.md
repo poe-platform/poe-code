@@ -143,7 +143,9 @@ With `-c:a adpcm_ima_wav` or `-c:a flac`, stream hashes cover the encoder's comp
 Video with retained native pixel planes (including YUV420 Y4M input) is also supported: checksums cover frame pixels without container headers, and `streamhash` labels video streams with `v`.
 Hash selection supports CRC32, MD5, SHA160, SHA224, SHA256, SHA384, and SHA512. `hash` and `streamhash` also support case-insensitive `adler32` selection and emit the native lowercase `adler32` label.
 Audio filters and explicit PCM encoders apply before hashing; `-c:a copy` hashes
-the encoded audio packets. Use `-vn` to exclude video.
+the encoded audio packets. ADTS AAC stream-copy checksums include the original ADTS
+headers and use the native `1/28224000` packet time base; the reported audio sample
+rate remains the source sample rate. Use `-vn` to exclude video.
 Read headerless samples, including unsigned `u16le/be`, `u24le/be`, and `u32le/be`,
 with input format, rate, and channel options:
 `ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
@@ -620,7 +622,7 @@ MP4/MOV output `-movie_timescale N` sets the movie header timescale independentl
 
 MP4/MOV output accepts `-timecode 01:02:03:04`, `-metadata timecode=01:02:03:04`, and `-metadata:s:v:0 timecode=01:02:03:04`. These create a linked timecode track using the video frame rate; stream timecode overrides the global value.
 
-Audio `aac_adtstoasc` accepts AAC packets and rejects incompatible codecs such as PCM before writing output. AAC demuxers already provide raw access units and AudioSpecificConfig, so AAC stream-copy payloads remain unchanged.
+Audio `aac_adtstoasc` removes ADTS headers from AAC checksum packets and rejects incompatible codecs such as PCM before writing output. Raw AAC access units remain unchanged.
 
 Output `-avoid_negative_ts make_non_negative` shifts leading negative decode timestamps to zero; `make_zero` shifts the first decode timestamp to zero even when positive. All streams receive the same shift and stream-copy packet bytes are preserved, including AAC priming. `disabled` and the default `auto` retain existing MP4/MOV timestamp behavior. Numeric values `1`, `2`, `0`, and `-1` are also accepted, respectively. The option resets for each output.
 

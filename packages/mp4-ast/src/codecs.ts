@@ -1313,9 +1313,9 @@ export function wrapAdtsFrame(
 }
 
 /**
- * Parse an ADTS stream into raw AAC frames and AudioSpecificConfig parameters.
+ * Parse ADTS frames and AudioSpecificConfig parameters, optionally retaining packet headers.
  */
-export function parseAdtsStream(bytes: Uint8Array): {
+export function parseAdtsStream(bytes: Uint8Array, keepHeaders = false): {
   frames: Uint8Array[];
   sampleRate: number;
   channels: number;
@@ -1348,7 +1348,7 @@ export function parseAdtsStream(bytes: Uint8Array): {
     if (frameLength <= headerSize || offset + frameLength > bytes.byteLength) {
       break;
     }
-    frames.push(bytes.subarray(offset + headerSize, offset + frameLength));
+    frames.push(bytes.subarray(offset + (keepHeaders ? 0 : headerSize), offset + frameLength));
     offset += frameLength;
   }
 

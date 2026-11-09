@@ -5438,9 +5438,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
           } else if (arg === "-segment_list_type") {
-            const value = args[++i];
+            const type = args[++i];
+            const value = type === "ext" || type === "1" || type === "3" ? "csv" : type;
             if (value !== "flat" && value !== "csv") {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_list_type (expected flat or csv)\n"), context.signal);
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_list_type (expected flat, csv, ext, 1 or 3)\n"), context.signal);
               return { exitCode: 1 };
             }
             segmentListType = value;

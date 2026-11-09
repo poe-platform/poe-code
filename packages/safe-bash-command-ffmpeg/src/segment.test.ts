@@ -136,6 +136,17 @@ for (const [filename, type, csv] of [
   });
 }
 
+for (const type of ["csv", "ext", "1", "3"]) {
+  it(`writes escaped CSV to a .txt segment list for explicit type ${type}`, async () => {
+    const volume = source();
+    const result = await run(volume, ["-segment_list_type", type, "-segment_list", "/parts.txt"], '/q,"x"%02d.wav');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(volume.readFileSync("/parts.txt", "utf8"),
+      '"q,""x""00.wav",0.000000,2.048000\n"q,""x""01.wav",2.048000,3.000000\n');
+    assert.deepEqual(volume.readdirSync("/"), ["a.wav", "parts.txt", 'q,"x"00.wav', 'q,"x"01.wav']);
+  });
+}
+
 it("writes flat basenames verbatim and protects existing lists and input files", async () => {
   const volume = source();
   volume.mkdirSync("/segments");
@@ -152,7 +163,7 @@ it("writes flat basenames verbatim and protects existing lists and input files",
   assert.equal(volume.readFileSync("/list.txt", "utf8"), 'part,"00.wav\npart,"01.wav\n');
 });
 
-for (const type of ["", "invalid"]) {
+for (const type of ["", "invalid", "bogus"]) {
   it(`rejects invalid segment list type ${JSON.stringify(type)} without writes`, async () => {
     const volume = source();
     const before = volume.toJSON();

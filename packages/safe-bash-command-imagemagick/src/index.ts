@@ -9122,6 +9122,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-kuwahara") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const raw = tokens[++i] ?? "";
             validateMagickTransformGeometry(raw, t);
             const geometry = parseMagickGeometry(raw);
@@ -11300,6 +11301,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseMagickGeometry(tokens[++i] ?? ""), { background, virtualPixel, intensity } = state, channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, bilateralBlurPixelSteps(image, geometry, background, virtualPixel, channels, intensity), signal, { ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 }) : undefined);
         } else if (!operandsOnly && token === "-kuwahara") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const raw = tokens[++i] ?? "";
             validateMagickTransformGeometry(raw, token);
             const geometry = parseMagickGeometry(raw), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;

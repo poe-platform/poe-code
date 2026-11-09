@@ -1,7 +1,7 @@
 import { latin1Text } from "safe-bash-byte-engine";
 import { bytesFrom, concatBytes, filledBytes, equalBytes } from "safe-bash-byte-engine";
 import { getCommandArguments, type CommandDefinition } from "safe-bash-contracts";
-import { integer, options, UsageError, value } from "safe-bash-io-engine/internal";
+import { integer, options, UsageError } from "safe-bash-io-engine/internal";
 import { Pattern } from "safe-bash-regex-engine/text/regex";
 import { Budget } from "safe-bash-io-engine/commands/text-programs/shared";
 import { command, forEachRecord, type Session, type StreamFormatLimits } from "safe-bash-text-stream-engine/stream-format/shared";
@@ -65,6 +65,10 @@ export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinit
     const arguments_ = getCommandArguments(session.context);
     const styles = new Map<string, Uint8Array>();
     let separator = bytesFrom("\t");
+    let header: Style = "n", body: Style = "t", footer: Style = "n";
+    let start = 1n, increment = 1n;
+    let join = 1n;
+    let width = 6, format = "rn";
     const defaultDelimiter = bytesFrom("\\:");
     let delimiter: Uint8Array = defaultDelimiter;
     const parsed = options(session.context.args, "h:b:f:v:i:pl:s:w:n:d:", longOptions, false, undefined, (key, index, offset) => {
@@ -79,12 +83,22 @@ export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinit
         }
       }
       if (key === "h" || key === "b" || key === "f") styles.set(key, arguments_.bytes(index)!.subarray(offset));
+    }, (key, text) => {
+      if (text === undefined) return;
+      switch (key) {
+        case "h": header = style(text, styles.get(key)); break;
+        case "b": body = style(text, styles.get(key)); break;
+        case "f": footer = style(text, styles.get(key)); break;
+        case "v": start = signed(text); break;
+        case "i": increment = signed(text); break;
+        case "l": join = blankGroup(text); break;
+        case "w": width = integer(numericArgument(text), 1); break;
+        case "n":
+          if (!["ln", "rn", "rz"].includes(text)) throw new UsageError(`invalid line numbering format: '${text}'`);
+          format = text;
+          break;
+      }
     });
-    const header = style(value(parsed, "h") ?? "n", styles.get("h")), body = style(value(parsed, "b") ?? "t", styles.get("b")), footer = style(value(parsed, "f") ?? "n", styles.get("f"));
-    const start = signed(value(parsed, "v") ?? "1"), increment = signed(value(parsed, "i") ?? "1");
-    const join = blankGroup(value(parsed, "l") ?? "1"), width = integer(numericArgument(value(parsed, "w") ?? "6"), 1);
-    const format = value(parsed, "n") ?? "rn";
-    if (!["ln", "rn", "rz"].includes(format)) throw new UsageError(`invalid line numbering format: '${format}'`);
     session.check(width + separator.length, limits.maxRecordBytes, "number field");
     session.admitOutput(width + separator.length);
     const delimiters = [1, 2, 3].map(count => concatBytes(Array.from({ length: count }, () => delimiter)));

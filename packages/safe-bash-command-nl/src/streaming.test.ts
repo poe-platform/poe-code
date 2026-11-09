@@ -110,3 +110,47 @@ test("nl admits queued section delimiters against the shared quota", async () =>
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "\n\n\n");
 });
+
+for (const [short, long, invalid, valid] of [
+  ["b", "body-numbering", "bad", "a"],
+  ["h", "header-numbering", "bad", "a"],
+  ["f", "footer-numbering", "bad", "a"],
+  ["b", "body-numbering", "p[", "t"],
+  ["h", "header-numbering", "p[", "n"],
+  ["f", "footer-numbering", "p[", "n"],
+  ["n", "number-format", "bad", "rn"],
+  ["i", "line-increment", "bad", "1"],
+  ["v", "starting-line-number", "bad", "1"],
+  ["i", "line-increment", "9223372036854775808", "1"],
+  ["v", "starting-line-number", "-9223372036854775809", "1"],
+  ["w", "number-width", "0", "6"],
+  ["l", "join-blank-lines", "-1", "1"],
+] as const) test(`nl rejects overwritten --${long}=${invalid} before reading stdin`, async () => {
+  for (const args of [
+    [`-${short}`, invalid, `-${short}`, valid],
+    [`-${short}${invalid}`, `-${short}${valid}`],
+    [`--${long}=${invalid}`, `--${long}=${valid}`],
+    [`--${long}`, invalid, `--${long}`, valid],
+  ]) {
+    let consumed = false;
+    async function* input() {
+      consumed = true;
+      yield new TextEncoder().encode("A\n");
+    }
+    const result = await run(input(), {}, args);
+    assert.equal(result.exitCode, 1, args.join(" "));
+    assert.equal(result.stdout, "");
+    assert.ok(result.events.some(event => event.startsWith("err:nl:")));
+    assert.equal(consumed, false);
+  }
+});
+
+test("nl keeps the last valid value of every repeated numbering option", async () => {
+  const result = await run(toByteSource("\\:\\:\\:\nH\n\\:\\:\nA\n\n\n\\:\nF\n"), {}, [
+    "-hn", "--header-numbering=a", "-bn", "--body-numbering=a", "-fn", "--footer-numbering=a",
+    "-nln", "--number-format=rz", "-i1", "--line-increment=2", "-v1", "--starting-line-number=3",
+    "-w6", "--number-width=2", "-l1", "--join-blank-lines=2",
+  ]);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "\n03|H\n\n03|A\n   \n05|\n\n03|F\n");
+});

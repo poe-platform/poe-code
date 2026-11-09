@@ -35,6 +35,36 @@ for (const option of ["--num=rz", "--num rz", "--unknown"]) test(`nl command sub
   } finally { await instance.dispose(); }
 });
 
+for (const options of [
+  "-b bad -b a", "-h bad -h a", "-f bad -f a",
+  "-b 'p[' -b a", "-h 'p[' -h a", "-f 'p[' -f a",
+  "-n bad -n rn", "-i bad -i 1", "-v bad -v 1", "-w 0 -w 6", "-l -1 -l 1",
+]) test(`nl substitution rejects overwritten invalid options: ${options}`, async () => {
+  const instance = shell();
+  try {
+    for (const command of [
+      `nl ${options} /input`,
+      `nl ${options} < /input`,
+      `printf 'A\\n' | nl ${options}`,
+    ]) {
+      const result = await instance.exec(`printf 'A\\n' > /input; captured=$(${command}); status=$?; printf '<%s>' "$captured"; exit "$status"`);
+      assert.equal(result.exitCode, 1, command);
+      assert.equal(result.stdout, "<>");
+      assert.ok(result.stderr.startsWith("nl:"), result.stderr);
+    }
+  } finally { await instance.dispose(); }
+});
+
+test("nl substitution keeps valid repeated numbering options", async () => {
+  const instance = shell();
+  try {
+    const result = await instance.exec("captured=$(printf 'A\\nB\\n' | nl -bn -ba -hn -ha -fn -fa -nln -nrz -i1 -i2 -v1 -v3 -w6 -w2 -l1 -l2); printf '%s\\n' \"$captured\"");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "03\tA\n05\tB\n");
+    assert.equal(result.stderr, "");
+  } finally { await instance.dispose(); }
+});
+
 export const nlCases: readonly NativeCase[] = [
   { args: [], input: "a\n\nb\nlast" }, { args: ["-ba"], input: "\na\n\n" },
   { args: ["-bt"], input: " \n\t\n\n" }, { args: ["-bn"], input: "a\n\nb" },

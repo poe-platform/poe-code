@@ -1,3 +1,4 @@
+import { builtinPattern } from "./builtin-patterns.js";
 import { gradientRadii } from "./gradient-radii.js";
 import { gradientVector } from "./gradient-vector.js";
 import { gradientProjection } from "./gradient.js";
@@ -1655,7 +1656,7 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
     };
 }
 
-function* createCheckerboardImageSteps(width: number, height: number): Generator<void, RgbaImage, void> {
+function* createPatternImageSteps(width: number, height: number, pattern: ReturnType<typeof builtinPattern>): Generator<void, RgbaImage, void> {
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
@@ -1666,7 +1667,7 @@ function* createCheckerboardImageSteps(width: number, height: number): Generator
         for (let x = 0; x < w; x++) {
             if (++work % 16384 === 0)
                 yield;
-            const cell = ((Math.floor(x / 15) + Math.floor(y / 15)) & 1) === 0 ? 153 : 102;
+            const cell = pattern.gray(x, y);
             const idx = (y * w + x) * 4;
             data[idx] = cell;
             data[idx + 1] = cell;
@@ -5321,7 +5322,8 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return yield* applyMod([(yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientVector, state.gradientBoundingBox, state.gradientCenter, state.gradientRadii, state.gradientExtent))]);
     }
     if (lower.startsWith("pattern:") || lower.startsWith("plasma:")) {
-        return yield* applyMod([(yield* createCheckerboardImageSteps(state.sizeWidth, state.sizeHeight))]);
+        const pattern = builtinPattern(lower.startsWith("pattern:") ? baseToken.slice(8) : "checkerboard");
+        return yield* applyMod([(yield* createPatternImageSteps(state.hasSize || lower.startsWith("plasma:") ? state.sizeWidth : pattern.width, state.hasSize || lower.startsWith("plasma:") ? state.sizeHeight : pattern.height, pattern))]);
     }
     if (lower === "rose:" || lower === "logo:" || lower === "wizard:" || lower === "granite:") {
         return yield* applyMod([(yield* createRoseImageSteps())]);
@@ -10620,8 +10622,9 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white"),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   image={...await createStoredCanvas(width,height,color,backend,signal),hasAlpha:color.a<255,...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{})};
  }else if(lower.startsWith("gradient:")||lower.startsWith("radial-gradient:")||lower.startsWith("pattern:")||lower.startsWith("plasma:")){
-  const width=Math.max(1,Math.round(state.sizeWidth)),height=Math.max(1,Math.round(state.sizeHeight)),position=backend.storage.allocate(width*height*4);
-  const checker=lower.startsWith("pattern:")||lower.startsWith("plasma:"),radial=lower.startsWith("radial-gradient:");
+  const pattern=lower.startsWith("pattern:")?builtinPattern(baseToken.slice(8)):lower.startsWith("plasma:")?builtinPattern("checkerboard"):undefined;
+  const width=Math.max(1,Math.round(pattern&&!state.hasSize&&lower.startsWith("pattern:")?pattern.width:state.sizeWidth)),height=Math.max(1,Math.round(pattern&&!state.hasSize&&lower.startsWith("pattern:")?pattern.height:state.sizeHeight)),position=backend.storage.allocate(width*height*4);
+  const checker=!!pattern,radial=lower.startsWith("radial-gradient:");
   const storedData16=checker?undefined:{position:backend.storage.allocate(width*height*8),length:width*height*4};
   const [first,last]=baseToken.slice(baseToken.indexOf(":")+1).split("-"),a=parseColor(checker?"white":first||"#ffffff"),b=parseColor(checker?"black":last||"#000000");
   const cx=state.gradientCenter?.x??(width-1)/2,cy=state.gradientCenter?.y??(height-1)/2,axes=gradientRadii(width,height,state.gradientExtent,state.gradientRadii),box=state.gradientBoundingBox;
@@ -10632,7 +10635,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4);
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
-    if(checker){const cell=((Math.floor(x/15)+Math.floor(y/15))&1)===0?153:102;bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
+    if(pattern){const cell=pattern.gray(x,y);bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
     else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot((x-cx)/axes[0],(y-cy)/axes[1])):Math.max(0,Math.min(1,projection.offset+x*projection.x+y*projection.y));writeGradientPixel(bytes,samples!,offset,a,b,t);}
    }
    await backend.storage.write(position+start*4,bytes);

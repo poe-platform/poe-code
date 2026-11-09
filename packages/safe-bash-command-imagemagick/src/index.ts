@@ -1947,11 +1947,13 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 yield;
             const dstIdx = (y * outW + x) * 4;
             if ((x >= sx && x < sx + spliceWidth) || (y >= sy && y < sy + sh)) {
-                out[dstIdx] = Math.round(bg.r);
-                out[dstIdx + 1] = Math.round(bg.g);
-                out[dstIdx + 2] = Math.round(bg.b);
-                out[dstIdx + 3] = Math.round(bg.a);
-                if (data16) data16.set(background, dstIdx);
+                // Native region masks leave inserted columns unset; rows still use the background.
+                const unset = img.region && (y < sy || y >= sy + sh);
+                out[dstIdx] = unset ? 0 : Math.round(bg.r);
+                out[dstIdx + 1] = unset ? 0 : Math.round(bg.g);
+                out[dstIdx + 2] = unset ? 0 : Math.round(bg.b);
+                out[dstIdx + 3] = unset ? img.hasAlpha || bg.a < 255 ? 0 : 255 : Math.round(bg.a);
+                if (data16) data16.set(unset ? [0, 0, 0, out[dstIdx + 3]! * 257] : background, dstIdx);
             }
             else {
                 const origX = x < sx ? x : x - spliceWidth;
@@ -9568,6 +9570,21 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     }
     let work = 0;
     for (const plane of [{ source: image.position, target: position, stride: 4 }, ...(storedData16 ? [{ source: image.storedData16!.position, target: storedData16.position, stride: 8 }] : []), ...(storedEvaluateSamples === undefined ? [] : [{ source: image.storedEvaluateSamples!, target: storedEvaluateSamples, stride: 32 }])]) {
+        if (token === "-splice" && image.region) {
+            // Keep horizontal insertions colored, including their intersections with columns.
+            const start = xs[0]!.length, end = Math.min(width, xs[1]!.target);
+            const alpha = image.hasAlpha || background.a < 255 ? 0 : 255;
+            for (const y of ys) for (let row = 0; row < y.length; row++) {
+                for (let x = start; x < end; x += 4096) {
+                    if (work++ % 64 === 0) await yieldTurn(signal);
+                    const length = Math.min(4096, end - x) * 4;
+                    const samples = plane.stride === 32 ? new Float64Array(length)
+                        : plane.stride === 8 ? new Uint16Array(length) : new Uint8Array(length);
+                    for (let i = 3; i < length; i += 4) samples[i] = plane.stride === 8 ? alpha * 257 : alpha;
+                    await backend.storage.write(plane.target + ((y.target + row) * width + x) * plane.stride, new Uint8Array(samples.buffer));
+                }
+            }
+        }
         for (const y of ys) for (let row = 0; row < y.length; row++) for (const x of xs) {
             for (let offset = 0; offset < x.length; offset += 4096) {
                 if (work++ % 64 === 0) await yieldTurn(signal);

@@ -432,9 +432,10 @@ export function encodePngImage(
 
   const phys = new Uint8Array(9);
   const physView = new DataView(phys.buffer);
-  const ppu = Math.round(density / 0.0254);
-  physView.setUint32(0, resolution ? Math.round(resolution.x * scale) : ppu, false);
-  physView.setUint32(4, resolution ? Math.round(resolution.y * scale) : ppu, false);
+  // setUint32 truncates fractional pixels per meter, matching ImageMagick.
+  const ppu = density / 0.0254;
+  physView.setUint32(0, resolution ? resolution.x * scale : ppu, false);
+  physView.setUint32(4, resolution ? resolution.y * scale : ppu, false);
   phys[8] = resolution?.unit === "unknown" ? 0 : 1; // meter
 
   const orientation = options?.orientation ?? img.orientation;

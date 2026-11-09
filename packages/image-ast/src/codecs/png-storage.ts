@@ -254,7 +254,8 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   const resolution = options.density === undefined ? image.resolution : undefined;
   const scale = resolution?.unit === "inch" ? 1 / 0.0254 : resolution?.unit === "cm" ? 100 : 1;
   const physical = new Uint8Array(9), physicalView = new DataView(physical.buffer);
-  physicalView.setUint32(0,Math.round(resolution ? resolution.x * scale : density / 0.0254)); physicalView.setUint32(4,Math.round(resolution ? resolution.y * scale : density / 0.0254)); physical[8] = resolution?.unit === "unknown" ? 0 : 1;
+  // setUint32 truncates fractional pixels per meter, matching ImageMagick.
+  physicalView.setUint32(0,resolution ? resolution.x * scale : density / 0.0254); physicalView.setUint32(4,resolution ? resolution.y * scale : density / 0.0254); physical[8] = resolution?.unit === "unknown" ? 0 : 1;
   if (!options.omitPngResolution && (resolution !== undefined || options.density !== undefined)) {signal.throwIfAborted(); yield makeChunk("pHYs",physical);}
   if (image.virtualCanvas !== undefined) {signal.throwIfAborted(); yield canvasChunk(image.virtualCanvas);}
   for (const chunk of textChunks(image.properties)) {

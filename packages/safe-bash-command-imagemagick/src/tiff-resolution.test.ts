@@ -1,7 +1,38 @@
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { createCommandArguments } from "safe-bash-contracts";
 import { decodeImage, encodeImage } from "@poe-code/image-ast/portable";
-import { runConvertCli, runConvertCliSync } from "./index.js";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
+
+for (const mode of ["sync", "buffered", "retained", "command"] as const) {
+  it.each([[72, 2834], [80, 3149], [96, 3779], [100, 3937], [254, 10000]])(
+    `matches native TIFF inch resolution in PNG pHYs (${mode}, %i dpi)`, async (density, expected) => {
+      const pixels = Uint8Array.of(16, 32, 48, 255, 64, 80, 96, 255, 112, 128, 144, 255, 160, 176, 192, 255);
+      const { data } = encodeImage({ width: 2, height: 2, data: pixels, format: "tiff", space: "srgb",
+        channels: 3, depth: "uchar", density, hasAlpha: false,
+        resolution: { x: density, y: density, unit: "inch" } }, { format: "tiff" });
+      const files = new Map([["/input.tif", data]]), fs = new MemoryFileSystem();
+      await fs.writeFile("/input.tif", data);
+      const args = ["/input.tif", "/output.png"];
+      const result = mode === "command" ? await createMagickCommand().execute({ command: "magick",
+        args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} } })
+        : mode === "sync" ? runConvertCliSync(args, files)
+          : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = mode === "retained" || mode === "command" ? await fs.readFile("/output.png") : files.get("/output.png")!;
+      const png = new DataView(output.buffer, output.byteOffset, output.byteLength);
+      let physical: number[] | undefined;
+      for (let offset = 8; offset < output.length; offset += 12 + png.getUint32(offset)) {
+        if (new TextDecoder().decode(output.subarray(offset + 4, offset + 8)) === "pHYs") {
+          physical = [png.getUint32(offset + 8), png.getUint32(offset + 12), png.getUint8(offset + 16)];
+        }
+      }
+      expect(physical).toEqual([expected, expected, 1]);
+      expect(decodeImage(output)).toMatchObject({ width: 2, height: 2, data: pixels });
+    });
+}
 
 for (const mode of ["sync", "buffered", "retained"] as const) {
   it.each([false, true])(`preserves TIFF resolution presence through PNG conversion (${mode}, tags=%s)`, async tagged => {

@@ -3,7 +3,7 @@ import sharp from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runIdentifyCli, runIdentifyCliSync } from "./index.js";
 
-it.each([[72, "28.35"], [150, "59.06"], [300, "118.11"]] as const)(
+it.each([[72, "28.34"], [150, "59.05"], [300, "118.11"]] as const)(
   "reports native PNG resolution and units at %i DPI",
   async (density, resolution) => {
     const bytes = await sharp({ create: { width: 1, height: 1, channels: 3, background: "red" } })

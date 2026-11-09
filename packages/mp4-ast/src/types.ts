@@ -395,7 +395,7 @@ export interface MediaTrack {
   readonly volume?: number | undefined; // 0.0 .. 1.0
   readonly codecDescriptions: readonly MediaCodecDescription[];
   readonly editList?: readonly Mp4EditListEntry[] | undefined;
-  /** Sample count declared by the MP4 sample table, excluding fragments. */
+  /** Sample count declared by the container (MP4 sample table excluding fragments, or AIFF COMM). */
   readonly declaredSampleCount?: number | undefined;
   readonly samples: readonly MediaSample[];
   readonly metadata?: Readonly<Record<string, string>> | undefined;

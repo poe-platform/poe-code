@@ -9711,9 +9711,33 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           return offset;
                         });
-                        const length = (stretched[0]?.length ?? 0) + Math.max(0, ...offsets);
+                        const inputLength = stretched[0]?.length ?? 0;
+                        const padding = Math.min(...offsets);
+                        const length = inputLength + Math.max(0, ...offsets);
                         budget.checkDuration(length / origRate);
                         budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
+                        // adelay emits common silence in 2048-sample frames, then
+                        // preserves input frame sizes and flushes remaining channel delays.
+                        const previous = audioTimestamps;
+                        audioTimestamps = [];
+                        let nextPts = previous?.[0]?.pts ?? (t.samples[0] ? t.samples[0].pts * origRate / t.timescale : audioStartSample);
+                        for (let start = 0, n = 0; start < length;) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          let end: number;
+                          if (start < padding) end = Math.min(padding, start + 2048);
+                          else if (start < padding + inputLength) {
+                            const frame = previous?.[n];
+                            const packet = t.samples[n++];
+                            const count = frame ? frame.end - frame.start
+                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            nextPts = (frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start - padding)) + padding;
+                            end = Math.min(padding + inputLength, start + count);
+                          } else end = Math.min(length, start + 2048);
+                          budget.allocateMemory(24);
+                          audioTimestamps.push({ start, end, pts: nextPts });
+                          nextPts += end - start;
+                          start = end;
+                        }
                         stretched = await mapWork(stretched, async (channel, c) => {
                           const output = new Float32Array(length);
                           for (let start = 0; start < channel.length; start += 16384) {

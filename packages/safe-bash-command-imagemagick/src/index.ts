@@ -563,6 +563,7 @@ interface MagickState {
   label?: string;
   filenameLiteral?: boolean;
   optionProperties?: Record<string, string>;
+  distortViewport?: string;
   sizeWidth: number;
   sizeHeight: number;
   hasSize: boolean;
@@ -3258,7 +3259,7 @@ function parseMagickRotation(spec: string) {
         applies: (image: Pick<RgbaImage, "width" | "height">) => condition === ">" ? image.width > image.height : condition === "<" ? image.width < image.height : true
     };
 }
-function parseMagickWarpOperation(tokens: readonly string[], state: MagickState, start: number) {
+function parseMagickWarpOperation(tokens: readonly string[], state: MagickState, start: number, analysis: { warnings: string }) {
     const token = tokens[start]!;
     // Right angles retain the lossless pixel permutation; arbitrary rotations
     // use ImageMagick's best-fit SRT canvas and background virtual pixels.
@@ -3285,6 +3286,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (!["-shear", "-swirl", "-implode", "-wave", "-distort", "+distort"].includes(token)) return;
     let i = start;
     const distort = token === "-distort" || token === "+distort";
+    const viewport = distort ? state.distortViewport : undefined;
     if (distort && state.distortScale !== undefined) {
         const scale = Number.parseFloat(state.distortScale);
         if (!Number.isFinite(scale) || scale === 0) throw new Error("invalid argument for option distort:scale");
@@ -3300,6 +3302,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             return { ...plan, virtualCanvas: undefined, steps: shearPixelSteps(image, plan, background) };
         }
         let plan = magickWarpPlan(image, token, spec, args);
+        const samplingOrigin = plan?.virtualCanvas;
         if (plan && distort && image.virtualCanvas) {
             const page = image.virtualCanvas, origin = plan.virtualCanvas;
             // Scale the input page to the output raster; only best-fit retains
@@ -3310,6 +3313,26 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
                 x: origin ? page.x + origin.x : 0,
                 y: origin ? page.y + origin.y : 0
             } };
+        }
+        if (plan && viewport !== undefined) {
+            const geometry = parseMagickGeometry(viewport);
+            if ((!geometry.hasOffset && geometry.width === undefined && geometry.height === undefined) ||
+                ![...viewport].every(char => char.trim() === "" || "0123456789.eExX+-!<>^%@".includes(char)) ||
+                ![geometry.width ?? 1, geometry.height ?? 1, geometry.x, geometry.y].every(Number.isFinite)) {
+                analysis.warnings += `magick: invalid setting 'distort:viewport' '${viewport}'\n`;
+            } else {
+                const original = plan, origin = plan.virtualCanvas;
+                let width = Math.round(geometry.width ?? (geometry.height === undefined ? plan.width : 0)), height = Math.round(geometry.height ?? plan.height);
+                // Native cloning restores the source size if either dimension is zero.
+                if (width === 0 || height === 0) { width = image.width; height = image.height; }
+                const x = geometry.hasOffset ? Math.trunc(geometry.x) : origin?.x ?? 0, y = geometry.hasYOffset ? Math.trunc(geometry.y) : origin?.y ?? 0;
+                const dx = x - (samplingOrigin?.x ?? 0), dy = y - (samplingOrigin?.y ?? 0);
+                // Best-fit maps already include their page origin. Replace that
+                // origin for both sampling and filter derivatives.
+                plan = { ...plan, width, height, virtualCanvas: { width, height, x, y },
+                    map: (px, py) => original.map(px + dx, py + dy),
+                    ...(original.derivatives ? { derivatives: (px: number, py: number) => original.derivatives!(px + dx, py + dy) } : {}) };
+            }
         }
         if (plan && token === "-wave") {
             let color = backgroundExplicit ? background : image.backgroundColor ?? background;
@@ -7387,6 +7410,7 @@ if (t === "-seed") {
             }
             if (key === "distort:scale") delete state.distortScale;
             if (key === "sample:offset") delete state.sampleOffset;
+            if (key === "distort:viewport") delete state.distortViewport;
             if (key === "jpeg:arithmetic-coding") delete state.jpegArithmeticCoding;
             if (key === "jpeg:restart-interval") delete state.jpegRestartInterval;
             if (key === "jpeg:dct-method") delete state.jpegDctMethod;
@@ -7449,6 +7473,7 @@ if (t === "-seed") {
         }
         else if (t === "-define") {
             const defStr = tokens[++i] ?? "";
+            if (defStr.toLowerCase().startsWith("distort:viewport=")) state.distortViewport = defStr.slice("distort:viewport=".length);
             if (defStr.toLowerCase().startsWith("magnify:method=")) state.magnifyMethod = parseMagnifyMethod(defStr.slice("magnify:method=".length));
             const [filterKey, filterValue] = defStr.toLowerCase().split("=");
             if (filterKey === "distort:scale") state.distortScale = filterValue ?? "";
@@ -7809,7 +7834,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         const pixelOperation = setting === undefined ? parseMagickPixelOperation(tokens, state, i, signal) : undefined;
-        const warpOperation = setting === undefined ? parseMagickWarpOperation(tokens, state, i) : undefined;
+        const warpOperation = setting === undefined ? parseMagickWarpOperation(tokens, state, i, analysis) : undefined;
         const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
         if (setting !== undefined) {
             i = setting;
@@ -9473,7 +9498,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }
             continue;
         }
-        const warpOperation = operandsOnly ? undefined : parseMagickWarpOperation(tokens, state, i);
+        const warpOperation = operandsOnly ? undefined : parseMagickWarpOperation(tokens, state, i, analysis);
         if (warpOperation) {
             i = warpOperation.end;
             steps.push(async (image, backend) => {

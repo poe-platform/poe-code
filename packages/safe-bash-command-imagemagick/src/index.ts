@@ -696,6 +696,7 @@ interface MagickState {
   channels: { r: boolean; g: boolean; b: boolean; a: boolean };
   channelExplicit: boolean;
   channelSync: boolean;
+  channelDefault: boolean;
   intensity: string;
   precision?: number;
   connectedVerbose?: boolean;
@@ -751,6 +752,7 @@ function createDefaultState(): MagickState {
     channels: { r: true, g: true, b: true, a: false },
     channelExplicit: false,
     channelSync: true,
+    channelDefault: true,
     intensity: "rec709luma"
   };
 }
@@ -2244,17 +2246,18 @@ function formatSceneOutputPath(pattern: string, index: number, literal = false, 
   return `${path}-${index}`;
 }
 
-function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a: boolean; sync: boolean } {
-  const names: Record<string, string> = {
-    r: "r", red: "r", c: "r", cyan: "r", gray: "r", h: "r", hue: "r",
-    g: "g", green: "g", m: "g", magenta: "g", s: "g", saturation: "g",
-    b: "b", blue: "b", y: "b", yellow: "b", l: "b", lightness: "b",
-    a: "a", alpha: "a", o: "a",
-    all: "rgba", default: "rgbaS", sync: "S", k: "", black: "",
-    "0": "r", "1": "g", "2": "b", "3": "", "4": "a",
-    readmask: "", writemask: "", meta0: ""
+function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a: boolean; sync: boolean; default: boolean } {
+  // Native Default includes every channel bit; RGBA plus Sync is not equivalent.
+  const names: Record<string, number> = {
+    r: 1, red: 1, c: 1, cyan: 1, gray: 1, h: 1, hue: 1,
+    g: 2, green: 2, m: 2, magenta: 2, s: 2, saturation: 2,
+    b: 4, blue: 4, y: 4, yellow: 4, l: 4, lightness: 4,
+    a: 16, alpha: 16, o: 16,
+    all: 31, default: 0x7ffffff, sync: 0x20000, k: 8, black: 8,
+    "0": 1, "1": 2, "2": 4, "3": 8, "4": 16,
+    readmask: 64, writemask: 128, meta0: 256
   };
-  let selected = "";
+  let selected = 0;
   for (const part of spec.toLowerCase().split(spec.includes("|") ? "|" : ",")) {
     // Native consumes one name per delimiter; whitespace ends that name.
     const trimmed = part.trim();
@@ -2262,14 +2265,13 @@ function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a
     while (end < trimmed.length && trimmed[end]!.trim() !== "") end++;
     const token = trimmed.slice(0, end);
     if (token.startsWith("!") && Object.hasOwn(names, token.slice(1))) {
-      const excluded = names[token.slice(1)]!;
-      selected = [...selected].filter(channel => !excluded.includes(channel)).join("");
-    } else if (Object.hasOwn(names, token)) selected += names[token];
+      selected &= ~names[token.slice(1)]!;
+    } else if (Object.hasOwn(names, token)) selected |= names[token]!;
     else if (token.length > 0 && [...token].every(c => "rgbacmyko".includes(c))) {
-      for (const c of token) selected += names[c];
+      for (const c of token) selected |= names[c]!;
     } else throw new Error(`unrecognized channel type '${spec}'`);
   }
-  return { r: selected.includes("r"), g: selected.includes("g"), b: selected.includes("b"), a: selected.includes("a"), sync: selected.includes("S") };
+  return { r: !!(selected & 1), g: !!(selected & 2), b: !!(selected & 4), a: !!(selected & 16), sync: !!(selected & 0x20000), default: selected === 0x7ffffff };
 }
 
 function clampByteVal(n: number): number {
@@ -6776,7 +6778,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return field.endsWith("%") ? scalar / 100 * 65535 : scalar;
         });
         const value = thresholds[0]!;
-        const channels = state.channelExplicit ? state.channels : undefined;
+        const channels = state.channelDefault ? undefined : state.channels;
         apply = function* (image) {
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
@@ -7413,15 +7415,17 @@ if (t === "-seed") {
         }
         else if (t === "+intensity") { state.intensity = "rec709luma"; }
         else if (t === "-channel") {
-            const { sync, ...channels } = parseChannelMask(tokens[++i] ?? "rgb");
+            const { sync, default: defaultChannels, ...channels } = parseChannelMask(tokens[++i] ?? "rgb");
             state.channels = channels;
             state.channelSync = sync;
+            state.channelDefault = defaultChannels;
             state.channelExplicit = true;
         }
         else if (t === "+channel") {
             state.channels = { r: true, g: true, b: true, a: false };
             state.channelExplicit = false;
             state.channelSync = true;
+            state.channelDefault = true;
         }
         else if (t === "-depth") {
             state.inputDepth = Number(tokens[++i]);

@@ -308,6 +308,17 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
       ...(primingPackets ? { nb_read_frames: String(stats.count - primingPackets) } : {})
     };
   }
+  if (mode === 'packets') {
+    const { coverArt } = await probeMp4MetadataSource(source, maxDuration, work);
+    if (coverArt) {
+      budget.checkStreams(trackIndex + 1);
+      budget.checkSamples(1);
+      yield {
+        sample: { pts: 0, dts: 0, duration: 0, size: coverArt.size, offset: coverArt.offset, isKeyframe: true },
+        track: { index: trackIndex, type: 'video', timescale: 90000, width: coverArt.width, height: coverArt.height, codec: undefined }
+      };
+    }
+  }
   budget.checkDuration(maxDuration);
   return { duration: maxDuration, start: trackIndex ? formatStart : 0, presentationDuration: trackIndex ? Math.max(0, formatEnd - formatStart) : maxDuration, tracks: trackIndex };
 }

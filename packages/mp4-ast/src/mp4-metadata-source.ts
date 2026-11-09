@@ -10,7 +10,7 @@ type MetadataOptions = Pick<Mp4BoxScanOptions, 'budget' | 'signal' | 'checkpoint
 
 /** Probe-only tags and chapters. Caller retains the source until all field/row reads finish. */
 export async function probeMp4MetadataSource(source: MediaProbeSource, durationSeconds: number, options: MetadataOptions = {}): Promise<{
-  coverArt?: { width: number; height: number; codecName: string; size: number };
+  coverArt?: { width: number; height: number; codecName: string; size: number; offset: number };
   tags: MediaProbeSourceTags;
   chapters: AsyncIterable<MediaProbeSourceChapter>;
 }> {
@@ -52,7 +52,7 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
     }
   }
   const values: Partial<Record<keyof typeof mp4ProbeMetadataKeys, MediaProbeText | string>> = {};
-  let coverArt: { width: number; height: number; codecName: string; size: number } | undefined;
+  let coverArt: { width: number; height: number; codecName: string; size: number; offset: number } | undefined;
   if (ilst?.children) for await (const item of scanMp4Boxes(source, { ...ilst.children, ...work })) {
     const name = names.get([...item.type].reduce((index, char) => index * 256 + char.charCodeAt(0), 0));
     if (keys && name === undefined) continue;
@@ -83,7 +83,7 @@ export async function probeMp4MetadataSource(source: MediaProbeSource, durationS
       const image = await readImageMetadataFromSource({ size: length,
         async read(at, count) { return read(offset + at, Math.min(count, length - at)); }
       }, work.signal ?? new AbortController().signal);
-      coverArt = { width: image.width, height: image.height, codecName: type === 14 ? "png" : "mjpeg", size: length };
+      coverArt = { width: image.width, height: image.height, codecName: type === 14 ? "png" : "mjpeg", size: length, offset };
       continue;
     }
     // UTF-8 NUL is a single zero byte, so suffix trimming needs no resident decoded value.

@@ -723,7 +723,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       duration: Math.round(maxTrackSeconds * 90000), language: "und", enabled: true,
       width, height, disposition: { attached_pic: 1 },
       codecDescriptions: [{ formatFourCC: "\0\0\0\0", codecName, width, height }],
-      samples: [{ data, size: data.length, dts: 0, pts: 0, cts: 0, duration: 0,
+      samples: [{ data, size: data.length, offset: data.byteOffset - bytes.byteOffset, dts: 0, pts: 0, cts: 0, duration: 0,
         isKeyframe: true, sampleDescriptionIndex: 1 }]
     });
   }

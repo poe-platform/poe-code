@@ -33,6 +33,29 @@ for (const group of ["0", "1", "2", "9007199254740992", "9223372036854775807", "
   assert.equal(result.stdout, group === "0" || group === "1" ? "1|\n2|\n3|X\n" : group === "2" ? "  \n1|\n2|X\n" : "  \n  \n1|X\n");
 });
 
+for (const option of ["-h", "-b", "-f", "--header-numbering", "--body-numbering", "--footer-numbering"]) {
+  for (const [style, expected] of [
+    ["all", "1|A\n2|\n3|B\n"],
+    ["all!", "1|A\n2|\n3|B\n"],
+    ["text", "1|A\n  \n2|B\n"],
+    ["none", "  A\n  \n  B\n"],
+    ["p^A$", "1|A\n  \n  B\n"],
+  ] as const) test(`nl selects ${option} ${style} by its first character`, async () => {
+    const result = await run(toByteSource("\\:\\:\\:\nA\n\nB\n\\:\\:\nA\n\nB\n\\:\nA\n\nB\n"), {}, ["-hn", "-bn", "-fn", option, style]);
+    const sections = ["  A\n  \n  B\n", "  A\n  \n  B\n", "  A\n  \n  B\n"];
+    sections[option === "-h" || option === "--header-numbering" ? 0 : option === "-b" || option === "--body-numbering" ? 1 : 2] = expected;
+    assert.equal(result.exitCode, 0, result.events.join(""));
+    assert.equal(result.stdout, "\n" + sections.join("\n"));
+  });
+
+  for (const style of ["bogus", "", "All", "p["]) test(`nl rejects ${option} ${JSON.stringify(style)}`, async () => {
+    const result = await run(toByteSource("A\n"), {}, [option, style]);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.ok(result.events.some(event => event.startsWith("err:")));
+  });
+}
+
 test("nl flushes complete records before requesting another input chunk", async () => {
   let output = "";
   const values = createCommandArguments(["-w1", "-s|"]);

@@ -100,3 +100,24 @@ for (const second of ["beta\\n", ""]) {
     assert.deepEqual(substitution, direct);
   });
 }
+
+for (const [options, expected] of [
+  ["-h all -b text -f none", "\n1|A\n2|\n\n1|A\n  \n\n  A\n  \n"],
+  ["-hall! -bnone -ftext", "\n1|A\n2|\n\n  A\n  \n\n1|A\n  \n"],
+  ["--header-numbering=none --body-numbering=all! --footer-numbering=text", "\n  A\n  \n\n1|A\n2|\n\n1|A\n  \n"],
+  ["-hp'^A$' -btext -fnone", "\n1|A\n  \n\n1|A\n  \n\n  A\n  \n"],
+] as const) {
+  for (const input of ["/input", "< /input", "cat /input | "]) {
+    test(`nl substitution accepts extended numbering styles: ${options}, ${input}`, async () => {
+      const instance = shell();
+      try {
+        const page = "\\:\\:\\:\nA\n\n\\:\\:\nA\n\n\\:\nA\n\n";
+        const command = input.endsWith("| ") ? `${input}nl -w1 -s'|' ${options}` : `nl -w1 -s'|' ${options} ${input}`;
+        const result = await instance.exec(`printf '%s' '${page}' > /input; x=$(${command}); status=$?; printf '%s\\n' "$x"; exit "$status"`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, expected);
+      } finally { await instance.dispose(); }
+    });
+  }
+}

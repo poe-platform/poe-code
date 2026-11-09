@@ -16,7 +16,8 @@ class PatternBudget extends Budget {
 }
 
 function style(text: string): Style {
-  if (text === "a" || text === "t" || text === "n") return text;
+  const first = text[0];
+  if (first === "a" || first === "t" || first === "n") return first;
   if (text.startsWith("p")) return new Pattern(latin1Text(bytesFrom(text.slice(1))), false);
   throw new UsageError(`invalid numbering style: '${text}'`);
 }

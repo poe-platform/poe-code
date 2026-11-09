@@ -15,7 +15,7 @@ for (const retained of [false, true]) {
         }
         const input = retained ? { filesystem, cwd: "/" } : files;
         expect(await runCompareCli(["-metric", "PSNR", "a.png", "b.png", "null:"], input))
-            .toMatchObject({ exitCode: 1, stdout: "", stderr: "7.44727 (0.0620606)\n" });
+            .toMatchObject({ exitCode: 1, stdout: "", stderr: "7.44727 (0.0620606)" });
     });
 
     it(`matches ImageMagick's perfect PSNR for identical PNGs, retained=${retained}`, async () => {
@@ -27,9 +27,9 @@ for (const retained of [false, true]) {
         const input = retained ? { filesystem, cwd: "/" } : files;
         // ImageMagick 7.1.2 Q16-HDRI reports a capped PSNR and status 1.
         expect(await runCompareCli(["-metric", "PSNR", "a.png", "a.png", "null:"], input))
-            .toMatchObject({ exitCode: 1, stdout: "", stderr: "120 (1)\n" });
+            .toMatchObject({ exitCode: 1, stdout: "", stderr: "120 (1)" });
         expect(await runCompareCli(["-metric", "RMSE", "a.png", "a.png", "null:"], input))
-            .toMatchObject({ exitCode: 0, stdout: "", stderr: "0 (0)\n" });
+            .toMatchObject({ exitCode: 0, stdout: "", stderr: "0 (0)" });
     });
 }
 

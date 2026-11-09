@@ -25,7 +25,7 @@ for (const [first, second, ae, rmse] of cases) {
             const filesystem = new MemoryFileSystem();
             for (const [name, bytes] of animations) await filesystem.writeFile(`/${name}`, bytes);
             const args = ["-metric", metric!, first!, second!, "null:"];
-            const expected = { exitCode: value === "0 (0)" ? 0 : 1, stdout: "", stderr: `${value}\n` };
+            const expected = { exitCode: value === "0 (0)" ? 0 : 1, stdout: "", stderr: value };
             if (!native.error) {
                 const operands = [first!, second!].map(operand => {
                     const bracket = operand.indexOf("[");

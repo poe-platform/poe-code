@@ -20,7 +20,7 @@ for (const [name, a, b, metric] of [
             const args = ["-metric", "PHASH", "a.png", "b.png", "null:"];
             const result = mode === "sync" ? runCompareCliSync(args, files)
                 : await runCompareCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
-            expect(result.stderr).toBe(`${metric}\n`);
+            expect(result.stderr).toBe(metric);
             expect(result.exitCode).toBe(metric === "0 (0)" ? 0 : 1);
         });
     }
@@ -40,7 +40,7 @@ for (const retained of [false, true]) {
             for (const [path, bytes] of files) await filesystem.writeFile(`/${path}`, bytes);
             const result = await runCompareCli(["-metric", "PHASH", "a.png", "b.png", "null:"], retained ? { filesystem, cwd: "/" } : files);
             if (!retained) expect(runCompareCliSync(["-metric", "PHASH", "a.png", "b.png", "null:"], files)).toEqual(result);
-            expect(result.stderr).toBe(`${metric}\n`);
+            expect(result.stderr).toBe(metric);
             expect(result.exitCode).toBe(name === "identical" ? 0 : 1);
         });
     }

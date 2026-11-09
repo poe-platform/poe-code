@@ -45,7 +45,7 @@ for (const mode of ["sync", "async", "magick", "retained", "command"] as const) 
                     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
                     stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } })
                 : await runCompareCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
-            expect(mode === "command" ? { ...result, stdout, stderr } : result, args.join(" ")).toMatchObject({ exitCode: metric === "0 (0)" ? 0 : 1, stdout: "", stderr: `${metric}\n` });
+            expect(mode === "command" ? { ...result, stdout, stderr } : result, args.join(" ")).toMatchObject({ exitCode: metric === "0 (0)" ? 0 : 1, stdout: "", stderr: metric });
             const output = (mode === "retained" || mode === "command") ? await filesystem.readFile("/diff.ppm") : files.get("diff.ppm")!;
             expect(await sharp(output).metadata()).toMatchObject({ width, height });
         }

@@ -23,7 +23,7 @@ for (const metric of [undefined, "RMSE", "PAE", "PSNR", "AE"]) {
                     stdout: "",
                     stderr: `${metric === "AE" ? (tolerated ? "0 (0)" : "0.0784314 (0.0392157)")
                         : metric === "PAE" ? "20560 (0.313725)"
-                        : metric === "PSNR" ? "19.0999 (0.159166)" : "7269.06 (0.110919)"}\n`
+                        : metric === "PSNR" ? "19.0999 (0.159166)" : "7269.06 (0.110919)"}`
                 });
                 const diff = mode === "retained" ? await filesystem.readFile("/diff.png") : files.get("diff.png")!;
                 const pixels = await sharp(diff).ensureAlpha().raw().toBuffer();

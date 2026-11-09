@@ -12,7 +12,7 @@ for (const [blue, expected, status] of [[255, "0 (0) @ 1,1 [0]", 0], [240, "0.11
         const filesystem = new MemoryFileSystem();
         for (const [name, bytes] of files) await filesystem.writeFile(`/${name}`, bytes);
         const args = ["-metric", "AE", "-subimage-search", "a.png", "b.png", "diff.png"];
-        const result = { exitCode: status, stdout: "", stderr: `${expected}\n` };
+        const result = { exitCode: status, stdout: "", stderr: expected };
         expect(runCompareCliSync(args, files)).toMatchObject(result);
         expect(await runCompareCli(args, files)).toMatchObject(result);
         expect(await runCompareCli(args, { filesystem, cwd: "/" })).toMatchObject(result);
@@ -28,9 +28,9 @@ it("finds the reported one-pixel match and keeps ordinary comparisons unchanged"
     const b = await sharp(Buffer.from([0,0,255]), { raw: { width: 1, height: 1, channels: 3 } }).png().toBuffer();
     const files = new Map([["a.png", a], ["b.png", b]]);
     expect(await runCompareCli(["-metric", "AE", "-subimage-search", "a.png", "b.png", "null:"], files))
-        .toMatchObject({ exitCode: 0, stderr: "0 (0) @ 1,0 [0]\n" });
+        .toMatchObject({ exitCode: 0, stderr: "0 (0) @ 1,0 [0]" });
     expect(await runCompareCli(["-metric", "AE", "-subimage-search", "+subimage-search", "a.png", "b.png", "null:"], files))
-        .toMatchObject({ exitCode: 1, stderr: "1.33333 (0.444444)\n" });
+        .toMatchObject({ exitCode: 1, stderr: "1.33333 (0.444444)" });
     expect(await runCompareCli(["-subimage-search", "b.png", "a.png", "null:"], files))
         .toMatchObject({ exitCode: 2, stderr: "compare: geometry does not contain image 'b.png'\n" });
 });
@@ -39,7 +39,7 @@ it("keeps the first offset when multiple regions match", async () => {
     const a = await sharp({ create: { width: 3, height: 2, channels: 3, background: "blue" } }).png().toBuffer();
     const b = await sharp({ create: { width: 1, height: 1, channels: 3, background: "blue" } }).png().toBuffer();
     const result = await runCompareCli(["-metric", "AE", "-subimage-search", "a.png", "b.png", "null:"], new Map([["a.png", a], ["b.png", b]]));
-    expect(result).toMatchObject({ exitCode: 0, stderr: "0 (0) @ 0,0 [0]\n" });
+    expect(result).toMatchObject({ exitCode: 0, stderr: "0 (0) @ 0,0 [0]" });
 });
 
 const native = spawnSync("magick", ["-version"]);
@@ -51,7 +51,7 @@ it.skipIf(native.error !== undefined)("matches native search metrics for a multi
         const result = await runCompareCli(["-metric", metric, "-subimage-search", "a.png", "b.png", "null:"], new Map([["a.png", a], ["b.png", b]]));
         const reference = spawnSync("magick", ["compare", "-metric", metric, "-subimage-search", ...[a, b].map(bytes => `inline:data:image/png;base64,${Buffer.from(bytes).toString("base64")}`), "null:"], { encoding: "utf8" });
         expect(result.exitCode, metric).toBe(reference.status);
-        expect(result.stderr.split("\n")[0], metric).toBe(reference.stderr.split("compare:")[0]);
+        expect(result.stderr.split("compare:")[0], metric).toBe(reference.stderr.split("compare:")[0]);
         expect(result.stderr.includes("images too dissimilar"), metric).toBe(reference.stderr.includes("images too dissimilar"));
     }
 });
@@ -62,7 +62,7 @@ it("applies the dissimilarity warning threshold without hiding differences", asy
     for (const [threshold, warning] of [["0.6", true], ["70%", false]] as const) {
         const result = await runCompareCli(["-metric", "AE", "-subimage-search", "-dissimilarity-threshold", threshold, "a.png", "b.png", "null:"], new Map([["a.png", a], ["b.png", b]]));
         expect(result.exitCode).toBe(1);
-        expect(result.stderr.startsWith("0.666667 (0.666667) @ 0,0 [0.666667]\n")).toBe(true);
+        expect(result.stderr.startsWith("0.666667 (0.666667) @ 0,0 [0.666667]")).toBe(true);
         expect(result.stderr.includes("images too dissimilar")).toBe(warning);
     }
 });
@@ -77,7 +77,7 @@ for (const mode of ["sync", "async", "filesystem"] as const) {
             for (const [name, bytes] of files) await filesystem.writeFile(`/${name}`, bytes);
             const args = ["-metric", "RMSE", "-subimage-search", "a.png", "b.png", output];
             const result = mode === "sync" ? runCompareCliSync(args, files) : await runCompareCli(args, mode === "filesystem" ? { filesystem, cwd: "/" } : files);
-            expect(result).toMatchObject({ exitCode: 0, stdout: "", stderr: "0 (0) @ 1,0 [0]\n" });
+            expect(result).toMatchObject({ exitCode: 0, stdout: "", stderr: "0 (0) @ 1,0 [0]" });
             const read = async (name: string) => mode === "filesystem" ? filesystem.readFile(`/${name}`) : files.get(name)!;
             if (output.endsWith("png")) {
                 const prefix = output.includes("%") ? "o-0" : "o-";
@@ -128,7 +128,7 @@ it("fills the map after an exact match, including edge-extended offsets", async 
     const b = await sharp(Buffer.from([0,0,0, 128,128,128]), { raw: { width: 2, height: 1, channels: 3 } }).png().toBuffer();
     const files = new Map([["a.png", a], ["b.png", b]]);
     const result = await runCompareCli(["-metric", "RMSE", "-subimage-search", "a.png", "b.png", "o.png"], files);
-    expect(result).toMatchObject({ exitCode: 0, stderr: "0 (0) @ 0,0 [0]\n" });
+    expect(result).toMatchObject({ exitCode: 0, stderr: "0 (0) @ 0,0 [0]" });
     expect([...await sharp(files.get("o-1.png")!).ensureAlpha().raw().toBuffer()]).toEqual([255,255,255,255,127,127,127,255,54,54,54,255]);
 });
 

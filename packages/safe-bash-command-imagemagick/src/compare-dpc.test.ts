@@ -29,7 +29,7 @@ for (const retained of [false, true]) {
             const result = await runCompareCli(["-metric", "DPC", "a.png", "b.png", "null:"], retained ? { filesystem, cwd: "/" } : files);
             expect(runCompareCliSync(["-metric", "dpc", "a.png", "b.png", "null:"], files)).toEqual(result);
             expect(result.exitCode).toBe(exitCode);
-            expect(result.stderr).toBe(`${expected}\n`);
+            expect(result.stderr).toBe(expected);
         });
     }
 }

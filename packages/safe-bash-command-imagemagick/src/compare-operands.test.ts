@@ -25,7 +25,7 @@ for (const mode of ["buffered", "sync", "magick", "retained"] as const) {
     const explicit = await run(["/a.png", "/b.png", "null:"]);
     expect(explicit.exitCode).toBe(1);
     const frames = await run(["/pair.gif[0]", "/pair.gif[1]", "/expected.png"]);
-    expect(frames).toEqual({ exitCode: 1, stdout: "", stderr: "53509.1 (0.816497)\n" });
+    expect(frames).toEqual({ exitCode: 1, stdout: "", stderr: "53509.1 (0.816497)" });
     expect(await run(["/pair.gif", "/out.png"])).toEqual(frames);
     const output = mode === "retained" ? await fs.readFile("/out.png") : files.get("/out.png")!;
     const expected = mode === "retained" ? await fs.readFile("/expected.png") : files.get("/expected.png")!;

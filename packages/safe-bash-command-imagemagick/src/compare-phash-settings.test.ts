@@ -29,7 +29,7 @@ for (const [definitions, score] of [
         for (const identical of [false, true]) {
             const args = [...options, "a.png", identical ? "a.png" : "b.png", "null:"];
             const value = identical ? "0" : score;
-            const expected = { exitCode: identical ? 0 : 1, stdout: "", stderr: `${value} (${value})\n` };
+            const expected = { exitCode: identical ? 0 : 1, stdout: "", stderr: `${value} (${value})` };
             expect(runCompareCliSync(args, files)).toEqual(expected);
             expect(await runCompareCli(args, files)).toEqual(expected);
             expect(await runCompareCli(args, { filesystem, cwd: "/" })).toEqual(expected);

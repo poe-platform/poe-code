@@ -26,7 +26,7 @@ for (const [name, a, b, expected, status] of cases) {
         const args = ["-metric", "PHASE", "a.png", "b.png", "null:"];
         const result = await runCompareCli(args, files);
         expect(result.exitCode).toBe(status);
-        expect(result.stderr).toBe(`${expected}\n`);
+        expect(result.stderr).toBe(expected);
         if (!native.error) {
             const reference = spawnSync("magick", ["compare", "-metric", "PHASE", ...images.map(bytes => `inline:data:image/png;base64,${Buffer.from(bytes).toString("base64")}`), "null:"], { encoding: "utf8" });
             expect(result.stderr.trim()).toBe(reference.stderr.trim());

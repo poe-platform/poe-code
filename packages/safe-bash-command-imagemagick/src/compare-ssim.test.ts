@@ -20,7 +20,7 @@ for (const retained of [false, true]) {
                 await filesystem.writeFile(`/${name}`, bytes);
             const result = await runCompareCli(["-metric", "SSIM", "a.png", "b.png", "null:"], retained ? { filesystem, cwd: "/" } : files);
             expect(result.exitCode).toBe(identical ? 0 : 1);
-            expect(result.stderr).toBe(identical ? "0 (0)\n" : "106.146 (0.00161969)\n");
+            expect(result.stderr).toBe(identical ? "0 (0)" : "106.146 (0.00161969)");
         });
     }
 }

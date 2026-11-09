@@ -19,7 +19,7 @@ for (const custom of [false, true]) {
         const expected = custom ? [40, 50, 60, 153, 10, 20, 30, 102] : [255, 255, 255, 204, 241, 0, 30, 204];
         for (const input of [files, { filesystem, cwd: "/" }]) {
             expect(await runCompareCli([...options, "a.png", "b.png", "diff.png"], input))
-                .toMatchObject({ exitCode: 1, stderr: "0.254902 (0.127451)\n" });
+                .toMatchObject({ exitCode: 1, stderr: "0.254902 (0.127451)" });
             const output = input === files ? files.get("diff.png")! : await filesystem.readFile("/diff.png");
             expect(Array.from(await sharp(output).ensureAlpha().raw().toBuffer())).toEqual(expected);
         }

@@ -25,7 +25,7 @@ for (const [metric, stderr, exitCode] of [
         for (const [name, bytes] of files) await filesystem.writeFile(`/${name}`, bytes);
         for (const same of [false, true]) {
             const args = ["-metric", metric, "a.png", same ? "a.png" : "b.png", "null:"];
-            const expected = { exitCode: same ? 0 : exitCode, stdout: "", stderr: `${same ? "0 (0)" : stderr}\n` };
+            const expected = { exitCode: same ? 0 : exitCode, stdout: "", stderr: same ? "0 (0)" : stderr };
             const result = await runCompareCli(args, files);
             if (metric === "SSIM" && !same) {
                 // Floating-point cancellation affects the last scaled digits.
@@ -65,9 +65,9 @@ it("compares mixed depths and searches low-bit samples without truncating virtua
         ["-metric", "RMSE", "-subimage-search", "eight.png", "b.png", "diff.png"]
     ]) {
         const result = await runCompareCli(args, new Map(files));
-        if (!args.includes("-subimage-search")) expect(result).toMatchObject({ exitCode: 1, stderr: "0.707107 (1.07898e-05)\n" });
-        else if (args.includes("null:")) expect(result).toMatchObject({ exitCode: 0, stderr: "0 (0) @ 1,0 [0]\n" });
-        else expect(result).toMatchObject({ exitCode: 1, stderr: "1 (1.5259e-05) @ 0,0 [1.5259e-05]\n" });
+        if (!args.includes("-subimage-search")) expect(result).toMatchObject({ exitCode: 1, stderr: "0.707107 (1.07898e-05)" });
+        else if (args.includes("null:")) expect(result).toMatchObject({ exitCode: 0, stderr: "0 (0) @ 1,0 [0]" });
+        else expect(result).toMatchObject({ exitCode: 1, stderr: "1 (1.5259e-05) @ 0,0 [1.5259e-05]" });
         expect(runCompareCliSync(args, new Map(files))).toEqual(result);
         expect(await runCompareCli(args, { filesystem, cwd: "/" })).toEqual(result);
     }

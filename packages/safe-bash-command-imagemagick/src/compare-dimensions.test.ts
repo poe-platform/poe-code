@@ -16,7 +16,7 @@ for (const [width, height] of [[2, 2], [3, 1], [2, 3], [1026, 1]] as const) {
                 await filesystem.writeFile(`/${name}`, bytes);
             for (const input of [files, { filesystem, cwd: "/" }]) {
                 const result = await runCompareCli(["-metric", metric, "a.png", "b.png", "diff.png"], input);
-                expect(result).toMatchObject({ exitCode: 0, stderr: "0 (0)\n" });
+                expect(result).toMatchObject({ exitCode: 0, stderr: "0 (0)" });
                 const output = input === files ? files.get("diff.png")! : await filesystem.readFile("/diff.png");
                 expect(await sharp(output).metadata()).toMatchObject({ width: Math.max(3, width), height: Math.max(2, height) });
                 const pixels = await sharp(output).ensureAlpha().raw().toBuffer();
@@ -36,7 +36,7 @@ it("matches native edge pixels outside the overlap", async () => {
     const b = await sharp({ create: { width: 2, height: 1, channels: 3, background: "red" } }).png().toBuffer();
     for (const images of [[a, b], [b, a]]) {
         const result = await runCompareCli(["-metric", "AE", "a.png", "b.png", "null:"], new Map([["a.png", images[0]!], ["b.png", images[1]!]]));
-        expect(result).toMatchObject({ exitCode: 1, stderr: "0.666667 (0.222222)\n" });
+        expect(result).toMatchObject({ exitCode: 1, stderr: "0.666667 (0.222222)" });
         if (!native.error) {
             const reference = spawnSync("magick", ["compare", "-metric", "AE", ...images.map(bytes => `inline:data:image/png;base64,${Buffer.from(bytes!).toString("base64")}`), "null:"], { encoding: "utf8" });
             expect(reference.status).toBe(result.exitCode);

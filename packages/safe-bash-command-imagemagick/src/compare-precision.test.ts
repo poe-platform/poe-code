@@ -22,7 +22,7 @@ for (const [size, metric, expected, exitCode] of [
         const files = new Map([["a.png", images[0]!], ["b.png", images[1]!]]);
         const args = ["-metric", metric, "a.png", "b.png", "null:"];
         const result = await runCompareCli(args, files);
-        expect(result).toMatchObject({ exitCode, stdout: "", stderr: `${expected}\n` });
+        expect(result).toMatchObject({ exitCode, stdout: "", stderr: expected });
         expect(runCompareCliSync(args, files)).toEqual(result);
         expect(await runMagickCli(["compare", ...args], files)).toEqual(result);
         const filesystem = new MemoryFileSystem();
@@ -51,7 +51,7 @@ for (const [metric, a, b, expected] of [
             for (const [name, bytes] of files)
                 await filesystem.writeFile(`/${name}`, bytes);
             const result = await runCompareCli(["-metric", metric, "a.png", "b.png", "null:"], retained ? { filesystem, cwd: "/" } : files);
-            expect(result).toMatchObject({ exitCode: 1, stdout: "", stderr: `${expected}\n` });
+            expect(result).toMatchObject({ exitCode: 1, stdout: "", stderr: expected });
         });
     }
     it.skipIf(native.error !== undefined)(`verifies native ${metric} precision`, async () => {

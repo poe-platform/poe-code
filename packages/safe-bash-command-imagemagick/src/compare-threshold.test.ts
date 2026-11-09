@@ -23,9 +23,9 @@ for (const metric of metrics) {
                 expect(result).toEqual(baseline);
             }
             if (metric === "AE") {
-                expect(baseline.stderr).toBe("4 (0.666667)\n");
+                expect(baseline.stderr).toBe("4 (0.666667)");
                 const identical = await runCompareCli(["-metric", metric, "-dissimilarity-threshold", "1", "a.png", "a.png", "null:"], input);
-                expect(identical).toMatchObject({ exitCode: 0, stderr: "0 (0)\n" });
+                expect(identical).toMatchObject({ exitCode: 0, stderr: "0 (0)" });
             }
         }
     });

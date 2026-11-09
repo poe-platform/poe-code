@@ -17,11 +17,11 @@ for (const mode of ["sync", "memory", "retained", "magick"] as const) {
         const control = await run(["-format", "%[distortion]", "a.png", "b.png", "control.png"]);
         for (const [precision, metric] of [["1", "7e+03 (0.1)"], ["3", "7.27e+03 (0.111)"], ["6", "7269.06 (0.110919)"], ["8", "7269.0577 (0.11091871)"]] as const) {
             expect(await run(["-precision", precision, "-format", "%[distortion]", "a.png", "b.png", "diff.png"]))
-                .toEqual({ ...control, stderr: `${metric}\n` });
+                .toEqual({ ...control, stderr: metric });
             const read = (name: string) => mode === "retained" ? filesystem.readFile(`/${name}`) : files.get(name)!;
             expect(decodeImage(await read("diff.png"))).toEqual(decodeImage(await read("control.png")));
         }
-        expect(await run(["-precision", "3", "a.png", "a.png", "null:"])).toEqual({ exitCode: 0, stdout: "", stderr: "0 (0)\n" });
+        expect(await run(["-precision", "3", "a.png", "a.png", "null:"])).toEqual({ exitCode: 0, stdout: "", stderr: "0 (0)" });
     });
 }
 

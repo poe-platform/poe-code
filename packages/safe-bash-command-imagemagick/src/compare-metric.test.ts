@@ -59,7 +59,7 @@ for (const retained of [false, true]) {
                 const args = [...verbose, "a.png", "b.png", "null:"];
                 const expected = await runCompareCli(args, input);
                 expect(expected.exitCode).toBe(1);
-                if (verbose.length === 0) expect(expected.stderr).toBe("7269.06 (0.110919)\n");
+                if (verbose.length === 0) expect(expected.stderr).toBe("7269.06 (0.110919)");
                 expect(await runCompareCli(["-metric", "MAE", "-metric", metric, ...args], input)).toEqual(expected);
                 expect(runCompareCliSync(["-metric", metric, ...args], files)).toEqual(expected);
                 expect([...files.keys()]).toEqual(["a.png", "b.png"]);

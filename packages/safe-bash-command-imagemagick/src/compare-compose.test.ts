@@ -37,7 +37,7 @@ it("keeps recognized compare compose operators and existing aliases", async () =
         ...(!native.error ? native.stdout.trim().split("\n") : [])];
     for (const operator of operators) {
         const result = await runCompareCli(["-compose", operator, "a.png", "a.png", "null:"], files);
-        expect(result, operator).toMatchObject({ exitCode: 0, stderr: "0 (0)\n" });
+        expect(result, operator).toMatchObject({ exitCode: 0, stderr: "0 (0)" });
     }
 });
 
@@ -64,7 +64,7 @@ for (const retained of [false, true]) {
             for (const [name, bytes] of files) await filesystem.writeFile(`/${name}`, bytes);
             const input = retained ? { filesystem, cwd: "/" } : files;
             const baseline = await runCompareCli(["a.png", "b.png", "null:"], input);
-            expect(baseline).toEqual({ exitCode: 1, stdout: "", stderr: "7269.06 (0.110919)\n" });
+            expect(baseline).toEqual({ exitCode: 1, stdout: "", stderr: "7269.06 (0.110919)" });
             const result = await runCompareCli(["-compose", "Src", "-compose", mode!, "a.png", "b.png", "out.png"], input);
             expect(result).toEqual(baseline);
             const output = retained ? await filesystem.readFile("/out.png") : files.get("out.png")!;

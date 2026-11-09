@@ -25,7 +25,7 @@ for (const { a, b, fuzz, expected, status } of cases) {
             await fs.writeFile(`/${name}`, bytes);
         const args = ["-metric", "AE", "-fuzz", fuzz, "a.png", "b.png", "null:"];
         for (const input of [files, { filesystem: fs, cwd: "/" }])
-            expect(await runCompareCli(args, input)).toMatchObject({ exitCode: status, stdout: "", stderr: `${expected}\n` });
+            expect(await runCompareCli(args, input)).toMatchObject({ exitCode: status, stdout: "", stderr: expected });
     });
 }
 

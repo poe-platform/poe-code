@@ -24,7 +24,7 @@ for (const { args, pixels } of cases) {
             await fs.writeFile(`/${name}`, bytes);
         for (const input of [files, { filesystem: fs, cwd: "/" }]) {
             expect(await runCompareCli(["-metric", "AE", ...args, "a.png", "b.png", "diff.png"], input))
-                .toMatchObject({ exitCode: 1, stderr: "0.254902 (0.127451)\n" });
+                .toMatchObject({ exitCode: 1, stderr: "0.254902 (0.127451)" });
             expect([...decodeImage(input === files ? files.get("diff.png")! : await fs.readFile("/diff.png")).data]).toEqual(pixels);
         }
     });

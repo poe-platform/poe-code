@@ -24,7 +24,7 @@ for (const { channel, metric, pixels } of cases) {
         for (const [name, bytes] of files) await fs.writeFile(`/${name}`, bytes);
         for (const input of [files, { filesystem: fs, cwd: "/" }]) {
             expect(await runCompareCli(["-channel", channel, "a.png", "b.png", "diff.png"], input))
-                .toMatchObject({ exitCode: metric === "0 (0)" ? 0 : 1, stdout: "", stderr: `${metric}\n` });
+                .toMatchObject({ exitCode: metric === "0 (0)" ? 0 : 1, stdout: "", stderr: metric });
             const output = input === files ? files.get("diff.png")! : await fs.readFile("/diff.png");
             expect(Buffer.from(decodeImage(output).data).toString("hex")).toBe(pixels);
         }
@@ -33,7 +33,7 @@ for (const { channel, metric, pixels } of cases) {
 it("resets channel selection and rejects invalid channel names without writing output", async () => {
     const [a, b] = await images(), files = new Map([["a.png", a!], ["b.png", b!]]);
     expect(await runCompareCli(["-channel", "R", "+channel", "a.png", "b.png", "null:"], files))
-        .toMatchObject({ exitCode: 1, stderr: "7269.06 (0.110919)\n" });
+        .toMatchObject({ exitCode: 1, stderr: "7269.06 (0.110919)" });
     expect(await runCompareCli(["-channel", "bogus", "a.png", "b.png", "diff.png"], files))
         .toMatchObject({ exitCode: 2 });
     expect(files.has("diff.png")).toBe(false);
@@ -50,7 +50,7 @@ it("compares alpha changes and preserves alpha weighting for selected colors", a
     ]) {
         const files = new Map([["a.png", a!], ["b.png", b]]);
         expect(await runCompareCli(["-channel", channel!, "a.png", "b.png", "diff.png"], files))
-            .toMatchObject({ exitCode: 1, stderr: `${metric}\n` });
+            .toMatchObject({ exitCode: 1, stderr: metric });
         expect(Buffer.from(decodeImage(files.get("diff.png")!).data).toString("hex")).toBe(pixels);
     }
 });
@@ -77,7 +77,7 @@ for (const [metric, red, blue] of [
             const files = new Map([["a.png", a!], ["b.png", b!]]);
             const args = ["-metric", metric, "-channel", channel!, "a.png", "b.png", "null:"];
             expect(await runCompareCli(args, files)).toMatchObject({
-                exitCode: expected!.startsWith("0 (") ? 0 : 1, stderr: `${expected}\n`
+                exitCode: expected!.startsWith("0 (") ? 0 : 1, stderr: expected
             });
         }
     });

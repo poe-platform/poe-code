@@ -36,7 +36,7 @@ for (const retained of [false, true]) {
             const stderr = expected === "native" ? reference!.stderr.trim() : expected;
             if (reference) expect(reference.stderr.trim()).toBe(stderr);
             expect(await runCompareCli(args, retained ? { filesystem, cwd: "/" } : files))
-                .toEqual({ exitCode: 1, stdout: "", stderr: `${stderr}\n` });
+                .toEqual({ exitCode: 1, stdout: "", stderr });
         });
     }
 }

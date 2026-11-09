@@ -11351,7 +11351,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         ? imageDetails + `Image: ${refSpec}\n  Channel distortion: ${metricExplicit ? metric.toUpperCase() : "Undefined"}\n`
             + (metricExplicit ? `    all: ${metricStr}\n` : "")
             + `${refSpec}=>${outSpec} ${inferOutputFormat(outSpec, "png").format.toUpperCase()} ${width}x${height}\n`
-        : `${metricStr}\n`;
+        : metricStr;
     const comparisonStderr = inputErrors + diagnostics + (quiet ? "" : colorWarnings) + (subimageSearch && (metricExplicit ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
         ? `compare: images too dissimilar '${refSpec}'\n` : "");
     let stdout = "";

@@ -32,7 +32,7 @@ for (const mode of ["sync", "async", "magick", "retained", "command"] as const) 
                     cwd: "/", env: {}, fs, signal: new AbortController().signal, stdin: (async function* () {})(), stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
                     stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } })
                 : await runCompareCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-            expect(mode === "command" ? { ...result, stdout, stderr } : result, position).toMatchObject({ exitCode: 0, stdout: "", stderr: "0 (0)\n" });
+            expect(mode === "command" ? { ...result, stdout, stderr } : result, position).toMatchObject({ exitCode: 0, stdout: "", stderr: "0 (0)" });
             const output = mode === "retained" || mode === "command" ? await fs.readFile("/diff.png") : files.get("/diff.png")!;
             expect(decodeImage(output), position).toMatchObject({ width, height });
         }
@@ -53,7 +53,7 @@ for (const retained of [false, true]) {
             const filesystem = new MemoryFileSystem();
             for (const [path, bytes] of files) await filesystem.writeFile(path, bytes);
             expect(await runCompareCli(["-metric", "RMSE", "/input.tif", ...operations, "/reference.ppm", "/diff.png"],
-                retained ? { filesystem, cwd: "/" } : files)).toEqual({ exitCode: 0, stdout: "", stderr: "0 (0)\n" });
+                retained ? { filesystem, cwd: "/" } : files)).toEqual({ exitCode: 0, stdout: "", stderr: "0 (0)" });
             const output = retained ? await filesystem.readFile("/diff.png") : files.get("/diff.png")!;
             expect(decodeImage(output)).toMatchObject({ width, height });
             // The operator between inputs must not orient the later TIFF.

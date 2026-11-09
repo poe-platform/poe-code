@@ -21,7 +21,7 @@ for (const mode of ["sync", "memory", "retained", "magick"] as const) {
                 : runCompareCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files));
             expect(result).toEqual({
                 exitCode: 1, stdout: "",
-                stderr: "7269.06 (0.110919)\n" + (color === "bogus" ? "compare: unrecognized color `bogus'\n" : "")
+                stderr: "7269.06 (0.110919)" + (color === "bogus" ? "compare: unrecognized color `bogus'\n" : "")
             });
             const output = mode === "retained" ? await filesystem.readFile("/diff.png") : files.get("diff.png")!;
             expect([...decodeImage(output).data]).toEqual(pixels);

@@ -24,7 +24,7 @@ for (const [name, a, b, channels, expected, status] of [
         const args = ["-metric", "DSSIM", "a.png", "b.png", "null:"];
         const result = await runCompareCli(args, files);
         expect(result.exitCode).toBe(status);
-        expect(result.stderr).toBe(`${expected}\n`);
+        expect(result.stderr).toBe(expected);
         expect(runCompareCliSync(args, files)).toEqual(result);
         expect(await runCompareCli(args, { filesystem, cwd: "/" })).toEqual(result);
         if (!native.error) {

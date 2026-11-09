@@ -14,7 +14,7 @@ for (const entry of ["sync", "async", "filesystem", "magick"] as const) {
         const result = entry === "sync" ? runCompareCliSync(args, files)
             : entry === "magick" ? await runMagickCli(["compare", ...args], files)
             : await runCompareCli(args, entry === "filesystem" ? { filesystem, cwd: "/" } : files);
-        expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "0 (0) @ 1,0 [0]\ncompare: images too dissimilar 'a.png'\n" });
+        expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "0 (0) @ 1,0 [0]compare: images too dissimilar 'a.png'\n" });
         for (const [name, pixels] of [["o-0.png", "cfd2d6ffe6e9ecff"], ["o-1.png", "9e9e9effffffffff"]] as const) {
             const bytes = entry === "filesystem" ? await filesystem.readFile(`/${name}`) : files.get(name)!;
             expect([...await sharp(bytes).ensureAlpha().raw().toBuffer()]).toEqual([...Buffer.from(pixels, "hex")]);
@@ -32,7 +32,7 @@ it("stops after a qualifying row, independently of the dissimilarity warning", a
                 const result = await runCompareCli(["-metric", "RMSE", "-subimage-search", "-similarity-threshold", threshold, "-dissimilarity-threshold", warning ? "0" : "1", "a.png", "p.png", output], files);
                 const stopped = threshold === "0.1" || threshold === "10%";
                 expect(result.exitCode).toBe(stopped ? 1 : 0);
-                expect(result.stderr.split("\n")[0]).toBe(stopped ? "3561.1 (0.0543388) @ 0,0 [0.0543388]" : "0 (0) @ 0,1 [0]");
+                expect(result.stderr.split("compare:")[0]).toBe(stopped ? "3561.1 (0.0543388) @ 0,0 [0.0543388]" : "0 (0) @ 0,1 [0]");
                 expect(result.stderr.includes("images too dissimilar")).toBe(warning && stopped);
                 if (output !== "null:") {
                     const expected = stopped ? "f1f1f1fff1f1f1ff000000ff000000ff" : "f1f1f1fff1f1f1ffffffffffffffffff";
@@ -63,7 +63,7 @@ it("uses strict error thresholds and inclusive similarity thresholds", async () 
         ["AE", String(12 / 255), "0 (0) @ 1,1 [0]"]
     ] as const) {
         const result = await runCompareCli(["-metric", metric, "-subimage-search", "-similarity-threshold", threshold, "a.png", "p.png", "null:"], new Map([["a.png", a], ["p.png", p]]));
-        expect(result.stderr.split("\n")[0]).toBe(expected);
+        expect(result.stderr.split("compare:")[0]).toBe(expected);
     }
 });
 

@@ -16,7 +16,7 @@ for (const mode of ["sync", "memory", "retained"] as const) {
             const control = await run(["a.png", "b.png", "control.png"]);
             const formatted = await run(["-format", "%f %wx%h %[distortion]\\n", "a.png", "b.png", "formatted.png"]);
             const expected = identical ? "0" : "0.110919";
-            expect(formatted).toEqual({ exitCode: identical ? 0 : 1, stdout: `a.png 2x1 ${expected}\n`, stderr: identical ? "0 (0)\n" : "7269.06 (0.110919)\n" });
+            expect(formatted).toEqual({ exitCode: identical ? 0 : 1, stdout: `a.png 2x1 ${expected}\n`, stderr: identical ? "0 (0)" : "7269.06 (0.110919)" });
             expect(control).toEqual({ ...formatted, stdout: "" });
             const read = (name: string) => mode === "retained" ? filesystem.readFile(`/${name}`) : files.get(name)!;
             expect(decodeImage(await read("formatted.png"))).toEqual(decodeImage(await read("control.png")));
@@ -42,7 +42,7 @@ for (const magick of [false, true]) {
             let stderr = "";
             const result = await command.execute({ command: command.name, args: args.args, argumentValues: args, cwd: "/", env: {}, fs: filesystem, signal: new AbortController().signal, stdin: (async function* () {})(), stdout: { async write(bytes) { chunks.push(bytes.slice()); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
             expect(result).toEqual({ exitCode: 0 });
-            expect(stderr).toBe("0 (0)\n");
+            expect(stderr).toBe("0 (0)");
             expect(new TextDecoder().decode(chunks.at(-1))).toBe("distortion=0");
             if (output === "png:-") {
                 const image = Buffer.concat(chunks.slice(0, -1));

@@ -23,7 +23,7 @@ for (const mode of ["sync", "async", "retained", "command"] as const) {
                 stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
                 stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } })
             : await runCompareCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-        expect(mode === "command" ? { ...result, stdout, stderr } : result).toMatchObject({ exitCode: 0, stdout: "", stderr: "0 (0)\n" });
+        expect(mode === "command" ? { ...result, stdout, stderr } : result).toMatchObject({ exitCode: 0, stdout: "", stderr: "0 (0)" });
         expect(decodeImage(mode === "command" || mode === "retained" ? await fs.readFile("/diff.ppm") : files.get("/diff.ppm")!)).toMatchObject({ width: 3, height: 2 });
     });
 }
@@ -31,9 +31,9 @@ for (const mode of ["sync", "async", "retained", "command"] as const) {
 it("limits separation to the current nested group and keeps channel samples distinct", async () => {
     const files = new Map([["a.ppm", ppm], ["red.pgm", plane(0)]]);
     expect(await runCompareCli(["red.pgm", "(", "(", "a.ppm", "-channel", "R", "-separate", "+channel", ")", ")", "null:"], files))
-        .toMatchObject({ exitCode: 0, stderr: "0 (0)\n" });
+        .toMatchObject({ exitCode: 0, stderr: "0 (0)" });
     expect(await runCompareCli(["(", "a.ppm", "-channel", "G", "-separate", "+channel", ")", "red.pgm", "null:"], files))
-        .toMatchObject({ exitCode: 1, stderr: "2570 (0.0392157)\n" });
+        .toMatchObject({ exitCode: 1, stderr: "2570 (0.0392157)" });
 });
 
 it.each([["(", "a.ppm", "a.ppm"], ["a.ppm", ")", "a.ppm"]])("rejects unbalanced groups without replacing output: %j", async (...args) => {
@@ -85,9 +85,9 @@ it("matches the reported red and green planes and the changed red-plane RMSE", a
     const filesystem = new MemoryFileSystem();
     for (const [path, bytes] of files) await filesystem.writeFile(`/${path}`, bytes);
     for (const [input, channel, reference, stderr, exitCode] of [
-        ["a.ppm", "R", "red.pgm", "0 (0)\n", 0],
-        ["a.ppm", "G", "green.pgm", "0 (0)\n", 0],
-        ["b.ppm", "R", "red.pgm", "13429.7 (0.204925)\n", 1],
+        ["a.ppm", "R", "red.pgm", "0 (0)", 0],
+        ["a.ppm", "G", "green.pgm", "0 (0)", 0],
+        ["b.ppm", "R", "red.pgm", "13429.7 (0.204925)", 1],
     ] as const) {
         const args = ["-metric", "RMSE", "(", input, "-channel", channel, "-separate", "+channel", ")", reference, "diff.ppm"];
         expect(await runCompareCli(args, files)).toMatchObject({ exitCode, stderr });

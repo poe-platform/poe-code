@@ -25,7 +25,7 @@ for (const retained of [false, true]) {
                 await filesystem.writeFile(`/${name}`, bytes);
             const result = await runCompareCli(["-metric", "NCC", "a.png", "b.png", "null:"], retained ? { filesystem, cwd: "/" } : files);
             expect(result.exitCode).toBe(exitCode);
-            expect(result.stderr).toBe(`${expected}\n`);
+            expect(result.stderr).toBe(expected);
         });
     }
 }

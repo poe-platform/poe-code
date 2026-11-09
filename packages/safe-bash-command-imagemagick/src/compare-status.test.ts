@@ -23,7 +23,7 @@ for (const retained of [false, true]) {
             for (const [name, bytes] of files)
                 await filesystem.writeFile(`/${name}`, bytes);
             const result = await runCompareCli(["-metric", metric, "a.png", "b.png", "null:"], retained ? { filesystem, cwd: "/" } : files);
-            expect(result.stderr).toBe(`${stderr}\n`);
+            expect(result.stderr).toBe(stderr);
             expect(result.exitCode).toBe(exitCode);
         });
     }
@@ -50,7 +50,7 @@ for (const [size, step, metric, stderr, exitCode] of [
             await filesystem.writeFile(`/${name}`, bytes);
         for (const input of [files, { filesystem, cwd: "/" }]) {
             const result = await runCompareCli(["-metric", metric, "a.png", "b.png", "null:"], input);
-            expect(result.stderr).toBe(`${stderr}\n`);
+            expect(result.stderr).toBe(stderr);
             expect(result.exitCode).toBe(exitCode);
         }
     });

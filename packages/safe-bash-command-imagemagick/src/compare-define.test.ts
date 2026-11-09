@@ -14,7 +14,7 @@ for (const mode of ["sync", "memory", "retained"] as const) {
             for (const [name, bytes] of files) await filesystem.writeFile(`/${name}`, bytes);
             const args = ["-define", `png:color-type=${colorType}`, "a.png", "b.png", "out.png"];
             const result = mode === "sync" ? runCompareCliSync(args, files) : await runCompareCli(args, mode === "memory" ? files : { filesystem, cwd: "/" });
-            expect(result).toEqual({ exitCode: 1, stdout: "", stderr: "7269.06 (0.110919)\n" });
+            expect(result).toEqual({ exitCode: 1, stdout: "", stderr: "7269.06 (0.110919)" });
             const bytes = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
             expect(bytes[25]).toBe(colorType);
             // Native ImageMagick Q16-HDRI reference pixels.

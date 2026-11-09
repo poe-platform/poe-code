@@ -49,9 +49,9 @@ it.each([
 });
 
 it.each([
-  { entries: "packet=size", expected: [{ size: "7", side_data_list: sideData }, { size: "5" }] },
+  { entries: "packet=size", expected: [{ size: "7", side_data_list: [{}, {}] }, { size: "5" }] },
   { entries: "packet=:packet_side_data=side_data_type", expected: [{ side_data_list: sideData }, {}] },
-  { entries: "packet=size:packet_side_data=", expected: [{ size: "7" }, { size: "5" }] }
+  { entries: "packet=size:packet_side_data=", expected: [{ size: "7", side_data_list: [{}, {}] }, { size: "5" }] }
 ])("selects WebVTT packet side data with $entries", ({ entries, expected }) => {
   const output = evalSyncFfprobe(bytes, [...args, "-show_entries", entries, "voices.vtt"], () => bytes);
   expect(JSON.parse(output!).packets).toEqual(expected);

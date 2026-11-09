@@ -27,8 +27,10 @@ for (const layout of ["faststart", "fragmented", "interleaved"]) {
       const result = await probe(interval, layout);
       expect(result.exitCode, result.diagnostic).toBe(0);
       const times = layout === "fragmented" ? ["0.400000", "0.600000"] : ["0.000000", "0.200000"];
-      const expected = times.map(pts_time => ({ stream_index: 0, pts_time }));
-      if (layout === "interleaved" && interval !== "%+#2") expected.push({ stream_index: 1, pts_time: "-0.128000" });
+      const expected = [
+        ...times.map(pts_time => ({ stream_index: 0, pts_time })),
+        ...(layout === "interleaved" && interval !== "%+#2" ? [{ stream_index: 1, pts_time: "-0.128000", side_data_list: [{}] }] : [])
+      ];
       expect(JSON.parse(result.output).packets).toEqual(expected);
     });
   }

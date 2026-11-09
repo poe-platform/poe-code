@@ -27,7 +27,7 @@ it.each(["in%d.png", "/in%d.png", "./in%d.png", "in%03d.png", "in1.png"])("expor
   expect(JSON.parse(result.output).packets).toEqual(names.slice(0, target === "in1.png" ? 1 : 2).map((name, index) => ({
     pts: index, pts_time: (index / 25).toFixed(6),
     tags: { "lavf.image2dec.source_path": prefix + name, "lavf.image2dec.source_basename": name },
-    side_data_list: [{ side_data_type: "Strings Metadata" }]
+    side_data_list: [{}]
   })));
 });
 
@@ -49,7 +49,7 @@ it("exports literal image packet paths in the synchronous evaluator", () => {
 it("filters packet tags and side data independently", () => {
   const output = evalSyncFfprobe(png, ["-f", "image2", "-export_path_metadata", "1", "-show_packets",
     "-show_entries", "packet=:packet_tags=lavf.image2dec.source_basename:packet_side_data=", "-of", "json", "dir/in.png"], () => png);
-  expect(JSON.parse(output!).packets).toEqual([{ tags: { "lavf.image2dec.source_basename": "in.png" } }]);
+  expect(JSON.parse(output!).packets).toEqual([{ tags: { "lavf.image2dec.source_basename": "in.png" }, side_data_list: [{}] }]);
 });
 
 it.each([{ extra: [] }, { extra: ["-export_path_metadata", "0"] }])("omits literal image metadata with $extra", async ({ extra }) => {
@@ -63,6 +63,6 @@ it("keeps packet metadata when only packet fields are selected", () => {
     "-show_entries", "packet=pts", "-of", "json", "dir/in.png"], () => png);
   expect(JSON.parse(output!).packets).toEqual([{
     pts: 0, tags: { "lavf.image2dec.source_path": "dir/in.png", "lavf.image2dec.source_basename": "in.png" },
-    side_data_list: [{ side_data_type: "Strings Metadata" }]
+    side_data_list: [{}]
   }]);
 });

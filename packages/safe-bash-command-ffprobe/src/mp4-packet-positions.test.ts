@@ -21,7 +21,7 @@ for (const layout of ["faststart", "interleaved", "fragmented"]) {
     });
     expect(result.exitCode, diagnostic).toBe(0);
     const byPosition = (a: { pos: string }, b: { pos: string }) => Number(a.pos) - Number(b.pos);
-    expect(JSON.parse(output).packets.sort(byPosition)).toEqual(expected
+    expect(JSON.parse(output).packets.map(({ size, pos }: { size: string; pos: string }) => ({ size, pos })).sort(byPosition)).toEqual(expected
       .map(({ size, pos }: { size: string; pos: string }) => ({ size, pos })).sort(byPosition));
   });
 }

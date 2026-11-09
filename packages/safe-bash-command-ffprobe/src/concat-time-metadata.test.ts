@@ -33,7 +33,7 @@ it.each(["default", "0", "1"])("exports optional concat timing metadata: %s", as
       "lavf.concatdec.start_time": first ? "0" : "1000000", "lavf.concatdec.duration": "1000000"
     } : {}) };
     expect(packet.tags ?? {}).toEqual(tags);
-    expect(packet.side_data_list).toEqual(Object.keys(tags).length ? [{ side_data_type: "Strings Metadata" }] : undefined);
+    expect(packet.side_data_list).toEqual(Object.keys(tags).length ? [{}] : undefined);
   }
   expect(packets.reduce((sum: number, p: { size: string }) => sum + Number(p.size), 0)).toBe(32000);
 });

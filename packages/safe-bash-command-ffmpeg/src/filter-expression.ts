@@ -32,7 +32,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
         const args = [parse(0, depth + 1, evaluate)];
         while (source[offset] === ",") {
           offset++;
-          // Parse both branches, but only the selected branch may mutate registers.
+          // Validate both branches, but only evaluate the selected branch.
           const selected = name === "if" ? args[0] !== 0 : args[0] === 0;
           const evaluateArgument = evaluate && (!(name === "if" || name === "ifnot")
             || (args.length === 1 ? selected : !selected));
@@ -41,7 +41,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
         if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && filter !== "volume" && !((filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(arg)))) {
           throw new Error(`${filter}: invalid expression`);
         }
-        if (name === "val" && args.length === 1 && sampleValue) value = sampleValue(args[0]!);
+        if (name === "val" && args.length === 1 && sampleValue) value = evaluate ? sampleValue(args[0]!) : 0;
         else if (registers && ((name === "st" && args.length === 2) || (name === "ld" && args.length === 1))) {
           const index = Math.max(0, Math.min(9, Math.trunc(args[0]!) || 0));
           if (name === "st" && evaluate) registers[index] = args[1]!;
@@ -145,7 +145,8 @@ export function parseFilterExpression(expression: string, filter: string, variab
       else if (operator === "*") value *= right;
       else value /= right;
     }
-    return value;
+    // Discard skipped results before their parent validates function arguments.
+    return evaluate ? value : 0;
   }
   const angle = parse();
   if (offset !== source.length || (!Number.isFinite(angle) && filter !== "volume" && !((filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);

@@ -5568,7 +5568,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
           } else if (arg === "-hls_flags") {
-            const value = args[++i] ?? "";
+            const value = args[++i];
+            if (!value) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid HLS flags\n"), context.signal);
+              return { exitCode: 1 };
+            }
             if (!value.startsWith("+") && !value.startsWith("-")) {
               hlsDeleteSegments = false;
               hlsSingleFile = false;

@@ -7680,8 +7680,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (t === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
             const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const expandedKey = yield* formatMagickPropertyStringSteps(key, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                return key.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, key, expanded) };
+                return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             i++;
             continue;
@@ -9318,8 +9319,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const expandedKey = await formatRetainedIdentify(key, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                return key.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, key, expanded) };
+                return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             continue;
         }

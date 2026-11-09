@@ -35,3 +35,34 @@ for (const extension of ["png", "jpg", "gif", "tiff"]) {
     }
   }
 }
+
+for (const mode of ["buffered", "retained", "command"]) {
+  it(`expands property names against the current image through ${mode}`, async () => {
+    const fixture = spawnSync("magick", ["-size", "3x2", "xc:#c8591e", "-set", "note", "original", "png:-"]);
+    expect(fixture.status).toBe(0);
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", fixture.stdout);
+    await fs.writeFile("/output.png", new TextEncoder().encode("keep"));
+    const files = new Map([["/input.png", new Uint8Array(fixture.stdout)], ["/output.png", new TextEncoder().encode("keep")]]);
+    const edits = ["-set", "%[note]", "copied", "-set", "note", "updated", "-set", "%[note]", "%[original]-%w", "-set", "label", "%[updated]"];
+    const args = ["/input.png", ...edits, "/output.png"];
+    if (mode === "command") {
+      expect(await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} }
+      })).toMatchObject({ exitCode: 0 });
+    } else {
+      expect(await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files))
+        .toEqual({ exitCode: 0, stdout: "", stderr: "" });
+    }
+    const output = mode === "buffered" ? files.get("/output.png")! : await fs.readFile("/output.png");
+    const properties = spawnSync("magick", ["identify", "-quiet", "-format", "%[original]|%[updated]|%[label]", "-"], { input: output, encoding: "utf8" });
+    expect(properties.status, properties.stderr).toBe(0);
+    expect(properties.stdout).toBe("copied|copied-3|copied-3");
+    expect(Buffer.from(output).includes(Buffer.from("%[note]"))).toBe(false);
+    const pixels = spawnSync("magick", ["-", "-depth", "8", "rgb:-"], { input: output });
+    expect(pixels.status).toBe(0);
+    expect([...pixels.stdout]).toEqual(Array.from({ length: 6 }, () => [200, 89, 30]).flat());
+  });
+}

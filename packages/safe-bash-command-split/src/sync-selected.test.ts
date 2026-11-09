@@ -24,8 +24,10 @@ test("sync split falls back for binary and invalid UTF-8 selected chunks", () =>
 });
 
 test("shell capture preserves the BOM bytes in selected split chunks", async () => {
-  const shellSource = "../../safe-bash/src/core.js";
-  const { Shell, standardCommands } = await import(shellSource);
+  const shellSource = "../../safe-bash/src/shell/index.js";
+  const commandsSource = "../../safe-bash/src/commands/index.js";
+  const { Shell } = await import(shellSource);
+  const { standardCommands } = await import(commandsSource);
   const fs = createMemoryFileSystem();
   const shell = new Shell({ fs, cwd: "/" }).use(standardCommands()).use(splitCommands());
   try {

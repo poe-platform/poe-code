@@ -744,6 +744,9 @@ export interface SerializeMediaOptions {
   readonly writeXing?: boolean | undefined;
   /** DASH: emit master.m3u8 and per-representation HLS playlists using the same fragments. */
   readonly hlsPlaylist?: boolean | undefined;
+  /** DASH playback rate bounds (0.5–1.5, default: 1); reversed bounds are ignored. */
+  readonly minPlaybackRate?: number | undefined;
+  readonly maxPlaybackRate?: number | undefined;
   /** Maximum DASH timeline/list segments per representation; 0 retains all (default). */
   readonly windowSize?: number | undefined;
   /** Target DASH segment duration in seconds (default: 5); video cuts at keyframes. */

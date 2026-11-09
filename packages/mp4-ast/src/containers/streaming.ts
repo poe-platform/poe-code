@@ -424,6 +424,14 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   if (assigned.size !== doc.tracks.length) throw new Error("DASH adaptation_sets must assign every stream");
   const representations: string[][] = [];
   const adaptationAttributes: string[] = [];
+  const minPlaybackRate = options.minPlaybackRate ?? 1;
+  const maxPlaybackRate = options.maxPlaybackRate ?? 1;
+  for (const rate of [minPlaybackRate, maxPlaybackRate]) {
+    if (!Number.isFinite(rate) || rate < 0.5 || rate > 1.5) throw new Error("Invalid DASH playback rate");
+  }
+  const serviceDescription = minPlaybackRate <= maxPlaybackRate && (minPlaybackRate !== 1 || maxPlaybackRate !== 1)
+    ? [`<ServiceDescription id="0"><PlaybackRate min="${minPlaybackRate.toFixed(2)}" max="${maxPlaybackRate.toFixed(2)}"/></ServiceDescription>`]
+    : [];
   const windowSize = options.windowSize ?? 0;
   if (!Number.isInteger(windowSize) || windowSize < 0 || windowSize > 2_147_483_647) throw new Error("Invalid DASH window size");
   const segmentDuration = options.segmentDuration ?? 5;
@@ -656,6 +664,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     '<?xml version="1.0" encoding="utf-8"?>',
     `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" maxSegmentDuration="PT${segmentDuration.toFixed(6)}S" mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S" minBufferTime="PT${(2 * bufferDuration).toFixed(6)}S" profiles="${profileUrns}">`,
     ...(doc.metadata.title ? [`<ProgramInformation><Title>${doc.metadata.title.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</Title></ProgramInformation>`] : []),
+    ...serviceDescription,
     '<Period id="0" start="PT0S">'
   ];
   for (const adaptation of adaptations) {

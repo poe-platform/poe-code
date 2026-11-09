@@ -550,6 +550,7 @@ Use `-mpd_profile dvb_dash` to declare the DVB DASH profile, or `-mpd_profile da
 MP4 media chunks include a local `sidx` index covering their fragments. Use `-streaming 1` to omit indexes and write one fragment per frame (`0` is the default).
 Use `-frag_type every_frame` for one fragment per frame inside each media segment, keeping `-seg_duration` unchanged; `none` (default) writes one fragment per segment.
 Use `-use_template 0` for explicit `SegmentList` output; the default (`1`) retains `SegmentTemplate`.
+Use `-min_playback_rate 0.9` and/or `-max_playback_rate 1.1` to advertise playback bounds in DASH `ServiceDescription`. Each defaults to 1 and accepts 0.5–1.5; reversed bounds and the default 1/1 pair omit `PlaybackRate`.
 Use `-use_timeline 0` for fixed-duration templates without a timeline (`-seg_duration` defaults to 5 seconds); `1` retains the default timeline.
 Use `-remove_at_exit 1` to delete the generated manifest and media files when output finishes; the default (`0`) preserves them.
 Use `-window_size N` to retain the last N segments per representation in timelines and lists, with their original segment numbers; `0` (default) retains all. Fixed-duration templates keep their full presentation.

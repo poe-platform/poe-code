@@ -8767,12 +8767,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "aeval" || trimmed.startsWith("aeval=")) {
                         let expressions = "";
                         let layout = "";
+                        let enable: string | undefined;
                         for (const [index, option] of trimmed.slice("aeval=".length).split(":").entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["exprs", "channel_layout"][index] : option.slice(0, separator);
                           const value = separator < 0 ? option : option.slice(separator + 1);
                           if (key === "exprs") expressions = value;
                           else if (key === "channel_layout" || key === "c") layout = value;
+                          else if (key === "enable") enable = value;
                           else throw new Error(`aeval: unsupported option ${key}`);
                         }
                         const exprs = expressions.split("|").filter(Boolean);
@@ -8808,7 +8810,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const registers = Array.from({ length: count }, () => new Float64Array(10));
                         const variables = { PI: Math.PI, ch: 0, n: 0, t: 0, s: origRate, nb_in_channels: stretched.length, nb_out_channels: count };
                         const sampleValue = (channel: number) => stretched[Math.max(0, Math.min(stretched.length - 1, Math.trunc(channel)))]![variables.n]!;
+                        let frameEnd = 0;
+                        let frameIndex = 0;
+                        let enabled = true;
                         for (let i = 0; i < stretched[0]!.length; i++) {
+                          if (enable !== undefined && i >= frameEnd) {
+                            const packet = t.samples[frameIndex];
+                            const timestamp = audioTimestamps?.[frameIndex];
+                            const frameLength = timestamp ? timestamp.end - timestamp.start
+                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
+                            enabled = Math.abs(parseFilterExpression(enable, "aeval enable", {
+                              n: frameIndex, t: pts / origRate
+                            })) >= 0.5;
+                            frameEnd = i + frameLength;
+                            frameIndex++;
+                          }
                           if (i % 4096 === 0) {
                             await yieldTurn(context.signal);
                             context.signal?.throwIfAborted();
@@ -8818,7 +8835,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           variables.t = i / origRate;
                           for (let c = 0; c < count; c++) {
                             variables.ch = c;
-                            output[c]![i] = parseFilterExpression(exprs[Math.min(c, exprs.length - 1)]!, "aeval", variables, sampleValue, registers[c]);
+                            output[c]![i] = !enabled ? sampleValue(c) : parseFilterExpression(exprs[Math.min(c, exprs.length - 1)]!, "aeval", variables, sampleValue, registers[c]);
                           }
                         }
                         stretched = output;

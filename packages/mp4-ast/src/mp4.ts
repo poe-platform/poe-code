@@ -2514,6 +2514,14 @@ export function buildProbeResultFromDoc(
         : Math.max(0, Math.round((aacMediaStart - firstSample.pts) * (desc?.sampleRate ?? track.timescale) / track.timescale)),
       hasReorderedSamples: materialized.samples.some((sample, i, samples) => i > 0 && sample.pts < samples[i - 1]!.pts)
     }, idx, doc.containerFormat);
+    if (track.timecodeTrackId !== undefined && (doc.containerFormat === "mp4" || doc.containerFormat === "mov")) {
+      const target = doc.tracks.find(candidate => candidate.id === track.timecodeTrackId);
+      if (target?.codecDescriptions[0]?.formatFourCC === "tmcd") {
+        const sample = materializeTrackSamples(target).samples[0];
+        const timecode = sample && decodeMp4Timecode(target.codecDescriptions[0]?.extraData, sample.data);
+        if (timecode !== undefined) stream = { ...stream, tags: { ...stream.tags, timecode } };
+      }
+    }
     // Standalone WebVTT learns its start timestamp only when cues are read.
     if (doc.containerFormat === "webvtt" && (!firstSample || !(options.showPackets || options.showFrames))) {
       stream = { ...stream, start_pts: undefined, start_time: undefined };

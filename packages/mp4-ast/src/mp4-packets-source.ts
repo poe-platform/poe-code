@@ -1,4 +1,5 @@
 import { composeDisplayMatrices } from "./display-matrix.js";
+import { probeMp4TimecodeSource } from "./mp4-timecode-reference.js";
 import { decodeMp4Timecode } from "./mp4-timecode-sample.js";
 import { h264FieldOrderSteps } from './h264-field-order.js';
 import { buildProbeStream, type ProbeSampleStats } from './probe-stream.js';
@@ -280,6 +281,12 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
       }
     } finally {
       await decodeSamples?.return();
+    }
+    if (mode === 'streams' && codec?.formatFourCC !== 'tmcd') {
+      const reference = await first(await first(trak, 'tref'), 'tmcd');
+      if (reference && reference.payloadSize >= 4) {
+        timecode = await probeMp4TimecodeSource(source, moov, (await read(reference, 4)).readU32BE(), work);
+      }
     }
     if (mode === 'streams') yield {
       ...buildProbeStream({ ...track, duration: probeDuration, ...(timecode === undefined ? {} : { metadata: { timecode } }) }, codec, {

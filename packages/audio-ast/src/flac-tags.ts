@@ -11,17 +11,18 @@ export function flacFormatTagName(name: string): string {
 
 /** Container-facing tags, separate from the audio editor's normalized tags. */
 export function flacFormatTags(nodes: readonly AudioNode[]): AudioTags {
-  const tags: AudioTags = {};
+  const tags = new Map<string, [string, string]>();
   for (const node of nodes) {
     if (node.type !== "VORBIS_COMMENT") continue;
-    const block: AudioTags = {};
+    const block = new Map<string, [string, string]>();
     for (const comment of node.fields?.comments as string[] ?? []) {
       const split = comment.indexOf("=");
       if (split <= 0) continue;
       const key = flacFormatTagName(comment.slice(0, split)), value = comment.slice(split + 1);
-      Object.defineProperty(block, key, { value: Object.hasOwn(block, key) && block[key] ? `${block[key]};${value}` : value, enumerable: true, configurable: true });
+      const folded = key.toUpperCase(), previous = block.get(folded)?.[1];
+      block.set(folded, [key, previous ? `${previous};${value}` : value]);
     }
-    for (const [key, value] of Object.entries(block)) Object.defineProperty(tags, key, { value, enumerable: true, configurable: true });
+    for (const [key, entry] of block) tags.set(key, entry);
   }
-  return tags;
+  return Object.fromEntries(tags.values());
 }

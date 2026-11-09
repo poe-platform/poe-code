@@ -1,5 +1,5 @@
 import { encodeId3 } from "@poe-code/audio-ast";
-import { MediaBudgetTracker, type MediaAstPlugin, type MediaDocument, type ParseMediaOptions, type SerializeMediaOptions } from "../types.js";
+import { MediaBudgetTracker, type MediaAstPlugin, type MediaDocument, type MediaSample, type ParseMediaOptions, type SerializeMediaOptions } from "../types.js";
 import { buildProbeResultFromDoc, concatMp4, sliceMp4 } from "../mp4.js";
 import { rawAudioAsts } from "./raw-audio.js";
 import { parseImaQt } from "./aiff-ima.js";
@@ -85,8 +85,18 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   return { ...doc, duration: frames, durationSeconds: frames / sampleRate,
     tracks: doc.tracks.map(track => {
       const bytesPerFrame = channels * track.codecDescriptions[0]!.bitsPerSample! / 8;
-      return { ...track, duration: frames,
-        samples: track.samples.map(sample => ({ ...sample, offset: sample.data.byteOffset - bytes.byteOffset })),
+      // AIFF reads up to 4096 bytes, rounded down to complete sample frames.
+      const packetFrames = Math.max(1, Math.floor(4096 / bytesPerFrame));
+      budget.checkSamples(Math.ceil(sound.length / (packetFrames * bytesPerFrame)));
+      const samples: MediaSample[] = [];
+      for (let start = 0; start * bytesPerFrame < sound.length; start += packetFrames) {
+        budget.checkCpu();
+        const data = sound.subarray(start * bytesPerFrame, (start + packetFrames) * bytesPerFrame);
+        samples.push({ data, size: data.length, offset: data.byteOffset - bytes.byteOffset,
+          dts: start, pts: start, cts: 0, duration: Math.floor(data.length / bytesPerFrame),
+          isKeyframe: true, sampleDescriptionIndex: 1 });
+      }
+      return { ...track, duration: frames, samples,
         ...(options.decodeAudio !== false && sound.length % bytesPerFrame ? {
           decodeErrors: [`Invalid PCM packet: ${sound.length % bytesPerFrame} trailing bytes cannot form a ${bytesPerFrame}-byte sample frame`]
         } : {})

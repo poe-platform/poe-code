@@ -1574,9 +1574,6 @@ function* formatMagickPropertyStringSteps<Step=never>(
         parts.push(properties[`artifact:${key}`]!);
       } else if (Object.hasOwn(context.optionProperties ?? {}, key.startsWith("option:") ? key.slice(7) : key)) {
         parts.push(context.optionProperties![key.startsWith("option:") ? key.slice(7) : key]!);
-      } else if (key === "comment") {
-        if (context.analysis) context.analysis.warnings += `magick: unknown image property '${token}'\n`;
-        parts.push("");
       } else if (["mean", "min", "max", "median", "standard-deviation", "skewness", "kurtosis", "entropy", "opaque", "type", "bit-depth"].includes(key)) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
@@ -1626,8 +1623,8 @@ function* formatMagickPropertyStringSteps<Step=never>(
             parts.push(`${name}=${meta.properties![name]}\n`);
           }
         }
-      } else {
-        parts.push(token);
+      } else if (context.analysis) {
+        context.analysis.warnings += `magick: unknown image property '${token}'\n`;
       }
     }
   }

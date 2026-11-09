@@ -6720,13 +6720,26 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const value = tokens[++i] ?? "";
         const strength = [...value].filter(character => character.trim() !== "").join("");
-        const [red = 1, green = red, blue = red] = strength.split(",").map(part => {
+        const percentages = strength.replaceAll(":", ",").split(",").map(part => {
             const percent = part.endsWith("%") ? part.slice(0, -1) : part;
             if (!Number.isFinite(Number(percent)) || Number.parseFloat(percent) !== Number(percent)) {
                 throw new Error(`invalid argument '-tint' '${value}'`);
             }
-            return Number(percent) / 100;
+            return Number(percent);
         });
+        if (strength.includes(":")) {
+            // ParseGeometry normalizes a ratio before TintImage selects RGB strengths.
+            const leading = strength.split(",")[0]!;
+            const offset = leading.includes(":") ? leading[leading.indexOf(":") + 1] : undefined;
+            if (offset === "+") {
+                percentages[2] = percentages[1]!;
+                percentages[1] = percentages[0]!;
+            } else if (offset !== "-") {
+                percentages[0] = percentages[0]! / Math.max(percentages[1]!, 1e-12);
+                percentages[1] = percentages[2] === 0 ? 2 : 1;
+            }
+        }
+        const [red = 1, green = red, blue = red] = percentages.map(percent => percent / 100);
         const strengths = [red, green, blue];
         const fill = [state.fill.r, state.fill.g, state.fill.b];
         // ImageMagick subtracts the fill luminance even at zero strength.

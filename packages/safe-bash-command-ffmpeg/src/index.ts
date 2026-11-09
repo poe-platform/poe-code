@@ -9424,7 +9424,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (maxAudioFrames !== undefined && !resampleFrameLimit) {
                     let inputFrames = maxAudioFrames;
                     if ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") && maxAudioFrames > 0) {
-                      const channels = audioChannels === undefined || audioChannels === -1 ? stretched.length : audioChannels;
+                      const channels = audioChannels === undefined || audioChannels < 0 ? stretched.length : audioChannels;
                       const blockSamples = audioCodec === "adpcm_ms"
                         ? 2 + ((blockSize ?? 1024) - 7 * channels) * 2 / channels
                         : 1 + ((blockSize ?? 1024) - 4 * channels) * 2 / channels;
@@ -9460,7 +9460,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                   const origCh = stretched.length;
                   const targetRate = audioRate ?? origRate;
-                  const targetCh = audioChannels === -1 ? origCh : audioChannels ??
+                  const targetCh = audioChannels !== undefined && audioChannels < 0 ? origCh : audioChannels ??
                     ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") ? Math.min(origCh, 2) : origCh);
                   if ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") && targetCh > 2) {
                     throw new Error(`${audioCodec}: unsupported channel count ${targetCh}`);
@@ -9468,7 +9468,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   // FFmpeg guesses 2.1 for three-channel PCM without an explicit layout.
                   const channelMask = filteredChannelMask ?? (origCh === 3 ? 11 : undefined);
                   if (origCh === 2 && channelMask && channelMask !== 3 && channelMask !== 12 &&
-                      audioChannels !== undefined && audioChannels !== -1) {
+                      audioChannels !== undefined && audioChannels > 0) {
                     throw new Error(`Unsupported input channel layout (mask ${channelMask})`);
                   }
                   const centerLfe = origCh === 2 && channelMask === 12;
@@ -9697,7 +9697,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       sampleRate: targetRate,
                       channels: targetCh,
                       channelData: newChannelData,
-                      ...(targetCh === origCh && (audioChannels === undefined || audioChannels === -1) ? { channelMask } : {})
+                      ...(targetCh === origCh && (audioChannels === undefined || audioChannels < 0) ? { channelMask } : {})
                     }
                   };
                 }, context.signal)

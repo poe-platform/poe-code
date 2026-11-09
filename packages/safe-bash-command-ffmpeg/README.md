@@ -429,7 +429,7 @@ With `eval=frame`, a NaN gain becomes silence; `isnan()` can supply a fallback g
 `-filter:a:0 volume=0` (or `-af:0 volume=0`)
 mutes the first output audio stream; numeric audio selectors follow output mapping
 and leave nonmatching streams unchanged. Filtering a matching stream with `-c:a copy`
-fails without writing output. `-ac -1` retains the input channel count. `-ac 1` downmixes stereo and
+fails without writing output. Negative output `-ac` values retain the input channel count and layout. `-ac 1` downmixes stereo and
 5.1 WAV audio (back or side surrounds) using normalized FFmpeg weights, preserving
 center dialogue and omitting LFE. Stereo upmixing with `-ac 3` or `-ac 4` preserves
 left and right audio and leaves added channels silent. Other conversions from

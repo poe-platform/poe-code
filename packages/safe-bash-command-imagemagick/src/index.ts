@@ -5290,6 +5290,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     const lower = baseToken.toLowerCase();
     if (lower.startsWith("tile:")) {
+        if (!state.hasSize) throw new Error("must specify image size for TILE input");
         const patterns = (yield* parseInputOperandsSteps(baseToken.slice(5), files, state, stdinBytes));
         if (!patterns)
             return undefined;
@@ -10581,6 +10582,7 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
 async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
  const {baseToken,pageSpec,inlineGeom}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
  if(lower.startsWith("tile:")){
+  if(!state.hasSize)throw new Error("must specify image size for TILE input");
   if(readOptions.visit){
    await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{source:readOptions.source,visit:async pattern=>{image=await finish(await tile(pattern));await readOptions.visit!(image);}});
    return image;

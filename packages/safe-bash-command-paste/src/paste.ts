@@ -24,7 +24,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
   const limits = settings(options);
   return command("paste", limits, async (context, budget) => {
     const files: string[] = [];
-    const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
+    const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C";
     let serial = false, separator = 10, list = [Uint8Array.of(9)] as readonly Uint8Array[], literal = false;
     for (let index = 0; index < context.args.length; index++) {
       const token = context.args[index]!;

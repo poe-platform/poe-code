@@ -13,4 +13,6 @@ const result = await shell.exec("paste --help");
 
 With `POSIXLY_CORRECT` set, options must precede the first filename or `-` operand. `--` explicitly ends option parsing in either mode.
 
+Delimiter cycling uses `LC_ALL`, then `LC_CTYPE`, then `LANG` (skipping empty values). With no locale set, `C`, or `POSIX`, delimiters cycle byte by byte; an explicit UTF-8 locale keeps each character together.
+
 The module also exports `createPasteCommand`, its command-list factory, and typed options and limits.

@@ -3,6 +3,45 @@ import { test } from "node:test";
 import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
 
+for (const [values, word, expected] of [
+  ['"" ""', '$@${v}', []],
+  ['"" ""', '$*${v}', []],
+  ['"" ""', '${@:1}${v}', []],
+  ['"" ""', '${a[@]}${v}', []],
+  ['"" ""', '${a[*]}${v}', []],
+  ['"" ""', '${missing:-$@}${v}', []],
+  ['"" ""', '${missing:-$*}${v}', [""]],
+  ['"" ""', '${@:-x}${v}', []],
+  ['"" ""', '${v}', [""]],
+  ['"" ""', '$scalar${v}', [""]],
+  ['""', '$@${v}', [""]],
+  ['', '$@${v}', [""]],
+  ['"" "" ""', '$@${v}', []],
+  ['" " ""', '$@${v}', []],
+  ['" :"', '$@', []],
+  ['": :"', '$@', ["", ""]],
+  ['":" ""', '$@${v}', ["", ""]],
+  ['"" ":"', '$@${v}', [""]],
+  ['a ""', '$@${v}', ["a"]],
+  ['"" ""', '$@${v}${v}', [""]],
+  ['"" ""', '$@""${v}', [""]],
+  ['"" ""', '"$@"${v}', ["", ""]],
+  ['"" ""', '$@:${v}', [":"]],
+  ['"" ""', '${v}$@', [""]],
+] as const) {
+  for (const ifs of ['" :"', "$' :\\xff'"]) {
+    test(`list whitespace before delimiters: ${values}; ${word}; IFS=${ifs}`, async context => {
+      const { shell } = setup();
+      context.after(() => shell.dispose());
+      const source = `IFS=${ifs}; v=:; scalar=' '; set -- ${values}; a=("$@"); set -- ${word}; args "$@"`;
+      const result = await shell.exec(`for iteration in 1 2; do ${source}; done`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, JSON.stringify(expected).repeat(2));
+    });
+  }
+}
+
 for (const separator of ["@", "*"]) {
   for (const ifs of ["|", ":"]) {
     test(`array ${separator} preserves leading and middle empty fields with IFS=${ifs}`, async context => {

@@ -10363,7 +10363,8 @@ export class Runtime {
           field.quoteGroups.push(quoteGroup);
         }
       }};
-    const appendSplit = async (value: ShellValue): Promise<void> => {
+    // Lists retain a leading whitespace boundary, so a following delimiter cannot create an empty field there.
+    const appendSplit = async (value: ShellValue, list = false): Promise<void> => {
       this.budget.cpuCheckpoint();
       if (shellValueByteLength(value) === 0) return;
       const separators = state.variables.IFS ?? " \t\n";
@@ -10379,7 +10380,7 @@ export class Runtime {
       if (typeof value !== "string" || typeof retainedSeparators !== "string" || byteSeparators) {
         for await (const piece of this.splitRawValue(value, retainedSeparators, io, byteLocale(state.variables))) {
           if (piece.separator) {
-            if (!piece.whitespace) { splitBoundary = false; fields.at(-1)!.present = true; addField(); } else if (fields.at(-1)!.present) splitBoundary = true;
+            if (!piece.whitespace) { fields.at(-1)!.present ||= !splitBoundary; addField(); } else if (fields.at(-1)!.present || list && fields.length === 1) splitBoundary = true;
           } else {
             if (splitBoundary) addField();
             splitBoundary = false;
@@ -10412,10 +10413,9 @@ export class Runtime {
         const point = typeof piece === "string" ? piece.codePointAt(0) : undefined;
         if (typeof piece === "string" && point !== undefined && piece.length === (point > 0xffff ? 2 : 1) && points.has(point)) {
           if (!" \t\n".includes(piece)) {
-            splitBoundary = false;
-            fields.at(-1)!.present = true;
+            fields.at(-1)!.present ||= !splitBoundary;
             addField();
-          } else if (fields.at(-1)!.present) splitBoundary = true;
+          } else if (fields.at(-1)!.present || list && fields.length === 1) splitBoundary = true;
         } else {
           if (splitBoundary) addField();
           splitBoundary = false;
@@ -10497,7 +10497,7 @@ export class Runtime {
       } else if (part.kind === "variable" && (split || io.nameExpansionContext === "case" && part.quoted && selector && selector.kind !== "element" && selector.separator === "@") && expandMembers && (part.quoted || state.variables.IFS === "" || !memberPatternOperators.includes(part.operator ?? "")) && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@" || (part.substring || !part.operator && !part.transform && !part.length) && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
         const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
         if (selector?.kind === "members" && !part.quoted && state.variables.IFS !== "" && !part.transform && !part.operator) {
-          await appendSplit(await this.arrayJoin(requireArrays(state).owner, members, this.ifsSeparator(state, partIO)));
+          await appendSplit(await this.arrayJoin(requireArrays(state).owner, members, this.ifsSeparator(state, partIO)), true);
           continue;
         }
         const patternScope = this.budget.values.scope();
@@ -10534,7 +10534,7 @@ export class Runtime {
       } else {
         const value = part.kind === "text" ? part.byteValue ?? part.value : await this.valuePart(part, state, partIO, hereString, split, hereDocument);
         if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
-        else await appendSplit(value);
+        else await appendSplit(value, part.kind === "variable" && (part.name === "@" || part.name === "*" && !splitText) && !part.length && !part.transform);
       }
       if (fields.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
       if (owner) await owner.ledger.checkpoint(this.signal);

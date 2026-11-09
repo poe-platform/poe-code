@@ -1272,6 +1272,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     return track;
   };
   const consumed = new Set<string>();
+  const reused = new Set<string>();
+  const sinks: string[] = [];
   const unlabeled: string[] = [];
   let start = 0;
   let quoted = false;
@@ -1309,7 +1311,15 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     const filters = parseFilterChain(expression);
     const last = filters.at(-1)!;
     const split = last === "channelsplit" || last.startsWith("channelsplit=") || last.startsWith("channelsplit@") ? parseChannelSplit(last) : undefined;
-    let outputCount = split?.selected.length ?? 1;
+    const sink = last.split("=", 1)[0]!.split("@", 1)[0] === "anullsink";
+    let outputCount = sink ? 0 : split?.selected.length ?? 1;
+    if (sink) {
+      if (last.includes("=") && last.indexOf("=") !== last.length - 1) throw new Error("anullsink does not accept options");
+      // Internal sink nodes run through the same evaluator, but never become output streams.
+      const label = `\0sink${sinks.length}`;
+      sinks.push(label);
+      nodes.set(label, { inputs, expression: filters.slice(0, -1).join(",") || "anull" });
+    }
     if (last === "asplit" || last.startsWith("asplit=")) {
       const argument = last.slice("asplit=".length);
       const count = argument.startsWith("outputs=") ? argument.slice("outputs=".length) : argument;
@@ -1332,7 +1342,10 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       const selected = split ? expression + (last.includes("=") ? ":" : "=") + `channels=${split.selected[index]}` : expression;
       nodes.set(output, { inputs, expression: selected });
     }
-    for (const input of inputs) consumed.add(input);
+    for (const input of inputs) {
+      if (consumed.has(input)) reused.add(input);
+      consumed.add(input);
+    }
   }
   const usedInputs = new Set<MediaTrack>();
   for (const { inputs } of nodes.values()) {
@@ -1568,6 +1581,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     mappedLabels.add(label);
   }
   for (const label of nodes.keys()) {
+    if (reused.has(label)) throw new Error(`Audio filter output already consumed: ${label}`);
+    if (sinks.includes(label)) continue;
     if (!consumed.has(label) && !unlabeled.includes(label) && !outputMaps.has(`[${label}]`)) {
       throw new Error(`Audio filter has an unconnected output: ${label}`);
     }
@@ -1576,11 +1591,13 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     throw new Error("Unsupported audio filter output map");
   }
   if (!outputs.length && unlabeled.length && !maps.length) {
-    return selectAutomaticStreams(docs).flatMap(doc => doc.tracks)
-      .filter(track => track.type === "audio").map(track => ({ track, expression: "" }));
+    return { outputs: selectAutomaticStreams(docs).flatMap(doc => doc.tracks)
+      .filter(track => track.type === "audio").map(track => ({ track, expression: "" })),
+      sinks: await Promise.all(sinks.map(label => resolve(label))) };
   }
   if (!outputs.length) throw new Error("Audio filter graph has no output");
-  return Promise.all(outputs.map(label => resolve(label)));
+  return { outputs: await Promise.all(outputs.map(label => resolve(label))),
+    sinks: await Promise.all(sinks.map(label => resolve(label))) };
 }
 
 async function applyVideoFilterChain(
@@ -8186,6 +8203,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             // Combine inputs according to `-filter_complex`, `-map`, or default mux
             let workingDoc: MediaDocument;
+            let audioSinks: { track: MediaTrack; expression: string }[] = [];
             const feedback = filterComplex ? parseFeedbackGraph(filterComplex, maps) : undefined;
             if (filterComplex) {
               if (features.filterGraph === false) {
@@ -8600,7 +8618,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   loadedDocs.some((_, index) => filterComplex?.includes(`[${index}:a`));
                 if (audioGraph) {
                   if (afFilters.length) throw new Error("Cannot combine simple and complex audio filters");
-                  const outputs = await resolveAudioGraph(filterComplex, loadedDocs, maps, audioOutputMaps, mappedAudioLabels, budget, context.signal);
+                  const { outputs, sinks } = await resolveAudioGraph(filterComplex, loadedDocs, maps, audioOutputMaps, mappedAudioLabels, budget, context.signal);
+                  audioSinks = sinks;
                   workingDoc = await muxMp4Cooperatively(
                     [{ ...loadedDocs[0]!, tracks: outputs.map(output => output.track) }],
                     { stripAudio, stripVideo, stripSubtitles }, context.signal);
@@ -8947,6 +8966,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             // Keep decoded PCM frame timing separate from encoded packet payloads.
             let segmentAudioPackets: { pts: number; isKeyframe: boolean }[] | undefined;
             // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio
+            if (audioSinks.length) {
+              const audioCount = workingDoc.tracks.filter(track => track.type === "audio").length;
+              afFilters.push(...audioSinks.map((sink, index) => ({ ordinal: audioCount + index, expression: sink.expression })));
+              workingDoc = { ...workingDoc, tracks: [...workingDoc.tracks, ...audioSinks.map(sink => sink.track)] };
+            }
             if ((audioRate !== undefined || audioChannelOptions.length > 0 || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined || (audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms")) && audioCodec !== "copy") {
               let audioOrdinal = 0;
               workingDoc = {
@@ -8957,6 +8981,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                   if (t.type !== "audio") return t;
                   const ordinal = audioOrdinal++;
+                  const sink = index >= workingDoc.tracks.length - audioSinks.length;
                   let audioChannels = audioChannelsForStream(audioChannelOptions, index, ordinal);
                   if (audioChannels !== undefined && audioChannels <= 0) audioChannels = undefined;
                   const filter = afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal).at(-1);
@@ -8980,8 +9005,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let audioStartSample = 0;
                   const audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   let audioTimestamps: { start: number; end: number; pts: number }[] | undefined;
-                  if (audioSegment || frameChecksumOutput || (filter && parseFilterChain(filter.expression)
-                    .some(item => item.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse"))) {
+                  if (!sink && (audioSegment || frameChecksumOutput || (filter && parseFilterChain(filter.expression)
+                    .some(item => item.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse")))) {
                     if (audioSegment) segmentAudioPackets = [];
                     audioTimestamps = [];
                     const length = stretched[0]?.length ?? 0;
@@ -10859,6 +10884,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                   }
 
+                  if (sink) return t;
+
                   if (filter && (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined)) {
                     const start = outputSs === undefined ? 0 : Math.max(0, Math.round(outputSs * origRate) - audioStartSample);
                     const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
@@ -11194,6 +11221,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   };
                 }, context.signal)
               };
+            }
+
+            if (audioSinks.length) {
+              workingDoc = { ...workingDoc, tracks: workingDoc.tracks.slice(0, -audioSinks.length) };
             }
 
             chapterSource ??= loadedDocs.findIndex(doc => doc.chapters?.length);

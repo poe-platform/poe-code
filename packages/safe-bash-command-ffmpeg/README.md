@@ -478,6 +478,10 @@ persist across samples and remain separate even when the last expression is repe
 Duplicate an audio input into independently filtered outputs with
 `-filter_complex '[1:a]asplit=2[x][t];[t]volume=0.5[y]' -map '[x]' one.wav -map '[y]' two.wav`.
 `asplit` defaults to two outputs; `asplit=outputs=3` selects three.
+Consume an unused audio branch with `anullsink`, which has no output:
+`-filter_complex '[0:a]channelsplit[L][R];[L]anullsink;[R]anull[out]' -map '[out]' right.wav`.
+The retained channel keeps its speaker layout; dropping the sink leaves an invalid
+unconnected output.
 Split stereo PCM into distinct mono files with
 `-filter_complex '[0:a]channelsplit=channel_layout=stereo[L][R]' -map '[L]' left.wav -map '[R]' right.wav`.
 Mono and 5.1 input are remixed to stereo before selecting a stereo output channel.

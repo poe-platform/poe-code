@@ -136,9 +136,13 @@ export function* combinePixelSteps(inputs: readonly Pick<RgbaImage, "width" | "h
 export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette">[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0, width = size / 4): Steps {
     const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
-    function* read(image: number, position: number, length: number): Generator<ConvolveRequest, Uint8Array | Uint16Array, Uint8Array | undefined> {
-        const input = (yield { kind: "read", highDepth, image, position, length })!;
-        const bytes = highDepth ? new Uint16Array(input.slice().buffer) : input;
+    const operation = raw.toLowerCase().split("-").join("").split("_").join("");
+    const fractional = ["multiply", "rms", "rootmeansquare"].includes(operation);
+    function* read(image: number, position: number, length: number): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
+        const working = fractional ? yield { kind: "read", evaluate: true, image, position, length } : undefined;
+        const input = working?.length ? working : (yield { kind: "read", highDepth, image, position, length })!;
+        const bytes = working?.length ? Float64Array.from(new Float64Array(input.slice().buffer), value => highDepth ? value * 257 : value)
+            : highDepth ? new Uint16Array(input.slice().buffer) : input;
         const inputImage = inputs[image]!;
         const gray = colorOutput && (inputImage.space === "b-w" || inputImage.space === "grey16");
         // Native Mean visits the input's channel slots using the output channel map.
@@ -155,7 +159,6 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
         }
         return data;
     }
-    const operation = raw.toLowerCase().split("-").join("").split("_").join("");
     const noise = operation.endsWith("noise");
     const range = highDepth ? 65535 : 255, scale = highDepth ? 1 : 257;
     const clamp = (value: number) => Math.max(0, Math.min(range, Math.round(value)));
@@ -215,11 +218,12 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
         }
         return;
     }
-    const median = operation === "median", window = median ? 512 : 4096;
+    const median = operation === "median", window = median ? 512 : fractional ? 2048 : 4096;
     let work = 0;
     for (let position = 0; position < size; position += window) {
         if (position % 16384 === 0) yield;
-        const length = Math.min(window, size - position), data = (yield* read(0, position, length)).slice();
+        const length = Math.min(window, size - position), first = yield* read(0, position, length);
+        const data = fractional ? Float64Array.from(first) : first.slice();
         if (["and", "or", "xor"].includes(operation)) {
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
@@ -335,7 +339,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                 for (let offset = 0; offset < length; offset++) values[offset]! += (bytes[offset]! * scale) ** 2;
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(Math.sqrt(values[offset]! / frames) / scale);
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = Math.sqrt(values[offset]! / frames) / scale;
             }
         } else if (["mean", "min", "max", "add", "addmodulus", "sum", "abs", "subtract", "divide", "multiply", "pow"].includes(operation)) {
             const values = new Float64Array(length), multiplication = operation === "multiply", addition = ["mean", "add", "addmodulus", "sum", "abs"].includes(operation);
@@ -366,9 +370,16 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
             const average = operation === "mean";
             for (let offset = 0; offset < length; offset++) {
                 if (average && channels && !channels[offset % 4] && (offset % 4 !== 3 || hasAlpha)) data[offset] = 0;
-                else if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(average ? values[offset]! / frames : multiplication ? values[offset]! * range : quantum ? values[offset]! / scale : values[offset]!);
+                else if (multiplication && (offset % 4 !== 3 || hasAlpha)) data[offset] = values[offset]! * range;
+                else if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(average ? values[offset]! / frames : quantum ? values[offset]! / scale : values[offset]!);
             }
         }
-        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+        if (fractional) {
+            // Preserve Q16-HDRI working samples; integer views are only for encoding.
+            const samples = Float64Array.from(data, value => Math.fround(value * scale) / 257);
+            const encoded = highDepth ? Uint16Array.from(samples, value => clamp(value * 257)) : Uint8Array.from(samples, clamp);
+            yield { kind: "write", highDepth, position, data: new Uint8Array(encoded.buffer) };
+            yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
+        } else yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }
 }

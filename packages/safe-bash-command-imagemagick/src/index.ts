@@ -8343,6 +8343,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (analysisOperation) {
+            if (t === "-sepia-tone" && !stack.length) throw new Error(`no images found for operation '${t}'`);
             i = analysisOperation.end;
             const argument = tokens[i] ?? "80%";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -10432,6 +10433,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const analysisOperation = operandsOnly ? undefined : parseMagickAnalysisOperation(tokens, state, i);
         if (analysisOperation) {
+            if (token === "-sepia-tone") stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             i = analysisOperation.end;
             const intensity = state.intensity, argument = tokens[i] ?? "80%", settings = { ...state };
             steps.push(async (image, backend) => {

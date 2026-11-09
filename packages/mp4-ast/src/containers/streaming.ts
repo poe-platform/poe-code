@@ -433,6 +433,8 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     if (track.type !== "video" && track.type !== "audio") throw new Error("DASH output supports video and audio tracks");
     const starts = [0];
     const origin = track.samples[0]?.dts ?? 0;
+    // Audio edits skip encoder priming on the presentation timeline, not in the fragments.
+    const mediaStart = track.type === "audio" ? Math.max(0, track.editList?.[0]?.mediaTime ?? 0) : 0;
     for (let i = 1; i < track.samples.length; i++) {
       const sample = track.samples[i]!;
       if ((track.type === "audio" || sample.isKeyframe) &&
@@ -486,9 +488,9 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       trackBytes += media.length;
       totalBytes += media.length;
       budget.checkOutputBytes(totalBytes);
-      const time = samples[0]?.dts ?? 0;
+      const time = Math.max(0, (samples[0]?.dts ?? 0) - mediaStart);
       const last = samples.at(-1);
-      const duration = last ? last.dts + last.duration - time : track.duration;
+      const duration = last ? Math.max(0, last.dts + last.duration - mediaStart) - time : track.duration;
       segments.push({ time, duration, bytes: media });
       if (segment < firstSegment) continue;
       const previous = timeline.at(-1);

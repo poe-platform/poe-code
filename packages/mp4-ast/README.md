@@ -66,6 +66,7 @@ Use `fragmentType: "every_frame"` to place one fragment per frame inside each se
 Set `windowSize` to bound each DASH timeline or segment list to its last N segments (`0` retains all), preserving segment numbers and resource references.
 For DASH output, `serializeDashDocument(doc, { segmentDuration: 1 })` splits at the requested duration
 (in seconds, default 5), aligning video cuts to keyframes, and returns `{ manifest, resources }`.
+Audio timelines exclude encoder priming while retaining every packet and the initialization edit list.
 Write the manifest and each `resources` entry beside it; the output contains one
 initialization file and media fragments per audio/video track. Set
 `initSegmentName` and `mediaSegmentName` to customize resource names with DASH

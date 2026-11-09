@@ -653,6 +653,49 @@ test("umask supports symbolic forms and printable output; invalid masks preserve
   } finally { await shell.dispose(); }
 });
 
+// Expected conditional-execute results were verified with GNU Bash 5.3.
+for (const row of [
+  { initial: "077", mask: "0066", file: 0o600, directory: 0o711 },
+  { initial: "777", mask: "0777", file: 0o000, directory: 0o000 },
+]) {
+  test(`umask a+X accepts conditional execute with initial mask ${row.initial}`, async () => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      const result = await shell.exec(`umask ${row.initial}; umask a+X; echo status:$?; umask; : > f; mkdir d`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `status:0\n${row.mask}\n`);
+      assert.equal((await fs.stat("/f")).mode & 0o777, row.file);
+      assert.equal((await fs.stat("/d")).mode & 0o777, row.directory);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("umask conditional execute uses permissions before the entire symbolic expression", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  try {
+    for (const [initial, operand, expected] of [
+      ["077", "a-X", "0177"],
+      ["077", "a=X", "0666"],
+      ["111", "a+X", "0111"],
+      ["111", "a=X", "0777"],
+      ["776", "u+X", "0676"],
+      ["077", "u-x,g+X", "0167"],
+      ["777", "u+x,g+X", "0677"],
+      ["077", "u-x+X", "0077"],
+      ["777", "u+x+X", "0677"],
+      ["777", "a+x", "0666"],
+    ]) {
+      const source = `umask ${initial}; umask ${operand}; status=$?; umask; exit "$status"`;
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, source);
+      assert.equal(result.stderr, "", source);
+      assert.equal(result.stdout, `${expected}\n`, source);
+    }
+  } finally { await shell.dispose(); }
+});
+
 test("umask output and symbolic operations agree with Bash", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() });
   try {

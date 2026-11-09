@@ -132,6 +132,7 @@ function parseMask(value: string, previous: number): number | undefined {
         if (permission === "r") bits |= 0o444;
         else if (permission === "w") bits |= 0o222;
         else if (permission === "x") bits |= 0o111;
+        else if (permission === "X") bits |= (~previous & 0o111) ? 0o111 : 0;
         else if ("ugo".includes(permission)) {
           const shift = permission === "u" ? 6 : permission === "g" ? 3 : 0;
           // Bash copies from the permissions at the start of this invocation.

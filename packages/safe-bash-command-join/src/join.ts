@@ -18,9 +18,24 @@ interface Options {
   order: OrderMode;
 }
 
-function number(value: string, label: string): number {
-  if (!/^[ \t\n\r\v\f]*\+?[0-9]+$/u.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 1) fail(`invalid ${label}: ${value}`);
-  return Number(value);
+// GNU's 64-bit PTRDIFF_MAX bounds field numbers, including overflowing decimals.
+const maxField = 9223372036854775807n;
+
+function number(value: string, label: string): bigint {
+  let result = 0n;
+  let index = 0;
+  while (index < value.length && " \t\n\r\v\f".includes(value[index]!)) index++;
+  if (value[index] === "+") index++;
+  for (; index < value.length; index++) {
+    const digit = value.charCodeAt(index) - 48;
+    if (digit < 0 || digit > 9) fail(`invalid ${label}: ${value}`);
+    if (result < maxField) {
+      result = result * 10n + BigInt(digit);
+      if (result > maxField) result = maxField;
+    }
+  }
+  if (result === 0n) fail(`invalid ${label}: ${value}`);
+  return result;
 }
 
 function parse(context: CommandContext, budget: Budget): Options {
@@ -29,26 +44,27 @@ function parse(context: CommandContext, budget: Budget): Options {
   let delimiterChoice: Uint8Array | undefined;
   const locale = (context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C").toUpperCase().split("@")[0]!;
   const utf8 = locale.endsWith("UTF-8") || locale.endsWith("UTF8");
-  const explicitFields: [number | undefined, number | undefined] = [undefined, undefined];
+  const explicitFields: [bigint | undefined, bigint | undefined] = [undefined, undefined];
   let replacementSet = false;
   const fieldCandidates: ("1" | "2" | "o" | undefined)[] = [];
   const pendingFields = { "1": 0, "2": 0 };
   let nextFieldCandidate: "1" | "2" | "o" | undefined;
-  const setField = (fileIndex: 0 | 1, field: number): void => {
+  const setField = (fileIndex: 0 | 1, field: bigint): void => {
     const existing = explicitFields[fileIndex];
     if (existing !== undefined && existing !== field) fail(`incompatible join fields ${existing}, ${field}`);
     explicitFields[fileIndex] = field;
-    options.fields[fileIndex] = field;
+    // Keep exact identity above; indices beyond JS array lengths are always absent.
+    options.fields[fileIndex] = Number(field);
   };
   const apply = (flag: string, value: string, rawValue?: Uint8Array): void => {
     if (flag === "1" || flag === "2" || flag === "j") {
-      const field = number(value, "field") - 1;
+      const field = number(value, "field") - 1n;
       if (flag !== "2") setField(0, field);
       if (flag !== "1") setField(1, field);
     } else if (flag === "a" || flag === "v") {
       const file = number(value, "file number");
-      if (file !== 1 && file !== 2) fail(`invalid file number: ${value}`);
-      options.unpaired.add(file - 1);
+      if (file !== 1n && file !== 2n) fail(`invalid file number: ${value}`);
+      options.unpaired.add(Number(file) - 1);
       if (flag === "v") options.paired = false;
     } else if (flag === "e") {
       const bytes = rawValue ?? encode(value);
@@ -81,7 +97,7 @@ function parse(context: CommandContext, budget: Budget): Options {
         if (specification === "0") return { file: 0, index: 0 };
         const match = /^([12])\.(\+?[0-9]+)$/u.exec(specification);
         if (!match) fail(`invalid output field: ${specification}`);
-        return { file: Number(match[1]), index: number(match[2]!, "output field") - 1 };
+        return { file: Number(match[1]), index: Number(number(match[2]!, "output field") - 1n) };
       });
       options.format = [...(Array.isArray(options.format) ? options.format : []), ...fields];
       budget.check(options.format.length, budget.limits.maxFields, "field");

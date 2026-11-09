@@ -184,6 +184,52 @@ for (const separator of ["\n", "\0"]) {
  }
 }
 
+// GNU coreutils on 64-bit Linux saturates field numbers at PTRDIFF_MAX.
+test("join validates every digit even after field-number saturation", async () => {
+ for (const field of ["", "+", "0", "+0", "-1", "1.0", "1e0", "0x1", "1 ", "++1", "18446744073709551616x"]) {
+  const result = await run(["-j", field, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, `join: EINVAL: invalid field: ${field}\n`);
+ }
+});
+
+for (const field of ["9007199254740991", "9007199254740992", "9007199254740993", "9223372036854775807", "18446744073709551616", "9".repeat(400), "+009007199254740992"]) {
+ test(`join accepts large field number ${field}`, async () => {
+  for (const [args, expected] of [
+   [["-j", field], " k A k B\n"],
+   [[`-j${field}`], " k A k B\n"],
+   [["-j", ` \t${field}`], " k A k B\n"],
+   [["-1", field, "-2", field], " k A k B\n"],
+   [[`-1${field}`, `-2${field}`], " k A k B\n"],
+   [["-o", `1.${field}`], "\n"],
+   [["-e", "missing", "-o", `2.${field}`], "missing\n"],
+  ] as const) {
+   const result = await run([...args, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stdout, expected);
+   assert.equal(result.stderr, "");
+  }
+ });
+}
+
+for (const [first, second, compatible] of [
+ ["9007199254740992", "9007199254740993", false],
+ ["9007199254740992", "+009007199254740992", true],
+ ["9223372036854775806", "9223372036854775807", false],
+ ["9223372036854775807", "9223372036854775808", true],
+ ["18446744073709551615", "18446744073709551616", true],
+] as const) {
+ test(`join compares repeated fields precisely: ${first}, ${second}`, async () => {
+  for (const flag of ["-j", "-1", "-2"]) {
+   const result = await run(["-j", first, flag, second, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+   assert.equal(result.exitCode, compatible ? 0 : 1, result.stderr);
+   assert.equal(result.stdout, compatible ? " k A k B\n" : "");
+   assert.equal(result.stderr, compatible ? "" : `join: EINVAL: incompatible join fields ${BigInt(first) - 1n}, ${BigInt(second) - 1n}\n`);
+  }
+ });
+}
+
 for (const flag of ["-a", "-v"]) {
  for (const [selector, unpaired] of [
   ["1", "z ZZ\n"], ["+1", "z ZZ\n"], ["01", "z ZZ\n"], ["+001", "z ZZ\n"],
@@ -198,7 +244,7 @@ for (const flag of ["-a", "-v"]) {
    }
   });
  }
- for (const selector of ["0", "3", "-1", "", "+", "1.0", "1e0", "0x1", "1 ", "1x", "++1"]) {
+ for (const selector of ["0", "3", "-1", "", "+", "1.0", "1e0", "0x1", "1 ", "1x", "++1", "9007199254740992", "18446744073709551616"]) {
   test(`join ${flag} rejects invalid file selector ${JSON.stringify(selector)}`, async () => {
    const result = await run([flag, selector, "/left", "/right"], { "/left": "k AA\n", "/right": "k BB\n" });
    assert.equal(result.exitCode, 1);
@@ -332,7 +378,7 @@ for (const whitespace of [" ", "\t", "\n", "\r", "\v", "\f", " \t"]) {
 }
 
 for (const flag of ["-j", "-1", "-2", "-a", "-v"]) {
- for (const value of [" 0", " -1", " +", " ", " 1 ", " 1\t", " 1\n", " 1x", " 1.0", " 0x1", "\u00a01", "\ufeff1", " 9007199254740992", ...(flag === "-a" || flag === "-v" ? [" 3"] : [])]) {
+ for (const value of [" 0", " -1", " +", " ", " 1 ", " 1\t", " 1\n", " 1x", " 1.0", " 0x1", "\u00a01", "\ufeff1", ...(flag === "-a" || flag === "-v" ? [" 3", " 9007199254740992"] : [])]) {
   test(`join rejects invalid padded number: ${flag} ${JSON.stringify(value)}`, async () => {
    const result = await run([flag, value, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
    assert.equal(result.exitCode, 1);

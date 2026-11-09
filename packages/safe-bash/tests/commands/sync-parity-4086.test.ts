@@ -22,6 +22,10 @@ for (const [setup, command, expected] of [
   ["printf ':x\\n' > f1; printf ':y\\n' > f2;", "join -t : -e EMPTY -o 0,1.2,2.2 f1 f2", "EMPTY:x:y\n"],
   ["printf 'k A\\n' > f1; printf 'k B\\n' > f2;", "join -o 1.+2 f1 f2", "A\n"],
   ["printf 'k A\\n' > f1; printf 'k B\\n' > f2;", "join -o 2.+2 f1 f2", "B\n"],
+  ["printf 'k A\\n' > f1; printf 'k B\\n' > f2;", "join -j 9007199254740992 f1 f2", " k A k B\n"],
+  ["printf 'k A\\n' > f1; printf 'k B\\n' > f2;", "join -1 9007199254740992 -2 9007199254740992 f1 f2", " k A k B\n"],
+  ["printf 'k A\\n' > f1; printf 'k B\\n' > f2;", "join -o 1.9007199254740992 f1 f2", "\n"],
+  ["printf 'k A\\n' > f1; printf 'k B\\n' > f2;", "join -j 18446744073709551615 -j 18446744073709551616 f1 f2", " k A k B\n"],
   ["", "column -t -e <<< $'   \\na b'", "a  b\n"],
   ["", "column -t -e <<< $'\\na b'", "a  b\n"],
   ["", "column -t -L <<< $'\\na b'", "   \na  b\n"],
@@ -88,6 +92,25 @@ test("sync join accepts positive output fields and declines invalid numbers", ()
       assert.equal(evaluate.call(context, ["k A"], ["-o", `${file}.${field}`, "-", "f2"], "/"), undefined);
     }
   }
+});
+
+test("sync join falls back for large field selections", () => {
+  const evaluate = Reflect.get(Runtime.prototype, "evalSyncJoin");
+  const context = { readSyncMemoryLines: () => ["k B"] };
+  for (const args of [
+    ["-j", "9007199254740992"], ["-j9007199254740992"],
+    ["-1", "9007199254740992"], ["-29007199254740992"],
+    ["-o", "1.9007199254740992"], ["-o2.9007199254740992"],
+  ]) {
+    assert.equal(evaluate.call(context, ["k A"], [...args, "-", "f2"], "/"), undefined);
+  }
+});
+
+test("join rejects conflicting large fields inside command substitution loops", async () => {
+  const result = await execute("printf 'k A\\n' > f1; printf 'k B\\n' > f2; for i in 1 2; do x=$(join -j 9007199254740992 -j 9007199254740993 f1 f2); printf '%s:%s\\n' \"$?\" \"$x\"; done");
+  assert.equal(result.stdout, "1:\n1:\n");
+  assert.equal(result.stderr, "join: EINVAL: incompatible join fields 9007199254740991, 9007199254740992\n".repeat(2));
+  assert.equal(result.exitCode, 0);
 });
 
 test("sync column distinguishes header repetition from keeping empty rows", () => {

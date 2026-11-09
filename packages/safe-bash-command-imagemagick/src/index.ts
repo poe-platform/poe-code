@@ -4368,7 +4368,8 @@ function magickExtentLayout(img: Pick<RgbaImage, "width" | "height">, geomStr: s
     const targetH = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.height, img.width / g.aspectRatio) : g.isPercent ? img.height * (g.percentY ?? 100) / 100 : g.height ?? img.height));
     if ((g.enlargeOnly && img.width > targetW && img.height > targetH)
         || (g.shrinkOnly && img.width < targetW && img.height < targetH)) return undefined;
-    const offset = gravityAdjustBox(img.width, img.height, targetW, targetH, g.x, g.y, state.gravity);
+    // Extent converts geometry offsets to integer pixels before applying gravity.
+    const offset = gravityAdjustBox(img.width, img.height, targetW, targetH, Math.trunc(g.x), Math.trunc(g.y), state.gravity);
     const left = -offset.x;
     const top = -offset.y;
     const dstX0 = Math.max(0, left);

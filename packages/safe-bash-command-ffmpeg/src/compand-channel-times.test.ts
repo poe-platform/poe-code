@@ -40,11 +40,15 @@ for (const graph of [false, true]) {
       assert.equal(result.stderr, level === "warning" || level === "24"
         ? "Number of attacks/decays bigger than number of channels. Ignoring rest of entries.\n" : "", `${times}, ${level}`);
     }
-    for (const times of ["attacks=0|junk|2:decays=0|1", "attacks=0|1:decays=0|-1|2", "attacks=0:decays=0|1|junk"]) {
+    for (const [times, exitCode, output] of [
+      ["attacks=0|junk|2:decays=0|1", 1, "keep"],
+      ["attacks=0|1:decays=0|-1|2", 234, ""],
+      ["attacks=0:decays=0|1|junk", 234, ""]
+    ] as const) {
       fs.writeFileSync("/out.pcm", "keep");
       const result = await run(times, "warning");
-      assert.equal(result.exitCode, 1, times);
-      assert.equal(fs.readFileSync("/out.pcm", "utf8"), "keep");
+      assert.equal(result.exitCode, exitCode, times);
+      assert.equal(fs.readFileSync("/out.pcm", "utf8"), output);
     }
   });
 }

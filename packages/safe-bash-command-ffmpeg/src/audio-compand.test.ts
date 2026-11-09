@@ -39,8 +39,19 @@ for (const [filter, indices, expected] of [
   });
 }
 
-for (const filter of ["compand=points=bad", "compand=points=-70/|-60/-20|1/0", "compand=points=/-70|-60/-20|1/0", "compand=points=-70abc/-70|-60/-20|1/0", "compand=points=0/0|-20/-30", "compand=attacks=-1", "compand=attacks=-1s", "compand=decays=NaN", "compand=decays=seconds", "compand=unknown=1", "compand=soft-knee=0", "compand=soft-knee=1abc", "compand=gain=1abc", "compand=volume=-20abc", "compand=delay=0abc", "compand=delay=-1", "compand=delay=20.1", "compand=delay=NaN", "compand=points=-80/-80||0/0", "compand=points=-80/-80|0/0|"]) {
-  it(`${filter} fails without replacing output`, async () => {
+for (const [filter, exitCode, output] of [
+  ["compand=points=bad", 234, ""], ["compand=points=0/0|-20/-30", 234, ""],
+  ["compand=points=-70/|-60/-20|1/0", 1, "keep"], ["compand=points=/-70|-60/-20|1/0", 1, "keep"],
+  ["compand=points=-70abc/-70|-60/-20|1/0", 1, "keep"],
+  ["compand=attacks=-1", 234, ""], ["compand=attacks=-1s", 234, ""],
+  ["compand=decays=NaN", 1, "keep"], ["compand=decays=seconds", 1, "keep"],
+  ["compand=unknown=1", 8, "keep"], ["compand=soft-knee=0", 222, "keep"],
+  ["compand=soft-knee=1abc", 234, "keep"], ["compand=gain=1abc", 234, "keep"],
+  ["compand=volume=-20abc", 234, "keep"], ["compand=delay=0abc", 234, "keep"],
+  ["compand=delay=-1", 222, "keep"], ["compand=delay=20.1", 222, "keep"], ["compand=delay=NaN", 234, "keep"],
+  ["compand=points=-80/-80||0/0", 234, ""], ["compand=points=-80/-80|0/0|", 234, ""]
+] as const) {
+  it(`${filter} fails at the expected output stage`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
     fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));
     const result = await createFfmpegCommand().execute({
@@ -48,8 +59,8 @@ for (const filter of ["compand=points=bad", "compand=points=-70/|-60/-20|1/0", "
       fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
       stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }
     } as never);
-    assert.equal(result.exitCode, 1);
-    assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
+    assert.equal(result.exitCode, exitCode);
+    assert.equal(fs.readFileSync("/out.wav", "utf8"), output);
   });
 }
 
@@ -66,9 +77,9 @@ for (const points of ["|-80/-80|0/0", "-80/-80||0/0", "-80/-80|0/0|", "-80/-80| 
       fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
       stdin: (async function* () {})(), stdout: { async write(b: Uint8Array) { output.push(b); } }, stderr: { async write(b: Uint8Array) { errors.push(b); } }
     } as never);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, 234);
     assert.ok(Buffer.concat(errors).toString().includes("compand: expected input/output points"));
-    assert.equal(fs.existsSync("/out.pcm"), false);
+    assert.equal(fs.statSync("/out.pcm").size, 0);
     assert.equal(Buffer.concat(output).length, 0);
   });
 }

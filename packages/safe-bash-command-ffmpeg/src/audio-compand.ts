@@ -2,6 +2,12 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
+export class CompandError extends Error {
+  constructor(message: string, readonly stage: "options" | "configuration", readonly exitCode = 234) {
+    super(message);
+  }
+}
+
 export async function compandAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
   warn?: (message: string) => Promise<void>
@@ -14,19 +20,29 @@ export async function compandAudio(
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
-    if (!key || !Object.hasOwn(options, key)) throw new Error(`compand: unsupported option ${key}`);
+    if (!key || !Object.hasOwn(options, key)) throw new CompandError(`compand: unsupported option ${key}`, "options", 8);
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
   }
   const number = (value: string, min = -Infinity, max = Infinity, parse: (value: string) => number = Number): number => {
     const parsed = parse(value);
-    if (!value.trim() || !Number.isFinite(parsed) || parsed < min || parsed > max) throw new Error(`compand: invalid value ${value}`);
+    if (!value.trim() || !Number.isFinite(parsed)) throw new Error(`compand: invalid value ${value}`);
+    if (parsed < min || parsed > max) throw new CompandError(`compand: invalid value ${value}`, "configuration");
     return parsed;
   };
   const numericOption = (key: string, min: number, max: number): number => {
-    const parsed = parseFilterExpression(options[key]!, "compand", {});
-    if (parsed < min || parsed > max) throw new Error(`compand: invalid ${key}`);
+    let parsed: number;
+    try {
+      parsed = parseFilterExpression(options[key]!, "compand", {});
+    } catch (error) {
+      throw new CompandError((error as Error).message, "options");
+    }
+    if (parsed < min || parsed > max) throw new CompandError(`compand: invalid ${key}`, "options", 222);
     return parsed;
   };
+  const knee = numericOption("soft-knee", 0.01, 900);
+  const gain = numericOption("gain", -900, 900);
+  const initial = 10 ** (numericOption("volume", -900, 0) / 20);
+  const delay = Math.floor(numericOption("delay", 0, 20) * sampleRate);
   const items = (value: string) => value.split("|").flatMap(part => part.split(" ")).filter(Boolean);
   const attackItems = items(options.attacks!);
   const decayItems = items(options.decays!);
@@ -36,20 +52,16 @@ export async function compandAudio(
   const attacks = attackItems.slice(0, channels.length).map(value => number(value, 0, Infinity, Number.parseFloat));
   const decays = decayItems.slice(0, channels.length).map(value => number(value, 0, Infinity, Number.parseFloat));
   if (!attacks.length || !decays.length || attacks.length !== decays.length) {
-    throw new Error("compand: attacks and decays must have matching channel counts");
+    throw new CompandError("compand: attacks and decays must have matching channel counts", "configuration");
   }
-  const knee = numericOption("soft-knee", 0.01, 900);
-  const gain = numericOption("gain", -900, 900);
-  const initial = 10 ** (numericOption("volume", -900, 0) / 20);
-  const delay = Math.floor(numericOption("delay", 0, 20) * sampleRate);
   const points = options.points!.split("|").flatMap(part => part.split(" ")).map(value => {
     const pair = value.split("/");
-    if (pair.length !== 2) throw new Error("compand: expected input/output points");
+    if (pair.length !== 2) throw new CompandError("compand: expected input/output points", "configuration");
     const x = number(pair[0]!);
     return { x, y: number(pair[1]!, -Infinity, Infinity, Number.parseFloat) - x };
   });
   for (let i = 1; i < points.length; i++) {
-    if (points[i]!.x < points[i - 1]!.x) throw new Error("compand: points must be increasing");
+    if (points[i]!.x < points[i - 1]!.x) throw new CompandError("compand: points must be increasing", "configuration");
   }
   if (points.at(-1)!.x < 0) points.push({ x: 0, y: 0 });
   points.unshift({ x: points[0]!.x - 2 * knee, y: points[0]!.y });

@@ -7974,22 +7974,33 @@ export class Runtime {
     this.signal.throwIfAborted();
     const { path } = selected;
     const previousPwd = state.variables.PWD;
-    if (previousPwd === undefined) {
-      if (state.readonlyVariables?.has("OLDPWD")) throw new PublicDiagnostic("OLDPWD: readonly variable");
-      state.variableAttributes ??= new Map();
-      if (!state.variableAttributes.has("OLDPWD")) state.variableAttributes.set("OLDPWD", "");
-      delete state.variables.OLDPWD;
-    } else await this.writeVariable(state, "OLDPWD", stateMonitor(state)?.values.get("PWD", previousPwd) ?? previousPwd, context);
     state.cwd = selected.physicalPath;
     state.logicalCwd = path;
     stackHooks?.onCwdPublished();
-    await this.writeVariable(state, "PWD", path, context);
+    let status = 0;
+    for (const variable of ["OLDPWD", "PWD"]) {
+      try {
+        if (variable === "PWD") await this.writeVariable(state, variable, path, context);
+        else if (previousPwd === undefined) {
+          if (state.readonlyVariables?.has(variable)) throw new PublicDiagnostic(`${variable}: readonly variable`);
+          state.variableAttributes ??= new Map();
+          if (!state.variableAttributes.has(variable)) state.variableAttributes.set(variable, "");
+          delete state.variables[variable];
+        }
+        else await this.writeVariable(state, variable, stateMonitor(state)?.values.get("PWD", previousPwd) ?? previousPwd, context);
+      } catch (error) {
+        this.signal.throwIfAborted();
+        if (!(error instanceof PublicDiagnostic)) throw error;
+        await this.diagnostic(context, error.message);
+        status = 1;
+      }
+    }
     const printedPath = selected.print ?? (operand === "-" ? target : undefined);
     if (printedPath !== undefined) {
       if (stackHooks) await stackHooks.emit(`${printedPath}\n`);
       else await writeText(context.stdout, `${printedPath}\n`);
     }
-    return 0;
+    return status;
   }
   private async directoryStackBuiltin(context: CommandContext & IO, state: State, diagnose?: (error: unknown, diagnostic: string) => void): Promise<number> {
     const { command, args } = context;

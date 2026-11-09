@@ -13,6 +13,44 @@ async function fixture() {
   return { fs, shell };
 }
 
+for (const [before, command, destination, stack] of [
+  ["", "cd dir", "/work/dir", "/work/dir\n"],
+  ["", "cd -P link", "/work/dir/child", "/work/dir/child\n"],
+  ["", "pushd dir", "/work/dir", "/work/dir\n"],
+  ["pushd -n /work/dir >/dev/null;", "pushd", "/work/dir", "/work/dir\n/work\n"],
+  ["pushd -n /work/dir >/dev/null;", "popd", "/work/dir", "/work/dir\n/work/dir\n"],
+] as const) {
+  for (const binding of ["OLDPWD", "PWD", "OLDPWD PWD"]) {
+    test(`${command} changes directory despite readonly ${binding}`, async context => {
+      const { fs, shell } = await fixture();
+      context.after(() => shell.dispose());
+      await fs.writeFile(`${destination}/marker`, new TextEncoder().encode("entered\n"));
+      const result = await shell.exec(`${before} readonly ${binding}; ${command}; printf 'rc=%s|%s|%s\\n' "$?" "$PWD" "$OLDPWD"; pwd; pwd -P; cat marker; dirs -l -p`);
+      assert.equal(result.exitCode, 0);
+      const pwd = binding === "OLDPWD" ? destination : "/work";
+      const oldpwd = binding === "PWD" ? "/work" : "/search/link";
+      assert.equal(result.stdout, `rc=1|${pwd}|${oldpwd}\n${destination}\n${destination}\nentered\n${stack}`);
+      assert.equal(result.stderr, binding.split(" ").map(name => `shell: line 1: ${name}: readonly variable\n`).join(""));
+    });
+  }
+}
+
+test("cd updates PWD when unsetting readonly OLDPWD fails", async context => {
+  const { shell } = await fixture();
+  context.after(() => shell.dispose());
+  const result = await shell.exec('unset PWD; readonly OLDPWD; cd dir; printf "%s|%s|%s|" "$?" "$PWD" "$OLDPWD"; pwd');
+  assert.equal(result.stdout, "1|/work/dir|/search/link|/work/dir\n");
+  assert.equal(result.stderr, "shell: line 1: OLDPWD: readonly variable\n");
+});
+
+test("cd to a missing directory fails before readonly variable updates", async context => {
+  const { shell } = await fixture();
+  context.after(() => shell.dispose());
+  const result = await shell.exec('readonly PWD OLDPWD; cd missing; printf "%s|%s|%s|" "$?" "$PWD" "$OLDPWD"; pwd');
+  assert.equal(result.stdout, "1|/work|/search/link|/work\n");
+  assert.equal(result.stderr, "shell: line 1: cd: missing: No such file or directory\n");
+});
+
 for (const [before, command, previous, destination] of [
   ["", "cd dir", "/work", "/work/dir"],
   ["", "cd -P link", "/work", "/work/dir/child"],

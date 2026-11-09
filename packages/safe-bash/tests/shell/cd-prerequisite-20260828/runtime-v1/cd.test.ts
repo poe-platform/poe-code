@@ -107,10 +107,10 @@ test("delegated X_OK denial precedes checked state writes", async () => {
   assert.match(result.stderr, /Permission denied/);
 });
 
-for (const variable of ["OLDPWD", "PWD"] as const) test(`checked ${variable} preserves earlier writes only`, async () => {
+for (const variable of ["OLDPWD", "PWD"] as const) test(`readonly ${variable} preserves directory change and CDPATH output`, async () => {
   const { fs } = await fixture();
   const result = await execute(fs, `readonly ${variable}; CDPATH=/one; cd target; pwd; printf '%s|%s' "$PWD" "$OLDPWD"`);
-  assert.equal(result.stdout, variable === "OLDPWD" ? "/work\n/work|/" : "/one/target\n/work|/work");
+  assert.equal(result.stdout, variable === "OLDPWD" ? "/one/target\n/one/target\n/one/target|/" : "/one/target\n/one/target\n/work|/work");
   assert.match(result.stderr, /readonly variable/);
 });
 
@@ -198,6 +198,7 @@ test("absolute 65536-byte target admitted, next byte refused", async () => {
     fs.stat = async path => { calls.push(path); return directory; };
     fs.lstat = async path => { metadataCalls.push(path); return directory; };
     fs.access = async () => {};
+    fs.realpath = async path => path;
     const target = "/" + "x".repeat(length - 1);
     const result = await execute(fs, 'cd "$DEST"', { env: { DEST: target } });
     assert.equal(result.exitCode, length === 65_536 ? 0 : 1);
@@ -279,6 +280,8 @@ for (const adapter of ["memory", "real", "readonly", "s3", "webdav"] as const) t
     if (adapter === "webdav") assert.deepEqual(requests, [
       "PROPFIND:0:/dav/absent",
       "PROPFIND:0:/dav/absent/target", "PROPFIND:0:/dav/absent",
+      "PROPFIND:0:/dav/one",
+      "PROPFIND:0:/dav/one/target",
       "PROPFIND:0:/dav/one",
       "PROPFIND:0:/dav/one/target",
       "PROPFIND:0:/dav/one",

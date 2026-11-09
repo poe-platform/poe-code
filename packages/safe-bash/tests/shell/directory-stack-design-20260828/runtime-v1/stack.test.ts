@@ -113,22 +113,22 @@ for (const body of ["pushd /borrowed >/dev/null", "pushd /a >/dev/null; cd /borr
   } finally { await shell.dispose(); }
 });
 
-for (const body of ["dirs >/dev/null", "pushd -n /a >/dev/null", "cd /borrowed"]) test(`no stack publication retains borrowed restoration: ${body}`, async () => {
+for (const body of ["dirs >/dev/null", "pushd -n /a >/dev/null", "cd /borrowed"]) test(`borrowed cwd restoration after ${body}`, async () => {
   const { shell } = await fixture();
   shell.use((context, next) => { if (context.command === "f") context.cwd = "/borrowed"; return next(); });
-  try { assert.equal((await shell.exec(`f(){ ${body}; }; f; pwd`)).stdout, "/c\n"); }
+  try { assert.equal((await shell.exec(`f(){ ${body}; }; f; pwd`)).stdout, body === "cd /borrowed" ? "/borrowed\n" : "/c\n"); }
   finally { await shell.dispose(); }
 });
 
 test("readonly checked state ordering retains partial publications", async () => {
   const old = await run("readonly OLDPWD; pushd /a; dirs -l -p; printf '%s|%s' \"$PWD\" \"$OLDPWD\"");
-  assert.equal(old.stdout, "/c\n/c|/old");
+  assert.equal(old.stdout, "/a\n/a|/old");
   assert.match(old.stderr, /readonly/);
   const current = await run("readonly PWD; pushd /a; dirs -l -p; printf '%s|%s' \"$PWD\" \"$OLDPWD\"");
   assert.equal(current.stdout, "/a\n/c|/c");
   assert.match(current.stderr, /readonly/);
   const swapped = await run("pushd -n /a >/dev/null; readonly OLDPWD; pushd; dirs -l -p");
-  assert.equal(swapped.stdout, "/c\n/c\n");
+  assert.equal(swapped.stdout, "/a\n/c\n");
 });
 
 for (const beforeTail of [true, false]) test(`output failure ${beforeTail ? "required cd print before" : "automatic print after"} tail publication`, async () => {

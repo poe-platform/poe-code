@@ -15,7 +15,7 @@ import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
 import { encodeAudio } from "@poe-code/media-codecs";
 import { decodeCompressedWav } from "./wav-compressed.js";
 import { decodeG726 } from "./au-g726.js";
-import { decodeYamahaWav } from "./wav-yamaha.js";
+import { decodeYamahaWav, encodeYamahaWav } from "./wav-yamaha.js";
 import { decodeMsWav, msBlockFrames } from "./wav-ms.js";
 import { decodeImaWav, encodeImaWav, imaBlockFrames } from "./wav-ima.js";
 import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, writeMp3Frames, type Mp3Frame } from "./mp3-frames.js";
@@ -762,6 +762,19 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     factBytes = new Uint8Array(4);
     new DataView(factBytes.buffer).setUint32(0, codec === "aac"
       ? decodedAudio.channelData[0]!.length + encoded.delay : packets.length * frameSize, true);
+  } else if (decodedAudio && options.audioCodec === "adpcm_yamaha") {
+    pcmBytes = encodeYamahaWav(decodedAudio.channelData);
+    formatBytes = new Uint8Array(18);
+    const format = new DataView(formatBytes.buffer);
+    format.setUint16(0, 32, true);
+    format.setUint16(2, channels, true);
+    format.setUint32(4, sampleRate, true);
+    // FFmpeg advertises its default 128 kbit/s encoder rate in this header.
+    format.setUint32(8, 16000, true);
+    format.setUint16(12, 1024, true);
+    format.setUint16(14, 4, true);
+    factBytes = new Uint8Array(4);
+    new DataView(factBytes.buffer).setUint32(0, decodedAudio.channelData[0]!.length, true);
   } else if (decodedAudio && options.audioCodec === "adpcm_ima_wav") {
     const blockAlign = options.blockSize ?? 1024;
     if (!Number.isInteger(blockAlign) || blockAlign < 32 || blockAlign > 8192 || (blockAlign & (blockAlign - 1)) !== 0) {
@@ -831,7 +844,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       }
     }
   } else if (
-    options.audioCodec !== "aac" && options.audioCodec !== "mp3" && options.audioCodec !== "adpcm_ima_wav" &&
+    options.audioCodec !== "aac" && options.audioCodec !== "mp3" && options.audioCodec !== "adpcm_ima_wav" && options.audioCodec !== "adpcm_yamaha" &&
     audioTrack &&
     audioTrack.codecDescriptions[0]?.codecName.startsWith("pcm_")
   ) {
@@ -1119,7 +1132,7 @@ export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: [],
-    supportedAudioCodecs: ["pcm_s16le", "adpcm_ima_wav", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_s64le", "pcm_f64le", "pcm_mulaw", "pcm_alaw"],
+    supportedAudioCodecs: ["pcm_s16le", "adpcm_ima_wav", "adpcm_yamaha", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_s64le", "pcm_f64le", "pcm_mulaw", "pcm_alaw"],
     detect(bytes, filename) {
       if (wave64) return isWave64Signature(bytes);
       if (isWavSignature(bytes)) return true;

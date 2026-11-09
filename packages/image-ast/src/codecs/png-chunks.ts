@@ -71,3 +71,9 @@ export function gammaChunk(gamma: number): Uint8Array {
   new DataView(bytes.buffer).setUint32(0, Math.round(gamma * 100000));
   return makeChunk("gAMA", bytes);
 }
+
+export function validPngTransparencyLength(colorType: number, length: number, paletteLength = 0): boolean {
+  return colorType === 0 ? length === 2
+    : colorType === 2 ? length === 6
+    : colorType === 3 && length > 0 && length <= paletteLength / 3;
+}

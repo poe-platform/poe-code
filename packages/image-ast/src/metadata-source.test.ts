@@ -17,6 +17,7 @@ function png(depth:number,color:number,trns:boolean,interlace:number):Uint8Array
  view.setUint32(0,17);view.setUint32(4,19);header[8]=depth;header[9]=color;header[12]=interlace;
  const phys=new Uint8Array(9);new DataView(phys.buffer).setUint32(0,5669);phys[8]=1;
  return join([PNG_SIGNATURE,makeChunk("IHDR",header),makeChunk("pHYs",phys),
+ ...(color===3?[makeChunk("PLTE",Uint8Array.of(0,0,0))]:[]),
  ...(trns?[makeChunk("tRNS",new Uint8Array())]:[]),makeChunk("eXIf",buildExifApp1Segment({orientation:6,density:144})),
  makeChunk("IDAT",Uint8Array.of(1,2,3)),makeChunk("IEND",new Uint8Array())]);
 }

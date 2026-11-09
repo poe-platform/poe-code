@@ -2,7 +2,7 @@ import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, pngCrc32, makeChunk, gammaChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
+import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
 import {paethPredictor, writePngPixel} from "./png-pixels.js";
 import { createByteCodec, transformBytes, ByteCodecError } from "@poe-code/compression";
 
@@ -85,7 +85,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     } else if (type === "PLTE") {
       palette = chunk;
     } else if (type === "tRNS") {
-      if (idatChunks.length === 0 && (colorType !== 3 || palette)) trns ??= chunk;
+      if (idatChunks.length === 0 && validPngTransparencyLength(colorType, len, palette?.length)) trns ??= chunk;
     } else if (type === "IDAT") {
       idatChunks.push(chunk);
     } else if (type === "IEND") {

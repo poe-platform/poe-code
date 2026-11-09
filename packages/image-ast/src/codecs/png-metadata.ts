@@ -1,6 +1,6 @@
 import {createByteCodec} from "@poe-code/compression";
 import type {ImageMetadata} from "../ast.js";
-import {PNG_SIGNATURE, pngCrc32} from "./png-chunks.js";
+import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32} from "./png-chunks.js";
 import {exifMetadataSteps,type MetadataRead} from "./exif-metadata.js";
 
 export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetadata,Uint8Array> {
@@ -166,7 +166,8 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
     } else if (type === "tRNS") {
       if (hasIdat || (colorType === 3 && !palette)) decodeWarnings.push("tRNS: out of place");
       else if (hasTrns) decodeWarnings.push("Duplicate PNG tRNS");
-      else hasTrns = true;
+      else if (validPngTransparencyLength(colorType, len, palette?.length)) hasTrns = true;
+      else decodeWarnings.push("PNG tRNS invalid length");
     } else if (type === "orNT" && len === 1) {
       const chunk = yield {position:dataStart,length:1};
       if (chunk[0]! <= 8) orientation = chunk[0]!;

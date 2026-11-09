@@ -26,12 +26,15 @@ exports[`preserves PNG metadata 1/0/false 1`] = `
 exports[`preserves PNG metadata 1/0/true 1`] = `
 {
   "bitsPerSample": 1,
-  "channels": 2,
+  "channels": 1,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isProgressive": true,
   "orientation": 6,
@@ -72,12 +75,15 @@ exports[`preserves PNG metadata 1/2/false 1`] = `
 exports[`preserves PNG metadata 1/2/true 1`] = `
 {
   "bitsPerSample": 1,
-  "channels": 4,
+  "channels": 3,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isProgressive": true,
   "orientation": 6,
@@ -110,7 +116,7 @@ exports[`preserves PNG metadata 1/3/false 1`] = `
     "x": 5669,
     "y": 0,
   },
-  "size": 177,
+  "size": 192,
   "space": "srgb",
   "width": 17,
 }
@@ -119,12 +125,15 @@ exports[`preserves PNG metadata 1/3/false 1`] = `
 exports[`preserves PNG metadata 1/3/true 1`] = `
 {
   "bitsPerSample": 1,
-  "channels": 4,
+  "channels": 3,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isPalette": true,
   "isProgressive": true,
@@ -134,7 +143,7 @@ exports[`preserves PNG metadata 1/3/true 1`] = `
     "x": 5669,
     "y": 0,
   },
-  "size": 189,
+  "size": 204,
   "space": "srgb",
   "width": 17,
 }
@@ -167,6 +176,9 @@ exports[`preserves PNG metadata 1/4/true 1`] = `
 {
   "bitsPerSample": 1,
   "channels": 2,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
@@ -213,6 +225,9 @@ exports[`preserves PNG metadata 1/6/true 1`] = `
 {
   "bitsPerSample": 1,
   "channels": 4,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
@@ -258,12 +273,15 @@ exports[`preserves PNG metadata 2/0/false 1`] = `
 exports[`preserves PNG metadata 2/0/true 1`] = `
 {
   "bitsPerSample": 2,
-  "channels": 2,
+  "channels": 1,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isProgressive": false,
   "orientation": 6,
@@ -304,12 +322,15 @@ exports[`preserves PNG metadata 2/2/false 1`] = `
 exports[`preserves PNG metadata 2/2/true 1`] = `
 {
   "bitsPerSample": 2,
-  "channels": 4,
+  "channels": 3,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isProgressive": false,
   "orientation": 6,
@@ -342,7 +363,7 @@ exports[`preserves PNG metadata 2/3/false 1`] = `
     "x": 5669,
     "y": 0,
   },
-  "size": 177,
+  "size": 192,
   "space": "srgb",
   "width": 17,
 }
@@ -351,12 +372,15 @@ exports[`preserves PNG metadata 2/3/false 1`] = `
 exports[`preserves PNG metadata 2/3/true 1`] = `
 {
   "bitsPerSample": 2,
-  "channels": 4,
+  "channels": 3,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isPalette": true,
   "isProgressive": false,
@@ -366,7 +390,7 @@ exports[`preserves PNG metadata 2/3/true 1`] = `
     "x": 5669,
     "y": 0,
   },
-  "size": 189,
+  "size": 204,
   "space": "srgb",
   "width": 17,
 }
@@ -399,6 +423,9 @@ exports[`preserves PNG metadata 2/4/true 1`] = `
 {
   "bitsPerSample": 2,
   "channels": 2,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
@@ -445,6 +472,9 @@ exports[`preserves PNG metadata 2/6/true 1`] = `
 {
   "bitsPerSample": 2,
   "channels": 4,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
@@ -490,12 +520,15 @@ exports[`preserves PNG metadata 4/0/false 1`] = `
 exports[`preserves PNG metadata 4/0/true 1`] = `
 {
   "bitsPerSample": 4,
-  "channels": 2,
+  "channels": 1,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isProgressive": false,
   "orientation": 6,
@@ -536,12 +569,15 @@ exports[`preserves PNG metadata 4/2/false 1`] = `
 exports[`preserves PNG metadata 4/2/true 1`] = `
 {
   "bitsPerSample": 4,
-  "channels": 4,
+  "channels": 3,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isProgressive": false,
   "orientation": 6,
@@ -574,7 +610,7 @@ exports[`preserves PNG metadata 4/3/false 1`] = `
     "x": 5669,
     "y": 0,
   },
-  "size": 177,
+  "size": 192,
   "space": "srgb",
   "width": 17,
 }
@@ -583,12 +619,15 @@ exports[`preserves PNG metadata 4/3/false 1`] = `
 exports[`preserves PNG metadata 4/3/true 1`] = `
 {
   "bitsPerSample": 4,
-  "channels": 4,
+  "channels": 3,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isPalette": true,
   "isProgressive": false,
@@ -598,7 +637,7 @@ exports[`preserves PNG metadata 4/3/true 1`] = `
     "x": 5669,
     "y": 0,
   },
-  "size": 189,
+  "size": 204,
   "space": "srgb",
   "width": 17,
 }
@@ -631,6 +670,9 @@ exports[`preserves PNG metadata 4/4/true 1`] = `
 {
   "bitsPerSample": 4,
   "channels": 2,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
@@ -677,6 +719,9 @@ exports[`preserves PNG metadata 4/6/true 1`] = `
 {
   "bitsPerSample": 4,
   "channels": 4,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "bit",
   "exif": Any<Uint8Array>,
@@ -722,12 +767,15 @@ exports[`preserves PNG metadata 8/0/false 1`] = `
 exports[`preserves PNG metadata 8/0/true 1`] = `
 {
   "bitsPerSample": 8,
-  "channels": 2,
+  "channels": 1,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "uchar",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isProgressive": false,
   "orientation": 6,
@@ -768,12 +816,15 @@ exports[`preserves PNG metadata 8/2/false 1`] = `
 exports[`preserves PNG metadata 8/2/true 1`] = `
 {
   "bitsPerSample": 8,
-  "channels": 4,
+  "channels": 3,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "uchar",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isProgressive": false,
   "orientation": 6,
@@ -806,7 +857,7 @@ exports[`preserves PNG metadata 8/3/false 1`] = `
     "x": 5669,
     "y": 0,
   },
-  "size": 177,
+  "size": 192,
   "space": "srgb",
   "width": 17,
 }
@@ -815,12 +866,15 @@ exports[`preserves PNG metadata 8/3/false 1`] = `
 exports[`preserves PNG metadata 8/3/true 1`] = `
 {
   "bitsPerSample": 8,
-  "channels": 4,
+  "channels": 3,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "uchar",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isPalette": true,
   "isProgressive": false,
@@ -830,7 +884,7 @@ exports[`preserves PNG metadata 8/3/true 1`] = `
     "x": 5669,
     "y": 0,
   },
-  "size": 189,
+  "size": 204,
   "space": "srgb",
   "width": 17,
 }
@@ -863,6 +917,9 @@ exports[`preserves PNG metadata 8/4/true 1`] = `
 {
   "bitsPerSample": 8,
   "channels": 2,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "uchar",
   "exif": Any<Uint8Array>,
@@ -909,6 +966,9 @@ exports[`preserves PNG metadata 8/6/true 1`] = `
 {
   "bitsPerSample": 8,
   "channels": 4,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "uchar",
   "exif": Any<Uint8Array>,
@@ -954,12 +1014,15 @@ exports[`preserves PNG metadata 16/0/false 1`] = `
 exports[`preserves PNG metadata 16/0/true 1`] = `
 {
   "bitsPerSample": 16,
-  "channels": 2,
+  "channels": 1,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "ushort",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isProgressive": false,
   "orientation": 6,
@@ -1000,12 +1063,15 @@ exports[`preserves PNG metadata 16/2/false 1`] = `
 exports[`preserves PNG metadata 16/2/true 1`] = `
 {
   "bitsPerSample": 16,
-  "channels": 4,
+  "channels": 3,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "ushort",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isProgressive": false,
   "orientation": 6,
@@ -1038,7 +1104,7 @@ exports[`preserves PNG metadata 16/3/false 1`] = `
     "x": 5669,
     "y": 0,
   },
-  "size": 177,
+  "size": 192,
   "space": "rgb16",
   "width": 17,
 }
@@ -1047,12 +1113,15 @@ exports[`preserves PNG metadata 16/3/false 1`] = `
 exports[`preserves PNG metadata 16/3/true 1`] = `
 {
   "bitsPerSample": 16,
-  "channels": 4,
+  "channels": 3,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "ushort",
   "exif": Any<Uint8Array>,
   "format": "png",
-  "hasAlpha": true,
+  "hasAlpha": false,
   "height": 19,
   "isPalette": true,
   "isProgressive": false,
@@ -1062,7 +1131,7 @@ exports[`preserves PNG metadata 16/3/true 1`] = `
     "x": 5669,
     "y": 0,
   },
-  "size": 189,
+  "size": 204,
   "space": "rgb16",
   "width": 17,
 }
@@ -1095,6 +1164,9 @@ exports[`preserves PNG metadata 16/4/true 1`] = `
 {
   "bitsPerSample": 16,
   "channels": 2,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "ushort",
   "exif": Any<Uint8Array>,
@@ -1141,6 +1213,9 @@ exports[`preserves PNG metadata 16/6/true 1`] = `
 {
   "bitsPerSample": 16,
   "channels": 4,
+  "decodeWarnings": [
+    "PNG tRNS invalid length",
+  ],
   "density": 144,
   "depth": "ushort",
   "exif": Any<Uint8Array>,

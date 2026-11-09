@@ -2,7 +2,7 @@ import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, pngCrc32, makeChunk, gammaChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
+import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, canvasChunk, iccChunk, textChunks} from "./png-chunks.js";
 import {buildExifApp1Segment} from "./exif.js";
 import {createByteCodec, defaultRuntime} from "@poe-code/compression";
 import {checkLimitInputPixels} from "../limits.js";
@@ -114,7 +114,7 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
     }
     if (chunk.name === "IHDR" && chunk.length >= 13) header = await range(source, chunk.start, 13, signal);
     else if (chunk.name === "PLTE") palette = await range(source, chunk.start, Math.min(chunk.length, 768), signal);
-    else if (chunk.name === "tRNS" && !hasIdat && (header?.[9] !== 3 || palette)) transparency ??= await range(source, chunk.start, Math.min(chunk.length, 256), signal);
+    else if (chunk.name === "tRNS" && !hasIdat && header && validPngTransparencyLength(header[9]!, chunk.length, palette?.length)) transparency ??= await range(source, chunk.start, chunk.length, signal);
   }
   if (!header) throw new Error("Invalid PNG header");
   const {size: ignoredSize, ...metadata} = await readPngMetadataFromSource(source, signal);

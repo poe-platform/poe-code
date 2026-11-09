@@ -248,3 +248,19 @@ for (const color of [0, 2, 3]) for (const duplicate of [false, true]) {
     } finally {await storage.close();}
   });
 }
+
+it.each([0, 1, 2, 3, 4])("validates grayscale tRNS length=%i in both decoders", async length => {
+  const transparency = new Uint8Array(length);
+  if (length >= 2) transparency[1] = 17;
+  const bytes = png(2, 1, Uint8Array.of(0, 17, 68), 8, 0, [chunk("tRNS", transparency)]);
+  const expected = Uint8Array.of(17, 17, 17, length === 2 ? 0 : 255, 68, 68, 68, 255);
+  const {storage} = backing();
+  try {
+    const buffered = decodePngImage(bytes);
+    const stored = await decodePngToStorage(source(bytes), storage, new AbortController().signal);
+    expect(buffered.data).toEqual(expected);
+    expect(await storage.read(stored.position, 8)).toEqual(expected);
+    expect(buffered.channels).toBe(length === 2 ? 4 : 1);
+    expect(stored.channels).toBe(buffered.channels);
+  } finally {await storage.close();}
+});

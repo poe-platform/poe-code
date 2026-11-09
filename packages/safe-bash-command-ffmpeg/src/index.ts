@@ -5601,26 +5601,42 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               hlsIndependentSegments = false;
               hlsSplitByTime = false;
             }
+            const flagBits: Record<string, number> = {
+              single_file: 1,
+              delete_segments: 2,
+              round_durations: 4,
+              discont_start: 8,
+              omit_endlist: 16,
+              split_by_time: 32,
+              append_list: 64,
+              program_date_time: 128,
+              second_level_segment_index: 256,
+              temp_file: 2048,
+              independent_segments: 8192,
+              iframes_only: 16384
+            };
+            const supportedMask = Object.values(flagBits).reduce((mask, bit) => mask | bit, 0);
             for (const flag of value.replaceAll("-", "+-").split("+")) {
               if (!flag) continue;
               const enabled = !flag.startsWith("-");
               const name = enabled ? flag : flag.slice(1);
-              if (name === "single_file") hlsSingleFile = enabled;
-              else if (name === "temp_file") hlsTempFile = enabled;
-              else if (name === "second_level_segment_index") hlsSecondLevelSegmentIndex = enabled;
-              else if (name === "delete_segments") hlsDeleteSegments = enabled;
-              else if (name === "iframes_only") hlsIframesOnly = enabled;
-              else if (name === "independent_segments") hlsIndependentSegments = enabled;
-              else if (name === "split_by_time") hlsSplitByTime = enabled;
-              else if (name === "omit_endlist") hlsOmitEndlist = enabled;
-              else if (name === "append_list") hlsAppendList = enabled;
-              else if (name === "discont_start") hlsDiscontStart = enabled;
-              else if (name === "round_durations") hlsRoundDurations = enabled;
-              else if (name === "program_date_time") hlsProgramDateTime = enabled;
-              else {
+              const mask = Object.hasOwn(flagBits, name) ? flagBits[name]! : name.trim() ? Number(name) : NaN;
+              if (!Number.isInteger(mask) || (mask & supportedMask) !== mask) {
                 await writeBytes(context.stderr, encodeUtf8(`ffmpeg: unrecognized HLS flag '${name}'\n`), context.signal);
                 return { exitCode: 1 };
               }
+              if (mask & flagBits.single_file!) hlsSingleFile = enabled;
+              if (mask & flagBits.temp_file!) hlsTempFile = enabled;
+              if (mask & flagBits.delete_segments!) hlsDeleteSegments = enabled;
+              if (mask & flagBits.round_durations!) hlsRoundDurations = enabled;
+              if (mask & flagBits.discont_start!) hlsDiscontStart = enabled;
+              if (mask & flagBits.omit_endlist!) hlsOmitEndlist = enabled;
+              if (mask & flagBits.split_by_time!) hlsSplitByTime = enabled;
+              if (mask & flagBits.append_list!) hlsAppendList = enabled;
+              if (mask & flagBits.program_date_time!) hlsProgramDateTime = enabled;
+              if (mask & flagBits.second_level_segment_index!) hlsSecondLevelSegmentIndex = enabled;
+              if (mask & flagBits.independent_segments!) hlsIndependentSegments = enabled;
+              if (mask & flagBits.iframes_only!) hlsIframesOnly = enabled;
             }
           } else if (arg === "-hls_delete_threshold") {
             const value = args[++i];

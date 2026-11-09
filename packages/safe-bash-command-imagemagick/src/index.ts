@@ -1933,7 +1933,7 @@ function parseMagickBorderGeometry(raw: string): MagickGeometry {
 
 function parseMagickRollGeometry(raw: string): MagickGeometry {
     raw = raw.replaceAll(" ", "");
-    const normalized = normalizeMagickHexOffsets(raw);
+    const normalized = normalizeMagickHexOffsets(raw.replaceAll("#", ""));
     // Native roll consumes at most two offsets; comma/colon ends the offset list.
     let offsets = 0;
     let end = normalized.length;

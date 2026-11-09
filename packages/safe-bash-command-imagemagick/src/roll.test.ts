@@ -91,6 +91,10 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         { geometry: "-0.7-0.7", x: 0, y: 0 },
         { geometry: "+13.9-8.9", x: 13, y: -8 },
         { geometry: "+1-1", x: 1, y: -1 },
+        { geometry: "+1+1#", x: 1, y: 1 },
+        { geometry: "5x3+1+1#", x: 1, y: 1 },
+        { geometry: "+1#-1", x: 1, y: -1 },
+        { geometry: "+1#-1%", x: 0, y: 0 },
         { geometry: "+13-8", x: 13, y: -8 },
     ])(`truncates roll offsets before wrapping $geometry, ${mode}`, async ({ geometry, x, y }) => {
         const pixels = Array.from({ length: 15 }, (_, i) => (i + 1) * 10);

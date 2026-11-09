@@ -16,6 +16,7 @@ type Node = { count: number; bytes: number } & (
 
 interface Frame {
   branches: Node[][];
+  sequence?: boolean;
 }
 
 export class BraceExpansionFailure extends Error {}
@@ -290,6 +291,7 @@ export async function* expandBraces(word: Word, budget: Budget, signal: AbortSig
           else if (character === "}") parameterBraces--;
           continue;
         }
+        if (character === "." && part.value[offset + 1] === "." && part.value[offset + 2] !== "}") frames.at(-1)!.sequence = true;
         if (character !== "{" && character !== "}" && character !== ",") continue;
         if (start < offset) {
           admit((offset - start) * 2);
@@ -299,6 +301,12 @@ export async function* expandBraces(word: Word, budget: Budget, signal: AbortSig
         if (character === "{") { admit(); frames.push({ branches: [[]] }); }
         else if (character === "," && frames.length > 1) { admit(); frames.at(-1)!.branches.push([]); }
         else if (character === "}" && frames.length > 1) {
+          // A top-level candidate keeps early closers as text until a comma or
+          // sequence makes it expandable. Nested braces still balance normally.
+          if (frames.length === 2 && frames[1]!.branches.length === 1 && !frames[1]!.sequence) {
+            append(textNode("}"));
+            continue;
+          }
           const frame = frames.pop()!;
           if (frame.branches.length > 1) {
             admit(frame.branches.length * 8);

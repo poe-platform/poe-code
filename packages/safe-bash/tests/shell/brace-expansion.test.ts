@@ -37,6 +37,11 @@ for (const [pattern, expected] of [["@(a){1..2}", ["a1"]], ["!(a){1..2}", ["b1"]
 
 for (const [source, expected] of [
   ["args pre{a,b}post", ["preapost", "prebpost"]],
+  ["set -- file{a},b}.txt; args \"$#\" \"$@\"", ["2", "filea}.txt", "fileb.txt"]],
+  ["args pre{a}},b}{1,2}post", ["prea}}1post", "prea}}2post", "preb1post", "preb2post"]],
+  ["args {x,{a},b}} {{a}x},b}", ["x}", "{a}}", "b}", "{a}x}", "b"]],
+  ["args file{a,b}.txt file{a}.txt 'file{a},b}.txt' file{a\\},b}.txt", ["filea.txt", "fileb.txt", "file{a}.txt", "file{a},b}.txt", "filea}.txt", "fileb.txt"]],
+  ["args {a},b {a}x{b,c} {1..2},b} {1..x},b} {a..},b}", ["{a},b", "{a}xb", "{a}xc", "1,b}", "2,b}", "{1..x},b}", "a..}", "b"]],
   ["unset v; args {a,${v:-{x,y}}}", ["a", "{x,y}"]],
   ["unset v; args {a,${v:-x}}", ["a", "x"]],
   ['unset v; args {a,"${v:-{x,y}}"}', ["a", "{x,y}"]],

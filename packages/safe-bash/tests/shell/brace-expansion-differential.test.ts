@@ -18,6 +18,11 @@ function native(source: string | readonly string[]) {
 
 const cases = [
   ["default comma lists", String.raw`printf '<%s>\n' {a,b}`],
+  ["early closing brace in a filename alternative", String.raw`set -- file{a},b}.txt; printf '%s\n' "$#"; printf '[%s]\n' "$@"`],
+  ["early closing braces with nested and prefixed alternatives", String.raw`printf '<%s>\n' pre{a}},b}{1,2}post {x,{a},b}} {{a}x},b} {a}{b},c} {a},b{c,d}}`],
+  ["early closing brace quoting and incomplete controls", String.raw`printf '<%s>\n' file{a,b}.txt file{a}.txt 'file{a},b}.txt' file{a\},b}.txt {a},b {{a},b {a}x{b,c}`],
+  ["early closing braces retain range stopping rules", String.raw`printf '<%s>\n' {1..2},b} {1..x},b} {..a},b} {a..},b} {a..""},b} {a"..b"},c} {a..{b}},c}`],
+  ["early closing braces in loop and array words", "for value in file{a},b}.txt; do printf '<%s>\\n' \"$value\"; done; values=(file{a},b}.txt); printf '<%s>\\n' \"${values[@]}\""],
   ["empty alternatives", String.raw`printf '<%s>\n' prefix{,,a,}suffix {,}`],
   ["nested and cartesian order", String.raw`printf '<%s>\n' pre{a,{b,c}}{1,2}post`],
   ["ascending descending and stepped numbers", String.raw`printf '<%s>\n' {1..5..2} {5..1..2} {-3..3..2} {3..-3..-2}`],

@@ -28,8 +28,8 @@ for (const repetitions of [8, 32, 128]) {
       const first = await iterator.next();
       assert.equal(first.done, false);
       assert.equal(first.value, word);
-      assert.deepEqual(budget.values.usage, { bytes: 128 + repetitions * 360, slots: 1 });
-      assert.equal(parsing.mock.callCount(), repetitions * 10 + 2);
+      assert.deepEqual(budget.values.usage, { bytes: 96 + repetitions * 360, slots: 1 });
+      assert.equal(parsing.mock.callCount(), repetitions * 10 + 1);
       assert.equal(allocated.mock.callCount(), 2);
       assert.equal(released.mock.callCount(), 0);
     } finally { await iterator.return(undefined); }
@@ -55,8 +55,8 @@ for (const value of ["{".repeat(32) + "a" + "}".repeat(32), "{a}".repeat(8) + "{
 }
 
 for (const [limits, expected] of [
-  [{ maxExpansionBytes: 3007 }, "maxExpansionBytes"],
-  [{ maxParseUnits: 81 }, "maxParseUnits"],
+  [{ maxExpansionBytes: 2975 }, "maxExpansionBytes"],
+  [{ maxParseUnits: 80 }, "maxParseUnits"],
 ] as const) {
   test(`brace reservation preserves the exact ${expected} boundary`, async context => {
     const budget = budgetFor(context, limits);
@@ -66,8 +66,8 @@ for (const [limits, expected] of [
   });
 }
 
-test("brace admission accepts its unchanged exact byte and parse budgets", async context => {
-  const budget = budgetFor(context, { maxExpansionBytes: 3008, maxParseUnits: 82 });
+test("brace admission accepts its exact byte and parse budgets", async context => {
+  const budget = budgetFor(context, { maxExpansionBytes: 2976, maxParseUnits: 81 });
   const word = wordFor("{a}".repeat(8));
   const values: Word[] = [];
   for await (const value of expandBraces(word, budget, budget.signal)) values.push(value);

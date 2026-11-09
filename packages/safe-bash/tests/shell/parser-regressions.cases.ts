@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { parseShell, ShellSyntaxError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
@@ -81,6 +82,30 @@ test("continuations preserve keyword, operator and descriptor recognition", asyn
   assert.equal(new TextDecoder().decode(await fs.readFile("/errors")), "err\n");
   assert.equal((await shell.exec("args 'a\\\nb' \"c\\\nd\" e\\\nf")).stdout, '["a\\\\\\nb","cd","ef"]');
 });
+
+for (const form of ["backtick", "dollar-parenthesis"] as const) {
+  for (const quoted of [false, true]) {
+    for (const [backslashes, backtickValue] of [[1, "ab"], [2, "a\\\nb"], [3, "a\\b"]] as const) test(`${form} single-quoted continuation: quoted=${quoted}, backslashes=${backslashes}`, async () => {
+      const value = `a${"\\".repeat(backslashes)}\nb`;
+      const body = `printf %s '${value}'`;
+      const substitution = form === "backtick" ? `\`${body}\`` : `$(${body})`;
+      const source = quoted ? `printf '<%s>\\n' "${substitution}"` : `value=${substitution}; printf '<%s>\\n' "$value"`;
+      const expected = form === "backtick" ? backtickValue : value;
+      const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } });
+      assert.equal(native.status, 0);
+      assert.equal(native.stderr, "");
+      assert.equal(native.stdout, `<${expected}>\n`);
+      const { shell } = setup();
+      shell.register(printfCommand);
+      try {
+        const result = await shell.exec(source);
+        assert.equal(result.exitCode, native.status);
+        assert.equal(result.stderr, native.stderr);
+        assert.equal(result.stdout, native.stdout);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
 
 test("misplaced negation and unsupported expansion syntax reject before effects", async () => {
   for (const source of ["say touched; true | ! false", "say touched; args $'unterminated", 'say touched; args $"text"', "say touched; args $$ $! $-"]) {

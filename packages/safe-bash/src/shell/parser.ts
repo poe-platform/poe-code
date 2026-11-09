@@ -1082,6 +1082,7 @@ class Lexer {
       const sourceValues = this.sourceValues ? new Map<number, ByteShellValue>() : undefined;
       const backtickEscapable = quoted && this.documentLine === undefined ? /[$`\\"]/u : /[$`\\]/u;
       while (this.position < this.source.length && this.source[this.position] !== "`") {
+        if (this.source.startsWith("\\\n", this.position)) { this.position += 2; continue; }
         if (this.source[this.position] === "\\" && backtickEscapable.test(this.source[this.position + 1] ?? "")) this.position++;
         const opaque = this.sourceValues?.get(this.sourceOffset + this.position);
         if (opaque !== undefined) { this.budget.admit(); sourceValues!.set(source.length, opaque); }

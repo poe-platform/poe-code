@@ -3,7 +3,8 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 export async function resampleAudio(
   channels: readonly (Float32Array | Float64Array)[], outputLength: number, inputRate: number, outputRate: number,
-  budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9, filterSize = 32, resampleCutoff = 0, phaseShift = 10, linearInterp = 1, exactRational = 1
+  budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9, filterSize = 32, resampleCutoff = 0, phaseShift = 10, linearInterp = 1, exactRational = 1,
+  frameLimit?: { count: number; ends: readonly number[] }
 ): Promise<Float32Array[]> {
   const rateRatio = inputRate / outputRate;
   const length = channels[0]?.length ?? 0;
@@ -17,6 +18,24 @@ export async function resampleAudio(
     const flushedLength = length + Math.ceil(length / 2);
     outputLength = flushedLength <= filterLength ? 0
       : Math.ceil((flushedLength - filterLength / 2) / rateRatio);
+  }
+  if (frameLimit) {
+    let frames = 0;
+    let emitted = 0;
+    if (frameLimit.count === 0) outputLength = 0;
+    for (const end of frameLimit.ends) {
+      const available = Math.min(length, end);
+      if (available <= filterLength) continue;
+      // Each input frame emits only samples whose filter support is available.
+      // The remaining tail is a separate frame emitted during flush.
+      const produced = Math.max(0, Math.ceil((available - filterLength / 2) / rateRatio));
+      if (produced <= emitted) continue;
+      emitted = produced;
+      if (++frames === frameLimit.count) {
+        outputLength = Math.min(outputLength, emitted);
+        break;
+      }
+    }
   }
   const output = channels.map(() => new Float32Array(outputLength));
   if (length === 0) return output;

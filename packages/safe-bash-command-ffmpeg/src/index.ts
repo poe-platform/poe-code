@@ -9349,7 +9349,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     stretched = stretched.map(channel => channel.subarray(start, end));
                   }
 
-                  if (maxAudioFrames !== undefined) {
+                  const resampleFrameLimit = maxAudioFrames !== undefined && audioRate !== undefined && audioRate !== origRate
+                    && resampler === "swr" && !loudnormResampling && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms"
+                    ? { count: maxAudioFrames, ends: audioTimestamps?.map(frame => frame.end) ??
+                      t.samples.map(sample => (sample.dts + sample.duration - (t.samples[0]?.dts ?? 0)) * origRate / t.timescale) }
+                    : undefined;
+                  if (maxAudioFrames !== undefined && !resampleFrameLimit) {
                     let inputFrames = maxAudioFrames;
                     if ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") && maxAudioFrames > 0) {
                       const channels = audioChannels === undefined || audioChannels === -1 ? stretched.length : audioChannels;
@@ -9496,7 +9501,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ? await resampleSoxr(stretched, origRate, targetRate, budget, context.signal, resampleCutoff)
                     : loudnormResampling
                     ? await resampleLoudnorm(stretched, origRate, targetRate, budget, context.signal)
-                    : await resampleAudio(stretched, targetSamples, origRate, targetRate, budget, context.signal, filterType, kaiserBeta, filterSize, resampleCutoff, phaseShift, linearInterp, exactRational);
+                    : await resampleAudio(stretched, targetSamples, origRate, targetRate, budget, context.signal, filterType, kaiserBeta, filterSize, resampleCutoff, phaseShift, linearInterp, exactRational, resampleFrameLimit);
                   if (targetRate !== origRate && (resampler === "soxr" || !loudnormResampling)) targetSamples = stretched[0]?.length ?? 0;
                   const newChannelData: (Float32Array | Float64Array)[] = [];
                   const ChannelArray = stretched.some(channel => channel instanceof Float64Array) ? Float64Array : Float32Array;
@@ -9788,7 +9793,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   boundaries.push(seconds);
                 }
               }
-              boundaries.push(workingDoc.durationSeconds);
+              const lastPacket = track.samples.at(-1);
+              boundaries.push(segmentPlugin.id === "wav"
+                ? lastPacket ? (lastPacket.pts + lastPacket.duration) / track.timescale : track.duration / track.timescale
+                : workingDoc.durationSeconds);
               const paths = boundaries.slice(1).map((_, index) =>
                 resolvePath(context.cwd, formatImageSequence(outputTarget,
                   segmentWrap ? (segmentStartNumber + index) % segmentWrap : segmentStartNumber + index)!));

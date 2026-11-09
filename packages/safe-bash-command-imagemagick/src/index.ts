@@ -3566,6 +3566,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             }
         }
         if (plan && token === "-wave") {
+            plan = { ...plan, virtualCanvas: magickResizeCanvas(image, plan.width, plan.height) };
             let color = backgroundExplicit ? background : image.backgroundColor ?? background;
             const gray = image.space === "b-w" || image.space === "grey16";
             // Native PNG reading leaves sub-byte grayscale bKGD samples unscaled.

@@ -26,7 +26,7 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
 }
 
 for (const mode of ["sync", "buffered", "retained"] as const) {
-    it(`preserves HDR values and rejects malformed RLE (${mode})`, async () => {
+    it(`preserves HDR values and rejects truncated flat pixels (${mode})`, async () => {
         const header = new TextEncoder().encode("#?RGBE\nFORMAT=32-bit_rle_rgbe\n\n+Y 1 -X 2\n");
         const bytes = new Uint8Array([...header, 0, 0, 128, 130, 128, 0, 0, 129]);
         const files = new Map([["/in.hdr", bytes]]), filesystem = new MemoryFileSystem();
@@ -37,7 +37,29 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
         expect(Array.from(image.dataFloat!)).toEqual([1, 0, 0, 1, 0, 0, 2, 1]);
         const invalid = new Uint8Array([...header, 1, 1, 1, 2]);
         files.set("/in.hdr", invalid); await filesystem.writeFile("/in.hdr", invalid);
-        expect(await run()).toMatchObject({ exitCode: 1, stderr: expect.stringContaining("Invalid Radiance repeat run") });
+        expect(await run()).toMatchObject({ exitCode: 1, stderr: expect.stringContaining("Truncated Radiance raster") });
+    });
+}
+
+for (const mode of ["sync", "buffered", "retained"] as const) {
+    it(`reads flat triplets literally and preserves output on truncated input (${mode})`, async () => {
+        // Native ImageMagick 7.1.2-35 Q16-HDRI treats 01 01 01 02 as a dark pixel.
+        const bytes = new Uint8Array([...new TextEncoder().encode("#?RADIANCE\nFORMAT=32-bit_rle_rgbe\n\n-Y 2 +X 3\n"),
+            128, 0, 0, 129, 1, 1, 1, 2, 0, 0, 128, 130, 128, 128, 0, 127, 0, 128, 128, 127, 128, 0, 128, 127]);
+        const files = new Map([["/in.hdr", bytes]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.hdr", bytes);
+        const args = ["/in.hdr", "PNG32:/out.png"];
+        const run = () => mode === "sync" ? runConvertCliSync(args, files) : runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(await run()).toMatchObject({ exitCode: 0, stderr: "" });
+        const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!;
+        const image = decodeImage(output);
+        expect([image.width, image.height]).toEqual([3, 2]);
+        expect(Array.from(image.data)).toEqual([255, 0, 0, 255, 0, 0, 0, 255, 0, 0, 255, 255, 64, 64, 0, 255, 0, 64, 64, 255, 64, 0, 64, 255]);
+
+        const truncated = new Uint8Array([...new TextEncoder().encode("#?RADIANCE\nFORMAT=32-bit_rle_rgbe\n\n-Y 1 +X 6\n"), 128, 0, 0, 129, 1, 1, 1, 5]);
+        files.set("/in.hdr", truncated); await filesystem.writeFile("/in.hdr", truncated);
+        expect(await run()).toMatchObject({ exitCode: 1, stderr: expect.stringContaining("Truncated Radiance raster") });
+        expect(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")).toEqual(output);
     });
 }
 

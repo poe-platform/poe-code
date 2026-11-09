@@ -13,9 +13,9 @@ it("reads flat RGBE, black exponents, and values above one without applying gamm
     expect(Array.from(image.data16!)).toEqual([65535, 65535, 32768, 65535, 0, 0, 0, 65535]);
 });
 
-it("decodes legacy repeat runs across scanlines", () => {
-    const image = decodeImage(hdr([128, 0, 0, 129, 1, 1, 1, 3], "-Y 2 +X 2"));
-    expect(Array.from(image.data)).toEqual(Array.from({ length: 4 }, () => [255, 0, 0, 255]).flat());
+it("reads 01 01 01 triplets as literal flat pixels, including the first pixel", () => {
+    const image = decodeImage(hdr([1, 1, 1, 129, 128, 0, 0, 129, 1, 1, 1, 2, 0, 0, 128, 130], "-Y 2 +X 2"));
+    expect(Array.from(image.dataFloat!)).toEqual([1 / 128, 1 / 128, 1 / 128, 1, 1, 0, 0, 1, 2 ** -134, 2 ** -134, 2 ** -134, 1, 0, 0, 2, 1]);
 });
 
 it("decodes modern RLE runs and literals", () => {
@@ -33,8 +33,7 @@ for (const resolution of ["-Y 2 +X 2", "+Y 2 -X 2", "+X 2 -Y 2", "-X 2 +Y 2"]) {
 
 for (const [label, bytes] of [
     ["truncated", hdr([128, 0, 0, 129])],
-    ["orphan repeat", hdr([1, 1, 1, 2])],
-    ["oversized repeat", hdr([128, 0, 0, 129, 1, 1, 1, 2])],
+    ["truncated after literal triplet", hdr([128, 0, 0, 129, 1, 1, 1, 5], "-Y 1 +X 6")],
     ["zero packet", hdr([2, 2, 0, 8, 0], "-Y 1 +X 8")],
     ["oversized packet", hdr([2, 2, 0, 8, 137, 128], "-Y 1 +X 8")],
     ["wrong scanline width", hdr([2, 2, 0, 9], "-Y 1 +X 8")],

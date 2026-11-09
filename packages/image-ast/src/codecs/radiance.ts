@@ -40,7 +40,7 @@ type Header = ReturnType<typeof readRadianceHeader>;
 
 // Shared byte parser: buffered and retained inputs use identical RLE validation.
 export function* radianceRows(header: Header, options?: SharpInputOptions): Generator<number | { indices: number[]; data: Uint8Array; data16: Uint16Array; dataFloat: Float32Array }, void, number | undefined> {
-    let offset = header.offset, previous = [0, 0, 0, 0], pending = 0, shift = 0, seen = false;
+    let offset = header.offset;
     function* byte(): Generator<number, number, number | undefined> {
         const value = yield offset++;
         if (value === undefined) throw new Error("Truncated Radiance raster");
@@ -48,24 +48,22 @@ export function* radianceRows(header: Header, options?: SharpInputOptions): Gene
     }
     const [major, minor] = header.counts as [number, number];
     for (let row = 0; row < major; row++) {
-        let planes: Uint8Array | undefined, first: number[] | undefined;
-        if (!pending) {
-            first = [yield* byte(), yield* byte(), yield* byte(), yield* byte()];
-            if (minor >= 8 && minor <= 32767 && first[0] === 2 && first[1] === 2 && first[2]! < 128) {
-                if (first[2]! * 256 + first[3]! !== minor) throw new Error("Invalid Radiance scanline width");
-                planes = new Uint8Array(minor * 4);
-                for (let channel = 0; channel < 4; channel++) {
-                    let x = 0;
-                    while (x < minor) {
-                        const code = yield* byte(), count = code > 128 ? code - 128 : code;
-                        if (!count || x + count > minor) throw new Error("Invalid Radiance RLE packet");
-                        if (code > 128) planes.fill(yield* byte(), channel * minor + x, channel * minor + x + count);
-                        else for (let i = 0; i < count; i++) planes[channel * minor + x + i] = yield* byte();
-                        x += count;
-                    }
+        let planes: Uint8Array | undefined;
+        let first: number[] | undefined = [yield* byte(), yield* byte(), yield* byte(), yield* byte()];
+        if (minor >= 8 && minor <= 32767 && first[0] === 2 && first[1] === 2 && first[2]! < 128) {
+            if (first[2]! * 256 + first[3]! !== minor) throw new Error("Invalid Radiance scanline width");
+            planes = new Uint8Array(minor * 4);
+            for (let channel = 0; channel < 4; channel++) {
+                let x = 0;
+                while (x < minor) {
+                    const code = yield* byte(), count = code > 128 ? code - 128 : code;
+                    if (!count || x + count > minor) throw new Error("Invalid Radiance RLE packet");
+                    if (code > 128) planes.fill(yield* byte(), channel * minor + x, channel * minor + x + count);
+                    else for (let i = 0; i < count; i++) planes[channel * minor + x + i] = yield* byte();
+                    x += count;
                 }
-                first = undefined;
             }
+            first = undefined;
         }
         for (let start = 0; start < minor; start += 1024) {
             const count = Math.min(1024, minor - start), data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4), dataFloat = new Float32Array(count * 4), indices: number[] = [];
@@ -74,15 +72,9 @@ export function* radianceRows(header: Header, options?: SharpInputOptions): Gene
                 let pixel: number[];
                 if (planes) pixel = [planes[column]!, planes[minor + column]!, planes[minor * 2 + column]!, planes[minor * 3 + column]!];
                 else {
-                    while (!pending) {
-                        const value = first ?? [yield* byte(), yield* byte(), yield* byte(), yield* byte()]; first = undefined;
-                        if (value[0] === 1 && value[1] === 1 && value[2] === 1) {
-                            const repeats = value[3]! * 2 ** shift;
-                            if (!seen || shift > 32 || repeats > (major - row) * minor - column) throw new Error("Invalid Radiance repeat run");
-                            pending = repeats; shift += 8;
-                        } else { previous = value; seen = true; shift = 0; pending = 1; }
-                    }
-                    pixel = previous; pending--;
+                    // ImageMagick reads every flat RGBE tuple literally, including 01 01 01.
+                    pixel = first ?? [yield* byte(), yield* byte(), yield* byte(), yield* byte()];
+                    first = undefined;
                 }
                 const coordinates = [row, column].map((value, axis) => header.axes[axis] === "+X" || header.axes[axis] === "-Y" || (options?.hdrPreserveScanlineOrder && header.axes[axis] === "+Y") ? value : header.counts[axis]! - 1 - value);
                 const x = coordinates[header.axes[0]![1] === "X" ? 0 : 1]!, y = coordinates[header.axes[0]![1] === "Y" ? 0 : 1]!;

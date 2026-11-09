@@ -8307,8 +8307,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-morph") {
-            const argument = tokens[++i] ?? "1", count = Number(argument);
-            if (!argument.trim() || !Number.isFinite(count)) throw new Error(`invalid argument for option '-morph': ${argument}`);
+            const argument = tokens[++i] ?? "1", image = stack[0];
+            const expanded = image ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : argument;
+            const count = Number(expanded);
+            if (!expanded.trim() || !Number.isFinite(count)) throw new Error(`invalid argument for option '-morph': ${expanded}`);
             stack = (yield* applyMagickMorphSteps(stack, count, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.kernel, signal, state.resizeFilter));
         }
         else if (t === "-floodfill" || t === "+floodfill") {
@@ -9464,7 +9466,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && ["-clut", "-hald-clut", "-separate", "-combine", "-morph", "-evaluate-sequence", "-average"].includes(token)) {
             const argument = token === "-morph" || token === "-evaluate-sequence" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : token === "-average" ? "Mean" : "", settings = { ...state, channels: { ...state.channels } };
-            if (token === "-morph" && (!argument.trim() || !Number.isFinite(Number(argument)))) throw new Error(`invalid argument for option '-morph': ${argument}`);
             stackStep(async (stack, backend) => {
                 if (token === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
                 if (token === "-clut" || token === "-hald-clut") {
@@ -9494,7 +9495,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const base = sources[0]!, result = await transformStoredMagickRaster(base, backend, combinePixelSteps(sources, sources.some(image => !!image.storedData16)), signal, base, sources);
                     stack.length = 0; await stack.push({ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 });
                 } else if (token === "-morph") {
-                    const count = Math.max(0, Math.trunc(Number(argument)));
+                    const image = await stack.get(0);
+                    const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal) : argument;
+                    if (!expanded.trim() || !Number.isFinite(Number(expanded))) throw new Error(`invalid argument for option '-morph': ${expanded}`);
+                    const count = Math.max(0, Math.trunc(Number(expanded)));
                     if (stack.length === 1 && count > 1) {
                         const image = (await stack.get(0))!;
                         for (let index = 1; index < count; index++) {

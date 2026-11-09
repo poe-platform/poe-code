@@ -1,4 +1,3 @@
-import { parseAudioChannelLayout } from "./audio-channel-layout.js";
 import { ffmpegColors } from "./ffmpeg-colors.js";
 import { encodeH264PresetTrack, h264Presets } from "@poe-code/mp4-ast";
 import { parseFeedbackGraph, applyFeedback } from "./feedback.js";
@@ -20,9 +19,6 @@ import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
 import { decimate } from "./decimate.js";
-import { cutSubAudio } from "./audio-asubcut.js";
-import { boostSubAudio } from "./audio-asubboost.js";
-import { highpassAudio } from "./audio-highpass.js";
 import { cutUltrasonicAudio } from "./audio-asupercut.js";
 import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
@@ -36,13 +32,12 @@ import { oscilloscope } from "./oscilloscope.js";
 import { vibratoAudio } from "./audio-vibrato.js";
 import { pulsateAudio } from "./audio-apulsator.js";
 import { tremoloAudio } from "./audio-tremolo.js";
-import { decorrelateAudio } from "./audio-adecorrelate.js";
 import { phaseAudio } from "./audio-aphaser.js";
+import { echoAudio } from "./audio-aecho.js";
 import { shiftAudioPhase } from "./audio-aphaseshift.js";
 import { correlateAudio } from "./audio-axcorrelate.js";
 import { gateAudio } from "./audio-sidechaingate.js";
 import { listenDynamicEqualizer } from "./audio-adynamicequalizer.js";
-import { tiltAudio } from "./audio-atilt.js";
 import { softClipAudio } from "./audio-asoftclip.js";
 import { AlimiterError, limitAudio } from "./audio-alimiter.js";
 import { applyAudioGate } from "./audio-agate.js";
@@ -56,7 +51,6 @@ import { compensateAudioDelay } from "./audio-compensationdelay.js";
 import { fadeAudio } from "./audio-fade.js";
 import { acrossfadeAudio } from "./audio-acrossfade.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
-import { headphoneAudio } from "./audio-headphone.js";
 import { mixAudio } from "./audio-amix.js";
 import { joinAudio } from "./audio-join.js";
 import { enhanceDialogue } from "./audio-dialogue.js";
@@ -71,7 +65,7 @@ import { createFfprobeCommand } from "safe-bash-command-ffprobe";
 export { createFfprobeCommand } from "safe-bash-command-ffprobe";
 export { evalSyncFfprobe } from "safe-bash-command-ffprobe/media";
 import { isStdin, rethrowRuntimeError, createInputReader, loadManifestResources, resolvePath,
-  formatIntrospectionOutput, getDefaultMediaRegistry, parseConcatManifest, parseHlsDuration,
+  formatIntrospectionOutput, getDefaultMediaRegistry,
   type MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-command-ffprobe/media";
 export type { MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-command-ffprobe/media";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -154,7 +148,6 @@ import {
   parseMp4Boxes,
   sliceMp4,
   type MediaAstPlugin,
-  type SerializeMediaOptions,
   type MediaAudioData,
   type MediaDocument,
   type MediaAttachment,
@@ -200,14 +193,12 @@ function serializeChecksum(
   algorithm: string,
   audioCodec: string | undefined,
   rawAudio: MediaAstPlugin | undefined,
-  budget: MediaBudgetTracker,
-  encoder?: MediaAstPlugin,
-  encoderOptions?: SerializeMediaOptions
+  budget: MediaBudgetTracker
 ): Uint8Array {
   if (format === "streamhash") {
     return concatBytes(doc.tracks.map((track, index) => concatBytes([
       encodeUtf8(`${index},${track.type === "video" ? "v" : "a"},`),
-      serializeChecksum({ ...doc, tracks: [track] }, "hash", algorithm, audioCodec, rawAudio, budget, encoder, encoderOptions)
+      serializeChecksum({ ...doc, tracks: [track] }, "hash", algorithm, audioCodec, rawAudio, budget)
     ])));
   }
   if (!doc.tracks.length || doc.tracks.some(track => track.type !== "audio" && track.type !== "video")) {
@@ -224,17 +215,6 @@ function serializeChecksum(
           throw new Error("Video checksum output requires retained native pixels");
         }
         packets.push({ dts: frame.ptsSeconds, timescale: 1, bytes: native.pixels });
-      }
-      continue;
-    }
-    if (encoder) {
-      // Reuse the container's encoder, then demux without decoding: only packet
-      // payloads belong in the checksum, never headers or reconstructed PCM.
-      const encoded = encoder.serialize({ ...doc, tracks: [track] }, { ...encoderOptions, audioCodec, budget });
-      const encodedTrack = encoder.parse(encoded, { decodeAudio: false, budget }).tracks.find(t => t.type === "audio")!;
-      for (const packet of encodedTrack.samples) {
-        budget.checkCpu();
-        packets.push({ dts: packet.dts, timescale: encodedTrack.timescale, bytes: packet.data });
       }
       continue;
     }
@@ -261,8 +241,7 @@ function serializeChecksum(
     budget.checkCpu();
     return a.dts * b.timescale - b.dts * a.timescale;
   });
-  const name = algorithm.toLowerCase();
-  if (format === "crc" || name === "adler32") {
+  if (format === "crc") {
     // FFmpeg's crc muxer uses Adler-32 rather than a CRC polynomial.
     let a = 1;
     let b = 0;
@@ -273,8 +252,9 @@ function serializeChecksum(
         b = (b + a) % 65521;
       }
     }
-    return encodeUtf8(`${format === "crc" ? "CRC=0x" : "adler32="}${((b * 65536 + a) >>> 0).toString(16).padStart(8, "0")}\n`);
+    return encodeUtf8(`CRC=0x${((b * 65536 + a) >>> 0).toString(16).padStart(8, "0")}\n`);
   }
+  const name = algorithm.toLowerCase();
   if (name === "crc32") {
     let crc = 0xffffffff;
     for (const { bytes } of packets) {
@@ -449,6 +429,37 @@ export function parseFfmpegTimestamp(spec: string): number {
   return parseFloat(trimmed) || 0;
 }
 
+// CLI duration options require complete FFmpeg duration strings.
+function parseHlsDuration(spec: string): number {
+  let value = spec.trimStart();
+  let scale = 1;
+  if (value.endsWith("ms")) {
+    scale = 1000;
+    value = value.slice(0, -2);
+  } else if (value.endsWith("us")) {
+    scale = 1_000_000;
+    value = value.slice(0, -2);
+  } else if (value.endsWith("s")) {
+    value = value.slice(0, -1);
+  }
+  const negative = value.startsWith("-");
+  if (negative || value.startsWith("+")) value = value.slice(1);
+  const parts = value.split(":");
+  if (parts.length > 3) return NaN;
+  let microseconds = 0;
+  for (const [index, part] of parts.entries()) {
+    const fields = part.split(".");
+    if (fields.length > 2 || (fields.length === 2 && index !== parts.length - 1)
+      || !fields[0] || Array.from(fields.join("")).some(char => char < "0" || char > "9")) return NaN;
+    const number = Number(part);
+    if (parts.length > 1 && (index > 0 || parts.length === 2) && number >= 60) return NaN;
+    // FFmpeg reads at most six fractional digits, then truncates unit scaling.
+    microseconds = microseconds * 60 + Number(fields[0]) * 1_000_000
+      + Number((fields[1] ?? "").slice(0, 6).padEnd(6, "0"));
+  }
+  const seconds = Math.trunc(microseconds / scale) / 1_000_000;
+  return negative ? -seconds : seconds;
+}
 
 function parseColorRgba(colorStr: string): [number, number, number, number] {
   const value = colorStr.trim().toLowerCase();
@@ -1069,6 +1080,22 @@ async function renderShowwavespic(
   return { width: width, height: height, data, ptsSeconds: 0, durationSeconds: 1, keyframe: true };
 }
 
+function parseAudioChannelLayout(layout: string): string[] {
+  if (layout === "mono" || layout === "1c") return ["FC"];
+  if (layout === "stereo" || layout === "2c") return ["FL", "FR"];
+  if (layout === "quad") return ["FL", "FR", "BL", "BR"];
+  if (layout === "5.1" || layout === "6c") return ["FL", "FR", "FC", "LFE", "BL", "BR"];
+  const digits = layout.startsWith("0x") ? layout.slice(2) : layout;
+  const alphabet = layout.startsWith("0x") ? "0123456789abcdefABCDEF" : "0123456789";
+  if (digits.length && [...digits].every(digit => alphabet.includes(digit))) {
+    const mask = Number(layout);
+    if (mask === 1) return ["FL"];
+    if (mask === 2) return ["FR"];
+    if (mask === 3) return ["FL", "FR"];
+  }
+  return layout.split("+");
+}
+
 function parseChannelSplit(spec: string): { input: string[]; selected: string[] } {
   const equals = spec.indexOf("=");
   let layout = "stereo";
@@ -1205,7 +1232,8 @@ async function panAudio(
         const quantized = roundToEven(Math.fround(target)) | 0;
         remainder += target - quantized;
         sum = (sum + Math.abs(quantized)) | 0;
-        if (row[input] !== 0) row[input] = quantized;
+        // Nonfinite Q15 coefficients convert to zero on the PCM16 path.
+        if (row[input] !== 0) row[input] = Number.isFinite(quantized) ? quantized : 0;
       }
       clipPcm16 ||= sum > 32768;
     }
@@ -1418,15 +1446,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       if (instance >= 0 && (equals < 0 || instance < equals)) {
         filters[0] = first.slice(0, instance) + (equals < 0 ? "" : first.slice(equals));
       }
-      if (filters[0] === "headphone" || filters[0]?.startsWith("headphone=")) {
-        if (sources.some(source => source.expression && source.expression !== "anull")) {
-          throw new Error("headphone does not support preceding single-input filters");
-        }
-        const track = await headphoneAudio(sources.map(source => source.track), filters[0]!, budget, signal);
-        return { track, expression: filters.slice(1).join(",") || "anull" };
-      }
-      if (filters[0] === "amultiply" || filters[0]?.startsWith("amultiply=") || filters[0]?.startsWith("amultiply@")) {
-        if (filters[0].includes("=")) throw new Error("amultiply does not accept options");
+      if (filters[0] === "amultiply" || filters[0]?.startsWith("amultiply=")) {
+        if (filters[0] !== "amultiply") throw new Error("amultiply does not accept options");
         if (sources.length !== 2) throw new Error("amultiply requires two inputs");
         for (const source of sources) {
           if (source.expression && source.expression !== "anull") {
@@ -1619,10 +1640,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       }
       if (filters[0] === "axcorrelate" || filters[0]?.startsWith("axcorrelate=")) {
         if (sources.length !== 2) throw new Error("axcorrelate requires two inputs");
-        for (const source of sources) {
-          if (source.expression && source.expression !== "anull") {
-            source.track = await filterAudio(source.track, source.expression);
-          }
+        if (sources.some(source => source.expression && source.expression !== "anull")) {
+          throw new Error("axcorrelate does not support preceding single-input filters");
         }
         const track = await correlateAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
@@ -1753,8 +1772,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       }
       if (sources.length !== 1) throw new Error("Audio filter requires one input");
       const source = sources[0]!;
-      return { track: source.track, expression: [source.expression, node.expression]
-        .filter(expression => expression && expression !== "anull").join(",") || "anull" };
+      return { track: source.track, expression: [source.expression, node.expression].filter(Boolean).join(",") };
     }
     return { track: inputTrack(label), expression: "" };
   };
@@ -2186,32 +2204,6 @@ async function applyVideoFilterChain(
         const data = await epxFrame(f.data, f.width, f.height, factor, signal);
         const { native: ignoredNative, ...frame } = f;
         return { ...frame, width, height, data };
-      }, signal);
-    } else if (name === "stereo3d") {
-      const options: Record<string, string> = { in: "sbsl" };
-      let namedOption = false;
-      for (const [index, part] of (argStr ? positional : []).entries()) {
-        const separator = part.indexOf("=");
-        const key = separator < 0 ? ["in", "out"][index] : part.slice(0, separator).trim();
-        if (!key || !["in", "out"].includes(key) || (separator < 0 && namedOption)) {
-          throw new Error(`stereo3d: unknown or misplaced option ${part}`);
-        }
-        namedOption ||= separator >= 0;
-        options[key] = (separator < 0 ? part : part.slice(separator + 1)).trim();
-      }
-      if (options.in !== "sbsl" || !["ml", "mr"].includes(options.out ?? "")) {
-        throw new Error("stereo3d: supported conversion is sbsl to ml or mr");
-      }
-      current = await mapWork(current, f => {
-        if (f.width % 2 !== 0) throw new Error("stereo3d: side-by-side input width must be even");
-        const width = f.width / 2;
-        budget.recordFrame(width, f.height);
-        budget.allocateMemory(width * f.height * 4);
-        const cropped = extractImage(makeRgbaImg(f.width, f.height, f.data), {
-          left: options.out === "ml" ? 0 : width, top: 0, width, height: f.height
-        });
-        const { native: ignoredNative, ...frame } = f;
-        return { ...frame, width, data: cropped.data };
       }, signal);
     } else if (name === "crop") {
       const crop: Record<string, string> = {};
@@ -3558,47 +3550,6 @@ function validateMetadataStreamSpecifier(specifier: string): void {
   }
 }
 
-function metadataMapTracks(tracks: readonly MediaTrack[], specifier: string): readonly MediaTrack[] {
-  if (!specifier) return tracks;
-  const parts = specifier.split(":");
-  const type = ({ a: "audio", v: "video", s: "subtitle", d: "data" } as Record<string, string>)[parts[0]!];
-  if (type) parts.shift();
-  const index = parts[0];
-  if (parts.length > 1 || (index !== undefined && (!index.length ||
-      !Array.from(index).every(char => char >= "0" && char <= "9")))) {
-    throw new Error(`Invalid stream specifier: ${specifier}`);
-  }
-  const candidates = type ? tracks.filter(track => track.type === type) : tracks;
-  return index === undefined ? candidates : candidates.filter((_, ordinal) => ordinal === Number(index));
-}
-
-function mapStreamMetadata(tracks: readonly MediaTrack[], documents: readonly MediaDocument[], maps: readonly [string, string][]): readonly MediaTrack[] {
-  if (!maps.length) return tracks;
-  // Any explicit stream map disables automatic metadata copying for all streams.
-  const tags = tracks.map(() => ({} as Record<string, string>));
-  for (const [destination, source] of maps) {
-    const selected = metadataMapTracks(tracks, destination);
-    const [input, scope, ...specifier] = source.split(":");
-    const inputIndex = input?.trim() ? Number(input) : NaN;
-    if (!Number.isSafeInteger(inputIndex) || inputIndex >= documents.length) {
-      throw new Error(`Invalid metadata input index: ${input}`);
-    }
-    if (inputIndex < 0) continue;
-    if (scope !== "s") throw new Error(`Unsupported metadata source: ${source}`);
-    const track = metadataMapTracks(documents[inputIndex]!.tracks, specifier.join(":"))[0];
-    if (!track) throw new Error(`Metadata source '${source}' matches no streams`);
-    const sourceTags = { ...track.metadata, language: track.language,
-      ...(track.handlerName !== undefined ? { handler_name: track.handlerName } : {}) };
-    for (const [index, output] of tracks.entries()) {
-      if (selected.includes(output)) tags[index] = { ...sourceTags, ...tags[index] };
-    }
-  }
-  return tracks.map((track, index) => {
-    const { language, handler_name: handlerName, ...metadata } = tags[index]!;
-    return { ...track, language: language ?? "und", handlerName, metadata };
-  });
-}
-
 function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][], metadataSource: number | undefined): readonly MediaTrack[] {
   if (metadataSource !== undefined && metadataSource < 0) {
     tracks = tracks.map(track => ({ ...track, language: "und" }));
@@ -3637,7 +3588,7 @@ function removeTimecode(tracks: readonly MediaTrack[]): readonly MediaTrack[] {
   });
 }
 
-function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: readonly [string, string][], container: string | undefined, defaultMode: string): readonly MediaTrack[] {
+function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: readonly [string, string][], container: string | undefined): readonly MediaTrack[] {
   let hasExplicitDisposition = false;
   for (const [specifier, value] of dispositions) {
     const parts = specifier.split(":");
@@ -3686,20 +3637,6 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
     if (audio.length > 1 && !audio.some(track => track.disposition?.default ?? track.enabled)) {
       tracks = tracks.map(track => track === audio[0]
         ? { ...track, disposition: { ...track.disposition, default: 1 } } : track);
-    }
-  }
-  if (container === "mkv" || container === "webm") {
-    // Matroska treats an omitted FlagDefault as true, including explicitly cleared dispositions.
-    tracks = tracks.map(track => ({ ...track, disposition: {
-      ...track.disposition, default: track.disposition?.default ?? (track.enabled ? 1 : 0)
-    } }));
-    if (defaultMode !== "passthrough") {
-      for (const type of ["video", "audio", ...(defaultMode === "infer" ? ["subtitle"] : [])]) {
-        if (tracks.some(track => track.type === type && track.disposition?.default)) continue;
-        const first = tracks.findIndex(track => track.type === type);
-        tracks = tracks.map((track, index) => index === first
-          ? { ...track, disposition: { ...track.disposition, default: 1 } } : track);
-      }
     }
   }
   // The MP4 muxer enables the first audio track if none is marked default.
@@ -3980,22 +3917,9 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           // Subtitle markup is ASCII; scan bytes without repairing invalid UTF-8.
           const text = decodeLatin1(sample.data);
           const parts: string[] = [];
-          const coordinates = sample.subtitlePosition;
-          if (codec === "subrip" && (outputFormat === "ass" || containerCodec === "ass")
-            && coordinates && coordinates.x1 >= 0 && coordinates.y1 >= 0) {
-            const { x1, x2, y1, y2 } = coordinates;
-            const centered = x2 >= x1 && y2 >= y1 && (x2 > x1 || y2 > y1);
-            // FFmpeg maps SubRip's 720x480 coordinates to its 384x288 ASS canvas.
-            const x = Math.trunc((centered ? Math.trunc((x1 + x2) / 2) : x1) * 384 / 720);
-            const y = Math.trunc((centered ? Math.trunc((y1 + y2) / 2) : y1) * 288 / 480);
-            parts.push(`{\\an${centered ? 5 : 1}}{\\pos(${x},${y})}`);
-          }
           const styles: string[] = [];
-          const fonts: number[] = [];
-          const assFonts: Record<string, string>[] = [{}];
-          const encodeAss = codec === "subrip" && (outputFormat === "ass" || containerCodec === "ass");
-          const encodeSrt = codec === "subrip" && outputFormat === "srt";
           const webvtt = outputFormat === "webvtt" || containerCodec === "webvtt";
+          const encodeAss = codec === "subrip" && (outputFormat === "ass" || containerCodec === "ass");
           let alignments = 0;
           let position = 0;
           while (position < text.length) {
@@ -4012,7 +3936,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
               const end = text.indexOf("}", position + 3);
               if (end < 0) parts.push("{");
               position = end < 0 ? position + 1 : end + 1;
-            } else if (codec === "subrip" && (webvtt || encodeSrt) && text[position] === "\\"
+            } else if (codec === "subrip" && webvtt && text[position] === "\\"
               && (text[position + 1] === "N" || text[position + 1] === "n")) {
               parts.push("\n");
               position += 2;
@@ -4024,7 +3948,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
               if (end < 0) break;
               let tag = text.slice(position + 1, end);
               if (codec === "subrip" && ["B", "/B", "I", "/I", "U", "/U"].includes(tag)) tag = tag.toLowerCase();
-              if (codec === "subrip" && (webvtt || outputFormat === "ass" || containerCodec === "ass")
+              if (codec === "subrip" && (outputFormat === "ass" || containerCodec === "ass")
                 && ["br", "br/", "br /"].includes(tag.toLowerCase())) {
                 parts.push("\n");
               } else if (["b", "i", "u"].includes(tag)) {
@@ -4038,58 +3962,11 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
                     parts.push(codec === "webvtt" && containerCodec === "ass" ? `{\\${style}0}` : `</${style}>`);
                   }
                 }
-              } else if (encodeSrt && ["s", "/s"].includes(tag)) {
-                parts.push(`<${tag}>`);
-              } else if (codec === "subrip" && !(encodeAss && (tag.startsWith("font ") || tag === "font" || tag === "/font"))
-                && ((!webvtt && !encodeSrt && !encodeAss) || Array.from(tag.split(" ", 1)[0]!).some(char =>
+              } else if (codec === "subrip" && (!webvtt || Array.from(tag.split(" ", 1)[0]!).some(char =>
                 !(char >= "0" && char <= "9" || char >= "a" && char <= "z"
                   || char >= "A" && char <= "Z" || char === "_" || char === "/")))) {
                 // SubRip timestamp-like text is literal, unlike WebVTT timestamp tags.
                 parts.push(`<${tag}>`);
-              }
-              if ((encodeSrt || encodeAss) && (tag.startsWith("font ") || tag === "font")) {
-                const assFont = { ...assFonts[assFonts.length - 1]! };
-                let attributes = tag.slice(5).trimStart();
-                let count = 0;
-                while (attributes) {
-                  const equals = attributes.indexOf("=");
-                  if (equals < 0) break;
-                  const name = attributes.slice(0, equals).trim();
-                  attributes = attributes.slice(equals + 1).trimStart();
-                  const quoted = attributes.startsWith('"');
-                  if (quoted) attributes = attributes.slice(1);
-                  let end = quoted ? attributes.indexOf('"') : attributes.indexOf(" ");
-                  if (end < 0) end = attributes.length;
-                  let value = attributes.slice(0, end);
-                  attributes = attributes.slice(end + 1).trimStart();
-                  if (!["face", "size", "color"].includes(name)) continue;
-                  if (name === "color") {
-                    try {
-                      const [red, green, blue] = parseColorRgba(value);
-                      value = encodeAss ? "&H" + (red | green << 8 | blue << 16).toString(16).toUpperCase() + "&"
-                        : "#" + [red, green, blue].map(channel => channel.toString(16).padStart(2, "0")).join("");
-                    } catch { continue; }
-                  }
-                  if (name === "size" && !(Number(value) > 0)) continue;
-                  if (encodeAss) {
-                    const property = name === "face" ? "fn" : name === "size" ? "fs" : "c";
-                    assFont[property] = value;
-                    parts.push(`{\\${property}${value}}`);
-                  } else {
-                    parts.push(`<font ${name}="${value}">`);
-                    count++;
-                  }
-                }
-                if (encodeAss) assFonts.push(assFont);
-                else fonts.push(count);
-              } else if (encodeAss && tag === "/font" && assFonts.length > 1) {
-                const current = assFonts.pop()!;
-                const parent = assFonts[assFonts.length - 1]!;
-                for (const property of ["fs", "c", "fn"]) {
-                  if (current[property] !== parent[property]) parts.push(`{\\${property}${parent[property] ?? ""}}`);
-                }
-              } else if (encodeSrt && tag === "/font") {
-                parts.push("</font>".repeat(fonts.pop() ?? 0));
               }
               position = end + 1;
             } else if (codec === "webvtt" && text[position] === "&") {
@@ -4102,15 +3979,10 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
             } else {
               if (codec === "webvtt" && (text[position] === "{" || text[position] === "}")) parts.push("\\");
               parts.push(text[position]!);
-              // SubRip strips ASCII indentation after physical line breaks only.
-              if (codec === "subrip" && webvtt && text[position] === "\n") {
-                while (text[position + 1] === " ") position++;
-              }
               position++;
             }
           }
           parts.push(text.slice(position));
-          while (fonts.length) parts.push("</font>".repeat(fonts.pop()!));
           while (styles.length > 0) {
             const style = styles.pop()!;
             parts.push(codec === "webvtt" && containerCodec === "ass" ? `{\\${style}0}` : `</${style}>`);
@@ -4505,24 +4377,17 @@ function validateMovflags(value: string): void {
   }
 }
 
-function parseMpegtsTablesVersion(value: string): number {
-  const version = Number(value);
-  if (!value.trim() || !Number.isInteger(version) || version < 0 || version > 31) {
-    throw new Error("Invalid -tables_version: expected an integer from 0 through 31");
+function validateBitstreamFilters(value: string | undefined): void {
+  if (!value) throw new Error("Missing bitstream filter chain");
+  for (const filter of value.split(",")) {
+    if (filter.trim() !== "null") {
+      throw new Error(`Unsupported bitstream filter: ${filter || "(empty)"}; only null is supported`);
+    }
   }
-  return version;
-}
-
-function parseMpegtsServiceType(value: string): number {
-  const type = value === "digital_radio" ? 2 : value === "digital_tv" ? 1 : Number(value);
-  if (!Number.isInteger(type) || type < 1 || type > 255) {
-    throw new Error("Invalid -mpegts_service_type: expected digital_tv, digital_radio, or an integer from 1 through 255");
-  }
-  return type;
 }
 
 function parseMpegtsFlags(value: string, current: number): number {
-  let enabled = value.startsWith("+") || value.startsWith("-") ? current : 0;
+  let flags = value.startsWith("+") || value.startsWith("-") ? current : 0;
   if (!value) throw new Error("Missing -mpegts_flags value");
   let position = 0;
   while (position < value.length) {
@@ -4531,22 +4396,13 @@ function parseMpegtsFlags(value: string, current: number): number {
     const start = position;
     while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
     const flag = value.slice(start, position);
-    const bits = flag === "pat_pmt_at_frames" ? 16 : flag === "initial_discontinuity" ? 32 : flag === "latm" ? 8 : flag === "omit_rai" ? 64 : Number(flag);
-    if (!flag || !Number.isInteger(bits) || bits < 0 || bits > 120 || (bits & ~120) !== 0) {
+    const mask = flag === "initial_discontinuity" ? 32 : flag === "latm" ? 8 : flag === "pat_pmt_at_frames" ? 16 : Number(flag);
+    if (!flag.trim() || !Number.isInteger(mask) || mask < 0 || mask > 56 || (mask & ~56) !== 0) {
       throw new Error(`Unsupported -mpegts_flags value: ${flag}`);
     }
-    enabled = remove ? enabled & ~bits : enabled | bits;
+    flags = remove ? flags & ~mask : flags | mask;
   }
-  return enabled;
-}
-
-function validateBitstreamFilters(value: string | undefined): void {
-  if (!value) throw new Error("Missing bitstream filter chain");
-  for (const filter of value.split(",")) {
-    if (filter.trim() !== "null") {
-      throw new Error(`Unsupported bitstream filter: ${filter || "(empty)"}; only null is supported`);
-    }
-  }
+  return flags;
 }
 
 export function evalSyncFfmpeg(
@@ -4593,7 +4449,6 @@ export function evalSyncFfmpeg(
     let pendingSubtitleFrameRate: number | undefined;
     let pendingSubtitleCharencMode: string | undefined;
     let pendingSubtitleCharset: string | undefined;
-    let pendingWebvttKind: string | undefined;
     let pendingFixSubDuration = false;
     let pendingSkipInitialBytes = 0;
     let pendingIgnoreLength = false;
@@ -4633,10 +4488,9 @@ export function evalSyncFfmpeg(
     let writeHeader = true;
     let writeXing = true;
     let writeBext = false;
-    let patPeriod: number | undefined;
     let muxRate: number | undefined;
-    let pcrPeriod: number | undefined;
     let writeCrc32 = true;
+    let pcrPeriod: number | undefined;
     let live = false;
     let writeTmcd = true;
     let sampleFormat: string | undefined;
@@ -4670,18 +4524,15 @@ export function evalSyncFfmpeg(
     let skipTrailer = false;
     let defaultBaseMoof = false;
     let segmentIndex: "global" | "fragment" | undefined;
-    let mpegtsFlags = 0;
-    let mpegtsTablesVersion: number | undefined;
-    let omitVideoPesLength = true;
-    let mpegtsServiceType: number | undefined;
     let fragmented = false;
     let fragmentKeyframes = false;
     let fragmentEveryFrame = false;
     let fragmentDuration: number | undefined;
     let fragmentIndex: number | undefined;
     let emptyMoov = false;
-    let writeApetag: boolean | undefined;
     let writeId3v2: boolean | undefined;
+    let mpegtsFlags = 0;
+    let patPeriod: number | undefined;
     let mpegtsStartPid: number | undefined;
     let pesPayloadSize: number | undefined;
     let writeMpeg2: boolean | undefined;
@@ -4711,11 +4562,9 @@ export function evalSyncFfmpeg(
     const vfFilters: string[] = [];
     let chapterSource: number | undefined;
     const metadataSources: number[] = [];
-    const streamMetadataMaps: [string, string][] = [];
     const metadata: Record<string, string> = {};
     const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][] = [];
     const streamDispositions: [string, string][] = [];
-    let defaultMode = "passthrough";
     const displayAspects: [string, number][] = [];
     const outputColors: OutputColorOption[] = [];
     let outputTarget: string | undefined;
@@ -4746,8 +4595,7 @@ export function evalSyncFfmpeg(
         validateBitstreamFilters(args[++i]);
       }
       else if (arg === "-vsync" || arg === "-fps_mode" || arg.startsWith("-fps_mode:")) return undefined;
-      else if (arg === "-crf") return undefined;
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-tag:a") i++;
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-crf" || arg === "-tag:a") i++;
       else if (arg === "-bf") {
         const value = args[++i];
         maxBFrames = value?.trim() ? Number(value) : NaN;
@@ -4762,8 +4610,6 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         chapterSource = value?.trim() ? Number(value) : NaN;
         if (!Number.isSafeInteger(chapterSource)) return undefined;
-      } else if (arg === "-map_metadata:s" || arg.startsWith("-map_metadata:s:")) {
-        streamMetadataMaps.push([arg.slice("-map_metadata:s:".length), args[++i] ?? ""]);
       } else if (arg === "-map_metadata" || arg === "-map_metadata:g") {
         const source = args[++i];
         const value = source?.endsWith(":g") ? source.slice(0, -2) : source;
@@ -4848,10 +4694,7 @@ export function evalSyncFfmpeg(
         if (args.slice(i + 1).includes("-i")) pendingDuration = val;
         else outputDuration = val;
       } else if (arg === "-stream_loop") pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
-      else if (arg === "-kind") {
-        pendingWebvttKind = args[++i];
-        if (!["subtitles", "captions", "descriptions", "metadata"].includes(pendingWebvttKind ?? "") || !args.slice(i + 1).includes("-i")) return undefined;
-      } else if (arg === "-sub_charenc") {
+      else if (arg === "-sub_charenc") {
         pendingSubtitleCharset = args[++i];
         if (!pendingSubtitleCharset || !args.slice(i + 1).includes("-i")) return undefined;
       } else if (arg === "-sub_charenc_mode") {
@@ -4900,7 +4743,6 @@ export function evalSyncFfmpeg(
           subtitleFrameRate: pendingSubtitleFrameRate,
           subtitleCharencMode: pendingSubtitleCharencMode,
           subtitleCharset: pendingSubtitleCharset,
-          webvttKind: pendingWebvttKind,
           fixSubDuration: pendingFixSubDuration,
           syncReference: pendingSyncReference,
           startSeconds: pendingSs,
@@ -4921,7 +4763,6 @@ export function evalSyncFfmpeg(
         pendingSubtitleFrameRate = undefined;
         pendingSubtitleCharencMode = undefined;
         pendingSubtitleCharset = undefined;
-        pendingWebvttKind = undefined;
         pendingFixSubDuration = false;
         pendingSkipInitialBytes = 0;
         pendingIgnoreLength = false;
@@ -4951,10 +4792,13 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (value !== "0" && value !== "3" && value !== "4") throw new Error("Invalid ID3v2 version: expected 0, 3 or 4");
         id3v2Version = Number(value) as 0 | 3 | 4;
-      } else if (arg === "-write_apetag") {
-        const value = args[++i];
-        if (value !== "0" && value !== "1") throw new Error("Invalid write_apetag: expected 0 or 1");
-        writeApetag = value === "1";
+      } else if (arg === "-mpegts_flags") {
+        mpegtsFlags = parseMpegtsFlags(args[++i] ?? "", mpegtsFlags);
+      } else if (arg === "-pat_period") {
+        patPeriod = parseHlsDuration(args[++i] ?? "");
+        if (!Number.isFinite(patPeriod) || patPeriod < 0) {
+          throw new Error("Invalid pat_period: expected nonnegative seconds");
+        }
       } else if (arg === "-pes_payload_size") {
         const value = args[++i];
         pesPayloadSize = value?.trim() ? Number(value) : NaN;
@@ -5094,11 +4938,11 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("invalid write_channel_mask value: expected 0 or 1");
         // FFmpeg retains the WAV channel mask for both values.
-      } else if (arg === "-pat_period") {
-        patPeriod = parseHlsDuration(args[++i] ?? "");
-        if (!Number.isFinite(patPeriod) || patPeriod < 0) {
-          throw new Error("Invalid pat_period: expected nonnegative seconds");
-        }
+      } else if (arg === "-muxrate") {
+        muxRate = parseBitrate(args[++i]) ?? NaN;
+      } else if (arg === "-pcr_period") {
+        const value = args[++i];
+        pcrPeriod = value?.trim() ? Number(value) : NaN;
       } else if (arg === "-write_crc32") {
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("invalid write_crc32 value: expected 0 or 1");
@@ -5139,12 +4983,6 @@ export function evalSyncFfmpeg(
           throw new Error("Invalid rf64 value: expected always, auto or never");
         }
         rf64 = value;
-      } else if (arg === "-pcr_period") {
-        const value = args[++i];
-        pcrPeriod = value?.trim() ? Number(value) : NaN;
-      } else if (arg === "-muxrate") {
-        muxRate = parseBitrate(args[++i]);
-        if (muxRate === undefined) return undefined;
       } else if (arg === "-movie_timescale") {
         const value = args[++i];
         movieTimescale = value?.trim() ? Number(value) : NaN;
@@ -5174,21 +5012,8 @@ export function evalSyncFfmpeg(
           throw new Error("-frag_duration requires an integer from 0 to 2147483647 microseconds");
         }
         if (fragmentDuration > 0) fragmented = true;
-      } else if (arg === "-default_mode") {
-        defaultMode = args[++i] ?? "";
-        if (!["passthrough", "infer", "infer_no_subs"].includes(defaultMode)) {
-          throw new Error("-default_mode requires passthrough, infer, or infer_no_subs");
-        }
       } else if (arg === "-live") {
         live = parseFilterBoolean(args[++i] ?? "invalid", "Invalid live value: expected a boolean");
-      } else if (arg === "-tables_version") {
-        mpegtsTablesVersion = parseMpegtsTablesVersion(args[++i] ?? "");
-      } else if (arg === "-omit_video_pes_length") {
-        omitVideoPesLength = parseFilterBoolean(args[++i] ?? "invalid", "Invalid omit_video_pes_length: expected a boolean");
-      } else if (arg === "-mpegts_service_type") {
-        mpegtsServiceType = parseMpegtsServiceType(args[++i] ?? "");
-      } else if (arg === "-mpegts_flags") {
-        mpegtsFlags = parseMpegtsFlags(args[++i] ?? "", mpegtsFlags);
       } else if (arg === "-movflags") {
         const flags = args[++i] ?? "";
         validateMovflags(flags);
@@ -5262,7 +5087,7 @@ export function evalSyncFfmpeg(
     // Output resampling and channel mixing require the async audio filter path.
     if (audioRate !== undefined || audioChannelOptions.length) return undefined;
     if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) return undefined;
-    if (outputFormat === "segment" || outputFormat === "tee" || outputTarget.startsWith("tee:")) return undefined;
+    if (outputFormat === "segment" || outputFormat === "tee") return undefined;
     const isNullMux = outputFormat === "null";
     if (!isNullMux && !isStdout(outputTarget) && inputs.some(input =>
       input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget)) return undefined;
@@ -5293,7 +5118,7 @@ export function evalSyncFfmpeg(
         if (!plugin || !plugin.canDemux) return undefined;
         if (plugin.id === "au" && rawBytes.length >= 12 &&
           new DataView(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).getUint32(8) === 0) return undefined;
-        doc = plugin.parse(rawBytes, { seekable: !isStdin(inp.path), decodeSubtitles: subtitleCodec !== "copy", decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff", "wv", "mp4", "mov", "latm"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)), filename: inp.path, budget, webvttKind: inp.webvttKind, subtitleFrameRate: inp.subtitleFrameRate, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
+        doc = plugin.parse(rawBytes, { seekable: !isStdin(inp.path), decodeSubtitles: subtitleCodec !== "copy", decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff", "mp4", "mov", "latm"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)), filename: inp.path, budget, subtitleFrameRate: inp.subtitleFrameRate, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
         if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
@@ -5414,7 +5239,7 @@ export function evalSyncFfmpeg(
       discNumber: metadata.disc ?? sourceMetadata.discNumber,
       encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
-    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(mapStreamMetadata(workingDoc.tracks, loadedDocs, streamMetadataMaps), streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id, defaultMode) };
+    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id) };
     if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {
       workingDoc = { ...workingDoc, tracks: writeTmcd ? authorTimecode(workingDoc.tracks, metadata.timecode) : removeTimecode(workingDoc.tracks) };
     }
@@ -5485,7 +5310,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { patPmtAtFrames: (mpegtsFlags & 16) !== 0, patPeriod, muxDelay, pesPayloadSize, omitVideoPesLength, mpegtsTablesVersion, mpegtsServiceType, mpegtsLatm: !!(mpegtsFlags & 8), initialDiscontinuity: !!(mpegtsFlags & 32), mpegtsOmitRai: !!(mpegtsFlags & 64), live, writeHeader, writeBext, writeCrc32, muxRate, pcrPeriod, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, mpegtsServiceId, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeApetag, writeId3v2, writeMpeg2, mpegtsStartPid, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { initialDiscontinuity: (mpegtsFlags & 32) !== 0, patPmtAtFrames: (mpegtsFlags & 16) !== 0, patPeriod, muxDelay, live, writeHeader, writeBext, writeCrc32, muxRate, pcrPeriod, pesPayloadSize, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, mpegtsServiceId, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeId3v2, writeMpeg2, mpegtsStartPid, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -5514,7 +5339,7 @@ function formatImageSequence(pattern: string, number: number, allowMultiple = tr
       i++;
     }
     if (pattern[i] !== "d") return undefined;
-    if (numbered && !allowMultiple) throw new Error("Numbered image2 input requires a single numeric field");
+    if (numbered && !allowMultiple) throw new Error("Numbered filename pattern requires a single numeric field");
     filename += (number < 0 ? "-" : "") + String(Math.abs(number)).padStart(width, "0");
     numbered = true;
   }
@@ -5651,13 +5476,11 @@ interface InputSpec {
   readonly format?: string | undefined;
   readonly safe?: boolean | undefined;
   readonly autoConvert?: boolean | undefined;
-  readonly segmentTimeMetadata?: boolean | undefined;
   readonly allowedExtensions?: string | undefined;
   readonly timestampOffset?: number | undefined;
   readonly subtitleFrameRate?: number | undefined;
   readonly subtitleCharencMode?: string | undefined;
   readonly subtitleCharset?: string | undefined;
-  readonly webvttKind?: string | undefined;
   readonly fixSubDuration?: boolean | undefined;
   readonly skipInitialBytes?: number | undefined;
   readonly ignoreLength?: boolean | undefined;
@@ -5734,7 +5557,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingAllowedExtensions: string | undefined;
       let pendingSafe: boolean | undefined;
       let pendingAutoConvert: boolean | undefined;
-      let pendingSegmentTimeMetadata: boolean | undefined;
       let pendingAudioDecoder: string | undefined;
       let pendingTimestampOffset = 0;
       let pendingSyncReference: number | undefined;
@@ -5744,7 +5566,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingSubtitleFrameRate: number | undefined;
       let pendingSubtitleCharencMode: string | undefined;
       let pendingSubtitleCharset: string | undefined;
-      let pendingWebvttKind: string | undefined;
       let pendingFixSubDuration = false;
       let pendingSkipInitialBytes = 0;
       let pendingIgnoreLength = false;
@@ -5823,16 +5644,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioBitstreamFilter: string | undefined;
         let subtitleBitstreamFilter: string | undefined;
         let videoCodec: string | undefined;
-        let videoQp: number | undefined;
         let zeroLatency = false;
+        let videoQp: number | undefined;
+        let videoBitrate: number | undefined;
         let maxBFrames: number | undefined;
         let videoPreset: string | undefined;
         let forceKeyFrames: number[] | undefined;
-        let crf: number | undefined;
         let rawPixelFormat: string | undefined;
         let audioCodec: string | undefined;
         let audioBitrate: number | undefined;
-        let videoBitrate: number | undefined;
         let subtitleCodec: string | undefined;
         let kaiserBeta = 9;
         let filterType: "kaiser" | "blackman_nuttall" = "kaiser";
@@ -5849,13 +5669,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let centerMixLevel: number | undefined;
         let surroundMixLevel: number | undefined;
         let lfeMixLevel: number | undefined;
-        let individualHeaderTrailer = true;
         let writeHeaderTrailer = true;
+        let individualHeaderTrailer = true;
         let segmentTime = 2;
-        let writeEmptySegments = false;
         let segmentTimeDelta = 0;
         let segmentStartNumber = 0;
-        let minSegmentDuration = 0;
         let segmentWrap = 0;
         let segmentTimes: number[] | undefined;
         let segmentFormat: string | undefined;
@@ -5870,10 +5688,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsFlags: string | undefined;
         let hlsTime = 2;
         let hlsInitTime = 0;
-        let dashTargetLatency = 0;
-        let dashWritePrft: boolean | undefined;
         let dashUtcTimingUrl: string | undefined;
-        let dashMpdProfile: string | undefined;
         let dashAdaptationSets: string | undefined;
         let dashSegmentDuration = 5;
         let dashSegmentType: "auto" | "mp4" | "webm" = "auto";
@@ -5909,7 +5724,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsSegmentFilename: string | undefined;
         let hlsFmp4InitFilename = "init.mp4";
         let hlsSingleFile = false;
-        let hlsTempFile = false;
         let hlsSegmentSize = 0;
         let hlsSecondLevelSegmentIndex = false;
         let hlsSegmentType: string | undefined;
@@ -5921,10 +5735,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeHeader = true;
         let writeXing = true;
         let writeBext = false;
-        let patPeriod: number | undefined;
+        let writeCrc32 = true;
         let muxRate: number | undefined;
         let pcrPeriod: number | undefined;
-        let writeCrc32 = true;
         let live = false;
         let writeTmcd = true;
         let sampleFormat: string | undefined;
@@ -5958,10 +5771,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let skipTrailer = false;
         let defaultBaseMoof = false;
         let segmentIndex: "global" | "fragment" | undefined;
-        let mpegtsFlags = 0;
-        let mpegtsTablesVersion: number | undefined;
-        let omitVideoPesLength = true;
-        let mpegtsServiceType: number | undefined;
         let fragmented = false;
         let fragmentKeyframes = false;
         let fragmentEveryFrame = false;
@@ -5969,8 +5778,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let fragmentDurationArg: string | undefined;
         let fragmentIndex: number | undefined;
         let emptyMoov = false;
-        let writeApetag: boolean | undefined;
         let writeId3v2: boolean | undefined;
+        let mpegtsFlags = 0;
+        let patPeriod: number | undefined;
         let mpegtsStartPid: number | undefined;
         let pesPayloadSize: number | undefined;
         let writeMpeg2: boolean | undefined;
@@ -6005,13 +5815,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const afFilters: { ordinal: number | undefined; expression: string }[] = [];
         let chapterSource: number | undefined;
         const metadataSources: number[] = [];
-        const streamMetadataMaps: [string, string][] = [];
         const metadata: Record<string, string> = {};
         const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][] = [];
         const attachmentFiles: string[] = [];
         const attachmentMetadata: [string, string, string][] = [];
         const streamDispositions: [string, string][] = [];
-        let defaultMode = "passthrough";
         const displayAspects: [string, number][] = [];
         const outputColors: OutputColorOption[] = [];
         let outputTarget: string | undefined;
@@ -6055,10 +5863,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-allowed_extensions") {
             pendingAllowedExtensions = args[++i];
             if (pendingAllowedExtensions === undefined) throw new Error("Missing value for -allowed_extensions");
-          } else if (arg === "-segment_time_metadata") {
-            const value = args[++i];
-            if (value !== "0" && value !== "1") throw new Error("-segment_time_metadata requires 0 or 1");
-            pendingSegmentTimeMetadata = value === "1";
           } else if (arg === "-auto_convert") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -6100,6 +5904,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-b:v") {
+            videoBitrate = parseBitrate(args[++i]);
+            if (videoBitrate === undefined) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid video bitrate\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-qp") {
             const value = args[++i] ?? "";
             const qp = value.trim() ? Number(value) : NaN;
@@ -6108,14 +5918,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 234 };
             }
             videoQp = qp === -1 ? undefined : qp;
-          } else if (arg === "-crf") {
-            const value = args[++i];
-            crf = Number(value);
-            if (!value?.trim() || !Number.isFinite(crf) || crf < 0 || crf > 51) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid CRF: expected a number from 0 to 51\n"), context.signal);
-              return { exitCode: 1 };
-            }
-          } else if (arg === "-threads" || arg === "-tag:a") {
+          } else if (arg === "-threads" || arg === "-crf" || arg === "-tag:a") {
             i++;
           } else if (arg === "-bf") {
             const value = args[++i];
@@ -6137,12 +5940,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Missing value for ${arg}\n`), context.signal);
               return { exitCode: 1 };
             }
-          } else if (arg === "-b:v") {
-            videoBitrate = parseBitrate(args[++i]);
-            if (videoBitrate === undefined) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid video bitrate\n"), context.signal);
-              return { exitCode: 1 };
-            }
           } else if (arg === "-b:a") {
             audioBitrate = parseBitrate(args[++i]);
             if (audioBitrate === undefined) {
@@ -6158,7 +5955,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-hash") {
             hashAlgorithm = args[++i] ?? "";
-          } else if (arg === "-update" || arg === "-atomic_writing" || arg === "-strftime" || arg === "-reset_timestamps" || arg === "-write_empty_segments") {
+          } else if (arg === "-update" || arg === "-atomic_writing" || arg === "-strftime" || arg === "-reset_timestamps") {
             let enabled: boolean;
             const value = args[++i]?.toLowerCase();
             if (value !== undefined && ["yes", "true", "on", "y", "enable", "enabled"].includes(value)) {
@@ -6178,7 +5975,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (arg === "-update") updateImage = enabled;
             else if (arg === "-strftime") strftime = enabled;
             else if (arg === "-reset_timestamps") resetTimestamps = enabled;
-            else if (arg === "-write_empty_segments") writeEmptySegments = enabled;
             else atomicWriting = enabled;
           } else if (["-enc_time_base", "-enc_time_base:v", "-enc_time_base:v:0", "-enc_time_base:V", "-enc_time_base:V:0", "-enc_time_base:0"].includes(arg)) {
             const value = args[++i] ?? "";
@@ -6211,13 +6007,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -fps_mode: ${videoSync}\n`), context.signal);
               return { exitCode: 234 };
             }
-          } else if (arg === "-individual_header_trailer") {
-            const value = args[++i];
-            if (value !== "0" && value !== "1") {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid individual_header_trailer value: expected 0 or 1\n"), context.signal);
-              return { exitCode: 1 };
-            }
-            individualHeaderTrailer = value === "1";
           } else if (arg === "-write_header_trailer") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -6225,6 +6014,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             writeHeaderTrailer = value === "1";
+          } else if (arg === "-individual_header_trailer") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid individual_header_trailer value: expected 0 or 1\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            individualHeaderTrailer = value === "1";
           } else if (arg === "-segment_start_number") {
             const value = args[++i];
             segmentStartNumber = value?.trim() ? Number(value) : NaN;
@@ -6240,22 +6036,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-segment_time") {
             const value = args[++i];
-            segmentTime = parseHlsDuration(value ?? "");
-            if (!Number.isFinite(segmentTime) || segmentTime < 0) {
+            segmentTime = parseFfmpegTimestamp(value ?? "");
+            if (!Number.isFinite(segmentTime) || segmentTime <= 0) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_time\n"), context.signal);
-              return { exitCode: 1 };
-            }
-          } else if (arg === "-min_seg_duration") {
-            minSegmentDuration = parseHlsDuration(args[++i] ?? "");
-            if (!Number.isFinite(minSegmentDuration) || minSegmentDuration < 0 || minSegmentDuration > 9_223_372_036_854.775) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid min_seg_duration\n"), context.signal);
-              return { exitCode: 1 };
-            }
-          } else if (arg === "-segment_wrap") {
-            const value = args[++i] ?? "";
-            segmentWrap = Number(value);
-            if (!value.trim() || !Number.isInteger(segmentWrap) || segmentWrap < 0 || segmentWrap > 2147483647) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_wrap\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-initial_offset") {
@@ -6268,6 +6051,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             segmentTimeDelta = parseHlsDuration(args[++i] ?? "");
             if (!Number.isFinite(segmentTimeDelta) || segmentTimeDelta < 0) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_time_delta\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-segment_wrap") {
+            const value = args[++i] ?? "";
+            segmentWrap = Number(value);
+            if (!value.trim() || !Number.isInteger(segmentWrap) || segmentWrap < 0 || segmentWrap > 2147483647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_wrap\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-segment_frames") {
@@ -6325,6 +6115,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (arg === "-hls_time") hlsTime = value;
             else hlsInitTime = value;
             if (i >= args.length) break;
+          } else if (arg === "-utc_timing_url") {
+            dashUtcTimingUrl = args[++i];
+            if (dashUtcTimingUrl === undefined) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing utc_timing_url\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-adaptation_sets") {
             dashAdaptationSets = args[++i];
             if (!dashAdaptationSets || dashAdaptationSets.startsWith("-")) {
@@ -6360,25 +6156,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (arg === "-min_playback_rate") dashMinPlaybackRate = rate;
             else dashMaxPlaybackRate = rate;
-          } else if (arg === "-write_prft") {
-            const value = args[++i];
-            if (value !== "0" && value !== "1" && !(arg === "-write_prft" && value === "-1")) {
-              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: invalid ${arg.slice(1)}\n`), context.signal);
-              return { exitCode: 1 };
-            }
-            dashWritePrft = value === "-1" ? undefined : value === "1";
-          } else if (arg === "-utc_timing_url") {
-            dashUtcTimingUrl = args[++i];
-            if (dashUtcTimingUrl === undefined) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing utc_timing_url\n"), context.signal);
-              return { exitCode: 1 };
-            }
-          } else if (arg === "-target_latency") {
-            dashTargetLatency = parseHlsDuration(args[++i] ?? "");
-            if (!Number.isFinite(dashTargetLatency) || dashTargetLatency < 0 || dashTargetLatency > 9_223_372_036_854.775) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid target_latency\n"), context.signal);
-              return { exitCode: 234 };
-            }
           } else if (arg === "-window_size") {
             const value = args[++i] ?? "";
             dashWindowSize = Number(value);
@@ -6402,12 +6179,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 234 };
             }
             dashFragmentType = value;
-          } else if (arg === "-mpd_profile") {
-            dashMpdProfile = args[++i];
-            if (!dashMpdProfile || dashMpdProfile.split("+").some(profile => profile !== "dash" && profile !== "dvb_dash")) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid mpd_profile\n"), context.signal);
-              return { exitCode: 1 };
-            }
           } else if (arg === "-seg_duration") {
             dashSegmentDuration = parseHlsDuration(args[++i] ?? "");
             if (!Number.isFinite(dashSegmentDuration) || dashSegmentDuration < 0 || dashSegmentDuration > 9_223_372_036_854.775) {
@@ -6486,8 +6257,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid chapter input index\n"), context.signal);
               return { exitCode: 1 };
             }
-          } else if (arg === "-map_metadata:s" || arg.startsWith("-map_metadata:s:")) {
-            streamMetadataMaps.push([arg.slice("-map_metadata:s:".length), args[++i] ?? ""]);
           } else if (arg === "-map_metadata" || arg === "-map_metadata:g") {
             const source = args[++i];
             const value = source?.endsWith(":g") ? source.slice(0, -2) : source;
@@ -6834,12 +6603,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-stream_loop") {
             pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
-          } else if (arg === "-kind") {
-            pendingWebvttKind = args[++i];
-            if (!["subtitles", "captions", "descriptions", "metadata"].includes(pendingWebvttKind ?? "") || !args.slice(i + 1).includes("-i")) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -kind requires subtitles, captions, descriptions or metadata before an input\n"), context.signal);
-              return { exitCode: 1 };
-            }
           } else if (arg === "-sub_charenc") {
             pendingSubtitleCharset = args[++i];
             if (!pendingSubtitleCharset || !args.slice(i + 1).includes("-i")) {
@@ -6937,11 +6700,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               subtitleFrameRate: pendingSubtitleFrameRate,
               subtitleCharencMode: pendingSubtitleCharencMode,
               subtitleCharset: pendingSubtitleCharset,
-              webvttKind: pendingWebvttKind,
               fixSubDuration: pendingFixSubDuration,
               safe: pendingSafe,
               autoConvert: pendingAutoConvert,
-              segmentTimeMetadata: pendingSegmentTimeMetadata,
               allowedExtensions: pendingAllowedExtensions,
               skipInitialBytes: pendingSkipInitialBytes,
               ignoreLength: pendingIgnoreLength,
@@ -6972,14 +6733,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingFormat = undefined;
             pendingSafe = undefined;
             pendingAutoConvert = undefined;
-            pendingSegmentTimeMetadata = undefined;
             pendingAllowedExtensions = undefined;
             pendingTimestampOffset = 0;
             pendingSyncReference = undefined;
             pendingSubtitleFrameRate = undefined;
             pendingSubtitleCharencMode = undefined;
             pendingSubtitleCharset = undefined;
-            pendingWebvttKind = undefined;
             pendingFixSubDuration = false;
             pendingSkipInitialBytes = 0;
             pendingIgnoreLength = false;
@@ -7052,13 +6811,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             id3v2Version = Number(value) as 0 | 3 | 4;
-          } else if (arg === "-write_apetag") {
-            const value = args[++i];
-            if (value !== "0" && value !== "1") {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid write_apetag: expected 0 or 1\n"), context.signal);
+          } else if (arg === "-mpegts_flags") {
+            try {
+              mpegtsFlags = parseMpegtsFlags(args[++i] ?? "", mpegtsFlags);
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
             }
-            writeApetag = value === "1";
+          } else if (arg === "-pat_period") {
+            patPeriod = parseHlsDuration(args[++i] ?? "");
+            if (!Number.isFinite(patPeriod) || patPeriod < 0) {
+              throw new Error("Invalid pat_period: expected nonnegative seconds");
+            }
           } else if (arg === "-pes_payload_size") {
             const value = args[++i];
             pesPayloadSize = value?.trim() ? Number(value) : NaN;
@@ -7239,11 +7003,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             // FFmpeg retains the WAV channel mask for both values.
-          } else if (arg === "-pat_period") {
-            patPeriod = parseHlsDuration(args[++i] ?? "");
-            if (!Number.isFinite(patPeriod) || patPeriod < 0) {
-              throw new Error("Invalid pat_period: expected nonnegative seconds");
-            }
+          } else if (arg === "-muxrate") {
+            muxRate = parseBitrate(args[++i]) ?? NaN;
+          } else if (arg === "-pcr_period") {
+            const value = args[++i];
+            pcrPeriod = value?.trim() ? Number(value) : NaN;
           } else if (arg === "-write_crc32") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -7297,15 +7061,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             rf64 = value;
-          } else if (arg === "-pcr_period") {
-            const value = args[++i];
-            pcrPeriod = value?.trim() ? Number(value) : NaN;
-          } else if (arg === "-muxrate") {
-            muxRate = parseBitrate(args[++i]);
-            if (muxRate === undefined) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid muxrate: expected an integer from 0 to 2147483647 bits/s\n"), context.signal);
-              return { exitCode: 1 };
-            }
           } else if (arg === "-movie_timescale") {
             const value = args[++i];
             movieTimescale = value?.trim() ? Number(value) : NaN;
@@ -7333,43 +7088,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-frag_duration") {
             fragmentDurationArg = args[++i] ?? "";
-          } else if (arg === "-default_mode") {
-            defaultMode = args[++i] ?? "";
-            if (!["passthrough", "infer", "infer_no_subs"].includes(defaultMode)) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -default_mode requires passthrough, infer, or infer_no_subs\n"), context.signal);
-              return { exitCode: 1 };
-            }
           } else if (arg === "-live") {
             try {
               live = parseFilterBoolean(args[++i] ?? "invalid", "Invalid live value: expected a boolean");
-            } catch (error) {
-              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
-              return { exitCode: 1 };
-            }
-          } else if (arg === "-tables_version") {
-            try {
-              mpegtsTablesVersion = parseMpegtsTablesVersion(args[++i] ?? "");
-            } catch (error) {
-              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
-              return { exitCode: 1 };
-            }
-          } else if (arg === "-omit_video_pes_length") {
-            try {
-              omitVideoPesLength = parseFilterBoolean(args[++i] ?? "invalid", "Invalid omit_video_pes_length: expected a boolean");
-            } catch (error) {
-              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
-              return { exitCode: 1 };
-            }
-          } else if (arg === "-mpegts_service_type") {
-            try {
-              mpegtsServiceType = parseMpegtsServiceType(args[++i] ?? "");
-            } catch (error) {
-              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
-              return { exitCode: 1 };
-            }
-          } else if (arg === "-mpegts_flags") {
-            try {
-              mpegtsFlags = parseMpegtsFlags(args[++i] ?? "", mpegtsFlags);
             } catch (error) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
@@ -7529,7 +7250,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           return { exitCode: 1 };
         }
         hlsListSize = roundToEven(hlsListSize);
-        if (!Number.isSafeInteger(hlsDeleteThreshold) || hlsDeleteThreshold < 1 || hlsDeleteThreshold > 2147483647) {
+        if (!Number.isSafeInteger(hlsDeleteThreshold) || hlsDeleteThreshold < 1) {
           await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_delete_threshold\n"), context.signal);
           return { exitCode: 1 };
         }
@@ -7546,10 +7267,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_playlist_type\n"), context.signal);
           return { exitCode: 1 };
         }
-        if (hlsFlags === "") {
-          await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid HLS flags\n"), context.signal);
-          return { exitCode: 1 };
-        }
         const flagBits: Record<string, number> = {
           single_file: 1,
           delete_segments: 2,
@@ -7560,11 +7277,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           append_list: 64,
           program_date_time: 128,
           second_level_segment_index: 256,
-          temp_file: 2048,
           independent_segments: 8192,
           iframes_only: 16384
         };
         const supportedMask = Object.values(flagBits).reduce((mask, bit) => mask | bit, 0);
+        if (hlsFlags === "") {
+          await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid HLS flags\n"), context.signal);
+          return { exitCode: 1 };
+        }
         for (const flag of (hlsFlags ?? "").replaceAll("-", "+-").split("+")) {
           if (!flag) continue;
           const enabled = !flag.startsWith("-");
@@ -7575,7 +7295,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             return { exitCode: 1 };
           }
           if (mask & flagBits.single_file!) hlsSingleFile = enabled;
-          if (mask & flagBits.temp_file!) hlsTempFile = enabled;
           if (mask & flagBits.delete_segments!) hlsDeleteSegments = enabled;
           if (mask & flagBits.round_durations!) hlsRoundDurations = enabled;
           if (mask & flagBits.discont_start!) hlsDiscontStart = enabled;
@@ -7624,7 +7343,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const frameChecksumOutput = outputFormat === "framemd5" || outputFormat === "framehash" || outputFormat === "framecrc";
         const checksumOutput = frameChecksumOutput || outputFormat === "streamhash" || outputFormat === "hash" || outputFormat === "md5" || outputFormat === "crc";
         const target = outputTarget;
-        const protocolTargets = target.startsWith("tee:") ? target.slice(4).split("|") : [target];
         const progressOutputIndex = outputs.length;
         const firstOutput = outputs.length === 0;
         initializers.push(async () => {
@@ -7637,34 +7355,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             parseTee(outputTarget);
             return;
           }
-          for (const outputTarget of protocolTargets) {
-            if (!outputTarget) throw new Error("Empty tee protocol destination");
-            if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget) && !outputTarget.startsWith("md5:")) {
-              const inputIndex = inputs.findIndex(input =>
-                input.format !== "lavfi" && !isStdin(input.path) &&
-                resolvePath(context.cwd, input.path) === resolvePath(context.cwd, outputTarget) &&
-                (input.patternType === "none" || input.patternType === "glob" ||
-                  formatImageSequence(input.path, input.startNumber ?? 0) === undefined));
-              if (inputIndex >= 0) throw new Error(`Output ${outputTarget} same as Input #${inputIndex} - exiting. FFmpeg cannot edit existing files in-place.`);
-            }
-            // Virtual streams are non-interactive: replacing a file requires -y.
-            if (
-              !overwrite &&
-              !outputTarget.startsWith("md5:") &&
-              !isStdout(outputTarget) &&
-              outputFormat !== "null"
-            ) {
-              const outFull = resolvePath(context.cwd, outputTarget);
-              try {
-                await context.fs.stat(outFull, { signal: context.signal });
-                await writeBytes(context.stderr,
-                  encodeUtf8(`File '${outputTarget}' already exists. Exiting.\nError opening output file ${outputTarget}.\n`), context.signal);
-                return { exitCode: overwrite === false ? 0 : 1 };
-              } catch (error) {
-                rethrowRuntimeError(context, error);
-                if ((error as { code?: string }).code !== "ENOENT") throw error;
-                // File does not exist, proceed
-              }
+          if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget) && !outputTarget.startsWith("md5:")) {
+            const inputIndex = inputs.findIndex(input =>
+              input.format !== "lavfi" && !isStdin(input.path) &&
+              resolvePath(context.cwd, input.path) === resolvePath(context.cwd, outputTarget) &&
+              (input.patternType === "none" || input.patternType === "glob" ||
+                formatImageSequence(input.path, input.startNumber ?? 0) === undefined));
+            if (inputIndex >= 0) throw new Error(`Output ${outputTarget} same as Input #${inputIndex} - exiting. FFmpeg cannot edit existing files in-place.`);
+          }
+          // Virtual streams are non-interactive: replacing a file requires -y.
+          if (
+            !overwrite &&
+            !outputTarget.startsWith("md5:") &&
+            !isStdout(outputTarget) &&
+            outputFormat !== "null"
+          ) {
+            const outFull = resolvePath(context.cwd, outputTarget);
+            try {
+              await context.fs.stat(outFull, { signal: context.signal });
+              await writeBytes(context.stderr,
+                encodeUtf8(`File '${outputTarget}' already exists. Exiting.\nError opening output file ${outputTarget}.\n`), context.signal);
+              return { exitCode: overwrite === false ? 0 : 1 };
+            } catch (error) {
+              rethrowRuntimeError(context, error);
+              if ((error as { code?: string }).code !== "ENOENT") throw error;
+              // File does not exist, proceed
             }
           }
 
@@ -7675,14 +7390,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           if (!plugin?.canMux && !["null", "segment", "data", "rawvideo", "image2pipe", "ico", "apng", "framemd5", "framehash", "framecrc", "streamhash", "hash", "md5", "crc"].includes(format ?? "")) {
             throw new Error(`Unable to find a suitable output format for '${outputFormat ?? outputTarget}' (format AST not registered)`);
           }
-          // Open every protocol destination in order, reporting partial open failures.
-          if ((target.startsWith("tee:") || progressOutputIndex < outputs.length - 1) &&
+          // Open earlier ordinary destinations before checking later outputs.
+          if (progressOutputIndex < outputs.length - 1 && !outputTarget.startsWith("md5:") && !isStdout(outputTarget) && outputTarget !== "/dev/null" &&
               format !== "null" && format !== "segment" && plugin?.id !== "hls" && plugin?.id !== "image2") {
-            for (const destination of protocolTargets) {
-              if (!isStdout(destination) && destination !== "/dev/null" && !destination.startsWith("md5:")) {
-                await context.fs.writeFile(resolvePath(context.cwd, destination), new Uint8Array(0), { signal: context.signal });
-              }
-            }
+            await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
           }
         });
         for (const map of maps) audioOutputMaps.add(map);
@@ -7928,9 +7639,141 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const listText = new TextDecoder("utf-8", { ignoreBOM: true }).decode(rawBytes);
                 const listDir = filePath === "-" ? context.cwd : dirnameOf(resolvePath(context.cwd, filePath));
                 const concatDocs: MediaDocument[] = [];
-                const { segments, streamIds, streamTags, chapters } = parseConcatManifest(listText, listDir, input?.safe !== false);
+                const streamIds: number[] = [];
+                const streamTags: Record<string, string>[] = [];
+                const chapters: NonNullable<MediaDocument["chapters"]>[number][] = [];
                 const startTimesSeconds: number[] = [];
                 let nextStartSeconds = 0;
+                const segments: { path: string; inpoint: number | undefined; outpoint: number | undefined; duration: number | undefined; ignoreEditList?: boolean; tags?: Record<string, string> }[] = [];
+
+                const lines = listText.replaceAll("\r\n", "\n").replaceAll("\r", "\n").split("\n");
+                for (let l = 0; l < lines.length; l++) {
+                  let line = lines[l]!;
+                  let start = 0;
+                  while (line[start] === " " || line[start] === "\t") start++;
+                  line = line.slice(start);
+                  if (!line || line.startsWith("#")) continue;
+                  const keyword = line.split(/[ \t]/, 1)[0]!;
+                  if (keyword === "option" && input?.safe !== false) {
+                    throw new Error(`Line ${l + 1}: option not allowed if safe`);
+                  }
+                  if (keyword === "ffconcat") {
+                    const [, declaration, version] = line.split("\t").join(" ").split(" ").filter(Boolean);
+                    if (declaration !== "version" || version !== "1.0") {
+                      throw new Error(`Line ${l + 1}: invalid version`);
+                    }
+                    continue;
+                  }
+                  const segment = segments[segments.length - 1];
+                  if (["duration", "inpoint", "outpoint", "option", "file_packet_meta"].includes(keyword) && !segment) {
+                    throw new Error(`Line ${l + 1}: ${keyword} without file`);
+                  }
+                  let cursor = keyword.length;
+                  const readToken = () => {
+                    // Match av_get_token: only single quotes group text; a
+                    // backslash escapes the next character outside quotes.
+                    let target = "";
+                    let protectedEnd = 0;
+                    const whitespace = " \t\r\n";
+                    while (cursor < line.length && whitespace.includes(line[cursor]!)) cursor++;
+                    while (cursor < line.length && !whitespace.includes(line[cursor]!)) {
+                      const char = line[cursor++]!;
+                      if (char === "\\" && cursor < line.length) {
+                        target += line[cursor++]!;
+                        protectedEnd = target.length;
+                      } else if (char === "'") {
+                        while (cursor < line.length && line[cursor] !== "'") target += line[cursor++]!;
+                        if (cursor < line.length) {
+                          cursor++;
+                          protectedEnd = target.length;
+                        }
+                      } else {
+                        target += char;
+                      }
+                    }
+                    while (target.length > protectedEnd && whitespace.includes(target[target.length - 1]!)) {
+                      target = target.slice(0, -1);
+                    }
+                    return target;
+                  };
+                  if (keyword === "stream") {
+                    streamIds.push(0);
+                    streamTags.push({});
+                  } else if (keyword === "stream_meta") {
+                    const tags = streamTags.at(-1);
+                    if (!tags) throw new Error(`Line ${l + 1}: stream_meta without stream`);
+                    const key = readToken();
+                    const value = readToken();
+                    if (!key || !value) throw new Error(`Line ${l + 1}: string required`);
+                    streamTags[streamTags.length - 1] = { ...tags, [key]: value };
+                  } else if (keyword === "exact_stream_id") {
+                    if (!streamIds.length) throw new Error(`Line ${l + 1}: exact_stream_id without stream`);
+                    const token = readToken();
+                    const id = Number(token);
+                    const digits = token.startsWith("-") || token.startsWith("+") ? token.slice(1) : token;
+                    if (!digits || Array.from(digits).some(char => char < "0" || char > "9") ||
+                      !Number.isInteger(id) || id < -2147483648 || id > 2147483647) {
+                      throw new Error(`Line ${l + 1}: invalid stream id '${token}'`);
+                    }
+                    streamIds[streamIds.length - 1] = id;
+                  } else if (keyword === "chapter") {
+                    const [idToken = "", startToken = "", endToken = ""] = line.slice(cursor).split("\t").join(" ").split(" ").filter(Boolean);
+                    const id = Number(idToken);
+                    const digits = idToken.startsWith("-") || idToken.startsWith("+") ? idToken.slice(1) : idToken;
+                    const startTimeSeconds = parseHlsDuration(startToken);
+                    const endTimeSeconds = parseHlsDuration(endToken);
+                    if (!digits || Array.from(digits).some(char => char < "0" || char > "9") || !Number.isSafeInteger(id)
+                      || !Number.isFinite(startTimeSeconds) || !Number.isFinite(endTimeSeconds)
+                      || Math.abs(startTimeSeconds) >= 2 ** 63 / 1_000_000 || Math.abs(endTimeSeconds) >= 2 ** 63 / 1_000_000
+                      || startTimeSeconds < 0 || endTimeSeconds < startTimeSeconds) {
+                      throw new Error(`Line ${l + 1}: invalid chapter`);
+                    }
+                    const chapter = { id, startTimeSeconds, endTimeSeconds, title: "", tags: {}, timeBase: { numerator: 1, denominator: 1_000_000 } };
+                    const existing = chapters.findIndex(item => item.id === id);
+                    if (existing < 0) chapters.push(chapter);
+                    else chapters[existing] = chapter;
+                  } else if (keyword === "file_packet_meta") {
+                    const key = readToken();
+                    const value = readToken();
+                    if (!key || !value) throw new Error(`Line ${l + 1}: string required`);
+                    segment!.tags = { ...segment!.tags, [key]: value };
+                  } else if (keyword === "option") {
+                    const name = readToken();
+                    const value = readToken();
+                    if (!name || !value) throw new Error(`Line ${l + 1}: option requires key and value`);
+                    if (name !== "ignore_editlist") throw new Error(`Unsupported concat file option '${name}'`);
+                    if (!["0", "1", "false", "true"].includes(value)) {
+                      throw new Error(`Invalid boolean value '${value}' for option '${name}'`);
+                    }
+                    segment!.ignoreEditList = value === "1" || value === "true";
+                  } else if (["inpoint", "outpoint", "duration"].includes(keyword)) {
+                    while (cursor < line.length && " \t".includes(line[cursor]!)) cursor++;
+                    const start = cursor;
+                    while (cursor < line.length && !" \t".includes(line[cursor]!)) cursor++;
+                    const value = line.slice(start, cursor);
+                    const seconds = parseHlsDuration(value);
+                    if (!Number.isFinite(seconds) || Math.abs(seconds) >= 2 ** 63 / 1_000_000) {
+                      throw new Error(`Line ${l + 1}: invalid ${keyword} '${value}'`);
+                    }
+                    if (keyword === "inpoint") segment!.inpoint = seconds;
+                    else if (keyword === "outpoint") segment!.outpoint = seconds;
+                    else segment!.duration = seconds;
+                  } else if (keyword === "file") {
+                    const target = readToken();
+                    if (input?.safe !== false && target.split("/").some(component =>
+                      !component || component.startsWith(".") || Array.from(component).some(char =>
+                        !(char >= "a" && char <= "z") && !(char >= "A" && char <= "Z") &&
+                        !(char >= "0" && char <= "9") && char !== "_" && char !== "-" && char !== "."
+                      )
+                    )) {
+                      throw new Error(`Unsafe file name '${target}'`);
+                    }
+                    const resolvedItem = resolvePath(listDir, target);
+                    segments.push({ path: resolvedItem, inpoint: undefined, outpoint: undefined, duration: undefined });
+                  } else {
+                    throw new Error(`Line ${l + 1}: unknown keyword '${keyword}'`);
+                  }
+                }
                 budget.checkConcatInputs(segments.length);
                 for (const segment of segments) {
                   if (segment.inpoint !== undefined && segment.outpoint !== undefined && segment.outpoint < segment.inpoint) {
@@ -7950,13 +7793,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   if (input?.autoConvert !== false) {
                     itemDoc = { ...itemDoc, tracks: itemDoc.tracks.map(track => autoConvertConcatTrack(track, budget)) };
-                  }
-                  const segmentDuration = segment.duration ?? (segment.outpoint ?? itemDoc.durationSeconds) - (segment.inpoint ?? 0);
-                  if (input?.segmentTimeMetadata) {
-                    segment.tags = { ...segment.tags,
-                      "lavf.concatdec.start_time": String(Math.round(nextStartSeconds * 1_000_000)),
-                      ...(Number.isFinite(segmentDuration) ? { "lavf.concatdec.duration": String(Math.round(segmentDuration * 1_000_000)) } : {})
-                    };
                   }
                   let sliceEnd = segment.outpoint;
                   const wavTrack = itemDoc.containerFormat === "wav" ? itemDoc.tracks[0] : undefined;
@@ -8095,9 +7931,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const document = plugin.parse(rawBytes, {
                 seekable: !isStdin(filePath),
                 decodeSubtitles: subtitleCodec !== "copy",
-                decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff", "wv", "mp4", "mov", "latm"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)),
+                decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff", "mp4", "mov", "latm"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)),
                 resolveResource,
-                webvttKind: input?.webvttKind,
                 subtitleFrameRate: input?.subtitleFrameRate,
                 sampleRate: input?.sampleRate,
                 channels: input?.channels,
@@ -8334,23 +8169,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ) {
                 const rawTrack = doc.tracks[0];
                 const rawCodec = rawTrack?.codecDescriptions[0];
-                const packetFrames = rawTrack?.samples[0]?.duration;
-                if (doc.containerFormat === "wav" && rawTrack?.decodedAudio && packetFrames &&
-                    rawCodec?.codecName?.startsWith("pcm_") && !isStdin(inp.path) && !concatInputSeek &&
-                    startSeconds !== undefined && startSeconds > 0) {
-                  // Seeking a WAV starts a full packet at the selected sample, before filtering.
-                  const bytesPerFrame = rawTrack.samples[0]!.data.length / packetFrames;
-                  const bytes = concatBytes(rawTrack.samples.map(sample => sample.data));
-                  const samples: MediaTrack["samples"][number][] = [];
-                  for (let frame = Math.round(startSeconds * rawTrack.timescale);
-                    frame * bytesPerFrame < bytes.length; frame += packetFrames) {
-                    budget.checkCpu();
-                    const data = bytes.subarray(frame * bytesPerFrame, (frame + packetFrames) * bytesPerFrame);
-                    samples.push({ data, dts: frame, pts: frame, cts: 0, size: data.length,
-                      duration: data.length / bytesPerFrame, isKeyframe: true, sampleDescriptionIndex: 1 });
-                  }
-                  doc = { ...doc, tracks: [{ ...rawTrack, samples }] };
-                }
                 const rawSeek = rawCodec !== undefined && startSeconds !== undefined && startSeconds > 0 &&
                   (audioCodec === "copy" || startSeconds > doc.durationSeconds) &&
                   (rawCodec?.codecName === `pcm_${doc.containerFormat}` ||
@@ -8635,29 +8453,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     t.type === "video" ? { ...t, samples: [], decodedVideoFrames: outFrames } : t
                   )
                 };
-              } else if ((filterComplex.includes("vstack") || filterComplex.includes("hstack") || filterComplex.includes("framepack")) && loadedDocs.length >= 2) {
-                const framepack = filterComplex.includes("framepack");
-                let vertical = filterComplex.includes("vstack");
-                const filter = framepack ? "framepack" : vertical ? "vstack" : "hstack";
+              } else if ((filterComplex.includes("vstack") || filterComplex.includes("hstack")) && loadedDocs.length >= 2) {
+                const vertical = filterComplex.includes("vstack");
+                const filter = vertical ? "vstack" : "hstack";
                 const spec = filterComplex.slice(filterComplex.indexOf(filter) + filter.length)
                   .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
                 const options = (spec.startsWith("=") ? spec.slice(1) : "").split(":");
-                if (framepack) {
-                  const option = options[0]?.trim() ?? "";
-                  const layout = (option.startsWith("format=") ? option.slice(7) : option) || "sbs";
-                  if (options.length !== 1 || !["sbs", "tab", "3", "4"].includes(layout)) {
-                    throw new Error("framepack: supported formats are sbs and tab");
-                  }
-                  vertical = layout === "tab" || layout === "4";
-                }
                 const inputOption = options.find(option => option.trim().startsWith("inputs="))
                   ?.split("=")[1]?.trim() ?? (options[0]?.includes("=") ? undefined : options[0]?.trim());
-                const inputCount = framepack ? 2 : Number(inputOption || 2);
+                const inputCount = Number(inputOption || 2);
                 if (!Number.isInteger(inputCount) || inputCount < 2 || inputCount > loadedDocs.length) {
                   throw new Error(`${filter}: inputs must specify at least two available inputs`);
                 }
                 const inputs: MediaVideoFrame[][] = [];
-                const inputTracks: MediaTrack[] = [];
                 let pads = filterComplex.slice(0, filterComplex.indexOf(filter)).trim();
                 for (let i = 0; i < inputCount; i++) {
                   let inputIndex = i;
@@ -8678,27 +8486,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const doc = loadedDocs[inputIndex];
                   const track = doc?.tracks.filter(t => t.type === "video")[streamIndex];
                   if (!doc || !track) throw new Error(`${filter}: input ${inputIndex}:v:${streamIndex} is unavailable`);
-                  inputTracks.push(track);
                   inputs.push(await ensureDecodedFrames(track, doc.timescale, budget, context.signal));
                 }
                 if (pads) throw new Error(`${filter}: unsupported input labels ${pads}`);
                 const shortestOption = options.find((option) => option.trim().startsWith("shortest="))
                   ?.split("=")[1]?.trim() ?? options[1]?.trim();
-                const stopAtShortest = framepack || ["1", "true", "yes", "on"].includes(shortestOption ?? "0");
+                const stopAtShortest = ["1", "true", "yes", "on"].includes(shortestOption ?? "0");
                 const lengths = inputs.map(frames => frames.length);
-                let count = stopAtShortest || lengths.includes(0)
+                const count = stopAtShortest || lengths.includes(0)
                   ? Math.min(...lengths) : Math.max(...lengths);
-                // Native framepack stops on decoder EOF before consuming the final
-                // queued left frame. Generated sources deliver EOF after their last frame.
-                if (framepack && !inputTracks[0]!.decodedVideoFrames) count = Math.max(0, Math.min(lengths[0]! - 1, lengths[1]!));
                 const stacked: MediaVideoFrame[] = [];
                 for (let i = 0; i < count; i++) {
                   const frames = inputs.map(input => input[Math.min(i, input.length - 1)]!);
                   const first = frames[0]!;
-                  if (framepack && frames.some(frame => frame.width !== first.width || frame.height !== first.height ||
-                      Math.abs(frame.durationSeconds - first.durationSeconds) > 1e-6)) {
-                    throw new Error("framepack: inputs must have matching dimensions and frame rates");
-                  }
                   const timing = inputs.find(input => input[i])![i]!;
                   const axis = vertical ? "width" : "height";
                   for (const [index, frame] of frames.entries()) {
@@ -8736,7 +8536,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           width: stacked[0]?.width ?? t.width,
                           height: stacked[0]?.height ?? t.height,
                           samples: [],
-                          ...(framepack ? { codecDescriptions: [{ ...t.codecDescriptions[0]!, stereoMode: vertical ? 3 : 1 }] } : {}),
                           decodedVideoFrames: stacked
                         }
                       : t
@@ -9024,9 +8823,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (outputFps && videoCodec !== "copy" && !numberedImageOutput) {
               vfFilters.push(`fps=${outputFps}`);
             }
-            if (videoCodec !== "copy" && (rawPixelFormat === "gray" || rawPixelFormat === "gray8")) {
-              vfFilters.push(`format=${rawPixelFormat}`);
-            }
 
             if (forceKeyFrames !== undefined && videoCodec !== "copy") {
               if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
@@ -9038,21 +8834,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (maxBFrames > 0 && outPlugin?.id !== "mp4" && outPlugin?.id !== "mov") throw new Error("B-frame encoding requires MP4 or MOV output");
             }
 
-            if ((zeroLatency || crf !== undefined) && videoCodec !== "copy" && features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
+            if ((videoQp !== undefined || videoBitrate) && videoCodec !== "copy" && features.videoTranscode === false) {
+              throw new Error("Video transcoding is disabled by consumer feature configuration");
+            }
             if (videoPreset !== undefined && videoCodec !== "copy") {
               if (!h264Presets.some(name => name === videoPreset)) throw new Error(`invalid preset '${videoPreset}'`);
               if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
             }
 
-            if ((videoQp !== undefined || videoBitrate) && videoCodec !== "copy" && features.videoTranscode === false) {
-              throw new Error("Video transcoding is disabled by consumer feature configuration");
-            }
+            if (zeroLatency && videoCodec !== "copy" && features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
             // Output frame counts refer to displayed pictures, never encoded packets.
             if (videoCodec !== "copy") {
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async (track, index) => {
-                  if (track.type !== "video" || (!zeroLatency && !imageOutput && videoPreset === undefined && crf === undefined && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && videoQp === undefined && !videoBitrate && !track.decodedVideoFrames)) return track;
+                  if (track.type !== "video" || (!zeroLatency && !imageOutput && videoPreset === undefined && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && videoQp === undefined && !videoBitrate && !track.decodedVideoFrames)) return track;
                   const limit = vfFilters.length === 0 && outputFps === undefined ? streamFrameLimits[index] : undefined;
                   const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
                   return { ...track, samples: [], decodedVideoFrames: frames };
@@ -9196,9 +8992,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let audioStartSample = 0;
                   const audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   let audioTimestamps: { start: number; end: number; pts: number }[] | undefined;
-                  if (!sink && ((index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
-                    .some(item => item.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse")))) {
-                    if (index !== undefined && audioSegment) segmentAudioPackets = [];
+                  if (index !== undefined && !sink && (audioSegment || frameChecksumOutput)) {
+                    if (audioSegment) segmentAudioPackets = [];
                     audioTimestamps = [];
                     const length = stretched[0]?.length ?? 0;
                     for (let start = 0, n = 0; start < length; n++) {
@@ -9217,7 +9012,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let statsScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 / 32767
                     : t.codecDescriptions[0]?.codecName === "pcm_s32le" ? 2147483648 / 2147483647 : 1;
                   if (filter) {
-                    const gainCommands: { sample: number; target: string; expression: string }[] = [];
+                    const audioCommands: { sample: number; target: string; expression: string }[] = [];
                     for (const item of parseFilterChain(filter.expression)) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
@@ -9233,7 +9028,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const filterName = trimmed.split("=", 1)[0]!;
                       if (!["anull", "acopy", "ametadata", "arealtime", "asendcmd", "asetrate",
                         "asetnsamples", "ashowinfo", "afade", "silencedetect", "astats", "volume",
-                        "aloop", "aresample", "apad", "adelay", "atempo", "aformat", "pan",
+                        "aloop", "aresample", "apad", "adelay", "aecho", "atempo", "aformat", "pan",
                         "channelmap", "channelsplit", "asetpts", "aselect", "atrim", "areverse"
                       ].includes(filterName)) panPcm16 = false;
                       if (["extrastereo", "stereotools"].includes(filterName) &&
@@ -9247,10 +9042,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = stereo.channels;
                         filteredChannelMask = stereo.channelMask;
                       }
-                      if (filterName === "adeclick" || filterName === "adeclip") {
-                        stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal);
-                        continue;
-                      }
                       if (filterName === "surround") {
                         if (filteredChannelMask && filteredChannelMask !== 3) throw new Error("surround: stereo input required");
                         stretched = await surroundAudio(stretched, origRate, trimmed, budget, context.signal);
@@ -9259,6 +9050,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       }
                       if (filterName === "afwtdn") {
                         stretched = await denoiseWavelets(stretched, origRate, trimmed, budget, context.signal);
+                        continue;
+                      }
+                      if (filterName === "adeclick" || filterName === "adeclip") {
+                        stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal);
                         continue;
                       }
                       if (trimmed === "deesser" || trimmed.startsWith("deesser=")) {
@@ -9447,7 +9242,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
                           while (next < scheduled.length && scheduled[next]!.time <= pts / origRate) {
                             const command = scheduled[next++]!;
-                            gainCommands.push({ sample: start, target: command.target, expression: command.expression });
+                            audioCommands.push({ sample: start, target: command.target, expression: command.expression });
                           }
                           start += count;
                         }
@@ -9551,18 +9346,33 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${pts} pts_time:${Number((pts / origRate).toPrecision(6))} pos:-1 fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${planeChecksums.join(" ")} ]\n`), context.signal);
                           start = end;
                         }
-                      } else if (trimmed === "asubcut" || trimmed.startsWith("asubcut=")) {
-                        stretched = await cutSubAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
-                      } else if (trimmed === "asubboost" || trimmed.startsWith("asubboost=")) {
-                        stretched = await boostSubAudio(stretched, origRate, trimmed, budget, context.signal);
-                      } else if (trimmed === "highpass" || trimmed.startsWith("highpass=")) {
-                        stretched = await highpassAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "asupercut" || trimmed.startsWith("asupercut=")) {
                         stretched = await cutUltrasonicAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "aexciter" || trimmed.startsWith("aexciter=")) {
                         stretched = await exciteAudio(stretched, origRate, trimmed, budget, context.signal);
-                      } else if (trimmed === "adecorrelate" || trimmed.startsWith("adecorrelate=")) {
-                        stretched = await decorrelateAudio(stretched, origRate, trimmed, budget, context.signal);
+                      } else if (filterName === "aecho") {
+                        const inputLength = stretched[0]?.length ?? 0;
+                        stretched = await echoAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
+                        if (!audioTimestamps) {
+                          audioTimestamps = [];
+                          for (let start = 0, n = 0; start < inputLength; n++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const packet = t.samples[n];
+                            const count = packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const end = Math.min(inputLength, start + count);
+                            budget.allocateMemory(24);
+                            audioTimestamps.push({ start, end, pts: audioStartSample + start });
+                            start = end;
+                          }
+                        }
+                        const last = audioTimestamps.at(-1);
+                        const tailPts = last ? last.pts + last.end - last.start : audioStartSample;
+                        for (let start = inputLength; start < stretched[0]!.length; start += 2048) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          budget.allocateMemory(24);
+                          audioTimestamps.push({ start, end: Math.min(stretched[0]!.length, start + 2048),
+                            pts: tailPts + start - inputLength });
+                        }
                       } else if (trimmed === "aphaser" || trimmed.startsWith("aphaser=")) {
                         stretched = await phaseAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
                       } else if (filterName === "aphaseshift" || filterName === "afreqshift") {
@@ -9576,9 +9386,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await vibratoAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "adynamicequalizer" || trimmed.startsWith("adynamicequalizer=")) {
                         stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal);
-                        statsScale = 1;
-                      } else if (trimmed === "atilt" || trimmed.startsWith("atilt=")) {
-                        stretched = await tiltAudio(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "asoftclip" || trimmed.startsWith("asoftclip=")) {
                         stretched = await softClipAudio(stretched, trimmed, budget, context.signal);
@@ -9612,14 +9419,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           stretched = await fadeAudio(stretched, origRate, trimmed, audioTimestamps, audioStartSample, budget, context.signal, panPcm16);
                         } else if (filterName === "alimiter") {
                           filteredSampleFormat = "dbl";
-                          const limited = await limitAudio(stretched, origRate, trimmed, budget, context.signal, audioTimestamps);
+                          const commands = audioCommands.filter(command => command.target === "alimiter" || command.target === filterTarget)
+                            .sort((a, b) => a.sample - b.sample);
+                          const limited = await limitAudio(stretched, origRate, trimmed, budget, context.signal, audioTimestamps, commands);
                           stretched = limited.channels;
                           audioTimestamps = limited.frames;
                         } else {
                           filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
                           stretched = await normalizeSpeech(stretched, origRate, audioTimestamps, trimmed, filteredSampleFormat, budget, context.signal);
                         }
-                        if (filterName !== "afade") statsScale = 1;
+                        statsScale = 1;
                       } else if (trimmed === "agate" || trimmed.startsWith("agate=")) {
                         stretched = await applyAudioGate(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
@@ -9633,6 +9442,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await compandAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
                           if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
                         });
+                      } else if (trimmed === "afade" || trimmed.startsWith("afade=")) {
+                        stretched = await fadeAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal);
                       } else if (trimmed === "dynaudnorm" || trimmed.startsWith("dynaudnorm=")) {
                         filteredSampleFormat = "dblp";
                         const normalized = await normalizeAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
@@ -9844,7 +9655,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let count = 0;
                         let sumSquares = 0;
                         let peak = 0;
-                        const histogram = new Float64Array(92);
                         // FFmpeg measures signed 16-bit samples, including every channel.
                         for (const channel of stretched) {
                           for (const value of channel) {
@@ -9853,8 +9663,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             count++;
                             sumSquares += sample * sample;
                             peak = Math.max(peak, Math.abs(sample));
-                            const db = sample === 0 ? 91 : Math.floor(-10 * Math.log10(sample * sample / (32768 * 32768)));
-                            histogram[db]!++;
                           }
                         }
                         let report = `n_samples: ${count}\n`;
@@ -9863,13 +9671,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const meanDb = meanSquare === 0 ? -91 : 10 * Math.log10(meanSquare / (32768 * 32768));
                           const peakDb = peak === 0 ? -91 : 10 * Math.log10(peak * peak / (32768 * 32768));
                           report += `mean_volume: ${meanDb.toFixed(1)} dB\nmax_volume: ${peakDb.toFixed(1)} dB\n`;
-                          let db = 0;
-                          while (db < histogram.length && histogram[db] === 0) db++;
-                          // Native FFmpeg includes the bin that reaches the loudest 0.1% of samples.
-                          for (let sum = 0; db < histogram.length && sum < Math.floor(count / 1000); db++) {
-                            report += `histogram_${db}db: ${histogram[db]}\n`;
-                            sum += histogram[db]!;
-                          }
                         }
                         if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "volume" || trimmed.startsWith("volume=")) {
@@ -9932,7 +9733,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         // All modes except ignore consume frame ReplayGain side data.
                         if (replayGain !== "ignore") replayGainAvailable = false;
-                        const commands = gainCommands.filter(command => command.target === "volume" || command.target === filterTarget)
+                        const commands = audioCommands.filter(command => command.target === "volume" || command.target === filterTarget)
                           .sort((a, b) => a.sample - b.sample);
                         let nextCommand = 0;
                         const output = stretched.map(channel => precision !== "float"
@@ -10159,69 +9960,32 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioTimestamps = undefined;
                       } else if (trimmed === "apad" || trimmed.startsWith("apad=")) {
                         const options: Record<string, number | undefined> = {};
-                        let packetSize = 4096;
-                        const names = ["packet_size", "pad_len", "whole_len", "pad_dur", "whole_dur"];
                         const argument = trimmed.slice("apad=".length);
-                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
-                          const separator = option.indexOf("=");
-                          const key = separator < 0 ? names[index] : option.slice(0, separator);
-                          const value = separator < 0 ? option : option.slice(separator + 1);
-                          if (key === "packet_size") {
-                            packetSize = Number(value);
-                            if (!value.trim() || !Number.isInteger(packetSize) || packetSize < 1 || packetSize > 2147483647) {
-                              throw new Error("apad: invalid packet_size");
-                            }
-                            continue;
-                          }
-                          if (!names.includes(key!)) {
+                        for (const option of argument ? argument.split(":") : []) {
+                          const [key, value, extra] = option.split("=");
+                          if (!["pad_len", "whole_len", "pad_dur", "whole_dur"].includes(key!)) {
                             throw new Error(`apad: unsupported option ${key}`);
                           }
                           const duration = key!.endsWith("_dur");
                           const number = duration ? parseHlsDuration(value ?? "") : parseFilterExpression(value ?? "", "apad", {});
                           const samples = duration ? Math.round(number * origRate) : roundToEven(number);
-                          if (!value?.trim() || number < (duration ? 0 : -1) || !Number.isSafeInteger(samples)) {
+                          if (!value?.trim() || extra !== undefined || number < (duration ? 0 : -1) || !Number.isSafeInteger(samples)) {
                             throw new Error(`apad: invalid ${key}`);
                           }
                           options[key!] = samples === -1 ? undefined : samples;
                         }
                         const padding = options.pad_dur ?? options.pad_len;
-                        let minimum = options.whole_dur ?? options.whole_len;
+                        const minimum = options.whole_dur ?? options.whole_len;
                         // FFmpeg rejects only explicit sample-count conflicts, before duration overrides.
                         if (options.pad_len !== undefined && options.whole_len !== undefined) {
                           throw new Error("apad: pad_len and whole_len are mutually exclusive");
                         }
                         if (padding === undefined && minimum === undefined) {
-                          const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
-                          if (endSeconds === undefined) {
-                            throw new Error("apad: a finite padding or minimum length is required");
-                          }
-                          minimum = Math.max(0, Math.round(endSeconds * origRate) - audioStartSample);
+                          throw new Error("apad: a finite padding or minimum length is required");
                         }
                         const inputLength = stretched[0]?.length ?? 0;
                         const length = padding !== undefined ? inputLength + padding : Math.max(inputLength, minimum!);
                         budget.checkDuration(length / origRate);
-                        if (!audioTimestamps) {
-                          audioTimestamps = [];
-                          for (let start = 0, n = 0; start < inputLength; n++) {
-                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            const packet = t.samples[n];
-                            const count = packet ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
-                              - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
-                            if (count === 0) continue;
-                            const end = Math.min(inputLength, start + count);
-                            budget.allocateMemory(24);
-                            audioTimestamps.push({ start, end, pts: audioStartSample + start });
-                            start = end;
-                          }
-                        }
-                        const lastFrame = audioTimestamps.at(-1);
-                        const paddingPts = lastFrame ? lastFrame.pts + lastFrame.end - lastFrame.start : audioStartSample;
-                        budget.allocateMemory(Math.ceil((length - inputLength) / packetSize) * 24);
-                        for (let start = inputLength; start < length; start += packetSize) {
-                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          audioTimestamps.push({ start, end: Math.min(length, start + packetSize),
-                            pts: paddingPts + start - inputLength });
-                        }
                         budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
                         stretched = await mapWork(stretched, async channel => {
                           const output = new Float32Array(length);
@@ -10267,33 +10031,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           return offset;
                         });
-                        const inputLength = stretched[0]?.length ?? 0;
-                        const padding = Math.min(...offsets);
-                        const length = inputLength + Math.max(0, ...offsets);
+                        const length = (stretched[0]?.length ?? 0) + Math.max(0, ...offsets);
                         budget.checkDuration(length / origRate);
                         budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
-                        // adelay emits common silence in 2048-sample frames, then
-                        // preserves input frame sizes and flushes remaining channel delays.
-                        const previous = audioTimestamps;
-                        audioTimestamps = [];
-                        let nextPts = previous?.[0]?.pts ?? (t.samples[0] ? t.samples[0].pts * origRate / t.timescale : audioStartSample);
-                        for (let start = 0, n = 0; start < length;) {
-                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          let end: number;
-                          if (start < padding) end = Math.min(padding, start + 2048);
-                          else if (start < padding + inputLength) {
-                            const frame = previous?.[n];
-                            const packet = t.samples[n++];
-                            const count = frame ? frame.end - frame.start
-                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                            nextPts = (frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start - padding)) + padding;
-                            end = Math.min(padding + inputLength, start + count);
-                          } else end = Math.min(length, start + 2048);
-                          budget.allocateMemory(24);
-                          audioTimestamps.push({ start, end, pts: nextPts });
-                          nextPts += end - start;
-                          start = end;
-                        }
                         stretched = await mapWork(stretched, async (channel, c) => {
                           const output = new Float32Array(length);
                           for (let start = 0; start < channel.length; start += 16384) {
@@ -10371,44 +10111,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "extrastereo" || trimmed.startsWith("extrastereo=")) {
                         let multiplier = 2.5;
                         let clip = true;
-                        let enable: string | undefined;
                         const argument = trimmed.slice("extrastereo".length + 1);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["m", "c"][index] : option.slice(0, separator).trim();
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (key === "m") {
-                            multiplier = Math.fround(parseFilterExpression(value, "extrastereo", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }));
+                            multiplier = Math.fround(parseFilterExpression(value, "extrastereo", {}));
                             if (!Number.isFinite(multiplier) || multiplier < -10 || multiplier > 10) {
                               throw new Error("extrastereo: m must be in the range [-10, 10]");
                             }
                           } else if (key === "c") {
                             clip = parseFilterBoolean(value, "extrastereo: invalid clipping option");
-                          } else if (key === "enable") enable = value;
-                          else throw new Error(`extrastereo: unsupported option ${key}`);
+                          } else throw new Error(`extrastereo: unsupported option ${key}`);
                         }
                         if (stretched.length !== 2) throw new Error("extrastereo: stereo input required");
                         if (filteredChannelMask && filteredChannelMask !== 3 && filteredChannelMask !== 12) {
                           throw new Error(`extrastereo: unsupported input channel layout (mask ${filteredChannelMask})`);
                         }
                         const output = stretched.map(channel => new Float32Array(channel.length));
-                        let frameEnd = 0;
-                        let frameIndex = 0;
-                        let enabled = true;
                         for (let i = 0; i < stretched[0]!.length; i++) {
-                          if (enable !== undefined && i >= frameEnd) {
-                            const packet = t.samples[frameIndex];
-                            const timestamp = audioTimestamps?.[frameIndex];
-                            const frameLength = timestamp ? timestamp.end - timestamp.start
-                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                            const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
-                            enabled = Math.abs(parseFilterExpression(enable, "extrastereo enable", {
-                              n: frameIndex, t: pts / origRate
-                            })) >= 0.5;
-                            frameEnd = i + frameLength;
-                            frameIndex++;
-                          }
-
                           if (i % 4096 === 0) {
                             await yieldTurn(context.signal);
                             context.signal?.throwIfAborted();
@@ -10416,11 +10138,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           const left = filteredChannelMask === 12 ? Math.fround(stretched[0]![i]! * Math.SQRT1_2) : stretched[0]![i]!;
                           const right = filteredChannelMask === 12 ? left : stretched[1]![i]!;
-                          if (!enabled) {
-                            output[0]![i] = left;
-                            output[1]![i] = right;
-                            continue;
-                          }
                           const average = Math.fround(Math.fround(left + right) / 2);
                           for (let c = 0; c < 2; c++) {
                             const value = Math.fround(average + Math.fround(multiplier * Math.fround((c === 0 ? left : right) - average)));
@@ -10432,43 +10149,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "aeval" || trimmed.startsWith("aeval=")) {
                         let expressions = "";
                         let layout = "";
-                        let enable: string | undefined;
                         for (const [index, option] of trimmed.slice("aeval=".length).split(":").entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["exprs", "channel_layout"][index] : option.slice(0, separator);
                           const value = separator < 0 ? option : option.slice(separator + 1);
                           if (key === "exprs") expressions = value;
                           else if (key === "channel_layout" || key === "c") layout = value;
-                          else if (key === "enable") enable = value;
                           else throw new Error(`aeval: unsupported option ${key}`);
                         }
                         const exprs = expressions.split("|").filter(Boolean);
-                        const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR",
-                          "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"];
-                        let outputMask = filteredChannelMask;
-                        let count = stretched.length;
-                        if (layout !== "same") {
-                          if (layout) {
-                            const digits = layout.startsWith("0x") ? layout.slice(2) : layout;
-                            const alphabet = layout.startsWith("0x") ? "0123456789abcdefABCDEF" : "0123456789";
-                            if (digits.length && [...digits].every(digit => alphabet.includes(digit))) {
-                              outputMask = Number(layout);
-                              if (!Number.isSafeInteger(outputMask) || outputMask <= 0 || outputMask >= 1 << speakers.length) {
-                                throw new Error("aeval: unsupported channel layout");
-                              }
-                            } else {
-                              const names = parseAudioChannelLayout(layout);
-                              if (names.some(name => !speakers.includes(name)) || new Set(names).size !== names.length) {
-                                throw new Error("aeval: unsupported channel layout");
-                              }
-                              outputMask = names.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0);
-                            }
-                          } else {
-                            outputMask = [0, 0x4, 0x3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][exprs.length] ?? 0;
-                          }
-                          count = layout ? speakers.filter((_, index) => (outputMask! & (1 << index)) !== 0).length : exprs.length;
-                        }
-                        if (!count || count > 64 || !exprs.length || exprs.length > count || exprs.some(expr => !expr.trim())) {
+                        const count = layout === "same" ? stretched.length : layout === "mono" ? 1
+                          : layout === "stereo" ? 2 : layout === "" ? exprs.length : 0;
+                        if (!count || count > 2 || !exprs.length || exprs.length > count || exprs.some(expr => !expr.trim())) {
                           throw new Error("aeval: unsupported channel layout or invalid expressions");
                         }
                         const output = Array.from({ length: count }, () => new Float64Array(stretched[0]!.length));
@@ -10479,22 +10171,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const index = Math.min(stretched.length - 1, Math.trunc(channel));
                           return index < 0 ? 0 : stretched[index]![variables.n]!;
                         };
-                        let frameEnd = 0;
-                        let frameIndex = 0;
-                        let enabled = true;
                         for (let i = 0; i < stretched[0]!.length; i++) {
-                          if (enable !== undefined && i >= frameEnd) {
-                            const packet = t.samples[frameIndex];
-                            const timestamp = audioTimestamps?.[frameIndex];
-                            const frameLength = timestamp ? timestamp.end - timestamp.start
-                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                            const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
-                            enabled = Math.abs(parseFilterExpression(enable, "aeval enable", {
-                              n: frameIndex, t: pts / origRate
-                            })) >= 0.5;
-                            frameEnd = i + frameLength;
-                            frameIndex++;
-                          }
                           if (i % 4096 === 0) {
                             await yieldTurn(context.signal);
                             context.signal?.throwIfAborted();
@@ -10504,11 +10181,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           variables.t = i / origRate;
                           for (let c = 0; c < count; c++) {
                             variables.ch = c;
-                            output[c]![i] = !enabled ? sampleValue(c) : parseFilterExpression(exprs[Math.min(c, exprs.length - 1)]!, "aeval", variables, sampleValue, registers[c], randomStates[c]);
+                            output[c]![i] = parseFilterExpression(exprs[Math.min(c, exprs.length - 1)]!, "aeval", variables, sampleValue, registers[c], randomStates[c]);
                           }
                         }
                         stretched = output;
-                        filteredChannelMask = outputMask;
+                        if (layout !== "same") filteredChannelMask = count === 1 ? 4 : 3;
                       } else if (trimmed === "aformat" || trimmed.startsWith("aformat=")) {
                         const argument = trimmed.slice("aformat=".length);
                         const options = argument ? argument.split(":") : [];
@@ -10746,14 +10423,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const modes = ["lr>lr", "lr>ms", "ms>lr", "lr>ll", "lr>rr", "lr>l+r", "lr>rl", "ms>ll", "ms>rr", "ms>rl", "lr>l-r"];
                         let mode = 0;
                         let delay = 0;
-                        let phase = 0;
                         let base = 0;
+                        let phase = 0;
                         const flags = { mutel: false, muter: false, phasel: false, phaser: false, softclip: false };
                         let sclevel = 1;
                         const levels = { level_in: 1, level_out: 1, mlev: 1, slev: 1 };
                         const balance = { mpan: 0, sbal: 0, balance_in: 0, balance_out: 0 };
                         const balanceModes = { bmode_in: 0, bmode_out: 0 };
-                        let enable: string | undefined;
                         const argument = trimmed.slice("stereotools=".length);
                         const positionalKeys = ["level_in", "level_out", "balance_in", "balance_out", "softclip",
                           "mutel", "muter", "phasel", "phaser", "mode", "slev", "sbal", "mlev", "mpan",
@@ -10791,15 +10467,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error(`stereotools: invalid ${key}`);
                             }
                             balanceModes[key] = balanceMode;
-                          } else if (key === "base") {
-                            base = parseFilterExpression(value, "stereotools", {});
-                            if (!Number.isFinite(base) || base < -1 || base > 1) {
-                              throw new Error("stereotools: base must be in the range [-1, 1]");
-                            }
                           } else if (key === "phase") {
                             phase = parseFilterExpression(value, "stereotools", {});
                             if (!Number.isFinite(phase) || phase < 0 || phase > 360) {
                               throw new Error("stereotools: phase must be in the range [0, 360]");
+                            }
+                          } else if (key === "base") {
+                            base = parseFilterExpression(value, "stereotools", {});
+                            if (!Number.isFinite(base) || base < -1 || base > 1) {
+                              throw new Error("stereotools: base must be in the range [-1, 1]");
                             }
                           } else if (key === "delay") {
                             delay = parseFilterExpression(value, "stereotools", {});
@@ -10814,8 +10490,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                           } else if (key === "mutel" || key === "muter" || key === "phasel" || key === "phaser" || key === "softclip") {
                             flags[key] = parseFilterBoolean(value, `stereotools: invalid ${key}`);
-                          } else if (key === "enable") enable = value;
-                          else {
+                          } else {
                             throw new Error(`stereotools: unsupported option ${key}`);
                           }
                         }
@@ -10846,37 +10521,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // Native FFmpeg rounds the interleaved delay down to an even sample count.
                         const delayFrames = Math.floor(origRate * (Math.abs(delay) / 1000) / 2);
                         budget.allocateMemory(delayFrames * 8);
+                        const delayed = new Float64Array(delayFrames);
                         const phaseCos = Math.cos(phase / 180 * Math.PI);
                         const phaseSin = Math.sin(phase / 180 * Math.PI);
                         const midLeft = 1 - Math.max(0, balance.mpan);
                         const midRight = 1 + Math.min(0, balance.mpan);
                         const sideLeft = 1 - Math.max(0, balance.sbal);
                         const sideRight = 1 + Math.min(0, balance.sbal);
-                        const delayed = new Float64Array(delayFrames);
-                        let delayPosition = 0;
-                        let frameEnd = 0;
-                        let frameIndex = 0;
-                        let enabled = true;
                         for (let i = 0; i < left.length; i++) {
-                          if (enable !== undefined && i >= frameEnd) {
-                            const packet = t.samples[frameIndex];
-                            const timestamp = audioTimestamps?.[frameIndex];
-                            const frameLength = timestamp ? timestamp.end - timestamp.start
-                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                            const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
-                            enabled = Math.abs(parseFilterExpression(enable, "stereotools enable", {
-                              n: frameIndex, t: pts / origRate
-                            })) >= 0.5;
-                            frameEnd = i + frameLength;
-                            frameIndex++;
-                          }
-
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          if (!enabled) {
-                            left[i] = stretched[0]![i]!;
-                            right[i] = stretched[1]![i]!;
-                            continue;
-                          }
                           let l = stretched[0]![i]! * levels.level_in * inputLeft;
                           let r = stretched[1]![i]! * levels.level_in * inputRight;
                           if (flags.softclip) {
@@ -10916,7 +10569,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           outputLeft = flags.mutel ? 0 : outputLeft * (flags.phasel ? -1 : 1);
                           outputRight = flags.muter ? 0 : outputRight * (flags.phaser ? -1 : 1);
                           if (delayFrames > 0) {
-                            const slot = delayPosition++ % delayFrames;
+                            const slot = i % delayFrames;
                             const previous = delayed[slot]!;
                             delayed[slot] = delay < 0 ? outputLeft : outputRight;
                             if (delay < 0) outputLeft = previous;
@@ -11124,10 +10777,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (key === undefined || (!samples && !pts && key !== "start" && key !== "end")) {
                             throw new Error(`atrim: unsupported option ${key}`);
                           }
-                          const number = samples ? parseFilterExpression(value, "atrim", {}) : pts ? Number(value) : parseHlsDuration(value);
-                          const boundary = samples ? roundToEven(number) : pts ? number : Math.round(number * origRate);
+                          const number = samples || pts ? Number(value) : parseHlsDuration(value);
+                          const boundary = samples || pts ? number : Math.round(number * origRate);
                           let frame = samples ? boundary : boundary - audioStartSample;
-                          if (!value || !Number.isFinite(number) || !Number.isSafeInteger(frame) || (samples && number < (key === "start_sample" ? -1 : 0))) {
+                          if (!value || !Number.isFinite(number) || !Number.isSafeInteger(frame) || (samples && number < 0)) {
                             throw new Error(`atrim: invalid ${key}`);
                           }
                           if (!samples && audioTimestamps) {
@@ -11141,8 +10794,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               }
                             }
                           }
-                          if (key === "start_sample" && frame === -1) bounds.delete(key);
-                          else bounds.set(key, frame);
+                          bounds.set(key, frame);
                         }
                         let start = Math.min(bounds.get("start") ?? Infinity, bounds.get("start_sample") ?? Infinity, bounds.get("start_pts") ?? Infinity);
                         let end = Math.max(bounds.get("end") ?? -Infinity, bounds.get("end_sample") ?? -Infinity, bounds.get("end_pts") ?? -Infinity);
@@ -11224,56 +10876,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const start = outputSs === undefined ? 0 : Math.max(0, Math.round(outputSs * origRate) - audioStartSample);
                     const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
                     const end = endSeconds === undefined ? undefined : Math.max(start, Math.round(endSeconds * origRate) - audioStartSample);
-                    if (audioTimestamps) {
-                      const seek = Math.round((outputSs ?? 0) * origRate);
-                      const duration = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));
-                      const firstPts = Math.max(audioTimestamps[0]?.pts ?? 0, outputSs === undefined ? -Infinity : seek);
-                      const endPts = duration === undefined ? Infinity : firstPts + Math.round(duration * origRate);
-                      const ranges: { start: number; end: number }[] = [];
-                      const frames: typeof audioTimestamps = [];
-                      let length = 0;
-                      for (const frame of audioTimestamps) {
-                        if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                        // Duration trims each frame on its own timeline; overlapping frames can both survive.
-                        if (frame.pts >= endPts) break;
-                        const from = frame.start + (outputSs === undefined ? 0 : Math.max(0, seek - frame.pts));
-                        const to = Math.min(frame.end, frame.start + endPts - frame.pts);
-                        if (to <= from) continue;
-                        ranges.push({ start: from, end: to });
-                        frames.push({ start: length, end: length + to - from, pts: frame.pts + from - frame.start - seek });
-                        length += to - from;
-                      }
-                      budget.allocateMemory(length * stretched.length * 8);
-                      const output = stretched.map(() => new Float64Array(length));
-                      let offset = 0;
-                      for (const range of ranges) {
-                        for (let start = range.start; start < range.end; start += 4096) {
-                          budget.checkCpu();
-                          await yieldTurn(context.signal);
-                          context.signal?.throwIfAborted();
-                          const end = Math.min(range.end, start + 4096);
-                          for (const [channel, samples] of stretched.entries()) {
-                            output[channel]!.set(samples.subarray(start, end), offset + start - range.start);
-                          }
-                        }
-                        offset += range.end - range.start;
-                      }
-                      stretched = output;
-                      audioTimestamps = frames;
-                    } else {
-                      stretched = stretched.map(channel => channel.subarray(start, end));
-                    }
+                    stretched = stretched.map(channel => channel.subarray(start, end));
                   }
 
-                  const resampleFrameLimit = maxAudioFrames !== undefined && audioRate !== undefined && audioRate !== origRate
-                    && resampler === "swr" && !loudnormResampling && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms"
-                    ? { count: maxAudioFrames, ends: audioTimestamps?.map(frame => frame.end) ??
-                      t.samples.map(sample => (sample.dts + sample.duration - (t.samples[0]?.dts ?? 0)) * origRate / t.timescale) }
-                    : undefined;
-                  if (maxAudioFrames !== undefined && !resampleFrameLimit) {
+                  if (maxAudioFrames !== undefined) {
                     let inputFrames = maxAudioFrames;
                     if ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") && maxAudioFrames > 0) {
-                      const channels = audioChannels === undefined || audioChannels < 0 ? stretched.length : audioChannels;
+                      const channels = audioChannels === undefined || audioChannels === -1 ? stretched.length : audioChannels;
                       const blockSamples = audioCodec === "adpcm_ms"
                         ? 2 + ((blockSize ?? 1024) - 7 * channels) * 2 / channels
                         : 1 + ((blockSize ?? 1024) - 4 * channels) * 2 / channels;
@@ -11309,19 +10918,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                   const origCh = stretched.length;
                   const targetRate = audioRate ?? origRate;
-                  const targetCh = audioChannels !== undefined && audioChannels < 0 ? origCh : audioChannels ??
+                  const targetCh = audioChannels === -1 ? origCh : audioChannels ??
                     ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") ? Math.min(origCh, 2) : origCh);
-                  // Nine channels have no default speaker layout for automatic rematrixing.
-                  if (targetCh === 9 && targetCh !== origCh) {
-                    throw new Error("Cannot remix to 9 channels: not enough speaker routing information");
-                  }
                   if ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") && targetCh > 2) {
                     throw new Error(`${audioCodec}: unsupported channel count ${targetCh}`);
                   }
                   // FFmpeg guesses 2.1 for three-channel PCM without an explicit layout.
                   const channelMask = filteredChannelMask ?? (origCh === 3 ? 11 : undefined);
                   if (origCh === 2 && channelMask && channelMask !== 3 && channelMask !== 12 &&
-                      audioChannels !== undefined && audioChannels > 0) {
+                      audioChannels !== undefined && audioChannels !== -1) {
                     throw new Error(`Unsupported input channel layout (mask ${channelMask})`);
                   }
                   const centerLfe = origCh === 2 && channelMask === 12;
@@ -11421,7 +11026,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ? await resampleSoxr(stretched, origRate, targetRate, budget, context.signal, resampleCutoff)
                     : loudnormResampling
                     ? await resampleLoudnorm(stretched, origRate, targetRate, budget, context.signal)
-                    : await resampleAudio(stretched, targetSamples, origRate, targetRate, budget, context.signal, filterType, kaiserBeta, filterSize, resampleCutoff, phaseShift, linearInterp, exactRational, resampleFrameLimit);
+                    : await resampleAudio(stretched, targetSamples, origRate, targetRate, budget, context.signal, filterType, kaiserBeta, filterSize, resampleCutoff, phaseShift, linearInterp, exactRational);
                   if (targetRate !== origRate && (resampler === "soxr" || !loudnormResampling)) targetSamples = stretched[0]?.length ?? 0;
                   const newChannelData: (Float32Array | Float64Array)[] = [];
                   const ChannelArray = stretched.some(channel => channel instanceof Float64Array) ? Float64Array : Float32Array;
@@ -11550,7 +11155,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       sampleRate: targetRate,
                       channels: targetCh,
                       channelData: newChannelData,
-                      ...(targetCh === origCh && (audioChannels === undefined || audioChannels < 0) ? { channelMask } : {})
+                      ...(targetCh === origCh && (audioChannels === undefined || audioChannels === -1) ? { channelMask } : {})
                     }
                   };
             }
@@ -11598,7 +11203,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ...workingDoc,
               faststart,
               metadata: metaTags,
-              tracks: applyStreamDispositions(applyStreamMetadata(mapStreamMetadata(workingDoc.tracks, loadedDocs, streamMetadataMaps), streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id, defaultMode)
+              tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id)
             };
 
             if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {
@@ -11613,10 +11218,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
             }
 
-            if ((videoPreset !== undefined || videoQp !== undefined || videoBitrate || crf !== undefined) && videoCodec !== "copy") {
-              if (videoCodec !== undefined && videoCodec !== "libx264" && videoCodec !== "h264") throw new Error("Presets and video bitrate require H.264 encoding");
-              workingDoc = { ...workingDoc, tracks: await mapWork(workingDoc.tracks, track =>
-                encodeH264PresetTrack(track, videoPreset ?? "medium", budget, forceKeyFrames, maxBFrames, videoQp, videoBitrate, zeroLatency, crf), context.signal) };
+            if ((videoPreset !== undefined || videoQp !== undefined || videoBitrate) && videoCodec !== "copy") {
+              if (videoCodec !== undefined && videoCodec !== "libx264" && videoCodec !== "h264") throw new Error("Video bitrate requires H.264 encoding");
+              workingDoc = { ...workingDoc, tracks: await mapWork(workingDoc.tracks, async track =>
+                encodeH264PresetTrack(track, videoPreset ?? "medium", budget, forceKeyFrames, maxBFrames, videoQp, videoBitrate, zeroLatency), context.signal) };
             }
 
             let decodeExitCode = demuxExitCode;
@@ -11735,16 +11340,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             if (outputFormat === "segment") {
-              if (segmentTimes === undefined && segmentFrames === undefined && minSegmentDuration > segmentTime) {
-                throw new Error("min_seg_duration cannot be greater than segment_time");
-              }
               const track = workingDoc.tracks.find(track => track.type === "video") ?? workingDoc.tracks[0];
               if (!track || !segmentPlugin?.canMux || !(segmentPlugin.id === "mp4" ||
                   ((audioSegment || (["mkv", "aac"].includes(segmentPlugin.id) && audioCodec === "copy")) &&
                     workingDoc.tracks.length === 1 && track.type === "audio"))) {
                 throw new Error("segment output requires MP4 format or a single audio track with WAV/raw audio format or Matroska/ADTS stream copy");
               }
-              if (formatImageSequence(outputTarget, 0) === undefined) {
+              if (formatImageSequence(outputTarget, 0, false) === undefined) {
                 throw new Error("segment output requires a numbered filename pattern");
               }
               if (segmentHeaderFilename !== undefined && segmentPlugin.id !== "wav") {
@@ -11767,18 +11369,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               for (const [frame, packet] of (segmentAudioPackets ?? track.samples).entries()) {
                 budget.checkCpu();
                 const seconds = (packet.pts - audioOffset) / track.timescale;
-                while (true) {
-                  budget.checkCpu();
-                  const reached = segmentFrames === undefined
-                    ? segmentTimes === undefined
-                      ? seconds >= boundaries.length * segmentTime - segmentTimeDelta &&
-                        Math.round((seconds - boundaries[boundaries.length - 1]!) * 1_000_000) >= Math.round(minSegmentDuration * 1_000_000)
-                      : seconds >= (segmentTimes[boundaries.length - 1] ?? Infinity) - segmentTimeDelta
-                    : frame >= (segmentFrames[boundaries.length - 1] ?? Infinity);
-                  if (!reached || (!writeEmptySegments && seconds <= boundaries[boundaries.length - 1]!) ||
-                      (track.type === "video" && !packet.isKeyframe)) break;
+                const reached = segmentFrames === undefined
+                  ? seconds >= (segmentTimes === undefined ? boundaries.length * segmentTime
+                    : segmentTimes[boundaries.length - 1] ?? Infinity) - segmentTimeDelta
+                  : frame >= (segmentFrames[boundaries.length - 1] ?? Infinity);
+                if (seconds > boundaries[boundaries.length - 1]! && reached &&
+                    (track.type !== "video" || packet.isKeyframe)) {
                   boundaries.push(seconds);
-                  if (!writeEmptySegments || (segmentTime === 0 && segmentTimes === undefined && segmentFrames === undefined)) break;
                 }
               }
               const lastPacket = track.samples.at(-1);
@@ -11837,7 +11434,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       (index === paths.length - 1 || (sample.dts - audioOffset) / track.timescale < end))
                   })) };
                 let bytes = segmentPlugin.serialize(!audioSegment
-                  ? shiftTimestamps(segment, initialOffset - (resetTimestamps ? start : 0), budget) : segment, { patPmtAtFrames: (mpegtsFlags & 16) !== 0, patPeriod, writeHeader: headerPath !== undefined || (writeHeader && (segmentPlugin.id !== "wav" || writeHeaderTrailer && (individualHeaderTrailer || index === 0))), writeBext, writeCrc32, muxRate, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, mpegtsServiceId, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, budget, limits: options.limits });
+                  ? shiftTimestamps(segment, initialOffset - (resetTimestamps ? start : 0), budget) : segment, { initialDiscontinuity: (mpegtsFlags & 32) !== 0, patPmtAtFrames: (mpegtsFlags & 16) !== 0, patPeriod, writeHeader: headerPath !== undefined || writeHeader && (segmentPlugin.id !== "wav" || writeHeaderTrailer && (individualHeaderTrailer || index === 0)), writeBext, writeCrc32, muxRate, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, mpegtsServiceId, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, budget, limits: options.limits });
                 if (headerPath !== undefined) {
                   // A separate WAV header is nonseekable: sizes stay unknown and
                   // media files contain data only, without RIFF padding or trailers.
@@ -11912,7 +11509,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (!registry.findByFormatName("dash")?.canMux) throw new Error("DASH AST is not registered");
               const outResolved = resolvePath(context.cwd, outputTarget);
               const outDir = outResolved.slice(0, outResolved.lastIndexOf("/")) || "/";
-              const { resources, publications } = serializeDashDocument(workingDoc, { targetLatency: dashTargetLatency, writePrft: dashWritePrft, utcTimingUrl: dashUtcTimingUrl, mpdProfile: dashMpdProfile, hlsPlaylist: dashHlsPlaylist, adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.$ext$", minPlaybackRate: dashMinPlaybackRate, maxPlaybackRate: dashMaxPlaybackRate, segmentDuration: dashSegmentDuration, segmentType: dashSegmentType, fragmentType: dashFragmentType, fragmentDuration, streaming: dashStreaming, lowLatency: dashLowLatency, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
+              const { resources, publications } = serializeDashDocument(workingDoc, { utcTimingUrl: dashUtcTimingUrl, hlsPlaylist: dashHlsPlaylist, adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.$ext$", minPlaybackRate: dashMinPlaybackRate, maxPlaybackRate: dashMaxPlaybackRate, segmentDuration: dashSegmentDuration, segmentType: dashSegmentType, fragmentType: dashFragmentType, fragmentDuration, streaming: dashStreaming, lowLatency: dashLowLatency, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
               for (const publication of publications()) {
                 for (const [uri, bytes] of publication.resources) {
@@ -12125,11 +11722,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   })
                 };
                 let segBytes = segPlugin.serialize(segmentDoc, {
-                  patPmtAtFrames: (mpegtsFlags & 16) !== 0, patPeriod,
                   muxRate,
                   pcrPeriod,
+                  pesPayloadSize,
                   fragmented: isFmp4,
                   // HLS keeps the segment timeline without transport mux delay.
+                  initialDiscontinuity: (mpegtsFlags & 32) !== 0, patPmtAtFrames: (mpegtsFlags & 16) !== 0,
+                  patPeriod,
                   muxDelay: 0,
                   skipTrailer: true,
                   limits: options.limits,
@@ -12138,7 +11737,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                 const formattedSeg = segmentFileName(byteRanges ? mediaFileNumber : sIdx + nextSequence);
                 const fullSegPath = resolvePath(hlsSegmentFilename === undefined ? outDir : context.cwd, formattedSeg);
-                const relSegName = fullSegPath.slice(fullSegPath.lastIndexOf("/") + 1);
+                const relSegName = fullSegPath.startsWith(outDir === "/" ? "/" : `${outDir}/`)
+                  ? fullSegPath.slice(outDir === "/" ? 1 : outDir.length + 1)
+                  : formattedSeg;
 
                 if (isFmp4) {
                   const moof = parseMp4Boxes(segBytes, 0, 0, budget).find(box => box.type === "moof");
@@ -12165,9 +11766,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 } else {
                   budget.checkOutputBytes(segBytes.byteLength);
                   await context.fs.mkdir(fullSegPath.slice(0, fullSegPath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
-                  const destination = hlsTempFile ? `${fullSegPath}.tmp` : fullSegPath;
-                  await writeFileOutput(context, segBytes, data => context.fs.writeFile(destination, data, { signal: context.signal }));
-                  if (destination !== fullSegPath) await context.fs.rename(destination, fullSegPath, { signal: context.signal });
+                  await writeFileOutput(context, segBytes, data => context.fs.writeFile(fullSegPath, data, { signal: context.signal }));
                 }
                 if (sIdx >= firstSegment) {
                   if ((hlsDiscontStart || hlsAppendList) && sIdx === 0) playlistLines.push("#EXT-X-DISCONTINUITY");
@@ -12189,9 +11788,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   const bytes = concatBytes(singleFileChunks);
                   await context.fs.mkdir(singleFilePath.slice(0, singleFilePath.lastIndexOf("/")) || "/", { recursive: true, signal: context.signal });
-                  const destination = hlsTempFile && !hlsSingleFile ? `${singleFilePath}.tmp` : singleFilePath;
-                  await writeFileOutput(context, bytes, data => context.fs.writeFile(destination, data, { signal: context.signal }));
-                  if (destination !== singleFilePath) await context.fs.rename(destination, singleFilePath, { signal: context.signal });
+                  await writeFileOutput(context, bytes, data => context.fs.writeFile(singleFilePath, data, { signal: context.signal }));
                   singleFileChunks.length = 0;
                   singleFileSize = 0;
                   mediaFileNumber++;
@@ -12223,9 +11820,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               playlistLines.push("");
               const m3u8Bytes = encodeUtf8(playlistLines.join("\n"));
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
-              const destination = hlsTempFile ? `${outResolved}.tmp` : outResolved;
-              await writeFileOutput(context, m3u8Bytes, data => context.fs.writeFile(destination, data, { signal: context.signal }));
-              if (destination !== outResolved) await context.fs.rename(destination, outResolved, { signal: context.signal });
+              await writeFileOutput(context, m3u8Bytes, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
               if (hlsMasterName) {
                 const masterPath = resolvePath(outDir, hlsMasterName);
                 const masterDir = masterPath.slice(0, masterPath.lastIndexOf("/")) || "/";
@@ -12245,9 +11840,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (codecs.length) attributes.push(`CODECS="${codecs.join(",")}"`);
                 const master = encodeUtf8(["#EXTM3U", playlistLines[1], `#EXT-X-STREAM-INF:${attributes.join(",")}`, mediaUri, ""].join("\n"));
                 await context.fs.mkdir(masterDir, { recursive: true, signal: context.signal });
-                const destination = hlsTempFile ? `${masterPath}.tmp` : masterPath;
-                await writeFileOutput(context, master, data => context.fs.writeFile(destination, data, { signal: context.signal }));
-                if (destination !== masterPath) await context.fs.rename(destination, masterPath, { signal: context.signal });
+                await writeFileOutput(context, master, data => context.fs.writeFile(masterPath, data, { signal: context.signal }));
               }
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
@@ -12494,13 +12087,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
             }
             const serializedBytes = checksumOutput
-              ? (frameChecksumOutput
-                ? serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec, bitexact, copyTimestamps && !startAtZero)
-                : serializeChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget,
-                  audioCodec === "flac" ? registry.findByFormatName("flac") : audioCodec === "adpcm_ima_wav" ? registry.findByFormatName("wav") : undefined,
-                  { blockSize, trellis, compressionLevel, sampleFormat, frameSize, lpcType, channelMode, lpcPasses,
-                    lpcCoeffPrecision, multiDimQuant, minPredictionOrder, maxPredictionOrder, predictionOrderMethod,
-                    minPartitionOrder, maxPartitionOrder, exactRiceParameters }))
+              ? (frameChecksumOutput ? serializeFrameChecksum : serializeChecksum)(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" || outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec, bitexact, copyTimestamps && !startAtZero)
               : serializeLimitedWav(workingDoc, outPlugin!, {
               seekable: !isStdout(outputTarget) && !outputTarget.startsWith("md5:"),
               live,
@@ -12509,12 +12096,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               gifFlags,
               writeHeader,
               writeBext,
-              patPmtAtFrames: (mpegtsFlags & 16) !== 0, patPeriod,
               writeCrc32,
               muxRate,
               pcrPeriod,
-              muxDelay,
               pesPayloadSize,
+              initialDiscontinuity: (mpegtsFlags & 32) !== 0, patPmtAtFrames: (mpegtsFlags & 16) !== 0,
+              patPeriod,
+              muxDelay,
               rf64,
               writePeak,
               peakBlockSize,
@@ -12549,12 +12137,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               skipTrailer,
               defaultBaseMoof,
               segmentIndex,
-              mpegtsTablesVersion,
-              mpegtsServiceType,
-              omitVideoPesLength,
-              mpegtsLatm: !!(mpegtsFlags & 8),
-              initialDiscontinuity: !!(mpegtsFlags & 32),
-              mpegtsOmitRai: !!(mpegtsFlags & 64),
               fragmented,
               fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined),
               fragmentEveryFrame,
@@ -12562,7 +12144,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               fragmentIndex,
               emptyMoov,
               id3v2Version,
-              writeApetag,
               writeId3v2,
               writeMpeg2,
               mpegtsStartPid,
@@ -12590,9 +12171,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             budget.checkOutputBytes(serializedBytes.byteLength);
             if (firstOutput) progressSize = serializedBytes.byteLength;
 
-            for (const destination of protocolTargets) {
-              await writeMediaOutput(context, destination, serializedBytes, budget);
-            }
+            await writeMediaOutput(context, outputTarget, serializedBytes, budget);
 
             options.onMetrics?.(budget.getStats());
             return { exitCode: decodeExitCode };

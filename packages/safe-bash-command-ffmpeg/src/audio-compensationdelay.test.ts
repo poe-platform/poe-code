@@ -41,13 +41,37 @@ for (const [filter, hash] of [
   }
 }
 
-for (const filter of ["compensationdelay=mm=-1", "compensationdelay=cm=101", "compensationdelay=m=101", "compensationdelay=dry=1.1", "compensationdelay=wet=-1", "compensationdelay=temp=51", "compensationdelay=cm=NaN", "compensationdelay=cm=", "compensationdelay=unknown=1"]) {
-  it(`${filter} rejects invalid options without replacing output`, async () => {
-    const { volume, result, stderr } = await run(filter);
-    assert.notEqual(result.exitCode, 0);
-    assert.ok(stderr.includes("compensationdelay: invalid option"), stderr);
-    assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
-  });
+for (const [options, equivalent] of [
+  ["m=0.6", "m=1"],
+  ["m=1.5", "m=2"],
+  ["m=1/2+1", "m=2"],
+  ["m=0.5", "m=0"],
+  ["m=2.5", "m=2"],
+  ["cm=33.5:mm=2.5", "cm=34:mm=2"],
+  ["m=1:temp=-1.5", "m=1:temp=-2"],
+  ["m=1:dry=1/2:wet=1/4", "m=1:dry=0.5:wet=0.25"],
+  ["2.5:33.5:1/2+1:1/2:1/4:-1.5", "2:34:2:0.5:0.25:-2"]
+]) {
+  for (const graph of [false, true]) {
+    it(`compensationdelay=${options} evaluates and rounds like native (${graph ? "graph" : "simple"})`, async () => {
+      const actual = await run(`compensationdelay=${options}`, graph);
+      const expected = await run(`compensationdelay=${equivalent}`, graph);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      assert.deepEqual(actual.volume.readFileSync("/out.wav"), expected.volume.readFileSync("/out.wav"));
+    });
+  }
+}
+
+for (const filter of ["compensationdelay=mm=-1", "compensationdelay=cm=101", "compensationdelay=m=101", "compensationdelay=dry=1.1", "compensationdelay=wet=-1", "compensationdelay=temp=51", "compensationdelay=cm=NaN", "compensationdelay=cm=", "compensationdelay=unknown=1", "compensationdelay=m=0b1", "compensationdelay=m=0o1", "compensationdelay=dry=0b1", "compensationdelay=m=-0.1", "compensationdelay=m=100.1", "compensationdelay=temp=-50.1", "compensationdelay=m=1/0"]) {
+  for (const graph of [false, true]) {
+    it(`${filter} rejects invalid options without replacing output (${graph ? "graph" : "simple"})`, async () => {
+      const { volume, result, stderr } = await run(filter, graph);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(stderr.includes("compensationdelay: invalid"), stderr);
+      assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+    });
+  }
 }
 
 for (const enable of ["", "unknown", "gte(t,)"]) {

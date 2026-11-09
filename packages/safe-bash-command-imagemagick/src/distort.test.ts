@@ -3,6 +3,20 @@ import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runMagickCli } from "./index.js";
 
+it.each([false, true])("samples the top-left pixel for an all-zero PerspectiveProjection, retained=%s", async retained => {
+    // Native ImageMagick 7 fills this 10x8 grid with opaque RGB(13,44,75).
+    const input = Uint8Array.from(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAICAIAAABPmPnhAAAANUlEQVR4nGPk1fGOxQ0Y1597i086sKAfn/RnIUN80lO3XMYnbR5Wik/65g9xfNLVs3bikQYAyL1ayQ0vjokAAAAASUVORK5CYII=", "base64"));
+    const original = new TextEncoder().encode("KEEP");
+    const files = new Map([["/in.png", input], ["/out.png", original]]), filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/in.png", input);
+    await filesystem.writeFile("/out.png", original);
+    const result = await runMagickCli(["/in.png", "-filter", "point", "-distort", "PerspectiveProjection", "0,0,0,0,0,0,0,0", "/out.png"], retained ? { filesystem, cwd: "/" } : files);
+    expect(result.exitCode).toBe(0);
+    const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+    expect([output.width, output.height]).toEqual([10, 8]);
+    expect(output.data).toEqual(Uint8Array.from({ length: 10 * 8 * 4 }, (_, i) => [13, 44, 75, 255][i % 4]!));
+});
+
 it.each([
     ["Perspective", ""],
     ["Perspective", "0,0,0"],

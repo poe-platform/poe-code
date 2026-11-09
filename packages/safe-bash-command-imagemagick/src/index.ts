@@ -3167,7 +3167,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
             }
             coefficients = solveLinearSystem(matrix, values);
         }
-        if (coefficients.every(c => Math.abs(c) < 1e-12)) return;
+        if (coefficients.every(c => Math.abs(c) < 1e-12)) return result(() => [0, 0]);
         const [a, b, c, d, e, f, g, i, j = 1] = coefficients as [number, number, number, number, number, number, number, number, number?];
         const plan = result((x, y) => { const denominator = g * x + i * y + j || 1e-9; return [(a * x + b * y + c) / denominator, (d * x + e * y + f) / denominator]; });
         return bestFit(plan, (x, y) => {

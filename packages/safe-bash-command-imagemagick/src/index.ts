@@ -4332,7 +4332,7 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
 function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Generator<void, RgbaImage, void> {
     if (thumbnail) {
         const { virtualCanvas: ignoredCanvas, ...reset } = img;
-        img = reset;
+        img = { ...reset, properties: updateMagickProperty(reset.properties, "comment") };
     }
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczos3" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
@@ -4364,7 +4364,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
 async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: ReturnType<typeof magickResizeOptions>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Promise<StoredRgbaImage> {
     if (thumbnail) {
         const { virtualCanvas: ignoredCanvas, ...reset } = image;
-        image = reset;
+        image = { ...reset, properties: updateMagickProperty(reset.properties, "comment") };
     }
     if (!options) return image;
     const width = options.width!, height = options.height!;

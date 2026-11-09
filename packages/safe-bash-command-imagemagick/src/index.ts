@@ -568,6 +568,7 @@ interface MagickState {
   inputEndian?: string;
   background: RgbaColor;
   backgroundExplicit?: boolean;
+  tileOffset?: { x: number; y: number };
   virtualPixel?: VirtualPixelMethod;
   fill: RgbaColor;
   stroke: RgbaColor;
@@ -5295,14 +5296,17 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         if (!patterns)
             return undefined;
         return yield* applyMod((yield* mapSteps(patterns, function* (pattern) {
-            const tiled = (yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, state.background));
+            const tiled = (yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, { r: 0, g: 0, b: 0, a: 0 }));
+            const { x: offsetX, y: offsetY } = state.tileOffset ?? { x: 0, y: 0 };
             for (let y = 0; y < tiled.height; y++) {
                 for (let x = 0; x < tiled.width; x++) {
-                    const source = ((y % pattern.height) * pattern.width + x % pattern.width) * 4;
+                    const sx = x - offsetX, sy = y - offsetY;
+                    if (sx < 0 || sy < 0 || sx >= tiled.width || sy >= tiled.height) continue;
+                    const source = ((sy % pattern.height) * pattern.width + sx % pattern.width) * 4;
                     tiled.data.set(pattern.data.subarray(source, source + 4), (y * tiled.width + x) * 4);
                 }
             }
-            return { ...tiled, hasAlpha: pattern.hasAlpha };
+            return { ...tiled, hasAlpha: pattern.hasAlpha || offsetX !== 0 || offsetY !== 0 };
         })));
     }
     if (lower.startsWith("hald:")) {
@@ -7031,6 +7035,13 @@ if (t === "-seed") {
             state.page = { width: geometry.width ?? 0, height: geometry.height ?? 0, x: geometry.x, y: geometry.y };
         }
         else if (t === "+page") { delete state.page; }
+        else if (t === "-tile-offset") {
+            const value = tokens[++i] ?? "";
+            validateMagickTransformGeometry(value, t);
+            const geometry = parseMagickGeometry(value);
+            state.tileOffset = { x: geometry.x, y: geometry.y };
+        }
+        else if (t === "+tile-offset") { delete state.tileOffset; }
         else if (t === "-size") {
             const g = parseMagickGeometry(tokens[++i] ?? "1x1");
             state.sizeWidth = Math.max(1, Math.round(g.width ?? 1));
@@ -10679,20 +10690,23 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  return image;
  async function tile(pattern:StoredRgbaImage):Promise<StoredRgbaImage>{
   const width=state.sizeWidth,height=state.sizeHeight,position=backend.storage.allocate(width*height*4);
+  const {x:offsetX,y:offsetY}=state.tileOffset??{x:0,y:0};
   let cachedPosition=-1,cached:Uint8Array=new Uint8Array();
   for(let start=0;start<width*height;start+=4096){
    if(start%262144===0)await yieldTurn(signal);
    const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4);
    for(let offset=0;offset<count;){
-    const x=(start+offset)%width,y=Math.floor((start+offset)/width),px=x%pattern.width,py=y%pattern.height,blockX=Math.floor(px/4096)*4096;
+    const x=(start+offset)%width,y=Math.floor((start+offset)/width),sx=x-offsetX,sy=y-offsetY;
+    if(sx<0||sy<0||sx>=width||sy>=height){offset+=Math.min(count-offset,width-x,sx<0?-sx:width-x);continue;}
+    const px=sx%pattern.width,py=sy%pattern.height,blockX=Math.floor(px/4096)*4096;
     const sourcePosition=pattern.position+(py*pattern.width+blockX)*4;
     if(cachedPosition!==sourcePosition){cached=await backend.storage.read(sourcePosition,Math.min(4096,pattern.width-blockX)*4);cachedPosition=sourcePosition;}
-    const sourceOffset=px-blockX,take=Math.min(count-offset,width-x,pattern.width-px,cached.length/4-sourceOffset);
+    const sourceOffset=px-blockX,take=Math.min(count-offset,width-x,width-sx,pattern.width-px,cached.length/4-sourceOffset);
     bytes.set(cached.subarray(sourceOffset*4,(sourceOffset+take)*4),offset*4);offset+=take;
    }
    await backend.storage.write(position+start*4,bytes);
   }
-  return {position,width,height,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:pattern.hasAlpha};
+  return {position,width,height,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:pattern.hasAlpha||offsetX!==0||offsetY!==0};
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{

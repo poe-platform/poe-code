@@ -7694,6 +7694,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     analysis.warnings += `magick: attempt to set read-only property '${expandedKey}'\n`;
                     return image;
                 }
+                if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             i++;
@@ -9337,6 +9338,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     analysis.warnings += `magick: attempt to set read-only property '${expandedKey}'\n`;
                     return image;
                 }
+                if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             continue;

@@ -138,8 +138,9 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
     const fractional = ["multiply", "rms", "rootmeansquare"].includes(operation);
+    const retainRange = ["add", "sum", "subtract"].includes(operation);
     function* read(image: number, position: number, length: number): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
-        const working = fractional ? yield { kind: "read", evaluate: true, image, position, length } : undefined;
+        const working = retainRange || fractional ? yield { kind: "read", evaluate: true, image, position, length } : undefined;
         const input = working?.length ? working : (yield { kind: "read", highDepth, image, position, length })!;
         const bytes = working?.length ? Float64Array.from(new Float64Array(input.slice().buffer), value => highDepth ? value * 257 : value)
             : highDepth ? new Uint16Array(input.slice().buffer) : input;
@@ -218,12 +219,12 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
         }
         return;
     }
-    const median = operation === "median", window = median ? 512 : fractional ? 2048 : 4096;
+    const median = operation === "median", window = median ? 512 : fractional || retainRange ? 2048 : 4096;
     let work = 0;
     for (let position = 0; position < size; position += window) {
         if (position % 16384 === 0) yield;
         const length = Math.min(window, size - position), first = yield* read(0, position, length);
-        const data = fractional ? Float64Array.from(first) : first.slice();
+        const data = fractional ? Float64Array.from(first) : highDepth ? Uint16Array.from(first, clamp) : Uint8Array.from(first, clamp);
         if (["and", "or", "xor"].includes(operation)) {
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
@@ -346,7 +347,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
             const quantum = operation === "divide" || operation === "pow";
             const ordered = operation === "subtract" || quantum;
             if (multiplication) values.fill(1);
-            else if (!addition) values.set(data);
+            else if (!addition) values.set(first);
             if (quantum) for (let offset = 0; offset < length; offset++) values[offset]! *= scale;
             for (let image = ordered ? 1 : 0; image < frames; image++) {
                 if (++work % 64 === 0) yield;
@@ -367,6 +368,11 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                 }
             }
             if (operation === "addmodulus") for (let offset = 0; offset < length; offset++) values[offset]! /= scale;
+            if (retainRange) {
+                // Keep HDRI arithmetic separate from the bounded encoding views.
+                const samples = Float64Array.from(values, (value, offset) => offset % 4 === 3 && !hasAlpha ? 255 : highDepth ? value / 257 : value);
+                yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
+            }
             const average = operation === "mean";
             for (let offset = 0; offset < length; offset++) {
                 if (average && channels && !channels[offset % 4] && (offset % 4 !== 3 || hasAlpha)) data[offset] = 0;

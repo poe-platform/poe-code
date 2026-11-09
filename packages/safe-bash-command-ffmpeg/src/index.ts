@@ -1705,8 +1705,10 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "join" || filters[0]?.startsWith("join=")) {
-        if (sources.some(source => source.expression && source.expression !== "anull")) {
-          throw new Error("join does not support preceding single-input filters");
+        for (const source of sources) {
+          if (source.expression && source.expression !== "anull") {
+            source.track = await filterAudio(source.track, source.expression);
+          }
         }
         const track = await joinAudio(sources.map(source => source.track), filters[0]!, budget, signal);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };

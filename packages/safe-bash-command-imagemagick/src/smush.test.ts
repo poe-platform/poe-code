@@ -2,8 +2,32 @@ import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
-import { createMagickCommand, runConvertCliSync } from "./index.js";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 import fixtures from "./smush-fixtures.json" with { type: "json" };
+
+for (const mode of ["public", "sync", "buffered", "retained"] as const) {
+    for (const operation of ["-smush", "+smush"]) {
+        it.each([false, true])(`${mode} ${operation} rejects an empty list without overwriting the destination, deleted=%s`, async deleted => {
+            const sentinel = new TextEncoder().encode("KEEP");
+            const files = new Map([["/out.png", sentinel]]), fs = new MemoryFileSystem();
+            await fs.writeFile("/out.png", sentinel);
+            const argumentValues = createCommandArguments([
+                ...(deleted ? ["xc:blue", "+delete"] : []), operation, "0", "xc:red", "PNG32:/out.png"
+            ]);
+            let stderr = "";
+            const result = mode === "public" ? await createMagickCommand().execute({
+                command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write(chunk) { expect(chunk.byteLength).toBe(0); } },
+                stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } },
+            }) : mode === "sync" ? runConvertCliSync(argumentValues.args, files)
+                : await runConvertCli(argumentValues.args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+            expect(result.exitCode).toBe(1);
+            expect("stderr" in result ? result.stderr : stderr).toContain(`no images found for operation '${operation}'`);
+            expect(mode === "sync" || mode === "buffered" ? files.get("/out.png") : await fs.readFile("/out.png")).toEqual(sentinel);
+        });
+    }
+}
 
 // ImageMagick 7 native references, captured with -depth 8 rgba:-.
 const transparentFixtures = [

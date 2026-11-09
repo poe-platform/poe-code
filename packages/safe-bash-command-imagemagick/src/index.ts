@@ -9313,25 +9313,24 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-smush" || t === "+smush") {
             const geometry = tokens[++i] ?? "", image = stack[0];
-            const gap = smushGap(image ? yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : geometry);
-            if (stack.length) {
-                const background = state.backgroundExplicit ? state.background : image!.backgroundColor ?? state.background;
-                const layout = smushLayoutSteps(stack, t === "-smush", gap, state.gravity, state.virtualPixel, background);
-                let next = layout.next();
-                while (!next.done) {
-                    yield;
-                    const request = next.value;
-                    const image = stack[request.index]!;
-                    next = layout.next((image.data16 ?? image.data).subarray(request.position, request.position + request.length));
-                }
-                const { width, height, virtualCanvas, offsets } = next.value;
-                let canvas = yield* createSolidRgbaImageSteps(width, height, background);
-                for (let n = 0; n < stack.length; n++) {
-                    canvas = yield* applyMagickRasterSteps(canvas, smushCompositePixelSteps(canvas, stack[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || stack[n]!.data16)), signal, canvas, [canvas, stack[n]!]);
-                }
-                for (const image of stack) detachRgbaBuffer(image.data);
-                stack = [{ ...canvas, virtualCanvas }];
+            if (!image) throw new Error(`no images found for operation '${t}'`);
+            const gap = smushGap(yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }));
+            const background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
+            const layout = smushLayoutSteps(stack, t === "-smush", gap, state.gravity, state.virtualPixel, background);
+            let next = layout.next();
+            while (!next.done) {
+                yield;
+                const request = next.value;
+                const image = stack[request.index]!;
+                next = layout.next((image.data16 ?? image.data).subarray(request.position, request.position + request.length));
             }
+            const { width, height, virtualCanvas, offsets } = next.value;
+            let canvas = yield* createSolidRgbaImageSteps(width, height, background);
+            for (let n = 0; n < stack.length; n++) {
+                canvas = yield* applyMagickRasterSteps(canvas, smushCompositePixelSteps(canvas, stack[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || stack[n]!.data16)), signal, canvas, [canvas, stack[n]!]);
+            }
+            for (const image of stack) detachRgbaBuffer(image.data);
+            stack = [{ ...canvas, virtualCanvas }];
         }
         else if (t === "-append" || t === "+append") {
             const oldStack = stack;
@@ -10415,8 +10414,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = tokens[++i] ?? "", settings = { ...state };
             stackStep(async (stack, backend) => {
                 const image = await stack.get(0);
-                const gap = smushGap(image ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal) : geometry);
-                if (!image) return stack;
+                if (!image) throw new Error(`no images found for operation '${token}'`);
+                const gap = smushGap(await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal));
                 const images: StoredRgbaImage[] = [];
                 for (let n = 0; n < stack.length; n++) images.push((await stack.get(n))!);
                 const background = settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background;

@@ -6084,6 +6084,9 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         else if (a === "-format" || a === "--format") {
             customFormat = argv[++i] ?? "";
         }
+        else if (a === "+format") {
+            customFormat = undefined;
+        }
         else if (a === "-precision") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "identify: missing an argument for option '-precision'\n" };

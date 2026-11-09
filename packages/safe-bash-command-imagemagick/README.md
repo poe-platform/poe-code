@@ -129,6 +129,8 @@ Async `runIdentifyCli(args, { filesystem, cwd, stdin, stdout, stderr })` uses th
 
 `%S` reports the default scene setting (`2147483647`), independently of the current frame (`%s`) and image count (`%n`).
 
+`identify +format` restores the default description for subsequent images; earlier images keep their format.
+
 `identify -format` and `magick ... -format FORMAT info:` support literal `%%`,
 geometry (`%g`, `%P`), storage class (`%r`), compression (`%C`, `%Q`), and named properties including
 `%[channels]`, `%[width]`, `%[height]`, `%[depth]`, `%[bit-depth]`, `%[opaque]`,

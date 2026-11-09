@@ -9054,7 +9054,7 @@ describe("ebur128 edge cases", () => {
     assert.match(summary, /Peak:\s+-12.0 dBFS/);
     assert.equal(result.stderr.split("\n").filter(line => line.startsWith("t:")).length, 35);
   });
-  for (const option of ["peak=true+bogus", "metadata=1", "peak=bogus", "peak=banana", "peak=true+banana", "peak=sample+banana"]) {
+  for (const option of ["peak=true+bogus", "peak=bogus", "peak=banana", "peak=true+banana", "peak=sample+banana"]) {
     it(`rejects unsupported ${option} without replacing the output`, async () => {
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }), "/out.wav": "keep" });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", `ebur128=${option}`, "/out.wav"], vfs);

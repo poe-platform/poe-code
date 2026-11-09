@@ -959,6 +959,7 @@ export interface State extends DynamicVariableState {
   pipefail: boolean;
   errexit?: boolean;
   nounset?: boolean;
+  commandString?: boolean;
   isolated?: boolean;
   _readOnlyStage?: boolean | undefined;
   redirectAssignments?: ReadonlyMap<string, ShellValue>;
@@ -4524,6 +4525,7 @@ export class Runtime {
       signal.throwIfAborted();
       child.extensions = forkExtensions(state.extensions, "subshell");
       child.isolated = true;
+      child.commandString = false;
       child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
       child.depth++;
       const allocation = this.budget.values.scope();
@@ -4675,7 +4677,7 @@ export class Runtime {
                 const forkedExt = isFastPure ? forkExtensions(state.extensions, "pipeline") : undefined;
                 const child: State = inCurrentShell ? state : isFastPure
                   ? Object.assign(cloneRawState(rawStateForChild, false), {
-                        extensions: forkedExt, isolated: true, _readOnlyStage: true, }, )
+                        extensions: forkedExt, isolated: true, commandString: false, _readOnlyStage: true, }, )
                   : (tryCloneStateSync(state) ?? await cloneState(state, this.signal));
                 preparedChild = inCurrentShell ? undefined : child;
                 if (!inCurrentShell) child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
@@ -4683,6 +4685,7 @@ export class Runtime {
                   child.extensions = undefined;
                   child.extensions = forkExtensions(state.extensions, "pipeline");
                   child.isolated = true;
+                  child.commandString = false;
                 }
                 let childIO: IO;
                 if (isPureStage) {
@@ -5153,6 +5156,7 @@ export class Runtime {
         try {
           child.extensions = forkExtensions(state.extensions, "subshell");
           child.isolated = true;
+          child.commandString = false;
           child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
           child.loopDepth = 0;
           if (state.extensions?.checkpoints.length) await this.extensionCheckpoint("child-job-install", state, io);
@@ -5462,7 +5466,7 @@ export class Runtime {
           diagnosticFailure = new NounsetDiagnosticFailure(reason);
           throw diagnosticFailure;
         }
-        throw completedExit(error instanceof NounsetFailure ? error.status : state.isolated ? 1 : 127, "exit", 1, undefined, true);
+        throw completedExit(error instanceof NounsetFailure ? state.commandString ? 127 : error.status : state.isolated ? 1 : 127, "exit", 1, undefined, true);
       }
       if (error instanceof ArrayFailure) await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? publicMessage}\n`);
       else {
@@ -6924,6 +6928,7 @@ export class Runtime {
     if (commandString) args.shift();
     const child = this.processState(context, state, io, arg0, args);
     Object.assign(child, options);
+    child.commandString = commandString;
     const references = new PipeDescriptorFrame(io[invocationScope]);
     const childIO = isolateIO({ ...io, ...context, argv0: undefined, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: shellValueText(arg0) }, references);
     try {
@@ -9569,6 +9574,7 @@ export class Runtime {
         const capture = new Capture();
         const child = await cloneState(state, this.signal);
         child.isolated = true;
+        child.commandString = false;
         child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
         child.extensions = forkExtensions(state.extensions, "substitution");
         if (state.profile !== "sh") child.errexit = false;
@@ -9607,6 +9613,7 @@ export class Runtime {
         }
         const child = await cloneState(state, this.signal);
         child.isolated = true;
+        child.commandString = false;
         child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
         child.extensions = forkExtensions(state.extensions, "substitution");
         if (state.profile !== "sh") child.errexit = false;
@@ -9644,6 +9651,7 @@ export class Runtime {
       const capture = new Capture();
       const child = await cloneState(state, this.signal);
       child.isolated = true;
+      child.commandString = false;
       child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
       child.extensions = forkExtensions(state.extensions, "substitution");
       if (state.profile !== "sh" && !state.inherit_errexit) child.errexit = false;

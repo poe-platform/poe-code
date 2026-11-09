@@ -7671,7 +7671,7 @@ describe("image2 pattern_type", () => {
         "/frames/f02.png": images[2]!, "/frames/f00.png": images[0]!, "/frames/f01.png": images[1]!
       });
       const result = await runCmd(createFfmpegCommand(), [
-        ...(mode ? ["-pattern_type", mode] : []), "-i", pattern, "/out%02d.png"
+        "-f", "image2", ...(mode ? ["-pattern_type", mode] : []), "-i", pattern, "/out%02d.png"
       ], vfs);
       assert.equal(result.exitCode, 0, result.stderr);
       const output = [...vfs.store.entries()].filter(([name]) => name.startsWith("/out"));

@@ -6308,12 +6308,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 return concatMp4(docs, { limits: options.limits, budget });
               }
 
+              const imageDemuxer = explicitFormat === "image2" || (!explicitFormat &&
+                (filePath.endsWith(".Y") || (registry.findById("image2")?.extensions.includes(filePath.split(".").pop()?.toLowerCase() ?? "") &&
+                  (formatImageSequence(filePath, 0) !== undefined || filePath.includes("*") || filePath.includes("?")))));
               const pipeBytes = explicitFormat === "image2pipe"
                 ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0) : undefined;
               let pipeOffset = 0;
               let globPaths: string[] | undefined;
-              let globPattern = input?.patternType === "glob" ? filePath : undefined;
-              if (!pipeBytes && (input?.patternType === undefined || input.patternType === "glob_sequence")) {
+              let globPattern = imageDemuxer && input?.patternType === "glob" ? filePath : undefined;
+              if (imageDemuxer && (input?.patternType === undefined || input.patternType === "glob_sequence")) {
                 let converted = "";
                 let hasGlob = false;
                 for (let i = 0; i < filePath.length; i++) {
@@ -6372,7 +6375,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const planeInput = !pipeBytes && filePath.endsWith(".Y") && (!explicitFormat || explicitFormat === "image2");
               const literalPlane = planeInput && (input?.patternType === "none" || formatImageSequence(filePath, 0) === undefined);
               // Literal image inputs bypass numbered-pattern expansion.
-              if (planeInput || pipeBytes || globPaths || (input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
+              if (planeInput || pipeBytes || globPaths || (imageDemuxer && input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
                 const frames: MediaVideoFrame[] = [];
                 const packets: Uint8Array[] = [];
                 let codecName = "png";
@@ -6503,6 +6506,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
 
               const rawBytes = (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0);
+              if (input?.patternType !== undefined && !imageDemuxer) {
+                throw new Error("Option pattern_type not found");
+              }
+
 
               if (explicitFormat === "rawvideo") {
                 return parseRawVideo(rawBytes, input?.videoSize, input?.pixelFormat, fpsHint ?? 25, budget);

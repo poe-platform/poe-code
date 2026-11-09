@@ -3074,7 +3074,7 @@ function solveLinearSystem(A: number[][], b: number[]): number[] {
     M[col] = M[maxRow]!;
     M[maxRow] = tmp;
     const pivot = M[col]![col]!;
-    if (Math.abs(pivot) < 1e-12) continue;
+    if (Math.abs(pivot) < 1e-12) throw new Error("Unsolvable Matrix");
     for (let j = col; j <= n; j++) M[col]![j]! /= pivot;
     for (let row = 0; row < n; row++) {
       if (row === col) continue;

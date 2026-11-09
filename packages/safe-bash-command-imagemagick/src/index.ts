@@ -1482,7 +1482,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
     x: String(resolution ? Number((resolution.x / resolutionScale).toPrecision(6)) : meta.density ?? 72),
     y: String(resolution ? Number((resolution.y / resolutionScale).toPrecision(6)) : meta.density ?? 72),
-    s: String(context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
+    s: String(context.sceneIdx ?? 0), p: String(context.listIndex ?? context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
     // Native uses this sentinel when ImageInfo.number_scenes is unset.
     S: "2147483647",
     g: `${page.width}x${page.height}${pageX}${pageY}`, P: `${page.width}x${page.height}`, X: pageX, Y: pageY,
@@ -6046,7 +6046,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let precision = 6;
     let locateMaximum = false;
     let locateLimit = 0;
-    const targets: { path: string; sceneCount?: number; customFormat: string | undefined }[] = [];
+    const targets: { path: string; sceneCount?: number; listIndex: number; customFormat: string | undefined }[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -6095,7 +6095,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
         }
         else if (a === "-" || !a.startsWith("-")) {
-            targets.push({ path: a, customFormat });
+            targets.push({ path: a, listIndex: 0, customFormat });
         }
     }
     if (targets.length === 0) {
@@ -6146,7 +6146,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                         let offset = 0;
                         for (const page of selectedInputPages(parsed.pageSpec, metadata.pages ?? 1)) {
                             yield;
-                            targets.splice(targetIndex + ++offset, 0, { path: `${baseInPath}[${page}]`, customFormat });
+                            targets.splice(targetIndex + ++offset, 0, { path: `${baseInPath}[${page}]`, listIndex: offset - 1, customFormat });
                         }
                         for (let index = 1; index <= offset; index++) targets[targetIndex + index]!.sceneCount = offset;
                     }
@@ -6165,7 +6165,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const sceneCount = target.sceneCount ?? (pageIdx === undefined ? undefined : 1);
         const analysis = { warnings: "" };
         let inspected:IdentifyInspection|undefined;
-        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,sceneCount:sceneCount??metadata.pages??1,precision,analysis},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
+        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
         const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
         if (!bytes&&!inspected) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
@@ -6180,7 +6180,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             if (pageIdx === undefined && (meta.format === "tiff" || meta.format === "gif") && (meta.pages ?? 1) > 1) {
                 for (let page = 1; page < meta.pages!; page++) {
                     yield;
-                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, sceneCount: meta.pages!, customFormat });
+                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, sceneCount: meta.pages!, listIndex: page, customFormat });
                 }
                 inPath = `${baseInPath}[0]`;
             }
@@ -6189,7 +6189,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
             if (customFormat !== undefined) {
                 outParts.push(inspected?.formatted??(yield* formatMagickPropertyStringSteps(customFormat, meta, () => decodeImage(encoded!, inputOptions), {
-                    filePath: baseInPath, byteLen: size, sceneIdx: pageIdx ?? 0, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis
+                    filePath: baseInPath, byteLen: size, sceneIdx: pageIdx ?? 0, listIndex: target.listIndex, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis
                 })));
             }
             else if (locateMaximum) {

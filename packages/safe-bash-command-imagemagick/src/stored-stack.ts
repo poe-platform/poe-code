@@ -10,6 +10,7 @@ export interface MagickFormatContext {
     originalWidth?: number;
     originalHeight?: number;
     sceneIdx?: number;
+    listIndex?: number;
     sceneCount?: number;
     quality?: number;
     precision?: number;

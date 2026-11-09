@@ -920,15 +920,7 @@ function* applyMagickFloodfillSteps(
 
   const matchesRef = (pIdx: number): boolean => {
     const off = pIdx * 4;
-    if (alphaOnly) return matchesAlphaFloodfill(out[off]!, out[off + 1]!, out[off + 2]!, out[off + 3]!, refR, refG, refB, img.data[seedOff + 3]!, fuzz);
-    return (
-      Math.max(
-        Math.abs(out[off]! - refR),
-        Math.abs(out[off + 1]! - refG),
-        Math.abs(out[off + 2]! - refB),
-        Math.abs(out[off + 3]! - (targetColor ? targetColor.a : img.data[seedOff + 3]!))
-      ) <= fuzz
-    );
+    return matchesAlphaFloodfill(out[off]!, out[off + 1]!, out[off + 2]!, out[off + 3]!, refR, refG, refB, !alphaOnly && targetColor ? targetColor.a : img.data[seedOff + 3]!, fuzz, targetColor ? 0 : fuzz);
   };
 
   const startIdx = sy * w + sx;

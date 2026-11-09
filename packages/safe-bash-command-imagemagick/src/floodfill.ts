@@ -4,8 +4,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 
 // ImageMagick's RGBA fuzzy equivalence: alpha distance plus RGB distance
 // weighted by both opacities. Fully transparent RGB does not affect matching.
-export function matchesAlphaFloodfill(r: number, g: number, b: number, a: number, refR: number, refG: number, refB: number, refA: number, fuzz: number): boolean {
-    return (a - refA) ** 2 + ((r - refR) ** 2 + (g - refG) ** 2 + (b - refB) ** 2) * (a / 255) * (refA / 255) / 3 <= 2 * fuzz ** 2;
+export function matchesAlphaFloodfill(r: number, g: number, b: number, a: number, refR: number, refG: number, refB: number, refA: number, fuzz: number, referenceFuzz = fuzz): boolean {
+    return (a - refA) ** 2 + ((r - refR) ** 2 + (g - refG) ** 2 + (b - refB) ** 2) * (a / 255) * (refA / 255) / 3 <= fuzz ** 2 + referenceFuzz ** 2;
 }
 
 export async function floodfillStoredImage(image: StoredRgbaImage, storage: ImageByteStorage, seedX: number, seedY: number, target: RgbaColor | undefined, replacement: RgbaColor, fuzz: number, signal: AbortSignal, alphaOnly = false, channels?: readonly boolean[]): Promise<StoredRgbaImage> {
@@ -13,7 +13,7 @@ export async function floodfillStoredImage(image: StoredRgbaImage, storage: Imag
     const start = seedY * image.width + seedX, seed = await cache.uint32(source, start * 4);
     const r = target ? target.r : seed & 255, g = target ? target.g : seed >>> 8 & 255, b = target ? target.b : seed >>> 16 & 255;
     const a = !alphaOnly && target ? target.a : seed >>> 24;
-    const matches = (pixel: number) => alphaOnly ? matchesAlphaFloodfill(pixel & 255, pixel >>> 8 & 255, pixel >>> 16 & 255, pixel >>> 24, r, g, b, a, fuzz) : Math.max(Math.abs((pixel & 255) - r), Math.abs((pixel >>> 8 & 255) - g), Math.abs((pixel >>> 16 & 255) - b), Math.abs((pixel >>> 24) - a)) <= fuzz;
+    const matches = (pixel: number) => matchesAlphaFloodfill(pixel & 255, pixel >>> 8 & 255, pixel >>> 16 & 255, pixel >>> 24, r, g, b, a, fuzz, target ? 0 : fuzz);
     if (!matches(seed)) return image;
     const visited = await cache.allocate(count), stack = await cache.allocate(count * 4);
     let tail = 1;

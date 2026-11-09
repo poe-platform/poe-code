@@ -334,6 +334,11 @@ applies: `delay=1` shifts four stereo frames at 8 kHz.
 Use `mlev` and `slev` to adjust the mid and side levels (0.015625–64, default 1),
 `mpan` to pan the mid signal, and `sbal` to balance the side signal
 (-1–1, default 0). For example, `stereotools=slev=0.5` narrows the stereo image.
+Channel balance (`balance_in`, `balance_out`) ranges from -1 to 1 (default 0)
+and applies before or after channel conversion respectively. Positive values
+favor the right channel. `bmode_in` and `bmode_out` accept `balance` (default),
+`amplitude`, or `power`, also numbered 0–2. For example,
+`stereotools=balance_in=1:mode=lr>rl` silences the input left channel before swapping.
 Other stereotools options are rejected.
 Both filters accept case-insensitive Boolean
 words (`true`/`false`, `yes`/`no`, `on`/`off`, `y`/`n`, `enable`/`disable`,

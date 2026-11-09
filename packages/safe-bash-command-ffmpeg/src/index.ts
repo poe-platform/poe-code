@@ -9503,7 +9503,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let delay = 0;
                         const flags = { mutel: false, muter: false, phasel: false, phaser: false };
                         const levels = { level_in: 1, level_out: 1, mlev: 1, slev: 1 };
-                        const balance = { mpan: 0, sbal: 0 };
+                        const balance = { mpan: 0, sbal: 0, balance_in: 0, balance_out: 0 };
+                        const balanceModes = { bmode_in: 0, bmode_out: 0 };
                         const argument = trimmed.slice("stereotools=".length);
                         for (const option of argument ? argument.split(":") : []) {
                           const separator = option.indexOf("=");
@@ -9515,12 +9516,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error(`stereotools: ${key} must be in the range [0.015625, 64]`);
                             }
                             levels[key] = level;
-                          } else if (key === "mpan" || key === "sbal") {
+                          } else if (key === "mpan" || key === "sbal" || key === "balance_in" || key === "balance_out") {
                             const valueNumber = parseFilterExpression(value, "stereotools", {});
                             if (!Number.isFinite(valueNumber) || valueNumber < -1 || valueNumber > 1) {
                               throw new Error(`stereotools: ${key} must be in the range [-1, 1]`);
                             }
                             balance[key] = valueNumber;
+                          } else if (key === "bmode_in" || key === "bmode_out") {
+                            let balanceMode = ["balance", "amplitude", "power"].indexOf(value);
+                            if (balanceMode < 0 && value !== "") balanceMode = Number(value);
+                            if (!Number.isInteger(balanceMode) || balanceMode < 0 || balanceMode > 2) {
+                              throw new Error(`stereotools: invalid ${key}`);
+                            }
+                            balanceModes[key] = balanceMode;
                           } else if (key === "delay") {
                             delay = parseFilterExpression(value, "stereotools", {});
                             if (!Number.isFinite(delay) || delay < -20 || delay > 20) {
@@ -9538,6 +9546,25 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             throw new Error(`stereotools: unsupported option ${key}`);
                           }
                         }
+                        const balanceGains = (balance: number, balanceMode: number): [number, number] => {
+                          let left = 1 - Math.max(0, balance);
+                          let right = 1 + Math.min(0, balance);
+                          if (balanceMode === 1) {
+                            left = 1 - balance;
+                            right = 1 + balance;
+                          } else if (balanceMode === 2) {
+                            if (balance < 0) {
+                              right = Math.max(0.5, right);
+                              left = 1 / right;
+                            } else if (balance > 0) {
+                              left = Math.max(0.5, left);
+                              right = 1 / left;
+                            }
+                          }
+                          return [left, right];
+                        };
+                        const [inputLeft, inputRight] = balanceGains(balance.balance_in, balanceModes.bmode_in);
+                        const [outputLeftGain, outputRightGain] = balanceGains(balance.balance_out, balanceModes.bmode_out);
                         const left = new Float32Array(stretched[0]!.length);
                         const right = new Float32Array(left.length);
                         // Native FFmpeg rounds the interleaved delay down to an even sample count.
@@ -9550,8 +9577,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const rightDelay = delay > 0 ? delayFrames : 0;
                         for (let i = 0; i < left.length; i++) {
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          const l = stretched[0]![i]! * levels.level_in;
-                          const r = stretched[1]![i]! * levels.level_in;
+                          const l = stretched[0]![i]! * levels.level_in * inputLeft;
+                          const r = stretched[1]![i]! * levels.level_in * inputRight;
                           let outputLeft = l;
                           let outputRight = r;
                           switch (mode) {
@@ -9583,10 +9610,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             case 10: outputLeft = outputRight = (l - r) / 2; break;
                           }
                           if (i + leftDelay < left.length) {
-                            left[i + leftDelay] = flags.mutel ? 0 : outputLeft * (flags.phasel ? -1 : 1) * levels.level_out;
+                            left[i + leftDelay] = flags.mutel ? 0 : outputLeft * (flags.phasel ? -1 : 1) * outputLeftGain * levels.level_out;
                           }
                           if (i + rightDelay < right.length) {
-                            right[i + rightDelay] = flags.muter ? 0 : outputRight * (flags.phaser ? -1 : 1) * levels.level_out;
+                            right[i + rightDelay] = flags.muter ? 0 : outputRight * (flags.phaser ? -1 : 1) * outputRightGain * levels.level_out;
                           }
                         }
                         stretched = [left, right];

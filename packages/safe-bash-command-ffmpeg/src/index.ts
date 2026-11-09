@@ -1481,7 +1481,30 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           detector = await resampleAudio(b.channelData, length, b.sampleRate, a.sampleRate, budget, signal);
         }
         const channelData = await compressAudio(a.channelData, a.sampleRate, filters[0]!, budget, signal, detector);
-        return { track: { ...first, timescale: a.sampleRate, duration: channelData[0]!.length, samples: [], editList: undefined,
+        const length = channelData[0]!.length;
+        const frames: MediaTrack["samples"][number][] = [];
+        const cursors = sources.map(() => ({ index: 0, end: 0 }));
+        // The compressor drains both input FIFOs at each frame boundary and starts its output clock at zero.
+        for (let start = 0; start < length;) {
+          await yieldTurn(signal);
+          signal?.throwIfAborted();
+          budget.checkCpu();
+          for (const [input, cursor] of cursors.entries()) {
+            const track = sources[input]!.track;
+            while (cursor.end <= start) {
+              const packet = track.samples[cursor.index++];
+              cursor.end += packet ? Math.max(0, Math.round(packet.duration * a.sampleRate / track.timescale)
+                - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+              budget.checkCpu();
+            }
+          }
+          const end = Math.min(length, ...cursors.map(cursor => cursor.end));
+          budget.allocateMemory(96);
+          frames.push({ data: new Uint8Array(0), size: 0, pts: start, dts: start, cts: 0,
+            duration: end - start, isKeyframe: true, sampleDescriptionIndex: 1 });
+          start = end;
+        }
+        return { track: { ...first, timescale: a.sampleRate, duration: length, samples: frames, editList: undefined,
           decodedAudio: { ...a, channelData } }, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "astreamselect" || filters[0]?.startsWith("astreamselect=")) {
@@ -11199,7 +11222,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const length = stretched[0]?.length ?? 0;
                     budget.checkSamples(length);
                     budget.checkDuration(length / origRate);
-                    return { ...t, timescale: origRate, duration: length, samples: [], editList: undefined,
+                    const samples: MediaTrack["samples"][number][] = [];
+                    for (const frame of audioTimestamps ?? []) {
+                      if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                      budget.allocateMemory(96);
+                      samples.push({ data: new Uint8Array(0), size: 0, pts: frame.pts, dts: frame.pts, cts: 0,
+                        duration: frame.end - frame.start, isKeyframe: true, sampleDescriptionIndex: 1 });
+                    }
+                    return { ...t, timescale: origRate, duration: length, samples, editList: undefined,
                       codecDescriptions: t.codecDescriptions.map(description => ({ ...description,
                         sampleRate: origRate, channels: stretched.length })),
                       decodedAudio: { ...audio, sampleRate: origRate, channels: stretched.length,

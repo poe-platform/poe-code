@@ -1,4 +1,6 @@
 import { ac3Ast } from "./ac3.js";
+import { wavpackAst } from "./wavpack.js";
+export { wavpackAst } from "./wavpack.js";
 import { vocAst } from "./voc.js";
 import { decodeTga, encodeTga } from "./tga.js";
 import { icoAst } from "./ico.js";
@@ -3009,6 +3011,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     ...rawAudioAsts(),
     mp3Ast(),
     flacAst(),
+    wavpackAst(),
     oggAst(),
     gifAst(),
     apngAst(),

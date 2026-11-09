@@ -4566,7 +4566,7 @@ export function evalSyncFfmpeg(
         if (!plugin || !plugin.canDemux) return undefined;
         if (plugin.id === "au" && rawBytes.length >= 12 &&
           new DataView(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).getUint32(8) === 0) return undefined;
-        doc = plugin.parse(rawBytes, { decodeSubtitles: subtitleCodec !== "copy", decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)), filename: inp.path, budget, subtitleFrameRate: inp.subtitleFrameRate, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
+        doc = plugin.parse(rawBytes, { decodeSubtitles: subtitleCodec !== "copy", decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff", "wv"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)), filename: inp.path, budget, subtitleFrameRate: inp.subtitleFrameRate, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
         if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
@@ -7243,7 +7243,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget, input?.allowedExtensions);
               const document = plugin.parse(rawBytes, {
                 decodeSubtitles: subtitleCodec !== "copy",
-                decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)),
+                decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff", "wv"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)),
                 resolveResource,
                 subtitleFrameRate: input?.subtitleFrameRate,
                 sampleRate: input?.sampleRate,

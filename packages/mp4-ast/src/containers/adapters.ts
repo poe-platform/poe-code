@@ -224,6 +224,9 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
   const frameByteSize = ySize + uvSize * 2;
 
   const frames: MediaVideoFrame[] = [];
+  const samples: MediaSample[] = [];
+  const timescale = fpsNum;
+  const frameTicks = Math.max(1, fpsDen);
   let cursor = newlineIdx + 1;
   let frameIdx = 0;
   let demuxError: MediaTrack["demuxError"];
@@ -258,23 +261,20 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
       durationSeconds: 1 / fps,
       keyframe: true
     });
+    samples.push({
+      data: rgba,
+      offset: cursor,
+      dts: frameIdx * frameTicks,
+      pts: frameIdx * frameTicks,
+      cts: 0,
+      duration: frameTicks,
+      size: frameByteSize,
+      isKeyframe: true,
+      sampleDescriptionIndex: 1
+    });
     cursor += frameByteSize;
     frameIdx++;
   }
-
-  const timescale = fpsNum;
-  const frameTicks = Math.max(1, fpsDen);
-  const samples: MediaSample[] = frames.map((f, idx) => ({
-    data: f.data,
-    offset: f.native!.pixels.byteOffset - bytes.byteOffset,
-    dts: idx * frameTicks,
-    pts: idx * frameTicks,
-    cts: 0,
-    duration: frameTicks,
-    size: frameByteSize,
-    isKeyframe: true,
-    sampleDescriptionIndex: 1
-  }));
 
   return {
     containerFormat: "yuv4mpegpipe",

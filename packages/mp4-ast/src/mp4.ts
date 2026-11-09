@@ -2695,7 +2695,7 @@ export function buildProbeResultFromDoc(
               : { pkt_duration: frame.duration, pkt_duration_time: durTime }),
             ...(["wav", "w64", "matroska", "aiff", "au"].includes(doc.containerFormat) ? { duration: frame.duration, duration_time: durTime } : {}),
             pkt_size: String(frame.size),
-            ...(["mp4", "mov", "wav", "w64", "matroska", "webm", "aiff", "au"].includes(doc.containerFormat) ? { pkt_pos: String(frame.offset ?? -1) } : {}),
+            ...(["mp4", "mov", "wav", "w64", "matroska", "webm", "aiff", "au", "yuv4mpegpipe"].includes(doc.containerFormat) ? { pkt_pos: String(frame.offset ?? -1) } : {}),
             width: w,
             height: h,
             ...(stream.sample_aspect_ratio ? { sample_aspect_ratio: stream.sample_aspect_ratio } : {}),

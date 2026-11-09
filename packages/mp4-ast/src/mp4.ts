@@ -1586,8 +1586,8 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     }
     const origin = materialized.samples[0]?.dts ?? 0;
     const edits = t.editList?.length ? t.editList : [{
-      // Opus demuxers already exclude pre-skip from the presentation duration.
-      segmentDuration: Math.round((t.duration + (isOpus ? 0 : Math.min(0, origin))) * movieTimescale / t.timescale),
+      // Video decode delay does not shorten presentation; Opus duration excludes pre-skip.
+      segmentDuration: Math.round((t.duration + (isOpus || t.type === "video" ? 0 : Math.min(0, origin))) * movieTimescale / t.timescale),
       mediaTime: 0, mediaRateInteger: 1, mediaRateFraction: 0
     }];
     const track = origin !== 0 && !options.fragmented ? { ...t, editList: edits.flatMap(edit => {

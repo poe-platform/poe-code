@@ -543,6 +543,30 @@ export function serializeMpegTs(
     }
   };
 
+  const serviceType = options.mpegtsServiceType ?? 1;
+  if (!Number.isInteger(serviceType) || serviceType < 1 || serviceType > 255) {
+    throw new Error("MPEG-TS service type must be an integer from 1 through 255");
+  }
+  // SDT: transport/program 1, original network 0xff01, running service.
+  const provider = new TextEncoder().encode("FFmpeg");
+  const name = new TextEncoder().encode("Service01");
+  const descriptor = concatBytes([
+    new Uint8Array([0x48, 3 + provider.length + name.length, serviceType, provider.length]),
+    provider, new Uint8Array([name.length]), name
+  ]);
+  const sdtLength = 17 + descriptor.length;
+  const sdtBody = concatBytes([
+    new Uint8Array([
+      0x42, 0xf0 | (sdtLength >>> 8), sdtLength & 0xff,
+      0x00, 0x01, 0xc1, 0x00, 0x00, 0xff, 0x01, 0xff,
+      0x00, 0x01, 0xfc, 0x80 | (descriptor.length >>> 8), descriptor.length & 0xff
+    ]), descriptor
+  ]);
+  const sdtSection = new Uint8Array(sdtBody.length + 4);
+  sdtSection.set(sdtBody);
+  new DataView(sdtSection.buffer).setUint32(sdtBody.length, mpeg2Crc32(sdtBody), false);
+  emitSectionPacket(0x0011, sdtSection);
+
   // Build PAT (PID 0x0000 -> Program 1 -> PMT PID 0x1000)
   const patBody = new Uint8Array([
     0x00, 0xb0, 0x0d, 0x00, 0x01, 0xc1, 0x00, 0x00,

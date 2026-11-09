@@ -4178,6 +4178,14 @@ function validateMovflags(value: string): void {
   }
 }
 
+function parseMpegtsServiceType(value: string): number {
+  const type = value === "digital_radio" ? 2 : value === "digital_tv" ? 1 : Number(value);
+  if (!Number.isInteger(type) || type < 1 || type > 255) {
+    throw new Error("Invalid -mpegts_service_type: expected digital_tv, digital_radio, or an integer from 1 through 255");
+  }
+  return type;
+}
+
 function parseMpegtsLatm(value: string, current: boolean): boolean {
   let enabled = value.startsWith("+") || value.startsWith("-") ? current : false;
   if (!value) throw new Error("Missing -mpegts_flags value");
@@ -4320,6 +4328,7 @@ export function evalSyncFfmpeg(
     let defaultBaseMoof = false;
     let segmentIndex: "global" | "fragment" | undefined;
     let mpegtsLatm = false;
+    let mpegtsServiceType: number | undefined;
     let fragmented = false;
     let fragmentKeyframes = false;
     let fragmentEveryFrame = false;
@@ -4787,6 +4796,8 @@ export function evalSyncFfmpeg(
         }
       } else if (arg === "-live") {
         live = parseFilterBoolean(args[++i] ?? "invalid", "Invalid live value: expected a boolean");
+      } else if (arg === "-mpegts_service_type") {
+        mpegtsServiceType = parseMpegtsServiceType(args[++i] ?? "");
       } else if (arg === "-mpegts_flags") {
         mpegtsLatm = parseMpegtsLatm(args[++i] ?? "", mpegtsLatm);
       } else if (arg === "-movflags") {
@@ -5081,7 +5092,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { mpegtsLatm, live, writeHeader, writeBext, writeCrc32, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeApetag, writeId3v2, writeMpeg2, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { mpegtsServiceType, mpegtsLatm, live, writeHeader, writeBext, writeCrc32, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeApetag, writeId3v2, writeMpeg2, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -5544,6 +5555,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let defaultBaseMoof = false;
         let segmentIndex: "global" | "fragment" | undefined;
         let mpegtsLatm = false;
+        let mpegtsServiceType: number | undefined;
         let fragmented = false;
         let fragmentKeyframes = false;
         let fragmentEveryFrame = false;
@@ -6840,6 +6852,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-live") {
             try {
               live = parseFilterBoolean(args[++i] ?? "invalid", "Invalid live value: expected a boolean");
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-mpegts_service_type") {
+            try {
+              mpegtsServiceType = parseMpegtsServiceType(args[++i] ?? "");
             } catch (error) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
@@ -11410,6 +11429,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               skipTrailer,
               defaultBaseMoof,
               segmentIndex,
+              mpegtsServiceType,
               mpegtsLatm,
               fragmented,
               fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined),

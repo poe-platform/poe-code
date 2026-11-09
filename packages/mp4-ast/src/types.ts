@@ -704,6 +704,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** MPEG-TS SDT service type (default: 1, digital TV; 2 is digital radio). */
+  readonly mpegtsServiceType?: number | undefined;
   /** MPEG-TS: use LOAS/LATM AAC framing and stream type 0x11 instead of ADTS. */
   readonly mpegtsLatm?: boolean | undefined;
   /** Matroska: write CRC-32 children in level-one elements (default: true); ignored for WebM. */

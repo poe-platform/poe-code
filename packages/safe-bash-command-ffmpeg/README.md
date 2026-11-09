@@ -227,6 +227,8 @@ Encode mono or stereo Yamaha ADPCM WAV with `-c:a adpcm_yamaha output.wav`. Enco
 
 AIFF stream copy preserves title, author, copyright and comment in standard text chunks; `-metadata author=Speaker -metadata comment=Interview -metadata copyright=Studio` sets or overrides them without enabling ID3. AIFF output supports `-write_id3v2 0|1` (default `0`) and `-id3v2_version 3|4` (default `4`) to write an embedded ID3 metadata chunk while preserving copied audio.
 
+ADTS AAC output supports `-write_id3v2 0|1` (default `0`). Enabling it writes ID3v2.4 metadata before the first ADTS frame, preserving copied AAC packets: `ffmpeg -i input.m4a -c:a copy -write_id3v2 1 output.aac`.
+
 MP3 output supports `-id3v2_version 0|3|4` (default `4`; `0` omits ID3v2) and `-write_id3v1 0|1` (default `0`). Stream copy preserves audio packets while rewriting tags.
 
 Ogg Opus input supports audio filters such as `-af volume=0`, with encoder delay and final padding removed. Stream copy from Ogg or Matroska into MP4 preserves the Opus decoder configuration and timing, including `-copyts` behavior.

@@ -535,6 +535,11 @@ export function serializeAacAdts(doc: MediaDocument, options: SerializeMediaOpti
       adtsFrames.push(tag.toUint8Array());
     }
   }
+  if (options.writeId3v2) {
+    const tags = Object.fromEntries(Object.entries(options.metadata ?? doc.metadata)
+      .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
+    adtsFrames.unshift(encodeId3(tags));
+  }
   return concatBytes(adtsFrames);
 }
 
@@ -557,9 +562,7 @@ export function aacAst(): MediaAstPlugin {
     parse(bytes) {
       return parseAacAdts(bytes);
     },
-    serialize(doc, options) {
-      return serializeAacAdts(doc, options);
-    },
+    serialize: serializeAacAdts,
     probe(bytes, options) {
       const doc = parseAacAdts(bytes);
       const probe = buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.aac", {

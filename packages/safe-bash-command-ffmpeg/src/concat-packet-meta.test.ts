@@ -4,7 +4,7 @@ import { Volume } from "memfs";
 import { createSyntheticMp4, mp4Ast, parseMp4, type MediaDocument } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
-async function run(manifest: string) {
+async function run(manifest: string, extra: string[] = []) {
   const inputs = [0, 120].map(red => createSyntheticMp4({
     width: 16, height: 16, fps: 5, frameCount: 10, color: [red, 40, 80]
   }));
@@ -19,7 +19,7 @@ async function run(manifest: string) {
     document = doc;
     return plugin.serialize(doc, options);
   } }] }).execute({
-    args: ["-y", "-f", "concat", "-i", "/list.ffconcat", "-c", "copy", "/out.mp4"],
+    args: ["-y", "-f", "concat", ...extra, "-i", "/list.ffconcat", "-c", "copy", "/out.mp4"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },
@@ -56,5 +56,19 @@ for (const [manifest, error] of [
     assert.notEqual(actual.result.exitCode, 0);
     assert.ok(actual.stderr.includes(error!), actual.stderr);
     assert.equal(actual.output.toString(), "keep");
+  });
+}
+
+for (const enabled of ["0", "1"]) {
+  it(`exports concat segment timing only when enabled: ${enabled}`, async () => {
+    const actual = await run("file a.mp4\nduration 3\nfile_packet_meta camera left\nfile b.mp4\n", ["-segment_time_metadata", enabled]);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    const samples = actual.document!.tracks[0]!.samples;
+    assert.deepEqual(samples[0]!.tags, enabled === "1" ? {
+      camera: "left", "lavf.concatdec.start_time": "0", "lavf.concatdec.duration": "3000000"
+    } : { camera: "left" });
+    assert.deepEqual(samples[10]!.tags, enabled === "1" ? {
+      "lavf.concatdec.start_time": "3000000", "lavf.concatdec.duration": "2000000"
+    } : undefined);
   });
 }

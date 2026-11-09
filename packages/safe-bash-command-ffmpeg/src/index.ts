@@ -51,7 +51,7 @@ import { createFfprobeCommand } from "safe-bash-command-ffprobe";
 export { createFfprobeCommand } from "safe-bash-command-ffprobe";
 export { evalSyncFfprobe } from "safe-bash-command-ffprobe/media";
 import { isStdin, rethrowRuntimeError, createInputReader, loadManifestResources, resolvePath,
-  formatIntrospectionOutput, getDefaultMediaRegistry,
+  formatIntrospectionOutput, getDefaultMediaRegistry, parseConcatManifest, parseHlsDuration,
   type MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-command-ffprobe/media";
 export type { MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-command-ffprobe/media";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -406,37 +406,6 @@ export function parseFfmpegTimestamp(spec: string): number {
   return parseFloat(trimmed) || 0;
 }
 
-// CLI duration options require complete FFmpeg duration strings.
-function parseHlsDuration(spec: string): number {
-  let value = spec.trimStart();
-  let scale = 1;
-  if (value.endsWith("ms")) {
-    scale = 1000;
-    value = value.slice(0, -2);
-  } else if (value.endsWith("us")) {
-    scale = 1_000_000;
-    value = value.slice(0, -2);
-  } else if (value.endsWith("s")) {
-    value = value.slice(0, -1);
-  }
-  const negative = value.startsWith("-");
-  if (negative || value.startsWith("+")) value = value.slice(1);
-  const parts = value.split(":");
-  if (parts.length > 3) return NaN;
-  let microseconds = 0;
-  for (const [index, part] of parts.entries()) {
-    const fields = part.split(".");
-    if (fields.length > 2 || (fields.length === 2 && index !== parts.length - 1)
-      || !fields[0] || Array.from(fields.join("")).some(char => char < "0" || char > "9")) return NaN;
-    const number = Number(part);
-    if (parts.length > 1 && (index > 0 || parts.length === 2) && number >= 60) return NaN;
-    // FFmpeg reads at most six fractional digits, then truncates unit scaling.
-    microseconds = microseconds * 60 + Number(fields[0]) * 1_000_000
-      + Number((fields[1] ?? "").slice(0, 6).padEnd(6, "0"));
-  }
-  const seconds = Math.trunc(microseconds / scale) / 1_000_000;
-  return negative ? -seconds : seconds;
-}
 
 function parseColorRgba(colorStr: string): [number, number, number, number] {
   const value = colorStr.trim().toLowerCase();
@@ -4918,6 +4887,7 @@ interface InputSpec {
   readonly format?: string | undefined;
   readonly safe?: boolean | undefined;
   readonly autoConvert?: boolean | undefined;
+  readonly segmentTimeMetadata?: boolean | undefined;
   readonly allowedExtensions?: string | undefined;
   readonly timestampOffset?: number | undefined;
   readonly subtitleFrameRate?: number | undefined;
@@ -4997,6 +4967,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingAllowedExtensions: string | undefined;
       let pendingSafe: boolean | undefined;
       let pendingAutoConvert: boolean | undefined;
+      let pendingSegmentTimeMetadata: boolean | undefined;
       let pendingAudioDecoder: string | undefined;
       let pendingTimestampOffset = 0;
       let pendingSyncReference: number | undefined;
@@ -5286,6 +5257,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-allowed_extensions") {
             pendingAllowedExtensions = args[++i];
             if (pendingAllowedExtensions === undefined) throw new Error("Missing value for -allowed_extensions");
+          } else if (arg === "-segment_time_metadata") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") throw new Error("-segment_time_metadata requires 0 or 1");
+            pendingSegmentTimeMetadata = value === "1";
           } else if (arg === "-auto_convert") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -6089,6 +6064,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               fixSubDuration: pendingFixSubDuration,
               safe: pendingSafe,
               autoConvert: pendingAutoConvert,
+              segmentTimeMetadata: pendingSegmentTimeMetadata,
               allowedExtensions: pendingAllowedExtensions,
               skipInitialBytes: pendingSkipInitialBytes,
               ignoreLength: pendingIgnoreLength,
@@ -6119,6 +6095,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingFormat = undefined;
             pendingSafe = undefined;
             pendingAutoConvert = undefined;
+            pendingSegmentTimeMetadata = undefined;
             pendingAllowedExtensions = undefined;
             pendingTimestampOffset = 0;
             pendingSyncReference = undefined;
@@ -6952,141 +6929,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const listText = new TextDecoder("utf-8", { ignoreBOM: true }).decode(rawBytes);
                 const listDir = filePath === "-" ? context.cwd : dirnameOf(resolvePath(context.cwd, filePath));
                 const concatDocs: MediaDocument[] = [];
-                const streamIds: number[] = [];
-                const streamTags: Record<string, string>[] = [];
-                const chapters: NonNullable<MediaDocument["chapters"]>[number][] = [];
+                const { segments, streamIds, streamTags, chapters } = parseConcatManifest(listText, listDir, input?.safe !== false);
                 const startTimesSeconds: number[] = [];
                 let nextStartSeconds = 0;
-                const segments: { path: string; inpoint: number | undefined; outpoint: number | undefined; duration: number | undefined; ignoreEditList?: boolean; tags?: Record<string, string> }[] = [];
-
-                const lines = listText.replaceAll("\r\n", "\n").replaceAll("\r", "\n").split("\n");
-                for (let l = 0; l < lines.length; l++) {
-                  let line = lines[l]!;
-                  let start = 0;
-                  while (line[start] === " " || line[start] === "\t") start++;
-                  line = line.slice(start);
-                  if (!line || line.startsWith("#")) continue;
-                  const keyword = line.split(/[ \t]/, 1)[0]!;
-                  if (keyword === "option" && input?.safe !== false) {
-                    throw new Error(`Line ${l + 1}: option not allowed if safe`);
-                  }
-                  if (keyword === "ffconcat") {
-                    const [, declaration, version] = line.split("\t").join(" ").split(" ").filter(Boolean);
-                    if (declaration !== "version" || version !== "1.0") {
-                      throw new Error(`Line ${l + 1}: invalid version`);
-                    }
-                    continue;
-                  }
-                  const segment = segments[segments.length - 1];
-                  if (["duration", "inpoint", "outpoint", "option", "file_packet_meta"].includes(keyword) && !segment) {
-                    throw new Error(`Line ${l + 1}: ${keyword} without file`);
-                  }
-                  let cursor = keyword.length;
-                  const readToken = () => {
-                    // Match av_get_token: only single quotes group text; a
-                    // backslash escapes the next character outside quotes.
-                    let target = "";
-                    let protectedEnd = 0;
-                    const whitespace = " \t\r\n";
-                    while (cursor < line.length && whitespace.includes(line[cursor]!)) cursor++;
-                    while (cursor < line.length && !whitespace.includes(line[cursor]!)) {
-                      const char = line[cursor++]!;
-                      if (char === "\\" && cursor < line.length) {
-                        target += line[cursor++]!;
-                        protectedEnd = target.length;
-                      } else if (char === "'") {
-                        while (cursor < line.length && line[cursor] !== "'") target += line[cursor++]!;
-                        if (cursor < line.length) {
-                          cursor++;
-                          protectedEnd = target.length;
-                        }
-                      } else {
-                        target += char;
-                      }
-                    }
-                    while (target.length > protectedEnd && whitespace.includes(target[target.length - 1]!)) {
-                      target = target.slice(0, -1);
-                    }
-                    return target;
-                  };
-                  if (keyword === "stream") {
-                    streamIds.push(0);
-                    streamTags.push({});
-                  } else if (keyword === "stream_meta") {
-                    const tags = streamTags.at(-1);
-                    if (!tags) throw new Error(`Line ${l + 1}: stream_meta without stream`);
-                    const key = readToken();
-                    const value = readToken();
-                    if (!key || !value) throw new Error(`Line ${l + 1}: string required`);
-                    streamTags[streamTags.length - 1] = { ...tags, [key]: value };
-                  } else if (keyword === "exact_stream_id") {
-                    if (!streamIds.length) throw new Error(`Line ${l + 1}: exact_stream_id without stream`);
-                    const token = readToken();
-                    const id = Number(token);
-                    const digits = token.startsWith("-") || token.startsWith("+") ? token.slice(1) : token;
-                    if (!digits || Array.from(digits).some(char => char < "0" || char > "9") ||
-                      !Number.isInteger(id) || id < -2147483648 || id > 2147483647) {
-                      throw new Error(`Line ${l + 1}: invalid stream id '${token}'`);
-                    }
-                    streamIds[streamIds.length - 1] = id;
-                  } else if (keyword === "chapter") {
-                    const [idToken = "", startToken = "", endToken = ""] = line.slice(cursor).split("\t").join(" ").split(" ").filter(Boolean);
-                    const id = Number(idToken);
-                    const digits = idToken.startsWith("-") || idToken.startsWith("+") ? idToken.slice(1) : idToken;
-                    const startTimeSeconds = parseHlsDuration(startToken);
-                    const endTimeSeconds = parseHlsDuration(endToken);
-                    if (!digits || Array.from(digits).some(char => char < "0" || char > "9") || !Number.isSafeInteger(id)
-                      || !Number.isFinite(startTimeSeconds) || !Number.isFinite(endTimeSeconds)
-                      || Math.abs(startTimeSeconds) >= 2 ** 63 / 1_000_000 || Math.abs(endTimeSeconds) >= 2 ** 63 / 1_000_000
-                      || startTimeSeconds < 0 || endTimeSeconds < startTimeSeconds) {
-                      throw new Error(`Line ${l + 1}: invalid chapter`);
-                    }
-                    const chapter = { id, startTimeSeconds, endTimeSeconds, title: "", tags: {}, timeBase: { numerator: 1, denominator: 1_000_000 } };
-                    const existing = chapters.findIndex(item => item.id === id);
-                    if (existing < 0) chapters.push(chapter);
-                    else chapters[existing] = chapter;
-                  } else if (keyword === "file_packet_meta") {
-                    const key = readToken();
-                    const value = readToken();
-                    if (!key || !value) throw new Error(`Line ${l + 1}: string required`);
-                    segment!.tags = { ...segment!.tags, [key]: value };
-                  } else if (keyword === "option") {
-                    const name = readToken();
-                    const value = readToken();
-                    if (!name || !value) throw new Error(`Line ${l + 1}: option requires key and value`);
-                    if (name !== "ignore_editlist") throw new Error(`Unsupported concat file option '${name}'`);
-                    if (!["0", "1", "false", "true"].includes(value)) {
-                      throw new Error(`Invalid boolean value '${value}' for option '${name}'`);
-                    }
-                    segment!.ignoreEditList = value === "1" || value === "true";
-                  } else if (["inpoint", "outpoint", "duration"].includes(keyword)) {
-                    while (cursor < line.length && " \t".includes(line[cursor]!)) cursor++;
-                    const start = cursor;
-                    while (cursor < line.length && !" \t".includes(line[cursor]!)) cursor++;
-                    const value = line.slice(start, cursor);
-                    const seconds = parseHlsDuration(value);
-                    if (!Number.isFinite(seconds) || Math.abs(seconds) >= 2 ** 63 / 1_000_000) {
-                      throw new Error(`Line ${l + 1}: invalid ${keyword} '${value}'`);
-                    }
-                    if (keyword === "inpoint") segment!.inpoint = seconds;
-                    else if (keyword === "outpoint") segment!.outpoint = seconds;
-                    else segment!.duration = seconds;
-                  } else if (keyword === "file") {
-                    const target = readToken();
-                    if (input?.safe !== false && target.split("/").some(component =>
-                      !component || component.startsWith(".") || Array.from(component).some(char =>
-                        !(char >= "a" && char <= "z") && !(char >= "A" && char <= "Z") &&
-                        !(char >= "0" && char <= "9") && char !== "_" && char !== "-" && char !== "."
-                      )
-                    )) {
-                      throw new Error(`Unsafe file name '${target}'`);
-                    }
-                    const resolvedItem = resolvePath(listDir, target);
-                    segments.push({ path: resolvedItem, inpoint: undefined, outpoint: undefined, duration: undefined });
-                  } else {
-                    throw new Error(`Line ${l + 1}: unknown keyword '${keyword}'`);
-                  }
-                }
                 budget.checkConcatInputs(segments.length);
                 for (const segment of segments) {
                   if (segment.inpoint !== undefined && segment.outpoint !== undefined && segment.outpoint < segment.inpoint) {
@@ -7106,6 +6951,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   if (input?.autoConvert !== false) {
                     itemDoc = { ...itemDoc, tracks: itemDoc.tracks.map(track => autoConvertConcatTrack(track, budget)) };
+                  }
+                  const segmentDuration = segment.duration ?? (segment.outpoint ?? itemDoc.durationSeconds) - (segment.inpoint ?? 0);
+                  if (input?.segmentTimeMetadata) {
+                    segment.tags = { ...segment.tags,
+                      "lavf.concatdec.start_time": String(Math.round(nextStartSeconds * 1_000_000)),
+                      ...(Number.isFinite(segmentDuration) ? { "lavf.concatdec.duration": String(Math.round(segmentDuration * 1_000_000)) } : {})
+                    };
                   }
                   let sliceEnd = segment.outpoint;
                   const wavTrack = itemDoc.containerFormat === "wav" ? itemDoc.tracks[0] : undefined;

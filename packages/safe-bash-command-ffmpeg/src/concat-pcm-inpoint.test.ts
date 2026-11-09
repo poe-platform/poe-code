@@ -23,7 +23,7 @@ for (const channels of [1, 2]) {
       }
       let stderr = "";
       const result = await createFfmpegCommand().execute({
-        args: ["-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", "/list.ffconcat", "-c:a", "copy", "-f", "s16le", "/out.bin"],
+        args: ["-v", "error", "-y", "-f", "concat", "-safe", "0", "-segment_time_metadata", "1", "-i", "/list.ffconcat", "-c:a", "copy", "-f", "s16le", "/out.bin"],
         cwd: "/", env: {}, signal: new AbortController().signal,
         fs: {
           async readFile(path: string) { return volume.readFileSync(path); },

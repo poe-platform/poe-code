@@ -7045,12 +7045,17 @@ if (t === "-seed") {
             state.density = Math.max(1, Math.round(g.width ?? 72));
         }
         else if (t === "-fuzz") {
-            const rawFuzz = tokens[++i] ?? "10";
+            const rawFuzz = tokens[++i] ?? "";
+            const value = rawFuzz.endsWith("%") ? rawFuzz.slice(0, -1) : rawFuzz;
+            const fuzz = Number(value);
+            if (value.trim() === "" || !Number.isFinite(fuzz)) {
+                throw new Error(`invalid argument for option '-fuzz': ${rawFuzz}`);
+            }
             // Keep existing color-operation tolerance; alpha uses native Q16 units.
-            state.alphaFuzz = rawFuzz.endsWith("%") ? parseFloat(rawFuzz) * 255 / 100 : parseFloat(rawFuzz) / 257;
+            state.alphaFuzz = rawFuzz.endsWith("%") ? fuzz * 255 / 100 : fuzz / 257;
             state.fuzz = rawFuzz.endsWith("%")
-                ? Math.round((parseFloat(rawFuzz) / 100) * 255)
-                : Math.round(parseFloat(rawFuzz));
+                ? Math.round((fuzz / 100) * 255)
+                : Math.round(fuzz);
         }
         else if (t === "-interpolate") {
             const method = (tokens[++i] ?? "").toLowerCase();

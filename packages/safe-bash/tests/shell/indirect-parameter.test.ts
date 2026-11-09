@@ -1,10 +1,57 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { printfCommand } from "../../src/commands/basic.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { setup } from "./helpers.js";
+
+for (const nounset of ["+u", "-u"]) {
+  for (const [initialize, expansion, expectedStatus] of [
+    ['a=(); p="a[0]"', '${!p:=new}', 1],
+    ['a=(); p="a[0]"', '${!p=new}', 1],
+    ['a=(""); p="a[0]"', '${!p:=new}', 1],
+    ['a=(""); p="a[0]"', '${!p=new}', 0],
+    ['a=(kept); p="a[0]"', '${!p:=new}', 0],
+    ['a=(); p="a[0]"', '${!p:-new}', 0],
+    ['a=(); p=x', '${!p:=new}', 0],
+    ['a=(); p="a[0]"', '${a[0]:=new}', 0],
+    ['declare -A a=(); p="a[key]"', '${!p:=new}', 1],
+    ['a=(); p="a[@]"', '${!p:=new}', 1],
+    ['a=(); p="a[0]"', '${!p:=${operand:=expanded}}', 1],
+  ] as const) test(`indirect assignment matches Bash: ${nounset}, ${initialize}, ${expansion}`, async () => {
+    const { shell } = setup({ env: { LC_ALL: "C" } });
+    shell.register(printfCommand);
+    const source = `set ${nounset}; ${initialize}; trap 'declare -p a p; printf "x=%s operand=%s\\n" "\${x-unset}" "\${operand-unset}"' EXIT; printf "value=%s\\n" "${expansion}"; printf "continued\\n"`;
+    const native = spawnSync(process.env.SAFE_BASH_TEST_BASH ?? "/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C", PATH: process.env.PATH } });
+    try {
+      assert.equal(native.error, undefined);
+      assert.equal(native.status, expectedStatus, native.stderr);
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, expectedStatus, result.stderr);
+      assert.equal(result.stdout, native.stdout);
+      if (expectedStatus === 1) {
+        const diagnostic = `${initialize.includes("a[key]") ? "a[key]" : initialize.includes("a[@]") ? "a[@]" : "a[0]"}: invalid variable name`;
+        assert.ok(native.stderr.includes(diagnostic), native.stderr);
+        assert.ok(result.stderr.includes(diagnostic), result.stderr);
+        assert.ok(!result.stdout.includes("continued"));
+      } else assert.equal(result.stderr, native.stderr);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const command of [': "${!p:=new}"', 'value="${!p:=new}"', 'for i in 1 2; do : "${!p:=new}"; done']) {
+  test(`invalid indirect assignment stops execution: ${command}`, async () => {
+    const { shell } = setup();
+    try {
+      const result = await shell.exec(`a=(); p="a[0]"; ${command}; say continued`);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("a[0]: invalid variable name"));
+      assert.equal(result.stdout, "");
+    } finally { await shell.dispose(); }
+  });
+}
 
 for (const [source, expected] of [
   ['x=value; name=x; printf "%s\\n" "${!name}"', "value\n"],

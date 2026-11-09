@@ -90,6 +90,7 @@ export function hasActiveExtensions(state: State): state is State & { extensions
   return !ext.isIdleTrapState;
 }
 const memberPatternOperators = ["#", "##", "%", "%%", "/", "//", "/#", "/%", "^", "^^", ",", ",,"];
+const indirectArrayTarget = Symbol("indirectArrayTarget");
 export const defaultParameterOperators = ["-", "+", "=", "?", ":-", ":+", ":=", ":?"];
 async function signedLong(argument: string, budget: Budget, signal: AbortSignal): Promise<bigint | "overflow" | undefined> {
   const checkpoint = async (): Promise<void> => {
@@ -9533,7 +9534,7 @@ export class Runtime {
       const name = shellValueText(reference);
       const target = this.variableTarget(name);
       if (target && target.subscript !== undefined && target.subscript.length > 0) {
-        const resolved = { ...part, name: target.name, indirect: false };
+        const resolved = { ...part, name: target.name, indirect: false, [indirectArrayTarget]: name };
         if (target.subscript === "@" || target.subscript === "*") {
           setArraySelector(resolved, { kind: "members", separator: target.subscript });
         } else {
@@ -9596,8 +9597,9 @@ export class Runtime {
       const missing = members.length === 0 || part.operator.startsWith(":") && members.length === 1 && shellValueByteLength(members[0]!) === 0;
       const operator = part.operator.at(-1)!;
       if (operator === "+" ? !missing : missing) {
-        if (operator === "=") throw new ArrayFailure(`${part.name}[${memberSelector.separator}]: bad array subscript`);
+        if (operator === "=" && !(indirectArrayTarget in part)) throw new ArrayFailure(`${part.name}[${memberSelector.separator}]: bad array subscript`);
         const alternate = concatShellValues(await this.valueWord(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, false, hereString, false, undefined, hereDocument || part.quoted), io[valueScope]);
+        if (operator === "=" && indirectArrayTarget in part) throw new ExpansionFailure(`${part[indirectArrayTarget]}: invalid variable name`, io.diagnosticLine ?? part.line);
         if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${shellValueText(alternate) || "parameter not set"}`, io.diagnosticLine ?? part.line);
         return alternate;
       }
@@ -9623,6 +9625,10 @@ export class Runtime {
         if (operator === "+" ? !missing : missing) {
           const operandIO = this.parameterOperandIO(part.alternate!, state, io);
           if (operator === "=") {
+            if (indirectArrayTarget in part) {
+              await this.valueWord(part.alternate!, state, operandIO, false, false, hereString, false, undefined, hereDocument || part.quoted);
+              throw new ExpansionFailure(`${part[indirectArrayTarget]}: invalid variable name`, io.diagnosticLine ?? part.line);
+            }
             const elemAlt = part.quoted ? { ...part.alternate!, parts: part.alternate!.parts.map(p => ({ ...p, quoted: true })) } : part.alternate!;
             await this.arrayAssignment({ kind: "element", name: part.name, index: element.index, append: false, value: elemAlt }, state, operandIO);
             const assigned = store.get(part.name)!;

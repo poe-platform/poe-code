@@ -6231,6 +6231,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 throw new Error(`invalid argument '-sepia-tone' '${argument}'`);
             }
             const gray = image.space === "b-w" || image.space === "grey16";
+            const linear = image.magickColorspace === "RGB";
             const bins = histogram[4]!, count = image.width * image.height;
             let low = 0, high = bins.length - 1, sum = 0;
             for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum > 0.02 * count) break; }
@@ -6257,8 +6258,9 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 blacks[3] = lowAlpha * 255 / (alpha.length - 1); whites[3] = highAlpha * 255 / (alpha.length - 1);
             }
             return function* (pixels) {
-                const { data16: ignored, ...metadata } = pixels;
+                const { data16: ignored, evaluateSamples: ignoredEvaluate, ...metadata } = pixels;
                 const data = new Uint8Array(pixels.data);
+                const data16 = linear ? new Uint16Array(data.length) : undefined;
                 const samples = pixels.data16 ?? pixels.data, scale = pixels.data16 ? 257 : 1;
                 for (let i = 0; i < data.length; i += 4) {
                     if (i % 65536 === 0) yield;
@@ -6275,9 +6277,14 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     }
                     const brightness = Math.max(...tone) / 255;
                     const contrast = 0.5 * brightness + 0.25 * (Math.sin(Math.PI * (brightness - 0.5)) + 1);
-                    for (let channel = 0; channel < 3; channel++) data[i + channel] = clampByteVal(brightness === 0 ? 0 : tone[channel]! * contrast / brightness);
+                    for (let channel = 0; channel < 3; channel++) {
+                        const value = brightness === 0 ? 0 : tone[channel]! * contrast / brightness;
+                        data[i + channel] = clampByteVal(value);
+                        if (data16) data16[i + channel] = Math.round(value * 257);
+                    }
+                    if (data16) data16[i + 3] = data[i + 3]! * 257;
                 }
-                return { ...metadata, data };
+                return { ...metadata, data, ...(data16 ? { data16 } : {}) };
             };
         } };
     }
@@ -6935,14 +6942,27 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-colorize") {
         highDepth = true;
         const value = tokens[++i] ?? "";
-        const strengths = [...value].filter(character => character.trim() !== "").join("").replaceAll("x", ",").split(",").map(part => {
+        const strength = [...value].filter(character => character.trim() !== "").join("");
+        const percentages = strength.replaceAll("x", ",").replaceAll(":", ",").split(",").map(part => {
             const percent = part.endsWith("%") ? part.slice(0, -1) : part;
             if (!Number.isFinite(Number(percent)) || Number.parseFloat(percent) !== Number(percent)) {
                 throw new Error(`invalid argument '-colorize' '${value}'`);
             }
-            return Number(percent) / 100;
+            return Number(percent);
         });
-        const [red = 1, green = red, blue = red] = strengths;
+        if (strength.includes(":")) {
+            // ParseGeometry normalizes ratios before ColorizeImage selects RGB strengths.
+            const leading = strength.split(",")[0]!;
+            const offset = leading.includes(":") ? leading[leading.indexOf(":") + 1] : undefined;
+            if (offset === "+") {
+                percentages[2] = percentages[1]!;
+                percentages[1] = percentages[0]!;
+            } else if (offset !== "-") {
+                percentages[0] = percentages[0]! / Math.max(percentages[1]!, 1e-12);
+                percentages[1] = percentages[2] === 0 ? 2 : 1;
+            }
+        }
+        const [red = 1, green = red, blue = red] = percentages.map(percent => percent / 100);
         const blend = [red, green, blue];
         const fill = [state.fill.r, state.fill.g, state.fill.b];
         const mask = [state.channels.r, state.channels.g, state.channels.b];

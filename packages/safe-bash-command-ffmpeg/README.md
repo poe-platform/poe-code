@@ -562,6 +562,8 @@ Each output filename closes its option group: `-t 0.025 a.wav -t 0.075 b.wav`
 writes both files with independent durations. Output options reset after each filename;
 trailing options without a filename do not change earlier outputs.
 With finite input loops, input `-t` limits the total looped timeline, including partial final passes.
+Finite `-stream_loop N` repeats the full input N times after its first pass.
+An input `-ss` seek applies only to the first pass; repeats restart at the beginning.
 `-stream_loop -1` repeats an input up to a finite output `-t` or `-to`, subject to
 media resource limits. Without either output bound, infinite looping fails explicitly.
 `-metadata:s:m:language:fra language=deu` changes only output tracks whose language is French;

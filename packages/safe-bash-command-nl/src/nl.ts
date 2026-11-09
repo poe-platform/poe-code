@@ -50,6 +50,8 @@ export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinit
     const arguments_ = getCommandArguments(session.context);
     const styles = new Map<string, Uint8Array>();
     let separator = bytesFrom("\t");
+    const defaultDelimiter = bytesFrom("\\:");
+    let delimiter: Uint8Array = defaultDelimiter;
     const parsed = options(session.context.args, "h:b:f:v:i:pl:s:w:n:d:", {
       "header-numbering": "h", "body-numbering": "b", "footer-numbering": "f",
       "starting-line-number": "v", "line-increment": "i", "no-renumber": "p",
@@ -57,6 +59,15 @@ export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinit
       "number-format": "n", "section-delimiter": "d",
     }, false, undefined, (key, index, offset) => {
       if (key === "s") separator = bytesFrom(arguments_.bytes(index)!.subarray(offset));
+      if (key === "d") {
+        const next = arguments_.bytes(index)!.subarray(offset);
+        if (next.length === 1 || next.length === 2) {
+          defaultDelimiter.set(next, 0);
+          delimiter = defaultDelimiter;
+        } else {
+          delimiter = next;
+        }
+      }
       if (key === "h" || key === "b" || key === "f") styles.set(key, arguments_.bytes(index)!.subarray(offset));
     });
     const header = style(value(parsed, "h") ?? "n", styles.get("h")), body = style(value(parsed, "b") ?? "t", styles.get("b")), footer = style(value(parsed, "f") ?? "n", styles.get("f"));
@@ -66,17 +77,6 @@ export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinit
     if (!["ln", "rn", "rz"].includes(format)) throw new UsageError(`invalid line numbering format: '${format}'`);
     session.check(width + separator.length, limits.maxRecordBytes, "number field");
     session.admitOutput(width + separator.length);
-    const defaultDelimiter = bytesFrom("\\:");
-    let delimiter: Uint8Array = defaultDelimiter;
-    for (const argument of parsed.values.get("d") ?? []) {
-      const next = bytesFrom(argument);
-      if (next.length === 1 || next.length === 2) {
-        defaultDelimiter.set(next, 0);
-        delimiter = defaultDelimiter;
-      } else {
-        delimiter = next;
-      }
-    }
     const delimiters = [1, 2, 3].map(count => concatBytes(Array.from({ length: count }, () => delimiter)));
     const dLen = delimiter.length;
     const d0 = dLen > 0 ? delimiter[0]! : -1;

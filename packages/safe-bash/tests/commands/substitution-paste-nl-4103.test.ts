@@ -121,3 +121,21 @@ for (const [options, expected] of [
     });
   }
 }
+
+for (const byte of ["ff", "80", "21"]) {
+  for (const option of ["-d ", "-d", "--section-delimiter ", "--section-delimiter="]) {
+    for (const route of ["pipeline", "pipeline substitution", "file substitution"]) {
+      test(`nl raw section delimiter: ${byte}, ${option}, ${route}`, async () => {
+        const input = `printf 'a\\n\\x${byte}:\\nb\\n'`;
+        const command = `nl ${option}$'\\x${byte}'`;
+        const script = route === "pipeline" ? `${input} | ${command}`
+          : route === "pipeline substitution" ? `x=$(${input} | ${command}); printf '%s\\n' "$x"`
+          : `${input} > /input; x=$(${command} /input); printf '%s\\n' "$x"`;
+        const result = await shell().exec(`export LC_ALL=C; ${script}`);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.deepEqual(result.stdoutBytes, new TextEncoder().encode("     1\ta\n\n       b\n"));
+      });
+    }
+  }
+}

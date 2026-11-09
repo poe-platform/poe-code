@@ -282,7 +282,7 @@ input, such as WAV or a `lavfi` source. `[0:a][1:a]amix=inputs=2:duration=shorte
 `atempo` stage processes the preceding stage’s samples, including `areverse`.
 Use `-af atilt=freq=1000:slope=0.3` to boost higher frequencies, or a negative `slope` to reduce them. `atilt` supports `freq` (20–192000 Hz), `slope` (−1–1), `width` (100–10000 Hz), `order` (2–30), and `level` (0–4), in that positional order. Defaults are 10000, 0, 1000, 5, and 1; sample count and channel layout are preserved.
 Input-side `-ss`, `-t`, and `-to` cut audio before filtering; output-side cuts apply to the filtered samples.
-`compand=attacks=0:decays=0:points=-80/-80|-40/-40|-20/-30|0/-20` applies a dB transfer curve to PCM without changing its length. Per-channel attack/decay times, soft knees, output gain, and initial volume are supported; nonzero delay is rejected.
+`compand=attacks=0:decays=0:points=-80/-80|-40/-40|-20/-30|0/-20` applies a dB transfer curve to PCM without changing its length. Per-channel attack/decay times, soft knees, output gain, initial volume, and lookahead delay (0–20 seconds) are supported. Delay is rounded down to whole samples; the final samples use the last detected gain.
 
 `mcompand` applies FFmpeg’s default five-band companding curve at 48 kHz. Custom quoted band specifications support attack/decay pairs, soft knees, transfer points, crossover frequencies, and initial volume. Crossovers must be below half the sample rate; nonzero delay and gain are rejected.
 `anull` and `acopy` pass audio through unchanged, alone or in a filter chain.

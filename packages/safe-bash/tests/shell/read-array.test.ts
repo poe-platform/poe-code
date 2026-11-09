@@ -7,6 +7,38 @@ import { agentCommands, createMemoryFileSystem, Shell } from "../../src/core.js"
 import { bashExecutable, modernBashSkip } from "../helpers/bash-oracle.js";
 import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 
+for (const option of ["-u0", "-t1"]) {
+  for (const [before, destinations, output] of [
+    ["", "'a[1]'", "0|one two|three|"],
+    ["declare -A a", "'a[key]'", "0|one two|three|"],
+    ["declare -A a", "first 'a[key]'", "0|two|three|one"],
+    ["", "first 'a[1]'", "0|two|three|one"],
+    ["", "-a a 'unused[2]'", "0|two|three|"],
+    ["i=0", "'a[i++]'", "0|one two|three|1"],
+  ] as const) {
+    test(`read ${option} accepts element destinations: ${destinations}`, async () => {
+      const { shell, commands, fs } = setup();
+      for (const command of basicCommands()) commands.register(command);
+      await fs.writeFile("/data", Buffer.from("one two\nthree\n"));
+      const element = before === "declare -A a" ? "key" : before === "i=0" ? "0" : "1";
+      try {
+        const source = `${before ? `${before}; ` : ""}{ read ${option} ${destinations}; rc=$?; read rest; printf '%s|%s|%s|%s' "$rc" "\${a[${element}]-unset}" "$rest" "${before === "i=0" ? "$i" : "$first"}"; }`;
+        if (!modernBashSkip) {
+          const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { input: "one two\nthree\n", encoding: "utf8", env: { LC_ALL: "C" }, timeout: 2000 });
+          assert.ifError(native.error);
+          assert.equal(native.status, 0);
+          assert.equal(native.stdout, output);
+          assert.equal(native.stderr, "");
+        }
+        const result = await shell.exec(`${source} </data`);
+        assert.equal(result.stdout, output);
+        assert.equal(result.stderr, "");
+        assert.equal(result.exitCode, 0);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
 for (const [label, source] of [
   ["readonly indexed condition", 'a=(old); readonly -a a; if read "a[0]" <<< new; then echo success; else echo recovered; fi; echo "first=${a[0]}"'],
   ["readonly indexed subscript side effect", 'a=(old); readonly -a a; i=0; if read "a[i++]" <<< new; then echo success; else echo "recovered:$?"; fi; echo "first=${a[0]} i=$i"'],

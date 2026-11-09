@@ -1,3 +1,5 @@
+import { isShellIdentifier, variableTarget } from "./variable-target.js";
+export { isShellIdentifier } from "./variable-target.js";
 import { defaultPredicateExecutors } from "../commands/predicates.js";
 import { syncCommandEvaluators } from "../commands/internal.js";
 const executionCommands = (...args: any[]) => syncCommandEvaluators.executionCommands!(...args);
@@ -1872,15 +1874,6 @@ export async function restoreVariable(state: State, name: string, saved: SavedVa
 
   } finally { saved.heldValue?.release(); delete saved.heldValue; }
 }
-export function isShellIdentifier(name: string): boolean {
-  if (!name) return false;
-  for (let index = 0; index < name.length; index++) {
-    const code = name.charCodeAt(index);
-    if (code === 95 || code >= 65 && code <= 90 || code >= 97 && code <= 122 || index > 0 && code >= 48 && code <= 57) continue;
-    return false;
-  }
-  return true;
-}
 function decimalIndex(value: string): number {
   let position = 0;
   while (position < value.length && /[\t\n\v\f\r ]/u.test(value[position]!)) position++;
@@ -2917,7 +2910,7 @@ export class Runtime {
   }
   async writeVariable(state: State, name: string, value: ShellValue, io: IO, origin: "assignment" | "arithmetic" | "getopts" = "assignment", dereference = true): Promise<void> {
     if (dereference) name = this.referenceName(state, name);
-    const target = name.includes("[") ? this.variableTarget(name) : undefined;
+    const target = name.includes("[") ? variableTarget(name) : undefined;
     if (target?.subscript !== undefined) {
       await this.arrayAssignment({ kind: "element", name: target.name, append: false, index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)), value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, io);
       return;
@@ -3036,7 +3029,7 @@ export class Runtime {
     const references: ArithmeticReferences = {
       isSync: false, resolve: (variable, subscript) => {
         this.signal.throwIfAborted();
-        const target = this.variableTarget(this.referenceName(state, variable))!;
+        const target = variableTarget(this.referenceName(state, variable))!;
         const name = target.name;
         subscript ??= target.subscript;
         const binding = arrayStore(state)?.get(name);
@@ -3160,22 +3153,16 @@ export class Runtime {
   private referenceName(state: State, name: string): string {
     if (!hasActiveVariableAttributes(state)) return name;
     const seen = new Set<string>();
-    let target = this.variableTarget(name);
+    let target = variableTarget(name);
     while (target && state.variableAttributes?.get(target.name)?.includes("n") && state.variables[target.name]) {
       this.signal.throwIfAborted();
       if (seen.has(target.name)) throw new ExpansionFailure(`${target.name}: circular name reference`);
       seen.add(target.name);
       name = state.variables[target.name]! + (target.subscript === undefined ? "" : `[${target.subscript}]`);
-      target = this.variableTarget(name);
+      target = variableTarget(name);
       if (!target) throw new ExpansionFailure(`${name}: invalid name reference`);
     }
     return name;
-  }
-  private variableTarget(name: string): { name: string; subscript?: string } | undefined {
-    const bracket = name.indexOf("[");
-    const base = bracket < 0 ? name : name.slice(0, bracket);
-    if (!isShellIdentifier(base) || bracket >= 0 && (!name.endsWith("]") || bracket === name.length - 2)) return undefined;
-    return bracket < 0 ? { name: base } : { name: base, subscript: name.slice(bracket + 1, -1) };
   }
   variable(state: State, name: string): string | undefined {
     name = this.referenceName(state, name);
@@ -3827,7 +3814,8 @@ export class Runtime {
         const scalar = state.variables[name];
         return retain(binding ? binding.getValue(index) : index === 0 && scalar !== undefined ? stateMonitor(state)?.values.get(name, scalar) ?? scalar : undefined);
       }, assign: async (name: string, value: ShellValue) => {
-        checkName(name);
+        assertOpen();
+        if (typeof name !== "string" || !variableTarget(name)) throw new TypeError("Invalid binding name");
         await scope.run(() => this.assignVariable(state, name, value, io));
         assertOpen();
       }, prepareReference: async (reference: ShellValue): Promise<ShellBindingResult<ShellBindingReference>> => {
@@ -5312,7 +5300,7 @@ export class Runtime {
             if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
             if (state.variableAttributes?.get(command.name)?.includes("n")) {
               const target = shellValueText(value);
-              if (!this.variableTarget(target) || target === command.name) throw new ExpansionFailure(`${target}: invalid name reference`);
+              if (!variableTarget(target) || target === command.name) throw new ExpansionFailure(`${target}: invalid name reference`);
               await this.writeVariable(state, command.name, value, io, "assignment", false);
             } else if (canFastAssignLoopVar && !rawLoopState.variableAttributes?.get(command.name) && !rawLoopState.readonlyVariables?.has(command.name) && !arrayStore(rawLoopState)?.get(command.name)) {
               publishVariable(rawLoopState, command.name, value);
@@ -6075,7 +6063,7 @@ export class Runtime {
       for (const original of assignments) {
         const refName = this.referenceName(state, original.name);
         const assignment = refName === original.name ? original : { ...original, name: refName };
-        const target = !assignment.kind && !assignment.name.includes("[") ? { name: assignment.name } : this.variableTarget(assignment.name)!;
+        const target = !assignment.kind && !assignment.name.includes("[") ? { name: assignment.name } : variableTarget(assignment.name)!;
         if (!assignment.kind && target.subscript !== undefined) {
           await this.arrayAssignment({ kind: "element", name: target.name, append: assignment.append, index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)), value: assignment.value }, state, io);
           continue;
@@ -9165,7 +9153,7 @@ export class Runtime {
         const syntax = context[declarationArrays]?.get(declarationOffset + declarationIndex);
         const compound = syntax?.name === name ? syntax : undefined;
         const reference = match[2] ?? state.variables[name];
-        if (namerefDeclaration && reference !== undefined && (reference === name || !this.variableTarget(reference))) {
+        if (namerefDeclaration && reference !== undefined && (reference === name || !variableTarget(reference))) {
           await this.diagnostic(context, `${command}: ${reference}: invalid name reference`); status = 1; continue;
         }
         const append = arg[name.length] === "+";
@@ -9343,7 +9331,7 @@ export class Runtime {
             state.getopts.integer = false;
           }
         }
-        const attributeName = namerefDeclaration || disabled.has("n") ? name : this.variableTarget(this.referenceName(state, name))!.name;
+        const attributeName = namerefDeclaration || disabled.has("n") ? name : variableTarget(this.referenceName(state, name))!.name;
         if (command === "declare" || command === "local") this.declareAttributes(state, attributeName, enabled, disabled);
         if (disabled.has("x")) state.exported.delete(attributeName);
         if (match[2] !== undefined && arrayStore(state)?.get(name)) {
@@ -9353,7 +9341,7 @@ export class Runtime {
           else {
             let value = assignedValue();
             const target = this.referenceName(state, name);
-            const element = this.variableTarget(target)!;
+            const element = variableTarget(target)!;
             if (element.subscript !== undefined && append) {
               await this.arrayAssignment({ kind: "element", name: element.name, append: true, index: stringIndex(element.subscript, this.budget.parsing, parseArraySubscript(element.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)), value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context);
             } else {
@@ -9544,13 +9532,13 @@ export class Runtime {
         if (invalid) break;
       }
       if (names[0] === "--") names.shift();
-      const invalidName = (array === undefined ? names : names.slice(0, 1)).find(name => !this.variableTarget(name));
+      const invalidName = (array === undefined ? names : names.slice(0, 1)).find(name => !variableTarget(name));
       if (!invalid && invalidName !== undefined && (exact || invalidName === names[0])) {
         const diagnosticIO: IO = context;
         await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${invalidName}': not a valid identifier\n`);
         return 1;
       }
-      if (invalid || array !== undefined && !this.variableTarget(array)) {
+      if (invalid || array !== undefined && !variableTarget(array)) {
         await writeDiagnostic(stderr, "read: invalid variable name or unsupported option\n");
         return 2;
       }
@@ -9579,12 +9567,12 @@ export class Runtime {
         const separators = exact ? "" : stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";
         const fields = await line?.fields(separators, names.length) ?? [];
         for (let index = 0; index < names.length; index++) {
-          if (!this.variableTarget(names[index]!)) {
+          if (!variableTarget(names[index]!)) {
             const diagnosticIO: IO = context;
             await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${names[index]}': not a valid identifier\n`);
             return 1;
           }
-          const target = this.variableTarget(this.referenceName(state, names[index]!))!;
+          const target = variableTarget(this.referenceName(state, names[index]!))!;
           if (state.readonlyVariables?.has(target.name)) {
             const binding = arrayStore(state)?.get(target.name);
             if (target.subscript !== undefined && !binding?.associative) {
@@ -9726,7 +9714,7 @@ export class Runtime {
     if (part.kind === "variable" && part.indirect && state.variableAttributes?.get(part.name)?.includes("n")) {
       // Bash transforms an element nameref's value, but keeps its name for bare/default expansions.
       if (!(part.substring || part.transform || memberPatternOperators.includes(part.operator ?? "")) ||
-          this.variableTarget(this.referenceName(state, part.name))?.subscript === undefined) return part;
+          variableTarget(this.referenceName(state, part.name))?.subscript === undefined) return part;
       part = copyArraySelector(part, { ...part, indirect: false });
     }
     if (part.kind === "variable" && part.indirect) {
@@ -9735,7 +9723,7 @@ export class Runtime {
       const reference = await this.valuePart(referencePart, state, io);
       if (shellValueByteLength(reference) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
       const name = shellValueText(reference);
-      const target = this.variableTarget(name);
+      const target = variableTarget(name);
       if (target && target.subscript !== undefined && target.subscript.length > 0) {
         const resolved = { ...part, name: target.name, indirect: false, [indirectArrayTarget]: name };
         if (target.subscript === "@" || target.subscript === "*") {
@@ -9751,7 +9739,7 @@ export class Runtime {
       }
     }
     if (part.kind === "variable" && !part.indirect && !part.prefixNames && !part.specialParameter && state.variableAttributes?.get(part.name)?.includes("n")) {
-      const target = this.variableTarget(this.referenceName(state, part.name))!;
+      const target = variableTarget(this.referenceName(state, part.name))!;
       if (target.subscript !== undefined && getArraySelector(part) !== undefined) {
         throw new ExpansionFailure(`${part.name}: bad substitution`, io.diagnosticLine ?? part.line);
       }

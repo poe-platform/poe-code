@@ -2,6 +2,7 @@ import { FsError } from "../contracts/errors.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue } from "../contracts/value.js";
 import type { ReadLine } from "./input.js";
+import { isShellIdentifier as identifier, variableTarget } from "./variable-target.js";
 import type { ShellExtensionContext, ShellIndexedWriter, ShellInputBorrow, ShellInputObserver } from "./extensions.js";
 
 interface ReadOptions {
@@ -17,15 +18,6 @@ interface ReadOptions {
 }
 
 const usage = "read: usage: read [-Eers] [-a array] [-d delim] [-i text] [-n nchars] [-N nchars] [-p prompt] [-t timeout] [-u fd] [name ...]\n";
-
-function identifier(name: string): boolean {
-  if (!name.length) return false;
-  for (let index = 0; index < name.length; index++) {
-    const character = name[index]!;
-    if (character !== "_" && !(character >= "a" && character <= "z") && !(character >= "A" && character <= "Z") && !(index > 0 && character >= "0" && character <= "9")) return false;
-  }
-  return true;
-}
 
 function decimal(value: string): number | undefined {
   let left = 0;
@@ -191,7 +183,7 @@ export async function executeRead(nonTerminalInput: boolean, context: ShellExten
       return 1;
     }
     const invalidName = async (name: ShellValue): Promise<number> => { await context.diagnostic(concatShellValues(["read: `", name, "': not a valid identifier"])); return 1; };
-    if (options.names[0] !== undefined && !identifier(shellValueText(options.names[0]))) return invalidName(options.names[0]);
+    if (options.names[0] !== undefined && !variableTarget(shellValueText(options.names[0]))) return invalidName(options.names[0]);
     if (options.array !== undefined && typeof context.bindings.openIndexed !== "function") {
       await context.diagnostic("read: indexed writer unavailable through this extension API");
       return 1;
@@ -260,9 +252,10 @@ export async function executeRead(nonTerminalInput: boolean, context: ShellExten
         check();
         const original = names[index]!;
         const name = shellValueText(original);
-        if (!identifier(name)) return invalidName(original);
-        if (context.bindings.describe(name).readonly) {
-          await context.diagnostic(`${name}: readonly variable`);
+        const target = variableTarget(name);
+        if (!target) return invalidName(original);
+        if (context.bindings.describe(target.name).readonly) {
+          await context.diagnostic(`${target.name}: readonly variable`);
           return options.names.length === 0 || index < names.length - 1 ? 2 : 1;
         }
         await context.bindings.assign(name, fields ? fields[index]?.value ?? "" : record?.shellValue ?? "");

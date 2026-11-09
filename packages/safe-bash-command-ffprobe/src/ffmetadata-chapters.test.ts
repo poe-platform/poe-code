@@ -24,9 +24,9 @@ END=14449
 `);
 const chapters = [
   { id: 0, time_base: "1/25", start: 0, start_time: "0.000000", end: 3, end_time: "0.120000", tags: { title: "Clock" } },
-  { id: 1, time_base: "2/50", start: 3, start_time: "0.120000", end: 6, end_time: "0.240000", tags: {} },
-  { id: 2, time_base: "1/1000", start: 240, start_time: "0.240000", end: 300, end_time: "0.300000", tags: {} },
-  { id: 3, time_base: "1/48000", start: 14401, start_time: "0.300021", end: 14449, end_time: "0.301021", tags: {} }
+  { id: 1, time_base: "2/50", start: 3, start_time: "0.120000", end: 6, end_time: "0.240000" },
+  { id: 2, time_base: "1/1000", start: 240, start_time: "0.240000", end: 300, end_time: "0.300000" },
+  { id: 3, time_base: "1/48000", start: 14401, start_time: "0.300021", end: 14449, end_time: "0.301021" }
 ];
 
 for (const target of ["/clock.ffmeta", "-"]) {

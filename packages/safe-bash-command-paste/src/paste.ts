@@ -82,16 +82,17 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         return { exitCode: status };
       }
       const readers = [];
-      let status = 0;
+      const directoryErrors: FsError[] = [];
       for (const file of files) {
         try { readers.push(await inputs.open(file)); }
         catch (error) {
           context.signal.throwIfAborted();
           if (!(error instanceof FsError) || error.code !== "EISDIR") throw error;
-          await diagnostic(context, error); status = 1;
+          directoryErrors.push(error);
           readers.push(undefined);
         }
       }
+      for (const error of directoryErrors) await diagnostic(context, error);
       while (true) {
         const row: Uint8Array[] = [];
         let present = false;
@@ -104,7 +105,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         if (!present) break;
         row.push(terminator); await budget.output(row);
       }
-      return { exitCode: status };
+      return { exitCode: directoryErrors.length ? 1 : 0 };
     } finally { await inputs.close(); }
   });
 }

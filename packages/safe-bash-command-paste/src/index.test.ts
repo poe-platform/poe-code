@@ -55,6 +55,22 @@ test("serial paste flushes the record terminator before a missing-file diagnosti
 for (const separator of ["\n", "\0"]) {
  const options = separator === "\0" ? ["-z"] : [];
  const rows = `x${separator}y${separator}`;
+ for (const operands of [["/", "/missing"], ["/missing", "/"], ["/", "/", "/missing"]]) {
+  test(`parallel paste suppresses directory diagnostics on fatal open failure ${JSON.stringify([...options, ...operands])}`, async () => {
+   const result = await run([...options, ...operands], {});
+   const missing = await run([...options, "/missing"], {});
+   assert.equal(result.exitCode, 1);
+   assert.equal(result.stdout, "");
+   assert.equal(result.stderr, missing.stderr);
+  });
+  test(`serial paste retains directory diagnostics and records with a missing file ${JSON.stringify([...options, ...operands])}`, async () => {
+   const result = await run([...options, "-s", ...operands], {});
+   assert.equal(result.exitCode, 1);
+   assert.equal(result.stdout, separator.repeat(operands.length - 1));
+   assert.equal(result.stderr.split("EISDIR").length - 1, operands.length - 1);
+   assert.equal(result.stderr.split("ENOENT").length - 1, 1);
+  });
+ }
  for (const directoryFirst of [true, false]) {
   const operands = directoryFirst ? ["/", "/rows"] : ["/rows", "/"];
   const expected = directoryFirst ? `\tx${separator}\ty${separator}` : `x\t${separator}y\t${separator}`;

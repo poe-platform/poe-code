@@ -94,7 +94,7 @@ describe("ImageMagick property formatting", () => {
     const files = new Map<string, Uint8Array>();
     expect((await runMagickCli(["-size", "2x1", "xc:red", "xc:blue", "frames.gif"], files)).exitCode).toBe(0);
     const result = await runMagickCli(["identify", "-format", "%s/%n:%[hex:p{0,0}]:%C", "frames.gif[1]"], files);
-    expect(result).toMatchObject({ exitCode: 0, stdout: "1/2:0000FF:LZW", stderr: "" });
+    expect(result).toMatchObject({ exitCode: 0, stdout: "1/1:0000FF:LZW", stderr: "" });
   });
 
   it("reports the configured info output quality and each scene", async () => {

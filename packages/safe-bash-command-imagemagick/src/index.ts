@@ -6117,6 +6117,41 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         if (colon > 0 && extToImageFormat(baseInPath.slice(0, colon))) {
             baseInPath = baseInPath.slice(colon + 1);
         }
+        if (!bracketMatch) {
+            try {
+                const parsed = parseInputToken(inPath);
+                if (parsed.pageSpec !== undefined) {
+                    baseInPath = parsed.baseToken;
+                    const colon = baseInPath.indexOf(":");
+                    if (colon > 0 && extToImageFormat(baseInPath.slice(0, colon))) baseInPath = baseInPath.slice(colon + 1);
+                    let inspection: IdentifyInspection | undefined;
+                    if (reader) yield { async run() { inspection = await reader(baseInPath, undefined, false); } };
+                    const bytes = baseInPath === "-" ? stdinBytes : files.get(baseInPath);
+                    if (!bytes && !inspection) {
+                        errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
+                        exitCode = 1;
+                    }
+                    else {
+                        if (inspection && "error" in inspection) throw inspection.error;
+                        const metadata = inspection?.metadata ?? readImageMetadata(bytes!);
+                        let offset = 0;
+                        for (const page of selectedInputPages(parsed.pageSpec, metadata.pages ?? 1)) {
+                            yield;
+                            targets.splice(targetIndex + ++offset, 0, { path: `${baseInPath}[${page}]` });
+                        }
+                        for (let index = 1; index <= offset; index++) targets[targetIndex + index]!.sceneCount = offset;
+                    }
+                    yield* flush();
+                    continue;
+                }
+            }
+            catch (err) {
+                errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);
+                exitCode = 1;
+                yield* flush();
+                continue;
+            }
+        }
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
         const sceneCount = target.sceneCount ?? (pageIdx === undefined ? undefined : 1);
         const analysis = { warnings: "" };

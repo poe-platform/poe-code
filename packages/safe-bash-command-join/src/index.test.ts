@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createCommandArguments, toByteSource } from "safe-bash-contracts";
+import { createCommandArguments, shellValueFromBytes, toByteSource, type ShellValue } from "safe-bash-contracts";
 import { createJoinCommand } from "./index.js";
 
 test("join help works through the standalone portable factory", async () => {
@@ -18,18 +18,19 @@ test("join help works through the standalone portable factory", async () => {
  assert.ok(output.length > 0);
 });
 
-async function run(args: string[], files: Record<string, string>) {
+async function run(args: ShellValue[], files: Record<string, string | Uint8Array>) {
  const fs = createMemoryFileSystem();
- for (const [path, content] of Object.entries(files)) await fs.writeFile(path, new TextEncoder().encode(content));
+ for (const [path, content] of Object.entries(files)) await fs.writeFile(path, typeof content === "string" ? new TextEncoder().encode(content) : content);
  const values = createCommandArguments(args);
  let stdout = "", stderr = "", combined = "";
+ const stdoutBytes: number[] = [];
  const result = await createJoinCommand().execute({
   command: "join", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
   stdin: toByteSource(""), signal: new AbortController().signal,
-  stdout: { async write(bytes) { const text = new TextDecoder().decode(bytes); stdout += text; combined += text; } },
+  stdout: { async write(bytes) { stdoutBytes.push(...bytes); const text = new TextDecoder().decode(bytes); stdout += text; combined += text; } },
   stderr: { async write(bytes) { const text = new TextDecoder().decode(bytes); stderr += text; combined += text; } },
  });
- return { ...result, stdout, stderr, combined };
+ return { ...result, stdout, stdoutBytes, stderr, combined };
 }
 
 for (const args of [
@@ -88,6 +89,38 @@ for (const format of ["0,1.2", "0 1.2", "0\t1.2", "0,1.2,", "0 1.2 ", "0\t1.2\t"
   assert.equal(result.stderr, "");
  });
 }
+
+for (const prefix of ["", "-t", "-it"]) {
+ for (const delimiter of [0x09, 0x3a, 0x80, 0xfe, 0xff]) {
+  test(`join accepts raw delimiter ${delimiter} with prefix ${JSON.stringify(prefix)}`, async () => {
+   const value = shellValueFromBytes(Uint8Array.from([...new TextEncoder().encode(prefix), delimiter]));
+   const option = prefix ? [value] : ["-t", value];
+   const result = await run([...option, ...option, "/a", "/b"], {
+    "/a": Uint8Array.of(107, delimiter, 65, 10),
+    "/b": Uint8Array.of(107, delimiter, 66, 10),
+   });
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stderr, "");
+   assert.deepEqual(result.stdoutBytes, [107, delimiter, 65, delimiter, 66, 10]);
+  });
+ }
+ for (const delimiter of [Uint8Array.of(0xff, 0xfe), new TextEncoder().encode("é"), new TextEncoder().encode("�")]) {
+  test(`join rejects multi-byte delimiter ${[...delimiter]} with prefix ${JSON.stringify(prefix)}`, async () => {
+   const value = shellValueFromBytes(Uint8Array.from([...new TextEncoder().encode(prefix), ...delimiter]));
+   const result = await run([...(prefix ? [value] : ["-t", value]), "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+   assert.equal(result.exitCode, 1);
+   assert.ok(result.stderr.includes("join delimiter must be one byte in the C locale"), result.stderr);
+   assert.deepEqual(result.stdoutBytes, []);
+  });
+ }
+}
+
+test("join rejects distinct delimiter bytes that decode identically", async () => {
+ const result = await run(["-t", shellValueFromBytes(Uint8Array.of(0xfe)), "-t", shellValueFromBytes(Uint8Array.of(0xff)), "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+ assert.equal(result.exitCode, 1);
+ assert.ok(result.stderr.includes("incompatible field delimiters"), result.stderr);
+ assert.deepEqual(result.stdoutBytes, []);
+});
 
 // Verified against GNU coreutils 9.12 with LC_ALL=C.
 for (const reverse of [false, true]) {

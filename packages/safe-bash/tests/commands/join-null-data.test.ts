@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import "../../src/shell/sync-extra-evaluators.js";
+import { standardCommands } from "../../src/commands/index.js";
+import { joinCommands } from "../../src/commands/join/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
@@ -24,6 +27,22 @@ for (const capture of [false, true]) {
       }
     } finally { await shell.dispose(); }
   });
+}
+
+for (const option of ["-t $'\\xff'", "-t$'\\xff'", "-it$'\\xff'"]) {
+ for (const capture of [false, true]) {
+  test(`join preserves a raw delimiter through Shell: ${option}, capture=${capture}`, async context => {
+   const fs = createMemoryFileSystem();
+   const shell = new Shell({ fs, env: { LC_ALL: "C" } }).use(standardCommands()).use(joinCommands());
+   context.after(() => shell.dispose());
+   const command = `join ${option} left right`;
+   const result = await shell.exec(String.raw`printf 'k\xffA\n' > left; printf 'k\xffB\n' > right; ` +
+    (capture ? `x=$(${command}); status=$?; printf '%s\\n' "$x"; exit "$status"` : command));
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stderr, "");
+   assert.deepEqual(result.stdoutBytes, Uint8Array.of(107, 255, 65, 255, 66, 10));
+  });
+ }
 }
 
 // Expected bytes were checked against GNU coreutils 9.4 with LC_ALL=C.

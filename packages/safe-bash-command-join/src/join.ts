@@ -1,4 +1,4 @@
-import type { CommandDefinition, CommandContext } from "safe-bash-contracts";
+import { getCommandArguments, type CommandDefinition, type CommandContext } from "safe-bash-contracts";
 import { argument, type Budget, command, compare, empty, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 interface Field { readonly file: number; readonly index: number }
@@ -38,7 +38,7 @@ function parse(context: CommandContext, budget: Budget): Options {
     explicitFields[fileIndex] = field;
     options.fields[fileIndex] = field;
   };
-  const apply = (flag: string, value: string): void => {
+  const apply = (flag: string, value: string, rawValue?: Uint8Array): void => {
     if (flag === "1" || flag === "2" || flag === "j") {
       const field = number(value, "field") - 1;
       if (flag !== "2") setField(0, field);
@@ -53,7 +53,7 @@ function parse(context: CommandContext, budget: Budget): Options {
       options.replacement = encode(value);
     }
     else if (flag === "t") {
-      const bytes = encode(value);
+      const bytes = rawValue ?? encode(value);
       const choice = value === "\\0" ? 0 : bytes.length ? bytes[0]! : -1;
       if (delimiterChoice !== undefined && delimiterChoice !== choice) fail("incompatible field delimiters");
       delimiterChoice = choice;
@@ -122,7 +122,7 @@ function parse(context: CommandContext, budget: Budget): Options {
         }
         let value: string;
         [value, index] = argument(context.args, index, rest || undefined, `-${flag}`);
-        apply(flag, value);
+        apply(flag, value, flag === "t" ? getCommandArguments(context).bytes(index)!.subarray(rest ? offset + 1 : 0) : undefined);
         if (flag === "o" && value !== "auto") nextFieldCandidate = "o";
         break;
       } else fail(`unsupported option -${flag}`);

@@ -100,7 +100,9 @@ export async function* measureEbur128(
         }
       }
     }
-    yield `t: ${String(Number((frame / sampleRate).toPrecision(6))).padEnd(10)} TARGET:-23 LUFS    M:${windows[0]!.loudness.toFixed(1).padStart(6)} S:${windows[1]!.loudness.toFixed(1).padStart(6)}     I:${integrated.toFixed(1).padStart(6)} LUFS       LRA:${(high - low).toFixed(1).padStart(6)} LU${samplePeaks ? `  SPK: ${state.map(s => db(s.peak)).join(" ")} dBFS` : ""}\n`;
+    const time = frame / sampleRate;
+    const timeText = String(Number(time < 1 ? time.toPrecision(6) : time.toFixed(6)));
+    yield `t: ${timeText.padEnd(10)} TARGET:-23 LUFS    M:${windows[0]!.loudness.toFixed(1).padStart(6)} S:${windows[1]!.loudness.toFixed(1).padStart(6)}     I:${integrated.toFixed(1).padStart(6)} LUFS       LRA:${(high - low).toFixed(1).padStart(6)} LU${samplePeaks ? `  SPK: ${state.map(s => db(s.peak)).join(" ")} dBFS` : ""}\n`;
   }
   yield `Summary:\n\n  Integrated loudness:\n    I:         ${integrated.toFixed(1)} LUFS\n    Threshold: ${windows[0]!.threshold.toFixed(1)} LUFS\n\n  Loudness range:\n    LRA:       ${(high - low).toFixed(1)} LU\n    Threshold: ${windows[1]!.threshold.toFixed(1)} LUFS\n    LRA low:   ${low.toFixed(1)} LUFS\n    LRA high:  ${high.toFixed(1)} LUFS${samplePeaks ? `\n\n  Sample peak:\n    Peak:      ${db(Math.max(...state.map(s => s.peak)))} dBFS` : ""}\n`;
 }

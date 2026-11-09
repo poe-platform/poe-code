@@ -5536,8 +5536,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
           } else if (arg === "-hls_playlist_type") {
-            hlsPlaylistType = args[++i];
-            if (hlsPlaylistType !== "vod" && hlsPlaylistType !== "event") {
+            const value = args[++i];
+            hlsPlaylistType = value === "0" ? undefined : value === "1" ? "event" : value === "2" ? "vod" : value;
+            if (value !== "0" && hlsPlaylistType !== "vod" && hlsPlaylistType !== "event") {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_playlist_type\n"), context.signal);
               return { exitCode: 1 };
             }

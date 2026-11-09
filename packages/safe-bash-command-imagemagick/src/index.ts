@@ -3340,7 +3340,10 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">, geometry = spec) => {
         if (token === "-shear") {
             const plan = shearPlan(image, geometry);
-            return { ...plan, virtualCanvas: undefined, steps: shearPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background) };
+            const virtualCanvas = plan.tx === 0 && plan.ty === 0 ? undefined : {
+                width: plan.width, height: plan.height, x: image.virtualCanvas?.x ?? 0, y: image.virtualCanvas?.y ?? 0
+            };
+            return { ...plan, virtualCanvas, steps: shearPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background) };
         }
         if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(geometry, token);
         let plan = magickWarpPlan(image, token, geometry, args);

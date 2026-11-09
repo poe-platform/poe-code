@@ -3468,6 +3468,35 @@ function validateSubtitleEncoder(codec: string | undefined, doc: MediaDocument, 
   }
 }
 
+function recodeSubtitles(doc: MediaDocument, charset: string): MediaDocument {
+  const name = charset.toUpperCase();
+  // WHATWG maps ASCII and ISO-8859-1 to Windows-1252; iconv does not.
+  const ascii = ["ASCII", "US-ASCII", "ANSI_X3.4-1968"].includes(name);
+  const latin1 = ["LATIN1", "LATIN-1", "ISO-8859-1", "ISO8859-1"].includes(name);
+  return { ...doc, tracks: doc.tracks.map(track => {
+    if (track.type !== "subtitle") return track;
+    let decoder: TextDecoder;
+    try { decoder = new TextDecoder(ascii || latin1 ? "utf-8" : charset, { fatal: true, ignoreBOM: true }); }
+    catch { throw new Error(`Unable to open iconv context with input character encoding "${charset}"`); }
+    const decodeErrors = [...(track.decodeErrors ?? [])];
+    const samples = track.samples.flatMap(sample => {
+      const codec = track.codecDescriptions[sample.sampleDescriptionIndex - 1]?.codecName;
+      if (codec !== "subrip" && codec !== "webvtt") return [sample];
+      let text: string;
+      try {
+        if (ascii && sample.data.some(byte => byte > 0x7f)) throw new Error("Invalid ASCII");
+        text = latin1 ? Array.from(sample.data, byte => String.fromCharCode(byte)).join("") : decoder.decode(sample.data);
+      } catch {
+        decodeErrors.push(`Unable to recode subtitle event "${decodeUtf8(sample.data)}" from ${charset} to UTF-8`);
+        return [];
+      }
+      const data = encodeUtf8(text);
+      return [{ ...sample, data, size: data.byteLength }];
+    });
+    return { ...track, samples, decodeErrors };
+  }) };
+}
+
 function fixSubtitleDurations(doc: MediaDocument): MediaDocument {
   const tracks = doc.tracks.map(track => {
     if (track.type !== "subtitle") return track;
@@ -4078,6 +4107,7 @@ export function evalSyncFfmpeg(
     let copyTimestamps = false;
     let startAtZero = false;
     let pendingSubtitleFrameRate: number | undefined;
+    let pendingSubtitleCharset: string | undefined;
     let pendingFixSubDuration = false;
     let pendingSkipInitialBytes = 0;
     let pendingIgnoreLength = false;
@@ -4295,7 +4325,10 @@ export function evalSyncFfmpeg(
         if (args.slice(i + 1).includes("-i")) pendingDuration = val;
         else outputDuration = val;
       } else if (arg === "-stream_loop") pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
-      else if (arg === "-subfps") {
+      else if (arg === "-sub_charenc") {
+        pendingSubtitleCharset = args[++i];
+        if (!pendingSubtitleCharset || !args.slice(i + 1).includes("-i")) return undefined;
+      } else if (arg === "-subfps") {
         pendingSubtitleFrameRate = parseFrameRate(args[++i] ?? "");
         if (pendingSubtitleFrameRate === undefined || !args.slice(i + 1).includes("-i")) return undefined;
       } else if (arg === "-r" || arg === "-framerate") {
@@ -4336,6 +4369,7 @@ export function evalSyncFfmpeg(
           maxSize: pendingMaxSize,
           timestampOffset: pendingTimestampOffset,
           subtitleFrameRate: pendingSubtitleFrameRate,
+          subtitleCharset: pendingSubtitleCharset,
           fixSubDuration: pendingFixSubDuration,
           syncReference: pendingSyncReference,
           startSeconds: pendingSs,
@@ -4354,6 +4388,7 @@ export function evalSyncFfmpeg(
         pendingTimestampOffset = 0;
         pendingSyncReference = undefined;
         pendingSubtitleFrameRate = undefined;
+        pendingSubtitleCharset = undefined;
         pendingFixSubDuration = false;
         pendingSkipInitialBytes = 0;
         pendingIgnoreLength = false;
@@ -4665,6 +4700,7 @@ export function evalSyncFfmpeg(
       if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
       doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
       doc = applyInputDisplayTransforms(doc, inp.displayTransforms);
+      if (inp.subtitleCharset !== undefined && subtitleCodec !== "copy") doc = recodeSubtitles(doc, inp.subtitleCharset);
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
         ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
@@ -5010,6 +5046,7 @@ interface InputSpec {
   readonly allowedExtensions?: string | undefined;
   readonly timestampOffset?: number | undefined;
   readonly subtitleFrameRate?: number | undefined;
+  readonly subtitleCharset?: string | undefined;
   readonly fixSubDuration?: boolean | undefined;
   readonly skipInitialBytes?: number | undefined;
   readonly ignoreLength?: boolean | undefined;
@@ -5094,6 +5131,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let copyTimestamps = false;
       let startAtZero = false;
       let pendingSubtitleFrameRate: number | undefined;
+      let pendingSubtitleCharset: string | undefined;
       let pendingFixSubDuration = false;
       let pendingSkipInitialBytes = 0;
       let pendingIgnoreLength = false;
@@ -6103,6 +6141,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-stream_loop") {
             pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
+          } else if (arg === "-sub_charenc") {
+            pendingSubtitleCharset = args[++i];
+            if (!pendingSubtitleCharset || !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -sub_charenc requires a charset before an input\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-subfps") {
             pendingSubtitleFrameRate = parseFrameRate(args[++i] ?? "");
             if (pendingSubtitleFrameRate === undefined || !args.slice(i + 1).includes("-i")) {
@@ -6180,6 +6224,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               sampleRate: audioRate,
               channels: audioChannelsForStream(audioChannelOptions, 0, 0),
               subtitleFrameRate: pendingSubtitleFrameRate,
+              subtitleCharset: pendingSubtitleCharset,
               fixSubDuration: pendingFixSubDuration,
               safe: pendingSafe,
               autoConvert: pendingAutoConvert,
@@ -6219,6 +6264,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingTimestampOffset = 0;
             pendingSyncReference = undefined;
             pendingSubtitleFrameRate = undefined;
+            pendingSubtitleCharset = undefined;
             pendingFixSubDuration = false;
             pendingSkipInitialBytes = 0;
             pendingIgnoreLength = false;
@@ -7432,6 +7478,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   })) };
                 }) };
               }
+              if (inp.subtitleCharset !== undefined && subtitleCodec !== "copy") doc = recodeSubtitles(doc, inp.subtitleCharset);
               if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));

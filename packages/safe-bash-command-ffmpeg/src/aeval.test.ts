@@ -19,6 +19,14 @@ for (const [expression, expected] of [
   ["|val(1)||:c=stereo", [right, right]],
   ["|val(0)||:channel_layout=mono", [left]],
   ["|nb_out_channels/32768||", [[1, 1, 1, 1]]],
+  ["val(0)|val(1)|0", [left, right, [0, 0, 0, 0]]],
+  ["val(0)|val(1)|0,aeval=val(ch):c=same", [left, right, [0, 0, 0, 0]]],
+  ["val(0)|val(1)|nb_out_channels/32768|ch/32768", [left, right, [4, 4, 4, 4], [3, 3, 3, 3]]],
+  [Array(6).fill("st(0\\,ld(0)+ch+1)/32768").join("|"),
+    Array.from({ length: 6 }, (_, channel) => [1, 2, 3, 4].map(n => n * (channel + 1)))],
+  [Array(9).fill("val(0)").join("|"), Array(9).fill(left)],
+  [Array(64).fill("val(0)").join("|"), Array(64).fill(left)],
+  [Array(65).fill("val(0)").join("|"), undefined],
   ["exprs=val(1)|val(0)", [right, left]],
   ["val(0)+val(1)|val(0)-val(1)", [[-3000, -1000, 1000, 3000], [5000, 5000, 5000, 5000]]],
   ["val(1)|val(0),areverse", [[...right].reverse(), [...left].reverse()]],
@@ -91,3 +99,27 @@ for (const [expression, expected] of [
     });
   }
 }
+
+it("infers three aeval channels from raw stereo PCM", async () => {
+  const volume = Volume.fromJSON({});
+  const input = Buffer.alloc(16);
+  [110, -550, 220, -660, 330, -770, 440, -880].forEach((sample, index) => input.writeInt16LE(sample, index * 2));
+  volume.writeFileSync("/in.raw", input);
+  let stderr = "";
+  const result = await createFfmpegCommand().execute({
+    args: ["-y", "-v", "error", "-f", "s16le", "-ar", "8000", "-ac", "2", "-i", "/in.raw",
+      "-af", "aeval=val(0)|val(1)|0", "-f", "s16le", "/out.raw"],
+    cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: {
+      async readFile(path: string) { return volume.readFileSync(path); },
+      async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+      async stat(path: string) { return volume.statSync(path); }
+    },
+    stdin: (async function* () {})(), stdout: { async write() {} },
+    stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+  } as never);
+  assert.equal(result.exitCode, 0, stderr);
+  const output = volume.readFileSync("/out.raw") as Buffer;
+  assert.deepEqual(Array.from({ length: output.length / 2 }, (_, index) => output.readInt16LE(index * 2)),
+    [110, -550, 0, 220, -660, 0, 330, -770, 0, 440, -880, 0]);
+});

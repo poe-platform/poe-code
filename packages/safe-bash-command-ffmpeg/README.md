@@ -336,6 +336,8 @@ endpoint syntax are rejected before writing output.
 `aeval=val(1)|val(0)` evaluates separate expressions against the input samples to swap
 stereo channels. Explicit output layouts include `c=quad`, `c=5.1`, speaker lists
 such as `c=FL+FR`, masks such as `c=0x3`, and channel aliases such as `c=2c`.
+With no layout option, each expression produces one output channel (up to 64),
+so `aeval=val(0)|val(1)|0` adds a silent third channel.
 Expressions support arithmetic, `val(channel)`, `ch`,
 `n`, `t`, `s`, `nb_in_channels`, and `nb_out_channels`; `c=same` retains the input
 layout and repeats the last expression when needed. `sin(x)` takes radians, and

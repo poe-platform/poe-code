@@ -5262,7 +5262,7 @@ export class Runtime {
               let matched = fallthrough;
               if (!matched) for (const word of clause.patterns) {
                 if (++patterns % 128 === 0) await yieldTurn(this.signal);
-                const pattern = (await this.word(word, state, io, false, true)).join("");
+                const pattern = (await this.word(word, state, { ...io, nameExpansionContext: "case" }, false, true))[0] ?? "";
                 if (await matchesPattern(pattern, subject, work, !!state.nocasematch, !!state.extglob)) { matched = true; break; }
               }
               if (!matched) continue;
@@ -5280,7 +5280,7 @@ export class Runtime {
             let matched = fallthrough;
             if (!matched) for (const word of clause.patterns) {
               if (++patterns % 128 === 0) await yieldTurn(this.signal);
-              const pattern = (await this.word(word, state, io, false, true)).join("");
+              const pattern = (await this.word(word, state, { ...io, nameExpansionContext: "case" }, false, true))[0] ?? "";
               if (await matchesPattern(pattern, subject, work, !!state.nocasematch, !!state.extglob)) { matched = true; break; }
             }
             if (!matched) continue;
@@ -10693,7 +10693,7 @@ export class Runtime {
       }
       if (scratch && field.fragments.length > 1 && !field.bytes) scratch.reserve(field.fragments.reduce((bytes, value) => bytes + shellValueText(value).length * 2, 0), 0);
       // Bash retains CTLNUL for empty fields in a multi-field case subject.
-      const assembled = io.nameExpansionContext === "case" && fields.length > 1 && field.fragments.every(value => shellValueByteLength(value) === 0)
+      const assembled = !pattern && io.nameExpansionContext === "case" && fields.length > 1 && field.fragments.every(value => shellValueByteLength(value) === 0)
         ? "\x7f" : concatShellValues(field.fragments, io[valueScope]);
       const projection = shellValueText(assembled);
       if (field.bytes && field.fragments.length > 1 && !field.patterns) {

@@ -8419,6 +8419,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-unique-colors") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = yield* mapMagickImagesSteps(stack, uniqueColorsSteps);
         }
         else if (t === "-colors") {
@@ -10380,6 +10381,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-unique-colors") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             steps.push(async (image, backend) => image ? uniqueColorsStored(image, backend.storage, signal) : undefined);
             continue;
         }

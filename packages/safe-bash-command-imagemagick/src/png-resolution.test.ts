@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
-import { encodePngImage } from "@poe-code/image-ast";
+import { decodeImage, encodePngImage } from "@poe-code/image-ast";
 import { createMagickCommand, runConvertCli } from "./index.js";
 
 function chunks(bytes: Uint8Array): { name: string; data: Uint8Array; bytes: Uint8Array }[] {
@@ -93,5 +93,36 @@ for (const retained of [false, true]) {
       const output = retained ? await fs.readFile(path) : files.get(path)!;
       expect(chunks(output).some(chunk => chunk.name === "pHYs"), path).toBe(present);
     }
+  });
+}
+
+for (const mode of ["buffered", "retained", "command"]) {
+  it.each([
+    { name: "no units", before: [], after: [], physical: undefined },
+    { name: "units before input", before: ["-units", "PixelsPerInch"], after: [], physical: undefined },
+    { name: "units after input", before: [], after: ["-units", "PixelsPerInch"], physical: undefined },
+    { name: "units before input with density", before: ["-units", "PixelsPerInch"], after: ["-density", "254x127"], physical: [10000, 5000, 1] },
+    { name: "units after input with density", before: [], after: ["-units", "PixelsPerInch", "-density", "254x127"], physical: [10000, 5000, 1] },
+  ])(`does not invent PNG32 resolution from units: $name (${mode})`, async ({ before, after, physical }) => {
+    const input = new Uint8Array(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAYAAAC09K7GAAAAEklEQVR4nGO4wyX3HxkzEBQAAGT5GCWP9zVLAAAAAElFTkSuQmCC", "base64"));
+    expect(chunks(input).some(chunk => chunk.name === "pHYs")).toBe(false);
+    const fs = new MemoryFileSystem(), files = new Map([["/input.png", input]]);
+    await fs.writeFile("/input.png", input);
+    const args = [...before, "/input.png", ...after, "PNG32:/output.png"];
+    const result = mode === "command" ? await createMagickCommand().execute({ command: "magick",
+      args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+      stdin: (async function* () {})(), signal: new AbortController().signal,
+      stdout: { write: async () => {} }, stderr: { write: async () => {} } })
+      : await runConvertCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+    expect(result).toMatchObject({ exitCode: 0 });
+    const output = mode === "buffered" ? files.get("/output.png")! : await fs.readFile("/output.png");
+    const resolution = chunks(output).filter(chunk => chunk.name === "pHYs").map(({ data }) => {
+      expect(data.byteLength).toBe(9);
+      const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+      return [view.getUint32(0), view.getUint32(4), data[8]];
+    });
+    expect(resolution).toEqual(physical ? [physical] : []);
+    const decoded = decodeImage(input);
+    expect(decodeImage(output)).toMatchObject({ width: decoded.width, height: decoded.height, data: decoded.data });
   });
 }

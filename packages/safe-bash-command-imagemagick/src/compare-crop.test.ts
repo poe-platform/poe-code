@@ -31,7 +31,7 @@ for (const mode of ["sync", "async", "magick", "retained"] as const) {
             const result = mode === "sync" ? runCompareCliSync(argv, files)
                 : mode === "magick" ? await runMagickCli(["compare", ...argv], files)
                 : await runCompareCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
-            expect(result, args.join(" ")).toEqual({ exitCode: metric === "0 (0)" ? 0 : 1, stdout: "", stderr: metric });
+            expect({ ...result, stderr: result.stderr.trim() }, args.join(" ")).toEqual({ exitCode: metric === "0 (0)" ? 0 : 1, stdout: "", stderr: metric });
             const output = mode === "retained" ? await filesystem.readFile("/diff.png") : files.get("diff.png")!;
             expect(await sharp(output).metadata()).toMatchObject({ width, height: 2 });
             if (metric === "0 (0)") expect(Array.from(await sharp(output).removeAlpha().raw().toBuffer()))

@@ -44,8 +44,9 @@ function parse(context: CommandContext, budget: Budget): Options {
       if (flag !== "2") setField(0, field);
       if (flag !== "1") setField(1, field);
     } else if (flag === "a" || flag === "v") {
-      if (value !== "1" && value !== "2") fail(`invalid file number: ${value}`);
-      options.unpaired.add(Number(value) - 1);
+      const file = number(value, "file number");
+      if (file !== 1 && file !== 2) fail(`invalid file number: ${value}`);
+      options.unpaired.add(file - 1);
       if (flag === "v") options.paired = false;
     } else if (flag === "e") {
       if (explicitReplacement !== undefined && explicitReplacement !== value) fail("conflicting empty-field replacement strings");

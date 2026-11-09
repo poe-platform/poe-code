@@ -177,6 +177,30 @@ test("join preserves abbreviated option names as operands after --", async () =>
  assert.equal(result.stdout, "a left right\n");
 });
 
+for (const flag of ["-a", "-v"]) {
+ for (const [selector, unpaired] of [
+  ["1", "z ZZ\n"], ["+1", "z ZZ\n"], ["01", "z ZZ\n"], ["+001", "z ZZ\n"],
+  ["2", "y YY\n"], ["+2", "y YY\n"], ["02", "y YY\n"], ["+002", "y YY\n"],
+ ] as const) {
+  test(`join ${flag} accepts decimal file selector ${selector}`, async () => {
+   for (const args of [[flag, selector], [flag + selector]]) {
+    const result = await run([...args, "/left", "/right"], { "/left": "k AA\nz ZZ\n", "/right": "k BB\ny YY\n" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, (flag === "-a" ? "k AA BB\n" : "") + unpaired);
+    assert.equal(result.stderr, "");
+   }
+  });
+ }
+ for (const selector of ["0", "3", "-1", "", "+", "1.0", "1e0", "0x1", "1 ", "1x", "++1"]) {
+  test(`join ${flag} rejects invalid file selector ${JSON.stringify(selector)}`, async () => {
+   const result = await run([flag, selector, "/left", "/right"], { "/left": "k AA\n", "/right": "k BB\n" });
+   assert.equal(result.exitCode, 1);
+   assert.equal(result.stdout, "");
+   assert.equal(result.stderr, `join: EINVAL: invalid file number: ${selector}\n`);
+  });
+ }
+}
+
 // Verified against GNU coreutils 9.12 with LC_ALL=C.
 for (const reverse of [false, true]) {
  for (const [left, right, stdout] of [

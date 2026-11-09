@@ -8,6 +8,32 @@ import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { fixture, runTable } from "./table-text/helpers.js";
 
+for (const flag of ["-a", "-v"]) {
+  test(`join ${flag} decimal file selectors work directly and in command substitution`, async context => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/left", Buffer.from("k AA\nz ZZ\n"));
+    await fs.writeFile("/right", Buffer.from("k BB\ny YY\n"));
+    const shell = new Shell({ fs }).use(standardCommands()).use(joinCommands());
+    context.after(() => shell.dispose());
+    for (const [selector, unpaired] of [["+1", "z ZZ\n"], ["01", "z ZZ\n"], ["+2", "y YY\n"], ["02", "y YY\n"]]) {
+      for (const args of [`${flag} ${selector}`, `${flag}${selector}`]) {
+        const command = `join ${args} /left /right`;
+        const expected = (flag === "-a" ? "k AA BB\n" : "") + unpaired;
+        for (const source of [
+          command,
+          `x=$(${command}); status=$?; printf '%s\\n' "$x"; exit "$status"`,
+          `for ((i=0;i<2;i++)); do x=$(${command}); status=$?; done; printf '%s\\n' "$x"; exit "$status"`,
+        ]) {
+          const result = await shell.exec(source);
+          assert.equal(result.exitCode, 0, `${source}: ${result.stderr}`);
+          assert.equal(result.stdout, expected, source);
+          assert.equal(result.stderr, "", source);
+        }
+      }
+    }
+  });
+}
+
 for (const capture of [false, true]) {
   test(`join split output list preserves filenames through Shell: capture=${capture}`, async () => {
     const fs = createMemoryFileSystem();

@@ -5,14 +5,16 @@ import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli } from "./index.js";
 
 for (const mode of ["buffered", "retained", "command"]) {
+ for (const command of [0, 1, 2, 3, 255]) {
   it.each(["NETSCAPE2.0", "NETSCAPEXYZ", "NETSCAPE1.0", "ANIMEXTS1.0", "ANIMEXTSXYZ"])(
-    `recognizes the complete GIF looping identifier %s (${mode})`, async identifier => {
+    `recognizes the complete GIF looping identifier %s (${mode}, command ${command})`, async identifier => {
       const pixels = Uint8Array.of(255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255);
       const input = await sharp(pixels, { raw: { width: 2, height: 2, channels: 4 } })
         .gif({ pageHeight: 1, delay: [70, 130], loop: 4 }).toBuffer();
       const application = Buffer.from(input).indexOf("NETSCAPE2.0");
       expect(application).toBeGreaterThan(-1);
       input.set(new TextEncoder().encode(identifier), application);
+      input[application + 12] = command;
       const files = new Map([["/in.gif", input]]), fs = new MemoryFileSystem();
       await fs.writeFile("/in.gif", input);
       const args = ["/in.gif", "/out.gif"];
@@ -32,4 +34,5 @@ for (const mode of ["buffered", "retained", "command"]) {
       expect(await sharp(output, { animated: true }).raw().toBuffer()).toEqual(pixels);
     }
   );
+ }
 }

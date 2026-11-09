@@ -9189,7 +9189,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let filteredChannelMask = audio.channelMask;
                   let panPcm16 = ["pcm_s16le", "pcm_s16be"].includes(t.codecDescriptions[0]?.codecName ?? "");
                   const inputCodec = t.codecDescriptions[0]?.codecName;
-                  let filteredSampleFormat = inputCodec === "pcm_s16le" ? "s16" : ["pcm_s24le", "pcm_s32le"].includes(inputCodec ?? "") ? "s32"
+                  let filteredSampleFormat = inputCodec === "pcm_u8" ? "u8" : inputCodec === "pcm_s16le" ? "s16" : ["pcm_s24le", "pcm_s32le"].includes(inputCodec ?? "") ? "s32"
                     : inputCodec === "pcm_f32le" ? "flt" : "dbl";
                   const volFactor = t.volume ?? 1.0;
                   let stretched: typeof audio.channelData = audio.channelData;
@@ -9594,7 +9594,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             pts: tailPts + start - inputLength });
                         }
                       } else if (trimmed === "aphaser" || trimmed.startsWith("aphaser=")) {
-                        stretched = await phaseAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
+                        if (filteredSampleFormat === "u8") filteredSampleFormat = "s16";
+                        stretched = await phaseAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal);
                       } else if (filterName === "aphaseshift" || filterName === "afreqshift") {
                         stretched = await shiftAudioPhase(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
                         statsScale = 1;
@@ -9979,6 +9980,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_u8" ? 128
                           : t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
                         panPcm16 = precision === "fixed" && sampleScale === 32768;
+                        filteredSampleFormat = precision === "float" ? "flt" : precision === "double" ? "dbl"
+                          : sampleScale === 128 ? "u8" : sampleScale === 32768 ? "s16" : "s32";
                         const variables: Record<string, number> = { PI: Math.PI, nan: NaN, inf: Infinity, sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
                           // Native volume leaves sample counters unavailable in both evaluation modes.
                           nb_samples: NaN, nb_consumed_samples: NaN, startpts: NaN, startt: NaN,

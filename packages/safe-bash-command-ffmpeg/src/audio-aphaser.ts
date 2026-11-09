@@ -4,7 +4,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function phaseAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  codec: string | undefined, budget: MediaBudgetTracker, signal?: AbortSignal
+  sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   const options = { in_gain: 0.4, out_gain: 0.74, delay: 3, decay: 0.4, speed: 0.5, type: 1 };
   const ranges = { in_gain: [0, 1], out_gain: [0, 1e9], delay: [0, 5], decay: [0, 0.99], speed: [0.1, 2], type: [0, 1] };
@@ -33,8 +33,8 @@ export async function phaseAudio(
   budget.allocateMemory((length + delayLength) * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
   const history = channels.map(() => new Float64Array(delayLength));
-  // Native aphaser negotiates unsigned 8-bit input to signed 16-bit samples.
-  const scale = codec === "pcm_u8" || codec === "pcm_s16le" ? 32768 : (codec === "pcm_s24le" || codec === "pcm_s32le") ? 2147483648 : 1;
+  const scale = sampleFormat === "s16" || sampleFormat === "s16p" ? 32768
+    : sampleFormat === "s32" || sampleFormat === "s32p" ? 2147483648 : 1;
   let position = 0;
   let work = 0;
   for (let frame = 0; frame < length; frame++) {
@@ -59,7 +59,7 @@ export async function phaseAudio(
       // x86 int32 conversion produces INT32_MIN on overflow rather than wrapping.
       output[channel]![frame] = scale === 32768 ? ((Math.trunc(sample) << 16) >> 16) / scale
         : scale === 2147483648 ? (Math.trunc(sample) < -2147483648 || Math.trunc(sample) > 2147483647 ? -2147483648 : Math.trunc(sample)) / scale
-        : codec === "pcm_f32le" ? Math.fround(sample) : sample;
+        : sampleFormat === "flt" || sampleFormat === "fltp" ? Math.fround(sample) : sample;
     }
   }
   return output;

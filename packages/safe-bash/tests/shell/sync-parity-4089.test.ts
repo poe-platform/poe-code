@@ -40,3 +40,26 @@ for (const [name, source, expected] of cases) {
     }
   });
 }
+
+for (const [option, delimiter] of [["-b", ""], ["-h", "\\:\\:\\:\n"], ["-f", "\\:\n"]]) {
+  for (const byte of [128, 255]) {
+    for (const pipeline of [false, true]) {
+      test(`nl preserves raw ${option} patterns through substitution (byte=${byte}, pipeline=${pipeline})`, async context => {
+        const shell = new Shell({ fs: new MemoryFileSystem() });
+        for (const command of [...createNlCommands(), ...basicCommands()]) shell.commands.register(command);
+        context.after(() => shell.dispose());
+        const escaped = `\\x${byte.toString(16)}`;
+        const input = `${delimiter}${escaped}\\nA`;
+        const command = `nl ${option} $'p${escaped}'`;
+        const source = pipeline ? `printf '%s\\n' $'${input}' | ${command}` : `${command} <<< $'${input}'`;
+        const expected = Uint8Array.of(...(delimiter ? [10] : []), 32, 32, 32, 32, 32, 49, 9, byte, 10, 32, 32, 32, 32, 32, 32, 32, 65, 10);
+        for (const script of [source, `x=$(${source}); printf '%s\\n' "$x"`, `for ((i=0;i<40;i++)); do x=$(${source}); printf '%s\\n' "$x"; done`]) {
+          const result = await shell.exec(script);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stderr, "", script);
+          assert.deepEqual(result.stdoutBytes, script.startsWith("for ") ? Uint8Array.from(Array.from({ length: 40 }, () => [...expected]).flat()) : expected, script);
+        }
+      });
+    }
+  }
+}

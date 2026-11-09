@@ -15,10 +15,10 @@ class PatternBudget extends Budget {
   override step(count = 1): void { this.session.charge(count); }
 }
 
-function style(text: string): Style {
+function style(text: string, bytes: Uint8Array | undefined): Style {
   const first = text[0];
   if (first === "a" || first === "t" || first === "n") return first;
-  if (text.startsWith("p")) return new Pattern(latin1Text(bytesFrom(text.slice(1))), false);
+  if (text.startsWith("p")) return new Pattern(latin1Text(bytes!.subarray(1)), false);
   throw new UsageError(`invalid numbering style: '${text}'`);
 }
 
@@ -48,6 +48,7 @@ function blankGroup(text: string): bigint {
 export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinition {
   return command("nl", limits, async session => {
     const arguments_ = getCommandArguments(session.context);
+    const styles = new Map<string, Uint8Array>();
     let separator = bytesFrom("\t");
     const parsed = options(session.context.args, "h:b:f:v:i:pl:s:w:n:d:", {
       "header-numbering": "h", "body-numbering": "b", "footer-numbering": "f",
@@ -56,8 +57,9 @@ export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinit
       "number-format": "n", "section-delimiter": "d",
     }, false, undefined, (key, index, offset) => {
       if (key === "s") separator = bytesFrom(arguments_.bytes(index)!.subarray(offset));
+      if (key === "h" || key === "b" || key === "f") styles.set(key, arguments_.bytes(index)!.subarray(offset));
     });
-    const header = style(value(parsed, "h") ?? "n"), body = style(value(parsed, "b") ?? "t"), footer = style(value(parsed, "f") ?? "n");
+    const header = style(value(parsed, "h") ?? "n", styles.get("h")), body = style(value(parsed, "b") ?? "t", styles.get("b")), footer = style(value(parsed, "f") ?? "n", styles.get("f"));
     const start = signed(value(parsed, "v") ?? "1"), increment = signed(value(parsed, "i") ?? "1");
     const join = blankGroup(value(parsed, "l") ?? "1"), width = integer(numericArgument(value(parsed, "w") ?? "6"), 1);
     const format = value(parsed, "n") ?? "rn";

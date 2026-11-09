@@ -629,6 +629,7 @@ interface MagickState {
   tileOffset?: { x: number; y: number };
   virtualPixel?: VirtualPixelMethod;
   fill: RgbaColor;
+  fillHasAlpha?: boolean;
   stroke: RgbaColor;
   strokeWidth: number;
   antialias?: boolean;
@@ -6971,6 +6972,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const fill = [state.fill.r, state.fill.g, state.fill.b];
         const mask = [state.channels.r, state.channels.g, state.channels.b];
         apply = function* (image) {
+            if (state.fillHasAlpha) image = yield* ensureAlphaImageSteps(image, 1);
             if ((image.space === "b-w" || image.space === "grey16") && (fill[0] !== fill[1] || fill[1] !== fill[2] || mask[0] !== mask[1] || mask[1] !== mask[2] || red !== green || green !== blue))
                 image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
             const out = new Uint8Array(image.data);
@@ -7649,7 +7651,11 @@ if (t === "-seed") {
             state.backgroundExplicit = true;
         }
         else if (t === "-fill") {
-            state.fill = parseColor(tokens[++i] ?? "#000000", true);
+            const color = (tokens[++i] ?? "#000000").trim().toLowerCase();
+            state.fill = parseColor(color, true);
+            state.fillHasAlpha = color === "none" || color === "transparent"
+                || color.startsWith("#") && [5, 9, 17].includes(color.length)
+                || color.includes("(") && color.slice(0, color.indexOf("(")).endsWith("a");
             state.tile = undefined;
         }
         else if (t === "-antialias" || t === "+antialias") {

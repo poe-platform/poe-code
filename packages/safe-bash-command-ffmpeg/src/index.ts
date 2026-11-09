@@ -8982,7 +8982,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             outputNames = speakers.filter((_, index) => (mask & (1 << index)) !== 0);
                           } else {
-                            outputNames = layout === "quad" ? ["FL", "FR", "BL", "BR"] : parseSplitChannelLayout(layout);
+                            outputNames = parseAudioChannelLayout(layout);
                             if (outputNames.some(name => !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length) {
                               throw new Error("channelmap: unsupported channel layout");
                             }

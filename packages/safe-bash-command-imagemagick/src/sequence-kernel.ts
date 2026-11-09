@@ -3,9 +3,10 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>;
 const byte = (value: number) => Math.max(0, Math.min(255, Math.round(value)));
 
-export type LookupInterpolation = "bilinear" | "nearest" | "integer" | "average";
+export type LookupInterpolation = "bilinear" | "nearest" | "integer" | "average" | "mesh";
 
 function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
+    if (interpolation === "mesh") throw new Error("Unsupported lookup interpolation: mesh");
     const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
     const left = Math.floor(x + (nearest ? 0.5 : 0)), top = Math.floor(y + (nearest ? 0.5 : 0));
     const dx = x - left, dy = y - top, values = [0, 0, 0, 0];

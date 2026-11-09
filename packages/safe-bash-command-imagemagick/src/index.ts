@@ -2413,6 +2413,7 @@ function sampleFxImage(
   return sampleFxPixel(img.data16 ?? img.data!, idx, ch, img.data16 ? 65535 : 255);
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
+  if (interpolation === "mesh") throw new Error("Unsupported FX interpolation: mesh");
   if (!img) return 0;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
   const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
@@ -3262,6 +3263,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     // use ImageMagick's best-fit SRT canvas and background virtual pixels.
     if (token === "-rotate") {
         const { angle, applies } = parseMagickRotation(tokens[start + 1] ?? "0"), background = state.background, kernel = state.kernel, filter = state.resizeFilter;
+        if (state.kernel === "nearest" && state.interpolation === "mesh") throw new Error("Unsupported rotation interpolation: mesh");
         const nearest = state.kernel === "nearest" && state.interpolation === "nearest";
         if (!Number.isFinite(angle) || angle % 90 === 0) return;
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">): (WarpPlan & { space?: RgbaImage["space"]; steps: ReturnType<typeof warpPixelSteps> }) | undefined => {
@@ -3284,6 +3286,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const distort = token === "-distort" || token === "+distort";
     const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
     if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(spec, token);
+    const interpolation = state.interpolation ?? "bilinear";
     const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort || token === "-implode" ? "edge" : undefined);
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
     return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">) => {
@@ -3314,7 +3317,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             // Wave always uses background virtual pixels. Explicit background mode
             // promotes grayscale to RGB; otherwise native's gray cache uses blue.
             if (gray && virtualPixel !== "background") color = { r: color.b, g: color.b, b: color.b, a: color.a };
-            return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, plan, color, "background") };
+            return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, { ...plan, interpolation }, color, "background") };
         }
         return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, kernel, filter) } : undefined;
     } };
@@ -7350,7 +7353,7 @@ if (t === "-seed") {
         else if (t === "-interpolate") {
             const method = (tokens[++i] ?? "").toLowerCase();
             if (method === "nearest" || method === "nearest-neighbor") state.interpolation = "nearest";
-            else if (method === "integer" || method === "average" || method === "bilinear") state.interpolation = method;
+            else if (method === "integer" || method === "average" || method === "bilinear" || method === "mesh") state.interpolation = method;
             else throw new Error(`unrecognized interpolate method '${method}'`);
         }
         else if (t === "+interpolate") {

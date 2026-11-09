@@ -1,3 +1,4 @@
+import type { LookupInterpolation } from "./sequence-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -7,6 +8,7 @@ export interface WarpPlan {
     readonly height: number;
     readonly hasAlpha: boolean;
     readonly nearest?: boolean;
+    readonly interpolation?: LookupInterpolation;
     readonly virtualCanvas?: RgbaImage["virtualCanvas"];
     derivatives?(x: number, y: number): readonly [number, number, number, number];
     map(x: number, y: number): readonly [number, number];
@@ -71,8 +73,9 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             // Native resampling uses an integer lookup when the entire filter
             // footprint lies beyond the raster's pixel centers.
             const outside = filter && virtualPixel === "background" && (sx + support < 0 || sy + support < 0 || sx - support > width - 1 || sy - support > height - 1);
+            const interpolation = plan.interpolation;
             for (let filtered = !!derivatives && kernel !== "nearest" && !plan.nearest; ; filtered = false) {
-                const samples: Iterable<readonly [number, number, number] | undefined> = outside ? [[Math.floor(sx), Math.floor(sy), 1]] : plan.nearest ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : filtered ? ellipseSamples(sx, sy, derivatives!, weights, support) : [
+                const samples: Iterable<readonly [number, number, number] | undefined> = outside ? [[Math.floor(sx), Math.floor(sy), 1]] : plan.nearest || interpolation === "nearest" ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : interpolation === "integer" ? [[x0, y0, 1]] : interpolation === "average" ? [[x0, y0, 0.25], [x1, y0, 0.25], [x0, y1, 0.25], [x1, y1, 0.25]] : filtered ? ellipseSamples(sx, sy, derivatives!, weights, support) : [
                     [x0, y0, (1 - fx) * (1 - fy)], [x1, y0, fx * (1 - fy)],
                     [x0, y1, (1 - fx) * fy], [x1, y1, fx * fy]
                 ];
@@ -99,15 +102,21 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     }
                     const opacity = pixel[3]!;
                     alpha += opacity * weight; total += weight;
-                    if (derivatives) weight *= opacity / maximum;
+                    // Wave's x coordinate is integral, so mesh triangles reduce to
+                    // the same vertical weights as bilinear. Native mesh divides
+                    // unassociated colors by alpha; average excludes transparent RGB.
+                    if (interpolation === "mesh") colorTotal += weight * opacity / maximum;
+                    else if (interpolation === "average") colorTotal += weight;
+                    if (derivatives || interpolation === "bilinear") weight *= opacity / maximum;
+                    else if (interpolation === "average") weight *= Number(opacity > 0);
                     red += pixel[0]! * weight;
                     green += pixel[1]! * weight;
                     blue += pixel[2]! * weight;
-                    colorTotal += weight;
+                    if (interpolation !== "mesh" && interpolation !== "average") colorTotal += weight;
                 }
                 // Native EWA falls back to interpolation for nonpositive filter coverage.
                 if (filtered && (total <= 1e-12 || colorTotal <= 1e-12)) continue;
-                const colorScale = 1 / colorTotal, alphaScale = 1 / total;
+                const colorScale = 1 / Math.max(1e-12, colorTotal), alphaScale = 1 / total;
                 const values = [red * colorScale, green * colorScale, blue * colorScale, alpha * alphaScale];
                 // Q16-HDRI stores float32 quantum samples before output-depth rounding.
                 const quantumScale = highDepth ? 1 : 257;

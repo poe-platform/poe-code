@@ -1073,8 +1073,7 @@ function* applyMagickCustomConvolveSteps(img: RgbaImage, spec: string, signal?: 
     return kernel.weights.length ? yield* applyMagickRasterSteps(img, convolvePixelSteps(img, kernel, 0), signal) : img;
 }
 
-function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
+function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows: number } {
     const separator = spec.indexOf(":");
     const name = (separator < 0 ? spec : spec.slice(0, separator)).trim().toLowerCase();
     const argument = separator < 0 ? undefined : Number(spec.slice(separator + 1));
@@ -1100,6 +1099,18 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
     const rows = geometry ? geometry.height ?? cols : cols;
     if (cols <= 0 || rows <= 0 || !Number.isInteger(cols) || !Number.isInteger(rows) || cols * rows !== m.length)
         throw new Error("Invalid color matrix: coefficient count must match the dimensions or be a nonzero square");
+    return { m, cols, rows };
+}
+
+function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    let cooperativeWork = 0;
+    const kernels = spec.split(";");
+    const { m, cols, rows } = parseMagickColorMatrix(kernels[0]!);
+    // ImageMagick applies only the first kernel, but validates the entire list.
+    for (let i = 1; i < kernels.length; i++) {
+        parseMagickColorMatrix(kernels[i]!);
+        yield;
+    }
     const out = new Uint8Array(img.data);
     const samples = img.evaluateSamples ?? img.data16 ?? img.data;
     const scale = !img.evaluateSamples && img.data16 ? 257 : 1;
@@ -1891,7 +1902,7 @@ function validateMagickSpliceGeometry(raw: string): void {
     }
 }
 
-function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, gravity: GravityPosition = "northwest", signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, gravity: GravityPosition = "northwest", signal?: AbortSignal, virtualPixel: VirtualPixelMethod = "edge"): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = resolveMagickSpliceGeometry(geomStr, img.width, img.height);
     const sw = g.width, sh = g.height;
@@ -1903,7 +1914,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     const outH = img.height + sh;
     const xOffset = box.x + anchor.left;
     // Clip the inserted band at the left edge; the canvas still grows by sw.
-    // Unfilled columns read virtual edge pixels from the source.
+    // Unfilled columns use the selected virtual-pixel method.
     const spliceWidth = Math.max(0, sw + Math.min(0, xOffset));
     const sx = Math.max(0, Math.min(outW, xOffset));
     if (box.y + anchor.top > outH) throw new Error("pixels are not authentic");
@@ -1926,9 +1937,17 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 if (data16) data16.set(background, dstIdx);
             }
             else {
-                const origX = Math.min(img.width - 1, x < sx ? x : x - spliceWidth);
-                const origY = Math.min(img.height - 1, y < sy ? y : y - sh);
-                const srcIdx = (origY * img.width + origX) * 4;
+                const origX = x < sx ? x : x - spliceWidth;
+                const origY = y < sy ? y : y - sh;
+                const srcIdx = virtualPixelIndex(origX, origY, img.width, img.height, virtualPixel) * 4;
+                if (srcIdx < 0) {
+                    const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
+                    const color = virtualPixel === "background" || virtualPixel.endsWith("-tile")
+                        ? [bg.r, bg.g, bg.b, bg.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
+                    out.set(color.map(Math.round), dstIdx);
+                    if (data16) data16.set(color.map(value => Math.round(value * 257)), dstIdx);
+                    continue;
+                }
                 out[dstIdx] = img.data[srcIdx]!;
                 out[dstIdx + 1] = img.data[srcIdx + 1]!;
                 out[dstIdx + 2] = img.data[srcIdx + 2]!;
@@ -8300,7 +8319,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
                 validateMagickSpliceGeometry(expanded);
-                return (yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal));
+                return (yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal, state.virtualPixel));
             });
         }
         else if (t === "-chop") {
@@ -9445,14 +9464,25 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
             for (let offset = 0; offset < x.length; offset += 4096) {
                 if (work++ % 64 === 0) await yieldTurn(signal);
                 const length = Math.min(4096, x.length - offset) * plane.stride;
-                const sourceX = Math.min(w - 1, x.source + offset);
-                const sourceLength = Math.min(length, (w - sourceX) * plane.stride);
-                let bytes = await backend.storage.read(plane.source + (Math.min(h - 1, y.source + row) * w + sourceX) * plane.stride, sourceLength);
+                const sourceX = x.source + offset;
+                const sourceLength = y.source + row >= h ? 0 : Math.max(0, Math.min(length, (w - sourceX) * plane.stride));
+                let bytes = sourceLength > 0 ? await backend.storage.read(plane.source + ((y.source + row) * w + sourceX) * plane.stride, sourceLength) : new Uint8Array();
                 if (sourceLength < length) {
                     const extended = new Uint8Array(length);
                     extended.set(bytes);
-                    const edge = bytes.subarray(sourceLength - plane.stride);
-                    for (let i = sourceLength; i < length; i += plane.stride) extended.set(edge, i);
+                    for (let i = sourceLength; i < length; i += plane.stride) {
+                        const index = virtualPixelIndex(sourceX + i / plane.stride, y.source + row, w, h, state.virtualPixel ?? "edge");
+                        if (index >= 0) extended.set(await backend.storage.read(plane.source + index * plane.stride, plane.stride), i);
+                        else {
+                            const method = state.virtualPixel;
+                            const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
+                            const color = method === "background" || method?.endsWith("-tile")
+                                ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255];
+                            const samples = plane.stride === 32 ? Float64Array.from(color) : plane.stride === 8
+                                ? Uint16Array.from(color, value => Math.round(value * 257)) : Uint8Array.from(color, Math.round);
+                            extended.set(new Uint8Array(samples.buffer), i);
+                        }
+                    }
                     bytes = extended;
                 }
                 await backend.storage.write(plane.target + ((y.target + row) * width + x.target + offset) * plane.stride, bytes);

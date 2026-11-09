@@ -11,16 +11,18 @@ export async function pulsateAudio(
   let timing = "hz";
   const options = { hz: 2, bpm: 120, ms: 500, amount: 1, offset_l: 0, offset_r: 0.5, width: 1, level_in: 1, level_out: 1 };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const option of argument ? argument.split(":") : []) {
+  const names = ["level_in", "level_out", "mode", "amount", "offset_l", "offset_r", "width", "timing", "bpm", "ms", "hz"] as const;
+  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
-    const key = option.slice(0, separator).trim() as keyof typeof options | "mode" | "timing";
-    if (separator < 0 || (key !== "mode" && key !== "timing" && !Object.hasOwn(options, key))) throw new Error(`apulsator: unsupported option ${option}`);
+    const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options | "mode" | "timing";
+    if (!key || (key !== "mode" && key !== "timing" && !Object.hasOwn(options, key))) throw new Error(`apulsator: unsupported option ${option}`);
     const value = option.slice(separator + 1).trim();
     if (key === "mode") {
-      if (!["sine", "triangle", "square", "sawup", "sawdown"].includes(value)) {
+      const modes = ["sine", "triangle", "square", "sawup", "sawdown"];
+      mode = modes[Number(value)] ?? value;
+      if (!value || !modes.includes(mode)) {
         throw new Error("apulsator: invalid mode");
       }
-      mode = value;
       continue;
     }
     if (key === "timing") {

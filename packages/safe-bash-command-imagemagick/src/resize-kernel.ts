@@ -144,7 +144,7 @@ function contributions(index: number, source: number, target: number, blur: numb
     return { first, weights };
 }
 
-type ResizeImage = { width: number; height: number; hasAlpha: boolean };
+type ResizeImage = { width: number; height: number; hasAlpha: boolean; space?: string };
 type ResizeSamples = Generator<ConvolveRequest | { kind: "samples"; position: number; data: Float64Array } | undefined, void, Uint8Array | undefined>;
 
 /** Keep HDRI samples unclamped until all resizing and morph blending is finished. */
@@ -222,8 +222,10 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
 export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[], highDepth = false, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // ImageMagick retains the first image's alpha unless both alpha channels are active.
     const blendAlpha = a.hasAlpha && b.hasAlpha;
+    // A grayscale first frame has one color channel, shared by R, G and B.
+    const gray = a.space === "b-w" || a.space === "grey16";
     if (a.width === width && a.height === height && b.width === width && b.height === height) {
-        yield* interpolatePixelSteps(width * height * 4, fraction, blendAlpha, channels, highDepth);
+        yield* interpolatePixelSteps(width * height * 4, fraction, blendAlpha, channels, highDepth, gray);
         return;
     }
     const sources = [a, b].map(image => resizeSamples(image, width, height, false,
@@ -251,6 +253,7 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
         }
         const range = highDepth ? 65535 : 255;
         const rounded = blended!.map(value => Math.round(Math.max(0, Math.min(range, value))));
+        if (gray) for (let i = 0; i < rounded.length; i += 4) rounded[i + 1] = rounded[i + 2] = rounded[i]!;
         const data = highDepth ? Uint16Array.from(rounded) : Uint8Array.from(rounded);
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }

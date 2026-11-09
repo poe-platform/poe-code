@@ -92,7 +92,7 @@ export function* haldClutPixelSteps(size: number, lut: { width: number; height: 
     }
 }
 
-export function* interpolatePixelSteps(size: number, fraction: number, blendAlpha = true, channels?: readonly boolean[], highDepth = false): Steps {
+export function* interpolatePixelSteps(size: number, fraction: number, blendAlpha = true, channels?: readonly boolean[], highDepth = false, gray = false): Steps {
     const range = highDepth ? 65535 : 255;
     for (let position = 0; position < size; position += 16384) {
         yield;
@@ -103,6 +103,10 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
         const other = highDepth ? new Uint16Array(otherBytes.slice().buffer) : otherBytes;
         for (let offset = 0; offset < length; offset++) {
             if (offset % 4 === 3 && !blendAlpha) continue;
+            if (gray && (offset % 4 === 1 || offset % 4 === 2)) {
+                data[offset] = data[offset - offset % 4]!;
+                continue;
+            }
             data[offset] = channels && !channels[offset % 4] ? other[offset]! : Math.max(0, Math.min(range, Math.round(data[offset]! * (1 - fraction) + other[offset]! * fraction)));
         }
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };

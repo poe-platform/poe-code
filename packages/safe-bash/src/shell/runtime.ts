@@ -6242,7 +6242,7 @@ export class Runtime {
     const scope = io[invocationScope].child();
     const externalDef = typeof name === "string" ? this.commands.get(name) : undefined;
     const fastInline = !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && (!externalDef || (!customRegisteredCommands.has(externalDef.execute) && !customRegisteredRegistries.has(this.commands))) && !(!bypassFunctions && state.functions.has(name)) && !state.extensions?.builtins.has(name) && name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray";
-    if ( this.dispatchFastCommand && fastInline && externalDef !== undefined && values.every(value => typeof value === "string") && !implementedBuiltins.has(name) && !(name === "printf" && externalDef.execute === printfCommand.execute && args[0]?.startsWith("-v"))) {
+    if ( this.dispatchFastCommand && fastInline && externalDef !== undefined && values.every(value => typeof value === "string") && !implementedBuiltins.has(name) && !(name === "printf" && externalDef.execute === printfCommand.execute && (args[0]?.startsWith("-v") || args[args[0] === "--" ? 1 : 0]?.includes("n")))) {
       try {
         return await this.dispatchFastCommand(name, externalDef, values, state, io, scope);
       } finally {
@@ -6651,9 +6651,9 @@ export class Runtime {
         }
         const virtualName = context.command.includes("/") ? this.virtualExecutable(pathOf(state, context.command)) : undefined;
         const definition = this.commands.get(virtualName ?? context.command);
-        if (context.command === "printf" && definition?.execute === printfCommand.execute && context.args[0]?.startsWith("-v")) {
+        if (context.command === "printf" && definition?.execute === printfCommand.execute && (context.args[0]?.startsWith("-v") || context.args[context.args[0] === "--" ? 1 : 0]?.includes("n"))) {
           ensureRuntimeContext();
-          return { exitCode: await this.printfVariable(context, state, assignments) };
+          return { exitCode: await this.printfBuiltin(context, state, assignments) };
         }
         if (!definition) {
           ensureRuntimeContext();
@@ -8052,7 +8052,7 @@ export class Runtime {
       await writeText(io.stdout, quoted);
     } finally { allocation.close(); }
   }
-  private async printfVariable(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>): Promise<number> {
+  private async printfBuiltin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>): Promise<number> {
     const incoming = getCommandArguments(context);
     let offset = 0;
     let name = "";
@@ -8105,13 +8105,29 @@ export class Runtime {
     } };
     try {
       let status: number;
-      try { status = (await formatPrintf({ ...context, args: arguments_.args, argumentValues: arguments_, stdout }, state.shellStartedAt ??= Date.now())).exitCode; }
+      try { status = (await formatPrintf({ ...context, args: arguments_.args, argumentValues: arguments_, stdout: name ? stdout : context.stdout }, state.shellStartedAt ??= Date.now(), async (target, count) => {
+        if (!isShellIdentifier(target)) throw new UsageError(`'${target}': not a valid identifier`);
+        target = this.referenceName(state, target);
+        if (state.readonlyVariables?.has(target)) {
+          await writeDiagnostic(context.stderr, `printf: ${target}: readonly variable\n`);
+          return;
+        }
+        if (target === "FUNCNAME") return;
+        await this.assignVariable(state, target, String(count), context);
+        const previous = assignments.get(target);
+        if (previous) {
+          if (!previous.exported) state.exported.delete(target);
+          await this.discardVariable(previous);
+          assignments.delete(target);
+        }
+      })).exitCode; }
       catch (error) {
         this.signal.throwIfAborted();
         if (!(error instanceof UsageError)) throw error;
         await writeDiagnostic(context.stderr, `printf: ${error.message}\n`);
         status = 1;
       }
+      if (!name) return status;
       const value = concatShellValues(chunks, allocation);
       this.signal.throwIfAborted();
       name = this.referenceName(state, name);

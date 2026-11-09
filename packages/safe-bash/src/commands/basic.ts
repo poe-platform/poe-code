@@ -169,7 +169,10 @@ export function basicCommands(): CommandDefinition[] {
   });
 }
 
-export async function formatPrintf(context: CommandContext, shellStartedAt = (context as CommandContext & { shellStartedAt?: number }).shellStartedAt ?? Date.now()): Promise<CommandResult> {
+export async function formatPrintf(context: CommandContext, shellStartedAt = (context as CommandContext & { shellStartedAt?: number }).shellStartedAt ?? Date.now(), assignCount?: (name: string, count: number) => Promise<void>): Promise<CommandResult> {
+  let count = 0;
+  const stdout = context.stdout;
+  if (assignCount) context = { ...context, stdout: { write: async bytes => { await stdout.write(bytes); count += bytes.byteLength; } } };
   const incoming = getCommandArguments(context);
   const arguments_ = incoming.args[0] === "--" ? incoming.slice(1) : incoming;
   const args = arguments_.args;
@@ -194,6 +197,7 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
     catch (error) { if (error instanceof TypeError) return first; throw error; }
   };
   do {
+    count = 0;
     const before = argument;
     for (let offset = 0; offset < formatLength && !stopped;) {
       if (rawFormat ? rawFormat[offset] !== 37 : format[offset] !== "%") {
@@ -236,6 +240,10 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
       const supplied = args[suppliedIndex] ?? "";
       let text: string;
       let specialFloat: string | undefined;
+      if (specifier === "n") {
+        if (supplied) await assignCount?.(supplied, count);
+        continue;
+      }
       if (specifier === "T") {
         const operand = supplied.startsWith("'") || supplied.startsWith('"') ? String(quotedNumber(suppliedIndex)) : supplied;
         const parsed = printfInteger(suppliedIndex < args.length ? operand : "-1", false);

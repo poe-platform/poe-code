@@ -62,7 +62,7 @@ export async function parsePrintfDirective(format: string | Uint8Array, start: n
   }
   let specifier = character();
   if (wide && (specifier === "s" || specifier === "c")) specifier = specifier.toUpperCase();
-  if (!specifier || !"sbqQcCSdiouxXfFeEgGaA".includes(specifier)) {
+  if (!specifier || !"nsbqQcCSdiouxXfFeEgGaA".includes(specifier)) {
     const end = start + 64;
     const preview = typeof format === "string" ? format.slice(start, end) : decoder.decode(format.subarray(start, end));
     throw new UsageError(`invalid format near '${preview}${format.length > end ? "..." : ""}'`);

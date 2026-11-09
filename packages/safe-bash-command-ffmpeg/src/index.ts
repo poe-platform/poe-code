@@ -8952,6 +8952,28 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (selected.length !== 1) throw new Error("channelsplit: simple audio filters require exactly one output");
                         const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR"];
                         const mask = input.reduce((value, speaker) => value | (1 << speakers.indexOf(speaker)), 0);
+                        if (mask === 3 && (stretched.length === 1 || stretched.length === 6)) {
+                          const mono = stretched.length === 1;
+                          if (!mono && filteredChannelMask && filteredChannelMask !== 0x3f && filteredChannelMask !== 0x60f) {
+                            throw new Error(`channelsplit: unsupported input channel layout (mask ${filteredChannelMask})`);
+                          }
+                          const pcm16 = t.codecDescriptions[0]?.codecName === "pcm_s16le";
+                          budget.allocateMemory(stretched[0]!.length * 2 * 8);
+                          const stereo = [new Float64Array(stretched[0]!.length), new Float64Array(stretched[0]!.length)];
+                          for (const [channel, output] of stereo.entries()) {
+                            for (let i = 0; i < output.length; i++) {
+                              if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              const front = stretched[mono ? 0 : channel]![i]!;
+                              const surround = mono ? 0 : stretched[2]![i]! + stretched[channel + 4]![i]!;
+                              // Negotiate stereo before splitting, including the s16 mixer's Q15 rounding.
+                              output[i] = pcm16
+                                ? Math.floor(front * (mono ? 23170 : 13573) + (mono ? 0 : stretched[2]![i]! * 9597 + stretched[channel + 4]![i]! * 9598) + 0.5) / 32768
+                                : mono ? front * Math.SQRT1_2 : (front + surround * Math.SQRT1_2) / (1 + Math.SQRT2);
+                            }
+                          }
+                          stretched = stereo;
+                          filteredChannelMask = 3;
+                        }
                         if (stretched.length !== input.length || (filteredChannelMask && filteredChannelMask !== mask)) {
                           throw new Error("channelsplit: matching input channel layout required");
                         }

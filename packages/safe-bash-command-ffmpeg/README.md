@@ -321,6 +321,7 @@ Duplicate an audio input into independently filtered outputs with
 `asplit` defaults to two outputs; `asplit=outputs=3` selects three.
 Split stereo PCM into distinct mono files with
 `-filter_complex '[0:a]channelsplit=channel_layout=stereo[L][R]' -map '[L]' left.wav -map '[R]' right.wav`.
+Mono and 5.1 input are remixed to stereo before selecting a stereo output channel.
 Use `-af channelsplit=channel_layout=stereo:channels=FR` to extract only the right
 channel (`FL` selects the left). Stereo layouts also accept `0x3`, `FL+FR`, and
 `2c`; channel selections accept masks (`0x1` for left, `0x2` for right) and

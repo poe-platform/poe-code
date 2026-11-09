@@ -6769,17 +6769,23 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (im) {
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
-            const samples = data16 ?? out, range = data16 ? 65535 : 255;
+            const evaluateSamples = im.evaluateSamples?.slice();
+            const samples = evaluateSamples ?? data16 ?? out, range = evaluateSamples || !data16 ? 255 : 65535;
             const mask = [ch.r, ch.g, ch.b, ch.a && im.hasAlpha];
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
                 const gray = samples[idx] === samples[idx + 1] && samples[idx + 1] === samples[idx + 2];
                 for (let c = 0; c < 4; c++) {
                     if ((!onlyGray || gray) && mask[c]) samples[idx + c] = range - samples[idx + c]!;
-                    if (data16) out[idx + c] = clampByteVal(data16[idx + c]! / 257);
+                    if (evaluateSamples) {
+                        const value = evaluateSamples[idx + c]!;
+                        out[idx + c] = clampByteVal(value);
+                        if (data16) data16[idx + c] = Math.round(Math.max(0, Math.min(65535, value * 257)));
+                    }
+                    else if (data16) out[idx + c] = clampByteVal(data16[idx + c]! / 257);
                 }
             }
-            return { ...im, data: out, ...(data16 ? { data16 } : {}) };
+            return { ...im, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
         };
     }
     else if (token === "-contrast" || token === "+contrast") {
@@ -6949,7 +6955,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelSelections(expression: string): number[][] {

@@ -189,7 +189,10 @@ describe("externally retained metadata in Workerd",()=>{
 import {readImageMetadataFromSource} from "./codecs/metadata-source.js";
 import {readImageMetadata} from "./codecs/index.js";
 for(const magic of ["P1","P2","P3","P4","P5","P6"])for(const end of ["\n","\r\n"," # final comment\r\n"])it(`preserves Netpbm metadata ${magic}/${JSON.stringify(end)}`,async()=>{
- const bytes=new TextEncoder().encode(`${magic}\n# header comment\n17\t19\n${magic==="P1"||magic==="P4"?"":"65535"}${end}1 0 1`);
+ const header=new TextEncoder().encode(`${magic}\n# header comment\n17\t19\n${magic==="P1"||magic==="P4"?"":"65535"}${end}`);
+ const samples=17*19*(magic==="P3"||magic==="P6"?3:1);
+ const payload=magic==="P1"||magic==="P2"||magic==="P3"?new TextEncoder().encode("1 ".repeat(samples)):new Uint8Array(magic==="P4"?3*19:samples*2);
+ const bytes=join([header,payload]);
  expect(await readImageMetadataFromSource(source(bytes),new AbortController().signal)).toEqual(readImageMetadata(bytes));
 });
 for(const format of ["png","jpeg","bmp","ppm","tiff"] as const)it(`preserves ${format} pixel admission during file metadata`,async()=>{

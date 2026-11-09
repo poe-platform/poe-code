@@ -83,13 +83,18 @@ export function parseFilterExpression(expression: string, filter: string, variab
       }
     } else {
       const start = offset;
+      const hexadecimal = source[offset] === "0" && (source[offset + 1] === "x" || source[offset + 1] === "X");
+      if (hexadecimal) offset += 2;
+      const digitsStart = offset;
       while (offset < source.length) {
         const c = source[offset]!;
-        if ((c >= "0" && c <= "9") || c === ".") offset++;
+        if ((c >= "0" && c <= "9") || (hexadecimal
+          ? (c >= "a" && c <= "f") || (c >= "A" && c <= "F")
+          : c === ".")) offset++;
         else break;
       }
-      if (start === offset) throw new Error(`${filter}: invalid or unsupported expression`);
-      if (source[offset] === "e" || source[offset] === "E") {
+      if (digitsStart === offset) throw new Error(`${filter}: invalid or unsupported expression`);
+      if (!hexadecimal && (source[offset] === "e" || source[offset] === "E")) {
         let end = offset + 1;
         if (source[end] === "+" || source[end] === "-") end++;
         const digits = end;

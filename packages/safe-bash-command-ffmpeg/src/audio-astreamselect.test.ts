@@ -80,6 +80,33 @@ for (const [filter, expected] of [
     });
   }
 }
+// Native FFmpeg 7.0.2 keeps whole selected packets whose start precedes peer EOF.
+for (const [peerLength, expectedLongLength] of [[750, 1024], [512, 512], [513, 1024], [1, 512]] as const) {
+  for (const reversed of [false, true]) {
+    for (const selectLong of [false, true]) {
+      for (const stereo of [false, true]) {
+        it(`keeps selected packets at peer EOF=${peerLength}, reversed=${reversed}, long=${selectLong}, stereo=${stereo}`, async () => {
+          const long = Array.from({ length: 2048 }, (_, i) => 8000 + i);
+          const short = Array.from({ length: peerLength }, (_, i) => -4000 - i);
+          const selected = selectLong === reversed ? 1 : 0;
+          const expected = selectLong ? long.slice(0, expectedLongLength) : short;
+          const { result, volume, error } = await select(`astreamselect=map=${selected}`,
+            reversed ? short : long, reversed ? long : short, stereo);
+          assert.equal(result.exitCode, 0, error);
+          const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+          assert.equal(audio.sampleRate, 8000);
+          assert.equal(audio.channels, stereo ? 2 : 1);
+          for (const [index, channel] of audio.channelData.entries()) {
+            assert.equal(channel.length, expected.length);
+            assert.deepEqual(Array.from(channel, sample => sample * 32768),
+              expected.map(sample => index ? -sample : sample));
+          }
+        });
+      }
+    }
+  }
+}
+
 for (const filter of ["astreamselect", "astreamselect=inputs=3:map=1", "astreamselect=map=2",
   "astreamselect=map=-1", "astreamselect=map=", "astreamselect=map=no",
   "astreamselect=inputs=0b10:map=1", "astreamselect=inputs=1.5:map=1",

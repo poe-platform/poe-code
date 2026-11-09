@@ -796,7 +796,8 @@ use the same input handling and options as their unnamed forms.
 input, converting mono/stereo inputs to the first input’s channel layout.
 Stereo-to-mono averages both channels; mono-to-stereo uses equal-power gains.
 Other channel layouts must match. Selection preserves frame boundaries for
-downstream filters and ends with the shortest input.
+downstream filters. Selection stops when the shortest input ends, retaining the
+whole selected packet that began before that endpoint.
 Inputs must share a sample rate. `inputs` defaults to two; `map` must select one
 input. Map indices follow FFmpeg's integer-prefix parsing: decimal, leading-zero
 octal, and `0x` hexadecimal, with an optional sign. Suffixes stop parsing, so

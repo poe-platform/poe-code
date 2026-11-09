@@ -1501,7 +1501,16 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           source.track.decodedAudio.sampleRate !== audio.sampleRate)) {
           throw new Error("astreamselect requires decoded PCM inputs with matching sample rates");
         }
-        const length = Math.min(...sources.map(source => source.track.decodedAudio!.channelData[0]!.length));
+        const shortest = Math.min(...sources.map(source => source.track.decodedAudio!.channelData[0]!.length));
+        // Framesync stops at peer EOF, but emits each selected frame whole.
+        let length = 0;
+        for (let n = 0; length < shortest; n++) {
+          if (n % 1024 === 0) { budget.checkCpu(); await yieldTurn(signal); signal?.throwIfAborted(); }
+          const packet = track.samples[n];
+          length += packet ? Math.max(0, Math.round(packet.duration * audio.sampleRate / track.timescale)
+            - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+        }
+        length = Math.min(length, audio.channelData[0]!.length);
         budget.checkSamples(length);
         budget.checkDuration(length / audio.sampleRate);
         const target = sources[0]!.track.decodedAudio!;

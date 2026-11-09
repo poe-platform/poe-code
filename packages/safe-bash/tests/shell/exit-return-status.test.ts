@@ -18,6 +18,42 @@ for (const command of ["exit", "return"]) {
   }
 }
 
+for (const command of ["exit", "return"]) {
+  const invocation = command === "exit"
+    ? "exit 4 x"
+    : "f() { return 4 x; say BODY_AFTER; }; f";
+  for (const [script, stdout, exitCode] of [
+    [`${invocation}; say AFTER`, "", 1],
+    [`${invocation}\nsay AFTER`, "", 1],
+    [`${invocation} || say RECOVER; say AFTER`, "", 1],
+    [`(${invocation}; say CHILD_AFTER); say "PARENT:$?"`, "PARENT:1\n", 0],
+    [`value=$(${invocation}; say CHILD_AFTER); say "PARENT:$?:<$value>"`, "PARENT:1:<>\n", 0],
+  ] as const) {
+    test(`${command} extra operands terminate only the current shell: ${script}`, async context => {
+      const { shell } = setup();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(script);
+      assert.equal(result.stdout, stdout);
+      assert.equal(result.exitCode, exitCode);
+      assert.equal(result.stderr, `${command}: too many arguments\n`);
+    });
+  }
+}
+
+for (const [script, stdout, exitCode] of [
+  ["exit 4; say AFTER", "", 4],
+  ['f() { return 4; say BODY_AFTER; }; f; say "AFTER:$?"', "AFTER:4\n", 0],
+] as const) {
+  test(`valid status preserves exit/return scope: ${script}`, async context => {
+    const { shell } = setup();
+    context.after(() => shell.dispose());
+    const result = await shell.exec(script);
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.exitCode, exitCode);
+    assert.equal(result.stderr, "");
+  });
+}
+
 for (const [script, exitCode, stdout] of [
   ['exit junk; say "AFTER:$?"', 0, "AFTER:2\n"],
   ["exit junk", 2, ""],

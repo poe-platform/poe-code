@@ -9306,7 +9306,7 @@ export class Runtime {
         if (command === "exit") return 2;
         throw completedExit(2, command);
       }
-      if (args.length - offset > 1) { await writeDiagnostic(stderr, `${command}: too many arguments\n`); return 1; }
+      if (args.length - offset > 1) { await writeDiagnostic(stderr, `${command}: too many arguments\n`); throw completedExit(1); }
       const status = operand === undefined ? (command === "exit" && state.extensions?.exiting ? state.extensions.exitStatus ?? state.status : state.status) : Number((value % 256n + 256n) % 256n);
       throw completedExit(status, command, 1, state.status);
     }

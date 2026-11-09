@@ -4480,7 +4480,7 @@ export function evalSyncFfmpeg(
     }
     workingDoc = applyDisplayAspects(workingDoc, displayAspects);
     workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
-    workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs, budget);
+    workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs === "auto" && outPlugin?.id === "srt" ? "make_non_negative" : avoidNegativeTs, budget);
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
     if (!writeFileSync || !outputTarget || outputTarget.endsWith("/") || outputTarget.endsWith("/.") || outputTarget.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outputTarget)) return undefined;
@@ -9112,7 +9112,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             // Count processed media, not container headers or checksum text.
             workingDoc = applyDisplayAspects(workingDoc, displayAspects);
             workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
-            workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs, budget);
+            workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs === "auto" && outPlugin?.id === "srt" ? "make_non_negative" : avoidNegativeTs, budget);
             let outputHasFrames = false;
             for (const [streamIndex, track] of workingDoc.tracks.entries()) {
               const hasFrames = track.decodedAudio ? track.decodedAudio.channelData.some(channel => channel.length > 0)

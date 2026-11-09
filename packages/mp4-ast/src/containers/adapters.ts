@@ -2244,7 +2244,20 @@ export function isSrtSignature(bytes: Uint8Array, _filename?: string): boolean {
   const head = decodeSubRip(bytes.subarray(0, Math.min(256, bytes.byteLength))).trimStart();
   // Native probing requires ordinary spaces; forced demuxing is more permissive.
   if (!head.split("\n")[1]?.includes(" --> ")) return false;
-  return /^\d+\r?\n\d{2}:\d{2}:\d{2}[,.]\d+\s*-->\s*\d{2}:\d{2}:\d{2}[,.]\d+/.test(head);
+  const [index, timing = ""] = head.split("\n");
+  if (!index || ![...index].every(char => char >= "0" && char <= "9")) return false;
+  const times = timing.split("-->");
+  return times.length === 2 && times.every((time, side) => {
+    const parts = time.trim().replace(",", ".").split(":");
+    if (parts.length < 3) return false;
+    const hour = parts[0]!.startsWith("-") ? parts[0]!.slice(1) : parts[0]!;
+    const [second, fraction = ""] = parts[2]!.split(".");
+    if (![hour, parts[1]!, second!].every(part => part.length === 2
+      && [...part].every(char => char >= "0" && char <= "9"))) return false;
+    let digits = 0;
+    while (fraction[digits] !== undefined && fraction[digits]! >= "0" && fraction[digits]! <= "9") digits++;
+    return digits > 0 && (side === 1 || (parts.length === 3 && digits === fraction.length));
+  });
 }
 
 export function isWebVttSignature(bytes: Uint8Array, filename?: string): boolean {
@@ -2279,6 +2292,7 @@ function splitAdjacentSrtCues(block: string): string[] {
       const timestamp = time.trim().split(" ")[0]!.split("\t")[0]!;
       const parts = timestamp.replace(",", ".").split(":");
       if (parts.length !== 3) return false;
+      if (parts[0]!.startsWith("-") || parts[0]!.startsWith("+")) parts[0] = parts[0]!.slice(1);
       const seconds = parts.pop()!.split(".");
       return seconds.length === 2 && [...parts, ...seconds].every(part =>
         part.length > 0 && [...part].every(char => char >= "0" && char <= "9"));

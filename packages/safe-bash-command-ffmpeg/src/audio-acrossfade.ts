@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 
 export async function acrossfadeAudio(
@@ -29,7 +30,7 @@ export async function acrossfadeAudio(
       if (!["0", "1", "false", "true"].includes(value)) throw new Error("acrossfade: invalid overlap");
       overlap = value === "1" || value === "true";
     } else if (key === "c1" || key === "curve1" || key === "c2" || key === "curve2") {
-      if (value !== "tri" && value !== "0") throw new Error("acrossfade: only the triangular curve is supported");
+      if (parseFilterExpression(value, "acrossfade", { tri: 0 }) !== 0) throw new Error("acrossfade: only the triangular curve is supported");
     } else throw new Error(`acrossfade: unsupported option ${key}`);
   }
   if (duration > 0) samples = Math.round(duration * a.sampleRate);

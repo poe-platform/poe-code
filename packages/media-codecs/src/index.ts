@@ -238,8 +238,8 @@ export interface DecodedAudioFrame {
 }
 
 /** Decode audio packets in memory, retaining priming samples for container edits. */
-export function* decodeAudio(codec: "AAC" | "MP3" | "Vorbis" | "Opus", packets: Iterable<VideoPacket>, extra: Uint8Array = new Uint8Array()): Generator<DecodedAudioFrame> {
-  if ((codec !== "MP3" && !extra.length) || (codec === "Opus" && extra.length < 19) || extra.length > 65536) throw new Error(`Invalid ${codec} decoder configuration`);
+export function* decodeAudio(codec: "AAC" | "MP3" | "Vorbis" | "Opus" | "AMR-WB", packets: Iterable<VideoPacket>, extra: Uint8Array = new Uint8Array()): Generator<DecodedAudioFrame> {
+  if ((codec !== "MP3" && codec !== "AMR-WB" && !extra.length) || (codec === "Opus" && extra.length < 19) || extra.length > 65536) throw new Error(`Invalid ${codec} decoder configuration`);
   const module = runtime ??= createCodecRuntime({ printErr() {}, locateFile: () => "embedded-codecs" });
   let decoded = 0;
   let sent = 0;
@@ -249,7 +249,7 @@ export function* decodeAudio(codec: "AAC" | "MP3" | "Vorbis" | "Opus", packets: 
     input = module._malloc(Math.max(1, extra.length));
     if (!input) throw new Error(`${codec} allocation failed`);
     module.HEAPU8.set(extra, input);
-    decoder = module._audio_decoder_create(codec === "AAC" ? 0 : codec === "MP3" ? 1 : codec === "Vorbis" ? 2 : 3, input, extra.length);
+    decoder = module._audio_decoder_create(codec === "AAC" ? 0 : codec === "MP3" ? 1 : codec === "Vorbis" ? 2 : codec === "Opus" ? 3 : 4, input, extra.length);
     module._free(input);
     input = 0;
     if (!decoder) throw new Error(`Invalid ${codec} decoder configuration`);
@@ -297,10 +297,10 @@ export function* decodeAudio(codec: "AAC" | "MP3" | "Vorbis" | "Opus", packets: 
   }
 }
 
-/** Encode bounded PCM frames as AAC access units or MPEG audio frames. */
+/** Encode bounded PCM frames as AAC, MPEG audio or AMR frames. */
 export function encodeAudio(
-  codec: "aac" | "mp3", sampleRate: number,
-  channelData: readonly (Float32Array | Float64Array)[]
+  codec: "aac" | "mp3" | "amr_nb" | "amr_wb", sampleRate: number,
+  channelData: readonly (Float32Array | Float64Array)[], bitrate?: number
 ): { packets: Uint8Array[]; extra: Uint8Array; frameSize: number; delay: number } {
   const count = channelData[0]?.length ?? 0;
   if (!Number.isInteger(sampleRate) || sampleRate < 8000 || sampleRate > 96000 ||
@@ -308,7 +308,18 @@ export function encodeAudio(
       count === 0 || count * channelData.length * 4 > 128 * 1024 * 1024 ||
       channelData.some(channel => channel.length !== count)) throw new Error("Unsupported encoder PCM dimensions");
   const module = runtime ??= createCodecRuntime({ printErr() {}, locateFile: () => "embedded-codecs" });
-  const encoder = module._audio_encoder_create(codec === "aac" ? 0 : 1, sampleRate, channelData.length);
+  if (codec === "amr_nb" && (sampleRate !== 8000 || channelData.length !== 1)) {
+    throw new Error("AMR-NB encoding requires mono 8000 Hz PCM");
+  }
+  if (codec === "amr_wb" && (sampleRate !== 16000 || channelData.length !== 1)) {
+    throw new Error("AMR-WB encoding requires mono 16000 Hz PCM");
+  }
+  if (codec === "amr_wb" && bitrate !== undefined &&
+      ![6600, 8850, 12650, 14250, 15850, 18250, 19850, 23050, 23850].includes(bitrate)) {
+    throw new Error("Unsupported AMR-WB bitrate");
+  }
+  const encoder = module._audio_encoder_create(codec === "aac" ? 0 : codec === "mp3" ? 1 : codec === "amr_nb" ? 2 : 3,
+    sampleRate, channelData.length, bitrate ?? (codec === "amr_wb" ? 23850 : codec === "amr_nb" ? 12200 : 0));
   if (!encoder) throw new Error(`Unable to initialize ${codec} encoder`);
   let input = 0;
   try {

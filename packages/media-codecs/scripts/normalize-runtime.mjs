@@ -23,7 +23,7 @@ function check(node) {
 }
 check(entry);
 assert.equal(source.slice(entry.start, entry.start + 6), "async ");
-const notices = ["ffmpeg", "libogg", "libvorbis", "libopus"].map(name =>
+const notices = ["ffmpeg-v3", "libogg", "libvorbis", "libopus", "lame", "opencore-amr", "vo-amrwbenc"].map(name =>
   readFileSync(new URL(`../vendor/LICENSE.${name}`, import.meta.url), "utf8")).join("\n\n");
 const banner = "/*!\nGenerated portable media codecs.\nCorresponding source and build instructions: https://github.com/poe-platform/poe-code/tree/main/packages/media-codecs\n\n" + notices + "\n*/\n";
 writeFileSync(path, banner + source.slice(0, entry.start) + source.slice(entry.start + 6));

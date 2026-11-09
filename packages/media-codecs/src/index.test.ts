@@ -44,6 +44,8 @@ it("runs in a browser sandbox without Node, network, or WebAssembly code generat
   assert.deepEqual(JSON.parse(opus), [[48000, 1, 960]]);
   const encoded = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify(["aac", "mp3"].map(codec => codecs.encodeAudio(codec, 8000, [Float32Array.of(0.5, -0.5)]).packets.map(packet => packet.length)))', context, { timeout: 5000 });
   assert.ok(JSON.parse(encoded).every((lengths: number[]) => lengths.length > 0 && lengths.every(length => length > 0)));
+  const amr = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify(codecs.encodeAudio("amr_wb", 16000, [new Float32Array(320)], 23850).packets.map(packet => packet.length))', context, { timeout: 5000 });
+  assert.deepEqual(JSON.parse(amr), [61]);
   const decoded = JSON.parse(result);
   assert.deepEqual(decoded[0].slice(0, 2), [16, 16]);
   assert.ok(decoded[0][2] >= 250);

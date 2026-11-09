@@ -37,23 +37,37 @@
       "path": "vendor/sources/lame-3.100.tar.gz",
       "bytes": 1524133,
       "sha256": "ddfe36cab873794038ae2c1210557ad34857a4b6bdc515785d1da9e175b1da1e"
+    },
+    {
+      "name": "opencore-amr-0.1.6",
+      "url": "https://downloads.sourceforge.net/project/opencore-amr/opencore-amr/opencore-amr-0.1.6.tar.gz",
+      "path": "vendor/sources/opencore-amr-0.1.6.tar.gz",
+      "bytes": 939179,
+      "sha256": "483eb4061088e2b34b358e47540b5d495a96cd468e361050fae615b1809dc4a1"
+    },
+    {
+      "name": "vo-amrwbenc-0.1.3",
+      "url": "https://downloads.sourceforge.net/opencore-amr/vo-amrwbenc-0.1.3.tar.gz",
+      "path": "vendor/sources/vo-amrwbenc-0.1.3.tar.gz",
+      "bytes": 608936,
+      "sha256": "5652b391e0f0e296417b841b02987d3fd33e6c0af342c69542cbb016a71d9d4e"
     }
   ],
   "inputs": [
     {
       "path": "scripts/codec.c",
-      "bytes": 19070,
-      "sha256": "61d1d9cdd2a303f2f9a88a76f41813ef6b39ebf159316b2fa8bbdb526b1c80ef"
+      "bytes": 19554,
+      "sha256": "76782d12cacb6cc0ce97ae2df19ef1923de5ed69ebc0390c77eababe860dad2a"
     },
     {
       "path": "scripts/build.mjs",
-      "bytes": 5951,
-      "sha256": "935293272b3cee78c1a6928e21316121c169e3c16135c79f08283311cd571ced"
+      "bytes": 6204,
+      "sha256": "51d024e74abc335abff931198cb8bc4f2a89a6f639f8f3c6782e6f1777a7b335"
     },
     {
       "path": "scripts/normalize-runtime.mjs",
-      "bytes": 1614,
-      "sha256": "b45849ea889a2d7eb30cb5f29c97945c5dfbb49efd8f183cd947b032af9b2661"
+      "bytes": 1656,
+      "sha256": "eb355d7a1d5e10ad1f308d1dfb66734d6bd53070d37e259eb8a8f0c8eeb2f180"
     },
     {
       "path": "vendor/LICENSE.ffmpeg",
@@ -84,11 +98,26 @@
       "path": "scripts/mp3-simd-rounding.patch",
       "bytes": 5171,
       "sha256": "65f820a93f4ebe426be65207b68d37d0c45d1a3d46b788cb6d249ca85686d976"
+    },
+    {
+      "path": "vendor/LICENSE.opencore-amr",
+      "bytes": 10271,
+      "sha256": "8b3f1762349248d444ab9acbafe73941254e36e1064954da56bb9ddbd5873ddb"
+    },
+    {
+      "path": "vendor/LICENSE.vo-amrwbenc",
+      "bytes": 10271,
+      "sha256": "8b3f1762349248d444ab9acbafe73941254e36e1064954da56bb9ddbd5873ddb"
+    },
+    {
+      "path": "vendor/LICENSE.ffmpeg-v3",
+      "bytes": 7651,
+      "sha256": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768"
     }
   ],
   "artifact": {
     "path": "vendor/runtime.js",
-    "bytes": 7493934,
-    "sha256": "743f93fa13f03f79a059948111e53ecbd75a6cc3ed149625c3b96e7ff23702ed"
+    "bytes": 8020097,
+    "sha256": "1a6a7da12aa5d00c6d4bf5f98ddb8e067ff69c109c28aa4f59936aa121569ad0"
   }
 }

@@ -1,4 +1,5 @@
 /* Owned codec ABI. Upstream libraries retain their own licenses; see vendor/NOTICE.md. */
+#include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,8 +83,8 @@ Decoder *decoder_create(const uint8_t *extra, int extra_size, double max_pixels)
 }
 
 Decoder *audio_decoder_create(int codec, const uint8_t *extra, int extra_size) {
-    if (codec != 1 && extra_size <= 0) return NULL;
-    return create_decoder(extra, extra_size, 0, codec == 0 ? AV_CODEC_ID_AAC : codec == 1 ? AV_CODEC_ID_MP3 : codec == 2 ? AV_CODEC_ID_VORBIS : AV_CODEC_ID_OPUS);
+    if (codec != 1 && codec != 4 && extra_size <= 0) return NULL;
+    return create_decoder(extra, extra_size, 0, codec == 0 ? AV_CODEC_ID_AAC : codec == 1 ? AV_CODEC_ID_MP3 : codec == 2 ? AV_CODEC_ID_VORBIS : codec == 3 ? AV_CODEC_ID_OPUS : AV_CODEC_ID_AMR_WB);
 }
 
 intptr_t audio_decoder_receive(Decoder *decoder) {
@@ -358,10 +359,10 @@ intptr_t audio_receive(AudioEncoder *encoder) {
     }
 }
 
-/* AAC and MP3 use the same bounded frame/packet lifecycle as the decoders. */
-Decoder *audio_encoder_create(int codec, int sample_rate, int channels) {
+/* Audio encoders share the bounded frame/packet lifecycle of the decoders. */
+Decoder *audio_encoder_create(int codec, int sample_rate, int channels, int bitrate) {
     av_log_set_level(AV_LOG_QUIET);
-    const AVCodec *implementation = avcodec_find_encoder(codec == 0 ? AV_CODEC_ID_AAC : AV_CODEC_ID_MP3);
+    const AVCodec *implementation = avcodec_find_encoder(codec == 0 ? AV_CODEC_ID_AAC : codec == 1 ? AV_CODEC_ID_MP3 : codec == 2 ? AV_CODEC_ID_AMR_NB : AV_CODEC_ID_AMR_WB);
     if (!implementation || channels < 1 || channels > 8 || (codec == 1 && channels > 2)) return NULL;
     Decoder *encoder = av_mallocz(sizeof(Decoder));
     if (!encoder) return NULL;
@@ -369,7 +370,8 @@ Decoder *audio_encoder_create(int codec, int sample_rate, int channels) {
     encoder->frame = av_frame_alloc();
     encoder->packet = av_packet_alloc();
     if (!encoder->context || !encoder->frame || !encoder->packet) goto failure;
-    encoder->context->sample_fmt = AV_SAMPLE_FMT_FLTP;
+    encoder->context->sample_fmt = codec >= 2 ? AV_SAMPLE_FMT_S16 : AV_SAMPLE_FMT_FLTP;
+    if (codec >= 2) encoder->context->bit_rate = bitrate;
     encoder->context->sample_rate = sample_rate;
     encoder->context->time_base = (AVRational){1, sample_rate};
     av_channel_layout_default(&encoder->context->ch_layout, channels);
@@ -399,8 +401,14 @@ int audio_encoder_send(Decoder *encoder, const float *planar, int count) {
     frame->nb_samples = count;
     frame->pts = encoder->vorbis_position;
     if (av_frame_get_buffer(frame, 0) < 0) return AVERROR(ENOMEM);
-    for (int channel = 0; channel < frame->ch_layout.nb_channels; channel++)
-        memcpy(frame->extended_data[channel], planar + channel * count, count * sizeof(float));
+    if (frame->format == AV_SAMPLE_FMT_S16) {
+        int16_t *output = (int16_t *)frame->data[0];
+        for (int i = 0; i < count; i++)
+            output[i] = lrintf(fmaxf(-32768, fminf(32767, planar[i] * 32768)));
+    } else {
+        for (int channel = 0; channel < frame->ch_layout.nb_channels; channel++)
+            memcpy(frame->extended_data[channel], planar + channel * count, count * sizeof(float));
+    }
     encoder->vorbis_position += count;
     return avcodec_send_frame(encoder->context, frame);
 }

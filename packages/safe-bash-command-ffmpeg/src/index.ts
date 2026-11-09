@@ -9764,7 +9764,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (exists) throw new Error(`File '${path}' already exists. Exiting.`);
                 }
               }
-              const listType = segmentListType ?? (segmentList?.toLowerCase().endsWith(".ffconcat")
+              const listType = segmentListType ?? (segmentList?.toLowerCase().endsWith(".m3u8")
+                ? "m3u8" : segmentList?.toLowerCase().endsWith(".ffconcat")
                 ? "ffconcat" : [".csv", ".ext"].some(extension =>
                   segmentList?.toLowerCase().endsWith(extension)) ? "csv" : "flat");
               const list: string[] = [];
@@ -9790,7 +9791,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
                 if (segmentListSize > 0 && index < paths.length - segmentListSize) continue;
                 const name = path.slice(path.lastIndexOf("/") + 1);
-                if (listType === "flat") {
+                if (listType === "m3u8") {
+                  list.push(`#EXTINF:${(end - start).toFixed(6)},\n${name}\n`);
+                } else if (listType === "flat") {
                   list.push(`${name}\n`);
                 } else if (listType === "ffconcat") {
                   const escapedName = Array.from(name, char => "\\' \t\n\r".includes(char) ? `\\${char}` : char).join("");
@@ -9802,6 +9805,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
               }
               if (listPath !== undefined) {
+                if (listType === "m3u8") {
+                  const first = paths.length - list.length;
+                  const targetDuration = Math.ceil(list.reduce((longest, _, index) =>
+                    Math.max(longest, boundaries[first + index + 1]! - boundaries[first + index]!), 0));
+                  list.unshift(`#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-MEDIA-SEQUENCE:${first}\n#EXT-X-ALLOW-CACHE:YES\n#EXT-X-TARGETDURATION:${targetDuration}\n`);
+                  list.push("#EXT-X-ENDLIST\n");
+                }
                 const bytes = encodeUtf8((listType === "ffconcat" ? "ffconcat version 1.0\n" : "") + list.join(""));
                 budget.checkOutputBytes(bytes.byteLength);
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(listPath, data, { signal: context.signal }));

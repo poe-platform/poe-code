@@ -509,6 +509,10 @@ intermediate PCM format, even when the output codec has higher precision.
 so later filters use the selected rate. Pipe-separated lists preserve an allowed
 input rate or select the nearest allowed rate; `r=16000|8000` preserves 8 kHz,
 while `r=16000|11025` converts it to 11025 Hz.
+Positional arguments follow `sample_fmts:sample_rates:channel_layouts` order:
+`aformat=s16:8000:mono` is equivalent to `aformat=f=s16:r=8000:cl=mono`.
+Omitted trailing arguments leave those constraints unset; empty fields between
+colons are invalid. Bare `aformat` preserves the input.
 Other `aformat` sample formats, options and layouts are not supported.
 These filters also work in labeled single-input audio graphs with `-map`.
 `volume` and `atempo` default to 1 and accept named primary arguments, such as

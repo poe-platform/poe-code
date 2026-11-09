@@ -10024,10 +10024,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelMask = outputMask;
                       } else if (trimmed === "aformat" || trimmed.startsWith("aformat=")) {
                         const argument = trimmed.slice("aformat=".length);
-                        for (const option of argument ? argument.split(":") : []) {
+                        const options = argument ? argument.split(":") : [];
+                        if (options.at(-1) === "") options.pop();
+                        for (const [index, option] of options.entries()) {
                           const separator = option.indexOf("=");
-                          const key = option.slice(0, separator).trim();
-                          const value = option.slice(separator + 1).trim();
+                          const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
+                          const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          if (!value) throw new Error(`aformat: unsupported empty value for ${key}`);
                           if (key === "sample_rates" || key === "r") {
                             let targetRate = origRate;
                             let bestDifference = Infinity;

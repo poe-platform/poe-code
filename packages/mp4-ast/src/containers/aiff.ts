@@ -77,7 +77,14 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   const doc = pcm.find(plugin => plugin.id === format)!.parse(sound, { ...options, budget, channels, sampleRate });
   // COMM describes duration; SSND determines the available PCM samples.
   return { ...doc, duration: frames, durationSeconds: frames / sampleRate,
-    tracks: doc.tracks.map(track => ({ ...track, duration: frames })), metadata: { ...doc.metadata, ...metadata }, containerFormat: "aiff", byteLength: bytes.length };
+    tracks: doc.tracks.map(track => {
+      const bytesPerFrame = channels * track.codecDescriptions[0]!.bitsPerSample! / 8;
+      return { ...track, duration: frames,
+        ...(options.decodeAudio !== false && sound.length % bytesPerFrame ? {
+          decodeErrors: [`Invalid PCM packet: ${sound.length % bytesPerFrame} trailing bytes cannot form a ${bytesPerFrame}-byte sample frame`]
+        } : {})
+      };
+    }), metadata: { ...doc.metadata, ...metadata }, containerFormat: "aiff", byteLength: bytes.length };
 }
 
 export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {

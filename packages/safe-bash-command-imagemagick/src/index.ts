@@ -1586,13 +1586,15 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
         const u32 = new Uint32Array(data.buffer, 0, w * h);
         const tmp = new Uint8Array(4);
         const tmp32 = new Uint32Array(tmp.buffer);
-        for (let y = 0; y < h; y++) {
-            const t = h <= 1 ? 0 : y / (h - 1);
+        const steps = h === 1 ? w : h;
+        const span = h === 1 ? 1 : w;
+        for (let i = 0; i < steps; i++) {
+            const t = steps <= 1 ? 0 : i / (steps - 1);
             tmp[0] = clampByteVal(c1.r * (1 - t) + c2.r * t);
             tmp[1] = clampByteVal(c1.g * (1 - t) + c2.g * t);
             tmp[2] = clampByteVal(c1.b * (1 - t) + c2.b * t);
             tmp[3] = clampByteVal(c1.a * (1 - t) + c2.a * t);
-            u32.fill(tmp32[0]!, y * w, (y + 1) * w);
+            u32.fill(tmp32[0]!, i * span, (i + 1) * span);
         }
     } else {
         const cx = (w - 1) / 2;
@@ -10584,7 +10586,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
     if(checker){const cell=((Math.floor(x/8)+Math.floor(y/8))&1)===0?102:153;bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
-    else{const t=radial?Math.min(1,Math.hypot(x-cx,y-cy)/radius):height<=1?0:y/(height-1);bytes[offset]=clampByteVal(a.r*(1-t)+b.r*t);bytes[offset+1]=clampByteVal(a.g*(1-t)+b.g*t);bytes[offset+2]=clampByteVal(a.b*(1-t)+b.b*t);bytes[offset+3]=clampByteVal(a.a*(1-t)+b.a*t);}
+    else{const t=radial?Math.min(1,Math.hypot(x-cx,y-cy)/radius):height===1?(width<=1?0:x/(width-1)):y/(height-1);bytes[offset]=clampByteVal(a.r*(1-t)+b.r*t);bytes[offset+1]=clampByteVal(a.g*(1-t)+b.g*t);bytes[offset+2]=clampByteVal(a.b*(1-t)+b.b*t);bytes[offset+3]=clampByteVal(a.a*(1-t)+b.a*t);}
    }
    await backend.storage.write(position+start*4,bytes);
   }

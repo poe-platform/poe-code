@@ -3,6 +3,7 @@ import test from "node:test";
 import { Shell } from "../../../src/shell/shell.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { agentCommands } from "../../../src/plugins/index.js";
+import { evalSyncXargs } from "../../../src/commands/execution.js";
 
 const cases = [
   { name: "raw", options: "-0", input: "8000ff00", output: "8000ff00" },
@@ -18,6 +19,29 @@ const cases = [
   { name: "no-run", options: "-0 -r", input: "", output: "" },
   { name: "default-quotes", options: "", input: "276120622720635c20642022220a", output: "612062006320640000" },
 ];
+
+for (const control of ["\r", "\v", "\f"]) for (const option of ["", "-L1", "-0"]) {
+  const input = option === "-0" ? `a${control}b\0c${control}d\0` : `a${control}b\nc${control}d\n`;
+  const expected = `[a${control}b][c${control}d]`;
+  const name = `xargs preserves ${JSON.stringify(control)} with ${option || "default parsing"}`;
+  test(`${name}, synchronous evaluator`, () => {
+    assert.equal(evalSyncXargs(new TextEncoder().encode(input), [...(option ? [option] : []), "printf", "[%s]"]), expected);
+  });
+  for (const source of ["fragmented stdin", "argument file", "pipeline"]) test(`${name}, ${source}`, async () => {
+    const fs = new MemoryFileSystem();
+    const bytes = new TextEncoder().encode(input);
+    await fs.writeFile("/input", bytes);
+    const shell = new Shell({ fs, env: { LC_ALL: "C" } }).use(agentCommands());
+    try {
+      const stdin = (async function* () { for (const byte of bytes) yield Uint8Array.of(byte); })();
+      const command = `xargs ${option} ${source === "argument file" ? "-a /input" : ""} printf '[%s]'`;
+      const result = await shell.exec(source === "pipeline" ? `cat /input | ${command}` : command, { stdin });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, new TextEncoder().encode(expected));
+      assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
 
 for (const fixture of cases) for (const fragmented of [false, true]) {
   test(`GNU byte oracle ${fixture.name}, fragmented=${fragmented}`, async () => {

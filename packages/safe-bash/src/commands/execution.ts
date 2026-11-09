@@ -56,7 +56,7 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
         else current.push(byte);
       } else if (byte === 92) { escaped = true; active = true; }
       else if (byte === 39 || byte === 34) { quote = byte; active = true; }
-      else if (byte === 10 || !replacement && (byte === 32 || byte === 9 || byte === 13 || byte === 11 || byte === 12)) {
+      else if (!replacement && blank) {
         if (active) { yield Uint8Array.from(current); current.length = 0; active = false; }
       } else if (replacement && !active && blank) continue;
       else { current.push(byte); active = true; }
@@ -696,7 +696,7 @@ export function evalSyncXargs(
           lineHasToken = true;
           continue;
         }
-        if (ch === "\n" || ch === " " || ch === "\t" || ch === "\r") {
+        if (ch === "\n" || ch === " " || ch === "\t") {
           if (active) {
             if (eofStr !== undefined && cur === eofStr) break;
             items.push(cur);

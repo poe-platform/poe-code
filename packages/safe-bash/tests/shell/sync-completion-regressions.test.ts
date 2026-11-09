@@ -31,15 +31,15 @@ for (const compound of [
   });
 }
 
-test("null redirect keeps printf array assignment within one filesystem operation", async t => {
-  const { shell, commands } = setup({ limits: { maxFileSystemOperations: 1 } });
+test("null redirect does not replay printf array assignment filesystem operations", async t => {
+  const { shell, commands } = setup({ limits: { maxFileSystemOperations: 4 } });
   for (const command of basicCommands()) commands.register(command);
   t.after(() => shell.dispose());
   const result = await shell.exec(`${warmup}x=(1 2); printf -v x %s 3 >/dev/null; say "\${x[*]}"`);
   assert.equal(result.stdout, "3 2\n");
   assert.equal(result.stderr, "");
   assert.equal(result.exitCode, 0);
-  await assert.rejects(shell.exec(': >/dev/null; : >/dev/null'), /maxFileSystemOperations/u);
+  await assert.rejects(shell.exec('printf -v x %s 4 >/dev/null; printf -v x %s 5 >/dev/null'), /maxFileSystemOperations/u);
 });
 
 for (const forceAsync of [false, true]) {

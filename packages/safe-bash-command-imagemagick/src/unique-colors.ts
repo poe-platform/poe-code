@@ -1,6 +1,7 @@
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { magickResizeCanvas } from "./resize-canvas.js";
 
 function colorKey(samples: Uint8Array | Uint16Array, offset: number, hasAlpha: boolean): bigint {
     let key = 0n;
@@ -51,7 +52,8 @@ export function* uniqueColorsSteps(image: RgbaImage): Generator<void, RgbaImage,
         if (data16) data16.set(image.data16!.subarray(offset, offset + 4), index * 4);
         if (evaluateSamples) evaluateSamples.set(image.evaluateSamples!.subarray(offset, offset + 4), index * 4);
     }
-    return { ...image, width: pixels.length, height: 1, data, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
+    const virtualCanvas = magickResizeCanvas(image, pixels.length, 1);
+    return { ...image, width: pixels.length, height: 1, ...(virtualCanvas ? { virtualCanvas } : {}), data, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
 export async function uniqueColorsStored(image: StoredRgbaImage, storage: PagedStorage, signal: AbortSignal): Promise<StoredRgbaImage> {
@@ -95,5 +97,6 @@ export async function uniqueColorsStored(image: StoredRgbaImage, storage: PagedS
             written += used; used = 0;
         }
     }
-    return { ...image, position, width: count, height: 1, ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}) };
+    const virtualCanvas = magickResizeCanvas(image, count, 1);
+    return { ...image, position, width: count, height: 1, ...(virtualCanvas ? { virtualCanvas } : {}), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}) };
 }

@@ -62,6 +62,7 @@ import { sketchPixelSteps } from "./sketch-kernel.js";
 import { gifDitherSteps } from "./gif-dither.js";
 import { quantizeImageListSteps, quantizePixelSteps } from "./quantize.js";
 import { uniqueColorsSteps, uniqueColorsStored } from "./unique-colors.js";
+import { magickResizeCanvas } from "./resize-canvas.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
 import { type LookupInterpolation, clutPixelSteps, haldClutPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
@@ -4247,16 +4248,6 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
         withoutEnlargement: false,
         withoutReduction: false
     };
-}
-
-function magickResizeCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, width: number, height: number) {
-    const page = image.virtualCanvas;
-    if (!page) return undefined;
-    let scaleX = width / image.width, scaleY = height / image.height;
-    const pageWidth = Math.floor(scaleX * page.width + 0.5), pageHeight = Math.floor(scaleY * page.height + 0.5);
-    // CloneImage uses the smaller ratio for offsets when the ratios differ by less than two.
-    if (Math.abs(scaleX - scaleY) < 2) scaleX = scaleY = Math.min(scaleX, scaleY);
-    return { width: pageWidth, height: pageHeight, x: Math.ceil(scaleX * page.x - 0.5), y: Math.ceil(scaleY * page.y - 0.5) };
 }
 
 function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Generator<void, RgbaImage, void> {

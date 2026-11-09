@@ -18,7 +18,7 @@ for (const [bracket, selected] of [
   ["[[:print:]]", "19aFgZ !_]-"],
   ["[[:graph:]]", "19aFgZ!_]-"],
   ["[[:punct:]]", "!_]-"],
-  ["[![:digit:]]", "aFgZ \t\n!_]-é\x7f"],
+  ["[![:digit:]]", "aFgZ \t\n!_]-\x7f"],
   ["[[:digit:]a]", "19a"],
   ["[[:digit:][:upper:]]", "19FZ"],
   ["[a-g[:digit:]]", "19ag"],

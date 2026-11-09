@@ -4611,7 +4611,9 @@ function* expandImageGlob(pattern: string, budget: MediaBudgetTracker): Generato
 }
 
 function matchesImageGlob(pattern: string, name: string, budget: MediaBudgetTracker): boolean {
-  const characters = Array.from(name);
+  // C-locale glob tokens consume UTF-8 bytes, including literals and brackets.
+  pattern = Array.from(encodeUtf8(pattern), byte => String.fromCharCode(byte)).join("");
+  const characters = Array.from(encodeUtf8(name), byte => String.fromCharCode(byte));
   let positions = new Set([0]);
   for (let i = 0; i < pattern.length; i++) {
     budget.checkCpu();

@@ -151,7 +151,14 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
   let fieldOrder: "progressive" | "tt" | "bb" | undefined;
   let colorRange: "pc" | "tv" | undefined;
 
-  for (const token of headerLine.split(/\s+/)) {
+  const tokens = headerLine.split(/\s+/);
+  if (!tokens.some(token => token.startsWith("C"))) {
+    const chroma = tokens.find(token => token.startsWith("XYSCSS="))?.slice(7);
+    if (chroma === "422" || chroma === "444") {
+      tokens.push(`C${chroma}`);
+    }
+  }
+  for (const token of tokens) {
     if (token.startsWith("C") && ![
       "420", "420jpeg", "420mpeg2", "420paldv", "422", "444", "411", "444alpha", "mono",
       "420p9", "420p10", "420p12", "420p14", "420p16",

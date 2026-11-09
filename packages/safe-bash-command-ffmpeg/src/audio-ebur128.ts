@@ -5,7 +5,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 // Histogram resolution and reporting follow FFmpeg's ebur128 filter.
 export async function* measureEbur128(
   channels: MediaAudioData["channelData"], sampleRate: number, channelMask: number | undefined,
-  options: string, budget: MediaBudgetTracker, logLevel: number, signal?: AbortSignal
+  options: string, budget: MediaBudgetTracker, logLevel: number, signal?: AbortSignal,
+  timestamps?: { start: number; end: number; pts: number }[], startSample = 0
 ): AsyncGenerator<string> {
   let samplePeaks = false;
   let frameLog = 32;
@@ -66,6 +67,7 @@ export async function* measureEbur128(
   let work = 0;
   const frames = channels[0]?.length ?? 0;
   const interval = Math.max(1, Math.floor(sampleRate / 10));
+  let timestampIndex = 0;
   for (let frame = 0; frame < frames; frame++) {
     let power = 0;
     for (const [ch, s] of state.entries()) {
@@ -118,8 +120,10 @@ export async function* measureEbur128(
         }
       }
     }
-    const time = frame / sampleRate;
-    const timeText = String(Number(time < 1 ? time.toPrecision(6) : time.toFixed(6)));
+    while (timestamps && timestampIndex + 1 < timestamps.length && timestamps[timestampIndex]!.end <= frame) timestampIndex++;
+    const timestamp = timestamps?.[timestampIndex];
+    const time = (timestamp ? timestamp.pts + frame - timestamp.start : startSample + frame) / sampleRate;
+    const timeText = String(Number(Math.abs(time) < 1 ? time.toPrecision(6) : time.toFixed(6)));
     if (logLevel >= frameLog) yield `t: ${timeText.padEnd(10)} TARGET:-23 LUFS    M:${(windows[0]!.loudness + compensation).toFixed(1).padStart(6)} S:${(windows[1]!.loudness + compensation).toFixed(1).padStart(6)}     I:${integrated.toFixed(1).padStart(6)} LUFS       LRA:${(high - low).toFixed(1).padStart(6)} LU${samplePeaks ? `  SPK: ${state.map(s => db(s.peak)).join(" ")} dBFS` : ""}\n`;
   }
   if (logLevel >= 32) yield `Summary:\n\n  Integrated loudness:\n    I:         ${integrated.toFixed(1)} LUFS\n    Threshold: ${(windows[0]!.threshold + compensation).toFixed(1)} LUFS\n\n  Loudness range:\n    LRA:       ${(high - low).toFixed(1)} LU\n    Threshold: ${(windows[1]!.threshold + compensation).toFixed(1)} LUFS\n    LRA low:   ${(low + compensation).toFixed(1)} LUFS\n    LRA high:  ${(high + compensation).toFixed(1)} LUFS${samplePeaks ? `\n\n  Sample peak:\n    Peak:      ${db(Math.max(...state.map(s => s.peak)))} dBFS` : ""}\n`;

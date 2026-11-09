@@ -11033,7 +11033,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const operandLevels: MagickPixelOperation[][] = [];
     let readMask: RgbaImage | StoredRgbaImage | undefined;
     type Rotation = { rotation: string; settings: MagickState };
-    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number };
+    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number } | { property: { key: string; value: string } };
     const pixelOperations: MagickPixelOperation[] = [];
     const operationFlushes = new Map<number, readonly MagickPixelOperation[]>();
     let pending = false;
@@ -11309,6 +11309,13 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             else leadingOperations.push(crop);
         }
         else if (t === "+crop") leadingOperations = [];
+        else if (t === "-set") {
+            const key = argv[++i], value = argv[++i];
+            if (key === undefined || value === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-set'\n" };
+            const operation = { property: { key, value } };
+            if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push(operation);
+            else leadingOperations.push(operation);
+        }
         else if (t === "-trim") {
             const operation = { trim: state.fuzz };
             if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push(operation);
@@ -11474,6 +11481,20 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (!operation) {
             if ("data" in image) images.push(image);
             else yield { async run() { await storedImages!.push(image); } };
+            return;
+        }
+        if (typeof operation === "object" && "property" in operation) {
+            const { key, value } = operation.property;
+            let expandedKey = key, expanded = value;
+            if ("data" in image) {
+                expandedKey = yield* formatMagickPropertyStringSteps(key, image, () => image, (image as MagickImage)[magickInput]);
+                expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, (image as MagickImage)[magickInput]);
+            } else yield { async run() {
+                const context = (image as StoredMagickImage)[magickInput] ?? {};
+                expandedKey = await formatRetainedIdentify(key, image, context, async () => ({ image, storage: backend!.storage }), signal);
+                expanded = await formatRetainedIdentify(value, image, context, async () => ({ image, storage: backend!.storage }), signal);
+            } };
+            yield* acceptImage({ ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) }, operations, index + 1);
             return;
         }
         if (typeof operation === "object" && "trim" in operation) {

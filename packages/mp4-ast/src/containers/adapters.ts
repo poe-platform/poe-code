@@ -36,7 +36,7 @@ import { decodeMp3Track, encodeMp3 } from "../mp3.js";
 import { decodeVorbisTrack } from "../vorbis.js";
 import { decodeAacTrack } from "../aac.js";
 import { wavInfoTags, isWave64Signature, wave64Guid, readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
-import { parseAudio, id3HeaderSize, mpegFrame, flacFormatTags, writeAudioMetadata, encodeId3, type AudioStream } from "@poe-code/audio-ast";
+import { parseAudio, parseId3, id3HeaderSize, mpegFrame, flacFormatTags, writeAudioMetadata, encodeId3, type AudioStream } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import { decodeFlac, encodeFlacPackets } from "./flac.js";
 import { FlacFrameScanner, flacChapters } from "./flac-probe.js";
@@ -395,7 +395,32 @@ export function isAdtsSignature(bytes: Uint8Array): boolean {
 }
 
 export function parseAacAdts(bytes: Uint8Array): MediaDocument {
-  const parsed = parseAdtsStream(bytes);
+  const prefix = id3HeaderSize(bytes);
+  const metadata: Record<string, string> = prefix ? { ...parseId3(bytes).tags } : {};
+  let end = bytes.length;
+  const footer = end - 32;
+  if (footer >= prefix && decodeUtf8(bytes.subarray(footer, footer + 8)) === "APETAGEX") {
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const size = view.getUint32(footer + 12, true);
+    const count = view.getUint32(footer + 16, true);
+    if (size < 32 || size > end - prefix) throw new Error("Invalid APE tag size");
+    let offset = end - size;
+    end = offset;
+    if (offset >= prefix + 32 && decodeUtf8(bytes.subarray(offset - 32, offset - 24)) === "APETAGEX") end -= 32;
+    for (let i = 0; i < count; i++) {
+      if (offset + 8 > footer) throw new Error("Truncated APE tag item");
+      const length = view.getUint32(offset, true);
+      const flags = view.getUint32(offset + 4, true);
+      offset += 8;
+      const keyEnd = bytes.indexOf(0, offset);
+      if (keyEnd < offset || keyEnd >= footer || length > footer - keyEnd - 1) throw new Error("Invalid APE tag item");
+      const key = decodeUtf8(bytes.subarray(offset, keyEnd)).toLowerCase();
+      offset = keyEnd + 1;
+      if ((flags & 6) === 0) metadata[key] = decodeUtf8(bytes.subarray(offset, offset + length));
+      offset += length;
+    }
+  }
+  const parsed = parseAdtsStream(bytes.subarray(prefix, end));
   const sampleRate = parsed.sampleRate || 44100;
   const channels = parsed.channels || 2;
   const samples: MediaSample[] = parsed.frames.map((frame, i) => ({
@@ -449,7 +474,7 @@ export function parseAacAdts(bytes: Uint8Array): MediaDocument {
         samples
       }
     ],
-    metadata: {},
+    metadata,
     byteLength: bytes.byteLength
   };
 }

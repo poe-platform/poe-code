@@ -55,6 +55,58 @@ it("defers synchronous segment output to the asynchronous command without report
   assert.deepEqual(volume.readdirSync("/"), ["a.wav"]);
 });
 
+for (const [filename, type, csv] of [
+  ["list.txt", undefined, false],
+  ["list", undefined, false],
+  ["list.custom", undefined, false],
+  ["list.csv", "flat", false],
+  ["list.CSV", undefined, true],
+  ["list.ext", undefined, true],
+  ["list.txt", "csv", true]
+] as const) {
+  it(`writes ${csv ? "CSV" : "flat"} segment lists for ${filename} (${type ?? "inferred"})`, async () => {
+    const volume = source();
+    const result = await run(volume, ["-segment_time", "1", "-segment_list", filename,
+      ...(type === undefined ? [] : ["-segment_list_type", type])]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(volume.readFileSync(`/${filename}`, "utf8"), csv
+      ? "part00.wav,0.000000,1.024000\npart01.wav,1.024000,2.048000\npart02.wav,2.048000,3.000000\n"
+      : "part00.wav\npart01.wav\npart02.wav\n");
+    const pcm = [0, 1, 2].map(index =>
+      parseWav(volume.readFileSync(`/part0${index}.wav`) as Buffer).tracks[0]!.decodedAudio!.channelData[0]!);
+    assert.deepEqual(pcm.map(channel => channel.length), [8192, 8192, 7616]);
+    assert.deepEqual(pcm.flatMap(channel => Array.from(channel)),
+      Array.from(parseWav(volume.readFileSync("/a.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!));
+  });
+}
+
+it("writes flat basenames verbatim and protects existing lists and input files", async () => {
+  const volume = source();
+  volume.mkdirSync("/segments");
+  volume.writeFileSync("/list.txt", "keep");
+  const before = volume.toJSON();
+  assert.notEqual((await run(volume, ["-segment_list", "/list.txt"])).exitCode, 0);
+  assert.deepEqual(volume.toJSON(), before);
+  assert.notEqual((await run(volume, ["-y", "-segment_list", "/a.wav"])).exitCode, 0);
+  assert.deepEqual(volume.toJSON(), before);
+  assert.notEqual((await run(volume, ["-y", "-segment_list", "/part00.wav"])).exitCode, 0);
+  assert.deepEqual(volume.toJSON(), before);
+  const result = await run(volume, ["-y", "-segment_list", "/list.txt"], '/segments/part,"%02d.wav');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(volume.readFileSync("/list.txt", "utf8"), 'part,"00.wav\npart,"01.wav\n');
+});
+
+for (const type of ["", "invalid"]) {
+  it(`rejects invalid segment list type ${JSON.stringify(type)} without writes`, async () => {
+    const volume = source();
+    const before = volume.toJSON();
+    const result = await run(volume, ["-segment_list_type", type]);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("segment_list_type"), result.stderr);
+    assert.deepEqual(volume.toJSON(), before);
+  });
+}
+
 for (const value of ["0", "-1", "NaN", "Infinity"]) {
   it(`rejects invalid segment duration ${value}`, async () => {
     const volume = source();

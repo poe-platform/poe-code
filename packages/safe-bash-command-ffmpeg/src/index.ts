@@ -5037,6 +5037,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let resetTimestamps = false;
         let segmentFrames: number[] | undefined;
         let segmentList: string | undefined;
+        let segmentListType: "flat" | "csv" | undefined;
         let hlsTime = 2;
         let hlsInitTime = 0;
         let dashAdaptationSets: string | undefined;
@@ -5327,6 +5328,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_times\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-segment_list_type") {
+            const value = args[++i];
+            if (value !== "flat" && value !== "csv") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_list_type (expected flat or csv)\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            segmentListType = value;
           } else if (arg === "-segment_list") {
             segmentList = args[++i];
             if (!segmentList) {
@@ -9740,6 +9748,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (exists) throw new Error(`File '${path}' already exists. Exiting.`);
                 }
               }
+              const listType = segmentListType ?? ([".csv", ".ext"].some(extension =>
+                segmentList?.toLowerCase().endsWith(extension)) ? "csv" : "flat");
               const list: string[] = [];
               for (let index = 0; index < paths.length; index++) {
                 await yieldTurn(context.signal);
@@ -9762,9 +9772,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
                 const name = path.slice(path.lastIndexOf("/") + 1);
-                const csvName = [",", '"', "\n", "\r"].some(char => name.includes(char))
-                  ? '"' + name.replaceAll('"', '""') + '"' : name;
-                list.push(`${csvName},${start.toFixed(6)},${end.toFixed(6)}\n`);
+                if (listType === "flat") {
+                  list.push(`${name}\n`);
+                } else {
+                  const csvName = [",", '"', "\n", "\r"].some(char => name.includes(char))
+                    ? '"' + name.replaceAll('"', '""') + '"' : name;
+                  list.push(`${csvName},${start.toFixed(6)},${end.toFixed(6)}\n`);
+                }
               }
               if (listPath !== undefined) {
                 const bytes = encodeUtf8(list.join(""));

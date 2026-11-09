@@ -9012,7 +9012,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let statsScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 / 32767
                     : t.codecDescriptions[0]?.codecName === "pcm_s32le" ? 2147483648 / 2147483647 : 1;
                   if (filter) {
-                    const audioCommands: { sample: number; target: string; expression: string }[] = [];
+                    let audioCommands: { sample: number; target: string; expression: string }[] = [];
                     for (const item of parseFilterChain(filter.expression)) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
@@ -9222,9 +9222,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const [target, action, expression] = words;
                           const supported = action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "dry" && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
+                            || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME alimiter[@NAME] limit LIMIT or TIME dialoguenhance[@NAME] original GAIN");
                           }
                           return { time, target, expression };
                         });
@@ -9422,6 +9423,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredSampleFormat = "dbl";
                           const commands = audioCommands.filter(command => command.target === "alimiter" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);
+                          // Native asendcmd sends each command to the first matching instance.
+                          audioCommands = audioCommands.filter(command => command.target !== "alimiter" && command.target !== filterTarget);
                           const limited = await limitAudio(stretched, origRate, trimmed, budget, context.signal, audioTimestamps, commands);
                           stretched = limited.channels;
                           audioTimestamps = limited.frames;

@@ -38,6 +38,7 @@ export async function enhanceDialogue(
     for (let c = 0; c < 2; c++) {
       input[c]!.copyWithin(0, hop);
       input[c]!.set(channels[c]!.subarray(start, start + count), delay);
+      imaginary[c]!.fill(0);
       for (let i = 0; i < size; i++) real[c]![i] = Math.fround(input[c]![i]! * window[i]!);
       transform(real[c]!, imaginary[c]!);
       output[c]!.set(input[c]!.subarray(0, count), start);

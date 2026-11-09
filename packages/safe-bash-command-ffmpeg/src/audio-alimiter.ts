@@ -10,7 +10,8 @@ export class AlimiterError extends Error {
 
 export async function limitAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
-  frames: readonly { start: number; end: number; pts: number }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }]
+  frames: readonly { start: number; end: number; pts: number }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }],
+  commands: readonly { sample: number; expression: string }[] = []
 ): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number }[] }> {
   const options = { level_in: 1, level_out: 1, limit: 1, attack: 5, release: 50, asc: 0, asc_level: 0.5, level: 1, latency: 0 };
   const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], limit: [0.0625, 1], attack: [0.1, 80], release: [1, 8000], asc: [0, 1], asc_level: [0, 1], level: [0, 1], latency: [0, 1] };
@@ -40,7 +41,9 @@ export async function limitAudio(
   } catch (error) {
     throw new AlimiterError((error as Error).message, "options");
   }
-  const { limit, level_in: inputGain, level_out: outputGain } = options;
+  const { level_in: inputGain, level_out: outputGain } = options;
+  let { limit } = options;
+  let nextCommand = 0;
   const window = Math.floor(sampleRate * (options.attack / 1000));
   if (window < 1) throw new AlimiterError("alimiter: Attack is too small", "configuration");
   const length = channels[0]?.length ?? 0;
@@ -64,7 +67,6 @@ export async function limitAudio(
   const positions = new Int32Array(Math.max(2, queueSize)).fill(-1);
   const slopes = new Float64Array(Math.max(2, queueSize));
   const releaseSamples = sampleRate * options.release / 1000;
-  const gain = outputGain * (options.level ? 1 / limit : 1);
   const ascCoefficient = Math.pow(0.5, options.asc_level - 0.5) * -2;
   let ascSum = 0;
   let ascCount = 0;
@@ -77,6 +79,15 @@ export async function limitAudio(
     const input = frames[n] ?? { start: length, end: length + Math.min(1024, drain), pts: nextInPts ?? 0 };
     const flushing = n >= frames.length;
     if (flushing) drain -= input.end - input.start;
+    while (!flushing && nextCommand < commands.length && commands[nextCommand]!.sample <= input.start) {
+      const command = commands[nextCommand++]!;
+      // Failed runtime commands leave the current option and DSP state intact.
+      try {
+        const value = parseFilterExpression(command.expression, "alimiter", {});
+        if (Number.isFinite(value) && value >= ranges.limit[0]! && value <= ranges.limit[1]!) limit = value;
+      } catch { /* Native asendcmd continues after a rejected command. */ }
+    }
+    const gain = outputGain * (options.level ? 1 / limit : 1);
     const enabled = flushing || enable === undefined || Math.abs(parseFilterExpression(enable, "alimiter enable", {
       t: input.pts / sampleRate, n, w: 0, h: 0
     })) >= 0.5;

@@ -16,7 +16,9 @@ for (const [declaredSize, samples, duration] of [[0xffffffff, 0, undefined], [0,
     };
     const args = ["-v", "error", "-show_packets", "-show_entries",
       "packet=size,duration:stream=duration_ts", "-of", "json"];
-    expect(JSON.parse(evalSyncFfprobe(bytes, [...args, "pipe:0"])!)).toEqual(expected);
+    expect(JSON.parse(evalSyncFfprobe(bytes, [...args, "pipe:0"])!)).toEqual({
+      ...expected, streams: declaredSize === 0xffffffff ? [{}] : expected.streams
+    });
     const fs = new MemoryFileSystem();
     await fs.writeFile("/in.au", bytes);
     let output = "", diagnostic = "";

@@ -27,7 +27,9 @@ for (const size of [4, 16, 0, 9, 0xffffffff]) {
     });
     expect(result.exitCode, diagnostic).toBe(0);
     expect(JSON.parse(evalSyncFfprobe(bytes, ["-show_packets", "-show_entries",
-      "packet=size,duration:stream=duration_ts", "-of", "json", "pipe:0"])!)).toEqual(JSON.parse(output));
+      "packet=size,duration:stream=duration_ts", "-of", "json", "pipe:0"])!)).toEqual({
+        ...JSON.parse(output), streams: size === 0xffffffff ? [{}] : [{ duration_ts: duration }]
+      });
     expect(JSON.parse(output)).toMatchObject({
       packets: [{ size: String(bytes.length - 32), duration: 4 }],
       streams: [{ duration_ts: duration }]

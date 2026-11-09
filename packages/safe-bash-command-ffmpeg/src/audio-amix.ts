@@ -31,11 +31,7 @@ export async function mixAudio(
       if (!["0", "1", "false", "true"].includes(value)) throw new Error("amix: invalid normalize");
       normalize = value === "1" || value === "true";
     } else if (key === "weights") {
-      weights = value.replaceAll("\t", " ").split(" ").filter(Boolean).slice(0, 2).map(Number);
-      if (!weights.length || weights.some(weight => !Number.isFinite(weight))) {
-        throw new Error("amix: invalid weights");
-      }
-      if (weights.length === 1) weights.push(weights[0]!);
+      weights = parseWeights(value);
     } else throw new Error(`amix: unsupported option ${key}`);
   }
   const inputs = [a, b];
@@ -81,4 +77,78 @@ export async function mixAudio(
   }
   return { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
     decodedAudio: { ...a, channelData } };
+}
+
+function parseWeights(source: string): number[] {
+  const weights: number[] = [];
+  let offset = 0;
+  while (weights.length < 2) {
+    const start = offset;
+    while (source[offset] && " \t\n\r\v\f".includes(source[offset]!)) offset++;
+    const numberStart = offset;
+    if (source[offset] === "+" || source[offset] === "-") offset++;
+    const hexadecimal = source.slice(offset, offset + 2).toLowerCase() === "0x";
+    // av_strtod uses strtoul for a leading 0x, otherwise strtod (including signed hex floats).
+    const hexInteger = hexadecimal && start === offset;
+    if (hexadecimal) offset += 2;
+    let digits = 0;
+    let fractionDigits = 0;
+    let fraction = false;
+    let value = 0;
+    for (; offset < source.length; offset++) {
+      const character = source[offset]!.toLowerCase();
+      const digit = "0123456789abcdef".indexOf(character);
+      if (digit >= 0 && digit < (hexadecimal ? 16 : 10)) {
+        value = value * (hexadecimal ? 16 : 10) + digit;
+        digits++;
+        if (fraction) fractionDigits++;
+      } else if (character === "." && !fraction && !hexInteger) fraction = true;
+      else break;
+    }
+    if (!digits) throw new Error("amix: invalid weights");
+    if (hexadecimal) {
+      value /= 16 ** fractionDigits;
+      if (source[numberStart] === "-") value = -value;
+    }
+    const exponentMarker = hexadecimal ? "p" : "e";
+    if (!hexInteger && source[offset]?.toLowerCase() === exponentMarker) {
+      let end = offset + 1;
+      if (source[end] === "+" || source[end] === "-") end++;
+      const exponentStart = end;
+      while (source[end] && source[end]! >= "0" && source[end]! <= "9") end++;
+      if (end > exponentStart) {
+        if (hexadecimal) value *= 2 ** Number(source.slice(offset + 1, end));
+        offset = end;
+      }
+    }
+    if (!hexadecimal) value = Number(source.slice(numberStart, offset));
+    // Numeric prefixes and suffixes follow av_strtod, not AVOption expressions.
+    if (source.startsWith("dB", offset)) {
+      value = 10 ** (value / 20);
+      offset += 2;
+    } else {
+      const exponents: Record<string, number> = { y: -24, z: -21, a: -18, f: -15, p: -12, n: -9, u: -6, m: -3, c: -2, d: -1, h: 2, k: 3, K: 3, M: 6, G: 9, T: 12, P: 15, E: 18, Z: 21, Y: 24 };
+      const exponent = exponents[source[offset]!];
+      if (exponent !== undefined) {
+        offset++;
+        const binary = source[offset] === "i";
+        value *= binary ? 2 ** (exponent / 0.3) : 10 ** exponent;
+        if (binary) offset++;
+      }
+    }
+    if (source[offset] === "B") {
+      value *= 8;
+      offset++;
+    }
+    value = Math.fround(value);
+    if (!Number.isFinite(value)) throw new Error("amix: invalid weights");
+    weights.push(value);
+    if (offset === source.length) {
+      if (weights.length === 1) weights.push(value);
+      break;
+    }
+    // amix skips exactly one separator, even when it is not whitespace.
+    offset++;
+  }
+  return weights;
 }

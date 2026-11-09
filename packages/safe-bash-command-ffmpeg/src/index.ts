@@ -4714,7 +4714,7 @@ export function evalSyncFfmpeg(
     // Output resampling and channel mixing require the async audio filter path.
     if (audioRate !== undefined || audioChannelOptions.length) return undefined;
     if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) return undefined;
-    if (outputFormat === "segment" || outputFormat === "tee") return undefined;
+    if (outputFormat === "segment" || outputFormat === "tee" || outputTarget.startsWith("tee:")) return undefined;
     const isNullMux = outputFormat === "null";
     if (!isNullMux && !isStdout(outputTarget) && inputs.some(input =>
       input.format !== "lavfi" && !isStdin(input.path) && input.path === outputTarget)) return undefined;
@@ -5104,6 +5104,7 @@ interface InputSpec {
   readonly subtitleFrameRate?: number | undefined;
   readonly subtitleCharencMode?: string | undefined;
   readonly subtitleCharset?: string | undefined;
+  readonly webvttKind?: string | undefined;
   readonly fixSubDuration?: boolean | undefined;
   readonly skipInitialBytes?: number | undefined;
   readonly ignoreLength?: boolean | undefined;
@@ -6883,6 +6884,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const frameChecksumOutput = outputFormat === "framemd5" || outputFormat === "framehash" || outputFormat === "framecrc";
         const checksumOutput = frameChecksumOutput || outputFormat === "streamhash" || outputFormat === "hash" || outputFormat === "md5" || outputFormat === "crc";
         const target = outputTarget;
+        const protocolTargets = target.startsWith("tee:") ? target.slice(4).split("|") : [target];
         const progressOutputIndex = outputs.length;
         const firstOutput = outputs.length === 0;
         initializers.push(async () => {
@@ -6895,30 +6897,33 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             parseTee(outputTarget);
             return;
           }
-          if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget)) {
-            const inputIndex = inputs.findIndex(input =>
-              input.format !== "lavfi" && !isStdin(input.path) &&
-              resolvePath(context.cwd, input.path) === resolvePath(context.cwd, outputTarget) &&
-              (input.patternType === "none" || input.patternType === "glob" ||
-                formatImageSequence(input.path, input.startNumber ?? 0) === undefined));
-            if (inputIndex >= 0) throw new Error(`Output ${outputTarget} same as Input #${inputIndex} - exiting. FFmpeg cannot edit existing files in-place.`);
-          }
-          // Virtual streams are non-interactive: replacing a file requires -y.
-          if (
-            !overwrite &&
-            !isStdout(outputTarget) &&
-            outputFormat !== "null"
-          ) {
-            const outFull = resolvePath(context.cwd, outputTarget);
-            try {
-              await context.fs.stat(outFull, { signal: context.signal });
-              await writeBytes(context.stderr,
-                encodeUtf8(`File '${outputTarget}' already exists. Exiting.\nError opening output file ${outputTarget}.\n`), context.signal);
-              return { exitCode: overwrite === false ? 0 : 1 };
-            } catch (error) {
-              rethrowRuntimeError(context, error);
-              if ((error as { code?: string }).code !== "ENOENT") throw error;
-              // File does not exist, proceed
+          for (const outputTarget of protocolTargets) {
+            if (!outputTarget) throw new Error("Empty tee protocol destination");
+            if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget)) {
+              const inputIndex = inputs.findIndex(input =>
+                input.format !== "lavfi" && !isStdin(input.path) &&
+                resolvePath(context.cwd, input.path) === resolvePath(context.cwd, outputTarget) &&
+                (input.patternType === "none" || input.patternType === "glob" ||
+                  formatImageSequence(input.path, input.startNumber ?? 0) === undefined));
+              if (inputIndex >= 0) throw new Error(`Output ${outputTarget} same as Input #${inputIndex} - exiting. FFmpeg cannot edit existing files in-place.`);
+            }
+            // Virtual streams are non-interactive: replacing a file requires -y.
+            if (
+              !overwrite &&
+              !isStdout(outputTarget) &&
+              outputFormat !== "null"
+            ) {
+              const outFull = resolvePath(context.cwd, outputTarget);
+              try {
+                await context.fs.stat(outFull, { signal: context.signal });
+                await writeBytes(context.stderr,
+                  encodeUtf8(`File '${outputTarget}' already exists. Exiting.\nError opening output file ${outputTarget}.\n`), context.signal);
+                return { exitCode: overwrite === false ? 0 : 1 };
+              } catch (error) {
+                rethrowRuntimeError(context, error);
+                if ((error as { code?: string }).code !== "ENOENT") throw error;
+                // File does not exist, proceed
+              }
             }
           }
 
@@ -6929,10 +6934,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           if (!plugin?.canMux && !["null", "segment", "data", "rawvideo", "image2pipe", "ico", "apng", "framemd5", "framehash", "framecrc", "streamhash", "hash", "md5", "crc"].includes(format ?? "")) {
             throw new Error(`Unable to find a suitable output format for '${outputFormat ?? outputTarget}' (format AST not registered)`);
           }
-          // Open earlier ordinary destinations before checking later outputs.
-          if (progressOutputIndex < outputs.length - 1 && !isStdout(outputTarget) && outputTarget !== "/dev/null" &&
+          // Open every protocol destination in order, reporting partial open failures.
+          if ((target.startsWith("tee:") || progressOutputIndex < outputs.length - 1) &&
               format !== "null" && format !== "segment" && plugin?.id !== "hls" && plugin?.id !== "image2") {
-            await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
+            for (const destination of protocolTargets) {
+              if (!isStdout(destination) && destination !== "/dev/null") {
+                await context.fs.writeFile(resolvePath(context.cwd, destination), new Uint8Array(0), { signal: context.signal });
+              }
+            }
           }
         });
         for (const map of maps) audioOutputMaps.add(map);
@@ -11229,11 +11238,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             budget.checkOutputBytes(serializedBytes.byteLength);
             if (firstOutput) progressSize = serializedBytes.byteLength;
 
-            if (isStdout(outputTarget)) {
-              await writeBytes(context.stdout, serializedBytes, context.signal);
-            } else if (outputTarget !== "/dev/null") {
-              const fullOutPath = resolvePath(context.cwd, outputTarget);
-              await writeFileOutput(context, serializedBytes, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
+            for (const destination of protocolTargets) {
+              if (isStdout(destination)) {
+                await writeBytes(context.stdout, serializedBytes, context.signal);
+              } else if (destination !== "/dev/null") {
+                const fullOutPath = resolvePath(context.cwd, destination);
+                await writeFileOutput(context, serializedBytes, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
+              }
             }
 
             options.onMetrics?.(budget.getStats());

@@ -4046,6 +4046,7 @@ export class Runtime {
           if (active) throw new ArrayFailure("indexed writer is busy");
           const work = scope.run(async () => {
             await resolvedVoid;
+            if (state.variableAttributes?.get(name)) value = await this.attributeValue(state, name, value, io);
             validate();
             const fastCurrent = store.get(name);
             if ( fastCurrent && !fastCurrent.associative && fastCurrent.references === 1 && state.locals.length === 0 && !monitor.hasAnyOverlays() && store.watches.size === 0) {
@@ -8176,6 +8177,7 @@ export class Runtime {
       await collectMapfile(options, input, {
         allocation: () => this.budget.values.scope(), loop: () => this.budget.loop(), tryWriteSync: (index, value) => {
           if (pendingFlow) return true;
+          if (state.variableAttributes?.get(options.name)) return false;
           const current = pinned!;
           const attached = store.bindings.get(options.name) === entry;
           const mon = stateMonitor(state);
@@ -8197,6 +8199,7 @@ export class Runtime {
             throw error;
           }
         }, write: async (index, value) => {
+          if (state.variableAttributes?.get(options.name)) value = await this.attributeValue(state, options.name, value, context);
           if (pinned !== entry.binding) { const previous = pinned!; pinned = entry.binding.retain(); await previous.release(); }
           const operation = ArrayOwner.create(store.owner.ledger, store.owner);
           let staged: IndexedBinding | undefined;

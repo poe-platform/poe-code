@@ -3,6 +3,39 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 import { getCommandArguments } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/types.js";
+import { mapfileExtension } from "../../src/shell/extensions/mapfile/index.js";
+
+for (const extension of [false, true]) {
+  for (const command of ["mapfile", "readarray"]) {
+    for (const [attribute, input, expected] of [
+      ["i", "2+3\nA[1]+2", ["5", "7"]],
+      ["u", "MiXeD\nCaSe", ["MIXED", "CASE"]],
+      ["l", "MiXeD\nCaSe", ["mixed", "case"]],
+      ["", "2+3\nMiXeD", ["2+3", "MiXeD"]],
+    ] as const) {
+      for (const callback of [false, true]) test(`${command} stores ${attribute || "plain"} array values with origin and callback=${callback}, extension=${extension}`, async () => {
+        const { shell } = setup({ extensions: extension ? [mapfileExtension()] : [] });
+        try {
+          const result = await shell.exec(`declare -a${attribute} A=(11); cb() { args "$1" "$2" "\${A[@]}"; }; ${command} -t -O 1 ${callback ? "-C cb -c 1" : ""} A; args "\${A[@]}"`, { stdin: input });
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stderr, "");
+          const lines = input.split("\n");
+          const callbacks = callback ? JSON.stringify(["1", lines[0], "11"]) + JSON.stringify(["2", lines[1], "11", expected[0]]) : "";
+          assert.equal(result.stdout, callbacks + JSON.stringify(["11", ...expected]));
+        } finally { await shell.dispose(); }
+      });
+      test(`${command} clears and transforms ${attribute || "plain"} array values in a loop, extension=${extension}`, async () => {
+        const { shell } = setup({ extensions: extension ? [mapfileExtension()] : [] });
+        try {
+          const result = await shell.exec(`declare -a${attribute} A=(99 88 77); for round in 1 2; do ${command} -t A <<< "$input"; args "\${A[@]}"; done`, { env: { input: attribute === "i" ? "2+3\nA[0]+2" : input } });
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, JSON.stringify(expected).repeat(2));
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
 
 for (const command of ["mapfile", "readarray"]) {
   test(`${command} succeeds when its callback closes the input descriptor`, async () => {

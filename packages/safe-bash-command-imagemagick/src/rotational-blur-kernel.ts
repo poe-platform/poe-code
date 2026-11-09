@@ -1,9 +1,10 @@
+import type { Region } from "./region.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
-export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, angle: number, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & { region?: Region | undefined; alphaBlend?: boolean | undefined; hasAlpha?: boolean }, angle: number, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(image.data16 || image.storedData16), scale = highDepth ? 257 : 1;
     const { width, height } = image, cx = (width - 1) / 2, cy = (height - 1) / 2, radius = Math.hypot(cx, cy);
     const radians = angle * Math.PI / 180, samples = Math.max(2, Math.floor(Math.abs(4 * radians * Math.sqrt(radius) + 2)));
@@ -16,6 +17,7 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
         const theta = angularStep * j - offset;
         cosines[j] = Math.cos(theta); sines[j] = Math.sin(theta);
     }
+    const alphaActive = image.hasAlpha || image.alphaBlend !== false;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
     // Native uses nearest pixels, truncating coordinates toward zero after adding 0.5.
     for (let start = 0; start < width * height; start += 1024) {
@@ -51,11 +53,21 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
                     if (!bytes || bytes.length !== 4 * (highDepth ? 2 : 1)) throw new Error("Truncated rotational blur pixels");
                     pixel = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
                 }
-                for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * pixel[3]!;
-                sums[3]! += pixel[3]!;
+                const alpha = alphaActive ? pixel[3]! : 255 * scale;
+                for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * alpha;
+                sums[3]! += alpha;
                 total++;
             }
-            for (let c = 0; c < 4; c++) if (!mask || mask[c]) data[i * 4 + c] = Math.round(c === 3 ? sums[3]! / total : sums[3] ? sums[c]! / sums[3] : 0);
+            const x = (start + i) % width, y = Math.floor((start + i) / width), region = image.region;
+            const protectedPixel = region && (x < region.x || x >= region.x + region.width || y < region.y || y >= region.y + region.height);
+            const sourceAlpha = alphaActive ? data[i * 4 + 3]! / (255 * scale) : 1;
+            const editedAlpha = alphaActive ? (mask && !mask[3] ? data[i * 4 + 3]! : sums[3]! / total) / (255 * scale) : 1;
+            for (let c = 0; c < 4; c++) if (!mask || mask[c]) {
+                let value = c === 3 ? sums[3]! / total : sums[3] ? sums[c]! / sums[3] : 0;
+                // Composite before quantizing: native retains fractional blur samples in its cache.
+                if (protectedPixel) value = c === 3 ? data[i * 4 + c]! : data[i * 4 + c]! * sourceAlpha + value * editedAlpha * (1 - sourceAlpha);
+                data[i * 4 + c] = Math.round(value);
+            }
         }
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
     }

@@ -9423,24 +9423,6 @@ describe("waveform", () => {
   });
 });
 
-describe("showinfo", () => {
-  for (const filter of ["showinfo", "showinfo=checksum=0", "showinfo=0", "null,showinfo,null"]) {
-    it(`reports native RGB frame timing and preserves pixels for ${filter}`, async () => {
-      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
-      const frames = [0, 1].map(t => Uint8Array.from(Array.from({ length: 32 * 24 }, (_, i) => {
-        const x = i % 32, y = Math.floor(i / 32);
-        return [(7*x+3*y+87*t)%256, (2*x+9*y+53*t)%256, (4*x+11*y+23*t)%256, 255];
-      }).flat()));
-      const files = Object.fromEntries(frames.map((data, i) => [`/f${i}.png`, encodeImage({
-        width: 32, height: 24, data, format: "png", space: "srgb", channels: 4,
-        depth: "uchar", density: 72, hasAlpha: false
-      }, { format: "png", pngColorType: 2 }).data]));
-      const vfs = createTestVfs(files);
-      const result = await runCmd(createFfmpegCommand(), ["-v", "info", "-framerate", "5", "-i", "/f%d.png", "-vf", filter, "/o%d.png"], vfs);
-      assert.equal(result.exitCode, 0, result.stderr);
-      const lines = result.stderr.split("\n").filter(line => line.includes("pts_time:"));
-      assert.equal(lines.length, 2, result.stderr);
-
 describe("fps timestamp rounding", () => {
   for (const [options, expected] of [
     ["2", [40, 80]],
@@ -9471,6 +9453,24 @@ describe("fps timestamp rounding", () => {
     });
   }
 });
+
+describe("showinfo", () => {
+  for (const filter of ["showinfo", "showinfo=checksum=0", "showinfo=0", "null,showinfo,null"]) {
+    it(`reports native RGB frame timing and preserves pixels for ${filter}`, async () => {
+      const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+      const frames = [0, 1].map(t => Uint8Array.from(Array.from({ length: 32 * 24 }, (_, i) => {
+        const x = i % 32, y = Math.floor(i / 32);
+        return [(7*x+3*y+87*t)%256, (2*x+9*y+53*t)%256, (4*x+11*y+23*t)%256, 255];
+      }).flat()));
+      const files = Object.fromEntries(frames.map((data, i) => [`/f${i}.png`, encodeImage({
+        width: 32, height: 24, data, format: "png", space: "srgb", channels: 4,
+        depth: "uchar", density: 72, hasAlpha: false
+      }, { format: "png", pngColorType: 2 }).data]));
+      const vfs = createTestVfs(files);
+      const result = await runCmd(createFfmpegCommand(), ["-v", "info", "-framerate", "5", "-i", "/f%d.png", "-vf", filter, "/o%d.png"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const lines = result.stderr.split("\n").filter(line => line.includes("pts_time:"));
+      assert.equal(lines.length, 2, result.stderr);
 
       for (const [i, line] of lines.entries()) {
         assert.match(line, new RegExp(`n:\\s*${i} pts:\\s*${i} pts_time:${i / 5}`));

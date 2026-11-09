@@ -802,8 +802,9 @@ produces 3.0 ordered FL, FR, FC. Overlapping speaker layouts concatenate channel
 in input order using the default layout for the total channel count: two mono
 inputs produce stereo, three mono inputs produce 2.1 (WAV mask `0x0b`), and
 two stereo inputs produce 4.0 (WAV mask `0x107`).
-`amerge` defaults to two inputs; filters after the merge are supported. Filters
-before the merge are currently unsupported.
+`amerge` defaults to two inputs. Each branch applies its filters before merging,
+for example `[0:a]volume=0.5[x];[x][1:a]amerge[out]` halves only the first
+input's channels. Filters after the merge apply to the combined output.
 Named instances such as `acrossfade@join=ns=4` and `amerge@pair=inputs=2`
 use the same input handling and options as their unnamed forms.
 

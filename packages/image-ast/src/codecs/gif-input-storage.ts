@@ -98,7 +98,7 @@ async function* indices(
     }
     old = value;
   }
-  if (written < count) throw new Error("Truncated GIF pixels");diff --git a/packages/image-ast/src/gif-input.test.ts b/packages/image-ast/src/gif-input.test.ts
+  if (written < count) throw new Error("Truncated GIF pixels");
 }
 
 /** Retained GIF input uses bounded pages and reusable caller-backed canvases. */

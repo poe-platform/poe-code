@@ -1867,7 +1867,7 @@ export const gifInputVectors: GifInputVector[] = [
       hasAlpha: true,
       pages: 1,
       delay: [0],
-      size: 819
+      size: 11646
     },
     expected: {
       width: 1031,
@@ -1880,10 +1880,10 @@ export const gifInputVectors: GifInputVector[] = [
       hasAlpha: false,
       delay: [0]
     },
-    hash: "4dd068c976c8a39343dc138f31a8d37115a31f62b878df3ee59fd408b6d734fa"
+    hash: "85c0cc7e8b514f845b4e19d709741eb7242fcf4756845b57873147cd1a5ff36c"
   },
   {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 2, mode: "early" },
+    spec: { width: 1031, height: 5, frames: 1, minimum: 2, block: 254, mode: "literal" },
     options: {},
     metadata: {
       format: "gif",
@@ -1896,7 +1896,7 @@ export const gifInputVectors: GifInputVector[] = [
       hasAlpha: true,
       pages: 1,
       delay: [0],
-      size: 808
+      size: 8060
     },
     expected: {
       width: 1031,
@@ -1909,7 +1909,7 @@ export const gifInputVectors: GifInputVector[] = [
       hasAlpha: false,
       delay: [0]
     },
-    hash: "e731a16c872644f8808908a661151e1e4f8145c46aa0574a8e1e6c7bb4c4b31e"
+    hash: "85c0cc7e8b514f845b4e19d709741eb7242fcf4756845b57873147cd1a5ff36c"
   },
   {
     spec: { width: 1031, height: 5, frames: 1, minimum: 2, block: 254, mode: "kwkwk" },
@@ -1928,6 +1928,225 @@ export const gifInputVectors: GifInputVector[] = [
   },
   {
     spec: { width: 1031, height: 5, frames: 1, minimum: 2, block: 254, mode: "missing-clear" },
+    options: {},
+    metadata: {
+      format: "gif",
+      width: 1031,
+      height: 5,
+      space: "srgb",
+      channels: 4,
+      depth: "uchar",
+      density: 72,
+      hasAlpha: true,
+      pages: 1,
+      delay: [0],
+      size: 8060
+    },
+    expected: {
+      width: 1031,
+      height: 5,
+      format: "gif",
+      space: "srgb",
+      channels: 4,
+      depth: "uchar",
+      density: 72,
+      hasAlpha: false,
+      delay: [0]
+    },
+    hash: "85c0cc7e8b514f845b4e19d709741eb7242fcf4756845b57873147cd1a5ff36c"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 2, block: 255, mode: "literal" },
+    options: {},
+    metadata: {
+      format: "gif",
+      width: 1031,
+      height: 5,
+      space: "srgb",
+      channels: 4,
+      depth: "uchar",
+      density: 72,
+      hasAlpha: true,
+      pages: 1,
+      delay: [0],
+      size: 8060
+    },
+    expected: {
+      width: 1031,
+      height: 5,
+      format: "gif",
+      space: "srgb",
+      channels: 4,
+      depth: "uchar",
+      density: 72,
+      hasAlpha: false,
+      delay: [0]
+    },
+    hash: "85c0cc7e8b514f845b4e19d709741eb7242fcf4756845b57873147cd1a5ff36c"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 2, block: 255, mode: "kwkwk" },
+    options: {},
+    error: "Truncated GIF pixels"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 2, block: 255, mode: "clear" },
+    options: {},
+    error: "Truncated GIF pixels"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 2, block: 255, mode: "early" },
+    options: {},
+    error: "Truncated GIF pixels"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 2, block: 255, mode: "missing-clear" },
+    options: {},
+    metadata: {
+      format: "gif",
+      width: 1031,
+      height: 5,
+      space: "srgb",
+      channels: 4,
+      depth: "uchar",
+      density: 72,
+      hasAlpha: true,
+      pages: 1,
+      delay: [0],
+      size: 8060
+    },
+    expected: {
+      width: 1031,
+      height: 5,
+      format: "gif",
+      space: "srgb",
+      channels: 4,
+      depth: "uchar",
+      density: 72,
+      hasAlpha: false,
+      delay: [0]
+    },
+    hash: "85c0cc7e8b514f845b4e19d709741eb7242fcf4756845b57873147cd1a5ff36c"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 1, mode: "literal" },
+    options: {},
+    metadata: {
+      format: "gif",
+      width: 1031,
+      height: 5,
+      space: "srgb",
+      channels: 4,
+      depth: "uchar",
+      density: 72,
+      hasAlpha: true,
+      pages: 1,
+      delay: [0],
+      size: 15570
+    },
+    expected: {
+      width: 1031,
+      height: 5,
+      format: "gif",
+      space: "srgb",
+      channels: 4,
+      depth: "uchar",
+      density: 72,
+      hasAlpha: false,
+      delay: [0]
+    },
+    hash: "85c0cc7e8b514f845b4e19d709741eb7242fcf4756845b57873147cd1a5ff36c"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 1, mode: "kwkwk" },
+    options: {},
+    error: "Truncated GIF pixels"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 1, mode: "clear" },
+    options: {},
+    error: "Truncated GIF pixels"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 1, mode: "early" },
+    options: {},
+    error: "Truncated GIF pixels"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 1, mode: "missing-clear" },
+    options: {},
+    metadata: {
+      format: "gif",
+      width: 1031,
+      height: 5,
+      space: "srgb",
+      channels: 4,
+      depth: "uchar",
+      density: 72,
+      hasAlpha: true,
+      pages: 1,
+      delay: [0],
+      size: 15568
+    },
+    expected: {
+      width: 1031,
+      height: 5,
+      format: "gif",
+      space: "srgb",
+      channels: 4,
+      depth: "uchar",
+      density: 72,
+      hasAlpha: false,
+      delay: [0]
+    },
+    hash: "85c0cc7e8b514f845b4e19d709741eb7242fcf4756845b57873147cd1a5ff36c"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 2, mode: "literal" },
+    options: {},
+    metadata: {
+      format: "gif",
+      width: 1031,
+      height: 5,
+      space: "srgb",
+      channels: 4,
+      depth: "uchar",
+      density: 72,
+      hasAlpha: true,
+      pages: 1,
+      delay: [0],
+      size: 11878
+    },
+    expected: {
+      width: 1031,
+      height: 5,
+      format: "gif",
+      space: "srgb",
+      channels: 4,
+      depth: "uchar",
+      density: 72,
+      hasAlpha: false,
+      delay: [0]
+    },
+    hash: "85c0cc7e8b514f845b4e19d709741eb7242fcf4756845b57873147cd1a5ff36c"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 2, mode: "kwkwk" },
+    options: {},
+    error: "Truncated GIF pixels"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 2, mode: "clear" },
+    options: {},
+    error: "Truncated GIF pixels"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 2, mode: "early" },
+    options: {},
+    error: "Truncated GIF pixels"
+  },
+  {
+    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 2, mode: "missing-clear" },
     options: {},
     metadata: {
       format: "gif",
@@ -1985,225 +2204,6 @@ export const gifInputVectors: GifInputVector[] = [
     hash: "85c0cc7e8b514f845b4e19d709741eb7242fcf4756845b57873147cd1a5ff36c"
   },
   {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 2, block: 255, mode: "kwkwk" },
-    options: {},
-    error: "Truncated GIF pixels"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 2, block: 255, mode: "clear" },
-    options: {},
-    error: "Truncated GIF pixels"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 2, block: 255, mode: "early" },
-    options: {},
-    error: "Truncated GIF pixels"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 2, block: 255, mode: "missing-clear" },
-    options: {},
-    metadata: {
-      format: "gif",
-      width: 1031,
-      height: 5,
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: true,
-      pages: 1,
-      delay: [0],
-      size: 810
-    },
-    expected: {
-      width: 1031,
-      height: 5,
-      format: "gif",
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: false,
-      delay: [0]
-    },
-    hash: "38414a8e2e882bb5739c180d4f05432ed1ccb57adfb7691bd7a5dc4189bca25a"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 254, mode: "clear" },
-    options: {},
-    metadata: {
-      format: "gif",
-      width: 1031,
-      height: 5,
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: true,
-      pages: 1,
-      delay: [0],
-      size: 814
-    },
-    expected: {
-      width: 1031,
-      height: 5,
-      format: "gif",
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: false,
-      delay: [0]
-    },
-    hash: "4dd068c976c8a39343dc138f31a8d37115a31f62b878df3ee59fd408b6d734fa"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 1, mode: "kwkwk" },
-    options: {},
-    error: "Truncated GIF pixels"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 1, mode: "clear" },
-    options: {},
-    error: "Truncated GIF pixels"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 1, mode: "early" },
-    options: {},
-    error: "Truncated GIF pixels"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 1, mode: "missing-clear" },
-    options: {},
-    metadata: {
-      format: "gif",
-      width: 1031,
-      height: 5,
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: true,
-      pages: 1,
-      delay: [0],
-      size: 807
-    },
-    expected: {
-      width: 1031,
-      height: 5,
-      format: "gif",
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: false,
-      delay: [0]
-    },
-    hash: "e731a16c872644f8808908a661151e1e4f8145c46aa0574a8e1e6c7bb4c4b31e"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 254, mode: "missing-clear" },
-    options: {},
-    metadata: {
-      format: "gif",
-      width: 1031,
-      height: 5,
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: true,
-      pages: 1,
-      delay: [0],
-      size: 8215
-    },
-    expected: {
-      width: 1031,
-      height: 5,
-      format: "gif",
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: false,
-      delay: [0]
-    },
-    hash: "85c0cc7e8b514f845b4e19d709741eb7242fcf4756845b57873147cd1a5ff36c"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 2, mode: "kwkwk" },
-    options: {},
-    error: "Truncated GIF pixels"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 2, mode: "clear" },
-    options: {},
-    error: "Truncated GIF pixels"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 2, mode: "early" },
-    options: {},
-    error: "Truncated GIF pixels"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 2, mode: "missing-clear" },
-    options: {},
-    metadata: {
-      format: "gif",
-      width: 1031,
-      height: 5,
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: true,
-      pages: 1,
-      delay: [0],
-      size: 8215
-    },
-    expected: {
-      width: 1031,
-      height: 5,
-      format: "gif",
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: false,
-      delay: [0]
-    },
-    hash: "85c0cc7e8b514f845b4e19d709741eb7242fcf4756845b57873147cd1a5ff36c"
-  },
-  {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 255, mode: "kwkwk" },
-    options: {},
-    metadata: {
-      format: "gif",
-      width: 1031,
-      height: 5,
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: true,
-      pages: 1,
-      delay: [0],
-      size: 810
-    },
-    expected: {
-      width: 1031,
-      height: 5,
-      format: "gif",
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: false,
-      delay: [0]
-    },
-    hash: "38414a8e2e882bb5739c180d4f05432ed1ccb57adfb7691bd7a5dc4189bca25a"
-  },
-  {
     spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 254, mode: "kwkwk" },
     options: {},
     error: "Truncated GIF pixels"
@@ -2232,7 +2232,7 @@ export const gifInputVectors: GifInputVector[] = [
       hasAlpha: true,
       pages: 1,
       delay: [0],
-      size: 814
+      size: 8215
     },
     expected: {
       width: 1031,
@@ -2245,10 +2245,10 @@ export const gifInputVectors: GifInputVector[] = [
       hasAlpha: false,
       delay: [0]
     },
-    hash: "4dd068c976c8a39343dc138f31a8d37115a31f62b878df3ee59fd408b6d734fa"
+    hash: "85c0cc7e8b514f845b4e19d709741eb7242fcf4756845b57873147cd1a5ff36c"
   },
   {
-    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 255, mode: "early" },
+    spec: { width: 1031, height: 5, frames: 1, minimum: 8, block: 255, mode: "literal" },
     options: {},
     metadata: {
       format: "gif",
@@ -2261,7 +2261,7 @@ export const gifInputVectors: GifInputVector[] = [
       hasAlpha: true,
       pages: 1,
       delay: [0],
-      size: 807
+      size: 8215
     },
     expected: {
       width: 1031,

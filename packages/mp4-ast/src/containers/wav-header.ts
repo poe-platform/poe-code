@@ -31,7 +31,7 @@ export interface WavHeader {
   dataChunks?: { offset: number; size: number }[];
   declaredDataSize?: number;
   chapters?: Mp4Chapter[];
-  cues?: { id: number; start: number; title: string }[];
+  cues?: { id: number; start: number; title?: string }[];
 }
 
 // Sony Wave64 GUIDs store the four-character chunk ID followed by this suffix.
@@ -179,7 +179,7 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seek
       for (let index = 0; index < count; index++) {
         const read = yield { offset: start + 4 + index * 24, length: 24 };
         const cue = new DataView(read.bytes.buffer, read.bytes.byteOffset, read.bytes.byteLength);
-        (header.cues ??= []).push({ id: cue.getUint32(0, littleEndian), start: cue.getUint32(20, littleEndian), title: "" });
+        (header.cues ??= []).push({ id: cue.getUint32(0, littleEndian), start: cue.getUint32(20, littleEndian) });
       }
     } else if (!wave64 && id === "bext" && size >= 602) {
       const read = yield { offset: start, length: 346 };
@@ -300,7 +300,10 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seek
     for (const chunk of header.dataChunks) chunk.size = Math.min(chunk.size, Math.max(0, header.byteLength - chunk.offset));
     header.dataSize = header.dataChunks.reduce((sum, chunk) => sum + chunk.size, 0);
   }
-  for (const cue of header.cues ?? []) cue.title = labels.get(cue.id) ?? "";
+  for (const cue of header.cues ?? []) {
+    const title = labels.get(cue.id);
+    if (title !== undefined) cue.title = title;
+  }
   return header;
 }
 

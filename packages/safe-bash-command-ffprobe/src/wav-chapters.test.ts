@@ -13,7 +13,7 @@ function chunk(id: string, payload: Uint8Array): Uint8Array {
   return bytes;
 }
 
-function wav(labelsFirst: boolean): Uint8Array {
+function wav(labelsFirst: boolean, titles: string[] = ["Intro", "Demo"]): Uint8Array {
   const plain = encodeWav({ sampleRate: 8000, channels: [new Float64Array(8000)] });
   const cues = new Uint8Array(52), view = new DataView(cues.buffer);
   view.setUint32(0, 2, true);
@@ -24,13 +24,13 @@ function wav(labelsFirst: boolean): Uint8Array {
     cues.set(new TextEncoder().encode("data"), pos + 8);
     view.setUint32(pos + 20, start, true);
   }
-  const labels = ["Intro", "Demo"].map((title, index) => {
+  const labels = titles.map((title, index) => {
     const payload = new Uint8Array(5 + title.length);
     new DataView(payload.buffer).setUint32(0, index + 1, true);
     payload.set(new TextEncoder().encode(title), 4);
     return chunk("labl", payload);
   });
-  const list = chunk("LIST", Uint8Array.of(...new TextEncoder().encode("adtl"), ...labels[0]!, ...labels[1]!));
+  const list = chunk("LIST", Uint8Array.of(...new TextEncoder().encode("adtl"), ...labels.flatMap(label => [...label])));
   const cue = chunk("cue ", cues);
   const bytes = Uint8Array.of(...plain, ...(labelsFirst ? list : cue), ...(labelsFirst ? cue : list));
   new DataView(bytes.buffer).setUint32(4, bytes.length - 8, true);
@@ -85,4 +85,34 @@ for (const invalid of ["cue count", "label length"]) {
     await expect(probeWavSource({ size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } })).rejects.toThrow();
     await expect(probeWavStream((async function* () { yield bytes; })())).rejects.toThrow();
   });
+}
+
+for (const titles of [[], ["", "ok"]]) {
+  for (const labelsFirst of [false, true]) {
+    it(`preserves absent and empty WAV labels ${JSON.stringify(titles)}, labelsFirst=${labelsFirst}`, async () => {
+      const bytes = wav(labelsFirst, titles);
+      const chapters = expected.map(({ tags: _tags, ...chapter }, index) => ({
+        ...chapter, ...(titles[index] === undefined ? {} : { tags: { title: titles[index] } })
+      }));
+      const probeChapters = chapters.map(chapter => ({ ...chapter, tags: chapter.tags ?? {} }));
+      expect(wavAst().probe(bytes).chapters).toEqual(probeChapters);
+      expect((await probeWavSource({ size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } })).chapters).toEqual(probeChapters);
+      expect((await probeWavStream((async function* () {
+        for (let offset = 0; offset < bytes.length; offset += 7) yield bytes.subarray(offset, offset + 7);
+      })())).chapters).toEqual(probeChapters);
+      const fs = new MemoryFileSystem(); await fs.writeFile("/input.wav", bytes);
+      let output = "";
+      const args = ["-v", "error", "-show_chapters", "-of", "json", "/input.wav"];
+      const result = await createFfprobeCommand().execute({
+        command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs,
+        signal: new AbortController().signal,
+        stdin: { async *[Symbol.asyncIterator]() {} },
+        stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
+        stderr: { async write(chunk) { throw new Error(new TextDecoder().decode(chunk)); } }
+      });
+      expect(result.exitCode).toBe(0);
+      expect(JSON.parse(output).chapters).toEqual(chapters);
+      expect(JSON.parse(evalSyncFfprobe(undefined, args, () => bytes)!).chapters).toEqual(chapters);
+    });
+  }
 }

@@ -831,7 +831,8 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
       timescale: sampleRate,
       startTimeSeconds: cue.start / sampleRate,
       endTimeSeconds: (cues[index + 1]?.start ?? totalPcmSamples) / sampleRate,
-      title: cue.title
+      title: cue.title ?? "",
+      tags: cue.title === undefined ? {} : { title: cue.title }
     })),
     tracks: [
       {

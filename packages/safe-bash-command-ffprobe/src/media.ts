@@ -699,7 +699,11 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
             row = prepareRecord(row, section.name === "packets" ? "packet" : "frame");
             if (row === undefined) return;
           }
-          else if (section.name === "chapters") row = filterObject(row as Record<string, unknown>, "chapter", "chapter_tags");
+          else if (section.name === "chapters") {
+            const chapter = { ...filterObject(row as Record<string, unknown>, "chapter", "chapter_tags") };
+            if (chapter.tags && Object.keys(chapter.tags).length === 0) delete chapter.tags;
+            row = chapter;
+          }
           yield (firstRow ? "" : ",") + (compact ? "" : "\n    ");
           firstRow = false;
           yield* probeJsonSteps(row, compact, 2);

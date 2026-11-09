@@ -3,7 +3,7 @@ export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3
   return img.space === "b-w" || img.space === "grey16" ? img.hasAlpha ? 2 : 1 : img.hasAlpha ? 4 : 3;
 }
 export function createTiffLayout(
-  img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties">,
+  img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties"|"virtualCanvas">,
   options?: Pick<OutputEncodeOptions, "tiffBig" | "tiffIntegerDepth" | "tiffSigned" | "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
   offset = 0, hasNext = false, stripSizes?: readonly number[]
 ) {
@@ -32,26 +32,30 @@ export function createTiffLayout(
   const scale = resolution?.unit === "meter" ? 100 : 1;
   const x = resolution ? resolution.x / scale : density, y = resolution ? resolution.y / scale : density;
   const denominator = Number.isInteger(x) && Number.isInteger(y) ? 1 : 10000;
+  const positions = img.virtualCanvas && (img.virtualCanvas.x !== 0 || img.virtualCanvas.y !== 0)
+    ? [[Math.round(Math.max(0, img.virtualCanvas.x) * denominator), Math.round(x * denominator)], [Math.round(Math.max(0, img.virtualCanvas.y) * denominator), Math.round(y * denominator)]] : undefined;
+  const positionSize = positions ? 16 : 0;
   const orientation = options?.orientation ?? img.orientation ?? 1;
   // Keep the single-page layout byte-compatible. Later pages start with their
   // directory so the preceding page can link to them without reading ahead.
   const padding = (alignment - pixelBytes % alignment) % alignment;
   const comment = img.properties?.comment === undefined ? undefined : new TextEncoder().encode(img.properties.comment + "\0");
   const commentSize = comment ? Math.ceil(comment.length / alignment) * alignment : 0;
-  const numEntries = (hasAlpha ? 15 : 14) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
+  const numEntries = (hasAlpha ? 15 : 14) + (positions ? 2 : 0) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
   const tableSize = Math.ceil((countBytes + numEntries * entryBytes + offsetBytes) / alignment) * alignment;
-  const directorySize = tableSize + 24 + commentSize + stripArraySize;
+  const directorySize = tableSize + 24 + commentSize + stripArraySize + positionSize;
   const pixelOffset = offset === 0 ? (big ? 16 : 8) : offset + directorySize;
   const ifdOffset = offset === 0 ? pixelOffset + pixelBytes + padding : offset;
   const bpsOffset = ifdOffset + tableSize;
   const xResOffset = bpsOffset + 8;
   const yResOffset = xResOffset + 8;
+  const positionOffset = yResOffset + 8 + commentSize + stripArraySize;
   // BigTIFF offsets stay within the exact integer range used by backing storage.
   const limit = big ? Number.MAX_SAFE_INTEGER : 0xffffffff;
-  if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(width) || width <= 0 || width > 0xffffffff || !Number.isSafeInteger(height) || height <= 0 || height > 0xffffffff || !Number.isSafeInteger(pixelBytes) || pixelBytes > limit || pixelOffset + pixelBytes + padding > limit + (big ? 0 : 1) || yResOffset + 8 + commentSize + stripArraySize > limit + (big ? 0 : 1)) {
+  if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(width) || width <= 0 || width > 0xffffffff || !Number.isSafeInteger(height) || height <= 0 || height > 0xffffffff || !Number.isSafeInteger(pixelBytes) || pixelBytes > limit || pixelOffset + pixelBytes + padding > limit + (big ? 0 : 1) || positionOffset + positionSize > limit + (big ? 0 : 1)) {
     throw new RangeError(big ? "TIFF layout exceeds safe BigTIFF offsets" : "TIFF layout exceeds classic TIFF offsets");
   }
-  const header=new Uint8Array(big ? 16 : 8),directory=new Uint8Array(yResOffset+8+commentSize+stripArraySize-ifdOffset);
+  const header=new Uint8Array(big ? 16 : 8),directory=new Uint8Array(directorySize);
   const headerView=new DataView(header.buffer),view=new DataView(directory.buffer);
   header[0]=littleEndian ? 0x49 : 0x4d;header[1]=header[0];
   headerView.setUint16(2,big ? 43 : 42,littleEndian);
@@ -77,6 +81,10 @@ export function createTiffLayout(
   entries.push([282, 5, 1, xResOffset]); // XResolution
   entries.push([283, 5, 1, yResOffset]); // YResolution
   entries.push([284, 3, 1, options?.tiffPlanar ? 2 : 1]); // PlanarConfiguration
+  if (positions) {
+    entries.push([286, 5, 1, positionOffset]); // XPosition
+    entries.push([287, 5, 1, positionOffset + 8]); // YPosition
+  }
   entries.push([296, 3, 1, resolution?.unit === "meter" || resolution?.unit === "cm" ? 3 : resolution?.unit === "unknown" ? 1 : 2]); // ResolutionUnit
   if (tile) {
     entries.push([322, 4, 1, tile.width]);
@@ -101,8 +109,8 @@ export function createTiffLayout(
         for (let i = 0; i < count; i++) view.setUint16(valueAt + i * 2, tag === 258 ? bits : count === 1 ? val : 1, littleEndian);
       } else if (type === 4) view.setUint32(valueAt,val,littleEndian);
       else if (type === 5) {
-        view.setUint32(valueAt, Math.round((tag === 282 ? x : y) * denominator), littleEndian);
-        view.setUint32(valueAt+4, denominator, littleEndian);
+        view.setUint32(valueAt, tag < 286 ? Math.round((tag === 282 ? x : y) * denominator) : positions![tag - 286]![0]!, littleEndian);
+        view.setUint32(valueAt+4, tag < 286 ? denominator : positions![tag - 286]![1]!, littleEndian);
       } else view.setBigUint64(valueAt,BigInt(val),littleEndian);
     } else {
       view.setUint32(p+4,count,littleEndian);
@@ -126,7 +134,7 @@ export function createTiffLayout(
       stripOffset += size;
     }
   }
-  const end = offset === 0 ? yResOffset + 8 + commentSize + stripArraySize : pixelOffset + pixelBytes + padding;
+  const end = offset === 0 ? positionOffset + positionSize : pixelOffset + pixelBytes + padding;
   if (hasNext && end > limit) throw new RangeError(big ? "TIFF layout exceeds safe BigTIFF offsets" : "TIFF layout exceeds classic TIFF offsets");
   if (big) view.setBigUint64(countBytes + numEntries * entryBytes, BigInt(hasNext ? end : 0), littleEndian);
   else view.setUint32(countBytes + numEntries * entryBytes, hasNext ? end : 0, littleEndian);
@@ -138,6 +146,11 @@ export function createTiffLayout(
   view.setUint32(xResOffset-ifdOffset + 4, denominator, littleEndian);
   view.setUint32(yResOffset-ifdOffset, Math.round(y * denominator), littleEndian);
   view.setUint32(yResOffset-ifdOffset + 4, denominator, littleEndian);
+  positions?.forEach((value, index) => {
+    const at = positionOffset - ifdOffset + index * 8;
+    view.setUint32(at, value[0]!, littleEndian);
+    view.setUint32(at + 4, value[1]!, littleEndian);
+  });
   return {header,directory,channels,padding,end};
 }
 

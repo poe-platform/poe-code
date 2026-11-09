@@ -1,3 +1,4 @@
+import { amrAst } from "./amr.js";
 import { ac3Ast } from "./ac3.js";
 import { wavpackAst } from "./wavpack.js";
 export { wavpackAst } from "./wavpack.js";
@@ -3071,6 +3072,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     flvAst(),
     y4mAst(),
     aacAst(),
+    amrAst(),
     ac3Ast(),
     wavAst(),
     wavAst("w64"),

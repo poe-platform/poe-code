@@ -35,7 +35,7 @@ export function sampleEntryHeader(formatFourCC: string, body: Uint8Array): Codec
       }
       state.childOffset = 78;
     }
-  } else if (['mp4a','Opus','fLaC','alac','ac-3','ec-3','sowt','twos','lpcm','.mp3','ulaw','alaw','ima4'].includes(formatFourCC)) {
+  } else if (['mp4a','Opus','fLaC','alac','ac-3','ec-3','sowt','twos','lpcm','.mp3','ulaw','alaw','ima4','samr','sawb'].includes(formatFourCC)) {
     state.kind = 'audio';
     if (body.length >= 28) {
       reader.skip(8); const version = reader.readU16BE(); reader.skip(6);
@@ -127,7 +127,7 @@ export function finishCodecMetadata(state: CodecEntryState): Mp4CodecMetadata {
   } else if (state.kind === 'audio') {
     if (format === 'mp4a' && metadata.codecName === 'mp4a') { metadata.codecName = 'aac'; metadata.profile ??= 'LC'; }
     else {
-      const aliases: Record<string,string> = { Opus:'opus',fLaC:'flac',alac:'alac','ac-3':'ac3','ec-3':'eac3',sowt:'pcm_s16le',twos:'pcm_s16be',lpcm:'pcm_s16le','.mp3':'mp3',ulaw:'pcm_mulaw',alaw:'pcm_alaw',ima4:'adpcm_ima_qt' };
+      const aliases: Record<string,string> = { Opus:'opus',fLaC:'flac',alac:'alac','ac-3':'ac3','ec-3':'eac3',sowt:'pcm_s16le',twos:'pcm_s16be',lpcm:'pcm_s16le','.mp3':'mp3',ulaw:'pcm_mulaw',alaw:'pcm_alaw',ima4:'adpcm_ima_qt',samr:'amr_nb',sawb:'amr_wb' };
       metadata.codecName = aliases[format] ?? metadata.codecName;
     }
   } else if (format === 'tx3g' || format === 'text') metadata.codecName = 'mov_text';

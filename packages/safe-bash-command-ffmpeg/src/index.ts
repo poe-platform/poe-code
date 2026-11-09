@@ -6410,6 +6410,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const listText = new TextDecoder().decode(rawBytes);
                 const listDir = filePath === "-" ? context.cwd : dirnameOf(resolvePath(context.cwd, filePath));
                 const concatDocs: MediaDocument[] = [];
+                const streamIds: number[] = [];
                 const chapters: NonNullable<MediaDocument["chapters"]>[number][] = [];
                 const startTimesSeconds: number[] = [];
                 let nextStartSeconds = 0;
@@ -6465,7 +6466,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                     return target;
                   };
-                  if (keyword === "chapter") {
+                  if (keyword === "stream") {
+                    streamIds.push(0);
+                  } else if (keyword === "exact_stream_id") {
+                    if (!streamIds.length) throw new Error(`Line ${l + 1}: exact_stream_id without stream`);
+                    const token = readToken();
+                    const id = Number(token);
+                    const digits = token.startsWith("-") || token.startsWith("+") ? token.slice(1) : token;
+                    if (!digits || Array.from(digits).some(char => char < "0" || char > "9") ||
+                      !Number.isInteger(id) || id < -2147483648 || id > 2147483647) {
+                      throw new Error(`Line ${l + 1}: invalid stream id '${token}'`);
+                    }
+                    streamIds[streamIds.length - 1] = id;
+                  } else if (keyword === "chapter") {
                     const [idToken = "", startToken = "", endToken = ""] = line.slice(cursor).split("\t").join(" ").split(" ").filter(Boolean);
                     const id = Number(idToken);
                     const digits = idToken.startsWith("-") || idToken.startsWith("+") ? idToken.slice(1) : idToken;
@@ -6590,9 +6603,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       ...track, samples: track.samples.map(sample => ({ ...sample, tags: { ...sample.tags, ...segment.tags } }))
                     })) };
                   }
+                  if (streamIds.length) {
+                    // WAV has demuxer stream ID zero; the AST uses a one-based track ID.
+                    const tracks = streamIds.flatMap(id => itemDoc.tracks.filter(track =>
+                      id === (itemDoc.containerFormat === "wav" ? 0 : track.id)));
+                    itemDoc = { ...itemDoc, tracks };
+                  }
                   startTimesSeconds.push(nextStartSeconds);
                   nextStartSeconds += segment.duration ?? itemDoc.durationSeconds;
                   concatDocs.push(itemDoc);
+                }
+                if (streamIds.length && !concatDocs.some(doc => doc.tracks.length)) {
+                  throw new Error("Output file does not contain any stream");
                 }
                 // Concat starts at zero even when the first file retains negative preroll.
                 return { ...concatMp4(concatDocs, { startTimesSeconds, limits: options.limits, budget }), chapters, containerFormat: "concat" };

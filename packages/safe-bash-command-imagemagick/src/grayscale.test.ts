@@ -20,7 +20,7 @@ for (const execution of ["buffered", "retained", "sync"] as const) {
         const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAUAAAABBAMAAADk0HnAAAAAD1BMVEUoZLT/AAAA/wAAAP8BAAA1DKxNAAAAAXRSTlOArV5bRgAAAAxJREFUCNdjEDJwAAAA2gCDI+t2nAAAAABJRU5ErkJggg==", "base64");
         const files = new Map([["in.png", input]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/in.png", input);
-        const args = ["in.png", "-grayscale", method, "out.png"];
+        const args = ["in.png", "-grayscale", method, "PNG32:out.png"];
         const result = execution === "sync" ? runConvertCliSync(args, files)
             : await runConvertCli(args, execution === "retained" ? { filesystem, cwd: "/" } : files);
         expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });

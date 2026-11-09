@@ -6223,7 +6223,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         // Native CLI percentages span QuantumRange + 1 (65536), in Q16 units.
         const threshold = (argument.endsWith("%") ? raw * 65536 / 100 : raw) / 257;
         const independent = state.channelExplicit, channels = [state.channels.r, state.channels.g, state.channels.b, state.channels.a];
-        return { end: start + 1, luminance: true, transform(histogram, image) {
+        return { end: start + 1, luminance: true, highDepth: true, transform(histogram, image) {
             const gray = image.space === "b-w" || image.space === "grey16";
             const bins = histogram[4]!, count = image.width * image.height;
             let low = 0, high = bins.length - 1, sum = 0;
@@ -6244,18 +6244,19 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     whites[channel] = Math.round(magickSepiaTone(high / 257, threshold, gray)[channel]! * 257) / 257;
                 }
                 const alpha = histogram[3]!;
-                let lowAlpha = 0, highAlpha = 255, sum = 0;
-                for (; lowAlpha < 255; lowAlpha++) { sum += alpha[lowAlpha]!; if (sum > 0.02 * count) break; }
+                let lowAlpha = 0, highAlpha = alpha.length - 1, sum = 0;
+                for (; lowAlpha < alpha.length - 1; lowAlpha++) { sum += alpha[lowAlpha]!; if (sum > 0.02 * count) break; }
                 sum = 0;
                 for (; highAlpha > 0; highAlpha--) { sum += alpha[highAlpha]!; if (sum > 0.01 * count) break; }
-                blacks[3] = lowAlpha; whites[3] = highAlpha;
+                blacks[3] = lowAlpha * 255 / (alpha.length - 1); whites[3] = highAlpha * 255 / (alpha.length - 1);
             }
             return function* (pixels) {
                 const { data16: ignored, ...metadata } = pixels;
                 const data = new Uint8Array(pixels.data);
+                const samples = pixels.data16 ?? pixels.data, scale = pixels.data16 ? 257 : 1;
                 for (let i = 0; i < data.length; i += 4) {
                     if (i % 65536 === 0) yield;
-                    const intensity = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
+                    const intensity = (0.212656 * samples[i]! + 0.715158 * samples[i + 1]! + 0.072186 * samples[i + 2]!) / scale;
                     const tone = magickSepiaTone(intensity, threshold, gray);
                     // Sepia tones all RGB channels; only normalization honors the channel mask.
                     for (let channel = 0; channel < 4; channel++) {
@@ -6264,7 +6265,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                         if (white <= black) continue;
                         // Native normalization indexes its Q16 stretch map with rounded tone values.
                         if (channel < 3) tone[channel] = Math.max(0, Math.min(255, (Math.round(tone[channel]! * 257) / 257 - black) / (white - black) * 255));
-                        else data[i + 3] = clampByteVal((data[i + 3]! - black) / (white - black) * 255);
+                        else data[i + 3] = clampByteVal((samples[i + 3]! / scale - black) / (white - black) * 255);
                     }
                     const brightness = Math.max(...tone) / 255;
                     const contrast = 0.5 * brightness + 0.25 * (Math.sin(Math.PI * (brightness - 0.5)) + 1);
@@ -6446,22 +6447,23 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (space === "srgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
                 throw new Error(`unsupported colorspace '${value}'`);
             }
-            const out = new Uint8Array(image.data);
+            const out = new Uint8Array(image.data), data16 = new Uint16Array(out.length);
             const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
-            const samples = image.hueSamples ?? evaluateSamples, scale = image.hueSamples ? 1 / 255 : 1;
+            const samples = image.hueSamples ?? image.evaluateSamples ?? image.data16 ?? image.data;
+            const scale = image.hueSamples ? 65535 : image.evaluateSamples || !image.data16 ? 257 : 1;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
-                let r = samples[idx]! / scale, g = samples[idx + 1]! / scale, b = samples[idx + 2]! / scale;
+                let r = samples[idx]! * scale, g = samples[idx + 1]! * scale, b = samples[idx + 2]! * scale;
                 // Grayscale reads the active channels; only sRGB luminance and RGB luma apply gamma.
                 if (luminance && !image.magickColorspace && (image.space === "srgb" || image.space === "rgb16")) {
-                    r = 255 * (r / 255 <= 0.04045 ? r / 255 / 12.92 : ((r / 255 + 0.055) / 1.055) ** 2.4);
-                    g = 255 * (g / 255 <= 0.04045 ? g / 255 / 12.92 : ((g / 255 + 0.055) / 1.055) ** 2.4);
-                    b = 255 * (b / 255 <= 0.04045 ? b / 255 / 12.92 : ((b / 255 + 0.055) / 1.055) ** 2.4);
+                    r = 65535 * (r / 65535 <= 0.04045 ? r / 65535 / 12.92 : ((r / 65535 + 0.055) / 1.055) ** 2.4);
+                    g = 65535 * (g / 65535 <= 0.04045 ? g / 65535 / 12.92 : ((g / 65535 + 0.055) / 1.055) ** 2.4);
+                    b = 65535 * (b / 65535 <= 0.04045 ? b / 65535 / 12.92 : ((b / 65535 + 0.055) / 1.055) ** 2.4);
                 }
                 if ((space === "rec601luma" || space === "rec709luma") && image.magickColorspace === "RGB") {
-                    r = 255 * (r / 255 <= 0.0031308 ? r / 255 * 12.92 : 1.055 * (r / 255) ** (1 / 2.4) - 0.055);
-                    g = 255 * (g / 255 <= 0.0031308 ? g / 255 * 12.92 : 1.055 * (g / 255) ** (1 / 2.4) - 0.055);
-                    b = 255 * (b / 255 <= 0.0031308 ? b / 255 * 12.92 : 1.055 * (b / 255) ** (1 / 2.4) - 0.055);
+                    r = 65535 * (r / 65535 <= 0.0031308 ? r / 65535 * 12.92 : 1.055 * (r / 65535) ** (1 / 2.4) - 0.055);
+                    g = 65535 * (g / 65535 <= 0.0031308 ? g / 65535 * 12.92 : 1.055 * (g / 65535) ** (1 / 2.4) - 0.055);
+                    b = 65535 * (b / 65535 <= 0.0031308 ? b / 65535 * 12.92 : 1.055 * (b / 65535) ** (1 / 2.4) - 0.055);
                 }
                 let intensity: number;
                 switch (space) {
@@ -6469,19 +6471,24 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     case "brightness": intensity = Math.max(r, g, b); break;
                     case "lightness": intensity = (Math.min(r, g, b) + Math.max(r, g, b)) / 2; break;
                     // Native MS squares Q16 quantum values before clipping.
-                    case "ms": intensity = (r * r + g * g + b * b) * 257 / 3; break;
+                    case "ms": intensity = (r * r + g * g + b * b) / 3; break;
                     case "rms": intensity = Math.sqrt((r * r + g * g + b * b) / 3); break;
                     case "rec601luma": case "rec601luminance": intensity = 0.298839 * r + 0.586811 * g + 0.11435 * b; break;
                     default: intensity = 0.212656 * r + 0.715158 * g + 0.072186 * b;
                 }
-                const gray = imageType === "bilevel" ? (intensity > 127.5 ? 255 : 0) : clampByteVal(intensity);
-                out[idx] = out[idx + 1] = out[idx + 2] = gray;
-                evaluateSamples[idx] = evaluateSamples[idx + 1] = evaluateSamples[idx + 2] = imageType === "bilevel" ? gray : intensity;
-                if (imageType !== undefined && (imageType !== "grayscalealpha" || !image.hasAlpha)) out[idx + 3] = evaluateSamples[idx + 3] = 255;
+                const gray = imageType === "bilevel" ? (intensity > 32767.5 ? 65535 : 0) : Math.max(0, Math.min(65535, intensity));
+                out[idx] = out[idx + 1] = out[idx + 2] = clampByteVal(gray / 257);
+                data16[idx] = data16[idx + 1] = data16[idx + 2] = Math.round(gray);
+                data16[idx + 3] = Math.round(Math.max(0, Math.min(65535, evaluateSamples[idx + 3]! * 257)));
+                evaluateSamples[idx] = evaluateSamples[idx + 1] = evaluateSamples[idx + 2] = (imageType === "bilevel" ? gray : intensity) / 257;
+                if (imageType !== undefined && (imageType !== "grayscalealpha" || !image.hasAlpha)) {
+                    out[idx + 3] = evaluateSamples[idx + 3] = 255;
+                    data16[idx + 3] = 65535;
+                }
             }
             const { data16: ignored, magickColorspace: ignoredSpace, hueSamples: ignoredHue, storedHueSamples: ignoredStoredHue, ...metadata } = image;
             const hasAlpha = imageType === undefined ? image.hasAlpha : imageType === "grayscalealpha";
-            return { ...metadata, data: out, evaluateSamples, space: "b-w", ...(luminance ? { gamma: 1 } : {}), hasAlpha, channels: hasAlpha ? 2 : 1 };
+            return { ...metadata, data: out, data16, evaluateSamples, space: "b-w", ...(luminance ? { gamma: 1 } : {}), hasAlpha, channels: hasAlpha ? 2 : 1 };
         };
     }
     else if (token === "-gamma" || token === "+gamma") {

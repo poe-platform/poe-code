@@ -9,6 +9,7 @@ import { lrcAst } from "./lrc.js";
 import { mpl2Ast } from "./mpl2.js";
 import { microdvdAst } from "./microdvd.js";
 import { cafAst } from "./caf.js";
+import { ircamAst } from "./ircam.js";
 import { auAst } from "./au.js";
 import { aiffAst } from "./aiff.js";
 import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
@@ -2970,6 +2971,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     wavAst(),
     wavAst("w64"),
     auAst(),
+    ircamAst(),
     cafAst(),
     aiffAst(),
     ...rawAudioAsts(),

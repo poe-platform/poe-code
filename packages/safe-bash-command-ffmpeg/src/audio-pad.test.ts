@@ -8,6 +8,21 @@ import { createFfmpegCommand } from "./index.js";
 for (const [filter, frames, padding] of [
   ["anull", 16000, 0],
   ["apad=pad_len=19", 16000, 19],
+  ["apad=pad_len=4", 4, 4],
+  ["apad=pad_len=0x04", 4, 4],
+  ["apad=pad_len=2+2", 4, 4],
+  ["apad=pad_len=3.5", 4, 4],
+  ["apad=pad_len=2.5", 4, 2],
+  ["apad=pad_len=1.5", 4, 2],
+  ["apad=pad_len=0.5", 4, 0],
+  ["apad=pad_len=0.6", 4, 1],
+  ["apad=pad_len=3.4", 4, 3],
+  ["apad=pad_len=(2+3)/2", 4, 2],
+  ["apad=pad_len=ceil(3.2)", 4, 4],
+  ["apad=whole_len=2+4", 4, 2],
+  ["apad=whole_len=5.5", 4, 2],
+  ["apad=whole_len=6.5", 4, 2],
+  ["apad=whole_len=4.5", 4, 0],
   ["apad=whole_len=16100", 16000, 100],
   ["apad=whole_len=4", 8, 0],
   ["apad=pad_len=0", 8, 0],
@@ -76,7 +91,7 @@ for (const [filter, frames, padding] of [
   }
 }
 
-for (const filter of ["apad", "apad=pad_len=-2", "apad=pad_len=1.5", "apad=pad_dur=bad",
+for (const filter of ["apad", "apad=pad_len=-2", "apad=pad_len=1.5x", "apad=pad_dur=bad",
   "apad=whole_len=", "apad=pad_len=2:whole_len=10", "apad=unknown=1",
   "apad=pad_len=-1", "apad=whole_len=-1", "apad=pad_len=-1:whole_len=-1",
   "apad=pad_len=-2:whole_len=12", "apad=whole_len=-2:pad_len=4",
@@ -84,8 +99,11 @@ for (const filter of ["apad", "apad=pad_len=-2", "apad=pad_len=1.5", "apad=pad_d
   "apad=pad_len=4:whole_len=12", "apad=whole_len=12:pad_len=4",
   "apad=pad_len=4:whole_len=12:pad_dur=0.00025",
   "apad=whole_dur=0.002:whole_len=12:pad_len=4",
+  "apad=pad_len=2+", "apad=pad_len=0/0", "apad=pad_len=1/0",
+  "apad=pad_len=1-3", "apad=pad_len=9007199254740991+1",
+  "apad=pad_len=40000*2", "apad=whole_len=40000*2",
   "apad=pad_len=9007199254740992", "apad=pad_len=80000",
-  "apad=pad_dur=0.001:pad_len=-2", "apad=whole_dur=0.002:whole_len=1.5",
+  "apad=pad_dur=0.001:pad_len=-2", "apad=whole_dur=0.002:whole_len=1.5x",
   "apad=pad_dur=2:pad_len=0", "apad=whole_dur=2:whole_len=0"]) {
   it(`${filter} fails safely without replacing the destination`, async () => {
     const volume = Volume.fromJSON({ "/out.wav": "keep" });

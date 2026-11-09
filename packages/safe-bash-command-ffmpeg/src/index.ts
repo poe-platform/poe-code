@@ -5113,6 +5113,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let segmentListEntryPrefix = "";
         let segmentListSize = 0;
         let segmentListType: "flat" | "csv" | undefined;
+        let hlsFlags: string | undefined;
         let hlsTime = 2;
         let hlsInitTime = 0;
         let dashAdaptationSets: string | undefined;
@@ -5465,12 +5466,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-hls_time" || arg === "-hls_init_time") {
             const value = parseHlsDuration(args[++i] ?? "");
-            if (!Number.isFinite(value) || value < 0 || value > 9_223_372_036_854.775) {
-              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: invalid ${arg.slice(1)}\n`), context.signal);
-              return { exitCode: 1 };
-            }
             if (arg === "-hls_time") hlsTime = value;
             else hlsInitTime = value;
+            if (i >= args.length) break;
           } else if (arg === "-adaptation_sets") {
             dashAdaptationSets = args[++i];
             if (!dashAdaptationSets || dashAdaptationSets.startsWith("-")) {
@@ -5540,20 +5538,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
           } else if (arg === "-hls_segment_type") {
-            hlsSegmentType = args[++i];
-            if (hlsSegmentType === "0") hlsSegmentType = "mpegts";
-            else if (hlsSegmentType === "1") hlsSegmentType = "fmp4";
-            if (hlsSegmentType !== "mpegts" && hlsSegmentType !== "fmp4") {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_segment_type\n"), context.signal);
-              return { exitCode: 1 };
-            }
+            hlsSegmentType = args[++i] ?? "";
+            if (i >= args.length) break;
           } else if (arg === "-hls_playlist_type") {
-            const value = args[++i];
-            hlsPlaylistType = value === "0" ? undefined : value === "1" ? "event" : value === "2" ? "vod" : value;
-            if (value !== "0" && hlsPlaylistType !== "vod" && hlsPlaylistType !== "event") {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_playlist_type\n"), context.signal);
-              return { exitCode: 1 };
-            }
+            hlsPlaylistType = args[++i] ?? "";
+            if (i >= args.length) break;
           } else if (arg === "-hls_allow_cache") {
             const value = args[++i];
             hlsAllowCache = value?.trim() ? Number(value) : NaN;
@@ -5581,75 +5570,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } catch {
               hlsListSize = NaN;
             }
-            if (!Number.isFinite(hlsListSize) || hlsListSize < 0 || hlsListSize > 2147483647) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_list_size\n"), context.signal);
-              return { exitCode: 1 };
-            }
-            hlsListSize = roundToEven(hlsListSize);
+            if (i >= args.length) break;
           } else if (arg === "-hls_flags") {
-            const value = args[++i];
-            if (!value) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid HLS flags\n"), context.signal);
-              return { exitCode: 1 };
-            }
-            if (!value.startsWith("+") && !value.startsWith("-")) {
-              hlsDeleteSegments = false;
-              hlsSingleFile = false;
-              hlsTempFile = false;
-              hlsSecondLevelSegmentIndex = false;
-              hlsOmitEndlist = false;
-              hlsDiscontStart = false;
-              hlsAppendList = false;
-              hlsRoundDurations = false;
-              hlsProgramDateTime = false;
-              hlsIframesOnly = false;
-              hlsIndependentSegments = false;
-              hlsSplitByTime = false;
-            }
-            const flagBits: Record<string, number> = {
-              single_file: 1,
-              delete_segments: 2,
-              round_durations: 4,
-              discont_start: 8,
-              omit_endlist: 16,
-              split_by_time: 32,
-              append_list: 64,
-              program_date_time: 128,
-              second_level_segment_index: 256,
-              temp_file: 2048,
-              independent_segments: 8192,
-              iframes_only: 16384
-            };
-            const supportedMask = Object.values(flagBits).reduce((mask, bit) => mask | bit, 0);
-            for (const flag of value.replaceAll("-", "+-").split("+")) {
-              if (!flag) continue;
-              const enabled = !flag.startsWith("-");
-              const name = enabled ? flag : flag.slice(1);
-              const mask = Object.hasOwn(flagBits, name) ? flagBits[name]! : name.trim() ? Number(name) : NaN;
-              if (!Number.isInteger(mask) || (mask & supportedMask) !== mask) {
-                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: unrecognized HLS flag '${name}'\n`), context.signal);
-                return { exitCode: 1 };
-              }
-              if (mask & flagBits.single_file!) hlsSingleFile = enabled;
-              if (mask & flagBits.temp_file!) hlsTempFile = enabled;
-              if (mask & flagBits.delete_segments!) hlsDeleteSegments = enabled;
-              if (mask & flagBits.round_durations!) hlsRoundDurations = enabled;
-              if (mask & flagBits.discont_start!) hlsDiscontStart = enabled;
-              if (mask & flagBits.omit_endlist!) hlsOmitEndlist = enabled;
-              if (mask & flagBits.split_by_time!) hlsSplitByTime = enabled;
-              if (mask & flagBits.append_list!) hlsAppendList = enabled;
-              if (mask & flagBits.program_date_time!) hlsProgramDateTime = enabled;
-              if (mask & flagBits.second_level_segment_index!) hlsSecondLevelSegmentIndex = enabled;
-              if (mask & flagBits.independent_segments!) hlsIndependentSegments = enabled;
-              if (mask & flagBits.iframes_only!) hlsIframesOnly = enabled;
-            }
+            const value = args[++i] ?? "";
+            hlsFlags = value.startsWith("+") || value.startsWith("-") ? (hlsFlags ?? "") + value : value;
+            if (i >= args.length) break;
           } else if (arg === "-hls_delete_threshold") {
             const value = args[++i];
             hlsDeleteThreshold = value?.trim() ? Number(value) : NaN;
-            if (!Number.isSafeInteger(hlsDeleteThreshold) || hlsDeleteThreshold < 1 || hlsDeleteThreshold > 2147483647) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_delete_threshold\n"), context.signal);
-              return { exitCode: 1 };
-            }
+            if (i >= args.length) break;
           } else if (arg === "-map_chapters") {
             const value = args[++i];
             chapterSource = value?.trim() ? Number(value) : NaN;
@@ -6525,6 +6454,77 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           }
         }
 
+
+        // HLS values are per-output assignments; only signed flags modify earlier values.
+        for (const [option, value] of [["hls_time", hlsTime], ["hls_init_time", hlsInitTime]] as const) {
+          if (!Number.isFinite(value) || value < 0 || value > 9_223_372_036_854.775) {
+            await writeBytes(context.stderr, encodeUtf8(`ffmpeg: invalid ${option}\n`), context.signal);
+            return { exitCode: 1 };
+          }
+        }
+        if (!Number.isFinite(hlsListSize) || hlsListSize < 0 || hlsListSize > 2147483647) {
+          await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_list_size\n"), context.signal);
+          return { exitCode: 1 };
+        }
+        hlsListSize = roundToEven(hlsListSize);
+        if (!Number.isSafeInteger(hlsDeleteThreshold) || hlsDeleteThreshold < 1 || hlsDeleteThreshold > 2147483647) {
+          await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_delete_threshold\n"), context.signal);
+          return { exitCode: 1 };
+        }
+        if (hlsSegmentType === "0") hlsSegmentType = "mpegts";
+        else if (hlsSegmentType === "1") hlsSegmentType = "fmp4";
+        if (hlsSegmentType !== undefined && hlsSegmentType !== "mpegts" && hlsSegmentType !== "fmp4") {
+          await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_segment_type\n"), context.signal);
+          return { exitCode: 1 };
+        }
+        if (hlsPlaylistType === "0") hlsPlaylistType = undefined;
+        else if (hlsPlaylistType === "1") hlsPlaylistType = "event";
+        else if (hlsPlaylistType === "2") hlsPlaylistType = "vod";
+        if (hlsPlaylistType !== undefined && hlsPlaylistType !== "vod" && hlsPlaylistType !== "event") {
+          await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid hls_playlist_type\n"), context.signal);
+          return { exitCode: 1 };
+        }
+        if (hlsFlags === "") {
+          await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid HLS flags\n"), context.signal);
+          return { exitCode: 1 };
+        }
+        const flagBits: Record<string, number> = {
+          single_file: 1,
+          delete_segments: 2,
+          round_durations: 4,
+          discont_start: 8,
+          omit_endlist: 16,
+          split_by_time: 32,
+          append_list: 64,
+          program_date_time: 128,
+          second_level_segment_index: 256,
+          temp_file: 2048,
+          independent_segments: 8192,
+          iframes_only: 16384
+        };
+        const supportedMask = Object.values(flagBits).reduce((mask, bit) => mask | bit, 0);
+        for (const flag of (hlsFlags ?? "").replaceAll("-", "+-").split("+")) {
+          if (!flag) continue;
+          const enabled = !flag.startsWith("-");
+          const name = enabled ? flag : flag.slice(1);
+          const mask = Object.hasOwn(flagBits, name) ? flagBits[name]! : name.trim() ? Number(name) : NaN;
+          if (!Number.isInteger(mask) || (mask & supportedMask) !== mask) {
+            await writeBytes(context.stderr, encodeUtf8(`ffmpeg: unrecognized HLS flag '${name}'\n`), context.signal);
+            return { exitCode: 1 };
+          }
+          if (mask & flagBits.single_file!) hlsSingleFile = enabled;
+          if (mask & flagBits.temp_file!) hlsTempFile = enabled;
+          if (mask & flagBits.delete_segments!) hlsDeleteSegments = enabled;
+          if (mask & flagBits.round_durations!) hlsRoundDurations = enabled;
+          if (mask & flagBits.discont_start!) hlsDiscontStart = enabled;
+          if (mask & flagBits.omit_endlist!) hlsOmitEndlist = enabled;
+          if (mask & flagBits.split_by_time!) hlsSplitByTime = enabled;
+          if (mask & flagBits.append_list!) hlsAppendList = enabled;
+          if (mask & flagBits.program_date_time!) hlsProgramDateTime = enabled;
+          if (mask & flagBits.second_level_segment_index!) hlsSecondLevelSegmentIndex = enabled;
+          if (mask & flagBits.independent_segments!) hlsIndependentSegments = enabled;
+          if (mask & flagBits.iframes_only!) hlsIframesOnly = enabled;
+        }
 
         if (inputs.length === 0) {
           await writeBytes(

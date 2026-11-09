@@ -6727,7 +6727,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else if (token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") {
         highDepth = true;
-        const raw = tokens[++i] ?? "";
+        const raw = [...(tokens[++i] ?? "")].filter(character => character.trim() !== "").join("")
+            .replaceAll(",", "x").replaceAll("/", "x");
         validateMagickTransformGeometry(raw, token);
         const [cStr, mStr] = raw.split("x");
         const strength = parseFloat(cStr ?? "");

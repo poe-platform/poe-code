@@ -600,15 +600,20 @@ export function aacAst(): MediaAstPlugin {
           duration: frame.pkt_duration! * scale, duration_time: frame.pkt_duration_time!
         }))
       };
-      if (!probe.packets) return probe;
-      // Demuxed AAC samples omit ADTS headers; ffprobe packets include them.
+      if (!probe.packets && !probe.frames) return probe;
+      // Demuxed AAC samples omit ADTS headers; ffprobe records include them.
       const frames = parseAdtsStream(bytes, true).frames;
-      const packets = probe.packets.map((packet, index) => ({ ...packet,
+      const packets = probe.packets?.map((packet, index) => ({ ...packet,
         pos: String(frames[index]!.byteOffset - bytes.byteOffset),
         size: String(frames[index]!.byteLength)
       }));
-      return { ...probe, packets, packetData: new Map(packets.map((packet, index) =>
-        [`${packet.pos}:${packet.size}`, frames[index]!])) };
+      return { ...probe, packets,
+        frames: probe.frames?.map((frame, index) => ({ ...frame,
+          pkt_pos: String(frames[index]!.byteOffset - bytes.byteOffset),
+          pkt_size: String(frames[index]!.byteLength)
+        })),
+        packetData: packets && new Map(packets.map((packet, index) =>
+          [`${packet.pos}:${packet.size}`, frames[index]!])) };
     },
     concat(docs, options) {
       return concatMp4(docs, options);

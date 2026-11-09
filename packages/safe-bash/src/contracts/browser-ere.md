@@ -11,6 +11,12 @@ runtime maps an ERE limit failure to status 3; this is distinct from invalid
 syntax and does not assert that an ordinary expression exhausts default limits.
 Captures and quoted pattern segments retain the existing shell behavior.
 
+Ambiguous capture boundaries follow the primary Darwin GNU Bash profile.
+With `LC_ALL=C`, matching `ab` against either `(a|ab)(b?)` or `(ab|a)(b?)`
+captures `ab` and an empty string (GNU Bash 5.3.20 on Darwin). Linux/glibc
+Bash instead captures `a` and `b` for the first pattern. The shell keeps the
+Darwin result on all hosts; this does not change longest whole-match selection.
+
 ASCII ERE patterns and subjects also work under UTF-8 locales. Ranges require
 C/POSIX collation (including C.UTF-8 and C.utf8); character classes require
 C/POSIX character classification. Locale-dependent classes and collation

@@ -10,6 +10,12 @@ const cases: ReadonlyArray<readonly [string, string, string, string?]> = [
   ["chained addition subscript", 'for i in 0 1 2; do arr[i+1+1]="v$i"; done; echo "${!arr[@]} : ${arr[@]}"', "2 3 4 : v0 v1 v2\n"],
   ["negative subscript", 'arr=(a b c); for ((i=0;i<2;i++)); do arr[-1]="z"; done; echo "${arr[@]}"', "a b z\n"],
   ["alternation captures", 's=ab; while [[ "$s" =~ ^(a|ab)(b?)$ ]]; do echo "m1=${BASH_REMATCH[1]} m2=${BASH_REMATCH[2]}"; s=""; done', "m1=ab m2=\n"],
+  // GNU Bash 5.3.20 on Darwin, LC_ALL=C: prefer the longer first capture
+  // for either alternative order. Linux/glibc chooses a/b for the first case.
+  ["Darwin overlapping captures", 'LC_ALL=C; pat="(a|ab)(b?)"; [[ ab =~ $pat ]]; echo "$?:<${BASH_REMATCH[0]}>:<${BASH_REMATCH[1]}>:<${BASH_REMATCH[2]}>"', "0:<ab>:<ab>:<>\n"],
+  ["Darwin reversed overlapping captures", 'LC_ALL=C; pat="(ab|a)(b?)"; [[ ab =~ $pat ]]; echo "$?:<${BASH_REMATCH[0]}>:<${BASH_REMATCH[1]}>:<${BASH_REMATCH[2]}>"', "0:<ab>:<ab>:<>\n"],
+  ["unambiguous captures", 'LC_ALL=C; pat="(a)(b)"; [[ ab =~ $pat ]]; echo "$?:<${BASH_REMATCH[0]}>:<${BASH_REMATCH[1]}>:<${BASH_REMATCH[2]}>"', "0:<ab>:<a>:<b>\n"],
+  ["longest whole match before alternative order", 'LC_ALL=C; pat="(a|ab)"; [[ ab =~ $pat ]]; echo "$?:<${BASH_REMATCH[0]}>:<${BASH_REMATCH[1]}>"', "0:<ab>:<ab>\n"],
   ["adjacent quantifiers", 's=a:b:c; while [[ "$s" =~ ^([a-z]*?):([a-z:]+)$ ]]; do echo matched; s=""; done', "", "shell: line 1: [[ unsupported ERE profile at 8: stacked repetition\n"],
   ["alternation in loop body", 'for i in 1 2; do [[ ab =~ ^(a|ab)(b?)$ ]]; echo "${BASH_REMATCH[1]}:${BASH_REMATCH[2]}"; done', "ab:\nab:\n"],
   ["negative subscript append", 'arr=(a b c); for i in 1 2; do arr[-1]+=z; done; echo "${arr[@]}"', "a b czz\n"],

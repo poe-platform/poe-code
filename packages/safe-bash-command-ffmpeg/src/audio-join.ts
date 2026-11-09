@@ -1,6 +1,7 @@
 import { parseAudioChannelLayout } from "./audio-channel-layout.js";
 import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { resampleAudio } from "./audio-resample.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function joinAudio(
@@ -42,7 +43,17 @@ export async function joinAudio(
     if (!track.decodedAudio) throw new Error("join requires decoded PCM audio");
     return track.decodedAudio;
   });
-  if (audio.some(input => input.sampleRate !== audio[0]!.sampleRate)) throw new Error("join requires matching sample rates");
+  const sampleRate = audio[0]!.sampleRate;
+  for (let index = 1; index < audio.length; index++) {
+    const input = audio[index]!;
+    if (input.sampleRate === sampleRate) continue;
+    const length = Math.ceil(input.channelData[0]!.length * sampleRate / input.sampleRate);
+    budget.checkSamples(length);
+    budget.checkDuration(length / sampleRate);
+    budget.allocateMemory(length * input.channels * Float32Array.BYTES_PER_ELEMENT);
+    audio[index] = { ...input, sampleRate,
+      channelData: await resampleAudio(input.channelData, length, input.sampleRate, sampleRate, budget, signal) };
+  }
   const used = audio.map(() => new Set<number>());
   const selected = new Map<string, Float32Array | Float64Array>();
   for (const mapping of map ? map.split("|") : []) {
@@ -77,7 +88,6 @@ export async function joinAudio(
   }
   if (selected.size !== outputNames.length) throw new Error("join: not enough unused input channels");
   const length = Math.min(...audio.map(input => input.channelData[0]!.length));
-  const sampleRate = audio[0]!.sampleRate;
   budget.checkSamples(length);
   budget.checkDuration(length / sampleRate);
   budget.allocateMemory(length * outputNames.length * 8);

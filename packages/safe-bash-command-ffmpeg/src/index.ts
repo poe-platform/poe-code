@@ -3965,7 +3965,7 @@ const imageEncoders = ["png", "mjpeg", "webp", "libwebp", "libwebp_anim", "gif",
 
 function validateAudioEncoder(codec: string | undefined, doc: MediaDocument, plugins: readonly MediaAstPlugin[]): void {
   if (codec === undefined || codec === "copy" || !doc.tracks.some(track => track.type === "audio")) return;
-  const name = codec === "libopencore_amrnb" ? "amr_nb" : codec === "libopus" ? "opus" : codec === "libvorbis" ? "vorbis" : codec === "libmp3lame" ? "mp3" : codec;
+  const name = codec === "libvo_amrwbenc" ? "amr_wb" : codec === "libopencore_amrnb" ? "amr_nb" : codec === "libopus" ? "opus" : codec === "libvorbis" ? "vorbis" : codec === "libmp3lame" ? "mp3" : codec;
   if (!plugins.some(plugin => plugin.canMux && plugin.supportedAudioCodecs.includes(name))) {
     throw new Error(`Unknown encoder '${codec}'`);
   }

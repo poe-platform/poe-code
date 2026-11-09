@@ -875,8 +875,8 @@ function buildAudioStsdEntry(desc: MediaCodecDescription): Uint8Array {
       ? makeBox("esds", desc.esds.rawEsdsBytes)
       : buildEsdsBox(sampleRate, channels, 128000, desc.esds?.decoderSpecificInfo);
     writer.writeBytes(esdsBox);
-  } else if (desc.codecName === "amr_nb") {
-    writer.writeBytes(makeBox("damr", Uint8Array.of(70, 70, 77, 80, 0, 0x81, 0xff, 0, 1)));
+  } else if (desc.codecName === "amr_nb" || desc.codecName === "amr_wb") {
+    writer.writeBytes(makeBox("damr", Uint8Array.of(70, 70, 77, 80, 0, desc.codecName === "amr_wb" ? 1 : 0x81, 0xff, 0, 1)));
   } else if (desc.dOps) {
     writer.writeBytes(makeBox("dOps", desc.dOps.rawBytes));
   }
@@ -1458,6 +1458,9 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
   const materializedTracks = doc.tracks.filter(t => t.disposition?.attached_pic !== 1).map((t) => {
     if (t.type === "audio" && (options.audioCodec === "libopencore_amrnb" || options.audioCodec === "amr_nb")) {
       t = encodeAmrTrack(t, budget, options.audioBitrate);
+    }
+    if (t.type === "audio" && (options.audioCodec === "libvo_amrwbenc" || options.audioCodec === "amr_wb")) {
+      t = encodeAmrTrack(t, budget, options.audioBitrate, "amr_wb");
     }
     if (t.type === "audio" && options.audioCodec === "alac") t = encodeAlacTrack(t, budget);
     const sampleRate = t.codecDescriptions[0]?.sampleRate;
@@ -2824,7 +2827,7 @@ export function mp4Ast(): MediaAstPlugin {
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: ["h264", "hevc", "av1", "vp8", "vp9", "mpeg4", "mjpeg", "png"],
-    supportedAudioCodecs: ["aac", "mp3", "amr_nb", "opus", "flac", "alac", "ac3", "eac3", "pcm_s16le"],
+    supportedAudioCodecs: ["aac", "mp3", "amr_nb", "amr_wb", "opus", "flac", "alac", "ac3", "eac3", "pcm_s16le"],
     supportedSubtitleCodecs: ["mov_text", "webvtt", "ttml"],
     detect(bytes, filename) {
       if (isMp4Signature(bytes)) return true;

@@ -62,6 +62,9 @@ export function amrAst(): MediaAstPlugin {
           options.audioCodec === undefined && track.decodedAudio) {
         track = encodeAmrTrack(track, budget, options.audioBitrate);
       }
+      if (options.audioCodec === "libvo_amrwbenc" || options.audioCodec === "amr_wb") {
+        track = encodeAmrTrack(track, budget, options.audioBitrate, "amr_wb");
+      }
       const codec = track.codecDescriptions[0]?.codecName;
       if ((codec !== "amr_nb" && codec !== "amr_wb") || track.codecDescriptions.some(
         description => description.codecName !== codec || description.channels !== 1

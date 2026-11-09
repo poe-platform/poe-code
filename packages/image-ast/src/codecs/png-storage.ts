@@ -165,6 +165,7 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
       const rowBytes = Math.ceil(w * bits / 8), rawPosition = storage.allocate(rowBytes * h);
       for (let y = 0; y < h; y++) {
         const filter = (await take(1))[0]!;
+        if (filter > 4) throw new Error(`Invalid PNG row filter: ${filter}`);
         const left = new Uint8Array(pixelBytes), aboveLeft = new Uint8Array(pixelBytes);
         for (let offset = 0; offset < rowBytes; offset += 4096) {
           const count = Math.min(4096, rowBytes - offset), data = await take(count);

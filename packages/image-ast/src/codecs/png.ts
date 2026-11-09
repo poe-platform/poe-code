@@ -144,6 +144,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
 
     for (let y = 0; y < subH; y++) {
       const filterType = inflated[curOffset++] ?? 0;
+      if (filterType > 4) throw new Error(`Invalid PNG row filter: ${filterType}`);
       const dstRowOffset = y * rowBytes;
       const prevRowOffset = (y - 1) * rowBytes;
       for (let x = 0; x < rowBytes; x++) {
@@ -546,6 +547,7 @@ export function decodePngToCanvas(
       cOff += take;
       if (rowFill === rowStride) {
         const filterType = curRow[0]!;
+        if (filterType > 4) throw new Error(`Invalid PNG row filter: ${filterType}`);
         for (let x = 0; x < rowPixelBytes; x++) {
           const raw = curRow[1 + x]!;
           const a = x >= bpp ? curRow[1 + x - bpp]! : 0;

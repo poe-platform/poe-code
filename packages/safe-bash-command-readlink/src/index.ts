@@ -21,20 +21,15 @@ export function createReadlinkCommand(configuration: ReadlinkCommandsOptions = {
       let verboseMode = "default" as "default" | "verbose" | "quiet";
       const arguments_ = getCommandArguments(context);
       const operandIndices: number[] = [];
-      const parsed = options(context.args, "femnzvqs", { ...canonicalOptions, zero: "z", "no-newline": "n", verbose: "v", quiet: "q", silent: "s" }, false, index => operandIndices.push(index), undefined, key => {
+      let mode = "link";
+      const parsed = options(context.args, "femnzvqs", { ...canonicalOptions, zero: "z", "no-newline": "n", verbose: "v", quiet: "q", silent: "s" }, context.env.POSIXLY_CORRECT !== undefined, index => operandIndices.push(index), undefined, key => {
         if (key === "v") verboseMode = "verbose";
         else if (key === "q" || key === "s") verboseMode = "quiet";
+        else if (key === "f" || key === "e" || key === "m") mode = key;
       });
       requireOperands(parsed.operands);
       if (parsed.flags.has("n") && parsed.operands.length > 1) {
         await diagnostic(context, new PublicDiagnostic("ignoring --no-newline with multiple arguments"));
-      }
-      let mode = "link";
-      for (const argument of context.args) {
-        if (argument === "--") break;
-        const flags = argument.startsWith("--") ? canonicalOptions[argument.slice(2)] ?? ""
-          : argument.startsWith("-") ? argument.slice(1) : "";
-        for (const flag of flags) if (flag === "f" || flag === "e" || flag === "m") mode = flag;
       }
       const operandContext = verboseMode === "quiet"
         ? { ...context, stderr: { async write() {} } }

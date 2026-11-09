@@ -2,6 +2,19 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { gnuInformationSync } from "./gnu-information.js";
 
+test("readlink information scanning stops at the first POSIX operand", () => {
+ for (const option of ["--help", "--version"]) {
+  const information = gnuInformationSync("readlink", [option]);
+  assert.ok(information);
+  for (const operand of ["link", "-"]) {
+   assert.equal(gnuInformationSync("readlink", [operand, option], false, true), undefined);
+   assert.equal(gnuInformationSync("readlink", [operand, option]), information);
+   assert.equal(gnuInformationSync("readlink", ["--", operand, option]), undefined);
+  }
+  assert.equal(gnuInformationSync("readlink", ["-f", option, "link"], false, true), information);
+ }
+});
+
 test("comm information scanning stops at the first POSIX operand", () => {
   for (const option of ["--help", "--version"]) {
     const information = gnuInformationSync("comm", [option]);

@@ -11,4 +11,4 @@ shell.use(readlinkCommands());
 const result = await shell.exec("readlink --help");
 ```
 
-The module also exports `createReadlinkCommand`, its command-list factory, and typed options and limits.
+The module also exports `createReadlinkCommand`, its command-list factory, and typed options and limits. When `POSIXLY_CORRECT` is set, options must precede the first file operand; otherwise options may follow operands. Use `--` to end option parsing explicitly.

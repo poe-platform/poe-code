@@ -252,7 +252,7 @@ describe("safe-bash-command-imagemagick", () => {
       files
     );
     expect(res.exitCode).toBe(0);
-    const raw = await sharp(files.get("/drawn.png")!).raw().toBuffer();
+    const raw = await sharp(files.get("/drawn.png")!).ensureAlpha().raw().toBuffer();
     // Pixel inside the red rectangle (20, 15) should have high red channel
     const idx = (15 * 80 + 20) * 4;
     expect(raw[idx]!).toBeGreaterThan(200);
@@ -535,7 +535,7 @@ describe("safe-bash-command-imagemagick", () => {
       ],
       files
     );
-    const polyRaw = await sharp(files.get("/poly-draw.png")!).raw().toBuffer();
+    const polyRaw = await sharp(files.get("/poly-draw.png")!).ensureAlpha().raw().toBuffer();
     // Center (25, 25) is inside the green polygon
     const centerIdx = (25 * 50 + 25) * 4;
     expect(polyRaw[centerIdx + 1]).toBeGreaterThan(200);

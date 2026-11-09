@@ -35,8 +35,8 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
   const codecName = desc?.codecName ?? (track.type === "video" ? "h264" : "aac");
   const codecLongName = CODEC_LONG_NAMES[codecName] ?? codecName;
   const matroska = containerFormat === "matroska" || containerFormat === "webm";
-  // Matroska PCM uses a CodecID; the internal QuickTime alias is not a container tag.
-  const matroskaPcm = containerFormat === "matroska" && codecName === "pcm_s16le";
+  // Internal MP4/QuickTime aliases are not tags in standalone WebVTT or Matroska PCM.
+  const noCodecTag = containerFormat === "webvtt" || containerFormat === "matroska" && codecName === "pcm_s16le";
   const rawTag = desc?.formatFourCC ?? (track.type === "video" ? "avc1" : "mp4a");
   const tagFourCC = Array.from(rawTag).map(c => c.charCodeAt(0) < 32 ? `[${c.charCodeAt(0)}]` : c).join("");
   const sampleFormat = probeSampleFormat(track.type, codecName);
@@ -87,8 +87,8 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     codec_long_name: codecLongName || undefined,
     profile: desc?.profile,
     codec_type: track.type,
-    codec_tag_string: matroskaPcm ? "[0][0][0][0]" : tagFourCC,
-    codec_tag: matroskaPcm ? "0x0000" : tagHex,
+    codec_tag_string: noCodecTag ? "[0][0][0][0]" : tagFourCC,
+    codec_tag: noCodecTag ? "0x0000" : tagHex,
     extradata_size: desc?.extradataSize || undefined,
     codecData: desc?.extradataSize ? desc.extraDataRange ?? desc.extraData : undefined,
     width: w,

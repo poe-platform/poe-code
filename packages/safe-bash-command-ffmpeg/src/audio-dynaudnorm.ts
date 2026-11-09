@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function normalizeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -13,8 +14,7 @@ export async function normalizeAudio(
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["f", "g", "p", "m"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    const number = Number(value);
-    if (!value || !Number.isFinite(number)) throw new Error(`dynaudnorm: invalid ${key}`);
+    const number = parseFilterExpression(value, "dynaudnorm", {});
     if (key === "f" || key === "framelen") {
       if (!Number.isInteger(number) || number < 10 || number > 8000) throw new Error("dynaudnorm: invalid framelen");
       milliseconds = number;

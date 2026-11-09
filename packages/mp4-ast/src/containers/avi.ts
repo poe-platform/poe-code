@@ -354,7 +354,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         height: h,
         codecDescriptions: [
           {
-            formatFourCC: codecName === "vp9" ? "vp09" : codecName === "flv1" ? "FLV1" : codecName === "mjpeg" ? "jpeg" : "avc1",
+            formatFourCC: codecName === "vp9" ? "vp09" : codecName === "flv1" ? "FLV1" : codecName === "mjpeg" ? "jpeg" : codecName === "mpeg4" ? "mp4v" : "avc1",
             codecName,
             width: w,
             height: h,

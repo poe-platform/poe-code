@@ -602,6 +602,9 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           height = height ?? sps.height;
         }
       }
+    } else if (["V_MPEG4/ISO/SP", "V_MPEG4/ISO/ASP", "V_MPEG4/ISO/AP"].includes(info.codecId)) {
+      codecName = "mpeg4";
+      formatFourCC = "mp4v";
     } else if (info.codecId === "V_MS/VFW/FOURCC" &&
       info.codecPrivate && info.codecPrivate.byteLength >= 40 &&
       decodeUtf8(info.codecPrivate.subarray(16, 20)) === "FLV1") {
@@ -662,7 +665,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       segmentDurationTicks;
 
     let decodedVideoFrames: MediaVideoFrame[] | undefined;
-    if (options.decodeFrames && codecName !== "flv1" && type === "video" && width && height) {
+    if (options.decodeFrames && codecName === "h264" && type === "video" && width && height) {
       decodedVideoFrames = [...decodeH264Samples(rawSamples, [{ formatFourCC: "avc1", codecName: "h264", avcC }], width, height, timescale)];
     }
 
@@ -918,7 +921,8 @@ export function serializeMkv(
     let timestampOffset = 0;
 
     if (trk.type === "video") {
-      if (desc?.codecName === "ffv1") codecId = "V_FFV1";
+      if (desc?.codecName === "mpeg4") codecId = "V_MPEG4/ISO/ASP";
+      else if (desc?.codecName === "ffv1") codecId = "V_FFV1";
       else if (desc?.codecName === "vp9") codecId = "V_VP9";
       else if (desc?.codecName === "vp8") codecId = "V_VP8";
       else if (desc?.codecName === "av1") codecId = "V_AV1";

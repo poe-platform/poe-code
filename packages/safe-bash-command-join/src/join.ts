@@ -293,7 +293,6 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
       }
       for (let file = 0; file < 2; file++) {
         if (!options.unpaired.has(file) && options.order === "none") continue;
-        if (rows[file]) await order.markUnpaired();
         while (rows[file]) {
           if (options.unpaired.has(file)) await emit(file === 0 ? rows[file] : undefined, file === 1 ? rows[file] : undefined);
           rows[file] = await next(file);

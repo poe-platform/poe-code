@@ -59,3 +59,42 @@ test("fully paired disorder remains allowed by default", async () => {
  assert.equal((await run(["/a", "/b"], files)).exitCode, 0);
  assert.equal((await run(["--check-order", "/a", "/b"], files)).exitCode, 1);
 });
+
+for (const reverse of [false, true]) {
+ for (const prefix of ["", "0\n"]) {
+  for (const emitUnpaired of [false, true]) {
+   for (const mode of ["default", "--check-order", "--nocheck-order"]) {
+    test(`join drains disorder after EOF: reverse=${reverse}, prefix=${JSON.stringify(prefix)}, unpaired=${emitUnpaired}, mode=${mode}`, async () => {
+     const files = { "/a": prefix, "/b": prefix + "b\na\n" };
+     const file = reverse ? 1 : 2;
+     const args = reverse ? ["/b", "/a"] : ["/a", "/b"];
+     if (emitUnpaired) args.unshift(`-a${file}`);
+     if (mode !== "default") args.unshift(mode);
+     const result = await run(args, files);
+     if (mode === "--check-order") {
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes(`file ${file} is not in sorted order`));
+     } else {
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, prefix + (emitUnpaired ? "b\na\n" : ""));
+     }
+    });
+   }
+  }
+ }
+
+ test(`join retains default checking after a mismatch: reverse=${reverse}`, async () => {
+  const files = { "/a": "x\n", "/b": "a\nb\nd\nc\n" };
+  const result = await run(reverse ? ["/b", "/a"] : ["/a", "/b"], files);
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.stderr.includes("not in sorted order"));
+ });
+
+ test(`join retains activated checking while draining: reverse=${reverse}`, async () => {
+  const files = { "/a": "a\nb\n", "/b": "b\nd\nc\n" };
+  const result = await run(reverse ? ["/b", "/a"] : ["/a", "/b"], files);
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.stderr.includes("not in sorted order"));
+ });
+}

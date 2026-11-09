@@ -74,7 +74,7 @@ export async function* encodeGifFromStorage(
     const frameDisposal = await image.storedDisposal?.at(frame, {signal});
 
     let left = rectangle?.x ?? image.virtualCanvas?.x ?? 0, top = rectangle?.y ?? image.virtualCanvas?.y ?? 0, width = rectangle?.width ?? layout.width, height = rectangle?.height ?? layout.frameHeight;
-    let cropped = false;
+    let cropped = false, empty = false;
     const currentDisposal = frameDisposal ?? (typeof image.disposal === "number" ? image.disposal : image.disposal?.[frame]) ?? 1;
     const previousDisposal = frame > 0 ? await image.storedDisposal?.at(frame - 1, { signal }) ?? (typeof image.disposal === "number" ? image.disposal : image.disposal?.[frame - 1]) ?? 1 : 1;
     const previousRectangle = frame > 0 ? await image.storedGifFrame?.at(frame - 1) ?? image.gifFrames?.[frame - 1] : undefined;
@@ -95,14 +95,14 @@ export async function* encodeGifFromStorage(
           right = Math.max(right, x); bottom = Math.max(bottom, y);
         }
       }
-      if (right < 0) { left = 0; top = 0; width = 1; height = 1; }
+      if (right < 0) { empty = true; left = 0; top = 0; width = 1; height = 1; }
       else { width = right - left + 1; height = bottom - top + 1; }
     }
     if (cropped) {
       transparent = false;
       for (let i = 0; i < width * height; i++) if ((await pixels.pixel(start + (top + Math.floor(i / width)) * layout.width + left + i % width)) >>> 24 < 128) { transparent = true; break; }
     }
-    if (transdiff) transparent = true;
+    if (empty || transdiff) transparent = true;
     const disposal = resetFrames ? 3 : options.optimizeFrames && currentDisposal <= 1 ? 1 : frameDisposal;
     yield gifFrameHeader(image, palette, options, layout, frame, transparent, frameDelay, disposal, { left, top, width, height, ...(rectangle ? { icc: rectangle.icc } : {}), gifApplications: rectangle?.gifApplications, comment: rectangle?.comment, gifCommentBytes: rectangle?.gifCommentBytes });
     const codes = new GifCodes();
@@ -121,7 +121,7 @@ export async function* encodeGifFromStorage(
       const at = cropped ? start + (top + Math.floor(i / width)) * layout.width + left + i % width : pixel(i);
       const p = await pixels.pixel(at);
       const unchanged = transdiff && p === await previousPixels.pixel(at - layout.framePixels);
-      const chunk = codes.code(unchanged ? 255 : palette.index(p & 255, (p >>> 8) & 255, (p >>> 16) & 255, p >>> 24));
+      const chunk = codes.code(empty || unchanged ? 255 : palette.index(p & 255, (p >>> 8) & 255, (p >>> 16) & 255, p >>> 24));
       if (chunk) {
         signal.throwIfAborted();
         yield chunk;

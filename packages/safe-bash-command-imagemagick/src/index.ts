@@ -547,6 +547,7 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
 }
 
 function parseDelay(value: string, current: number): number {
+  value = value.replaceAll("%", "");
   const [delay, ticks = "100"] = [...value].filter(character => character !== ">" && character !== "<").join("").split("x");
   const milliseconds = Math.floor(Math.round(Number(delay)) * 100 / (Number(ticks) || 1)) * 10;
   if (value.includes(">")) return Math.min(current, milliseconds);
@@ -7490,7 +7491,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         if (t === "-set" && tokens[i + 1]?.toLowerCase() === "delay") {
-            const delay = Number(tokens[i + 2] ?? 0) * 10;
+            const delay = Number((tokens[i + 2] ?? "0").replaceAll("%", "")) * 10;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
                 return { ...image, delay: Array(image.delay?.length ?? 1).fill(delay) };
@@ -9186,7 +9187,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-set" && tokens[i + 1]?.toLowerCase() === "delay") {
-            const delay = Number(tokens[i + 2] ?? 0) * 10;
+            const delay = Number((tokens[i + 2] ?? "0").replaceAll("%", "")) * 10;
             steps.push(async image => image ? {
                 ...image,
                 storedDelay: { length: image.storedDelay?.length ?? image.delay?.length ?? 1, async at() { return delay; } },

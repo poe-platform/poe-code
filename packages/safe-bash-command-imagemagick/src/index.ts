@@ -6974,8 +6974,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
         const beta = Math.max(1e-4, strength);
-        const mRaw = ratio ? 1 : parseFloat(mStr || "50");
-        const alpha = (mStr ?? "50%").endsWith("%") ? mRaw / 100 : mRaw / 65535;
+        const mRaw = ratio ? 1 : mStr ? parseFloat(mStr) : 65535 / 2;
+        const alpha = raw.includes("%") ? mRaw / 100 : mRaw / 65535;
         const sig = (u: number) => Math.tanh(0.5 * beta * (u - alpha));
         const s0 = sig(0);
         const s1 = sig(1);

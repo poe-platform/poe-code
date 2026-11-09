@@ -376,6 +376,8 @@ statistics on stderr without changing samples: DC offset, signed extrema, sample
 differences, peak/RMS levels, flat factor, peak counts, noise floor, entropy and
 bit depth. Channel reports also include crest factor, dynamic range and zero
 crossings; the overall report includes the sample count.
+`astats=length=0.02` sets the RMS peak/trough and noise-floor window to 20 ms
+(default 0.05 seconds, range 0–10); full-input RMS and PCM samples are unchanged.
 `measure_perchannel` and `measure_overall` independently select `none` or a `+`-joined
 list of `DC_offset`, `Min_level`, `Max_level`, `Peak_level`, `RMS_level`, and
 `Number_of_samples`. For example, `astats=measure_perchannel=RMS_level:measure_overall=none`

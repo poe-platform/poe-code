@@ -37,12 +37,12 @@ function measurements(title: string, fields: [string, string | number][], mask?:
 // Default astats measurements follow FFmpeg 7's af_astats.c, including its
 // completed extrema runs and value-based eviction of sliding noise peaks.
 export async function measureAstats(
-  channels: MediaAudioData["channelData"], sampleRate: number, scale: number,
+  channels: MediaAudioData["channelData"], sampleRate: number, scale: number, length: number,
   budget: MediaBudgetTracker, signal?: AbortSignal,
   perChannel?: ReadonlySet<string>, overall?: ReadonlySet<string>
 ): Promise<string> {
-  const window = Math.max(1, Math.floor(sampleRate * 0.05 + 0.5));
-  const decay = Math.exp(-1 / 0.05 / sampleRate);
+  const window = Math.max(1, Math.floor(sampleRate * length + 0.5));
+  const decay = Math.exp(-1 / length / sampleRate);
   const bits = scale === 32768 / 32767 ? 16 : 32;
   const unit = scale === 1 ? 1 : 2 ** (bits - 1);
   budget.allocateMemory((8192 + 2 * window) * 8);

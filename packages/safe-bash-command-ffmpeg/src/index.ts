@@ -9470,13 +9470,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
                         let reset = 0;
+                        let rmsLength = 0.05;
                         let perChannel: ReadonlySet<string> | undefined;
                         let overall: ReadonlySet<string> | undefined;
                         const supported = ["DC_offset", "Min_level", "Max_level", "Peak_level", "RMS_level", "Number_of_samples"];
                         if (trimmed.startsWith("astats=")) {
-                          for (const option of trimmed.slice("astats=".length).split(":")) {
-                            const [key, value, extra] = option.split("=");
-                            if ((key === "measure_perchannel" || key === "measure_overall") && value !== undefined && extra === undefined) {
+                          for (const [index, option] of trimmed.slice("astats=".length).split(":").entries()) {
+                            const parts = option.split("=");
+                            const key = parts.length === 1 && index === 0 ? "length" : parts[0];
+                            const value = parts.length === 1 ? parts[0]! : parts[1]!;
+                            const extra = parts[2];
+                            if (key === "length" && extra === undefined) {
+                              rmsLength = parseFilterExpression(value, "astats", {});
+                              if (!Number.isFinite(rmsLength) || rmsLength < 0 || rmsLength > 10) {
+                                throw new Error("astats: length must be between 0 and 10");
+                              }
+                            } else if ((key === "measure_perchannel" || key === "measure_overall") && value !== undefined && extra === undefined) {
                               const metrics = value === "none" ? [] : value.split("+");
                               if (metrics.some(metric => !supported.includes(metric))) {
                                 throw new Error(`astats: unsupported option ${option}`);
@@ -9508,7 +9517,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         const statsChannels = statsStart ? stretched.map(channel => channel.subarray(statsStart)) : stretched;
-                        const report = await measureAstats(statsChannels, origRate, statsScale, budget, context.signal, perChannel, overall);
+                        const report = await measureAstats(statsChannels, origRate, statsScale, rmsLength, budget, context.signal, perChannel, overall);
                         await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "loudnorm" || trimmed.startsWith("loudnorm=")) {
                         const normalized = await normalizeLoudness(stretched, origRate,

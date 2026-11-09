@@ -5,11 +5,11 @@ import { createSyntheticMp4 } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
 async function run(options: string[], includeAudio = false) {
-  const volume = Volume.fromJSON({ "/in.mp4": Buffer.from(createSyntheticMp4({ width: 32, height: 24, frameCount: 4, includeAudio })) });
+  const volume = Volume.fromJSON({ "/in.mp4": Buffer.from(createSyntheticMp4({ width: 32, height: 24, frameCount: 48, fps: 4, includeAudio })) });
   const manifests: string[] = [];
   let stderr = "";
   const result = await createFfmpegCommand().execute({
-    args: ["-y", "-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", ...options, "/out.mpd"],
+    args: ["-y", "-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash", "-seg_duration", "0.5", ...options, "/out.mpd"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },

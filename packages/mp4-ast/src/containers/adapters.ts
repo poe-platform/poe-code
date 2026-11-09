@@ -499,11 +499,18 @@ export function serializeAacAdts(doc: MediaDocument, options: SerializeMediaOpti
           }
         ];
 
-  const adtsFrames = samples.map((s) =>
-    s.data.byteLength >= 7 && s.data[0] === 0xff && (s.data[1]! & 0xf0) === 0xf0
-      ? s.data
-      : wrapAdtsFrame(s.data, sampleRate, channels)
-  );
+  const adtsFrames = samples.map((s) => {
+    const bytes = s.data.byteLength >= 7 && s.data[0] === 0xff && (s.data[1]! & 0xf0) === 0xf0
+      ? Uint8Array.from(s.data)
+      : wrapAdtsFrame(s.data, sampleRate, channels);
+    for (let offset = 0; offset < bytes.length;) {
+      const length = ((bytes[offset + 3]! & 3) << 11) | (bytes[offset + 4]! << 3) | (bytes[offset + 5]! >> 5);
+      if (length < 7 || offset + length > bytes.length) throw new Error("Invalid ADTS frame length");
+      bytes[offset + 1] = (bytes[offset + 1]! & ~8) | (options.writeMpeg2 ? 8 : 0);
+      offset += length;
+    }
+    return bytes;
+  });
   if (options.writeApetag) {
     const metadata = options.metadata ?? doc.metadata;
     const items = new BinaryWriter();

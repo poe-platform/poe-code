@@ -834,6 +834,8 @@ export interface SerializeMediaOptions {
   readonly writeApetag?: boolean | undefined;
   /** Write an ID3v2 chunk in AIFF output (disabled by default). */
   readonly writeId3v2?: boolean | undefined;
+  /** Write MPEG-2 ADTS frame headers; false or omitted selects MPEG-4. */
+  readonly writeMpeg2?: boolean | undefined;
   readonly id3v2Version?: 0 | 3 | 4 | undefined;
   readonly writeId3v1?: boolean | undefined;
   /** FLAC metadata padding bytes; -1 selects 8192, zero disables padding. */

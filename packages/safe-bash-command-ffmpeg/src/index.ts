@@ -4356,7 +4356,7 @@ export function evalSyncFfmpeg(
         if (!plugin || !plugin.canDemux) return undefined;
         if (plugin.id === "au" && rawBytes.length >= 12 &&
           new DataView(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).getUint32(8) === 0) return undefined;
-        doc = plugin.parse(rawBytes, { decodeSubtitles: subtitleCodec !== "copy", decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)), filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
+        doc = plugin.parse(rawBytes, { decodeSubtitles: subtitleCodec !== "copy", decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)), filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
         if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
@@ -6578,7 +6578,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget, input?.allowedExtensions);
               const document = plugin.parse(rawBytes, {
                 decodeSubtitles: subtitleCodec !== "copy",
-                decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)),
+                decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)),
                 resolveResource,
                 sampleRate: input?.sampleRate,
                 channels: input?.channels,
@@ -6774,20 +6774,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ) {
                 const rawTrack = doc.tracks[0];
                 const rawCodec = rawTrack?.codecDescriptions[0];
-                const rawSeek = startSeconds !== undefined && startSeconds > 0 &&
+                const rawSeek = rawCodec !== undefined && startSeconds !== undefined && startSeconds > 0 &&
                   (audioCodec === "copy" || startSeconds > doc.durationSeconds) &&
-                  rawCodec?.codecName === `pcm_${doc.containerFormat}`;
+                  (rawCodec?.codecName === `pcm_${doc.containerFormat}` ||
+                    (doc.containerFormat === "au" && rawCodec?.codecName?.startsWith("pcm_")));
                 if (rawSeek) {
-                  // A raw input seek starts a new packet at the exact sample frame.
+                  // Raw PCM and AU input seeks start a new packet at the exact sample frame.
                   const bytes = concatBytes(rawTrack!.samples.map(sample => sample.data));
                   const requestedOffset = Math.round(startSeconds * rawCodec.sampleRate!) *
                     rawCodec.channels! * rawCodec.bitsPerSample! / 8;
                   // Failed seeks beyond EOF leave the raw demuxer at its last packet.
                   const offset = requestedOffset > bytes.length
                     ? bytes.length - (rawTrack!.samples.at(-1)?.data.length ?? 0) : requestedOffset;
-                  doc = registry.findByFormatName(doc.containerFormat)!.parse(bytes.subarray(offset), {
+                  doc = { ...registry.findByFormatName(rawCodec.codecName!.slice(4))!.parse(bytes.subarray(offset), {
                     sampleRate: rawCodec.sampleRate, channels: rawCodec.channels, decodeAudio: audioCodec !== "copy", budget
-                  });
+                  }), containerFormat: doc.containerFormat, metadata: doc.metadata };
                 }
                 // An empty raw seek is already sliced; retain its PCM codec and decoded audio.
                 if (!rawSeek || doc.durationSeconds > 0) doc = sliceMp4(doc, {

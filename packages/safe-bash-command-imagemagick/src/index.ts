@@ -7732,11 +7732,25 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizetransparency") {
             i++;
-            // Work backwards so comparison always uses the original preceding frame.
-            for (let n = stack.length - 1; n > 0; n--) {
-                const current = stack[n]!, previous = stack[n - 1]!;
-                if (typeof previous.disposal === "number" && previous.disposal >= 2) continue;
-                stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(previous, current, state.fuzz), signal, { ...current, hasAlpha: true }, [current, previous]);
+            if (stack.length > 1) {
+                const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 0 }), virtualCanvas: { width, height, x: 0, y: 0 } };
+                for (let n = 0; n < stack.length; n++) {
+                    const current = stack[n]!, previous = canvas;
+                    const x = current.virtualCanvas?.x ?? 0, y = current.virtualCanvas?.y ?? 0;
+                    if (n > 0) stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(canvas, current, state.fuzz), signal, { ...current, hasAlpha: true }, [current, canvas]);
+                    // Keep the original pixels for subsequent comparisons and apply disposal.
+                    canvas = yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(current, x, y, "over")]);
+                    if (current.disposal === 3) canvas = previous;
+                    else if (current.disposal === 2) {
+                        const data = new Uint8Array(canvas.data);
+                        for (let row = Math.max(0, y); row < Math.min(height, y + current.height); row++) {
+                            yield;
+                            if (Math.min(width, x + current.width) > Math.max(0, x)) data.fill(0, (row * width + Math.max(0, x)) * 4, (row * width + Math.min(width, x + current.width)) * 4);
+                        }
+                        canvas = { ...canvas, data, hasAlpha: true };
+                    }
+                }
             }
         }
         else if (t === "-coalesce" || (t === "-layers" && ["coalesce", "dispose", "optimize"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
@@ -9467,10 +9481,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             i++;
             const fuzz = state.fuzz;
             stackStep(async (stack, backend) => {
-                for (let n = stack.length - 1; n > 0; n--) {
-                    const current = (await stack.get(n))!, previous = (await stack.get(n - 1))!;
-                    if (typeof previous.disposal === "number" && previous.disposal >= 2) continue;
-                    await stack.set(n, await transformStoredMagickRaster(current, backend, optimizeTransparencyPixels(previous, current, fuzz), signal, { ...current, hasAlpha: true }, [current, previous]));
+                if (stack.length < 2) return stack;
+                const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                let canvas = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
+                for (let n = 0; n < stack.length; n++) {
+                    const current = (await stack.get(n))!, previous = canvas;
+                    const x = current.virtualCanvas?.x ?? 0, y = current.virtualCanvas?.y ?? 0;
+                    if (n > 0) await stack.set(n, await transformStoredMagickRaster(current, backend, optimizeTransparencyPixels(canvas, current, fuzz), signal, { ...current, hasAlpha: true }, [current, canvas]));
+                    canvas = await compositeStoredMagick(canvas, current, backend, signal, x, y, "over", undefined, true);
+                    if (current.disposal === 3) canvas = previous;
+                    else if (current.disposal === 2) {
+                        const clear = await createStoredCanvas(current.width, current.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
+                        canvas = await compositeStoredMagick(canvas, clear, backend, signal, x, y, "source", undefined, true);
+                    }
                 }
                 return stack;
             });

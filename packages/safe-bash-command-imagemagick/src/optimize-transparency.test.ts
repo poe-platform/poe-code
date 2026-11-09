@@ -34,3 +34,40 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     expect([...decodeImage(bytes, { page: 1, coalesce: false }).data].map((value, index, data) => data[index - index % 4 + 3] === 0 ? 0 : value)).toEqual(disposal < 2 ? [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255] : [255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 255, 255]);
   });
 }
+
+
+// Native ImageMagick 7: compare against the canvas after the preceding disposal.
+const patches = [
+  ["None", "R0lGODlhAwABAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEDAAAh+QQEAwAAACwAAAAAAwABAAACAoQLACH5BAQDAAAALAEAAAABAAEAgAAA/wAAAAICRAEAIfkEBAMAAAAsAAAAAAMAAQCA/wAAAAD/AgJEUAA7", [0, 0, 0]],
+  ["Background", "R0lGODlhAwABAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEDAAAh+QQEAwAAACwAAAAAAwABAAACAoQLACH5BAgDAAAALAEAAAABAAEAgAAA/wAAAAICRAEAIfkEBAMAAAAsAAAAAAMAAQCA/wAAAAD/AgJEUAA7", [0, 255, 0]],
+  ["Previous", "R0lGODlhAwABAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEDAAAh+QQEAwAAACwAAAAAAwABAAACAoQLACH5BAwDAAAALAEAAAABAAEAgAAA/wAAAAICRAEAIfkEBAMAAAAsAAAAAAMAAQAAAgKECwA7", [0, 0, 0]],
+  ["transparent full canvas", "R0lGODlhAwABAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEDAAAh+QQEAwAAACwAAAAAAwABAAACAoQLACH5BAUDAAAALAAAAAADAAEAgAAAAAAA/wICRFAAIfkEBAMAAAAsAAAAAAMAAQCA/wAAAAD/AgJEUAA7", [0, 0, 0]],
+] as const;
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+  it.each(patches)(`${mode} compares the composed canvas after %s`, async (_name, encoded, alpha) => {
+    const fixture = Buffer.from(encoded, "base64");
+    const files = new Map<string, Uint8Array>([["in.gif", fixture]]);
+    const filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/in.gif", fixture);
+    const args = ["in.gif", "-layers", "OptimizeTransparency", "out.gif"];
+    const result = mode === "command" ? await createMagickCommand().execute({
+      command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+      stdin: (async function* () {})(), signal: new AbortController().signal,
+      stdout: { write: async () => {} }, stderr: { write: async () => {} },
+    }) : mode === "sync" ? runConvertCliSync(args, files)
+      : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    expect(result.exitCode).toBe(0);
+    const bytes = mode === "retained" || mode === "command" ? await filesystem.readFile("/out.gif") : files.get("out.gif")!;
+    const original = decodeImage(fixture, { animated: true });
+    const output = decodeImage(bytes, { animated: true });
+    expect(output.data).toEqual(original.data);
+    expect(output.delay).toEqual(original.delay);
+    expect(output.loop).toBe(original.loop);
+    for (const page of [0, 1, 2]) {
+      const before = decodeImage(fixture, { page, coalesce: false });
+      const after = decodeImage(bytes, { page, coalesce: false });
+      expect(after).toMatchObject({ width: before.width, height: before.height, virtualCanvas: before.virtualCanvas, disposal: before.disposal });
+    }
+    expect([...decodeImage(bytes, { page: 2, coalesce: false }).data].filter((_, i) => i % 4 === 3)).toEqual(alpha);
+  });
+}

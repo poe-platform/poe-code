@@ -83,6 +83,7 @@ function lzwDecode(minCodeSize: number, data: Uint8Array, pixelCount: number): U
     }
     oldCode = code;
   }
+  if (outPos < pixelCount) throw new Error("Truncated GIF pixels");diff --git a/packages/image-ast/src/codecs/gif-input-storage.ts b/packages/image-ast/src/codecs/gif-input-storage.ts
   return out;
 }
 

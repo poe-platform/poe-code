@@ -9427,11 +9427,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (words[0] === "[enter]") words.shift();
                           const [target, action, expression] = words;
                           const supported = action === "volume" && (target === "volume" || target?.startsWith("volume@"))
+                            || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
                             || action === "dry" && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
                             || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME alimiter[@NAME] limit LIMIT or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME alimiter[@NAME] limit LIMIT or TIME dialoguenhance[@NAME] original GAIN");
                           }
                           return { time, target, expression };
                         });
@@ -10455,6 +10456,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (filteredChannelMask && filteredChannelMask !== 3 && filteredChannelMask !== 12) {
                           throw new Error(`extrastereo: unsupported input channel layout (mask ${filteredChannelMask})`);
                         }
+                        const commands = audioCommands.filter(command => command.target === "extrastereo" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        // Native sends a command to the first matching filter instance.
+                        audioCommands = audioCommands.filter(command => command.target !== "extrastereo" && command.target !== filterTarget);
+                        let nextCommand = 0;
                         const output = stretched.map(channel => new Float32Array(channel.length));
                         let frameEnd = 0;
                         let frameIndex = 0;
@@ -10477,6 +10483,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             await yieldTurn(context.signal);
                             context.signal?.throwIfAborted();
                             budget.checkCpu();
+                          }
+                          while (nextCommand < commands.length && commands[nextCommand]!.sample <= i) {
+                            const command = commands[nextCommand++]!;
+                            try {
+                              const value = Math.fround(parseFilterExpression(command.expression, "extrastereo", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }));
+                              if (Number.isFinite(value) && value >= -10 && value <= 10) multiplier = value;
+                            } catch { /* Rejected runtime commands leave the current width unchanged. */ }
                           }
                           const left = filteredChannelMask === 12 ? Math.fround(stretched[0]![i]! * Math.SQRT1_2) : stretched[0]![i]!;
                           const right = filteredChannelMask === 12 ? left : stretched[1]![i]!;

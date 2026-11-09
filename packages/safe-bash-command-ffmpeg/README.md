@@ -426,6 +426,7 @@ Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
 Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.
 `extrastereo=m=0` averages left and right while retaining stereo; `m=-1` swaps them.
 The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
+`asendcmd=c='0.064 extrastereo@mix m -1',extrastereo@mix=m=1` swaps channels starting at the first audio frame at or after 0.064 seconds. Commands target the named instance, or the first subsequent `extrastereo` instance when unnamed; invalid width changes retain the current setting.
 Width expressions accept `E`, `PI`, and `PHI`, for example `extrastereo=m=PI/2`.
 `surround` upmixes stereo to 5.1 (FL, FR, FC, LFE, BL, BR) using a
 windowed frequency transform, retaining the sample rate and frame count.

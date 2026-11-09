@@ -121,7 +121,7 @@ test("late name validation preserves OPTIND/OPTARG and does not execute name syn
 test("readonly result name fails after checked index/argument, including EOF", async () => {
   const { shell } = runtimeSetup();
   const result = await shell.exec('readonly opt=old; OPTARG=old; getopts ab opt -ab; say "$?:$OPTIND:${OPTARG+x}:$opt"; getopts ab opt -ab; say "$?:$OPTIND:${OPTARG+x}:$opt"; getopts ab opt -ab; say "$?:$OPTIND:${OPTARG+x}:$opt"');
-  assert.equal(result.stdout, "1:1::old\n1:2::old\n1:2::old\n");
+  assert.equal(result.stdout, "2:1::old\n2:2::old\n1:2::old\n");
 });
 
 for (const setter of ['export OPTIND=1', 'read OPTIND <<< 1', 'OPTIND=1 :', 'f() { local OPTIND=1; }; f']) {

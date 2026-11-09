@@ -7937,7 +7937,12 @@ export class Runtime {
     if (result.argument.kind === "set") await this.writeVariable(state, "OPTARG", result.argument.value, context, "getopts");
     else this.unsetVariable(state, "OPTARG", true);
     if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new PublicDiagnostic(`getopts: \`${name}': not a valid identifier`);
-    await this.assignVariable(state, name, result.option, context, "getopts");
+    try { await this.assignVariable(state, name, result.option, context, "getopts"); }
+    catch (error) {
+      this.signal.throwIfAborted();
+      if (error instanceof PublicDiagnostic && result.status === 0) throw new CommandFailure(error.message, 2);
+      throw error;
+    }
     return result.status;
   }
   private async changeDirectory(context: CommandContext & IO, state: State, args: readonly string[], diagnose?: (error: unknown, diagnostic: string) => void, stackHooks?: { name: string; onCwdPublished(): void; emit(text: string): Promise<void> }): Promise<number> {

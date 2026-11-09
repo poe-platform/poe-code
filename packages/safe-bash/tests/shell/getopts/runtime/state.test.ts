@@ -26,6 +26,27 @@ for (const delimiter of ["--", '"--"', '"$delimiter"']) {
 
 const frozen: { scripts: FrozenCase[] } = await import(new URL("../../getopts-independent-20260827/stage2/corpus.mjs", import.meta.url).href);
 
+for (const command of ["getopts", "command getopts", "builtin getopts"]) {
+  for (const readonly of [false, true]) {
+    test(`${command} distinguishes assignment failure from end of options (readonly=${readonly})`, async () => {
+      const { shell } = runtimeSetup();
+      try {
+        const result = await shell.exec(`${readonly ? "readonly " : ""}o=old
+set -- -b value -a
+for n in 1 2 3; do
+  ${command} ab: o
+  printf '%s:%s:%s:%s\\n' "$?" "\${o-unset}" "\${OPTARG-unset}" "$OPTIND"
+done`);
+        assert.equal(result.stdout, readonly
+          ? "2:old:value:3\n2:old:unset:4\n1:old:unset:4\n"
+          : "0:b:value:3\n0:a:unset:4\n1:?:unset:4\n");
+        assert.equal(result.stderr, readonly ? "shell: line 4: o: readonly variable\n".repeat(3) : "");
+        assert.equal(result.exitCode, 0);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
 for (const item of frozen.scripts.filter(item => ["N01", "N02", "N03", "N06", "N07", "N08", "N09", "N10", "N11", "N16"].includes(item.id))) {
   test(`frozen nonfailure stdout profile ${item.id}, not native diagnostic byte parity`, async () => {
     const { shell, fs } = runtimeSetup();

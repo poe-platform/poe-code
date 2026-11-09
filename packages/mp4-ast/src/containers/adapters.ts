@@ -949,6 +949,24 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
         new DataView(formatBytes.buffer).setUint32(8, bitrate / 8, true);
       }
     }
+  } else if (options.audioCodec === "copy" && audioTrack?.codecDescriptions[0]?.codecName === "aac") {
+    const description = audioTrack.codecDescriptions[0];
+    const extra = description.esds?.decoderSpecificInfo ?? description.extraData ?? new Uint8Array();
+    pcmBytes = concatBytes(audioTrack.samples.map(sample => sample.data));
+    const frames = Math.round(audioTrack.samples.reduce((sum, sample) => sum + sample.duration, 0) * sampleRate / audioTrack.timescale);
+    const bitrate = description.esds?.avgBitrate ?? (frames ? pcmBytes.length * 8 * sampleRate / frames : 0);
+    formatBytes = new Uint8Array(18 + extra.length + extra.length % 2);
+    const format = new DataView(formatBytes.buffer);
+    format.setUint16(0, 0xff, true);
+    format.setUint16(2, channels, true);
+    format.setUint32(4, sampleRate, true);
+    format.setUint32(8, Math.floor(bitrate / 8), true);
+    format.setUint16(12, 768 * channels, true);
+    format.setUint16(14, 16, true);
+    format.setUint16(16, extra.length, true);
+    formatBytes.set(extra, 18);
+    factBytes = new Uint8Array(4);
+    new DataView(factBytes.buffer).setUint32(0, frames, true);
   } else if (decodedAudio) {
     switch (options.audioCodec) {
       case "pcm_u8": bitsPerSample = 8; break;

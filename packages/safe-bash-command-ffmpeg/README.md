@@ -195,6 +195,8 @@ Output `-ac 2` downmixes 5.1(back) and 5.1(side) WAV to stereo, mixing center in
 With `-c:v copy`, output `-ss` starts at the next video keyframe, preserving its timestamp gap; input `-ss` retains the preceding keyframe for preroll.
 With `-c:a copy`, input `-ss` seeks to the exact sample frame; output `-ss` starts at the next raw packet. Transcoding seeks to the exact sample in either position.
 
+Copy AAC from M4A into WAV with `ffmpeg -i input.m4a -map 0:a:0 -c:a copy out.wav`, preserving compressed packets and decoder configuration.
+
 WAV output to stdout uses unknown (`0xffffffff`) RIFF and data lengths; regular files contain finalized lengths. WAV output writes the encoder identification in LIST/INFO even with `-map_metadata -1`. Use `-bitexact` or `-fflags +bitexact` to omit it while preserving user tags and PCM audio.
 
 WAV output accepts `-write_channel_mask 0` and `-write_channel_mask 1`; both preserve the channel mask and speaker order, including 5.1(side), during encoding and stream copy.

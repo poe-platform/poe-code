@@ -57,7 +57,7 @@ const H264_PROFILES: Record<number, string> = {
   244: "High 4:4:4 Predictive"
 };
 
-const H264_COLOR_SPACES: Record<number, string> = {
+export const H264_COLOR_SPACES: Record<number, string> = {
   0: 'gbr', 1: 'bt709', 4: 'fcc', 5: 'bt470bg', 6: 'smpte170m',
   7: 'smpte240m', 8: 'ycgco', 9: 'bt2020nc', 10: 'bt2020c',
   11: 'smpte2085', 12: 'chroma-derived-nc', 13: 'chroma-derived-c', 14: 'ictcp'

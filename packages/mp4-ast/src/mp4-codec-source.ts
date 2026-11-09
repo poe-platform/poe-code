@@ -43,6 +43,7 @@ export async function* scanMp4CodecDescriptions(source: MediaProbeSource, range:
           } else if (child.type === 'hvcC') applyCodecMetadata(state, { ...parseHvcC(await prefix(23)), type: 'hvcC' });
           else if (child.type === 'av1C') applyCodecMetadata(state, { ...parseAv1C(await prefix(4)), type: 'av1C' });
           else if (child.type === 'vpcC') applyCodecMetadata(state, { ...parseVpcC(await prefix(12)), type: 'vpcC' });
+          else if (child.type === 'colr') applyCodecMetadata(state, { type: 'colr', payload: await prefix(11) });
           else if (child.type === 'pasp' && child.payloadSize >= 8) {
             const aspect = new BinaryReader(await prefix(8)); applyCodecMetadata(state, { type: 'pasp', sarWidth: aspect.readU32BE(), sarHeight: aspect.readU32BE() });
           }

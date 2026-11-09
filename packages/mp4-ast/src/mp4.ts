@@ -150,6 +150,7 @@ function parseStsdBox(payload: Uint8Array): MediaCodecDescription[] {
           else if (child.type === 'hvcC') { hvcC = parseHvcC(child.payload); applyCodecMetadata(state, { ...hvcC, type: 'hvcC' }); }
           else if (child.type === 'av1C') { av1C = parseAv1C(child.payload); applyCodecMetadata(state, { ...av1C, type: 'av1C' }); }
           else if (child.type === 'vpcC') { vpcC = parseVpcC(child.payload); applyCodecMetadata(state, { ...vpcC, type: 'vpcC' }); }
+          else if (child.type === 'colr') applyCodecMetadata(state, { type: 'colr', payload: child.payload });
           else if (child.type === 'esds') esds = parseEsds(child.payload);
           else if (child.type === 'pasp' && child.payload.length >= 8) {
             const aspect = new BinaryReader(child.payload);

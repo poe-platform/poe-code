@@ -1,11 +1,11 @@
 import { BinaryReader } from './binary.js';
-import { parseH264Sps } from './codecs.js';
+import { H264_COLOR_SPACES, parseH264Sps } from './codecs.js';
 import type { MediaCodecDescription, MediaTrackType } from './types.js';
 import type { Mp4AudioSpecificMetadata } from './esds-source.js';
 
 export type Mp4CodecMetadata = Omit<MediaCodecDescription, 'avcC' | 'hvcC' | 'av1C' | 'vpcC' | 'esds' | 'dOps' | 'rawStsdEntryBytes'>;
 type MutableMetadata = { -readonly [K in keyof Mp4CodecMetadata]: Mp4CodecMetadata[K] };
-export type CodecEntryState = { metadata: MutableMetadata; kind?: 'video' | 'audio'; childOffset?: number };
+export type CodecEntryState = { metadata: MutableMetadata; kind?: 'video' | 'audio'; childOffset?: number; nclx?: Uint8Array };
 export type CodecMetadataChild =
   | { type: 'avcC'; extradataSize: number; profileIdc: number; profileCompatibility: number; levelIdc: number; nalLengthSize: number; sps?: Uint8Array | undefined }
   | { type: 'hvcC'; generalLevelIdc: number; generalProfileIdc: number; bitDepthLumaMinus8: number }
@@ -13,6 +13,7 @@ export type CodecMetadataChild =
   | { type: 'vpcC'; profile: number; level: number }
   | { type: 'esds' | 'wave-esds'; config: Mp4AudioSpecificMetadata }
   | { type: 'dOps'; inputSampleRate: number; outputChannelCount: number }
+  | { type: 'colr'; payload: Uint8Array }
   | { type: 'pasp'; sarWidth: number; sarHeight: number };
 
 /** Scalar interpretation shared by resident entries and caller-owned source ranges. */
@@ -49,7 +50,10 @@ export function sampleEntryHeader(formatFourCC: string, body: Uint8Array): Codec
 export function applyCodecMetadata(state: CodecEntryState, child: CodecMetadataChild): void {
   const metadata = state.metadata;
   if (state.kind === 'video') {
-    if (child.type === 'avcC') {
+    if (child.type === 'colr') {
+      if (child.payload.length >= 11 && new BinaryReader(child.payload).readFourCC() === 'nclx')
+        state.nclx = child.payload.subarray(0, 11);
+    } else if (child.type === 'avcC') {
       metadata.extradataSize = child.extradataSize;
       metadata.nalLengthSize = child.nalLengthSize;
       metadata.mimeCodecString = `avc1.${[child.profileIdc, child.profileCompatibility, child.levelIdc].map(value => value.toString(16).padStart(2, '0')).join('')}`;
@@ -97,6 +101,22 @@ export function finishCodecMetadata(state: CodecEntryState): Mp4CodecMetadata {
   if (state.kind === 'video') {
     const aliases: Record<string,string> = { avc1:'h264',avc3:'h264',hvc1:'hevc',hev1:'hevc',av01:'av1',vp08:'vp8',vp09:'vp9',jpeg:'mjpeg',mjpa:'mjpeg',mp4v:'mpeg4','png ':'png','raw ':'rawvideo' };
     metadata.codecName = aliases[format] ?? metadata.codecName; metadata.pixFmt ??= 'yuv420p';
+    // Apply container color after codec children, regardless of box order.
+    if (state.nclx) {
+      const reader = new BinaryReader(state.nclx);
+      reader.skip(4);
+      metadata.colorPrimaries = ({ 1: 'bt709', 4: 'bt470m', 5: 'bt470bg', 6: 'smpte170m',
+        7: 'smpte240m', 8: 'film', 9: 'bt2020', 10: 'smpte428', 11: 'smpte431',
+        12: 'smpte432', 22: 'ebu3213' } as Record<number, string>)[reader.readU16BE()];
+      metadata.colorTransfer = ({ 1: 'bt709', 4: 'gamma22', 5: 'gamma28', 6: 'smpte170m',
+        7: 'smpte240m', 8: 'linear', 9: 'log100', 10: 'log316', 11: 'iec61966-2-4',
+        12: 'bt1361e', 13: 'iec61966-2-1', 14: 'bt2020-10', 15: 'bt2020-12',
+        16: 'smpte2084', 17: 'smpte428', 18: 'arib-std-b67' } as Record<number, string>)[reader.readU16BE()];
+      metadata.colorSpace = H264_COLOR_SPACES[reader.readU16BE()];
+      metadata.colorRange = reader.readU8() & 0x80 ? 'pc' : 'tv';
+      if (metadata.codecName === 'h264' && metadata.colorRange === 'pc')
+        metadata.pixFmt = ({ yuv420p: 'yuvj420p', yuv422p: 'yuvj422p', yuv444p: 'yuvj444p' } as Record<string, string>)[metadata.pixFmt] ?? metadata.pixFmt;
+    }
   } else if (state.kind === 'audio') {
     if (format === 'mp4a' && metadata.codecName === 'mp4a') { metadata.codecName = 'aac'; metadata.profile ??= 'LC'; }
     else {

@@ -119,6 +119,8 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     field_order: track.type === "video" ? desc?.fieldOrder : undefined,
     color_range: track.type === "video" ? desc?.colorRange : undefined,
     color_space: track.type === "video" ? desc?.colorSpace : undefined,
+    color_transfer: track.type === "video" ? desc?.colorTransfer : undefined,
+    color_primaries: track.type === "video" ? desc?.colorPrimaries : undefined,
     chroma_location: desc?.chromaLocation,
     is_avc: codecName === "h264" ? String(desc?.nalLengthSize !== undefined) : undefined,
     nal_length_size: codecName === "h264" ? String(desc?.nalLengthSize ?? 0) : undefined,

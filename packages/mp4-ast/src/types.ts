@@ -337,6 +337,8 @@ export interface MediaCodecDescription {
   readonly nalLengthSize?: number | undefined;
   readonly bitDepthLuma?: number | undefined;
   readonly colorSpace?: string | undefined;
+  readonly colorTransfer?: string | undefined;
+  readonly colorPrimaries?: string | undefined;
   readonly colorRange?: string | undefined;
   readonly sarWidth?: number | undefined;
   readonly sarHeight?: number | undefined;
@@ -516,6 +518,8 @@ export interface MediaProbeStream {
   readonly color_range?: string | undefined;
   readonly field_order?: string | undefined;
   readonly color_space?: string | undefined;
+  readonly color_transfer?: string | undefined;
+  readonly color_primaries?: string | undefined;
   readonly chroma_location?: string | undefined;
   readonly is_avc?: string | undefined;
   readonly nal_length_size?: string | undefined;

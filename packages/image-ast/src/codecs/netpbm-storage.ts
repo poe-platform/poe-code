@@ -60,7 +60,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
    await output.pixel(g,g,g,255);
   } else if(magic==="P1") {const g=await ascii()===0?255:0;await output.pixel(g,g,g,255);}
   else {
-   const r=await sample(),g=channels>=3?await sample():r,b=channels>=3?await sample():r,k=cmyk?await sample():0,a=hasAlpha?await sample():maxval;
+   const r=format==="pgm"?Math.min(await sample(),maxval):await sample(),g=channels>=3?await sample():r,b=channels>=3?await sample():r,k=cmyk?await sample():0,a=hasAlpha?await sample():maxval;
    const values=cmyk?[(maxval-r)*(maxval-k)/maxval,(maxval-g)*(maxval-k)/maxval,(maxval-b)*(maxval-k)/maxval,a]:[r,g,b,a];
    if(cmyk){for(const value of [r,g,b,k])inks[usedInks++]=value/maxval;if(usedInks===inks.length)await flushInks();}
    await output.pixel(Math.round(values[0]!*255/maxval),Math.round(values[1]!*255/maxval),Math.round(values[2]!*255/maxval),hasAlpha?Math.round(a*255/maxval):255);

@@ -92,7 +92,7 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
       return maxval > 255 ? (hi << 8) | (bytes[pos++] ?? 0) : hi;
     };
     for (let i = 0; i < width * height; i++) {
-      const r = readSample(), g = channels >= 3 ? readSample() : r, b = channels >= 3 ? readSample() : r, k = cmyk ? readSample() : 0, a = hasAlpha ? readSample() : maxval;
+      const r = format === "pgm" ? Math.min(readSample(), maxval) : readSample(), g = channels >= 3 ? readSample() : r, b = channels >= 3 ? readSample() : r, k = cmyk ? readSample() : 0, a = hasAlpha ? readSample() : maxval;
       hueSamples?.set([r / maxval, g / maxval, b / maxval, k / maxval], i * 4);
       for (const [channel, value] of (cmyk ? [(maxval-r)*(maxval-k)/maxval, (maxval-g)*(maxval-k)/maxval, (maxval-b)*(maxval-k)/maxval, a] : [r, g, b, a]).entries()) {
         rgba[i * 4 + channel] = Math.round(value * 255 / maxval);

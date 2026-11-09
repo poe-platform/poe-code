@@ -105,7 +105,8 @@ export function probe(data: Uint8Array, args: readonly string[]): string {
 export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size: number, parsed: ReturnType<typeof parseArguments>, retainedTags = false) {
   const { sections } = parsed;
   const unknownFlacDuration = audio.format === "flac" && audio.streams[0]!.samples === 0;
-  const stdinAudio = ["wav", "mp3"].includes(audio.format) && isStdin(parsed.filename);
+  const inlineInput = parsed.filename.startsWith("data:");
+  const stdinAudio = ["wav", "mp3"].includes(audio.format) && (isStdin(parsed.filename) || inlineInput);
   const serials = [
     ...new Set(
       audio.nodes.filter((node) => node.type === "OggS").map((node) => node.fields?.serial)
@@ -245,7 +246,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
       format_long_name: formatLongNames[audio.format],
       ...(startTime === undefined ? {} : { start_time: startTime }),
       ...(!stdinAudio && !unknownFlacDuration ? { duration: formatDuration.toFixed(6) } : {}),
-      ...(!stdinAudio ? { size: String(size) } : {}),
+      ...(!stdinAudio && !inlineInput ? { size: String(size) } : {}),
       ...(!unknownFlacDuration ? { bit_rate: String(stdinAudio
         ? audio.streams.reduce((total, stream) => total + (stream.codec === "mp3" ? Math.round(mp3Bitrate) : Math.floor(stream.bitrate)), 0)
         : formatDuration ? Math.floor((size * 8) / formatDuration) : 0) } : {}),

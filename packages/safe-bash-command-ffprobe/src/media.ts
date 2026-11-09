@@ -82,6 +82,7 @@ export function createInputReader(context: CommandContext, budget: MediaBudgetTr
   };
   return async (path: string, source?: AsyncIterable<Uint8Array>, admitted = false): Promise<Uint8Array> => {
     if (source || isStdin(path)) return readStdinAll(context, bytes => account(bytes, !admitted), source);
+    if (path.startsWith("data:")) return readStdinAll(context, account, readDataInput(path));
     const concat = path.startsWith("concat:");
     if (!concat && !path.startsWith("concatf:")) return readFile(path);
     const list = concat ? "" : new TextDecoder("utf-8", { ignoreBOM: true }).decode(await readFile(path.slice(8))).split("\0", 1)[0]!;
@@ -128,6 +129,18 @@ export function createInputReader(context: CommandContext, budget: MediaBudgetTr
       return bytes;
     } finally { budget.releaseMemory(size); }
   };
+}
+
+/** Decode inline media in bounded chunks through the ordinary input budget. */
+async function* readDataInput(path: string): AsyncIterable<Uint8Array> {
+  const comma = path.indexOf(",");
+  if (comma < 0 || !path.slice(5, comma).endsWith(";base64")) {
+    throw new Error("Inline media input requires data:TYPE;base64,DATA");
+  }
+  for (let offset = comma + 1; offset < path.length; offset += 16384) {
+    const decoded = atob(path.slice(offset, offset + 16384));
+    yield Uint8Array.from(decoded, character => character.charCodeAt(0));
+  }
 }
 
 export async function loadManifestResources(
@@ -264,7 +277,7 @@ export function formatIntrospectionOutput(
   }
 
   if (flag === "-protocols") {
-    return ["Supported file protocols:", "Input:", "  file", "  pipe", "  concat", "  subfile", "Output:", "  file", "  pipe", ""].join("\n");
+    return ["Supported file protocols:", "Input:", "  file", "  pipe", "  concat", "  data", "  subfile", "Output:", "  file", "  pipe", ""].join("\n");
   }
 
   if (flag === "-filters") {
@@ -450,7 +463,8 @@ function parseEntryFilter(showEntries: string | undefined): Map<string, Set<stri
 
 function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): Generator<FormatStep> {
   const entryFilter = parseEntryFilter(opts.showEntries);
-  const stdinAudio = !!probe.format && ["wav", "mp3"].includes(probe.format.format_name) && isStdin(probe.format.filename);
+  const inlineInput = probe.format?.filename.startsWith("data:") ?? false;
+  const stdinAudio = !!probe.format && ["wav", "mp3"].includes(probe.format.format_name) && (isStdin(probe.format.filename) || inlineInput);
   let audioBitrate = 0;
   if (stdinAudio) {
     const streams: MediaProbeStream[] = [];
@@ -624,6 +638,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     delete format.duration;
     delete format.bit_rate;
   }
+  if (inlineInput) delete format.size;
   if (stdinAudio) {
     delete format.duration;
     delete format.size;
@@ -1194,6 +1209,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           selectStreams, showEntries, countFrames, countPackets, webvttKind, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions, videoSize, pixelFormat, frameRate, tsFromFile, exportPathMetadata, segmentTimeMetadata, safe } = parsed;
         if (readIntervals && (showFrames || countFrames)) throw new Error("read_intervals currently supports packet scans, not decoded frames");
         const showPackets = requestedPackets || !!readIntervals && countPackets;
+        const inlineInput = inputTarget.startsWith("data:");
         const entryFilter = parseEntryFilter(showEntries);
         const mp4Records = !options.asts ? { packets: showPackets, frames: showFrames,
           metadata: !!selectStreams || !(showPackets || showFrames) || showStreams || showFormat || showChapters || countFrames || countPackets || [...entryFilter.keys()].some(section => section !== "packet" && section !== "frame") } : undefined;
@@ -1208,20 +1224,20 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         const retainedPlugins = explicitPlugin
           ? (explicitPlugin.canDemux && (packetPlugins.includes(explicitPlugin) || explicitPlugin.probeRecords || explicitPlugin.probeMetadata || !options.asts && explicitPlugin === registry.findByFormatName("ogg")) ? [explicitPlugin] : []) : automaticPlugins;
         const imagePlugin = explicitFormat ? explicitPlugin : registry.findByFilename(inputTarget);
-        const imageSequence = imagePlugin?.id === "image2" && !isStdin(inputTarget) && (tsFromFile !== 0 || imageSequenceFilename(inputTarget, 0) !== undefined);
+        const imageSequence = !inlineInput && imagePlugin?.id === "image2" && !isStdin(inputTarget) && (tsFromFile !== 0 || imageSequenceFilename(inputTarget, 0) !== undefined);
         let probeResult: SourceProbe | undefined = imageSequence
           ? await probeImageSequence(inputTarget, imagePlugin, readInput, budget, context.signal, frameRate, showPackets, showFrames, exportPathMetadata, tsFromFile,
             async filename => (await context.fs.stat(resolvePath(context.cwd, filename), { signal: context.signal })).mtimeMs)
           : undefined;
         const concatProtocol = inputTarget.startsWith("concat:") || inputTarget.startsWith("concatf:");
-        if (!probeResult) probeResult = !concatProtocol && retainedPlugins.length && !isStdin(inputTarget)
+        if (!probeResult) probeResult = !inlineInput && !concatProtocol && retainedPlugins.length && !isStdin(inputTarget)
           ? await probeRetainedMetadata(context, retainedPlugins, inputTarget, inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize, ...(mp4Records ? { mp4Records } : {}) }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, !explicitPlugin)
           : undefined;
-        if (!probeResult && !concatProtocol && explicitPlugin && explicitPlugin.formatName !== "mp3" && !showData && !showDataHash)
+        if (!probeResult && !inlineInput && !concatProtocol && explicitPlugin && explicitPlugin.formatName !== "mp3" && !showData && !showDataHash)
           probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize });
         let replay: AsyncIterable<Uint8Array> | undefined;
         const streamPlugins = explicitPlugin ? retainedPlugins : automaticPlugins;
-        if (!probeResult && !concatProtocol && streamPlugins.length) {
+        if (!probeResult && !inlineInput && !concatProtocol && streamPlugins.length) {
           const source = await openProbeStream(context, isStdin(inputTarget) ? undefined : inputTarget);
           if (source) {
             const sniffed = await sniffMediaStream(source, context.signal, total => {
@@ -1271,7 +1287,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
 
             const resolveResource = await loadManifestResources(plugin, bytes, inputTarget, context.cwd, readInput, budget, allowedExtensions);
             const probe = plugin.probe(bytes, {
-              webvttKind, ignoreLength, maxSize, seekable: !isStdin(inputTarget),
+              webvttKind, ignoreLength, maxSize, seekable: !isStdin(inputTarget) && !inlineInput,
               resolveResource,
               filename: inputTarget,
               limits: options.limits,
@@ -1385,6 +1401,7 @@ export function evalSyncFfprobe(
       selectStreams, showEntries, countFrames, countPackets, webvttKind, ignoreLength, maxSize, explicitFormat, inputTarget, videoSize, pixelFormat, frameRate, tsFromFile, exportPathMetadata } = parseProbeArguments(args);
     const imagePlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : registry.findByFilename(inputTarget);
     if (inputTarget.startsWith("concat:") || tsFromFile !== 0 || imagePlugin?.id === "image2" && imageSequenceFilename(inputTarget, 0) !== undefined) return undefined;
+    if (inputTarget.startsWith("data:")) return undefined;
     let bytes: Uint8Array | undefined;
     if (isStdin(inputTarget)) {
       bytes = inBytes;

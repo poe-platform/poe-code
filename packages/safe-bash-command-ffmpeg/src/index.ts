@@ -4730,6 +4730,7 @@ export function evalSyncFfmpeg(
         // command runs lavfiSteps and yields between sample/pixel batches.
         return undefined;
       } else {
+        if (inp.path.startsWith("data:")) return undefined;
         let rawBytes = isStdin(inp.path) ? inBytes : readFileSync?.(inp.path);
         if (!rawBytes || rawBytes.byteLength > 262144) return undefined;
         budget.checkInputBytes(rawBytes.byteLength);

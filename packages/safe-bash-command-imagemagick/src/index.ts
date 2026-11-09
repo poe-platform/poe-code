@@ -85,6 +85,7 @@ import { morphologyIntensityPixelSteps } from "./morphology-intensity.js";
 import { hitAndMissPixelSteps, morphologyPixelSteps, type MorphologyRow } from "./morphology-kernel.js";
 import { edgePixelSteps } from "./edge-kernel.js";
 import { charcoalPixelSteps } from "./charcoal-kernel.js";
+import { shadePixelSteps } from "./shade-kernel.js";
 import { embossPixelSteps } from "./emboss-kernel.js";
 import { convolvePixelSteps, type ConvolveKernel, type ConvolveRequest } from "./convolve-kernel.js";
 import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
@@ -8835,6 +8836,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return (yield* applyMagickRasterSteps(im, edgePixelSteps(im, radius, state.channelExplicit ? state.channels : undefined, state.virtualPixel, state.background), signal));
             });
         }
+        else if (t === "-shade") {
+            const spec = tokens[++i] ?? "";
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                return yield* applyMagickRasterSteps(im, shadePixelSteps(im, spec, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity), signal);
+            });
+        }
         else if (t === "-emboss") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
@@ -11122,6 +11129,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const virtualPixel = token === "-statistic" ? state.virtualPixel : undefined, background = state.background;
                 steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal, channels, virtualPixel, background) : undefined);
             }
+        } else if (!operandsOnly && token === "-shade") {
+            const spec = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? { ...state.channels } : undefined, intensity = state.intensity;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, shadePixelSteps(image, spec, background, virtualPixel, channels, intensity), signal) : undefined);
         } else if (!operandsOnly && token === "-emboss") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
@@ -11759,6 +11769,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-canny",
         "-hough-lines",
         "-emboss",
+        "-shade",
         "-charcoal",
         "-region", "-write-mask", "-clip-mask", "-sketch", "-seed", "-quantize", "-treedepth", "-virtual-pixel", "-orient", "-profile", "+profile",
         "-scene", "-delay", "-loop", "-transparent-color", "-dispose", "-morph", "-repage", "-raise", "+raise",

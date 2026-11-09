@@ -1,0 +1,53 @@
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
+import type { ConvolveRequest } from "./convolve-kernel.js";
+import type { VirtualPixelMethod } from "./warp-kernel.js";
+import { magickIntensity } from "./intensity.js";
+import { virtualPixelIndex } from "./virtual-pixel.js";
+
+/** Directional surface normals from a 3x3 intensity neighborhood. */
+export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & { magickColorspace?: string | undefined }, spec: string, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const angles = spec.toLowerCase().split("x"), azimuth = Number(angles[0]), elevation = Number(angles[1]);
+    if (!spec.trim() || angles.length !== 2 || !angles.every(value => value.trim()) || ![azimuth, elevation].every(Number.isFinite)) throw new Error(`invalid argument for option '-shade': ${spec}`);
+    const a = azimuth * Math.PI / 180, e = elevation * Math.PI / 180;
+    const lightX = Math.cos(a) * Math.cos(e), lightY = Math.sin(a) * Math.cos(e), lightZ = Math.sin(e);
+    const { width, height } = image, highDepth = !!(image.data16 || image.storedData16), quantum = highDepth ? 65535 : 255;
+    const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : [true, true, true, image.hasAlpha];
+    const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
+    const fill = (method === "background" || method.endsWith("-tile") ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255]).map(value => value * quantum / 255);
+    const blocks = new Map<number, Uint8Array | Uint16Array>();
+    function* sample(x: number, y: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {
+        const index = virtualPixelIndex(x, y, width, height, method);
+        if (index < 0) return fill;
+        const start = Math.floor(index / 1024) * 1024;
+        let data = blocks.get(start);
+        if (!data) {
+            const length = Math.min(1024, width * height - start) * 4;
+            const bytes = yield { kind: "read", highDepth, position: start * 4, length };
+            if (!bytes || bytes.length !== length * (highDepth ? 2 : 1)) throw new Error("Truncated shade pixels");
+            data = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, length) : bytes;
+            if (blocks.size >= 16) blocks.delete(blocks.keys().next().value!);
+            blocks.set(start, data);
+        }
+        return data.subarray((index - start) * 4, (index - start) * 4 + 4);
+    }
+    for (let start = 0; start < width * height; start += 1024) {
+        yield;
+        const count = Math.min(1024, width * height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
+        for (let i = 0; i < count; i++) {
+            yield;
+            const x = (start + i) % width, y = Math.floor((start + i) / width);
+            let nx = 0, ny = 0;
+            for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+                if (dx === 0 && dy === 0) continue;
+                const pixel = yield* sample(x + dx, y + dy);
+                const luma = Math.max(0, Math.min(1, magickIntensity(pixel[0]!, pixel[1]!, pixel[2]!, intensity, quantum, image.magickColorspace === "RGB") / quantum));
+                nx -= dx * luma;
+                ny += dy * luma;
+            }
+            const shade = quantum * Math.max(0, (nx * lightX + ny * lightY + 2 * lightZ) / Math.sqrt(nx * nx + ny * ny + 4));
+            const center = yield* sample(x, y);
+            for (let c = 0; c < 4; c++) data[i * 4 + c] = mask[c] ? Math.max(0, Math.min(quantum, Math.round(shade))) : center[c]!;
+        }
+        yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) };
+    }
+}

@@ -36,7 +36,7 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     // Keep byte-scaled fractions for Q16 transfers; round only at output precision.
     const round = (value: number) => highDepth ? Math.round(value * 257) / 257 : Math.round(value);
@@ -89,13 +89,28 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             bins = reduced;
         }
     }
-    if (grayscale && requested === 2) return;
+    if (grayscale && requested === 2) return [0xff000000, 0xffffffff];
+    const palette: number[][] = [];
     let work = 0;
     const channels = [...bins.values()].some(bin => bin.sums[3] !== 255 * bin.count) ? 4 : 3;
     if (bins.size <= requested && channels === 3) {
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;
             bin.color = bin.sums.slice(0, 4).map(value => round(value / bin.count));
+        }
+        // Match the color tree's octant order even when no reduction is needed.
+        const ordered = [...bins.values()].map(bin => {
+            let order = 0;
+            for (let bit = 7; bit >= 0; bit--) {
+                let octant = 0;
+                for (let channel = 0; channel < 4; channel++) octant |= ((Math.round(bin.color[channel]!) >>> bit) & 1) << channel;
+                order = order * 16 + octant;
+            }
+            return { order, color: bin.color };
+        }).sort((a, b) => a.order - b.order);
+        for (const entry of ordered) {
+            if (++work % 1024 === 0) yield;
+            palette.push(entry.color);
         }
     } else {
         const depth = treeDepth === 0 ? 8 : Math.max(2, Math.min(8, treeDepth));
@@ -175,6 +190,17 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             if (!node.removed) yield* prune(node);
             lastError = Math.max(lastError, node.error);
         }
+        const nodeColors = new Map<ColorNode, number[]>();
+        // Surviving children precede their parent, including a merged root color.
+        for (const node of [...ordered, root]) {
+            if (++work % 1024 === 0) yield;
+            if (node.removed || !node.count) continue;
+            const color = node.sums.slice(0, 4).map((value, channel) => round(
+                channel < 3 && node.sums[3]! > 0 ? node.sums[channel + 4]! / node.sums[3]! : value / node.count
+            ));
+            nodeColors.set(node, color);
+            palette.push(color);
+        }
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;
             let node = bin.node!;
@@ -208,9 +234,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                 if (distance <= closest) { closest = distance; node = candidate; }
             }
             yield* search(cube.parent ?? root);
-            bin.color = node.sums.slice(0, 4).map((value, channel) => round(
-                channel < 3 && node.sums[3]! > 0 ? node.sums[channel + 4]! / node.sums[3]! : value / node.count
-            ));
+            bin.color = nodeColors.get(node)!;
         }
     }
     for (let position = 0; position < length; position += 4096) {
@@ -221,4 +245,5 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         for (let i = 0; i < size; i += 4) data.set(bins.get(key(pixels, i))!.color, i);
         yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data) };
     }
+    return palette.map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!));
 }

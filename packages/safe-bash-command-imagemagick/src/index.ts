@@ -3897,7 +3897,7 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
     }
 }
 
-function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal?: AbortSignal, dimensions: Pick<RgbaImage, "width" | "height" | "hasAlpha"> = img, sources: readonly RgbaImage[] = [img]): Generator<void, RgbaImage, void> {
+function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined>, signal?: AbortSignal, dimensions: Pick<RgbaImage, "width" | "height" | "hasAlpha"> = img, sources: readonly RgbaImage[] = [img]): Generator<void, RgbaImage, void> {
     const data = new Uint8Array(dimensions.width * dimensions.height * 4);
     let hueSamples: Float64Array | undefined;
     let evaluateSamples: Float64Array | undefined;
@@ -3949,7 +3949,8 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
     }
     // Raster steps replace the pixels; original depth and arithmetic samples are stale.
     const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, ...metadata } = img;
-    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(pngIndices ? { pngIndices } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
+    if (next.value) delete metadata.pngPalette;
+    return { ...metadata, ...(next.value ? { indexedColors: next.value, isPalette: true } : {}), width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(pngIndices ? { pngIndices } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
 function resolveGravityOffset(
@@ -9640,7 +9641,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
         };
     }
 }
-async function transformStoredMagickRaster(image: StoredRgbaImage, backend: CompareFileSession, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal: AbortSignal, dimensions: Pick<StoredRgbaImage, "width" | "height" | "hasAlpha"> = image, sources: readonly StoredRgbaImage[] | ((index: number) => Promise<StoredRgbaImage>) = [image], checkpoint?: () => Promise<void>): Promise<StoredRgbaImage> {
+async function transformStoredMagickRaster(image: StoredRgbaImage, backend: CompareFileSession, steps: Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined>, signal: AbortSignal, dimensions: Pick<StoredRgbaImage, "width" | "height" | "hasAlpha"> = image, sources: readonly StoredRgbaImage[] | ((index: number) => Promise<StoredRgbaImage>) = [image], checkpoint?: () => Promise<void>): Promise<StoredRgbaImage> {
     const position = backend.storage.allocate(dimensions.width * dimensions.height * 4), cache = new Map<string, Uint8Array>();
     let storedHueSamples: number | undefined;
     let storedEvaluateSamples: number | undefined;
@@ -9703,7 +9704,8 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
         }
     }
     const { storedData16: ignoredData16, storedEvaluateSamples: ignoredEvaluateSamples, ...metadata } = image;
-    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedPngIndices ? { storedPngIndices } : {}), ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }) };
+    if (next.value) delete metadata.pngPalette;
+    return { ...metadata, ...(next.value ? { indexedColors: next.value, isPalette: true } : {}), width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedPngIndices ? { storedPngIndices } : {}), ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }) };
 }
 
 async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal, channels?: readonly boolean[], virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Promise<StoredRgbaImage> {

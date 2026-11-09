@@ -55,6 +55,32 @@ test("readonly wrapper permits pure table composition without mutations", async 
   } finally { await shell.dispose(); }
 });
 
+for (const captured of [false, true]) {
+  for (const [option, left, right, expected, exitCode] of [
+    ["--hea", "k A\nk B\nq C\n", "k X\nk Y\np Z\n", "k A X\nk B Y\n", 0],
+    ["--ignore", "A left\n", "a right\n", "A left right\n", 0],
+    ["--check", "b\na\n", "b\na\n", "", 1],
+    ["--nocheck", "b\na\n", "b\na\n", "b\na\n", 0],
+    ["--nochi", "a\n", "a\n", "", 1],
+    ["--he", "a\n", "a\n", "", 1],
+  ] as const) {
+    test(`join long-option prefix ${option} ${captured ? "in command substitution" : "directly"}`, async () => {
+      const fs = createMemoryFileSystem();
+      await fs.writeFile("/left", Buffer.from(left));
+      await fs.writeFile("/right", Buffer.from(right));
+      const shell = new Shell({ fs, env: { LC_ALL: "C" } }).use(standardCommands()).use(tableTextCommands());
+      try {
+        const command = `join ${option} /left /right`;
+        const result = await shell.exec(captured ? `value=$(${command}); status=$?; printf '%s' "$value"; exit "$status"` : command);
+        assert.equal(result.exitCode, exitCode, result.stderr);
+        assert.equal(result.stdout, captured ? expected.trimEnd() : expected);
+        if (exitCode === 0) assert.equal(result.stderr, "");
+        else assert.ok(result.stderr.includes(option === "--check" ? "not in sorted order" : `unsupported option ${option}`), result.stderr);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
 test("actual bounded downstream pipeline closes a large paste input", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/large", Buffer.from("line\n".repeat(100_000)));

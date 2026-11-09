@@ -103,11 +103,12 @@ function parse(context: CommandContext, budget: Budget): Options {
       continue;
     }
     if (token === "--") { literal = true; continue; }
-    if (token === "--header") { options.header = true; continue; }
-    if (token === "--check-order") { options.order = "check"; continue; }
-    if (token === "--nocheck-order") { options.order = "none"; continue; }
-    if (token === "--ignore-case") { options.fold = true; continue; }
-    if (token === "--zero-terminated") { options.separator = 0; continue; }
+    // --h and --he are ambiguous with --help.
+    if (token.length >= 5 && "--header".startsWith(token)) { options.header = true; continue; }
+    if ("--check-order".startsWith(token)) { options.order = "check"; continue; }
+    if ("--nocheck-order".startsWith(token)) { options.order = "none"; continue; }
+    if ("--ignore-case".startsWith(token)) { options.fold = true; continue; }
+    if ("--zero-terminated".startsWith(token)) { options.separator = 0; continue; }
     if (token.startsWith("--")) fail(`unsupported option ${token}`);
     for (let offset = 1; offset < token.length; offset++) {
       const flag = token[offset]!;

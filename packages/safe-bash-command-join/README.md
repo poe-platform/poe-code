@@ -11,6 +11,6 @@ shell.use(joinCommands());
 const result = await shell.exec("join --help");
 ```
 
-The module also exports `createJoinCommand`, its command-list factory, and typed options and limits.
+The module also exports `createJoinCommand`, its command-list factory, and typed options and limits. The `--header`, `--ignore-case`, `--check-order`, `--nocheck-order`, and `--zero-terminated` options accept unique prefixes, such as `--hea` and `--ignore`; ambiguous `--h` and `--he` are rejected.
 
 Default order checking starts after reading past the first unpaired row while both files still have rows, matching GNU coreutils. Earlier descending keys are not reported retroactively. Rows remaining after the other file ends do not start default checking. Use `--check-order` to check all input rows, or `--nocheck-order` to disable checking.

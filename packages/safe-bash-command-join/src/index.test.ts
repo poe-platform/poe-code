@@ -122,6 +122,41 @@ test("join rejects distinct delimiter bytes that decode identically", async () =
  assert.deepEqual(result.stdoutBytes, []);
 });
 
+// Verified against GNU coreutils 9.4 with LC_ALL=C.
+for (const [option, minimum, left, right, expected, exitCode] of [
+ ["--header", 5, "k A\nk B\nq C\n", "k X\nk Y\np Z\n", "k A X\nk B Y\n", 0],
+ ["--ignore-case", 3, "A left\n", "a right\n", "A left right\n", 0],
+ ["--check-order", 3, "b\na\n", "b\na\n", "", 1],
+ ["--nocheck-order", 3, "b\na\n", "b\na\n", "b\na\n", 0],
+ ["--zero-terminated", 3, "a left\0", "a right\0", "a left right\0", 0],
+] as const) {
+ test(`join accepts every unique prefix of ${option}`, async () => {
+  for (let length = minimum; length <= option.length; length++) {
+   const prefix = option.slice(0, length);
+   const result = await run([prefix, "/a", "/b"], { "/a": left, "/b": right });
+   assert.equal(result.exitCode, exitCode, `${prefix}: ${result.stderr}`);
+   assert.equal(result.stdout, expected, prefix);
+   if (exitCode === 0) assert.equal(result.stderr, "", prefix);
+   else assert.ok(result.stderr.includes("not in sorted order"), result.stderr);
+  }
+ });
+}
+
+for (const option of ["--h", "--he", "--nochi", "--headers", "--Header", "--hea=1", "--ignore=", "--check=yes", "--nocheck=no", "--zero=0"]) {
+ test(`join rejects invalid or ambiguous option ${option}`, async () => {
+  const result = await run([option, "/a", "/b"], { "/a": "a\n", "/b": "a\n" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.ok(result.stderr.includes(`unsupported option ${option}`), result.stderr);
+ });
+}
+
+test("join preserves abbreviated option names as operands after --", async () => {
+ const result = await run(["--", "--hea", "--ignore"], { "/--hea": "a left\n", "/--ignore": "a right\n" });
+ assert.equal(result.exitCode, 0, result.stderr);
+ assert.equal(result.stdout, "a left right\n");
+});
+
 // Verified against GNU coreutils 9.12 with LC_ALL=C.
 for (const reverse of [false, true]) {
  for (const [left, right, stdout] of [

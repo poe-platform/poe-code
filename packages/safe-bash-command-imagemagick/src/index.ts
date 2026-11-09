@@ -5290,7 +5290,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         cursor += vertical ? im.height : im.width;
     }
     const first = stack[0]!;
-    return { ...canvas, hasAlpha, ...(first.properties ? { properties: first.properties } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
+    return { ...canvas, ...(first.icc ? { icc: first.icc } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
 }
 
 function expandFilenameProperties(spec: string, properties: ImageMetadata["properties"]): string {
@@ -9858,7 +9858,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 result = await createStoredCanvas(width, height, background, backend, signal, append && highDepth);
                 if (append) {
                     const first = (await stack.get(0))!;
-                    result = { ...result, hasAlpha: background.a < 255, ...(first.properties ? { properties: first.properties } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
+                    result = { ...result, ...(first.icc ? { icc: first.icc } : {}), hasAlpha: background.a < 255, ...(first.properties ? { properties: first.properties } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
                 }
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {

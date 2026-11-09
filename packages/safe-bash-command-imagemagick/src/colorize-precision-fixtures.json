@@ -1,0 +1,113 @@
+{
+  "input": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDhUMDA6MDM6NDgrMDA6MDDjaeO9AAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA4VDAwOjAzOjQ4KzAwOjAwkjRbAQAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wOFQwMDowMzo0OCswMDowMMUhet4AAAETSURBVBjTAQgB9/4AJXjLHo7hNIf3Sp3wYLMGWckcb8Iyhdgrm+5BlARXqv0AbcATZtYpfM8/kuU4qPtOoRFktwp6zSBz4zaJ3Eyf8kUAtQhbrh5xxBeH2i2A8EOW6Vms/1LCFWi7K37RJJTnOo0A/VCj9ma5DF/PInXIOIveMaH0R5oKXbADc8YZbNwvgtUARZjrPq4BVKcXar0QgNMmeek8j+JSpfhLuw5htCR3yh0AjeAzhvZJnO9fsgVYyBtuwTGE1yqa7UCTA1ap/Gy/EmUA1Sh7zj6R5Den+k2gEGO2CXnMH3LiNYjbS57xRLQHWq0AHXDDFobZLH/vQpXoWKv+UcEUZ7oqfdAjk+Y5jPxPovUcJoEBTbp3hAAAAABJRU5ErkJggg==",
+  "cases": [
+    {
+      "name": "inverse blends",
+      "args": [
+        "-colorize",
+        "-100",
+        "-colorize",
+        "50"
+      ],
+      "expected": "JXjLHo7hNIf3Sp3wYLMGWckcb8Iyhdgrm+5BlARXqv1twBNm1il8zz+S5Tio+06hEWS3CnrNIHPjNoncTJ/yRbUIW64eccQXh9otgPBDlulZrP9SwhVouyt+0SSU5zqN/VCj9ma5DF/PInXIOIveMaH0R5oKXbADc8YZbNwvgtVFmOs+rgFUpxdqvRCA0yZ56TyP4lKl+Eu7DmG0JHfKHY3gM4b2SZzvX7IFWMgbbsExhNcqmu1AkwNWqfxsvxJl1Sh7zj6R5Den+k2gEGO2CXnMH3LiNYjbS57xRLQHWq0dcMMWhtksf+9ClehYq/5RwRRnuip90COT5jmM/E+i9Q=="
+    },
+    {
+      "name": "fractional blends",
+      "args": [
+        "-colorize",
+        "25",
+        "-colorize",
+        "50"
+      ],
+      "expected": "Qn3MHmqkk4eRbLrwWZOCWYBbqcJHgtErb6mYlDZxv/1dmIdmhV+uz0yH1Th0rp2hO3bECmKdjHOKZLPcUYzaRXhToq5AeskXZ6KQgI9puOlWkd9SfVinu0V/ziRsp5WNk2699luVhF+CXavISoTTMXGsmpo4c8IDYJqJbIdisNVOidg+dlCfpz14xhBln455jGe14lOO3Ut7VaS0Qn3LHWmkk4aRa7rvWJOBWIBaqcFHgtAqbqmYkzZwv/xdmIZlhF+uzkyG1TdzrpygO3XECWKdi3KJZLPbUYvaRHhToa0/eskWZ6GQf45pt+hWkN9RfVimukR/ziNsppWMk2689Q=="
+    },
+    {
+      "name": "linear RGB identity",
+      "args": [
+        "-colorspace",
+        "RGB",
+        "-colorize",
+        "0",
+        "-colorspace",
+        "sRGB"
+      ],
+      "expected": "JXjLHo7hNIf3Sp3wYLMGWckcb8Iyhdgrm+5BlARXqv1twBNm1il8zz+S5Tio+06hEWS3CnrNIHPjNoncTJ/yRbUIW64eccQXh9otgPBDlulZrP9SwhVouyt+0SSU5zqN/VCj9ma5DF/PInXIOIveMaH0R5oKXbADc8YZbNwvgtVFmOs+rgFUpxdqvRCA0yZ56TyP4lKl+Eu7DmG0JHfKHY3gM4b2SZzvX7IFWMgbbsExhNcqmu1AkwNWqfxsvxJl1Sh7zj6R5Den+k2gEGO2CXnMH3LiNYjbS57xRLQHWq0dcMMWhtksf+9ClehYq/5RwRRnuip90COT5jmM/E+i9Q=="
+    },
+    {
+      "name": "HSL identity",
+      "args": [
+        "-colorspace",
+        "HSL",
+        "-colorize",
+        "0",
+        "-colorspace",
+        "sRGB"
+      ],
+      "expected": "JXjLHo7hNIf3Sp3wYLMGWckcb8Iyhdgrm+5BlARXqv1twBNm1il8zz+S5Tio+06hEWS3CnrNIHPjNoncTJ/yRbUIW64eccQXh9otgPBDlulZrP9SwhVouyt+0SSU5zqN/VCj9ma5DF/PInXIOIveMaH0R5oKXbADc8YZbNwvgtVFmOs+rgFUpxdqvRCA0yZ56TyP4lKl+Eu7DmG0JHfKHY3gM4b2SZzvX7IFWMgbbsExhNcqmu1AkwNWqfxsvxJl1Sh7zj6R5Den+k2gEGO2CXnMH3LiNYjbS57xRLQHWq0dcMMWhtksf+9ClehYq/5RwRRnuip90COT5jmM/E+i9Q=="
+    },
+    {
+      "name": "HSL inverse blends",
+      "args": [
+        "-colorspace",
+        "HSL",
+        "-colorize",
+        "-100",
+        "-colorize",
+        "50",
+        "-colorspace",
+        "sRGB"
+      ],
+      "expected": "JXjLHo7hNIf3Sp3wYLMGWckcb8Iyhdgrm+5BlARXqv1twBNm1il8zz+S5Tio+06hEWS3CnrNIHPjNoncTJ/yRbUIW64eccQXh9otgPBDlulZrP9SwhVouyt+0SSU5zqN/VCj9ma5DF/PInXIOIveMaH0R5oKXbADc8YZbNwvgtVFmOs+rgFUpxdqvRCA0yZ56TyP4lKl+Eu7DmG0JHfKHY3gM4b2SZzvX7IFWMgbbsExhNcqmu1AkwNWqfxsvxJl1Sh7zj6R5Den+k2gEGO2CXnMH3LiNYjbS57xRLQHWq0dcMMWhtksf+9ClehYq/5RwRRnuip90COT5jmM/E+i9Q=="
+    },
+    {
+      "name": "selected channels",
+      "args": [
+        "-channel",
+        "RB",
+        "-colorize",
+        "-100",
+        "-colorize",
+        "50",
+        "+channel"
+      ],
+      "expected": "JXjLHo7hNIf3Sp3wYLMGWckcb8Iyhdgrm+5BlARXqv1twBNm1il8zz+S5Tio+06hEWS3CnrNIHPjNoncTJ/yRbUIW64eccQXh9otgPBDlulZrP9SwhVouyt+0SSU5zqN/VCj9ma5DF/PInXIOIveMaH0R5oKXbADc8YZbNwvgtVFmOs+rgFUpxdqvRCA0yZ56TyP4lKl+Eu7DmG0JHfKHY3gM4b2SZzvX7IFWMgbbsExhNcqmu1AkwNWqfxsvxJl1Sh7zj6R5Den+k2gEGO2CXnMH3LiNYjbS57xRLQHWq0dcMMWhtksf+9ClehYq/5RwRRnuip90COT5jmM/E+i9Q=="
+    },
+    {
+      "name": "incoming evaluation",
+      "args": [
+        "-evaluate",
+        "multiply",
+        "2",
+        "-colorize",
+        "50"
+      ],
+      "expected": "T7j/PLj/mv//iv//ivNssvNc1f9cxf9Wxf+n/y6X//+X/3nM/2ni/2nS/3DS/7T/O6T/FKT/hub/du//dt//it9Iwf9Isf8usf+T//+D/P+D7P+k7FXO/1W+/0i+/6D//5D//5D5cr75Ytv/Ysv/Ysv/rf80nf8Gnf9/2P9v6P9v2P982EG6/0Gq/yCq/4zy/3z1/3zl/5blTsf/Trf/Orf/mf//if//ifJrsPJb1P9bxP9UxP+m/y2W//+W/3jK/2jh/2jR/27R/7P/OqP/EqP/heT/de7/dd7/iN5HwP9HsP8ssP+S/v+C+/+C6/+i61TN/1S9/0a9/5///4///w=="
+    },
+    {
+      "name": "HSL fractional blend",
+      "args": [
+        "-colorspace",
+        "HSL",
+        "-colorize",
+        "25",
+        "-colorspace",
+        "sRGB"
+      ],
+      "expected": "RMXWHo3fV4e+Z+/wZNwVWZ8328JUydkrlulhlBK/1v1v3yZmpU7Xz1/T4jig8mqhIMbcCnzZPnOvWOHcadzsRZQX3a43xdgXh9pRgLhi6uly5vZSnCreu07F1SSR5FuNwmz09mnfG1+iQtnIWc7dMZvtZZoZwtkDddwxbKpT3NVj1+c+kBDapyrG2xCC2El5s13l4m3h8EuZHeC0QsXXHYzeVoa9Z+/vY9sUWJ4128FUydgqluhgkxG+1vxu3yRlpUzYzl7S4jeg8mqgH8XcCXvaPXKuV+DbaNvrRJQW3K01xdkWh9lQf7hh6ehy5fVRmyjeukzF1SOQ41qMwWvz9Q=="
+    },
+    {
+      "name": "linear RGB fractional blends",
+      "args": [
+        "-colorspace",
+        "RGB",
+        "-colorize",
+        "25",
+        "-colorize",
+        "50",
+        "-colorspace",
+        "sRGB"
+      ],
+      "expected": "f6fdHpfLvofEnc/wibm8Wa6ZxcKBquIrm9G/lH2g0/2MvbxmtJrIz4Ku5jig1sChfqLXCpDDvHO6m8rchbLrRaaYwq5/pdsXlMi9gMGczumHtvBSq5nEu4Co3ySZzb6Nx57R9oq7vF+xmcbIgazkMZ3Tv5p+odUDjsC8bLeaydWDsOk+o5jBp36j2RCSxb15vZzM4oa07kuomMO0f6bdHZbKvobEnc/vibi8WK6ZxcGAquEqm9C/k32f0/yMvbxltJrHzoKt5jeg1sCgfqLWCZDCvHK6m8rbhLHrRKWYwq1/pdoWlMe9f8CczeiHtvBRq5nEuoCo3yOYzb6Mx57R9Q=="
+    }
+  ]
+}

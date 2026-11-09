@@ -6979,18 +6979,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
-            const samples = data16 ?? out, quantum = data16 ? 65535 : 255;
+            const hueSamples = image.hueSamples?.slice();
+            const samples = hueSamples ?? image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
+            const range = hueSamples ? 1 : 255;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 for (let channel = 0; channel < 3; channel++) {
                     const strength = blend[channel]!;
                     if (!mask[channel]) continue;
-                    const sample = Math.max(0, Math.min(quantum, Math.round(samples[idx + channel]! + (fill[channel]! * (quantum / 255) - samples[idx + channel]!) * strength)));
-                    if (data16) data16[idx + channel] = sample;
-                    out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
+                    // Keep HDRI range and fractions between blends; only the encoding views are bounded.
+                    const sample = Math.fround((samples[idx + channel]! + (fill[channel]! * (range / 255) - samples[idx + channel]!) * strength) * (65535 / range)) / (65535 / range);
+                    samples[idx + channel] = sample;
+                    if (data16) data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, sample * (65535 / range))));
+                    out[idx + channel] = clampByteVal(sample * (255 / range));
                 }
             }
-            return { ...image, isPalette: false, data: out, ...(data16 ? { data16 } : {}) };
+            return { ...image, isPalette: false, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : { evaluateSamples: samples }) };
         };
     } else if (token === "-tint") {
         highDepth = true;
@@ -7235,7 +7239,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelSelections(expression: string): number[][] {

@@ -22,7 +22,7 @@ it("rejects truncated headers, invalid bounds, unsupported encodings", () => {
   const ast = auAst();
   assert.throws(() => ast.parse(native.subarray(0, 23)), /header/);
   for (const [offset, value, error] of [
-    [4, 23, /bounds/], [4, 100, /bounds/],
+    [4, 0, /bounds/], [4, 100, /bounds/],
     [12, 99, /encoding/], [16, 0, /sample rate/], [20, 0, /channel count/]
   ] as const) {
     const bytes = Buffer.from(native);

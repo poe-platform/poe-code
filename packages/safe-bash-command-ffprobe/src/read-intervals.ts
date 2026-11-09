@@ -44,7 +44,7 @@ export function parseReadIntervals(value: string): ReadInterval[] {
 export async function readPacketIntervals(
   packets: Iterable<MediaProbePacket> | AsyncIterable<MediaProbePacket>, intervals: readonly ReadInterval[],
   context: CommandContext, budget: MediaBudgetTracker, retain: (close: () => Promise<void>) => void,
-  selectStreams?: string, pcm?: { sampleRate: number; blockAlign: number }
+  selectedIndices?: ReadonlySet<number>, pcm?: { sampleRate: number; blockAlign: number }
 ): Promise<{ packets: AsyncIterable<MediaProbePacket>; counts: Map<number, number> }> {
   const storage = new PagedStorage(context, 4);
   retain(storage.close.bind(storage));
@@ -78,11 +78,7 @@ export async function readPacketIntervals(
     }
   }
   const ordered = [...streams.entries()].sort(([a], [b]) => a - b);
-  const type = selectStreams?.startsWith("v") ? "video" : selectStreams?.startsWith("a") ? "audio" : selectStreams?.startsWith("s") ? "subtitle" : selectStreams?.startsWith("d") ? "data" : selectStreams?.startsWith("t") ? "attachment" : undefined;
-  const candidates = type ? ordered.filter(([, stream]) => stream.type === type) : ordered;
-  const selected = new Set(!selectStreams ? ordered.map(([index]) => index)
-    : type ? (selectStreams.length > 2 ? candidates.slice(Number(selectStreams.slice(2)), Number(selectStreams.slice(2)) + 1) : candidates).map(([index]) => index)
-    : [Number(selectStreams)]);
+  const selected = selectedIndices ?? new Set(ordered.map(([index]) => index));
   const primary = ordered.find(([index, stream]) => selected.has(index) && stream.type === "video")
     ?? ordered.find(([index]) => selected.has(index));
   const counts = new Map<number, number>();

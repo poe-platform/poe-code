@@ -25,7 +25,7 @@ import { parseAudio, id3HeaderSize, probeId3Source, flacFormatTags, probeWavSour
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { wavPacketFrames, probeMp4Source, scanMp4Frames, scanMp4Packets, allMediaAsts, probeOggFlacSource, probeOggStreamMetadata, createMediaAstRegistry, encodeUtf8, parseStreamingManifest, MediaBudgetTracker,
-  type MediaAstPlugin, type MediaProbeSource, type MediaFeatureOptions, type MediaProbeResult, type MediaProbeRecords, type MediaProbeSourceRecords, type MediaProbeStream, type MediaProbeText, type MediaResourceLimits } from "@poe-code/mp4-ast";
+  type MediaAstPlugin, type MediaProbeSource, type MediaFeatureOptions, type MediaProbeResult, type MediaProbeRecords, type MediaProbeSourceRecords, type MediaProbeStream, type MediaProbeSourceStream, type MediaProbeText, type MediaResourceLimits } from "@poe-code/mp4-ast";
 
 export interface MediaCommandsOptions {
   /**
@@ -349,6 +349,47 @@ type FormatStep = ProbeOutputPart | {
   render: (row: unknown, index: number) => Iterable<ProbeOutputPart>;
 };
 
+function createStreamSelector(selectStreams: string | undefined, programs: ProbeSourceRows["programs"]) {
+  let spec = selectStreams ?? "";
+  const types: string[] = [];
+  while (["v", "a", "s", "d", "t"].includes(spec.split(":")[0]!)) {
+    types.push(spec[0] === "v" ? "video" : spec[0] === "a" ? "audio" : spec[0] === "s" ? "subtitle" : spec[0] === "d" ? "data" : "attachment");
+    spec = spec.slice(2);
+  }
+  const programIndices = spec.startsWith("p:")
+    ? new Set(programs?.filter(program => program.program_id === Number(spec.slice(2)))
+      .flatMap(program => program.streams.map(stream => stream.index)))
+    : undefined;
+  let typeOrdinal = 0;
+  return (stream: MediaProbeSourceStream): boolean => {
+    if (types.some(type => stream.codec_type !== type)) return false;
+    if (programIndices && !programIndices.has(stream.index)) return false;
+    if (spec) {
+      if (spec === "u") {
+        if (!stream.codec_name || stream.codec_name === "unknown") return false;
+        if (stream.codec_type === "audio" && (!(Number(stream.sample_rate) > 0) || !stream.channels
+          || !stream.sample_fmt || stream.sample_fmt === "unknown")) return false;
+        if (stream.codec_type === "video" && (!stream.width || !stream.height
+          || !stream.pix_fmt || stream.pix_fmt === "unknown")) return false;
+      }
+      if (spec.startsWith("i:") || spec.startsWith("#")) {
+        const id = Number(spec.slice(spec[0] === "#" ? 1 : 2));
+        if (stream.id === undefined || Number(stream.id) !== id) return false;
+      }
+      if (spec.startsWith("m:")) {
+        const [key, ...value] = spec.slice(2).split(":");
+        const tag = Object.entries(stream.tags ?? {}).find(([name]) => name.toLowerCase() === key!.toLowerCase());
+        if (!tag || (value.length > 0 && tag[1] !== value.join(":"))) return false;
+      }
+      if ([...spec].every(c => c >= "0" && c <= "9")) {
+        const index = types.length > 0 ? typeOrdinal++ : stream.index;
+        if (index !== Number(spec)) return false;
+      }
+    }
+    return true;
+  };
+}
+
 function formatQualifiedAudio(probe: ProbeSourceRows, opts: FfprobeFormatOptions, audioInput?: AudioProbeInput): string | undefined {
   // Stream side data belongs to the media schema.
   if (Array.isArray(probe.streams) && probe.streams.some(stream => stream.side_data_list?.length)) return undefined;
@@ -527,43 +568,10 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   const includeChapters = opts.showChapters || includesEntries("chapter");
   const includePrograms = opts.showPrograms || includesEntries("program") || includesEntries("program_tags") || includesEntries("stream");
 
-  let spec = opts.selectStreams ?? "";
-  const types: string[] = [];
-  while (["v", "a", "s", "d", "t"].includes(spec.split(":")[0]!)) {
-    types.push(spec[0] === "v" ? "video" : spec[0] === "a" ? "audio" : spec[0] === "s" ? "subtitle" : spec[0] === "d" ? "data" : "attachment");
-    spec = spec.slice(2);
-  }
-  const programIndices = spec.startsWith("p:")
-    ? new Set(probe.programs?.filter(program => program.program_id === Number(spec.slice(2)))
-      .flatMap(program => program.streams.map(stream => stream.index)))
-    : undefined;
-  let typeOrdinal = 0;
+  const matchesStream = createStreamSelector(opts.selectStreams, probe.programs);
   const prepareStream = (row: unknown): Record<string, unknown> | undefined => {
     const stream = row as MediaProbeStream;
-    if (types.some(type => stream.codec_type !== type)) return;
-    if (programIndices && !programIndices.has(stream.index)) return;
-    if (spec) {
-      if (spec === "u") {
-        if (!stream.codec_name || stream.codec_name === "unknown") return;
-        if (stream.codec_type === "audio" && (!(Number(stream.sample_rate) > 0) || !stream.channels
-          || !stream.sample_fmt || stream.sample_fmt === "unknown")) return;
-        if (stream.codec_type === "video" && (!stream.width || !stream.height
-          || !stream.pix_fmt || stream.pix_fmt === "unknown")) return;
-      }
-      if (spec.startsWith("i:") || spec.startsWith("#")) {
-        const id = Number(spec.slice(spec[0] === "#" ? 1 : 2));
-        if (stream.id === undefined || Number(stream.id) !== id) return;
-      }
-      if (spec.startsWith("m:")) {
-        const [key, ...value] = spec.slice(2).split(":");
-        const tag = Object.entries(stream.tags ?? {}).find(([name]) => name.toLowerCase() === key!.toLowerCase());
-        if (!tag || (value.length > 0 && tag[1] !== value.join(":"))) return;
-      }
-      if ([...spec].every(c => c >= "0" && c <= "9")) {
-        const index = types.length > 0 ? typeOrdinal++ : stream.index;
-        if (index !== Number(spec)) return;
-      }
-    }
+    if (!matchesStream(stream)) return;
     const recordCount = probe.format?.format_name === "wav" && stream.duration_ts !== undefined
       ? String(Math.ceil(stream.duration_ts / wavPacketFrames(Number(stream.sample_rate),
         Math.max(1, (stream.channels ?? 1) * (stream.bits_per_sample ?? 16) / 8), opts.maxSize)))
@@ -1360,8 +1368,20 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         }
 
         if (readIntervals && "packets" in probeResult && probeResult.packets) {
-          const selection = await readPacketIntervals(probeResult.packets, readIntervals, context, budget, retain, selectStreams, intervalPcm);
-          const streams = probeResult.streams;
+          let streams = probeResult.streams;
+          const selected = selectStreams ? new Set<number>() : undefined;
+          if (selected) {
+            const matchesStream = createStreamSelector(selectStreams, probeResult.programs);
+            const metadata: MediaProbeSourceStream[] = [];
+            for await (const stream of streams) {
+              context.signal.throwIfAborted(); budget.checkCpu(); budget.checkStreams(metadata.length + 1);
+              metadata.push(stream);
+              if (matchesStream(stream)) selected.add(stream.index);
+            }
+            // Metadata sources may be one-shot; replay them for stream output and counts.
+            streams = metadata;
+          }
+          const selection = await readPacketIntervals(probeResult.packets, readIntervals, context, budget, retain, selected, intervalPcm);
           probeResult = { ...probeResult, packets: selection.packets, streams: { async *[Symbol.asyncIterator]() {
             for await (const stream of streams) yield { ...stream, nb_read_packets: String(selection.counts.get(stream.index) ?? 0) };
           } } };

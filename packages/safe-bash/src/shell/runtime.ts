@@ -8844,6 +8844,20 @@ export class Runtime {
       return 0;
     }
     if (command === "shift") {
+      if (args[0] === "--help") {
+        await writeText(stdout, [
+          "shift: shift [n]",
+          "    Shift positional parameters.",
+          "    ",
+          "    Rename the positional parameters $N+1,$N+2 ... to $1,$2 ...  If N is",
+          "    not given, it is assumed to be 1.",
+          "    ",
+          "    Exit Status:",
+          "    Returns success unless N is negative or greater than $#.",
+          "",
+        ].join("\n"));
+        return 2;
+      }
       const offset = args[0] === "--" ? 1 : 0;
       const operand = args[offset];
       const value = operand === undefined ? 1n : await signedLong(operand, this.budget, this.signal);

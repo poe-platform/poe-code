@@ -2,6 +2,40 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
 
+for (const command of ["shift --help", "shift --help ignored", "builtin shift --help", "command shift --help"]) {
+  for (const inFunction of [false, true]) {
+    test(`${command} prints help without shifting ${inFunction ? "in a function" : "at top level"}`, async context => {
+      const { shell } = setup();
+      context.after(() => shell.dispose());
+      const source = `${command}; say "status=$? args=$*"`;
+      const result = await shell.exec(inFunction ? `f() { ${source}; }; f a b` : `set -- a b; ${source}`);
+      assert.equal(result.stdout, [
+        "shift: shift [n]",
+        "    Shift positional parameters.",
+        "    ",
+        "    Rename the positional parameters $N+1,$N+2 ... to $1,$2 ...  If N is",
+        "    not given, it is assumed to be 1.",
+        "    ",
+        "    Exit Status:",
+        "    Returns success unless N is negative or greater than $#.",
+        "status=2 args=a b",
+        "",
+      ].join("\n"));
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    });
+  }
+}
+
+test("shift treats --help after -- as a numeric operand", async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  const result = await shell.exec('set -- a b; shift -- --help; say "status=$? args=$*"');
+  assert.equal(result.stdout, "status=2 args=a b\n");
+  assert.equal(result.stderr, "shift: --help: numeric argument required\n");
+  assert.equal(result.exitCode, 0);
+});
+
 for (const argument of ["1.0", "1e0", "0x1", "junk", "", "+", "1 0", "\u00a01\u00a0", "9223372036854775808", "-9223372036854775809"]) {
   test(`shift rejects nondecimal or overflowing count ${JSON.stringify(argument)}`, async () => {
     const { shell } = setup();

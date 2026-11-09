@@ -1,4 +1,4 @@
-import { FsError, getCommandArguments, type CommandDefinition } from "safe-bash-contracts";
+import { FsError, getCommandArguments, shellValueBytes, type ShellValue, type CommandDefinition } from "safe-bash-contracts";
 import { diagnostic } from "safe-bash-io-engine/internal";
 import { argument, command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
@@ -20,16 +20,25 @@ function delimiters(bytes: Uint8Array, locale: string): readonly Uint8Array[] {
   return result.length ? result : [empty];
 }
 
+function operandName(value: ShellValue): string {
+  if (typeof value === "string") return value;
+  try {
+    return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(shellValueBytes(value));
+  } catch {
+    fail("filename is not valid UTF-8");
+  }
+}
+
 export function createPasteCommand(options: TableTextCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
   return command("paste", limits, async (context, budget) => {
-    const files: string[] = [];
+    const files: ShellValue[] = [];
     const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C";
     let serial = false, separator = 10, delimiterList = encode("\t"), literal = false;
     for (let index = 0; index < context.args.length; index++) {
       const token = context.args[index]!;
       if (literal || token === "-" || !token.startsWith("-")) {
-        files.push(token);
+        files.push(getCommandArguments(context).values[index]!);
         literal ||= context.env.POSIXLY_CORRECT !== undefined;
         continue;
       }
@@ -63,7 +72,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         let status = 0;
         for (const file of files) {
           let reader;
-          try { reader = await inputs.open(file); }
+          try { reader = await inputs.open(operandName(file)); }
           catch (error) {
             context.signal.throwIfAborted();
             if (budget.hasPendingOutput()) await budget.flushOutput();
@@ -84,7 +93,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
       const readers = [];
       const directoryErrors: FsError[] = [];
       for (const file of files) {
-        try { readers.push(await inputs.open(file)); }
+        try { readers.push(await inputs.open(operandName(file))); }
         catch (error) {
           context.signal.throwIfAborted();
           if (!(error instanceof FsError) || error.code !== "EISDIR") throw error;

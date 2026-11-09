@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createCommandArguments, toByteSource } from "safe-bash-contracts";
+import { createCommandArguments, shellValueFromBytes, toByteSource, type ShellValue } from "safe-bash-contracts";
 import { createPasteCommand } from "./index.js";
 
 test("paste help works through the standalone portable factory", async () => {
@@ -18,7 +18,7 @@ test("paste help works through the standalone portable factory", async () => {
  assert.ok(output.length > 0);
 });
 
-async function run(args: string[], files: Record<string, string>, env: Record<string, string> = {}, stdin = "") {
+async function run(args: ShellValue[], files: Record<string, string>, env: Record<string, string> = {}, stdin = "") {
  const fs = createMemoryFileSystem();
  for (const [path, content] of Object.entries(files)) await fs.writeFile(path, new TextEncoder().encode(content));
  const values = createCommandArguments(args);
@@ -184,4 +184,34 @@ for (const option of ["-d", "--delimiters", "--d"]) {
   assert.equal(result.stdout, "");
   assert.ok(result.stderr.includes("requires an argument"), result.stderr);
  });
+}
+
+for (const serial of [false, true]) {
+ for (const literal of [false, true]) {
+  const options = [...(serial ? ["-s"] : []), ...(literal ? ["--"] : [])];
+  test(`paste rejects raw invalid UTF-8 filenames in ${serial ? "serial" : "parallel"} mode, literal=${literal}`, async () => {
+   const invalid = shellValueFromBytes(Uint8Array.of(255));
+   const result = await run([...options, invalid], { "/�": "other-file\n" }, { LC_ALL: "C" });
+   assert.equal(result.stdout, "");
+   assert.equal(result.exitCode, 1);
+   assert.ok(result.stderr.startsWith("paste: "), result.stderr);
+  });
+  test(`paste opens the actual replacement-character filename in ${serial ? "serial" : "parallel"} mode, literal=${literal}`, async () => {
+   const name = shellValueFromBytes(Uint8Array.of(239, 191, 189));
+   const result = await run([...options, name], { "/�": "other-file\n" });
+   assert.equal(result.stdout, "other-file\n");
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stderr, "");
+  });
+ }
+ for (const invalidFirst of [false, true]) {
+  test(`paste handles a raw invalid filename ${invalidFirst ? "before" : "after"} a valid operand in ${serial ? "serial" : "parallel"} mode`, async () => {
+   const invalid = shellValueFromBytes(Uint8Array.of(255));
+   const operands = invalidFirst ? [invalid, "rows"] : ["rows", invalid];
+   const result = await run([...(serial ? ["-s"] : []), ...operands], { "/�": "other-file\n", "/rows": "a\nb\n" });
+   assert.equal(result.stdout, serial ? "a\tb\n" : "");
+   assert.equal(result.exitCode, 1);
+   assert.ok(result.stderr.startsWith("paste: "), result.stderr);
+  });
+ }
 }

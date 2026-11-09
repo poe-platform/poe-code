@@ -3,7 +3,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function normalizeAudio(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker,
+  signal: AbortSignal | undefined, warn: (message: string) => Promise<void>
 ): Promise<Float64Array[]> {
   let milliseconds = 500;
   let size = 31;
@@ -20,7 +21,7 @@ export async function normalizeAudio(
       milliseconds = number;
     } else if (key === "g" || key === "gausssize") {
       if (!Number.isInteger(number) || number < 3 || number > 301) throw new Error("dynaudnorm: invalid gausssize");
-      size = number | 1;
+      size = number;
     } else if (key === "p" || key === "peak") {
       if (number < 0 || number > 1) throw new Error("dynaudnorm: invalid peak");
       peak = number;
@@ -28,6 +29,10 @@ export async function normalizeAudio(
       if (number < 1 || number > 100) throw new Error("dynaudnorm: invalid maxgain");
       maxGain = number;
     } else throw new Error(`dynaudnorm: unsupported option ${key}`);
+  }
+  if (size % 2 === 0) {
+    await warn(`filter size ${size} is invalid. Changing to an odd value.\n`);
+    size++;
   }
   // FFmpeg uses even-sized frames and a minimum filter followed by a Gaussian.
   const requested = sampleRate * milliseconds / 1000;

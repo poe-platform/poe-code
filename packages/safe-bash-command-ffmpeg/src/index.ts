@@ -9420,7 +9420,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await fadeAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "dynaudnorm" || trimmed.startsWith("dynaudnorm=")) {
                         filteredSampleFormat = "dblp";
-                        stretched = await normalizeAudio(stretched, origRate, trimmed, budget, context.signal);
+                        stretched = await normalizeAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
+                          if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
+                        });
                         statsScale = 1;
                       } else if (trimmed === "silenceremove" || trimmed.startsWith("silenceremove=")) {
                         stretched = await removeSilence(stretched, origRate, trimmed, budget, context.signal);

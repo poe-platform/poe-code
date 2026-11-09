@@ -1258,6 +1258,19 @@ async function panAudio(
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
 async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, budget: MediaBudgetTracker, signal?: AbortSignal) {
   const nodes = new Map<string, { inputs: string[]; expression: string }>();
+  const inputTrack = (label: string): MediaTrack => {
+    const [input, selector, ordinal, ...extra] = label.split(":");
+    const numeric = selector === "a" ? [input, ordinal ?? "0"] : [input, selector ?? "0"];
+    const valid = extra.length === 0 && (selector === "a" || ordinal === undefined) &&
+      numeric.every(value => value !== undefined && value.length > 0 &&
+        Array.from(value).every(char => char >= "0" && char <= "9") && Number.isSafeInteger(Number(value)));
+    const tracks = valid ? docs[Number(input)]?.tracks : undefined;
+    const track = selector === undefined || selector === "a"
+      ? tracks?.filter(track => track.type === "audio")[Number(ordinal ?? "0")]
+      : tracks?.[Number(selector)];
+    if (!track || track.type !== "audio") throw new Error(`Invalid audio filter input: ${label}`);
+    return track;
+  };
   const consumed = new Set<string>();
   const unlabeled: string[] = [];
   let start = 0;
@@ -1288,9 +1301,6 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       if (labelStart <= inputEnd) break;
       outputs.unshift(chain.slice(labelStart + 1, outputStart - 1));
       outputStart = labelStart;
-    }
-    if (!chain.startsWith("[") || inputEnd < 0 || outputStart <= inputEnd) {
-      throw new Error("Unsupported audio filter graph: expected labeled chains");
     }
     let expression = chain.slice(inputEnd + 1, outputStart).trim();
     if (!expression || expression.startsWith("[")) {
@@ -1323,6 +1333,22 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       nodes.set(output, { inputs, expression: selected });
     }
     for (const input of inputs) consumed.add(input);
+  }
+  const usedInputs = new Set<MediaTrack>();
+  for (const { inputs } of nodes.values()) {
+    if (inputs.length) {
+      for (const input of inputs) if (!nodes.has(input)) usedInputs.add(inputTrack(input));
+      continue;
+    }
+    // Split outputs share this input list; bind it once, before output mapping order matters.
+    for (const [input, doc] of docs.entries()) {
+      const ordinal = doc.tracks.findIndex(track => track.type === "audio" && !usedInputs.has(track));
+      if (ordinal < 0) continue;
+      inputs.push(`${input}:${ordinal}`);
+      usedInputs.add(doc.tracks[ordinal]!);
+      break;
+    }
+    if (!inputs.length) throw new Error("No available stream for unlabeled audio filter input");
   }
   const resolve = async (label: string, visiting = new Set<string>()): Promise<{ track: MediaTrack; expression: string }> => {
     if (visiting.has(label)) throw new Error("Audio filter graph contains a cycle");
@@ -1514,17 +1540,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       const source = sources[0]!;
       return { track: source.track, expression: [source.expression, node.expression].filter(Boolean).join(",") };
     }
-    const [input, selector, ordinal, ...extra] = label.split(":");
-    const numeric = selector === "a" ? [input, ordinal ?? "0"] : [input, selector ?? "0"];
-    const valid = extra.length === 0 && (selector === "a" || ordinal === undefined) &&
-      numeric.every(value => value !== undefined && value.length > 0 &&
-        Array.from(value).every(char => char >= "0" && char <= "9") && Number.isSafeInteger(Number(value)));
-    const tracks = valid ? docs[Number(input)]?.tracks : undefined;
-    const track = selector === undefined || selector === "a"
-      ? tracks?.filter(track => track.type === "audio")[Number(ordinal ?? "0")]
-      : tracks?.[Number(selector)];
-    if (!track || track.type !== "audio") throw new Error(`Invalid audio filter input: ${label}`);
-    return { track, expression: "" };
+    return { track: inputTrack(label), expression: "" };
   };
   const outputs = maps.filter(map => map.startsWith("[") && map.endsWith("]"))
     .map(map => map.slice(1, -1));

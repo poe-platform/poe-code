@@ -3119,7 +3119,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         }, w, h, img.hasAlpha);
     }
     if (token === "-wave") {
-        const g = parseMagickGeometry(spec), amplitude = g.width ?? 5, length = Math.max(1, g.height ?? 50), padding = Math.abs(amplitude);
+        const g = parseMagickGeometry(spec), amplitude = g.width ?? 0, length = Math.max(1, g.height ?? 1), padding = Math.abs(amplitude);
         return result((x, y) => [x, y - padding - amplitude * Math.sin((2 * Math.PI * x) / length)], w, h + Math.round(padding * 2));
     }
     const method = spec.toLowerCase().replace(/[-_]/g, ""), nums = args.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number);

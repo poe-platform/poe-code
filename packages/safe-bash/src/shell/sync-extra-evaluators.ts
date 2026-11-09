@@ -4717,7 +4717,7 @@ const syncExtraRuntimeMethods = {
             const idx = part.name.charCodeAt(0) - 49;
             const activePos = this._fastSubPositional ?? rawState.positional;
             const rawPos = activePos[idx];
-            this.requireParameter(rawPos, part.name, state, io, part.line ?? overrideDiagnosticLine);
+            this.requireParameter(rawPos, part.nounsetName ?? part.name, state, io, part.line ?? overrideDiagnosticLine);
             val = rawPos === undefined ? "" : (this._fastSubPositional ? rawPos : (monitor?.positionals.get(String(idx), rawPos) ?? rawPos));
           }
           if (typeof val !== "string") return undefined;

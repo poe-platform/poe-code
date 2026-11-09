@@ -107,7 +107,7 @@ export function evaluatePositionalArithmetic<T>(
       reserve(nameEnd - nameStart);
       const name = source.slice(nameStart, nameEnd);
       const value = positionalValue(name, options);
-      options.requireParameter(name, value);
+      options.requireParameter(braced ? name : `$${name}`, value);
       const text = value ?? "";
       const size = length(text, 0, text.length, options.maximumBytes - bytes);
       reserve(size);

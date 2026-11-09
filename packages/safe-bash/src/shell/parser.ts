@@ -85,7 +85,7 @@ const defaultSyntax = captureShellSyntax({});
 export type WordPart =
   | { kind: "text"; value: string; quoted: boolean; byteValue?: ByteShellValue }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
-  | { kind: "variable"; name: string; quoted: boolean; line?: number; indirect?: boolean; specialParameter?: CapturedShellSyntax["specialParameters"][number]; prefixNames?: "*" | "@"; keys?: boolean; transform?: "Q" | "E" | "a" | "A" | "K" | "k" | "P" | "u" | "U" | "L"; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
+  | { kind: "variable"; name: string; nounsetName?: string; quoted: boolean; line?: number; indirect?: boolean; specialParameter?: CapturedShellSyntax["specialParameters"][number]; prefixNames?: "*" | "@"; keys?: boolean; transform?: "Q" | "E" | "a" | "A" | "K" | "k" | "P" | "u" | "U" | "L"; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
   | { kind: "failed-parameter"; source: string; line: number; quoted: boolean }
   | { kind: "compound-substitution-eof"; line: number; quoted: boolean }
@@ -1312,7 +1312,7 @@ class Lexer {
       if (specialParameter) this.position += specialParameter.name.length;
       const name = specialParameter?.name ?? (this.source[this.position] && /^[0-9]$/u.test(this.source[this.position]!) ? this.source[this.position++] : this.readExpansionName());
       if (name) {
-        parts.push({ kind: "variable", name, quoted, line, ...(specialParameter ? { specialParameter } : {}) });
+        parts.push({ kind: "variable", name, quoted, line, ...(name.length === 1 && name >= "0" && name <= "9" ? { nounsetName: `$${name}` } : {}), ...(specialParameter ? { specialParameter } : {}) });
       } else parts.push({ kind: "text", value: "$", quoted });
     }
     if (this.documentLine === undefined) {

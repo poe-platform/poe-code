@@ -10203,7 +10203,7 @@ export class Runtime {
         }
         value = alternate;
       } else if (operator === "+") { value = ""; retained = ""; }
-    } else this.requireParameter(value, part.name, state, io, part.line);
+    } else this.requireParameter(value, part.nounsetName ?? part.name, state, io, part.line);
     return part.length ? this.valueLength(retained ?? "", state, io) : retained ?? "";
   }
   private async valueLength(value: ShellValue, state: State, io: IO): Promise<string> {

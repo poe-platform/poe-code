@@ -55,7 +55,7 @@ for (const command of ["sh", "bash"]) {
 
 for (const [invocation, status, diagnostic] of [
   [`bash -c 'set -u; echo "$MISSING_SAMPLE"; echo BAD'`, 127, "MISSING_SAMPLE"],
-  [`bash -uc 'echo "$1"; echo BAD'`, 127, "1"],
+  [`bash -uc 'echo "$1"; echo BAD'`, 127, "$1"],
   [`bash -uc 'echo "$MISSING_SAMPLE"; echo BAD' named-child`, 127, "MISSING_SAMPLE"],
   [`bash -uc 'f() { echo "$MISSING_SAMPLE"; echo BAD; }; f; echo BAD'`, 127, "MISSING_SAMPLE"],
   [`bash -uc '(echo "$MISSING_SAMPLE"; echo BAD)'`, 1, "MISSING_SAMPLE"],
@@ -82,8 +82,35 @@ test("literal command invocation returns the nounset status", async t => {
   const result = await shell.exec("child");
   assert.equal(result.exitCode, 127);
   assert.equal(result.stdout, "");
-  assert.ok(result.stderr.includes("1: unbound variable"), result.stderr);
+  assert.equal(result.stderr, "bash: line 1: $1: unbound variable\n");
 });
+
+for (const mode of ["command", "file"] as const) {
+  for (const [expansion, diagnostic] of [
+    ["$1", "$1"],
+    ["$9", "$9"],
+    ["${1}", "1"],
+    ["${9}", "9"],
+    ["${10}", "10"],
+    ["$missing", "missing"],
+    ['$(printf "")$1', "$1"],
+    ['$(printf "")$9', "$9"],
+    ["$(( $1 + 0 ))", "$1"],
+    ["$(( ${1} + 0 ))", "1"],
+  ]) {
+    test(`nounset preserves parameter spelling in ${mode}: ${expansion}`, async t => {
+      const fs = createMemoryFileSystem();
+      const shell = new Shell({ fs }).use(agentCommands());
+      t.after(() => shell.dispose());
+      const source = `set -u; printf "[%s]" "${expansion}"; echo reached`;
+      await fs.writeFile("/noun.sh", Buffer.from(source));
+      const result = await shell.exec(mode === "command" ? `bash -c '${source}' worker` : "bash /noun.sh");
+      assert.equal(result.exitCode, mode === "command" ? 127 : 1);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, `${mode === "command" ? "worker" : "/noun.sh"}: line 1: ${diagnostic}: unbound variable\n`);
+    });
+  }
+}
 
 for (const mode of ["command", "file", "stdin"] as const) {
   test(`multiline nounset retains ${mode} execution status`, async t => {

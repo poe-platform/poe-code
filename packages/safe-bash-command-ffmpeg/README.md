@@ -575,6 +575,8 @@ WebVTT input `-kind subtitles|captions|descriptions|metadata` applies to the nex
 
 `ffprobe` uses the same audio/video implementation as `@poe-platform/safe-bash/commands/ffprobe`, with default limits of 32 MiB input and 1 MiB output. Pass `limits` to override them.
 
+`-mpegts_service_id 42` sets the MPEG-TS program/service ID in PAT, PMT and SDT. IDs range from 1 through 65535 and default to 1; the PMT PID remains 4096 and stream copy preserves compressed packets.
+
 ## Features
 
 - **Dynamic AST-Driven Format Support**: Pass `asts: [...]` to `ffmpegCommands({ asts })` to dynamically determine which container formats, extensions, demuxers, muxers, and codecs are supported by `ffmpeg` and `ffprobe`.

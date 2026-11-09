@@ -449,6 +449,10 @@ export function serializeMpegTs(
   doc: MediaDocument,
   options: SerializeMediaOptions = {}
 ): Uint8Array {
+  const serviceId = options.mpegtsServiceId ?? 1;
+  if (!Number.isInteger(serviceId) || serviceId < 1 || serviceId > 65535) {
+    throw new Error("Invalid mpegts_service_id: expected an integer from 1 to 65535");
+  }
   const muxDelay = options.muxDelay ?? 0.7;
   if (!Number.isFinite(muxDelay) || muxDelay < 0 || muxDelay > 2147.483647) {
     throw new Error("Invalid muxdelay: expected seconds from 0 to 2147.483647");
@@ -576,7 +580,7 @@ export function serializeMpegTs(
   if (!Number.isInteger(serviceType) || serviceType < 1 || serviceType > 255) {
     throw new Error("MPEG-TS service type must be an integer from 1 through 255");
   }
-  // SDT: transport/program 1, original network 0xff01, running service.
+  // SDT: transport 1, selected service/program, original network 0xff01, running service.
   const provider = new TextEncoder().encode("FFmpeg");
   const name = new TextEncoder().encode("Service01");
   const descriptor = concatBytes([
@@ -588,7 +592,7 @@ export function serializeMpegTs(
     new Uint8Array([
       0x42, 0xf0 | (sdtLength >>> 8), sdtLength & 0xff,
       0x00, 0x01, versionByte, 0x00, 0x00, 0xff, 0x01, 0xff,
-      0x00, 0x01, 0xfc, 0x80 | (descriptor.length >>> 8), descriptor.length & 0xff
+      serviceId >>> 8, serviceId & 0xff, 0xfc, 0x80 | (descriptor.length >>> 8), descriptor.length & 0xff
     ]), descriptor
   ]);
   const sdtSection = new Uint8Array(sdtBody.length + 4);
@@ -596,10 +600,10 @@ export function serializeMpegTs(
   new DataView(sdtSection.buffer).setUint32(sdtBody.length, mpeg2Crc32(sdtBody), false);
   emitSectionPacket(0x0011, sdtSection);
 
-  // Build PAT (PID 0x0000 -> Program 1 -> PMT PID 0x1000)
+  // Build PAT (PID 0x0000 -> service/program -> PMT PID 0x1000)
   const patBody = new Uint8Array([
     0x00, 0xb0, 0x0d, 0x00, 0x01, versionByte, 0x00, 0x00,
-    0x00, 0x01, 0xf0, 0x00
+    serviceId >>> 8, serviceId & 0xff, 0xf0, 0x00
   ]);
   const patCrc = mpeg2Crc32(patBody);
   const patSection = new Uint8Array(patBody.byteLength + 4);
@@ -621,7 +625,7 @@ export function serializeMpegTs(
     0x02,
     0xb0 | ((pmtSecLen >>> 8) & 0x0f),
     pmtSecLen & 0xff,
-    0x00, 0x01,
+    serviceId >>> 8, serviceId & 0xff,
     versionByte,
     0x00, 0x00,
     0xe0 | ((pcrPid >>> 8) & 0x1f),

@@ -30,7 +30,7 @@ import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { isCleanAbsolutePath, isUnmodifiedMemoryFileSystem, retargetScopedFileSystem, scopeFileSystem, type MemoryRedirectHandle } from "@poe-code/safe-fs/runtime-core";
-import { evaluateArithmetic, evaluateArithmeticReferences, prepareArithmetic, type Arithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
+import { evaluateArithmeticReferences, prepareArithmetic, type Arithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
 import { createAliasCommand } from "safe-bash-command-alias";
@@ -2928,7 +2928,7 @@ export class Runtime {
     if ((typeof value !== "string" || value.length * 3 > maxBytes) && shellValueByteLength(value) > maxBytes) this.budget.fail("maxExpansionBytes");
     if (state.variableAttributes?.get(name)) value = await this.attributeValue(state, name, value, io, origin);
     if (name === "OPTIND" && (state.getopts === undefined || state.getopts.integer) && origin !== "arithmetic") {
-      try { value = String(evaluateArithmetic(prepareArithmetic(shellValueText(value) || "0", this.budget.parsing), this.arithmeticVariables(state), this.budget.parsing)); }
+      try { value = String(await this.shellArithmetic(prepareArithmetic(shellValueText(value) || "0", this.budget.parsing), state, io)); }
       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError)); }
     }
     publishVariable(state, name, value);

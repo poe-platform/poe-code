@@ -219,6 +219,33 @@ test("successful EOF read store resets even though read returns one", async () =
   assert.equal(result.stdout, "1\na\n");
 });
 
+for (const [name, source, expected] of [
+  ["indexed array", "a=(7 8); OPTIND=a", "7"],
+  ["associative array", "declare -A a=([0]=7 [other]=8); OPTIND=a", "7"],
+  ["missing element zero", "a=([1]=8); OPTIND=a", "0"],
+  ["recursive array value", "a=(b); b=(7); OPTIND=a", "7"],
+  ["explicit subscript", "a=(7 8); OPTIND='a[1]'", "8"],
+  ["array mutation", "a=(7 8); OPTIND='a++'; printf '%s:' \"${a[0]}\"", "8:7"],
+  ["getopts indexed array result", "a=(7 8); getopts a OPTIND -a", "7"],
+  ["getopts associative array result", "declare -A a=([0]=7); getopts a OPTIND -a", "7"],
+  ["scanner reset", "a=(1); getopts ab flag -ab; OPTIND=a; getopts ab flag -ab; printf '%s:' \"$flag\"", "a:1"],
+] as const) {
+  test(`OPTIND arithmetic resolves ${name} like Bash`, async () => {
+    const script = `${source}; printf '%s\\n' "$OPTIND"`;
+    const native = spawnSync("bash", ["--noprofile", "--norc", "-c", script], { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } });
+    assert.equal(native.status, 0, native.stderr);
+    assert.equal(native.stdout, `${expected}\n`);
+    assert.equal(native.stderr, "");
+    const { shell } = runtimeSetup();
+    try {
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, native.status, result.stderr);
+      assert.equal(result.stdout, native.stdout);
+      assert.equal(result.stderr, native.stderr);
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("scalar integer binding is fresh, lost by unset/local, and restored afterward", async () => {
   const { shell } = runtimeSetup();
   const result = await shell.exec('OPTIND="1+1"; say "$OPTIND"; unset OPTIND; OPTIND="1+1"; say "$OPTIND"; getopts ab opt -a -b; say "$opt:$OPTIND"; bash -c \'OPTIND="1+1"; f() { local OPTIND="1+1"; say "$OPTIND"; }; f; say "$OPTIND"\'');

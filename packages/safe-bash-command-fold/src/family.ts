@@ -17,6 +17,7 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
     for (const specification of parsed.values.get("w") ?? []) width = integer(specification, 1);
     const locale = (session.context.env.LC_ALL || session.context.env.LC_CTYPE || session.context.env.LANG || "C.UTF-8").toUpperCase().split("@")[0]!;
     const utf8 = locale.endsWith("UTF-8") || locale.endsWith("UTF8");
+    const blank = (cp: number): boolean => cp === 9 || cp === 32 || (utf8 && (cp === 0x1680 || (cp >= 0x2000 && cp <= 0x200a && cp !== 0x2007) || cp === 0x205f || cp === 0x3000));
     let lastWidth = 0;
     const adjust = (column: number, cp: number, length: number, valid: boolean): number => {
       if (mode === "bytes") return column + length;
@@ -79,12 +80,12 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
             if (s) await s;
             column = adjust(column, glyph.cp, glyph.length, glyph.valid);
             offset += glyph.length;
-            if (glyph.cp === 32 || glyph.cp === 9) lastBlank = offset - 1;
+            if (glyph.valid && blank(glyph.cp)) lastBlank = offset - 1;
           }
         }
         column = adjust(column, unit.cp, unit.length, unit.valid);
         for (let i = 0; i < byteLen; i++) record.push(bytes[byteOffset + i]!);
-        if (unit.cp === 32 || unit.cp === 9) lastBlank = record.size - 1;
+        if (unit.valid && blank(unit.cp)) lastBlank = record.size - 1;
       };
       const pending: number[] = [];
       const drain = async (eof: boolean): Promise<void> => {

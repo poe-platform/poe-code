@@ -546,9 +546,12 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   };
 }
 
-function parseDelay(value: string): number {
-  const [delay, ticks = "100"] = value.split("x");
-  return Math.floor(Math.round(Number(delay)) * 100 / (Number(ticks) || 1)) * 10;
+function parseDelay(value: string, current: number): number {
+  const [delay, ticks = "100"] = [...value].filter(character => character !== ">" && character !== "<").join("").split("x");
+  const milliseconds = Math.floor(Math.round(Number(delay)) * 100 / (Number(ticks) || 1)) * 10;
+  if (value.includes(">")) return Math.min(current, milliseconds);
+  if (value.includes("<")) return Math.max(current, milliseconds);
+  return milliseconds;
 }
 
 interface MagickState {
@@ -622,7 +625,7 @@ interface MagickState {
   pngPreserveColormap?: boolean;
   pngColorType?: string;
   omitPngResolution?: boolean;
-  delay?: number;
+  delay?: string;
   disposal?: number;
   transparentColor?: ReturnType<typeof parseColor>;
   loop?: number;
@@ -5152,7 +5155,10 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 }
             }
             if (state.disposal !== undefined) im = { ...im, disposal: state.disposal };
-            if (state.delay !== undefined) im = { ...im, delay: Array(im.delay?.length ?? 1).fill(state.delay) };
+            if (state.delay !== undefined) {
+                const delay = state.delay;
+                im = { ...im, delay: (im.delay ?? [0]).map(current => parseDelay(delay, current)) };
+            }
             return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, state.kernel, state.resizeFilter) : im;
         });
     }
@@ -7691,7 +7697,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!Number.isSafeInteger(state.scene) || state.scene < 0) throw new Error("invalid scene number");
         }
         else if (t === "-delay") {
-            state.delay = parseDelay(tokens[++i] ?? "0");
+            state.delay = tokens[++i] ?? "0";
         }
         else if (t === "-transparent-color") {
             state.transparentColor = parseColor(tokens[++i] ?? "");
@@ -9514,7 +9520,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }); continue;
         }
         if (!operandsOnly && token === "-format") { state.formatStr = tokens[++i] ?? ""; continue; }
-        if (!operandsOnly && token === "-delay") { state.delay = parseDelay(tokens[++i] ?? "0"); continue; }
+        if (!operandsOnly && token === "-delay") { state.delay = tokens[++i] ?? "0"; continue; }
         if (!operandsOnly && token === "-transparent-color") { state.transparentColor = parseColor(tokens[++i] ?? ""); continue; }
         if (!operandsOnly && token === "-loop") { state.loop = Number(tokens[++i] ?? 0); continue; }
         if (!operandsOnly && token === "-dispose") { state.disposal = parseMagickDisposal(tokens[++i] ?? ""); continue; }
@@ -10845,7 +10851,16 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
  }
  if(state.disposal!==undefined)image={...image,disposal:state.disposal};
- if(state.delay!==undefined){const delay=state.delay;image={...image,storedDelay:{length:image.storedDelay?.length??image.delay?.length??1,async at(){return delay;}}};}
+ if (state.delay !== undefined) {
+  const delay = state.delay, original = image;
+  image = { ...image, storedDelay: {
+   length: original.storedDelay?.length ?? original.delay?.length ?? 1,
+   async at(scene, options) {
+    const current = await original.storedDelay?.at(scene, options) ?? original.delay?.[scene] ?? 0;
+    return parseDelay(delay, current);
+   },
+  } };
+ }
  if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),...(image.delay?{delay:image.delay}:{}),...(image.storedDelay?{storedDelay:image.storedDelay}:{}),...((image as StoredMagickImage)[magickInput]?{[magickInput]:(image as StoredMagickImage)[magickInput]}:{}),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal,false,false,false,state.resizeFilter);}}
  return image;
  }

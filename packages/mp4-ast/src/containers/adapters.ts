@@ -1,3 +1,4 @@
+import { ac3Ast } from "./ac3.js";
 import { vocAst } from "./voc.js";
 import { decodeTga, encodeTga } from "./tga.js";
 import { icoAst } from "./ico.js";
@@ -2997,6 +2998,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     flvAst(),
     y4mAst(),
     aacAst(),
+    ac3Ast(),
     wavAst(),
     wavAst("w64"),
     auAst(),

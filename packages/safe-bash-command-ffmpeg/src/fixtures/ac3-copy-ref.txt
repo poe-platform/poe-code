@@ -1,0 +1,23 @@
+#format: frame checksums
+#version: 2
+#hash: MD5
+#software: Lavf61.1.100
+#tb 0: 1/90000
+#media_type 0: audio
+#codec_id 0: ac3
+#sample_rate 0: 48000
+#channel_layout_name 0: mono
+#stream#, dts,        pts, duration,     size, hash
+0,          0,          0,     2880,      384, b6d642318b4be6c1707ca805aaebf3de
+0,       2880,       2880,     2880,      384, 98fd15bba470c75e025a468d02a9ac54
+0,       5760,       5760,     2880,      384, e5a8e0b789a4f49c52ff1d229b2631b2
+0,       8640,       8640,     2880,      384, 9fb1c94f866cb2a78eb280997e8bb0e7
+0,      11520,      11520,     2880,      384, 570136a72441df49d42a66aa4a3203a2
+0,      14400,      14400,     2880,      384, c38070c71c2b429811aa0ff8a40482c4
+0,      17280,      17280,     2880,      384, e144288fb9c3d48af572e79125c8b903
+0,      20160,      20160,     2880,      384, 9e47e310e5e818dd553ab0bc0f51cfcb
+0,      23040,      23040,     2880,      384, ddcfd53e558e2729b1b99b79d8e475c1
+0,      25920,      25920,     2880,      384, 8559a02faef98c2b9e95e82438e7c3b4
+0,      28800,      28800,     2880,      384, fd94675e50ed33a00ce166f8cda659d7
+0,      31680,      31680,     2880,      384, 9090b79a56cf1c5f52f542ef466ad8fe
+0,      34560,      34560,     2880,      384, fcb3e9dbfe93d3d59d6dde2b02465d15

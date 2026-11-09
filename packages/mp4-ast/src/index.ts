@@ -64,3 +64,5 @@ export { realtextAst } from "./containers/realtext.js";
 export { jacosubAst } from "./containers/jacosub.js";
 
 export { vplayerAst } from "./containers/vplayer.js";
+
+export { ac3Ast } from "./containers/ac3.js";

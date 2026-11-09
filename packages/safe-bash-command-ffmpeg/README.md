@@ -2,7 +2,7 @@
 
 Headerless RGB and YUV420 input supports `-f rawvideo -pixel_format rgb24 -video_size WIDTHxHEIGHT -framerate FPS` (use `-pixel_format yuv420p` for YUV420; also `-pix_fmt`, `-s`, and `-r` before `-i`). Stream copy preserves partial final packets; decoding emits complete frames only.
 
-Pure in-memory `ffmpeg` and `ffprobe` commands for `safe-bash`, backed by `@poe-code/mp4-ast` and pluggable media container ASTs (`mp4Ast`, `movAst`, `mkvAst`, `webmAst`, `mpegtsAst`, `aviAst`, `flvAst`, `y4mAst`, `aacAst`, `wavAst`, `auAst`, `ircamAst`, `cafAst`, `aiffAst`, `mp3Ast`, `flacAst`, `oggAst`, `gifAst`, `image2Ast`). Targa output (`.tga` or `-c:v targa`) preserves RGBA pixels with top-left origin; RLE is enabled by default (`-rle 1`), and `-rle 0` writes uncompressed pixels. MP3 output retains Xing and gapless playback metadata by default; `-write_xing 0` omits them and `-write_xing 1` explicitly enables them. ICO and CUR inputs expose each PNG- or DIB-backed entry as a separate video stream, preserving transparency. FFmpeg selects the largest image automatically; use `-map 0:v:1` to select the second entry. AVI output supports `-reserve_index_space` in bytes per stream; zero uses the default reservation. H.264 stream copies from Matroska to AVI require `-bsf:v h264_mp4toannexb`; MP4 inputs convert automatically.
+Pure in-memory `ffmpeg` and `ffprobe` commands for `safe-bash`, backed by `@poe-code/mp4-ast` and pluggable media container ASTs (`mp4Ast`, `movAst`, `mkvAst`, `webmAst`, `mpegtsAst`, `aviAst`, `flvAst`, `y4mAst`, `aacAst`, `ac3Ast`, `wavAst`, `auAst`, `ircamAst`, `cafAst`, `aiffAst`, `mp3Ast`, `flacAst`, `oggAst`, `gifAst`, `image2Ast`). Targa output (`.tga` or `-c:v targa`) preserves RGBA pixels with top-left origin; RLE is enabled by default (`-rle 1`), and `-rle 0` writes uncompressed pixels. MP3 output retains Xing and gapless playback metadata by default; `-write_xing 0` omits them and `-write_xing 1` explicitly enables them. ICO and CUR inputs expose each PNG- or DIB-backed entry as a separate video stream, preserving transparency. FFmpeg selects the largest image automatically; use `-map 0:v:1` to select the second entry. AVI output supports `-reserve_index_space` in bytes per stream; zero uses the default reservation. H.264 stream copies from Matroska to AVI require `-bsf:v h264_mp4toannexb`; MP4 inputs convert automatically.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
@@ -120,6 +120,8 @@ Explicit `-f` raw audio output writes headerless `s8`, `u8`, `u16le/be`, `u24le/
 `ffmpeg -i input.wav -f s16le output.pcm`. Explicit encoders and copied audio must match
 the output format’s PCM codec; mismatches fail before writing sample data.
 Use `-f framehash -format_version 1 -` for version 1 per-packet audio or video hashes;
+AC-3 elementary input is detected by its frame headers or selected with `-f ac3`. `-c:a copy -f framemd5 -` hashes the original compressed frames on the native 90 kHz packet clock; AC-3 decoding and encoding are not supported.
+
 `framehash` and `framemd5` default to version 2 and accept `-format_version 1` or `2`.
 `framemd5`, `framehash`, and `framecrc` write one row per video frame, with timestamps,
 duration, raw pixel byte count, and a digest (MD5, SHA256, or Adler-32 respectively).

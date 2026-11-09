@@ -1,3 +1,4 @@
+import { readAc3Header } from "./ac3.js";
 import { decodeAudio } from "@poe-code/media-codecs";
 import { mpegFrame } from "@poe-code/audio-ast";
 import type { MediaSample, MediaAudioData } from "../types.js";
@@ -49,14 +50,9 @@ export function compressedWavPackets(data: Uint8Array, header: WavHeader): Media
   while (offset < data.length) {
     let size: number, count: number, rate: number;
     if (header.formatTag === 0x2000) {
-      if (offset + 7 > data.length || view.getUint16(offset) !== 0x0b77) throw new Error("Invalid AC-3 WAV frame");
-      const code = data[offset + 4]! & 63, rateCode = data[offset + 4]! >>> 6;
-      const bsid = data[offset + 5]! >>> 3;
-      if (code > 37 || rateCode === 3 || bsid > 10) throw new Error("Invalid AC-3 WAV frame");
-      const bitrate = [32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384, 448, 512, 576, 640][code >>> 1]!;
-      size = rateCode === 0 ? bitrate * 4 : rateCode === 2 ? bitrate * 6 :
-        (Math.floor(bitrate * 320 / 147) + (code & 1)) * 2;
-      rate = [48000, 44100, 32000][rateCode]! / 2 ** Math.max(0, bsid - 8);
+      const frame = readAc3Header(data, offset);
+      size = frame.size;
+      rate = frame.sampleRate;
       count = 1536;
     } else {
       if (offset + 4 > data.length) throw new Error("Truncated MPEG WAV frame");

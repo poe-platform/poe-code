@@ -30,6 +30,15 @@ function delimiters(bytes: Uint8Array, locale: string): readonly Uint8Array[] {
   return result.length ? result : [empty];
 }
 
+function operandName(value: ShellValue): string {
+  if (typeof value === "string") return value;
+  try {
+    return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(shellValueBytes(value));
+  } catch {
+    fail("filename is not valid UTF-8");
+  }
+}
+
 export function createPasteCommand(options: TableTextCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
   return command("paste", limits, async (context, budget) => {

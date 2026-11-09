@@ -537,15 +537,21 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   for (const [trkNum, info] of trackMap.entries()) {
     const webvttKind = WEBVTT_KINDS[info.codecId];
     if (webvttKind && webvttKind !== "subtitles") info.disposition[webvttKind] = 1;
-    let g711Tag: number | undefined;
+    let waveTag: number | undefined;
     if (info.codecId === "A_MS/ACM" && info.codecPrivate && info.codecPrivate.byteLength >= 18) {
       const wave = new DataView(info.codecPrivate.buffer, info.codecPrivate.byteOffset, info.codecPrivate.byteLength);
-      const tag = wave.getUint16(0, true);
-      if (tag === 6 || tag === 7) {
-        g711Tag = tag;
+      let tag = wave.getUint16(0, true);
+      // WAVEFORMATEXTENSIBLE stores the PCM format tag in its subtype GUID.
+      if (tag === 0xfffe && wave.byteLength >= 40 && wave.getUint16(16, true) >= 22 &&
+          info.codecPrivate.subarray(26, 40).every((value, index) =>
+            value === [0, 0, 0, 0, 16, 0, 128, 0, 0, 170, 0, 56, 155, 113][index])) {
+        tag = wave.getUint16(24, true);
+      }
+      if (tag === 1 || tag === 6 || tag === 7) {
+        waveTag = tag;
         info.channels = wave.getUint16(2, true);
         info.sampleRate = wave.getUint32(4, true);
-        info.bitDepth = 8;
+        info.bitDepth = tag === 1 ? wave.getUint16(14, true) : 8;
       }
     }
     const rawSamples = samplesByTrack.get(trkNum) ?? [];
@@ -557,7 +563,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       const previous = rawSamples[i - 1];
       const inferred = next && next.dts > cur.dts ? next.dts - cur.dts
         : defaultTicks || previous?.duration || Math.max(1, timescale / (info.trackType === 1 ? 30 : 44100 / 1024));
-      const pcmTicks = (info.codecId.startsWith("A_PCM/") || g711Tag !== undefined) &&
+      const pcmTicks = (info.codecId.startsWith("A_PCM/") || waveTag !== undefined) &&
         (info.sampleRate ?? 0) > 0 && (info.channels ?? 0) > 0 && (info.bitDepth ?? 0) > 0
         ? Math.floor(Math.floor(cur.size / (info.channels! * Math.ceil(info.bitDepth! / 8))) * timescale / info.sampleRate!)
         : undefined;
@@ -646,14 +652,14 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     } else if (info.codecId.includes("A_FLAC")) {
       codecName = "flac";
       formatFourCC = "fLaC";
-    } else if (g711Tag !== undefined) {
-      codecName = g711Tag === 6 ? "pcm_alaw" : "pcm_mulaw";
-      formatFourCC = g711Tag === 6 ? "alaw" : "ulaw";
-    } else if (info.codecId.includes("A_PCM")) {
+    } else if (waveTag === 6 || waveTag === 7) {
+      codecName = waveTag === 6 ? "pcm_alaw" : "pcm_mulaw";
+      formatFourCC = waveTag === 6 ? "alaw" : "ulaw";
+    } else if (info.codecId.includes("A_PCM") || waveTag === 1) {
       const floating = info.codecId === "A_PCM/FLOAT/IEEE";
       const bigEndian = info.codecId === "A_PCM/INT/BIG";
       const bits = info.bitDepth ?? 16;
-      codecName = `pcm_${floating ? "f" : "s"}${bits}${bits === 8 ? "" : bigEndian ? "be" : "le"}`;
+      codecName = `pcm_${floating ? "f" : waveTag === 1 && bits === 8 ? "u" : "s"}${bits}${bits === 8 ? "" : bigEndian ? "be" : "le"}`;
       formatFourCC = floating ? (bits === 64 ? "fl64" : "fl32") : bigEndian ? "twos" : "sowt";
     } else if (webvttKind || info.trackType === 17 || info.codecId.startsWith("S_TEXT")) {
       codecName = info.codecId === "S_TEXT/ASS" ? "ass" : info.codecId.includes("WEBVTT") ? "webvtt" : "subrip";

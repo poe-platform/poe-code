@@ -1,7 +1,8 @@
-import type { CommandDefinition, CommandHandler } from "safe-bash-contracts";
+import type { CommandDefinition } from "safe-bash-contracts";
 import { FsError, type CommandContext } from "safe-bash-contracts";
 import { define, diagnostic, eachOperand, options, output, pathOf, requireOperands } from "safe-bash-io-engine/internal";
 import { admitFilesystemModes } from "safe-bash-io-engine/commands/filesystem-requirements";
+import { gnuInformationSync } from "safe-bash-io-engine/gnu-information";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { canonicalizeReadlinkMissing } from "safe-bash-io-engine/commands/readlink-missing";
 import { canonicalizeExistingParent } from "safe-bash-io-engine/commands/canonicalize-existing-parent";
@@ -17,16 +18,40 @@ export function createReadlinkCommand(configuration: ReadlinkCommandsOptions = {
  const max = configuration.limits?.maxArgumentBytes ?? Infinity; if (max !== Infinity && (!Number.isSafeInteger(max) || max < 1)) throw new RangeError("maxArgumentBytes must be positive");
  const definition = define("readlink", async context => {
   if (max !== Infinity) { let bytes = 0; for (const value of getCommandArguments(context).values) { bytes += shellValueByteLength(value); if (bytes > max) throw new FsError("EFBIG", { message: "argument byte limit exceeded" }); } }
-      const canonicalOptions: Record<string, string> = { canonicalize: "f", "canonicalize-existing": "e", "canonicalize-missing": "m" };
+      const longOptions: Record<string, string | false> = {
+        canonicalize: "f", "canonicalize-existing": "e", "canonicalize-missing": "m",
+        zero: "z", "no-newline": "n", verbose: "v", quiet: "q", silent: "s", help: false, version: false,
+      };
+      const args = [...context.args];
+      for (let index = 0; index < args.length; index++) {
+        const argument = args[index]!;
+        if (argument === "--" || context.env.POSIXLY_CORRECT !== undefined && (argument === "-" || !argument.startsWith("-"))) break;
+        if (!argument.startsWith("--")) continue;
+        const equals = argument.indexOf("=");
+        const name = argument.slice(2, equals < 0 ? undefined : equals);
+        const matches = Object.keys(longOptions).filter(option => option.startsWith(name));
+        const resolved = Object.hasOwn(longOptions, name) ? name : matches.length === 1 ? matches[0] : undefined;
+        if (resolved === undefined) continue;
+        args[index] = `--${resolved}${equals < 0 ? "" : argument.slice(equals)}`;
+        if (resolved === "help" || resolved === "version") {
+          args.length = index + 1;
+          break;
+        }
+      }
       let verboseMode = "default" as "default" | "verbose" | "quiet";
       const arguments_ = getCommandArguments(context);
       const operandIndices: number[] = [];
       let mode = "link";
-      const parsed = options(context.args, "femnzvqs", { ...canonicalOptions, zero: "z", "no-newline": "n", verbose: "v", quiet: "q", silent: "s" }, context.env.POSIXLY_CORRECT !== undefined, index => operandIndices.push(index), undefined, key => {
+      const parsed = options(args, "femnzvqs", longOptions, context.env.POSIXLY_CORRECT !== undefined, index => operandIndices.push(index), undefined, key => {
         if (key === "v") verboseMode = "verbose";
         else if (key === "q" || key === "s") verboseMode = "quiet";
         else if (key === "f" || key === "e" || key === "m") mode = key;
       });
+      const information = parsed.flags.has("help") ? "--help" : parsed.flags.has("version") ? "--version" : undefined;
+      if (information !== undefined) {
+        await output(context, gnuInformationSync("readlink", [information])!);
+        return { exitCode: 0 };
+      }
       requireOperands(parsed.operands);
       if (parsed.flags.has("n") && parsed.operands.length > 1) {
         await diagnostic(context, new PublicDiagnostic("ignoring --no-newline with multiple arguments"));

@@ -69,6 +69,7 @@ import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken, valueToken } from "./arrays/bindings.js";
 import { readDynamicVariable, writeDynamicVariable, type DynamicVariableState } from "./dynamic-variables.js";
+import { shellOptions } from "./options.js";
 import { collectMapfile, mapfileOptions, MapfileUsageError } from "./mapfile.js";
 import { arrayStore, ensureStateMonitor, guestArrays, monitorSymbol, requireArrays, snapshotState, stateMonitor, trackState, trySnapshotStateSync } from "./arrays/state.js";
 import { publishPipelineStatus } from "./pipestatus.js";
@@ -7699,8 +7700,7 @@ export class Runtime {
         else if (flag === "o" && position === option.length - 1) {
           const name = args[index + 1];
           if (name === undefined) {
-            const options = [["allexport", !!state.allexport], ["braceexpand", state.braceexpand !== false], ["errexit", !!state.errexit], ["noclobber", !!state.noclobber], ["noexec", !!state.noexec], ["noglob", !!state.noglob], ["nounset", !!state.nounset], ["pipefail", state.pipefail], ...[...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled] as const)] as const;
-            for (const [name, active] of options) await writeText(stdout, enabled ? `${name}\t${active ? "on" : "off"}\n` : `set ${active ? "-" : "+"}o ${name}\n`);
+            for (const [name, option] of shellOptions(state, true)) await writeText(stdout, enabled ? `${name}\t${option.enabled ? "on" : "off"}\n` : `set ${option.enabled ? "-" : "+"}o ${name}\n`);
           } else {
             if (name === "errexit") state.errexit = enabled;
             else if (name === "allexport") state.allexport = enabled;
@@ -8078,12 +8078,8 @@ export class Runtime {
       await this.diagnostic(context, "shopt: cannot set and unset shell options simultaneously");
       return 1;
     }
-    const options = new Map<string, { enabled: boolean }>();
-    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["checkhash", "dotglob", "expand_aliases", "extglob", "failglob", "globskipdots", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob", "varredir_close", "xpg_echo"] as const) {
-      options.set(name, {
-        get enabled() { return name === "braceexpand" || name === "globskipdots" ? state[name] !== false : !!state[name]; }, set enabled(value) { state[name] = value; }, });
-    }
-    for (const [name, option] of (setNamespace ? state.extensions?.options : state.extensions?.shoptOptions) ?? []) options.set(name, option);
+    const options = shellOptions(state, setNamespace);
+
     const emit = async (name: string, enabled: boolean): Promise<void> => {
       if (!quiet) await writeText(context.stdout, print ? setNamespace ? `set ${enabled ? "-" : "+"}o ${name}\n` : `shopt -${enabled ? "s" : "u"} ${name}\n` : `${name.padEnd(20)}\t${enabled ? "on" : "off"}\n`);};
     if (index === context.args.length) {

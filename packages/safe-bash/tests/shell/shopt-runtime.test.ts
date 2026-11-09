@@ -17,6 +17,71 @@ test("varredir_close survives snapshots and subshell option changes stay isolate
   assert.equal(restored.stdout, "shopt -s varredir_close\n1\n");
 });
 
+test("option variables track set and shopt across shell scopes and sessions", async () => {
+  const { shell } = setup();
+  shell.use(standardCommands());
+  try {
+    const result = await shell.exec(`echo "$SHELLOPTS|$BASHOPTS"
+set -o pipefail
+shopt -s nullglob
+echo "$SHELLOPTS|$BASHOPTS"
+(set +o pipefail; shopt -u nullglob; echo "$SHELLOPTS|$BASHOPTS")
+echo "$SHELLOPTS|$BASHOPTS"
+bash -o pipefail -c 'echo "$SHELLOPTS|$BASHOPTS"; false | true; echo "rc=$?"'
+`, { onState() {} });
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "braceexpand|globskipdots\nbraceexpand:pipefail|globskipdots:nullglob\nbraceexpand|globskipdots\nbraceexpand:pipefail|globskipdots:nullglob\nbraceexpand:pipefail|globskipdots\nrc=1\n");
+    const restored = await shell.exec('echo "$SHELLOPTS|$BASHOPTS"', { state: result.state });
+    assert.equal(restored.stdout, "braceexpand:pipefail|globskipdots:nullglob\n");
+  } finally { await shell.dispose(); }
+});
+
+test("option variables are readonly and ignore environment startup options", async () => {
+  const { shell } = setup();
+  shell.use(standardCommands());
+  try {
+    for (const name of ["SHELLOPTS", "BASHOPTS"]) {
+      for (const source of [`${name}=bogus; echo changed`, `unset ${name}`, `declare ${name}=bogus`]) {
+        const result = await shell.exec(source);
+        assert.notEqual(result.exitCode, 0, source);
+        assert.match(result.stderr, /readonly/);
+        assert.equal(result.stdout, "");
+      }
+    }
+    const result = await shell.exec(`echo "$SHELLOPTS|$BASHOPTS"
+export SHELLOPTS BASHOPTS
+set -o pipefail
+shopt -s nullglob
+bash -c 'echo "$SHELLOPTS|$BASHOPTS"'`, { env: { SHELLOPTS: "pipefail", BASHOPTS: "nullglob" } });
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "braceexpand|globskipdots\nbraceexpand|globskipdots\n");
+  } finally { await shell.dispose(); }
+});
+
+test("option variables include every enabled supported and extension option in sorted order", async () => {
+  const { shell } = setup({ extensions: [{ name: "options", create: () => ({
+    builtins: [],
+    options: [{ name: "zeta", enabled: true }],
+    shoptOptions: [{ name: "alpha", enabled: true }],
+  }) }] });
+  shell.use(standardCommands());
+  try {
+    const result = await shell.exec(`set -aefuC
+set -o pipefail
+shopt -s checkhash dotglob expand_aliases extglob failglob globstar inherit_errexit lastpipe nocaseglob nocasematch nullglob varredir_close xpg_echo
+echo "$SHELLOPTS|$BASHOPTS"
+set +o zeta
+shopt -u alpha
+set +B
+shopt -u globskipdots
+echo "$SHELLOPTS|$BASHOPTS"`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "allexport:braceexpand:errexit:noclobber:noglob:nounset:pipefail:zeta|alpha:checkhash:dotglob:expand_aliases:extglob:failglob:globskipdots:globstar:inherit_errexit:lastpipe:nocaseglob:nocasematch:nullglob:varredir_close:xpg_echo\nallexport:errexit:noclobber:noglob:nounset:pipefail|checkhash:dotglob:expand_aliases:extglob:failglob:globstar:inherit_errexit:lastpipe:nocaseglob:nocasematch:nullglob:varredir_close:xpg_echo\n");
+    const noexec = await shell.exec("set -n", { onState() {} });
+    assert.equal(noexec.state?.variables.SHELLOPTS, "braceexpand:noexec:zeta");
+  } finally { await shell.dispose(); }
+});
+
 test("xpg_echo survives session snapshots and respects explicit echo flags", async () => {
   const { shell } = setup();
   shell.use(standardCommands());

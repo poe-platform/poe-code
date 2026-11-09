@@ -916,7 +916,10 @@ and credential protections remain in effect.
   associative arrays, or C-style `for ((…))` loops. `shopt` supports `checkhash`, `dotglob`,
   `globskipdots`, `globstar`, `nullglob`, `nocaseglob`, `nocasematch`, `lastpipe`, `failglob`,
   `inherit_errexit`, `expand_aliases`, `varredir_close`, and `xpg_echo`, plus `-o` for supported
-  `set` options. `shopt -s extglob` enables extended patterns, including parameter trimming.
+  `set` options. Readonly `SHELLOPTS` and `BASHOPTS` list enabled supported options,
+  separated by colons; environment values do not enable startup options.
+  `shopt -s extglob` enables extended patterns, including parameter trimming.
+
   Enable it on a preceding line before using unquoted extended patterns; syntax on the
   same command line or inside a function body is parsed before that line executes.
   `checkhash` defaults off: a removed cached executable fails with status 127.

@@ -1,5 +1,6 @@
 import type { State } from "../runtime.js";
 import { writeDynamicVariable } from "../dynamic-variables.js";
+import { installOptionVariables } from "../options.js";
 import type { InvocationScope } from "../cleanup.js";
 import { ArrayFailure, ArrayLedger, ArrayOwner } from "./ledger.js";
 import type { Admission, Tickets } from "./ledger.js";
@@ -208,6 +209,7 @@ export class StateMonitor {
   declare private _getoptsInput: { input: GetoptsInput; allocation: ValueScope } | undefined;
 
   constructor(raw: State, session: Session, source?: StateMonitor) {
+    installOptionVariables(raw);
     this.raw = raw;
     this.session = session;
     this._values = source && source._values ? source._values.clone() : undefined;

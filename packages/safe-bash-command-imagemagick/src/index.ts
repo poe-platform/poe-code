@@ -38,6 +38,7 @@ import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
 import { bilevelPixelSteps } from "./bilevel-kernel.js";
 import { histogramPixelSteps } from "./histogram-kernel.js";
 import { convertHuePixels, prepareHueOutput, formatHuePixel, hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
+import { enhancePixelSteps } from "./enhance-kernel.js";
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { waveletDenoisePixelSteps } from "./wavelet-denoise-kernel.js";
 import { meanShiftPixelSteps, parseMeanShiftGeometry } from "./mean-shift-kernel.js";
@@ -8277,6 +8278,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* applyMagickRasterSteps(im, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined), signal);
             });
         }
+        else if (t === "-enhance") {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                return yield* applyMagickRasterSteps(im, enhancePixelSteps(im, state.background, state.virtualPixel), signal);
+            });
+        }
         else if (t === "-wavelet-denoise") {
             const geometry = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -10177,6 +10183,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined);
+        } else if (!operandsOnly && token === "-enhance") {
+            const { background, virtualPixel } = state;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, enhancePixelSteps(image, background, virtualPixel), signal) : undefined);
         } else if (!operandsOnly && token === "-wavelet-denoise") {
             const geometry = tokens[++i] ?? "";
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, waveletDenoisePixelSteps(image, geometry), signal) : undefined);
@@ -10610,7 +10619,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
     const flagsWithTwoArgs = new Set(["-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
     const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label"]);
     const flagsWithoutArgs = new Set([
-        "-antialias", "+antialias",
+        "-enhance", "-antialias", "+antialias",
         "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
         "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors", "-sort-pixels",

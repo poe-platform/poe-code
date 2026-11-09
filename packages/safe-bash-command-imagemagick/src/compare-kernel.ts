@@ -388,10 +388,18 @@ export function formatSignificantMetric(n: number, precision = 6): string {
     if (n === 0) return "0";
     const [mantissa, exponent] = n.toExponential(precision - 1).split("e");
     const power = Number(exponent);
+    const places = precision - power - 1, magnitude = Math.abs(n);
+    // Powers of two detect exact fractional ties without decimal scaling rounding
+    // nearby doubles into ties. Beyond 10^22, integer ties cannot fit in a double.
+    const halfway = places >= 0
+        ? (magnitude * 2 ** places) % 1 === 0.5
+        : places >= -22 && magnitude % 10 ** -places === 10 ** -places / 2;
+    const roundTie = (text: string): string => halfway && Number(text.at(-1)) % 2 === 1
+        ? text.slice(0, -1) + String(Number(text.at(-1)) - 1) : text;
     if (power < -4 || power >= precision) {
-        return `${Number(mantissa)}e${exponent![0]}${exponent!.slice(1).padStart(2, "0")}`;
+        return `${Number(roundTie(mantissa!))}e${exponent![0]}${exponent!.slice(1).padStart(2, "0")}`;
     }
-    const fixed = n.toFixed(Math.min(100, Math.max(0, precision - power - 1)));
+    const fixed = roundTie(n.toFixed(Math.min(100, Math.max(0, places))));
     return fixed.includes(".") ? fixed.replace(/\.?0+$/, "") : fixed;
 }
 

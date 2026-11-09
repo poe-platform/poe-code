@@ -1471,7 +1471,17 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             // AVOption integers validate the range before rounding, with ties to even.
             const lower = Math.floor(value);
             count = value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
-          } else if (key === "map") selected = raw ? Number(raw) : NaN;
+          } else if (key === "map") {
+            // FFmpeg consumes base-zero strtol prefixes, stopping at a non-integer suffix.
+            const integer = /^[\t\n\v\f\r ]*([+-]?)(0[xX][\da-fA-F]+|0[0-7]*|[1-9]\d*)/;
+            const match = integer.exec(raw);
+            if (!match || integer.test(raw.slice(match[0].length))) {
+              throw new Error("astreamselect: map must select one connected input");
+            }
+            const digits = match[2]!;
+            const radix = digits.toLowerCase().startsWith("0x") ? 16 : digits.startsWith("0") ? 8 : 10;
+            selected = Number.parseInt(digits, radix) * (match[1] === "-" ? -1 : 1);
+          }
           else throw new Error(`astreamselect: unsupported option ${key}`);
         }
         if (!Number.isInteger(count) || count < 2 || count !== sources.length) {

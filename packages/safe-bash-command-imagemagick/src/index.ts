@@ -7478,11 +7478,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const t = tokens[i]!;
         if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
         if (t.slice(0, 4).toLowerCase() === "mpr:") {
-            const saved = registers.get(t.slice(4).toLowerCase());
+            const { baseToken, pageSpec, inlineGeom } = parseInputToken(t);
+            const saved = registers.get(baseToken.slice(4).toLowerCase());
             if (!saved) throw new Error(`unable to open image '${t}'`);
-            for (const image of saved) {
+            for (const index of selectedInputPages(pageSpec, saved.length)) {
                 yield;
-                stack.push({ ...image, data: new Uint8Array(image.data) });
+                const image = { ...saved[index]!, data: new Uint8Array(saved[index]!.data) };
+                stack.push(inlineGeom ? yield* applyInlineReadModifierSteps(image, inlineGeom, state.kernel, state.resizeFilter) : image);
             }
             i++;
             continue;
@@ -10351,11 +10353,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const captured = { ...state }, literal = operandsOnly, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
             stackStep(async (stack, backend) => {
                 if (token.slice(0, 4).toLowerCase() === "mpr:") {
-                    const saved = registers.get(token.slice(4).toLowerCase());
+                    const { baseToken, pageSpec, inlineGeom } = parseInputToken(token);
+                    const saved = registers.get(baseToken.slice(4).toLowerCase());
                     if (!saved) throw new Error(`unable to open image '${token}'`);
-                    for (let index = 0; index < saved.length; index++) {
+                    for (const index of selectedInputPages(pageSpec, saved.length)) {
                         await yieldTurn(signal);
-                        await stack.push((await saved.get(index))!);
+                        const image = (await saved.get(index))!;
+                        await stack.push(inlineGeom ? await applyStoredInlineReadModifier(image, inlineGeom, captured, backend, signal) : image);
                     }
                     return stack;
                 }
@@ -10879,6 +10883,25 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
 }
 
 
+async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom: string, state: MagickState, backend: CompareFileSession, signal: AbortSignal, preserveSamples = false): Promise<StoredRgbaImage> {
+    const geometry = parseMagickGeometry(inlineGeom);
+    if (geometry.hasOffset) {
+        const area = magickCropArea(image, inlineGeom, "northwest");
+        if (area === null) return {
+            ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend, signal),
+            ...(image.delay ? { delay: image.delay } : {}),
+            ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
+            ...((image as StoredMagickImage)[magickInput] ? { [magickInput]: (image as StoredMagickImage)[magickInput] } : {}),
+            virtualCanvas: { ...magickCropCanvas(image, 0, 0), x: -1, y: -1 }
+        };
+        if (area) return { ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal), virtualCanvas: magickCropCanvas(image, area.left, area.top) };
+    } else if (geometry.areaLimit !== image.width) {
+        const resize = magickResizeOptions(image, inlineGeom, state.kernel);
+        if (resize) return resizeStoredMagickImage(image, backend, resize, signal, false, false, false, state.resizeFilter, undefined, preserveSamples);
+    }
+    return image;
+}
+
 async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;extract?:string;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
  const {baseToken,pageSpec,inlineGeom=readOptions.extract}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
  if(lower.startsWith("tile:")){
@@ -11040,7 +11063,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    },
   } };
  }
- if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),...(image.delay?{delay:image.delay}:{}),...(image.storedDelay?{storedDelay:image.storedDelay}:{}),...((image as StoredMagickImage)[magickInput]?{[magickInput]:(image as StoredMagickImage)[magickInput]}:{}),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else if(geometry.areaLimit!==image.width){const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal,false,false,false,state.resizeFilter,undefined,readOptions.extract !== undefined);}}
+ if(inlineGeom)image=await applyStoredInlineReadModifier(image,inlineGeom,state,backend,signal,readOptions.extract !== undefined);
  return image;
  }
 }

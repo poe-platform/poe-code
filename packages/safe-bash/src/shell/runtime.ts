@@ -8064,6 +8064,7 @@ export class Runtime {
     try { await this.assignVariable(state, name, result.option, context, "getopts"); }
     catch (error) {
       this.signal.throwIfAborted();
+      if (error instanceof ExpansionFailure) throw new ExecutionFailure(error, context, `getopts: ${error.message}`);
       if (error instanceof PublicDiagnostic && result.status === 0) throw new CommandFailure(error.message, 2);
       throw error;
     }

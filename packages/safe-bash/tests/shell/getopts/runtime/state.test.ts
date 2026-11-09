@@ -5,6 +5,29 @@ import { test } from "node:test";
 import { arraysExtension } from "../../../../src/shell/extensions/arrays/index.js";
 import { runtimeSetup } from "./helpers.js";
 
+for (const [source, line, prefix] of [
+  ["getopts ':a' OPTIND rest\nprintf done", 1, "getopts: "],
+  ["declare -i n\ngetopts ':a' n rest\nprintf done", 2, "getopts: "],
+  ["command getopts ':a' OPTIND rest\nprintf done", 1, "getopts: "],
+  ["builtin getopts ':a' OPTIND rest\nprintf done", 1, "getopts: "],
+  ["declare -i n\nn='?'\nprintf done", 2, ""],
+  ["OPTIND='?'\nprintf done", 1, ""],
+] as const) {
+  test(`integer destination failure identifies its source: ${source}`, async () => {
+    const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } });
+    assert.equal(native.status, 1, native.stderr);
+    assert.equal(native.stdout, "");
+    assert.ok(native.stderr.startsWith(`bash: line ${line}: ${prefix}?: `), native.stderr);
+    const { shell } = runtimeSetup();
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, native.status);
+      assert.equal(result.stdout, native.stdout);
+      assert.equal(result.stderr, `shell: line ${line}: ${prefix}?: arithmetic syntax error: operand expected (error token is "?")\n`);
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const bounded of [false, true]) {
   test(`getopts loop retains exported OPTARG until EOF (bounded=${bounded})`, async () => {
     const source = `export OPTARG=7

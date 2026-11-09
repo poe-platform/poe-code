@@ -1668,7 +1668,7 @@ test("Wave 226: sqlite3 file database persistence, .dump/.save/.read, and openss
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(
     res.stdout.trim(),
-    "1,alpha;2,beta;|INSERT INTO items VALUES(1,'alpha');;INSERT INTO items VALUES(2,'beta');|aGVsbG8tb3BlbnNzbA=="
+    "1,alpha;2,beta;|INSERT INTO \"items\" VALUES(1,'alpha');;INSERT INTO \"items\" VALUES(2,'beta');|aGVsbG8tb3BlbnNzbA=="
   );
 });
 

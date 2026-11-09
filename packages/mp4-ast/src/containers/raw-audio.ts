@@ -78,7 +78,8 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
         else if (format === "mulaw") {
           const code = bytes[offset]! ^ 255;
           const magnitude = ((code & 15) * 8 + 132) * 2 ** ((code >> 4) & 7) - 132;
-          value = (code & 128 ? -magnitude : magnitude) / 32768;
+          // Both G.711 zero codewords decode to positive PCM zero.
+          value = (code & 128 ? 0 - magnitude : magnitude) / 32768;
         } else if (format === "alaw") {
           const code = bytes[offset]! ^ 85;
           const exponent = (code >> 4) & 7;

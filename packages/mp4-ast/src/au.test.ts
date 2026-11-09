@@ -5,6 +5,12 @@ import { auAst } from "./containers/au.js";
 
 const native = Buffer.from("2e736e6400000020000000120000000300001f400000000100000000000000008000bffffeffffff00000001010140017fff", "hex");
 
+it("decodes both mu-law zero codewords to positive zero", () => {
+  const input = Buffer.from("2e736e6400000018000000040000000100001f40000000017ffffe7e", "hex");
+  const doc = auAst().parse(input);
+  assert.deepEqual(Array.from(doc.tracks[0]!.decodedAudio!.channelData[0]!), [0, 0, 8 / 32768, -8 / 32768]);
+});
+
 it("reads annotations, unknown data length, and preserves encoded packets for copy", () => {
   const bytes = Buffer.from(native);
   bytes.writeUInt32BE(0xffffffff, 8);

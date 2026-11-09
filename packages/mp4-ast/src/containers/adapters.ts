@@ -760,7 +760,7 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             } else if (formatTag === 7) {
               const value = byte ^ 0xff;
               const magnitude = ((((value & 15) << 3) + 132) << ((value >>> 4) & 7)) - 132;
-              channelData[ch]![frameStart + i] = (value & 128 ? -magnitude : magnitude) / 32768;
+              channelData[ch]![frameStart + i] = (value & 128 ? 0 - magnitude : magnitude) / 32768;
             } else {
               channelData[ch]![frameStart + i] = (byte - 128) / 128;
             }

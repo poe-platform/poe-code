@@ -913,6 +913,9 @@ export function serializeMkv(
           ? "A_OPUS"
           : "A_AAC";
     let codecPrivate: Uint8Array | undefined = desc?.extraData;
+    let codecDelayNs = trk.codecDelayNs;
+    let seekPreRollNs = trk.seekPreRollNs;
+    let timestampOffset = 0;
 
     if (trk.type === "video") {
       if (desc?.codecName === "ffv1") codecId = "V_FFV1";
@@ -930,7 +933,28 @@ export function serializeMkv(
           })();
       }
     } else if (trk.type === "audio") {
-      if (desc?.codecName === "opus") codecId = "A_OPUS";
+      if (desc?.codecName === "opus") {
+        codecId = "A_OPUS";
+        if (desc.dOps) {
+          const opus = desc.dOps;
+          // dOps uses version 0 and big endian fields; OpusHead uses version 1
+          // and little endian fields. The channel mapping bytes are identical.
+          codecPrivate = concatBytes([encodeUtf8("OpusHead"), opus.rawBytes]);
+          const header = new DataView(codecPrivate.buffer, codecPrivate.byteOffset, codecPrivate.byteLength);
+          header.setUint8(8, 1);
+          header.setUint16(10, opus.preSkip, true);
+          header.setUint32(12, opus.inputSampleRate, true);
+          header.setInt16(16, opus.outputGain, true);
+          codecDelayNs = opus.preSkip * 1e9 / 48000;
+          seekPreRollNs = 80_000_000;
+          // MP4 samples retain their media timeline; apply the presentation edit
+          // before adding Matroska's decoder delay to block timestamps.
+          for (const edit of trk.editList ?? []) {
+            if (edit.mediaTime < 0) timestampOffset += edit.segmentDuration * ts / doc.timescale;
+            else { timestampOffset -= edit.mediaTime; break; }
+          }
+        }
+      }
       else if (desc?.codecName === "vorbis") codecId = "A_VORBIS";
       else if (desc?.codecName === "mp3") codecId = "A_MPEG/L3";
       else if (desc?.codecName === "flac") codecId = "A_FLAC";
@@ -973,8 +997,8 @@ export function serializeMkv(
     ];
     if (trk.metadata?.title) entryParts.push(makeEbmlString(0x536e, trk.metadata.title)); // Name
     if (trk.defaultDurationNs !== undefined) entryParts.push(makeEbmlUint(0x23e383, trk.defaultDurationNs));
-    if (trk.codecDelayNs !== undefined) entryParts.push(makeEbmlUint(0x56aa, trk.codecDelayNs));
-    if (trk.seekPreRollNs !== undefined) entryParts.push(makeEbmlUint(0x56bb, trk.seekPreRollNs));
+    if (codecDelayNs !== undefined) entryParts.push(makeEbmlUint(0x56aa, codecDelayNs));
+    if (seekPreRollNs !== undefined) entryParts.push(makeEbmlUint(0x56bb, seekPreRollNs));
 
     for (const [id, name] of Object.entries(TRACK_DISPOSITIONS)) {
       const value = trk.disposition?.[name];
@@ -1024,14 +1048,15 @@ export function serializeMkv(
     trackEntries.push(makeEbmlElement(0xae, concatBytes(entryParts)));
 
     let orderMs = -Infinity;
-    const codecDelayMs = Math.round((trk.codecDelayNs ?? 0) / 1_000_000);
+    const codecDelayMs = Math.round((codecDelayNs ?? 0) / 1_000_000);
     for (const s of samples) {
       // Samples are in decode order. Matroska has no DTS, so parsed DTS can
       // follow non-monotonic PTS; never let interleaving reorder a track.
-      orderMs = Math.max(orderMs, (s.dts / ts) * 1000);
+      orderMs = Math.max(orderMs, ((s.dts + timestampOffset) / ts) * 1000);
+      const pts = s.pts + timestampOffset;
       // FFmpeg rescales timestamps with ties away from zero, including Opus pre-skip.
-      const ptsMs = Math.max(0, Math.sign(s.pts) * Math.round((Math.abs(s.pts) / ts) * 1000) + codecDelayMs);
-      const endMs = Math.round(((s.pts + s.duration) / ts) * 1000) + codecDelayMs;
+      const ptsMs = Math.max(0, Math.sign(pts) * Math.round((Math.abs(pts) / ts) * 1000) + codecDelayMs);
+      const endMs = Math.round(((pts + s.duration) / ts) * 1000) + codecDelayMs;
       if (endMs > maxDurationMs) maxDurationMs = endMs;
       const durationMs = Math.max(1, Math.round((s.duration / ts) * 1000));
       allBlocks.push({

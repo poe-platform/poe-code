@@ -5,7 +5,7 @@ import { runConvertCli, runConvertCliSync } from "./index.js";
 
 // ImageMagick Q16: magick -size 1x1 xc:'#804020' -solarize THRESHOLD -depth 8 rgba:-
 for (const mode of ["buffered", "retained", "sync"] as const) {
-    it.each([[], ["-channel", "RGB"], ["-channel", "RGBA"], ["-channel", "A"], ["-channel", "R"], ["-channel", "RGB", "+channel"]].map(args => ({ args })))(
+    it.each([[], ["-channel", "Default"], ["-channel", "All"], ["-channel", "RGB"], ["-channel", "RGBA"], ["-channel", "A"], ["-channel", "R"], ["-channel", "RGB", "+channel"]].map(args => ({ args })))(
         `preserves palette alpha and solarizes its RGB colormap via ${mode}: $args`, async ({ args }) => {
             // magick -size 1x1 -depth 8 RGBA:- -strip png:-, input [40,100,180,192].
             const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUoZLRcufO0AAAAAXRSTlPA24Ia1gAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=", "base64");

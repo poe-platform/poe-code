@@ -26,6 +26,21 @@ for (const mode of ["command", "buffered", "sync"] as const) {
         return mode === "command" ? await fs.readFile("/out.png") : files.get("out.png")!;
     }
 
+    // ImageMagick 7.1.2-35 Q16-HDRI, direct-color RGBA input and -solarize 40%.
+    it.each([
+        { channels: [], expected: [113, 30, 52, 120] },
+        { channels: ["-channel", "Default"], expected: [113, 30, 52, 120] },
+        { channels: ["-channel", "All"], expected: [113, 30, 52, 120] },
+        { channels: ["-channel", "RGBA"], expected: [113, 30, 52, 120] },
+        { channels: ["-channel", "RGB"], expected: [113, 30, 52, 135] },
+        { channels: ["-channel", "A"], expected: [142, 30, 52, 120] },
+        { channels: ["-channel", "Default", "+channel"], expected: [113, 30, 52, 120] },
+    ])(`${mode}: matches native direct-color solarize with $channels`, async ({ channels, expected }) => {
+        const output = await convert([142, 30, 52, 135, 20, 80, 100, 90, 102, 102, 102, 102], 8,
+            [...channels, "-solarize", "40%", "+channel"]);
+        expect([...decodeImage(output).data]).toEqual([...expected, 20, 80, 100, 90, 102, 102, 102, 102]);
+    });
+
     it.each([[], ["-depth", "16"]].map(depth => ({ depth })))(`${mode}: preserves 16-bit threshold boundaries %j`, async ({ depth }) => {
         const values = [1, 255, 256, 32767, 32768, 32769, 65534, 65535];
         const output = await convert(values.flatMap(v => [v, v, v, 65535]), 16, ["-channel", "RGB", "-solarize", "32768", ...depth]);

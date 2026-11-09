@@ -31,14 +31,17 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
       const token = context.args[index]!;
       if (literal || token === "-" || !token.startsWith("-")) { files.push(token); continue; }
       if (token === "--") { literal = true; continue; }
-      if (token === "--serial") { serial = true; continue; }
-      if (token === "--zero-terminated") { separator = 0; continue; }
-      if (token === "--delimiters" || token.startsWith("--delimiters=")) {
-        let value: string;
-        [value, index] = argument(context.args, index, token.includes("=") ? token.slice(13) : undefined, token);
-        list = delimiters(value, locale); continue;
+      if (token.startsWith("--")) {
+        if ("--serial".startsWith(token)) { serial = true; continue; }
+        if ("--zero-terminated".startsWith(token)) { separator = 0; continue; }
+        const equal = token.indexOf("="), name = equal < 0 ? token : token.slice(0, equal);
+        if (name.length > 2 && "--delimiters".startsWith(name)) {
+          let value: string;
+          [value, index] = argument(context.args, index, equal < 0 ? undefined : token.slice(equal + 1), token);
+          list = delimiters(value, locale); continue;
+        }
+        fail(`unsupported option ${token}`);
       }
-      if (token.startsWith("--")) fail(`unsupported option ${token}`);
       for (let offset = 1; offset < token.length; offset++) {
         const flag = token[offset];
         if (flag === "s") serial = true;

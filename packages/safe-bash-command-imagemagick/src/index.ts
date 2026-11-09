@@ -3167,9 +3167,18 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         const { angle, applies } = parseMagickRotation(tokens[start + 1] ?? "0"), background = state.background, kernel = state.kernel, filter = state.resizeFilter;
         const nearest = state.kernel === "nearest" && state.interpolation === "nearest";
         if (!Number.isFinite(angle) || angle % 90 === 0) return;
-        return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha">) => {
+        return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">): (WarpPlan & { space?: RgbaImage["space"]; steps: ReturnType<typeof warpPixelSteps> }) | undefined => {
             if (!applies(image)) return;
             const plan = { ...magickWarpPlan(image, "+distort", "SRT", String(angle % 360))!, nearest };
+            const page = image.virtualCanvas;
+            // RotateImage scales the page dimensions to the best-fit raster, but
+            // adds its origin to the original page offsets without scaling them.
+            if (page && plan.virtualCanvas) plan.virtualCanvas = {
+                width: Math.floor(page.width * plan.width / image.width + 0.5),
+                height: Math.floor(page.height * plan.height / image.height + 0.5),
+                x: page.x + plan.virtualCanvas.x,
+                y: page.y + plan.virtualCanvas.y
+            };
             return { ...plan, steps: warpPixelSteps(image, plan, background, "background", kernel, filter) };
         } };
     }

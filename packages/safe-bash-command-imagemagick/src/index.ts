@@ -7374,14 +7374,22 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
 
 function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | null): Generator<void, RgbaImage> {
     const missingChannel = channel === null || (channel === 3 ? !image.hasAlpha : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
-    const separated = yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...image, hasAlpha: false }, 0) : image, missingChannel ? 3 : channel);
-    if (!image.evaluateSamples) return separated;
-    const evaluateSamples = new Float64Array(image.evaluateSamples.length);
+    const { magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, ...components } = image;
+    const separated = yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : components, missingChannel ? 3 : channel);
+    const samples = hueSamples ?? image.evaluateSamples;
+    if (!samples) return separated;
+    const evaluateSamples = new Float64Array(samples.length);
     for (let offset = 0; offset < evaluateSamples.length; offset += 4) {
         if (offset % 65536 === 0) yield;
-        const value = missingChannel ? 0 : image.evaluateSamples[offset + channel]!;
+        // Native HDRI stores quantum-scaled components as floats before encoding the gray plane.
+        const value = missingChannel ? 0 : hueSamples ? Math.fround(samples[offset + channel]! * 65535) / 257 : samples[offset + channel]!;
         evaluateSamples[offset] = evaluateSamples[offset + 1] = evaluateSamples[offset + 2] = value;
         evaluateSamples[offset + 3] = 255;
+        if (hueSamples) {
+            const bounded = Math.max(0, Math.min(255, value));
+            separated.data[offset] = separated.data[offset + 1] = separated.data[offset + 2] = Math.round(bounded);
+            if (separated.data16) separated.data16[offset] = separated.data16[offset + 1] = separated.data16[offset + 2] = Math.round(bounded * 257);
+        }
     }
     return { ...separated, evaluateSamples };
 }

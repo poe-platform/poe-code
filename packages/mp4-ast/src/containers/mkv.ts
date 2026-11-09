@@ -1029,7 +1029,8 @@ export function serializeMkv(
       // Samples are in decode order. Matroska has no DTS, so parsed DTS can
       // follow non-monotonic PTS; never let interleaving reorder a track.
       orderMs = Math.max(orderMs, (s.dts / ts) * 1000);
-      const ptsMs = Math.max(0, Math.round((s.pts / ts) * 1000) + codecDelayMs);
+      // FFmpeg rescales timestamps with ties away from zero, including Opus pre-skip.
+      const ptsMs = Math.max(0, Math.sign(s.pts) * Math.round((Math.abs(s.pts) / ts) * 1000) + codecDelayMs);
       const endMs = Math.round(((s.pts + s.duration) / ts) * 1000) + codecDelayMs;
       if (endMs > maxDurationMs) maxDurationMs = endMs;
       const durationMs = Math.max(1, Math.round((s.duration / ts) * 1000));

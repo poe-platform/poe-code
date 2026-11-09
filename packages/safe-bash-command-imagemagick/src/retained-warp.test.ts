@@ -14,7 +14,7 @@ const operators = [
     ["-distort", "PerspectiveProjection", "0,0,0,0,0,0,0,0"],
     ["-distort", "Affine", "0,0,1,2 12,0,11,1 0,16,2,15"],
     ["-distort", "Barrel", "0.1,0.2,-0.3"], ["-distort", "Barrel", "0.1,0.2,-0.3,1,4,5"],
-    ["-distort", "unknown", "1"], ["-distort", "Affine", "0"],
+    ["-distort", "unknown", "1"], ["-distort", "Affine", "0,0 0,0"],
     ["-background", "#12345680", "-shear", "17x9"]
 ];
 async function fixture(width = 13, height = 17) {

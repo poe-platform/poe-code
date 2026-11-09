@@ -3143,6 +3143,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
             return [nx + dx * cos - dy * sin, ny + dx * sin + dy * cos];
         });
     }
+    if (method === "affine" && (nums.length === 0 || nums.length % 4 !== 0)) throw new Error("Affine requires complete source/destination point pairs");
     if (method === "perspective" && (nums.length === 0 || nums.length % 4 !== 0)) throw new Error("Perspective requires complete source/destination point pairs");
     if (method === "perspectiveprojection" && nums.length !== 8) throw new Error("PerspectiveProjection needs 8 coefficient values");
     if ((method === "perspective" && nums.length >= 16) || method === "perspectiveprojection") {

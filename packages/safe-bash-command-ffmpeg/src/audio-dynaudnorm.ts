@@ -51,12 +51,22 @@ export async function normalizeAudio(
   const adjust = 1 / total;
   for (let i = 0; i < size; i++) weights[i]! *= adjust;
   // Smoothly cap the gain with maxGain * erf(sqrt(pi) / 2 * gain / maxGain).
-  // This error-function approximation has absolute error below 1.5e-7.
   const bound = (gain: number) => {
     if (gain === 0) return 0;
-    const x = Math.sqrt(Math.PI) / 2 * gain / maxGain;
-    const t = 1 / (1 + 0.3275911 * x);
-    return maxGain * (1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x));
+    const x = Math.sqrt(Math.PI) / 2 * (gain / maxGain);
+    // erf(6) rounds to 1 in double precision. Below that, use the positive
+    // series 2/sqrt(pi) * exp(-x*x) * (x + 2*x^3/3 + 4*x^5/15 + ...).
+    // Avoid cancellation and preserve gains at PCM rounding boundaries.
+    if (x >= 6) return maxGain;
+    let term = x;
+    let sum = x;
+    for (let n = 1; n < 128; n++) {
+      term *= 2 * x * x / (2 * n + 1);
+      const next = sum + term;
+      if (next === sum) break;
+      sum = next;
+    }
+    return maxGain * (2 / Math.sqrt(Math.PI) * Math.exp(-x * x) * sum);
   };
   const original: number[] = [];
   const minimum: number[] = [];

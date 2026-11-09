@@ -69,6 +69,14 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
   const avgFrameRate = track.type === "video" && sampleTicks > 0
     ? `${fpsNum / fpsGcd}/${sampleTicks / fpsGcd}` : "0/0";
 
+  let timecodeFrameRate: string | undefined;
+  if (desc?.formatFourCC === "tmcd" && desc.extraData && desc.extraData.length >= 16) {
+    const config = new DataView(desc.extraData.buffer, desc.extraData.byteOffset, desc.extraData.byteLength);
+    const timescale = config.getUint32(8), frameDuration = config.getUint32(12);
+    // Preserve the declared fraction; a timecode packet can span the entire clip.
+    if (timescale && frameDuration) timecodeFrameRate = `${timescale}/${frameDuration}`;
+  }
+
   const w = track.width ?? desc?.width;
   const h = track.height ?? desc?.height;
   const darWidth = (w ?? 0) * (desc?.sarWidth ?? 0);
@@ -139,7 +147,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
         : undefined,
     bits_per_sample: track.type === "audio" ? (codecName === 'aac' ? 0 : desc?.bitsPerSample ?? 16) : undefined,
     r_frame_rate: avgFrameRate,
-    avg_frame_rate: avgFrameRate,
+    avg_frame_rate: timecodeFrameRate ?? avgFrameRate,
     time_base: `1/${track.timescale}`,
     start_pts: stats.firstPts,
     start_time: ((stats.firstPts) / Math.max(1, track.timescale)).toFixed(6),

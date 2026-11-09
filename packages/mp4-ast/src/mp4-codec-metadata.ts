@@ -43,6 +43,10 @@ export function sampleEntryHeader(formatFourCC: string, body: Uint8Array): Codec
       metadata.sampleRate = Math.round(reader.readU32BE() / 65536);
       state.childOffset = 28 + (version === 1 ? 16 : version === 2 ? 36 : 0);
     }
+  } else if (formatFourCC === 'tmcd' && body.length >= 28) {
+    // Keep the declared time scale and frame duration for timecode stream probing.
+    metadata.extraData = body.slice(8, 28);
+    metadata.extradataSize = 20;
   }
   return state;
 }

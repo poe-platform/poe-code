@@ -6523,7 +6523,15 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const raw = (tokens[++i] ?? "").replaceAll(",", "x").replaceAll("/", "x");
         validateMagickTransformGeometry(raw, token);
-        const [brightness = 0, contrast = 0] = raw.split("x").map(value => parseFloat(value) || 0);
+        const parts = raw.replaceAll(":", "x").split("x");
+        let [brightness = 0, contrast = 0] = parts.map(value => parseFloat(value) || 0);
+        const denominator = parts[1]?.trimStart() ?? "";
+        // Native colon geometry divides rho by sigma, then sets sigma to one.
+        // Signed or missing denominators are offsets, not ratio components.
+        if (raw.includes(":") && Number.isFinite(parseFloat(denominator)) && !"+-".includes(denominator[0]!)) {
+            brightness /= Math.max(1e-12, contrast);
+            contrast = 1;
+        }
         // ImageMagick BrightnessContrastImage: a polynomial centered at midgray.
         const slope = contrast < 0 ? 1 + contrast / 100 : 100 / (contrast === 100 ? 1e-12 : 100 - contrast);
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };

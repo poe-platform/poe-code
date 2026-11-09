@@ -338,7 +338,8 @@ stereo channels. Explicit output layouts include `c=quad`, `c=5.1`, speaker list
 such as `c=FL+FR`, masks such as `c=0x3`, and channel aliases such as `c=2c`.
 Expressions support arithmetic, `val(channel)`, `ch`,
 `n`, `t`, `s`, `nb_in_channels`, and `nb_out_channels`; `c=same` retains the input
-layout and repeats the last expression when needed. Empty fields between `|` separators
+layout and repeats the last expression when needed. `sin(x)` takes radians, and
+`PI` is available for waveforms such as `aeval=sin(PI*n/2)/2`. Empty fields between `|` separators
 are skipped, including leading and trailing fields; at least one expression is required.
 Conditionals `if(condition,then[,else])` and `ifnot(condition,then[,else])` evaluate
 only the selected branch and default an omitted else to zero. For example,

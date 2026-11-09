@@ -107,8 +107,9 @@ Both forms apply to every channel and may omit either bound.
 `adelay=0S|1S` delays each audio channel independently and pads with silence.
 Use uppercase `S` after an integer for sample frames, lowercase `s` after an integer
 for seconds, or a numeric prefix (optionally followed by `ms`) for milliseconds.
-Leading `+` and trailing text are accepted, as in `+2S`, `0.5ms`, or `2Sabc`. `adelay=1S:all=1` repeats the last delay for remaining channels;
-without `all=1`, unspecified channels are unchanged. Empty entries are skipped,
+Leading `+` and trailing text are accepted, as in `+2S`, `0.5ms`, or `2Sabc`. `adelay=1S:all=1` repeats the last delay for remaining channels.
+`all` accepts `1`/`0` or case-insensitive `true`/`false`, `yes`/`no`, and `on`/`off`;
+when false or omitted, unspecified channels are unchanged. Empty entries are skipped,
 so `adelay=|1S` delays the first channel. Omitted delays pass audio through unchanged,
 including `adelay`, `adelay=`, and `adelay=all=1`.
 `asetrate=16000` changes the sample rate without resampling PCM, changing playback speed and duration. Later filters use the new rate; `r` and `sample_rate` are accepted option names.

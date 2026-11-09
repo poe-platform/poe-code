@@ -9701,10 +9701,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (key === "delays") delays = value;
                           else if (key === "all") {
-                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value)) {
+                            const flag = value.toLowerCase();
+                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(flag)) {
                               throw new Error("adelay: invalid all option");
                             }
-                            all = ["1", "true", "yes", "on"].includes(value);
+                            all = ["1", "true", "yes", "on"].includes(flag);
                           } else throw new Error(`adelay: unsupported option ${key}`);
                         }
                         const values = delays.split("|").filter(value => value !== "");

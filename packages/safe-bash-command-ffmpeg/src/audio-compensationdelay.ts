@@ -22,13 +22,16 @@ export async function compensateAudioDelay(
       continue;
     }
     const key = names.indexOf(name!);
-    const value = Number(raw);
-    if (key < 0 || !raw || !Number.isFinite(value) ||
-        value < (key === 5 ? -50 : 0) || value > [10, 100, 100, 1, 1, 50][key]! ||
-        ((key < 3 || key === 5) && !Number.isInteger(value))) {
+    const value = parseFilterExpression(raw, "compensationdelay", {});
+    if (key < 0 || value < (key === 5 ? -50 : 0) || value > [10, 100, 100, 1, 1, 50][key]!) {
       throw new Error("compensationdelay: invalid option");
     }
     values[key] = value;
+    if (key < 3 || key === 5) {
+      // Native integer options use nearest-even rounding after range validation.
+      const lower = Math.floor(value);
+      values[key] = value - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(value);
+    }
   }
   // Native converts distance to whole samples using temperature-dependent sound speed.
   const speed = 1.85325 * (643.95 * Math.sqrt((values[5]! + 273.15) / 273.15)) * 100000 / 3600;

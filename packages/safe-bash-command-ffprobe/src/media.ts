@@ -513,8 +513,8 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     }
     if (stdinAudio) { delete metadata.duration; delete metadata.duration_ts; }
     return filterObject({ ...metadata,
-      ...(opts.countFrames ? { nb_read_frames: nb_read_frames ?? recordCount } : {}),
-      ...(opts.countPackets ? { nb_read_packets: nb_read_packets ?? recordCount } : {})
+      ...(opts.countFrames || includeFrames ? { nb_read_frames: nb_read_frames ?? recordCount } : {}),
+      ...(opts.countPackets || includePackets ? { nb_read_packets: nb_read_packets ?? recordCount } : {})
     }, "stream", "stream_tags", "stream_disposition");
   };
   // Resolve stream ordinals once, including for one-shot asynchronous metadata.

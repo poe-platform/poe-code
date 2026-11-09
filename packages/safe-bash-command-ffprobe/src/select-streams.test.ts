@@ -57,7 +57,7 @@ for (const selector of ['v', 'v:0', 'a', 'a:0', '0', '1', 'a:1', '99']) {
       it(`selects ${selector} records with ${printFormat}, streams=${showStreams}`, async () => {
         const streams = JSON.parse(formatFfprobeResult(probe, { ...opts, showPackets: false, showFrames: false, selectStreams: selector })).streams;
         const indices = new Set(streams.map((stream: { index: number }) => stream.index));
-        const selected = { ...probe, streams, packets: probe.packets!.filter(row => indices.has(row.stream_index)), frames: probe.frames!.filter(row => indices.has(row.stream_index)) };
+        const selected = { ...probe, streams: probe.streams.filter(row => indices.has(row.index)), packets: probe.packets!.filter(row => indices.has(row.stream_index)), frames: probe.frames!.filter(row => indices.has(row.stream_index)) };
         const options = { ...opts, printFormat, showStreams, showEntries: 'packet=pts:frame=pts' };
         const expected = formatFfprobeResult(selected, options);
         expect(formatFfprobeResult(probe, { ...options, selectStreams: selector })).toBe(expected);

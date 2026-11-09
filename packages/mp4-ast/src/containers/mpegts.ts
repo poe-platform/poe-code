@@ -104,6 +104,7 @@ export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}):
 
   const programs = new Map<number, TsProgram>();
   const services = new Map<number, Record<string, string>>();
+  let sdtSection: Uint8Array = new Uint8Array(0);
   const pidStreamTypes = new Map<number, number>();
   const pesAccumulators = new Map<number, Uint8Array[]>();
   const pesPacketsByPid = new Map<
@@ -210,8 +211,13 @@ export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}):
     }
 
     if (pid === 0x11) {
-      const ptr = payloadUnitStart ? (payload[0] ?? 0) + 1 : 0;
-      const section = payload.subarray(ptr);
+      if (payloadUnitStart) sdtSection = payload.subarray(1 + (payload[0] ?? 0));
+      else if (sdtSection.length) sdtSection = concatBytes([sdtSection, payload]);
+      if (sdtSection.length < 3) continue;
+      const sectionLength = 3 + (((sdtSection[1]! & 15) << 8) | sdtSection[2]!);
+      if (sdtSection.length < sectionLength) continue;
+      const section = sdtSection.subarray(0, sectionLength);
+      sdtSection = new Uint8Array(0);
       if (section.length >= 15 && section[0] === 0x42) {
         const end = Math.min(section.length, 3 + (((section[1]! & 15) << 8) | section[2]!) - 4);
         for (let i = 11; i + 5 <= end;) {
@@ -225,8 +231,8 @@ export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}):
               const providerStart = d + 4, providerEnd = providerStart + section[d + 3]!;
               const nameEnd = providerEnd + 1 + (section[providerEnd] ?? 0);
               if (providerEnd < next && nameEnd <= next) services.set(serviceId, {
-                service_name: new TextDecoder().decode(section.subarray(providerEnd + 1, nameEnd)),
-                service_provider: new TextDecoder().decode(section.subarray(providerStart, providerEnd))
+                service_name: new TextDecoder().decode(section.subarray(providerEnd + (section[providerEnd + 1] === 0x15 ? 2 : 1), nameEnd)),
+                service_provider: new TextDecoder().decode(section.subarray(providerStart + (section[providerStart] === 0x15 ? 1 : 0), providerEnd))
               });
             }
             d = next;
@@ -481,14 +487,20 @@ export function serializeMpegTs(
   };
 
   const emitSectionPacket = (pid: number, section: Uint8Array) => {
-    const pkt = new Uint8Array(188).fill(0xff);
-    pkt[0] = 0x47;
-    pkt[1] = 0x40 | ((pid >>> 8) & 0x1f);
-    pkt[2] = pid & 0xff;
-    pkt[3] = 0x10 | nextCc(pid);
-    pkt[4] = 0x00; // pointer_field = 0
-    pkt.set(section.subarray(0, Math.min(183, section.byteLength)), 5);
-    tsPackets.push(pkt);
+    for (let offset = 0; offset < section.byteLength;) {
+      const first = offset === 0;
+      const pkt = new Uint8Array(188).fill(0xff);
+      pkt[0] = 0x47;
+      pkt[1] = (first ? 0x40 : 0) | ((pid >>> 8) & 0x1f);
+      pkt[2] = pid & 0xff;
+      pkt[3] = 0x10 | nextCc(pid);
+      if (first) pkt[4] = 0x00; // pointer_field = 0
+      const start = first ? 5 : 4;
+      const size = Math.min(188 - start, section.byteLength - offset);
+      pkt.set(section.subarray(offset, offset + size), start);
+      tsPackets.push(pkt);
+      offset += size;
+    }
   };
 
   const emitPesPackets = (
@@ -581,10 +593,18 @@ export function serializeMpegTs(
     throw new Error("MPEG-TS service type must be an integer from 1 through 255");
   }
   // SDT: transport 1, selected service/program, original network 0xff01, running service.
-  const provider = new TextEncoder().encode("FFmpeg");
-  const name = new TextEncoder().encode("Service01");
+  const metadata = { ...doc.metadata.custom, ...options.metadata?.custom };
+  const encodeServiceText = (value: string): Uint8Array => {
+    const bytes = new TextEncoder().encode(value);
+    // DVB strings with non-ASCII characters explicitly select UTF-8.
+    return bytes.some(byte => byte >= 0x80) ? concatBytes([new Uint8Array([0x15]), bytes]) : bytes;
+  };
+  const provider = encodeServiceText(metadata.service_provider ?? "FFmpeg");
+  const name = encodeServiceText(metadata.service_name ?? "Service01");
+  const descriptorLength = 3 + provider.length + name.length;
+  if (descriptorLength > 255) throw new Error("MPEG-TS service descriptor exceeds 255 bytes");
   const descriptor = concatBytes([
-    new Uint8Array([0x48, 3 + provider.length + name.length, serviceType, provider.length]),
+    new Uint8Array([0x48, descriptorLength, serviceType, provider.length]),
     provider, new Uint8Array([name.length]), name
   ]);
   const sdtLength = 17 + descriptor.length;

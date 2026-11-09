@@ -2,7 +2,7 @@ import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { md5, sha1, ripemd160 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512, sha512_224, sha512_256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
-import { decodeAacFrames, decodeVorbisFrames, encodeUtf8, concatBytes, rgbaToYuv420p, type MediaTrack, type MediaVideoFrame, type MediaDocument, type MediaAstPlugin, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { demuxVorbisTrack, decodeAacFrames, decodeVorbisFrames, encodeUtf8, concatBytes, rgbaToYuv420p, type MediaTrack, type MediaVideoFrame, type MediaDocument, type MediaAstPlugin, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 export const crc32Table = Uint32Array.from({ length: 256 }, (_, value) => {
   for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
@@ -61,6 +61,11 @@ export function serializeFrameChecksum(
   bitexact = false,
   copyTimestamps = false
 ): Uint8Array {
+  if (audioCodec === "copy") {
+    doc = { ...doc, tracks: doc.tracks.map(track => track.type === "audio" &&
+      track.codecDescriptions[0]?.codecName === "vorbis" && !track.codecDescriptions[0].extraData
+      ? demuxVorbisTrack(track) : track) };
+  }
   const name = algorithm.toLowerCase();
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512, ripemd128, ripemd160, ripemd256, ripemd320, "sha512/224": sha512_224, "sha512/256": sha512_256 };
   if (format !== "framecrc" && name !== "crc32" && !Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);

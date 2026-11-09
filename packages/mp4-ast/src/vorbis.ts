@@ -85,6 +85,8 @@ export function demuxVorbisTrack(track: MediaTrack): MediaTrack {
     const sample = samples[index]!, packet = audio[index]!;
     position ??= audio[0]!.granule !== 0xffffffffffffffffn ? Number(audio[0]!.granule) : frame.pts;
     let duration = frame.channelData[0]!.length;
+    // The overlap priming packet occupies the samples before the first decoded frame.
+    if (index === 1) samples[0] = { ...samples[0]!, duration: frame.pts };
     const pts = position;
     let discardPaddingNs: number | undefined;
     position += duration;

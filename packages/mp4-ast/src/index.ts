@@ -32,7 +32,7 @@ export { scaleVideoPicture } from "@poe-code/media-codecs";
 
 export { decodeAacTrack, decodeAacFrames } from "./aac.js";
 export { decodeMp3Track } from "./mp3.js";
-export { decodeVorbisFrames } from "./vorbis.js";
+export { decodeVorbisFrames, demuxVorbisTrack } from "./vorbis.js";
 
 export { assAst, decodeAssText } from "./containers/ass.js";
 

@@ -4,7 +4,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 export async function fadeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number }[] | undefined, startSample: number,
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal, pcm16 = false
 ): Promise<Float64Array[]> {
   let type = "in";
   let start = 0;
@@ -65,7 +65,11 @@ export async function fadeAudio(
     const progress = Math.max(0, Math.min(1, (pts - start) / samples));
     const fraction = type === "out" ? 1 - progress : progress;
     const gain = silence + (unity - silence) * (curve === "qua" ? fraction * fraction : fraction);
-    for (let c = 0; c < channels.length; c++) output[c]![i] = channels[c]![i]! * gain;
+    for (let c = 0; c < channels.length; c++) {
+      const sample = channels[c]![i]! * gain;
+      // Native integer fades truncate before the next filter consumes the samples.
+      output[c]![i] = pcm16 ? Math.trunc(sample * 32768) / 32768 : sample;
+    }
   }
   return output;
 }

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 import { setup } from "./helpers.js";
 
 for (const source of [
@@ -20,5 +21,27 @@ for (const source of [
     assert.equal(result.stderr, "");
     assert.equal(result.exitCode, 0);
     assert.equal(result.stdout, "match\n");
+  });
+}
+
+for (const mode of ["single", "loop", "sync"] as const) {
+  test(`BASH_REMATCH follows the Darwin last-parent capture profile (${mode})`, async context => {
+    const { shell } = setup({ extensions: [arraysExtension()] });
+    context.after(() => shell.dispose());
+    const capture = '"$?:<${BASH_REMATCH[0]}>:<${BASH_REMATCH[1]}>:<${BASH_REMATCH[2]}>"';
+    const condition = `[[ $subject =~ $pat ]]; ${mode === "sync" ? "result=" : "say "}${capture}`;
+    for (const [subject, expected] of [
+      ["aba", "0:<aba>:<a>:<>\n"],
+      ["ab", "0:<ab>:<ab>:<b>\n"],
+      ["a", "0:<a>:<a>:<>\n"],
+      ["ababa", "0:<ababa>:<a>:<>\n"],
+      ["z", "1:<>:<>:<>\n"],
+    ] as const) {
+      const source = `LC_ALL=C; pat='(a(b)?)+'; subject=${subject}; ${mode === "single" ? condition : `for i in 1 2; do ${condition}; done`}${mode === "sync" ? '; say "$result"' : ""}`;
+      const result = await shell.exec(source);
+      assert.equal(result.stdout, expected.repeat(mode === "loop" ? 2 : 1));
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    }
   });
 }

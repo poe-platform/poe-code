@@ -5,6 +5,9 @@ algorithms used by Safe Bash commands. It preserves capture behavior, explicit
 work limits and cooperative cancellation without executing host utilities. Rg alternations and repetitions accept Unicode
 literals, preserve UTF-8 byte offsets, and retain work limits and cancellation.
 ASCII case-insensitive searches also accept Unicode subjects.
+Shell ERE captures follow the recorded Darwin Bash 3.2 profile: an inner group
+skipped in the last parent repetition is empty. For `(a(b)?)+` on `aba`, the
+captures are `a` and `""`; GNU Bash on Linux/glibc instead retains the earlier `b`.
 Replacement buffers preserve Unicode with finite or unlimited limits and do not
 require the Node.js `Buffer` global. Sed, awk and query patterns accept shorthand
 classes (`\d`, `\s`, `\w` and their uppercase complements) inside brackets.

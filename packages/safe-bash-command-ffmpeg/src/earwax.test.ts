@@ -7,6 +7,16 @@ import { createFfmpegCommand } from "./index.js";
 
 // Decoded PCM reference from native FFmpeg; WAV headers are deliberately excluded.
 const native = {
+  mono: [
+    [1, 353, 353], [2, -442, -442], [3, -973, -973], [4, -1, -1],
+    [5, -531, -531], [6, 441, 441], [7, -796, -796], [8, 706, 706],
+    [9, 441, 441], [10, 1148, 1148], [11, -266, -266], [12, -1680, -1680],
+    [13, -443, -443], [14, 176, 176], [15, 264, 264], [16, 352, 352],
+    [17, -620, -620], [18, 794, 794], [19, 87, 87], [20, -89, -89],
+    [21, -531, -531], [22, -619, -619], [23, -708, -708], [24, -443, -443],
+    [25, 795, 795], [26, 883, 883], [27, -442, -442], [28, 264, 264],
+    [29, 530, 530], [30, -531, -531], [31, -620, -620], [32, -178, -178]
+  ],
   impulses: [
     [1, 0, 375], [2, -469, 0], [3, -1032, 0], [4, -563, 562],
     [5, -1125, 562], [6, 843, -375], [7, -188, -657], [8, 2062, -1313],
@@ -50,21 +60,27 @@ const native = {
 } as const;
 
 for (const complex of [false, true]) {
-  for (const name of ["impulses", "clipping", "mono", "48000 Hz"] as const) {
+  for (const name of ["impulses", "clipping", "mono", "mono explicit stereo", "48000 Hz"] as const) {
     it(`earwax ${complex ? "graph" : "simple"}: ${name}`, async () => {
-      const length = name === "impulses" ? 8192 : 80;
+      const mono = name.startsWith("mono");
+      const length = name === "impulses" ? 8192 : mono ? 2059 : 80;
       const channels = [new Float64Array(length), new Float64Array(length)];
       for (let i = 0; i < length; i++) {
         channels[0]![i] = (name === "impulses" ? (i === 0 ? 12000 : 0) : (i % 3 ? 32767 : -32768)) / 32768;
         channels[1]![i] = (name === "impulses" ? (i === 2048 ? -8000 : 0) : (i % 5 ? 32767 : -32768)) / 32768;
       }
-      if (name === "mono") channels.pop();
+      if (mono) {
+        channels.pop();
+        channels[0]!.fill(0);
+        channels[0]![0] = 16000 / 32768;
+      }
+      const filter = name === "mono explicit stereo" ? "aformat=channel_layouts=stereo,earwax" : "earwax";
       const volume = Volume.fromJSON({});
       volume.writeFileSync("/in.wav", encodeWav({ sampleRate: name === "48000 Hz" ? 48000 : 44100, channels }));
       let stderr = "";
       const result = await createFfmpegCommand().execute({
         args: ["-v", "error", "-y", "-i", "/in.wav", ...(complex
-          ? ["-filter_complex", "[0:a]earwax[s]", "-map", "[s]"] : ["-af", "earwax"]), "-c:a", "pcm_s16le", "/out.wav"],
+          ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"] : ["-af", filter]), "-c:a", "pcm_s16le", "/out.wav"],
         cwd: "/", env: {}, signal: new AbortController().signal,
         fs: {
           async readFile(path: string) { return volume.readFileSync(path); },
@@ -74,7 +90,7 @@ for (const complex of [false, true]) {
         stdin: (async function* () {})(), stdout: { async write() {} },
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
-      if (name === "mono" || name === "48000 Hz") {
+      if (name === "48000 Hz") {
         assert.notEqual(result.exitCode, 0);
         assert.match(stderr, /earwax: 44100 Hz stereo input required/);
         assert.equal(volume.existsSync("/out.wav"), false);
@@ -85,7 +101,7 @@ for (const complex of [false, true]) {
       assert.equal(audio.channels, 2);
       assert.equal(audio.sampleRate, 44100);
       const expected = [new Array<number>(length).fill(0), new Array<number>(length).fill(0)];
-      for (const [frame, left, right] of native[name]) {
+      for (const [frame, left, right] of native[name === "mono explicit stereo" ? "mono" : name]) {
         expected[0]![frame!] = left!;
         expected[1]![frame!] = right!;
       }

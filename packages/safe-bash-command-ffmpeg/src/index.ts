@@ -9235,7 +9235,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (!["anull", "acopy", "ametadata", "arealtime", "asendcmd", "asetrate",
                         "asetnsamples", "ashowinfo", "afade", "silencedetect", "astats", "volume",
                         "aloop", "aresample", "apad", "adelay", "atempo", "aformat", "pan",
-                        "channelmap", "channelsplit", "asetpts", "aselect", "atrim", "areverse"
+                        "channelmap", "channelsplit", "asetpts", "aselect", "atrim", "areverse", "earwax"
                       ].includes(filterName)) panPcm16 = false;
                       if (["extrastereo", "stereotools", "stereowiden"].includes(filterName) &&
                         (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ||
@@ -10709,6 +10709,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = output;
                       } else if (trimmed === "earwax") {
+                        if (origRate === 44100 && stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
+                          const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
+                            stretched, filteredChannelMask, panPcm16, budget, context.signal);
+                          stretched = stereo.channels;
+                          filteredChannelMask = stereo.channelMask;
+                        }
                         if (origRate !== 44100 || stretched.length !== 2) {
                           throw new Error("earwax: 44100 Hz stereo input required");
                         }

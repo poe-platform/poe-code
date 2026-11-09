@@ -48,12 +48,19 @@ for (const shared of [false, true]) {
   }
 }
 
-for (const expression of ["original=-1", "enhance=4", "voice=1", "voice=NaN", "unknown=1", "1:1:2:3"]) {
-  it(`rejects dialogue option ${expression} without replacing output`, async () => {
-    const volume = Volume.fromJSON({ "/out.wav": "existing" });
-    volume.writeFileSync("/twins.wav", encodeWav({ sampleRate: 44100, channels: [new Float64Array(32), new Float64Array(32)] }));
-    let stderr = "";
-    const filters = ["-af", `dialoguenhance=${expression}`];
+for (const complex of [false, true]) {
+  for (const expression of [
+    "original=-1", "enhance=4", "voice=1", "voice=NaN", "unknown=1", "1:1:2:3",
+    "original=", "enhance=", "voice=", "original=   ", "voice=0b10", "voice=0o10",
+    "original=1/", "original=1/0", "enhance=8/2", "voice=2/2"
+  ]) {
+    it(`rejects dialogue option ${expression} without replacing output (${complex ? "graph" : "simple"})`, async () => {
+      const volume = Volume.fromJSON({ "/out.wav": "existing" });
+      volume.writeFileSync("/twins.wav", encodeWav({ sampleRate: 44100, channels: [new Float64Array(32), new Float64Array(32)] }));
+      let stderr = "";
+      const filters = complex
+        ? ["-filter_complex", `[0:a]dialoguenhance=${expression}[s]`, "-map", "[s]"]
+        : ["-af", `dialoguenhance=${expression}`];
       const result = await createFfmpegCommand().execute({
         args: ["-y", "-v", "error", "-i", "/twins.wav", ...filters, "-c:a", "pcm_s16le", "/out.wav"],
         cwd: "/", env: {}, signal: new AbortController().signal,
@@ -65,10 +72,48 @@ for (const expression of ["original=-1", "enhance=4", "voice=1", "voice=NaN", "u
         stdin: (async function* () {})(), stdout: { async write() {} },
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
-    assert.equal(result.exitCode, 1);
-    assert.ok(stderr.includes("dialoguenhance: invalid option"), stderr);
-    assert.equal(volume.readFileSync("/out.wav", "utf8"), "existing");
-  });
+      assert.equal(result.exitCode, 1);
+      assert.ok(stderr.includes("dialoguenhance: invalid"), stderr);
+      assert.equal(volume.readFileSync("/out.wav", "utf8"), "existing");
+    });
+  }
+
+  for (const [expression, decimal] of [
+    ["original=1/2", "original=0.5"],
+    ["enhance=1/2", "enhance=0.5"],
+    ["voice=8/2", "voice=4"],
+    ["1/2:1/2:8/2", "0.5:0.5:4"]
+  ]) {
+    it(`evaluates dialogue option ${expression} like ${decimal} (${complex ? "graph" : "simple"})`, async () => {
+      const volume = Volume.fromJSON({});
+      const channels = [0, 1].map(c => Float64Array.from({ length: 4096 }, (_, i) =>
+        ((Math.floor(i / 50) % 2 ? 6000 : -6000) + (c === 0 && i === 2048 ? 4000 : 0)) / 32768));
+      volume.writeFileSync("/twins.wav", encodeWav({ sampleRate: 44100, channels }));
+      for (const [index, option] of [decimal, expression].entries()) {
+        let stderr = "";
+        const filters = complex
+          ? ["-filter_complex", `[0:a]dialoguenhance=${option}[s]`, "-map", "[s]"]
+          : ["-af", `dialoguenhance=${option}`];
+        const result = await createFfmpegCommand().execute({
+          args: ["-y", "-v", "error", "-i", "/twins.wav", ...filters, "-c:a", "pcm_s16le", `/out${index}.wav`],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) { return volume.readFileSync(path); },
+            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(), stdout: { async write() {} },
+          stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+        } as never);
+        assert.equal(result.exitCode, 0, stderr);
+      }
+      assert.deepEqual(volume.readFileSync("/out1.wav"), volume.readFileSync("/out0.wav"));
+      const audio = parseWav(volume.readFileSync("/out1.wav") as Buffer).tracks[0]!.decodedAudio!;
+      assert.equal(audio.channels, 3);
+      assert.equal(audio.channelData[0]!.length, 4096);
+      assert.ok(audio.channelData[2]!.some(value => value !== 0));
+    });
+  }
 }
 
 for (const sampleRate of [44100, 96000, 192000]) {

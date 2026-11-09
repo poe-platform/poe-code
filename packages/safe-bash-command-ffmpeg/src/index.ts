@@ -10060,7 +10060,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? index : names.indexOf(option.slice(0, separator).trim());
-                          const value = Number(separator < 0 ? option : option.slice(separator + 1));
+                          const value = parseFilterExpression(separator < 0 ? option : option.slice(separator + 1), "dialoguenhance", {});
                           if (key < 0 || key > 2 || !Number.isFinite(value) || value < (key === 2 ? 2 : 0) || value > [1, 3, 32][key]!) {
                             throw new Error("dialoguenhance: invalid option");
                           }

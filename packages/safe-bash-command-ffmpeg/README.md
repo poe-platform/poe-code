@@ -713,6 +713,8 @@ Native H.264 inputs decode with CAVLC/CABAC and reference-frame support. H.264 `
 retaining the input frame count and sample rate. Left and right are delayed by
 three quarters of the analysis window (1536 samples at 44100 Hz). It accepts
 `original` (0–1), `enhance` (0–3), and `voice` (2–32), with defaults `1:1:2`.
+Options accept numeric expressions such as `original=1/2`. Empty, malformed,
+or out-of-range values fail before an existing output is replaced.
 
 `dcshift=0.125` adds a DC offset to every audio channel, preserving the sample rate and frame count and clipping samples to the full-scale range. `shift=0.125` is also accepted; shifts must be between -1 and 1. Limiter options are unsupported and fail explicitly.
 

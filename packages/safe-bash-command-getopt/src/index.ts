@@ -57,7 +57,7 @@ export function evalSyncGetopt(
         if (name.endsWith("::")) { argMode = 2; name = name.slice(0, -2); }
         else if (name.endsWith(":")) { argMode = 1; name = name.slice(0, -1); }
         if (!name) return false;
-        longSpecs.set(name, argMode);
+        if (!longSpecs.has(name)) longSpecs.set(name, argMode);
       }
       return true;
     };
@@ -148,7 +148,7 @@ export function evalSyncGetopt(
   const shortMap = new Map<string, 0 | 1 | 2>();
   for (let i = 0; i < spec.length; i++) {
     const ch = spec[i]!;
-    if (ch === ":") continue;
+    if (ch === ":" || shortMap.has(ch)) continue;
     if (spec[i + 1] === ":" && spec[i + 2] === ":") { shortMap.set(ch, 2); i += 2; }
     else if (spec[i + 1] === ":") { shortMap.set(ch, 1); i += 1; }
     else shortMap.set(ch, 0);

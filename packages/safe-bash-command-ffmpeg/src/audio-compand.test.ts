@@ -37,7 +37,7 @@ for (const [filter, indices, expected] of [
   });
 }
 
-for (const filter of ["compand=points=bad", "compand=points=0/0|-20/-30", "compand=attacks=-1", "compand=decays=NaN", "compand=unknown=1", "compand=soft-knee=0", "compand=delay=1"]) {
+for (const filter of ["compand=points=bad", "compand=points=0/0|-20/-30", "compand=attacks=-1", "compand=decays=NaN", "compand=unknown=1", "compand=soft-knee=0", "compand=delay=1", "compand=points=-80/-80||0/0", "compand=points=-80/-80|0/0|"]) {
   it(`${filter} fails without replacing output`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
     fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));
@@ -48,6 +48,26 @@ for (const filter of ["compand=points=bad", "compand=points=0/0|-20/-30", "compa
     } as never);
     assert.equal(result.exitCode, 1);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
+  });
+}
+
+for (const points of ["|-80/-80|0/0", "-80/-80||0/0", "-80/-80|0/0|", "-80/-80| |0/0"]) {
+  for (const graph of [false, true]) it(`compand rejects empty points ${points} (${graph ? "graph" : "simple"}) without rendering samples`, async () => {
+    const fs = Volume.fromJSON({});
+    fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25, -0.5]), new Float64Array([-0.25, 0.5])] }));
+    const filter = `compand=points=${points}`;
+    const errors: Uint8Array[] = [];
+    const output: Uint8Array[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-i", "/in.wav", ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-f", "s16le", "/out.pcm"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
+      stdin: (async function* () {})(), stdout: { async write(b: Uint8Array) { output.push(b); } }, stderr: { async write(b: Uint8Array) { errors.push(b); } }
+    } as never);
+    assert.equal(result.exitCode, 1);
+    assert.ok(Buffer.concat(errors).toString().includes("compand: expected input/output points"));
+    assert.equal(fs.existsSync("/out.pcm"), false);
+    assert.equal(Buffer.concat(output).length, 0);
   });
 }
 

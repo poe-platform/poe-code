@@ -36,13 +36,12 @@ export async function compandAudio(
   const gain = numericOption("gain", -900, 900);
   const initial = 10 ** (numericOption("volume", -900, 0) / 20);
   if (numericOption("delay", 0, 20) !== 0) throw new Error("compand: nonzero delay is unsupported");
-  const points = items(options.points!).map(value => {
+  const points = options.points!.split("|").flatMap(part => part.split(" ")).map(value => {
     const pair = value.split("/");
     if (pair.length !== 2) throw new Error("compand: expected input/output points");
     const x = number(pair[0]!);
     return { x, y: number(pair[1]!) - x };
   });
-  if (!points.length) throw new Error("compand: missing points");
   for (let i = 1; i < points.length; i++) {
     if (points[i]!.x < points[i - 1]!.x) throw new Error("compand: points must be increasing");
   }

@@ -29,6 +29,7 @@ import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewPixelSteps } fro
 import { compareLayerBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
 import { plasmaPixelSteps } from "./plasma.js";
 import { createMagickRandom } from "./random.js";
+import { evaluateNoiseSteps } from "./noise.js";
 import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
 import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
 import { bilevelPixelSteps } from "./bilevel-kernel.js";
@@ -1002,7 +1003,7 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
         return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, state.virtualPixel, state.background), signal, { ...im, width: w, height: h });
     }));
     const virtualCanvas = magickResizeCanvas(base, w, h);
-    return { ...yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16)), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), ...(virtualCanvas ? { virtualCanvas } : {}) };
+    return { ...yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0, w), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false): ConvolveKernel {
@@ -2195,53 +2196,13 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = Math.max(0, Math.min(255, cur));
                     break;
                 case "uniformnoise":
-                    next = cur + 255 * vFactor * 0.015625 * (random!() - 0.5);
+                case "gaussiannoise":
+                case "laplaciannoise":
+                case "multiplicativenoise":
+                case "poissonnoise":
+                case "impulsenoise":
+                    next = yield* evaluateNoiseSteps(cur, op, vFactor, random!);
                     break;
-                case "gaussiannoise": {
-                    const alpha = random!(), beta = random!();
-                    const gamma = Math.sqrt(-2 * Math.log(Math.abs(alpha) < 1e-12 ? 1 : alpha));
-                    const angle = 2 * Math.PI * beta;
-                    next = cur + Math.sqrt(cur * 257) / 257 * vFactor * 0.015625 * gamma * Math.cos(angle)
-                        + 255 * vFactor * 0.078125 * gamma * Math.sin(angle);
-                    break;
-                }
-                case "laplaciannoise": {
-                    const alpha = random!();
-                    // Native adds half a Q16 quantum before byte encoding.
-                    if (alpha <= 0.5)
-                        next = alpha <= 1e-12 ? cur - 255
-                            : cur + 255 * vFactor * 0.0390625 * Math.log(2 * alpha) + 0.5 / 257;
-                    else {
-                        const beta = 1 - alpha;
-                        next = beta <= 0.5e-12 ? cur + 255
-                            : cur - 255 * vFactor * 0.0390625 * Math.log(2 * beta) + 0.5 / 257;
-                    }
-                    break;
-                }
-                case "multiplicativenoise": {
-                    const alpha = random!(), beta = random!();
-                    const sigma = alpha > 1e-12 ? Math.sqrt(-2 * Math.log(alpha)) : 1;
-                    next = cur + cur * vFactor * 0.25 * sigma * Math.cos(2 * Math.PI * beta);
-                    break;
-                }
-                case "poissonnoise": {
-                    const sigma = vFactor * 12.5;
-                    const poisson = Math.exp(-sigma * cur / 255);
-                    let alpha = random!(), count = 0;
-                    while (alpha > poisson) {
-                        if (++cooperativeWork % 65536 === 0)
-                            yield;
-                        alpha *= random!();
-                        count++;
-                    }
-                    next = 255 * count / (Math.abs(sigma) < 1e-12 ? (sigma < 0 ? -1e-12 : 1e-12) : sigma);
-                    break;
-                }
-                case "impulsenoise": {
-                    const alpha = random!();
-                    next = alpha < vFactor * 0.05 ? 0 : alpha >= 1 - vFactor * 0.05 ? 255 : cur;
-                    break;
-                }
                 case "median":
                     next = cur + vByte;
                     break;
@@ -9521,7 +9482,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     const first = (await stack.get(0))!;
                     const base = frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
-                    const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, frames, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
+                    const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, frames, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth, settings.seed ?? 0, base.width), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
                     stack.length = 0; await stack.push(result);
                 }
                 return stack;

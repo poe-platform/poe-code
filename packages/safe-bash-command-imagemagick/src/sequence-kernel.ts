@@ -1,5 +1,7 @@
 import type { RgbaImage } from "@poe-code/image-ast";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { createMagickRandom } from "./random.js";
+import { evaluateNoiseSteps } from "./noise.js";
 type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>;
 const byte = (value: number) => Math.max(0, Math.min(255, Math.round(value)));
 
@@ -128,7 +130,7 @@ export function* combinePixelSteps(inputs: readonly Pick<RgbaImage, "width" | "h
 }
 
 /** Median ranks selected channel sums, retaining stable input order for equal sums. */
-export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth">[], raw: string, channels?: readonly boolean[], highDepth = false): Steps {
+export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette">[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0, width = size / 4): Steps {
     const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     function* read(image: number, position: number, length: number): Generator<ConvolveRequest, Uint8Array | Uint16Array, Uint8Array | undefined> {
@@ -151,13 +153,64 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
         return data;
     }
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
-    highDepth &&= operation === "mean" || operation === "median";
+    const noise = operation.endsWith("noise");
+    highDepth &&= operation === "mean" || operation === "median" || noise;
     if (!["abs", "add", "addmodulus", "and", "cos", "cosine", "divide", "exp", "exponential",
         "gaussiannoise", "impulsenoise", "inverselog", "laplaciannoise", "leftshift", "log", "max", "mean",
         "median", "min", "multiplicativenoise", "multiply", "or", "poissonnoise", "pow", "rightshift",
         "rms", "rootmeansquare", "set", "sin", "sine", "subtract", "sum", "threshold", "thresholdblack",
         "thresholdwhite", "uniformnoise", "xor"].includes(operation)) {
         throw new Error(`unrecognized evaluate operator '-evaluate-sequence' '${raw}'`);
+    }
+    if (noise) {
+        const random = createMagickRandom(seed), scale = highDepth ? 1 : 257;
+        const outputChannels = colorOutput ? [0, 1, 2] : [0];
+        if (hasAlpha) outputChannels.push(3);
+        // Native visits input slots through the output channel map. Unmapped
+        // palette slots alias red and still consume randomness.
+        const inputSlots = inputs.map(image => {
+            const gray = image.space === "b-w" || image.space === "grey16";
+            const indexed = image.isPalette || gray && !image.hasAlpha && image.format === "png" && image.depth === "uchar";
+            return (gray ? 1 : 3) + Number(image.hasAlpha) + Number(!!indexed);
+        });
+        const slots = inputSlots.reduce((count, value) => Math.max(count, value), outputChannels.length);
+        // Native consumes randomness row first, then frame, pixel and channel.
+        // Keep one HDRI accumulator row; transfer pixels in bounded spans.
+        const values = new Float64Array(width * slots);
+        for (let row = 0; row < size; row += width * 4) {
+            values.fill(0);
+            for (let image = 0; image < frames; image++) {
+                for (let left = 0; left < width; left += 1024) {
+                    yield;
+                    const count = Math.min(1024, width - left);
+                    const samples = yield* read(image, row + left * 4, count * 4);
+                    for (let pixel = 0; pixel < count; pixel++) {
+                        if (pixel % 64 === 0) yield;
+                        for (let slot = 0; slot < inputSlots[image]!; slot++) {
+                            const channel = outputChannels[slot] ?? 0;
+                            if (channels && !channels[channel] || channel === 3 && !inputs[image]!.hasAlpha) continue;
+                            const sample = samples[pixel * 4 + channel]! * scale / 257;
+                            const offset = (left + pixel) * slots + slot;
+                            values[offset] = image === 0 ? sample
+                                : yield* evaluateNoiseSteps(sample, operation, values[offset]! * 257, random);
+                        }
+                    }
+                }
+            }
+            for (let left = 0; left < width; left += 1024) {
+                yield;
+                const count = Math.min(1024, width - left);
+                const data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
+                const range = highDepth ? 65535 : 255;
+                for (let pixel = 0; pixel < count; pixel++) for (let channel = 0; channel < 4; channel++) {
+                    const slot = colorOutput ? channel : channel === 3 ? 1 : 0;
+                    data[pixel * 4 + channel] = channel === 3 && !hasAlpha ? range
+                        : Math.max(0, Math.min(range, Math.round(values[(left + pixel) * slots + slot]! * (highDepth ? 257 : 1))));
+                }
+                yield { kind: "write", highDepth, position: row + left * 4, data: new Uint8Array(data.buffer) };
+            }
+        }
+        return;
     }
     const median = operation === "median", window = median ? 512 : 4096;
     let work = 0;

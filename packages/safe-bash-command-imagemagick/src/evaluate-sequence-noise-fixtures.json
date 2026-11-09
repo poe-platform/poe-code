@@ -1,0 +1,119 @@
+[
+  {
+    "name": "rgba", "depth": 8,
+    "inputs": ["89504e470d0a1a0a0000000d49484452000000030000000108060000001be014b4000000206348524d00007a26000080840000fa00000080e8000075300000ea6000003a98000017709cba513c00000006624b474400ff00ff00ffa0bda7930000002574455874646174653a63726561746500323032362d31312d30375430393a34303a35342b30303a3030baf22c040000002574455874646174653a6d6f6469667900323032362d31312d30375430393a34303a35342b30303a3030cbaf94b80000002874455874646174653a74696d657374616d7000323032362d31312d30375430393a34303a35342b30303a30309cbab567000000154944415408d76310b149f9ff9f81c15c4f246001001baf041c4d3955a20000000049454e44ae426082", "89504e470d0a1a0a0000000d49484452000000030000000108060000001be014b4000000206348524d00007a26000080840000fa00000080e8000075300000ea6000003a98000017709cba513c00000006624b474400ff00ff00ffa0bda7930000002574455874646174653a63726561746500323032362d31312d30375430393a34303a35342b30303a3030baf22c040000002574455874646174653a6d6f6469667900323032362d31312d30375430393a34303a35342b30303a3030cbaf94b80000002874455874646174653a74696d657374616d7000323032362d31312d30375430393a34303a35342b30303a30309cbab567000000154944415408d763c8e3b209e1ba2369ae211eb0180015140371fd0f160f0000000049454e44ae426082", "89504e470d0a1a0a0000000d49484452000000030000000108060000001be014b4000000206348524d00007a26000080840000fa00000080e8000075300000ea6000003a98000017709cba513c00000006624b474400ff00ff00ffa0bda7930000002574455874646174653a63726561746500323032362d31312d30375430393a34303a35342b30303a3030baf22c040000002574455874646174653a6d6f6469667900323032362d31312d30375430393a34303a35342b30303a3030cbaf94b80000002874455874646174653a74696d657374616d7000323032362d31312d30375430393a34303a35342b30303a30309cbab567000000154944415408d763b04911b92ec1f8cc5c41226a010018da03f4442311690000000049454e44ae426082"],
+    "cases": [
+      {"operation": "PoissonNoise", "seed": 23, "channel": "", "count": 3, "expected": [20, 65, 19, 207, 21, 0, 0, 50, 33, 19, 80, 164]},
+      {"operation": "PoissonNoise", "seed": 24, "channel": "", "count": 3, "expected": [21, 63, 21, 213, 27, 0, 0, 56, 31, 21, 84, 152]},
+      {"operation": "PoissonNoise", "seed": 23, "channel": "G", "count": 3, "expected": [0, 60, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0]},
+      {"operation": "PoissonNoise", "seed": 23, "channel": "A", "count": 3, "expected": [0, 0, 0, 214, 0, 0, 0, 57, 0, 0, 0, 167]},
+      {"operation": "PoissonNoise", "seed": 23, "channel": "", "count": 1, "expected": [20, 60, 100, 255, 255, 0, 0, 55, 46, 20, 80, 160]},
+      {"operation": "PoissonNoise", "seed": 23, "channel": "", "count": 2, "expected": [3, 1, 1, 0, 0, 0, 0, 1, 1, 3, 1, 0]},
+      {"operation": "UniformNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 0, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0]},
+      {"operation": "UniformNoise", "seed": 24, "channel": "", "count": 3, "expected": [0, 0, 255, 0, 255, 0, 0, 255, 0, 0, 0, 255]},
+      {"operation": "UniformNoise", "seed": 23, "channel": "G", "count": 3, "expected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]},
+      {"operation": "UniformNoise", "seed": 23, "channel": "A", "count": 3, "expected": [0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 0, 0]},
+      {"operation": "UniformNoise", "seed": 23, "channel": "", "count": 1, "expected": [20, 60, 100, 255, 255, 0, 0, 55, 46, 20, 80, 160]},
+      {"operation": "UniformNoise", "seed": 23, "channel": "", "count": 2, "expected": [0, 0, 0, 255, 0, 220, 25, 0, 255, 0, 0, 255]},
+      {"operation": "ImpulseNoise", "seed": 23, "channel": "", "count": 3, "expected": [60, 100, 20, 215, 24, 0, 0, 55, 32, 24, 90, 160]},
+      {"operation": "ImpulseNoise", "seed": 24, "channel": "", "count": 3, "expected": [60, 100, 20, 215, 24, 0, 0, 55, 32, 24, 90, 160]},
+      {"operation": "ImpulseNoise", "seed": 23, "channel": "G", "count": 3, "expected": [0, 100, 0, 0, 0, 0, 0, 0, 0, 24, 0, 0]},
+      {"operation": "ImpulseNoise", "seed": 23, "channel": "A", "count": 3, "expected": [0, 0, 0, 215, 0, 0, 0, 55, 0, 0, 0, 160]},
+      {"operation": "ImpulseNoise", "seed": 23, "channel": "", "count": 1, "expected": [20, 60, 100, 255, 255, 0, 0, 55, 46, 20, 80, 160]},
+      {"operation": "ImpulseNoise", "seed": 23, "channel": "", "count": 2, "expected": [0, 0, 0, 0, 0, 220, 25, 0, 0, 0, 0, 0]},
+      {"operation": "GaussianNoise", "seed": 23, "channel": "", "count": 3, "expected": [255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255]},
+      {"operation": "GaussianNoise", "seed": 24, "channel": "", "count": 3, "expected": [0, 0, 0, 255, 255, 255, 255, 0, 255, 0, 0, 255]},
+      {"operation": "GaussianNoise", "seed": 23, "channel": "G", "count": 3, "expected": [0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0]},
+      {"operation": "GaussianNoise", "seed": 23, "channel": "A", "count": 3, "expected": [0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 255]},
+      {"operation": "GaussianNoise", "seed": 23, "channel": "", "count": 1, "expected": [20, 60, 100, 255, 255, 0, 0, 55, 46, 20, 80, 160]},
+      {"operation": "GaussianNoise", "seed": 23, "channel": "", "count": 2, "expected": [255, 0, 0, 255, 255, 220, 25, 0, 0, 0, 0, 255]},
+      {"operation": "MultiplicativeNoise", "seed": 23, "channel": "", "count": 3, "expected": [255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255, 255]},
+      {"operation": "MultiplicativeNoise", "seed": 24, "channel": "", "count": 3, "expected": [255, 0, 0, 0, 255, 255, 255, 255, 0, 255, 0, 255]},
+      {"operation": "MultiplicativeNoise", "seed": 23, "channel": "G", "count": 3, "expected": [0, 0, 0, 0, 0, 255, 0, 0, 0, 0, 0, 0]},
+      {"operation": "MultiplicativeNoise", "seed": 23, "channel": "A", "count": 3, "expected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]},
+      {"operation": "MultiplicativeNoise", "seed": 23, "channel": "", "count": 1, "expected": [20, 60, 100, 255, 255, 0, 0, 55, 46, 20, 80, 160]},
+      {"operation": "MultiplicativeNoise", "seed": 23, "channel": "", "count": 2, "expected": [0, 0, 255, 255, 255, 220, 25, 0, 0, 255, 0, 0]},
+      {"operation": "LaplacianNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 0, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0]},
+      {"operation": "LaplacianNoise", "seed": 24, "channel": "", "count": 3, "expected": [0, 0, 255, 0, 255, 0, 0, 255, 0, 0, 0, 255]},
+      {"operation": "LaplacianNoise", "seed": 23, "channel": "G", "count": 3, "expected": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]},
+      {"operation": "LaplacianNoise", "seed": 23, "channel": "A", "count": 3, "expected": [0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 0, 0]},
+      {"operation": "LaplacianNoise", "seed": 23, "channel": "", "count": 1, "expected": [20, 60, 100, 255, 255, 0, 0, 55, 46, 20, 80, 160]},
+      {"operation": "LaplacianNoise", "seed": 23, "channel": "", "count": 2, "expected": [0, 0, 0, 255, 0, 220, 25, 0, 255, 0, 0, 255]},
+      {"operation": "Set", "seed": 23, "channel": "", "count": 3, "expected": [20, 60, 100, 255, 255, 0, 0, 55, 46, 20, 80, 160]},
+      {"operation": "Mean", "seed": 23, "channel": "", "count": 3, "expected": [63, 57, 60, 185, 96, 74, 85, 55, 39, 22, 83, 161]},
+      {"operation": "Median", "seed": 23, "channel": "", "count": 3, "expected": [60, 100, 20, 215, 10, 220, 25, 55, 40, 23, 80, 163]}
+    ]
+  },
+  {
+    "name": "rgb", "depth": 8,
+    "inputs": ["89504e470d0a1a0a0000000d4948445200000003000000010203000000668efc2700000009504c5445143c64ff00002e14504c0692fe0000000a4944415408d763900000001a00198706ec740000000049454e44ae426082", "89504e470d0a1a0a0000000d4948445200000003000000010203000000668efc2700000009504c54456e0a3c0adc1928175071f80b090000000a4944415408d763900000001a00198706ec740000000049454e44ae426082", "89504e470d0a1a0a0000000d4948445200000003000000010203000000668efc2700000009504c54453c64141801e620185a9c4f1d6b0000000a4944415408d763900000001a00198706ec740000000049454e44ae426082"],
+    "cases": [
+      {"operation": "PoissonNoise", "seed": 23, "channel": "", "count": 3, "expected": [20, 65, 19, 255, 25, 0, 0, 255, 32, 21, 79, 255]},
+      {"operation": "UniformNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 0, 255, 255, 255, 255, 255, 255, 0, 0, 0, 255]},
+      {"operation": "ImpulseNoise", "seed": 23, "channel": "", "count": 3, "expected": [60, 100, 20, 255, 24, 0, 0, 255, 32, 24, 90, 255]},
+      {"operation": "GaussianNoise", "seed": 23, "channel": "", "count": 3, "expected": [255, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255]},
+      {"operation": "MultiplicativeNoise", "seed": 23, "channel": "", "count": 3, "expected": [255, 0, 255, 255, 0, 255, 255, 255, 255, 255, 255, 255]},
+      {"operation": "LaplacianNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 0, 255, 255, 255, 255, 255, 255, 0, 0, 0, 255]}
+    ]
+  },
+  {
+    "name": "mixed-alpha", "depth": 8,
+    "inputs": ["89504e470d0a1a0a0000000d4948445200000003000000010203000000668efc2700000009504c5445ff00002e1450143c648be4683f0000000274524e5337a03042cee40000000a4944415408d76368010000860085167bd5940000000049454e44ae426082", "89504e470d0a1a0a0000000d4948445200000003000000010203000000668efc2700000009504c54456e0a3c0adc1928175071f80b090000000a4944415408d763900000001a00198706ec740000000049454e44ae426082", "89504e470d0a1a0a0000000d4948445200000003000000010203000000668efc2700000009504c54453c64141801e620185a9c4f1d6b0000000374524e53d737a03461e4b70000000a4944415408d763900000001a00198706ec740000000049454e44ae426082"],
+    "cases": [
+      {"operation": "PoissonNoise", "seed": 23, "channel": "", "count": 3, "expected": [20, 60, 21, 0, 28, 0, 0, 1, 30, 19, 81, 0]},
+      {"operation": "UniformNoise", "seed": 23, "channel": "", "count": 3, "expected": [255, 255, 0, 255, 0, 255, 0, 255, 255, 255, 255, 255]},
+      {"operation": "ImpulseNoise", "seed": 23, "channel": "", "count": 3, "expected": [60, 100, 20, 0, 24, 0, 0, 0, 32, 24, 90, 0]},
+      {"operation": "GaussianNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 255, 0, 255, 0, 255, 255, 255, 255, 255, 255, 0]},
+      {"operation": "MultiplicativeNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 255, 0, 0, 255, 0, 0, 255, 255, 255, 0, 0]},
+      {"operation": "LaplacianNoise", "seed": 23, "channel": "", "count": 3, "expected": [255, 255, 0, 255, 0, 255, 0, 255, 255, 255, 255, 255]}
+    ]
+  },
+  {
+    "name": "rows", "depth": 8,
+    "inputs": ["89504e470d0a1a0a0000000d4948445200000003000000020203000000e01a8e8900000009504c5445ff00002e1450143c648be4683f0000000274524e5337a03042cee40000000c4944415408d763686168010002140109091acac60000000049454e44ae426082", "89504e470d0a1a0a0000000d4948445200000003000000020203000000e01a8e8900000009504c54456e0a3c0adc1928175071f80b090000000374524e535437a34e1b10d40000000c4944415408d763906090000000640031bbb225c50000000049454e44ae426082", "89504e470d0a1a0a0000000d4948445200000003000000020203000000e01a8e8900000009504c54453c64141801e620185a9c4f1d6b0000000374524e53d737a03461e4b70000000c4944415408d763906090000000640031bbb225c50000000049454e44ae426082"],
+    "cases": [
+      {"operation": "PoissonNoise", "seed": 23, "channel": "", "count": 3, "expected": [19, 62, 22, 210, 27, 0, 0, 56, 32, 19, 85, 149, 22, 66, 22, 204, 27, 0, 0, 54, 32, 20, 83, 151]},
+      {"operation": "UniformNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 255, 0, 255, 0, 255, 255, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255, 255, 0, 0, 0, 0, 0, 255]},
+      {"operation": "ImpulseNoise", "seed": 23, "channel": "", "count": 3, "expected": [60, 100, 20, 215, 24, 0, 0, 55, 32, 24, 90, 160, 60, 100, 20, 215, 24, 0, 0, 55, 32, 24, 90, 160]},
+      {"operation": "GaussianNoise", "seed": 23, "channel": "", "count": 3, "expected": [255, 0, 0, 255, 255, 0, 0, 0, 255, 0, 0, 0, 0, 255, 255, 0, 255, 255, 255, 255, 255, 255, 0, 255]},
+      {"operation": "MultiplicativeNoise", "seed": 23, "channel": "", "count": 3, "expected": [255, 255, 255, 255, 255, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 0, 0, 0, 0, 255, 0, 0]},
+      {"operation": "LaplacianNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 255, 0, 255, 0, 255, 255, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255, 255, 0, 0, 0, 0, 0, 255]}
+    ]
+  },
+  {
+    "name": "deep", "depth": 16,
+    "inputs": ["89504e470d0a1a0a0000000d49484452000000030000000110060000004b70c8f7000000224944415408d7631069b5599b72f5ffffffff190a190acd57e8cd17690d38b85010009af80ba25ce17cf50000000049454e44ae426082", "89504e470d0a1a0a0000000d49484452000000030000000110060000004b70c8f7000000224944415408d763ccbbcf556db336e4e89c39972fddbdfbf8b19c9c95b5b9796e0e00a2da0c2b155da8c60000000049454e44ae426082", "89504e470d0a1a0a0000000d49484452000000030000000110060000004b70c8f7000000224944415408d763b0599b7255a4f58687442763d1f370f3150a13253aa34e2f140400820a0a36e923b5dd0000000049454e44ae426082"],
+    "cases": [
+      {"operation": "PoissonNoise", "seed": 23, "channel": "", "count": 3, "expected": [5576, 15026, 5163, 54893, 6921, 104, 590, 14535, 8645, 5347, 20307, 41887]},
+      {"operation": "UniformNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 0, 65535, 65535, 65535, 65535, 65535, 0, 0, 0, 0, 0]},
+      {"operation": "ImpulseNoise", "seed": 23, "channel": "", "count": 3, "expected": [15533, 25813, 5253, 55368, 6281, 370, 59223, 14248, 8337, 6281, 23243, 41233]},
+      {"operation": "GaussianNoise", "seed": 23, "channel": "", "count": 3, "expected": [65535, 0, 65535, 65535, 65535, 0, 0, 65535, 65535, 65535, 65535, 65535]},
+      {"operation": "MultiplicativeNoise", "seed": 23, "channel": "", "count": 3, "expected": [65535, 0, 65535, 0, 0, 0, 0, 65535, 65535, 65535, 65535, 65535]},
+      {"operation": "LaplacianNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 0, 65535, 65535, 65535, 65535, 65535, 0, 0, 0, 0, 0]}
+    ]
+  },
+  {
+    "name": "gray", "depth": 8,
+    "inputs": ["89504e470d0a1a0a0000000d4948445200000003000000010804000000b1e9dc3f0000000f4944415408d76334fbcf60f1221300092e02c0e3d930dd0000000049454e44ae426082", "89504e470d0a1a0a0000000d4948445200000003000000010804000000b1e9dc3f0000000f4944415408d763500e59682ebf1800068702129a86b0fc0000000049454e44ae426082", "89504e470d0a1a0a0000000d4948445200000003000000010804000000b1e9dc3f0000000f4944415408d76308bb2e662eb70000081702393f60f3ae0000000049454e44ae426082"],
+    "cases": [
+      {"operation": "PoissonNoise", "seed": 23, "channel": "", "count": 3, "expected": [54, 54, 54, 216, 22, 22, 22, 54, 28, 28, 28, 155]},
+      {"operation": "UniformNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 0, 0, 255, 0, 0, 0, 0, 255, 255, 255, 255]},
+      {"operation": "ImpulseNoise", "seed": 23, "channel": "", "count": 3, "expected": [86, 86, 86, 215, 22, 22, 22, 55, 30, 30, 30, 160]},
+      {"operation": "GaussianNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0, 0]},
+      {"operation": "MultiplicativeNoise", "seed": 23, "channel": "", "count": 3, "expected": [255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255]},
+      {"operation": "LaplacianNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 0, 0, 255, 0, 0, 0, 0, 255, 255, 255, 255]}
+    ]
+  },
+  {
+    "name": "mixed-gray", "depth": 8,
+    "inputs": ["89504e470d0a1a0a0000000d4948445200000003000000010203000000668efc2700000009504c5445ff00002e1450143c648be4683f0000000274524e5337a03042cee40000000a4944415408d76368010000860085167bd5940000000049454e44ae426082", "89504e470d0a1a0a0000000d4948445200000003000000010804000000b1e9dc3f0000000f4944415408d763500e59682ebf1800068702129a86b0fc0000000049454e44ae426082", "89504e470d0a1a0a0000000d4948445200000003000000010203000000668efc2700000009504c54453c64141801e620185a9c4f1d6b0000000374524e53d737a03461e4b70000000a4944415408d763900000001a00198706ec740000000049454e44ae426082"],
+    "cases": [
+      {"operation": "PoissonNoise", "seed": 23, "channel": "", "count": 3, "expected": [22, 60, 1, 0, 24, 0, 0, 1, 31, 19, 1, 0]},
+      {"operation": "UniformNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 255, 255, 0, 0, 255, 230, 0, 255, 255, 255, 255]},
+      {"operation": "ImpulseNoise", "seed": 23, "channel": "", "count": 3, "expected": [60, 100, 0, 0, 24, 0, 230, 0, 32, 24, 0, 0]},
+      {"operation": "GaussianNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 255, 0, 0, 0, 255, 230, 0, 255, 0, 255, 0]},
+      {"operation": "MultiplicativeNoise", "seed": 23, "channel": "", "count": 3, "expected": [255, 255, 0, 255, 0, 0, 230, 255, 0, 0, 255, 0]},
+      {"operation": "LaplacianNoise", "seed": 23, "channel": "", "count": 3, "expected": [0, 255, 255, 0, 0, 255, 230, 0, 255, 255, 255, 255]}
+    ]
+  }
+]

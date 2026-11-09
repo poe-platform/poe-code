@@ -256,5 +256,27 @@
       59937,
       64860
     ]
+  },
+  {
+    "name": "transparent near-identical colors and repeated pixels",
+    "input": "iVBORw0KGgoAAAANSUhEUgAAAAMAAAACEAYAAADN5LpZAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRP///////wlY99wAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDdUMTk6MjA6MTQrMDA6MDBLAgnLAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA3VDE5OjIwOjE0KzAwOjAwOl+xdwAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wN1QxOToyMDoxNCswMDowMG1KkKgAAAAQY2FOdgAAAAkAAAAHAAAAAgAAAAG9BSN7AAAAJklEQVQI12NUF/BTKDVggABGKP2fgYEJyhQ5HLD+ROv5//+hfAYAn/QIPpZ2iQcAAAAASUVORK5CYII=",
+    "expected": [
+      10000,
+      20000,
+      30000,
+      0,
+      10000,
+      20000,
+      30001,
+      0,
+      10000,
+      20000,
+      30000,
+      20,
+      60000,
+      65000,
+      64000,
+      65535
+    ]
   }
 ]

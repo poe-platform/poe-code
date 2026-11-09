@@ -43,13 +43,15 @@ export function* uniqueColorsSteps(image: RgbaImage): Generator<void, RgbaImage,
         }
     }
     const data = new Uint8Array(pixels.length * 4), data16 = image.data16 ? new Uint16Array(data.length) : undefined;
+    const evaluateSamples = image.evaluateSamples ? new Float64Array(data.length) : undefined;
     for (let index = 0; index < pixels.length; index++) {
         if (index % 1024 === 0) yield;
         const offset = pixels[index]!.offset;
         data.set(image.data.subarray(offset, offset + 4), index * 4);
         if (data16) data16.set(image.data16!.subarray(offset, offset + 4), index * 4);
+        if (evaluateSamples) evaluateSamples.set(image.evaluateSamples!.subarray(offset, offset + 4), index * 4);
     }
-    return { ...image, width: pixels.length, height: 1, data, ...(data16 ? { data16 } : {}) };
+    return { ...image, width: pixels.length, height: 1, data, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
 export async function uniqueColorsStored(image: StoredRgbaImage, storage: PagedStorage, signal: AbortSignal): Promise<StoredRgbaImage> {
@@ -71,6 +73,8 @@ export async function uniqueColorsStored(image: StoredRgbaImage, storage: PagedS
         }
     }
     const position = storage.allocate(count * 4), storedData16 = image.storedData16 ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
+    const storedEvaluateSamples = image.storedEvaluateSamples === undefined ? undefined : storage.allocate(count * 32);
+    const evaluateBytes = storedEvaluateSamples === undefined ? undefined : new Uint8Array(4096 * 8);
     const data = new Uint8Array(4096), data16 = storedData16 ? new Uint16Array(4096) : undefined;
     let written = 0, used = 0;
     for await (const [, source] of order.entries()) {
@@ -82,12 +86,14 @@ export async function uniqueColorsStored(image: StoredRgbaImage, storage: PagedS
             data16.set(samples, used);
             data.set(Uint8Array.from(samples, value => Math.round(value / 257)), used);
         } else data.set(await storage.read(image.position + offset, 4), used);
+        if (evaluateBytes) evaluateBytes.set(await storage.read(image.storedEvaluateSamples! + offset * 8, 32), used * 8);
         used += 4;
         if (used === data.length || written + used === count * 4) {
             await storage.write(position + written, data.subarray(0, used));
             if (data16) await storage.write(storedData16!.position + written * 2, new Uint8Array(data16.buffer, 0, used * 2));
+            if (evaluateBytes) await storage.write(storedEvaluateSamples! + written * 8, evaluateBytes.subarray(0, used * 8));
             written += used; used = 0;
         }
     }
-    return { ...image, position, width: count, height: 1, ...(storedData16 ? { storedData16 } : {}) };
+    return { ...image, position, width: count, height: 1, ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}) };
 }

@@ -16,6 +16,31 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("channel count remix routing", () => {
+  for (const channels of [8, 9, 10, 16]) {
+    it(`handles stereo to ${channels} channels according to default speaker routing`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 24 }, (_, i) => (i + 1) / 32768),
+        Float64Array.from({ length: 24 }, (_, i) => -(i + 1) / 32768)
+      ] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-v", "error", "-i", "/in.wav", "-ac", String(channels), "/out.wav"
+      ], vfs);
+      if (channels === 9) {
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(!vfs.store.get("/out.wav")?.byteLength);
+      } else {
+        assert.equal(result.exitCode, 0, result.stderr);
+        const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
+        assert.equal(audio.channels, channels);
+        assert.equal(audio.channelData[0]!.length, 24);
+      }
+      assert.deepEqual(vfs.store.get("/in.wav"), input);
+    });
+  }
+});
+
 describe("acopy", () => {
   for (const graph of [false, true]) {
     for (const filter of ["acopy", "acopy,areverse", "areverse,acopy"]) {

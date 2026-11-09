@@ -9470,6 +9470,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const targetRate = audioRate ?? origRate;
                   const targetCh = audioChannels !== undefined && audioChannels < 0 ? origCh : audioChannels ??
                     ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") ? Math.min(origCh, 2) : origCh);
+                  // Nine channels have no default speaker layout for automatic rematrixing.
+                  if (targetCh === 9 && targetCh !== origCh) {
+                    throw new Error("Cannot remix to 9 channels: not enough speaker routing information");
+                  }
                   if ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") && targetCh > 2) {
                     throw new Error(`${audioCodec}: unsupported channel count ${targetCh}`);
                   }

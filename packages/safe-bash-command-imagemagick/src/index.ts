@@ -4449,6 +4449,9 @@ function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geo
     // Crop geometry uses page coordinates; extraction uses local raster coordinates.
     const x0 = position.x - (img.virtualCanvas?.x ?? 0);
     const y0 = position.y - (img.virtualCanvas?.y ?? 0);
+    if (x0 > img.width || y0 > img.height || x0 + rawW <= 0 || y0 + rawH <= 0) {
+        return null;
+    }
     if (x0 === img.width || y0 === img.height) {
         return undefined;
     }
@@ -4456,9 +4459,6 @@ function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geo
     const iy0 = Math.max(0, y0);
     const ix1 = Math.min(img.width, x0 + rawW);
     const iy1 = Math.min(img.height, y0 + rawH);
-    if (ix1 <= ix0 || iy1 <= iy0) {
-        return null;
-    }
     return {
             left: ix0,
             top: iy0,

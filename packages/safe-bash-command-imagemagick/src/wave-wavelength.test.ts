@@ -3,7 +3,7 @@ import { decodeImage } from "@poe-code/image-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createImagemagickCommand, runConvertCliSync } from "./index.js";
-import fixtures from "./wave-wavelength-fixtures.json";
+import fixtures from "./wave-wavelength-fixtures.json" with { type: "json" };
 
 // Decoded 8-bit RGBA samples from native ImageMagick, using the same RGB PNG.
 it.each(fixtures.cases)("preserves wave wavelength $geometry", async ({ geometry, rgba }) => {

@@ -9,8 +9,8 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
   it.each([false, true])(`${mode} trims only transparent initial pixels (opaque=%s)`, async opaque => {
     const data = new Uint8Array(Array.from({ length: 6 }, () => opaque ? red : [0, 0, 0, 0]).flat());
     const input = encodeImage({ width: 3, height: 2, pageHeight: 1, pages: 2,
+      format: "raw", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: !opaque,
       data, disposal: [1, 1], delay: [30, 60], loop: 4,
-      format: "gif", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true,
     }, { format: "gif", pageHeight: 1 }).data;
     const files = new Map<string, Uint8Array>([["in.gif", input]]);
     const filesystem = new MemoryFileSystem();

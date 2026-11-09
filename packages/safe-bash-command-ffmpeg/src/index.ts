@@ -10690,8 +10690,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }));
                         }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {
-                        let start = Infinity;
-                        let end = -Infinity;
+                        const bounds = new Map<string, number>();
                         const argument = trimmed.slice("atrim=".length);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
@@ -10706,9 +10705,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (!value || !Number.isFinite(number) || !Number.isSafeInteger(frame) || (samples && number < 0)) {
                             throw new Error(`atrim: invalid ${key}`);
                           }
-                          if (key === "start" || key === "start_sample") start = Math.min(start, frame);
-                          else end = Math.max(end, frame);
+                          bounds.set(key, frame);
                         }
+                        let start = Math.min(bounds.get("start") ?? Infinity, bounds.get("start_sample") ?? Infinity);
+                        let end = Math.max(bounds.get("end") ?? -Infinity, bounds.get("end_sample") ?? -Infinity);
                         const length = stretched[0]?.length ?? 0;
                         start = start === Infinity ? 0 : Math.max(0, Math.min(length, start));
                         end = end === -Infinity ? length : Math.max(start, Math.min(length, end));

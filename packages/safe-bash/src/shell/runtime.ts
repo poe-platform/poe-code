@@ -51,7 +51,7 @@ import { ConditionalUnsupported, evaluateConditional, type ConditionalExpression
 import { invocationScope, throwCleanupFailures, InvocationScope } from "./cleanup.js";
 import { bindFileOutputBudget, openFileOutput } from "../contracts/filesystem-output.js";
 import type { CommandFileDescriptor } from "../contracts/filesystem-descriptor.js";
-import { outputFailure } from "../contracts/io.js";
+import { collectBytes, outputFailure } from "../contracts/io.js";
 import { defaultEchoExecutors, formatPrintf, printfCommand } from "../commands/basic.js";
 export const customRegisteredCommands = new WeakSet<object>();
 export const customRegisteredRegistries = new WeakSet<CommandRegistry>();
@@ -7608,14 +7608,25 @@ export class Runtime {
         if (!found && (searchPath !== undefined || state.profile === "sh")) throw new CommandFailure(`${context.command}: ${filename}: file not found`, 1);
       }
       if (!filename) throw new CommandFailure(": No such file or directory", 1);
-      const path = pathOf(state, target);
-      const stat = await interruptible(this.fs.stat(path, options), this.signal);
-      if (stat.type === "directory") throw new CommandFailure(`${context.command}: ${target}: is a directory`, 1);
-      if (stat.type !== "file" && stat.type !== "character" && (stat.type as string) !== "fifo") throw new CommandFailure(`${target}: not a regular file`, 1);
-      await interruptible(this.fs.access(path, ACCESS_MODES.R_OK, options), this.signal);
       const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;
-      if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
-      const bytes = await interruptible(this.fs.readFile(path, { ...options, ...(maxBytes === Infinity ? {} : { maxBytes }) }), this.signal);
+      const descriptorName = target.startsWith("/dev/fd/") ? target.slice(8) : "";
+      const descriptor = target === "/dev/stdin" ? 0 : target === "/dev/stdout" ? 1 : target === "/dev/stderr" ? 2
+        : descriptorName.length > 0 && [...descriptorName].every(character => character >= "0" && character <= "9") ? Number(descriptorName) : undefined;
+      let bytes: Uint8Array;
+      if (descriptor !== undefined) {
+        const entry = io.descriptors?.get(descriptor);
+        const input = entry?.closed ? undefined : entry?.input ?? (!io.descriptors && descriptor === 0 ? io.stdin : undefined);
+        if (!input || input === closedSource) throw new FsError("EBADF", { path: target });
+        bytes = await collectBytes(input, { ...options, ...(maxBytes === Infinity ? {} : { maxBytes }) });
+      } else {
+        const path = pathOf(state, target);
+        const stat = await interruptible(this.fs.stat(path, options), this.signal);
+        if (stat.type === "directory") throw new CommandFailure(`${context.command}: ${target}: is a directory`, 1);
+        if (stat.type !== "file" && stat.type !== "character" && (stat.type as string) !== "fifo") throw new CommandFailure(`${target}: not a regular file`, 1);
+        await interruptible(this.fs.access(path, ACCESS_MODES.R_OK, options), this.signal);
+        if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
+        bytes = await interruptible(this.fs.readFile(path, { ...options, ...(maxBytes === Infinity ? {} : { maxBytes }) }), this.signal);
+      }
       this.budget.source(bytes.byteLength);
       source = this.sourceText(bytes, target);
     } catch (error) {

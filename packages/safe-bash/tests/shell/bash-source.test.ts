@@ -186,12 +186,10 @@ for (const middleware of [false, true]) {
       assert.equal(native.status, 0, native.stderr);
       assert.equal(native.stderr, "");
       const fs = new MemoryFileSystem();
-      await fs.mkdir("/dev", { recursive: true });
-      await fs.writeFile("/dev/stdin", new TextEncoder().encode(input));
       const shell = new Shell({ fs, limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } }).use(standardCommands());
       t.after(() => shell.dispose());
       if (middleware) shell.use((_context, next) => next());
-      const result = await shell.exec(source);
+      const result = await shell.exec(source, { stdin: input });
       assert.equal(result.stderr, "");
       assert.equal(result.exitCode, native.status);
       assert.equal(result.stdout, native.stdout);

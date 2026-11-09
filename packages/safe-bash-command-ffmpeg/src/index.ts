@@ -5176,7 +5176,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingStartNumberRange: number | undefined;
       let pendingPatternType: InputSpec["patternType"];
       let pendingGuessLayoutMax: number | undefined;
-      let pendingChannelLayout = false;
+      let pendingChannelLayout: string | undefined;
       let overwrite: boolean | undefined;
       let exitOnError = false;
       let maxErrorRate = Math.fround(2 / 3);
@@ -6002,14 +6002,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-ch_layout" || arg === "-channel_layout") {
             const layout = args[++i];
             const beforeInput = args.slice(i + 1).includes("-i");
-            if (layout !== "mono" && !(beforeInput && layout === "stereo")) {
+            const channels = parseAudioChannelLayout(layout ?? "");
+            const names = channels.join("+");
+            if (beforeInput ? !["FC", "FL+FR", "FC+LFE", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR"].includes(names) : layout !== "mono") {
               await writeBytes(context.stderr, encodeUtf8(beforeInput
-                ? "ffmpeg: only mono and stereo input channel layouts are supported\n"
+                ? `ffmpeg: unsupported input channel layout '${layout ?? ""}'\n`
                 : "ffmpeg: only mono output channel layout is supported\n"), context.signal);
               return { exitCode: 1 };
             }
-            audioChannelOptions.push(["", layout === "mono" ? 1 : 2]);
-            if (beforeInput) pendingChannelLayout = true;
+            audioChannelOptions.push(["", channels.length]);
+            if (beforeInput) pendingChannelLayout = names;
           } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats" || arg === "-nostats") {
             // no-op
           } else if (arg === "-f") {
@@ -6245,6 +6247,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingAudioDecoder = undefined;
+            const inputPlugin = pendingFormat === undefined ? undefined : registry.findByFormatName(pendingFormat);
+            if (pendingChannelLayout && pendingChannelLayout !== "FC" && pendingChannelLayout !== "FL+FR" &&
+                inputPlugin?.supportedAudioCodecs.includes(`pcm_${inputPlugin.id}`)) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: only mono and stereo raw input channel layouts are supported\n"), context.signal);
+              return { exitCode: 1 };
+            }
             const path = args[++i] ?? "";
             inputs.push({
               guessLayoutMax: pendingChannelLayout ? undefined : pendingGuessLayoutMax,
@@ -6284,7 +6292,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             });
             pendingDumpAttachments = [];
             pendingGuessLayoutMax = undefined;
-            pendingChannelLayout = false;
+            pendingChannelLayout = undefined;
             audioRate = undefined;
             audioChannelOptions = [];
             pendingFormat = undefined;

@@ -10069,6 +10069,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           values[key] = value;
                         }
+                        if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
+                          budget.allocateMemory(stretched[0]!.length * 2 * Float32Array.BYTES_PER_ELEMENT);
+                          const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
+                            stretched, filteredChannelMask, false, budget, context.signal);
+                          stretched = stereo.channels;
+                        }
                         const dialogue = await enhanceDialogue(stretched, origRate, values[0]!, values[1]!, values[2]!, budget, context.signal);
                         stretched = dialogue.channels;
                         const length = stretched[0]?.length ?? 0;

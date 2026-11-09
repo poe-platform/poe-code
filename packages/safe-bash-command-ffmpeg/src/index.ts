@@ -4226,6 +4226,7 @@ export function evalSyncFfmpeg(
     let globalPalette: boolean | undefined;
     let serialOffset: number | undefined;
     let bitexact = false;
+    let autobsf = true;
     let maxVideoFrames: number | undefined;
     let maxAudioFrames: number | undefined;
     let fileSize: number | undefined;
@@ -4537,9 +4538,14 @@ export function evalSyncFfmpeg(
         bitexact = true;
       } else if (arg === "-fflags") {
         const value = args[++i];
-        if (value !== "bitexact" && value !== "+bitexact") throw new Error("Unsupported fflags: expected bitexact");
-        bitexact = true;
-        serialOffset ??= 0;
+        if (value === "autobsf" || value === "+autobsf" || value === "-autobsf") {
+          if (!args.slice(i + 1).includes("-i")) autobsf = value !== "-autobsf";
+        } else {
+          if (value !== "bitexact" && value !== "+bitexact") throw new Error("Unsupported fflags: expected bitexact or autobsf");
+          bitexact = true;
+          serialOffset ??= 0;
+          if (value === "bitexact" && !args.slice(i + 1).includes("-i")) autobsf = false;
+        }
       } else if (arg === "-page_duration") {
         const value = args[++i];
         pageDuration = value?.trim() ? Number(value) : NaN;
@@ -4907,7 +4913,7 @@ export function evalSyncFfmpeg(
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale), subtitleBitstreamFilter, budget, "subtitle", workingDoc.timescale) };
-    if (videoCodec === "copy" && (outPlugin?.id === "mkv" || outPlugin?.id === "webm")) {
+    if (autobsf && videoCodec === "copy" && (outPlugin?.id === "mkv" || outPlugin?.id === "webm")) {
       workingDoc = { ...workingDoc, tracks: mergeVp9Superframes(workingDoc.tracks, budget) };
     }
     workingDoc = applyVideoTag(workingDoc, outPlugin.id, videoCodec, videoTag);
@@ -5397,6 +5403,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let globalPalette: boolean | undefined;
         let serialOffset: number | undefined;
         let bitexact = false;
+        let autobsf = true;
         let maxVideoFrames: number | undefined;
         let maxAudioFrames: number | undefined;
         let fileSize: number | undefined;
@@ -6502,9 +6509,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             bitexact = true;
           } else if (arg === "-fflags") {
             const value = args[++i];
-            if (value !== "bitexact" && value !== "+bitexact") throw new Error("Unsupported fflags: expected bitexact");
-            bitexact = true;
-            serialOffset ??= 0;
+            if (value === "autobsf" || value === "+autobsf" || value === "-autobsf") {
+              if (!args.slice(i + 1).includes("-i")) autobsf = value !== "-autobsf";
+            } else {
+              if (value !== "bitexact" && value !== "+bitexact") throw new Error("Unsupported fflags: expected bitexact or autobsf");
+              bitexact = true;
+              serialOffset ??= 0;
+              if (value === "bitexact" && !args.slice(i + 1).includes("-i")) autobsf = false;
+            }
           } else if (arg === "-page_duration") {
             const value = args[++i];
             pageDuration = value?.trim() ? Number(value) : NaN;
@@ -10268,7 +10280,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale), subtitleBitstreamFilter, budget, "subtitle", workingDoc.timescale) };
-            if (videoCodec === "copy" && (outPlugin?.id === "mkv" || outPlugin?.id === "webm")) {
+            if (autobsf && videoCodec === "copy" && (outPlugin?.id === "mkv" || outPlugin?.id === "webm")) {
               workingDoc = { ...workingDoc, tracks: mergeVp9Superframes(workingDoc.tracks, budget) };
             }
 

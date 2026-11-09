@@ -1,0 +1,221 @@
+{
+  "enabled": [
+    {
+      "pts": 0,
+      "size": "1441",
+      "data_hash": "SHA256:a2034f76e33e9e1fa3033d4a72a3a782e6829742539bbd73bf6c6a5db8540d62"
+    },
+    {
+      "pts": 100,
+      "size": "292",
+      "data_hash": "SHA256:0c9bf18e02ad674c44a356bb7ed24c28c026d3ab3a0de1831f11a6732e97ea10"
+    },
+    {
+      "pts": 200,
+      "size": "82",
+      "data_hash": "SHA256:1d9005fb9ebcf95ec3537b57a19dc9a68aaa9b34b31859e42eeca3c71f43e964"
+    },
+    {
+      "pts": 300,
+      "size": "77",
+      "data_hash": "SHA256:a97fac6141599f5aadb2d816925ac55bf454985f1c1e7f862577a01b0bd2f3d5"
+    },
+    {
+      "pts": 400,
+      "size": "63",
+      "data_hash": "SHA256:5af267d2cb6c0b10004e69802ab062a42c4d885535d3164728b5bf32858b53da"
+    },
+    {
+      "pts": 500,
+      "size": "43",
+      "data_hash": "SHA256:4ba9c5a6e8cca43a8def88c32b5f17f38800b72ebd5061b35fe2f727779aee5f"
+    },
+    {
+      "pts": 600,
+      "size": "57",
+      "data_hash": "SHA256:6ada4918dbfa95fa137475cd902d0fddca8a2dd44966bfb797b08f2866a89dd9"
+    },
+    {
+      "pts": 700,
+      "size": "67",
+      "data_hash": "SHA256:79108465eafe94db8199876071d17778585ea2d8f010fa04188bf4a36312481b"
+    },
+    {
+      "pts": 800,
+      "size": "118",
+      "data_hash": "SHA256:b0b19bbd62b84160abe76c536b5acdb06ce661cd396624feeb87b9e700c73466"
+    },
+    {
+      "pts": 900,
+      "size": "114",
+      "data_hash": "SHA256:8b474b20bee1e601e52710f4ffc9d5fd2a6053d0f4d610ad58d46e74d2feaa7c"
+    },
+    {
+      "pts": 1000,
+      "size": "18",
+      "data_hash": "SHA256:dea318be27790a8a57db89f095f1c62b646753705f346dcef2c761d912e2fd8e"
+    },
+    {
+      "pts": 1100,
+      "size": "16",
+      "data_hash": "SHA256:a47eb05ed999422103f261446e9b5d4c2c1e11cc78f68751dce793723c1b440f"
+    },
+    {
+      "pts": 1200,
+      "size": "633",
+      "data_hash": "SHA256:a16136cef0ca7f82cefd72681dfdb49628ec4cb3c734fd9b097e6b992d6d8f8f"
+    },
+    {
+      "pts": 1300,
+      "size": "43",
+      "data_hash": "SHA256:14fb30fa01984293f9ca97f57b3737ffaf71a237601f2454a95d8ff8132302fb"
+    },
+    {
+      "pts": 1400,
+      "size": "54",
+      "data_hash": "SHA256:aa5eaf275e09fe81df7f3420197868132257495ff09ad2d7b8c348e7484263c8"
+    },
+    {
+      "pts": 1500,
+      "size": "16",
+      "data_hash": "SHA256:d84a8cac1f8bae48c8eb16c987b8e48a0e1636a5fec3fb7671a30b5a5367ebf7"
+    },
+    {
+      "pts": 1600,
+      "size": "91",
+      "data_hash": "SHA256:546c8e2c3e6879f70e0db8e49a4ad2506052aad1837cf7936b274740144a00ed"
+    },
+    {
+      "pts": 1700,
+      "size": "87",
+      "data_hash": "SHA256:21bee31e13f4fef6172e84a6162bead357131481072abf820265161df85ded01"
+    },
+    {
+      "pts": 1800,
+      "size": "16",
+      "data_hash": "SHA256:a6135e3badeae0e02d367fe85c65cfaf8ff5c0f4e33872fd681179e8f08bde29"
+    },
+    {
+      "pts": 1900,
+      "size": "16",
+      "data_hash": "SHA256:2b9bc049f7424d020e9a5dc5f0759f2bf910d0244a83caf3d89d467f9662185e"
+    }
+  ],
+  "disabled": [
+    {
+      "pts": 0,
+      "size": "1441",
+      "data_hash": "SHA256:a2034f76e33e9e1fa3033d4a72a3a782e6829742539bbd73bf6c6a5db8540d62"
+    },
+    {
+      "pts": 100,
+      "size": "219",
+      "data_hash": "SHA256:bb43811be4de69fd7e8bce58b218a1f29a2dbb2b2f966102a06de82d1198d3e2"
+    },
+    {
+      "pts": 100,
+      "size": "69",
+      "data_hash": "SHA256:3bfd19d2bbeb81796b6d1d4e8eb5220de0764793799fca9d7bc98e4d69556f66"
+    },
+    {
+      "pts": 200,
+      "size": "82",
+      "data_hash": "SHA256:1d9005fb9ebcf95ec3537b57a19dc9a68aaa9b34b31859e42eeca3c71f43e964"
+    },
+    {
+      "pts": 300,
+      "size": "77",
+      "data_hash": "SHA256:a97fac6141599f5aadb2d816925ac55bf454985f1c1e7f862577a01b0bd2f3d5"
+    },
+    {
+      "pts": 400,
+      "size": "63",
+      "data_hash": "SHA256:5af267d2cb6c0b10004e69802ab062a42c4d885535d3164728b5bf32858b53da"
+    },
+    {
+      "pts": 500,
+      "size": "43",
+      "data_hash": "SHA256:4ba9c5a6e8cca43a8def88c32b5f17f38800b72ebd5061b35fe2f727779aee5f"
+    },
+    {
+      "pts": 600,
+      "size": "57",
+      "data_hash": "SHA256:6ada4918dbfa95fa137475cd902d0fddca8a2dd44966bfb797b08f2866a89dd9"
+    },
+    {
+      "pts": 700,
+      "size": "67",
+      "data_hash": "SHA256:79108465eafe94db8199876071d17778585ea2d8f010fa04188bf4a36312481b"
+    },
+    {
+      "pts": 800,
+      "size": "118",
+      "data_hash": "SHA256:b0b19bbd62b84160abe76c536b5acdb06ce661cd396624feeb87b9e700c73466"
+    },
+    {
+      "pts": 900,
+      "size": "114",
+      "data_hash": "SHA256:8b474b20bee1e601e52710f4ffc9d5fd2a6053d0f4d610ad58d46e74d2feaa7c"
+    },
+    {
+      "pts": 1000,
+      "size": "18",
+      "data_hash": "SHA256:dea318be27790a8a57db89f095f1c62b646753705f346dcef2c761d912e2fd8e"
+    },
+    {
+      "pts": 1100,
+      "size": "16",
+      "data_hash": "SHA256:a47eb05ed999422103f261446e9b5d4c2c1e11cc78f68751dce793723c1b440f"
+    },
+    {
+      "pts": 1200,
+      "size": "553",
+      "data_hash": "SHA256:fbe6a8b6bbcbac1b2934c48c575ef86e71486209dff35b734b3ab2020753d419"
+    },
+    {
+      "pts": 1200,
+      "size": "74",
+      "data_hash": "SHA256:8ca5fc3c5e1f9e899a460a70095e9416cab2f56a7f4dcc1a25339d37c6adfce3"
+    },
+    {
+      "pts": 1300,
+      "size": "43",
+      "data_hash": "SHA256:14fb30fa01984293f9ca97f57b3737ffaf71a237601f2454a95d8ff8132302fb"
+    },
+    {
+      "pts": 1400,
+      "size": "54",
+      "data_hash": "SHA256:aa5eaf275e09fe81df7f3420197868132257495ff09ad2d7b8c348e7484263c8"
+    },
+    {
+      "pts": 1500,
+      "size": "16",
+      "data_hash": "SHA256:d84a8cac1f8bae48c8eb16c987b8e48a0e1636a5fec3fb7671a30b5a5367ebf7"
+    },
+    {
+      "pts": 1600,
+      "size": "65",
+      "data_hash": "SHA256:5e80770b7df1e41ceb808208167d0875824962190bff7d99586a26e14736d809"
+    },
+    {
+      "pts": 1600,
+      "size": "22",
+      "data_hash": "SHA256:b1efdf86868b30b50a960021a111c0ebbb35c1cae47ce7a83399f9e525a822e1"
+    },
+    {
+      "pts": 1700,
+      "size": "87",
+      "data_hash": "SHA256:21bee31e13f4fef6172e84a6162bead357131481072abf820265161df85ded01"
+    },
+    {
+      "pts": 1800,
+      "size": "16",
+      "data_hash": "SHA256:a6135e3badeae0e02d367fe85c65cfaf8ff5c0f4e33872fd681179e8f08bde29"
+    },
+    {
+      "pts": 1900,
+      "size": "16",
+      "data_hash": "SHA256:2b9bc049f7424d020e9a5dc5f0759f2bf910d0244a83caf3d89d467f9662185e"
+    }
+  ]
+}

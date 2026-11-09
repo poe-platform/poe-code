@@ -1,4 +1,5 @@
 import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-ast";
+import { resampleAudio } from "./audio-resample.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterBoolean } from "./filter-boolean.js";
 import { parseFilterExpression } from "./filter-expression.js";
@@ -10,8 +11,8 @@ export async function acrossfadeAudio(
   const a = first.decodedAudio;
   const b = second.decodedAudio;
   if (!a || !b) throw new Error("acrossfade requires decoded PCM audio");
-  if (a.sampleRate !== b.sampleRate || a.channels !== b.channels || a.channelMask !== b.channelMask) {
-    throw new Error("acrossfade requires matching sample rates and channel layouts");
+  if (a.channels !== b.channels || a.channelMask !== b.channelMask) {
+    throw new Error("acrossfade requires matching channel layouts");
   }
   let samples = 44100;
   let duration = 0;
@@ -19,8 +20,8 @@ export async function acrossfadeAudio(
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["ns", "d", "o", "c1", "c2"][index] : option.slice(0, separator);
-    const value = separator < 0 ? option : option.slice(separator + 1);
+    const key = separator < 0 ? ["ns", "d", "o", "c1", "c2"][index] : option.slice(0, separator).trim();
+    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "ns" || key === "nb_samples") {
       samples = parseFilterExpression(value, "acrossfade", {});
       if (samples < 1 || samples > 214748364) throw new Error("acrossfade: invalid sample count");
@@ -39,8 +40,17 @@ export async function acrossfadeAudio(
   if (duration > 0) samples = Math.round(duration * a.sampleRate);
   // FFmpeg ends after the first input when a positive duration rounds to no samples.
   if (samples === 0) return first;
+  let secondChannels = b.channelData;
+  const ratio = a.sampleRate / b.sampleRate;
+  if (ratio !== 1) {
+    const resampledLength = Math.ceil(b.channelData[0]!.length * ratio);
+    budget.checkSamples(resampledLength);
+    budget.checkDuration(resampledLength / a.sampleRate);
+    budget.allocateMemory(resampledLength * b.channels * Float32Array.BYTES_PER_ELEMENT);
+    secondChannels = await resampleAudio(b.channelData, resampledLength, b.sampleRate, a.sampleRate, budget, signal);
+  }
   const aLength = a.channelData[0]!.length;
-  const bLength = b.channelData[0]!.length;
+  const bLength = secondChannels[0]!.length;
   if (samples < 1) throw new Error("acrossfade: invalid sample count");
   // FFmpeg 7 ends before the transition if either input cannot fill it.
   const length = samples > aLength || samples > bLength
@@ -63,7 +73,11 @@ export async function acrossfadeAudio(
       const secondIndex = i - (overlap ? aLength - samples : aLength);
       const firstValue = i >= aLength ? 0 : a.channelData[channel]![i]! *
         (transition < 0 ? 1 : (samples - 1 - transition) / samples);
-      const secondValue = secondIndex < 0 ? 0 : b.channelData[channel]![secondIndex]! *
+      const secondSample = secondIndex < 0 ? 0 : secondChannels[channel]![secondIndex]!;
+      // Automatic rate conversion negotiates S16 before the fade's truncating cast.
+      const secondValue = (pcm16 && ratio !== 1
+        ? Math.max(-32768, Math.min(32767, Math.round(secondSample * 32768))) / 32768
+        : secondSample) *
         (secondIndex >= samples ? 1 : secondIndex / samples);
       // Native S16 fades cast the mixed sample to int16 before encoding.
       const value = firstValue + secondValue;
@@ -86,15 +100,20 @@ export async function acrossfadeAudio(
   if (!overlap) appendFrame(samples);
   // Consuming the transition can split a second-input frame. Preserve its
   // remainder and every following frame instead of regrouping the PCM.
-  for (let start = 0, n = 0; start < bLength; n++) {
+  const filterLength = 2 * Math.ceil(16 / Math.min(0.97 * ratio, 1));
+  let emitted = 0;
+  for (let start = 0, n = 0; start < b.channelData[0]!.length; n++) {
     if (n % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
     const packet = second.samples[n];
     const count = packet ? Math.max(0, Math.round(packet.duration * b.sampleRate / second.timescale)
       - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
-    const end = Math.min(bLength, start + count);
-    appendFrame(end - Math.max(start, samples));
-    start = end;
+    start = Math.min(b.channelData[0]!.length, start + count);
+    if (ratio !== 1 && start <= filterLength) continue;
+    const end = Math.min(bLength, Math.max(0, Math.ceil((start - (ratio === 1 ? 0 : filterLength / 2)) * ratio)));
+    appendFrame(end - Math.max(emitted, samples));
+    emitted = end;
   }
+  appendFrame(bLength - Math.max(emitted, samples));
   return { ...first, timescale: a.sampleRate, duration: length, samples: frames, editList: undefined,
     decodedAudio: { ...a, channelData } };
 }

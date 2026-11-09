@@ -52,3 +52,52 @@ for (const [options, expected] of [
     }
   });
 }
+
+for (const reverse of [false, true]) {
+  for (const fade of ["ns=4", "d=0.0005"]) {
+    it(`acrossfade resamples mixed rates before ${fade}, reverse=${reverse}`, async () => {
+      const volume = Volume.fromJSON({});
+      for (const [name, rate, length, value] of [
+        ["a", 8000, 1000, 12000], ["b", 16000, 2000, -4000]
+      ] as const) {
+        volume.writeFileSync(`/${name}.wav`, encodeWav({ sampleRate: rate,
+          channels: [new Float64Array(length).fill(value / 32768)] }));
+      }
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-i", reverse ? "/b.wav" : "/a.wav", "-i", reverse ? "/a.wav" : "/b.wav",
+          "-filter_complex", `[0:a][1:a]acrossfade=${fade}[o]`, "-map", "[o]", "-c:a", "pcm_s16le", "/out.wav"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      const length = reverse ? 2000 : 1000;
+      const count = reverse && fade.startsWith("d=") ? 8 : 4;
+      const first = reverse ? -4000 : 12000;
+      const second = reverse ? 12000 : -4000;
+      assert.equal(audio.sampleRate, reverse ? 16000 : 8000);
+      assert.equal(audio.channels, 1);
+      assert.deepEqual(Array.from(audio.channelData[0]!, value => value * 32768), [
+        ...Array<number>(length - count).fill(first),
+        ...Array.from({ length: count }, (_, i) => Math.trunc(first * (count - 1 - i) / count + second * i / count)),
+        ...Array<number>(length - count).fill(second)
+      ]);
+    });
+  }
+}
+
+it("acrossfade bounds rate conversion before allocating the second input", async () => {
+  const first = parseWav(encodeWav({ sampleRate: 16000,
+    channels: [new Float64Array(64)] })).tracks[0]!;
+  const second = parseWav(encodeWav({ sampleRate: 8000,
+    channels: [new Float64Array(128)] })).tracks[0]!;
+  await assert.rejects(acrossfadeAudio(first, second, "acrossfade=ns=4",
+    new MediaBudgetTracker({ maxSamplesPerTrack: 128 })), /maxSamplesPerTrack/);
+});

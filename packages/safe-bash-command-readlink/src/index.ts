@@ -57,8 +57,7 @@ export function createReadlinkCommand(configuration: ReadlinkCommandsOptions = {
         await admitFilesystemModes(context, "readlink", [mode === "link" ? "link" : "canonical"], [path]);
         let result: string;
         if (mode === "m") result = await canonicalizeReadlinkMissing(context, path);
-        else if (mode === "e") result = await context.fs.realpath(path, { signal: context.signal });
-        else if (mode === "f") result = await canonicalizeExistingParent(context, path);
+        else if (mode === "e" || mode === "f") result = await canonicalizeExistingParent(context, path, mode === "e");
         else {
           needCapability(context, "readlink");
           result = await context.fs.readlink!(path, { signal: context.signal });

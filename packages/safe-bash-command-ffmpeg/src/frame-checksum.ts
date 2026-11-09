@@ -96,14 +96,28 @@ export function serializeFrameChecksum(
     const rate = video ? den / num : copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
     if (track.type === "audio" && !rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
     const payload = track.type !== "audio" ? new Uint8Array() : rawAudio!.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
-    const frames = track.decodedAudio?.channelData[0]?.length ?? Math.round(track.duration * rate / track.timescale);
+    let audioPackets = track.samples;
+    if (track.type === "audio" && !copy && track.codecDescriptions[0]?.codecName === "mp3" && !track.decodedAudio) {
+      // The PCM decoder removes encoder delay and padding, including entire packets.
+      const ticksPerSample = track.timescale / rate;
+      audioPackets = track.samples.map(packet => ({
+        ...packet,
+        dts: packet.dts + (packet.skipSamples ?? 0) * ticksPerSample,
+        pts: packet.pts + (packet.skipSamples ?? 0) * ticksPerSample,
+        duration: packet.duration - ((packet.skipSamples ?? 0) + (packet.discardPadding ?? 0)) * ticksPerSample
+      })).filter(packet => packet.duration > 0);
+      const origin = audioPackets[0]?.pts ?? 0;
+      audioPackets = audioPackets.map(packet => ({ ...packet, dts: packet.dts - origin, pts: packet.pts - origin }));
+    }
+    const frames = track.decodedAudio?.channelData[0]?.length ?? Math.round(
+      (audioPackets !== track.samples ? audioPackets.reduce((sum, packet) => sum + packet.duration, 0) : track.duration) * rate / track.timescale);
     const bytesPerFrame = frames ? payload.length / frames : 0;
     let offset = 0;
     if (video && !copy && !track.decodedVideoFrames) throw new Error("Frame checksum output requires decoded video frames");
     const packets = video && !copy ? track.decodedVideoFrames!.map(frame => ({
       dts: frame.ptsSeconds * track.timescale, pts: frame.ptsSeconds * track.timescale,
       duration: frame.durationSeconds * track.timescale, frame
-    })) : track.samples.length ? track.samples : payload.length ? [{ dts: 0, pts: 0, duration: track.duration, data: payload }] : [];
+    })) : audioPackets.length ? audioPackets : payload.length ? [{ dts: 0, pts: 0, duration: track.duration, data: payload }] : [];
     for (const packet of packets) {
       budget.checkCpu();
       // MOV's final empty text sample terminates the track; FFmpeg emits no packet for it.

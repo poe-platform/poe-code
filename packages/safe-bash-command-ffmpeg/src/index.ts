@@ -1035,6 +1035,19 @@ async function renderShowwavespic(
   return { width: width, height: height, data, ptsSeconds: 0, durationSeconds: 1, keyframe: true };
 }
 
+function parseStereoChannelLayout(layout: string): string[] {
+  if (layout === "stereo" || layout === "2c") return ["FL", "FR"];
+  const digits = layout.startsWith("0x") ? layout.slice(2) : layout;
+  const alphabet = layout.startsWith("0x") ? "0123456789abcdefABCDEF" : "0123456789";
+  if (digits.length && [...digits].every(digit => alphabet.includes(digit))) {
+    const mask = Number(layout);
+    if (mask === 1) return ["FL"];
+    if (mask === 2) return ["FR"];
+    if (mask === 3) return ["FL", "FR"];
+  }
+  return layout.split("+");
+}
+
 function parseChannelSplit(spec: string): string[] {
   const equals = spec.indexOf("=");
   let layout = "stereo";
@@ -1048,8 +1061,11 @@ function parseChannelSplit(spec: string): string[] {
     else if (key === "channels") channels = value;
     else throw new Error(`channelsplit: unsupported option ${key}`);
   }
-  if (layout !== "stereo") throw new Error(`channelsplit: unsupported channel layout ${layout}`);
-  const selected = channels === "all" ? ["FL", "FR"] : channels.split("+");
+  const input = parseStereoChannelLayout(layout);
+  if (input.length !== 2 || input[0] !== "FL" || input[1] !== "FR") {
+    throw new Error(`channelsplit: unsupported channel layout ${layout}`);
+  }
+  const selected = channels === "all" ? input : parseStereoChannelLayout(channels);
   if (selected.some(channel => channel !== "FL" && channel !== "FR")) {
     throw new Error(`channelsplit: invalid channels ${channels}`);
   }

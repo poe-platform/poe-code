@@ -74,7 +74,7 @@ function parse(context: CommandContext, budget: Budget): Options {
       budget.check(values.length, budget.limits.maxFields, "field");
       const fields = values.map(specification => {
         if (specification === "0") return { file: 0, index: 0 };
-        const match = /^([12])\.([0-9]+)$/u.exec(specification);
+        const match = /^([12])\.(\+?[0-9]+)$/u.exec(specification);
         if (!match) fail(`invalid output field: ${specification}`);
         return { file: Number(match[1]), index: number(match[2]!, "output field") - 1 };
       });

@@ -23775,7 +23775,7 @@ const syncExtraRuntimeMethods = {
           for (const p of parts) {
             if (p === "0") outSpec.push({ file: 0, idx: 0 });
             else {
-              const m = /^([12])\.([1-9][0-9]{0,2})$/.exec(p);
+              const m = /^([12])\.(\+?[1-9][0-9]{0,2})$/.exec(p);
               if (!m) return undefined;
               outSpec.push({ file: Number(m[1]!) as 1 | 2, idx: Number(m[2]!) - 1 });
             }

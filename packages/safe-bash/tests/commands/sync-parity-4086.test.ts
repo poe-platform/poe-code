@@ -20,6 +20,8 @@ for (const [setup, command, expected] of [
   ["", "printf '[1,2]\\n' | jq -c 'select(.[])'", "[1,2]\n[1,2]\n"],
   ["", "printf '[false,null,0,1]\\n' | jq -c 'select(.[])'", "[false,null,0,1]\n[false,null,0,1]\n"],
   ["printf ':x\\n' > f1; printf ':y\\n' > f2;", "join -t : -e EMPTY -o 0,1.2,2.2 f1 f2", "EMPTY:x:y\n"],
+  ["printf 'k A\\n' > f1; printf 'k B\\n' > f2;", "join -o 1.+2 f1 f2", "A\n"],
+  ["printf 'k A\\n' > f1; printf 'k B\\n' > f2;", "join -o 2.+2 f1 f2", "B\n"],
   ["", "column -t -e <<< $'   \\na b'", "a  b\n"],
   ["", "column -t -e <<< $'\\na b'", "a  b\n"],
   ["", "column -t -L <<< $'\\na b'", "   \na  b\n"],
@@ -73,6 +75,19 @@ test("sync join replaces an empty explicit join field", () => {
   const evaluate = Reflect.get(Runtime.prototype, "evalSyncJoin");
   const context = { readSyncMemoryLines: () => [":y"] };
   assert.deepEqual(evaluate.call(context, [":x"], ["-t", ":", "-e", "EMPTY", "-o", "0,1.2,2.2", "-", "f2"], "/"), ["EMPTY:x:y"]);
+});
+
+test("sync join accepts positive output fields and declines invalid numbers", () => {
+  const evaluate = Reflect.get(Runtime.prototype, "evalSyncJoin");
+  const context = { readSyncMemoryLines: () => ["k B"] };
+  for (const [format, expected] of [["1.+2", "A"], ["2.+2", "B"], ["0,1.+2,2.2", "k A B"]]) {
+    assert.deepEqual(evaluate.call(context, ["k A"], ["-o", format, "-", "f2"], "/"), [expected]);
+  }
+  for (const file of [1, 2]) {
+    for (const field of ["0", "+0", "-2", "++2", "+", "+2x"]) {
+      assert.equal(evaluate.call(context, ["k A"], ["-o", `${file}.${field}`, "-", "f2"], "/"), undefined);
+    }
+  }
 });
 
 test("sync column distinguishes header repetition from keeping empty rows", () => {

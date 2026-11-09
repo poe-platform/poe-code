@@ -122,6 +122,26 @@ test("join rejects distinct delimiter bytes that decode identically", async () =
  assert.deepEqual(result.stdoutBytes, []);
 });
 
+for (const [format, expected] of [["1.+2", "A\n"], ["2.+2", "B\n"], ["0,1.+2,2.2", "k A B\n"]]) {
+ test(`join accepts positive output field numbers: ${format}`, async () => {
+  const result = await run(["-o", format!, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+  assert.equal(result.stderr, "");
+ });
+}
+
+for (const file of [1, 2]) {
+ for (const field of ["0", "+0", "-2", "++2", "+", "+2x"]) {
+  test(`join rejects invalid output field numbers: ${file}.${field}`, async () => {
+   const result = await run(["-o", `${file}.${field}`, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
+   assert.equal(result.exitCode, 1);
+   assert.equal(result.stdout, "");
+   assert.ok(result.stderr.includes("invalid output field"), result.stderr);
+  });
+ }
+}
+
 // Verified against GNU coreutils 9.4 with LC_ALL=C.
 for (const [option, minimum, left, right, expected, exitCode] of [
  ["--header", 5, "k A\nk B\nq C\n", "k X\nk Y\np Z\n", "k A X\nk B Y\n", 0],

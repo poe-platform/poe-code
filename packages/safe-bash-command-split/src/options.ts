@@ -72,6 +72,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
   }
   let mode: SplitArguments["mode"] | undefined;
   let size = 1000;
+  let legacyLines: string | undefined;
   let chunkMode: SplitArguments["chunkMode"] = "bytes";
   let selectedChunk = 0;
   let suffixLength = 0;
@@ -140,11 +141,15 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
       const value = equals < 0 ? (optional ? undefined : args[++index]) : argument.slice(equals + 1);
       if (!optional && value === undefined) throw new PublicDiagnostic(`option '--${name}' requires an argument`);
       apply(option, value);
-    } else if ([...argument.slice(1)].every(digit => digit >= "0" && digit <= "9")) {
-      apply("l", argument.slice(1));
     } else {
+      let digits = "";
       for (let offset = 1; offset < argument.length; offset++) {
         const option = argument[offset]!;
+        if (option >= "0" && option <= "9") {
+          digits += option;
+          legacyLines = digits;
+          continue;
+        }
         if (!"lbaCdxetnu".includes(option)) throw new PublicDiagnostic(`invalid option -- '${option}'`);
         if (option === "d" || option === "x" || option === "e" || option === "u") apply(option);
         else {
@@ -156,6 +161,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
       }
     }
   }
+  if (legacyLines !== undefined) apply("l", legacyLines);
   if (operands.length > 2) throw new PublicDiagnostic(`extra operand '${operands[2]}'`);
   let requiredSuffixLength = 1;
   if (mode === "chunks") {

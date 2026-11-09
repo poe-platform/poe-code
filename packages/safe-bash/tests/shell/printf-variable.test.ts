@@ -17,6 +17,30 @@ function fixture(options: Parameters<typeof setup>[0] = {}) {
   return result;
 }
 
+for (const prefix of ["", "builtin ", "command "]) {
+  for (const [args, exitCode, stdout] of [
+    ["", 2, ""],
+    ["--", 2, ""],
+    ["-x", 2, ""],
+    ["-v x -x", 2, ""],
+    ["-v x", 2, ""],
+    ["''", 0, ""],
+    ["-- -x", 0, "-x"],
+    ["'%Z'", 1, ""],
+    ["'%d' bad", 1, "0"],
+  ] as const) {
+    test(`${prefix}printf ${args} distinguishes invocation and formatting errors`, async () => {
+      const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem(), env: { LC_ALL: "C" } }).use(standardCommands());
+      try {
+        const result = await shell.exec(`${prefix}printf ${args}`);
+        assert.equal(result.exitCode, exitCode, result.stderr);
+        assert.equal(result.stdout, stdout);
+        assert.equal(result.stderr.length > 0, exitCode !== 0);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
 for (const name of ["IFS", "OPTIND", "RANDOM", "SECONDS"]) {
   test(`printf -v ${name} uses the normal variable writer`, async context => {
     const writes = context.mock.method(Runtime.prototype, "writeVariable");

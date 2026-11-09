@@ -6353,7 +6353,7 @@ export class Runtime {
     const scope = io[invocationScope].child();
     const externalDef = typeof name === "string" ? this.commands.get(name) : undefined;
     const fastInline = !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && (!externalDef || (!customRegisteredCommands.has(externalDef.execute) && !customRegisteredRegistries.has(this.commands))) && !(!bypassFunctions && state.functions.has(name)) && !state.extensions?.builtins.has(name) && name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray";
-    if ( this.dispatchFastCommand && fastInline && externalDef !== undefined && values.every(value => typeof value === "string") && !implementedBuiltins.has(name) && !(name === "printf" && externalDef.execute === printfCommand.execute && (args[0]?.startsWith("-v") || args[args[0] === "--" ? 1 : 0]?.includes("n")))) {
+    if ( this.dispatchFastCommand && fastInline && externalDef !== undefined && values.every(value => typeof value === "string") && !implementedBuiltins.has(name) && !(name === "printf" && externalDef.execute === printfCommand.execute && (args.length === 0 || args[0]?.startsWith("-") || args[0]?.includes("n")))) {
       try {
         return await this.dispatchFastCommand(name, externalDef, values, state, io, scope);
       } finally {
@@ -6781,7 +6781,7 @@ export class Runtime {
         }
         const virtualName = context.command.includes("/") ? this.virtualExecutable(pathOf(state, context.command)) : undefined;
         const definition = this.commands.get(virtualName ?? context.command);
-        if (context.command === "printf" && definition?.execute === printfCommand.execute && (context.args[0]?.startsWith("-v") || context.args[context.args[0] === "--" ? 1 : 0]?.includes("n"))) {
+        if (context.command === "printf" && definition?.execute === printfCommand.execute && (context.args.length === 0 || context.args[0]?.startsWith("-") || context.args[0]?.includes("n"))) {
           ensureRuntimeContext();
           return { exitCode: await this.printfBuiltin(context, state, assignments) };
         }

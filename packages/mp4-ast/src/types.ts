@@ -836,6 +836,8 @@ export interface SerializeMediaOptions {
   readonly metadataHeaderPadding?: number | undefined;
   /** AVI index reservation in bytes per stream; zero uses the default reservation. */
   readonly reserveIndexSpace?: number | undefined;
+  /** Matroska/WebM cluster time limit in milliseconds; -1 or omitted selects 5000. */
+  readonly clusterTimeLimit?: number | undefined;
   /** GIF final frame delay in centiseconds; -1 preserves the source delay. */
   readonly finalDelay?: number | undefined;
   readonly majorBrand?: string | undefined;

@@ -794,6 +794,11 @@ export function serializeMkv(
   doc: MediaDocument,
   options: SerializeMediaOptions & { webm?: boolean } = {}
 ): Uint8Array {
+  const clusterTimeLimit = options.clusterTimeLimit ?? -1;
+  if (!Number.isSafeInteger(clusterTimeLimit) || clusterTimeLimit < -1) {
+    throw new Error("Invalid cluster_time_limit: expected integer milliseconds from -1 to 9007199254740991");
+  }
+  const clusterDurationMs = clusterTimeLimit === -1 ? 5000 : clusterTimeLimit;
   const isWebm = options.webm === true || options.format === "webm" || doc.containerFormat === "webm";
   const docType = isWebm ? "webm" : "matroska";
 
@@ -1087,7 +1092,8 @@ export function serializeMkv(
   };
 
   for (const blk of allBlocks) {
-    if ((blk.ptsMs - clusterStartMs > 30000 || blk.ptsMs - clusterStartMs < -32768) && currentClusterBlocks.length > 0) {
+    const elapsedMs = blk.ptsMs - clusterStartMs;
+    if ((elapsedMs > clusterDurationMs || elapsedMs > 32767 || elapsedMs < -32768) && currentClusterBlocks.length > 0) {
       flushCluster();
       clusterStartMs = blk.ptsMs;
       clusterPayloadSize = makeEbmlUint(0xe7, clusterStartMs).byteLength;

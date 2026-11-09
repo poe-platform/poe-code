@@ -1374,13 +1374,16 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       const source = sources[0]!;
       return { track: source.track, expression: [source.expression, node.expression].filter(Boolean).join(",") };
     }
-    const [input, type, ordinal = "0", ...extra] = label.split(":");
-    const index = Number(input);
-    const stream = Number(ordinal);
-    const track = type === "a" && input !== "" && Number.isInteger(index) && index >= 0 &&
-      Number.isInteger(stream) && stream >= 0 && extra.length === 0
-      ? docs[index]?.tracks.filter(track => track.type === "audio")[stream] : undefined;
-    if (!track) throw new Error(`Invalid audio filter input: ${label}`);
+    const [input, selector, ordinal, ...extra] = label.split(":");
+    const numeric = selector === "a" ? [input, ordinal ?? "0"] : [input, selector ?? "0"];
+    const valid = extra.length === 0 && (selector === "a" || ordinal === undefined) &&
+      numeric.every(value => value !== undefined && value.length > 0 &&
+        Array.from(value).every(char => char >= "0" && char <= "9") && Number.isSafeInteger(Number(value)));
+    const tracks = valid ? docs[Number(input)]?.tracks : undefined;
+    const track = selector === undefined || selector === "a"
+      ? tracks?.filter(track => track.type === "audio")[Number(ordinal ?? "0")]
+      : tracks?.[Number(selector)];
+    if (!track || track.type !== "audio") throw new Error(`Invalid audio filter input: ${label}`);
     return { track, expression: "" };
   };
   const outputs = maps.filter(map => map.startsWith("[") && map.endsWith("]"))

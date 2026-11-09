@@ -340,6 +340,9 @@ and applies before or after channel conversion respectively. Positive values
 favor the right channel. `bmode_in` and `bmode_out` accept `balance` (default),
 `amplitude`, or `power`, also numbered 0–2. For example,
 `stereotools=balance_in=1:mode=lr>rl` silences the input left channel before swapping.
+Stereo width `base` ranges from -1 to 1 (default 0): `base=-1` averages both
+channels, negative values narrow the image, and positive values widen it.
+Width applies after mute, phase inversion and delay, before output balance/gain.
 Other stereotools options are rejected.
 Both filters accept case-insensitive Boolean
 words (`true`/`false`, `yes`/`no`, `on`/`off`, `y`/`n`, `enable`/`disable`,

@@ -9518,6 +9518,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const modes = ["lr>lr", "lr>ms", "ms>lr", "lr>ll", "lr>rr", "lr>l+r", "lr>rl", "ms>ll", "ms>rr", "ms>rl", "lr>l-r"];
                         let mode = 0;
                         let delay = 0;
+                        let base = 0;
                         const flags = { mutel: false, muter: false, phasel: false, phaser: false };
                         const levels = { level_in: 1, level_out: 1, mlev: 1, slev: 1 };
                         const balance = { mpan: 0, sbal: 0, balance_in: 0, balance_out: 0 };
@@ -9546,6 +9547,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error(`stereotools: invalid ${key}`);
                             }
                             balanceModes[key] = balanceMode;
+                          } else if (key === "base") {
+                            base = parseFilterExpression(value, "stereotools", {});
+                            if (!Number.isFinite(base) || base < -1 || base > 1) {
+                              throw new Error("stereotools: base must be in the range [-1, 1]");
+                            }
                           } else if (key === "delay") {
                             delay = parseFilterExpression(value, "stereotools", {});
                             if (!Number.isFinite(delay) || delay < -20 || delay > 20) {
@@ -9582,6 +9588,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         };
                         const [inputLeft, inputRight] = balanceGains(balance.balance_in, balanceModes.bmode_in);
                         const [outputLeftGain, outputRightGain] = balanceGains(balance.balance_out, balanceModes.bmode_out);
+                        const width = base < 0 ? base / 2 : base;
                         const left = new Float32Array(stretched[0]!.length);
                         const right = new Float32Array(left.length);
                         // Native FFmpeg rounds the interleaved delay down to an even sample count.
@@ -9590,8 +9597,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const midRight = 1 + Math.min(0, balance.mpan);
                         const sideLeft = 1 - Math.max(0, balance.sbal);
                         const sideRight = 1 + Math.min(0, balance.sbal);
-                        const leftDelay = delay < 0 ? delayFrames : 0;
-                        const rightDelay = delay > 0 ? delayFrames : 0;
+                        const delayed = new Float64Array(delayFrames);
                         for (let i = 0; i < left.length; i++) {
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           const l = stretched[0]![i]! * levels.level_in * inputLeft;
@@ -9626,12 +9632,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             case 5: outputLeft = outputRight = (l + r) / 2; break;
                             case 10: outputLeft = outputRight = (l - r) / 2; break;
                           }
-                          if (i + leftDelay < left.length) {
-                            left[i + leftDelay] = flags.mutel ? 0 : outputLeft * (flags.phasel ? -1 : 1) * outputLeftGain * levels.level_out;
+                          outputLeft = flags.mutel ? 0 : outputLeft * (flags.phasel ? -1 : 1);
+                          outputRight = flags.muter ? 0 : outputRight * (flags.phaser ? -1 : 1);
+                          if (delayFrames > 0) {
+                            const slot = i % delayFrames;
+                            const previous = delayed[slot]!;
+                            delayed[slot] = delay < 0 ? outputLeft : outputRight;
+                            if (delay < 0) outputLeft = previous;
+                            else outputRight = previous;
                           }
-                          if (i + rightDelay < right.length) {
-                            right[i + rightDelay] = flags.muter ? 0 : outputRight * (flags.phaser ? -1 : 1) * outputRightGain * levels.level_out;
-                          }
+                          // Width follows mute, phase inversion and delay, before output rotation/gain.
+                          const wideLeft = outputLeft + width * outputLeft - width * outputRight;
+                          outputRight = outputRight + width * outputRight - width * outputLeft;
+                          outputLeft = wideLeft;
+                          left[i] = outputLeft * outputLeftGain * levels.level_out;
+                          right[i] = outputRight * outputRightGain * levels.level_out;
                         }
                         stretched = [left, right];
                       } else if (trimmed.startsWith("channelmap=")) {

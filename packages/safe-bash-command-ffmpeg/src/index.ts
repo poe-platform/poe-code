@@ -10769,11 +10769,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = output;
                       } else if (trimmed === "stereowiden" || trimmed.startsWith("stereowiden=")) {
                         if (stretched.length !== 2) throw new Error("stereowiden: stereo input required");
+                        let enable: string | undefined;
                         const options = { delay: 20, feedback: 0.3, crossfeed: 0.3, drymix: 0.8 };
                         const argument = trimmed.slice("stereowiden=".length);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["delay", "feedback", "crossfeed", "drymix"][index] : option.slice(0, separator).trim();
+                          if (key === "enable") {
+                            enable = option.slice(separator + 1).trim();
+                            continue;
+                          }
                           if (key !== "delay" && key !== "feedback" && key !== "crossfeed" && key !== "drymix") {
                             throw new Error(`stereowiden: unsupported option ${key}`);
                           }
@@ -10791,18 +10796,33 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const crossfeed = Math.fround(options.crossfeed);
                         const drymix = Math.fround(options.drymix);
                         const output = stretched.map(channel => new Float32Array(channel.length));
-                        for (let i = 0; i < stretched[0]!.length; i++) {
-                          if (i % 4096 === 0) {
-                            await yieldTurn(context.signal);
-                            context.signal?.throwIfAborted();
-                            budget.checkCpu();
+                        const length = stretched[0]!.length;
+                        for (let start = 0, n = 0; start < length; n++) {
+                          const packet = t.samples[n];
+                          const timestamp = audioTimestamps?.[n];
+                          const count = timestamp ? timestamp.end - timestamp.start
+                            : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                          const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
+                          const end = enable === undefined ? length : Math.min(length, start + count);
+                          const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "stereowiden enable", {
+                            n, t: pts / origRate
+                          })) >= 0.5;
+                          for (let i = start; i < end; i++) {
+                            if (i % 4096 === 0) {
+                              await yieldTurn(context.signal);
+                              context.signal?.throwIfAborted();
+                              budget.checkCpu();
+                            }
+                            for (let c = 0; c < 2; c++) {
+                              const opposite = stretched[1 - c]!;
+                              // Read delay history from the input, including samples received while bypassed.
+                              output[c]![i] = !enabled ? stretched[c]![i]!
+                                : Math.fround(Math.fround(drymix * Math.fround(stretched[c]![i]!))
+                                  - Math.fround(crossfeed * Math.fround(opposite[i]!)))
+                                  - Math.fround(feedback * Math.fround(i >= delay ? opposite[i - delay]! : 0));
+                            }
                           }
-                          for (let c = 0; c < 2; c++) {
-                            const opposite = stretched[1 - c]!;
-                            output[c]![i] = Math.fround(Math.fround(drymix * Math.fround(stretched[c]![i]!))
-                              - Math.fround(crossfeed * Math.fround(opposite[i]!)))
-                              - Math.fround(feedback * Math.fround(i >= delay ? opposite[i - delay]! : 0));
-                          }
+                          start = end;
                         }
                         stretched = output;
                       } else if (trimmed === "stereotools" || trimmed.startsWith("stereotools=")) {

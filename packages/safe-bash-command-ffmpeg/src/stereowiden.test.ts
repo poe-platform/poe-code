@@ -103,3 +103,53 @@ for (const complex of [false, true]) {
     });
   }
 }
+
+// Native FFmpeg PCM16 reference at 8 kHz: enable is evaluated per 512-sample packet.
+for (const complex of [false, true]) {
+  for (const [enable, activePackets] of [
+    ["0", []], ["1", [0, 1, 2]], ["gte(t,0.064)", [1, 2]],
+    ["gte(t,0.063)", [1, 2]], ["eq(n,1)", [1]], ["not(eq(n,1))", [0, 2]]
+  ] as const) {
+    it(`preserves stereowiden history with enable=${enable} (${complex ? "graph" : "simple"})`, async () => {
+      const channels = [new Float64Array(1536), new Float64Array(1536)];
+      for (const i of [0, 510, 512, 1022, 1024, 1534]) channels[0]![i] = 16000 / 32768;
+      for (const i of [2, 514, 1026]) channels[1]![i] = -8000 / 32768;
+      const volume = Volume.fromJSON({});
+      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels }));
+      const filter = `stereowiden=enable='${enable}'`;
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-y", "-i", "/in.wav", ...(complex
+          ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"] : ["-af", filter]), "-c:a", "pcm_s16le", "/out.wav"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      const expected = channels.map(channel => Array.from(channel, sample => sample * 32768));
+      for (const packet of activePackets) {
+        for (const channel of expected) channel.fill(0, packet * 512, (packet + 1) * 512);
+      }
+      for (const [i, left, right] of [
+        [0, 12800, -4800], [2, 2400, -6400], [160, 0, -4800], [162, 2400, 0],
+        [510, 12800, -4800], [512, 12800, -4800], [514, 2400, -6400],
+        [670, 0, -4800], [672, 0, -4800], [674, 2400, 0], [1022, 12800, -4800],
+        [1024, 12800, -4800], [1026, 2400, -6400], [1182, 0, -4800],
+        [1184, 0, -4800], [1186, 2400, 0], [1534, 12800, -4800]
+      ] as const) {
+        if (activePackets.some(packet => packet === Math.floor(i / 512))) {
+          expected[0]![i] = left;
+          expected[1]![i] = right;
+        }
+      }
+      const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 8000);
+      assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)), expected);
+    });
+  }
+}

@@ -1035,9 +1035,10 @@ async function renderShowwavespic(
   return { width: width, height: height, data, ptsSeconds: 0, durationSeconds: 1, keyframe: true };
 }
 
-function parseSplitChannelLayout(layout: string): string[] {
+function parseAudioChannelLayout(layout: string): string[] {
   if (layout === "mono" || layout === "1c") return ["FC"];
   if (layout === "stereo" || layout === "2c") return ["FL", "FR"];
+  if (layout === "quad") return ["FL", "FR", "BL", "BR"];
   if (layout === "5.1" || layout === "6c") return ["FL", "FR", "FC", "LFE", "BL", "BR"];
   const digits = layout.startsWith("0x") ? layout.slice(2) : layout;
   const alphabet = layout.startsWith("0x") ? "0123456789abcdefABCDEF" : "0123456789";
@@ -1063,11 +1064,11 @@ function parseChannelSplit(spec: string): { input: string[]; selected: string[] 
     else if (key === "channels") channels = value;
     else throw new Error(`channelsplit: unsupported option ${key}`);
   }
-  const input = parseSplitChannelLayout(layout);
+  const input = parseAudioChannelLayout(layout);
   if (!["FC", "FL+FR", "FL+FR+FC+LFE+BL+BR"].includes(input.join("+"))) {
     throw new Error(`channelsplit: unsupported channel layout ${layout}`);
   }
-  const selected = channels === "all" ? input : parseSplitChannelLayout(channels);
+  const selected = channels === "all" ? input : parseAudioChannelLayout(channels);
   if (selected.some(channel => !input.includes(channel))) {
     throw new Error(`channelsplit: invalid channels ${channels}`);
   }
@@ -1079,12 +1080,13 @@ async function panAudio(
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: Float32Array[]; channelMask: number }> {
   const [layout, ...assignments] = spec.split("|").map(value => value.trim());
-  const names = layout === "mono" || layout === "1c" ? ["FC"]
-    : layout === "stereo" || layout === "2c" ? ["FL", "FR"] : undefined;
-  if (!names) throw new Error(`pan: unsupported output layout ${layout}`);
+  const names = parseAudioChannelLayout(layout ?? "");
+  if (!["FC", "FL+FR", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR"].includes(names.join("+"))) {
+    throw new Error(`pan: unsupported output layout ${layout}`);
+  }
+  const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR"];
   const inputNames = channelMask
-    ? ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR"]
-      .filter((_, index) => (channelMask & (1 << index)) !== 0)
+    ? speakers.filter((_, index) => (channelMask & (1 << index)) !== 0)
     : channels.length === 1 ? ["FC"] : channels.length === 2 ? ["FL", "FR"] : [];
   const channelIndex = (name: string, labels: string[], count: number) => {
     const index = name.startsWith("c") && name.length > 1 &&
@@ -1137,7 +1139,7 @@ async function panAudio(
       output[out]![sample] = value;
     }
   }
-  return { channels: output, channelMask: names.length === 1 ? 4 : 3 };
+  return { channels: output, channelMask: names.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0) };
 }
 
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.

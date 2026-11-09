@@ -342,10 +342,13 @@ channel (`FL` selects the left). Stereo layouts also accept `0x3`, `FL+FR`, and
 named speaker extraction: `-af channelsplit=mono:FC`,
 `-af channelsplit=5.1:FC`, or `-af channelsplit=5.1:LFE`.
 The selected speaker is retained in the output channel layout.
-`pan` supports mono/stereo output, numbered channels and named channels from the
+`pan` supports mono, stereo, quad and 5.1 output, numbered channels and named channels from the
 input layout: `-af 'pan=mono|c0=c1'` extracts the right channel and
 `-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. Weighted sums use `=`,
 and `<` divides gains by the sum of their magnitudes, preserving polarity, for example `pan=mono|c0<2*c0+-1*c1`.
+Stereo layouts also accept `0x3` and `FL+FR`. `pan=5.1|FC=c1|LFE=c0` routes
+stereo into center and LFE; unassigned speakers stay silent. Output preserves
+the layout’s speaker order and channel mask.
 All input references in a pan filter must use the same style: named or numbered.
 Output labels may mix styles, as in `pan=stereo|FL=c0|c1=c1`.
 Use `-ch_layout mono` or `-channel_layout mono` for mono output, equivalent to `-ac 1`. Other output layouts are not supported by these options.

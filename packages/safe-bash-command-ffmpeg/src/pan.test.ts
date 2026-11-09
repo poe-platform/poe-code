@@ -28,7 +28,11 @@ for (const [expression, expected] of [
   ["mono|c0=NaN*c0", null],
   ["mono|c0=c0|c0=c1", null],
   ["mono|c0=", null],
-  ["unknown|c0=c0", null]
+  ["unknown|c0=c0", null],
+  ["quad|FC=c0", null],
+  ["5.1|c6=c0", null],
+  ["0x0|FL=c0", null],
+  ["FL+FL|FL=c0", null]
 ] as const) {
   for (const complex of [false, true]) {
     it(`pans PCM channels (${complex ? "graph" : "simple"}): ${expression}`, async () => {

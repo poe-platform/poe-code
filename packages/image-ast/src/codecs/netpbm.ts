@@ -221,6 +221,7 @@ export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {
   const width = core ? view.getUint16(18, true) : Math.abs(view.getInt32(18, true));
   const height = core ? view.getUint16(20, true) : Math.abs(view.getInt32(22, true));
   const bpp = view.getUint16(core ? 24 : 28, true);
+  if (!core && [1, 4, 8].includes(bpp) && view.getUint32(46, true) > 2 ** bpp) throw new Error("Invalid BMP palette count");
   const ppmX = core ? 0 : view.getInt32(38, true);
   const ppmY = core ? 0 : view.getInt32(42, true);
   const density = ppmX > 0 ? Math.max(1, Math.round(ppmX * 0.0254)) : 72;

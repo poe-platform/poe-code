@@ -4693,7 +4693,10 @@ export class Runtime {
                         extensions: forkedExt, isolated: true, commandString: false, _readOnlyStage: true, }, )
                   : (tryCloneStateSync(state) ?? await cloneState(state, this.signal));
                 preparedChild = inCurrentShell ? undefined : child;
-                if (!inCurrentShell) child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
+                if (!inCurrentShell) {
+                  child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
+                  (child as { _subshellInLoop?: boolean })._subshellInLoop = false;
+                }
                 if (!inCurrentShell && !child._readOnlyStage) {
                   child.extensions = undefined;
                   child.extensions = forkExtensions(state.extensions, "pipeline");

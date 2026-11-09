@@ -6317,7 +6317,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const value = args[++i];
         frameSize = value?.trim() ? Number(value) : NaN;
         if (!Number.isInteger(frameSize) || frameSize < 0 || frameSize > 2147483647) {
-          throw new Error("Invalid frame_size: expected an integer from 0 to 2147483647");
+          await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid frame_size: expected an integer from 0 to 2147483647\n"), context.signal);
+          return { exitCode: 1 };
         }
       } else if (arg === "-exact_rice_parameters") {
         const value = args[++i];

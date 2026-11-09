@@ -1921,7 +1921,8 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     const { width: cw, height: ch } = resolveMagickChopGeometry(g, geomStr, img.width, img.height);
     // Native chop truncates geometry offsets before applying gravity.
     const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height, cw, ch, Math.trunc(g.x), Math.trunc(g.y), gravity);
-    if (x0 + cw < 0 || y0 + ch < 0 || x0 > img.width || y0 > img.height) {
+    if ((g.enlargeOnly && cw > 0 && cw < img.width && ch > 0 && ch < img.height)
+        || x0 + cw < 0 || y0 + ch < 0 || x0 > img.width || y0 > img.height) {
         if (analysis) analysis.warnings += `magick: geometry does not contain image '${geomStr}'\n`;
         return img;
     }
@@ -9153,7 +9154,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     } else {
         const { width: cw, height: ch } = resolveMagickChopGeometry(g, geometry, w, h);
         const { x, y } = gravityAdjustBox(w, h, cw, ch, Math.trunc(g.x), Math.trunc(g.y), state.gravity);
-        if (x + cw < 0 || y + ch < 0 || x > w || y > h) {
+        if ((g.enlargeOnly && cw > 0 && cw < w && ch > 0 && ch < h)
+            || x + cw < 0 || y + ch < 0 || x > w || y > h) {
             analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
             return image;
         }

@@ -1,3 +1,4 @@
+import { parseCdlSteps, cdlImageSteps } from "./cdl.js";
 import { localContrastPixelSteps, parseLocalContrastGeometry } from "./local-contrast-kernel.js";
 import { liquidRescalePixelSteps } from "./liquid-rescale.js";
 import { whiteBalancePixelSteps } from "./white-balance-kernel.js";
@@ -7786,6 +7787,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* applyMagickRasterSteps(image, encipherPixelSteps(image, key), signal);
             });
         }
+        else if (t === "-cdl") {
+            const name = tokens[++i];
+            if (!name) throw new Error("missing argument '-cdl'");
+            const bytes = files.get(name);
+            if (!bytes) throw new Error(`unable to open color correction '${name}'`);
+            const grade = yield* parseCdlSteps(bytes);
+            stack = yield* mapMagickImagesSteps(stack, image => cdlImageSteps(image, grade));
+        }
         else if (t === "-profile" || t === "+profile") {
             const name = tokens[++i];
             if (!name) throw new Error(`missing argument '${t}'`);
@@ -9991,6 +10000,29 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
+        if (!operandsOnly && token === "-cdl") {
+            const name = tokens[++i];
+            if (!name) throw new Error("missing argument '-cdl'");
+            stackStep(async (stack, backend) => {
+                const grade = await backend.read(name, async source => {
+                    const bytes = new Uint8Array(source.size);
+                    for (let offset = 0; offset < source.size; offset += 16384) {
+                        await yieldTurn(signal);
+                        bytes.set(await source.read(offset, Math.min(16384, source.size - offset), { signal }), offset);
+                    }
+                    return drainSteps(parseCdlSteps(bytes), signal);
+                });
+                if (!grade) throw new Error(`unable to open color correction '${name}'`);
+                for (let index = 0; index < stack.length; index++) {
+                    const image = (await stack.get(index))!;
+                    await stack.set(index, await transformStoredMagickPixels(image, backend, {
+                        end: 0, highDepth: true, apply: pixels => cdlImageSteps(pixels, grade)
+                    }, signal));
+                }
+                return stack;
+            });
+            continue;
+        }
         if (!operandsOnly && (token === "-profile" || token === "+profile")) {
             const name = tokens[++i];
             if (!name) throw new Error(`missing argument '${token}'`);
@@ -10744,7 +10776,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-sigmoidal-contrast",
         "+sigmoidal-contrast",
         "-convolve",
-        "-color-matrix",
+        "-color-matrix", "-cdl",
         "-channel-fx",
         "-evaluate-sequence",
         "-remap",

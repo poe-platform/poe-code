@@ -27,7 +27,7 @@ for (const retained of [false, true]) for (const coalesce of [false, true]) {
 }
 
 for (const retained of [false, true]) {
-  it(`preserves the transparent GIF palette color on rewrite, retained=${retained}`, async () => {
+  it(`normalizes transparent GIF colors during default palette conversion, retained=${retained}`, async () => {
     const files = new Map([["/alpha.gif", source]]);
     const fs = new MemoryFileSystem();
     await fs.writeFile("/alpha.gif", source);
@@ -35,13 +35,18 @@ for (const retained of [false, true]) {
     expect(result.exitCode).toBe(0);
     const bytes = retained ? await fs.readFile("/out.gif") : files.get("/out.gif")!;
     // Inspect the palette independently of our decoder: the encoder reserves index 255.
-    expect(Array.from(bytes.subarray(13 + 255 * 3, 13 + 256 * 3))).toEqual([17, 33, 49]);
+    expect(Array.from(bytes.subarray(13 + 255 * 3, 13 + 256 * 3))).toEqual([0, 0, 0]);
     const image = decodeGifImage(bytes);
-    expect(image.data).toEqual(decodeGifImage(source).data);
+    const expected = decodeGifImage(source).data;
+    // Native ImageMagick's default palette conversion makes hidden RGB black.
+    for (let at = 0; at < expected.length; at += 4) {
+      if (expected[at + 3] === 0) expected.fill(0, at, at + 3);
+    }
+    expect(image.data).toEqual(expected);
     let transparent = 0;
     for (let at = 0; at < image.data.length; at += 4) {
       if (image.data[at + 3] !== 0) continue;
-      expect(Array.from(image.data.subarray(at, at + 4))).toEqual([17, 33, 49, 0]);
+      expect(Array.from(image.data.subarray(at, at + 4))).toEqual([0, 0, 0, 0]);
       transparent++;
     }
     expect(transparent).toBe(28);

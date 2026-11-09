@@ -33,7 +33,7 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
                 yield;
                 const cos = cosines[j]!, sin = sines[j]!;
                 let x = Math.trunc(cx + dx * cos - dy * sin + 0.5), y = Math.trunc(cy + dx * sin + dy * cos + 0.5);
-                let pixel: Uint8Array | Uint16Array | undefined;
+                let pixel: Uint8Array | Uint16Array | number[] | undefined;
                 if (x < 0 || y < 0 || x >= width || y >= height) {
                     if (virtualPixel === "tile" || virtualPixel === "mirror") {
                         const period = virtualPixel === "mirror" ? 2 : 1;
@@ -45,9 +45,10 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
                         x = Math.max(0, Math.min(width - 1, x));
                         y = Math.max(0, Math.min(height - 1, y));
                     } else {
-                        const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
+                        // Native gray is half the quantum range; round only the final blurred pixel.
+                        const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
                         const samples = virtualPixel === "background" ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
-                        pixel = highDepth ? Uint16Array.from(samples, value => value * scale) : Uint8Array.from(samples);
+                        pixel = samples.map(value => value * scale);
                     }
                 }
                 if (!pixel) {

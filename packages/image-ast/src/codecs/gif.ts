@@ -9,7 +9,7 @@ export function readGifMetadata(bytes:Uint8Array,options?:{readonly animated?:bo
  if(!isGifBytes(bytes)||bytes.length<13)throw new Error("Invalid GIF header");
  const start=13+(bytes[10]!&128?3*(1<<((bytes[10]!&7)+1)):0),steps=gifAnimationSteps(bytes.length,start,options?.page),delays:number[]=[];let next=steps.next();
  while(!next.done){if(typeof next.value==="number")next=steps.next(bytes[next.value]);else {delays.push(next.value.delay);next=steps.next();}}
- return {...(next.value.properties ? {properties:next.value.properties,gifCommentBytes:next.value.gifCommentBytes} : {}),...gifMetadataFields(bytes[6]!|(bytes[7]!<<8),bytes[8]!|(bytes[9]!<<8),bytes.length,next.value.frames,next.value.loop,options),...(delays.length?{delay:delays}:{})};
+ return {...(next.value.icc?{icc:next.value.icc}:{}),...(next.value.gifApplications?{gifApplications:next.value.gifApplications}:{}),...(next.value.properties ? {properties:next.value.properties,gifCommentBytes:next.value.gifCommentBytes} : {}),...gifMetadataFields(bytes[6]!|(bytes[7]!<<8),bytes[8]!|(bytes[9]!<<8),bytes.length,next.value.frames,next.value.loop,options),...(delays.length?{delay:delays}:{})};
 }
 
 function lzwDecode(minCodeSize: number, data: Uint8Array, pixelCount: number): Uint8Array {
@@ -196,7 +196,7 @@ export function decodeGifImage(
           const index = indices[sy * imgW + x]!, at = (rowMap[sy]! * imgW + x) * 4;
           data.set([palette[index * 3] ?? 0, palette[index * 3 + 1] ?? 0, palette[index * 3 + 2] ?? 0, index === transparentIdx ? 0 : 255], at);
         }
-        return { ...(meta.properties ? {properties:meta.properties,gifCommentBytes:meta.gifCommentBytes} : {}), width: imgW, height: imgH, data, format: "gif", space: "srgb", channels: 4, depth: "uchar", density: 72,
+        return { ...(meta.icc?{icc:meta.icc}:{}),...(meta.gifApplications?{gifApplications:meta.gifApplications}:{}), ...(meta.properties ? {properties:meta.properties,gifCommentBytes:meta.gifCommentBytes} : {}), width: imgW, height: imgH, data, format: "gif", space: "srgb", channels: 4, depth: "uchar", density: 72,
           indexedColors: Array.from({ length: palette.length / 3 }, (_, i) => (i === transparentIdx ? 0 : 255 * 16777216) + palette[i * 3]! * 65536 + palette[i * 3 + 1]! * 256 + palette[i * 3 + 2]!),
           ...(imgFlags & 0x80 ? {} : { backgroundColor: { r: palette[bytes[11]! * 3] ?? 0, g: palette[bytes[11]! * 3 + 1] ?? 0, b: palette[bytes[11]! * 3 + 2] ?? 0, a: 255 } }),
           hasAlpha: transparentIdx !== -1, virtualCanvas: { width, height, x: left, y: top }, disposal: disposalMethod,
@@ -270,7 +270,7 @@ export function decodeGifImage(
     width,
     height: height * numPages,
     data: outData,
-    ...(meta.properties ? {properties:meta.properties,gifCommentBytes:meta.gifCommentBytes} : {}),
+    ...(meta.icc?{icc:meta.icc}:{}),...(meta.gifApplications?{gifApplications:meta.gifApplications}:{}), ...(meta.properties ? {properties:meta.properties,gifCommentBytes:meta.gifCommentBytes} : {}),
     format: "gif",
     space: "srgb",
     channels: 4,
@@ -341,7 +341,7 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
   }
   if (transdiff) transparent = true;
   const disposal = resetFrames ? 3 : options.optimizeFrames && currentDisposal <= 1 ? 1 : undefined;
-  chunks.push(gifFrameHeader(img,palette,options,layout,frame,transparent,undefined,disposal,{left,top,width,height,comment:rectangle?.comment,gifCommentBytes:rectangle?.gifCommentBytes}));const codes=new GifCodes();codes.code(256);
+  chunks.push(gifFrameHeader(img,palette,options,layout,frame,transparent,undefined,disposal,{left,top,width,height,icc:rectangle?.icc,gifApplications:rectangle?.gifApplications,comment:rectangle?.comment,gifCommentBytes:rectangle?.gifCommentBytes}));const codes=new GifCodes();codes.code(256);
   let emitted = 0;
   for (const row of gifRows(height, options.gifInterlace)) for (let x = 0; x < width; x++) {
    const i = row * width + x;

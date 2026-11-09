@@ -5,9 +5,12 @@ export function isGifBytes(bytes:Uint8Array):boolean {
 }
 
 /** Read requests and frame events keep the shared animation scanner independent of storage. */
-export function* gifAnimationSteps(size:number,start:number,page=0):Generator<number|{frame:number;delay:number},{frames:number;loop:number|undefined;properties?:Record<string,string>;gifCommentBytes?:Uint8Array},number|undefined> {
+export function* gifAnimationSteps(size:number,start:number,page=0):Generator<number|{frame:number;delay:number},{frames:number;loop:number|undefined;icc?:Uint8Array;gifApplications?:Record<string,Uint8Array>;properties?:Record<string,string>;gifCommentBytes?:Uint8Array},number|undefined> {
  const skip=function*(at:number):Generator<number,number,number|undefined>{while(at<size){const length=(yield at++)??0;if(!length)break;at+=length;}return at;};
  const word=function*(at:number):Generator<number,number,number|undefined>{return ((yield at)??0)|(((yield at+1)??0)<<8);};
+ const gifApplications: Record<string,Uint8Array> = {};
+ let applicationBytes=0;
+ let icc:Uint8Array|undefined;
  let comments: number[] = [];
  let at=start,pending=0,frames=0,loop:number|undefined;
  while(at<size){
@@ -19,10 +22,19 @@ export function* gifAnimationSteps(size:number,start:number,page=0):Generator<nu
     const length=(yield at++)??0;let name="";
     if(at+length<=size)for(let i=0;i<length;i++)name+=String.fromCharCode((yield at+i)??0);
     at+=length;
+    const payload:number[]=[];
+    const retain=length===11&&name!=="NETSCAPE2.0"&&frames===page;
     while(at<size){const n=(yield at++)??0;if(!n)break;
      if(name==="NETSCAPE2.0"&&n>=3){const value=yield* word(at+1);loop=value===0?0:value+1;}
+     if(retain){
+      if(applicationBytes+n>16*1024*1024)throw new Error("GIF application profiles exceed 16 MiB");
+      if(at+n>size)throw new Error("Truncated GIF application profile");
+      for(let i=0;i<n;i++)payload.push((yield at+i)??0);
+      applicationBytes+=n;
+     }
      at+=n;
     }
+    if(retain){if(name==="ICCRGBG1012")icc=new Uint8Array(payload);else gifApplications[name]=new Uint8Array(payload);}
    }else if(label===254){
     const extension: number[] = [];
     while(at<size){const n=(yield at++)??0;if(!n){if(frames===page)comments=extension;break;}
@@ -38,7 +50,7 @@ export function* gifAnimationSteps(size:number,start:number,page=0):Generator<nu
  }
  const gifCommentBytes = new Uint8Array(comments);
  // Without a looping extension, an animation plays exactly once.
- return {frames,loop:loop ?? (frames>1?1:undefined),...(comments.length?{properties:{comment:new TextDecoder().decode(gifCommentBytes)},gifCommentBytes}:{})};
+ return {...(icc?{icc}:{}),...(Object.keys(gifApplications).length?{gifApplications}:{}),frames,loop:loop ?? (frames>1?1:undefined),...(comments.length?{properties:{comment:new TextDecoder().decode(gifCommentBytes)},gifCommentBytes}:{})};
 }
 
 export function gifMetadataFields(width:number,height:number,size:number,frames:number,loop:number|undefined,options?:Pick<SharpInputOptions,"animated"|"page"|"pages">):ImageMetadata {

@@ -11,7 +11,7 @@ export interface GifOptions {
   readonly optimizeFrames?: boolean;
   readonly gifTransdiff?: boolean;
 }
-export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal" | "virtualCanvas" | "gifFrames" | "backgroundColor" | "properties" | "gifCommentBytes">;
+export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal" | "virtualCanvas" | "gifFrames" | "backgroundColor" | "icc" | "gifApplications" | "properties" | "gifCommentBytes">;
 /** The wire palette is fixed at 256 entries, independent of raster size. */
 export class GifPalette {
   readonly bytes = new Uint8Array(768);
@@ -169,7 +169,7 @@ export function gifFrameHeader(
   transparent: boolean,
   frameDelay = image.delay?.[frame],
   frameDisposal = typeof image.disposal === "number" ? image.disposal : image.disposal?.[frame],
-  rectangle: { left: number; top: number; width: number; height: number; comment?: string | undefined; gifCommentBytes?: Uint8Array | undefined } = { left: 0, top: 0, width: layout.width, height: layout.frameHeight }
+  rectangle: { readonly icc?: Uint8Array | undefined; readonly gifApplications?: Readonly<Record<string, Uint8Array>> | undefined; left: number; top: number; width: number; height: number; comment?: string | undefined; gifCommentBytes?: Uint8Array | undefined } = { left: 0, top: 0, width: layout.width, height: layout.frameHeight }
 ) {
   const { frames } = layout,
     { width, height } = rectangle,
@@ -187,10 +187,24 @@ export function gifFrameHeader(
   const nul = bytes.indexOf(0);
   const comment = nul < 0 ? bytes : bytes.subarray(0, nul);
   const commentSize = bytes.length ? 3 + comment.length + Math.ceil(comment.length / 255) : 0;
+  const icc = image.gifFrames ? rectangle.icc : image.icc;
+  const applications = options.gifVersion === "87a" ? [] : Object.entries({ ...(rectangle.gifApplications ?? (frame === 0 ? image.gifApplications : undefined)), ...(icc ? { ICCRGBG1012: icc } : {}) });
+  const applicationSize = applications.reduce((size, [name, payload]) => size + (name.length === 11 ? 15 + payload.length + Math.ceil(payload.length / 255) : 0), 0);
   const gce = options.gifVersion !== "87a" && (frames > 1 || transparent || options.delay !== undefined || frameDisposal !== undefined),
-    out = new Uint8Array(commentSize + (gce ? 19 : 11) + (options.globalPalette === false ? 768 : 0));
+    out = new Uint8Array(applicationSize + commentSize + (gce ? 19 : 11) + (options.globalPalette === false ? 768 : 0));
+  let applicationAt = 0;
+  for (const [name, payload] of applications) {
+    if (name.length !== 11) continue;
+    out.set([33, 255, 11], applicationAt); applicationAt += 3;
+    for (let i = 0; i < 11; i++) out[applicationAt++] = name.charCodeAt(i);
+    for (let offset = 0; offset < payload.length; offset += 255) {
+      const part = payload.subarray(offset, offset + 255);
+      out[applicationAt++] = part.length; out.set(part, applicationAt); applicationAt += part.length;
+    }
+    out[applicationAt++] = 0;
+  }
   if (commentSize) {
-    let at = 0;
+    let at = applicationSize;
     out.set([33,254], at); at += 2;
     for (let offset = 0; offset < comment.length; offset += 255) {
       const part = comment.subarray(offset, offset + 255);
@@ -207,12 +221,12 @@ export function gifFrameHeader(
       (centiseconds >>> 8) & 255,
       255,
       0
-    ], commentSize);
+    ], applicationSize + commentSize);
   out.set(
     [44, left & 255, left >>> 8, top & 255, top >>> 8, width & 255, width >>> 8, height & 255, height >>> 8, (options.gifInterlace ? 64 : 0) | (options.globalPalette === false ? 135 : 0)],
-    commentSize + (gce ? 8 : 0)
+    applicationSize + commentSize + (gce ? 8 : 0)
   );
-  if (options.globalPalette === false) out.set(palette.bytes, commentSize + (gce ? 18 : 10));
+  if (options.globalPalette === false) out.set(palette.bytes, applicationSize + commentSize + (gce ? 18 : 10));
   out[out.length - 1] = 8;
   return out;
 }

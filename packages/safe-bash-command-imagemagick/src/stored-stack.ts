@@ -16,7 +16,7 @@ export interface MagickFormatContext {
 }
 export type StoredMagickImage = StoredRgbaImage & { [magickInput]?: MagickFormatContext };
 interface DelayRegion { position: number; length: number }
-interface FrameRecord { image: Omit<StoredMagickImage, "delay" | "storedDelay" | "icc">; source?: MagickFormatContext; delays?: DelayRegion; icc?: DelayRegion }
+interface FrameRecord { image: Omit<StoredMagickImage, "delay" | "storedDelay" | "icc" | "gifApplications">; source?: MagickFormatContext; delays?: DelayRegion; icc?: DelayRegion; gifApplications?: Record<string, DelayRegion> }
 
 /** Immutable frame records and frame indices live in caller backing. */
 export class StoredImageStack {
@@ -41,7 +41,7 @@ export class StoredImageStack {
     private async retain(image: StoredMagickImage): Promise<number> {
         const known = this.records.get(image);
         if (known !== undefined) return known;
-        const { delay, storedDelay, icc, ...metadata } = image, source = storedDelay ?? delay;
+        const { delay, storedDelay, icc, gifApplications, ...metadata } = image, source = storedDelay ?? delay;
         let delays = source ? this.delayRegions.get(source) : undefined;
         if (source && !delays) {
             delays = { position: this.storage.allocate(source.length * 9), length: source.length };
@@ -65,7 +65,16 @@ export class StoredImageStack {
             }
             this.iccRegions.set(icc,profile);
         }
-        const record: FrameRecord = { image: metadata, ...(profile ? {icc:profile} : {}), ...(image[magickInput] ? { source: image[magickInput] } : {}), ...(delays ? { delays } : {}) };
+        const applications: Record<string, DelayRegion> = {};
+        for (const [name, bytes] of Object.entries(gifApplications ?? {})) {
+            const region = { position: this.storage.allocate(bytes.length), length: bytes.length };
+            for (let offset = 0; offset < bytes.length; offset += 4096) {
+                await yieldTurn(this.signal);
+                await this.storage.write(region.position + offset, bytes.subarray(offset, offset + 4096));
+            }
+            applications[name] = region;
+        }
+        const record: FrameRecord = { image: metadata, ...(gifApplications ? { gifApplications: applications } : {}), ...(profile ? {icc:profile} : {}), ...(image[magickInput] ? { source: image[magickInput] } : {}), ...(delays ? { delays } : {}) };
         const text = JSON.stringify(record), encoder = new TextEncoder(), position = this.storage.allocate(8);
         let size = 0;
         for (let offset = 0; offset < text.length;) {
@@ -90,6 +99,18 @@ export class StoredImageStack {
         }
         const record = JSON.parse(text + decoder.decode()) as FrameRecord;
         const image: StoredMagickImage = { ...record.image, ...(record.source ? { [magickInput]: record.source } : {}) };
+        if (record.gifApplications) {
+            const gifApplications: Record<string, Uint8Array> = {};
+            for (const [name, region] of Object.entries(record.gifApplications)) {
+                const bytes = new Uint8Array(region.length);
+                for (let offset = 0; offset < bytes.length; offset += 4096) {
+                    await yieldTurn(this.signal);
+                    bytes.set(await this.storage.read(region.position + offset, Math.min(4096, bytes.length - offset)), offset);
+                }
+                gifApplications[name] = bytes;
+            }
+            Object.assign(image, { gifApplications });
+        }
         if (record.icc) {
             const icc = new Uint8Array(record.icc.length);
             for (let offset=0;offset<icc.length;offset+=4096) {

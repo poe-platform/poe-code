@@ -83,6 +83,7 @@ export interface RgbaImage {
   readonly properties?: Readonly<Record<string, string>>;
   /** Original GIF comment bytes, reused while the comment property is unchanged. */
   readonly gifCommentBytes?: Uint8Array | undefined;
+  readonly gifApplications?: Readonly<Record<string, Uint8Array>> | undefined;
   readonly icc?: Uint8Array;
   readonly exif?: Uint8Array;
   readonly orientation?: number;
@@ -90,7 +91,7 @@ export interface RgbaImage {
   readonly pages?: number;
   readonly sourcePages?: number;
   readonly pageHeight?: number;
-  readonly gifFrames?: readonly { readonly comment?: string | undefined; readonly gifCommentBytes?: Uint8Array | undefined; readonly width: number; readonly height: number; readonly x: number; readonly y: number }[];
+  readonly gifFrames?: readonly { readonly icc?: Uint8Array | undefined; readonly gifApplications?: Readonly<Record<string, Uint8Array>> | undefined; readonly comment?: string | undefined; readonly gifCommentBytes?: Uint8Array | undefined; readonly width: number; readonly height: number; readonly x: number; readonly y: number }[];
   readonly disposal?: number | readonly number[];
   readonly delay?: readonly number[];
   readonly loop?: number;
@@ -121,6 +122,7 @@ export interface ImageMetadata {
   readonly properties?: Readonly<Record<string, string>>;
   /** Original GIF comment bytes, reused while the comment property is unchanged. */
   readonly gifCommentBytes?: Uint8Array | undefined;
+  readonly gifApplications?: Readonly<Record<string, Uint8Array>> | undefined;
   readonly icc?: Uint8Array;
   readonly exif?: Uint8Array;
   readonly orientation?: number;

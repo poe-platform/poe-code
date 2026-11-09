@@ -1331,6 +1331,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   };
   const properties: Record<string, string> = {
     ...meta.properties,
+    profiles: [...(meta.icc ? ["icc"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
     gamma: String(meta.gamma ?? 1 / 2.2),
     orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
@@ -6810,7 +6811,7 @@ function* prepareGifFrames(stack: readonly MagickImage[], dither: MagickState["d
         pageHeight: fh,
         delay: delays,
         disposal: disposals,
-        gifFrames: stack.map(frame => ({ comment: frame.properties?.comment, gifCommentBytes: frame.gifCommentBytes, width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 })),
+        gifFrames: stack.map(frame => ({ icc: frame.icc, gifApplications: frame.gifApplications, comment: frame.properties?.comment, gifCommentBytes: frame.gifCommentBytes, width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 })),
         data: combined
     };
 }
@@ -6836,7 +6837,7 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
     return { ...metadata, position, width, height: height * stack.length, pages: stack.length, pageHeight: height,
         storedGifFrame: { async at(index) {
             const frame = (await stack.get(index))!;
-            return { comment: frame.properties?.comment, gifCommentBytes: frame.gifCommentBytes, width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 };
+            return { icc: frame.icc, gifApplications: frame.gifApplications, comment: frame.properties?.comment, gifCommentBytes: frame.gifCommentBytes, width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 };
         } },
         storedDisposal: { length: stack.length, async at(index) {
             const frame = (await stack.get(index))!;
@@ -7609,7 +7610,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-strip") {
             state.strip = true;
-            for (let index = 0; index < stack.length; index++) { const {icc: ignored, exif: ignoredExif, orientation: ignoredOrientation, properties: ignoredProperties, ...image} = stack[index]!; stack[index] = image; }
+            for (let index = 0; index < stack.length; index++) { const {gifApplications: ignoredGifApplications, icc: ignored, exif: ignoredExif, orientation: ignoredOrientation, properties: ignoredProperties, ...image} = stack[index]!; stack[index] = image; }
         }
         else if (t === "-format") {
             state.formatStr = tokens[++i] ?? "";
@@ -9507,7 +9508,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-strip") {
             state.strip = true;
-            steps.push(async image => { if (!image) return image; const {icc: ignored, exif: ignoredExif, orientation: ignoredOrientation, properties: ignoredProperties, ...rest} = image; return rest; });
+            steps.push(async image => { if (!image) return image; const {gifApplications: ignoredGifApplications, icc: ignored, exif: ignoredExif, orientation: ignoredOrientation, properties: ignoredProperties, ...rest} = image; return rest; });
             continue;
         }
         if (!operandsOnly && token === "+repage") {

@@ -11435,10 +11435,10 @@ const syncExtraRuntimeMethods = {
             }
           }
         }
-        if (isGlobalDecl && allValidLocal && rawState.locals.length > 0) {
+        if (isGlobalDecl && allValidLocal) {
           for (let i = 0; i < parsedLocals.length; i++) {
             const it = parsedLocals[i]!;
-            if (rawState.locals.some(f => f.has(it.name))) {
+            if (stateMonitor(rawState)?.globalVariableFrame(it.name)) {
               allValidLocal = false;
               break;
             }

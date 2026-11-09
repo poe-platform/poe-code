@@ -7,6 +7,25 @@ import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { Shell } from "../../src/shell/shell.js";
 
+for (const extensions of [[], [arraysExtension()]]) for (const command of ["declare", "typeset"]) {
+  for (const initial of ["unset x", "x=old"]) for (const [body, call, expected] of [
+    [`${command} -g x=global; echo "$x"`, "x=temp f", "temp\nglobal\n"],
+    [`local x=local; ${command} -g x=global; echo "$x"`, "x=temp f", "local\nglobal\n"],
+    [`${command} -g x=global; echo "$x"`, "f", "global\nglobal\n"],
+    [`local x=temp; ${command} -g x=global; echo "$x"`, "f", "temp\nglobal\n"],
+    [`g() { ${command} -g x=global; echo "$x"; }; x=inner g; echo "$x"`, "x=temp f", "inner\ntemp\nglobal\n"],
+    [`local x=local; g() { ${command} -g x=global; echo "$x"; }; x=inner g; echo "$x"`, "f", "inner\nlocal\nglobal\n"],
+  ]) test(`global declaration (${extensions.length ? "arrays" : "default"}): ${initial}; ${body}; ${call}`, async t => {
+    const { shell, commands } = setup({ extensions });
+    for (const builtin of basicCommands()) commands.register(builtin);
+    t.after(() => shell.dispose());
+    const result = await shell.exec(`${initial}; f() { ${body}; }; ${call}; echo "\${x-unset}"`);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  });
+}
+
 for (const extensions of [[], [arraysExtension()]]) {
   for (const [flag, initial, value, outer, direct, appended] of [
     ["i", "7", "2+3", "7", "5", "12"],

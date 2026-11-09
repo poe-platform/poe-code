@@ -8828,10 +8828,10 @@ export class Runtime {
         const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\+?=(.*))?$/su.exec(arg);
         if (!match) { await this.diagnostic(context, `${command}: \`${arg}': not a valid identifier`); status = 1; continue; }
         const name = match[1]!;
-        // A global hidden by locals lives in the oldest frame's saved binding.
+        // A global hidden by locals or call assignments lives in the oldest saved binding.
         // Temporarily expose it so declarations use the same attributes, array
         // ownership and assignment rules as an unshadowed global.
-        const globalFrame = command === "declare" && enabled.has("g") ? state.locals.find(frame => frame.has(name)) : undefined;
+        const globalFrame = command === "declare" && enabled.has("g") ? stateMonitor(state)!.globalVariableFrame(name) : undefined;
         let visibleLocal: SavedVariable | undefined;
         if (globalFrame) {
           visibleLocal = saveVariable(state, name);

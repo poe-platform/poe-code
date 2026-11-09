@@ -1,4 +1,4 @@
-import type { State } from "../runtime.js";
+import type { SavedVariable, State } from "../runtime.js";
 import { writeDynamicVariable } from "../dynamic-variables.js";
 import { installOptionVariables } from "../options.js";
 import type { InvocationScope } from "../cleanup.js";
@@ -32,12 +32,13 @@ function isSyncResolved(promise: unknown): boolean {
   return Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
 }
 const overlayNext = Symbol("array overlay parent");
+const overlayLocalDepth = Symbol("overlay local depth");
 const guardedMutationCharge = { generation: true, version: true, epoch: true, work: 5 } as const;
 const unguardedMutationCharge = { generation: false, version: false, epoch: true, work: 5 } as const;
 const guestMutationCharge = { epoch: true, work: 5 } as const;
 const SHARED_MUTATION_TICKETS = { generation: 0, version: 0, epoch: 0 };
 const sharedMonitorDescriptor: PropertyDescriptor = { value: undefined, writable: true, configurable: true };
-type OverlayMap = Map<string, { superseded?: boolean }> & { [overlayNext]?: OverlayMap };
+type OverlayMap = Map<string, SavedVariable> & { [overlayNext]?: OverlayMap; [overlayLocalDepth]?: number };
 
 class ArraySessionImpl implements Session {
   declare private _values: ValueArena | undefined;
@@ -449,6 +450,7 @@ export class StateMonitor {
   }
 
   openOverlay(frame: OverlayMap): void {
+    frame[overlayLocalDepth] = this.raw.locals.length;
     if (this._overlays) frame[overlayNext] = this._overlays;
     this._overlays = frame;
   }
@@ -457,6 +459,16 @@ export class StateMonitor {
     if (this._overlays !== frame) throw new Error("Indexed-array overlay dependency order violated");
     this._overlays = frame[overlayNext];
     delete frame[overlayNext];
+    delete frame[overlayLocalDepth];
+  }
+
+  globalVariableFrame(name: string): Map<string, SavedVariable> | undefined {
+    const localIndex = this.raw.locals.findIndex(frame => frame.has(name));
+    let result = localIndex < 0 ? undefined : this.raw.locals[localIndex];
+    for (const frame of this.overlayFrames()) {
+      if (frame.has(name) && !frame.get(name)!.superseded && (localIndex < 0 || frame[overlayLocalDepth]! <= localIndex)) result = frame;
+    }
+    return result;
   }
 
   hasOverlay(name: string): boolean {

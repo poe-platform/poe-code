@@ -4,6 +4,34 @@ import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 import { agentCommands, createMemoryFileSystem, Shell } from "../../src/core.js";
+import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
+
+for (const [label, source] of [
+  ["readonly scalar subscript", 'readonly locked=old; read "locked[0]" <<< new; printf "continued:%s <%s>\\n" "$?" "$locked"'],
+  ["readonly indexed member", 'readonly -a locked=(old keep); read "locked[0]" <<< new; printf "continued:%s <%s> <%s>\\n" "$?" "${locked[@]}"'],
+  ["readonly associative member", 'declare -A locked=([key]=old); readonly locked; read "locked[key]" <<< new; printf "continued:%s <%s>\\n" "$?" "${locked[key]}"'],
+  ["nameref to readonly member", 'readonly locked=old; declare -n ref="locked[0]"; read ref <<< new; printf "continued:%s <%s>\\n" "$?" "$locked"'],
+  ["partial assignment and consumed record", 'readonly locked=old; read first "locked[0]" last; printf "continued:%s <%s> <%s> <%s>\\n" "$?" "$first" "$locked" "$last"; read tail; printf "tail:%s\\n" "$tail"'],
+  ["errexit", 'set -e; readonly locked=old; read "locked[0]" <<< new; printf "unexpected\\n"'],
+  ["handled failure", 'readonly locked=old; read "locked[0]" <<< new || printf "handled:%s\\n" "$?"; printf "continued:<%s>\\n" "$locked"'],
+  ["readonly scalar control", 'readonly locked=old; read locked <<< new; printf "continued:%s <%s>\\n" "$?" "$locked"'],
+  ["writable subscript control", 'read "open[0]" <<< new; printf "continued:%s <%s>\\n" "$?" "${open[0]}"'],
+] as const) {
+  test(`read destination failure matches Bash: ${label}`, async () => {
+    const { shell, commands } = setup({ extensions: [arraysExtension()] });
+    for (const command of basicCommands()) commands.register(command);
+    const stdin = "one two three\nTAIL\n";
+    try {
+      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source, "shell"], { input: stdin, encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
+      assert.equal(native.error, undefined);
+      assert.equal(native.signal, null);
+      const result = await shell.exec(source, { stdin });
+      assert.equal(result.stdout, native.stdout);
+      assert.equal(result.stderr, native.stderr);
+      assert.equal(result.exitCode, native.status);
+    } finally { await shell.dispose(); }
+  });
+}
 
 for (const [destinations, first, last] of [
   ["x bad-name", "one", "old"],

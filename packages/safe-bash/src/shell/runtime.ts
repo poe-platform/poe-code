@@ -9250,9 +9250,10 @@ export class Runtime {
             await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${names[index]}': not a valid identifier\n`);
             return 1;
           }
-          if (state.readonlyVariables?.has(names[index]!)) {
-            await this.diagnostic(context, `${names[index]}: readonly variable`);
-            return index === names.length - 1 ? 1 : 2;
+          const target = this.variableTarget(this.referenceName(state, names[index]!))!;
+          if (state.readonlyVariables?.has(target.name)) {
+            await this.diagnostic(context, `${target.name}: readonly variable`);
+            return target.subscript !== undefined || index === names.length - 1 ? 1 : 2;
           }
           await this.assignVariable(state, names[index]!, fields[index]?.value ?? "", context);
         }

@@ -31,13 +31,16 @@ it("runs in a browser sandbox without Node, network, or WebAssembly code generat
     bundle: true, minify: true, write: false, platform: "browser", format: "iife", globalName: "codecs", logLevel: "silent"
   });
   const mp3Packet = readFileSync(new URL("../../safe-bash-command-audio/fixtures/cbr.mp3", import.meta.url)).subarray(74, 458);
-  const context = { TextEncoder, TextDecoder, URL, packet, aacPacket, aacConfig, mp3Packet, console,
+  const amrPacket = readFileSync(new URL("../../mp4-ast/src/fixtures/amr-nb-decode.3gp", import.meta.url)).subarray(44, 76);
+  const context = { amrPacket, TextEncoder, TextDecoder, URL, packet, aacPacket, aacConfig, mp3Packet, console,
     fetch() { throw new Error("Network access is forbidden"); },
     WebAssembly: new Proxy({}, { get() { throw new Error("Runtime WASM compilation is forbidden"); } })
   };
   const result = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify([...codecs.decodeH264([{data: packet, pts: 0, dts: 0, duration: 1}], new Uint8Array(), 256)].map(frame => [frame.width, frame.height, codecs.scaleVideoPicture(frame, 8, 8)[0]]))', context, { timeout: 5000 });
   const aac = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify([...codecs.decodeAudio("AAC", [{data: aacPacket, pts: 0, dts: 0, duration: 1024}], aacConfig)].map(frame => [frame.sampleRate, frame.channelData.length, frame.channelData[0].length]))', context, { timeout: 5000 });
   const mp3 = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify([...codecs.decodeAudio("MP3", [{data: mp3Packet, pts: 0, dts: 0, duration: 1152}])].map(frame => [frame.sampleRate, frame.channelData.length, frame.channelData[0].length]))', context, { timeout: 5000 });
+  const amrNb = runInNewContext(bundled.outputFiles[0]!.text + '\nJSON.stringify([...codecs.decodeAudio("AMR-NB", [{data: amrPacket, pts: 0, dts: 0, duration: 160}])].map(frame => [frame.sampleRate, frame.channelData.length, frame.channelData[0].length]))', context, { timeout: 5000 });
+  assert.deepEqual(JSON.parse(amrNb), [[8000, 1, 160]]);
   assert.deepEqual(JSON.parse(mp3), [[48000, 2, 1152]]);
   assert.deepEqual(JSON.parse(aac), [[24000, 1, 1024]]);
   const opus = runInNewContext(bundled.outputFiles[0]!.text + '\nconst opus = codecs.encodeOggAudio("opus", 48000, [new Float32Array(64)]); JSON.stringify([...codecs.decodeAudio("Opus", opus.packets.map(packet => ({data: packet.data, pts: 0, dts: 0, duration: 960})), opus.headers[0])].map(frame => [frame.sampleRate, frame.channelData.length, frame.channelData[0].length]))', context, { timeout: 5000 });

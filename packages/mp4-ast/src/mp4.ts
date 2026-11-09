@@ -3,6 +3,7 @@ import { composeDisplayMatrices } from "./display-matrix.js";
 import { decodeMp4Timecode } from "./mp4-timecode-sample.js";
 import { decodeAmrWb } from "./amr-wb.js";
 import { encodeAlacTrack } from "./alac.js";
+import { decodeAmrNb } from "./amr-nb.js";
 import { decodeAlac } from "./alac-decoder.js";
 import { decodeMovText, encodeMovText } from "./mov-text.js";
 import { parseImaQt } from "./containers/aiff-ima.js";
@@ -694,6 +695,8 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       ...(imaAudio ? { decodedAudio: imaAudio } : {}),
       ...(type === "audio" && options.decodeAudio !== false && audioDescription?.codecName === "amr_wb"
         ? { decodedAudio: decodeAmrWb(samples, budget) } : {}),
+      ...(type === "audio" && options.decodeAudio !== false && audioDescription?.codecName === "amr_nb"
+        ? { decodedAudio: decodeAmrNb(samples, budget) } : {}),
       decodedVideoFrames
     });
   }

@@ -1,6 +1,6 @@
 # Portable media codecs
 
-Decode real H.264 video and AAC/MP3/Vorbis/Opus/AMR-WB audio, and encode AAC, MP3, AMR-NB/WB, Vorbis or Opus audio in memory, including in
+Decode real H.264 video and AAC/MP3/Vorbis/Opus/AMR-NB/AMR-WB audio, and encode AAC, MP3, AMR-NB/WB, Vorbis or Opus audio in memory, including in
 browser and Worker runtimes without Node, network access, or runtime WebAssembly
 compilation. The static JavaScript runtime initializes only when a codec is used.
 
@@ -8,7 +8,7 @@ compilation. The static JavaScript runtime initializes only when a codec is used
   SPS cropping, color conversion, and delayed-frame flushing. `scaleVideoPicture(frame, width, height)`
   scales retained native pixels before RGB conversion; it returns `undefined` for
   frames whose RGBA buffer or dimensions have been replaced. Treat decoded buffers as immutable.
-- AAC/MP3/Vorbis/Opus/AMR-WB: `decodeAudio(codec, packets, extra)` decodes access units to planar float PCM, retaining timestamps and priming
+- AAC/MP3/Vorbis/Opus/AMR-NB/AMR-WB: `decodeAudio(codec, packets, extra)` decodes access units to planar float PCM, retaining timestamps and priming
   for the container to apply presentation edits. MP3 transforms follow native x86 SIMD rounding for PCM output. Vorbis timestamps are derived in sample units from packet block sizes; the container applies page granules.
 - AAC/MP3/AMR-NB/WB encoding: `encodeAudio(codec, sampleRate, channelData, bitrate?)` produces compressed packets, codec configuration, frame size, and encoder delay from planar PCM for container writers. AMR-WB accepts mono 16 kHz PCM and the nine standard bitrates from 6.6 to 23.85 kb/s. AMR-NB requires mono 8000 Hz PCM; its bitrate defaults to 12200 bits/s and selects the nearest supported mode.
 - Ogg audio: Vorbis and mono/stereo Opus packets, codec headers, encoder delay,

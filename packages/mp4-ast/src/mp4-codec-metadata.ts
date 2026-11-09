@@ -47,9 +47,6 @@ export function sampleEntryHeader(formatFourCC: string, body: Uint8Array): Codec
     // Keep the declared time scale and frame duration for timecode stream probing.
     metadata.extraData = body.slice(8, 28);
     metadata.extradataSize = 20;
-  } else if (formatFourCC === 'tmcd' && body.length >= 28) {
-    metadata.extraData = body.slice(8, 28);
-    metadata.extradataSize = 20;
   }
   return state;
 }

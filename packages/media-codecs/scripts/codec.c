@@ -83,8 +83,8 @@ Decoder *decoder_create(const uint8_t *extra, int extra_size, double max_pixels)
 }
 
 Decoder *audio_decoder_create(int codec, const uint8_t *extra, int extra_size) {
-    if (codec != 1 && codec != 4 && extra_size <= 0) return NULL;
-    return create_decoder(extra, extra_size, 0, codec == 0 ? AV_CODEC_ID_AAC : codec == 1 ? AV_CODEC_ID_MP3 : codec == 2 ? AV_CODEC_ID_VORBIS : codec == 3 ? AV_CODEC_ID_OPUS : AV_CODEC_ID_AMR_WB);
+    if (codec != 1 && codec != 4 && codec != 5 && extra_size <= 0) return NULL;
+    return create_decoder(extra, extra_size, 0, codec == 0 ? AV_CODEC_ID_AAC : codec == 1 ? AV_CODEC_ID_MP3 : codec == 2 ? AV_CODEC_ID_VORBIS : codec == 3 ? AV_CODEC_ID_OPUS : codec == 4 ? AV_CODEC_ID_AMR_WB : AV_CODEC_ID_AMR_NB);
 }
 
 intptr_t audio_decoder_receive(Decoder *decoder) {

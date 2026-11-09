@@ -324,7 +324,10 @@ Split stereo PCM into distinct mono files with
 Use `-af channelsplit=channel_layout=stereo:channels=FR` to extract only the right
 channel (`FL` selects the left). Stereo layouts also accept `0x3`, `FL+FR`, and
 `2c`; channel selections accept masks (`0x1` for left, `0x2` for right) and
-`stereo` or `0x3` for both outputs. Other channel layouts are not supported.
+`stereo` or `0x3` for both outputs. Matching mono and 5.1 inputs also support
+named speaker extraction: `-af channelsplit=mono:FC`,
+`-af channelsplit=5.1:FC`, or `-af channelsplit=5.1:LFE`.
+The selected speaker is retained in the output channel layout.
 `pan` supports mono/stereo output, numbered channels and named channels from the
 input layout: `-af 'pan=mono|c0=c1'` extracts the right channel and
 `-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. Weighted sums use `=`,

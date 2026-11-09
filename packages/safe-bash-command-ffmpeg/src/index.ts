@@ -1035,8 +1035,10 @@ async function renderShowwavespic(
   return { width: width, height: height, data, ptsSeconds: 0, durationSeconds: 1, keyframe: true };
 }
 
-function parseStereoChannelLayout(layout: string): string[] {
+function parseSplitChannelLayout(layout: string): string[] {
+  if (layout === "mono" || layout === "1c") return ["FC"];
   if (layout === "stereo" || layout === "2c") return ["FL", "FR"];
+  if (layout === "5.1" || layout === "6c") return ["FL", "FR", "FC", "LFE", "BL", "BR"];
   const digits = layout.startsWith("0x") ? layout.slice(2) : layout;
   const alphabet = layout.startsWith("0x") ? "0123456789abcdefABCDEF" : "0123456789";
   if (digits.length && [...digits].every(digit => alphabet.includes(digit))) {
@@ -1048,7 +1050,7 @@ function parseStereoChannelLayout(layout: string): string[] {
   return layout.split("+");
 }
 
-function parseChannelSplit(spec: string): string[] {
+function parseChannelSplit(spec: string): { input: string[]; selected: string[] } {
   const equals = spec.indexOf("=");
   let layout = "stereo";
   let channels = "all";
@@ -1061,15 +1063,15 @@ function parseChannelSplit(spec: string): string[] {
     else if (key === "channels") channels = value;
     else throw new Error(`channelsplit: unsupported option ${key}`);
   }
-  const input = parseStereoChannelLayout(layout);
-  if (input.length !== 2 || input[0] !== "FL" || input[1] !== "FR") {
+  const input = parseSplitChannelLayout(layout);
+  if (!["FC", "FL+FR", "FL+FR+FC+LFE+BL+BR"].includes(input.join("+"))) {
     throw new Error(`channelsplit: unsupported channel layout ${layout}`);
   }
-  const selected = channels === "all" ? input : parseStereoChannelLayout(channels);
-  if (selected.some(channel => channel !== "FL" && channel !== "FR")) {
+  const selected = channels === "all" ? input : parseSplitChannelLayout(channels);
+  if (selected.some(channel => !input.includes(channel))) {
     throw new Error(`channelsplit: invalid channels ${channels}`);
   }
-  return selected;
+  return { input, selected };
 }
 
 async function panAudio(
@@ -1175,7 +1177,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     const filters = parseFilterChain(expression);
     const last = filters.at(-1)!;
     const split = last === "channelsplit" || last.startsWith("channelsplit=") ? parseChannelSplit(last) : undefined;
-    let outputCount = split?.length ?? 1;
+    let outputCount = split?.selected.length ?? 1;
     if (last === "asplit" || last.startsWith("asplit=")) {
       const argument = last.slice("asplit=".length);
       const count = argument.startsWith("outputs=") ? argument.slice("outputs=".length) : argument;
@@ -1195,7 +1197,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     for (const [index, output] of outputs.entries()) {
       if (!output || nodes.has(output)) throw new Error("Duplicate or empty audio filter output");
       // Each graph edge evaluates the preceding chain, then selects its own PCM channel.
-      const selected = split ? expression + (last.includes("=") ? ":" : "=") + `channels=${split[index]}` : expression;
+      const selected = split ? expression + (last.includes("=") ? ":" : "=") + `channels=${split.selected[index]}` : expression;
       nodes.set(output, { inputs, expression: selected });
     }
     for (const input of inputs) consumed.add(input);
@@ -8946,12 +8948,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = selected;
                         filteredChannelMask = count === 1 ? 4 : 3;
                       } else if (trimmed === "channelsplit" || trimmed.startsWith("channelsplit=")) {
-                        const selected = parseChannelSplit(trimmed);
+                        const { input, selected } = parseChannelSplit(trimmed);
                         if (selected.length !== 1) throw new Error("channelsplit: simple audio filters require exactly one output");
-                        if (stretched.length !== 2) throw new Error("channelsplit: stereo input required");
-                        const channel = selected[0] === "FL" ? 0 : 1;
-                        stretched = [stretched[channel]!];
-                        filteredChannelMask = 1 << channel;
+                        const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR"];
+                        const mask = input.reduce((value, speaker) => value | (1 << speakers.indexOf(speaker)), 0);
+                        if (stretched.length !== input.length || (filteredChannelMask && filteredChannelMask !== mask)) {
+                          throw new Error("channelsplit: matching input channel layout required");
+                        }
+                        stretched = [stretched[input.indexOf(selected[0]!)]!];
+                        filteredChannelMask = 1 << speakers.indexOf(selected[0]!);
                       } else if (trimmed === "asetpts" || trimmed.startsWith("asetpts=") || trimmed === "aselect" || trimmed.startsWith("aselect=")) {
                         const selecting = trimmed === "aselect" || trimmed.startsWith("aselect=");
                         const argument = trimmed.includes("=") ? trimmed.slice(trimmed.indexOf("=") + 1) : selecting ? "1" : "PTS";

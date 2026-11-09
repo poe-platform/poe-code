@@ -1330,7 +1330,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   fmt: string,
   meta: ImageMetadata,
   getImage: () => RgbaImage,
-  context: MagickFormatContext & { analysis?: { warnings: string } } = {},
+  context: MagickFormatContext & { analysis?: { warnings: string }; optionProperties?: Record<string, string> | undefined } = {},
   resolvePixels?: (property:string)=>Generator<Step,string,void>
 ): Generator<void|Step, string, void> {
   const filePath = context.filePath ?? "";
@@ -1432,6 +1432,10 @@ function* formatMagickPropertyStringSteps<Step=never>(
       const key = property.toLowerCase();
       if (Object.hasOwn(properties, key)) {
         parts.push(properties[key]!);
+      } else if (Object.hasOwn(properties, `artifact:${key}`)) {
+        parts.push(properties[`artifact:${key}`]!);
+      } else if (Object.hasOwn(context.optionProperties ?? {}, key.startsWith("option:") ? key.slice(7) : key)) {
+        parts.push(context.optionProperties![key.startsWith("option:") ? key.slice(7) : key]!);
       } else if (key === "comment") {
         if (context.analysis) context.analysis.warnings += `magick: unknown image property '${token}'\n`;
         parts.push("");
@@ -1518,7 +1522,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  return channels[3]!==undefined&&channels[3]!==255?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3]/255)})`:`srgb(${channels.slice(0,3).join(",")})`;
 }
 
-async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string } },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal):Promise<string>{
+async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal):Promise<string>{
  let raster:IdentifyRaster|undefined,properties:Record<string,string>|undefined;
  const statistics:Record<string,number>={};
  function* resolve(property:string):Generator<IdentifyStep,string,void>{
@@ -7669,7 +7673,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (t === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
             const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, (image as MagickImage)[magickInput]);
+                const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 return key.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: { ...image.properties, [key]: expanded } };
             });
             i++;
@@ -9305,9 +9309,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
             const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
+            const optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(value, image, (image as StoredMagickImage)[magickInput] ?? {}, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 return key.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: { ...image.properties, [key]: expanded } };
             });
             continue;

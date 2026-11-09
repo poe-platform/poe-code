@@ -109,7 +109,7 @@ When combined with `end` or `end_sample`, the latest end wins.
 Use `atrim=start=0.253:end=0.390` for time bounds in seconds; `starti` and `endi` are aliases for `start` and `end`. End bounds are exclusive.
 Repeated `atrim` options use their last value; distinct time and sample bounds keep the earliest start and latest end.
 Use `atrim=start_pts=2:end_pts=8` for bounds in timestamp ticks (one tick per audio sample). PTS bounds follow shifts from `asetpts`; `start_sample` and `end_sample` count input sample frames regardless of timestamps.
-`asetpts=PTS-STARTPTS` resets audio timestamps; `asetpts=PTS+0.5/TB` shifts them by half a second. Output time limits honor shifted audio frame timestamps while preserving the retained PCM samples.
+`asetpts=PTS-STARTPTS` resets audio timestamps; `asetpts=PTS+0.5/TB` shifts them by half a second. Output time limits honor shifted audio frame timestamps while preserving the retained PCM samples. Overlapping timestamps such as `asetpts=PTS/2` and `asetpts=NB_SAMPLES` apply the duration to each frame, including partial frames.
 Both forms apply to every channel and may omit either bound.
 `compensationdelay=cm=34:mm=3:dry=0:wet=1` delays every channel by the sound travel time for the supplied distance, preserving sample rate and frame count. Supports `mm`, `cm`, `m`, `dry`, `wet`, and `temp` (Celsius), including positional options. Delayed samples start with silence and the tail is trimmed to the original length.
 

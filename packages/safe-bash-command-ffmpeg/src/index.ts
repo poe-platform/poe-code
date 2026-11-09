@@ -10829,7 +10829,45 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const start = outputSs === undefined ? 0 : Math.max(0, Math.round(outputSs * origRate) - audioStartSample);
                     const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
                     const end = endSeconds === undefined ? undefined : Math.max(start, Math.round(endSeconds * origRate) - audioStartSample);
-                    stretched = stretched.map(channel => channel.subarray(start, end));
+                    if (audioTimestamps) {
+                      const seek = Math.round((outputSs ?? 0) * origRate);
+                      const duration = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));
+                      const firstPts = Math.max(audioTimestamps[0]?.pts ?? 0, outputSs === undefined ? -Infinity : seek);
+                      const endPts = duration === undefined ? Infinity : firstPts + Math.round(duration * origRate);
+                      const ranges: { start: number; end: number }[] = [];
+                      const frames: typeof audioTimestamps = [];
+                      let length = 0;
+                      for (const frame of audioTimestamps) {
+                        if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                        // Duration trims each frame on its own timeline; overlapping frames can both survive.
+                        if (frame.pts >= endPts) break;
+                        const from = frame.start + (outputSs === undefined ? 0 : Math.max(0, seek - frame.pts));
+                        const to = Math.min(frame.end, frame.start + endPts - frame.pts);
+                        if (to <= from) continue;
+                        ranges.push({ start: from, end: to });
+                        frames.push({ start: length, end: length + to - from, pts: frame.pts + from - frame.start - seek });
+                        length += to - from;
+                      }
+                      budget.allocateMemory(length * stretched.length * 8);
+                      const output = stretched.map(() => new Float64Array(length));
+                      let offset = 0;
+                      for (const range of ranges) {
+                        for (let start = range.start; start < range.end; start += 4096) {
+                          budget.checkCpu();
+                          await yieldTurn(context.signal);
+                          context.signal?.throwIfAborted();
+                          const end = Math.min(range.end, start + 4096);
+                          for (const [channel, samples] of stretched.entries()) {
+                            output[channel]!.set(samples.subarray(start, end), offset + start - range.start);
+                          }
+                        }
+                        offset += range.end - range.start;
+                      }
+                      stretched = output;
+                      audioTimestamps = frames;
+                    } else {
+                      stretched = stretched.map(channel => channel.subarray(start, end));
+                    }
                   }
 
                   const resampleFrameLimit = maxAudioFrames !== undefined && audioRate !== undefined && audioRate !== origRate

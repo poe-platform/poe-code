@@ -7846,6 +7846,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               };
             }
 
+            const frameChecksumOutput = outputFormat === "framemd5" || outputFormat === "framehash" || outputFormat === "framecrc";
             const segmentPlugin = outputFormat === "segment"
               ? segmentFormat === undefined ? registry.findByFilename(outputTarget)
                 : (registry.findById(segmentFormat) ?? registry.findByFormatName(segmentFormat))
@@ -7885,8 +7886,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let audioStartSample = 0;
                   const audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   let audioTimestamps: { start: number; end: number; pts: number }[] | undefined;
-                  if (audioSegment) {
-                    segmentAudioPackets = [];
+                  if (audioSegment || frameChecksumOutput) {
+                    if (audioSegment) segmentAudioPackets = [];
                     audioTimestamps = [];
                     const length = stretched[0]?.length ?? 0;
                     for (let start = 0, n = 0; start < length; n++) {
@@ -9421,7 +9422,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (cutoff) stretched = stretched.map(channel => channel.subarray(0, cutoff.start));
                   }
 
-                  if (!segmentAudioPackets && !filter && audioRate === undefined && audioChannels === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") {
+                  if (!segmentAudioPackets && !frameChecksumOutput && !filter && audioRate === undefined && audioChannels === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") {
                     return { ...t, duration: (stretched[0]?.length ?? 0) * t.timescale / origRate,
                       samples: [], decodedAudio: { ...audio, channelData: stretched } };
                   }
@@ -9611,7 +9612,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     newChannelData.push(dst);
                   }
 
-                  if (segmentAudioPackets && audioTimestamps) {
+                  const samples: (typeof t.samples)[number][] = [];
+                  if ((segmentAudioPackets || frameChecksumOutput) && audioTimestamps) {
                     const ratio = targetRate / origRate;
                     const cutoff = Math.min((resampleCutoff || 0.97) * ratio, 1);
                     const filterLength = filterSize <= cutoff ? 1 : 2 * Math.ceil(filterSize / 2 / cutoff);
@@ -9625,12 +9627,25 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const end = Math.min(targetSamples, Math.max(0, Math.ceil((frame.end - delay) * ratio)));
                       if (end <= start) continue;
                       budget.allocateMemory(16);
-                      segmentAudioPackets.push({ pts: start, isKeyframe: true });
+                      segmentAudioPackets?.push({ pts: start, isKeyframe: true });
+                      if (frameChecksumOutput) {
+                        const pts = Math.round((frame.pts - frame.start) * ratio) + start;
+                        budget.allocateMemory(48);
+                        samples.push({ dts: pts, pts, cts: 0,
+                          duration: end - start, isKeyframe: true, size: 0, sampleDescriptionIndex: 1, data: new Uint8Array(0) });
+                      }
                       start = end;
                     }
                     if (start < targetSamples) {
                       budget.allocateMemory(16);
-                      segmentAudioPackets.push({ pts: start, isKeyframe: true });
+                      segmentAudioPackets?.push({ pts: start, isKeyframe: true });
+                      if (frameChecksumOutput) {
+                        const last = samples.at(-1);
+                        const pts = last ? last.pts + last.duration : 0;
+                        budget.allocateMemory(48);
+                        samples.push({ dts: pts, pts, cts: 0, duration: targetSamples - start,
+                          isKeyframe: true, size: 0, sampleDescriptionIndex: 1, data: new Uint8Array(0) });
+                      }
                     }
                   }
 
@@ -9646,7 +9661,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     duration: targetSamples,
                     volume: volFactor,
                     codecDescriptions: nextDescs,
-                    samples: [],
+                    samples,
                     decodedAudio: {
                       sampleRate: targetRate,
                       channels: targetCh,
@@ -10480,7 +10495,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: decodeExitCode };
             }
 
-            const frameChecksumOutput = outputFormat === "framemd5" || outputFormat === "framehash" || outputFormat === "framecrc";
             const checksumOutput = frameChecksumOutput || outputFormat === "streamhash" || outputFormat === "hash" || outputFormat === "md5" || outputFormat === "crc";
             if (!checksumOutput && (!outPlugin || !outPlugin.canMux)) {
               const fmtDesc = outputFormat ?? outputTarget;

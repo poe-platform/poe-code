@@ -1,0 +1,15 @@
+#format: frame checksums
+#version: 2
+#hash: MD5
+#software: Lavf61.1.100
+#tb 0: 1/48000
+#media_type 0: audio
+#codec_id 0: pcm_s16le
+#sample_rate 0: 48000
+#channel_layout_name 0: mono
+#stream#, dts,        pts, duration,     size, hash
+0,          0,          0,     4096,     8192, 32180763c6c3e07ea7f514a96ed09547
+0,       4096,       4096,     4096,     8192, 1ce40bbffbab8e4a40af781a52e1b1ea
+0,       8192,       8192,     4096,     8192, 0de8ad7e9b632317fc285bb678b691dc
+0,      12288,      12288,     4096,     8192, 70c1af873c8277915ab0d72b3cf5bef5
+0,      16384,      16384,     2816,     5632, 770ac58c2f76b5f85c9197c3ab485376

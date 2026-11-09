@@ -699,6 +699,10 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       extraData: info.codecPrivate
     };
 
+    const pcmDecoder = type === "audio" && rawSamples.length > 0 && options.decodeAudio !== false
+      ? rawAudioAsts().find(plugin => plugin.supportedAudioCodecs.includes(codecName))
+      : undefined;
+
     tracks.push({
       id: trkNum,
       type,
@@ -720,8 +724,8 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       codecDescriptions: [desc],
       samples: rawSamples,
       decodedVideoFrames,
-      ...(g711Tag !== undefined && options.decodeAudio !== false ? {
-        decodedAudio: rawAudioAsts().find(plugin => plugin.id === (g711Tag === 6 ? "alaw" : "mulaw"))!
+      ...(pcmDecoder ? {
+        decodedAudio: pcmDecoder
           .parse(concatBytes(rawSamples.map(sample => sample.data)), { ...options, budget, sampleRate, channels })
           .tracks[0]!.decodedAudio
       } : {})

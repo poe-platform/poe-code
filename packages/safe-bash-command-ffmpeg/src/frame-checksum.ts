@@ -190,6 +190,23 @@ export function serializeFrameChecksum(
     const rate = video ? den / num : copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
     const payload = track.type !== "audio" || decodedAudioPackets ? new Uint8Array() : rawAudio!.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
     let audioPackets = track.samples;
+    if (!copy && track.decodedAudio && codec?.codecName.startsWith("pcm_") &&
+        audioPackets.every(packet => packet.data.length > 0)) {
+      // PCM frame sizes are exact; container timestamps may be rounded to milliseconds.
+      const stride = (codec.bitsPerSample ?? 0) / 8 * (codec.channels ?? 0);
+      if (stride > 0) {
+        let end = Math.round((audioPackets[0]?.pts ?? 0) * rate / track.timescale);
+        audioPackets = audioPackets.map(packet => {
+          budget.checkCpu();
+          const timestamp = Math.round(packet.pts * rate / track.timescale);
+          const pts = Math.abs(timestamp - end) <= rate / track.timescale ? end : timestamp;
+          const duration = packet.data.length / stride;
+          end = pts + duration;
+          return { ...packet, dts: pts * track.timescale / rate, pts: pts * track.timescale / rate,
+            duration: duration * track.timescale / rate };
+        });
+      }
+    }
     if (track.type === "audio" && !copy && track.codecDescriptions[0]?.codecName === "mp3" && !track.decodedAudio) {
       // The PCM decoder removes encoder delay and padding, including entire packets.
       const ticksPerSample = track.timescale / rate;

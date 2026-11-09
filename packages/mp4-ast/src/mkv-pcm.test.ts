@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { parseMkv, serializeMkv } from "./containers/mkv.js";
+import { rawAudioAsts } from "./containers/raw-audio.js";
 import { concatBytes } from "./binary.js";
 import { writeVintSize } from "./containers/ebml.js";
 
@@ -57,5 +58,39 @@ for (const [codecId, bits, codecName] of [
     const copied = serializeMkv(parsed);
     assert.ok(Buffer.from(copied).includes(Buffer.from(codecId)));
     assert.deepEqual(parseMkv(copied).tracks[0]!.codecDescriptions, parsed.tracks[0]!.codecDescriptions);
+  });
+}
+
+it("decodes native Matroska PCM without changing packets or timestamps", () => {
+  const bytes = readFileSync(new URL("./fixtures/track-dispositions.mkv", import.meta.url));
+  const decoded = parseMkv(bytes);
+  const copied = parseMkv(bytes, { decodeAudio: false });
+  for (const track of decoded.tracks.filter(track => track.type === "audio")) {
+    const original = copied.tracks.find(candidate => candidate.id === track.id)!;
+    assert.equal(original.decodedAudio, undefined);
+    assert.deepEqual(track.samples, original.samples);
+    const pcm = Buffer.concat(track.samples.map(sample => Buffer.from(sample.data)));
+    const audio = track.decodedAudio!;
+    assert.ok(audio);
+    assert.equal(audio.sampleRate, track.codecDescriptions[0]!.sampleRate);
+    assert.equal(audio.channels, track.codecDescriptions[0]!.channels);
+    assert.equal(audio.channelData[0]!.length, pcm.length / 2 / audio.channels);
+    for (let frame = 0; frame < audio.channelData[0]!.length; frame++) {
+      for (let channel = 0; channel < audio.channels; channel++) {
+        assert.equal(audio.channelData[channel]![frame], pcm.readInt16LE((frame * audio.channels + channel) * 2) / 32768);
+      }
+    }
+  }
+});
+
+for (const format of ["s16le", "s16be", "s24le", "s24be", "s32le", "s32be", "f32le", "f64le"]) {
+  it(`decodes Matroska ${format} through the existing raw audio decoder`, () => {
+    const raw = rawAudioAsts().find(plugin => plugin.id === format)!;
+    const source = raw.parse(Uint8Array.from([0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 224, 63,
+      0, 0, 0, 0, 0, 0, 0, 0]), { sampleRate: 8000, channels: 2 });
+    const bytes = serializeMkv(source);
+    const decoded = parseMkv(bytes).tracks[0]!;
+    assert.deepEqual(decoded.decodedAudio, source.tracks[0]!.decodedAudio);
+    assert.equal(parseMkv(bytes, { decodeAudio: false }).tracks[0]!.decodedAudio, undefined);
   });
 }

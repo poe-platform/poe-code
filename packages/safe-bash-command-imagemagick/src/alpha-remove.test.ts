@@ -14,7 +14,7 @@ it.each([
     for (const retained of [false, true]) {
         const files = new Map([["/in.png", input]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/in.png", input);
-        const result = await runMagickCli(["/in.png", "-background", background, "-alpha", "remove", "-alpha", "off", "/out.png"], retained ? { filesystem, cwd: "/" } : files);
+        const result = await runMagickCli(["/in.png", "-background", background, "-alpha", "remove", "-alpha", "off", "PNG24:/out.png"], retained ? { filesystem, cwd: "/" } : files);
         expect(result.exitCode).toBe(0);
         const image = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
         expect([image.width, image.height]).toEqual([2, 2]);

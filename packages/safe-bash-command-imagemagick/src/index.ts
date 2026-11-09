@@ -6375,22 +6375,27 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     else if (token === "-alpha") {
         const mode = (tokens[++i] ?? "on").toLowerCase();
         if (mode === "remove") {
+            highDepth = true;
             apply = function* (im) {
                 const out = new Uint8Array(im.data.length);
+                const data16 = new Uint16Array(im.data.length);
                 const color = state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background;
                 const background = [color.r, color.g, color.b];
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (idx % 65536 === 0) yield;
-                    const alpha = im.data[idx + 3]! / 255;
+                    const alpha = im.hasAlpha ? (im.data16 ? im.data16[idx + 3]! / 65535 : im.data[idx + 3]! / 255) : 1;
                     for (let channel = 0; channel < 3; channel++) {
                         const bg = background[im.channels === 2 ? 0 : channel]!;
-                        // ImageMagick rounds to the nearest byte; libvips flatten truncates.
-                        out[idx + channel] = clampByteVal(im.data[idx + channel]! * alpha + bg * (1 - alpha));
+                        const source = im.data16 ? im.data16[idx + channel]! : im.data[idx + channel]! * 257;
+                        const blended = source * alpha + bg * 257 * (1 - alpha);
+                        data16[idx + channel] = Math.round(blended);
+                        // Round the unquantized blend directly for 8-bit output.
+                        out[idx + channel] = clampByteVal(blended / 257);
                     }
                     out[idx + 3] = 255;
+                    data16[idx + 3] = 65535;
                 }
-                const { data16: ignored, ...metadata } = im;
-                return { ...metadata, data: out, hasAlpha: false, channels: im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
+                return { ...im, data: out, data16, hasAlpha: false, channels: im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
             };
         }
         else if (mode === "associate" || mode === "disassociate") {
@@ -6425,15 +6430,18 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else if (mode === "off" || mode === "deactivate" || mode === "opaque") {
+            highDepth = true;
             apply = function* (im) {
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);
+                const data16 = im.data16?.slice();
                 for (let idx = 3; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
                     out[idx] = 255;
+                    if (data16) data16[idx] = 65535;
                 }
-                return { ...im, data: out, hasAlpha: mode === "opaque" };
+                return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: mode === "opaque" };
             };
         }
         else if (mode === "transparent") {

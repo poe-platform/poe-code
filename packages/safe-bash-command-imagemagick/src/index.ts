@@ -3308,10 +3308,8 @@ function magickSepiaTone(intensity: number, threshold: number, gray: boolean): [
     ];
 }
 
-function* applyMagickSolarizeSteps(img: RgbaImage, threshStr: string, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickSolarizeSteps(img: RgbaImage, thresh: number, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
-    const raw = parseFloat(threshStr);
-    const thresh = threshStr.endsWith("%") ? (raw / 100) * 65535 : raw;
     // Native palette solarize updates the RGB colormap, ignoring the channel mask.
     const mask = img.isPalette ? [true, true, true, false] : [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
     const out = new Uint8Array(img.data);
@@ -6474,12 +6472,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-solarize") {
         highDepth = true;
         const value = tokens[++i] ?? "50%";
-        const threshold = value.endsWith("%") ? value.slice(0, -1) : value;
-        if (!Number.isFinite(Number(threshold)) || Number.parseFloat(threshold) !== Number(threshold)) {
+        const threshold = (value.endsWith("%") ? value.slice(0, -1) : value).trim();
+        const unsigned = threshold.startsWith("-") || threshold.startsWith("+") ? threshold.slice(1) : threshold;
+        const hexadecimal = unsigned.toLowerCase().startsWith("0x");
+        const raw = hexadecimal ? Number(unsigned) * (threshold.startsWith("-") ? -1 : 1) : Number(threshold);
+        if (!Number.isFinite(raw) || (!hexadecimal && Number.parseFloat(threshold) !== raw)) {
             throw new Error(`invalid argument '-solarize' '${value}'`);
         }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        apply = image => applyMagickSolarizeSteps(image, value, channels, signal);
+        const thresh = value.endsWith("%") ? (raw / 100) * 65535 : raw;
+        apply = image => applyMagickSolarizeSteps(image, thresh, channels, signal);
     } else if (token === "-ordered-dither") {
         const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickRasterSteps(image, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a]), signal);

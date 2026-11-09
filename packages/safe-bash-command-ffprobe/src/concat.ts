@@ -184,6 +184,7 @@ export async function probeConcat(
   let first: MediaProbeResult | undefined;
   const packets: MediaProbePacket[] = [];
   const frames: MediaProbeFrame[] = [];
+  const packetCounts: number[] = [], frameCounts: number[] = [];
   let start = 0;
   for (const segment of segments) {
     budget.checkCpu();
@@ -192,7 +193,9 @@ export async function probeConcat(
     const input = await readInput(segment.path);
     const plugin = registry.detect(input, segment.path);
     if (!plugin?.canDemux) throw new Error(`${segment.path}: Unsupported input format`);
-    const probe = plugin.probe(input, { filename: segment.path, budget, showPackets, showFrames });
+    const probe = plugin.probe(input, { filename: segment.path, budget, showPackets, showFrames,
+      // Preserve the 4096-byte WAV packet boundaries used by the concat reference.
+      ...(plugin.id === "wav" ? { maxSize: 4096 } : {}) });
     first ??= probe;
     const inpoint = segment.inpoint ?? Number(probe.format.start_time ?? 0);
     const duration = segment.duration ?? (segment.outpoint === undefined ? Number(probe.format.duration) - inpoint : segment.outpoint - inpoint);
@@ -208,6 +211,7 @@ export async function probeConcat(
     for (const packet of probe.packets ?? []) {
       if (Number(packet.dts_time) < inpoint || segment.outpoint !== undefined && Number(packet.dts_time) >= segment.outpoint) continue;
       budget.checkSamples(packets.length + 1);
+      packetCounts[packet.stream_index] = (packetCounts[packet.stream_index] ?? 0) + 1;
       packets.push({ ...packet, pts: packet.pts + ticks(packet.stream_index), dts: packet.dts + ticks(packet.stream_index),
         pts_time: (Number(packet.pts_time) + offset).toFixed(6), dts_time: (Number(packet.dts_time) + offset).toFixed(6),
         ...(Object.keys(tags).length ? { tags, side_data_list: [...(packet.side_data_list ?? []), { side_data_type: "Strings Metadata" }] } : {}) });
@@ -215,6 +219,7 @@ export async function probeConcat(
     for (const frame of probe.frames ?? []) {
       if (Number(frame.pts_time) < inpoint || segment.outpoint !== undefined && Number(frame.pts_time) >= segment.outpoint) continue;
       budget.checkSamples(frames.length + 1);
+      frameCounts[frame.stream_index] = (frameCounts[frame.stream_index] ?? 0) + 1;
       const shift = ticks(frame.stream_index);
       frames.push({ ...frame, pts: frame.pts + shift, pts_time: (Number(frame.pts_time) + offset).toFixed(6),
         ...(frame.pkt_dts !== undefined ? { pkt_dts: frame.pkt_dts + shift, pkt_dts_time: (Number(frame.pkt_dts_time) + offset).toFixed(6) } : {}),
@@ -224,6 +229,9 @@ export async function probeConcat(
   }
   if (!first) throw new Error("Concat input contains no files");
   return { ...first, packets, frames,
+    streams: first.streams.map(stream => ({ ...stream,
+      nb_read_packets: String(packetCounts[stream.index] ?? 0), nb_read_frames: String(frameCounts[stream.index] ?? 0)
+    })),
     format: { ...first.format, filename, format_name: "concat", format_long_name: "Virtual concatenation script", duration: start.toFixed(6), size: "N/A", bit_rate: "N/A", start_time: "0.000000" },
     chapters: chapters.map(chapter => ({ id: chapter.id, time_base: "1/1000000", start: Math.round(chapter.startTimeSeconds * 1_000_000), end: Math.round(chapter.endTimeSeconds * 1_000_000), start_time: chapter.startTimeSeconds.toFixed(6), end_time: chapter.endTimeSeconds.toFixed(6), tags: chapter.tags ?? {} }))
   };

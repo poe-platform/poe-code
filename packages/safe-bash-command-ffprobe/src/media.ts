@@ -1172,9 +1172,10 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         if (!probeResult) {
           const bytes = await readInput(inputTarget, replay, replay !== undefined);
 
-          const concat = explicitFormat === "concat" || !explicitFormat && new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes.subarray(0, 19)) === "ffconcat version 1.0";
+          const concatSignature = "ffconcat version 1.0";
+          const concat = explicitFormat === "concat" || !explicitFormat && new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes.subarray(0, concatSignature.length)) === concatSignature;
           if (concat) {
-            probeResult = await probeConcat(bytes, inputTarget, context.cwd, registry, readInput, budget, safe, segmentTimeMetadata, showPackets, showFrames);
+            probeResult = await probeConcat(bytes, inputTarget, context.cwd, registry, readInput, budget, safe, segmentTimeMetadata, showPackets || countPackets, showFrames || countFrames);
           } else {
             const plugin = registry.detect(bytes, inputTarget, explicitFormat);
             if (!plugin || !plugin.canDemux) {

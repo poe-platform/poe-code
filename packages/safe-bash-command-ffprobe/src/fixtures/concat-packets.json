@@ -1,0 +1,44 @@
+{
+    "packets": [
+        {
+            "pts": 0,
+            "duration": 2048,
+            "size": "4096"
+        },
+        {
+            "pts": 2048,
+            "duration": 2048,
+            "size": "4096"
+        },
+        {
+            "pts": 4096,
+            "duration": 2048,
+            "size": "4096"
+        },
+        {
+            "pts": 6144,
+            "duration": 1856,
+            "size": "3712"
+        },
+        {
+            "pts": 8000,
+            "duration": 2048,
+            "size": "4096"
+        },
+        {
+            "pts": 10048,
+            "duration": 2048,
+            "size": "4096"
+        },
+        {
+            "pts": 12096,
+            "duration": 2048,
+            "size": "4096"
+        },
+        {
+            "pts": 14144,
+            "duration": 1856,
+            "size": "3712"
+        }
+    ]
+}

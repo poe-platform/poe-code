@@ -49,7 +49,8 @@ credentials are used.
 - `-x`, `--hex-suffixes[=FROM]`: lowercase hexadecimal counters; FROM accepts
   only digits `0`–`9` and lowercase `a`–`f`.
 - `-t BYTE`, `--separator=BYTE`: use a single byte instead of LF for `-l`/`-C`;
-  `\\0` selects NUL.
+  `\\0` selects NUL. Bytes `0x80`–`0xff` are accepted and use LF boundaries,
+  matching GNU split on signed-char targets.
 - `-n COUNT`, `--number=COUNT`: divide input into COUNT byte chunks, assigning
   remainder bytes to the first chunks. Input collection is bounded by
   `maxBufferBytes`; other GNU number-mode forms are unsupported. Default suffix

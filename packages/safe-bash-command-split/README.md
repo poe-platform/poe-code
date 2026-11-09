@@ -5,6 +5,8 @@ line counts (`-l`), byte counts (`-b`), bounded line windows (`-C`), or chunk
 selection/distribution (`-n`). Alphabetic, decimal and hexadecimal suffixes,
 explicit suffix widths, custom record separators and empty-file elision (`-e`)
 are supported.
+Separators must be one byte (or `\0` for NUL). As in GNU split on signed-char
+targets, bytes `0x80`–`0xff` are accepted and use newline boundaries.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

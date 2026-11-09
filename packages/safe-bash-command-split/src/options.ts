@@ -1,4 +1,5 @@
 import { utf8ByteLength, bytesFrom } from "safe-bash-byte-engine";
+import { shellValueByteLength, type CommandArguments } from "safe-bash-contracts";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 export interface SplitLimits {
   readonly maxInputBytes: number;
@@ -66,8 +67,10 @@ function number(text: string, label: string, units = false, zero = false): numbe
   return value;
 }
 
-export function parseArguments(args: readonly string[], limits: SplitLimits): SplitArguments {
-  if (args.reduce((total, argument) => total + utf8ByteLength(argument), 0) > limits.maxArgumentBytes) {
+export function parseArguments(args: readonly string[], limits: SplitLimits, argumentValues?: CommandArguments): SplitArguments {
+  if ((argumentValues
+    ? argumentValues.values.reduce((total, value) => total + shellValueByteLength(value), 0)
+    : args.reduce((total, argument) => total + utf8ByteLength(argument), 0)) > limits.maxArgumentBytes) {
     throw new PublicDiagnostic("split argument limit exceeded");
   }
   let mode: SplitArguments["mode"] | undefined;
@@ -84,7 +87,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
   let verbose = false;
   const operands: string[] = [];
   let ended = false;
-  const apply = (option: string, value?: string): void => {
+  const apply = (option: string, value?: string, rawValue?: Uint8Array): void => {
     if (option === "d" || option === "x") {
       alphabet = option === "d" ? "0123456789" : "0123456789abcdef";
       if (value !== undefined) {
@@ -96,10 +99,11 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
     else if (option === "u") return;
     else if (option === "verbose") verbose = true;
     else if (option === "t") {
-      const bytes = bytesFrom(value === "\\0" ? "\0" : value!);
+      const bytes = value === "\\0" ? bytesFrom("\0") : rawValue ?? bytesFrom(value!);
       if (bytes.length !== 1) throw new PublicDiagnostic("separator must be exactly one byte");
       if (separator !== undefined && separator !== bytes[0]) throw new PublicDiagnostic("multiple separator characters specified");
-      separator = bytes[0]!;
+      // GNU split on signed-char targets treats high-bit separators as unset.
+      separator = bytes[0]! < 128 ? bytes[0]! : undefined;
     }
     else if (option === "additional-suffix") {
       if (value!.includes("/") || value!.includes("\0")) throw new PublicDiagnostic("invalid additional suffix: contains directory separator or NUL");
@@ -142,7 +146,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
       const optional = option === "d" || option === "x" || option === "e" || option === "u" || option === "verbose";
       const value = equals < 0 ? (optional ? undefined : args[++index]) : argument.slice(equals + 1);
       if (!optional && value === undefined) throw new PublicDiagnostic(`option '--${name}' requires an argument`);
-      apply(option, value);
+      apply(option, value, option === "t" ? argumentValues?.bytes(index)?.subarray(equals < 0 ? 0 : equals + 1) : undefined);
     } else {
       let digits = "";
       for (let offset = 1; offset < argument.length; offset++) {
@@ -155,9 +159,10 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
         if (!"lbaCdxetnu".includes(option)) throw new PublicDiagnostic(`invalid option -- '${option}'`);
         if (option === "d" || option === "x" || option === "e" || option === "u") apply(option);
         else {
-          const value = argument.slice(offset + 1) || args[++index];
+          const rest = argument.slice(offset + 1);
+          const value = rest || args[++index];
           if (value === undefined) throw new PublicDiagnostic(`option requires an argument -- '${option}'`);
-          apply(option, value);
+          apply(option, value, option === "t" ? argumentValues?.bytes(index)?.subarray(rest ? offset + 1 : 0) : undefined);
           break;
         }
       }

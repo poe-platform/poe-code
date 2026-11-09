@@ -1,7 +1,7 @@
 import { bytesFrom } from "safe-bash-byte-engine";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { quoteShellOperand, writeDiagnostic } from "safe-bash-contracts/escaping";
-import { FsError, isFsError, collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
+import { FsError, isFsError, collectBytes, getCommandArguments, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { Budget, Cursor, interruptible } from "./io.js";
 import { Names } from "./names.js";
 import { Outputs } from "./outputs.js";
@@ -58,7 +58,7 @@ class LineBytes {
 }
 
 async function run(context: CommandContext, limits: SplitLimits): Promise<void> {
-  const args = parseArguments(context.args, limits);
+  const args = parseArguments(context.args, limits, getCommandArguments(context));
   const controller = new AbortController();
   const signal = AbortSignal.any([context.signal, controller.signal]);
   const budget = new Budget(limits, signal);

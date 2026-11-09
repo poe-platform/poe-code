@@ -7208,13 +7208,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const thresh = values[0]!;
         const thresholds = [thresh, values[1] ?? thresh, values[2] ?? thresh, values[3] ?? 100 * scale];
         const isBlack = token === "-black-threshold";
-        const channels = state.channels;
+        const channels = state.channelDefault ? undefined : state.channels;
         apply = function* (im) {
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
             const samples = data16 ?? out, quantumScale = data16 ? 1 : 257, maximum = data16 ? 65535 : 255;
-            const mask = state.channelExplicit
+            const mask = channels
                 ? [channels.r, channels.g, channels.b, channels.a && im.hasAlpha]
                 : [true, true, true, im.hasAlpha];
             for (let idx = 0; idx < out.length; idx += 4) {
@@ -7222,7 +7222,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     yield;
                 const intensity = (0.212656 * samples[idx]! + 0.715158 * samples[idx + 1]! + 0.072186 * samples[idx + 2]!) * quantumScale;
                 for (let channel = 0; channel < 4; channel++) {
-                    const value = state.channelExplicit ? samples[idx + channel]! * quantumScale : intensity;
+                    const value = channels ? samples[idx + channel]! * quantumScale : intensity;
                     if (mask[channel] && (isBlack ? value < thresholds[channel]! : value > thresholds[channel]!)) {
                         samples[idx + channel] = isBlack ? 0 : maximum;
                         out[idx + channel] = isBlack ? 0 : 255;

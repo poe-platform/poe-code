@@ -39,6 +39,7 @@ export { assAst, decodeAssText } from "./containers/ass.js";
 export { aiffAst, parseAiff, serializeAiff } from "./containers/aiff.js";
 
 export { ircamAst } from "./containers/ircam.js";
+export { nistSphereAst } from "./containers/nistsphere.js";
 export { auAst } from "./containers/au.js";
 
 export { cafAst } from "./containers/caf.js";

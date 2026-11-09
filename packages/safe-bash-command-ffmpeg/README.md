@@ -35,7 +35,7 @@ Output `-aspect[:stream_specifier] RATIO` sets the display aspect ratio (for exa
 
 MP4 stream copy preserves the combined movie and track display transform, including rotations that cancel. Input `-display_rotation[:stream_specifier] ANGLE` overrides matching video streams before mapping; for example, `-display_rotation:v:0 90 -i clip.mp4` rotates the first input video. Unmatched selectors leave orientation unchanged. Input `-display_hflip[:stream_specifier]` and `-display_vflip[:stream_specifier]` set horizontal and vertical display reflections without changing stream-copy sample bytes. They combine with `-display_rotation` before mapping and apply only to the next input. Like FFmpeg 7, `-metadata:s:v:0 rotate=90` does not change the display matrix; use `-display_rotation` before the input to override orientation.
 
-Register the plugin explicitly; importing it does not enable commands. Media I/O
+Register the plugin explicitly; importing it does not enable commands. PCM16 NIST SPHERE (`.sph`) input supports both byte orders and signature detection without a filename extension. Media I/O
 uses the shell's virtual filesystem and byte streams. Input accepts `/dev/stdin`
 and `/dev/fd/0`; output accepts `/dev/stdout` and `/dev/fd/1`, alongside `-`
 and `pipe:` aliases. Shell and media input limits count bytes cumulatively across

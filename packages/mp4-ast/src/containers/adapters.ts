@@ -21,6 +21,7 @@ import { aqtitleAst } from "./aqtitle.js";
 import { microdvdAst } from "./microdvd.js";
 import { cafAst } from "./caf.js";
 import { ircamAst } from "./ircam.js";
+import { nistSphereAst } from "./nistsphere.js";
 import { auAst } from "./au.js";
 import { aiffAst } from "./aiff.js";
 import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
@@ -3079,6 +3080,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     auAst(),
     vocAst(),
     ircamAst(),
+    nistSphereAst(),
     cafAst(),
     aiffAst(),
     ...rawAudioAsts(),

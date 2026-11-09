@@ -6041,7 +6041,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let precision = 6;
     let locateMaximum = false;
     let locateLimit = 0;
-    const targets: string[] = [];
+    const targets: { path: string; sceneCount?: number }[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -6087,7 +6087,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
         }
         else if (a === "-" || !a.startsWith("-")) {
-            targets.push(a);
+            targets.push({ path: a });
         }
     }
     if (targets.length === 0) {
@@ -6108,7 +6108,8 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     };
     let exitCode = 0;
     for (let targetIndex = 0; targetIndex < targets.length; targetIndex++) {
-        let inPath = targets[targetIndex]!;
+        const target = targets[targetIndex]!;
+        let inPath = target.path;
         yield;
         const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
         let baseInPath = bracketMatch ? bracketMatch[1]! : inPath;
@@ -6117,9 +6118,10 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             baseInPath = baseInPath.slice(colon + 1);
         }
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
+        const sceneCount = target.sceneCount ?? (pageIdx === undefined ? undefined : 1);
         const analysis = { warnings: "" };
         let inspected:IdentifyInspection|undefined;
-        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,precision,analysis},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
+        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,sceneCount:sceneCount??metadata.pages??1,precision,analysis},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
         const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
         if (!bytes&&!inspected) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
@@ -6134,7 +6136,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             if (pageIdx === undefined && meta.format === "tiff" && (meta.pages ?? 1) > 1) {
                 for (let page = 1; page < meta.pages!; page++) {
                     yield;
-                    targets.splice(targetIndex + page, 0, `${baseInPath}[${page}]`);
+                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, sceneCount: meta.pages! });
                 }
                 inPath = `${baseInPath}[0]`;
             }
@@ -6143,7 +6145,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
             if (customFormat !== undefined) {
                 outParts.push(inspected?.formatted??(yield* formatMagickPropertyStringSteps(customFormat, meta, () => decodeImage(encoded!, inputOptions), {
-                    filePath: baseInPath, byteLen: size, sceneIdx: pageIdx ?? 0, precision, analysis
+                    filePath: baseInPath, byteLen: size, sceneIdx: pageIdx ?? 0, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis
                 })));
             }
             else if (locateMaximum) {

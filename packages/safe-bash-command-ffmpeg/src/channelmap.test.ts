@@ -8,6 +8,13 @@ import { createFfmpegCommand } from "./index.js";
 const left = [1000, 2000, 3000, 4000];
 const right = [-4000, -3000, -2000, -1000];
 for (const [expression, expected, mask] of [
+  ["1|0|1", [right, left, right], 0x0b],
+  ["0|1|1|0", [left, right, right, left], 0x107],
+  ["0|0", [left, left]],
+  ["0|1|0|1|0", [left, right, left, right, left], 0x37],
+  ["0|1|0|1|0|1", [left, right, left, right, left, right], 0x3f],
+  ["0|1|0|1|0|1|0", [left, right, left, right, left, right, left], 0x70f],
+  ["0|1|0|1|0|1|0|1", [left, right, left, right, left, right, left, right], 0x63f],
   ["0-1|1-0", [right, left]],
   ["1-0|0-1", [right, left]],
   ["0-FR|1-FL", [right, left]],

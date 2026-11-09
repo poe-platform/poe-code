@@ -8959,7 +8959,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (destinations.some(name => !speakers.includes(name))) throw new Error("channelmap: invalid output channel");
                           outputNames = speakers.filter(name => destinations.includes(name));
                         }
-                        outputNames ??= entries.length === 1 ? ["FC"] : entries.length === 2 ? ["FL", "FR"] : [];
+                        // FFmpeg's default layouts by channel count: mono, stereo, 2.1,
+                        // 4.0, 5.0, 5.1, 6.1, and 7.1 (four channels are not quad).
+                        const defaultMask = [0, 0x4, 0x3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][entries.length] ?? 0;
+                        outputNames ??= speakers.filter((_, index) => (defaultMask & (1 << index)) !== 0);
                         if (!outputNames.length || entries.length !== outputNames.length) {
                           throw new Error("channelmap: unsupported or mismatched channel layout");
                         }

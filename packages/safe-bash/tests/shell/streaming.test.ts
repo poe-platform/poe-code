@@ -6,7 +6,9 @@ import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
 import { Budget, Capture, Runtime } from "../../src/shell/runtime.js";
-import { standardCommands } from "../../src/commands/index.js";
+import { standardCommands } from "../../src/index.js";
+import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
 for (const [source, stdout, exitCode] of [
   ["! false; echo rc:$?", "rc:0\n", 0],
@@ -37,6 +39,33 @@ for (const [source, stdout, exitCode] of [
     assert.equal(result.exitCode, exitCode);
   } finally { await shell.dispose(); }
 });
+
+for (const lastpipe of [false, true]) for (const pipefail of [false, true]) {
+  for (const stage of ["builtin", "function"]) for (const form of ["plain", "negated", "conditional"]) {
+    test(`pipeline uses entry pipefail=${pipefail}: lastpipe=${lastpipe}, ${stage}, ${form}`, async t => {
+      const shell = new Shell({ fs: new MemoryFileSystem(), extensions: [arraysExtension()] });
+      shell.use(standardCommands());
+      t.after(() => shell.dispose());
+      const toggle = `set ${pipefail ? "+o" : "-o"} pipefail`;
+      const pipeline = `false | ${stage === "function" ? "toggle" : toggle}`;
+      const report = 'printf "rc=%s stages=<%s>\\n" "$?" "${PIPESTATUS[*]}"';
+      const command = form === "conditional"
+        ? `if ${pipeline}; then ${report}; echo success; else ${report}; echo failure; fi`
+        : `${form === "negated" ? "! " : ""}${pipeline}; ${report}`;
+      const result = await shell.exec(`shopt -${lastpipe ? "s" : "u"} lastpipe
+set ${pipefail ? "-o" : "+o"} pipefail
+toggle() { ${toggle}; }
+${command}
+false | true
+${report}`);
+      const status = Number(form === "negated" ? !pipefail : pipefail);
+      const branch = form === "conditional" ? `${pipefail ? "failure" : "success"}\n` : "";
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `rc=${status} stages=<1 0>\n${branch}rc=${Number(lastpipe ? !pipefail : pipefail)} stages=<1 0>\n`);
+    });
+  }
+}
 
 test("pipeline stage admission rejects before any stage starts", async context => {
   const { shell, commands } = setup();

@@ -4584,6 +4584,7 @@ export class Runtime {
     let status: number;
     if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, terminal ? { ...io, terminal: { target: pipeline.commands[0]!, frame: terminal.frame } } : io, false, pipeline.negate);
     else {
+      const pipefail = state.pipefail;
       const release = this.budget.reservePipelineStages(pipeline.commands.length);
       const retained = new Set<Promise<unknown>>();
       let setupClosed = false;
@@ -4844,7 +4845,7 @@ export class Runtime {
         }
       }
       await this.publishStatus(state, statuses, io);
-      status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;
+      status = pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;
     }
     if (pipeline.commands.length > 1) await this.errexit(status, state, io);
     return pipeline.negate && !terminal ? Number(status === 0) : status;

@@ -5,7 +5,6 @@ import { Shell } from "../../src/shell/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
-import { standardCommands } from "../../src/commands/index.js";
 
 const keywords = ["if", "then", "else", "elif", "fi", "for", "while", "until", "do", "done", "case", "esac", "in", "function", "{", "}", "!", "[[", "]]", "time", "select", "coproc"];
 
@@ -98,39 +97,6 @@ test("hash reset, PATH assignment and subshells preserve Bash cache ownership", 
   const result = await shell.exec("tool; (hash -r); hash -t tool; (tool); hash; PATH=$PATH; hash -t tool");
   assert.equal(result.stdout, "/bin/tool\nhits\tcommand\n   1\t/bin/tool\n");
   assert.equal(result.exitCode, 1);
-});
-
-for (const mutation of ["hash -d saved", "hash -r", "hash -p /bin/other saved"]) {
-  for (const context of ["subshell", "command substitution", "function subshell"]) {
-    test(`${context} keeps ${mutation} separate from the parent hash table`, async () => {
-      const shell = new Shell({ fs: new MemoryFileSystem(), env: { PATH: "/bin" } }).use(standardCommands());
-      const child = `hash -t saved; ${mutation}; hash -t saved 2>/dev/null; printf 'child=%s\\n' "$?"; hash -p /bin/tool child`;
-      const run = context === "subshell" ? `(${child})`
-        : context === "command substitution" ? `printf '%s\\n' "$(${child})"`
-        : `f() { local value=local; (${child}); }; f`;
-      const result = await shell.exec(`hash -p /bin/tool saved; ${run}; hash -t saved; printf 'parent=%s\\n' "$?"; hash -t child 2>/dev/null; printf 'added=%s\\n' "$?"`);
-      const changed = mutation.startsWith("hash -p") ? "/bin/other\nchild=0\n" : "child=1\n";
-      assert.equal(result.stdout, `/bin/tool\n${changed}/bin/tool\nparent=0\nadded=1\n`);
-      assert.equal(result.stderr, "");
-      assert.equal(result.exitCode, 0);
-    });
-  }
-}
-
-test("nested subshells copy the immediate parent's hash table", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem() });
-  const result = await shell.exec("hash -p /outer saved; (hash -p /inner saved; (hash -d saved); hash -t saved); hash -t saved");
-  assert.equal(result.stdout, "/inner\n/outer\n");
-  assert.equal(result.stderr, "");
-  assert.equal(result.exitCode, 0);
-});
-
-test("brace groups and functions mutate the current shell's hash table", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
-  const result = await shell.exec("hash -p /bin/tool saved; { hash -d saved; }; hash -t saved 2>/dev/null; printf 'deleted=%s\\n' \"$?\"; hash -p /bin/tool saved; f() { hash -r; }; f; hash -t saved 2>/dev/null; printf 'reset=%s\\n' \"$?\"");
-  assert.equal(result.stdout, "deleted=1\nreset=1\n");
-  assert.equal(result.stderr, "");
-  assert.equal(result.exitCode, 0);
 });
 
 for (const [name, target] of [

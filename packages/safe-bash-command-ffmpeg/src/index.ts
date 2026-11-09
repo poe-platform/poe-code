@@ -6517,9 +6517,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     itemDoc = await loadSingleDocument(segment.path, undefined, undefined, undefined, segment.ignoreEditList);
                   } catch (error) {
                     rethrowRuntimeError(context, error);
-                    if ((error as { code?: string }).code !== "ENOENT" ||
-                      !concatDocs.some(doc => doc.tracks.some(track => track.samples.length > 0))) throw error;
-                    await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Impossible to open '${segment.path}': No such file or directory\n`), context.signal);
+                    if (!concatDocs.some(doc => doc.tracks.some(track => track.samples.length > 0))) throw error;
+                    const message = (error as { code?: string }).code === "ENOENT"
+                      ? "No such file or directory" : error instanceof Error ? error.message : String(error);
+                    await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Impossible to open '${segment.path}': ${message}\n`), context.signal);
                     inputReadFailed = true;
                     break;
                   }

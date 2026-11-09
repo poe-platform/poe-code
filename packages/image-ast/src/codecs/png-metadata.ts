@@ -87,13 +87,20 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
         }
       } else if (type === "iTXt") {
         const flag = chunk[start++];
-        if (flag !== 0 && flag !== 1 || chunk[start++] !== 0) throw new Error("Invalid PNG text compression");
-        compressed = flag === 1;
-        for (let field = 0; field < 2; field++) {
-          const zero = chunk.indexOf(0, start);
-          if (zero < 0) throw new Error("Invalid PNG international text");
-          start = zero + 1;
+        if (flag !== 0 && flag !== 1 || chunk[start++] !== 0) {
+          decodeWarnings.push("Invalid PNG iTXt compression");
+          pos = dataStart + len + 4;
+          continue;
         }
+        compressed = flag === 1;
+        const languageEnd = chunk.indexOf(0, start);
+        const translatedEnd = languageEnd < 0 ? -1 : chunk.indexOf(0, languageEnd + 1);
+        if (translatedEnd < 0) {
+          decodeWarnings.push("Invalid PNG iTXt header");
+          pos = dataStart + len + 4;
+          continue;
+        }
+        start = translatedEnd + 1;
       }
       let value = chunk.subarray(start);
       if (type === "tEXt") {

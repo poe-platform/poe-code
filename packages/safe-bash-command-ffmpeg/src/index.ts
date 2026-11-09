@@ -389,6 +389,27 @@ function isStdout(path: string): boolean {
   return ["-", "pipe:", "pipe:1", "/dev/stdout", "/dev/fd/1"].includes(path);
 }
 
+async function writeMediaOutput(
+  context: CommandContext,
+  target: string,
+  bytes: Uint8Array,
+  budget: MediaBudgetTracker
+): Promise<void> {
+  if (target.startsWith("md5:")) {
+    const hash = md5.create();
+    for (let offset = 0; offset < bytes.byteLength; offset += 65536) {
+      budget.checkCpu();
+      context.signal?.throwIfAborted();
+      hash.update(bytes.subarray(offset, offset + 65536));
+    }
+    bytes = encodeUtf8(`${bytesToHex(hash.digest())}\n`);
+    target = target.slice(4) || "pipe:1";
+  }
+  if (isStdout(target)) await writeBytes(context.stdout, bytes, context.signal);
+  else if (target !== "/dev/null") await writeFileOutput(context, bytes,
+    data => context.fs.writeFile(resolvePath(context.cwd, target), data, { signal: context.signal }));
+}
+
 function dirnameOf(p: string): string {
   const idx = p.lastIndexOf("/");
   if (idx <= 0) return "/";
@@ -4708,7 +4729,7 @@ export function evalSyncFfmpeg(
       }
     }
 
-    if (inputs.length === 0 || !outputTarget || inputs.some(input => input.path.startsWith("concat:"))) return undefined;
+    if (inputs.length === 0 || !outputTarget || outputTarget.startsWith("md5:") || inputs.some(input => input.path.startsWith("concat:"))) return undefined;
     if (fileSize !== undefined && (audioCodec !== "copy" ||
       (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id !== "wav")) return undefined;
     // Output resampling and channel mixing require the async audio filter path.
@@ -6900,7 +6921,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           }
           for (const outputTarget of protocolTargets) {
             if (!outputTarget) throw new Error("Empty tee protocol destination");
-            if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget)) {
+            if (outputFormat !== "null" && outputTarget !== "/dev/null" && !isStdout(outputTarget) && !outputTarget.startsWith("md5:")) {
               const inputIndex = inputs.findIndex(input =>
                 input.format !== "lavfi" && !isStdin(input.path) &&
                 resolvePath(context.cwd, input.path) === resolvePath(context.cwd, outputTarget) &&
@@ -6911,6 +6932,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             // Virtual streams are non-interactive: replacing a file requires -y.
             if (
               !overwrite &&
+              !outputTarget.startsWith("md5:") &&
               !isStdout(outputTarget) &&
               outputFormat !== "null"
             ) {
@@ -6939,7 +6961,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           if ((target.startsWith("tee:") || progressOutputIndex < outputs.length - 1) &&
               format !== "null" && format !== "segment" && plugin?.id !== "hls" && plugin?.id !== "image2") {
             for (const destination of protocolTargets) {
-              if (!isStdout(destination) && destination !== "/dev/null") {
+              if (!isStdout(destination) && destination !== "/dev/null" && !destination.startsWith("md5:")) {
                 await context.fs.writeFile(resolvePath(context.cwd, destination), new Uint8Array(0), { signal: context.signal });
               }
             }
@@ -8013,7 +8035,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   .findIndex(({ track }) => "samples" in track && track.codecDescriptions[0]?.formatFourCC === "tmcd");
                 if (streamIndex >= 0) {
                   await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Could not find tag for codec none in stream #${streamIndex}, codec not currently supported in container\n`), context.signal);
-                  if (!isStdout(outputTarget) && outputTarget !== "/dev/null") {
+                  if (!isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
                     await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
                   }
                   return { exitCode: 234 };
@@ -10948,8 +10970,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               if (imagePipe) {
                 const bytes = concatBytes(imagePackets);
-                if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
-                else await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
+                await writeMediaOutput(context, outputTarget, bytes, budget);
               }
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
@@ -10973,8 +10994,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const bytes = encodeIcoFrames(frames, budget);
               if (firstOutput) progressSize = bytes.byteLength;
               context.signal?.throwIfAborted();
-              if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
-              else await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
+              await writeMediaOutput(context, outputTarget, bytes, budget);
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
             }
@@ -10987,8 +11007,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const bytes = encodeApngFrames(frames, apngPlays, budget);
               if (firstOutput) progressSize = bytes.byteLength;
               context.signal?.throwIfAborted();
-              if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
-              else await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
+              await writeMediaOutput(context, outputTarget, bytes, budget);
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
             }
@@ -11075,8 +11094,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               if (imagePipe) {
                 const bytes = concatBytes(imagePackets);
-                if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
-                else await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
+                await writeMediaOutput(context, outputTarget, bytes, budget);
               }
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
@@ -11093,8 +11111,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const bytes = serializeRawVideo(track, videoCodec, rawPixelFormat, budget);
               if (firstOutput) progressSize = bytes.byteLength;
               context.signal?.throwIfAborted();
-              if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
-              else if (outputTarget !== "/dev/null") await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
+              await writeMediaOutput(context, outputTarget, bytes, budget);
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
             }
@@ -11106,8 +11123,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const bytes = concatBytes(samples.map(sample => sample.data));
               if (firstOutput) progressSize = bytes.byteLength;
               context.signal?.throwIfAborted();
-              if (isStdout(outputTarget)) await writeBytes(context.stdout, bytes, context.signal);
-              else if (outputTarget !== "/dev/null") await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, outputTarget), data, { signal: context.signal }));
+              await writeMediaOutput(context, outputTarget, bytes, budget);
               options.onMetrics?.(budget.getStats());
               return { exitCode: decodeExitCode };
             }
@@ -11124,7 +11140,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             try {
               workingDoc = applyVideoTag(workingDoc, outPlugin?.id ?? outputFormat!, videoCodec, videoTag);
             } catch (error) {
-              if (!isStdout(outputTarget) && outputTarget !== "/dev/null") {
+              if (!isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
                 await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
               }
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
@@ -11133,7 +11149,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             try {
               if (!checksumOutput) validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
             } catch (error) {
-              if (!isStdout(outputTarget) && outputTarget !== "/dev/null") {
+              if (!isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
                 await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
               }
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
@@ -11156,7 +11172,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     lpcCoeffPrecision, multiDimQuant, minPredictionOrder, maxPredictionOrder, predictionOrderMethod,
                     minPartitionOrder, maxPartitionOrder, exactRiceParameters }))
               : serializeLimitedWav(workingDoc, outPlugin!, {
-              seekable: !isStdout(outputTarget),
+              seekable: !isStdout(outputTarget) && !outputTarget.startsWith("md5:"),
               format: outputFormat ?? outExt,
               gifLoop,
               gifFlags,
@@ -11226,12 +11242,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (firstOutput) progressSize = serializedBytes.byteLength;
 
             for (const destination of protocolTargets) {
-              if (isStdout(destination)) {
-                await writeBytes(context.stdout, serializedBytes, context.signal);
-              } else if (destination !== "/dev/null") {
-                const fullOutPath = resolvePath(context.cwd, destination);
-                await writeFileOutput(context, serializedBytes, data => context.fs.writeFile(fullOutPath, data, { signal: context.signal }));
-              }
+              await writeMediaOutput(context, destination, serializedBytes, budget);
             }
 
             options.onMetrics?.(budget.getStats());

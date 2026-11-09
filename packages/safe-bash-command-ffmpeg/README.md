@@ -145,6 +145,10 @@ With `-map 0:s -c:s copy`, they checksum original subtitle packets, retaining st
 bytes, blank gap packets, and the source time base. Copied audio checksums retain priming timestamps;
 `framecrc` also reports AAC discard flags and skip-sample or trailing-padding side data.
 
+Hash final encoded output bytes with `-f s16be -c:a pcm_s16be md5:digest.txt`,
+or use `md5:` to print the digest to stdout. The protocol writes 32 lowercase hex
+characters followed by a newline and hashes container headers when present.
+
 Verify audio streams with `-f hash -` (SHA256), `-f md5 -`, or
 `-f crc -` (Adler-32). These hash decoded PCM16 samples, without container
 headers; `-f hash -hash sha512 digest.txt` selects another digest and writes a file.

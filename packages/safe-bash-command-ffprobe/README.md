@@ -15,6 +15,7 @@ Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 `-show_entries section=fields` (including format/stream tags and `stream_disposition`), `-select_streams a:0` (or MPEG-TS programs such as `p:202`, or MP4 track IDs such as `i:77` and `#0x4d`),
 `-sexagesimal` for `H:MM:SS.ffffff` timestamps and durations, and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,
 `-show_programs` (MPEG-TS program membership and service tags), `-count_frames`, `-count_packets`, and video stream selectors such as `v:0`.
+JSON chapter reports honor `-show_entries chapter=id` and other selected chapter fields; use `chapter_tags=title` to select a tag alongside them. `-show_chapters` without a selection reports complete chapters.
 Concat manifests support `-f concat` (or the `ffconcat version 1.0` header), with per-file `duration` and packet tags. Add `-segment_time_metadata 1` to expose `lavf.concatdec.start_time` and known `lavf.concatdec.duration` in microseconds on each packet, with Strings Metadata side data. The default (`0`) omits these generated tags.
 MP4/M4A format tags include title, artist, album artist, composer, track/disc numbers and totals, compilation, copyright, and description.
 FLAC and MP4/M4A `covr` cover art appears as attached picture streams with image dimensions and `disposition.attached_pic=1`.

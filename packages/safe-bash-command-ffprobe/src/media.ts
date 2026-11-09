@@ -632,6 +632,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
             row = prepareRecord(row, section.name === "packets" ? "packet" : "frame");
             if (row === undefined) return;
           }
+          else if (section.name === "chapters") row = filterObject(row as Record<string, unknown>, "chapter", "chapter_tags");
           yield (firstRow ? "" : ",") + (compact ? "" : "\n    ");
           firstRow = false;
           yield* probeJsonSteps(row, compact, 2);

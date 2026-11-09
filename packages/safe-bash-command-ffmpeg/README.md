@@ -588,6 +588,8 @@ three quarters of the analysis window (1536 samples at 44100 Hz). It accepts
 
 `aphaser=in_gain=0.5:out_gain=0.8:delay=3:decay=0.4:speed=1` adds a phasing effect while preserving sample rate and frame count. Supports named or positional input/output gain, delay, decay, modulation speed, and triangular (`type=t`, default) or sinusoidal (`type=s`) modulation.
 
+`adynamicequalizer=mode=listen:dfrequency=1000` outputs the detector’s band-pass signal for each audio channel. Named `dfrequency` (Hz) and `dqfactor` options control the detection band; `mode=-1` also selects listen mode. Other modes and options are rejected. Works in `-af` chains and mapped audio filter graphs.
+
 `asoftclip=type=tanh:threshold=0.5` soft-clips signed PCM peaks. Supports `threshold`, `output`, and `param`, with named or positional options. The default type is `tanh`; other types and oversampling beyond `oversample=1` fail explicitly.
 
 `apsyclip=clip=0.2` applies psychoacoustic clipping to PCM audio using overlapping windows and iterative spectral masking. Supports `level_in`, `level_out`, `clip`, `diff`, `adaptive`, `iterations`, and automatic output leveling (`level`). Like FFmpeg, it preserves the sample count with a window delay and does not drain the delayed tail.

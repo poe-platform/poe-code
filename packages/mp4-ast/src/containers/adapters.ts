@@ -1,4 +1,6 @@
 import { amrAst } from "./amr.js";
+import { latmAst } from "./latm.js";
+export { latmAst } from "./latm.js";
 import { ac3Ast } from "./ac3.js";
 import { wavpackAst } from "./wavpack.js";
 export { wavpackAst } from "./wavpack.js";
@@ -3187,6 +3189,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     flvAst(),
     y4mAst(),
     aacAst(),
+    latmAst(),
     amrAst(),
     ac3Ast(),
     wavAst(),

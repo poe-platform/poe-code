@@ -49,6 +49,32 @@ test("fully paired disorder remains allowed by default", async () => {
  assert.equal((await run(["--check-order", "/a", "/b"], files)).exitCode, 1);
 });
 
+for (const file of [1, 2]) {
+ test(`comm --check-order stops at disorder in file ${file} with a plain diagnostic`, async () => {
+  const files = { "/a": "b\nc\nz\n", "/b": "b\nc\nz\n" };
+  files[file === 1 ? "/a" : "/b"] = "b\nc\na\nz\n";
+  const result = await run(["--check-order", "/a", "/b"], files);
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "\t\tb\n\t\tc\n");
+  assert.equal(result.stderr, `comm: file ${file} is not in sorted order\n`);
+  assert.equal(result.combined, result.stdout + result.stderr);
+ });
+}
+
+test("comm --check-order reports only the first disordered operand", async () => {
+ const result = await run(["--check-order", "/a", "/b"], { "/a": "b\na\n", "/b": "b\na\n" });
+ assert.equal(result.exitCode, 1);
+ assert.equal(result.stdout, "\t\tb\n");
+ assert.equal(result.stderr, "comm: file 1 is not in sorted order\n");
+});
+
+test("comm default order checking keeps its warning and final summary", async () => {
+ const result = await run(["/a", "/b"], { "/a": "a\nd\nc\n", "/b": "a\nb\n" });
+ assert.equal(result.exitCode, 1);
+ assert.equal(result.stdout, "\t\ta\n\tb\nd\nc\n");
+ assert.equal(result.stderr, "comm: file 1 is not in sorted order\ncomm: input is not in sorted order\n");
+});
+
 test("comm flushes produced rows before order diagnostics and summary", async () => {
  const result = await run(["/a", "/b"], { "/a": "a\nb\nc\nb\ne\n", "/b": "b\nc\nd\ne\n" });
  assert.ok(result.combined.startsWith("a\n\t\tb\n\t\tc\ncomm: file 1 is not in sorted order\n"), result.combined);

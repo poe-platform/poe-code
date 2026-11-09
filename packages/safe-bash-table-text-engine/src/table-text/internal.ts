@@ -320,7 +320,7 @@ export class OrderCheck {
   }
   private async report(file: number): Promise<void> {
     const message = `file ${file} is not in sorted order`;
-    if (this.mode === "check") fail(message);
+    if (this.mode === "check") throw new PublicDiagnostic(message);
     this.warned.add(file); this.failed = true;
     if (this.budget.hasPendingOutput()) await this.budget.flushOutput();
     await diagnostic(this.context, new PublicDiagnostic(message));

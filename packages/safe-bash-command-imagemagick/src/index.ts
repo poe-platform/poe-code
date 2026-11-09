@@ -3229,13 +3229,22 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
     }
     if (method === "barrel") {
         if (![3, 4, 5, 6, 8, 10].includes(nums.length) || !nums.every(Number.isFinite)) throw new Error("Invalid Barrel arguments");
-        // Explicit centers use pixel edges; sampling uses pixel centers.
-        const a = nums[0] ?? 0, b = nums[1] ?? 0, c = nums[2] ?? 0, d = nums[3] ?? 1 - a - b - c, ox = nums[4] === undefined ? cx : nums[4] - 0.5, oy = nums[5] === undefined ? cy : nums[5] - 0.5, radius = Math.min(w, h) / 2;
-        return { ...result((x, y) => { const dx = (x - ox) / radius, dy = (y - oy) / radius, r = Math.hypot(dx, dy), factor = a * r * r * r + b * r * r + c * r + d; return [ox + dx * factor * radius, oy + dy * factor * radius]; }),
+        const a = nums[0]!, b = nums[1]!, c = nums[2]!, d = nums.length === 3 || nums.length === 5 ? 1 - a - b - c : nums[3]!;
+        const ay = nums.length >= 8 ? nums[4]! : a, by = nums.length >= 8 ? nums[5]! : b, cyCoefficient = nums.length >= 8 ? nums[6]! : c, dyCoefficient = nums.length >= 8 ? nums[7]! : d;
+        const center = nums.length === 5 ? 3 : nums.length === 6 ? 4 : nums.length === 10 ? 8 : undefined;
+        // ImageMagick centers use pixel edges; the sampler uses pixel centers.
+        const ox = center === undefined ? cx : nums[center]! - 0.5, oy = center === undefined ? cy : nums[center + 1]! - 0.5, radius = Math.min(w, h) / 2;
+        return {
+            ...result((x, y) => {
+                const dx = (x - ox) / radius, dy = (y - oy) / radius, r = Math.hypot(dx, dy);
+                return [ox + dx * radius * (((a * r + b) * r + c) * r + d), oy + dy * radius * (((ay * r + by) * r + cyCoefficient) * r + dyCoefficient)];
+            }),
             derivatives(x, y) {
                 const dx = (x - ox) / radius, dy = (y - oy) / radius, r = Math.hypot(dx, dy);
-                const factor = ((a * r + b) * r + c) * r + d, gradient = r > 0 ? (3 * a * r * r + 2 * b * r + c) / r : 0;
-                return [factor + dx * dx * gradient, dx * dy * gradient, dx * dy * gradient, factor + dy * dy * gradient];
+                const fx = ((a * r + b) * r + c) * r + d, fy = ((ay * r + by) * r + cyCoefficient) * r + dyCoefficient;
+                const gx = r > 0 ? (3 * a * r * r + 2 * b * r + c) / r : 0;
+                const gy = r > 0 ? (3 * ay * r * r + 2 * by * r + cyCoefficient) / r : 0;
+                return [fx + dx * dx * gx, dx * dy * gx, dx * dy * gy, fy + dy * dy * gy];
             }
         };
     }

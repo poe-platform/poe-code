@@ -1,20 +1,12 @@
 import { decodeFoldUnit, portableWidth, type FoldUnit } from "./index.js";
 import type { CommandDefinition } from "safe-bash-contracts";
-import { integer } from "safe-bash-io-engine/internal";
-import { numericOptions } from "safe-bash-text-stream-engine/stream-inspection/numeric-options";
+import { parseFoldArguments } from "./arguments.js";
 import { command, RecordBuffer, type StreamInspectionLimits } from "safe-bash-text-stream-engine/stream-inspection/shared";
 
 export function createFoldCommand(limits: StreamInspectionLimits): CommandDefinition {
   return command("fold", limits, async session => {
-    let mode: "columns" | "bytes" | "characters" = "columns";
-    const parsed = numericOptions(session.context.args, "bcsw:", Object.fromEntries(
-      ["bytes", "characters", "spaces", "width"].flatMap(name =>
-        Array.from(name, (_, index) => [name.slice(0, index + 1), name[0]!])),
-    ), "w", key => {
-      if (key === "b" || key === "c") mode = key === "b" ? "bytes" : "characters";
-    });
-    let width = 80;
-    for (const specification of parsed.values.get("w") ?? []) width = integer(specification, 1);
+    const parsed = parseFoldArguments(session.context.args, { argumentBytes: limits.maxArgumentBytes });
+    const { width, mode } = parsed;
     const locale = (session.context.env.LC_ALL || session.context.env.LC_CTYPE || session.context.env.LANG || "C.UTF-8").toUpperCase().split("@")[0]!;
     const utf8 = locale.endsWith("UTF-8") || locale.endsWith("UTF8");
     const blank = (cp: number): boolean => cp === 9 || cp === 32 || (utf8 && (cp === 0x1680 || (cp >= 0x2000 && cp <= 0x200a && cp !== 0x2007) || cp === 0x205f || cp === 0x3000));
@@ -28,7 +20,7 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
       lastWidth = cells < 0 ? 1 : cells;
       return column + lastWidth;
     };
-    await session.files(session.names(parsed.operands), async source => {
+    await session.files(session.names(parsed.files), async source => {
       const record = new RecordBuffer(session);
       const outMax = Math.min(16384, limits.maxChunkBytes);
       const outBuf = new Uint8Array(outMax);
@@ -54,7 +46,7 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
         outBuf[outLen++] = 10;
       };
       let column = 0, lastBlank = -1;
-      const hasSpaces = parsed.flags.has("s");
+      const hasSpaces = parsed.spaces;
       const processUnit = async (unit: FoldUnit, bytes: readonly number[], byteOffset = 0, byteLen = bytes.length): Promise<void> => {
         if (unit.cp === 10) {
           await emitLine(record.view());

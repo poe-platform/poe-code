@@ -10662,6 +10662,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = panned.channels;
                         filteredChannelMask = panned.channelMask;
                       } else if (trimmed === "crossfeed" || trimmed.startsWith("crossfeed=")) {
+                        if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
+                          budget.allocateMemory(stretched[0]!.length * 2 * Float32Array.BYTES_PER_ELEMENT);
+                          const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
+                            stretched, filteredChannelMask, false, budget, context.signal);
+                          stretched = stereo.channels;
+                          filteredChannelMask = stereo.channelMask;
+                        }
                         if (stretched.length !== 2) throw new Error("crossfeed: stereo input required");
                         const options = { strength: 0.2, range: 0.5, slope: 0.5, level_in: 0.9, level_out: 1 };
                         const argument = trimmed.slice("crossfeed=".length);

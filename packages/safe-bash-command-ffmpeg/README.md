@@ -474,9 +474,10 @@ with each channel receiving the mono samples at √½ gain. They also downmix ex
 labeled 5.1 and 5.1(side) input: front channels retain their gain, center and
 surround channels contribute at √½ gain, and LFE is omitted.
 `crossfeed=strength=0.5` applies frequency-dependent headphone crossfeed to stereo audio.
+Mono input is converted to stereo at √½ gain per channel before crossfeed is applied.
 Strength and range default to 0.2 and 0.5 (0–1); slope defaults to 0.5 (0.01–1).
 `level_in` and `level_out` default to 0.9 and 1 (0–1).
-`crossfeed=strength=0:level_in=1:level_out=1` preserves every sample.
+`crossfeed=strength=0:level_in=1:level_out=1` preserves every stereo input sample.
 Block processing (`block_size`) is unsupported.
 `stereowiden=delay=5:feedback=0.3:crossfeed=0.3:drymix=0.8` widens stereo
 with delayed cross-channel subtraction. Mono input is automatically converted to stereo

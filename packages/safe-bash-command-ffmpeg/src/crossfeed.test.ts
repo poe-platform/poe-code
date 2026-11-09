@@ -60,3 +60,46 @@ for (const complex of [false, true]) {
     });
   }
 }
+
+for (const complex of [false, true]) {
+  for (const [filter, channels, level] of [
+    ["crossfeed", 2, 9546],
+    ["crossfeed=level_in=0.5:level_out=0.5", 2, 2652],
+    ["crossfeed,pan=mono|c0=FL", 1, 9546]
+  ] as const) {
+    it(`negotiates mono crossfeed ${complex ? "graph" : "simple"}: ${filter}`, async () => {
+      const mono = new Float64Array(1100);
+      const impulses = [0, 510, 512, 1022, 1024];
+      for (const frame of impulses) mono[frame] = 15000 / 32768;
+      const volume = Volume.fromJSON({});
+      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [mono] }));
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-y", "-i", "/in.wav", ...(complex
+          ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"] : ["-af", filter]),
+          "-c:a", "pcm_s16le", "/out.wav"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 8000);
+      assert.equal(audio.channels, channels);
+      // Native FFmpeg 7.0.2: equal-power stereo conversion followed by crossfeed gains.
+      const expected = new Array<number>(1100).fill(0);
+      for (const frame of impulses) expected[frame] = level;
+      for (const channel of audio.channelData) {
+        assert.equal(channel.length, expected.length);
+        for (let frame = 0; frame < expected.length; frame++) {
+          assert.equal(channel[frame]! * 32768, expected[frame], `frame ${frame}`);
+        }
+      }
+    });
+  }
+}

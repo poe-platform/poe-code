@@ -5037,6 +5037,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let resetTimestamps = false;
         let segmentFrames: number[] | undefined;
         let segmentList: string | undefined;
+        let segmentListSize = 0;
         let segmentListType: "flat" | "csv" | undefined;
         let hlsTime = 2;
         let hlsInitTime = 0;
@@ -5335,6 +5336,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             segmentListType = value;
+          } else if (arg === "-segment_list_size") {
+            const value = args[++i];
+            segmentListSize = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(segmentListSize) || segmentListSize < 0 || segmentListSize > 2147483647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_list_size\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-segment_list") {
             segmentList = args[++i];
             if (!segmentList) {
@@ -9772,6 +9780,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
+                if (segmentListSize > 0 && index < paths.length - segmentListSize) continue;
                 const name = path.slice(path.lastIndexOf("/") + 1);
                 if (listType === "flat") {
                   list.push(`${name}\n`);

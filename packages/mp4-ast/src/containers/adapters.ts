@@ -2522,7 +2522,7 @@ export function serializeSubtitleDocument(
   const subTrack = doc.tracks.find((t) => t.type === "subtitle");
   const ts = subTrack?.timescale || 1000;
   const samples = subTrack?.samples ?? [];
-  const lines: string[] = [];
+  const lines: (string | Uint8Array)[] = [];
 
   if (format === "webvtt") {
     lines.push("WEBVTT", "");
@@ -2534,11 +2534,13 @@ export function serializeSubtitleDocument(
 
   let cueIndex = 1;
   for (const s of samples) {
-    const text = decodeUtf8(s.data);
     const codec = subTrack?.codecDescriptions[s.sampleDescriptionIndex - 1]?.codecName;
+    // Stream-copy packets must not pass through UTF-8 decoding and re-encoding.
+    const packet = format === "srt" && codec === "subrip" ? s.data : undefined;
+    const text = packet ? "" : decodeUtf8(s.data);
     const cueText = format === "webvtt" || (format === "srt" && codec === "subrip") ? text
       : format === "srt" && codec === "ass" ? text.trimStart().replaceAll("\r\n", "\n").replaceAll("\n", "\r\n") : text.trim();
-    if (!cueText && format !== "webvtt") continue;
+    if (!(packet?.byteLength ?? cueText.length) && format !== "webvtt") continue;
     const startMs = Math.round((s.pts / ts) * 1000);
     const endMs = Math.round(((s.pts + s.duration) / ts) * 1000);
     if (format === "ttml") {
@@ -2561,13 +2563,18 @@ export function serializeSubtitleDocument(
       return `${key.toUpperCase()}:${value < 0 ? "-" + String(-value).padStart(2, "0") : String(value).padStart(3, "0")}`;
     }).join(" ") : "";
     lines.push(`${formatSubtitleTimecode(startMs, sep)} --> ${formatSubtitleTimecode(endMs, sep)}${cue?.settings ? " " + cue.settings : ""}${coordinates}`);
-    lines.push(cueText, "");
+    lines.push(packet ?? cueText, "");
     cueIndex++;
   }
 
   if (format === "ttml") lines.push("</div></body></tt>");
   if (format === "srt" && lines.length > 0) lines.push("");
-  return encodeUtf8(lines.join("\n"));
+  const chunks: Uint8Array[] = [];
+  for (const [index, line] of lines.entries()) {
+    if (index > 0) chunks.push(Uint8Array.of(10));
+    chunks.push(typeof line === "string" ? encodeUtf8(line) : line);
+  }
+  return concatBytes(chunks);
 }
 
 export function ttmlAst(): MediaAstPlugin {

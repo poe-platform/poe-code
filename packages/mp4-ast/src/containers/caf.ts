@@ -74,6 +74,8 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     } else if (id === 0x6b756b69) {
       cookie = bytes.subarray(start, start + size);
     } else if (id === 0x70616b74) {
+      if (size < 24) throw new Error("Invalid CAF packet table header");
+      if (view.getBigInt64(start) < 0n) throw new Error("Invalid CAF packet count");
       packetTable = bytes.subarray(start, start + size);
     } else if (id === 0x6368616e) {
       if (size < 12) throw new Error("Invalid CAF channel layout chunk");

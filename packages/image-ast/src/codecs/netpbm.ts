@@ -518,11 +518,7 @@ function decodeTiffLzw(src: Uint8Array, expectedLen: number): Uint8Array {
     if (code === EOI_CODE) break;
     if (code === CLEAR_CODE) {
       resetDict();
-      const first = readCode();
-      if (first === EOI_CODE) break;
-      const entry = dict[first] ?? new Uint8Array([first & 0xff]);
-      for (let i = 0; i < entry.length && dp < expectedLen; i++) out[dp++] = entry[i]!;
-      prevEntry = entry;
+      prevEntry = undefined;
       continue;
     }
     let entry: Uint8Array;
@@ -533,7 +529,7 @@ function decodeTiffLzw(src: Uint8Array, expectedLen: number): Uint8Array {
       entry.set(prevEntry, 0);
       entry[prevEntry.length] = prevEntry[0]!;
     } else {
-      break;
+      throw new Error("Invalid TIFF LZW dictionary code");
     }
     for (let i = 0; i < entry.length && dp < expectedLen; i++) out[dp++] = entry[i]!;
     if (prevEntry && dict.length < 4096) {
@@ -547,7 +543,8 @@ function decodeTiffLzw(src: Uint8Array, expectedLen: number): Uint8Array {
     }
     prevEntry = entry;
   }
-  return out.subarray(0, dp);
+  if (dp < expectedLen) throw new Error("Truncated TIFF LZW pixels");
+  return out;
 }
 
 export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {

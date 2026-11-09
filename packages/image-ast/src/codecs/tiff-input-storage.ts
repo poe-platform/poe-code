@@ -45,16 +45,17 @@ async function* lzw(reader:SourceBytes,start:number,length:number,expected:numbe
  const code=async()=>{while(bits<width){if(at>=start+length)return 257;buffer=(buffer<<8)|(await reader.at(at++)??0);bits+=8;}bits-=width;return (buffer>>>bits)&((1<<width)-1);};
  const expand=(value:number)=>{let used=0;while(value>=258){stack[used++]=suffix[value]!;value=prefix[value]!;}if(value<256)stack[used++]=value;return used;};
  while(written<expected) {
-  let current=await code();if(current===257)break;
-  if(current===256){next=258;width=9;current=await code();if(current===257)break;previous=current<258?current:current&255;const count=expand(previous);for(let i=count-1;i>=0&&written<expected;i--){yield stack[i]!;written++;}continue;}
+  const current=await code();if(current===257)break;
+  if(current===256){next=258;width=9;previous=-1;continue;}
   const special=current===next&&previous>=0;
-  if(current>=next&&!special)break;
+  if(current>=next&&!special)throw new Error("Invalid TIFF LZW dictionary code");
   const count=expand(special?previous:current),first=count?stack[count-1]!:0;
   for(let i=count-1;i>=0&&written<expected;i--){yield stack[i]!;written++;}
   if(special&&written<expected){yield first;written++;}
   if(previous>=0&&next<4096){prefix[next]=previous;suffix[next]=first;next++;if(next===511||next===1023||next===2047)width++;}
   previous=current;
  }
+ if(written<expected)throw new Error("Truncated TIFF LZW pixels");
 }
 async function* packBits(reader:SourceBytes,start:number,length:number,expected:number) {
  let at=start,written=0;

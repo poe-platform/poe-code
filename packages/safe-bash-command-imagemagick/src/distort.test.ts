@@ -3,6 +3,44 @@ import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runMagickCli } from "./index.js";
 
+it.each([
+    ["Perspective", ""],
+    ["Perspective", "0,0,0"],
+    ["Perspective", "0,0,0,0,9,0"],
+    ["Perspective", "0,0 0,0 9,0 9,0 0,7 0,7 9,7 9,7,2"],
+    ["PerspectiveProjection", "1,0,0,0,1,0"],
+    ["PerspectiveProjection", "1,0,0,0,1,0,0,0,9"],
+])("rejects incomplete %s arguments %s without replacing output", async (method, args) => {
+    for (const retained of [false, true]) for (const operator of ["-distort", "+distort"]) {
+        const original = new TextEncoder().encode("KEEP");
+        const files = new Map([["/out.png", original]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/out.png", original);
+        const result = await runMagickCli(["-size", "10x8", "xc:red", "-filter", "point", operator, method!, args!, "/out.png"], retained ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(1);
+        expect(result.stderr).toContain(method);
+        expect(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")).toEqual(original);
+    }
+});
+
+it.each([
+    ["Perspective", "0,0 0,0"],
+    ["Perspective", "0,0 0,0 9,0 9,0"],
+    ["Perspective", "0,0 0,0 9,0 9,0 0,7 0,7"],
+    ["Perspective", "0,0 0,0 9,0 9,0 0,7 0,7 9,7 9,7"],
+    ["PerspectiveProjection", "1,0,0,0,1,0,0,0"],
+])("accepts complete %s identity arguments %s", async (method, args) => {
+    for (const retained of [false, true]) {
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        const backend = retained ? { filesystem, cwd: "/" } : files;
+        await runMagickCli(["-size", "10x8", "gradient:red-blue", "/in.png"], backend);
+        const result = await runMagickCli(["/in.png", "-filter", "point", "-distort", method!, args!, "/out.png"], backend);
+        expect(result.exitCode).toBe(0);
+        const input = decodeImage(retained ? await filesystem.readFile("/in.png") : files.get("/in.png")!);
+        const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+        expect([output.width, output.height, output.data]).toEqual([input.width, input.height, input.data]);
+    }
+});
+
 it.each([false, true])("applies forward PerspectiveProjection coefficients, retained=%s", async retained => {
     const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
     const backend = retained ? { filesystem, cwd: "/" } : files;

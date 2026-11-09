@@ -171,16 +171,14 @@ it("rejects input/output hardlink aliases before publication", async () => {
   expect(await fs.readFile("/output.png")).toEqual(bytes);
 });
 
-it("checks the effective PNG dimensions before allocating pixel storage", async () => {
+it.each([false, true])("rejects oversized or duplicate PNG headers before allocating pixel storage (duplicate=%s)", async duplicate => {
   const {fs, bytes} = await fixture();
-  // The legacy metadata parser uses the final IHDR; the streaming path must
-  // enforce the same pixel budget even when the first header advertises 1x1.
   const small = bytes.slice(16,29);
   const view = new DataView(small.buffer);
   view.setUint32(0,1); view.setUint32(4,1);
-  await fs.writeFile("/input.png", Buffer.concat([bytes.subarray(0,8),makeChunk("IHDR", small),bytes.subarray(8)]));
+  if (duplicate) await fs.writeFile("/input.png", Buffer.concat([bytes.subarray(0,8),makeChunk("IHDR", small),bytes.subarray(8)]));
   const opened = vi.fn(fs.open.bind(fs));
-  await expect(sharp("/input.png", {filesystem:injected(fs,{open:opened}),limitInputPixels:1}).png().toFile("/output.png")).rejects.toThrow("pixel limit");
+  await expect(sharp("/input.png", {filesystem:injected(fs,{open:opened}),limitInputPixels:1}).png().toFile("/output.png")).rejects.toThrow(duplicate ? "Invalid PNG IHDR" : "pixel limit");
   expect(opened).not.toHaveBeenCalled();
   expect(await fs.readFile("/output.png")).toEqual(original);
 });

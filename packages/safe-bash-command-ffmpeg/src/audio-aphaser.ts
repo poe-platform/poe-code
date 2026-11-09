@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function phaseAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -14,13 +15,16 @@ export async function phaseAudio(
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options;
     if (!key || !Object.hasOwn(options, key)) throw new Error(`aphaser: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    const number = key === "type" && ["t", "triangular"].includes(value) ? 1
-      : key === "type" && ["s", "sinusoidal"].includes(value) ? 0 : Number(value);
+    const number = parseFilterExpression(value, "aphaser", {
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+      ...(key === "type" ? { t: 1, triangular: 1, s: 0, sinusoidal: 0 } : {})
+    });
     const [min, max] = ranges[key];
-    if (!value || !Number.isFinite(number) || number < min! || number > max! || key === "type" && !Number.isInteger(number)) {
+    if (!value || !Number.isFinite(number) || number < min! || number > max!) {
       throw new Error(`aphaser: invalid ${key}`);
     }
-    options[key] = number;
+    // Native rounds the 0..1 integer option to nearest, with ties to even.
+    options[key] = key === "type" ? Number(number > 0.5) : number;
   }
   const delayLength = Math.round(options.delay * 0.001 * sampleRate);
   if (delayLength < 1) throw new Error("aphaser: delay is too small");

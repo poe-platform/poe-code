@@ -51,6 +51,47 @@ for (const [filter, hash] of [
   }
 }
 
+// Native FFmpeg 7.0.2 evaluates numeric AVOptions before range checks.
+for (const [expression, literal] of [
+  ["in_gain=1/2", "in_gain=0.5"],
+  ["out_gain=4/5", "out_gain=0.8"],
+  ["delay=6/2", "delay=3"],
+  ["decay=2/5", "decay=0.4"],
+  ["speed=2^0", "speed=1"],
+  ["in_gain=500m", "in_gain=0.5"],
+  ["in_gain=0x1", "in_gain=1"],
+  ["in_gain=sin(PI/2)", "in_gain=1"],
+  ["in_gain=E/E", "in_gain=1"],
+  ["in_gain=PHI/PHI", "in_gain=1"],
+  ["type=1-1", "type=s"],
+  ["type=sinusoidal+1", "type=t"],
+  ["type=1/2", "type=s"],
+  ["type=2/3", "type=t"],
+  ["1/2:4/5:6/2:2/5:2^0:s", "0.5:0.8:3:0.4:1:s"]
+]) {
+  for (const graph of [false, true]) {
+    it(`aphaser=${expression} matches its native literal (${graph ? "graph" : "simple"})`, async () => {
+      const actual = await run(`aphaser=${expression}`, graph);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      const expected = await run(`aphaser=${literal}`, graph);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      assert.deepEqual(actual.volume.readFileSync("/out.wav"), expected.volume.readFileSync("/out.wav"));
+    });
+  }
+}
+
+for (const key of ["in_gain", "out_gain", "delay", "decay", "speed", "type"]) {
+  for (const value of ["0b1", "0o1", "1/", "1junk", "1/0", "0/0", "-1/2", key === "out_gain" ? "1e9+1" : "6/1"]) {
+    for (const graph of [false, true]) {
+      it(`aphaser=${key}=${value} rejects invalid expressions without replacing output (${graph ? "graph" : "simple"})`, async () => {
+        const { volume, result } = await run(`aphaser=${key}=${value}`, graph);
+        assert.notEqual(result.exitCode, 0);
+        assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+      });
+    }
+  }
+}
+
 for (const filter of ["aphaser=delay=0", "aphaser=delay=6", "aphaser=speed=0", "aphaser=decay=1", "aphaser=in_gain=NaN", "aphaser=type=bad", "aphaser=unknown=1"]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);

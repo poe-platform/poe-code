@@ -21,8 +21,8 @@ export async function vibratoAudio(
     }
     if (key !== "f" && key !== "d") throw new Error(`vibrato: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    const number = Number(value);
-    if (!value || !Number.isFinite(number) || number < (key === "f" ? 0.1 : 0) || number > (key === "f" ? 20000 : 1)) {
+    const number = parseFilterExpression(value, "vibrato", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 });
+    if (number < (key === "f" ? 0.1 : 0) || number > (key === "f" ? 20000 : 1)) {
       throw new Error(`vibrato: invalid ${key}`);
     }
     if (key === "f") frequency = number;

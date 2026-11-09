@@ -34,7 +34,30 @@ for (const [filter, hash] of [
   }
 }
 
-for (const filter of ["vibrato=f=0", "vibrato=f=20001", "vibrato=d=-1", "vibrato=d=1.1", "vibrato=f=NaN", "vibrato=d=", "vibrato=unknown=1"]) {
+for (const filter of [
+  "vibrato=d=1/2",
+  "vibrato=d=(1+1)/4",
+  "vibrato=d=2^-1",
+  "vibrato=d=sqrt(0.25)",
+  "vibrato=d=PI/(2*PI)",
+  "vibrato=d=500m",
+  "vibrato=f=10/2:d=1/2",
+  "vibrato=10/2:1/2"
+]) {
+  for (const graph of [false, true]) {
+    it(`${filter} produces the same PCM as literal options (${graph ? "graph" : "simple"})`, async () => {
+      const literal = await run("vibrato=f=5:d=0.5", graph);
+      const expression = await run(filter, graph);
+      assert.equal(literal.result.exitCode, 0, literal.stderr);
+      assert.equal(expression.result.exitCode, 0, expression.stderr);
+      assert.deepEqual(expression.volume.readFileSync("/out.wav"), literal.volume.readFileSync("/out.wav"));
+    });
+  }
+}
+
+for (const filter of ["vibrato=f=0", "vibrato=f=20001", "vibrato=d=-1", "vibrato=d=1.1", "vibrato=f=NaN", "vibrato=d=", "vibrato=unknown=1",
+  "vibrato=d=0b1", "vibrato=d=0o1", "vibrato=d=1/", "vibrato=d=1/0", "vibrato=d=0/0",
+  "vibrato=d=3/2", "vibrato=d=-1/2", "vibrato=f=40001/2"]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);
     assert.notEqual(result.exitCode, 0);

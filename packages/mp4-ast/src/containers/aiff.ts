@@ -180,9 +180,12 @@ export function aiffAst(): MediaAstPlugin {
     },
     parse: parseAiff, serialize: serializeAiff,
     probe(bytes, options) {
-      return buildProbeResultFromDoc(parseAiff(bytes, { ...options, decodeAudio: false }), bytes.length, options?.filename, {
+      const doc = parseAiff(bytes, { ...options, decodeAudio: false });
+      const probe = buildProbeResultFromDoc(doc, bytes.length, options?.filename, {
         ...options, formatName: "aiff", formatLongName: "Audio IFF"
       });
+      return { ...probe, packetData: probe.packets && new Map(probe.packets.map((packet, index) =>
+        [`${packet.pos}:${packet.size}`, doc.tracks[0]!.samples[index]!.data])) };
     },
     concat: concatMp4, slice: sliceMp4
   };

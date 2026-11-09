@@ -70,6 +70,12 @@ export function decodeAssText(text: string): string {
 const eventFields = ["Layer", "Start", "End", "Style", "Name", "MarginL", "MarginR", "MarginV", "Effect", "Text"];
 const packetFields = ["Layer", "Style", "Name", "MarginL", "MarginR", "MarginV", "Effect", "Text"];
 
+function decodeAss(bytes: Uint8Array): string {
+  const encoding = bytes[0] === 0xff && bytes[1] === 0xfe ? "utf-16le"
+    : bytes[0] === 0xfe && bytes[1] === 0xff ? "utf-16be" : "utf-8";
+  return new TextDecoder(encoding).decode(bytes);
+}
+
 function parseAss(bytes: Uint8Array, options?: ParseMediaOptions): MediaDocument {
   const copy = options?.decodeSubtitles === false;
   const header: string[] = [];
@@ -77,7 +83,7 @@ function parseAss(bytes: Uint8Array, options?: ParseMediaOptions): MediaDocument
   let fields = eventFields;
   let events = false;
   let duration = 0;
-  for (const raw of decodeUtf8(bytes).split("\n")) {
+  for (const raw of decodeAss(bytes).split("\n")) {
     const line = raw.trim();
     if (copy && !(events && line.startsWith("Dialogue:"))) header.push(raw.endsWith("\r") ? raw.slice(0, -1) : raw);
     if (line.startsWith("[")) { events = line === "[Events]"; continue; }
@@ -172,7 +178,7 @@ export function assAst(): MediaAstPlugin {
     id: "ass", formatName: "ass", formatLongName: "ASS (Advanced SubStation Alpha) subtitle",
     extensions: ["ass"], mimeTypes: ["text/x-ass"], canDemux: true, canMux: true,
     supportedVideoCodecs: [], supportedAudioCodecs: [],
-    detect(bytes) { return decodeUtf8(bytes.subarray(0, 4096)).trimStart().startsWith("[Script Info]"); },
+    detect(bytes) { return decodeAss(bytes.subarray(0, 4096)).trimStart().startsWith("[Script Info]"); },
     parse: parseAss, serialize: serializeAss,
     probe(bytes, options) {
       return buildProbeResultFromDoc(parseAss(bytes), bytes.byteLength, options?.filename ?? "input.ass", {

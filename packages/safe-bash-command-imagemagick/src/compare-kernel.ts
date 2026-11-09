@@ -6,6 +6,7 @@ export interface CompareImage {
     readonly width: number;
     readonly height: number;
     readonly hasAlpha: boolean;
+    readonly space?: string;
 }
 export interface CompareOptions {
     readonly phashColorspaces?: readonly string[];
@@ -61,6 +62,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     let meppSum = 0;
     let meppPeak = 0;
     const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
+    const grayscale = imgA.space === "b-w" || imgA.space === "grey16";
     const selected = options.channels ?? [0, 1, 2, 3];
     const red = selected.includes(0), green = selected.includes(1), blue = selected.includes(2), opacity = selected.includes(3);
     const sharedChannels = selected.filter(channel => channel < 3 || (imgA.hasAlpha && imgB.hasAlpha));
@@ -198,6 +200,10 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                             if (i % 4 < 3 && !selected.includes(i % 4)) output[i] = diffData[i]!;
                     } finally { composition.return(undefined as never); }
                 }
+                // Native grayscale channel setters share one sample; blue is
+                // written last when applying the highlight/lowlight overlay.
+                if (grayscale) for (let i = 0; i < output.length; i += 4)
+                    output[i] = output[i + 1] = output[i + 2]!;
                 yield { kind: "write", position: (y * width + left) * 4, data: output };
             }
         }

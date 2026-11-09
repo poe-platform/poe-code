@@ -13,7 +13,11 @@ export async function mixAudio(
   });
   const a = inputs[0];
   if (!a) throw new Error("amix requires decoded PCM audio");
-  if (inputs.some(input => input.channels !== a.channels || input.channelMask !== a.channelMask)) {
+  const layouts = inputs.map(input => input.channelMask ||
+    (input.channels === 1 ? 4 : input.channels === 2 ? 3 : undefined));
+  const remix = inputs.map((input, index) => input.channels !== a.channels &&
+    (layouts[0] === 4 && layouts[index] === 3 || layouts[0] === 3 && layouts[index] === 4));
+  if (inputs.some((input, index) => !remix[index] && (input.channels !== a.channels || layouts[index] !== layouts[0]))) {
     throw new Error("amix requires matching channel layouts");
   }
   let count = 2;
@@ -94,7 +98,15 @@ export async function mixAudio(
         }
         let mixed = 0;
         for (let input = 0; input < count; input++) {
-          mixed = Math.fround(mixed + Math.fround((inputs[input]!.channelData[channel]![sample] ?? 0) * gains[input]!));
+          const audio = inputs[input]!;
+          let value = audio.channelData[remix[input] ? 0 : channel]![sample] ?? 0;
+          if (remix[input]) {
+            // FFmpeg remixes in float with equal-power gains, without PCM clipping.
+            value = Math.fround(value * Math.fround(Math.SQRT1_2));
+            if (audio.channels === 2) value = Math.fround(value +
+              Math.fround((audio.channelData[1]![sample] ?? 0) * Math.fround(Math.SQRT1_2)));
+          }
+          mixed = Math.fround(mixed + Math.fround(value * gains[input]!));
         }
         channelData[channel]![sample] = mixed;
       }

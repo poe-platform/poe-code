@@ -13,7 +13,7 @@ import { auAst } from "./au.js";
 import { aiffAst } from "./aiff.js";
 import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
 import { encodeAudio } from "@poe-code/media-codecs";
-import { decodeCompressedWav } from "./wav-compressed.js";
+import { compressedWavPackets, decodeCompressedWav } from "./wav-compressed.js";
 import { decodeG726, encodeG726 } from "./au-g726.js";
 import { decodeYamahaWav, encodeYamahaWav } from "./wav-yamaha.js";
 import { decodeMsWav, encodeMsWav, msBlockFrames, msCoefficients } from "./wav-ms.js";
@@ -608,9 +608,10 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     decodedAudio = { sampleRate, channels, channelData, ...(header.channelMask !== undefined ? { channelMask: header.channelMask } : {}) };
   }
 
-  const samples: MediaSample[] = [];
+  const packets = compressedWavPackets(pcmData, header);
+  const samples: MediaSample[] = packets ?? [];
   const chunkFrames = formatTag === 0x45 ? Math.max(8, Math.floor(wavPacketFrames(sampleRate, bytesPerFrame, options.maxSize) / 8) * 8) : formatTag === 2 ? msBlockFrames(header.blockAlign, channels) : formatTag === 17 ? imaBlockFrames(header.blockAlign, channels) : wavPacketFrames(header.sampleRate, bytesPerFrame, options.maxSize);
-  for (let offsetSample = 0; (compressed ? offsetSample < totalPcmSamples : offsetSample * bytesPerFrame < pcmData.length); offsetSample += chunkFrames) {
+  for (let offsetSample = 0; !packets && (compressed ? offsetSample < totalPcmSamples : offsetSample * bytesPerFrame < pcmData.length); offsetSample += chunkFrames) {
     const count = Math.min(chunkFrames, totalPcmSamples - offsetSample);
     const byteStart = formatTag === 2 || formatTag === 17 ? offsetSample / chunkFrames * header.blockAlign : offsetSample * bytesPerFrame;
     const byteEnd = formatTag === 2 || formatTag === 17 ? Math.min(pcmData.length, byteStart + header.blockAlign) : compressed && offsetSample + count === totalPcmSamples ? pcmData.byteLength : Math.min(pcmData.length, (offsetSample + chunkFrames) * bytesPerFrame);
@@ -662,7 +663,8 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
     ? header.factSampleCount : undefined;
   const totalPcmSamples = !decodedAudio && (formatTag === 2 || formatTag === 17)
     ? factSamples ?? Math.floor(header.dataSize * 8 / (bitsPerSample * channels))
-    : decodedAudio?.channelData[0]?.length ?? wavFrames(header);
+    : decodedAudio?.channelData[0]?.length ?? ([80, 85, 0x2000].includes(formatTag) && samples.length
+      ? samples.reduce((sum, sample) => sum + sample.duration, 0) : wavFrames(header));
   const durationSeconds = totalPcmSamples / Math.max(1, sampleRate);
   return {
     containerFormat: header.containerFormat,
@@ -688,7 +690,7 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
         codecDescriptions: [
           {
             formatFourCC: String.fromCharCode(formatTag & 255, formatTag >>> 8, 0, 0),
-            codecName: formatTag === 0x45 ? "adpcm_g726" : formatTag === 1 && bitsPerSample === 32 && header.validBitsPerSample === 24 && header.littleEndian ? "pcm_f24le" : formatTag === 85 ? "mp3" : formatTag === 255 ? "aac" : formatTag === 32 ? "adpcm_yamaha" : formatTag === 2 ? "adpcm_ms" : formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : bitsPerSample === 0 ? "" : formatTag === 3 ? `pcm_f${bitsPerSample}${header.littleEndian ? "le" : "be"}` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}${header.littleEndian ? "le" : "be"}`,
+            codecName: formatTag === 80 ? "mp2" : formatTag === 0x2000 ? "ac3" : formatTag === 0x45 ? "adpcm_g726" : formatTag === 1 && bitsPerSample === 32 && header.validBitsPerSample === 24 && header.littleEndian ? "pcm_f24le" : formatTag === 85 ? "mp3" : formatTag === 255 ? "aac" : formatTag === 32 ? "adpcm_yamaha" : formatTag === 2 ? "adpcm_ms" : formatTag === 17 ? "adpcm_ima_wav" : formatTag === 6 ? "pcm_alaw" : formatTag === 7 ? "pcm_mulaw" : bitsPerSample === 0 ? "" : formatTag === 3 ? `pcm_f${bitsPerSample}${header.littleEndian ? "le" : "be"}` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}${header.littleEndian ? "le" : "be"}`,
             sampleRate,
             channels,
             bitsPerSample,

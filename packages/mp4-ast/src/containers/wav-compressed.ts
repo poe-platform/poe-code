@@ -1,5 +1,6 @@
 import { decodeAudio } from "@poe-code/media-codecs";
-import type { MediaAudioData } from "../types.js";
+import { mpegFrame } from "@poe-code/audio-ast";
+import type { MediaSample, MediaAudioData } from "../types.js";
 import { readMp3Frames } from "./mp3-frames.js";
 import type { WavHeader } from "./wav-header.js";
 
@@ -37,4 +38,50 @@ export function decodeCompressedWav(bytes: Uint8Array, header: WavHeader): Media
     offset += frame[0]!.length;
   }
   return { sampleRate, channels, channelData };
+}
+
+/** WAVE byte blocks may contain multiple compressed codec packets. */
+export function compressedWavPackets(data: Uint8Array, header: WavHeader): MediaSample[] | undefined {
+  if (![80, 85, 0x2000].includes(header.formatTag)) return undefined;
+  const samples: MediaSample[] = [];
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  let offset = 0, pts = 0;
+  while (offset < data.length) {
+    let size: number, count: number, rate: number;
+    if (header.formatTag === 0x2000) {
+      if (offset + 7 > data.length || view.getUint16(offset) !== 0x0b77) throw new Error("Invalid AC-3 WAV frame");
+      const code = data[offset + 4]! & 63, rateCode = data[offset + 4]! >>> 6;
+      const bsid = data[offset + 5]! >>> 3;
+      if (code > 37 || rateCode === 3 || bsid > 10) throw new Error("Invalid AC-3 WAV frame");
+      const bitrate = [32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384, 448, 512, 576, 640][code >>> 1]!;
+      size = rateCode === 0 ? bitrate * 4 : rateCode === 2 ? bitrate * 6 :
+        (Math.floor(bitrate * 320 / 147) + (code & 1)) * 2;
+      rate = [48000, 44100, 32000][rateCode]! / 2 ** Math.max(0, bsid - 8);
+      count = 1536;
+    } else {
+      if (offset + 4 > data.length) throw new Error("Truncated MPEG WAV frame");
+      const word = view.getUint32(offset);
+      if (header.formatTag === 85) {
+        const frame = mpegFrame(word, offset, data.length);
+        size = frame.frameSize; count = frame.count; rate = frame.rate;
+      } else {
+        const version = (word >>> 19) & 3, bitrateIndex = (word >>> 12) & 15, rateIndex = (word >>> 10) & 3;
+        if (word >>> 21 !== 0x7ff || version === 1 || ((word >>> 17) & 3) !== 2 ||
+            !bitrateIndex || bitrateIndex === 15 || rateIndex === 3) throw new Error("Invalid MP2 WAV frame");
+        rate = [44100, 48000, 32000][rateIndex]! / (version === 3 ? 1 : version === 2 ? 2 : 4);
+        const bitrate = (version === 3
+          ? [0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384]
+          : [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160])[bitrateIndex]!;
+        size = Math.floor(144000 * bitrate / rate) + ((word >>> 9) & 1);
+        count = 1152;
+      }
+    }
+    if (offset + size > data.length) throw new Error("Truncated compressed WAV frame");
+    const duration = count * header.sampleRate / rate;
+    samples.push({ data: data.subarray(offset, offset + size), offset: header.dataOffset + offset,
+      dts: pts, pts, cts: 0, duration, size, isKeyframe: true, sampleDescriptionIndex: 1 });
+    pts += duration;
+    offset += size;
+  }
+  return samples;
 }

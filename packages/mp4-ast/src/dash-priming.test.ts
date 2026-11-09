@@ -16,7 +16,7 @@ for (const options of [
 ]) {
   it(`excludes AAC priming from the DASH timeline with ${JSON.stringify(options)}`, () => {
     const { manifest, resources } = serializeDashDocument(source, { segmentDuration: 1, ...options });
-    const adaptations = parseXml(new TextDecoder().decode(manifest)).children[0]!.children;
+    const adaptations = parseXml(new TextDecoder().decode(manifest)).children.find(child => child.localName === "Period")!.children;
     const timelines = adaptations.map(adaptation => {
       const representation = adaptation.children[0]!;
       const template = representation.children.find(child => child.localName === "SegmentTemplate" || child.localName === "SegmentList")!;

@@ -11069,7 +11069,28 @@ export class Runtime {
     }
     const globIgnore = state.variables.GLOBIGNORE;
     if (globIgnore && found.length > 0) {
-      const ignorePats = globIgnore.split(":").filter(p => p.length > 0);
+      const ignorePats: string[] = [];
+      let start = 0;
+      let brackets = 0;
+      let parentheses = 0;
+      for (let index = 0; index < globIgnore.length; index++) {
+        const pending = stringCheckpoint(work);
+        if (pending) await pending;
+        const character = globIgnore[index]!;
+        if (character === "\\") { index++; continue; }
+        if (character === "[") brackets++;
+        else if (character === "]" && brackets > 0) brackets--;
+        else if (brackets === 0) {
+          if (state.extglob && "?*+@!".includes(character) && globIgnore[index + 1] === "(") { parentheses++; index++; }
+          else if (character === "(" && parentheses > 0) parentheses++;
+          else if (character === ")" && parentheses > 0) parentheses--;
+          else if (character === ":" && parentheses === 0) {
+            if (index > start) ignorePats.push(globIgnore.slice(start, index));
+            start = index + 1;
+          }
+        }
+      }
+      if (start < globIgnore.length) ignorePats.push(globIgnore.slice(start));
       if (ignorePats.length > 0) {
         const scratch = this.budget.values.scope();
         work.allocation = scratch;

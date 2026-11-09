@@ -4,6 +4,38 @@ import { standardCommands } from "../../src/index.js";
 import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 import { setup } from "./helpers.js";
 
+for (const [ignore, extglob, expected] of [
+  ["a\\:b", false, ["a", "b", "keep"]],
+  ["[a:b]", false, ["a:b", "keep"]],
+  ["@(a:b|keep)", true, ["a", "b"]],
+  ["a:b", false, ["a:b", "keep"]],
+  [":a::b:", false, ["a:b", "keep"]],
+  ["a\\:b:keep", false, ["a", "b"]],
+  ["[a:b]:keep", false, ["a:b"]],
+  ["[[:alpha:]:]:keep", false, ["a:b"]],
+  ["@(a:b|keep):a", true, ["b"]],
+  ["@(a:@(b|keep))", true, ["a", "b", "keep"]],
+  ["@(a:b)", false, ["a", "a:b", "b", "keep"]],
+  ["@(a:b", false, ["a", "a:b", "keep"]],
+  ["@(a:b", true, ["a", "a:b", "b", "keep"]],
+  ["[a:b", false, ["a", "a:b", "b", "keep"]],
+  ["a\\\\:b", false, ["a", "a:b", "keep"]],
+  ["\\@(a:b", true, ["a", "a:b", "keep"]],
+  ["[a[b:c]:keep", false, ["a", "a:b", "b", "keep"]],
+] as const) {
+  test(`GLOBIGNORE=${ignore} preserves pattern boundaries (extglob=${extglob})`, async () => {
+    const { fs, shell } = setup({ cwd: "/files", env: { LC_ALL: "C", HOME: "/" } });
+    await fs.mkdir("/files");
+    for (const name of ["a", "a:b", "b", "keep"]) await fs.writeFile(`/files/${name}`, new Uint8Array());
+    try {
+      const result = await shell.exec(`shopt -s dotglob; shopt ${extglob ? "-s" : "-u"} extglob; GLOBIGNORE='${ignore}'; args *`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(JSON.parse(result.stdout), expected);
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("GLOBIGNORE retains prefixed log files and filters local names through standardCommands", async () => {
   const { shell } = setup({ env: { LC_ALL: "C", HOME: "/" }, extensions: [arraysExtension()] });
   shell.use(standardCommands());

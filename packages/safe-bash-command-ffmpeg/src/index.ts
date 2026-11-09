@@ -8074,6 +8074,78 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     tracks: workingDoc.tracks.filter((t) => t.type !== "video")
                   };
                 }
+              } else if (filterComplex.includes("freezeframes")) {
+                let expression = filterComplex.trim();
+                const selected: { doc: MediaDocument; track: MediaTrack }[] = [];
+                for (let i = 0; i < 2; i++) {
+                  let inputIndex = i;
+                  let streamIndex = 0;
+                  if (expression.startsWith("[")) {
+                    const end = expression.indexOf("]");
+                    const label = expression.slice(1, end);
+                    const parts = label.split(":");
+                    if (end < 0 || parts.length > 3 || parts[1] !== "v" ||
+                        !parts[0] || ![...parts[0]].every(char => char >= "0" && char <= "9") ||
+                        (parts[2] !== undefined && (!parts[2] || ![...parts[2]].every(char => char >= "0" && char <= "9")))) {
+                      throw new Error(`freezeframes: invalid input label ${label}`);
+                    }
+                    inputIndex = Number(parts[0]);
+                    streamIndex = Number(parts[2] ?? 0);
+                    expression = expression.slice(end + 1).trim();
+                  }
+                  const doc = loadedDocs[inputIndex];
+                  const track = doc?.tracks.filter(track => track.type === "video")[streamIndex];
+                  if (!doc || !track) throw new Error(`freezeframes: input ${inputIndex}:v:${streamIndex} is unavailable`);
+                  selected.push({ doc, track });
+                }
+                if (expression.endsWith("]")) {
+                  const start = expression.lastIndexOf("[");
+                  const label = expression.slice(start + 1, -1);
+                  if (maps.length !== 1 || maps[0] !== `[${label}]`) {
+                    throw new Error("freezeframes: output label must be mapped exactly once");
+                  }
+                  expression = expression.slice(0, start);
+                } else if (maps.length) throw new Error("freezeframes: unsupported output map");
+                const filters = parseFilterChain(expression);
+                const spec = filters.shift()!;
+                const [name, ...args] = spec.split("=");
+                if (name !== "freezeframes") throw new Error("freezeframes: unsupported input graph");
+                const values = { first: 0, last: 0, replace: 0 };
+                const keys = ["first", "last", "replace"] as const;
+                for (const [index, option] of (args.length ? args.join("=").split(":") : []).entries()) {
+                  const equal = option.indexOf("=");
+                  const key = equal < 0 ? keys[index] : option.slice(0, equal).trim();
+                  const value = equal < 0 ? option.trim() : option.slice(equal + 1).trim();
+                  if (key !== "first" && key !== "last" && key !== "replace") {
+                    throw new Error(`freezeframes: unsupported option ${key ?? option}`);
+                  }
+                  const number = Number(value);
+                  if (!value || !Number.isSafeInteger(number) || number < 0) {
+                    throw new Error(`freezeframes: ${key} must be a nonnegative integer`);
+                  }
+                  values[key] = number;
+                }
+                if (values.first > values.last) throw new Error("freezeframes: first must not exceed last");
+                const source = selected[0]!;
+                const donor = selected[1]!;
+                const frames = await ensureDecodedFrames(source.track, source.doc.timescale, budget, context.signal);
+                const replacements = await ensureDecodedFrames(donor.track, donor.doc.timescale, budget, context.signal, values.replace + 1);
+                const replacement = replacements[values.replace];
+                if (!replacement) throw new Error("freezeframes: replacement frame is unavailable");
+                if (frames.some(frame => frame.width !== replacement.width || frame.height !== replacement.height)) {
+                  throw new Error("freezeframes: input dimensions must match");
+                }
+                vfFilters.push(...filters);
+                workingDoc = { ...source.doc, tracks: [{ ...source.track, samples: [],
+                  decodedVideoFrames: await mapWork(frames, (frame, index) => {
+                    if (index < values.first || index > values.last) return frame;
+                    budget.recordFrame(replacement.width, replacement.height);
+                    budget.allocateMemory(replacement.data.byteLength);
+                    // MP4 encoding consumes each frame's pixel buffer.
+                    return { ...replacement, data: new Uint8Array(replacement.data),
+                      ptsSeconds: frame.ptsSeconds, durationSeconds: frame.durationSeconds };
+                  }, context.signal)
+                }] };
               } else if (filterComplex.includes("xfade") && loadedDocs.length >= 2) {
                 let pads = filterComplex.slice(0, filterComplex.indexOf("xfade")).trim();
                 const selected = [0, 1].map(defaultIndex => {

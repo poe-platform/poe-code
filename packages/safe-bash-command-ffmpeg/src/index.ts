@@ -6416,7 +6416,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                 const lines = listText.replaceAll("\r\n", "\n").replaceAll("\r", "\n").split("\n");
                 for (let l = 0; l < lines.length; l++) {
-                  const line = lines[l]!.trimStart();
+                  let line = lines[l]!;
+                  let start = 0;
+                  while (line[start] === " " || line[start] === "\t") start++;
+                  line = line.slice(start);
                   if (!line || line.startsWith("#")) continue;
                   const keyword = line.split(/[ \t]/, 1)[0]!;
                   if (keyword === "option" && input?.safe !== false) {

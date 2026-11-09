@@ -25,7 +25,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
   return command("paste", limits, async (context, budget) => {
     const files: string[] = [];
     const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C";
-    let serial = false, separator = 10, list = [Uint8Array.of(9)] as readonly Uint8Array[], literal = false;
+    let serial = false, separator = 10, delimiterList = encode("\t"), literal = false;
     for (let index = 0; index < context.args.length; index++) {
       const token = context.args[index]!;
       if (literal || token === "-" || !token.startsWith("-")) {
@@ -40,7 +40,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         const equal = token.indexOf("="), name = equal < 0 ? token : token.slice(0, equal);
         if (name.length > 2 && "--delimiters".startsWith(name)) {
           [, index] = argument(context.args, index, equal < 0 ? undefined : token.slice(equal + 1), token);
-          list = delimiters(getCommandArguments(context).bytes(index)!.subarray(equal < 0 ? 0 : equal + 1), locale); continue;
+          delimiterList = getCommandArguments(context).bytes(index)!.subarray(equal < 0 ? 0 : equal + 1); continue;
         }
         fail(`unsupported option ${token}`);
       }
@@ -50,10 +50,11 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         else if (flag === "z") separator = 0;
         else if (flag === "d") {
           [, index] = argument(context.args, index, token.slice(offset + 1) || undefined, "-d");
-          list = delimiters(getCommandArguments(context).bytes(index)!.subarray(token.length > offset + 1 ? offset + 1 : 0), locale); break;
+          delimiterList = getCommandArguments(context).bytes(index)!.subarray(token.length > offset + 1 ? offset + 1 : 0); break;
         } else fail(`unsupported option -${flag}`);
       }
     }
+    const list = delimiters(delimiterList, locale);
     if (!files.length) files.push("-");
     budget.check(files.length, limits.maxFiles, "file");
     const inputs = new Inputs(context, budget, separator), terminator = Uint8Array.of(separator);

@@ -123,3 +123,49 @@ for (const separator of ["\n", "\0"]) {
   });
  }
 }
+
+for (const args of [
+ ["-d", "\\", "-d", ":"],
+ ["-d\\", "-d:"],
+ ["--delimiters", "\\", "--delimiters=:"],
+ ["--d=\\", "-d", ":"],
+ ["-d", "\\", "--d=:"],
+ ["-d", ",", "-d", ":"],
+ ["-d", "\\", "-d", ""],
+ ["-d", "\\", "-d", "\\0"],
+]) {
+ for (const serial of [true, false]) {
+  test(`paste uses only the final delimiter list ${JSON.stringify(args)} in ${serial ? "serial" : "parallel"} mode`, async () => {
+   const result = await run(
+    serial ? ["-s", ...args] : [...args, "-", "-"], {}, {}, "1\n2\n",
+   );
+   const joined = args.at(-1) === "" || args.at(-1) === "\\0" ? "12\n" : "1:2\n";
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stdout, joined);
+   assert.equal(result.stderr, "");
+  });
+ }
+}
+
+for (const args of [
+ ["-d", ":", "-d", "\\"],
+ ["--d=:", "-d\\"],
+ ["-d:", "--delimiters", "\\"],
+ ["-d", ":", "--d=\\"],
+]) {
+ test(`paste validates the final delimiter list ${JSON.stringify(args)}`, async () => {
+  const result = await run(["-s", ...args], {}, {}, "1\n2\n");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.ok(result.stderr.includes("delimiter list ends in an unescaped backslash"), result.stderr);
+ });
+}
+
+for (const option of ["-d", "--delimiters", "--d"]) {
+ test(`paste still requires an argument for repeated ${option}`, async () => {
+  const result = await run(["-s", "-d", "\\", option], {}, {}, "1\n2\n");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.ok(result.stderr.includes("requires an argument"), result.stderr);
+ });
+}

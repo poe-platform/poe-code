@@ -1,6 +1,6 @@
 # paste
 
-Run `paste` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Enable only the commands your application needs. GNU-style unique prefixes are accepted for `--serial`, `--delimiters`, and `--zero-terminated`, including attached delimiter values such as `--delim=:`.
+Run `paste` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Enable only the commands your application needs. GNU-style unique prefixes are accepted for `--serial`, `--delimiters`, `--zero-terminated`, `--help`, and `--version`, including attached delimiter values such as `--delim=:`. When delimiter options repeat, only the final list is used and validated; every option still requires an argument.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

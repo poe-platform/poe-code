@@ -7092,6 +7092,29 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             return { ...image, isPalette: false, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : { evaluateSamples: samples }) };
         };
+    } else if (token === "-blue-shift") {
+        highDepth = true;
+        const value = tokens[++i] ?? "";
+        const factor = Number(value);
+        if (!value.trim() || !Number.isFinite(factor)) throw new Error(`invalid argument '-blue-shift' '${value}'`);
+        apply = function* (image) {
+            const out = new Uint8Array(image.data);
+            const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+            const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
+            for (let idx = 0; idx < out.length; idx += 4) {
+                if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
+                const r = evaluateSamples[idx]!, g = evaluateSamples[idx + 1]!, b = evaluateSamples[idx + 2]!;
+                const minimum = Math.min(r, g, b), maximum = Math.max(r, g, b);
+                // BlueShiftImage blends twice and stores Q16-HDRI samples; alpha is unchanged.
+                for (let channel = 0; channel < 3; channel++) {
+                    const sample = Math.fround(0.5 * (0.5 * (evaluateSamples[idx + channel]! * 257 + factor * minimum * 257) + factor * maximum * 257));
+                    evaluateSamples[idx + channel] = sample / 257;
+                    out[idx + channel] = clampByteVal(sample / 257);
+                    if (data16) data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, sample)));
+                }
+            }
+            return { ...image, isPalette: false, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
+        };
     } else if (token === "-tint") {
         highDepth = true;
         const value = tokens[++i] ?? "";
@@ -7394,7 +7417,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, handlesWriteMask: token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-threshold" || token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, handlesWriteMask: token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-blue-shift" || token === "-threshold" || token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelSelections(expression: string): number[][] {
@@ -11769,6 +11792,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-units",
         "-interlace",
         "-sampling-factor",
+        "-blue-shift",
         "-tint",
         "-colorize",
         "-blur",

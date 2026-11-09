@@ -704,6 +704,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** Matroska: write CRC-32 children in level-one elements (default: true); ignored for WebM. */
+  readonly writeCrc32?: boolean | undefined;
   /** Matroska/WebM live output: unknown Segment size, no Duration or Cues. */
   readonly live?: boolean | undefined;
   /** Whether WAV output can finalize RIFF and data lengths (default: true). */

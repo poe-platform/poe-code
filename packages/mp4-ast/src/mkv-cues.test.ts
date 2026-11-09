@@ -47,14 +47,14 @@ for (const format of ["matroska", "webm"]) {
       assert.ok(cues, "Cues must be present, independently of whether a player can scan packets");
       const seekHead = top.find(element => element.id === 0x114d9b74)!;
       assert.ok(seekHead, "SeekHead must locate the trailing index without scanning clusters");
-      const seek = children(children(seekHead)[0]!);
+      const seek = children(children(seekHead).find(element => element.id === 0x4dbb)!);
       assert.equal(uint(seek.find(element => element.id === 0x53ab)!), 0x1c53bb6b);
       assert.equal(segment.data + uint(seek.find(element => element.id === 0x53ac)!), cues.start);
       const expected = tracks.flatMap((track, index) => track.samples.filter(sample => sample.isKeyframe)
         .map(sample => ({ time: sample.pts, track: index + 1, data: sample.data })))
         .sort((a, b) => a.time - b.time || a.track - b.track);
-      assert.equal(children(cues).length, 8);
-      const actual = children(cues).map(point => {
+      assert.equal(children(cues).filter(element => element.id === 0xbb).length, 8);
+      const actual = children(cues).filter(element => element.id === 0xbb).map(point => {
         const fields = children(point);
         const time = uint(fields.find(element => element.id === 0xb3)!);
         const positions = children(fields.find(element => element.id === 0xb7)!);

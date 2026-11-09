@@ -790,6 +790,11 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   };
 }
 
+const crc32Table = Uint32Array.from({ length: 256 }, (_, value) => {
+  for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ ((value & 1) ? 0xedb88320 : 0);
+  return value >>> 0;
+});
+
 export function serializeMkv(
   doc: MediaDocument,
   options: SerializeMediaOptions & { webm?: boolean } = {}
@@ -799,8 +804,19 @@ export function serializeMkv(
     throw new Error("Invalid cluster_time_limit: expected integer milliseconds from -1 to 9007199254740991");
   }
   const clusterDurationMs = clusterTimeLimit === -1 ? 5000 : clusterTimeLimit;
-  const isWebm = options.webm === true || options.format === "webm" || doc.containerFormat === "webm";
+  const isWebm = options.webm ?? (options.format !== undefined ? options.format === "webm" : doc.containerFormat === "webm");
   const docType = isWebm ? "webm" : "matroska";
+  const writeCrc32 = !isWebm && options.writeCrc32 !== false;
+  const makeLevelOneElement = (id: number, payload: Uint8Array): Uint8Array => {
+    if (writeCrc32) {
+      let crc = 0xffffffff;
+      for (const byte of payload) crc = (crc >>> 8) ^ crc32Table[(crc ^ byte) & 255]!;
+      const checksum = new Uint8Array(4);
+      new DataView(checksum.buffer).setUint32(0, (crc ^ 0xffffffff) >>> 0, true);
+      payload = concatBytes([makeEbmlElement(0xbf, checksum), payload]);
+    }
+    return makeEbmlElement(id, payload);
+  };
 
   // 1. EBML Header
   const ebmlHeader = makeEbmlElement(
@@ -1041,8 +1057,8 @@ export function serializeMkv(
   if (mergedMeta.title) {
     infoParts.push(makeEbmlString(0x7ba9, mergedMeta.title));
   }
-  const infoElem = makeEbmlElement(0x1549a966, concatBytes(infoParts));
-  const tracksElem = makeEbmlElement(0x1654ae6b, concatBytes(trackEntries));
+  const infoElem = makeLevelOneElement(0x1549a966, concatBytes(infoParts));
+  const tracksElem = makeLevelOneElement(0x1654ae6b, concatBytes(trackEntries));
 
   // Tags element
   const simpleTags: Uint8Array[] = [];
@@ -1064,7 +1080,7 @@ export function serializeMkv(
 
   const tagsElem =
     simpleTags.length > 0
-      ? makeEbmlElement(
+      ? makeLevelOneElement(
           0x1254c367,
           makeEbmlElement(
             0x7373,
@@ -1078,12 +1094,12 @@ export function serializeMkv(
   const cues: { time: number; track: number; cluster: number; relativePosition: number }[] = [];
   let clusterStartMs = allBlocks[0]?.ptsMs ?? 0;
   let currentClusterBlocks: Uint8Array[] = [];
-  let clusterPayloadSize = makeEbmlUint(0xe7, clusterStartMs).byteLength;
+  let clusterPayloadSize = (writeCrc32 ? 6 : 0) + makeEbmlUint(0xe7, clusterStartMs).byteLength;
 
   const flushCluster = () => {
     if (currentClusterBlocks.length === 0) return;
     clusters.push(
-      makeEbmlElement(
+      makeLevelOneElement(
         0x1f43b675,
         concatBytes([makeEbmlUint(0xe7, clusterStartMs), ...currentClusterBlocks])
       )
@@ -1096,7 +1112,7 @@ export function serializeMkv(
     if ((elapsedMs > clusterDurationMs || elapsedMs > 32767 || elapsedMs < -32768) && currentClusterBlocks.length > 0) {
       flushCluster();
       clusterStartMs = blk.ptsMs;
-      clusterPayloadSize = makeEbmlUint(0xe7, clusterStartMs).byteLength;
+      clusterPayloadSize = (writeCrc32 ? 6 : 0) + makeEbmlUint(0xe7, clusterStartMs).byteLength;
     }
     if (!options.live && blk.isKeyframe && doc.tracks[blk.trackNum - 1]!.type === "video") {
       cues.push({ time: blk.ptsMs, track: blk.trackNum, cluster: clusters.length, relativePosition: clusterPayloadSize });
@@ -1129,7 +1145,7 @@ export function serializeMkv(
 
   const segmentChildren: Uint8Array[] = [infoElem, tracksElem];
   if (doc.attachments?.length) {
-    segmentChildren.push(makeEbmlElement(0x1941a469, concatBytes(doc.attachments.map((file, index) =>
+    segmentChildren.push(makeLevelOneElement(0x1941a469, concatBytes(doc.attachments.map((file, index) =>
       makeEbmlElement(0x61a7, concatBytes([
         makeEbmlUint(0x46ae, index + 1), // FileUID
         makeEbmlString(0x466e, file.tags.filename ?? ""),
@@ -1140,7 +1156,7 @@ export function serializeMkv(
     ))));
   }
   if (doc.chapters?.length) {
-    segmentChildren.push(makeEbmlElement(0x1043a770, // Chapters
+    segmentChildren.push(makeLevelOneElement(0x1043a770, // Chapters
       makeEbmlElement(0x45b9, concatBytes(doc.chapters.map(chapter => // EditionEntry
         makeEbmlElement(0xb6, concatBytes([ // ChapterAtom
           makeEbmlUint(0x73c4, chapter.id),
@@ -1154,10 +1170,11 @@ export function serializeMkv(
   if (tagsElem) segmentChildren.push(tagsElem);
   if (cues.length > 0) {
     // A fixed-width SeekPosition keeps the header size stable as offsets grow.
-    const seekHead = makeEbmlElement(0x114d9b74, makeEbmlElement(0x4dbb, concatBytes([
+    const seekPayload = makeEbmlElement(0x4dbb, concatBytes([
       makeEbmlElement(0x53ab, writeEbmlId(0x1c53bb6b)), // SeekID: Cues
       makeEbmlElement(0x53ac, new Uint8Array(8)) // SeekPosition, patched below
-    ])));
+    ]));
+    const seekHead = makeLevelOneElement(0x114d9b74, seekPayload);
     segmentChildren.unshift(seekHead);
     let position = segmentChildren.reduce((size, element) => size + element.byteLength, 0);
     const clusterPositions = clusters.map(cluster => {
@@ -1165,9 +1182,10 @@ export function serializeMkv(
       position += cluster.byteLength;
       return start;
     });
-    new DataView(seekHead.buffer, seekHead.byteOffset, seekHead.byteLength)
-      .setBigUint64(seekHead.byteLength - 8, BigInt(position), false);
-    const cuesElement = makeEbmlElement(0x1c53bb6b, concatBytes(
+    new DataView(seekPayload.buffer, seekPayload.byteOffset, seekPayload.byteLength)
+      .setBigUint64(seekPayload.byteLength - 8, BigInt(position), false);
+    segmentChildren[0] = makeLevelOneElement(0x114d9b74, seekPayload);
+    const cuesElement = makeLevelOneElement(0x1c53bb6b, concatBytes(
       cues.sort((a, b) => a.time - b.time || a.track - b.track).map(cue =>
         makeEbmlElement(0xbb, concatBytes([
           makeEbmlUint(0xb3, cue.time), // CueTime in the segment's millisecond ticks

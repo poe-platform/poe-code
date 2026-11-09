@@ -1663,7 +1663,7 @@ function* createCheckerboardImageSteps(width: number, height: number): Generator
         for (let x = 0; x < w; x++) {
             if (++work % 16384 === 0)
                 yield;
-            const cell = ((Math.floor(x / 8) + Math.floor(y / 8)) & 1) === 0 ? 102 : 153;
+            const cell = ((Math.floor(x / 15) + Math.floor(y / 15)) & 1) === 0 ? 153 : 102;
             const idx = (y * w + x) * 4;
             data[idx] = cell;
             data[idx + 1] = cell;
@@ -10625,7 +10625,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4);
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
-    if(checker){const cell=((Math.floor(x/8)+Math.floor(y/8))&1)===0?102:153;bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
+    if(checker){const cell=((Math.floor(x/15)+Math.floor(y/15))&1)===0?153:102;bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
     else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot(x-cx,y-cy)/radius):Math.max(0,Math.min(1,projection.offset+x*projection.x+y*projection.y));writeGradientPixel(bytes,samples!,offset,a,b,t);}
    }
    await backend.storage.write(position+start*4,bytes);

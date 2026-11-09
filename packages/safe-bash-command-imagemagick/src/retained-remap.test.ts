@@ -59,7 +59,7 @@ it("preserves original remap pixel vectors", async () => {
         "fcee49ef0769efa8208316e6259550e0e9d6b8e23e6f0142c1a6147b802d419f",
         "a90470bbb9028b30db84a260b8081087abeb566ea1d79522422465c0c453c26c",
         "6eac2444bedf289ceee36b9dfc034f5fb8b0e75a294bac17e47ebb2b5ad0aace",
-        "4dc179bd3d3031105fe34142bfbcc6fe191b591113a0959af486fd6d8b9ae064",
+        "d8ca4ee2e46781f13ccfcfa93496963dc0b9b697d1a9fcbf088bab78e12e1400",
         "6eac2444bedf289ceee36b9dfc034f5fb8b0e75a294bac17e47ebb2b5ad0aace",
         "07f880da26145a8329f7322487ac84bae6a1622fc29a06b39f9ad15b7cf1d904",
       ]

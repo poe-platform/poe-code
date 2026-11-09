@@ -33,7 +33,7 @@ test("unquoted URL glob retains its original argument when colon pathname probes
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, JSON.stringify([url]));
-    assert.deepEqual(probes, ["readdir:/https:/browser-test.example"]);
+    assert.deepEqual(probes, ["readdir:/https://browser-test.example"]);
     probes.length = 0;
     const quoted = await shell.exec(`args '${url}' "${url}" /missing-*`);
     assert.equal(quoted.exitCode, 0);
@@ -226,7 +226,7 @@ test("URL-shaped arguments still glob when real pathname matches exist", async (
     const result = await shell.exec(`args ${url} '${url}' "${url}"`);
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
-    assert.equal(result.stdout, JSON.stringify(["https:/browser-test.example/pageXsize=2", url, url]));
+    assert.equal(result.stdout, JSON.stringify(["https://browser-test.example/pageXsize=2", url, url]));
   } finally { await shell.dispose(); }
 });
 

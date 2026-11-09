@@ -11147,11 +11147,17 @@ export class Runtime {
         start = end + 1;
       }
     }
-    const absolute = pattern.startsWith("/");
     const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
-    let candidates = [absolute ? "/" : ""];
+    let candidates = [""];
     let candidateTypes: FileType[] | undefined;
-    for (const segment of pattern.split("/").filter((segment) => segment.length > 0)) {
+    let separator = "";
+    let wildcardPrefix = false;
+    for (const segment of pattern.split("/")) {
+      if (!segment) {
+        if (!wildcardPrefix) separator += "/";
+        continue;
+      }
+      const wildcard = state.extglob ? /(?:^|[^\\])(?:\\\\)*(?:[*?[]|[?*+@!]\()/u.test(segment) : /(?:^|[^\\])(?:\\\\)*[*?[]/u.test(segment);
       const next: string[] = [];
       let nextTypes: FileType[] | undefined;
       let candidateBytes = 0;
@@ -11162,9 +11168,9 @@ export class Runtime {
         next.push(candidate);
         if (type !== undefined) (nextTypes ??= []).push(type);
         if (next.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");};
-      if (segment === "." || segment === ".." || !state.nocaseglob && !(state.extglob ? /(?:^|[^\\])(?:\\\\)*(?:[*?[]|[?*+@!]\()/u.test(segment) : /(?:^|[^\\])(?:\\\\)*[*?[]/u.test(segment))) {
+      if (segment === "." || segment === ".." || !state.nocaseglob && !wildcard) {
         const literal = segment.replace(/\\(.)/gu, "$1");
-        for (const candidate of candidates) addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${literal}`);
+        for (const candidate of candidates) addCandidate(`${candidate}${separator}${literal}`);
         candidateTypes = undefined;
       } else {
         nextTypes = [];
@@ -11176,7 +11182,7 @@ export class Runtime {
           for (const candidate of candidates) {
             let entries;
             try {
-              const pending = this.fs.readdir(pathOf(state, candidate || "."), { signal: this.signal });
+              const pending = this.fs.readdir(pathOf(state, candidate || (separator ? "/" : ".")), { signal: this.signal });
               entries = stateMonitor(state)?.store ? await interruptible(pending, this.signal) : await pending;
             }
             catch (error) {
@@ -11185,11 +11191,11 @@ export class Runtime {
               throw error;
             }
             if (matchesDot) {
-              for (const name of [".", ".."]) if (await matchesDot(name)) addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${name}`, "directory");
+              for (const name of [".", ".."]) if (await matchesDot(name)) addCandidate(`${candidate}${separator}${name}`, "directory");
             }
             for (const entry of entries) {
               if (entry.name !== "." && entry.name !== ".." && (state.dotglob || !entry.name.startsWith(".") || segment.startsWith(".") || segment.startsWith("\\.")) && await matches(entry.name)) {
-                addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${entry.name}`, entry.type);
+                addCandidate(`${candidate}${separator}${entry.name}`, entry.type);
               }
             }
           }
@@ -11197,6 +11203,8 @@ export class Runtime {
         candidateTypes = nextTypes;
       }
       candidates = next;
+      wildcardPrefix ||= wildcard;
+      separator = "/";
     }
     const found: string[] = [];
     const wantDir = value.endsWith("/");

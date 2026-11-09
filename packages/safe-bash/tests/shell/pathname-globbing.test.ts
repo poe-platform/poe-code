@@ -58,6 +58,31 @@ test("GLOBSORT changes take effect for repeated function glob words", async () =
   } finally { await shell.dispose(); }
 });
 
+for (const options of ["", "shopt -s nocaseglob; ", "shopt -s globstar; "]) {
+  test(`pathname expansion preserves literal directory separators (${options || "default"})`, async () => {
+    const { fs, shell } = setup({ cwd: "/group", env: { LC_ALL: "C" } });
+    await fs.mkdir("/group/sub", { recursive: true });
+    await fs.writeFile("/group/item one", new Uint8Array());
+    await fs.writeFile("/group/sub/item two", new Uint8Array());
+    try {
+      const absolute = await shell.exec(`${options}args ///g*//item*`);
+      assert.equal(absolute.exitCode, 0);
+      assert.equal(absolute.stderr, "");
+      assert.deepEqual(JSON.parse(absolute.stdout), ["///group/item one"]);
+      const result = await shell.exec(`${options}cd /; dir=group/; args "$dir"/item* group///item* group//sub///item* ///group//item* .//group///item*; dir=group; args "$dir"/item* g*//item* group//s*///item* g*//sub///item* group///missing*`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, JSON.stringify([
+        "group//item one", "group///item one", "group//sub///item two",
+        "///group//item one", ".//group///item one",
+      ]) + JSON.stringify([
+        "group/item one", "group/item one", "group//sub/item two",
+        "group/sub/item two", "group///missing*",
+      ]));
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const globstar of [false, true]) {
   test(`pathname expansion preserves dangling links (globstar=${globstar})`, async () => {
     const { fs, shell } = setup();

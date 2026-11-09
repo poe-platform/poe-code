@@ -8763,7 +8763,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     next = layout.next((image.data16 ?? image.data).subarray(request.position, request.position + request.length));
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
-                let canvas = yield* createSolidRgbaImageSteps(width, height, { ...state.background, a: stack.some(image => image.hasAlpha) ? state.background.a : 255 });
+                let canvas = yield* createSolidRgbaImageSteps(width, height, state.background);
                 for (let n = 0; n < stack.length; n++) {
                     canvas = yield* applyMagickRasterSteps(canvas, smushCompositePixelSteps(canvas, stack[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || stack[n]!.data16)), signal, canvas, [canvas, stack[n]!]);
                 }
@@ -9704,7 +9704,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     } else next = layout.next(await backend.storage.read(image.position + request.position, request.length));
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
-                let canvas = await createStoredCanvas(width, height, { ...settings.background, a: images.some(image => image.hasAlpha) ? settings.background.a : 255 }, backend, signal);
+                let canvas = await createStoredCanvas(width, height, settings.background, backend, signal);
                 for (let n = 0; n < images.length; n++) canvas = await transformStoredMagickRaster(canvas, backend, smushCompositePixelSteps(canvas, images[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || images[n]!.storedData16)), signal, canvas, [canvas, images[n]!]);
                 stack.length = 0;
                 await stack.push({ ...canvas, virtualCanvas });

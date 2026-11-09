@@ -3,6 +3,31 @@ import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { setup } from './helpers.js';
 
+for (const nounset of ['+u', '-u']) for (const selector of ['@', '*']) {
+  for (const [initialize, slice] of [
+    ['a=abc', '1:1'], ['a=abc', ' -2:1'], ['a=abc', '0:-1'],
+    ['a=abc', '3:1'], ['a=abc', '4:1'], ['a=abc', '0:0'],
+    ['a=', '0:0'], ['unset a', '1:1'],
+    ['a=(abc)', '1:1'], ['a=(abc def ghi)', '1:1'],
+  ]) test(`scalar member substring matches Bash: ${nounset}, ${initialize}, [${selector}]:${slice}`, async () => {
+    const expansion = '${a[' + selector + ']:' + slice + '}';
+    const source = `set ${nounset}; ${initialize}; args "${expansion}"`;
+    const native = spawnSync('/bin/bash', ['--noprofile', '--norc', '-c', `args() { printf '%s\\0' "$#" "$@"; }; ${source}`], { encoding: 'utf8', env: { LC_ALL: 'C', PATH: process.env.PATH } });
+    assert.equal(native.error, undefined);
+    assert.equal(native.status, 0, native.stderr);
+    assert.equal(native.stderr, '');
+    const fields = native.stdout.slice(0, -1).split('\0');
+    assert.equal(Number(fields.shift()), fields.length);
+    const { shell } = setup({ env: { LC_ALL: 'C' } });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, '');
+      assert.deepEqual(JSON.parse(result.stdout), fields);
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const selector of ['@', '*']) for (const nounset of [true, false]) {
   for (const [initialization, count, assigned] of [
     ['unset a', 0, false],
@@ -48,6 +73,13 @@ for (const bounded of [false, true]) for (const [source, expected, diagnostic] o
 });
 
 for (const mode of ['inline', 'bash', 'sh'] as const) for (const [source, expected] of [
+  ['a=abcdef; args "${a[@]:2}" "${a[*]:2}"', ['cdef', 'cdef']],
+  ['a="ab cd"; args ${a[@]:1:3} ${a[*]:1:3}', ['b', 'c', 'b', 'c']],
+  ['a=abcdef; b="${a[@]:1:2}"; c=${a[*]:2:2}; args "$b" "$c"', ['bc', 'cd']],
+  ['a=abc; i=0; args "${a[@]:i+=1:1}" "$i" "${a[*]:0:i+=1}" "$i"', ['b', '1', 'ab', '2']],
+  ['unset a; i=0; args "${a[@]:i+=1:1}" "${a[*]:i+=1:1}" "$i"', ['', '0']],
+  ['a=abc; for i in 1 2; do b="${a[@]:i:1}"; done; args "$b"', ['c']],
+  ['a=abc; declare -n ref=a; args "${ref[@]:1:1}" "${ref[*]:1:1}"', ['b', 'b']],
   ['a=(a b c d); args "${a[@]:1:2}" "${a[*]:1:2}"', ['b', 'c', 'b c']],
   ['a=(hello world); args "${a[0]:1:3}" "${a[1]: -3}"', ['ell', 'rld']],
   ['a=(dir/foo.txt dir/bar.txt); args "${a[0]%.txt}" "${a[@]##*/}" "${a[*]%.txt}"', ['dir/foo', 'foo.txt', 'bar.txt', 'dir/foo dir/bar']],

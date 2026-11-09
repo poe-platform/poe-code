@@ -208,6 +208,7 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   support reads, assignments, and increments in `$(( … ))`, `(( … ))`,
   `for (( … ))`, and `let`, including associative keys. Array expansions support member slices, element substrings, member-wise trimming
   and substitution, and lazy element default, alternate, assignment, and error operators by default.
+  For scalar bindings, `${name[@]:offset:length}` and `${name[*]:offset:length}` slice characters instead of array elements.
   Ownership predicates `-O` and `-G` in `[[ … ]]`, `test` and `[` use explicit
   `capabilities: { predicateIdentity: { effectiveUid, effectiveGid } }` on the
   shell or execution options; missing caller or filesystem identity is refused.

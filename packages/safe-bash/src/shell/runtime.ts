@@ -9529,7 +9529,7 @@ export class Runtime {
       if (part.length && !binding && !entries) this.requireParameter(undefined, `${part.name}[${element.index.decimal}]`, state, io, part.line);
       if (!(part.length && binding?.assigned)) this.requireParameter(value === undefined ? undefined : shellValueText(value), part.name, state, io, part.line);
       if (part.length) return this.valueLength(value ?? "", state, io);
-      if (part.substring) return this.substring(part, value, state, io);
+      if (part.substring) return await this.substring(part, value, state, io) ?? "";
       if (part.transform) return part.transform === "a" || part.transform === "A" || part.transform === "K" || part.transform === "k" ? this.variableMetaTransform(part, state, io) : value === undefined ? "" : this.transformValue(value, part.transform, state, io);
       if (part.operator) return this.parameterPattern(part, value ?? "", state, io, hereString);
       return value ?? "";
@@ -9974,7 +9974,7 @@ export class Runtime {
     }
     if (part.substring) {
       this.requireParameter(value, part.name, state, io, part.line);
-      return this.substring(part, retained, state, io);
+      return await this.substring(part, retained, state, io) ?? "";
     }
     if (part.operator) {
       if (["#", "##", "%", "%%", "^", "^^", ",", ",,"].includes(part.operator) || part.operator.startsWith("/")) {
@@ -10036,7 +10036,7 @@ export class Runtime {
     const bytes = shellValueBytes(value, io[valueScope]);
     return bytes.length ? shellValueFromBytes(bytes.subarray(0, shellCharacterWidth(bytes, 0, byteCount)), io[valueScope]) : "";
   }
-  async substring(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue | undefined, state: State, io: IO): Promise<ShellValue> {
+  async substring(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue | undefined, state: State, io: IO): Promise<ShellValue | undefined> {
     const owner = arrayStore(state)?.get(part.name) ? requireArrays(state).owner : undefined;
     const expression = part.substring!;
     const line = io.diagnosticLine ?? part.line;
@@ -10086,7 +10086,7 @@ export class Runtime {
     const text = shellValueText(value);
     const size = BigInt(bytes?.byteLength ?? (await scanString(text, work)).count);
     const offset = offsetExpression.value < 0n ? size + offsetExpression.value : offsetExpression.value;
-    if (offset < 0n || offset > size) return "";
+    if (offset < 0n || offset > size) return undefined;
     let end = size;
     if (expression.length) {
       const length = await arithmetic(expression.length);
@@ -10710,6 +10710,16 @@ export class Runtime {
     const holding = store.owner.hold();
     try {
     const binding = store.get(name);
+    if (substring && !keys && !binding && !this.presenceArrayEntries(state, name)) {
+      const text = state.variables[name];
+      if (text === undefined) return [];
+      const value = stateMonitor(state)?.values.get(name, text) ?? text;
+      const sliced = await this.substring({ kind: "variable", name, quoted: true, substring }, value, state, io);
+      if (sliced === undefined) return [];
+      store.owner.reserve({ metadata: 96, allocatedSlots: 1, work: 6 });
+      await textToken(store.owner, sliced, this.signal);
+      return [sliced];
+    }
     let offset = 0n;
     let count: bigint | undefined;
     if (substring) {

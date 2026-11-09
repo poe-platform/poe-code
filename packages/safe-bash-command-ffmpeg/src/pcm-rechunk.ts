@@ -2,12 +2,22 @@ import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-
 
 export function rechunkPcm(tracks: readonly MediaTrack[], filter: string, budget: MediaBudgetTracker): readonly MediaTrack[] {
   let frames = 1024, pad = true;
+  let frameRateNumerator = 0, frameRateDenominator = 1;
   for (const option of filter === "pcm_rechunk" ? [] : filter.slice("pcm_rechunk=".length).split(":")) {
     const [key, value, extra] = option.split("=");
     if (!value || extra !== undefined) throw new Error(`Invalid pcm_rechunk option: ${option}`);
     if (key === "n" || key === "nb_out_samples") {
       frames = Number(value);
       if (!Number.isInteger(frames) || frames < 1 || frames > 0x7fffffff) throw new Error("pcm_rechunk: invalid packet sample count");
+    } else if (key === "r" || key === "frame_rate") {
+      const [numerator, denominator = "1", extra] = value.split("/");
+      frameRateNumerator = Number(numerator);
+      frameRateDenominator = Number(denominator);
+      if (extra !== undefined || !numerator?.trim() || !denominator.trim() ||
+          !Number.isFinite(frameRateNumerator) || frameRateNumerator < 0 || frameRateNumerator > 0x7fffffff ||
+          !Number.isFinite(frameRateDenominator) || frameRateDenominator <= 0 || frameRateDenominator > 0x7fffffff) {
+        throw new Error("pcm_rechunk: invalid frame rate");
+      }
     } else if ((key === "p" || key === "pad") && ["0", "1", "false", "true"].includes(value)) {
       pad = value === "1" || value === "true";
     } else throw new Error(`Unsupported pcm_rechunk option: ${option}`);
@@ -26,21 +36,31 @@ export function rechunkPcm(tracks: readonly MediaTrack[], filter: string, budget
       if (sample.data.length % stride) throw new Error("pcm_rechunk: incomplete PCM sample frame");
       total += sample.data.length / stride;
     }
-    const outputFrames = pad ? Math.ceil(total / frames) * frames : total;
-    budget.checkOutputBytes(outputFrames * stride);
-    budget.allocateMemory(outputFrames * stride);
-    budget.checkSamples(Math.ceil(total / frames));
-    budget.checkDuration(outputFrames / rate);
+    const numerator = frameRateNumerator ? rate * frameRateDenominator : frames;
+    const denominator = frameRateNumerator || 1;
+    if (numerator < denominator) throw new Error("pcm_rechunk: frame rate exceeds sample rate");
+    // Carry the fraction so packet boundaries round cumulative samples, without drift.
+    let remainder = denominator / 2;
+    let outputFrames = 0;
     const samples: MediaSample[] = [];
     let source = 0, offset = 0;
     for (let start = 0; start < total; start += frames) {
       budget.checkCpu();
+      const next = numerator + remainder;
+      frames = Math.floor(next / denominator);
+      remainder = next % denominator;
+      const packetFrames = pad ? frames : Math.min(frames, total - start);
+      outputFrames += packetFrames;
+      budget.checkOutputBytes(outputFrames * stride);
+      budget.checkSamples(samples.length + 1);
+      budget.checkDuration(outputFrames / rate);
+      budget.allocateMemory(packetFrames * stride);
       while (track.samples[source] && offset === track.samples[source]!.data.length) { source++; offset = 0; }
       const first = track.samples[source]!;
-      const duration = Math.min(frames, outputFrames - start) * track.timescale / rate;
+      const duration = packetFrames * track.timescale / rate;
       const dts = first.dts + offset / stride * track.timescale / rate;
       const pts = first.pts + offset / stride * track.timescale / rate;
-      const data = new Uint8Array(Math.min(frames, outputFrames - start) * stride);
+      const data = new Uint8Array(packetFrames * stride);
       let written = 0;
       const available = Math.min(frames, total - start) * stride;
       while (written < available) {

@@ -299,9 +299,11 @@ export function demuxOggOpus(bytes: Uint8Array, doc: MediaDocument, decodeAudio 
       ended = packet.eos;
     }
     const track = tracks[index]!;
+    const metadata = Object.fromEntries(Object.entries(track.metadata ?? {}).map(([key, value]) => [normalizeVorbisCommentKey(key), value]));
     return { ...track, id: index + 1, samples,
+      language: metadata.LANGUAGE ?? track.language,
       ...(decodeAudio ? { decodedAudio: decodeOpusPackets(packets) } : {}),
-      metadata: Object.fromEntries(Object.entries(track.metadata ?? {}).map(([key, value]) => [normalizeVorbisCommentKey(key), value])),
+      metadata,
       codecDelayNs: preSkip * 1e9 / 48000, seekPreRollNs: 80_000_000,
       codecDescriptions: [{ ...track.codecDescriptions[0]!, extraData: head }]
     };

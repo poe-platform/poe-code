@@ -86,7 +86,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     });
   }
 
-  for (const channel of [[], ["-channel", "None"]]) {
+  for (const channel of [[], ["-channel", "Black"]]) {
     it.each(["Bogus", "Absolute"])(`${mode}: rejects %s with channels ${channel.join(" ")} before writing output`, async (operation) => {
       const bytes = await sharp(new Uint8Array([100, 150, 200, 255]), {
         raw: { width: 1, height: 1, channels: 4 },

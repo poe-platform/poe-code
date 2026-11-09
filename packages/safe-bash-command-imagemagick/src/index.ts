@@ -2049,21 +2049,31 @@ function formatSceneOutputPath(pattern: string, index: number, literal = false, 
 }
 
 function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a: boolean } {
-  const mask = { r: false, g: false, b: false, a: false };
-  for (const part of spec.toLowerCase().split(",")) {
-    const channel = part.trim();
-    if (channel === "all" || channel === "default") {
-      mask.r = mask.g = mask.b = true;
-      mask.a = true;
-    } else if (channel === "red" || channel === "0") mask.r = true;
-    else if (channel === "green" || channel === "1") mask.g = true;
-    else if (channel === "blue" || channel === "2") mask.b = true;
-    else if (channel === "alpha" || channel === "opacity" || channel === "4") mask.a = true;
-    else if ([...channel].every(letter => "rgba".includes(letter))) {
-      for (const letter of channel) mask[letter as keyof typeof mask] = true;
-    }
+  const names: Record<string, string> = {
+    r: "r", red: "r", c: "r", cyan: "r", gray: "r", h: "r", hue: "r",
+    g: "g", green: "g", m: "g", magenta: "g", s: "g", saturation: "g",
+    b: "b", blue: "b", y: "b", yellow: "b", l: "b", lightness: "b",
+    a: "a", alpha: "a", o: "a",
+    all: "rgba", default: "rgba", sync: "", k: "", black: "",
+    "0": "r", "1": "g", "2": "b", "3": "", "4": "a",
+    readmask: "", writemask: "", meta0: ""
+  };
+  let selected = "";
+  for (const part of spec.toLowerCase().split(spec.includes("|") ? "|" : ",")) {
+    // Native consumes one name per delimiter; whitespace ends that name.
+    const trimmed = part.trim();
+    let end = 0;
+    while (end < trimmed.length && trimmed[end]!.trim() !== "") end++;
+    const token = trimmed.slice(0, end);
+    if (token.startsWith("!") && Object.hasOwn(names, token.slice(1))) {
+      const excluded = names[token.slice(1)]!;
+      selected = [...selected].filter(channel => !excluded.includes(channel)).join("");
+    } else if (Object.hasOwn(names, token)) selected += names[token];
+    else if (token.length > 0 && [...token].every(c => "rgbacmyko".includes(c))) {
+      for (const c of token) selected += names[c];
+    } else throw new Error(`unrecognized channel type '${spec}'`);
   }
-  return mask;
+  return { r: selected.includes("r"), g: selected.includes("g"), b: selected.includes("b"), a: selected.includes("a") };
 }
 
 function clampByteVal(n: number): number {

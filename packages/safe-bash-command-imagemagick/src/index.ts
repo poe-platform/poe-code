@@ -77,6 +77,7 @@ import { cannyPixelSteps } from "./canny-kernel.js";
 import { shadowPixelSteps, vignetteLayout, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { shearPlan, shearPixelSteps } from "./shear-kernel.js";
 import { compositePixelsSteps, magickCompositeMode } from "./composite-pixels.js";
+import { composite16PixelSteps } from "./composite16.js";
 import { warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
 import { distancePixelSteps, manhattanDistanceScale } from "./distance-kernel.js";
 import { morphologyIntensityPixelSteps } from "./morphology-intensity.js";
@@ -4031,6 +4032,11 @@ function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw
     const { name, delegated, preservesAlpha } = magickCompositeMode(modeRaw);
     if (name === "dst" || name === "dest") return dst;
     dst = { ...dst, evaluateSamples: undefined };
+    if (dst.data16 || src.data16) {
+        const hasAlpha = dst.hasAlpha || (!delegated && !preservesAlpha);
+        return yield* applyMagickRasterSteps(dst, composite16PixelSteps(dst, src, left, top, modeRaw, composeArgs, false, fuzz, clipToOverlay), signal,
+            { ...dst, hasAlpha }, [dst, src]);
+    }
     if (delegated) {
         const ox = Math.round(left);
         const oy = Math.round(top);
@@ -4089,6 +4095,10 @@ function* blitOverRgbaInPlaceSteps(
   const x1 = Math.min(dst.width, ox + src.width);
   const y1 = Math.min(dst.height, oy + src.height);
   if (x1 <= x0 || y1 <= y0) return;
+  if (dst.data16 || src.data16) {
+    Object.assign(dst, yield* applyMagickCompositeLayerSteps(dst, src, "over", ox, oy));
+    return;
+  }
   dst.evaluateSamples = undefined;
   const dstData = dst.data;
   const srcData = src.data;
@@ -9104,12 +9114,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     gy = g.y;
                 }
                 if (state.composeTile) {
-                    const tiled = yield* createSolidRgbaImageSteps(base.width, base.height, { r: 0, g: 0, b: 0, a: 0 });
+                    const tiled = yield* createSolidRgbaImageSteps(base.width, base.height, { r: 0, g: 0, b: 0, a: 0 }, !!overlay.data16);
                     for (let y = 0; y < base.height; y++) {
                         for (let x = 0; x < base.width; x++) {
                             if ((y * base.width + x) % 4096 === 0) yield;
                             const source = ((y % overlay.height) * overlay.width + x % overlay.width) * 4;
                             tiled.data.set(overlay.data.subarray(source, source + 4), (y * base.width + x) * 4);
+                            if (overlay.data16) tiled.data16!.set(overlay.data16.subarray(source, source + 4), (y * base.width + x) * 4);
                         }
                     }
                     detachRgbaBuffer(overlay.data);
@@ -9523,6 +9534,11 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
     const compositeMode = magickCompositeMode(mode);
     if (!generic && (compositeMode.name === "dst" || compositeMode.name === "dest")) return base;
     let hasAlpha = base.hasAlpha || (!generic && !compositeMode.delegated && !compositeMode.preservesAlpha);
+    if (!generic && (base.storedData16 || overlay.storedData16)) {
+        return transformStoredMagickRaster({ ...base, storedEvaluateSamples: undefined }, backend,
+            composite16PixelSteps(base, overlay, left, top, mode, args, tile, fuzz, clipToOverlay), signal,
+            { ...base, hasAlpha }, [base, overlay]);
+    }
     const position = inPlace ? base.position : backend.storage.allocate(base.width * base.height * 4);
     for (let start = 0; !inPlace && start < base.width * base.height * 4; start += 16384) {
         await yieldTurn(signal); await backend.storage.write(position + start, await backend.storage.read(base.position + start, Math.min(16384, base.width * base.height * 4 - start)));

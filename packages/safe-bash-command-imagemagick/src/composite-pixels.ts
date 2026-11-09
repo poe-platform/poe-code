@@ -55,6 +55,17 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
             const daByte = dst.data[dIdx + 3]!;
             const sa = saByte / 255;
             const da = daByte / 255;
+            if (norm === "over" || norm === "srcover") {
+                const alpha = sa + da * (1 - sa);
+                if (sa > 0) {
+                    for (let channel = 0; channel < 3; channel++) {
+                        out[dIdx + channel] = clampByteVal((src.data[sIdx + channel]! * sa
+                            + dst.data[dIdx + channel]! * da * (1 - sa)) / alpha);
+                    }
+                    out[dIdx + 3] = clampByteVal(alpha * 255);
+                }
+                continue;
+            }
             if (norm === "mathematics") {
                 const alpha = sa + da - sa * da;
                 for (let c = 0; c < 3; c++) {

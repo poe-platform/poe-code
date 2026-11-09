@@ -5166,10 +5166,16 @@ function* annotatePixelSteps(img: Pick<RgbaImage, "width" | "height">, offsetStr
 }
 
 // Scan bounded pixel chunks into edge profiles, shared by buffered and stored execution.
-function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha">[], vertical: boolean, gap: number, gravity: GravityPosition): Generator<{ index: number; position: number; length: number }, { width: number; height: number; virtualCanvas: NonNullable<RgbaImage["virtualCanvas"]>; offsets: { left: number; top: number }[] }, Uint8Array | Uint16Array> {
+function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha">[], vertical: boolean, gap: number, gravity: GravityPosition, method: VirtualPixelMethod | undefined, background: RgbaColor): Generator<{ index: number; position: number; length: number }, { width: number; height: number; virtualCanvas: NonNullable<RgbaImage["virtualCanvas"]>; offsets: { left: number; top: number }[] }, Uint8Array | Uint16Array> {
     const cross = Math.max(...images.map(image => vertical ? image.width : image.height));
     const offsets: { left: number; top: number }[] = [];
-    let cursor = 0, previous: { trailing: Float64Array; offset: number } | undefined;
+    const edgeGap = (profile: Float64Array, line: number, empty: number): number => {
+        const pixel = virtualPixelIndex(vertical ? line : 0, vertical ? 0 : line, vertical ? profile.length : 1, vertical ? 1 : profile.length, method ?? "edge");
+        if (pixel >= 0) return profile[pixel]!;
+        const transparent = method === "transparent" || (method === "background" || method?.endsWith("-tile") === true) && background.a === 0;
+        return transparent ? empty : 0;
+    };
+    let cursor = 0, previous: { trailing: Float64Array; offset: number; empty: number } | undefined;
     for (let index = 0; index < images.length; index++) {
         const image = images[index]!, length = vertical ? image.height : image.width, breadth = vertical ? image.width : image.height;
         const alignment = resolveGravityOffset(vertical ? cross - breadth : 0, vertical ? 0 : cross - breadth, gravity);
@@ -5190,16 +5196,15 @@ function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlph
         if (previous) {
             let trim = length;
             for (let line = 0; line < cross; line++) {
-                // Native virtual pixels extend the nearest edge outside each frame.
-                const before = previous.trailing[Math.max(0, Math.min(previous.trailing.length - 1, line - previous.offset))]!;
-                const after = leading[Math.max(0, Math.min(breadth - 1, line - offset))]!;
+                const before = edgeGap(previous.trailing, line - previous.offset, previous.empty);
+                const after = edgeGap(leading, line - offset, image.hasAlpha ? length : 0);
                 trim = Math.min(trim, before + after);
             }
             cursor += gap - trim;
         }
         offsets.push({ left: vertical ? offset : cursor, top: vertical ? cursor : offset });
         cursor += length;
-        previous = { trailing, offset };
+        previous = { trailing, offset, empty: image.hasAlpha ? length - 1 : 0 };
     }
     const extent = images.reduce((sum, image) => sum + (vertical ? image.height : image.width), 0) + gap * (images.length - 1);
     return { width: vertical ? cross : cursor, height: vertical ? cursor : cross,
@@ -8805,7 +8810,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometry = tokens[++i] ?? "", image = stack[0];
             const gap = smushGap(image ? yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : geometry);
             if (stack.length) {
-                const layout = smushLayoutSteps(stack, t === "-smush", gap, state.gravity);
+                const layout = smushLayoutSteps(stack, t === "-smush", gap, state.gravity, state.virtualPixel, state.background);
                 let next = layout.next();
                 while (!next.done) {
                     yield;
@@ -9746,7 +9751,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return stack;
                 const images: StoredRgbaImage[] = [];
                 for (let n = 0; n < stack.length; n++) images.push((await stack.get(n))!);
-                const layout = smushLayoutSteps(images, token === "-smush", gap, settings.gravity);
+                const layout = smushLayoutSteps(images, token === "-smush", gap, settings.gravity, settings.virtualPixel, settings.background);
                 let next = layout.next();
                 while (!next.done) {
                     await yieldTurn(signal);

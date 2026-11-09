@@ -1,6 +1,7 @@
 import { parseAudioChannelLayout } from "./audio-channel-layout.js";
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function joinAudio(
   tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -13,8 +14,11 @@ export async function joinAudio(
     if (!key || !["inputs", "channel_layout", "map"].includes(key)) throw new Error(`join: unsupported option ${key}`);
     options[key] = separator < 0 ? option : option.slice(separator + 1);
   }
-  const count = Number(options.inputs);
-  if (!Number.isInteger(count) || count < 1 || count > 32767 || count !== tracks.length) {
+  const numeric = parseFilterExpression(options.inputs!, "join", {});
+  if (!Number.isFinite(numeric) || numeric < 1 || numeric > 32767) throw new Error("join: invalid inputs");
+  // Native integer options validate bounds before rounding ties to even.
+  const count = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
+  if (count !== tracks.length) {
     throw new Error("join: inputs must match the number of connected inputs");
   }
   const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR",

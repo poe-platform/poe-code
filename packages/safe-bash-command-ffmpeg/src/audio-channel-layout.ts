@@ -14,4 +14,3 @@ export function parseAudioChannelLayout(layout: string): string[] {
   }
   return layout.split("+");
 }
-

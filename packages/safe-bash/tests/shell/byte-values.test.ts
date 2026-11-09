@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
+import { envsubstCommands } from "../../src/commands/envsubst/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 import { createCommandArguments, getCommandArguments } from "../../src/contracts/command.js";
@@ -9,6 +11,61 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { setup } from "./helpers.js";
+
+const hasNativeEnvsubst = spawnSync("envsubst", ["--version"]).status === 0;
+
+test("envsubst uses middleware string replacements without stale export bytes", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(envsubstCommands());
+  shell.use((context, next) => {
+    if (context.command === "envsubst") context.env.A = "�";
+    return next();
+  });
+  try {
+    const result = await shell.exec("export A=$'\\xff'; printf '%s' '$A' | envsubst");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, Uint8Array.of(239, 191, 189));
+  } finally { await shell.dispose(); }
+});
+
+for (const filter of ["", " '$A ${B}'"]) {
+  for (const capture of [false, true]) {
+    test(`envsubst preserves exported bytes (filter=${filter}, capture=${capture})`, async t => {
+      const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(envsubstCommands());
+      const command = "printf '%s' '[$A][${B}][$TEXT]' | envsubst" + filter;
+      const source = `export A=$'\\xff' B=$'\\xfe' TEXT='é'; ${capture ? `value=$(${command}); printf '%s' "$value"` : command}`;
+      try {
+        const result = await shell.exec(source);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.deepEqual(result.stdoutBytes, Uint8Array.from([91, 255, 93, 91, 254, 93, 91, ...(filter ? [36, 84, 69, 88, 84] : [195, 169]), 93]));
+        await t.test("matches native envsubst bytes and status", { skip: !hasNativeEnvsubst }, () => {
+          const native = spawnSync("bash", ["-c", source], { env: { ...process.env, LC_ALL: "C" } });
+          assert.equal(native.status, result.exitCode, native.stderr?.toString());
+          assert.deepEqual(result.stdoutBytes, new Uint8Array(native.stdout));
+        });
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const [assignment, bytes] of [
+  ["export A=$'\\xff'; f() { local A=$'\\xfe'; printf '%s' '$A' | envsubst; }; f", [254]],
+  ["A=$'\\xff' envsubst <<<'$A'", [255, 10]],
+] as const) {
+  test(`envsubst preserves bytes from scoped exports: ${assignment}`, async t => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(envsubstCommands());
+    try {
+      const result = await shell.exec(assignment);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, Uint8Array.from(bytes));
+      await t.test("matches native envsubst bytes and status", { skip: !hasNativeEnvsubst }, () => {
+        const native = spawnSync("bash", ["-c", assignment], { env: { ...process.env, LC_ALL: "C" } });
+        assert.equal(result.exitCode, native.status, result.stderr);
+        assert.deepEqual(result.stdoutBytes, new Uint8Array(native.stdout));
+      });
+    } finally { await shell.dispose(); }
+  });
+}
 
 for (const size of [5, 128, 65540]) test(`warm shell preserves binary output and retained results: ${size} bytes`, async () => {
   const fs = new MemoryFileSystem();

@@ -13,7 +13,7 @@ import {
   ACCESS_MODES, FsError, basename, composeMiddleware, createBytePipe, dirname, normalizePath, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText, } from "../contracts/index.js";
 import type {
   ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, FileType, Middleware, } from "../contracts/index.js";
-import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
+import { concatShellValues, setEnvironmentValue, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import { createCommandArguments, getCommandArguments } from "../contracts/command.js";
 import type { CommandArguments } from "../contracts/command.js";
@@ -1749,12 +1749,12 @@ export function exportedEnvironment(state: State): Record<string, string> {
   // an outer binding in the environment passed to commands.
   for (const locals of state.locals) {
     for (const [key, saved] of locals) {
-      if (saved.exported && saved.value !== undefined) env[key] = saved.value;
+      if (saved.exported && saved.value !== undefined) setEnvironmentValue(env, key, saved.heldValue?.value ?? saved.value);
     }
   }
   for (const key of state.exported) {
     const value = state.variables[key];
-    if (value !== undefined) env[key] = value;
+    if (value !== undefined) setEnvironmentValue(env, key, stateMonitor(state)?.values.get(key, value) ?? value);
   }
   if (state.exportedFunctions) {
     for (const key of state.exportedFunctions) {

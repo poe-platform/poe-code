@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
-import { createEnvsubstCommand } from "./index.js";
+import { createBytePipe, createCommandArguments, setEnvironmentValue, shellValueFromBytes, writeText } from "safe-bash-contracts";
+import { createEnvsubstCommand, type EnvsubstCommandsOptions } from "./index.js";
 
-async function runEnvsubst(args: string[], input: string, env: Record<string, string>) {
+async function runEnvsubst(args: string[], input: string, env: Record<string, string>, options: EnvsubstCommandsOptions = {}) {
   const stdinPipe = createBytePipe();
   await writeText(stdinPipe.writable, input);
   await stdinPipe.close();
   const stdoutPipe = createBytePipe();
   const stderrPipe = createBytePipe();
-  const cmd = createEnvsubstCommand();
+  const cmd = createEnvsubstCommand(options);
   const res = await cmd.execute({
     command: "envsubst",
     args: createCommandArguments(args).args,
@@ -26,8 +26,20 @@ async function runEnvsubst(args: string[], input: string, env: Record<string, st
   await stderrPipe.close();
   const chunks: Uint8Array[] = [];
   for await (const c of stdoutPipe.readable) chunks.push(c);
-  return { exitCode: res.exitCode, stdout: Buffer.concat(chunks).toString("utf8") };
+  const stdoutBytes = Buffer.concat(chunks);
+  return { exitCode: res.exitCode, stdout: stdoutBytes.toString("utf8"), stdoutBytes };
 }
+
+test("envsubst measures replacement output in original bytes", async () => {
+  const env: Record<string, string> = {};
+  setEnvironmentValue(env, "A", shellValueFromBytes(Uint8Array.of(255)));
+  const result = await runEnvsubst([], "[$A]", env, { maxOutputBytes: 3 });
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(new Uint8Array(result.stdoutBytes), Uint8Array.of(91, 255, 93));
+  const limited = await runEnvsubst([], "[$A]", env, { maxOutputBytes: 2 });
+  assert.equal(limited.exitCode, 1);
+  assert.equal(limited.stdoutBytes.byteLength, 0);
+});
 
 test("envsubst substitutes variables, restricts via SHELL-FORMAT, and supports -v", async () => {
   const r1 = await runEnvsubst([], "Hello $USER, ${GREETING} ($1 $${NONE:-x})!\n", { USER: "alice", GREETING: "welcome" });
@@ -78,7 +90,7 @@ for (const [args, equivalent] of [
 
 for (const option of ["-vx", "-xv", "-hx", "-Vx", "-xV", "-vhx"]) {
   test(`envsubst rejects unknown letters in ${option}`, async () => {
-    assert.deepEqual(await runEnvsubst([option, "$A"], "", {}), { exitCode: 1, stdout: "" });
+    assert.deepEqual(await runEnvsubst([option, "$A"], "", {}), { exitCode: 1, stdout: "", stdoutBytes: Buffer.alloc(0) });
   });
 }
 
@@ -87,12 +99,12 @@ for (const posix of [undefined, "", "1"]) {
     const env = posix === undefined ? {} : { POSIXLY_CORRECT: posix };
     for (const flag of ["-v", "--variables"]) {
       assert.deepEqual(await runEnvsubst(["$A", flag], "[$A]", env), posix === undefined
-        ? { exitCode: 0, stdout: "A\n" }
-        : { exitCode: 1, stdout: "" });
-      assert.deepEqual(await runEnvsubst([flag, "$A"], "[$A]", env), { exitCode: 0, stdout: "A\n" });
+        ? { exitCode: 0, stdout: "A\n", stdoutBytes: Buffer.from("A\n") }
+        : { exitCode: 1, stdout: "", stdoutBytes: Buffer.alloc(0) });
+      assert.deepEqual(await runEnvsubst([flag, "$A"], "[$A]", env), { exitCode: 0, stdout: "A\n", stdoutBytes: Buffer.from("A\n") });
     }
     assert.deepEqual(await runEnvsubst(["--", "$A", "-v"], "[$A]", env), {
-      exitCode: 1, stdout: "",
+      exitCode: 1, stdout: "", stdoutBytes: Buffer.alloc(0),
     });
   });
 }

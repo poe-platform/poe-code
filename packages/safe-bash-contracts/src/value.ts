@@ -17,6 +17,7 @@ export interface ValueAllocation {
 }
 
 const byteValues = new WeakMap<ByteShellValue, { bytes: Uint8Array; text: string }>();
+const environmentGetters = new WeakMap<() => string, ByteShellValue>();
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
 const typedArrayPrototype = Object.getPrototypeOf(Uint8Array.prototype) as object;
@@ -69,6 +70,29 @@ export function shellValueFromBytes(bytes: Uint8Array, allocation?: ValueAllocat
 
 export function shellValueText(value: ShellValue): string {
   return typeof value === "string" ? value : record(value).text;
+}
+
+/** Publish bytes behind the string environment API; any assignment replaces their identity. */
+export function setEnvironmentValue(env: Record<string, string>, name: string, value: ShellValue): void {
+  if (typeof value === "string") {
+    Object.defineProperty(env, name, { value, writable: true, enumerable: true, configurable: true });
+    return;
+  }
+  const text = shellValueText(value);
+  const get = () => text;
+  environmentGetters.set(get, value);
+  Object.defineProperty(env, name, {
+    enumerable: true, configurable: true, get,
+    set(replacement: string) {
+      Object.defineProperty(this, name, { value: replacement, writable: true, enumerable: true, configurable: true });
+    },
+  });
+}
+
+/** Read the owned value of this exact environment binding, never infer bytes from display text. */
+export function getEnvironmentValue(env: Readonly<Record<string, string | undefined>>, name: string): ShellValue | undefined {
+  const descriptor = Object.getOwnPropertyDescriptor(env, name);
+  return descriptor?.get ? environmentGetters.get(descriptor.get) ?? env[name] : env[name];
 }
 
 export function shellValueByteLength(value: ShellValue): number {

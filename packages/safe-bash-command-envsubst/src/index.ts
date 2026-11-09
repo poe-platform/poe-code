@@ -2,6 +2,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import {
   collectBytes,
   commandRuntimeIdentity,
+  getEnvironmentValue,
+  shellValueBytes,
   writeBytes,
   writeText,
   type ByteSource,
@@ -178,8 +180,8 @@ function* substituteSteps(
 
     if (varName !== undefined && (allowedVars === undefined || allowedVars.has(varName))) {
       pushChunk(input.subarray(segStart, i));
-      const val = env[varName] ?? "";
-      pushChunk(sharedEncoder.encode(val));
+      const val = getEnvironmentValue(env, varName) ?? "";
+      pushChunk(shellValueBytes(val));
       i = endIdx;
       segStart = i;
     } else if (varName !== undefined) {

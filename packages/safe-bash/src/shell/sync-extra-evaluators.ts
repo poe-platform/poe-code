@@ -25409,6 +25409,13 @@ const syncExtraRuntimeMethods = {
     const allowedVars = operands.length === 1 ? new Set(extractVars(operands[0]!)) : undefined;
     const raw = (stateMonitor(rawState)?.raw ?? rawState) as State & { _exported?: Set<string> };
     const isRestrictedEnv = raw._exported === undefined && "_exported" in raw;
+    // This evaluator returns text. Let the byte-capable command handle raw exports.
+    for (const name of extractVars(inStr)) {
+      if (allowedVars !== undefined && !allowedVars.has(name)) continue;
+      if (isRestrictedEnv ? name !== "PWD" : !raw.exported.has(name)) continue;
+      const value = raw.variables[name];
+      if (value !== undefined && typeof (stateMonitor(rawState)?.values.get(name, value) ?? value) !== "string") return undefined;
+    }
     return inStr.replace(/\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))/g, (full, braced, bare) => {
       const name = (braced ?? bare) as string;
       if (allowedVars !== undefined && !allowedVars.has(name)) return full;

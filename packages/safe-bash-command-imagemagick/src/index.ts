@@ -6398,12 +6398,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (image) {
             if (image.magickColorspace === "RGB" && space === "rgb") return image;
             if ((image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") && (space === image.magickColorspace.toLowerCase() || (space === "lab" && image.magickColorspace === "CIELab"))) return image;
-            if (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") image = yield* convertHuePixels(image, "sRGB");
-            if (image.space === "cmyk" && space !== "cmyk") {
+            if (token !== "-grayscale" && (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab")) image = yield* convertHuePixels(image, "sRGB");
+            if (token !== "-grayscale" && image.space === "cmyk" && space !== "cmyk") {
                 const { hueSamples: ignoredCmyk, storedHueSamples: ignoredStoredCmyk, ...rgb } = image;
                 image = { ...rgb, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
             }
-            if (space === "rgb" || image.magickColorspace === "RGB") {
+            if (token !== "-grayscale" && (space === "rgb" || image.magickColorspace === "RGB")) {
                 const linearize = space === "rgb";
                 const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
                 const input = image.evaluateSamples ?? image.data16 ?? image.data, range = image.evaluateSamples ? 255 : image.data16 ? 65535 : 255;
@@ -6441,14 +6441,20 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             const out = new Uint8Array(image.data);
             const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
+            const samples = image.hueSamples ?? evaluateSamples, scale = image.hueSamples ? 1 / 255 : 1;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
-                let r = evaluateSamples[idx]!, g = evaluateSamples[idx + 1]!, b = evaluateSamples[idx + 2]!;
-                // Native preserves existing gray samples; only color inputs need linearization.
-                if ((space === "rec601luminance" || space === "rec709luminance") && image.space !== "b-w" && image.space !== "grey16") {
+                let r = samples[idx]! / scale, g = samples[idx + 1]! / scale, b = samples[idx + 2]! / scale;
+                // Grayscale reads the active channels; only sRGB luminance and RGB luma apply gamma.
+                if ((space === "rec601luminance" || space === "rec709luminance") && !image.magickColorspace && (image.space === "srgb" || image.space === "rgb16")) {
                     r = 255 * (r / 255 <= 0.04045 ? r / 255 / 12.92 : ((r / 255 + 0.055) / 1.055) ** 2.4);
                     g = 255 * (g / 255 <= 0.04045 ? g / 255 / 12.92 : ((g / 255 + 0.055) / 1.055) ** 2.4);
                     b = 255 * (b / 255 <= 0.04045 ? b / 255 / 12.92 : ((b / 255 + 0.055) / 1.055) ** 2.4);
+                }
+                if ((space === "rec601luma" || space === "rec709luma") && image.magickColorspace === "RGB") {
+                    r = 255 * (r / 255 <= 0.0031308 ? r / 255 * 12.92 : 1.055 * (r / 255) ** (1 / 2.4) - 0.055);
+                    g = 255 * (g / 255 <= 0.0031308 ? g / 255 * 12.92 : 1.055 * (g / 255) ** (1 / 2.4) - 0.055);
+                    b = 255 * (b / 255 <= 0.0031308 ? b / 255 * 12.92 : 1.055 * (b / 255) ** (1 / 2.4) - 0.055);
                 }
                 let intensity: number;
                 switch (space) {
@@ -6466,7 +6472,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 evaluateSamples[idx] = evaluateSamples[idx + 1] = evaluateSamples[idx + 2] = imageType === "bilevel" ? gray : intensity;
                 if (imageType !== undefined && (imageType !== "grayscalealpha" || !image.hasAlpha)) out[idx + 3] = evaluateSamples[idx + 3] = 255;
             }
-            const { data16: ignored, ...metadata } = image;
+            const { data16: ignored, magickColorspace: ignoredSpace, hueSamples: ignoredHue, storedHueSamples: ignoredStoredHue, ...metadata } = image;
             const hasAlpha = imageType === undefined ? image.hasAlpha : imageType === "grayscalealpha";
             return { ...metadata, data: out, evaluateSamples, space: "b-w", hasAlpha, channels: hasAlpha ? 2 : 1 };
         };

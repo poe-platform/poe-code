@@ -2266,6 +2266,34 @@ function subviewerTiming(line: string): [number, number] | undefined {
   return [values[0]!, values[1]!];
 }
 
+function splitAdjacentSrtCues(block: string): string[] {
+  const lines = block.split("\n");
+  const cues: string[] = [];
+  let start = 0;
+  let hasTiming = false;
+  for (let i = 0; i < lines.length; i++) {
+    const times = lines[i]!.split("-->");
+    if (times.length !== 2 || !times.every(time => {
+      const timestamp = time.trim().split(" ")[0]!.split("\t")[0]!;
+      const parts = timestamp.replace(",", ".").split(":");
+      if (parts.length !== 3) return false;
+      const seconds = parts.pop()!.split(".");
+      return seconds.length === 2 && [...parts, ...seconds].every(part =>
+        part.length > 0 && [...part].every(char => char >= "0" && char <= "9"));
+    })) continue;
+    if (hasTiming) {
+      const previous = lines[i - 1]!.trim();
+      // A numeric line is an index only when immediately followed by timing.
+      const end = previous.length > 0 && [...previous].every(char => char >= "0" && char <= "9") ? i - 1 : i;
+      cues.push(lines.slice(start, end).join("\n"));
+      start = i;
+    }
+    hasTiming = true;
+  }
+  cues.push(lines.slice(start).join("\n"));
+  return cues;
+}
+
 export function parseSubtitleDocument(
   bytes: Uint8Array,
   format: "srt" | "webvtt" | "subviewer"
@@ -2287,7 +2315,7 @@ export function parseSubtitleDocument(
   const seenCues = new Set<string>();
   let maxEndMs = 0;
 
-  for (const rawBlock of blocks) {
+  for (const rawBlock of format === "srt" ? blocks.flatMap(splitAdjacentSrtCues) : blocks) {
     const lines = rawBlock
       .split("\n")
       .map((l) => format === "webvtt" ? l : format === "srt" ? l.replace(/[ \t]+$/, "") : l.trimEnd())

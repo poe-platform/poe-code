@@ -711,7 +711,9 @@ Native H.264 inputs decode with CAVLC/CABAC and reference-frame support. H.264 `
 
 `dialoguenhance` extracts dialogue from stereo into a third (front center) channel,
 automatically mixing mono input to stereo with a gain of 1/√2 per side,
-retaining the input frame count and sample rate. Left and right are delayed by
+retaining the input frame count and sample rate. Center extraction follows native
+single-precision FFT rounding, including nearly cancelling left/right samples.
+Left and right are delayed by
 three quarters of the analysis window (1536 samples at 44100 Hz). It accepts
 `original` (0–1), `enhance` (0–3), and `voice` (2–32), with defaults `1:1:2`.
 Options accept numeric expressions such as `original=1/2`. Empty, malformed,
@@ -720,6 +722,10 @@ Timeline `enable` expressions select whole analysis blocks: disabled blocks have
 silent center while delayed stereo and dialogue analysis continue.
 Downstream filters receive analysis hops of 512 samples up to 50 kHz, 1024 up
 to 100 kHz, and 2048 above 100 kHz, with a shorter final frame when needed.
+`asendcmd=c='0.256 dialoguenhance@d original 0',dialoguenhance@d=enhance=0`
+changes the named filter’s original-center gain at the next audio frame while
+preserving overlap from earlier analysis blocks. Target `dialoguenhance` also
+addresses an unnamed instance; invalid runtime gains leave the current gain unchanged.
 
 `dcshift=0.125` adds a DC offset to every audio channel, preserving the sample rate and frame count and clipping samples to the full-scale range. `shift=0.125` is also accepted; shifts must be between -1 and 1. Limiter options are unsupported and fail explicitly.
 

@@ -9221,9 +9221,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (words[0] === "[enter]") words.shift();
                           const [target, action, expression] = words;
                           const supported = action === "volume" && (target === "volume" || target?.startsWith("volume@"))
-                            || action === "dry" && (target === "compensationdelay" || target?.startsWith("compensationdelay@"));
+                            || action === "dry" && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
+                            || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN");
+                            throw new Error("asendcmd: expected TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME dialoguenhance[@NAME] original GAIN");
                           }
                           return { time, target, expression };
                         });
@@ -10112,7 +10113,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             stretched, filteredChannelMask, false, budget, context.signal);
                           stretched = stereo.channels;
                         }
-                        const dialogue = await enhanceDialogue(stretched, origRate, values[0]!, values[1]!, values[2]!, budget, context.signal);
+                        const commands = audioCommands.filter(command => command.target === "dialoguenhance" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        const dialogue = await enhanceDialogue(stretched, origRate, values[0]!, values[1]!, values[2]!, budget, context.signal, commands);
                         stretched = dialogue.channels;
                         const length = stretched[0]?.length ?? 0;
                         budget.allocateMemory(Math.ceil(length / dialogue.frameSize) * 24);

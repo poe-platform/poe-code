@@ -1,12 +1,14 @@
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
+import { parseFilterExpression } from "./filter-expression.js";
 import { transform } from "./audio-fft.js";
 
 export async function enhanceDialogue(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
   original: number, enhance: number, voice: number,
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; expression: string }[] = []
 ): Promise<{ channels: Float32Array[]; frameSize: number }> {
   if (channels.length !== 2) throw new Error("dialoguenhance: stereo input required");
   const size = sampleRate > 100000 ? 8192 : sampleRate > 50000 ? 4096 : 2048;
@@ -21,14 +23,21 @@ export async function enhanceDialogue(
   const previousCenter = new Float64Array(size / 2 + 1), previousDifference = new Float64Array(size / 2 + 1);
   const overlap = new Float32Array(size);
   let vad = 0;
+  let nextCommand = 0;
   for (let start = 0; start < length; start += hop) {
     await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
+    while (nextCommand < commands.length && commands[nextCommand]!.sample <= start) {
+      const command = commands[nextCommand++]!;
+      try {
+        const value = parseFilterExpression(command.expression, "dialoguenhance", {});
+        if (Number.isFinite(value) && value >= 0 && value <= 1) original = Math.fround(value);
+      } catch { /* Native asendcmd continues after a rejected command. */ }
+    }
     const count = Math.min(hop, length - start);
     overlap.copyWithin(0, hop); overlap.fill(0, delay);
     for (let c = 0; c < 2; c++) {
       input[c]!.copyWithin(0, hop);
       input[c]!.set(channels[c]!.subarray(start, start + count), delay);
-      imaginary[c]!.fill(0);
       for (let i = 0; i < size; i++) real[c]![i] = Math.fround(input[c]![i]! * window[i]!);
       transform(real[c]!, imaginary[c]!);
       output[c]!.set(input[c]!.subarray(0, count), start);

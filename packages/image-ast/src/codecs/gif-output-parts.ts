@@ -110,7 +110,8 @@ export function gifHeader(
   palette: GifPalette
 ) {
   const { frames } = layout,
-    width = image.virtualCanvas?.width || layout.width, frameHeight = image.virtualCanvas?.height || layout.frameHeight,
+    width = Math.max(image.virtualCanvas?.width ?? 0, layout.width),
+    frameHeight = Math.max(image.virtualCanvas?.height ?? 0, layout.frameHeight),
     loop = options.gifVersion === "87a" ? undefined : options.loop ?? image.loop ?? (frames > 1 ? 0 : undefined),
     headerSize = 13 + (options.globalPalette === false ? 0 : 768),
     out = new Uint8Array(headerSize + (loop === undefined || loop === 1 ? 0 : 19));

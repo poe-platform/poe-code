@@ -18,6 +18,7 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
  for(let i=0;i<header.length;i++) header[i]=(await reader.at(i))!;
  if(header[0]!==66||header[1]!==77) throw new Error("Invalid BMP signature");
  const metadata=readBmpMetadata(header),view=new DataView(header.buffer),{width,height}=metadata;
+ if(view.getUint32(2,true)!==source.size) throw new Error("Invalid BMP file size");
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)) throw new RangeError("Invalid BMP dimensions");
  checkLimitInputPixels(width,height,options);
  const dataOffset=view.getUint32(10,true),dibHeaderSize=view.getUint32(14,true),topDown=dibHeaderSize!==12&&view.getInt32(22,true)<0,bpp=view.getUint16(dibHeaderSize===12?24:28,true),rowStride=Math.floor((width*bpp+31)/32)*4;

@@ -243,6 +243,7 @@ export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {
 export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   const meta = readBmpMetadata(bytes);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (view.getUint32(2, true) !== bytes.byteLength) throw new Error("Invalid BMP file size");
   const dataOffset = view.getUint32(10, true);
   const dibHeaderSize = view.getUint32(14, true);
   const compression = dibHeaderSize >= 40 ? view.getUint32(30, true) : 0;

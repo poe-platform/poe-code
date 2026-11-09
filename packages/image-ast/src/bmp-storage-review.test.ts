@@ -42,8 +42,8 @@ it.each([1,4,8,24])("decodes %i-bit CORE headers with bounded raster allocation"
 for (const bpp of [1, 4, 8, 16, 24, 32]) for (const topDown of [false, true]) {
  it.each([1, 2])(`rejects truncated ${bpp}-bit rows (topDown=${topDown}, truncation=%i) before allocation`, async truncated => {
   const bytes=fixture({bpp,topDown,truncated,density:0}),{storage}=backing();
-  expect(()=>decodeBmpImage(bytes)).toThrow("Truncated BMP rows");
-  await expect(decodeBmpToStorage(source(bytes),storage,new AbortController().signal)).rejects.toThrow("Truncated BMP rows");
+  expect(()=>decodeBmpImage(bytes)).toThrow("Invalid BMP file size");
+  await expect(decodeBmpToStorage(source(bytes),storage,new AbortController().signal)).rejects.toThrow("Invalid BMP file size");
   expect(storage.allocate).not.toHaveBeenCalled();
  });
 }

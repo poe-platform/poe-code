@@ -7995,16 +7995,18 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-splice") {
             const geom = tokens[++i] ?? "0x0";
-            validateMagickSpliceGeometry(geom);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickSpliceSteps(im, geom, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal));
+                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
+                validateMagickSpliceGeometry(expanded);
+                return (yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal));
             });
         }
         else if (t === "-chop") {
             const geom = tokens[++i] ?? "0x0";
-            validateMagickTransformGeometry(geom, t);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickChopSteps(im, geom, state.gravity, signal, analysis));
+                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
+                validateMagickTransformGeometry(expanded, t);
+                return (yield* applyMagickChopSteps(im, expanded, state.gravity, signal, analysis));
             });
         }
         else if (t === "-roll") {
@@ -8212,11 +8214,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-shave") {
             const geometry = tokens[++i] ?? "";
-            validateMagickTransformGeometry(geometry, t);
-            const g = parseMagickGeometry(geometry.replace(":", "x"));
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(geometry, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
+                validateMagickTransformGeometry(expanded, t);
+                const g = parseMagickGeometry(expanded.replace(":", "x"));
                 const sw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
-                const sh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? (geometry.toLowerCase().includes("x") ? 0 : sw)));
+                const sh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? (expanded.toLowerCase().includes("x") ? 0 : sw)));
                 if ((g.hasOffset && g.width === undefined && g.height === undefined) || sw * 2 >= im.width || sh * 2 >= im.height) {
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return im;
@@ -10012,12 +10015,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
-            if (token === "-splice") validateMagickSpliceGeometry(geometry);
-            else if (token !== "-roll") validateMagickTransformGeometry(geometry, token);
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = token === "-roll" ? await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, (image as StoredMagickImage)[magickInput] ?? {}, async () => ({ image, storage: backend.storage }), signal) : geometry;
-                if (token === "-roll") validateMagickTransformGeometry(expanded, token);
+                const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, (image as StoredMagickImage)[magickInput] ?? {}, async () => ({ image, storage: backend.storage }), signal);
+                if (token === "-splice") validateMagickSpliceGeometry(expanded);
+                else validateMagickTransformGeometry(expanded, token);
                 return transformStoredMagickCoordinates(image, backend, token, expanded, captured, signal, analysis);
             });
         } else if (!operandsOnly && token === "-resample") {
@@ -10116,13 +10118,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return frames;
             });
         } else if (!operandsOnly && token === "-shave") {
-            const geometry = tokens[++i] ?? "";
-            validateMagickTransformGeometry(geometry, token);
-            const parsed = parseMagickGeometry(geometry.replace(":", "x"));
+            const geometry = tokens[++i] ?? "", captured = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, (image as StoredMagickImage)[magickInput] ?? {}, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickTransformGeometry(expanded, token);
+                const parsed = parseMagickGeometry(expanded.replace(":", "x"));
                 const width = Math.max(0, Math.round(parsed.isPercent ? image.width * (parsed.percentX ?? 100) / 100 : parsed.width ?? 0));
-                const height = Math.max(0, Math.round(parsed.isPercent ? image.height * (parsed.percentY ?? 100) / 100 : parsed.height ?? (geometry.toLowerCase().includes("x") ? 0 : width)));
+                const height = Math.max(0, Math.round(parsed.isPercent ? image.height * (parsed.percentY ?? 100) / 100 : parsed.height ?? (expanded.toLowerCase().includes("x") ? 0 : width)));
                 if ((parsed.hasOffset && parsed.width === undefined && parsed.height === undefined) || width * 2 >= image.width || height * 2 >= image.height) {
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return image;

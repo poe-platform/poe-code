@@ -1,3 +1,4 @@
+import { serializeLatmPackets } from "./latm.js";
 import { decodeH264Samples } from "../h264.js";
 import {
   BinaryWriter,
@@ -448,7 +449,6 @@ export function serializeMpegTs(
   doc: MediaDocument,
   options: SerializeMediaOptions = {}
 ): Uint8Array {
-  void options;
   const tsPackets: Uint8Array[] = [];
   const ccByPid = new Map<number, number>();
 
@@ -569,7 +569,7 @@ export function serializeMpegTs(
   }
   if (audioTrack) {
     streamEntries.push(
-      new Uint8Array([0x0f, 0xe0 | ((audioPid >>> 8) & 0x1f), audioPid & 0xff, 0xf0, 0x00])
+      new Uint8Array([options.mpegtsLatm ? 0x11 : 0x0f, 0xe0 | ((audioPid >>> 8) & 0x1f), audioPid & 0xff, 0xf0, 0x00])
     );
   }
   const streamsBytes = concatBytes(streamEntries);
@@ -665,13 +665,14 @@ export function serializeMpegTs(
       ];
     }
 
-    for (const s of samples) {
+    const latmPackets = options.mpegtsLatm ? serializeLatmPackets({ ...audioTrack, samples }) : undefined;
+    for (const [index, s] of samples.entries()) {
       const pts90k = Math.round((s.pts / ts) * 90000);
-      const adtsFrame =
+      const frame = latmPackets?.[index] ?? (
         s.data.byteLength >= 7 && s.data[0] === 0xff && (s.data[1]! & 0xf0) === 0xf0
           ? s.data
-          : wrapAdtsFrame(s.data, sampleRate, channels);
-      emitPesPackets(audioPid, 0xc0, pts90k, pts90k, adtsFrame, !videoTrack);
+          : wrapAdtsFrame(s.data, sampleRate, channels));
+      emitPesPackets(audioPid, 0xc0, pts90k, pts90k, frame, !videoTrack);
     }
   }
 

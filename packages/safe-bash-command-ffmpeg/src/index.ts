@@ -128,6 +128,7 @@ import {
   parseMp4Boxes,
   sliceMp4,
   type MediaAstPlugin,
+  type SerializeMediaOptions,
   type MediaAudioData,
   type MediaDocument,
   type MediaAttachment,
@@ -173,12 +174,14 @@ function serializeChecksum(
   algorithm: string,
   audioCodec: string | undefined,
   rawAudio: MediaAstPlugin | undefined,
-  budget: MediaBudgetTracker
+  budget: MediaBudgetTracker,
+  encoder?: MediaAstPlugin,
+  encoderOptions?: SerializeMediaOptions
 ): Uint8Array {
   if (format === "streamhash") {
     return concatBytes(doc.tracks.map((track, index) => concatBytes([
       encodeUtf8(`${index},${track.type === "video" ? "v" : "a"},`),
-      serializeChecksum({ ...doc, tracks: [track] }, "hash", algorithm, audioCodec, rawAudio, budget)
+      serializeChecksum({ ...doc, tracks: [track] }, "hash", algorithm, audioCodec, rawAudio, budget, encoder, encoderOptions)
     ])));
   }
   if (!doc.tracks.length || doc.tracks.some(track => track.type !== "audio" && track.type !== "video")) {
@@ -195,6 +198,17 @@ function serializeChecksum(
           throw new Error("Video checksum output requires retained native pixels");
         }
         packets.push({ dts: frame.ptsSeconds, timescale: 1, bytes: native.pixels });
+      }
+      continue;
+    }
+    if (encoder) {
+      // Reuse the container's encoder, then demux without decoding: only packet
+      // payloads belong in the checksum, never headers or reconstructed PCM.
+      const encoded = encoder.serialize({ ...doc, tracks: [track] }, { ...encoderOptions, audioCodec, budget });
+      const encodedTrack = encoder.parse(encoded, { decodeAudio: false, budget }).tracks.find(t => t.type === "audio")!;
+      for (const packet of encodedTrack.samples) {
+        budget.checkCpu();
+        packets.push({ dts: packet.dts, timescale: encodedTrack.timescale, bytes: packet.data });
       }
       continue;
     }
@@ -10524,7 +10538,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
             }
             const serializedBytes = checksumOutput
-              ? (frameChecksumOutput ? serializeFrameChecksum : serializeChecksum)(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" || outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec)
+              ? (frameChecksumOutput
+                ? serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec)
+                : serializeChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget,
+                  audioCodec === "flac" ? registry.findByFormatName("flac") : audioCodec === "adpcm_ima_wav" ? registry.findByFormatName("wav") : undefined,
+                  { blockSize, trellis, compressionLevel, sampleFormat, frameSize, lpcType, channelMode, lpcPasses,
+                    lpcCoeffPrecision, multiDimQuant, minPredictionOrder, maxPredictionOrder, predictionOrderMethod,
+                    minPartitionOrder, maxPartitionOrder, exactRiceParameters }))
               : serializeLimitedWav(workingDoc, outPlugin!, {
               seekable: !isStdout(outputTarget),
               format: outputFormat ?? outExt,

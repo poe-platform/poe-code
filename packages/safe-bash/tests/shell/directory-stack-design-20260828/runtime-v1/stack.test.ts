@@ -267,7 +267,7 @@ test("nested same-path readonly PWD failure preserves actual cwd publication", a
   shell.use((context, next) => { if (context.command === "f") context.cwd = "/borrowed"; return next(); });
   try {
     const result = await shell.exec('readonly PWD; f(){ pushd /borrowed; }; f; dirs -l -p; printf "%s|%s" "$PWD" "$OLDPWD"');
-    assert.equal(result.stdout, "/borrowed\n/c|/borrowed");
+    assert.equal(result.stdout, "/borrowed\n/c|/c");
     assert.match(result.stderr, /PWD: readonly variable/);
   } finally { await shell.dispose(); }
 });

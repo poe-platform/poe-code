@@ -7973,7 +7973,13 @@ export class Runtime {
     }
     this.signal.throwIfAborted();
     const { path } = selected;
-    await this.writeVariable(state, "OLDPWD", state.logicalCwd ?? state.cwd, context);
+    const previousPwd = state.variables.PWD;
+    if (previousPwd === undefined) {
+      if (state.readonlyVariables?.has("OLDPWD")) throw new PublicDiagnostic("OLDPWD: readonly variable");
+      state.variableAttributes ??= new Map();
+      if (!state.variableAttributes.has("OLDPWD")) state.variableAttributes.set("OLDPWD", "");
+      delete state.variables.OLDPWD;
+    } else await this.writeVariable(state, "OLDPWD", stateMonitor(state)?.values.get("PWD", previousPwd) ?? previousPwd, context);
     state.cwd = selected.physicalPath;
     state.logicalCwd = path;
     stackHooks?.onCwdPublished();

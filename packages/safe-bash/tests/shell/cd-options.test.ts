@@ -38,6 +38,46 @@ for (const [before, command, previous, destination] of [
   }
 }
 
+for (const [before, command, previous, destination] of [
+  ["", "cd dir", "/work", "/work/dir"],
+  ["", "cd -P link", "/work", "/work/dir/child"],
+  ["", "pushd dir >/dev/null", "/work", "/work/dir"],
+  ["pushd dir >/dev/null;", "popd >/dev/null", "/work/dir", "/work"],
+] as const) {
+  for (const [assignment, oldpwd] of [
+    [":", previous], ["PWD=changed", "changed"], ["PWD=''", ""], ["unset PWD", "unset"],
+  ] as const) {
+    test(`${command} copies the previous PWD binding after ${assignment}`, async context => {
+      const { shell } = await fixture();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`${before} ${assignment}; ${command}; printf '%s|%s|%s|' "$?" "$PWD" "\${OLDPWD-unset}"; pwd -P`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `0|${destination}|${oldpwd}|${destination}\n`);
+    });
+  }
+}
+
+test("cd preserves bytes from the previous PWD binding", async context => {
+  const { shell } = await fixture();
+  context.after(() => shell.dispose());
+  const result = await shell.exec("PWD=$'\\377'; cd dir; printf '%s' \"$OLDPWD\"");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(255));
+});
+
+for (const [setup, flag] of [["export OLDPWD", "-x"], ["export -n OLDPWD", "--"]]) {
+  test(`cd with unset PWD preserves OLDPWD attributes after ${setup}`, async context => {
+    const { shell } = await fixture();
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`${setup}; unset PWD; cd dir; declare -p OLDPWD`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `declare ${flag} OLDPWD\n`);
+  });
+}
+
 for (const [option, expected] of [["-P", "dir"], ["-L", "linkdir"]]) {
   test(`cd ${option} accepts the reported symlink operand`, async context => {
     const { shell } = await fixture();

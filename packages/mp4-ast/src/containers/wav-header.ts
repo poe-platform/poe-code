@@ -1,4 +1,4 @@
-import type { MediaProbeSource, Mp4MetadataTags } from "../types.js";
+import type { MediaProbeSource, Mp4Chapter, Mp4MetadataTags } from "../types.js";
 import { concatBytes, decodeFourCC } from "../binary.js";
 import { parseId3, type AudioPicture } from "@poe-code/audio-ast";
 
@@ -29,6 +29,7 @@ export interface WavHeader {
   dataOffset: number;
   dataSize: number;
   declaredDataSize?: number;
+  chapters?: Mp4Chapter[];
   cues?: { id: number; start: number; title: string }[];
 }
 
@@ -211,6 +212,11 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
       const id3 = parseId3(concatBytes(parts));
       header.metadata = { ...header.metadata, ...id3.tags };
       (header.pictures ??= []).push(...id3.pictures);
+      for (const chapter of id3.chapters) {
+        const chapters = header.chapters ??= [];
+        chapters.push({ id: chapters.length, timescale: 1000, startTimeSeconds: chapter.start / 1000,
+          endTimeSeconds: chapter.end / 1000, title: chapter.tags.title ?? "", tags: chapter.tags });
+      }
     } else if (!wave64 && id === "LIST" && size >= 4) {
       const list = yield { offset: start, length: 4 };
       if (decodeFourCC(list.bytes, 0) === "INFO") {

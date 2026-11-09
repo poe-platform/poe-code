@@ -14,7 +14,7 @@ Inspect audio containers, edit their metadata, and process PCM samples in JavaSc
 | `probeOggStreamSource({ head, comments, granule, size }, { signal, onComment })` | Opus/Vorbis logical-stream metadata from indexed packet sources; replayable comment spans |
 | `probeAudio(bytes)`                                  | Format, stream, duration, bitrate, and normalized tags                                                    |
 | `writeAudioMetadata(bytesOrAst, tags, { pictures })` | Merge tags and preserve encoded audio; regenerate container sizes, MP4 chunk offsets, and Ogg checksums   |
-| `parseId3(bytes)` | Read standalone ID3v2.2/2.3/2.4 tags, frames, and pictures, including tags embedded in AIFF |
+| `parseId3(bytes)` | Read standalone ID3v2.2/2.3/2.4 tags, frames, pictures, and CHAP chapter times/tags, including tags embedded in AIFF and WAV |
 | `encodeId3(tags)` | Encode an ID3v2.4 header with standard and user-defined text tags |
 | `decodePcm(bytesOrAst)`                              | Decode integer and IEEE float WAV to planar `Float64Array` channels                                       |
 | `encodeWav(pcm, options)`                            | Encode 8/16/24/32-bit integer or 32/64-bit float WAV, with optional INFO tags                             |

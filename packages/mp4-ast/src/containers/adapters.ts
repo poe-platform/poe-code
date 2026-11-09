@@ -692,7 +692,7 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
     timescale: sampleRate,
     duration: totalPcmSamples,
     durationSeconds,
-    chapters: header.cues?.map((cue, index, cues) => ({
+    chapters: header.chapters ?? header.cues?.map((cue, index, cues) => ({
       id: cue.id,
       timescale: sampleRate,
       startTimeSeconds: cue.start / sampleRate,

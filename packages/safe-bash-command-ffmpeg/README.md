@@ -163,6 +163,8 @@ Channel counts accept stream selectors on input and output: `-ac:a`, `-ac:a:0`, 
 Input `-ch_layout stereo` or `-channel_layout stereo` sets two channels, equivalent to `-ac 2`; `mono` sets one channel. Place these options before `-i`. Input `-guess_layout_max N` limits channel-layout guessing for unmasked WAV audio to at most N channels. With stereo input, 0 or 1 retains an unknown two-channel layout; 2 guesses stereo. Explicit layouts remain unchanged, and the option resets for each input.
 WAV input `-max_size 2049` limits PCM16 mono packets to 2048 bytes after sample alignment. Place it before the affected `-i`; zero (the default) selects automatic packet sizing. This is independent of the output file limit `-fs`.
 
+WAV ID3 `CHAP` frames supply chapter times and nested titles to ffprobe and FFmetadata output; `-map_chapters -1` suppresses them.
+
 WAV input `-ignore_length 1` reads audio through EOF when a recording outgrows its data header. Place it before the affected `-i`; `-ignore_length 0` (the default) honors the declared length.
 
 Quad WAV supports `-ac 1` and `-ac 2`, mixing back speakers into their matching front sides with normalized FFmpeg weights. Stream copy retains all four speakers and the quad channel mask.

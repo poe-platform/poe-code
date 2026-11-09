@@ -65,6 +65,7 @@ export interface Id3Result {
   tags: AudioTags;
   pictures: AudioPicture[];
   version: number;
+  chapters: { start: number; end: number; tags: AudioTags }[];
 }
 export function parseId3(bytes: Uint8Array): Id3Result {
   const input = new Reader(bytes),
@@ -77,9 +78,6 @@ export function parseId3(bytes: Uint8Array): Id3Result {
   input.check(0, 10 + length + footer);
   const payload = input.slice(10, length),
     r = new Reader(flags & 128 && version < 4 ? unsync(payload) : payload);
-  const nodes: AudioNode[] = [],
-    tags: AudioTags = {},
-    pictures: AudioPicture[] = [];
   let pos = 0;
   if (version >= 3 && flags & 64) {
     const extended = version === 4 ? synchsafe(r, 0) : r.u32(0) + 4;
@@ -87,6 +85,15 @@ export function parseId3(bytes: Uint8Array): Id3Result {
     if (extended < (version === 3 ? 10 : 6)) throw new Error("Invalid ID3 extended header");
     pos = extended;
   }
+  const chapters: Id3Result["chapters"] = [];
+  const frames = parseFrames(r, pos, version, flags, 10, chapters);
+  if (footer && input.text(10 + length, 3) !== "3DI") throw new Error("Missing ID3 footer");
+  return { size: 10 + length + footer, ...frames, chapters, version };
+}
+
+function parseFrames(r: Reader, pos: number, version: number, flags: number, offset: number,
+  chapters?: Id3Result["chapters"]): Pick<Id3Result, "nodes" | "tags" | "pictures"> {
+  const nodes: AudioNode[] = [], tags: AudioTags = {}, pictures: AudioPicture[] = [];
   while (pos < r.bytes.length && r.u8(pos) !== 0) {
     const header = version === 2 ? 6 : 10,
       id = r.text(pos, version === 2 ? 3 : 4),
@@ -97,7 +104,7 @@ export function parseId3(bytes: Uint8Array): Id3Result {
     if (version === 4 && (flags & 128 || frameFlags & 2)) data = unsync(data);
     const node: AudioNode = {
       type: id,
-      offset: 10 + pos,
+      offset: offset + pos,
       size: header + size,
       data,
       fields: { flags: frameFlags, version }
@@ -121,6 +128,12 @@ export function parseId3(bytes: Uint8Array): Id3Result {
           end = terminated(data, 4, encoding),
           width = encoding === 1 || encoding === 2 ? 2 : 1;
         tags.comment = text(data.subarray(end + width), encoding);
+      } else if (id === "CHAP" && chapters) {
+        const start = terminated(data, 0, 0) + 1, chapter = new Reader(data);
+        chapter.check(start, 16);
+        const nested = parseFrames(chapter, start + 16, version, 0, offset + pos + header);
+        chapters.push({ start: chapter.u32(start), end: chapter.u32(start + 4), tags: nested.tags });
+        node.children = nested.nodes;
       } else if (id === "APIC" || id === "PIC") {
         const encoding = data[0]!,
           mimeEnd = id === "PIC" ? 4 : terminated(data, 1, 0);
@@ -142,8 +155,7 @@ export function parseId3(bytes: Uint8Array): Id3Result {
     }
     pos += header + size;
   }
-  if (footer && input.text(10 + length, 3) !== "3DI") throw new Error("Missing ID3 footer");
-  return { size: 10 + length + footer, nodes, tags, pictures, version };
+  return { nodes, tags, pictures };
 }
 function syncBytes(value: number): Uint8Array {
   if (value > 0x0fffffff) throw new Error("ID3 tag too large");

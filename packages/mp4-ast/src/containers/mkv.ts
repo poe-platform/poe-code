@@ -1135,6 +1135,57 @@ const STEREO_MODES: readonly (readonly [string | undefined, string | undefined, 
   ["block_rl", "frame alternate", 1]
 ];
 
+function probeMkvProjection(bytes: Uint8Array, width: number, height: number): Record<string, string | number> | undefined {
+  let type = 0, yaw = 0, pitch = 0, roll = 0;
+  let privateData: Uint8Array = new Uint8Array();
+  for (let pos = 0; pos < bytes.length;) {
+    const id = readVint(bytes, pos, false);
+    if (!id) return;
+    pos += id.length;
+    const size = readVint(bytes, pos, true);
+    if (!size || size.unknownSize) return;
+    pos += size.length;
+    if (size.value > bytes.length - pos) return;
+    const payload = bytes.subarray(pos, pos + size.value);
+    if (id.value === 0x7671) type = readEbmlUint(payload);
+    else if (id.value === 0x7672) privateData = payload;
+    else if (id.value === 0x7673) yaw = readEbmlFloat(payload);
+    else if (id.value === 0x7674) pitch = readEbmlFloat(payload);
+    else if (id.value === 0x7675) roll = readEbmlFloat(payload);
+    pos += size.value;
+  }
+  if (type !== 1 && type !== 2 || privateData.length && privateData[0] !== 0) return;
+  const data = new DataView(privateData.buffer, privateData.byteOffset, privateData.byteLength);
+  const mapping: Record<string, string | number> = {
+    side_data_type: "Spherical Mapping",
+    projection: type === 1 ? "equirectangular" : "cubemap"
+  };
+  if (type === 2) {
+    if (privateData.length !== 12) throw new Error("Invalid Matroska cubemap projection metadata");
+    if (data.getUint32(4) !== 0) return; // Unknown cubemap layout.
+    mapping.padding = data.getUint32(8);
+  } else if (privateData.length) {
+    if (privateData.length !== 20) throw new Error("Invalid Matroska equirectangular projection metadata");
+    const top = data.getUint32(4), bottom = data.getUint32(8), left = data.getUint32(12), right = data.getUint32(16);
+    const max = 0xffffffff;
+    if (top + bottom >= max || left + right >= max) throw new Error("Invalid Matroska projection bounds");
+    if (top || bottom || left || right) {
+      const fullWidth = Math.floor(width * max / (max - left - right));
+      const fullHeight = Math.floor(height * max / (max - top - bottom));
+      mapping.projection = "tiled equirectangular";
+      mapping.bound_left = Math.ceil(fullWidth * left / max);
+      mapping.bound_top = Math.ceil(fullHeight * top / max);
+      mapping.bound_right = fullWidth - width - mapping.bound_left;
+      mapping.bound_bottom = fullHeight - height - mapping.bound_top;
+    }
+  }
+  // ffprobe prints integral degrees after the demuxer's signed 16.16 conversion.
+  mapping.yaw = Math.trunc((yaw * 65536 | 0) / 65536) || 0;
+  mapping.pitch = Math.trunc((pitch * 65536 | 0) / 65536) || 0;
+  mapping.roll = Math.trunc((roll * 65536 | 0) / 65536) || 0;
+  return mapping;
+}
+
 export function probeMkv(
   bytes: Uint8Array,
   options: ParseMediaOptions & { showPackets?: boolean; showFrames?: boolean } = {}
@@ -1152,16 +1203,19 @@ export function probeMkv(
     formatTags = { ...tags, ENCODER: encoder };
   }
   const streams = [...probe.streams.map((stream, index) => {
-    const mode = doc.tracks[index]?.codecDescriptions[0]?.stereoMode;
+    const desc = doc.tracks[index]?.codecDescriptions[0];
+    const mode = desc?.stereoMode;
     const stereo = mode === undefined ? undefined : STEREO_MODES[mode];
-    if (stream.codec_type !== "video" || !stereo) return stream;
-    const [tag, type, inverted] = stereo;
+    if (stream.codec_type !== "video") return stream;
+    const spherical = desc?.rawMkvProjectionBytes && probeMkvProjection(desc.rawMkvProjectionBytes, stream.width ?? 0, stream.height ?? 0);
+    const [tag, type, inverted] = stereo ?? [];
+    const sideData = [...stream.side_data_list ?? [],
+      ...(type ? [{ side_data_type: "Stereo 3D", type, inverted }] : []),
+      ...(spherical ? [spherical] : [])];
     return {
       ...stream,
       ...(tag ? { tags: { ...stream.tags, stereo_mode: tag } } : {}),
-      ...(type ? { side_data_list: [
-        ...(stream.side_data_list ?? []), { side_data_type: "Stereo 3D", type, inverted }
-      ] } : {})
+      ...(sideData.length ? { side_data_list: sideData } : {})
     };
   }), ...doc.attachments.map((attachment, index) => ({
     index: probe.streams.length + index,

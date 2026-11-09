@@ -4,6 +4,7 @@ import type { CompareImage, CompareRequest, CompareSamples } from "./compare-ker
 // a separable sigma=1 blur. Keep only a bounded halo, repeating reads for
 // the centroid and central-moment passes instead of retaining whole images.
 export function* perceptualHashSteps(info: CompareImage, image: 0 | 1, selected: readonly number[] = [0, 1, 2, 3], colorspaces: readonly string[] = ["xyy", "hsb"]): Generator<CompareRequest | undefined, number[], CompareSamples | undefined> {
+    const channels = info.space === "cmyk" ? 5 : 4;
     const weights = Array.from({ length: 9 }, (_, i) => {
         let sum = 0;
         for (let sub = -1; sub <= 1; sub++) sum += Math.exp(-((3 * (i - 4) + sub) ** 2) / 18);
@@ -24,33 +25,35 @@ export function* perceptualHashSteps(info: CompareImage, image: 0 | 1, selected:
                     const row = Math.max(0, Math.min(info.height - 1, y + v));
                     const length = (end - start) * 4;
                     const data = yield { kind: "read", image, position: (row * info.width + start) * 4, length };
-                    if (!data || data.length !== length) throw new Error("Truncated comparison pixels");
-                    const blurred = new Float32Array(count * 4);
+                    if (!data || data.length !== length / 4 * channels) throw new Error("Truncated comparison pixels");
+                    const blurred = new Float32Array(count * channels);
                     for (let x = 0; x < count; x++) {
                         let alpha = 0;
-                        const sums = [0, 0, 0, 0];
+                        const sums = new Array<number>(channels).fill(0);
                         for (let u = -4; u <= 4; u++) {
-                            const offset = (Math.max(0, Math.min(info.width - 1, left + x + u)) - start) * 4;
+                            const offset = (Math.max(0, Math.min(info.width - 1, left + x + u)) - start) * channels;
                             const weight = weights[u + 4]!;
                             const opacity = info.hasAlpha ? data[offset + 3]! / 255 : 1;
                             alpha += weight * opacity;
-                            for (let c = 0; c < 4; c++) sums[c]! += weight * data[offset + c]! * 257 * (c === 3 ? 1 : opacity);
+                            for (let c = 0; c < channels; c++) sums[c]! += weight * data[offset + c]! * 257 * (c === 3 ? 1 : opacity);
                         }
-                        for (let c = 0; c < 4; c++) blurred[x * 4 + c] = selected.includes(c) ? sums[c]! / (c === 3 ? 1 : Math.max(alpha, 1e-12)) : data[(left + x - start) * 4 + c]! * 257;
+                        for (let c = 0; c < channels; c++) blurred[x * channels + c] = selected.includes(c) ? sums[c]! / (c === 3 ? 1 : Math.max(alpha, 1e-12)) : data[(left + x - start) * channels + c]! * 257;
                     }
                     rows.push(blurred);
                 }
                 for (let x = 0; x < count; x++) {
-                    const sums = [0, 0, 0, 0];
+                    const sums = new Array<number>(channels).fill(0);
                     let alpha = 0;
                     for (let v = 0; v < 9; v++) {
                         const row = rows[v]!, weight = weights[v]!;
-                        const opacity = info.hasAlpha ? row[x * 4 + 3]! / 65535 : 1;
+                        const opacity = info.hasAlpha ? row[x * channels + 3]! / 65535 : 1;
                         alpha += weight * opacity;
-                        for (let c = 0; c < 4; c++) sums[c]! += weight * row[x * 4 + c]! * (c === 3 ? 1 : opacity);
+                        for (let c = 0; c < channels; c++) sums[c]! += weight * row[x * channels + c]! * (c === 3 ? 1 : opacity);
                     }
-                    const rgba = sums.map((value, c) => (selected.includes(c) ? Math.fround(value / (c === 3 ? 1 : Math.max(alpha, 1e-12))) : rows[4]![x * 4 + c]!) / 65535);
-                    const r = rgba[0]!, g = rgba[1]!, b = rgba[2]!;
+                    const rgba = sums.map((value, c) => (selected.includes(c) ? Math.fround(value / (c === 3 ? 1 : Math.max(alpha, 1e-12))) : rows[4]![x * channels + c]!) / 65535);
+                    const black = info.space === "cmyk" ? rgba[4]! : 0;
+                    const [r, g, b] = rgba.slice(0, 3).map(value => info.space === "cmyk"
+                        ? Math.fround((1 - value) * (1 - black) * 65535) / 65535 : value) as [number, number, number];
                     const linear = [r, g, b].map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
                     const lr = linear[0]!, lg = linear[1]!, lb = linear[2]!;
                     const X = 0.41239558896741424 * lr + 0.3575834307637148 * lg + 0.18049264738170157 * lb;

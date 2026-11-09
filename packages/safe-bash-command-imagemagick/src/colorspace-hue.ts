@@ -56,8 +56,13 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HSL" 
                 3.24096994190452 * r - 1.53738317757009 * g - 0.498610760293003 * b,
                 -0.96924363628088 * r + 1.87596750150772 * g + 0.0415550574071756 * b,
                 0.0556300796969937 * r - 0.203976958888977 * g + 1.05697151424288 * b,
-            ].map(value => value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055);
-            [r, g, b] = [linear[0]!, linear[1]!, linear[2]!];
+            ];
+            // ImageMagick shifts out-of-gamut linear channels together before encoding.
+            const minimum = Math.min(0, ...linear);
+            [r, g, b] = linear.map(sample => {
+                const value = sample - minimum;
+                return value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
+            }) as [number, number, number];
         } else if (toHue) {
             const max = Math.max(r, g, b), min = Math.min(r, g, b), delta = max - min, lightness = (max + min) / 2;
             const hue = !delta ? 0 : max === r ? ((g - b) / delta + 6) % 6 : max === g ? (b - r) / delta + 2 : (r - g) / delta + 4;

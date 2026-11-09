@@ -1,3 +1,4 @@
+import { compareDiffSteps } from "./compare-colorspace.js";
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import { perceptualHashSteps } from "./compare-phash.js";
 // Samples retain the kernel's 0..255 scale without rounding high-depth input.
@@ -8,6 +9,7 @@ export interface CompareImage {
     readonly hasAlpha: boolean;
     readonly readMask?: { readonly width: number; readonly height: number } | undefined;
     readonly space?: string;
+    readonly magickColorspace?: string | undefined;
 }
 export interface CompareOptions {
     readonly phashColorspaces?: readonly string[];
@@ -84,10 +86,12 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     let meppPeak = 0;
     const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
     const grayscale = imgA.space === "b-w" || imgA.space === "grey16";
-    const selected = options.channels ?? [0, 1, 2, 3];
+    const strideA = imgA.space === "cmyk" ? 5 : 4, strideB = imgB.space === "cmyk" ? 5 : 4;
+    const cmyk = strideA === 5 && strideB === 5;
+    const selected = (options.channels ?? [0, 1, 2, 3, 4]).filter(channel => channel !== 4 || cmyk);
     const red = selected.includes(0), green = selected.includes(1), blue = selected.includes(2), opacity = selected.includes(3);
-    const sharedChannels = selected.filter(channel => channel < 3 || (imgA.hasAlpha && imgB.hasAlpha));
-    const numCh = Math.max(1, selected.filter(channel => channel < 3 || hasAlpha).length);
+    const sharedChannels = selected.filter(channel => channel !== 3 || (imgA.hasAlpha && imgB.hasAlpha));
+    const numCh = Math.max(1, selected.filter(channel => channel !== 3 || hasAlpha).length);
     const correlationChannels = (metric === "ncc" || metric === "dpc") ? sharedChannels.map(channel => ({ channel,
         rawA: 0, rawB: 0, sumA: 0, sumB: 0, squareA: 0, squareB: 0, product: 0
     })) : [];
@@ -105,7 +109,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             const lengthA = Math.min(count, imgA.width - leftA) * 4;
             const lengthB = Math.min(count, imgB.width - leftB) * 4;
             let dataA = yield { kind: "read", image: 0, position: (Math.min(y, imgA.height - 1) * imgA.width + leftA) * 4, length: lengthA };
-            if (!dataA || dataA.length !== lengthA)
+            if (!dataA || dataA.length !== lengthA / 4 * strideA)
                 throw new Error("Truncated comparison pixels");
             dataA = dataA.slice();
             let dataB: CompareSamples | undefined;
@@ -116,22 +120,21 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 const end = Math.min(left + count, options.offset.x + imgB.width);
                 if (row >= 0 && row < imgB.height && start < end) {
                     const bytes = yield { kind: "read", image: 1, position: (row * imgB.width + start - options.offset.x) * 4, length: (end - start) * 4 };
-                    if (!bytes || bytes.length !== (end - start) * 4)
+                    if (!bytes || bytes.length !== (end - start) * strideB)
                         throw new Error("Truncated comparison pixels");
-                    dataB.set(bytes, (start - left) * 4);
+                    dataB.set(bytes, (start - left) * strideB);
                 }
             } else {
                 dataB = yield { kind: "read", image: 1, position: (Math.min(y, imgB.height - 1) * imgB.width + leftB) * 4, length: lengthB };
-                if (!dataB || dataB.length !== lengthB)
+                if (!dataB || dataB.length !== lengthB / 4 * strideB)
                     throw new Error("Truncated comparison pixels");
             }
-            const diffData = options.diff ? new Uint8Array(count * 4) : undefined;
-            const data16 = diffData && options.highDepthDiff && !options.compose ? new Uint16Array(count * 4) : undefined;
+            const diffData = options.diff ? new Float64Array(count * strideA) : undefined;
             const reference = diffData && options.compose ? new Uint8Array(count * 4) : undefined;
             for (let x = left; x < left + count; x++) {
-                const outOff = (x - left) * 4;
-                const offA = (Math.min(x, imgA.width - 1) - leftA) * 4;
-                const offB = options.offset ? outOff : (Math.min(x, imgB.width - 1) - leftB) * 4;
+                const outOff = (x - left) * strideA;
+                const offA = (Math.min(x, imgA.width - 1) - leftA) * strideA;
+                const offB = options.offset ? outOff : (Math.min(x, imgB.width - 1) - leftB) * strideB;
                 const rA = dataA[offA]!;
                 const gA = dataA[offA + 1]!;
                 const bA = dataA[offA + 2]!;
@@ -149,26 +152,22 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 const pdr = red ? Math.abs(rA * alphaA - rB * alphaB) : 0;
                 const pdg = green ? Math.abs(gA * alphaA - gB * alphaB) : 0;
                 const pdb = blue ? Math.abs(bA * alphaA - bB * alphaB) : 0;
+                const dk = cmyk && selected.includes(4) ? Math.abs(dataA[offA + 4]! * alphaA - dataB[offB + 4]! * alphaB) : 0;
                 const included = (maskA?.[x - left] ?? 1) !== 0 && (maskB?.[x - left] ?? 1) !== 0;
-                const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
+                const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da, dk) : Math.max(dr, dg, db, dk);
                 if (diffData) {
                     const color = included ? (maxDelta > fuzz ? highlightColor : lowlightColor) : { r: 136, g: 136, b: 136, a: 204 };
                     // ImageMagick makes the reference opaque before compositing
                     // the highlight/lowlight overlay (80% opaque by default).
                     if (reference) {
-                        reference.set([rA, gA, bA, 255], outOff);
+                        reference.set([rA, gA, bA, 255], (x - left) * 4);
                     }
                     const alpha = composeSrc || options.compose ? 1 : color.a / 255;
-                    diffData[outOff] = red ? Math.round(color.r * alpha + rA * (1 - alpha)) : color.r;
-                    diffData[outOff + 1] = green ? Math.round(color.g * alpha + gA * (1 - alpha)) : color.g;
-                    diffData[outOff + 2] = blue ? Math.round(color.b * alpha + bA * (1 - alpha)) : color.b;
+                    diffData[outOff] = red ? color.r * alpha + rA * (1 - alpha) : strideA === 5 ? 0 : color.r;
+                    diffData[outOff + 1] = green ? color.g * alpha + gA * (1 - alpha) : strideA === 5 ? 0 : color.g;
+                    diffData[outOff + 2] = blue ? color.b * alpha + bA * (1 - alpha) : strideA === 5 ? 0 : color.b;
                     diffData[outOff + 3] = composeSrc || options.compose ? color.a : 255;
-                    if (data16) {
-                        data16[outOff] = Math.round(257 * (red ? color.r * alpha + rA * (1 - alpha) : color.r));
-                        data16[outOff + 1] = Math.round(257 * (green ? color.g * alpha + gA * (1 - alpha) : color.g));
-                        data16[outOff + 2] = Math.round(257 * (blue ? color.b * alpha + bA * (1 - alpha) : color.b));
-                        data16[outOff + 3] = diffData[outOff + 3]! * 257;
-                    }
+                    if (strideA === 5) diffData[outOff + 4] = selected.includes(4) ? dataA[offA + 4]! * (1 - alpha) : 0;
                 }
                 if (!included) continue;
                 selectedPixels++;
@@ -192,7 +191,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                     // Fuzz averages squared error over only channels above tolerance.
                     // Alpha participates only when both images have an alpha channel.
                     for (const channel of sharedChannels) {
-                        const delta = channel === 0 ? pdr : channel === 1 ? pdg : channel === 2 ? pdb : da;
+                        const delta = channel === 0 ? pdr : channel === 1 ? pdg : channel === 2 ? pdb : channel === 4 ? dk : da;
                         if (delta * delta > channelFuzzSquared) {
                             fuzzSq += delta * delta;
                             fuzzChannels++;
@@ -202,30 +201,35 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 if (metric === "mepp") {
                     // MEPP ignores fuzz and includes alpha only when both inputs have it.
                     const alphaError = imgA.hasAlpha && imgB.hasAlpha ? da : 0;
-                    meppSum += pdr + pdg + pdb + alphaError;
-                    meppPeak = Math.max(meppPeak, pdr, pdg, pdb, alphaError);
+                    meppSum += pdr + pdg + pdb + dk + alphaError;
+                    meppPeak = Math.max(meppPeak, pdr, pdg, pdb, dk, alphaError);
                 }
                 // PDC counts a pixel once when any shared channel exceeds fuzz.
-                if (metric === "pdc" && Math.max(pdr * pdr, pdg * pdg, pdb * pdb, imgA.hasAlpha && imgB.hasAlpha ? da * da : 0) > channelFuzzSquared)
+                if (metric === "pdc" && Math.max(pdr * pdr, pdg * pdg, pdb * pdb, dk * dk, imgA.hasAlpha && imgB.hasAlpha ? da * da : 0) > channelFuzzSquared)
                     pdcCount++;
                 // AE sums channel magnitudes above fuzz, then averages over channels.
                 const aeR = hasAlpha ? pdr : dr, aeG = hasAlpha ? pdg : dg, aeB = hasAlpha ? pdb : db;
-                aeMagnitude += (aeR * aeR > channelFuzzSquared ? aeR : 0) + (aeG * aeG > channelFuzzSquared ? aeG : 0) + (aeB * aeB > channelFuzzSquared ? aeB : 0) + (hasAlpha && da * da > channelFuzzSquared ? da : 0);
+                aeMagnitude += (dk * dk > channelFuzzSquared ? dk : 0) + (aeR * aeR > channelFuzzSquared ? aeR : 0) + (aeG * aeG > channelFuzzSquared ? aeG : 0) + (aeB * aeB > channelFuzzSquared ? aeB : 0) + (hasAlpha && da * da > channelFuzzSquared ? da : 0);
                 if (hasAlpha) {
-                    sumAbs += pdr + pdg + pdb + da;
-                    sumSq += pdr * pdr + pdg * pdg + pdb * pdb + da * da;
+                    sumAbs += pdr + pdg + pdb + dk + da;
+                    sumSq += pdr * pdr + pdg * pdg + pdb * pdb + dk * dk + da * da;
                 }
                 else {
-                    sumAbs += dr + dg + db;
-                    sumSq += dr * dr + dg * dg + db * db;
+                    sumAbs += dr + dg + db + dk;
+                    sumSq += dr * dr + dg * dg + db * db + dk * dk;
                 }
                 if (maxDelta > maxAbs)
                     maxAbs = maxDelta;
             }
             if (diffData) {
-                let output: Uint8Array = diffData;
+                const rendering = compareDiffSteps(diffData, imgA.space, imgA.magickColorspace, options.highDepthDiff && !options.compose);
+                let rendered = rendering.next();
+                try { while (!rendered.done) { yield; rendered = rendering.next(); } }
+                finally { rendering.return(undefined as never); }
+                let output = rendered.value.data;
+                const data16 = rendered.value.data16;
                 if (reference) {
-                    const composition = options.compose!(reference, diffData);
+                    const composition = options.compose!(reference, output);
                     let step = composition.next();
                     try {
                         while (!step.done) { yield; step = composition.next(); }
@@ -364,12 +368,13 @@ function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: C
                         const left = Math.min(x + pixel % imgB.width, source.width - 1);
                         const length = Math.min(request.length, (source.width - left) * 4);
                         const bytes = yield { ...request, position: (row * source.width + left) * 4, length };
-                        if (!bytes || bytes.length !== length) throw new Error("Truncated comparison pixels");
+                        const stride = !request.mask && imgA.space === "cmyk" ? 5 : 4;
+                        if (!bytes || bytes.length !== length / 4 * stride) throw new Error("Truncated comparison pixels");
                         if (length === request.length) next = comparison.next(bytes);
                         else {
-                            const extended = bytes instanceof Float64Array ? new Float64Array(request.length) : new Uint8Array(request.length);
+                            const extended = bytes instanceof Float64Array ? new Float64Array(request.length / 4 * stride) : new Uint8Array(request.length / 4 * stride);
                             extended.set(bytes);
-                            for (let i = length; i < extended.length; i += 4) extended.set(bytes.subarray(length - 4), i);
+                            for (let i = bytes.length; i < extended.length; i += stride) extended.set(bytes.subarray(bytes.length - stride), i);
                             next = comparison.next(extended);
                         }
                     } else next = comparison.next(yield request);
@@ -492,7 +497,7 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: rea
                     const row = Math.max(0, Math.min(info.height - 1, y + v));
                     const length = (end - start) * 4;
                     const data = yield { kind: "read", image, position: (row * info.width + start) * 4, length };
-                    if (!data || data.length !== length)
+                    if (!data || data.length !== length / 4 * (info.space === "cmyk" ? 5 : 4))
                         throw new Error("Truncated comparison pixels");
                     rows[image]!.push(data.slice());
                 }
@@ -505,8 +510,8 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: rea
                     let muA = 0, muB = 0, squareA = 0, squareB = 0, product = 0;
                     for (let v = 0; v < size; v++) {
                         for (let u = 0; u < size; u++) {
-                            const offsetA = (Math.max(0, Math.min(imgA.width - 1, x + u - half)) - starts[0]!) * 4 + channel;
-                            const offsetB = (Math.max(0, Math.min(imgB.width - 1, x + u - half)) - starts[1]!) * 4 + channel;
+                            const offsetA = (Math.max(0, Math.min(imgA.width - 1, x + u - half)) - starts[0]!) * (imgA.space === "cmyk" ? 5 : 4) + channel;
+                            const offsetB = (Math.max(0, Math.min(imgB.width - 1, x + u - half)) - starts[1]!) * (imgB.space === "cmyk" ? 5 : 4) + channel;
                             const a = rows[0]![v]![offsetA]! / 255, b = rows[1]![v]![offsetB]! / 255;
                             const weight = weights[u]! * weights[v]!;
                             muA += weight * a;
@@ -531,7 +536,7 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: rea
 function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage, selected: readonly number[]): Generator<CompareRequest | undefined, number, CompareSamples | undefined> {
     if (selected.length === 0) return 0;
     const width = Math.max(imgA.width, imgB.width), height = Math.max(imgA.height, imgB.height);
-    const channels = imgA.hasAlpha && imgB.hasAlpha ? 4 : 3;
+    const channels = imgA.space === "cmyk" && imgB.space === "cmyk" ? 5 : imgA.hasAlpha && imgB.hasAlpha ? 4 : 3;
     const kernel = Array.from({ length: 81 }, (_, i) => {
         const radius = ((i % 9 - 4) ** 2 + (Math.floor(i / 9) - 4) ** 2) / 2;
         return (1 - radius) * Math.exp(-radius) / Math.PI;
@@ -557,10 +562,10 @@ function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage, selected: re
                 const row = Math.max(0, Math.min(info.height - 1, Math.min(y, info.height - 1) + v));
                 const length = (end - start) * 4;
                 const bytes = yield { kind: "read", image, position: (row * info.width + start) * 4, length };
-                if (!bytes || bytes.length !== length) throw new Error("Truncated comparison pixels");
+                if (!bytes || bytes.length !== length / 4 * (info.space === "cmyk" ? 5 : 4)) throw new Error("Truncated comparison pixels");
                 for (let x = 0; x < count; x++) for (let u = -4; u <= 4; u++) {
                     const column = Math.max(0, Math.min(info.width - 1, Math.min(left + x, info.width - 1) + u));
-                    const offset = (column - start) * 4;
+                    const offset = (column - start) * (info.space === "cmyk" ? 5 : 4);
                     const weight = kernel[(v + 4) * 9 + u + 4]!;
                     const alpha = info.hasAlpha ? bytes[offset + 3]! / 255 : 1;
                     gamma[x]! += weight * alpha;
@@ -571,7 +576,7 @@ function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage, selected: re
             if (info.hasAlpha) for (let x = 0; x < count; x++) {
                 const divisor = gamma[x]!;
                 const reciprocal = (divisor < 0 ? -1 : 1) / Math.max(Math.abs(divisor), 1e-12);
-                for (let channel = 0; channel < 3; channel++) surface[x * channels + channel]! *= reciprocal;
+                for (let channel = 0; channel < channels; channel++) if (channel !== 3) surface[x * channels + channel]! *= reciprocal;
             }
             // Q16-HDRI stores each convolved sample as a float Quantum.
             for (let i = 0; i < surface.length; i++) surface[i] = Math.fround(surface[i]! * 65535) / 65535;

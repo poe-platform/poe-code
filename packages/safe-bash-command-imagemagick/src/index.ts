@@ -1,3 +1,4 @@
+import { compareColorspaceSteps } from "./compare-colorspace.js";
 import { magickIntensity } from "./intensity.js";
 import { sortPixelSteps } from "./sort-pixels.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
@@ -11032,7 +11033,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const operandLevels: MagickPixelOperation[][] = [];
     let readMask: RgbaImage | StoredRgbaImage | undefined;
     type Rotation = { rotation: string; settings: MagickState };
-    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number } | { profile: Uint8Array; name: string };
+    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number };
     const pixelOperations: MagickPixelOperation[] = [];
     const operationFlushes = new Map<number, readonly MagickPixelOperation[]>();
     let pending = false;
@@ -11082,32 +11083,6 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 return { exitCode: 2, stdout: "", stderr: `compare: ${(err as Error).message}\n` };
             }
         }
-        else if (t === "-profile") {
-            const name = argv[++i];
-            if (!name) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-profile'\n" };
-            try {
-                let profile = files.get(name);
-                if (backend) yield { async run() {
-                    profile = await backend.read(name, async source => {
-                        const bytes = new Uint8Array(source.size);
-                        for (let offset = 0; offset < source.size; offset += 16384) {
-                            await yieldTurn(signal);
-                            bytes.set(await source.read(offset, Math.min(16384, source.size - offset), { signal: signal! }), offset);
-                        }
-                        return bytes;
-                    });
-                } };
-                if (!profile) throw new Error(`unable to open profile '${name}'`);
-                applyMagickProfile({}, name, profile);
-                const operation = { profile, name };
-                if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push(operation);
-                else leadingOperations.push(operation);
-            } catch (error) {
-                signal?.throwIfAborted();
-                if (error instanceof CompareInputFailure) throw error.reason;
-                return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` };
-            }
-        }
         else if (t === "-quiet" || t === "+quiet") quiet = t === "-quiet";
         else if (t === "-verbose" || t === "+verbose") verbose = t === "-verbose";
         else if (t === "-regard-warnings" || t === "+regard-warnings") regardWarnings = t === "-regard-warnings";
@@ -11135,14 +11110,14 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "-channel") {
             const value = argv[++i] ?? "";
             const names: Record<string, readonly number[]> = {
-                red: [0], green: [1], blue: [2], alpha: [3], opacity: [3],
-                all: [0, 1, 2, 3], default: [0, 1, 2, 3]
+                red: [0], cyan: [0], green: [1], magenta: [1], blue: [2], yellow: [2], alpha: [3], opacity: [3], black: [4],
+                all: [0, 1, 2, 3, 4], default: [0, 1, 2, 3, 4]
             };
             channels = [];
             for (const part of value.toLowerCase().split(",")) {
                 const token = part.trim();
-                const selected = Object.hasOwn(names, token) ? names[token] : (token.length > 0 && [...token].every(c => "rgba".includes(c))
-                    ? [...token].map(c => "rgba".indexOf(c)) : undefined);
+                const selected = Object.hasOwn(names, token) ? names[token] : (token.length > 0 && [...token].every(c => "rgbacmyk".includes(c))
+                    ? [...token].map(c => [0, 1, 2, 3, 0, 1, 2, 4]["rgbacmyk".indexOf(c)]!) : undefined);
                 if (!selected) return { exitCode: 2, stdout: "", stderr: `compare: invalid argument for option '-channel': ${value}\n` };
                 for (const channel of selected) if (!channels.includes(channel)) channels.push(channel);
             }
@@ -11155,6 +11130,16 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push(operation);
             else leadingOperations.push(operation);
         }
+        else if (t === "-colorspace") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-colorspace'\n" };
+            const space = value.toLowerCase();
+            if (!["srgb", "rgb", "gray", "grey", "lab", "cielab", "cmyk"].includes(space))
+                return { exitCode: 2, stdout: "", stderr: `compare: unsupported colorspace '${value}'\n` };
+            pixelOperations.push({ end: i, highDepth: true, evaluate: true,
+                apply: image => compareColorspaceSteps(image, space === "grey" ? "gray" : space === "cielab" ? "lab" : space) });
+        }
+        else if (t === "+colorspace") { /* Native compare leaves the pixels unchanged. */ }
         else if (t === "-negate" || t === "+negate") {
             pixelOperations.push(parseMagickPixelOperation(argv, { ...state, channelExplicit: channels !== undefined,
                 channels: { r: channels?.includes(0) ?? true, g: channels?.includes(1) ?? true,
@@ -11491,10 +11476,6 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             else yield { async run() { await storedImages!.push(image); } };
             return;
         }
-        if (typeof operation === "object" && "profile" in operation) {
-            yield* acceptImage(applyMagickProfile(image, operation.name, operation.profile), operations, index + 1);
-            return;
-        }
         if (typeof operation === "object" && "trim" in operation) {
             let trimmed = image;
             if ("data" in image) trimmed = yield* trimMagickSteps(image, operation.trim);
@@ -11698,6 +11679,27 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                   samples = Float64Array.from(new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2), value => value / 257);
               } else samples = await backend!.storage.read(image.position + request.position, request.length);
           } };
+          if (!request.mask) {
+              let working: Float64Array | undefined;
+              if ("data" in image) working = image.hueSamples?.subarray(request.position, request.position + request.length);
+              else if (image.storedHueSamples !== undefined) yield { async run() {
+                  working = new Float64Array(request.length);
+                  for (let offset = 0; offset < request.length; offset += 2048) {
+                      const count = Math.min(2048, request.length - offset);
+                      const bytes = await backend!.storage.read(image.storedHueSamples! + (request.position + offset) * 8, count * 8);
+                      working.set(new Float64Array(bytes.slice().buffer), offset);
+                  }
+              } };
+              if (image.space === "cmyk") {
+                  const cmyka = new Float64Array(request.length / 4 * 5);
+                  for (let pixel = 0; pixel < request.length / 4; pixel++) {
+                      const offset = pixel * 4;
+                      const inks = working?.subarray(offset, offset + 4) ?? rgbToCmyk(samples[offset]! / 255, samples[offset + 1]! / 255, samples[offset + 2]! / 255);
+                      cmyka.set([inks[0]! * 255, inks[1]! * 255, inks[2]! * 255, samples[offset + 3]!, inks[3]! * 255], pixel * 5);
+                  }
+                  samples = cmyka;
+              } else if (working) samples = Float64Array.from(working, value => value * 255);
+          }
           compared = comparison.next(samples);
       }
       else {
@@ -11739,7 +11741,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const colorType = pngOutputColorType(pngColorType, format, pngWarnings);
         const opaque = colorType === 0 || colorType === 2;
         const outputMetadata = density === undefined ? imgA : applyMagickDensity(imgA, density);
-        const metadata = { width, height, ...(imgA.icc ? { icc: imgA.icc } : {}), format: "png" as const, channels: opaque ? 3 as const : 4 as const, depth: "uchar" as const, density: outputMetadata.density, ...(outputMetadata.resolution ? { resolution: outputMetadata.resolution } : {}), space: "srgb" as const, hasAlpha: !opaque };
+        const metadata = { width, height, format: "png" as const, channels: opaque ? 3 as const : 4 as const, depth: "uchar" as const, density: outputMetadata.density, ...(outputMetadata.resolution ? { resolution: outputMetadata.resolution } : {}), space: "srgb" as const, hasAlpha: !opaque };
         const encoding = { ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth), pngBitDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, miffDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, tiffIntegerDepth: state.inputDepth <= 8 ? 8 as const : state.inputDepth <= 16 ? 16 as const : 32 as const }), format, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4" as const, ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngColorType: colorType, ...(opaque ? { forceOpaque: true } : {}), ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) };
         const split = hasSceneOutputPattern(path) || (subimageSearch && !["gif", "miff", "tiff"].includes(format));
         let stdoutBytes: Uint8Array | undefined;

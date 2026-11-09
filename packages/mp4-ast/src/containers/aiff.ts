@@ -13,8 +13,8 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const text = (start: number, length: number) => String.fromCharCode(...bytes.subarray(start, start + length));
   if (bytes.length < 12 || text(0, 4) !== "FORM" || !["AIFF", "AIFC"].includes(text(8, 4))) throw new Error("Invalid or unsupported AIFF header");
-  const end = view.getUint32(4) + 8;
-  if (end > bytes.length || end < 12) throw new Error("Truncated AIFF FORM");
+  const end = Math.min(view.getUint32(4) + 8, bytes.length);
+  if (end < 12) throw new Error("Truncated AIFF FORM");
   const compressed = text(8, 4) === "AIFC";
   let littleEndian = false;
   let compressedFormat: string | undefined;
@@ -23,9 +23,10 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   const metadata: { title?: string; copyright?: string; comment?: string; custom?: Record<string, string> } = {};
   for (let offset = 12; offset < end;) {
     budget.checkCpu();
-    if (offset + 8 > end) throw new Error("Truncated AIFF chunk header");
+    // FORM limits chunk starts; complete chunks may extend beyond its declared size.
+    if (offset + 8 > bytes.length) throw new Error("Truncated AIFF chunk header");
     const id = text(offset, 4), size = view.getUint32(offset + 4), start = offset + 8;
-    if (start + size + size % 2 > end) throw new Error("Truncated AIFF chunk");
+    if (start + size + size % 2 > bytes.length) throw new Error("Truncated AIFF chunk");
     if (id === "COMM") {
       if (size < (compressed ? 22 : 18)) throw new Error("Invalid AIFF COMM chunk");
       if (compressed) {

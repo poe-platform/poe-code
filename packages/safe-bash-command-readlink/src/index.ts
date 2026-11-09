@@ -26,7 +26,7 @@ export function createReadlinkCommand(configuration: ReadlinkCommandsOptions = {
         else if (key === "q" || key === "s") verboseMode = "quiet";
       });
       requireOperands(parsed.operands);
-      if (parsed.flags.has("n") && parsed.operands.length > 1 && verboseMode !== "quiet") {
+      if (parsed.flags.has("n") && parsed.operands.length > 1) {
         await diagnostic(context, new PublicDiagnostic("ignoring --no-newline with multiple arguments"));
       }
       let mode = "link";

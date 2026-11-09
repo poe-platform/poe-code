@@ -88,3 +88,24 @@ it.each([-1, 5000, Infinity, NaN])("rejects unsupported radius %s before reading
     const steps = kuwaharaPixelSteps({ width: 1, height: 1 }, { width: radius }, { r: 0, g: 0, b: 0, a: 255 });
     expect(() => steps.next()).toThrow("Kuwahara radius or sigma exceeds limit");
 });
+
+// Native ImageMagick 7.1.2-31 Q16-HDRI, with varying RGB and alpha samples.
+for (const mode of ["command", "buffered", "retained"] as const)
+for (const fixture of [
+    { settings: ["-channel", "R"], expected: "5e7bd6317bb09f7a77b18c7a7bb09f7a7bb09e79a0429d78a40b66c1a40b66c16279d443845886a17c789d82916a85a08181a681a149a489a60964d3a60964d372a81671827156718a7954797d7954428a795479ae786681cd38a681cd38a6816e988762928a6580998a65807a886d527c896452ac917691cb5bb691b228977272a81671959a759094997499839974627a987d6279988661a66ac520a66ac52088ea45a0928a6580998a65807a886d527c896452ac9176916f7ad5306f7ad53081da3590959a7590949974998399746274c29d7879988661a66ac520628be6418afb56b17aa88d727fa9847275c39e7974c29d786fc29d7874c29d78628be641" },
+    { settings: [], expected: "5e90915d7b947f7f78997a7b7b947f7f92438a879a1d7898a41772a8a41772a86e6c75778f5579898f5c78818f5579898f5c78819c237c9ba61c76aaa61c76aa6865936f90706178916d647e9070617892438a87a1348397ab2a7da3ab2a7da36e6c75778f5579898f5c78818f5579898f5c78818d617977935f7d77b977866e7588537a907061787cbf5a657ac65c6380c264647ac65c6380c264649899885a81c2667a7bc5697377cc6c6f76d16e6e77d2726b76d16e6e77d2726b6fb792538ae05a9077cc707675d0747475d5757374d7786f75d5757374d7786f62bf98548ae05a9077cc707675d0747477cc707674d7786f75d5757374d7786f62bf9854" },
+]) it(`Kuwahara transparent channel selection ${fixture.settings.join(" ") || "default"} (${mode})`, async () => {
+    const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDhUMDE6Mzc6NTIrMDA6MDDGLKOTAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA4VDAxOjM3OjUyKzAwOjAwt3EbLwAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wOFQwMTozNzo1MiswMDowMOBkOvAAAABTSURBVBjTY1aovmZYs+r6mpvsW87VrPy3+ibbgnPVF/6uvlG04Oyi839XMf3580dZWVkZJ8WET1JZWfkPEwEDlJkIGPCHiYABykwEDPjDRMAAZQABPYSciDxQVgAAAABJRU5ErkJggg==", "base64");
+    const files = new Map([["/in.png", input]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/in.png", input);
+    const args = ["/in.png", ...fixture.settings, "-kuwahara", "2x1", "+channel", "PNG32:/out.png"];
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} },
+    }) : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result).toMatchObject({ exitCode: 0 });
+    const output = decodeImage(mode === "buffered" ? files.get("/out.png")! : await fs.readFile("/out.png"));
+    expect([output.width, output.height]).toEqual([8, 8]);
+    expect(Buffer.from(output.data).toString("hex")).toBe(fixture.expected);
+});

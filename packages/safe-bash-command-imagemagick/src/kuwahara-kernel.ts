@@ -100,10 +100,11 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number }, ge
                 const weight = (dx ? fx : 1 - fx) * (dy ? fy : 1 - fy);
                 if (weight === 0) continue;
                 const pixel = yield* sample(Math.floor(cx) + dx, Math.floor(cy) + dy, 2), alpha = pixel[3]! / 65535;
-                for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * alpha * weight;
+                // Unselected channels have CopyPixelTrait, without alpha blending.
+                for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * (mask && !mask[c] ? 1 : alpha) * weight;
                 sums[3]! += alpha * weight;
             }
-            for (let c = 0; c < 4; c++) data[i * 4 + c] = Math.max(0, Math.min(255, Math.round(c === 3 ? sums[3]! * 255 : sums[3]! > 0 ? sums[c]! / sums[3]! / 257 : 0)));
+            for (let c = 0; c < 4; c++) data[i * 4 + c] = Math.max(0, Math.min(255, Math.round(c === 3 ? sums[3]! * 255 : mask && !mask[c] ? sums[c]! / 257 : sums[3]! > 0 ? sums[c]! / sums[3]! / 257 : 0)));
         }
         yield { kind: "write", position: start * 4, data };
     }

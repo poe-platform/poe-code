@@ -9420,9 +9420,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await fadeAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "dynaudnorm" || trimmed.startsWith("dynaudnorm=")) {
                         filteredSampleFormat = "dblp";
-                        stretched = await normalizeAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
+                        const normalized = await normalizeAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
                           if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
                         });
+                        stretched = normalized.channels;
+                        const length = stretched[0]?.length ?? 0;
+                        budget.allocateMemory(Math.ceil(length / normalized.frameSize) * 24);
+                        const previous = audioTimestamps;
+                        audioTimestamps = [];
+                        let frameIndex = 0;
+                        for (let start = 0; start < length; start += normalized.frameSize) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          while (previous && frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
+                          const frame = previous?.[frameIndex];
+                          audioTimestamps.push({ start, end: Math.min(length, start + normalized.frameSize),
+                            pts: frame ? frame.pts + start - frame.start : audioStartSample + start });
+                        }
                         statsScale = 1;
                       } else if (trimmed === "silenceremove" || trimmed.startsWith("silenceremove=")) {
                         stretched = await removeSilence(stretched, origRate, trimmed, budget, context.signal);

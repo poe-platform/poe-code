@@ -5,7 +5,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function normalizeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker,
   signal: AbortSignal | undefined, warn: (message: string) => Promise<void>
-): Promise<Float64Array[]> {
+): Promise<{ channels: Float64Array[]; frameSize: number }> {
   let milliseconds = 500;
   let size = 31;
   let peak = 0.95;
@@ -129,5 +129,5 @@ export async function normalizeAudio(
     await amplify();
     append(bound(peak / Math.max(Number.EPSILON, peak)));
   }
-  return output;
+  return { channels: output, frameSize };
 }

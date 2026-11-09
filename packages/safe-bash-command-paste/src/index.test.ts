@@ -64,6 +64,19 @@ for (const separator of ["\n", "\0"]) {
    assert.equal(result.exitCode, 1);
    assert.ok(result.stderr.includes("EISDIR"), result.stderr);
   });
+  test(`serial paste preserves a directory record ${directoryFirst ? "first" : "last"} with ${JSON.stringify(separator)} records`, async () => {
+   const operands = directoryFirst ? ["/", "-"] : ["-", "/"];
+   const result = await run([...options, "-s", ...operands], {}, {}, rows);
+   assert.equal(result.stdout, directoryFirst ? `${separator}x\ty${separator}` : `x\ty${separator}${separator}`);
+   assert.equal(result.exitCode, 1);
+   assert.ok(result.stderr.includes("EISDIR"), result.stderr);
+  });
+  test(`serial paste skips a missing operand ${directoryFirst ? "first" : "last"} with ${JSON.stringify(separator)} records`, async () => {
+   const result = await run([...options, "-s", ...operands.map(file => file === "/" ? "/missing" : file)], { "/rows": rows });
+   assert.equal(result.stdout, `x\ty${separator}`);
+   assert.equal(result.exitCode, 1);
+   assert.ok(result.stderr.includes("ENOENT"), result.stderr);
+  });
   test(`parallel paste still aborts for a missing operand ${directoryFirst ? "first" : "last"} with ${JSON.stringify(separator)} records`, async () => {
    const result = await run([...options, ...operands.map(file => file === "/" ? "/missing" : file)], { "/rows": rows });
    assert.equal(result.stdout, "");
@@ -80,6 +93,12 @@ for (const separator of ["\n", "\0"]) {
  test(`parallel paste emits no records for only directories with ${JSON.stringify(separator)} records`, async () => {
   const result = await run([...options, "/", "/"], {});
   assert.equal(result.stdout, "");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr.split("EISDIR").length - 1, 2);
+ });
+ test(`serial paste emits a record per directory with ${JSON.stringify(separator)} records`, async () => {
+  const result = await run([...options, "-s", "/", "/"], {});
+  assert.equal(result.stdout, separator.repeat(2));
   assert.equal(result.exitCode, 1);
   assert.equal(result.stderr.split("EISDIR").length - 1, 2);
  });

@@ -69,7 +69,9 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
           catch (error) {
             context.signal.throwIfAborted();
             if (budget.hasPendingOutput()) await budget.flushOutput();
-            await diagnostic(context, error); status = 1; continue;
+            await diagnostic(context, error); status = 1;
+            if (error instanceof FsError && error.code === "EISDIR") await budget.output([terminator]);
+            continue;
           }
           let record = await reader.next(), count = 0;
           while (record !== undefined) {

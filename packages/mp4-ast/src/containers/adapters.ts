@@ -2242,6 +2242,8 @@ function decodeSubRip(bytes: Uint8Array): string {
 export function isSrtSignature(bytes: Uint8Array, _filename?: string): boolean {
   if (bytes.byteLength < 15) return false;
   const head = decodeSubRip(bytes.subarray(0, Math.min(256, bytes.byteLength))).trimStart();
+  // Native probing requires ordinary spaces; forced demuxing is more permissive.
+  if (!head.split("\n")[1]?.includes(" --> ")) return false;
   return /^\d+\r?\n\d{2}:\d{2}:\d{2}[,.]\d+\s*-->\s*\d{2}:\d{2}:\d{2}[,.]\d+/.test(head);
 }
 

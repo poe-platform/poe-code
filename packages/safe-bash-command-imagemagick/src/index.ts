@@ -8634,7 +8634,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "+0+0";
             const nextTok = tokens[i + 1];
             let targetColor: RgbaColor | undefined;
-            if (nextTok && !nextTok.startsWith("-") && !nextTok.startsWith("+") && !files.has(nextTok)) {
+            if (nextTok && !nextTok.startsWith("-") && !nextTok.startsWith("+")) {
                 try {
                     targetColor = parseColor(nextTok);
                     i++;
@@ -10891,10 +10891,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             let target: RgbaColor | undefined;
             if (candidate && !candidate.startsWith("-") && !candidate.startsWith("+")) {
-                let file = false;
-                try { file = (await input.filesystem.stat(resolvePath(input.cwd, candidate), { signal })).type === "file"; }
-                catch (error) { if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error; }
-                if (!file) { try { target = parseColor(candidate); i++; } catch { /* Optional color omitted. */ } }
+                try { target = parseColor(candidate); i++; } catch { /* Optional color omitted. */ }
             }
             steps.push(async (image, backend) => {
                 if (!image) return;

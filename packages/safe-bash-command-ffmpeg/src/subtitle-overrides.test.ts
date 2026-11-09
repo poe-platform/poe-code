@@ -4,6 +4,13 @@ import { Volume } from "memfs";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 const cues = [
+  ["{y:i}MicroDVD", "MicroDVD"],
+  ["a{y:i}text", "atext"],
+  ["{Y:b}bold{y:i}text", "boldtext"],
+  ["a{literal}b", "a{literal}b"],
+  ["a{q:i}b", "a{q:i}b"],
+  ["a{y:i", "a{y:i"],
+  ["a{Y:i", "a{Y:i"],
   [String.raw`{\an8}top`, "top"],
   [String.raw`a\Nb`, "a\nb"],
   [String.raw`a\nb`, "a\nb"],

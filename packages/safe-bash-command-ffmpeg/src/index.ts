@@ -3512,6 +3512,11 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
             if (codec === "subrip" && webvtt && text.startsWith("{\\", position)) {
               const end = text.indexOf("}", position + 2);
               position = end < 0 ? text.length : end + 1;
+            } else if (codec === "subrip" && webvtt
+              && (text.startsWith("{y:", position) || text.startsWith("{Y:", position))) {
+              const end = text.indexOf("}", position + 3);
+              if (end < 0) parts.push("{");
+              position = end < 0 ? position + 1 : end + 1;
             } else if (codec === "subrip" && (webvtt || encodeSrt) && text[position] === "\\"
               && (text[position + 1] === "N" || text[position + 1] === "n")) {
               parts.push("\n");

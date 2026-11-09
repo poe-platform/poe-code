@@ -572,6 +572,8 @@ class Parser {
         this.position++;
         const end = element();
         if (typeof start !== "number" || typeof end !== "number") syntax("Invalid range end");
+        // GNU tac's Emacs dialect rejects multibyte range endpoints in C.UTF-8.
+        if (this.emacs && this.unicode && (start > 127 || end > 127)) syntax("Invalid collation character");
         if (this.unicode && (start >= 0xdc80 && start <= 0xdcff || end >= 0xdc80 && end <= 0xdcff)) syntax("Invalid collation character");
         set.ranges.push([start, end]);
       } else if (typeof start === "string") set.classes.push(start);

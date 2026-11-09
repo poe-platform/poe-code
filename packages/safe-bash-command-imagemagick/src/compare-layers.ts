@@ -57,3 +57,20 @@ export function* optimizeTransparencyPixels(previous: Frame, current: Frame, fuz
         }
     }
 }
+
+// Coalesced frames must retain the displayed pixel when its change is within fuzz.
+// The encoder can then optimize those pixels using its exact comparisons.
+export function* optimizePlusPixels(current: Frame, fuzz: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    for (let position = 0; position < current.width * current.height * 4; position += 4096) {
+        yield;
+        const length = Math.min(4096, current.width * current.height * 4 - position);
+        const data = new Uint8Array((yield { kind: "read", position, length })!);
+        const prior = (yield { kind: "read", image: 1, position, length })!;
+        for (let i = 0; i < length; i += 4) {
+            if (matchesAlphaFloodfill(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!, prior[i]!, prior[i + 1]!, prior[i + 2]!, prior[i + 3]!, fuzz)) {
+                data.set(prior.subarray(i, i + 4), i);
+            }
+        }
+        yield { kind: "write", position, data };
+    }
+}

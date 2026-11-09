@@ -91,3 +91,31 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     expect(mode === "retained" || mode === "command" ? await filesystem.readFile("/out.gif") : files.get("out.gif")).toEqual(keep);
   });
 }
+
+// Native ImageMagick: gray 100, then a gray 108 center; delays 3/6, loop 4.
+const fuzzInput = Buffer.from("R0lGODlhAwABAPAAAGRkZAAAACH/C05FVFNDQVBFMi4wAwEDAAAh+QQAAwAAACwAAAAAAwABAAACAoQLACH5BAAGAAAALAAAAAADAAEAgGRkZGxsbAICRFAAOw==", "base64");
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+  it.each(["0%", "5%", "3276.75"])(`${mode} honors OptimizePlus fuzz %s`, async fuzz => {
+    const files = new Map<string, Uint8Array>([["in.gif", fuzzInput]]);
+    const filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/in.gif", fuzzInput);
+    const args = ["in.gif", "-fuzz", fuzz, "-layers", "OptimizePlus", "out.gif"];
+    const result = mode === "command" ? await createMagickCommand().execute({
+      command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+      stdin: (async function* () {})(), signal: new AbortController().signal,
+      stdout: { write: async () => {} }, stderr: { write: async () => {} },
+    }) : mode === "sync" ? runConvertCliSync(args, files)
+      : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    expect(result.exitCode).toBe(0);
+    const bytes = mode === "retained" || mode === "command" ? await filesystem.readFile("/out.gif") : files.get("out.gif")!;
+    const output = decodeImage(bytes, { animated: true });
+    expect(output.delay).toEqual([30, 60]);
+    expect(output.loop).toBe(4);
+    const center = fuzz === "0%" ? 108 : 100;
+    expect([...output.data]).toEqual([100, 100, 100, 100, center, 100].flatMap(v => [v, v, v, 255]));
+    expect(decodeImage(bytes, { page: 1, coalesce: false })).toMatchObject({
+      width: 1, height: 1, virtualCanvas: { x: fuzz === "0%" ? 1 : 0, y: 0 },
+      data: fuzz === "0%" ? new Uint8Array([108, 108, 108, 255]) : new Uint8Array(4),
+    });
+  });
+}

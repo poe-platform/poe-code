@@ -68,14 +68,52 @@ export function createInputReader(context: CommandContext, budget: MediaBudgetTr
     total += bytes.byteLength;
     if (validate) { context.inputBudget?.check(total); budget.checkInputBytes(total); }
   };
-  return async (path: string, source?: AsyncIterable<Uint8Array>, admitted = false): Promise<Uint8Array> => {
-    if (source || isStdin(path)) return readStdinAll(context, bytes => account(bytes, !admitted), source);
+  const readFile = async (path: string): Promise<Uint8Array> => {
     const bytes = await context.fs.readFile(resolvePath(context.cwd, path), {
       signal: context.signal,
       ...(budget.limits.maxInputBytes === undefined ? {} : { maxBytes: Math.max(0, budget.limits.maxInputBytes - total) })
     });
     account(bytes);
     return bytes;
+  };
+  return async (path: string, source?: AsyncIterable<Uint8Array>, admitted = false): Promise<Uint8Array> => {
+    if (source || isStdin(path)) return readStdinAll(context, bytes => account(bytes, !admitted), source);
+    if (!path.startsWith("concatf:")) return readFile(path);
+    const list = new TextDecoder("utf-8", { ignoreBOM: true }).decode(await readFile(path.slice(8))).split("\0", 1)[0]!;
+    const parts: Uint8Array[] = [];
+    let size = 0;
+    for (let cursor = 0; cursor < list.length;) {
+      budget.checkCpu();
+      context.signal.throwIfAborted();
+      // concatf uses av_get_token with CR/LF delimiters, including quoting and escapes.
+      while (cursor < list.length && " \t\r\n".includes(list[cursor]!)) cursor++;
+      if (cursor === list.length) break;
+      let name = "", protectedEnd = 0;
+      while (cursor < list.length && !"\r\n".includes(list[cursor]!)) {
+        const char = list[cursor++]!;
+        if (char === "\\" && cursor < list.length) {
+          name += list[cursor++]!;
+          protectedEnd = name.length;
+        } else if (char === "'") {
+          while (cursor < list.length && list[cursor] !== "'") name += list[cursor++]!;
+          if (cursor < list.length) { cursor++; protectedEnd = name.length; }
+        } else name += char;
+      }
+      while (name.length > protectedEnd && " \t\r\n".includes(name.at(-1)!)) name = name.slice(0, -1);
+      budget.checkConcatInputs(parts.length + 1);
+      // Like native concatf, relative entries use the process cwd, not the list directory.
+      const bytes = await readFile(name);
+      parts.push(bytes);
+      size += bytes.length;
+    }
+    if (!parts.length) throw new Error("concatf: no files");
+    budget.allocateMemory(size * 2);
+    try {
+      const bytes = new Uint8Array(size);
+      let offset = 0;
+      for (const part of parts) { bytes.set(part, offset); offset += part.length; }
+      return bytes;
+    } finally { budget.releaseMemory(size * 2); }
   };
 }
 
@@ -1175,14 +1213,15 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           ? await probeImageSequence(inputTarget, imagePlugin, readInput, budget, context.signal, frameRate, showPackets, showFrames, exportPathMetadata, tsFromFile,
             async filename => (await context.fs.stat(resolvePath(context.cwd, filename), { signal: context.signal })).mtimeMs)
           : undefined;
-        if (!probeResult) probeResult = retainedPlugins.length && !isStdin(inputTarget)
+        const concatf = inputTarget.startsWith("concatf:");
+        if (!probeResult) probeResult = !concatf && retainedPlugins.length && !isStdin(inputTarget)
           ? await probeRetainedMetadata(context, retainedPlugins, resolvePath(context.cwd, inputTarget), inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize, ...(mp4Records ? { mp4Records } : {}) }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, !explicitPlugin)
           : undefined;
-        if (!probeResult && explicitPlugin && explicitPlugin.formatName !== "mp3" && !showData && !showDataHash)
+        if (!probeResult && !concatf && explicitPlugin && explicitPlugin.formatName !== "mp3" && !showData && !showDataHash)
           probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize });
         let replay: AsyncIterable<Uint8Array> | undefined;
         const streamPlugins = explicitPlugin ? retainedPlugins : automaticPlugins;
-        if (!probeResult && streamPlugins.length) {
+        if (!probeResult && !concatf && streamPlugins.length) {
           const source = await openProbeStream(context, isStdin(inputTarget) ? undefined : resolvePath(context.cwd, inputTarget));
           if (source) {
             const sniffed = await sniffMediaStream(source, context.signal, total => {

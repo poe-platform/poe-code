@@ -3269,7 +3269,7 @@ function removeTimecode(tracks: readonly MediaTrack[]): readonly MediaTrack[] {
   });
 }
 
-function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: readonly [string, string][], container: string | undefined): readonly MediaTrack[] {
+function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: readonly [string, string][], container: string | undefined, defaultMode: string): readonly MediaTrack[] {
   let hasExplicitDisposition = false;
   for (const [specifier, value] of dispositions) {
     const parts = specifier.split(":");
@@ -3318,6 +3318,20 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
     if (audio.length > 1 && !audio.some(track => track.disposition?.default ?? track.enabled)) {
       tracks = tracks.map(track => track === audio[0]
         ? { ...track, disposition: { ...track.disposition, default: 1 } } : track);
+    }
+  }
+  if (container === "mkv" || container === "webm") {
+    // Matroska treats an omitted FlagDefault as true, including explicitly cleared dispositions.
+    tracks = tracks.map(track => ({ ...track, disposition: {
+      ...track.disposition, default: track.disposition?.default ?? (track.enabled ? 1 : 0)
+    } }));
+    if (defaultMode !== "passthrough") {
+      for (const type of ["video", "audio", ...(defaultMode === "infer" ? ["subtitle"] : [])]) {
+        if (tracks.some(track => track.type === type && track.disposition?.default)) continue;
+        const first = tracks.findIndex(track => track.type === type);
+        tracks = tracks.map((track, index) => index === first
+          ? { ...track, disposition: { ...track.disposition, default: 1 } } : track);
+      }
     }
   }
   // The MP4 muxer enables the first audio track if none is marked default.
@@ -4275,6 +4289,7 @@ export function evalSyncFfmpeg(
     const metadata: Record<string, string> = {};
     const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][] = [];
     const streamDispositions: [string, string][] = [];
+    let defaultMode = "passthrough";
     const displayAspects: [string, number][] = [];
     const outputColors: OutputColorOption[] = [];
     let outputTarget: string | undefined;
@@ -4674,6 +4689,11 @@ export function evalSyncFfmpeg(
           throw new Error("-frag_duration requires an integer from 0 to 2147483647 microseconds");
         }
         if (fragmentDuration > 0) fragmented = true;
+      } else if (arg === "-default_mode") {
+        defaultMode = args[++i] ?? "";
+        if (!["passthrough", "infer", "infer_no_subs"].includes(defaultMode)) {
+          throw new Error("-default_mode requires passthrough, infer, or infer_no_subs");
+        }
       } else if (arg === "-movflags") {
         const flags = args[++i] ?? "";
         validateMovflags(flags);
@@ -4895,7 +4915,7 @@ export function evalSyncFfmpeg(
       discNumber: metadata.disc ?? sourceMetadata.discNumber,
       encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
-    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id) };
+    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id, defaultMode) };
     if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {
       workingDoc = { ...workingDoc, tracks: writeTmcd ? authorTimecode(workingDoc.tracks, metadata.timecode) : removeTimecode(workingDoc.tracks) };
     }
@@ -5467,6 +5487,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const attachmentFiles: string[] = [];
         const attachmentMetadata: [string, string, string][] = [];
         const streamDispositions: [string, string][] = [];
+        let defaultMode = "passthrough";
         const displayAspects: [string, number][] = [];
         const outputColors: OutputColorOption[] = [];
         let outputTarget: string | undefined;
@@ -6668,6 +6689,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-frag_duration") {
             fragmentDurationArg = args[++i] ?? "";
+          } else if (arg === "-default_mode") {
+            defaultMode = args[++i] ?? "";
+            if (!["passthrough", "infer", "infer_no_subs"].includes(defaultMode)) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -default_mode requires passthrough, infer, or infer_no_subs\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-movflags") {
             const flags = args[++i] ?? "";
             try {
@@ -10292,7 +10319,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ...workingDoc,
               faststart,
               metadata: metaTags,
-              tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id)
+              tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id, defaultMode)
             };
 
             if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {

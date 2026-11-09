@@ -10,12 +10,16 @@ function colorKey(samples: Uint8Array | Uint16Array, offset: number, hasAlpha: b
     return key;
 }
 
-function colorOrder(samples: Uint8Array | Uint16Array, offset: number, hasAlpha: boolean): number {
+function colorOrder(samples: Uint8Array | Uint16Array, offset: number, hasAlpha: boolean, inks?: Float64Array): number {
     const scale = samples instanceof Uint16Array ? 257 : 1;
-    const r = Math.round(samples[offset]! / scale), g = Math.round(samples[offset + 1]! / scale), b = Math.round(samples[offset + 2]! / scale), a = hasAlpha ? Math.round(samples[offset + 3]! / scale) : 0;
+    const r = Math.round(inks ? inks[offset]! * 255 : samples[offset]! / scale);
+    const g = Math.round(inks ? inks[offset + 1]! * 255 : samples[offset + 1]! / scale);
+    const b = Math.round(inks ? inks[offset + 2]! * 255 : samples[offset + 2]! / scale);
+    const a = hasAlpha ? Math.round(samples[offset + 3]! / scale) : 0;
     let order = 0;
     // Native classification visits bits 7 through 1; exact colors sharing a
     // leaf retain their first occurrence, including hidden RGB at zero alpha.
+    // CMYK uses cyan, magenta and yellow here; black does not split the tree.
     for (let bit = 7; bit >= 1; bit--) order = order * 16 + ((r >> bit & 1) | (g >> bit & 1) << 1 | (b >> bit & 1) << 2 | (a >> bit & 1) << 3);
     return order;
 }
@@ -28,7 +32,7 @@ export function* uniqueColorsSteps(image: RgbaImage & HueMetadata): Generator<vo
         const key = colorKey(samples, offset, image.hasAlpha);
         if (seen.has(key)) continue;
         seen.add(key);
-        pixels.push({ offset, order: colorOrder(samples, offset, image.hasAlpha) });
+        pixels.push({ offset, order: colorOrder(samples, offset, image.hasAlpha, image.space === "cmyk" ? image.hueSamples : undefined) });
     }
     // Stable radix sorting stays cooperative even for an all-unique raster.
     for (let shift = 0; shift < 28; shift += 4) {
@@ -67,13 +71,15 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata, s
         const length = Math.min(4096, size - start);
         const bytes = await storage.read((image.storedData16?.position ?? image.position) + start * (image.storedData16 ? 2 : 1), length * (image.storedData16 ? 2 : 1));
         const samples = image.storedData16 ? new Uint16Array(bytes.slice().buffer) : bytes;
+        const inks = image.space === "cmyk" && image.storedHueSamples !== undefined
+            ? new Float64Array((await storage.read(image.storedHueSamples + start * 8, length * 8)).slice().buffer) : undefined;
         for (let offset = 0; offset < length; offset += 4) {
             const key = colorKey(samples, offset, image.hasAlpha);
             if (await seen.get(key) !== undefined) continue;
             await seen.set(key, 0n);
             // 36 low bits retain source order within a leaf. The source offset
             // also lets white RGBA16 use the table's full 64-bit key range.
-            await order.set(BigInt(colorOrder(samples, offset, image.hasAlpha)) << 36n | BigInt((start + offset) / 4), BigInt(start + offset));
+            await order.set(BigInt(colorOrder(samples, offset, image.hasAlpha, inks)) << 36n | BigInt((start + offset) / 4), BigInt(start + offset));
             count++;
         }
     }

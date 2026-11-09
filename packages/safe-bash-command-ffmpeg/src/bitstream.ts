@@ -1,3 +1,4 @@
+import { encodeH264UserData, appendH264UserData } from "./h264-sei.js";
 import { setHevcMetadata } from "./hevc-metadata.js";
 import { setVp9Metadata } from "./vp9-metadata.js";
 import { setPacketTimestamps } from "./setts.js";
@@ -130,14 +131,18 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
       continue;
     }
     let insertAud = false;
+    let userData: Uint8Array | undefined;
     let level: number | undefined;
     let primaries: number | undefined;
     const metadata = filter.startsWith("h264_metadata=");
     if (metadata) {
       for (const option of filter.slice("h264_metadata=".length).split(":")) {
-        const [key, value, extra] = option.split("=");
-        if (!value || extra !== undefined) throw new Error(`Invalid bitstream filter option: ${option}`);
-        if (key === "aud" && value === "insert") insertAud = true;
+        const separator = option.indexOf("=");
+        const key = option.slice(0, separator);
+        const value = option.slice(separator + 1);
+        if (separator < 0 || !value) throw new Error(`Invalid bitstream filter option: ${option}`);
+        if (key === "sei_user_data") userData = encodeH264UserData(value, budget);
+        else if (key === "aud" && value === "insert") insertAud = true;
         else if (key === "level" && ["1", "1.0", "1.1", "1.2", "1.3", "2", "2.0", "2.1", "2.2", "3", "3.0", "3.1", "3.2", "4", "4.0", "4.1", "4.2", "5", "5.0", "5.1", "5.2", "6", "6.0", "6.1", "6.2"].includes(value)) level = Math.round(Number(value) * 10);
         else if (key === "colour_primaries" && [...value].every(c => c >= "0" && c <= "9") && Number(value) <= 255) primaries = Number(value);
         else throw new Error(`Unsupported bitstream filter option: ${option}`);
@@ -185,9 +190,10 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
         ])) : undefined;
         return { ...description, rawStsdEntryBytes, ...(level === undefined ? {} : { level }), avcC: parseAvcC(rawBytes) };
       });
-      return { ...track, codecDescriptions, samples: track.samples.flatMap(sample => {
+      return { ...track, codecDescriptions, samples: track.samples.flatMap((sample, sampleIndex) => {
         const units: Uint8Array[] = [];
         let hasAud = false;
+        let seekPoint = sampleIndex === 0 || sample.isKeyframe;
         for (let offset = 0; offset < sample.data.length;) {
           budget.checkCpu();
           const start = offset;
@@ -197,6 +203,7 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
           if (!size || offset + size > sample.data.length) throw new Error("Invalid H.264 NAL length");
           const type = sample.data[offset]! & 31;
           hasAud ||= type === 9;
+          seekPoint ||= type === 7;
           offset += size;
           if (type === 7 && (level !== undefined || primaries !== undefined)) {
             const updated = rewriteH264Sps(sample.data.subarray(offset - size, offset), level, primaries, budget);
@@ -204,8 +211,17 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
             const prefix = new Uint8Array(lengthSize);
             let length = updated.length;
             for (let i = lengthSize - 1; i >= 0; i--) { prefix[i] = length & 255; length = Math.floor(length / 256); }
-            units.push(prefix, updated);
+            units.push(concatBytes([prefix, updated]));
           } else if (!remove.has(type)) units.push(sample.data.subarray(start, offset));
+        }
+        if (userData && seekPoint) {
+          const seiIndex = units.findIndex(unit => (unit[lengthSize]! & 31) === 6);
+          // Native inserts before non-IDR slices, or at the end for IDR access units.
+          const sliceIndex = units.findIndex(unit => (unit[lengthSize]! & 31) < 5);
+          const existing = seiIndex < 0 ? undefined : units[seiIndex]!.subarray(lengthSize);
+          const sei = appendH264UserData(existing, userData, lengthSize, budget);
+          if (seiIndex >= 0) units[seiIndex] = sei;
+          else units.splice(sliceIndex < 0 ? units.length : sliceIndex, 0, sei);
         }
         if (insertAud && !hasAud) {
           const aud = new Uint8Array(lengthSize + 2);

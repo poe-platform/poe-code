@@ -6719,7 +6719,7 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
     let storedData16: StoredRgbaImage["storedData16"];
     let storedHueSamples: number | undefined;
     let storedEvaluateSamples: number | undefined;
-    const chunkSize = operation.evaluate ? 2048 : 16384;
+    const chunkSize = operation.evaluate || highDepth || operation.highDepth ? 2048 : 16384;
     for (let offset = 0; offset < size; offset += chunkSize) {
         if (offset % 1048576 === 0) await yieldTurn(signal);
         const data = await backend.storage.read(image.position + offset, Math.min(chunkSize, size - offset));
@@ -11479,7 +11479,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const similarityPosition = backend && diff && subimageSearch ? backend.storage.allocate(width * height * 4) : undefined;
     const similarityData = !backend && diff && subimageSearch ? new Uint8Array(width * height * 4) : undefined;
     const composeSrc = ["src", "source", "copy"].includes(compose);
-    const comparison=compareImageSteps(imgA,imgB,{metric,precision,ssimRadius,ssimSigma,phashColorspaces,phashNormalize,...(channels ? { channels } : {}),subimageSearch,similarityThreshold,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),
+    const highDepthDiff = diff && (state.inputDepth ?? (imgA.depth === "ushort" ? 16 : 8)) > 8 && (composeSrc || compose === "over" || compose === "srcover");
+    const diffData16 = !backend && highDepthDiff ? new Uint16Array(width * height * 4) : undefined;
+    const storedDiffData16 = backend && highDepthDiff ? { position: backend.storage.allocate(width * height * 8), length: width * height * 4 } : undefined;
+    const comparison=compareImageSteps(imgA,imgB,{metric,precision,ssimRadius,ssimSigma,phashColorspaces,phashNormalize,...(channels ? { channels } : {}),subimageSearch,similarityThreshold,fuzz:state.fuzz,highlightColor:highlightColor ?? {r:241,g:0,b:30,a:204},composeSrc,diff,highDepthDiff,...(lowlightColor?{lowlightColor}:{}),
         ...(!composeSrc && compose !== "over" && compose !== "srcover" ? { compose: function* (reference: Uint8Array, overlay: Uint8Array) {
             const canvas: RgbaImage = { width: reference.length / 4, height: 1, format: "png", channels: 4, depth: "uchar", density: state.density, space: "srgb", hasAlpha: true, data: new Uint8Array(reference.length).fill(255) };
             // Compare first composites the reference onto white, then makes that
@@ -11515,6 +11518,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
           const data = request.kind === "similarity" ? similarityData : diffData;
           if (backend) yield { async run() { await backend.storage.write(position! + request.position, request.data); } };
           else data!.set(request.data, request.position);
+          if (request.data16) {
+              if (backend) yield { async run() { await backend.storage.write(storedDiffData16!.position + request.position * 2, new Uint8Array(request.data16!.buffer, request.data16!.byteOffset, request.data16!.byteLength)); } };
+              else diffData16!.set(request.data16, request.position);
+          }
           compared = comparison.next();
       }
     }}finally{comparison.return(undefined as never);}
@@ -11545,14 +11552,14 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const colorType = pngOutputColorType(pngColorType, format, pngWarnings);
         const opaque = colorType === 0 || colorType === 2;
         const metadata = { width, height, format: "png" as const, channels: opaque ? 3 as const : 4 as const, depth: "uchar" as const, density: state.density, space: "srgb" as const, hasAlpha: !opaque };
-        const encoding = { format, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4" as const, ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngColorType: colorType, ...(opaque ? { forceOpaque: true } : {}), chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) };
+        const encoding = { ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth), pngBitDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, miffDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, tiffIntegerDepth: state.inputDepth <= 8 ? 8 as const : state.inputDepth <= 16 ? 16 as const : 32 as const }), format, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4" as const, ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngColorType: colorType, ...(opaque ? { forceOpaque: true } : {}), chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) };
         const split = hasSceneOutputPattern(path) || (subimageSearch && !["gif", "miff", "tiff"].includes(format));
         let stdoutBytes: Uint8Array | undefined;
         const stdoutChunks: Uint8Array[] = [];
         if (backend) yield { async run() {
             const active = signal ?? new AbortController().signal;
             const stack = new StoredImageStack(backend.storage, active);
-            let difference: StoredRgbaImage = { ...metadata, position: diffPosition! };
+            let difference: StoredRgbaImage = { ...metadata, position: diffPosition!, ...(storedDiffData16 ? { depth: "ushort", storedData16: storedDiffData16 } : {}) };
             for (const operation of outputRotations) difference = await drainIdentifySteps(rotateImage(difference, operation), signal);
             await stack.push(difference);
             if (similarityPosition !== undefined) await stack.push({ ...metadata, position: similarityPosition });
@@ -11571,7 +11578,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
         } };
         else {
-            let difference: RgbaImage = { ...metadata, data: diffData! };
+            let difference: RgbaImage = { ...metadata, data: diffData!, ...(diffData16 ? { depth: "ushort", data16: diffData16 } : {}) };
             for (const operation of outputRotations) difference = yield* rotateImage(difference, operation);
             const stack: RgbaImage[] = [difference];
             if (similarityData) stack.push({ ...metadata, data: similarityData });

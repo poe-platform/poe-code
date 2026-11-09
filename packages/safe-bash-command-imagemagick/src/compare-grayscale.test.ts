@@ -40,7 +40,7 @@ for (const mode of ["sync", "memory", "retained", "compare", "magick"] as const)
                 result = mode === "sync" ? runCompareCliSync(argv, files)
                     : await runCompareCli(argv, mode === "memory" ? files : { filesystem, cwd: "/" });
             }
-            expect(result).toEqual({ exitCode: identical ? 0 : 1, stdout: "", stderr: identical ? "0 (0)\n" : "14538.1 (0.221837)\n" });
+            expect(result).toEqual({ exitCode: identical ? 0 : 1, stdout: "", stderr: identical ? "0 (0)" : "14538.1 (0.221837)" });
             const read = (name: string) => mode === "sync" || mode === "memory" ? files.get(name)! : filesystem.readFile(`/${name}`);
             const image = decodeImage(await read("diff.ppm"));
             expect([image.width, image.height]).toEqual([4, 2]);
@@ -77,7 +77,7 @@ for (const mode of ["sync", "memory", "retained", "compare", "magick"] as const)
             result = mode === "sync" ? runCompareCliSync(argv, files)
                 : await runCompareCli(argv, mode === "memory" ? files : { filesystem, cwd: "/" });
         }
-        expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "0 (0)\n" });
+        expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "0 (0)" });
         expect(mode === "sync" || mode === "memory" ? files.get("diff.pgm") : await filesystem.readFile("/diff.pgm")).toEqual(expected);
         expect(mode === "sync" || mode === "memory" ? files.get("hi.pgm") : await filesystem.readFile("/hi.pgm")).toEqual(input);
     });

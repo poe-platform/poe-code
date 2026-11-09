@@ -1,8 +1,44 @@
+import { createCommandArguments } from "safe-bash-contracts/command";
 import { spawnSync } from "node:child_process";
 import { expect, it } from "vitest";
 import { encodeImage, decodeImage } from "@poe-code/image-ast/portable";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runCompareCli, runCompareCliSync, runMagickCli } from "./index.js";
+import { createMagickCommand, runCompareCli, runCompareCliSync, runMagickCli } from "./index.js";
+
+for (const depth of [8, 16]) {
+    for (const highInput of [false, true]) {
+        it(`writes a ${depth}-bit difference from ${highInput ? 16 : 8}-bit PGM inputs without changing RMSE`, async () => {
+            const header = new TextEncoder().encode(`P5\n3 2\n${highInput ? 65535 : 255}\n`);
+            const a = Uint8Array.from([...header, ...(highInput ? [3, 232, 32, 1, 117, 49, 164, 238, 214, 216, 240, 2] : [16, 89, 197, 212, 105, 129])]);
+            const b = highInput ? a : Uint8Array.from([...header, 16, 89, 40, 212, 105, 129]);
+            for (const runner of ["sync", "async", "magick", "filesystem", "command"]) {
+                const files = new Map([["a.pgm", a], ["b.pgm", b]]);
+                const filesystem = new MemoryFileSystem();
+                for (const [name, bytes] of files) await filesystem.writeFile(`/${name}`, bytes);
+                const args = ["-metric", "RMSE", "-depth", String(depth), "a.pgm", "b.pgm", "diff.pgm"];
+                let stderr = "";
+                const command = createMagickCommand();
+                const argumentValues = createCommandArguments(["compare", ...args]);
+                const result = runner === "command" ? { ...await command.execute({
+                    command: command.name, args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: filesystem,
+                    signal: new AbortController().signal, stdin: (async function* () {})(),
+                    stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+                }), stderr } : runner === "sync" ? runCompareCliSync(args, files)
+                    : runner === "magick" ? await runMagickCli(["compare", ...args], files)
+                    : await runCompareCli(args, runner === "filesystem" ? { filesystem, cwd: "/" } : files);
+                expect({ ...result, stderr: result.stderr.trimEnd() }).toMatchObject({ exitCode: highInput ? 0 : 1, stderr: highInput ? "0 (0)" : "16472.4 (0.251353)" });
+                const output = ["filesystem", "command"].includes(runner) ? await filesystem.readFile("/diff.pgm") : files.get("diff.pgm")!;
+                const expectedHeader = new TextEncoder().encode(`P5\n3 2\n${depth === 16 ? 65535 : 255}\n`);
+                expect(output.subarray(0, expectedHeader.length)).toEqual(expectedHeader);
+                expect(output.length).toBe(expectedHeader.length + 6 * depth / 8);
+                if (highInput && depth === 16) {
+                    // Native Q16-HDRI lowlight samples, including their low bits.
+                    expect(output.subarray(expectedHeader.length)).toEqual(Uint8Array.from([205, 148, 211, 51, 228, 60, 237, 200, 247, 196, 252, 204]));
+                }
+            }
+        });
+    }
+}
 
 // Native ImageMagick 7.1.2 Q16-HDRI: only one of two gray samples differs.
 for (const [metric, stderr, exitCode] of [
@@ -70,5 +106,27 @@ it("compares mixed depths and searches low-bit samples without truncating virtua
         else expect(result).toMatchObject({ exitCode: 1, stderr: "1 (1.5259e-05) @ 0,0 [1.5259e-05]" });
         expect(runCompareCliSync(args, new Map(files))).toEqual(result);
         expect(await runCompareCli(args, { filesystem, cwd: "/" })).toEqual(result);
+    }
+});
+
+it("rejects invalid compare depths without replacing the destination", async () => {
+    for (const value of ["0", "-1", "1.5", "no", "Infinity"]) {
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/diff.pgm", new TextEncoder().encode("KEEP"));
+        const result = await runCompareCli(["-depth", value, "a.pgm", "b.pgm", "diff.pgm"], { filesystem, cwd: "/" });
+        expect(result.exitCode).toBe(2);
+        expect(new TextDecoder().decode(await filesystem.readFile("/diff.pgm"))).toBe("KEEP");
+    }
+    expect(runCompareCliSync(["-depth"], new Map()).exitCode).toBe(2);
+});
+
+it("resets explicit output depth and accepts settings after self-describing inputs", async () => {
+    const input = Uint8Array.from([...new TextEncoder().encode("P5\n1 1\n255\n"), 42]);
+    for (const reset of [false, true]) {
+        const files = new Map([["a.pgm", input]]);
+        const args = ["a.pgm", "a.pgm", "-depth", "16", ...(reset ? ["+depth"] : []), "diff.pgm"];
+        expect((await runCompareCli(args, files)).exitCode).toBe(0);
+        expect(new TextDecoder().decode(files.get("diff.pgm")!.subarray(0, reset ? 11 : 13)))
+            .toBe(`P5\n1 1\n${reset ? 255 : 65535}\n`);
     }
 });

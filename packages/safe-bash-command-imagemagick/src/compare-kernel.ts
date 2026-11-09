@@ -23,6 +23,7 @@ export interface CompareOptions {
     readonly composeSrc: boolean;
     readonly compose?: (reference: Uint8Array, overlay: Uint8Array) => Generator<void, Uint8Array, void>;
     readonly diff: boolean;
+    readonly highDepthDiff?: boolean;
     readonly subimageSearch?: boolean;
     readonly similarityThreshold?: number;
     readonly offset?: { x: number; y: number };
@@ -37,6 +38,7 @@ export type CompareRequest = {
     readonly kind: "write" | "similarity";
     readonly position: number;
     readonly data: Uint8Array;
+    readonly data16?: Uint16Array;
 };
 export interface CompareResult {
     readonly width: number;
@@ -124,6 +126,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                     throw new Error("Truncated comparison pixels");
             }
             const diffData = options.diff ? new Uint8Array(count * 4) : undefined;
+            const data16 = diffData && options.highDepthDiff && !options.compose ? new Uint16Array(count * 4) : undefined;
             const reference = diffData && options.compose ? new Uint8Array(count * 4) : undefined;
             for (let x = left; x < left + count; x++) {
                 const outOff = (x - left) * 4;
@@ -160,6 +163,12 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                     diffData[outOff + 1] = green ? Math.round(color.g * alpha + gA * (1 - alpha)) : color.g;
                     diffData[outOff + 2] = blue ? Math.round(color.b * alpha + bA * (1 - alpha)) : color.b;
                     diffData[outOff + 3] = composeSrc || options.compose ? color.a : 255;
+                    if (data16) {
+                        data16[outOff] = Math.round(257 * (red ? color.r * alpha + rA * (1 - alpha) : color.r));
+                        data16[outOff + 1] = Math.round(257 * (green ? color.g * alpha + gA * (1 - alpha) : color.g));
+                        data16[outOff + 2] = Math.round(257 * (blue ? color.b * alpha + bA * (1 - alpha) : color.b));
+                        data16[outOff + 3] = diffData[outOff + 3]! * 257;
+                    }
                 }
                 if (!included) continue;
                 selectedPixels++;
@@ -229,7 +238,9 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 // written last when applying the highlight/lowlight overlay.
                 if (grayscale) for (let i = 0; i < output.length; i += 4)
                     output[i] = output[i + 1] = output[i + 2]!;
-                yield { kind: "write", position: (y * width + left) * 4, data: output };
+                if (grayscale && data16) for (let i = 0; i < data16.length; i += 4)
+                    data16[i] = data16[i + 1] = data16[i + 2]!;
+                yield { kind: "write", position: (y * width + left) * 4, data: output, ...(data16 ? { data16 } : {}) };
             }
         }
     }

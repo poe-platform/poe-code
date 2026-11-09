@@ -3499,6 +3499,47 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
       }).map((sample, index) => {
         const description = track.codecDescriptions[sample.sampleDescriptionIndex - 1];
         const codec = description?.codecName;
+        if (codec === "webvtt" || codec === "subrip") {
+          const text = decodeUtf8(sample.data);
+          const parts: string[] = [];
+          const styles: string[] = [];
+          const webvtt = outputFormat === "webvtt" || containerCodec === "webvtt";
+          let position = 0;
+          while (position < text.length) {
+            // SubRip's ASS overrides are control text, not visible WebVTT text.
+            if (codec === "subrip" && webvtt && text.startsWith("{\\", position)) {
+              const end = text.indexOf("}", position + 2);
+              position = end < 0 ? text.length : end + 1;
+            } else if (codec === "subrip" && webvtt && text[position] === "\\"
+              && (text[position + 1] === "N" || text[position + 1] === "n")) {
+              parts.push("\n");
+              position += 2;
+            } else if (text[position] === "<") {
+              const end = text.indexOf(">", position + 1);
+              if (end < 0) break;
+              const tag = text.slice(position + 1, end);
+              if (["b", "i", "u"].includes(tag)) {
+                styles.push(tag);
+                parts.push(`<${tag}>`);
+              } else if (["/b", "/i", "/u"].includes(tag)) {
+                const open = styles.lastIndexOf(tag.slice(1));
+                if (open >= 0) {
+                  while (styles.length > open) parts.push(`</${styles.pop()!}>`);
+                }
+              } else if (codec === "subrip" && !webvtt) {
+                parts.push(`<${tag}>`);
+              }
+              position = end + 1;
+            } else {
+              parts.push(text[position]!);
+              position++;
+            }
+          }
+          parts.push(text.slice(position));
+          while (styles.length > 0) parts.push(`</${styles.pop()!}>`);
+          const data = encodeUtf8(parts.join(""));
+          sample = { ...sample, data, size: data.byteLength, webvtt: undefined };
+        }
         if (containerCodec === "ass") {
           // Matroska ASS packets omit timestamps and include a read-order prefix.
           if (codec === "ass" && description?.extraData) return sample;
@@ -3527,33 +3568,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           const data = encodeUtf8(decodeUtf8(sample.data).replaceAll("|", "\n"));
           return { ...sample, data, size: data.byteLength };
         }
-        if (codec !== "webvtt" && (codec !== "subrip" || (outputFormat !== "webvtt" && containerCodec !== "webvtt"))) return { ...sample, webvtt: undefined };
-        const text = decodeUtf8(sample.data);
-        const parts: string[] = [];
-        let position = 0;
-        while (position < text.length) {
-          // SubRip's ASS overrides are control text, not visible WebVTT text.
-          if (codec === "subrip" && text.startsWith("{\\", position)) {
-            const end = text.indexOf("}", position + 2);
-            position = end < 0 ? text.length : end + 1;
-          } else if (codec === "subrip" && text[position] === "\\"
-            && (text[position + 1] === "N" || text[position + 1] === "n")) {
-            parts.push("\n");
-            position += 2;
-          } else if (text[position] === "<") {
-            const end = text.indexOf(">", position + 1);
-            if (end < 0) break;
-            const tag = text.slice(position + 1, end);
-            if (["b", "/b", "i", "/i", "u", "/u"].includes(tag)) parts.push(`<${tag}>`);
-            position = end + 1;
-          } else {
-            parts.push(text[position]!);
-            position++;
-          }
-        }
-        parts.push(text.slice(position));
-        const data = encodeUtf8(parts.join(""));
-        return { ...sample, data, size: data.byteLength, webvtt: undefined };
+        return { ...sample, webvtt: undefined };
       });
       return { ...track, samples, decodeErrors,
         codecDescriptions: containerCodec ? track.codecDescriptions.map(description => ({

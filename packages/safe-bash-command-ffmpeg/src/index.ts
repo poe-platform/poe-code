@@ -1644,7 +1644,34 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             } else channelData[channel]!.set(input.samples.subarray(offset, end), offset);
           }
         }
-        return { track: { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
+        // Preserve decoded input frame boundaries and take the output
+        // timestamp from the first input, including any partially consumed frame.
+        const frames: MediaTrack["samples"][number][] = [];
+        const cursors = sources.map(() => ({ index: 0, start: 0, end: 0, pts: 0 }));
+        for (let start = 0; start < length;) {
+          await yieldTurn(signal);
+          signal?.throwIfAborted();
+          budget.checkCpu();
+          for (const [input, cursor] of cursors.entries()) {
+            const track = sources[input]!.track;
+            while (cursor.end <= start) {
+              const packet = track.samples[cursor.index++];
+              cursor.start = cursor.end;
+              cursor.pts = packet ? Math.round(packet.pts * a.sampleRate / track.timescale)
+                + (packet.skipSamples ?? 0) : cursor.start;
+              cursor.end += packet ? Math.max(0, Math.round(packet.duration * a.sampleRate / track.timescale)
+                - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+              budget.checkCpu();
+            }
+          }
+          const end = Math.min(length, ...cursors.map(cursor => cursor.end));
+          const pts = cursors[0]!.pts + start - cursors[0]!.start;
+          budget.allocateMemory(96);
+          frames.push({ data: new Uint8Array(0), size: 0, pts, dts: pts, cts: 0,
+            duration: end - start, isKeyframe: true, sampleDescriptionIndex: 1 });
+          start = end;
+        }
+        return { track: { ...first, timescale: a.sampleRate, duration: length, samples: frames, editList: undefined,
           decodedAudio: { ...a, channels: channelData.length, channelMask, channelData } },
           expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
@@ -10974,7 +11001,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const packet = t.samples[n];
                             const count = packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                             const end = Math.min(length, start + count);
-                            audioTimestamps.push({ start, end, pts: audioStartSample + start });
+                            audioTimestamps.push({ start, end,
+                              pts: packet ? packet.pts * origRate / t.timescale : audioStartSample + start });
                             start = end;
                           }
                         }

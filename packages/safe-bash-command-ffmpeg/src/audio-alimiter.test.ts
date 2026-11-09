@@ -39,7 +39,8 @@ for (const [filter, length, scales, indices, expected] of [
   }
 });
 
-for (const filter of ["alimiter=limit=0", "alimiter=limit=1.1", "alimiter=attack=0", "alimiter=attack=81", "alimiter=attack=0.1", "alimiter=release=0", "alimiter=release=8001", "alimiter=level_in=0", "alimiter=level_out=65", "alimiter=limit=NaN", "alimiter=limit=", "alimiter=latency=2", "alimiter=asc=1", "alimiter=unknown=1"]) {
+for (const filter of ["alimiter=limit=0", "alimiter=limit=1.1", "alimiter=attack=0", "alimiter=attack=81", "alimiter=attack=0.1", "alimiter=release=0", "alimiter=release=8001", "alimiter=level_in=0", "alimiter=level_out=65", "alimiter=limit=NaN", "alimiter=limit=", "alimiter=latency=2", "alimiter=asc=1", "alimiter=unknown=1",
+  ...["asc", "level", "latency"].flatMap(key => ["1.0", "0x1", "0.0", "0x0", "1e0", ""].map(value => `alimiter=${key}=${value}`))]) {
   it(`${filter} fails without replacing output`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
     fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));
@@ -51,4 +52,23 @@ for (const filter of ["alimiter=limit=0", "alimiter=limit=1.1", "alimiter=attack
     assert.equal(result.exitCode, 1);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
   });
+}
+
+for (const [token, value] of [["TrUe", "1"], ["YeS", "1"], ["ON", "1"], ["FaLsE", "0"], ["No", "0"], ["OFF", "0"]]) {
+  for (const key of ["latency", "level", ...(value === "0" ? ["asc"] : [])]) {
+    it(`alimiter ${key}=${token} produces the same PCM as ${value}`, async () => {
+      const fs = Volume.fromJSON({});
+      fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [Float64Array.from({ length: 3087 }, (_, i) => Math.sin(i / 8) * 0.5)] }));
+      for (const option of [value, token]) {
+        const result = await createFfmpegCommand().execute({
+          args: ["-y", "-i", "/in.wav", "-af", `alimiter=limit=0.25:${key}=${option}`, "-f", "s16le", `/${option}.pcm`],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
+          stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }
+        } as never);
+        assert.equal(result.exitCode, 0);
+      }
+      assert.deepEqual(fs.readFileSync(`/${token}.pcm`), fs.readFileSync(`/${value}.pcm`));
+    });
+  }
 }

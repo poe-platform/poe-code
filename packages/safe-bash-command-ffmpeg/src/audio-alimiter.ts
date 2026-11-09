@@ -14,10 +14,11 @@ export async function limitAudio(
     if (!key || !Object.hasOwn(options, key)) throw new Error(`alimiter: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const boolean = key === "asc" || key === "level" || key === "latency";
-    const number = boolean && ["true", "yes", "on"].includes(value) ? 1
-      : boolean && ["false", "no", "off"].includes(value) ? 0 : Number(value);
+    const number = !boolean ? Number(value)
+      : ["1", "true", "yes", "on"].includes(value.toLowerCase()) ? 1
+      : ["0", "false", "no", "off"].includes(value.toLowerCase()) ? 0 : NaN;
     const [min, max] = ranges[key];
-    if (!value || !Number.isFinite(number) || number < min! || number > max! || (boolean && !Number.isInteger(number))) {
+    if (!value || !Number.isFinite(number) || number < min! || number > max!) {
       throw new Error(`alimiter: invalid or unsupported ${key}`);
     }
     options[key] = number;

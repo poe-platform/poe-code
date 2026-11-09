@@ -1,27 +1,44 @@
 import { BitReader, BitWriter, concatBytes } from "../binary.js";
-import { type MediaAstPlugin, type MediaTrack } from "../types.js";
+import { MediaBudgetTracker, type MediaAstPlugin, type MediaTrack } from "../types.js";
+import { isLoas, parseLoas } from "./loas.js";
+import { buildProbeResultFromDoc } from "../mp4.js";
 
 export function latmAst(): MediaAstPlugin {
   return {
-    id: "latm", formatName: "latm", formatLongName: "LOAS/LATM",
+    id: "latm", formatName: "loas,latm", formatLongName: "LOAS/LATM",
     extensions: ["latm", "loas"], mimeTypes: ["audio/MP4A-LATM"],
-    canDemux: false, canMux: true,
-    supportedVideoCodecs: [], supportedAudioCodecs: ["aac"],
-    detect() { return false; },
-    parse() { throw new Error("LOAS/LATM input is not supported"); },
-    probe() { throw new Error("LOAS/LATM input is not supported"); },
-    serialize(doc) {
+    canDemux: true, canMux: true,
+    supportedVideoCodecs: [], supportedAudioCodecs: ["aac", "aac_latm"],
+    detect: bytes => isLoas(bytes),
+    parse: parseLoas,
+    probe(bytes, options) {
+      const doc = parseLoas(bytes, { ...options, decodeAudio: false });
+      const result = buildProbeResultFromDoc(doc, bytes.length,
+        options?.filename ?? "input.latm", { ...options, formatName: "loas", formatLongName: "LOAS AudioSyncStream" });
+      return { ...result,
+        packetData: new Map(doc.tracks[0]!.samples.map(sample => [`${sample.offset}:${sample.size}`, sample.data])),
+        streams: result.streams.map(stream => ({ ...stream, codec_long_name: "AAC LATM (Advanced Audio Coding LATM syntax)" })),
+        frames: result.frames?.map(frame => ({ ...frame, nb_samples: 1024,
+          duration: frame.pkt_duration!, duration_time: frame.pkt_duration_time! })) };
+    },
+    serialize(doc, options = {}) {
       const track = doc.tracks[0];
       if (doc.tracks.length !== 1 || track?.type !== "audio") {
         throw new Error("LATM requires exactly one AAC audio stream");
       }
-      return concatBytes(serializeLatmPackets(track));
+      const packets = serializeLatmPackets(track);
+      const budget = options.budget ?? new MediaBudgetTracker(options.limits);
+      const size = packets.reduce((total, packet) => total + packet.length, 0);
+      budget.checkOutputBytes(size);
+      budget.allocateMemory(size);
+      return concatBytes(packets);
     }
   };
 }
 
 export function serializeLatmPackets(track: MediaTrack): Uint8Array[] {
   const codec = track.codecDescriptions[0];
+  if (codec?.codecName === "aac_latm") return track.samples.map(sample => sample.data);
   const asc = codec?.esds?.decoderSpecificInfo;
   if (codec?.codecName !== "aac" || !asc || asc.length < 2) {
     throw new Error("LATM requires AAC AudioSpecificConfig");

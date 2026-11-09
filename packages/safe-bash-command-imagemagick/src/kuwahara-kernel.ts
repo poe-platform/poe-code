@@ -1,10 +1,12 @@
+import type { LookupInterpolation } from "./sequence-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 /** Native Kuwahara: rank-three blur, minimum luma variance, quadrant-center interpolation. */
-export function* kuwaharaPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* kuwaharaPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, interpolation: LookupInterpolation = "bilinear"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    if (interpolation === "mesh") throw new Error("Unsupported Kuwahara interpolation: mesh");
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
     if (!Number.isFinite(radius) || radius < 0 || radius >= 5000 || !Number.isFinite(sigma)) throw new Error("Kuwahara radius or sigma exceeds limit");
     const quadrant = Math.floor(radius) + 1, mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
@@ -94,17 +96,20 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number }, ge
                 }
                 if (variance < minimum) { minimum = variance; targetX = left; targetY = top; }
             }
-            const cx = targetX + quadrant / 2, cy = targetY + quadrant / 2, fx = cx - Math.floor(cx), fy = cy - Math.floor(cy);
-            const sums = [0, 0, 0, 0];
-            for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
-                const weight = (dx ? fx : 1 - fx) * (dy ? fy : 1 - fy);
+            const cx = targetX + quadrant / 2, cy = targetY + quadrant / 2;
+            const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
+            const left = Math.floor(cx + (nearest ? 0.5 : 0)), top = Math.floor(cy + (nearest ? 0.5 : 0));
+            const fx = cx - left, fy = cy - top, sums = [0, 0, 0, 0];
+            for (let dy = 0; dy < (single ? 1 : 2); dy++) for (let dx = 0; dx < (single ? 1 : 2); dx++) {
+                const weight = single ? 1 : interpolation === "average" ? 0.25 : (dx ? fx : 1 - fx) * (dy ? fy : 1 - fy);
                 if (weight === 0) continue;
-                const pixel = yield* sample(Math.floor(cx) + dx, Math.floor(cy) + dy, 2), alpha = pixel[3]! / 65535;
-                // Unselected channels have CopyPixelTrait, without alpha blending.
-                for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * (mask && !mask[c] ? 1 : alpha) * weight;
+                const pixel = yield* sample(left + dx, top + dy, 2), alpha = pixel[3]! / 65535;
+                const colorWeight = single ? 1 : interpolation === "average" ? Number(alpha > 0) : alpha;
+                for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * (mask && !mask[c] ? 1 : colorWeight) * weight;
                 sums[3]! += alpha * weight;
             }
-            for (let c = 0; c < 4; c++) data[i * 4 + c] = Math.max(0, Math.min(255, Math.round(c === 3 ? sums[3]! * 255 : mask && !mask[c] ? sums[c]! / 257 : sums[3]! > 0 ? sums[c]! / sums[3]! / 257 : 0)));
+            if (interpolation === "bilinear") for (let c = 0; c < 3; c++) if (!mask || mask[c]) sums[c] = sums[3]! > 0 ? sums[c]! / sums[3]! : 0;
+            for (let c = 0; c < 4; c++) data[i * 4 + c] = Math.max(0, Math.min(255, Math.round(c === 3 ? sums[3]! * 255 : sums[c]! / 257)));
         }
         yield { kind: "write", position: start * 4, data };
     }

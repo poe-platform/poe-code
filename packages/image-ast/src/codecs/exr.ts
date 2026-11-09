@@ -10,7 +10,7 @@ export function isExrBytes(bytes: Uint8Array): boolean {
     return bytes[0] === 0x76 && bytes[1] === 0x2f && bytes[2] === 0x31 && bytes[3] === 1;
 }
 
-export function* exrHeader(size: number): Reads<{ metadata: ImageMetadata; channels: Channel[]; compression: number; minY: number; offset: number }> {
+export function* exrHeader(size: number): Reads<{ metadata: ImageMetadata & { magickColorspace?: "RGB" }; channels: Channel[]; compression: number; minY: number; offset: number }> {
     let offset = 0;
     function* read(length: number): Reads<Uint8Array> {
         if (length < 0 || offset + length > size) throw new Error("Truncated EXR header");
@@ -66,7 +66,8 @@ export function* exrHeader(size: number): Reads<{ metadata: ImageMetadata; chann
     const width = window[2]! - window[0]! + 1, height = window[3]! - window[1]! + 1;
     if (width <= 0 || height <= 0 || !Number.isSafeInteger(width * height * 16)) throw new Error("Invalid EXR dimensions");
     const hasAlpha = channels.some(channel => channel.name === "A");
-    const metadata: ImageMetadata = { format: "exr", width, height, channels: rgb ? (hasAlpha ? 4 : 3) : (hasAlpha ? 2 : 1), space: rgb ? "srgb" : "b-w", depth: "float", bitsPerSample: channels.some(channel => channel.type !== 1) ? 32 : 16, hasAlpha, density: 72, size };
+    // EXR RGB samples are linear; leave them unchanged until an explicit conversion.
+    const metadata: ImageMetadata & { magickColorspace?: "RGB" } = { format: "exr", width, height, channels: rgb ? (hasAlpha ? 4 : 3) : (hasAlpha ? 2 : 1), space: rgb ? "srgb" : "b-w", ...(rgb ? { magickColorspace: "RGB", gamma: 1 } : {}), depth: "float", bitsPerSample: channels.some(channel => channel.type !== 1) ? 32 : 16, hasAlpha, density: 72, size };
     return { metadata, channels, compression, minY: window[1]!, offset };
 }
 

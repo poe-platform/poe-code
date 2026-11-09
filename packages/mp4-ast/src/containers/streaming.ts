@@ -616,7 +616,17 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     '<Period id="0" start="PT0S">'
   ];
   for (const adaptation of adaptations) {
-    lines.push(`<AdaptationSet id="${adaptation.id}" ${adaptationAttributes[adaptation.indices[0]!]}>`);
+    let dimensions = "";
+    if (doc.tracks[adaptation.indices[0]!]!.type === "video") {
+      let maxWidth = 0;
+      let maxHeight = 0;
+      for (const index of adaptation.indices) {
+        maxWidth = Math.max(maxWidth, doc.tracks[index]!.width ?? 0);
+        maxHeight = Math.max(maxHeight, doc.tracks[index]!.height ?? 0);
+      }
+      dimensions = ` maxWidth="${maxWidth}" maxHeight="${maxHeight}"`;
+    }
+    lines.push(`<AdaptationSet id="${adaptation.id}" ${adaptationAttributes[adaptation.indices[0]!]}${dimensions}>`);
     for (const index of adaptation.indices) lines.push(...representations[index]!);
     lines.push('</AdaptationSet>');
   }

@@ -19,8 +19,34 @@ for (const [sarWidth, sarHeight, sar, par] of [
       const sets = new TextDecoder().decode(manifest).split("<AdaptationSet").slice(1);
       assert.ok(sets[0]!.split(">")[0]!.includes(`frameRate="${frameRate}"`), sets[0]);
       assert.ok(sets[0]!.split(">")[0]!.includes(`par="${par}"`), sets[0]);
+      assert.ok(sets[0]!.split(">")[0]!.includes('maxWidth="32" maxHeight="24"'), sets[0]);
       assert.ok(sets[0]!.split("<Representation")[1]!.split(">")[0]!.includes(`sar="${sar}"`), sets[0]);
-      for (const attribute of ["frameRate=", "par=", "sar="]) assert.ok(!sets[1]!.includes(attribute));
+      for (const attribute of ["frameRate=", "par=", "sar=", "maxWidth=", "maxHeight="]) assert.ok(!sets[1]!.includes(attribute));
     });
   }
 }
+
+it("derives DASH dimension bounds independently for each adaptation set", () => {
+  const base = parseMp4(createSyntheticMp4({ width: 64, height: 48, fps: 8, frameCount: 8, includeAudio: true }));
+  const video = base.tracks.find(track => track.type === "video")!;
+  const audio = base.tracks.find(track => track.type === "audio")!;
+  const source = { ...base, tracks: [
+    video,
+    { ...video, id: 3, width: 32, height: 96 },
+    { ...video, id: 4, width: 128, height: 24 },
+    audio
+  ] };
+  for (const [adaptationSets, bounds] of [
+    [undefined, [[64, 48], [32, 96], [128, 24]]],
+    ["id=0,streams=0,1 id=1,streams=2 id=2,streams=a", [[64, 96], [128, 24]]],
+    ["id=0,streams=v id=1,streams=a", [[128, 96]]]
+  ] as const) {
+    const { manifest } = serializeDashDocument(source, { adaptationSets });
+    const sets = new TextDecoder().decode(manifest).split("<AdaptationSet").slice(1);
+    for (const [index, [width, height]] of bounds.entries()) {
+      assert.ok(sets[index]!.split(">")[0]!.includes(`maxWidth="${width}" maxHeight="${height}"`), sets[index]);
+    }
+    assert.ok(!sets.at(-1)!.includes("maxWidth="));
+    assert.ok(!sets.at(-1)!.includes("maxHeight="));
+  }
+});

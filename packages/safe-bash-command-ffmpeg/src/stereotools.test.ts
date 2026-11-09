@@ -46,7 +46,7 @@ for (const [expression, expected] of [
   ["mode=unknown", undefined],
   ["mode=LR>LR", undefined],
   ["MUTEL=True", undefined],
-  ["delay=1", undefined]
+  ["delay=1", [left, [0, 0, 0, 0]]]
 ] as const) {
   for (const complex of [false, true]) {
     it(`applies stereotools (${complex ? "graph" : "simple"}): ${expression}`, async () => {

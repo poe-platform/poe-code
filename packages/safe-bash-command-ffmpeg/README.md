@@ -327,7 +327,11 @@ The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
 Input and output gains (`level_in`, `level_out`) default to 1, range from 0.015625
 to 64, and apply before and after channel processing. For example,
 `stereotools=level_in=2:level_out=0.5` preserves the original levels without
-clipping the intermediate signal. Other stereotools options are rejected.
+clipping the intermediate signal. Signed `delay` accepts -20 to 20 (default 0):
+positive values delay the right channel, negative values delay the left, with
+silence at the start and no change in output length. Native FFmpeg's rounding
+applies: `delay=1` shifts four stereo frames at 8 kHz.
+Other stereotools options are rejected.
 Both filters accept case-insensitive Boolean
 words (`true`/`false`, `yes`/`no`, `on`/`off`, `y`/`n`, `enable`/`disable`,
 `enabled`/`disabled`) and decimal 0/1 values, such as `phasel=True` or `c=OFF`.

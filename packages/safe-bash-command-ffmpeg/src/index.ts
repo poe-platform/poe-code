@@ -9487,6 +9487,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (stretched.length !== 2) throw new Error("stereotools: stereo input required");
                         const modes = ["lr>lr", "lr>ms", "ms>lr", "lr>ll", "lr>rr", "lr>l+r", "lr>rl", "ms>ll", "ms>rr", "ms>rl", "lr>l-r"];
                         let mode = 0;
+                        let delay = 0;
                         const flags = { mutel: false, muter: false, phasel: false, phaser: false };
                         const levels = { level_in: 1, level_out: 1 };
                         const argument = trimmed.slice("stereotools=".length);
@@ -9500,6 +9501,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error(`stereotools: ${key} must be in the range [0.015625, 64]`);
                             }
                             levels[key] = level;
+                          } else if (key === "delay") {
+                            delay = parseFilterExpression(value, "stereotools", {});
+                            if (!Number.isFinite(delay) || delay < -20 || delay > 20) {
+                              throw new Error("stereotools: delay must be in the range [-20, 20]");
+                            }
                           } else if (key === "mode") {
                             mode = modes.indexOf(value);
                             if (mode < 0 && value !== "") mode = Number(value);
@@ -9514,6 +9520,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         const left = new Float32Array(stretched[0]!.length);
                         const right = new Float32Array(left.length);
+                        // Native FFmpeg rounds the interleaved delay down to an even sample count.
+                        const delayFrames = Math.floor(origRate * (Math.abs(delay) / 1000) / 2);
+                        const leftDelay = delay < 0 ? delayFrames : 0;
+                        const rightDelay = delay > 0 ? delayFrames : 0;
                         for (let i = 0; i < left.length; i++) {
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           const l = stretched[0]![i]! * levels.level_in;
@@ -9532,8 +9542,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             case 9: outputLeft = l - r; outputRight = l + r; break;
                             case 10: outputLeft = outputRight = (l - r) / 2; break;
                           }
-                          left[i] = flags.mutel ? 0 : outputLeft * (flags.phasel ? -1 : 1) * levels.level_out;
-                          right[i] = flags.muter ? 0 : outputRight * (flags.phaser ? -1 : 1) * levels.level_out;
+                          if (i + leftDelay < left.length) {
+                            left[i + leftDelay] = flags.mutel ? 0 : outputLeft * (flags.phasel ? -1 : 1) * levels.level_out;
+                          }
+                          if (i + rightDelay < right.length) {
+                            right[i + rightDelay] = flags.muter ? 0 : outputRight * (flags.phaser ? -1 : 1) * levels.level_out;
+                          }
                         }
                         stretched = [left, right];
                       } else if (trimmed.startsWith("channelmap=")) {

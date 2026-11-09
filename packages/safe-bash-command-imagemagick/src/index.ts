@@ -6316,7 +6316,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     else if (token === "-alpha") {
         const mode = (tokens[++i] ?? "on").toLowerCase();
         if (mode === "transparent" || mode === "opaque") maskAlpha = mode;
-        highDepth = ["discrete", "deactivate", "associate", "disassociate", "off", "opaque", "activate", "on", "set", "extract"].includes(mode);
+        highDepth = ["discrete", "deactivate", "associate", "disassociate", "off", "opaque", "transparent", "activate", "on", "set", "extract"].includes(mode);
         if (mode === "offifopaque") {
             highDepth = true;
             apply = function* (im) {
@@ -6393,7 +6393,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 return { ...im, data: out };
             };
         }
-        else if (mode === "off" || mode === "opaque") {
+        else if (mode === "off" || mode === "opaque" || mode === "transparent") {
             apply = function* (im) {
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);
@@ -6401,22 +6401,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 for (let idx = 3; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
-                    out[idx] = mode === "off" ? 0 : 255;
-                    if (data16) data16[idx] = mode === "off" ? 0 : 65535;
+                    out[idx] = mode === "opaque" ? 255 : 0;
+                    if (data16) data16[idx] = mode === "opaque" ? 65535 : 0;
                 }
-                return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: mode === "opaque", alphaBlend: mode === "opaque" };
-            };
-        }
-        else if (mode === "transparent") {
-            apply = function* (im) {
-                let pixelWork = 0;
-                const out = new Uint8Array(im.data);
-                for (let idx = 3; idx < out.length; idx += 4) {
-                    if (++pixelWork % 16384 === 0)
-                        yield;
-                    out[idx] = 0;
-                }
-                return { ...im, data: out, hasAlpha: true, alphaBlend: true };
+                return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: mode !== "off", alphaBlend: mode !== "off" };
             };
         }
         else if (mode === "copy" || mode === "shape") {
@@ -7182,7 +7170,7 @@ function* prepareInactiveAlphaOutput(image: RgbaImage): Generator<void, RgbaImag
 
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Generator<void, RgbaImage, void> {
     // Forced RGBA PNG coders enable blending, resetting copy-only alpha to opaque.
-    if ((pngCoder === "png32" || pngCoder === "png64") && image.alphaBlend === false) image = yield* ensureAlphaImageSteps({ ...image, hasAlpha: false }, 1);
+    if ((pngCoder === "png32" || pngCoder === "png64") && image.alphaBlend === false) image = { ...yield* prepareInactiveAlphaOutput({ ...image, hasAlpha: false }), hasAlpha: true, channels: 4 };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
     if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
@@ -7199,7 +7187,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
 
 async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Promise<StoredRgbaImage> {
     if ((pngCoder === "png32" || pngCoder === "png64") && image.alphaBlend === false) {
-        image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => ensureAlphaImageSteps({ ...frame, hasAlpha: false }, 1) }, signal);
+        image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: function* (frame) { return { ...yield* prepareInactiveAlphaOutput({ ...frame, hasAlpha: false }), hasAlpha: true, channels: 4 }; } }, signal);
     }
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
     if (format === "gif" && !image.isPalette && dither) image = { ...(await transformStoredMagickRaster(image, backend, gifDitherSteps(image, dither, diffusionAmount), signal)), isPalette: true };

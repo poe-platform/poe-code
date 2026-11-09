@@ -7,13 +7,13 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 const pixels = [0, 40, 90, 0, 80, 100, 150, 128, 200, 50, 70, 255];
 
 for (const execution of ["command", "retained", "buffered", "sync"] as const) {
-    async function convert(mode: string, format: string, samples?: number[]) {
+    async function convert(mode: string, format: string, samples?: number[], operators: string[] = []) {
         const data = Uint8Array.from(samples ?? pixels, value => samples ? Math.round(value / 257) : value);
         const input = encodeImage({ width: data.length / 4, height: 1, data,
             ...(samples ? { data16: Uint16Array.from(samples) } : {}),
             format: "png", space: "srgb", channels: 4, depth: samples ? "ushort" : "uchar", density: 72, hasAlpha: true
         }, { format: "png" }).data;
-        const argv = ["in.png", "-background", "#123456", "-alpha", mode, `${format}:out.png`];
+        const argv = ["in.png", "-background", "#123456", "-alpha", mode, ...operators, `${format}:out.png`];
         const files = new Map([["in.png", input]]), fs = new MemoryFileSystem();
         await fs.writeFile("/in.png", input);
         const args = createCommandArguments(argv);
@@ -28,6 +28,15 @@ for (const execution of ["command", "retained", "buffered", "sync"] as const) {
         expect(result.exitCode, stderr).toBe(0);
         return decodeImage(execution === "command" || execution === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
     }
+
+    it.each(["off", "opaque", "transparent"])(`${execution}: alpha %s preserves distinct 16-bit RGB`, async mode => {
+        const samples = [10000, 20000, 30000, 12345, 10000, 20000, 30001, 23456, 60000, 65000, 64000, 65535];
+        const expected = samples.map((sample, index) => index % 4 === 3 ? mode === "transparent" ? 0 : 65535 : sample);
+        expect([...(await convert(mode, "PNG64", samples)).data16!]).toEqual(expected);
+        const palette = await convert(mode, "PNG64", samples, ["-unique-colors"]);
+        expect(palette.width).toBe(3);
+        expect([...palette.data16!]).toEqual(expected);
+    });
 
     // Decoded samples from native ImageMagick 7.1.2-35 Q16-HDRI.
     it.each([

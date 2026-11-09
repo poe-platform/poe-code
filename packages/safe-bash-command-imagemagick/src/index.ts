@@ -55,6 +55,7 @@ import { bilateralBlurPixelSteps } from "./bilateral-blur-kernel.js";
 import { kuwaharaPixelSteps } from "./kuwahara-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { magickFramePixels, montageShadowPixels } from "./montage-frame.js";
+import { borderPixels } from "./border.js";
 import { adaptiveResizePixelSteps, morphPixelSteps, pointResizePixelSteps, resizePixelSteps, type MagickResizeKernel as ResizeKernel, type ResizeFilterSettings } from "./resize-kernel.js";
 import { trimGeometrySteps, trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
@@ -7227,7 +7228,7 @@ if (t === "-seed") {
             state.matteColor = parseColor(tokens[++i] ?? "#bdbdbd");
         }
         else if (t === "-bordercolor") {
-            state.borderColor = parseColor(tokens[++i] ?? "#dfdfdf");
+            state.borderColor = parseColor(tokens[++i] ?? "#dfdfdf", true);
         }
         else if (t === "-pointsize") {
             state.pointsize = Math.max(1, Number(tokens[++i] ?? 12));
@@ -8326,10 +8327,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 const bw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
                 const bh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
-                const canvas = yield* createSolidRgbaImageSteps(im.width + bw * 2, im.height + bh * 2, state.borderColor);
-                let composed = canvas;
-                if (state.composeRaw.toLowerCase() === "over") yield* blitOverRgbaInPlaceSteps(canvas, im, bw, bh);
-                else composed = yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, bw, bh, state.composeArgs, signal, state.alphaFuzz, true);
+                const width = im.width + bw * 2, height = im.height + bh * 2;
+                if (state.composeRaw.toLowerCase() === "over") {
+                    return { ...yield* applyMagickRasterSteps(im, borderPixels(im, bw, bh, state.borderColor, !!im.data16), signal,
+                        { width, height, hasAlpha: true }), virtualCanvas: magickBorderCanvas(im, bw, bh) };
+                }
+                const canvas = yield* createSolidRgbaImageSteps(width, height, state.borderColor);
+                const composed = yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, bw, bh, state.composeArgs, signal, state.alphaFuzz, true);
                 return { ...composed, virtualCanvas: magickBorderCanvas(im, bw, bh) };
             }));
         }
@@ -10609,7 +10613,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const left = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? 0));
                 const top = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? left));
-                const canvas = await createStoredCanvas(image.width + left * 2, image.height + top * 2, background, backend, signal);
+                const width = image.width + left * 2, height = image.height + top * 2;
+                if (compose.toLowerCase() === "over") {
+                    return { ...await transformStoredMagickRaster(image, backend, borderPixels(image, left, top, background, !!image.storedData16), signal,
+                        { width, height, hasAlpha: true }), virtualCanvas: magickBorderCanvas(image, left, top) };
+                }
+                const canvas = await createStoredCanvas(width, height, background, backend, signal);
                 return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, compose, composeArgs, false, true, false, false, fuzz, true),
                     virtualCanvas: magickBorderCanvas(image, left, top) };
             });

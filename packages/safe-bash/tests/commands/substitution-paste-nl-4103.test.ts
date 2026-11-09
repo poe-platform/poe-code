@@ -31,6 +31,27 @@ for (const [operands, expected] of [
   }
 }
 
+for (const [locale, hex] of [
+  ["LC_ALL=C", "61c362a9630a"],
+  ["LC_ALL=POSIX", "61c362a9630a"],
+  ["LC_ALL=C.UTF-8", "61c3a962c3a9630a"],
+  ["LC_ALL=C LC_CTYPE=C.UTF-8 LANG=C.UTF-8", "61c362a9630a"],
+  ["LC_ALL= LC_CTYPE=C LANG=C.UTF-8", "61c362a9630a"],
+  ["LC_ALL= LC_CTYPE= LANG=C", "61c362a9630a"],
+  ["LC_ALL= LC_CTYPE=C.UTF-8 LANG=C", "61c3a962c3a9630a"],
+] as const) {
+  for (const command of ["paste -sd 'é' /input", "paste -d 'é' - - - < /input", "cat /input | paste --serial --delimiters='é' -"]) {
+    for (const capture of [false, true]) {
+      test(`paste delimiter bytes: ${locale}, ${command}, capture=${capture}`, async () => {
+        const result = await shell().exec(`export ${locale}; printf 'a\\nb\\nc\\n' > /input; ${capture ? `x=$(${command}); printf '%s\\n' "$x"` : command}`);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.deepEqual(result.stdoutBytes, new Uint8Array(Buffer.from(hex, "hex")));
+      });
+    }
+  }
+}
+
 for (const [command, expected] of [
   ["paste -", "from-stdin\n"],
   ["paste /f1 -", "alpha\tfrom-stdin\n"],

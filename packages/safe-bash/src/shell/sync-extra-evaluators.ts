@@ -23501,6 +23501,8 @@ const syncExtraRuntimeMethods = {
     let literal = false;
     const files: string[] = [];
     const parseDelims = (s: string): string[] | undefined => {
+      // Non-ASCII delimiters need locale-aware byte output from the command.
+      if (Array.from(s).some(character => character.codePointAt(0)! > 127)) return undefined;
       if (s.length === 0) return [""];
       const res: string[] = [];
       const chars = Array.from(s);

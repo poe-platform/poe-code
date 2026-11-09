@@ -241,7 +241,7 @@ test("join projection handles varying fields, folded keys and already emitted ou
 for (const [list, expected] of [["│", "a│b│c│d\n"], ["😀│", "a😀b│c😀d\n"], ["│\\t\\0\\\\", "a│b\tcd\\e│f\n"], ["\\😀", "a😀b😀c😀d\n"]] as const) {
   test(`paste preserves Unicode delimiter list ${list}`, async () => {
     const input = list.includes("0") ? "a\nb\nc\nd\ne\nf\n" : "a\nb\nc\nd\n";
-    const result = await runTable(fixture("paste", ["-s", "-d", list, "-"], {}, input));
+    const result = await runTable(fixture("paste", ["-s", "-d", list, "-"], {}, input), {}, { env: { LC_ALL: "C.UTF-8" } });
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdoutHex, Buffer.from(expected).toString("hex"));
   });

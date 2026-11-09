@@ -2,7 +2,7 @@ import { FsError, type CommandDefinition } from "safe-bash-contracts";
 import { diagnostic } from "safe-bash-io-engine/internal";
 import { argument, command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
-function delimiters(text: string): readonly Uint8Array[] {
+function delimiters(text: string, locale: string): readonly Uint8Array[] {
   const characters = Array.from(text), result: Uint8Array[] = [];
   const escapes: Record<string, string> = { b: "\b", f: "\f", n: "\n", r: "\r", t: "\t", v: "\v" };
   for (let offset = 0; offset < characters.length; offset++) {
@@ -13,7 +13,10 @@ function delimiters(text: string): readonly Uint8Array[] {
       if (escaped === "0") { result.push(empty); continue; }
       character = escapes[escaped] ?? escaped;
     }
-    result.push(encode(character));
+    const bytes = encode(character);
+    if (locale === "C" || locale === "POSIX") {
+      for (const byte of bytes) result.push(Uint8Array.of(byte));
+    } else result.push(bytes);
   }
   return result.length ? result : [empty];
 }
@@ -22,6 +25,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
   const limits = settings(options);
   return command("paste", limits, async (context, budget) => {
     const files: string[] = [];
+    const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
     let serial = false, separator = 10, list = [Uint8Array.of(9)] as readonly Uint8Array[], literal = false;
     for (let index = 0; index < context.args.length; index++) {
       const token = context.args[index]!;
@@ -32,7 +36,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
       if (token === "--delimiters" || token.startsWith("--delimiters=")) {
         let value: string;
         [value, index] = argument(context.args, index, token.includes("=") ? token.slice(13) : undefined, token);
-        list = delimiters(value); continue;
+        list = delimiters(value, locale); continue;
       }
       if (token.startsWith("--")) fail(`unsupported option ${token}`);
       for (let offset = 1; offset < token.length; offset++) {
@@ -42,7 +46,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         else if (flag === "d") {
           let value: string;
           [value, index] = argument(context.args, index, token.slice(offset + 1) || undefined, "-d");
-          list = delimiters(value); break;
+          list = delimiters(value, locale); break;
         } else fail(`unsupported option -${flag}`);
       }
     }

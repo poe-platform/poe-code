@@ -41,7 +41,7 @@ export const dateCases: readonly DateCase[] = [
   { name: "IANA New York winter", args: ["-d@1704067200", "+%F %T %z %Z"], env: { TZ: "America/New_York" }, stdout: "2023-12-31 19:00:00 -0500 EST\n" },
   { name: "IANA New York summer", args: ["-d@1719792000", "+%F %T %z %Z"], env: { TZ: ":America/New_York" }, stdout: "2024-06-30 20:00:00 -0400 EDT\n" },
   { name: "IANA wall time", args: ["-d2024-02-29T12:34:56", "+%s %F %T %z"], env: { TZ: "America/New_York" }, stdout: "1709228096 2024-02-29 12:34:56 -0500\n" },
-  { name: "IANA half hour", args: ["-d@0", "+%F %T %z"], env: { TZ: "Asia/Kolkata" }, stdout: "1970-01-01 05:30:00 +0530\n" },
+  { name: "IANA half hour", args: ["-d@0", "+%F %T %z %Z"], env: { TZ: "Asia/Kolkata" }, stdout: "1970-01-01 05:30:00 +0530 IST\n" },
   { name: "IANA quarter hour", args: ["-d@1704067200", "+%F %T %z"], env: { TZ: "Asia/Kathmandu" }, stdout: "2024-01-01 05:45:00 +0545\n" },
   { name: "UTC overrides invalid virtual TZ", args: ["-u", "-d@0", "+%Z %z"], env: { TZ: "not/a/zone" }, stdout: "UTC +0000\n" },
   { name: "numeric default widths", args: ["-d@0", "+%5s|%4q|%4u|%4w"], stdout: "00000|0001|0004|0004\n" },

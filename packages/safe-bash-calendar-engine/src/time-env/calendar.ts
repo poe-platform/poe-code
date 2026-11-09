@@ -94,6 +94,8 @@ export class TimeZone {
           this.formatter = new Intl.DateTimeFormat("en-US-u-ca-gregory-nu-latn", { timeZone: name,
             year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
             era: "short", hourCycle: "h23", timeZoneName: "short" });
+          const canonicalName = this.formatter.resolvedOptions().timeZone;
+          if (canonicalName === "Asia/Calcutta" || canonicalName === "Asia/Kolkata") this.label = "IST";
         } catch { throw new CommandFailure(`unsupported virtual TZ: ${input}`); }
       }
     }
@@ -118,7 +120,8 @@ export class TimeZone {
       fields = { year: parts.era === "BC" ? 1 - year : year, month: Number(parts.month), day: Number(parts.day),
         hour: Number(parts.hour), minute: Number(parts.minute), second: Number(parts.second) };
       offset = (utcMilliseconds(fields) - milliseconds) / 1000;
-      zone = parts.timeZoneName!;
+      // ICU's English label is GMT+5:30; native strftime uses IST for Indian standard time.
+      zone = this.label === "IST" && offset === 19800 ? this.label : parts.timeZoneName!;
     }
     checkCalendar(fields, restrictYear);
     return { ...fields, offset, zone };

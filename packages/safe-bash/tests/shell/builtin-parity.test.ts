@@ -49,6 +49,10 @@ caller; printf 'global=%s\n' "$v"
   ["aliases", "shopt -s expand_aliases\nalias ll='echo aliased'\nll\nunalias ll\nalias ll", "aliased\n"],
   ["caller", "outer() { inner; }\ninner() { caller; caller 0; }\nouter", "1 shell\n1 outer shell\n"],
   ["printf time", "TZ=UTC printf '%(%Y-%m-%d)T\\n' 1700000000", "2023-11-14\n"],
+  ["printf Kolkata zone abbreviation", "export LC_ALL=C TZ=Asia/Kolkata; printf '%(%F %T %z %Z)T\\n' 0", "1970-01-01 05:30:00 +0530 IST\n"],
+  ["printf Calcutta zone alias", "export LC_ALL=C TZ=Asia/Calcutta; printf '%(%F %T %z %Z)T\\n' 0", "1970-01-01 05:30:00 +0530 IST\n"],
+  ["printf UTC zone abbreviation", "export LC_ALL=C TZ=UTC0; printf '%(%F %T %z %Z)T\\n' 0", "1970-01-01 00:00:00 +0000 UTC\n"],
+  ["printf New York zone abbreviation", "export LC_ALL=C TZ=America/New_York; printf '%(%F %T %z %Z)T\\n' 0", "1969-12-31 19:00:00 -0500 EST\n"],
   ["printf strftime dialect", "TZ=UTC printf '%(%Q|%N|%q|%P|%:z|%v|%+)T\\n' 0", "Q|N|q|P|:z| 1-Jan-1970|Thu Jan  1 00:00:00 UTC 1970\n"],
 ] as const) {
   test(`default shell ${name}`, async () => {

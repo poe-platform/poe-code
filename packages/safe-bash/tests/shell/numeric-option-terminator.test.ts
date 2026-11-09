@@ -22,7 +22,7 @@ for (const [name, source, stdout, exitCode, stderr] of [
   ["shift repeated terminator", 'set -- first second; shift -- --; printf "%s:%s:%s\\n" "$?" "$#" "$1"', "2:2:first\n", 0, "shift: --: numeric argument required\n"],
   ["exit extra operands", 'exit -- 0 1; printf "%s\\n" "$?"', "", 1, "exit: too many arguments\n"],
   ["return extra operands", 'f() { return -- 0 1; printf "BODY:%s\\n" "$?"; }; f', "", 1, "return: too many arguments\n"],
-  ["shift extra operands", 'set -- first second; shift -- 0 1; printf "%s:%s:%s\\n" "$?" "$#" "$1"', "1:2:first\n", 0, ""],
+  ["shift extra operands", 'set -- first second; shift -- 0 1; printf "%s:%s:%s\\n" "$?" "$#" "$1"', "", 1, "shift: too many arguments\n"],
   ["exit later terminator", 'exit 0 --; printf "%s\\n" "$?"', "", 1, "exit: too many arguments\n"],
 ] as const) {
   test(`numeric option terminator: ${name}`, async context => {

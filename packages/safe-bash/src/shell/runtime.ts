@@ -8611,7 +8611,10 @@ export class Runtime {
         return 2;
       }
       const count = Number(value);
-      if (args.length - offset > 1) return 1;
+      if (args.length - offset > 1) {
+        await writeDiagnostic(stderr, "shift: too many arguments\n");
+        throw completedExit(1);
+      }
       if (count < 0) {
         await writeDiagnostic(stderr, `shift: ${operand}: shift count out of range\n`);
         return 1;

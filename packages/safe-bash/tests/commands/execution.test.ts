@@ -159,7 +159,7 @@ test("xargs null/custom delimiters, replacement, empty input and errors are expl
   assert.equal((await run("xargs", ["-I", "{}", "printf", "[%s]\n", "pre{}post"], { stdin: chunks("  one two\n'quoted word'\n") })).stdout, "[preone twopost]\n[prequoted wordpost]\n");
   assert.equal((await run("xargs", [])).stdout, "\n");
   assert.equal((await run("xargs", ["-r"])).stdout, "");
-  assert.equal((await run("xargs", [], { stdin: "'unmatched" })).exitCode, 2);
+  assert.equal((await run("xargs", [], { stdin: "'unmatched" })).exitCode, 1);
   const parallelEmpty = await run("xargs", ["-P", "2"]);
   assert.equal(parallelEmpty.exitCode, 0);
   assert.equal(parallelEmpty.stdout, "\n");

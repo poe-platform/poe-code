@@ -6612,7 +6612,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
-            const samples = data16 ?? out, scale = data16 ? 257 : 1;
+            const evaluateSamples = im.evaluateSamples?.slice() ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
             const span = white === black ? 1e-6 : white - black;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
@@ -6622,7 +6622,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         yield;
                     if (!mask[c])
                         continue;
-                    const v = samples[idx + c]! / scale;
+                    const v = evaluateSamples[idx + c]!;
                     let value: number;
                     if (inverse) {
                         const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), gamma);
@@ -6632,11 +6632,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         const norm = Math.max(0, Math.min(1, (v - black) / span));
                         value = Math.pow(norm, 1 / gamma) * 255;
                     }
-                    samples[idx + c] = Math.max(0, Math.min(255 * scale, Math.round(value * scale)));
-                    if (data16) out[idx + c] = clampByteVal(data16[idx + c]! / 257);
+                    evaluateSamples[idx + c] = Math.fround(value * 257) / 257;
+                    out[idx + c] = clampByteVal(value);
+                    if (data16) data16[idx + c] = Math.max(0, Math.min(65535, Math.round(value * 257)));
                 }
             }
-            return { ...im, data: out, ...(data16 ? { data16 } : {}) };
+            return { ...im, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
         };
     }
     else if (token === "-black-threshold" || token === "-white-threshold") {
@@ -6679,7 +6680,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, ...(warning ? { warning } : {}), evaluate: token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, ...(warning ? { warning } : {}), evaluate: token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelSelections(expression: string): number[][] {
@@ -11026,6 +11027,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let verbose = false;
     let regardWarnings = false;
     let compose = "over";
+    const levelSteps: (number | "(" | ")" | "option" | MagickPixelOperation)[] = [];
+    const operandLevels: MagickPixelOperation[][] = [];
     let readMask: RgbaImage | StoredRgbaImage | undefined;
     type Rotation = { rotation: string; settings: MagickState };
     type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number };
@@ -11048,6 +11051,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
+        if (t === "(" || t === ")") levelSteps.push(t);
+        else if (t.startsWith("-") || t.startsWith("+")) levelSteps.push("option");
         if (t.startsWith("-") || t.startsWith("+")) resizeSteps.push("option");
         if ((t.startsWith("-") || t.startsWith("+")) && t.length > 1) pending = operands.length > 0;
         // An option after an input ends the leading operator group.
@@ -11128,6 +11133,17 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 channels: { r: channels?.includes(0) ?? true, g: channels?.includes(1) ?? true,
                     b: channels?.includes(2) ?? true, a: channels?.includes(3) ?? true }
             }, i, signal)!);
+        }
+        else if (t === "-level" || t === "+level") {
+            if (argv[i + 1] === undefined) return { exitCode: 2, stdout: "", stderr: `compare: missing an argument for option '${t}'\n` };
+            try {
+                const operation = parseMagickPixelOperation(argv, { ...state, channelExplicit: channels !== undefined,
+                    channels: { r: channels?.includes(0) ?? true, g: channels?.includes(1) ?? true,
+                        b: channels?.includes(2) ?? true, a: channels?.includes(3) ?? true }
+                }, i, signal)!;
+                levelSteps.push(operation);
+                i = operation.end;
+            } catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
         }
         else if (t === "-precision") {
             const value = argv[++i];
@@ -11315,6 +11331,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             resizeSteps.push(operands.length);
             if (pending) operationFlushes.set(operands.length, [...pixelOperations]);
             pending = false;
+            levelSteps.push(operands.length);
+            operandLevels.push([]);
             operands.push({ token: t, extract });
             operandSettings.push({ ...state });
             operandResizes.push([]);
@@ -11379,6 +11397,33 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
     if (scopeStarts.length !== 1) return { exitCode: 2, stdout: "", stderr: "compare: unbalanced parenthesis\n" };
     flushResizes(true);
+    // Like native compare, replay pending levels before reading another input
+    // and at scope completion; parentheses flush and advance the operator range.
+    const levelScopes = [0];
+    let levelInputs = 0, levelPending = false;
+    let pendingLevels: MagickPixelOperation[] = [];
+    const flushLevels = (advance: boolean) => {
+        const start = levelScopes[levelScopes.length - 1]!;
+        if (start === levelInputs) return;
+        for (let index = start; index < levelInputs; index++) operandLevels[index]!.push(...pendingLevels);
+        if (advance) pendingLevels = [];
+        levelPending = false;
+    };
+    for (const step of levelSteps) {
+        if (typeof step === "number") {
+            if (step === operands.length - 1) continue;
+            if (levelPending) flushLevels(false);
+            levelInputs++;
+        } else if (step === "option") levelPending = levelInputs > levelScopes[levelScopes.length - 1]!;
+        else if (step === "(") {
+            if (levelPending) flushLevels(true);
+            levelScopes.push(levelInputs);
+        } else if (step === ")") {
+            flushLevels(true);
+            levelScopes.pop();
+        } else pendingLevels.push(step);
+    }
+    flushLevels(true);
     const refSpec = operands[0]!.token;
     const outSpec = operands[operands.length - 1]!.token;
     const images: RgbaImage[] = [];
@@ -11494,6 +11539,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if (backend) yield { async run() {
                 await parseStoredCompareInput(operand, operandSettings[operandIndex]!, backend, signal!, { ...(extract === undefined ? {} : { extract }), visit: async image => {
                     found = true;
+                    for (const operation of operandLevels[operandIndex]!) image = await transformStoredMagickPixels(image, backend, operation, signal!);
                     for (const geometry of resizes) {
                         const options = magickResizeOptions(image, geometry, state.kernel);
                         if (options) image = await resizeStoredMagickImage(image, backend, options, signal!, false, false, false, state.resizeFilter, undefined, true);
@@ -11506,6 +11552,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 const images = yield* parseInputOperandsSteps(operand, files, operandSettings[operandIndex]!, stdinBytes, undefined, extract);
                 found = Boolean(images?.length);
                 for (let image of images ?? []) {
+                    for (const operation of operandLevels[operandIndex]!) image = yield* operation.apply(image);
                     for (const geometry of resizes) image = yield* applyMagickResizeSteps(image, geometry, state.kernel, false, false, false, state.resizeFilter, undefined, true);
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
                     yield* acceptImage(image, operations);

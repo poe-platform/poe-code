@@ -2037,7 +2037,7 @@ function parseMagickBorderGeometry(raw: string): MagickGeometry {
 
 function parseMagickRollGeometry(raw: string): MagickGeometry {
     raw = raw.replaceAll(" ", "");
-    const normalized = normalizeMagickHexOffsets(raw.replaceAll("#", ""));
+    let normalized = normalizeMagickHexOffsets(raw.replaceAll("#", ""));
     // Native roll consumes at most two offsets; comma/colon ends the offset list.
     let offsets = 0;
     let end = normalized.length;
@@ -2046,6 +2046,12 @@ function parseMagickRollGeometry(raw: string): MagickGeometry {
         if ((char === "+" || char === "-") && normalized[i - 1]?.toLowerCase() !== "e") {
             offsets++;
             if (offsets > 2) { end = i; break; }
+            const next = normalized[i + 1];
+            if (next === "+" || next === "-") {
+                // The geometry sign multiplies the sign of the numeric offset.
+                normalized = normalized.slice(0, i) + (char === next ? "+" : "-") + normalized.slice(i + 2);
+                end = normalized.length;
+            }
         } else if (offsets > 0 && (char === "," || char === ":")) {
             end = i;
             break;

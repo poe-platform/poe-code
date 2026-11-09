@@ -13,7 +13,7 @@ export async function limitAudio(
   frames: readonly { start: number; end: number; pts: number }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }]
 ): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number }[] }> {
   const options = { level_in: 1, level_out: 1, limit: 1, attack: 5, release: 50, asc: 0, asc_level: 0.5, level: 1, latency: 0 };
-  const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], limit: [0.0625, 1], attack: [0.1, 80], release: [1, 8000], asc: [0, 0], asc_level: [0, 1], level: [0, 1], latency: [0, 1] };
+  const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], limit: [0.0625, 1], attack: [0.1, 80], release: [1, 8000], asc: [0, 1], asc_level: [0, 1], level: [0, 1], latency: [0, 1] };
   const names = Object.keys(options) as (keyof typeof options)[];
   let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
@@ -65,6 +65,9 @@ export async function limitAudio(
   const slopes = new Float64Array(Math.max(2, queueSize));
   const releaseSamples = sampleRate * options.release / 1000;
   const gain = outputGain * (options.level ? 1 / limit : 1);
+  const ascCoefficient = Math.pow(0.5, options.asc_level - 0.5) * -2;
+  let ascSum = 0;
+  let ascCount = 0;
   let attenuation = 1;
   let slope = 0;
   let head = 0;
@@ -102,6 +105,10 @@ export async function limitAudio(
         peak = Math.max(peak, Math.abs(sample));
       }
       peaks[slot] = peak;
+      if (options.asc && peak > limit) {
+        ascSum += peak;
+        ascCount++;
+      }
       if (peak > limit) {
         const target = limit / peak;
         const releaseSlope = (1 - target) / releaseSamples;
@@ -138,6 +145,10 @@ export async function limitAudio(
         }
       }
       const oldest = (slot + 1) % window;
+      if (options.asc && peaks[oldest]! > limit) {
+        ascSum -= peaks[oldest]!;
+        ascCount--;
+      }
       attenuation += slope;
       if (trim > 0) trim--;
       else {
@@ -148,8 +159,26 @@ export async function limitAudio(
         destination++;
       }
       if (oldest * channels.length === positions[head]) {
-        slope = slopes[head]!;
-        attenuation = limit / peaks[oldest]!;
+        if (options.asc) {
+          // ASC continues the current attenuation instead of resetting it to the peak.
+          slope = (1 - attenuation) / releaseSamples;
+          if (ascCount > 0) {
+            const target = limit / (ascCoefficient * ascSum) * ascCount;
+            if (target > attenuation) {
+              slope = Math.min(slope, Math.max((target - attenuation) / releaseSamples, slope / 10));
+            }
+          }
+          if (count > 1) {
+            const next = positions[(head + 1) % queueSize]!;
+            const distance = ((queueSize + next - oldest * channels.length) % queueSize) / channels.length;
+            const nextPeak = next < 0 ? 0 : peaks[next / channels.length]!;
+            const nextSlope = (limit / nextPeak - attenuation) / distance;
+            if (nextSlope < slope) slope = nextSlope;
+          }
+        } else {
+          slope = slopes[head]!;
+          attenuation = limit / peaks[oldest]!;
+        }
         count--;
         positions[head] = -1;
         head = (head + 1) % queueSize;

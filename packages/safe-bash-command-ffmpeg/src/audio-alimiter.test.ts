@@ -63,7 +63,7 @@ for (const [filter, length, scales, indices, expected] of [
   }
 });
 
-for (const filter of ["alimiter=limit=0", "alimiter=limit=1.1", "alimiter=attack=0", "alimiter=attack=81", "alimiter=release=0", "alimiter=release=8001", "alimiter=level_in=0", "alimiter=level_out=65", "alimiter=limit=NaN", "alimiter=limit=", "alimiter=latency=2", "alimiter=asc=1", "alimiter=unknown=1",
+for (const filter of ["alimiter=limit=0", "alimiter=limit=1.1", "alimiter=attack=0", "alimiter=attack=81", "alimiter=release=0", "alimiter=release=8001", "alimiter=level_in=0", "alimiter=level_out=65", "alimiter=limit=NaN", "alimiter=limit=", "alimiter=latency=2", "alimiter=asc=2", "alimiter=unknown=1",
   ...["asc", "level", "latency"].flatMap(key => ["1.0", "0x1", "0.0", "0x0", "1e0", ""].map(value => `alimiter=${key}=${value}`))]) {
   it(`${filter} fails without replacing output`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
@@ -79,7 +79,7 @@ for (const filter of ["alimiter=limit=0", "alimiter=limit=1.1", "alimiter=attack
 }
 
 for (const [token, value] of [["TrUe", "1"], ["YeS", "1"], ["ON", "1"], ["FaLsE", "0"], ["No", "0"], ["OFF", "0"]]) {
-  for (const key of ["latency", "level", ...(value === "0" ? ["asc"] : [])]) {
+  for (const key of ["latency", "level", "asc"]) {
     it(`alimiter ${key}=${token} produces the same PCM as ${value}`, async () => {
       const fs = Volume.fromJSON({});
       fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [Float64Array.from({ length: 3087 }, (_, i) => Math.sin(i / 8) * 0.5)] }));

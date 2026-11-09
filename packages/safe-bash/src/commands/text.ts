@@ -263,6 +263,24 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
             const onlyDelimited = parsed.flags.has("s");
             const fastSingleByteField = mode === "f" && separator.length === 1;
             const sepByte = separator[0]!;
+            const matchingDelimiters = fastSingleByteField && sepByte === recordDelimiter;
+            let field = 0;
+            let fieldCursor = 0;
+            let emittedField = false;
+            const processMatchingField = async (bytes: Uint8Array, terminated: boolean) => {
+              const checkpoint = work.charge(bytes.length + 1);
+              if (checkpoint) await checkpoint;
+              field++;
+              while (fieldCursor < ranges.length && field > ranges[fieldCursor]!.end) fieldCursor++;
+              const included = fieldCursor < ranges.length && field >= ranges[fieldCursor]!.start;
+              // An unterminated first field has no delimiter, so -s alone decides
+              // whether to pass it through, regardless of the field selection.
+              if (field === 1 && !terminated ? !onlyDelimited : included !== complement) {
+                if (emittedField) await writer.write(outputDelimiterBytes);
+                await writer.write(bytes);
+                emittedField = true;
+              }
+            };
             const outDelimLen = outputDelimiterBytes.length;
             const processFastFieldRangeSlow = async (buf: Uint8Array, lineStart: number, lineEnd: number) => {
               context.signal.throwIfAborted();
@@ -472,7 +490,9 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
                 while (start < chunk.length) {
                   const offset = chunk.indexOf(recordDelimiter, start);
                   if (offset < 0) break;
-                  if (fastSingleByteField && pending.size === 0 && offset - start <= 4096) {
+                  if (matchingDelimiters) {
+                    await processMatchingField(pending.finish(undefined, chunk, start, offset), true);
+                  } else if (fastSingleByteField && pending.size === 0 && offset - start <= 4096) {
                     const p = processFastFieldRange(chunk, start, offset);
                     if (p) await p;
                   } else if (canFastSliceCut && pending.size === 0 && offset - start <= 4096) {
@@ -491,12 +511,17 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
               }
               if (pending.size) {
                 const finalBytes = pending.finish();
-                if (fastSingleByteField && finalBytes.length <= 4096) {
+                if (matchingDelimiters) {
+                  await processMatchingField(finalBytes, false);
+                } else if (fastSingleByteField && finalBytes.length <= 4096) {
                   const p = processFastFieldRange(finalBytes, 0, finalBytes.length);
                   if (p) await p;
                 } else {
                   await processLineBytes(finalBytes);
                 }
+              }
+              if (matchingDelimiters && field > 0 && (!onlyDelimited || emittedField || field > 1)) {
+                await writer.writeByte(recordDelimiter);
               }
             } finally {
               pending.clear();
@@ -917,7 +942,7 @@ export function textCommands(): CommandDefinition[] {
             }
           }
         }
-        if (canFast && (targetField >= 1 || (fieldMask !== 0 && typeof (context.stdin as { tryReadAllSync?: unknown }).tryReadAllSync === "function"))) {
+        if (canFast && sepByte !== 10 && (targetField >= 1 || (fieldMask !== 0 && typeof (context.stdin as { tryReadAllSync?: unknown }).tryReadAllSync === "function"))) {
           const req = assertInputRequirements(context, operand !== undefined ? [operand] : EMPTY_OPERANDS);
           // Process each single-field chunk before requesting the next one so read
           // failures cannot discard completed records or bypass iterator cleanup.

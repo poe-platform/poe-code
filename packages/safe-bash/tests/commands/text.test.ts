@@ -445,6 +445,68 @@ test("cut supports overlapping/open ranges, complement, literal fields and UTF-8
   assert.equal((await run("cut", ["-f", "0"])).exitCode, 2);
 });
 
+test("cut selects fields across matching record and field delimiters", async () => {
+  for (const delimiter of ["\n", "\0"]) {
+    const args = [...(delimiter === "\0" ? ["-z"] : []), "-d", delimiter === "\0" ? "" : delimiter];
+    for (const terminated of [false, true]) {
+      const stdin = ["alpha", "beta", "gamma"].join(delimiter) + (terminated ? delimiter : "");
+      const cases: [string[], string][] = [
+        [["-f2"], `beta${delimiter}`],
+        [["-f2", "-s"], `beta${delimiter}`],
+        [["-f1,3"], `alpha${delimiter}gamma${delimiter}`],
+        [["-f2-"], `beta${delimiter}gamma${delimiter}`],
+        [["-f2", "--complement"], `alpha${delimiter}gamma${delimiter}`],
+        [["-f1,3", "--output-delimiter=|"], `alpha|gamma${delimiter}`],
+        [["-f2", "--complement", "-s", "--output-delimiter=|"], `alpha|gamma${delimiter}`],
+        [["-f4", "-s"], delimiter],
+      ];
+      for (const [selection, expected] of cases) {
+        for (const source of [stdin, chunks(stdin)]) {
+          const result = await run("cut", [...args, ...selection], { stdin: source });
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, expected, JSON.stringify({ delimiter, terminated, selection }));
+        }
+      }
+    }
+  }
+});
+
+test("cut matching delimiters preserve empty fields, EOF and per-file selection", async () => {
+  for (const delimiter of ["\n", "\0"]) {
+    const args = [...(delimiter === "\0" ? ["-z"] : []), "-d", delimiter === "\0" ? "" : delimiter];
+    const cases: [string, string[], string][] = [
+      ["", ["-f2"], ""],
+      ["plain", ["-f2"], `plain${delimiter}`],
+      ["plain", ["-f1", "-s"], ""],
+      [`alpha${delimiter}`, ["-f2"], delimiter],
+      [`alpha${delimiter}`, ["-f2", "-s"], ""],
+      [`alpha${delimiter}`, ["-f1", "-s"], `alpha${delimiter}`],
+      [`alpha${delimiter}`, ["-f1", "--complement", "-s"], ""],
+      [`alpha${delimiter}${delimiter}gamma${delimiter}`, ["-f2,3", "--output-delimiter=|"], `|gamma${delimiter}`],
+      [delimiter.repeat(2), ["-f1-", "--output-delimiter=|"], `|${delimiter}`],
+    ];
+    for (const [stdin, selection, expected] of cases) {
+      const result = await run("cut", [...args, ...selection], { stdin: chunks(stdin) });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected, JSON.stringify({ delimiter, stdin, selection }));
+    }
+    const fs = await fixture({ first: `a${delimiter}b${delimiter}`, second: `c${delimiter}d` });
+    const result = await run("cut", [...args, "-f2", "first", "second"], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, `b${delimiter}d${delimiter}`);
+  }
+});
+
+test("cut keeps distinct field and record delimiters independent", async () => {
+  for (const [record, delimiter] of [["\n", "\0"], ["\0", "\n"], ["\n", ":"], ["\0", ":"]]) {
+    const args = [...(record === "\0" ? ["-z"] : []), "-d", delimiter === "\0" ? "" : delimiter!, "-f2"];
+    const stdin = `a${delimiter}b${record}plain${record}c${delimiter}d${record}`;
+    assert.equal((await run("cut", args, { stdin: chunks(stdin) })).stdout, `b${record}plain${record}d${record}`);
+    assert.equal((await run("cut", [...args, "-s"], { stdin: chunks(stdin) })).stdout, `b${record}d${record}`);
+  }
+});
+
 test("cut character selection preserves raw bytes in C and POSIX locales", async () => {
   const stdin = Uint8Array.of(255, 10, 195, 169, 10);
   for (const env of [{ LC_ALL: "C" }, { LC_ALL: "POSIX" }, { LC_CTYPE: "C" }, { LANG: "C" }, { LC_ALL: "", LC_CTYPE: "", LANG: "POSIX" }]) {
@@ -590,11 +652,11 @@ test("cut preabort preserves false/null reasons without reading or writing", asy
 });
 
 test("cut bounds output writes and awaits backpressure in every mode", async testContext => {
-  for (const mode of ["b", "c", "f"]) {
-    await testContext.test(mode, async () => {
-      const stdin = "x".repeat(70 * 1024) + (mode === "f" ? ",tail\n" : "\n");
+  for (const [mode, delimiter] of [["b", ""], ["c", ""], ["f", ","], ["f", "\n"]] as const) {
+    await testContext.test(JSON.stringify({ mode, delimiter }), async () => {
+      const stdin = "x".repeat(70 * 1024) + (mode === "f" ? `${delimiter}tail\n` : "\n");
       const expected = "x".repeat(70 * 1024) + "\n";
-      const probe = cutProbe([`-${mode}`, mode === "f" ? "1" : "1-", ...(mode === "f" ? ["-d", ","] : [])], toByteSource(stdin), new AbortController().signal, await fixture());
+      const probe = cutProbe([`-${mode}`, mode === "f" ? "1" : "1-", ...(mode === "f" ? ["-d", delimiter] : [])], toByteSource(stdin), new AbortController().signal, await fixture());
       let writing = false;
       let writes = 0;
       probe.context.stdout.write = async bytes => {
@@ -618,12 +680,12 @@ test("cut bounds output writes and awaits backpressure in every mode", async tes
 });
 
 test("cut stops after an awaited output write receives queued false/null cancellation", async testContext => {
-  for (const mode of ["b", "c", "f"]) {
+  for (const [mode, delimiter] of [["b", ""], ["c", ""], ["f", ","], ["f", "\n"]] as const) {
     for (const reason of [false, null]) {
-      await testContext.test(`${mode}, reason ${reason}`, async () => {
+      await testContext.test(JSON.stringify({ mode, delimiter, reason }), async () => {
         const controller = new AbortController();
-        const stdin = "x".repeat(70 * 1024) + (mode === "f" ? ",tail\n" : "\n");
-        const probe = cutProbe([`-${mode}`, mode === "f" ? "1" : "1-", ...(mode === "f" ? ["-d", ","] : [])], toByteSource(stdin), controller.signal, await fixture());
+        const stdin = "x".repeat(70 * 1024) + (mode === "f" ? `${delimiter}tail\n` : "\n");
+        const probe = cutProbe([`-${mode}`, mode === "f" ? "1" : "1-", ...(mode === "f" ? ["-d", delimiter] : [])], toByteSource(stdin), controller.signal, await fixture());
         probe.context.stdout.write = async bytes => {
           probe.stdout.push(new Uint8Array(bytes));
           scheduleTurn(() => controller.abort(reason));

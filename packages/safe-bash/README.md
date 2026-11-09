@@ -932,7 +932,7 @@ and credential protections remain in effect.
   background jobs/job control, `exec`,
   associative arrays, or C-style `for ((…))` loops. `shopt` supports `checkhash`, `dotglob`,
   `globskipdots`, `globstar`, `nullglob`, `nocaseglob`, `nocasematch`, `lastpipe`, `failglob`,
-  `inherit_errexit`, `expand_aliases`, `varredir_close`, and `xpg_echo`, plus `-o` for supported
+  `inherit_errexit`, `expand_aliases`, `sourcepath`, `varredir_close`, and `xpg_echo`, plus `-o` for supported
   `set` options. Readonly `SHELLOPTS` and `BASHOPTS` list enabled supported options,
   separated by colons; environment values do not enable startup options.
   `shopt -s extglob` enables extended patterns, including parameter trimming.
@@ -943,6 +943,8 @@ and credential protections remain in effect.
   options before parsing command strings, stdin, or virtual script files.
   `checkhash` defaults off: a removed cached executable fails with status 127.
   `shopt -s checkhash` searches `PATH` again when a cached executable is no longer usable.
+  `sourcepath` defaults on: `source` and `.` search `PATH` for names without a slash.
+  `shopt -u sourcepath` loads those names from the current directory instead; explicit paths are unchanged.
   `shopt -s xpg_echo` enables backslash escapes in builtin `echo`; `echo -E` disables them for that call.
   Process substitutions use temporary files in virtual `TMPDIR` (default `/tmp`),
   requiring a writable temporary directory. They buffer data rather than running

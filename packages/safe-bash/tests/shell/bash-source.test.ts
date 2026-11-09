@@ -6,6 +6,63 @@ import { standardCommands } from "../../src/commands/index.js";
 import { Shell } from "../../src/shell/index.js";
 
 for (const middleware of [false, true]) {
+  for (const builtin of ["source", "."]) {
+    test(`${builtin} honors sourcepath without changing explicit paths, middleware=${middleware}`, async t => {
+      const fs = new MemoryFileSystem();
+      await fs.mkdir("/work/one", { recursive: true });
+      await fs.mkdir("/work/two");
+      for (const [path, value] of [["helper", "cwd"], ["one/helper", "one"], ["two/helper", "two"]]) {
+        await fs.writeFile(`/work/${path}`, new TextEncoder().encode(`value=${value}:$1`), { mode: 0o644 });
+      }
+      const shell = new Shell({ fs }).use(standardCommands());
+      t.after(() => shell.dispose());
+      if (middleware) shell.use((_context, next) => next());
+      const result = await shell.exec(`
+        cd /work; PATH=one:two; set -- caller
+        shopt -q sourcepath; echo default=$?
+        ${builtin} helper arg; echo "$value"
+        shopt -u sourcepath; echo disabled=$?
+        shopt -q sourcepath; echo query=$?
+        shopt -p sourcepath
+        ${builtin} helper arg; echo "$value"
+        ${builtin} ./helper arg; echo "$value"
+        ${builtin} /work/two/helper arg; echo "$value"
+        shopt -s sourcepath
+        ${builtin} helper arg; echo "$value"
+        ${builtin} ./helper arg; echo "$value:$1"
+      `);
+      assert.equal(result.stdout, "default=0\none:arg\ndisabled=0\nquery=1\nshopt -u sourcepath\ncwd:arg\ncwd:arg\ntwo:arg\none:arg\ncwd:arg:caller\n");
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    });
+  }
+
+  test(`sourcepath survives snapshots and subshell changes stay isolated, middleware=${middleware}`, async t => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/one");
+    await fs.writeFile("/helper", new TextEncoder().encode("echo cwd"));
+    await fs.writeFile("/one/helper", new TextEncoder().encode("echo path"));
+    const shell = new Shell({ fs }).use(standardCommands());
+    t.after(() => shell.dispose());
+    if (middleware) shell.use((_context, next) => next());
+    const initial = await shell.exec(":", { onState() {} });
+    assert.equal(initial.state?.options?.sourcepath, true);
+    const disabled = await shell.exec("export PATH=/one; shopt -u sourcepath", { onState() {} });
+    assert.equal(disabled.exitCode, 0, disabled.stderr);
+    assert.equal(disabled.state?.options?.sourcepath, false);
+    const restored = await shell.exec(`
+      (shopt -s sourcepath; . helper)
+      . helper
+      bash -c '. helper'
+      bash +O sourcepath -c '. helper'
+      bash -O sourcepath -c '. helper'
+      . helper
+    `, { state: disabled.state });
+    assert.equal(restored.stdout, "path\ncwd\npath\ncwd\npath\ncwd\n");
+    assert.equal(restored.stderr, "");
+    assert.equal(restored.exitCode, 0);
+  });
+
   for (const [inner, outerArgs, innerArgs, outerValue, callerValue] of [
     ["set -- inner", "", "", "inner", "inner"],
     ["set -- inner", "", " temp", "inner", "inner"],

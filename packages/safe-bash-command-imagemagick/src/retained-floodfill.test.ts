@@ -62,7 +62,7 @@ it("preserves original floodfill pixel vectors", async () => {
         { side: "left", color: [18, 52, 86, 128] },
         { side: "all", color: [0, 0, 0, 0] },
         { side: "left", color: [0, 0, 255, 255] },
-        { side: "right", color: [0, 128, 0, 255] },
+        undefined,
         undefined,
         { side: "left", color: [0, 0, 255, 255] },
         { side: "all", color: [16, 32, 48, 64] }

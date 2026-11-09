@@ -909,8 +909,9 @@ function* applyMagickFloodfillSteps(
     const g = parseMagickGeometry(geomStr);
   const w = img.width;
   const h = img.height;
-  const sx = Math.max(0, Math.min(w - 1, Math.round(g.x || g.width || 0)));
-  const sy = Math.max(0, Math.min(h - 1, Math.round(g.y || g.height || 0)));
+  const sx = Math.round(g.x || g.width || 0);
+  const sy = Math.round(g.y || g.height || 0);
+  if (sx < 0 || sy < 0 || sx >= w || sy >= h) return img;
   const out = new Uint8Array(img.data);
   const seedOff = (sy * w + sx) * 4;
   const refR = targetColor ? targetColor.r : out[seedOff]!;
@@ -4797,7 +4798,8 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
                 svgElements.length = 0;
             }
-            yield { kind: "floodfill", x: Math.max(0, Math.min(img.width - 1, Math.round(x))), y: Math.max(0, Math.min(img.height - 1, Math.round(y))), color: fillColor, alphaOnly: cmd === "alpha" };
+            if (Math.round(x) < 0 || Math.round(y) < 0 || Math.round(x) >= img.width || Math.round(y) >= img.height) throw new Error(`${cmd} floodfill seed is outside the image`);
+            yield { kind: "floodfill", x: Math.round(x), y: Math.round(y), color: fillColor, alphaOnly: cmd === "alpha" };
         }
         else if (cmd === "rectangle") {
             const x0 = num();
@@ -9867,8 +9869,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const x = Math.max(0, Math.min(image.width - 1, Math.round(geometry.x || geometry.width || 0)));
-                const y = Math.max(0, Math.min(image.height - 1, Math.round(geometry.y || geometry.height || 0)));
+                const x = Math.round(geometry.x || geometry.width || 0);
+                const y = Math.round(geometry.y || geometry.height || 0);
+                if (x < 0 || y < 0 || x >= image.width || y >= image.height) return image;
                 return floodfillStoredImage(image, backend.storage, x, y, target, replacement, fuzz, signal, false, channels);
             });
         } else if (!operandsOnly && token === "-draw") {

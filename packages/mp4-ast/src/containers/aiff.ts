@@ -24,9 +24,16 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   for (let offset = 12; offset < end;) {
     budget.checkCpu();
     // FORM limits chunk starts; complete chunks may extend beyond its declared size.
-    if (offset + 8 > bytes.length) throw new Error("Truncated AIFF chunk header");
+    if (offset + 8 > bytes.length) {
+      if (channels && sound) break;
+      throw new Error("Truncated AIFF chunk header");
+    }
     const id = text(offset, 4), size = view.getUint32(offset + 4), start = offset + 8;
-    if (id !== "SSND" && start + size + size % 2 > bytes.length) throw new Error("Truncated AIFF chunk");
+    if (id !== "SSND" && start + size + size % 2 > bytes.length) {
+      // A damaged unknown trailer does not invalidate audio already read.
+      if (channels && sound && !["COMM", "NAME", "AUTH", "(c) ", "ANNO"].includes(id)) break;
+      throw new Error("Truncated AIFF chunk");
+    }
     if (id === "COMM") {
       if (size < (compressed ? 22 : 18)) throw new Error("Invalid AIFF COMM chunk");
       if (compressed) {

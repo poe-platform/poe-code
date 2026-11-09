@@ -2618,7 +2618,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   for (const rawLine of lines) {
     const line = rawLine.trim();
     if (!line || line.startsWith(";") || line.startsWith("#")) continue;
-    if (line.toUpperCase() === "[CHAPTER]") {
+    if (line === "[CHAPTER]") {
       flushChapter();
       section = "chapter";
       tbNum = 1;
@@ -2630,7 +2630,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       chapterHeader = "timebase";
       continue;
     }
-    if (line.startsWith("[")) {
+    if (line === "[STREAM]") {
       flushChapter();
       section = "other";
       continue;

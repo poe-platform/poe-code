@@ -7111,6 +7111,13 @@ function magickResampleGeometry(image: ImageMetadata, value: string): string {
     return `${Math.max(1, Math.round(image.width * x / sourceX))}x${Math.max(1, Math.round(image.height * y / sourceY))}!`;
 }
 
+function updateMagickProperty(properties: ImageMetadata["properties"], key: string, value?: string): Record<string, string> {
+    const normalized = key.toLowerCase();
+    const updated = Object.fromEntries(Object.entries(properties ?? {}).filter(([name]) => name.toLowerCase() !== normalized));
+    if (value !== undefined) updated[key] = value;
+    return updated;
+}
+
 function applyMagickDensity<T extends ImageMetadata>(image: T, value: string): T {
     const geometry = parseMagickGeometry(value);
     const x = geometry.width ?? 72, y = geometry.height ?? x;
@@ -7674,7 +7681,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                return key.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: { ...image.properties, [key]: expanded } };
+                return key.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, key, expanded) };
             });
             i++;
             continue;
@@ -7683,8 +7690,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const key = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
-                const properties = { ...image.properties };
-                delete properties[key];
+                const properties = updateMagickProperty(image.properties, key);
                 return { ...image, properties };
             });
             i++;
@@ -9313,7 +9319,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                return key.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: { ...image.properties, [key]: expanded } };
+                return key.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, key, expanded) };
             });
             continue;
         }
@@ -9321,8 +9327,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const key = tokens[++i] ?? "";
             steps.push(async image => {
                 if (!image) return;
-                const properties = { ...image.properties };
-                delete properties[key];
+                const properties = updateMagickProperty(image.properties, key);
                 return { ...image, properties };
             });
             continue;

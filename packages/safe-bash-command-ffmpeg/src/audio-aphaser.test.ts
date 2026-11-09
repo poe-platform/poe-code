@@ -33,6 +33,24 @@ for (const [filter, hash, frames = 2048] of [
   }
 }
 
+// Native FFmpeg 9.0.1, unsigned 8-bit mono WAV to signed 16-bit raw PCM.
+for (const [filter, hash] of [
+  ["anull", "08bf20a6df02b84d99d1bc9538cf14bbf377d59ffe2e1ccfcf9551ea0eda1c37"],
+  ["aphaser", "67affb28a1d1f471790db88a20c5c9eaced712e0dd2fd9085138d88fb29cf930"],
+  ["aphaser=out_gain=9", "c8657c597c3a6b81fafa32fc8c703a1713c2cee3162a24edae51ce5fbf1b48e4"]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${filter} negotiates unsigned 8-bit input (${graph ? "graph" : "simple"})`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 12000 }, (_, i) => ((i * 67) % 256 - 128) / 128)
+      ] }, { bitsPerSample: 8 });
+      const { volume, result, stderr } = await run(filter, graph, 12000, input);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.equal(createHash("sha256").update(volume.readFileSync("/out.raw") as Buffer).digest("hex"), hash);
+    });
+  }
+}
+
 for (const filter of ["aphaser=delay=0", "aphaser=delay=6", "aphaser=speed=0", "aphaser=decay=1", "aphaser=in_gain=NaN", "aphaser=type=bad", "aphaser=unknown=1"]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);
@@ -41,17 +59,18 @@ for (const filter of ["aphaser=delay=0", "aphaser=delay=6", "aphaser=speed=0", "
   });
 }
 
-async function run(filter: string, graph = false, frames = 2048) {
+async function run(filter: string, graph = false, frames = 2048, input?: Uint8Array) {
   const channels = [
     Float64Array.from({ length: frames }, (_, i) => ((i * 67) % 14000 - 7000) / 32768),
     Float64Array.from({ length: frames }, (_, i) => (6000 - (i * 53) % 12000) / 32768)
   ];
   const volume = Volume.fromJSON({ "/out.wav": "keep" });
-  volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels }));
+  volume.writeFileSync("/in.wav", input ?? encodeWav({ sampleRate: 8000, channels }));
   let stderr = "";
   const result = await createFfmpegCommand({ limits: { maxDurationSeconds: 3 } }).execute({
     args: ["-y", "-v", "error", "-i", "/in.wav", ...(graph
-      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", "/out.wav"],
+      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le",
+      ...(input ? ["-f", "s16le", "/out.raw"] : ["/out.wav"])],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },

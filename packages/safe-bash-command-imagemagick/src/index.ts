@@ -4286,8 +4286,8 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
     const tiles: RgbaImage[] = [];
     for (const area of magickCropAreas(img, geomStr, gravity)) {
         yield;
+        if (!area && analysis) analysis.warnings += `magick: geometry does not contain image '${geomStr}'\n`;
         if (area === null) {
-            if (analysis) analysis.warnings += `magick: geometry does not contain image '${geomStr}'\n`;
             tiles.push({ ...(yield* createSolidRgbaImageSteps(1, 1, { r: 255, g: 255, b: 255, a: 0 })),
                 ...(img.delay ? { delay: img.delay } : {}),
                 ...((img as MagickImage)[magickInput] ? { [magickInput]: (img as MagickImage)[magickInput] } : {}),
@@ -10511,8 +10511,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const image = (await stack.get(n))! as StoredRgbaImage & StoredMagickImage;
                     for (const area of magickCropAreas(image, geometry, gravity)) {
                         await yieldTurn(signal);
+                        if (!area) analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                         if (area === null) {
-                            analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                             await frames.push({ ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend, signal),
                                 ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
                                 ...(image[magickInput] ? { [magickInput]: image[magickInput] } : {}),

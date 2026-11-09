@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import fixtures from "./colorize-ratio-fixtures.json";
+import fixtures from "./colorize-ratio-fixtures.json" with { type: "json" };
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";

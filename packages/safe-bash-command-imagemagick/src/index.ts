@@ -6977,7 +6977,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 for (let channel = 0; channel < 3; channel++) {
                     const strength = blend[channel]!;
                     if (!mask[channel]) continue;
-                    const sample = Math.max(0, Math.min(quantum, Math.round(samples[idx + channel]! * (1 - strength) + fill[channel]! * (quantum / 255) * strength)));
+                    const sample = Math.max(0, Math.min(quantum, Math.round(samples[idx + channel]! + (fill[channel]! * (quantum / 255) - samples[idx + channel]!) * strength)));
                     if (data16) data16[idx + channel] = sample;
                     out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
                 }

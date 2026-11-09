@@ -1254,6 +1254,39 @@ function parseAmergeInputs(filter: string): number {
   return count;
 }
 
+function parseAstreamselectOptions(filter: string): { count: number; selected: number } {
+  let count = 2;
+  let selected = NaN;
+  const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+    const separator = option.indexOf("=");
+    const key = separator < 0 ? ["inputs", "map"][index] : option.slice(0, separator);
+    const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "inputs") {
+      const value = parseFilterExpression(raw, "astreamselect", {});
+      if (value < 2 || value > 2147483647) throw new Error("astreamselect: inputs out of range");
+      // AVOption integers validate the range before rounding, with ties to even.
+      const lower = Math.floor(value);
+      count = value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
+    } else if (key === "map") {
+      // FFmpeg consumes base-zero strtol prefixes, stopping at a non-integer suffix.
+      const integer = /^[\t\n\v\f\r ]*([+-]?)(0[xX][\da-fA-F]+|0[0-7]*|[1-9]\d*)/;
+      const match = integer.exec(raw);
+      if (!match || integer.test(raw.slice(match[0].length))) {
+        throw new Error("astreamselect: map must select one connected input");
+      }
+      const digits = match[2]!;
+      const radix = digits.toLowerCase().startsWith("0x") ? 16 : digits.startsWith("0") ? 8 : 10;
+      selected = Number.parseInt(digits, radix) * (match[1] === "-" ? -1 : 1);
+    }
+    else throw new Error(`astreamselect: unsupported option ${key}`);
+  }
+  if (!Number.isInteger(selected) || selected < 0 || selected >= count) {
+    throw new Error("astreamselect: map must select one connected input");
+  }
+  return { count, selected };
+}
+
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
 async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, budget: MediaBudgetTracker, signal?: AbortSignal) {
   const nodes = new Map<string, { inputs: string[]; expression: string }>();
@@ -1351,7 +1384,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     for (const input of inputs) if (!nodes.has(input)) usedInputs.add(inputTrack(input));
     const filter = parseFilterChain(expression)[0]!;
     const first = filter.split("=", 1)[0]?.split("@", 1)[0];
-    const inputCount = first === "amerge" ? parseAmergeInputs(filter) : first === "acrossfade" ? 2 : 1;
+    const inputCount = first === "amerge" ? parseAmergeInputs(filter)
+      : first === "astreamselect" ? parseAstreamselectOptions(filter).count : first === "acrossfade" ? 2 : 1;
     if (first === "amerge" && inputs.length > inputCount) {
       throw new Error(`amerge requires ${inputCount} inputs (inputs=${inputCount})`);
     }
@@ -1507,37 +1541,9 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           decodedAudio: { ...a, channelData } }, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "astreamselect" || filters[0]?.startsWith("astreamselect=")) {
-        let count = 2;
-        let selected = NaN;
-        const argument = filters[0].slice("astreamselect=".length);
-        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
-          const separator = option.indexOf("=");
-          const key = separator < 0 ? ["inputs", "map"][index] : option.slice(0, separator);
-          const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
-          if (key === "inputs") {
-            const value = parseFilterExpression(raw, "astreamselect", {});
-            if (value < 2 || value > 2147483647) throw new Error("astreamselect: inputs out of range");
-            // AVOption integers validate the range before rounding, with ties to even.
-            const lower = Math.floor(value);
-            count = value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
-          } else if (key === "map") {
-            // FFmpeg consumes base-zero strtol prefixes, stopping at a non-integer suffix.
-            const integer = /^[\t\n\v\f\r ]*([+-]?)(0[xX][\da-fA-F]+|0[0-7]*|[1-9]\d*)/;
-            const match = integer.exec(raw);
-            if (!match || integer.test(raw.slice(match[0].length))) {
-              throw new Error("astreamselect: map must select one connected input");
-            }
-            const digits = match[2]!;
-            const radix = digits.toLowerCase().startsWith("0x") ? 16 : digits.startsWith("0") ? 8 : 10;
-            selected = Number.parseInt(digits, radix) * (match[1] === "-" ? -1 : 1);
-          }
-          else throw new Error(`astreamselect: unsupported option ${key}`);
-        }
-        if (!Number.isInteger(count) || count < 2 || count !== sources.length) {
+        const { count, selected } = parseAstreamselectOptions(filters[0]);
+        if (count !== sources.length) {
           throw new Error("astreamselect: inputs must match the number of connected inputs (at least two)");
-        }
-        if (!Number.isInteger(selected) || selected < 0 || selected >= count) {
-          throw new Error("astreamselect: map must select one connected input");
         }
         for (const source of sources) {
           if (source.expression && source.expression !== "anull") {

@@ -829,7 +829,10 @@ final packet timestamp, retaining whole selected packets and honoring relative
 input timestamps such as `-itsoffset`.
 Mixed-rate inputs are resampled to the first input’s sample rate before selection,
 preserving resampler frame boundaries and buffering. `inputs` defaults to two;
-`map` must select one input. Map indices follow FFmpeg's integer-prefix parsing: decimal, leading-zero
+`map` must select one input. Missing input labels connect to unused audio streams
+in input order: `[1:a]astreamselect=map=1[out]` selects the first recording,
+while `astreamselect=map=1[out]` selects the second.
+Map indices follow FFmpeg's integer-prefix parsing: decimal, leading-zero
 octal, and `0x` hexadecimal, with an optional sign. Suffixes stop parsing, so
 `1foo` and `1.5` select input 1, while `0b1` and `0.5` select input 0.
 Single-input filters on each branch run before selection, for example

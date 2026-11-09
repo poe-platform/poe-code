@@ -23,14 +23,21 @@ export function* probeJsonSteps(value: unknown, compact: boolean, depth: number)
       if (item !== undefined && typeof item !== 'function' && typeof item !== 'symbol') yield [key, item];
     }
   }
-  yield array ? '[' : '{';
+  yield array ? (compact ? '[\n' : '[') : (compact ? '{ ' : '{');
   let first = true;
   for (const [key, item] of entries()) {
-    yield (first ? '' : ',') + (compact ? '' : '\n' + '  '.repeat(depth + 1)); first = false;
-    if (!array) yield JSON.stringify(key) + (compact ? ':' : ': ');
+    if (compact) {
+      // Native JSON keeps scalar fields inline, but starts child sections on new lines.
+      const section = item !== null && typeof item === 'object' && !isProbeText(item);
+      yield (first ? '' : array || section ? ',\n' : ', ') +
+        (array || section ? '    '.repeat(depth + 1) : '');
+    } else yield (first ? '' : ',') + '\n' + '  '.repeat(depth + 1);
+    first = false;
+    if (!array) yield JSON.stringify(key) + ': ';
     yield* probeJsonSteps(item, compact, depth + 1);
   }
-  if (!first && !compact) yield '\n' + '  '.repeat(depth);
+  if (compact) yield array ? '\n' + '    '.repeat(depth) : ' ';
+  else if (!first) yield '\n' + '  '.repeat(depth);
   yield array ? ']' : '}';
 }
 

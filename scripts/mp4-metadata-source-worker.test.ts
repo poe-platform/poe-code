@@ -12,7 +12,7 @@ const input=join([box('ftyp',encoder.encode('isom'),new Uint8Array(4),brand),box
 
 function expected(writer:string){
   const escape=(text:string,separator:string)=>{let result='';for(const character of text){if(character==='\n')result+='\\n';else if(character==='\r')result+='\\r';else if(character==='\\'||character===separator)result+='\\'+character;else result+=character;}return result;};
-  const text=writer==='json:compact=1'?JSON.stringify({format:{tags:{title:value}}})+'\n':writer==='default'?'[FORMAT]\nTAG:title='+value+'\n[/FORMAT]\n':writer==='csv'?'format,"'+value.replaceAll('"','""')+'"\n':writer==='flat'?'format.tags.title="'+escape(value,'"')+'"\n':'format|tag:title='+escape(value,'|')+'\n';
+  const text=writer==='json:compact=1'?'{\n    "format": {         "tags": { "title": '+JSON.stringify(value)+' } }\n}\n':writer==='default'?'[FORMAT]\nTAG:title='+value+'\n[/FORMAT]\n':writer==='csv'?'format,"'+value.replaceAll('"','""')+'"\n':writer==='flat'?'format.tags.title="'+escape(value,'"')+'"\n':'format|tag:title='+escape(value,'|')+'\n';
   const bytes=new TextEncoder().encode(text);let hash=2166136261;for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;return [bytes.length,hash];
 }
 let runtime:Miniflare;
@@ -33,7 +33,7 @@ beforeAll(async()=>{
       const plugin={...api.mp4Ast(),async probeRecords(source){
         const metadata=await api.probeMp4MetadataSource(source,${chapterCount},{signal:controller.signal,budget:new api.MediaBudgetTracker({maxInputBytes:2**41})});
         const original=metadata.tags.title;
-        return{streams:[],chapters:metadata.chapters,format:{tags:{...metadata.tags,title:{kind:'text',async *chunks(){try{for await(const chunk of original.chunks()){reads++;if(mode==='source'&&reads===3)throw new Error('text source failed');yield chunk;}}finally{retired++;}}}}},async close(){pluginClosed++;if(mode==='close')throw new Error('plugin close failed');}};
+        return{streams:[],chapters:metadata.chapters,format:{filename:"/input.mp4",format_name:"mp4",tags:{...metadata.tags,title:{kind:'text',async *chunks(){try{for await(const chunk of original.chunks()){reads++;if(mode==='source'&&reads===3)throw new Error('text source failed');yield chunk;}}finally{retired++;}}}}},async close(){pluginClosed++;if(mode==='close')throw new Error('plugin close failed');}};
       }};
       const Native=Uint8Array,stringify=JSON.stringify;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const bytes=Reflect.construct(target,args);largest=Math.max(largest,bytes.length);if(bytes.length>65536)throw new Error('unbounded allocation');return bytes;}});
       JSON.stringify=function(value,...args){if(typeof value==='string'&&value.length>4096)throw new Error('unbounded string serialization');return stringify(value,...args);};
@@ -58,13 +58,13 @@ it('streams a large native chapter collection with exact independent JSON output
   const result=await(await runtime.dispatchFetch('https://example.test/chapters/retained/json:compact=1')).json() as Result;
   check(result);expect(result.exitCode,result.diagnostic||result.error).toBe(0);
   const chapters=Array.from({length:chapterCount},(_,id)=>({id,time_base:'1/1000',start:id*1000,start_time:id.toFixed(6),end:(id+1)*1000,end_time:(id+1).toFixed(6),tags:{title:'A'}}));
-  const bytes=encoder.encode(JSON.stringify({chapters})+'\n');let hash=2166136261;for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;
+  const bytes=encoder.encode('{\n    "chapters": [\n'+chapters.map(({tags,...fields})=>'        { '+Object.entries(fields).map(([key,value])=>JSON.stringify(key)+': '+JSON.stringify(value)).join(', ')+',\n            "tags": { "title": '+JSON.stringify(tags.title)+' } }').join(',\n')+'\n    ]\n}\n');let hash=2166136261;for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;
   expect([result.total,result.hash]).toEqual([bytes.length,hash]);expect(result.retired).toBe(0);
 });
 
 it('streams compatible brands without materializing their collection',async()=>{
   const result=await(await runtime.dispatchFetch('https://example.test/brands/retained/json:compact=1')).json() as Result;
   check(result);expect(result.exitCode,result.diagnostic||result.error).toBe(0);
-  const bytes=encoder.encode(JSON.stringify({format:{tags:{compatible_brands:'isom'.repeat(20000)}}})+'\n');let hash=2166136261;for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;
+  const bytes=encoder.encode('{\n    "format": {         "tags": { "compatible_brands": '+JSON.stringify('isom'.repeat(20000))+' } }\n}\n');let hash=2166136261;for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;
   expect([result.total,result.hash]).toEqual([bytes.length,hash]);expect(result.retired).toBe(0);
 });

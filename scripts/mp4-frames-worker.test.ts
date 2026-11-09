@@ -20,8 +20,8 @@ function fixture(fragmented:boolean){
   return {head,bytes:join([head,new Uint8Array(100000)])};
 }
 const fixtures={classic:fixture(false),fragmented:fixture(true)};
-const packets=Array.from({length:count},(_,i)=>({codec_type:'video',stream_index:0,pts:i*2,pts_time:(i*2/1000).toFixed(6),dts:i*2,dts_time:(i*2/1000).toFixed(6),duration:2,duration_time:'0.002000',size:'3',pos:String(i*3),flags:i%2?'__':'K_'}));
-const frames=Array.from({length:count},(_,i)=>({media_type:'video',stream_index:0,key_frame:i%2?0:1,pts:i*2,pts_time:(i*2/1000).toFixed(6),pkt_dts:i*2,pkt_dts_time:(i*2/1000).toFixed(6),best_effort_timestamp:i*2,best_effort_timestamp_time:(i*2/1000).toFixed(6),pkt_duration:2,pkt_duration_time:'0.002000',pkt_size:'3',width:640,height:360,pix_fmt:'yuv420p10le',pict_type:i%2?'P':'I'}));
+const packets=Array.from({length:count},(_,i)=>({codec_type:'video',stream_index:0,pts:i*2,pts_time:(i*2/1000).toFixed(6),dts:i*2,dts_time:(i*2/1000).toFixed(6),duration:2,duration_time:'0.002000',size:'3',pos:String(i*3),flags:i%2?'___':'K__'}));
+const frames=Array.from({length:count},(_,i)=>({media_type:'video',stream_index:0,key_frame:i%2?0:1,pts:i*2,pts_time:(i*2/1000).toFixed(6),pkt_dts:i*2,pkt_dts_time:(i*2/1000).toFixed(6),best_effort_timestamp:i*2,best_effort_timestamp_time:(i*2/1000).toFixed(6),duration:2,duration_time:'0.002000',pkt_size:'3',pkt_pos:String(i*3),width:640,height:360,pix_fmt:'yuv420p10le'}));
 function outputHash(text:string){const bytes=new TextEncoder().encode(text);let hash=2166136261;for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;return [bytes.length,hash];}
 let runtime:Miniflare;
 beforeAll(async()=>{
@@ -49,12 +49,15 @@ beforeAll(async()=>{
 afterAll(async()=>{await runtime?.dispose();});
 for(const kind of ['classic','fragmented'])for(const route of ['retained','stdin'])for(const records of ['frames','mixed'])it(`native MP4 frame records use bounded R2 storage: ${kind}/${route}/${records}`,async()=>{
   const result=await(await runtime.dispatchFetch('https://example.test/'+kind+'/'+route+'/success/'+records)).json() as Result;
-  check(result);expect(result.exitCode,result.diagnostic||result.error).toBe(0);expect([result.total,result.hash]).toEqual(outputHash(JSON.stringify(records==='mixed'?{packets,frames}:{frames})+'\n'));
+  const frameRows=frames.map(frame=>({...frame,pkt_pos:String(fixtures[kind as keyof typeof fixtures].head.length+Number(frame.pkt_pos))}));
+  const rows=records==='mixed'?packets.flatMap((packet,i)=>[{type:'packet',...packet,pos:String(fixtures[kind as keyof typeof fixtures].head.length+Number(packet.pos))},{type:'frame',...frameRows[i]!}]):frameRows;
+  const text='{\n    "'+(records==='mixed'?'packets_and_frames':'frames')+'": [\n'+rows.map(row=>'        { '+Object.entries(row).map(([key,value])=>JSON.stringify(key)+': '+JSON.stringify(value)).join(', ')+' }').join(',\n')+'\n    ]\n}\n';
+  check(result);expect(result.exitCode,result.diagnostic||result.error).toBe(0);expect([result.total,result.hash]).toEqual(outputHash(text));
 });
 for(const writer of ['json:compact=1','default','compact','csv','flat'])for(const route of ['retained','stdin'])it(`selected MP4 frame fields use bounded R2 storage: ${writer}/${route}`,async()=>{
   const result=await(await runtime.dispatchFetch('https://example.test/classic/'+route+'/success/frames/'+writer)).json() as Result;
   const rows=Array.from({length:count},(_,i)=>({stream_index:0,pts:i*2,pkt_size:'3'}));
-  const text=writer.startsWith('json')?JSON.stringify({frames:rows})+'\n':rows.map((row,i)=>{
+  const text=writer.startsWith('json')?'{\n    "frames": [\n'+rows.map(row=>`        { "stream_index": 0, "pts": ${row.pts}, "pkt_size": "3" }`).join(',\n')+'\n    ]\n}\n':rows.map((row,i)=>{
     if(writer==='csv')return `frame,0,${row.pts},3\n`;
     if(writer==='compact')return `frame|stream_index=0|pts=${row.pts}|pkt_size=3\n`;
     if(writer==='flat')return `frames.frame.${i}.stream_index=0\nframes.frame.${i}.pts=${row.pts}\nframes.frame.${i}.pkt_size="3"\n`;

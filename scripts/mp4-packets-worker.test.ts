@@ -17,8 +17,7 @@ function fixture(fragmented:boolean){
   return {head,bytes:join([head,new Uint8Array(100000)])};
 }
 const fixtures={classic:fixture(false),fragmented:fixture(true)};
-const expected=new TextEncoder().encode(JSON.stringify({packets:Array.from({length:count},(_,i)=>({codec_type:'video',stream_index:0,pts:i*2,pts_time:(i*2/1000).toFixed(6),dts:i*2,dts_time:(i*2/1000).toFixed(6),duration:2,duration_time:'0.002000',size:'3',pos:String(i*3),flags:i%2?'__':'K_'}))})+'\n');
-let hash=2166136261;for(const byte of expected)hash=Math.imul(hash^byte,16777619)>>>0;
+const packets=Array.from({length:count},(_,i)=>({codec_type:'video',stream_index:0,pts:i*2,pts_time:(i*2/1000).toFixed(6),dts:i*2,dts_time:(i*2/1000).toFixed(6),duration:2,duration_time:'0.002000',size:'3',pos:String(i*3),flags:i%2?'___':'K__'}));
 let runtime:Miniflare;
 beforeAll(async()=>{
   const bundle=await build({stdin:{resolveDir:process.cwd(),contents:`export {createFfprobeCommand} from 'safe-bash-command-ffprobe';export {createCommandArguments} from 'safe-bash-contracts/command';export {MemoryFileSystem} from '@poe-code/safe-fs/core';export {createR2PagedFixture} from './scripts/pandoc-r2-storage.fixture.mjs';`},bundle:true,platform:'browser',conditions:['workerd'],format:'cjs',write:false,metafile:true,logLevel:'silent'});
@@ -45,12 +44,14 @@ beforeAll(async()=>{
 afterAll(async()=>{await runtime?.dispose();});
 for(const kind of ['classic','fragmented'])for(const route of ['retained','stdin'])it(`native MP4 packet JSON uses bounded R2 storage: ${kind}/${route}`,async()=>{
   const result=await(await runtime.dispatchFetch('https://example.test/'+kind+'/'+route+'/success')).json() as Result;
-  check(result);expect(result.exitCode,result.diagnostic||result.error).toBe(0);expect([result.total,result.hash]).toEqual([expected.length,hash]);
+  const text='{\n    "packets": [\n'+packets.map(row=>'        { '+Object.entries({...row,pos:String(fixtures[kind as keyof typeof fixtures].head.length+Number(row.pos))}).map(([key,value])=>JSON.stringify(key)+': '+JSON.stringify(value)).join(', ')+' }').join(',\n')+'\n    ]\n}\n';
+  const bytes=new TextEncoder().encode(text);let hash=2166136261;for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;
+  check(result);expect(result.exitCode,result.diagnostic||result.error).toBe(0);expect([result.total,result.hash]).toEqual([bytes.length,hash]);
 });
 for(const writer of ['json:compact=1','default','compact','csv','flat'])for(const route of ['retained','stdin'])it(`selected MP4 packet fields use bounded R2 storage: ${writer}/${route}`,async()=>{
   const result=await(await runtime.dispatchFetch('https://example.test/classic/'+route+'/success/'+writer)).json() as Result;
   const rows=Array.from({length:count},(_,i)=>({stream_index:0,pts:i*2,size:'3'}));
-  const text=writer.startsWith('json')?JSON.stringify({packets:rows})+'\n':rows.map((row,i)=>{
+  const text=writer.startsWith('json')?'{\n    "packets": [\n'+rows.map(row=>`        { "stream_index": 0, "pts": ${row.pts}, "size": "3" }`).join(',\n')+'\n    ]\n}\n':rows.map((row,i)=>{
     if(writer==='csv')return `packet,0,${row.pts},3\n`;
     if(writer==='compact')return `packet|stream_index=0|pts=${row.pts}|size=3\n`;
     if(writer==='flat')return `packets.packet.${i}.stream_index=0\npackets.packet.${i}.pts=${row.pts}\npackets.packet.${i}.size="3"\n`;

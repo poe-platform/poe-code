@@ -13,7 +13,10 @@ function head() {
 function fingerprint(bytes: Uint8Array) { let hash = 2166136261; for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0; return [bytes.length, hash]; }
 const bytes = new Uint8Array(payload + 44); bytes.set(head());
 const expected = wavAst().probe(bytes, { showPackets: true, showFrames: true });
-const golden = Object.fromEntries(["success", "compact"].map(mode => [mode, fingerprint(new TextEncoder().encode(JSON.stringify({ packets: expected.packets, frames: expected.frames }, null, mode === "compact" ? undefined : 2) + "\n"))]));
+const records = expected.packets!.flatMap((packet, index) => [{ type: "packet", ...packet }, { type: "frame", ...expected.frames![index] }]);
+const golden = Object.fromEntries(["success", "compact"].map(mode => [mode, fingerprint(new TextEncoder().encode(mode === "compact"
+  ? '{\n    "packets_and_frames": [\n' + records.map(row => '        { ' + Object.entries(row).filter(([, value]) => value !== undefined).map(([key, value]) => JSON.stringify(key) + ': ' + JSON.stringify(value)).join(', ') + ' }').join(',\n') + '\n    ]\n}\n'
+  : JSON.stringify({ packets_and_frames: records }, null, 2) + "\n"))]));
 let runtime: Miniflare;
 beforeAll(async () => {
   const bundle = await build({ stdin: { resolveDir: process.cwd(), contents: `

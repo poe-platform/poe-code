@@ -682,10 +682,11 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     if (probe.error) sections.push({ name: "error", value: probe.error });
     if (finalFormat !== undefined) sections.push({ name: "format", value: finalFormat });
     const compact = parseWriterBoolean(paramMap.compact ?? "0");
+    const indent = compact ? "    " : "  ";
     yield "{";
     let firstSection = true;
     for (const section of sections) {
-      yield (firstSection ? "" : ",") + (compact ? "" : "\n  ") + JSON.stringify(section.name) + (compact ? ":" : ": ");
+      yield (firstSection ? "" : ",") + "\n" + indent + JSON.stringify(section.name) + ": ";
       firstSection = false;
       if (section.rows) {
         yield "[";
@@ -707,16 +708,18 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
             if (chapter.tags && Object.keys(chapter.tags).length === 0) delete chapter.tags;
             row = chapter;
           }
-          yield (firstRow ? "" : ",") + (compact ? "" : "\n    ");
+          yield (firstRow ? "" : ",") + "\n" + indent.repeat(2);
           firstRow = false;
           yield* probeJsonSteps(row, compact, 2);
         } };
-        yield (compact || firstRow ? "" : "\n  ") + "]";
+        if (compact && firstRow) yield "\n";
+        yield (compact || !firstRow ? "\n" + indent : "") + "]";
       } else {
         yield* probeJsonSteps(section.value, compact, 1);
       }
     }
-    yield (compact || firstSection ? "" : "\n") + "}\n";
+    if (compact && firstSection) yield "\n";
+    yield (compact || !firstSection ? "\n" : "") + "}\n";
     return;
   }
   const noWrappers =

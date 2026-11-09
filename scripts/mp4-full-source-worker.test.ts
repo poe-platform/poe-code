@@ -23,10 +23,14 @@ function fixture(fragmented:boolean){
 const fixtures={classic:fixture(false),fragmented:fixture(true)};
 function expected(kind:'classic'|'fragmented',route:string,mixed:boolean,writer:string){
   const size=route==='stdin'?fixtures[kind].bytes.length:fixtures[kind].head.length-16+2**40;
-  const streams=[{index:0,codec_name:'av1',duration:'20.000000',nb_frames:String(count),tags:{handler_name:handler},nb_read_frames:String(count),nb_read_packets:String(count)}];
-  const format={nb_streams:1,duration:'20.000000',size:String(size),bit_rate:String(Math.round(size*8/20)),tags:{title}};
   const packets=Array.from({length:count},(_,i)=>({stream_index:0,pts:i*2,size:'3'})),frames=Array.from({length:count},(_,i)=>({stream_index:0,pts:i*2,pkt_size:'3'}));
-  if(writer.startsWith('json'))return JSON.stringify({...mixed?{packets,frames}:{},streams,format})+'\n';
+  if(writer.startsWith('json')) {
+    const rows=packets.flatMap((packet,i)=>[{type:'packet',...packet},{type:'frame',...frames[i]!}]);
+    const records=mixed?'    "packets_and_frames": [\n'+rows.map(row=>'        { '+Object.entries(row).map(([key,value])=>JSON.stringify(key)+': '+JSON.stringify(value)).join(', ')+' }').join(',\n')+'\n    ],\n':'';
+    return '{\n    "programs": [\n\n    ],\n    "stream_groups": [\n\n    ],\n'+records+
+      '    "streams": [\n        { "index": 0, "codec_name": "av1", "duration": "20.000000"'+(kind==='classic'?', "nb_frames": "'+count+'"':'')+',\n            "tags": { "handler_name": '+JSON.stringify(handler)+' }, "nb_read_frames": "'+count+'", "nb_read_packets": "'+count+'" }\n    ],\n'+
+      '    "format": { "nb_streams": 1, "duration": "20.000000", "size": "'+size+'", "bit_rate": "'+Math.floor(size*8/20)+'",\n        "tags": { "title": '+JSON.stringify(title)+' } }\n}\n';
+  }
   const escape=(value:string,separator:string)=>{let out='';for(const c of value)out+=c==='\n'?'\\n':c==='\r'?'\\r':c==='\\'||c===separator?'\\'+c:c;return out;};
   const render=(name:string,fields:[string,string|number][])=>{
     if(writer==='csv')return name+','+fields.map(([,v])=>{const t=String(v);return [...t].some(c=>[',','"','\n','\r'].includes(c))?'"'+t.replaceAll('"','""')+'"':t;}).join(',')+'\n';
@@ -34,7 +38,7 @@ function expected(kind:'classic'|'fragmented',route:string,mixed:boolean,writer:
     if(writer==='flat')return fields.map(([k,v])=>(name==='stream'?'streams.stream.0.':'format.')+k.replace('tag:','tags.')+'='+(typeof v==='number'?v:'"'+escape(v,'"')+'"')+'\n').join('');
     return '['+name.toUpperCase()+']\n'+fields.map(([k,v])=>k.replace('tag:','TAG:')+'='+v+'\n').join('')+'[/'+name.toUpperCase()+']\n';
   };
-  return render('stream',[['index',0],['codec_name','av1'],['duration','20.000000'],['nb_frames',String(count)],['tag:handler_name',handler],['nb_read_frames',String(count)],['nb_read_packets',String(count)]])+render('format',[['nb_streams',1],['duration','20.000000'],['size',String(size)],['bit_rate',String(Math.round(size*8/20))],['tag:title',title]]);
+  return render('stream',[['index',0],['codec_name','av1'],['duration','20.000000'],['nb_frames',String(count)],['tag:handler_name',handler],['nb_read_frames',String(count)],['nb_read_packets',String(count)]])+render('format',[['nb_streams',1],['duration','20.000000'],['size',String(size)],['bit_rate',String(Math.floor(size*8/20))],['tag:title',title]]);
 }
 function outputHash(text:string){const bytes=new TextEncoder().encode(text);let hash=2166136261;for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;return [bytes.length,hash];}
 let runtime:Miniflare;

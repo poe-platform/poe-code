@@ -4365,9 +4365,15 @@ function magickCropCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCa
 
 function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry, operation: "repage" | "set") {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
+    let width = geometry.width ?? page.width;
+    let height = operation === "repage" && geometry.width === undefined ? page.height : geometry.height ?? (geometry.width === undefined ? page.height : geometry.width);
+    if (operation === "repage" && geometry.hasOffset && !geometry.forceExact) {
+        if (width === 0 && geometry.x > 0) width = image.width + geometry.x;
+        if (height === 0 && geometry.y > 0) height = image.height + geometry.y;
+    }
     return {
-        width: geometry.width ?? page.width,
-        height: operation === "repage" && geometry.width === undefined ? page.height : geometry.height ?? (geometry.width === undefined ? page.height : geometry.width),
+        width,
+        height,
         x: geometry.hasOffset ? geometry.x + (geometry.forceExact ? page.x : 0) : page.x,
         y: geometry.hasYOffset ? geometry.y + (geometry.forceExact ? page.y : 0) : page.y
     };

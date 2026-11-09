@@ -123,6 +123,8 @@ Use `-f framehash -format_version 1 -` for version 1 per-packet audio or video h
 `framehash` and `framemd5` default to version 2 and accept `-format_version 1` or `2`.
 `framemd5`, `framehash`, and `framecrc` write one row per video frame, with timestamps,
 duration, raw pixel byte count, and a digest (MD5, SHA256, or Adler-32 respectively).
+`framecrc` also reports copied streams’ codec extradata sizes and Adler-32 checksums
+before the stream headers; PCM output has no extradata header.
 For audio, these formats retain PCM packet boundaries after filtering, including the
 short final packet, and checksum each packet separately.
 With `-map 0:s -c:s copy`, they checksum original subtitle packets, retaining style

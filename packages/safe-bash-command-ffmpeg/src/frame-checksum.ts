@@ -36,6 +36,17 @@ function videoBytes(frame: MediaVideoFrame, format: string, budget: MediaBudgetT
   return bytes;
 }
 
+function frameCrc(bytes: Uint8Array, budget: MediaBudgetTracker): string {
+  // Unlike the whole-output crc muxer, framecrc starts Adler-32 at zero.
+  let a = 0, b = 0;
+  for (let i = 0; i < bytes.length; i++) {
+    if (i % 4096 === 0) budget.checkCpu();
+    a = (a + bytes[i]!) % 65521;
+    b = (b + a) % 65521;
+  }
+  return `0x${((b * 65536 + a) >>> 0).toString(16).padStart(8, "0")}`;
+}
+
 export function serializeFrameChecksum(
   doc: MediaDocument,
   format: string,
@@ -51,6 +62,17 @@ export function serializeFrameChecksum(
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512 };
   if (format !== "framecrc" && name !== "crc32" && !Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
   const lines = format === "framecrc" ? [] : ["#format: frame checksums", `#version: ${formatVersion}`, `#hash: ${name.toUpperCase()}`];
+  if (format === "framecrc") {
+    for (const [index, track] of doc.tracks.entries()) {
+      if ((track.type === "video" ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) !== "copy") continue;
+      const codec = track.codecDescriptions[0];
+      let extra = codec?.extraData;
+      // The FLAC AST retains the file metadata for remuxing; codec extradata is STREAMINFO only.
+      if (codec?.codecName === "flac" && extra && extra[0] === 0x66 && extra[1] === 0x4c &&
+          extra[2] === 0x61 && extra[3] === 0x43) extra = extra.subarray(8, 42);
+      if (extra?.length) lines.push(`#extradata ${index}: ${String(extra.length).padStart(8)}, ${frameCrc(extra, budget)}`);
+    }
+  }
   for (const [index, track] of doc.tracks.entries()) {
     if (track.type === "video") {
       if (videoCodec && videoCodec !== "rawvideo" && videoCodec !== "copy") throw new Error(`Unsupported frame checksum video codec '${videoCodec}'`);
@@ -131,14 +153,7 @@ export function serializeFrameChecksum(
       offset += size;
       let digest: string;
       if (format === "framecrc") {
-        // Unlike the whole-output crc muxer, framecrc starts Adler-32 at zero.
-        let a = 0, b = 0;
-        for (let i = 0; i < bytes.length; i++) {
-          if (i % 4096 === 0) budget.checkCpu();
-          a = (a + bytes[i]!) % 65521;
-          b = (b + a) % 65521;
-        }
-        digest = `0x${((b * 65536 + a) >>> 0).toString(16).padStart(8, "0")}`;
+        digest = frameCrc(bytes, budget);
       } else if (name === "crc32") {
         let crc = 0xffffffff;
         for (let i = 0; i < bytes.length; i++) {

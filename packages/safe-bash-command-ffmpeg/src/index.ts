@@ -9422,7 +9422,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             noise = value.endsWith("dB") ? 10 ** (Number(value.slice(0, -2)) / 20) : Number(value);
                             if (!value || !Number.isFinite(noise) || noise < 0) throw new Error("silencedetect: invalid noise");
                           } else if (key === "duration" || key === "d") {
-                            duration = Number(value);
+                            duration = parseHlsDuration(value);
                             if (!value || !Number.isFinite(duration) || duration < 0 || duration > 86400) throw new Error("silencedetect: invalid duration");
                           } else if (key === "mono" || key === "m") {
                             if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value)) throw new Error("silencedetect: invalid mono");

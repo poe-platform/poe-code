@@ -348,7 +348,7 @@ must have matching sample rates; preceding filters other than `anull` are unsupp
 
 `ashowinfo` reports audio frame timestamps, sample counts, and PCM Adler-32 checksums on stderr at info log level or above, without changing the samples.
 
-`silencedetect=noise=-40dB:d=0.1` reports silence starts, ends, and durations on stderr without changing PCM. Add `:mono=1` to measure each channel separately; trailing silence closes at end of input.
+`silencedetect=noise=-40dB:d=0.1` reports silence starts, ends, and durations on stderr without changing PCM. Duration accepts seconds or `s`, `ms`, and `us` suffixes (for example, `d=125ms`). Add `:mono=1` to measure each channel separately; trailing silence closes at end of input.
 
 `replaygain` measures track gain and sample peak at its position in the filter
 chain and reports them at info log level, without changing PCM. It uses 50 ms

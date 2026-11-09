@@ -502,6 +502,10 @@ Use `-ch_layout mono` or `-channel_layout mono` for mono output, equivalent to `
 averaging left and right samples, or preserves mono input.
 `aformat=sample_fmts=u8` or `s16` (alias `f`) quantizes samples through that
 intermediate PCM format, even when the output codec has higher precision.
+`aformat=sample_rates=16000` (alias `r`) resamples at that point in the chain,
+so later filters use the selected rate. Pipe-separated lists preserve an allowed
+input rate or select the nearest allowed rate; `r=16000|8000` preserves 8 kHz,
+while `r=16000|11025` converts it to 11025 Hz.
 Other `aformat` sample formats, options and layouts are not supported.
 These filters also work in labeled single-input audio graphs with `-map`.
 `volume` and `atempo` default to 1 and accept named primary arguments, such as

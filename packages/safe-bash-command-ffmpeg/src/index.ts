@@ -10017,6 +10017,37 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const separator = option.indexOf("=");
                           const key = option.slice(0, separator).trim();
                           const value = option.slice(separator + 1).trim();
+                          if (key === "sample_rates" || key === "r") {
+                            let targetRate = origRate;
+                            let bestDifference = Infinity;
+                            for (const raw of value ? value.split("|") : []) {
+                              const rate = Number(raw);
+                              if (!Number.isInteger(rate) || rate < 1 || rate > 2147483647) {
+                                throw new Error("aformat: invalid sample rate");
+                              }
+                              const difference = Math.abs(rate - origRate);
+                              if (difference < bestDifference) {
+                                targetRate = rate;
+                                bestDifference = difference;
+                              }
+                            }
+                            if (targetRate !== origRate) {
+                              const length = Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate);
+                              if (!Number.isSafeInteger(length)) throw new Error("aformat: output sample count is too large");
+                              budget.checkDuration(length / targetRate);
+                              budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
+                              stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal);
+                              audioStartSample = Math.round(audioStartSample * targetRate / origRate);
+                              for (const frame of audioTimestamps ?? []) {
+                                if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                frame.start = Math.round(frame.start * targetRate / origRate);
+                                frame.end = Math.round(frame.end * targetRate / origRate);
+                                frame.pts = Math.round(frame.pts * targetRate / origRate);
+                              }
+                              origRate = targetRate;
+                            }
+                            continue;
+                          }
                           if (key === "sample_fmts" || key === "f") {
                             if (value !== "u8" && value !== "s16") throw new Error(`aformat: unsupported sample format ${value}`);
                             panPcm16 = value === "s16";

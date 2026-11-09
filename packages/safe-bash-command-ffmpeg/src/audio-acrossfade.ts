@@ -1,4 +1,4 @@
-import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
+import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
@@ -62,6 +62,31 @@ export async function acrossfadeAudio(
       channelData[channel]![i] = firstValue + secondValue;
     }
   }
-  return { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
+  const frames: MediaSample[] = [];
+  let pts = 0;
+  function appendFrame(count: number): void {
+    if (count <= 0) return;
+    budget.allocateMemory(96);
+    frames.push({ data: new Uint8Array(0), size: 0, dts: pts, pts, cts: 0,
+      duration: count, isKeyframe: true, sampleDescriptionIndex: 1 });
+    pts += count;
+  }
+  // Both inputs are already buffered: emit the first input before the fade,
+  // then one transition frame (two separate fades when overlap is disabled).
+  appendFrame(aLength - samples);
+  appendFrame(samples);
+  if (!overlap) appendFrame(samples);
+  // Consuming the transition can split a second-input frame. Preserve its
+  // remainder and every following frame instead of regrouping the PCM.
+  for (let start = 0, n = 0; start < bLength; n++) {
+    if (n % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+    const packet = second.samples[n];
+    const count = packet ? Math.max(0, Math.round(packet.duration * b.sampleRate / second.timescale)
+      - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+    const end = Math.min(bLength, start + count);
+    appendFrame(end - Math.max(start, samples));
+    start = end;
+  }
+  return { ...first, timescale: a.sampleRate, duration: length, samples: frames, editList: undefined,
     decodedAudio: { ...a, channelData } };
 }

@@ -3540,6 +3540,10 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
             } else {
               if (codec === "webvtt" && (text[position] === "{" || text[position] === "}")) parts.push("\\");
               parts.push(text[position]!);
+              // SubRip strips ASCII indentation after physical line breaks only.
+              if (codec === "subrip" && webvtt && text[position] === "\n") {
+                while (text[position + 1] === " ") position++;
+              }
               position++;
             }
           }

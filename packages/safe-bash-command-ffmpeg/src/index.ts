@@ -3270,6 +3270,7 @@ function removeTimecode(tracks: readonly MediaTrack[]): readonly MediaTrack[] {
 }
 
 function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: readonly [string, string][], container: string | undefined): readonly MediaTrack[] {
+  let hasExplicitDisposition = false;
   for (const [specifier, value] of dispositions) {
     const parts = specifier.split(":");
     const selector = parts[0];
@@ -3288,6 +3289,7 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
       if (index === "m") {
         if (key !== "language" || (language !== undefined && track.language !== language)) return track;
       } else if (index && current !== Number(index)) return track;
+      hasExplicitDisposition = true;
       const relative = value.startsWith("+") || value.startsWith("-");
       const operations = value.replaceAll("-", "+-").split("+").filter(Boolean).map(token => {
         const remove = token.startsWith("-");
@@ -3298,15 +3300,25 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
       });
       if (!operations.length) throw new Error(`Unsupported disposition: ${value}`);
       let disposition: Record<string, number> = relative ? { ...track.disposition } : {};
-      let enabled = relative ? track.enabled : false;
+      let enabled = relative ? Boolean(track.disposition?.default ?? track.enabled) : false;
       for (const { name, remove } of operations) {
         if (name === "0") { enabled = false; disposition = {}; }
         else if (name === "default") { enabled = !remove; delete disposition.default; }
         else if (remove) delete disposition[name];
         else disposition[name] = 1;
       }
+      if (container === "mkv") disposition.default = Number(enabled);
       return { ...track, enabled, disposition };
     });
+  }
+  // FFmpeg promotes the first of multiple unmarked audio outputs unless a
+  // disposition option matched an output stream. Mapping order is preserved.
+  if (container === "mkv" && !hasExplicitDisposition) {
+    const audio = tracks.filter(track => track.type === "audio");
+    if (audio.length > 1 && !audio.some(track => track.disposition?.default ?? track.enabled)) {
+      tracks = tracks.map(track => track === audio[0]
+        ? { ...track, disposition: { ...track.disposition, default: 1 } } : track);
+    }
   }
   // The MP4 muxer enables the first audio track if none is marked default.
   if (container === "mp4" && !tracks.some(track => track.type === "audio" && track.enabled)) {

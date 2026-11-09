@@ -514,7 +514,10 @@ add a type (`-metadata:s:a:m:language:fra`) to restrict matching to audio.
 `-metadata:s:a:0 language=fra` sets the first output audio track’s language;
 `-metadata:s:a:1 handler_name=Bob` sets the second output audio track’s MP4 handler name.
 Stream selectors also accept an absolute index (`s:1`), a type (`s:a`), or all streams (`s`).
-`-disposition:a:0 0 -disposition:a:1 default` selects the second output audio track as the MP4 default.
+`-disposition:a:0 0 -disposition:a:1 default` selects the second output audio track as the MP4 or Matroska default.
+Matroska copy marks the first mapped audio track default when multiple audio tracks are unmarked.
+A single unmarked audio track stays unmarked; any disposition option matching an output stream
+disables automatic defaults, so `-disposition:a 0 -disposition:s 0` keeps all those tracks unmarked.
 Disposition selectors accept a type, an absolute index, all streams, or an output language
 (`-disposition:m:language:fra default` or `-disposition:a:m:language:fra default`); supported values are
 `0`, `1`, `default`, `comment`, and `attached_pic`, with `+`/`-` flag updates and combinations such as

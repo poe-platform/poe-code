@@ -9469,55 +9469,84 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
-                        let reset = 0;
-                        let rmsLength = 0.05;
                         let perChannel: ReadonlySet<string> | undefined;
                         let overall: ReadonlySet<string> | undefined;
                         const supported = ["DC_offset", "Min_level", "Max_level", "Peak_level", "RMS_level", "Number_of_samples"];
+                        let reset = 0;
+                        let metadata = false;
+                        let rmsLength = 0.05;
                         if (trimmed.startsWith("astats=")) {
                           for (const [index, option] of trimmed.slice("astats=".length).split(":").entries()) {
                             const parts = option.split("=");
                             const key = parts.length === 1 && index === 0 ? "length" : parts[0];
                             const value = parts.length === 1 ? parts[0]! : parts[1]!;
                             const extra = parts[2];
-                            if (key === "length" && extra === undefined) {
-                              rmsLength = parseFilterExpression(value, "astats", {});
-                              if (!Number.isFinite(rmsLength) || rmsLength < 0 || rmsLength > 10) {
-                                throw new Error("astats: length must be between 0 and 10");
-                              }
-                            } else if ((key === "measure_perchannel" || key === "measure_overall") && value !== undefined && extra === undefined) {
+                            if ((key === "measure_perchannel" || key === "measure_overall") && value !== undefined && extra === undefined) {
                               const metrics = value === "none" ? [] : value.split("+");
                               if (metrics.some(metric => !supported.includes(metric))) {
                                 throw new Error(`astats: unsupported option ${option}`);
                               }
                               if (key === "measure_perchannel") perChannel = new Set(metrics);
                               else overall = new Set(metrics);
+                            } else if (key === "length" && extra === undefined) {
+                              rmsLength = parseFilterExpression(value, "astats", {});
+                              if (!Number.isFinite(rmsLength) || rmsLength < 0 || rmsLength > 10) {
+                                throw new Error("astats: length must be between 0 and 10");
+                              }
                             } else if (key === "reset" && extra === undefined) {
                               reset = Number(value);
                               if (!value?.trim() || !Number.isInteger(reset) || reset < 0 || reset > 2147483647) {
                                 throw new Error("astats: invalid reset");
                               }
-                            } else if (key !== "metadata" || value !== "0" || extra !== undefined) {
+                            } else if (key === "metadata" && extra === undefined &&
+                              ["0", "1", "false", "true", "no", "yes", "off", "on"].includes(value?.toLowerCase() ?? "")) {
+                              metadata = ["1", "true", "yes", "on"].includes(value!.toLowerCase());
+                            } else {
                               throw new Error(`astats: unsupported option ${option}`);
                             }
                           }
                         }
-                        // Reset before the next frame, so an exact interval at EOF is retained.
-                        let statsStart = 0;
-                        if (reset > 0) {
+                        let report = "";
+                        if (metadata) {
                           const length = stretched[0]?.length ?? 0;
+                          let intervalStart = 0;
+                          let frames: { end: number; tags: Map<string, string> }[] = [];
                           for (let start = 0, n = 0; start < length; n++) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            if (n % reset === 0) statsStart = start;
                             const timestamp = audioTimestamps?.[n];
                             const packet = t.samples[n];
                             const count = timestamp ? timestamp.end - timestamp.start
                               : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                            start += count;
+                            const end = Math.min(length, start + count);
+                            budget.allocateMemory(96);
+                            const frame = audioMetadata[n] ?? { pts: timestamp?.pts ?? audioStartSample + start, tags: new Map<string, string>() };
+                            audioMetadata[n] = frame;
+                            frames.push({ end: end - intervalStart, tags: frame.tags });
+                            if (end === length || reset > 0 && (n + 1) % reset === 0) {
+                              report = await measureAstats(stretched.map(channel => channel.subarray(intervalStart, end)),
+                                origRate, statsScale, rmsLength, budget, context.signal, perChannel, overall, frames);
+                              intervalStart = end;
+                              frames = [];
+                            }
+                            start = end;
                           }
+                        } else {
+                          // Reset before the next frame, so an exact interval at EOF is retained.
+                          let statsStart = 0;
+                          if (reset > 0) {
+                            const length = stretched[0]?.length ?? 0;
+                            for (let start = 0, n = 0; start < length; n++) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              if (n % reset === 0) statsStart = start;
+                              const timestamp = audioTimestamps?.[n];
+                              const packet = t.samples[n];
+                              const count = timestamp ? timestamp.end - timestamp.start
+                                : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                              start += count;
+                            }
+                          }
+                          report = await measureAstats(statsStart ? stretched.map(channel => channel.subarray(statsStart)) : stretched, origRate, statsScale, rmsLength, budget, context.signal, perChannel, overall);
                         }
-                        const statsChannels = statsStart ? stretched.map(channel => channel.subarray(statsStart)) : stretched;
-                        const report = await measureAstats(statsChannels, origRate, statsScale, rmsLength, budget, context.signal, perChannel, overall);
                         await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "loudnorm" || trimmed.startsWith("loudnorm=")) {
                         const normalized = await normalizeLoudness(stretched, origRate,

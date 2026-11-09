@@ -386,7 +386,10 @@ list of `DC_offset`, `Min_level`, `Max_level`, `Peak_level`, `RMS_level`, and
 `Number_of_samples`. For example, `astats=measure_perchannel=RMS_level:measure_overall=none`
 reports only channel RMS levels. `astats=reset=N` resets measurements every N audio
 frames and reports the final interval; `reset=0` measures the whole input.
-Metadata injection and other statistics options are not supported.
+`metadata=1` attaches cumulative channel and overall measurements to each audio
+frame; read them with `astats=metadata=1,ametadata=mode=print:key=lavfi.astats.Overall.RMS_level`.
+Metadata respects `reset` and measurement masks, preserves existing frame tags,
+and is disabled by default.
 `crystalizer=i=2` sharpens changes between successive samples independently per channel.
 Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
 Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.

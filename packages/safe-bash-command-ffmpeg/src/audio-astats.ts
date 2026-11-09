@@ -9,7 +9,7 @@ function db(value: number): string {
   return fixed(20 * Math.log10(value));
 }
 
-function bitDepth(masks: number[], bits: number): string {
+function bitDepth(masks: number[], bits: number): number[] {
   const counts = [0, 0, bits, 0];
   let varying = (masks[1]! & ~masks[2]!) >>> 0;
   for (let bit = 0; bit < bits; bit++) {
@@ -21,7 +21,7 @@ function bitDepth(masks: number[], bits: number): string {
     counts[2]!--;
     varying >>>= 1;
   }
-  return counts.join("/");
+  return counts;
 }
 
 function measurements(title: string, fields: [string, string | number][], mask?: ReadonlySet<string>): string {
@@ -39,7 +39,8 @@ function measurements(title: string, fields: [string, string | number][], mask?:
 export async function measureAstats(
   channels: MediaAudioData["channelData"], sampleRate: number, scale: number, length: number,
   budget: MediaBudgetTracker, signal?: AbortSignal,
-  perChannel?: ReadonlySet<string>, overall?: ReadonlySet<string>
+  perChannel?: ReadonlySet<string>, overall?: ReadonlySet<string>,
+  metadata?: { end: number; tags: Map<string, string> }[]
 ): Promise<string> {
   const window = Math.max(1, Math.floor(sampleRate * length + 0.5));
   const decay = Math.exp(-1 / length / sampleRate);
@@ -49,12 +50,22 @@ export async function measureAstats(
   const histogram = new Float64Array(8192);
   const samples = new Float64Array(window);
   const peaks = new Float64Array(window);
-  const total = {
+  const setMetadata = (tags: Map<string, string>, section: string, values: Record<string, string | number>, mask?: ReadonlySet<string>) => {
+    for (const [name, value] of Object.entries(values)) {
+      if (mask && !mask.has(name)) continue;
+      const key = `lavfi.astats.${section}.${name}`;
+      const formatted = typeof value === "number" ? fixed(value) : value;
+      budget.allocateMemory(64 + 2 * (key.length + formatted.length));
+      tags.set(key, formatted);
+    }
+  };
+  budget.allocateMemory((metadata?.length ?? 1) * 256);
+  const totals = Array.from({ length: metadata?.length ?? 1 }, () => ({
     count: 0, sum: 0, squares: 0, min: Infinity, max: -Infinity,
     minDiff: Infinity, maxDiff: 0, differences: 0, differenceSquares: 0,
     minRms: Infinity, maxRms: -Infinity, peak: 0, runs: 0, peakCount: 0,
     absPeakCount: 0, noise: 0, noiseCount: 0, entropy: 0, masks: [0, 0, -1, 0]
-  };
+  }));
   let report = "";
   let work = 0;
   for (const [channelIndex, channel] of channels.entries()) {
@@ -71,6 +82,7 @@ export async function measureAstats(
     let minDiff = Number.MAX_VALUE, maxDiff = 0, differences = 0, differenceSquares = 0;
     let last = NaN, lastInteger = 0, lastNonzero = 0, crossings = 0;
     const masks = [0, 0, -1, 0];
+    let frameIndex = 0;
     for (let i = 0; i < channel.length; i++) {
       if (++work % 1024 === 0) {
         budget.checkCpu();
@@ -151,66 +163,111 @@ export async function measureAstats(
         if (Number.isNaN(noise) || floorPeak < noise) { noise = floorPeak; noiseCount = 1; }
         else if (floorPeak === noise) noiseCount++;
       }
+      const length = i + 1;
+      const frame = metadata?.[frameIndex];
+      if (length !== (frame?.end ?? channel.length)) continue;
+      const total = totals[frameIndex++]!;
+      if (length < window) minRms = maxRms = squares / length;
+      let entropy = 0;
+      for (const count of histogram) {
+        const probability = count / length;
+        if (probability > 1e-8) entropy -= probability * Math.log2(probability) / 13;
+      }
+      const normalizedPeak = peak / unit * scale;
+      const rms = Math.sqrt(squares / length);
+      if (frame) {
+        const depth = bitDepth(masks, bits);
+        setMetadata(frame.tags, String(channelIndex + 1), {
+          DC_offset: sum / length, Min_level: min, Max_level: max,
+          Min_difference: minDiff, Max_difference: maxDiff,
+          Mean_difference: differences / (length - 1), RMS_difference: Math.sqrt(differenceSquares / (length - 1)),
+          Peak_level: db(normalizedPeak), RMS_level: db(rms),
+          RMS_peak: db(Math.sqrt(maxRms)), RMS_trough: db(Math.sqrt(minRms)),
+          // FFmpeg metadata uses the raw peak for crest factor and overwrites
+          // the channel Peak_count with the absolute peak count.
+          Crest_factor: squares ? peak / rms : 1,
+          Flat_factor: db((minRuns + maxRuns) / (minCount + maxCount)), Peak_count: absPeakCount,
+          Noise_floor: db(noise), Noise_floor_count: noiseCount,
+          Entropy: entropy === 0 ? "-0.000000" : fixed(entropy),
+          Bit_depth: depth[0]!, Bit_depth2: depth[1]!, Bit_depth3: depth[2]!, Bit_depth4: depth[3]!,
+          Dynamic_range: db(2 * peak / minNonzero), Zero_crossings: crossings, Zero_crossings_rate: crossings / length
+        }, perChannel);
+      }
+      if (length === channel.length) {
+        report += measurements(`Channel: ${channelIndex + 1}`, [
+          ["DC offset", fixed(sum / channel.length)], ["Min level", fixed(min)], ["Max level", fixed(max)],
+          ["Min difference", fixed(minDiff)], ["Max difference", fixed(maxDiff)],
+          ["Mean difference", fixed(differences / (channel.length - 1))],
+          ["RMS difference", fixed(Math.sqrt(differenceSquares / (channel.length - 1)))],
+          ["Peak level dB", db(normalizedPeak)], ["RMS level dB", db(rms)], ["RMS peak dB", db(Math.sqrt(maxRms))],
+          ...(minRms === 1 ? [] : [["RMS trough dB", db(Math.sqrt(minRms))]] as [string, string][]),
+          ["Crest factor", fixed(squares ? normalizedPeak / rms : 1)], ["Flat factor", db((minRuns + maxRuns) / (minCount + maxCount))],
+          ["Peak count", minCount + maxCount], ["Abs Peak count", absPeakCount],
+          ["Noise floor dB", db(noise)], ["Noise floor count", noiseCount],
+          ["Entropy", fixed(entropy)], ["Bit depth", bitDepth(masks, bits).join("/")], ["Dynamic range", db(2 * peak / minNonzero)],
+          ["Zero crossings", crossings], ["Zero crossings rate", fixed(crossings / channel.length)],
+          ...(perChannel?.has("Number_of_samples") ? [["Number of samples", channel.length]] as [string, number][] : [])
+        ], perChannel);
+      }
+      total.count += length;
+      if (Math.abs(sum) > Math.abs(total.sum)) total.sum = sum;
+      total.squares += squares;
+      total.min = Math.min(total.min, min);
+      total.max = Math.max(total.max, max);
+      total.minDiff = Math.min(total.minDiff, minDiff);
+      total.maxDiff = Math.max(total.maxDiff, maxDiff);
+      total.differences += differences;
+      total.differenceSquares += differenceSquares;
+      total.minRms = Math.min(total.minRms, minRms);
+      total.maxRms = Math.max(total.maxRms, maxRms);
+      total.peak = Math.max(total.peak, normalizedPeak);
+      total.runs += minRuns + maxRuns;
+      total.peakCount += minCount + maxCount;
+      total.absPeakCount += absPeakCount;
+      total.noise = Math.max(total.noise, noise);
+      total.noiseCount += noiseCount;
+      total.entropy += entropy;
+      total.masks[0]! |= masks[0]!;
+      total.masks[1]! |= masks[1]!;
+      total.masks[2]! &= masks[2]!;
+      total.masks[3]! |= masks[3]!;
     }
-    if (channel.length < window) minRms = maxRms = squares / channel.length;
-    let entropy = 0;
-    for (const count of histogram) {
-      const probability = count / channel.length;
-      if (probability > 1e-8) entropy -= probability * Math.log2(probability) / 13;
-    }
-    const normalizedPeak = peak / unit * scale;
-    const rms = Math.sqrt(squares / channel.length);
-    report += measurements(`Channel: ${channelIndex + 1}`, [
-      ["DC offset", fixed(sum / channel.length)], ["Min level", fixed(min)], ["Max level", fixed(max)],
-      ["Min difference", fixed(minDiff)], ["Max difference", fixed(maxDiff)],
-      ["Mean difference", fixed(differences / (channel.length - 1))],
-      ["RMS difference", fixed(Math.sqrt(differenceSquares / (channel.length - 1)))],
-      ["Peak level dB", db(normalizedPeak)], ["RMS level dB", db(rms)], ["RMS peak dB", db(Math.sqrt(maxRms))],
-      ...(minRms === 1 ? [] : [["RMS trough dB", db(Math.sqrt(minRms))]] as [string, string][]),
-      ["Crest factor", fixed(squares ? normalizedPeak / rms : 1)], ["Flat factor", db((minRuns + maxRuns) / (minCount + maxCount))],
-      ["Peak count", minCount + maxCount], ["Abs Peak count", absPeakCount],
-      ["Noise floor dB", db(noise)], ["Noise floor count", noiseCount],
-      ["Entropy", fixed(entropy)], ["Bit depth", bitDepth(masks, bits)], ["Dynamic range", db(2 * peak / minNonzero)],
-      ["Zero crossings", crossings], ["Zero crossings rate", fixed(crossings / channel.length)],
-      ...(perChannel?.has("Number_of_samples") ? [["Number of samples", channel.length]] as [string, number][] : [])
-    ], perChannel);
-    total.count += channel.length;
-    if (Math.abs(sum) > Math.abs(total.sum)) total.sum = sum;
-    total.squares += squares;
-    total.min = Math.min(total.min, min);
-    total.max = Math.max(total.max, max);
-    total.minDiff = Math.min(total.minDiff, minDiff);
-    total.maxDiff = Math.max(total.maxDiff, maxDiff);
-    total.differences += differences;
-    total.differenceSquares += differenceSquares;
-    total.minRms = Math.min(total.minRms, minRms);
-    total.maxRms = Math.max(total.maxRms, maxRms);
-    total.peak = Math.max(total.peak, normalizedPeak);
-    total.runs += minRuns + maxRuns;
-    total.peakCount += minCount + maxCount;
-    total.absPeakCount += absPeakCount;
-    total.noise = Math.max(total.noise, noise);
-    total.noiseCount += noiseCount;
-    total.entropy += entropy;
-    total.masks[0]! |= masks[0]!;
-    total.masks[1]! |= masks[1]!;
-    total.masks[2]! &= masks[2]!;
-    total.masks[3]! |= masks[3]!;
   }
-  if (!total.count) return "";
-  const count = channels.length;
-  report += measurements("Overall", [
-    ["DC offset", fixed(total.sum / (total.count / count))], ["Min level", fixed(total.min)], ["Max level", fixed(total.max)],
-    ["Min difference", fixed(total.minDiff)], ["Max difference", fixed(total.maxDiff)],
-    ["Mean difference", fixed(total.differences / (total.count - count))],
-    ["RMS difference", fixed(Math.sqrt(total.differenceSquares / (total.count - count)))],
-    ["Peak level dB", db(total.peak)], ["RMS level dB", db(Math.sqrt(total.squares / total.count))],
-    ["RMS peak dB", db(Math.sqrt(total.maxRms))],
-    ...(total.minRms === 1 ? [] : [["RMS trough dB", db(Math.sqrt(total.minRms))]] as [string, string][]),
-    ["Flat factor", db(total.runs / total.peakCount)], ["Peak count", fixed(total.peakCount / count)],
-    ["Abs Peak count", fixed(total.absPeakCount / count)], ["Noise floor dB", db(total.noise)],
-    ["Noise floor count", fixed(total.noiseCount / count)], ["Entropy", fixed(total.entropy / count)],
-    ["Bit depth", bitDepth(total.masks, bits)], ["Number of samples", total.count / count]
-  ], overall);
+  for (const [frameIndex, total] of totals.entries()) {
+    if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(signal); signal?.throwIfAborted(); }
+    if (!total.count) continue;
+    const count = channels.length;
+    const frame = metadata?.[frameIndex];
+    if (frame) {
+      const depth = bitDepth(total.masks, bits);
+      setMetadata(frame.tags, "Overall", {
+        DC_offset: total.sum / (total.count / count), Min_level: total.min, Max_level: total.max,
+        Min_difference: total.minDiff, Max_difference: total.maxDiff,
+        Mean_difference: total.differences / (total.count - count),
+        RMS_difference: Math.sqrt(total.differenceSquares / (total.count - count)),
+        Peak_level: db(total.peak), RMS_level: db(Math.sqrt(total.squares / total.count)),
+        RMS_peak: db(Math.sqrt(total.maxRms)), RMS_trough: db(Math.sqrt(total.minRms)),
+        Flat_factor: db(total.runs / total.peakCount), Peak_count: total.peakCount / count,
+        Abs_Peak_count: total.absPeakCount / count, Noise_floor: db(total.noise),
+        Noise_floor_count: total.noiseCount / count, Entropy: total.entropy / count,
+        Bit_depth: depth[0]!, Bit_depth2: depth[1]!, Bit_depth3: depth[2]!, Bit_depth4: depth[3]!,
+        Number_of_samples: total.count / count
+      }, overall);
+    }
+    if (frameIndex !== totals.length - 1) continue;
+    report += measurements("Overall", [
+      ["DC offset", fixed(total.sum / (total.count / count))], ["Min level", fixed(total.min)], ["Max level", fixed(total.max)],
+      ["Min difference", fixed(total.minDiff)], ["Max difference", fixed(total.maxDiff)],
+      ["Mean difference", fixed(total.differences / (total.count - count))],
+      ["RMS difference", fixed(Math.sqrt(total.differenceSquares / (total.count - count)))],
+      ["Peak level dB", db(total.peak)], ["RMS level dB", db(Math.sqrt(total.squares / total.count))],
+      ["RMS peak dB", db(Math.sqrt(total.maxRms))],
+      ...(total.minRms === 1 ? [] : [["RMS trough dB", db(Math.sqrt(total.minRms))]] as [string, string][]),
+      ["Flat factor", db(total.runs / total.peakCount)], ["Peak count", fixed(total.peakCount / count)],
+      ["Abs Peak count", fixed(total.absPeakCount / count)], ["Noise floor dB", db(total.noise)],
+      ["Noise floor count", fixed(total.noiseCount / count)], ["Entropy", fixed(total.entropy / count)],
+      ["Bit depth", bitDepth(total.masks, bits).join("/")], ["Number of samples", total.count / count]
+    ], overall);
+  }
   return report;
 }

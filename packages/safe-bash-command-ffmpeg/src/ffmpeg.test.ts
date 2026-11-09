@@ -8894,7 +8894,7 @@ describe("astats", () => {
       assert.deepEqual(pcm(vfs.store.get("/out.wav")!), pcm(input));
     });
   }
-  for (const option of ["metadata=1", "reset=-1", "reset=1.5", "reset=2147483648", "reset=", "reset=NaN", "reset=Infinity", "reset=nope", "unknown=0", "measure_perchannel=unknown", "measure_overall=RMS_level+unknown", "measure_perchannel=", "measure_overall=RMS_level=none"]) {
+  for (const option of ["metadata=2", "metadata=maybe", "metadata=1=0", "reset=-1", "reset=1.5", "reset=2147483648", "reset=", "reset=NaN", "reset=Infinity", "reset=nope", "unknown=0", "measure_perchannel=unknown", "measure_overall=RMS_level+unknown", "measure_perchannel=", "measure_overall=RMS_level=none"]) {
     it(`rejects unsupported astats ${option} without replacing output`, async () => {
       const original = new Uint8Array([1, 2, 3]);
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(4)] }), "/out.wav": original });

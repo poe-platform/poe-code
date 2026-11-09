@@ -22,10 +22,9 @@ function readVorbisTrack(track: MediaTrack) {
 }
 
 /** Decode overlap windows before applying Ogg page granules and final padding. */
-export function decodeVorbisTrack(track: MediaTrack): MediaAudioData {
+export function* decodeVorbisFrames(track: MediaTrack) {
   const { packets, extra } = readVorbisTrack(track);
   const { sampleRate, channels } = track.codecDescriptions[0]!;
-  const frames: Float32Array[][] = [];
   let count = 0;
   // The first packet primes the overlap window and produces no PCM.
   let position: number | undefined;
@@ -40,6 +39,7 @@ export function decodeVorbisTrack(track: MediaTrack): MediaAudioData {
     let length = frame.channelData[0]!.length;
     position ??= packets[3]!.granule !== 0xffffffffffffffffn
       ? Number(packets[3]!.granule) : frame.pts;
+    const pts = position;
     position += length;
     if (packet.granule !== 0xffffffffffffffffn) {
       const granule = Number(packet.granule);
@@ -54,8 +54,15 @@ export function decodeVorbisTrack(track: MediaTrack): MediaAudioData {
     }
     count += length;
     if (count * channels! * 4 > 128 * 1024 * 1024) throw new Error("Vorbis PCM exceeds size limit");
-    frames.push(frame.channelData.map(channel => channel.subarray(0, length)));
+    if (length > 0) yield { sampleRate: sampleRate!, pts,
+      channelData: frame.channelData.map(channel => channel.subarray(0, length)) };
   }
+}
+
+export function decodeVorbisTrack(track: MediaTrack): MediaAudioData {
+  const { sampleRate, channels } = track.codecDescriptions[0]!;
+  const frames = Array.from(decodeVorbisFrames(track), frame => frame.channelData);
+  const count = frames.reduce((sum, frame) => sum + frame[0]!.length, 0);
   const channelData = Array.from({ length: channels! }, (_, channel) => {
     const data = new Float32Array(count);
     let offset = 0;

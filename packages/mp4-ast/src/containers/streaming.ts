@@ -382,6 +382,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   resources: ReadonlyMap<string, Uint8Array>;
   publications(): Generator<{ manifest: Uint8Array; resources: ReadonlyMap<string, Uint8Array> }>;
 } {
+  const writePrft = (options.writePrft ?? options.lowLatency) && (options.streaming || options.lowLatency) && !!options.utcTimingUrl;
   const profiles = (options.mpdProfile ?? "dash").split("+");
   if (profiles.some(profile => profile !== "dash" && profile !== "dvb_dash")) {
     throw new Error("Invalid DASH mpd_profile");
@@ -457,7 +458,6 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   const hlsStreams: { codec: string; bandwidth: number }[] = [];
   let totalBytes = 0;
   const hasVideo = doc.tracks.some(track => track.type === "video");
-  const streaming = options.lowLatency || options.streaming;
   let maxGopDuration = 0;
   let bufferDuration = 0;
   let lastSegmentEnd = -Infinity;
@@ -555,6 +555,20 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         const fragment = bytes.slice(offset);
         // mfhd is the first moof child; sequence numbers increase per representation.
         new DataView(fragment.buffer, fragment.byteOffset, fragment.byteLength).setUint32(moof.offset - offset + 20, ++sequence);
+        if (writePrft && samples[start]) {
+          // ISO/IEC 14496-12 version 1: NTP wall clock and presentation time.
+          const payload = new Uint8Array(24);
+          const view = new DataView(payload.buffer);
+          view.setUint32(0, 0x01000018);
+          view.setUint32(4, track.id);
+          const now = Date.now();
+          view.setUint32(8, Math.floor(now / 1000) + 2_208_988_800);
+          view.setUint32(12, Math.floor((now % 1000) * 2 ** 32 / 1000));
+          view.setBigUint64(16, BigInt(samples[start]!.pts));
+          const prft = makeBox("prft", payload);
+          mediaBytes += prft.length;
+          fragments.push(prft);
+        }
         mediaBytes += fragment.length;
         budget.checkOutputBytes(totalBytes + mediaBytes);
         fragments.push(fragment);

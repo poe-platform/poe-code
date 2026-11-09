@@ -5121,8 +5121,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let hlsFlags: string | undefined;
         let hlsTime = 2;
         let hlsInitTime = 0;
-        let dashMpdProfile: string | undefined;
+        let dashWritePrft: boolean | undefined;
         let dashUtcTimingUrl: string | undefined;
+        let dashMpdProfile: string | undefined;
         let dashAdaptationSets: string | undefined;
         let dashSegmentDuration = 5;
         let dashSegmentType: "auto" | "mp4" | "webm" = "auto";
@@ -5509,12 +5510,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (arg === "-hls_time") hlsTime = value;
             else hlsInitTime = value;
             if (i >= args.length) break;
-          } else if (arg === "-utc_timing_url") {
-            dashUtcTimingUrl = args[++i];
-            if (dashUtcTimingUrl === undefined) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing utc_timing_url\n"), context.signal);
-              return { exitCode: 1 };
-            }
           } else if (arg === "-adaptation_sets") {
             dashAdaptationSets = args[++i];
             if (!dashAdaptationSets || dashAdaptationSets.startsWith("-")) {
@@ -5550,6 +5545,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (arg === "-min_playback_rate") dashMinPlaybackRate = rate;
             else dashMaxPlaybackRate = rate;
+          } else if (arg === "-write_prft") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1" && !(arg === "-write_prft" && value === "-1")) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: invalid ${arg.slice(1)}\n`), context.signal);
+              return { exitCode: 1 };
+            }
+            dashWritePrft = value === "-1" ? undefined : value === "1";
+          } else if (arg === "-utc_timing_url") {
+            dashUtcTimingUrl = args[++i];
+            if (dashUtcTimingUrl === undefined) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing utc_timing_url\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-window_size") {
             const value = args[++i] ?? "";
             dashWindowSize = Number(value);
@@ -10246,7 +10254,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (!registry.findByFormatName("dash")?.canMux) throw new Error("DASH AST is not registered");
               const outResolved = resolvePath(context.cwd, outputTarget);
               const outDir = outResolved.slice(0, outResolved.lastIndexOf("/")) || "/";
-              const { resources, publications } = serializeDashDocument(workingDoc, { utcTimingUrl: dashUtcTimingUrl, mpdProfile: dashMpdProfile, hlsPlaylist: dashHlsPlaylist, adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.$ext$", minPlaybackRate: dashMinPlaybackRate, maxPlaybackRate: dashMaxPlaybackRate, segmentDuration: dashSegmentDuration, segmentType: dashSegmentType, fragmentType: dashFragmentType, fragmentDuration, streaming: dashStreaming, lowLatency: dashLowLatency, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
+              const { resources, publications } = serializeDashDocument(workingDoc, { writePrft: dashWritePrft, utcTimingUrl: dashUtcTimingUrl, mpdProfile: dashMpdProfile, hlsPlaylist: dashHlsPlaylist, adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.$ext$", minPlaybackRate: dashMinPlaybackRate, maxPlaybackRate: dashMaxPlaybackRate, segmentDuration: dashSegmentDuration, segmentType: dashSegmentType, fragmentType: dashFragmentType, fragmentDuration, streaming: dashStreaming, lowLatency: dashLowLatency, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
               for (const publication of publications()) {
                 for (const [uri, bytes] of publication.resources) {

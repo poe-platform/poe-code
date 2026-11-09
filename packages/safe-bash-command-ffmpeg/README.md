@@ -561,6 +561,7 @@ Use `-single_file 1` to write `<manifest>-stream<N>.webm` for VP9 or `<manifest>
 `-adaptation_sets "id=0,streams=a id=1,streams=v"` groups output streams into explicit
 adaptation sets. Select streams by `a`, `v`, or comma-separated output stream indices;
 each stream must belong to exactly one set of the same media type.
+Use `-write_prft 1 -streaming 1 -utc_timing_url URL` to write producer reference times before every frame fragment. `-ldash 1` enables streaming and producer times by default; `-write_prft 0` disables the boxes. Both streaming and a UTC timing URL are required. The completed output is a static MPD with `UTCTiming`.
 Use `-hls_playlist 1` with DASH output to write `master.m3u8` and per-stream `media_N.m3u8` playlists alongside the MPD, sharing its media resources.
 DASH input supports a single Period with segment templates, timelines, or segment lists without byte ranges.
 Stream copy preserves relative audio/video timing, including AAC priming, and follows native DASH packet scheduling through EOF;

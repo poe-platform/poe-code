@@ -66,6 +66,7 @@ Set `useTemplate: false` to emit explicit `SegmentList` resource references inst
 Set `useTimeline: false` for fixed-duration `SegmentTemplate` output without a timeline.
 Set `utcTimingUrl` to advertise an HTTP xsdate UTC timing source in the MPD without fetching it; empty or omitted values add no timing source.
 Set `hlsPlaylist: true` to also return `master.m3u8` and per-stream `media_N.m3u8` playlists referencing the same DASH fragments (including single-file byte ranges).
+Set `streaming: true`, `writePrft: true`, and `utcTimingUrl` to write a producer reference time (`prft`) before every frame fragment. `lowLatency: true` enables streaming and producer times by default; `writePrft: false` disables the boxes. Producer times require a UTC timing URL, which is included in the finalized static MPD.
 VP9 DASH uses WebM initialization and Cluster segments with `.webm` names; H.264 retains fragmented MP4.
 Separate MP4 DASH media files start with an `styp` box carrying the `msdh`/`msix` brands.
 MP4 media segments contain a local `sidx` index covering their fragments. Set `streaming: true` to omit indexes and write one fragment per frame.

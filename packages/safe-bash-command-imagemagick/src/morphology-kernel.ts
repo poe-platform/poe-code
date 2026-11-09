@@ -1,3 +1,6 @@
+import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { VirtualPixelMethod } from "./warp-kernel.js";
+import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 export type MorphologyRow = number | readonly number[];
@@ -42,8 +45,12 @@ export function* hitAndMissPixelSteps(image: { width: number; height: number }, 
 }
 
 /** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. Arrays specify sparse horizontal offsets. */
-export function* morphologyPixelSteps(image: { width: number; height: number; hasAlpha?: boolean }, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphologyPixelSteps(image: { width: number; height: number; hasAlpha?: boolean }, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, histogram = new Float64Array(4 * 256);
+    const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
+    const fill = new Uint8Array((virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
+        ? [background.r, background.g, background.b, background.a]
+        : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255]);
     const ry = Math.floor(rows.length / 2);
     const samples = rows.reduce<number>((total, radius) => total + (typeof radius === "number" ? radius * 2 + 1 : radius.length), 0);
     const rank = Math.floor(samples / 2), sums = new Float64Array(4), squaredSums = new Float64Array(4);
@@ -73,8 +80,8 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
                         for (let sample = 0; sample < count; sample++) {
                             const column = typeof offsets === "number" ? first + sample : x + offsets[sample]! - (phase === 0 && x > 0 ? 1 : 0);
                             if (++work % 4096 === 0) yield;
-                            const sx = Math.max(0, Math.min(width - 1, column)), sy = Math.max(0, Math.min(height - 1, y + row - ry));
-                            const bytes = yield { kind: "read", position: (sy * width + sx) * 4, length: 4 };
+                            const pixel = virtualPixelIndex(column, y + row - ry, width, height, virtualPixel);
+                            const bytes = pixel < 0 ? fill : yield { kind: "read", position: pixel * 4, length: 4 };
                             if (!bytes || bytes.length !== 4) throw new Error("Truncated morphology pixels");
                             for (let c = 0; c < 4; c++) {
                                 if (channels && !channels[c]) continue;

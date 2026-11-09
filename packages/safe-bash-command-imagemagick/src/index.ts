@@ -890,7 +890,7 @@ function* subtractMagickPixelSteps(a: Uint8Array, b: Uint8Array, hasAlpha: boole
     }
     return result;
 }
-function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kernelSpec: string, signal?: AbortSignal, channels?: readonly boolean[]): Generator<void, RgbaImage, void> {
+function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kernelSpec: string, signal?: AbortSignal, channels?: readonly boolean[], virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Generator<void, RgbaImage, void> {
     const plan = magickMorphologyPlan(methodRaw, kernelSpec), images = [img];
     if (plan.iterations === 0) return img;
     for (const step of plan.steps) {
@@ -906,7 +906,7 @@ function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kerne
         } else {
             let source = images[step.source]!;
             for (let pass = 0; pass < plan.iterations; pass++)
-                source = yield* applyMagickRasterSteps(source, step.mode === "distance" ? distancePixelSteps(source, step.scale, step.reverse, channels) : plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels), signal);
+                source = yield* applyMagickRasterSteps(source, step.mode === "distance" ? distancePixelSteps(source, step.scale, step.reverse, channels) : plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels, virtualPixel, background), signal);
             images.push(source);
         }
     }
@@ -8323,7 +8323,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             validateMagickStatistic(statType);
             const geom = tokens[++i] ?? "3x3";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickMorphology4ChSteps(im, statType, geom, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined));
+                return (yield* applyMagickMorphology4ChSteps(im, statType, geom, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background));
             });
         }
         else if (t === "-channel-fx") {
@@ -8842,7 +8842,7 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
     return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }) };
 }
 
-async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal, channels?: readonly boolean[]): Promise<StoredRgbaImage> {
+async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal, channels?: readonly boolean[], virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Promise<StoredRgbaImage> {
     const images = [image], size = image.width * image.height * 4;
     if (plan.iterations === 0) return image;
     for (const step of plan.steps) {
@@ -8866,7 +8866,7 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
         } else {
             let source = images[step.source]!;
             for (let pass = 0; pass < plan.iterations; pass++)
-                source = await transformStoredMagickRaster(source, backend, step.mode === "distance" ? distancePixelSteps(source, step.scale, step.reverse, channels) : plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels), signal);
+                source = await transformStoredMagickRaster(source, backend, step.mode === "distance" ? distancePixelSteps(source, step.scale, step.reverse, channels) : plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels, virtualPixel, background), signal);
             images.push(source);
         }
     }
@@ -10037,7 +10037,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             } else {
                 const plan = magickMorphologyPlan(method, spec);
                 const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
-                steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal, channels) : undefined);
+                const virtualPixel = token === "-statistic" ? state.virtualPixel : undefined, background = state.background;
+                steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal, channels, virtualPixel, background) : undefined);
             }
         } else if (!operandsOnly && token === "-emboss") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");

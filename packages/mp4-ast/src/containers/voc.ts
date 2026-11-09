@@ -1,4 +1,4 @@
-import { MediaBudgetTracker, type MediaAstPlugin, type ParseMediaOptions } from "../types.js";
+import { MediaBudgetTracker, type MediaAstPlugin, type MediaSample, type ParseMediaOptions } from "../types.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
 import { concatBytes } from "../binary.js";
 import { rawAudioAsts } from "./raw-audio.js";
@@ -20,7 +20,9 @@ function parseVoc(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   if (offset < 26 || offset > bytes.length) throw new Error("Invalid VOC data offset");
   let format: string | undefined;
   let sampleRate = 0, channels = 0, size = 0;
-  const parts: Uint8Array[] = [];
+  const samples: MediaSample[] = [];
+  let extension: { rate: number; channels: number; codec: number } | undefined;
+  let pts = 0;
   while (offset < bytes.length) {
     budget.checkCpu();
     const type = bytes[offset++]!;
@@ -30,11 +32,23 @@ function parseVoc(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     offset += 3;
     const end = offset + length;
     if (end > bytes.length) throw new Error("Truncated VOC block");
-    if (type === 9) {
-      if (length < 12) throw new Error("Invalid VOC sound block");
-      const nextFormat = encodings.get(view.getUint16(offset + 6, true));
-      const rate = view.getUint32(offset, true), count = bytes[offset + 5]!;
-      if (!nextFormat || bytes[offset + 4] !== (nextFormat === "s16le" ? 16 : 8)) {
+    if (type === 8) {
+      if (length < 4) throw new Error("Invalid VOC extended block");
+      const count = bytes[offset + 3]! + 1;
+      extension = { rate: Math.floor(256000000 / (65536 - view.getUint16(offset, true)) / count),
+        channels: count, codec: bytes[offset + 2]! };
+      offset = end;
+      continue;
+    }
+    if (type === 9 || type === 1) {
+      const headerSize = type === 9 ? 12 : 2;
+      if (length < headerSize) throw new Error("Invalid VOC sound block");
+      const nextFormat = encodings.get(type === 9 ? view.getUint16(offset + 6, true)
+        : extension?.codec ?? bytes[offset + 1]!);
+      const rate = type === 9 ? view.getUint32(offset, true)
+        : extension?.rate ?? Math.floor(1000000 / (256 - bytes[offset]!));
+      const count = type === 9 ? bytes[offset + 5]! : extension?.channels ?? 1;
+      if (!nextFormat || (type === 9 && bytes[offset + 4] !== (nextFormat === "s16le" ? 16 : 8))) {
         throw new Error("Unsupported VOC audio encoding");
       }
       if (!rate || !count) throw new Error("Invalid VOC sample rate or channel count");
@@ -44,25 +58,35 @@ function parseVoc(bytes: Uint8Array, options: ParseMediaOptions = {}) {
       format = nextFormat;
       sampleRate = rate;
       channels = count;
-      offset += 12;
+      offset += headerSize;
+      extension = undefined;
     } else if (type !== 2) {
-      // Marker and text blocks carry no audio. Other block types require
-      // timing or codec handling and must not silently discard samples.
-      if (type !== 4 && type !== 5) throw new Error(`Unsupported VOC block type ${type}`);
+      // Native FFmpeg skips silence, marker and text blocks without advancing PTS.
+      if (type === 3 && length < 3) throw new Error("Invalid VOC silence block");
+      if (type !== 3 && type !== 4 && type !== 5) throw new Error(`Unsupported VOC block type ${type}`);
       offset = end;
       continue;
     }
     if (!format) throw new Error("VOC continuation without sound format");
     size += end - offset;
-    budget.checkSamples(parts.length + 1);
-    parts.push(bytes.subarray(offset, end));
+    const frameBytes = channels * (format === "s16le" ? 2 : 1);
+    for (let start = offset; start < end; start += 2048) {
+      budget.checkCpu();
+      budget.checkSamples(samples.length + 1);
+      const data = bytes.subarray(start, Math.min(start + 2048, end));
+      const duration = Math.floor(data.length / frameBytes);
+      samples.push({ data, size: data.length, offset: start, dts: pts, pts, cts: 0,
+        duration, isKeyframe: true, sampleDescriptionIndex: 1 });
+      pts += duration;
+    }
     offset = end;
   }
   if (!format) throw new Error("VOC contains no audio");
   budget.allocateMemory(size);
-  const doc = raw.find(plugin => plugin.id === format)!.parse(concatBytes(parts),
+  const doc = raw.find(plugin => plugin.id === format)!.parse(concatBytes(samples.map(sample => sample.data)),
     { ...options, budget, sampleRate, channels });
-  return { ...doc, containerFormat: "voc", byteLength: bytes.length };
+  return { ...doc, containerFormat: "voc", byteLength: bytes.length,
+    tracks: doc.tracks.map(track => ({ ...track, samples })) };
 }
 
 export function vocAst(): MediaAstPlugin {

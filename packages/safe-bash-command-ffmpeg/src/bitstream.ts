@@ -49,6 +49,34 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
       });
       continue;
     }
+    if (filter === "opus_metadata" || filter.startsWith("opus_metadata=")) {
+      let gain = 0;
+      if (filter !== "opus_metadata") {
+        for (const option of filter.slice("opus_metadata=".length).split(":")) {
+          const [key, value, extra] = option.split("=");
+          const digits = value?.startsWith("-") || value?.startsWith("+") ? value.slice(1) : value;
+          if (key !== "gain" || !digits || extra !== undefined || ![...digits].every(char => char >= "0" && char <= "9")) {
+            throw new Error(`Invalid opus_metadata bitstream filter option: ${option}`);
+          }
+          gain = Number(value);
+          if (!Number.isInteger(gain) || gain < -32768 || gain > 32767) throw new Error("opus_metadata gain must be between -32768 and 32767");
+        }
+      }
+      tracks = tracks.map(track => track.type !== type ? track : {
+        ...track,
+        codecDescriptions: track.codecDescriptions.map(codec => {
+          budget.checkCpu();
+          if (codec.codecName !== "opus") throw new Error(`opus_metadata bitstream filter does not support codec ${codec.codecName}`);
+          const head = codec.extraData;
+          if (!head || head.length < 19 || new TextDecoder().decode(head.subarray(0, 8)) !== "OpusHead") throw new Error("opus_metadata: invalid OpusHead");
+          budget.checkOutputBytes(head.length);
+          const extraData = new Uint8Array(head);
+          new DataView(extraData.buffer).setInt16(16, gain, true);
+          return { ...codec, extraData };
+        })
+      });
+      continue;
+    }
     if (filter === "aac_adtstoasc") {
       for (const track of tracks) {
         if (track.type !== type) continue;

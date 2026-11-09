@@ -25,7 +25,7 @@ for (const route of ["file", "stdin"]) {
       expect(result.exitCode, diagnostic).toBe(0);
       const expected = {
         packets: [
-          { pts_time: "1.250000", dts_time: "1.250000", duration_time: "1.500000" },
+          { pts_time: "1.250000", dts_time: "1.250000", duration_time: "1.500000", side_data_list: [{}, {}] },
           { pts_time: "4.000000", dts_time: "4.000000", duration_time: "0.500000" }
         ],
         format: { size: "85", ...(optional === "always" ? { start_time: "N/A", duration: "N/A", bit_rate: "N/A" } : {}) }

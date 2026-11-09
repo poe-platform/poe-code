@@ -811,7 +811,8 @@ function buildAudioStsdEntry(desc: MediaCodecDescription): Uint8Array {
     writer.writeBytes(makeBox("dOps", desc.dOps.rawBytes));
   }
 
-  return makeBox(desc.formatFourCC || "mp4a", writer.toUint8Array());
+  const format = desc.codecName === "pcm_mulaw" ? "ulaw" : desc.codecName === "pcm_alaw" ? "alaw" : desc.formatFourCC || "mp4a";
+  return makeBox(format, writer.toUint8Array());
 }
 
 function buildIlstTagBox(fourcc: string, value: string): Uint8Array {

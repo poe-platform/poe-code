@@ -100,7 +100,7 @@ export function finishCodecMetadata(state: CodecEntryState): Mp4CodecMetadata {
   } else if (state.kind === 'audio') {
     if (format === 'mp4a' && metadata.codecName === 'mp4a') { metadata.codecName = 'aac'; metadata.profile ??= 'LC'; }
     else {
-      const aliases: Record<string,string> = { Opus:'opus',fLaC:'flac',alac:'alac','ac-3':'ac3','ec-3':'eac3',sowt:'pcm_s16le',twos:'pcm_s16be',lpcm:'pcm_s16le','.mp3':'mp3' };
+      const aliases: Record<string,string> = { Opus:'opus',fLaC:'flac',alac:'alac','ac-3':'ac3','ec-3':'eac3',sowt:'pcm_s16le',twos:'pcm_s16be',lpcm:'pcm_s16le','.mp3':'mp3',ulaw:'pcm_mulaw',alaw:'pcm_alaw' };
       metadata.codecName = aliases[format] ?? metadata.codecName;
     }
   } else if (format === 'tx3g' || format === 'text') metadata.codecName = 'mov_text';

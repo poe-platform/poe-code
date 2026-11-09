@@ -20,6 +20,22 @@ it("does not add an SRT separator without cues", () => {
   assert.equal(serializeSubtitleDocument(doc, "srt").byteLength, 0);
 });
 
+for (const format of ["srt", "webvtt"] as const) {
+  it(`serializes ASS soft and hard breaks to native ${format} payload bytes`, () => {
+    const input = [
+      "[Script Info]", "ScriptType: v4.00+", "[Events]",
+      "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",
+      String.raw`Dialogue: 0,0:00:01.00,0:00:02.00,Default,,0,0,0,,A\nB\NC`,
+      "Dialogue: 0,0:00:03.00,0:00:04.00,Default,,0,0,0,,next", ""
+    ].join("\n");
+    const doc = assAst().parse(new TextEncoder().encode(input));
+    const expected = format === "srt"
+      ? "1\n00:00:01,000 --> 00:00:02,000\nA\r\nB\r\nC\n\n2\n00:00:03,000 --> 00:00:04,000\nnext\n\n"
+      : "WEBVTT\n\n00:01.000 --> 00:02.000\nA\nB\nC\n\n00:03.000 --> 00:04.000\nnext\n";
+    assert.deepEqual(serializeSubtitleDocument(doc, format), new TextEncoder().encode(expected));
+  });
+}
+
 for (const newline of ["\n", "\r\n"]) {
   it(`preserves ASS trailing spaces in SRT with ${JSON.stringify(newline)} input`, () => {
     const input = [

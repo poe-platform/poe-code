@@ -59,6 +59,6 @@ for (const sync of [false, true]) {
     }
     assert.equal(volume.readFileSync("/out.srt", "utf8"),
       cases.map(([, expected], index) =>
-        `${index + 1}\n00:00:${String(index * 3 + 1).padStart(2, "0")},000 --> 00:00:${String(index * 3 + 3).padStart(2, "0")},000\n${expected}\n\n`).join(""));
+        `${index + 1}\n00:00:${String(index * 3 + 1).padStart(2, "0")},000 --> 00:00:${String(index * 3 + 3).padStart(2, "0")},000\n${expected!.replaceAll("\n", "\r\n")}\n\n`).join(""));
   });
 }

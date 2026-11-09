@@ -60,7 +60,7 @@ for (const sync of [false, true]) {
         "1\n00:00:01,000 --> 00:00:03,000\n" + fontText);
       await run(["-i", "/hard-space.ass", ...(explicit ? ["-c:s", "srt", "-f", "srt"] : []), "/hard-space.srt"]);
       assert.equal(volume.readFileSync("/hard-space.srt", "utf8"),
-        "1\n00:00:01,000 --> 00:00:03,000\none\ntwo\nthree\\hfour\n\n");
+        "1\n00:00:01,000 --> 00:00:03,000\none\r\ntwo\r\nthree\\hfour\n\n");
       for (const input of ["/out.ass", "/native.ass"]) {
         await run(["-y", "-i", input, "/out.srt"]);
         assert.equal(String(volume.readFileSync("/out.srt", "utf8")).trimEnd(), srt.trimEnd());

@@ -415,6 +415,8 @@ LRC lyrics support explicit `-f lrc` and automatic detection, infer cue ends fro
 
 TTML output (`-f ttml` or `.ttml`) preserves subtitle cue timing, line breaks, and XML-escaped text.
 PJS input (`-f pjs` or automatic detection) reads quoted cues with decisecond timing.
+JACOsub input (`-f jacosub` or automatic detection) reads tick rates and timing shifts, and exports alignment and inline line breaks to SRT.
+
 MPL2 input (`-f mpl2`) reads decisecond cue timing and converts `|` to line breaks.
 
 SubViewer input (`-f subviewer` or detected `.sub` timecodes) preserves centisecond timing, skips information headers, and converts `[br]` to line breaks.

@@ -108,6 +108,7 @@ import {
   realtextAst,
   subviewerAst,
   microdvdAst,
+  jacosubAst,
   mpl2Ast,
   assAst,
   webvttAst,
@@ -143,6 +144,7 @@ export {
   realtextAst,
   subviewerAst,
   microdvdAst,
+  jacosubAst,
   mpl2Ast,
   assAst,
   webvttAst,
@@ -3380,6 +3382,16 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
         if (codec === "ass" && (doc.containerFormat === "matroska" || doc.containerFormat === "webm")) {
           const data = encodeUtf8(decodeMatroskaAss(decodeUtf8(sample.data)));
           return { ...sample, data, size: data.byteLength, webvtt: undefined };
+        }
+        if (codec === "jacosub") {
+          let text = decodeUtf8(sample.data);
+          const separator = text.indexOf(" ");
+          const directive = text.slice(0, separator).toUpperCase();
+          if (separator >= 0 && ["JL", "JR", "JC"].includes(directive)) {
+            text = (directive === "JL" ? "{\\an1}" : directive === "JR" ? "{\\an3}" : "{\\an2}") + text.slice(separator + 1);
+          }
+          const data = encodeUtf8(text.replaceAll("\\n", "\n"));
+          return { ...sample, data, size: data.byteLength };
         }
         if (codec === "microdvd" || codec === "mpl2") {
           const data = encodeUtf8(decodeUtf8(sample.data).replaceAll("|", "\n"));

@@ -9,6 +9,7 @@ import { realtextAst } from "./realtext.js";
 import { samiAst } from "./sami.js";
 import { lrcAst } from "./lrc.js";
 import { mpl2Ast } from "./mpl2.js";
+import { jacosubAst } from "./jacosub.js";
 import { microdvdAst } from "./microdvd.js";
 import { cafAst } from "./caf.js";
 import { ircamAst } from "./ircam.js";
@@ -3000,6 +3001,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     realtextAst(),
     subviewerAst(),
     microdvdAst(),
+    jacosubAst(),
     mpl2Ast(),
     pjsAst(),
     assAst(),

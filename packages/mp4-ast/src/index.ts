@@ -55,3 +55,5 @@ export { nutAst } from "./containers/nut.js";
 export { vocAst } from "./containers/voc.js";
 
 export { realtextAst } from "./containers/realtext.js";
+
+export { jacosubAst } from "./containers/jacosub.js";

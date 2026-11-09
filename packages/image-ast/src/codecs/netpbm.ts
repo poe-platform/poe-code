@@ -258,6 +258,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   const rgba = new Uint8Array(meta.width * meta.height * 4);
   const paletteOffset = 14 + dibHeaderSize;
   const paletteStep = dibHeaderSize === 12 ? 3 : 4;
+  const paletteSize = bpp <= 8 ? Math.min(1 << bpp, (dibHeaderSize >= 40 ? view.getUint32(46, true) : 0) || 1 << bpp) : 0;
 
   if (compression === 1 || compression === 2) {
     if (bpp !== (compression === 1 ? 8 : 4)) throw new Error("Invalid BMP RLE bit depth");
@@ -269,6 +270,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
       const run = decoder.packet(bytes.subarray(offset, offset + size));
       offset += size;
       for (let i = 0; i < run.indices.length; i++) {
+        if (run.indices[i]! >= paletteSize) throw new Error("Invalid BMP colormap index");
         const palette = paletteOffset + run.indices[i]! * paletteStep;
         rgba.set([bytes[palette + 2] ?? 0, bytes[palette + 1] ?? 0, bytes[palette] ?? 0, 255], (run.y * meta.width + run.x + i) * 4);
       }
@@ -300,6 +302,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
           const b = bytes[rowStart + (x >>> 3)] ?? 0;
           pIdx = (b >>> (7 - (x & 7))) & 1;
         }
+        if (pIdx >= paletteSize) throw new Error("Invalid BMP colormap index");
         const pOff = paletteOffset + pIdx * paletteStep;
         rgba[dstIdx] = bytes[pOff + 2] ?? 0;
         rgba[dstIdx + 1] = bytes[pOff + 1] ?? 0;

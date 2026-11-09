@@ -34,7 +34,8 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
  }
  if(compression!==1&&compression!==2&&rowStride*height>source.size-dataOffset) throw new Error("Truncated BMP rows");
  const bitfieldMasks=readBmpMasks(view);
- const palette=new Uint8Array(bpp<=8?(bpp===8?256:bpp===4?16:bpp===1?2:1)*3:0),paletteOffset=14+dibHeaderSize,paletteStep=dibHeaderSize===12?3:4;
+ const paletteSize=bpp<=8?Math.min(1<<bpp,(dibHeaderSize>=40?view.getUint32(46,true):0)||1<<bpp):0;
+ const palette=new Uint8Array(paletteSize*3),paletteOffset=14+dibHeaderSize,paletteStep=dibHeaderSize===12?3:4;
  for(let i=0;i<palette.length/3;i++) for(let c=0;c<3;c++) palette[i*3+c]=await reader.at(paletteOffset+i*paletteStep+c)??0;
  const {size:ignoredSize,...raster}=metadata;
  const output=new Output({...raster,position:0},width,height,storage,signal);
@@ -58,6 +59,7 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
    const run=decoder.packet(packet),rgba=new Uint8Array(run.indices.length*4);
    for(let i=0;i<run.indices.length;i++) {
     const index=run.indices[i]!;
+    if(index>=paletteSize) throw new Error("Invalid BMP colormap index");
     rgba.set([palette[index*3+2]!,palette[index*3+1]!,palette[index*3]!,255],i*4);
    }
    if(rgba.length) await storage.write(image.position+(run.y*width+run.x)*4,rgba,{signal});
@@ -81,6 +83,7 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
     if(bpp===8) index=await reader.at(rowStart+x)??0;
     else if(bpp===4){const value=await reader.at(rowStart+(x>>>1))??0;index=(x&1)===0?(value>>>4)&15:value&15;}
     else if(bpp===1){const value=await reader.at(rowStart+(x>>>3))??0;index=(value>>>(7-(x&7)))&1;}
+    if(index>=paletteSize) throw new Error("Invalid BMP colormap index");
     await output.pixel(palette[index*3+2]!,palette[index*3+1]!,palette[index*3]!,255);
    } else {
     const bytesPerPixel=bpp>>>3,start=rowStart+x*bytesPerPixel;

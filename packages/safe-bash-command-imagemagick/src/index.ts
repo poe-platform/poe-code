@@ -5708,6 +5708,15 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return yield* mapSteps(imgs, function* (im) {
             // ImageMagick activates the decoder's opaque alpha for RGB EXR input.
             if (im.format === "exr" && !im.hasAlpha) im = { ...im, hasAlpha: true, channels: im.channels === 1 ? 2 : 4 };
+            if (im.dataFloat) {
+                const { dataFloat, ...image } = im;
+                const evaluateSamples = new Float64Array(dataFloat.length);
+                for (let offset = 0; offset < dataFloat.length; offset++) {
+                    if (offset % 16384 === 0) yield;
+                    evaluateSamples[offset] = dataFloat[offset]! * 255;
+                }
+                im = { ...image, evaluateSamples };
+            }
             im = { ...im, gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge" };
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.orientation !== undefined) im = { ...im, orientation: state.orientation };
@@ -7623,6 +7632,7 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
     const size = image.width * image.height * 4, position = backend.storage.allocate(size);
     let result = image;
     let storedData16: StoredRgbaImage["storedData16"];
+    let storedDataFloat: StoredRgbaImage["storedDataFloat"];
     let storedHueSamples: number | undefined;
     let storedEvaluateSamples: number | undefined;
     const chunkSize = operation.evaluate || highDepth || operation.highDepth ? 2048 : 16384;
@@ -7639,7 +7649,11 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
         const writeMask = operation.handlesWriteMask && image.storedWriteMask
             ? { ...image.storedWriteMask, width: data.length / 4, height: 1, data: await backend.storage.read(image.storedWriteMask.position + offset, data.length) } : undefined;
         const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(writeMask ? { writeMask } : {}), ...(evaluateSamples ? {evaluateSamples} : {}), ...(data16 ? {data16} : {}), ...(hueSamples ? {hueSamples} : {}) }, offset / 4, image.width), signal);
-        const { data: pixels, writeMask: ignoredMask, evaluateSamples: outputEvaluate, data16: output16, hueSamples: outputHue, ...metadata } = transformed;
+        const { data: pixels, writeMask: ignoredMask, evaluateSamples: outputEvaluate, data16: output16, dataFloat: outputFloat, hueSamples: outputHue, ...metadata } = transformed;
+        if (outputFloat) {
+            storedDataFloat ??= { position: backend.storage.allocate(size * 4), length: size };
+            await backend.storage.write(storedDataFloat.position + offset * 4, new Uint8Array(outputFloat.buffer, outputFloat.byteOffset, outputFloat.byteLength));
+        }
         if (outputEvaluate) {
             storedEvaluateSamples ??= backend.storage.allocate(size * 8);
             await backend.storage.write(storedEvaluateSamples + offset * 8, new Uint8Array(outputEvaluate.buffer, outputEvaluate.byteOffset, outputEvaluate.byteLength));
@@ -7653,7 +7667,7 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
             await backend.storage.write(storedData16.position + offset * 2, new Uint8Array(output16.buffer, output16.byteOffset, output16.byteLength));
         }
         await backend.storage.write(position + offset, pixels);
-        result = { ...metadata, ...(writeMask ? { storedWriteMask: { ...image.storedWriteMask! } } : {}), width: image.width, height: image.height, position, ...(storedEvaluateSamples === undefined ? {} : {storedEvaluateSamples}), ...(storedData16 ? {storedData16} : {}), ...(storedHueSamples === undefined ? {} : {storedHueSamples}) };
+        result = { ...metadata, ...(writeMask ? { storedWriteMask: { ...image.storedWriteMask! } } : {}), width: image.width, height: image.height, position, ...(storedEvaluateSamples === undefined ? {} : {storedEvaluateSamples}), ...(storedData16 ? {storedData16} : {}), ...(storedDataFloat ? {storedDataFloat} : {}), ...(storedHueSamples === undefined ? {} : {storedHueSamples}) };
     }
     return result;
 }
@@ -7784,6 +7798,16 @@ function* prepareInactiveAlphaOutput(image: RgbaImage): Generator<void, RgbaImag
     return { ...image, data, ...(data16 ? { data16 } : {}) };
 }
 
+function* prepareFloatOutput(image: RgbaImage): Generator<void, RgbaImage, void> {
+    if (!image.evaluateSamples) return image;
+    const dataFloat = new Float32Array(image.evaluateSamples.length);
+    for (let offset = 0; offset < dataFloat.length; offset++) {
+        if (offset % 16384 === 0) yield;
+        dataFloat[offset] = image.evaluateSamples[offset]! / 255;
+    }
+    return { ...image, dataFloat };
+}
+
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Generator<void, RgbaImage, void> {
     if ((pngCoder === "png32" || pngCoder === "png64") && (image.alphaBlend === false || !image.hasAlpha && (image.writeMask || image.region))) {
         image = { ...yield* applyMagickRasterSteps(image, pngAlphaPixelSteps(image, image.writeMask, !!image.data16), undefined, { ...image, hasAlpha: true }, image.writeMask ? [image, image.writeMask] : [image]), channels: 4 };
@@ -7792,6 +7816,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     image = yield* prepareInactiveAlphaOutput(yield* prepareHueOutput(image, format));
+    if (["exr", "hdr", "pfm", "phm"].includes(format)) image = yield* prepareFloatOutput(image);
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) image = { ...image, backgroundColor: { r: image.data[0]!, g: image.data[1]!, b: image.data[2]!, a: 255 } };
     if (format === "miff") {
         const scene = (image as MagickImage)[magickInput]?.sceneIdx ?? 0;
@@ -7811,6 +7836,9 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     if (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
+    }
+    if (["exr", "hdr", "pfm", "phm"].includes(format) && image.storedEvaluateSamples !== undefined) {
+        image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareFloatOutput }, signal);
     }
     if (!image.hasAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) {
@@ -12500,6 +12528,17 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
   // Match buffered EXR input: the implicit opaque alpha is an active channel.
   if (image.format === "exr" && !image.hasAlpha) image = { ...image, hasAlpha: true, channels: image.channels === 1 ? 2 : 4 };
+  if (image.storedDataFloat) {
+   const { storedDataFloat, ...metadata } = image;
+   const storedEvaluateSamples = backend.storage.allocate(storedDataFloat.length * 8);
+   for (let offset = 0; offset < storedDataFloat.length; offset += 2048) {
+    if (offset % 262144 === 0) await yieldTurn(signal);
+    const bytes = await backend.storage.read(storedDataFloat.position + offset * 4, Math.min(2048, storedDataFloat.length - offset) * 4);
+    const samples = Float64Array.from(new Float32Array(bytes.slice().buffer), value => value * 255);
+    await backend.storage.write(storedEvaluateSamples + offset * 8, new Uint8Array(samples.buffer));
+   }
+   image = { ...metadata, storedEvaluateSamples };
+  }
   image = { ...image, gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge" };
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.orientation!==undefined)image={...image,orientation:state.orientation};

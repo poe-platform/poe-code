@@ -7996,8 +7996,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           // Native volume leaves sample counters unavailable in both evaluation modes.
                           nb_samples: NaN, nb_consumed_samples: NaN, startpts: NaN, startt: NaN,
                           n: NaN, t: NaN, pts: NaN, volume: NaN };
+                        const registers = new Float64Array(10);
                         const evaluateGain = () => {
-                          let factor = parseFilterExpression(volSpec, "volume", variables);
+                          let factor = parseFilterExpression(volSpec, "volume", variables, undefined, registers);
                           if (evaluation === "frame" && Number.isNaN(factor)) factor = 0;
                           if (Number.isNaN(factor)) throw new Error("volume: invalid gain");
                           variables.volume = factor;
@@ -8017,6 +8018,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const end = evaluation === "once" && enable === undefined && commands.length === 0 ? length : Math.min(length, start + count);
                           while (nextCommand < commands.length && commands[nextCommand]!.sample <= start) {
                             volSpec = commands[nextCommand++]!.expression;
+                            registers.fill(0);
                             factor = evaluateGain();
                           }
                           if (evaluation === "frame") {

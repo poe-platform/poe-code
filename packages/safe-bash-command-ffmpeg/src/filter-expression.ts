@@ -1,7 +1,7 @@
-export function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>, sampleValue?: (channel: number) => number): number {
+export function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>, sampleValue?: (channel: number) => number, registers?: Float64Array): number {
   let offset = 0;
   const source = expression.trim();
-  function parse(minPrecedence = 0, depth = 0): number {
+  function parse(minPrecedence = 0, depth = 0, evaluate = true): number {
     if (depth > 64) throw new Error(`${filter}: expression is too deeply nested`);
     while (source[offset] === " ") offset++;
     let value: number;
@@ -13,10 +13,10 @@ export function parseFilterExpression(expression: string, filter: string, variab
     const first = source[offset];
     if (first === "+" || first === "-") {
       offset++;
-      value = parse(3, depth + 1) * (first === "-" ? -1 : 1);
+      value = parse(3, depth + 1, evaluate) * (first === "-" ? -1 : 1);
     } else if (first === "(") {
       offset++;
-      value = parse(0, depth + 1);
+      value = parse(0, depth + 1, evaluate);
       if (source[offset++] !== ")") throw new Error(`${filter}: invalid expression`);
     } else if (first && ((first >= "a" && first <= "z") || (first >= "A" && first <= "Z") || first === "_")) {
       const start = offset++;
@@ -29,15 +29,24 @@ export function parseFilterExpression(expression: string, filter: string, variab
       while (source[offset] === " ") offset++;
       if (source[offset] === "(") {
         offset++;
-        const args = [parse(0, depth + 1)];
+        const args = [parse(0, depth + 1, evaluate)];
         while (source[offset] === ",") {
           offset++;
-          args.push(parse(0, depth + 1));
+          // Parse both branches, but only the selected branch may mutate registers.
+          const selected = name === "if" ? args[0] !== 0 : args[0] === 0;
+          const evaluateArgument = evaluate && (!(name === "if" || name === "ifnot")
+            || (args.length === 1 ? selected : !selected));
+          args.push(parse(0, depth + 1, evaluateArgument));
         }
         if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && filter !== "volume" && !((filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(arg)))) {
           throw new Error(`${filter}: invalid expression`);
         }
         if (name === "val" && args.length === 1 && sampleValue) value = sampleValue(args[0]!);
+        else if (registers && ((name === "st" && args.length === 2) || (name === "ld" && args.length === 1))) {
+          const index = Math.max(0, Math.min(9, Math.trunc(args[0]!) || 0));
+          if (name === "st" && evaluate) registers[index] = args[1]!;
+          value = name === "st" ? args[1]! : registers[index]!;
+        }
         else if (filter === "rotate" && args.length === 1 && (name === "rotw" || name === "roth")) {
           const sin = Math.abs(Math.sin(args[0]!));
           const cos = Math.abs(Math.cos(args[0]!));
@@ -115,7 +124,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
       while (source[offset] === " ") offset++;
       if (source[offset] !== "^") break;
       offset++;
-      value = Math.pow(value, parse(4, depth + 1));
+      value = Math.pow(value, parse(4, depth + 1, evaluate));
     }
     value *= sign;
     for (;;) {
@@ -124,7 +133,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
       const precedence = operator === "+" || operator === "-" ? 1 : operator === "*" || operator === "/" ? 2 : 0;
       if (precedence === 0 || precedence < minPrecedence) break;
       offset++;
-      const right = parse(precedence + 1, depth + 1);
+      const right = parse(precedence + 1, depth + 1, evaluate);
       if (operator === "+") value += right;
       else if (operator === "-") value -= right;
       else if (operator === "*") value *= right;

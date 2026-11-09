@@ -10973,7 +10973,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let regardWarnings = false;
     let compose = "over";
     type Rotation = { rotation: string; settings: MagickState };
-    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined };
+    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number };
     const pixelOperations: MagickPixelOperation[] = [];
     const operationFlushes = new Map<number, readonly MagickPixelOperation[]>();
     let pending = false;
@@ -11169,6 +11169,11 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             else leadingOperations.push(crop);
         }
         else if (t === "+crop") leadingOperations = [];
+        else if (t === "-trim") {
+            const operation = { trim: state.fuzz };
+            if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push(operation);
+            else leadingOperations.push(operation);
+        }
         else if (t === "-auto-orient") {
             if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push("auto-orient");
             else leadingOperations.push("auto-orient");
@@ -11225,6 +11230,13 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (!operation) {
             if (!imgA) imgA = image;
             else if (!imgB) imgB = image;
+            return;
+        }
+        if (typeof operation === "object" && "trim" in operation) {
+            let trimmed = image;
+            if ("data" in image) trimmed = yield* trimMagickSteps(image, operation.trim);
+            else yield { async run() { trimmed = await trimStoredMagick(image, backend!.storage, operation.trim, signal!); } };
+            yield* acceptImage(trimmed, operations, index + 1);
             return;
         }
         if (typeof operation === "object" && "rotation" in operation) {

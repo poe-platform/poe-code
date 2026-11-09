@@ -3514,6 +3514,9 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
               && (text[position + 1] === "N" || text[position + 1] === "n")) {
               parts.push("\n");
               position += 2;
+            } else if (codec === "webvtt" && text.startsWith("\\n", position)) {
+              parts.push(outputFormat === "srt" || containerCodec === "subrip" ? "\r\n" : "\n");
+              position += 2;
             } else if (text[position] === "<") {
               const end = text.indexOf(">", position + 1);
               if (end < 0) break;

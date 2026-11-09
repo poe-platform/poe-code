@@ -7,8 +7,17 @@ type Read = { position: number; length: number };
 // ImageMagick's fast Radon transform counts dark pixels in eight-pixel groups,
 // then scores the differences between adjacent projected scanlines.
 function* deskewAngle(width: number, height: number, spec: string, range: number): Generator<Read | undefined, number, Uint8Array | Uint16Array | undefined> {
-    const threshold = Number(spec.endsWith("%") ? spec.slice(0, -1) : spec) * (spec.endsWith("%") ? range / 100 : range / 65535);
-    if (!spec || !Number.isFinite(threshold)) throw new Error("Invalid deskew threshold");
+    if ([...spec].some(character => character.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@^".includes(character))) {
+        throw new Error("Invalid deskew threshold");
+    }
+    const text = spec.trimStart(), sign = text[0] === "-" ? -1 : 1;
+    const unsigned = text[0] === "+" || text[0] === "-" ? text.slice(1) : text;
+    const value = unsigned.toLowerCase().startsWith("0x") ? Number.parseInt(text, 16) : Number.parseFloat(text);
+    // Geometry suffixes are valid, but only % immediately after the number scales it.
+    const percent = unsigned.indexOf("%"), prefix = unsigned.slice(0, percent);
+    const isPercent = percent > 0 && prefix.trimEnd() === prefix && Number(prefix) * sign === value;
+    const threshold = value * (isPercent ? range / 100 : range / 65535);
+    if (!Number.isFinite(threshold)) throw new Error("Invalid deskew threshold");
     const groups = Math.ceil(width / 8);
     let columns = 1;
     while (columns < groups) columns *= 2;

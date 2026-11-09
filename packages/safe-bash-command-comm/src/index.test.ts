@@ -151,3 +151,75 @@ test("comm requires an output delimiter argument", async () => {
  assert.match(result.stderr, /requires an argument/u);
  assert.deepEqual(result.stdoutBytes, []);
 });
+
+
+for (const option of ["output-delimiter", "total", "check-order", "nocheck-order", "zero-terminated"]) {
+ for (let length = 1; length <= option.length; length++) {
+  const prefix = `--${option.slice(0, length)}`;
+  test(`comm accepts GNU option prefix ${prefix}`, async () => {
+   const args = option === "output-delimiter" ? [prefix, ":"] : [prefix];
+   const input = option === "zero-terminated" ? "a\0" : "a\n";
+   const expected = option === "output-delimiter" ? "::a\n"
+    : option === "total" ? "\t\ta\n0\t0\t1\ttotal\n"
+    : option === "zero-terminated" ? "\t\ta\0" : "\t\ta\n";
+   const result = await run([...args, "/a", "/a"], { "/a": input });
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stdout, expected);
+   assert.equal(result.stderr, "");
+  });
+  if (option === "output-delimiter") {
+   for (const delimiter of [":", "", "="]) {
+    test(`comm accepts attached delimiter ${JSON.stringify(delimiter)} with ${prefix}`, async () => {
+     const result = await run([`${prefix}=${delimiter}`, "/a", "/a"], { "/a": "a\n" });
+     assert.equal(result.exitCode, 0, result.stderr);
+     assert.equal(result.stdout, `${(delimiter || "\0").repeat(2)}a\n`);
+     assert.equal(result.stderr, "");
+    });
+   }
+  }
+ }
+}
+
+for (const option of ["--unknown", "--output-delimiters=:", "--totals", "--check-orders", "--nocheck-orders", "--zero-terminator", "--=:", "--t=", "--check=yes", "--nocheck=yes", "--z="]) {
+ test(`comm rejects invalid option ${option}`, async () => {
+  const result = await run([option, "/a", "/a"], { "/a": "a\n" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.ok(result.stderr.includes("unsupported option"), result.stderr);
+ });
+}
+
+test("comm requires an argument for an abbreviated output delimiter", async () => {
+ const result = await run(["--out"], {});
+ assert.equal(result.exitCode, 1);
+ assert.equal(result.stdout, "");
+ assert.ok(result.stderr.includes("requires an argument"), result.stderr);
+});
+
+test("comm preserves delimiter conflicts with abbreviated options", async () => {
+ const result = await run(["--out=:", "--o=|", "/a", "/a"], { "/a": "a\n" });
+ assert.equal(result.exitCode, 1);
+ assert.equal(result.stdout, "");
+ assert.ok(result.stderr.includes("multiple conflicting output delimiters"), result.stderr);
+});
+
+test("comm treats option prefixes after -- as filenames", async () => {
+ const result = await run(["--", "--tot", "--out"], { "/--tot": "a\n", "/--out": "a\n" });
+ assert.equal(result.exitCode, 0, result.stderr);
+ assert.equal(result.stdout, "\t\ta\n");
+ assert.equal(result.stderr, "");
+});
+
+test("comm applies abbreviated order modes in argument order", async () => {
+ const files = { "/a": "b\na\n" };
+ for (const args of [["--check"], ["--nocheck", "--c"]]) {
+  const result = await run([...args, "/a", "/a"], files);
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "\t\tb\n");
+  assert.equal(result.stderr, "comm: file 1 is not in sorted order\n");
+ }
+ const result = await run(["--check", "--n", "/a", "/a"], files);
+ assert.equal(result.exitCode, 0, result.stderr);
+ assert.equal(result.stdout, "\t\tb\n\t\ta\n");
+ assert.equal(result.stderr, "");
+});

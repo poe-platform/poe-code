@@ -11,13 +11,14 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
       const token = context.args[index]!;
       if (literal || token === "-" || !token.startsWith("-")) { files.push(token); continue; }
       if (token === "--") { literal = true; continue; }
-      if (token === "--check-order") { mode = "check"; continue; }
-      if (token === "--nocheck-order") { mode = "none"; continue; }
-      if (token === "--total") { total = true; continue; }
-      if (token === "--zero-terminated") { separator = 0; continue; }
-      if (token === "--output-delimiter" || token.startsWith("--output-delimiter=")) {
+      if ("--check-order".startsWith(token)) { mode = "check"; continue; }
+      if ("--nocheck-order".startsWith(token)) { mode = "none"; continue; }
+      if ("--total".startsWith(token)) { total = true; continue; }
+      if ("--zero-terminated".startsWith(token)) { separator = 0; continue; }
+      const equal = token.indexOf("="), name = equal < 0 ? token : token.slice(0, equal);
+      if (name.length > 2 && "--output-delimiter".startsWith(name)) {
         const args = getCommandArguments(context);
-        const value = token.includes("=") ? args.bytes(index)!.subarray(19) : args.bytes(++index);
+        const value = equal >= 0 ? args.bytes(index)!.subarray(equal + 1) : args.bytes(++index);
         if (value === undefined) fail(`option ${token} requires an argument`);
         const candidate = value.length ? value : Uint8Array.of(0);
         if (delimiterSet && compare(candidate, delimiter) !== 0) fail("multiple conflicting output delimiters");

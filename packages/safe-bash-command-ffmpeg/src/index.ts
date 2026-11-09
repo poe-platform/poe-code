@@ -8223,7 +8223,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const output = stretched.map(channel => precision === "double"
                           ? new Float64Array(channel.length) : new Float32Array(channel.length));
                         const length = stretched[0]?.length ?? 0;
-                        const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
+                        const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_u8" ? 128
+                          : t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
                         const variables: Record<string, number> = { PI: Math.PI, nan: NaN, inf: Infinity, sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
                           // Native volume leaves sample counters unavailable in both evaluation modes.
                           nb_samples: NaN, nb_consumed_samples: NaN, startpts: NaN, startt: NaN,

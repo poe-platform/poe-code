@@ -7690,6 +7690,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expandedKey = yield* formatMagickPropertyStringSteps(key, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                if (["width", "height", "size"].includes(expandedKey.toLowerCase())) {
+                    analysis.warnings += `magick: attempt to set read-only property '${expandedKey}'\n`;
+                    return image;
+                }
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             i++;
@@ -9329,6 +9333,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expandedKey = await formatRetainedIdentify(key, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                if (["width", "height", "size"].includes(expandedKey.toLowerCase())) {
+                    analysis.warnings += `magick: attempt to set read-only property '${expandedKey}'\n`;
+                    return image;
+                }
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             continue;

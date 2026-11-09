@@ -910,7 +910,8 @@ There are no package-specific runtime environment switches. Supply these through
 | `QUOTING_STYLE` | `stat` filename quoting: `literal`, `shell-always`, or `shell-escape-always`. |
 
 `getopts` starts with `OPTIND=1` and `OPTERR=1`, updates `OPTIND`/`OPTARG`, and
-honors changes made in the script. `PIPESTATUS` exposes pipeline stage statuses.
+honors changes made in the script. Option letters are scanned as bytes, including
+each byte of a UTF-8 character. `PIPESTATUS` exposes pipeline stage statuses.
 `curl` does not read proxy variables, host credentials, `.curlrc`, or `.netrc`.
 `curl --cacert VFSFILE` reads a bounded PEM CA bundle from the virtual filesystem
 and scopes its trust to that transfer, retaining certificate and hostname

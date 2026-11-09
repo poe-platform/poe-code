@@ -1,16 +1,18 @@
-import type { ValueAllocation } from "../contracts/value.js";
+import { shellValueByteLength, shellValueBytes, shellValueText } from "../contracts/value.js";
+import type { ShellValue, ValueAllocation } from "../contracts/value.js";
+import { latin1Text } from "../byte-encoding.js";
 
 export interface GetoptsInput {
-  readonly args: readonly string[];
+  readonly args: readonly ShellValue[];
 }
 
-const ownedInputs = new WeakMap<GetoptsInput, { bytes?: number }>();
+const ownedInputs = new WeakMap<GetoptsInput, { bytes?: number; ascii?: boolean }>();
 
 export function getoptsInputAllocationSize(argumentsCount: number): { bytes: number; slots: number } {
   return { bytes: 256 + argumentsCount * 8, slots: argumentsCount + 2 };
 }
 
-export async function createGetoptsInput(args: readonly string[], allocation: ValueAllocation | undefined, controls: GetoptsWork): Promise<GetoptsInput> {
+export async function createGetoptsInput(args: readonly ShellValue[], allocation: ValueAllocation | undefined, controls: GetoptsWork): Promise<GetoptsInput> {
   const work = new ScanWork(controls);
   if (!Array.isArray(args)) throw new GetoptsError("INVALID_INPUT", "Getopts requires an argument array");
   const length = args.length;
@@ -18,7 +20,7 @@ export async function createGetoptsInput(args: readonly string[], allocation: Va
   const size = getoptsInputAllocationSize(length);
   const reservation = allocation?.reserve(size.bytes, size.slots);
   try {
-    const snapshot: string[] = [];
+    const snapshot: ShellValue[] = [];
     for (let index = 0; index < length; index++) {
       const waiting = work.step();
       if (waiting) await waiting;
@@ -68,13 +70,13 @@ export interface GetoptsScanResult {
   readonly option: string;
   readonly optind: number;
   readonly argument: { readonly kind: "set"; readonly value: string } | { readonly kind: "unset" };
-  /** Original operand and ASCII prefix length for a required option argument. */
+  /** Original operand and byte offset for a required option argument. */
   readonly argumentSource?: { readonly index: number; readonly offset: number };
   readonly diagnostic: GetoptsDiagnostic | null;
 }
 
 export class GetoptsError extends Error {
-  constructor(readonly code: "INVALID_INPUT" | "NON_ASCII_OPTION" | "ARGUMENT_LIMIT" | "BYTE_LIMIT" | "STEP_LIMIT", message: string) {
+  constructor(readonly code: "INVALID_INPUT" | "ARGUMENT_LIMIT" | "BYTE_LIMIT" | "STEP_LIMIT", message: string) {
     super(message);
     this.name = "GetoptsError";
   }
@@ -181,57 +183,89 @@ class ScanWork {
   }
 }
 
-async function validateString(value: unknown, work: ScanWork, optstring = false): Promise<void> {
-  if (typeof value !== "string") throw new GetoptsError("INVALID_INPUT", "Getopts requires string inputs");
+async function validateString(value: unknown, work: ScanWork): Promise<boolean> {
+  if (typeof value !== "string") {
+    let length: number;
+    try { length = shellValueByteLength(value as ShellValue); }
+    catch { throw new GetoptsError("INVALID_INPUT", "Getopts requires shell values"); }
+    work.addBytes(length);
+    for (const byte of shellValueBytes(value as ShellValue)) {
+      const waiting = work.step();
+      if (waiting) await waiting;
+      if (byte === 0) throw new GetoptsError("INVALID_INPUT", "Getopts inputs must not contain NUL");
+    }
+    return false;
+  }
+  let ascii = true;
   for (let position = 0; position < value.length; position++) {
     const waiting = work.step();
     if (waiting) await waiting;
     const code = value.charCodeAt(position);
+    if (code > 127) ascii = false;
     if (code === 0) throw new GetoptsError("INVALID_INPUT", "Getopts inputs must not contain NUL");
-    if (optstring && code > 127) throw new GetoptsError("NON_ASCII_OPTION", "Non-ASCII getopts option specifications are unsupported");
     if (code < 128) work.addBytes(1);
     else if (code < 2048) work.addBytes(2);
     else if (code >= 0xd800 && code <= 0xdbff && value.charCodeAt(position + 1) >= 0xdc00 && value.charCodeAt(position + 1) <= 0xdfff) work.addBytes(4);
     else if (code >= 0xdc00 && code <= 0xdfff && value.charCodeAt(position - 1) >= 0xd800 && value.charCodeAt(position - 1) <= 0xdbff) work.addBytes(0);
     else work.addBytes(3);
   }
+  return ascii;
 }
 
-export async function scanGetopts(state: GetoptsState, optstring: string, input: readonly string[] | GetoptsInput, options: GetoptsScanOptions): Promise<GetoptsScanResult> {
+// Byte strings keep cursor offsets and single-byte option results independent of UTF-8 decoding.
+function byteText(value: ShellValue): string {
+  if (typeof value === "string") {
+    let index = 0;
+    while (index < value.length && value.charCodeAt(index) < 128) index++;
+    if (index === value.length) return value;
+  }
+  return latin1Text(shellValueBytes(value));
+}
+
+export async function scanGetopts(state: GetoptsState, optstring: ShellValue, input: readonly ShellValue[] | GetoptsInput, options: GetoptsScanOptions): Promise<GetoptsScanResult> {
   if (!record(options) || typeof options.reportErrors !== "boolean") throw new GetoptsError("INVALID_INPUT", "Getopts requires explicit diagnostic policy and work controls");
   const work = new ScanWork(options.work);
   const original = cloneGetoptsState(state);
   const owned = ownedInputs.get(input as GetoptsInput);
-  const args: readonly string[] = owned ? (input as GetoptsInput).args : input as readonly string[];
+  const args: readonly ShellValue[] = owned ? (input as GetoptsInput).args : input as readonly ShellValue[];
   if (!Array.isArray(args)) throw new GetoptsError("INVALID_INPUT", "Getopts requires an argument array");
   if (args.length > work.maxArguments) throw new GetoptsError("ARGUMENT_LIMIT", "Getopts argument limit exceeded");
   const starting = work.step();
   if (starting) await starting;
-  await validateString(optstring, work, true);
+  await validateString(optstring, work);
   const specificationBytes = work.inputBytes;
+  let ascii = owned?.ascii ?? true;
   if (owned?.bytes !== undefined) work.addBytes(owned.bytes);
   else {
     for (let argument = 0; argument < args.length; argument++) {
       const waiting = work.step();
       if (waiting) await waiting;
-      await validateString(args[argument], work);
+      if (!await validateString(args[argument], work)) ascii = false;
     }
   }
-  const silent = optstring.startsWith(":");
-  const specification = new Int8Array(128).fill(-1);
-  for (let position = silent ? 1 : 0; position < optstring.length; position++) {
+  const spec = byteText(optstring);
+  const silent = spec.startsWith(":");
+  const specification = new Int8Array(256).fill(-1);
+  for (let position = silent ? 1 : 0; position < spec.length; position++) {
     const waiting = work.step();
     if (waiting) await waiting;
-    const code = optstring.charCodeAt(position);
-    if (code !== 58 && code !== 63 && specification[code] === -1) specification[code] = Number(optstring[position + 1] === ":");
+    const code = spec.charCodeAt(position);
+    if (code !== 58 && code !== 63 && specification[code] === -1) specification[code] = Number(spec[position + 1] === ":");
   }
   let index = original.index || 1;
   let active = original.index === 0 ? undefined : original.active;
   const finish = async (kind: GetoptsScanResult["kind"], option: string, argument: GetoptsScanResult["argument"], diagnostic: GetoptsDiagnostic | null, argumentSource?: GetoptsScanResult["argumentSource"]): Promise<GetoptsScanResult> => {
+    // Bash's recognized 0xff option collides with its signed-char EOF sentinel.
+    if (kind === "option" && option.charCodeAt(0) === 255) {
+      kind = "end";
+      option = "?";
+      argument = { kind: "unset" };
+      argumentSource = undefined;
+    }
     const waiting = work.step();
     if (waiting) await waiting;
     await work.flush();
-    if (owned) owned.bytes = work.inputBytes - specificationBytes;
+    if (owned) { owned.bytes = work.inputBytes - specificationBytes; owned.ascii = ascii; }
     return { state: active === undefined ? { index } : { index, active: { ...active } }, kind, status: kind === "end" ? 1 : 0, option, optind: index, argument, diagnostic, ...(argumentSource ? { argumentSource } : {}) };
   };
   const end = (): Promise<GetoptsScanResult> => {
@@ -243,9 +277,9 @@ export async function scanGetopts(state: GetoptsState, optstring: string, input:
     // Bash retains the cluster cursor when a helper has no remaining arguments.
     return finish("end", "?", { kind: "unset" }, null);
   }
-  if (active && (args[active.argument] === undefined || active.offset >= args[active.argument]!.length)) active = undefined;
+  if (active && (args[active.argument] === undefined || active.offset >= (ascii ? (args[active.argument] as string).length : shellValueByteLength(args[active.argument]!)))) active = undefined;
   if (!active) {
-    const token = args[index - 1]!;
+    const token = ascii ? args[index - 1] as string : byteText(args[index - 1]!);
     if (token.length < 2 || token[0] !== "-") return end();
     if (token === "--") {
       index++;
@@ -255,10 +289,9 @@ export async function scanGetopts(state: GetoptsState, optstring: string, input:
     }
     active = { argument: index - 1, offset: 1 };
   }
-  const token = args[active.argument]!;
+  const token = ascii ? args[active.argument] as string : byteText(args[active.argument]!);
   const option = token[active.offset]!;
   const code = option.charCodeAt(0);
-  if (code > 127) throw new GetoptsError("NON_ASCII_OPTION", "Non-ASCII getopts option characters are unsupported");
   const offset = active.offset + 1;
   const attached = offset < token.length;
   active = attached ? { argument: active.argument, offset } : undefined;
@@ -271,10 +304,14 @@ export async function scanGetopts(state: GetoptsState, optstring: string, input:
       const source = { index: active!.argument, offset };
       active = undefined;
       index++;
-      return finish("option", option, { kind: "set", value: token.slice(offset) }, null, source);
+      const original = args[source.index]!;
+      const prefix = shellValueText(original).slice(0, offset);
+      const value = typeof original === "string" && byteText(prefix) === prefix ? original.slice(offset)
+        : new TextDecoder("utf-8", { ignoreBOM: true }).decode(shellValueBytes(original).subarray(offset));
+      return finish("option", option, { kind: "set", value }, null, source);
     }
     if (index <= args.length) {
-      const value = args[index - 1]!;
+      const value = shellValueText(args[index - 1]!);
       index++;
       return finish("option", option, { kind: "set", value }, null, { index: index - 2, offset: 0 });
     }
@@ -294,6 +331,12 @@ export function scanGetoptsSync(state: GetoptsState, optstring: string, args: re
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
     if (a.length > 4096 || a.includes("\0")) return undefined;
+    if (i !== (state.active?.argument ?? (state.index || 1) - 1)) continue;
+    // This path publishes strings only; a byte cursor inside a UTF-8 cluster needs the checked path.
+    const prefix = state.active?.argument === i ? state.active.offset + 1 : 2;
+    for (let position = 0; position < Math.min(prefix, a.length); position++) {
+      if (a.charCodeAt(position) > 127) return undefined;
+    }
   }
   const silent = optstring.charCodeAt(0) === 58;
   syncSpecScratch.fill(-1);

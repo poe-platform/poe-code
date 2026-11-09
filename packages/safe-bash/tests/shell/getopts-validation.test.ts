@@ -261,7 +261,9 @@ test("owned warm input rechecks UTF-8 byte, argument and transition-step limits"
 test("owned cache changes specification without changing clustered cursor semantics", async () => {
   const input = await owned(["-ab", "value"]);
   const first = await scanner.scanGetopts(scanner.createGetoptsState(), "ab", input, options());
-  await assert.rejects(scanner.scanGetopts(first.state, "é", input, options()), { code: "NON_ASCII_OPTION" });
+  const unknown = await scanner.scanGetopts(first.state, "é", input, options());
+  assert.equal(unknown.kind, "unknown-option");
+  assert.deepEqual(unknown.diagnostic, { kind: "unknown-option", option: "b" });
   const next = await scanner.scanGetopts(first.state, "ab:", input, options());
   assert.deepEqual(next.argument, { kind: "set", value: "value" });
   assert.equal(next.option, "b");

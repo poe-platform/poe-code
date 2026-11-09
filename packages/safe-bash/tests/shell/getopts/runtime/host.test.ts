@@ -8,6 +8,39 @@ import { runtimeSetup } from "./helpers.js";
 
 const runner = 'runner() { say "before:${OPTIND-unset}"; getopts abc opt -abc tail; say "after:$opt:$OPTIND"; envget OPTIND; say ""; }; ';
 
+for (const [spec, args] of [
+  ["'aé'", "-a"],
+  ["':a'", "-éa"],
+  ["'a'", "-éa"],
+  ["'é:'", "-é"],
+  ["':é🦊a'", "-é🦊a"],
+  ["':é:'", "-é雪"],
+  ["':é:'", "-é 雪"],
+  ["':é:'", "-é"],
+  ["$':\\xc3:'", "-é"],
+  ["$':\\xffa'", "$'-\\xffa'"],
+  ["$':\\xff:'", "$'-\\xff'"],
+  ["$':\\xff:'", "$'-\\xffvalue'"],
+  ["':a'", "$'-\\xff\\x80a'"],
+] as const) {
+  for (const route of ["explicit", "positional", "forwarded", "prefix", "loop"]) {
+    for (const bounded of [false, true]) test(`getopts scans option bytes: ${spec}, ${args}, ${route}, bounded=${bounded}`, async () => {
+      const { shell } = runtimeSetup();
+      const report = 'printf "%s|%s|%s|%s\\n" "$?" "${o-unset}" "${OPTARG-unset}" "$OPTIND"';
+      const scan = `${route === "prefix" ? "o=old " : ""}getopts ${spec} o${route === "explicit" ? ` ${args}` : route === "forwarded" ? ' "$@"' : ""}`;
+      const source = `set -- ${args}; ${route === "loop" ? `while ${scan}; do ${report}; done; ${report}` : `for n in 1 2 3 4 5 6 7 8; do ${scan}; ${report}; done`}`;
+      try {
+        const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source, "shell"], { env: { ...process.env, LC_ALL: "C" } });
+        assert.equal(native.status, 0, native.stderr.toString());
+        const result = await shell.exec(source, bounded ? { limits: { maxExpansionBytes: 65536 } } : {});
+        assert.equal(result.exitCode, native.status, result.stderr);
+        assert.deepEqual(result.stdoutBytes, new Uint8Array(native.stdout));
+        assert.deepEqual(result.stderrBytes, new Uint8Array(native.stderr));
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
 for (const exported of [false, true]) for (const variant of ["omitted", "merge-empty", "replace-empty", "same-merge", "same-replace", "changed-merge", "changed-replace"] as const) {
   test(`D03 effective child binding: ${exported ? "exported" : "unexported"}/${variant}`, async () => {
     const { shell, commands } = runtimeSetup();
@@ -188,9 +221,10 @@ for (const args of ["-ab$'\\xff' -b $'\\x80'", "-ab $'\\xff' -b$'\\x80'"]) {
   });
 }
 
-test("ASCII refusal leaves state intact and Unicode required values remain strings", async () => {
+test("changing to a Unicode specification retains the cluster cursor and Unicode argument values", async () => {
   const { shell } = runtimeSetup();
   const result = await shell.exec('getopts ab opt -ab; getopts é opt -a; say "$?:$opt:$OPTIND"; getopts ab opt -ab; say "$opt"; OPTIND=1; getopts a: opt -a "雪🙂"; say "$OPTARG"');
-  assert.equal(result.stdout, "2:a:1\nb\n雪🙂\n");
-  assert.match(result.stderr, /Non-ASCII.*unsupported/u);
+  const native = spawnSync("bash", ["--noprofile", "--norc", "-c", 'getopts ab opt -ab; getopts é opt -a; printf "%s:%s:%s\\n" "$?" "$opt" "$OPTIND"; getopts ab opt -ab; printf "%s\\n" "$opt"; OPTIND=1; getopts a: opt -a "雪🙂"; printf "%s\\n" "$OPTARG"'], { env: { ...process.env, LC_ALL: "C" } });
+  assert.deepEqual(result.stdoutBytes, new Uint8Array(native.stdout));
+  assert.equal(result.stderr, "shell: illegal option -- a\n");
 });

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { cloneGetoptsState, createGetoptsState, GetoptsError, scanGetopts, scanGetoptsSync, withGetoptsIndex } from "../../../src/shell/getopts.js";
+import { cloneGetoptsState, createGetoptsState, scanGetopts, scanGetoptsSync, withGetoptsIndex } from "../../../src/shell/getopts.js";
 import type { GetoptsState } from "../../../src/shell/getopts.js";
 import { options } from "./helpers.js";
 
@@ -78,21 +78,30 @@ test("Unicode operands are not misclassified as option characters", async () => 
   assert.equal(result.optind, 1);
 });
 
-for (const [spec, args] of [["é", []], ["a🦊", ["-a"]], ["a", ["-é"]], ["a", ["-🦊"]]] as const) {
-  test(`non-ASCII option refusal: ${JSON.stringify([spec, args])}`, async () => {
-    const state = Object.freeze(createGetoptsState());
-    await assert.rejects(scanGetopts(state, spec, args, options()), (error: unknown) => error instanceof GetoptsError && error.code === "NON_ASCII_OPTION");
-    assert.deepEqual(state, { index: 0 });
+for (const spec of [":a", ":aé🦊"]) {
+  test(`non-ASCII options advance one byte at a time: ${spec}`, async () => {
+    let state = createGetoptsState();
+    const bytes = [...Buffer.from("é🦊a")];
+    for (const [index, byte] of bytes.entries()) {
+      const snapshot = cloneGetoptsState(state);
+      const result = await scanGetopts(state, spec, ["-é🦊a"], options());
+      const known = spec !== ":a" || byte === 97;
+      assert.equal(result.option, known ? String.fromCharCode(byte) : "?");
+      assert.deepEqual(result.argument, known ? { kind: "unset" } : { kind: "set", value: String.fromCharCode(byte) });
+      assert.equal(result.optind, index === bytes.length - 1 ? 2 : 1);
+      assert.deepEqual(state, snapshot);
+      state = result.state;
+    }
+    assert.equal((await scanGetopts(state, spec, ["-é🦊a"], options())).status, 1);
   });
 }
 
-test("non-ASCII suffix refusal does not commit a transition or corrupt a prior cursor", async () => {
-  const first = await scanGetopts(createGetoptsState(), "a", ["-aé"], options());
-  const snapshot = cloneGetoptsState(first.state);
-  await assert.rejects(scanGetopts(first.state, "a", ["-aé"], options()), { code: "NON_ASCII_OPTION" });
-  assert.deepEqual(first.state, snapshot);
-  const replacement = await scanGetopts(first.state, "ab", ["-ab"], options());
-  assert.equal(replacement.option, "b");
+test("a non-ASCII specification preserves valid ASCII flags", async () => {
+  assert.equal((await scanGetopts(createGetoptsState(), "aé", ["-a"], options())).option, "a");
+});
+
+test("the string-only fast scanner defers byte cursors inside Unicode tokens", () => {
+  assert.equal(scanGetoptsSync({ index: 1, active: { argument: 0, offset: 2 } }, ":a", ["-éa"]), undefined);
 });
 
 test("clone and numeric index primitives own cursor storage and do not perform bindings", async () => {

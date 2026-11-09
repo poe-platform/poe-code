@@ -7960,7 +7960,7 @@ export class Runtime {
       await writeDiagnostic(context.stderr, "getopts: usage: getopts optstring name [arg ...]\n");
       return 2;
     }
-    const optstring = context.args[offset]!;
+    const optstring = getCommandArguments(context).values[offset]!;
     const name = context.args[offset + 1]!;
     const explicit = context.args.length > offset + 2;
     const monitor = explicit ? undefined : stateMonitor(state);
@@ -7974,19 +7974,21 @@ export class Runtime {
     let allocation: ValueScope | undefined;
     let result;
     try {
+      const values = input?.args ?? (explicit ? getCommandArguments(context).values.slice(offset + 2)
+        : monitor?.positionals.hasObjectValues() ? supplied.map((value, index) => monitor.positionals.get(String(index), value)) : supplied);
       if (!input && monitor) {
         const size = getoptsInputAllocationSize(supplied.length);
         const arena = this.budget.values;
         const usage = arena.usage;
         if (size.bytes + 64 <= arena.maximumBytes - usage.bytes && size.slots + 1 <= arena.maximumSlots - usage.slots) {
           allocation = arena.scope();
-          input = await createGetoptsInput(supplied, allocation, work);
+          input = await createGetoptsInput(values, allocation, work);
         }
       }
-      const args = input?.args ?? supplied;
+      const args = input?.args ?? values;
       if (!input || allocation) for (let index = 0; index < args.length; index++) {
         this.signal.throwIfAborted();
-        admit(args[index]);
+        admit(shellValueText(args[index]!));
         if ((index + 1) % 128 === 0) await checkpoint();
       }
       state.getopts ??= cloneGetoptsBinding(state);
@@ -7995,7 +7997,7 @@ export class Runtime {
           reportErrors: state.variables.OPTERR === undefined || state.variables.OPTERR === "" || decimalIndex(state.variables.OPTERR) !== 0, work, });
       } catch (error) {
         this.signal.throwIfAborted();
-        if (error instanceof GetoptsError && (error.code === "NON_ASCII_OPTION" || error.code === "INVALID_INPUT")) throw new CommandFailure(`getopts: ${error.message}`, 2);
+        if (error instanceof GetoptsError && error.code === "INVALID_INPUT") throw new CommandFailure(`getopts: ${error.message}`, 2);
         throw error;
       }
       this.signal.throwIfAborted();
@@ -8010,14 +8012,20 @@ export class Runtime {
         const { index, offset: start } = result.argumentSource;
         const original = explicit ? getCommandArguments(context).values[offset + 2 + index]!
           : stateMonitor(state)?.positionals.get(String(index), supplied[index]!) ?? supplied[index]!;
-        argument = start === 0 ? original : typeof original === "string" ? original.slice(start)
+        argument = start === 0 ? original
           : shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(start), context[valueScope]);
+      } else if (argument.charCodeAt(0) > 127) {
+        argument = shellValueFromBytes(Uint8Array.of(argument.charCodeAt(0)), context[valueScope]);
       }
     }
     state.getopts.cursor = result.state;
     if (result.diagnostic) {
       const explanation = result.diagnostic.kind === "unknown-option" ? "illegal option" : "option requires an argument";
-      await writeDiagnostic(context.stderr, `${state.arg0 ?? context.scriptName ?? "shell"}: ${explanation} -- ${result.diagnostic.option}\n`);
+      const prefix = `${state.arg0 ?? context.scriptName ?? "shell"}: ${explanation} -- `;
+      if (result.diagnostic.option.charCodeAt(0) > 127) {
+        await writeDiagnostic(context.stderr, prefix);
+        await writeBytes(context.stderr, Uint8Array.of(result.diagnostic.option.charCodeAt(0), 10));
+      } else await writeDiagnostic(context.stderr, `${prefix}${result.diagnostic.option}\n`);
     }
     this.signal.throwIfAborted();
     try { await this.writeVariable(state, "OPTIND", String(result.optind), context, "getopts"); }
@@ -8068,7 +8076,9 @@ export class Runtime {
     if (!optionError) await publishArgument();
     try {
       if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new PublicDiagnostic(`getopts: \`${name}': not a valid identifier`);
-      try { await this.assignVariable(state, name, result.option, context, "getopts"); }
+      const option = result.option.charCodeAt(0) > 127
+        ? shellValueFromBytes(Uint8Array.of(result.option.charCodeAt(0)), context[valueScope]) : result.option;
+      try { await this.assignVariable(state, name, option, context, "getopts"); }
       catch (error) {
         this.signal.throwIfAborted();
         if (error instanceof ExpansionFailure) throw new ExecutionFailure(error, context, `getopts: ${error.message}`);
@@ -8077,9 +8087,11 @@ export class Runtime {
       }
       const savedResult = assignments.get(name);
       if (savedResult) {
+        const current = saveVariable(state, name);
         savedResult.heldValue?.release();
         delete savedResult.heldValue;
-        savedResult.value = state.variables[name];
+        savedResult.value = current.value;
+        if (current.heldValue) savedResult.heldValue = current.heldValue;
         if (name === "OPTIND") savedResult.getopts = cloneGetoptsBinding(state);
       }
     } finally {

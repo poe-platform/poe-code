@@ -5,7 +5,7 @@ import { runConvertCli, runMagickCli } from "./index.js";
 
 const operations = [
     ...["Mean", "Median", "Min", "Max", "Add", "Sum", "Abs", "Subtract", "Divide", "Multiply", "m-e_a-n"].map(op => ["-evaluate-sequence", op]),
-    ["-clut"], ["-channel", "RA", "-hald-clut"], ["-combine"], ["-channel", "RGBA", "-separate", "-combine"], ["-separate", "-append"], ["-morph", "2", "-append"]
+    ["-poly", "0.5,1,0.5,2"], ["-clut"], ["-channel", "RA", "-hald-clut"], ["-combine"], ["-channel", "RGBA", "-separate", "-combine"], ["-separate", "-append"], ["-morph", "2", "-append"]
 ];
 for (const operation of operations)
 for (const magick of [false, true])
@@ -40,7 +40,7 @@ it("preserves stable median ordering after frame metadata eviction", async () =>
     expect((await fs.readdir("/")).length).toBe(142);
 });
 
-it("cancels sequence output before publication and removes caller scratch", async () => {
+it.each([["-evaluate-sequence", "Median"], ["-poly", "0.5,1,0.5,2"]])("cancels %s output before publication and removes caller scratch", async (operation, argument) => {
     const fs = new MemoryFileSystem(), bytes = await sharp({ create: { width: 271, height: 277, channels: 3, background: "red" } }).png().toBuffer(), controller = new AbortController(), failure = new Error("cancel sequence");
     await fs.writeFile("/input", bytes); await fs.writeFile("/output.png", new TextEncoder().encode("previous"));
     let writes = 0;
@@ -54,7 +54,7 @@ it("cancels sequence output before publication and removes caller scratch", asyn
         };
         const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
     } });
-    await expect(runConvertCli(["input", "+clone", "-morph", "3", "-evaluate-sequence", "Median", "output.png"], { filesystem, cwd: "/" }, undefined, controller.signal)).rejects.toBe(failure);
+    await expect(runConvertCli(["input", "+clone", "-morph", "3", operation, argument, "output.png"], { filesystem, cwd: "/" }, undefined, controller.signal)).rejects.toBe(failure);
     expect(new TextDecoder().decode(await fs.readFile("/output.png"))).toBe("previous");
     expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input", "output.png"]);
 });

@@ -65,6 +65,7 @@ import { quantizeImageListSteps, quantizePixelSteps } from "./quantize.js";
 import { uniqueColorsSteps, uniqueColorsStored } from "./unique-colors.js";
 import { magickResizeCanvas } from "./resize-canvas.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
+import { parseMagickPoly, polyPixelSteps } from "./poly-kernel.js";
 import { type LookupInterpolation, clutPixelSteps, haldClutPixelSteps, channelFxPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
@@ -1050,7 +1051,7 @@ function* applyMagickFloodfillSteps(
   return { ...img, data: out, ...(data16 ? { data16 } : {}), hasAlpha: true };
 }
 
-function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: string, channels: readonly boolean[] | undefined, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | readonly number[], channels: readonly boolean[] | undefined, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     if (stack.length === 0) {
         throw new Error("evaluate-sequence requires at least one image");
     }
@@ -1064,7 +1065,7 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
         return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, im.virtualPixel, state.background), signal, { ...im, width: w, height: h });
     }));
     const virtualCanvas = magickResizeCanvas(base, w, h);
-    return { ...yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0, w), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), ...(virtualCanvas ? { virtualCanvas } : {}) };
+    return { ...yield* applyMagickRasterSteps(base, (typeof opRaw === "string" ? evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0, w) : polyPixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16))), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false): ConvolveKernel {
@@ -8877,12 +8878,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return (yield* applyMagickFloodfillSteps(im, expanded, targetColor, state.fill, state.alphaFuzz, signal, false, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, t === "+floodfill"));
             });
         }
-        else if (t === "-evaluate-sequence" || t === "-average") {
-            const op = t === "-average" ? "Mean" : tokens[++i] ?? "Mean";
+        else if (t === "-evaluate-sequence" || t === "-average" || t === "-poly") {
+            const op = t === "-poly" ? parseMagickPoly(tokens[++i] ?? "") : t === "-average" ? "Mean" : tokens[++i] ?? "Mean";
+            if (t === "-poly" && !stack.length) throw new Error("no images found for operation '-poly'");
             if (t === "-evaluate-sequence" && !stack.length) throw new Error("no images found for operation '-evaluate-sequence'");
             if (t === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
             if (stack.length > 0) {
-                stack = [(yield* applyMagickEvaluateSequenceSteps(stack, op, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state, signal))];
+                stack = [(yield* applyMagickSequenceSteps(stack, op, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state, signal))];
             }
         }
         else if (t === "-convolve") {
@@ -10270,10 +10272,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && ["-clut", "-hald-clut", "-separate", "-combine", "-morph", "-evaluate-sequence", "-average"].includes(token)) {
-            const argument = token === "-morph" || token === "-evaluate-sequence" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : token === "-average" ? "Mean" : "", settings = { ...state, channels: { ...state.channels } };
+        if (!operandsOnly && ["-clut", "-hald-clut", "-separate", "-combine", "-morph", "-evaluate-sequence", "-average", "-poly"].includes(token)) {
+            const argument = token === "-morph" || token === "-evaluate-sequence" || token === "-poly" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : token === "-average" ? "Mean" : "", settings = { ...state, channels: { ...state.channels } };
             stackStep(async (stack, backend) => {
                 if (token === "-evaluate-sequence" && !stack.length) throw new Error("no images found for operation '-evaluate-sequence'");
+                const terms = token === "-poly" ? parseMagickPoly(argument) : undefined;
+                if (terms && !stack.length) throw new Error("no images found for operation '-poly'");
                 if (token === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
                 if (token === "-clut" || token === "-hald-clut") {
                     if (stack.length < 2) throw new Error(`image sequence is required '${token}'`);
@@ -10351,7 +10355,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     const first = (await stack.get(0))!;
                     const base = frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
-                    const result = await transformStoredMagickRaster(base, backend, evaluateSequencePixelSteps(base.width * base.height * 4, frames, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth, settings.seed ?? 0, base.width), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
+                    const result = await transformStoredMagickRaster(base, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth, settings.seed ?? 0, base.width)), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
                     stack.length = 0; await stack.push(result);
                 }
                 return stack;
@@ -11920,7 +11924,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-convolve",
         "-color-matrix", "-cdl",
         "-channel-fx",
-        "-evaluate-sequence",
+        "-evaluate-sequence", "-poly",
         "-remap",
         "-read-mask",
         "-encipher", "-decipher",

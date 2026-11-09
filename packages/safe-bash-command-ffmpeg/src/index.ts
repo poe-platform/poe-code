@@ -1573,7 +1573,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       }
       if (sources.length !== 1) throw new Error("Audio filter requires one input");
       const source = sources[0]!;
-      return { track: source.track, expression: [source.expression, node.expression].filter(Boolean).join(",") };
+      return { track: source.track, expression: [source.expression, node.expression]
+        .filter(expression => expression && expression !== "anull").join(",") || "anull" };
     }
     return { track: inputTrack(label), expression: "" };
   };

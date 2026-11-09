@@ -36,9 +36,30 @@ for (const filter of ["asplit=0", "asplit=-1", "asplit=1.5", "asplit=3", "asplit
   });
 }
 
-async function run(graph: string, count: number, reverse = false) {
+for (const split of ["asplit", "asplit=2", "asplit=outputs=2"]) {
+  for (const crossfade of [false, true]) {
+    it(`mixes both ${split} outputs in one graph, crossfade=${crossfade}`, async () => {
+      const first = Array<number>(1000).fill(12000);
+      const second = Array<number>(1000).fill(-4000);
+      const source = crossfade ? "[0:a][1:a]acrossfade=ns=4[z];[z]" : "[0:a]";
+      const { result, volume, stderr } = await run(
+        `${source}${split}[left][right];[left][right]amix=inputs=2[x]`, 1, false, first, second);
+      assert.equal(result.exitCode, 0, stderr);
+      const audio = parseWav(volume.readFileSync("/out0.wav") as Buffer).tracks[0]!.decodedAudio!;
+      assert.equal(audio.channels, 1);
+      assert.equal(audio.sampleRate, 8000);
+      // Native FFmpeg PCM16 reference for the 1,000-frame constant inputs.
+      const expected = crossfade
+        ? [...first.slice(0, 996), 9000, 5000, 1000, -3000, ...second.slice(4)]
+        : first;
+      assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768), expected);
+    });
+  }
+}
+
+async function run(graph: string, count: number, reverse = false, first = a, second = b) {
   const volume = Volume.fromJSON({ "/out0.wav": "keep" });
-  for (const [path, samples] of [["/a.wav", a], ["/b.wav", b]] as const) {
+  for (const [path, samples] of [["/a.wav", first], ["/b.wav", second]] as const) {
     volume.writeFileSync(path, encodeWav({ sampleRate: 8000,
       channels: [Float64Array.from(samples, sample => sample / 32768)] }));
   }

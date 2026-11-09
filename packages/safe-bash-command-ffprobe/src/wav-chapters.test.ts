@@ -32,7 +32,7 @@ function wav(labelsFirst: boolean, titles: string[] = ["Intro", "Demo"]): Uint8A
   });
   const list = chunk("LIST", Uint8Array.of(...new TextEncoder().encode("adtl"), ...labels.flatMap(label => [...label])));
   const cue = chunk("cue ", cues);
-  const bytes = Uint8Array.of(...plain, ...(labelsFirst ? list : cue), ...(labelsFirst ? cue : list));
+  const bytes = Uint8Array.of(...plain.subarray(0, 36), ...(labelsFirst ? list : cue), ...(labelsFirst ? cue : list), ...plain.subarray(36));
   new DataView(bytes.buffer).setUint32(4, bytes.length - 8, true);
   return bytes;
 }

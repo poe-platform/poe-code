@@ -172,7 +172,7 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seek
             !(littleEndian && header.bitsPerSample === 32 && header.validBitsPerSample === 24))
           header.bitsPerSample = Math.ceil(header.validBitsPerSample / 8) * 8;
       }
-    } else if (!wave64 && id === "cue ") {
+    } else if (!wave64 && id === "cue " && (seekable || !header.dataOffset)) {
       if (size < 4) throw new Error("Invalid WAV cue chunk");
       const countRead = yield { offset: start, length: 4 };
       const count = new DataView(countRead.bytes.buffer, countRead.bytes.byteOffset, countRead.bytes.byteLength).getUint32(0, littleEndian);
@@ -249,7 +249,7 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seek
             : { ...header.metadata, custom: { ...header.metadata?.custom, [id === "ITCH" ? "encoded_by" : id]: value } };
           offset += 8 + length + (length & 1);
         }
-      } else if (decodeFourCC(list.bytes, 0) === "adtl") {
+      } else if (decodeFourCC(list.bytes, 0) === "adtl" && (seekable || !header.dataOffset)) {
         for (let offset = start + 4; offset + 8 <= end;) {
           const read = yield { offset, length: 8 };
           const sub = new DataView(read.bytes.buffer, read.bytes.byteOffset, read.bytes.byteLength);

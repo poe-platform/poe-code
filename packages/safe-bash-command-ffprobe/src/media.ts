@@ -78,10 +78,10 @@ export function createInputReader(context: CommandContext, budget: MediaBudgetTr
   };
   return async (path: string, source?: AsyncIterable<Uint8Array>, admitted = false): Promise<Uint8Array> => {
     if (source || isStdin(path)) return readStdinAll(context, bytes => account(bytes, !admitted), source);
-    if (!path.startsWith("concatf:")) return readFile(path);
-    const list = new TextDecoder("utf-8", { ignoreBOM: true }).decode(await readFile(path.slice(8))).split("\0", 1)[0]!;
-    const parts: Uint8Array[] = [];
-    let size = 0;
+    const concat = path.startsWith("concat:");
+    if (!concat && !path.startsWith("concatf:")) return readFile(path);
+    const list = concat ? "" : new TextDecoder("utf-8", { ignoreBOM: true }).decode(await readFile(path.slice(8))).split("\0", 1)[0]!;
+    const paths = concat ? path.slice(7).split("|").filter(Boolean) : [];
     for (let cursor = 0; cursor < list.length;) {
       budget.checkCpu();
       context.signal.throwIfAborted();
@@ -100,20 +100,29 @@ export function createInputReader(context: CommandContext, budget: MediaBudgetTr
         } else name += char;
       }
       while (name.length > protectedEnd && " \t\r\n".includes(name.at(-1)!)) name = name.slice(0, -1);
-      budget.checkConcatInputs(parts.length + 1);
+      budget.checkConcatInputs(paths.length + 1);
+      paths.push(name);
+    }
+    budget.checkConcatInputs(paths.length);
+    if (!paths.length) throw new Error(concat ? "concat: no files" : "concatf: no files");
+    const parts: Uint8Array[] = [];
+    let size = 0;
+    for (const name of paths) {
+      budget.checkCpu();
+      context.signal.throwIfAborted();
       // Like native concatf, relative entries use the process cwd, not the list directory.
       const bytes = await readFile(name);
+      budget.allocateMemory(bytes.length);
       parts.push(bytes);
       size += bytes.length;
     }
-    if (!parts.length) throw new Error("concatf: no files");
-    budget.allocateMemory(size * 2);
+    budget.allocateMemory(size);
     try {
       const bytes = new Uint8Array(size);
       let offset = 0;
       for (const part of parts) { bytes.set(part, offset); offset += part.length; }
       return bytes;
-    } finally { budget.releaseMemory(size * 2); }
+    } finally { budget.releaseMemory(size); }
   };
 }
 
@@ -1218,15 +1227,15 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           ? await probeImageSequence(inputTarget, imagePlugin, readInput, budget, context.signal, frameRate, showPackets, showFrames, exportPathMetadata, tsFromFile,
             async filename => (await context.fs.stat(resolvePath(context.cwd, filename), { signal: context.signal })).mtimeMs)
           : undefined;
-        const concatf = inputTarget.startsWith("concatf:");
-        if (!probeResult) probeResult = !concatf && retainedPlugins.length && !isStdin(inputTarget)
+        const concatProtocol = inputTarget.startsWith("concat:") || inputTarget.startsWith("concatf:");
+        if (!probeResult) probeResult = !concatProtocol && retainedPlugins.length && !isStdin(inputTarget)
           ? await probeRetainedMetadata(context, retainedPlugins, resolvePath(context.cwd, inputTarget), inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize, ...(mp4Records ? { mp4Records } : {}) }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, !explicitPlugin)
           : undefined;
-        if (!probeResult && !concatf && explicitPlugin && explicitPlugin.formatName !== "mp3" && !showData && !showDataHash)
+        if (!probeResult && !concatProtocol && explicitPlugin && explicitPlugin.formatName !== "mp3" && !showData && !showDataHash)
           probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize });
         let replay: AsyncIterable<Uint8Array> | undefined;
         const streamPlugins = explicitPlugin ? retainedPlugins : automaticPlugins;
-        if (!probeResult && !concatf && streamPlugins.length) {
+        if (!probeResult && !concatProtocol && streamPlugins.length) {
           const source = await openProbeStream(context, isStdin(inputTarget) ? undefined : resolvePath(context.cwd, inputTarget));
           if (source) {
             const sniffed = await sniffMediaStream(source, context.signal, total => {
@@ -1389,7 +1398,7 @@ export function evalSyncFfprobe(
     const { printFormat, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
       selectStreams, showEntries, countFrames, countPackets, webvttKind, ignoreLength, maxSize, explicitFormat, inputTarget, videoSize, pixelFormat, frameRate, tsFromFile, exportPathMetadata } = parseProbeArguments(args);
     const imagePlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : registry.findByFilename(inputTarget);
-    if (tsFromFile !== 0 || imagePlugin?.id === "image2" && imageSequenceFilename(inputTarget, 0) !== undefined) return undefined;
+    if (inputTarget.startsWith("concat:") || tsFromFile !== 0 || imagePlugin?.id === "image2" && imageSequenceFilename(inputTarget, 0) !== undefined) return undefined;
     let bytes: Uint8Array | undefined;
     if (isStdin(inputTarget)) {
       bytes = inBytes;

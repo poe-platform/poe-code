@@ -4708,7 +4708,7 @@ export function evalSyncFfmpeg(
       }
     }
 
-    if (inputs.length === 0 || !outputTarget) return undefined;
+    if (inputs.length === 0 || !outputTarget || inputs.some(input => input.path.startsWith("concat:"))) return undefined;
     if (fileSize !== undefined && (audioCodec !== "copy" ||
       (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id !== "wav")) return undefined;
     // Output resampling and channel mixing require the async audio filter path.
@@ -6972,20 +6972,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   step = steps.next();
                 }
                 return step.value;
-              }
-
-              if (filePath.startsWith("concat:")) {
-                const parts = filePath
-                  .slice("concat:".length)
-                  .split("|")
-                  .map((x) => x.trim())
-                  .filter(Boolean);
-                budget.checkConcatInputs(parts.length);
-                const docs: MediaDocument[] = [];
-                for (const p of parts) {
-                  docs.push(await loadSingleDocument(p));
-                }
-                return concatMp4(docs, { limits: options.limits, budget });
               }
 
               const imageDemuxer = explicitFormat === "image2" || (!explicitFormat &&

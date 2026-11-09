@@ -3907,13 +3907,15 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
     assert.equal(widthRes.stdout.trim(), "128");
   });
 
-  it("merges multiple MP4 videos via -f concat, concat: protocol, and -filter_complex concat", async () => {
+  it("merges MP4 clips with the concat demuxer/filter and reads protocol parts as bytes", async () => {
     const clip1 = createSyntheticMp4({ width: 64, height: 48, fps: 10, frameCount: 5 });
     const clip2 = createSyntheticMp4({ width: 64, height: 48, fps: 10, frameCount: 7 });
     const listTxt = "ffconcat version 1.0\nfile '/clip1.mp4'\nfile '/clip2.mp4'\n";
     const vfs = createTestVfs({
       "/clip1.mp4": clip1,
       "/clip2.mp4": clip2,
+      "/head.part": clip1.subarray(0, 19),
+      "/tail.part": clip1.subarray(19),
       "/list.txt": listTxt
     });
     const ffmpeg = createFfmpegCommand();
@@ -3928,15 +3930,15 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
     const doc1 = parseMp4(vfs.store.get("/merged_concat_demuxer.mp4")!);
     assert.equal(doc1.tracks.find((t) => t.type === "video")?.samples.length, 12);
 
-    // 2. concat:/clip1.mp4|/clip2.mp4
+    // 2. concat joins byte fragments before the MP4 parser sees them.
     const r2 = await runCmd(
       ffmpeg,
-      ["-i", "concat:/clip1.mp4|/clip2.mp4", "-c", "copy", "/merged_protocol.mp4"],
+      ["-i", "concat:/head.part|/tail.part", "-c", "copy", "/merged_protocol.mp4"],
       vfs
     );
     assert.equal(r2.exitCode, 0);
     const doc2 = parseMp4(vfs.store.get("/merged_protocol.mp4")!);
-    assert.equal(doc2.tracks.find((t) => t.type === "video")?.samples.length, 12);
+    assert.equal(doc2.tracks.find((t) => t.type === "video")?.samples.length, 5);
 
     // 3. -filter_complex "[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[v][a]"
     const r3 = await runCmd(
@@ -5631,7 +5633,7 @@ describe("decoded audio editing", () => {
       [["-i", "/four.wav", "-ss", "1", "-t", "1"], 1],
       [["-ss", "1", "-i", "/four.wav", "-to", "2"], 2],
       [["-stream_loop", "2", "-i", "/four.wav"], 12],
-      [["-i", "concat:/four.wav|/four.wav"], 8],
+      [["-i", "concat:/four.wav|/four.wav"], 4],
       [["-i", "/four.wav", "-af", "volume=0.5", "-t", "1"], 1],
       [["-i", "/four.wav", "-af", "atempo=2.0,areverse"], 2]
     ] as const) {

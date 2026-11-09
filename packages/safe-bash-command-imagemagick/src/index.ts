@@ -7952,6 +7952,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-clut" || t === "-hald-clut") {
+            if (stack.length < 2) throw new Error(`image sequence is required '${t}'`);
             if (stack.length >= 2) {
                 const lut = stack[t === "-clut" ? 1 : stack.length - 1]!;
                 const im = stack[0]!;
@@ -9075,7 +9076,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 if (token === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
                 if (token === "-clut" || token === "-hald-clut") {
-                    if (stack.length < 2) return stack;
+                    if (stack.length < 2) throw new Error(`image sequence is required '${token}'`);
                     const lut = (await stack.get(token === "-clut" ? 1 : stack.length - 1))!;
                     const image = (await stack.get(0))! as StoredRgbaImage;
                     const mask = [settings.channels.r, settings.channels.g, settings.channels.b, token === "-clut" ? image.hasAlpha && (settings.channels.a || !settings.channelExplicit) : settings.channels.a || !settings.channelExplicit];

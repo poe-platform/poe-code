@@ -6547,7 +6547,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (data16) data16[idx] = Math.round(value * 257);
                 data[idx] = clampByteVal(data16 ? data16[idx]! / 257 : value);
             }
-            return { ...image, data, evaluateSamples, ...(data16 ? { data16 } : {}), gamma: inputGamma * gamma };
+            return { ...image, isPalette: false, data, evaluateSamples, ...(data16 ? { data16 } : {}), gamma: inputGamma * gamma };
         };
     }
     else if (token === "-alpha") {

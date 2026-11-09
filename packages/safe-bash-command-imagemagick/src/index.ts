@@ -40,6 +40,7 @@ import { histogramPixelSteps } from "./histogram-kernel.js";
 import { convertHuePixels, prepareHueOutput, formatHuePixel, hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
 import { enhancePixelSteps } from "./enhance-kernel.js";
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
+import { despecklePixelSteps } from "./despeckle-kernel.js";
 import { waveletDenoisePixelSteps } from "./wavelet-denoise-kernel.js";
 import { meanShiftPixelSteps, parseMeanShiftGeometry } from "./mean-shift-kernel.js";
 import { rotationalBlurPixelSteps } from "./rotational-blur-kernel.js";
@@ -8327,6 +8328,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* applyMagickRasterSteps(im, blurPixelSteps(im, geometry, false, state.channelExplicit ? state.channels : undefined, geometry), signal);
             });
         }
+        else if (t === "-despeckle") {
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                return yield* applyMagickRasterSteps(im, despecklePixelSteps(im, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined), signal);
+            });
+        }
         else if (t === "-median") {
             const rows = magickMedianRows(tokens[++i] ?? "3");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -10255,6 +10261,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-trim") {
             const fuzz = state.alphaFuzz, edges = state.trimEdges, minSize = state.trimMinSize, percentBackground = state.trimPercentBackground;
             steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal, edges, minSize, percentBackground, analysis) : undefined);
+        } else if (!operandsOnly && token === "-despeckle") {
+            const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, despecklePixelSteps(image, channels), signal) : undefined);
         } else if (!operandsOnly && token === "-median") {
             const rows = magickMedianRows(tokens[++i] ?? "3");
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, morphologyPixelSteps(image, rows, "median"), signal) : undefined);
@@ -10619,6 +10628,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
     const flagsWithTwoArgs = new Set(["-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
     const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label"]);
     const flagsWithoutArgs = new Set([
+        "-despeckle",
         "-enhance", "-antialias", "+antialias",
         "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",

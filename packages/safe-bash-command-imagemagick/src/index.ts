@@ -8442,10 +8442,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-frame") {
             const raw = tokens[++i] ?? "";
-            validateMagickTransformGeometry(raw, t);
-            const g = parseMagickGeometry(raw.replace(":", "x"));
-            const hasAxes = raw.toLowerCase().includes("x");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                validateMagickTransformGeometry(expanded, t);
+                const g = parseMagickGeometry(expanded.replace(":", "x"));
+                const hasAxes = expanded.toLowerCase().includes("x");
                 const fw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? (hasAxes ? 0 : im.width)));
                 const fh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? (hasAxes ? 0 : g.width ?? im.height)));
                 const width = im.width + 2 * fw, height = im.height + 2 * fh;
@@ -10621,12 +10622,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-frame") {
             const raw = tokens[++i] ?? "";
-            validateMagickTransformGeometry(raw, token);
-            const hasAxes = raw.toLowerCase().includes("x");
-            const geometry = parseMagickGeometry(raw.replace(":", "x"));
-            const { borderColor, matteColor, composeRaw, composeArgs, alphaFuzz } = state;
+            const { borderColor, matteColor, composeRaw, composeArgs, alphaFuzz, optionProperties } = state;
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickTransformGeometry(expanded, token);
+                const hasAxes = expanded.toLowerCase().includes("x");
+                const geometry = parseMagickGeometry(expanded.replace(":", "x"));
                 const left = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? (hasAxes ? 0 : image.width)));
                 const top = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? (hasAxes ? 0 : geometry.width ?? image.height)));
                 const width = image.width + 2 * left, height = image.height + 2 * top;

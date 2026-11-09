@@ -1,5 +1,6 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
+// Sums retain RGBA and RGB multiplied by alpha, so merged bins keep exact weights.
 interface ColorBin { count: number; sums: number[]; color: number[]; node?: ColorNode }
 interface ColorNode {
     parent?: ColorNode;
@@ -39,9 +40,10 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         for (let i = 0; i < size; i += 4) {
             const id = key(data, i);
             let bin = bins.get(id);
-            if (!bin) { bin = { count: 0, sums: [0, 0, 0, 0], color: [] }; bins.set(id, bin); }
+            if (!bin) { bin = { count: 0, sums: [0, 0, 0, 0, 0, 0, 0], color: [] }; bins.set(id, bin); }
             bin.count++;
             for (let c = 0; c < 4; c++) bin.sums[c]! += data[i + c]!;
+            for (let c = 0; c < 3; c++) bin.sums[c + 4]! += data[i + c]! * data[i + 3]!;
         }
         // Reduce histogram precision only when necessary; small palettes stay exact.
         if (bins.size > 65536) {
@@ -53,7 +55,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                 if (++work % 1024 === 0) yield;
                 const next = id & mask, existing = reduced.get(next);
                 if (!existing) reduced.set(next, bin);
-                else { existing.count += bin.count; for (let c = 0; c < 4; c++) existing.sums[c]! += bin.sums[c]!; }
+                else { existing.count += bin.count; for (let c = 0; c < 7; c++) existing.sums[c]! += bin.sums[c]!; }
             }
             bins = reduced;
         }
@@ -63,15 +65,15 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     if (bins.size <= requested) {
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;
-            bin.color = bin.sums.map(value => Math.round(value / bin.count));
+            bin.color = bin.sums.slice(0, 4).map(value => Math.round(value / bin.count));
         }
     } else {
         const depth = treeDepth === 0 ? 8 : Math.max(2, Math.min(8, treeDepth));
-        const root: ColorNode = { level: 0, children: new Map(), count: 0, sums: [0, 0, 0, 0], error: Infinity, removed: false };
+        const root: ColorNode = { level: 0, children: new Map(), count: 0, sums: [0, 0, 0, 0, 0, 0, 0], error: Infinity, removed: false };
         const channels = [...bins.values()].some(bin => bin.sums[3] !== 255 * bin.count) ? 4 : 3;
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;
-            const pixel = bin.sums.map(value => value / bin.count), midpoint = [127.5, 127.5, 127.5, 127.5];
+            const pixel = bin.sums.slice(0, 4).map(value => value / bin.count), midpoint = [127.5, 127.5, 127.5, 127.5];
             let node = root;
             for (let bit = 7; bit >= 0; bit--) {
                 let id = 0, distance = 0;
@@ -84,14 +86,14 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                 }
                 let child = node.children.get(id);
                 if (!child) {
-                    child = { parent: node, level: 8 - bit, children: new Map(), count: 0, sums: [0, 0, 0, 0], error: 0, removed: false };
+                    child = { parent: node, level: 8 - bit, children: new Map(), count: 0, sums: [0, 0, 0, 0, 0, 0, 0], error: 0, removed: false };
                     node.children.set(id, child);
                 }
                 child.error += bin.count * Math.sqrt(distance);
                 node = child;
             }
             node.count += bin.count;
-            for (let c = 0; c < 4; c++) node.sums[c]! += bin.sums[c]!;
+            for (let c = 0; c < 7; c++) node.sums[c]! += bin.sums[c]!;
             bin.node = node;
         }
         // Traverse octants in RGB bit order so equally costly colors reduce in
@@ -117,7 +119,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             if (node.count) {
                 if (parent.count) colors--;
                 parent.count += node.count;
-                for (let c = 0; c < 4; c++) parent.sums[c]! += node.sums[c]!;
+                for (let c = 0; c < 7; c++) parent.sums[c]! += node.sums[c]!;
             }
             node.children.clear();
             node.removed = true;
@@ -143,7 +145,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             let node = bin.node!;
             while (node.removed) node = node.parent!;
             if (channels === 3) {
-                const pixel = bin.sums.map(value => value / bin.count);
+                const pixel = bin.sums.slice(0, 4).map(value => value / bin.count);
                 // Native assignment searches the deepest surviving cube's
                 // siblings and descendants, comparing unrounded palette means.
                 let cube = root;
@@ -168,7 +170,9 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                 }
                 yield* search(cube.parent ?? root);
             }
-            bin.color = node.sums.map(value => Math.round(value / node.count));
+            bin.color = node.sums.slice(0, 4).map((value, channel) => Math.round(
+                channel < 3 && node.sums[3]! > 0 ? node.sums[channel + 4]! / node.sums[3]! : value / node.count
+            ));
         }
     }
     for (let position = 0; position < length; position += 4096) {

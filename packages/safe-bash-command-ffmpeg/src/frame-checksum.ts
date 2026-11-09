@@ -140,7 +140,9 @@ export function serializeFrameChecksum(
     }
     if (track.type === "audio" && !rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
     const decodedAudioPackets: Pick<MediaTrack["samples"][number], "dts" | "pts" | "duration" | "data">[] | undefined =
-      track.type === "audio" && !copy && !track.decodedAudio && ["aac", "vorbis"].includes(track.codecDescriptions[0]?.codecName ?? "") ? [] : undefined;
+      track.type === "audio" && !copy && (!track.decodedAudio ||
+        codec?.codecName === "aac" && track.samples.some(sample => sample.data.length > 0)) &&
+        ["aac", "vorbis"].includes(codec?.codecName ?? "") ? [] : undefined;
     if (decodedAudioPackets && track.codecDescriptions[0]?.codecName === "vorbis") {
       for (const frame of decodeVorbisFrames(track)) {
         budget.checkCpu();

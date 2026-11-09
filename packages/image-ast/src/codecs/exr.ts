@@ -1,6 +1,7 @@
 import { createByteCodec } from "@poe-code/compression";
 import type { ImageMetadata, RgbaImage, SharpInputOptions } from "../ast.js";
 import { checkLimitInputPixels } from "../limits.js";
+import { unpackExrPiz } from "./exr-piz.js";
 
 type Range = { position: number; length: number };
 type Reads<T> = Generator<Range, T, Uint8Array>;
@@ -40,7 +41,7 @@ export function* exrHeader(size: number): Reads<{ metadata: ImageMetadata & { ma
         if (length > 65536) throw new Error("Invalid EXR attribute size");
         const bytes = yield* read(length), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
         if (key === "compression") {
-            if (type !== "compression" || length !== 1 || bytes[0]! > 3) throw new Error("Unsupported EXR compression");
+            if (type !== "compression" || length !== 1 || bytes[0]! > 4) throw new Error("Unsupported EXR compression");
             compression = bytes[0]!;
         } else if (key === "dataWindow") {
             if (type !== "box2i" || length !== 16) throw new Error("Invalid EXR data window");
@@ -109,7 +110,7 @@ function unpack(bytes: Uint8Array, length: number, compression: number): Uint8Ar
 type Pixels = { y: number; data: Uint8Array; data16: Uint16Array; dataFloat: Float32Array };
 export function* exrPixels(header: ReturnType<typeof readExrHeader>, size: number): Generator<Range | Pixels, void, Uint8Array> {
     const { metadata: { width, height, space }, channels, compression, minY, offset } = header;
-    const rows = compression === 3 ? 16 : 1, count = Math.ceil(height / rows);
+    const rows = compression === 4 ? 32 : compression === 3 ? 16 : 1, count = Math.ceil(height / rows);
     if (offset + count * 8 > size) throw new Error("Truncated EXR offset table");
     const rowBytes = width * channels.reduce((sum, channel) => sum + (channel.type === 1 ? 2 : 4), 0);
     for (let block = 0; block < count; block++) {
@@ -125,7 +126,7 @@ export function* exrPixels(header: ReturnType<typeof readExrHeader>, size: numbe
         if (length > expected) throw new Error("Invalid EXR chunk size");
         const packed = yield { position: position + 8, length };
         if (packed.length !== length) throw new Error("Truncated EXR chunk");
-        const raw = unpack(packed, expected, compression), samples = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
+        const raw = compression === 4 && length < expected ? unpackExrPiz(packed, width, lines, channels) : unpack(packed, expected, compression), samples = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
         const data = new Uint8Array(width * lines * 4), data16 = new Uint16Array(data.length), dataFloat = new Float32Array(data.length);
         for (let i = 3; i < data.length; i += 4) { data[i] = 255; data16[i] = 65535; dataFloat[i] = 1; }
         let p = 0;

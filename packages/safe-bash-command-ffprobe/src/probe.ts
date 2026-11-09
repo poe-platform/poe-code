@@ -1,3 +1,4 @@
+import { parseWriterBoolean } from "./writer-boolean.js";
 import { optionalFields, parseOptionalFields } from "./optional-fields.js";
 import { iniSection, sexagesimalRow } from "./probe-text.js";
 import { parseAudio, flacFormatTags, type AudioAst } from "@poe-code/audio-ast";
@@ -90,9 +91,11 @@ export function parseArguments(args: readonly string[]) {
     flat: [],
     ini: ["h", "hierarchical"]
   };
-  for (const key of settings.keys())
+  for (const [key, value] of settings) {
     if (!writerOptions[format!]!.includes(key))
       throw new Error(`Unsupported writer option ${key}`);
+    if (key !== "s" && key !== "item_sep") parseWriterBoolean(value);
+  }
   return { filename, format: format!, sections, settings, selector, quiet, streamEntries, sexagesimal, showOptionalFields };
 }
 
@@ -285,14 +288,14 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
     let output = "# ffprobe output\n", index = 0;
     if (rows.some(row => row.section === "stream")) output += "\n\n";
     for (const { section, row } of rows) {
-      const path = section === "stream" ? `${(settings.get("h") ?? settings.get("hierarchical")) === "0" ? "" : "streams."}stream.${index++}` : section;
+      const path = section === "stream" ? `${!parseWriterBoolean(settings.get("h") ?? settings.get("hierarchical") ?? "1") ? "" : "streams."}stream.${index++}` : section;
       for (const part of iniSection(row, path)) output += part;
     }
     return output;
   }
   const enabled = (a: string, b: string, fallback: boolean) => {
     const value = settings.get(a) ?? settings.get(b);
-    return value === undefined ? fallback : value === "1";
+    return value === undefined ? fallback : parseWriterBoolean(value);
   };
   const lines: string[] = [];
   let streamIndex = 0;

@@ -1,3 +1,4 @@
+import { parseWriterBoolean } from "./writer-boolean.js";
 import { probeConcat } from "./concat.js";
 export { parseConcatManifest, parseHlsDuration } from "./concat.js";
 import { imagePathMetadata, imageSequenceFilename, probeImageSequence } from "./image-sequence.js";
@@ -678,7 +679,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     if (includeChapters) sections.push({ name: "chapters", rows: probe.chapters });
     if (probe.error) sections.push({ name: "error", value: probe.error });
     if (finalFormat !== undefined) sections.push({ name: "format", value: finalFormat });
-    const compact = paramMap.c === "1" || paramMap.compact === "1";
+    const compact = parseWriterBoolean(paramMap.c ?? paramMap.compact ?? "0");
     yield "{";
     let firstSection = true;
     for (const section of sections) {
@@ -717,8 +718,8 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     return;
   }
   const noWrappers =
-    paramMap.noprint_wrappers === "1" || paramMap.nw === "1";
-  const noKey = (paramMap.nokey ?? paramMap.nk ?? (fmt === "csv" ? "1" : "0")) === "1";
+    parseWriterBoolean(paramMap.noprint_wrappers ?? paramMap.nw ?? "0");
+  const noKey = parseWriterBoolean(paramMap.nokey ?? paramMap.nk ?? (fmt === "csv" ? "1" : "0"));
 
   function probeEntries(section: Record<string, unknown>, tagPrefix: string, dispositionPrefix: string): [string, unknown][] {
     return Object.entries(section).flatMap(([key, value]) =>
@@ -754,7 +755,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     if (fmt === "xml") {
       yield* xmlSection(section, name, name === "format" || name === "error" ? 1 : 2);
     } else if (fmt === "ini") {
-      const hierarchical = (paramMap.h ?? paramMap.hierarchical) !== "0";
+      const hierarchical = parseWriterBoolean(paramMap.h ?? paramMap.hierarchical ?? "1");
       const parent = includePackets && includeFrames && (name === "packet" || name === "frame") ? "packets_and_frames" : name + "s";
       const path = name === "format" || name === "error" ? name : `${hierarchical ? parent + "." : ""}${name}.${index}`;
       const { streams: members, ...fields } = section;
@@ -762,7 +763,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       if (Array.isArray(members)) for (const [i, member] of members.entries()) yield* render(member, "stream", i, path + ".");
     } else if (fmt === "csv" || fmt === "compact") {
       const sep = fmt === "csv" ? (paramMap.s ?? ",") : (paramMap.s ?? "|");
-      const printSection = paramMap.p !== "0" && paramMap.print_section !== "0";
+      const printSection = parseWriterBoolean(paramMap.p ?? paramMap.print_section ?? "1");
       let first = true;
       if (printSection) { yield name; first = false; }
       for (const [key, value] of probeEntries(section, "tag:", "disposition:")) {
@@ -1000,6 +1001,10 @@ function parseProbeArguments(args: readonly string[]) {
     const key = parameter.split("=")[0]!;
     if (!writerOptions[writer]!.includes(key))
       throw new Error(`Unsupported writer option ${key}`);
+    if (key !== "s" && key !== "item_sep") {
+      const equals = parameter.indexOf("=");
+      parseWriterBoolean(equals < 0 ? "1" : parameter.slice(equals + 1));
+    }
   }
   const entryFilter = parseEntryFilter(showEntries);
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;

@@ -1,3 +1,4 @@
+import { parseWriterBoolean } from "./writer-boolean.js";
 import { escapeIni } from "./probe-text.js";
 import type { AudioAst } from "@poe-code/audio-ast";
 import { audioProbeRows, parseArguments } from "./probe.js";
@@ -112,7 +113,7 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
     if (streamOpen) yield (firstStream ? "" : "\n    ") + "]";
     yield (first ? "" : "\n") + "}\n"; return;
   }
-  const enabled = (a: string, b: string, fallback: boolean) => { const value = settings.get(a) ?? settings.get(b); return value === undefined ? fallback : value === "1"; };
+  const enabled = (a: string, b: string, fallback: boolean) => { const value = settings.get(a) ?? settings.get(b); return value === undefined ? fallback : parseWriterBoolean(value); };
   if (format === "ini") {
     yield "# ffprobe output\n";
     if (["stream", "stream_tags"].some(key => sections.has(key) && sections.get(key)?.length !== 0)) yield "\n\n";
@@ -127,7 +128,7 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
       }
     }
     if (format === "ini") {
-      const path = section === "stream" ? `${(settings.get("h") ?? settings.get("hierarchical")) === "0" ? "" : "streams."}stream.${streamIndex++}` : section;
+      const path = section === "stream" ? `${!parseWriterBoolean(settings.get("h") ?? settings.get("hierarchical") ?? "1") ? "" : "streams."}stream.${streamIndex++}` : section;
       yield `\n[${path}]\n`;
       for (const [key, value] of Object.entries(row)) {
         if (typeof value === "object") continue;

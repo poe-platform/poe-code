@@ -3,6 +3,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 interface ColorBin { count: number; sums: number[]; color: number[]; node?: ColorNode }
 interface ColorNode {
     parent?: ColorNode;
+    level: number;
     children: Map<number, ColorNode>;
     count: number;
     sums: number[];
@@ -11,7 +12,7 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     const prepare = (source: Uint8Array): Uint8Array => {
         if (!grayscale) return source;
@@ -65,7 +66,8 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             bin.color = bin.sums.map(value => Math.round(value / bin.count));
         }
     } else {
-        const root: ColorNode = { children: new Map(), count: 0, sums: [0, 0, 0, 0], error: Infinity, removed: false };
+        const depth = treeDepth === 0 ? 8 : Math.max(2, Math.min(8, treeDepth));
+        const root: ColorNode = { level: 0, children: new Map(), count: 0, sums: [0, 0, 0, 0], error: Infinity, removed: false };
         const channels = [...bins.values()].some(bin => bin.sums[3] !== 255 * bin.count) ? 4 : 3;
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;
@@ -82,7 +84,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                 }
                 let child = node.children.get(id);
                 if (!child) {
-                    child = { parent: node, children: new Map(), count: 0, sums: [0, 0, 0, 0], error: 0, removed: false };
+                    child = { parent: node, level: 8 - bit, children: new Map(), count: 0, sums: [0, 0, 0, 0], error: 0, removed: false };
                     node.children.set(id, child);
                 }
                 child.error += bin.count * Math.sqrt(distance);
@@ -106,10 +108,11 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             if (node !== root) ordered.push(node);
         }
         yield* visit(root);
-        ordered.sort((a, b) => a.error - b.error);
+        let nodes = ordered.length + 1;
         function* prune(node: ColorNode): Generator<undefined> {
             if (++work % 1024 === 0) yield;
             for (const child of node.children.values()) if (!child.removed) yield* prune(child);
+            if (nodes <= requested) return;
             const parent = node.parent!;
             if (node.count) {
                 if (parent.count) colors--;
@@ -118,11 +121,22 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             }
             node.children.clear();
             node.removed = true;
+            nodes--;
         }
         for (const node of ordered) {
             if (++work % 1024 === 0) yield;
-            if (colors <= requested) break;
+            if (node.level > depth && !node.removed) yield* prune(node);
+        }
+        const remaining = ordered.filter(node => !node.removed).sort((a, b) => a.error - b.error);
+        // Native starts at a threshold that leaves roughly 110% of the requested
+        // palette in tree nodes, then prunes complete equal-error groups.
+        const threshold = colors > requested ? remaining[Math.max(0, nodes - Math.floor(1.1 * (requested + 1)))]?.error ?? 0 : -1;
+        let lastError = threshold;
+        for (const node of remaining) {
+            if (++work % 1024 === 0) yield;
+            if (colors <= requested && node.error > lastError) break;
             if (!node.removed) yield* prune(node);
+            lastError = Math.max(lastError, node.error);
         }
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;

@@ -655,6 +655,7 @@ interface MagickState {
   dither: false | "riemersma" | "floydsteinberg";
   diffusionAmount?: number;
   quantizeGray?: boolean;
+  treeDepth?: number;
   formatStr: string | undefined;
   channels: { r: boolean; g: boolean; b: boolean; a: boolean };
   channelExplicit: boolean;
@@ -7390,6 +7391,12 @@ if (t === "-seed") {
             if (value === undefined || !value.trim() || !Number.isFinite(requested)) throw new Error("invalid argument for option '-precision'");
             state.precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
         }
+        else if (t === "-treedepth") {
+            const value = tokens[++i], depth = Number(value);
+            if (value === undefined || !value.trim() || !Number.isSafeInteger(depth) || depth < 0) throw new Error("invalid argument for option '-treedepth'");
+            state.treeDepth = depth;
+        }
+        else if (t === "+treedepth") { delete state.treeDepth; }
         else if (t === "-quantize") {
             state.quantizeGray = (tokens[++i] ?? "").toLowerCase() === "gray";
         }
@@ -8032,7 +8039,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const colors = Number(tokens[++i]);
             stack = yield* mapMagickImagesSteps(stack, image => {
                 const { data16: ignored, hueSamples: ignoredHue, ...pixels } = image;
-                return applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, colors, state.quantizeGray), signal);
+                return applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, colors, state.quantizeGray, state.treeDepth), signal);
             });
         }
         else if (pixelOperation) {
@@ -9697,8 +9704,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-colors") {
-            const colors = Number(tokens[++i]), grayscale = state.quantizeGray;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, colors, grayscale), signal) : undefined);
+            const colors = Number(tokens[++i]), grayscale = state.quantizeGray, treeDepth = state.treeDepth;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, colors, grayscale, treeDepth), signal) : undefined);
             continue;
         }
         if (!operandsOnly && token === "-ordered-dither") {
@@ -10876,7 +10883,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-hough-lines",
         "-emboss",
         "-charcoal",
-        "-region", "-write-mask", "-clip-mask", "-sketch", "-seed", "-quantize", "-virtual-pixel", "-orient", "-profile", "+profile",
+        "-region", "-write-mask", "-clip-mask", "-sketch", "-seed", "-quantize", "-treedepth", "-virtual-pixel", "-orient", "-profile", "+profile",
         "-scene", "-delay", "-loop", "-transparent-color", "-dispose", "-morph", "-repage", "-raise", "+raise",
         "-clone", "-insert", "-swap", "-delete", "-smush", "+smush", "-layers", "-recolor",
         "-contrast-stretch", "-linear-stretch", "-intensity", "-connected-components", "+connected-components"
@@ -10890,7 +10897,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
-        "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
+        "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+treedepth", "+compress", "+depth", "+endian", "+size",
         "+read-mask", "+interpolate", "+intensity", "+filter", "+page", "+orient",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
     ]);

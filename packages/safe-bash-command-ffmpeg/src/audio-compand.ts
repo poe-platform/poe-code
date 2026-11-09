@@ -63,8 +63,8 @@ export async function compandAudio(
     const center = points[i]!;
     const slope = (center.y - previous.y) / (center.x - previous.x);
     segments.push({ ...previous, a: 0, b: slope });
-    const next = points[i + 1];
-    if (!next) break;
+    // FFmpeg rounds the last corner toward an implicit zero-gain point too.
+    const next = points[i + 1] ?? { x: 0, y: 0 };
     const incoming = Math.min(knee, Math.hypot(center.x - previous.x, center.y - previous.y));
     const outgoing = Math.min(knee, Math.hypot(next.x - center.x, next.y - center.y) / 2);
     const before = Math.atan2(center.y - previous.y, center.x - previous.x);
@@ -97,14 +97,11 @@ export async function compandAudio(
       const delta = Math.abs(sample) - envelope;
       envelope += delta * (delta > 0 ? attack : decay);
       const db = Math.max(segments[0]!.x, 20 * Math.log10(envelope));
-      let low = 0;
-      let high = segments.length - 1;
-      while (low < high) {
-        const mid = Math.ceil((low + high) / 2);
-        if (segments[mid]!.x < db) low = mid;
-        else high = mid - 1;
-      }
-      const segment = segments[low]!;
+      // The final knee can turn back toward 0 dB: use the first boundary,
+      // as FFmpeg does, rather than assuming the segments remain sorted.
+      let index = 0;
+      while (index + 1 < segments.length && segments[index + 1]!.x < db) index++;
+      const segment = segments[index]!;
       const offset = db - segment.x;
       output[c]![i] = sample * 10 ** ((gain + segment.y + offset * (segment.a * offset + segment.b)) / 20);
     }

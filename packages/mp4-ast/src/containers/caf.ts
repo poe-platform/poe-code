@@ -275,8 +275,21 @@ export function cafAst(): MediaAstPlugin {
     detect: bytes => bytes.length >= 4 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0) === 0x63616666,
     parse: parseCaf,
     probe(bytes, options = {}) {
-      return buildProbeResultFromDoc(parseCaf(bytes, { ...options, decodeAudio: false }), bytes.length, options.filename,
+      const doc = parseCaf(bytes, { ...options, decodeAudio: false });
+      const result = buildProbeResultFromDoc(doc, bytes.length, options.filename,
         { ...options, formatName: "caf", formatLongName: "Apple CAF (Core Audio Format)" });
+      const track = doc.tracks[0]!;
+      const desc = track.codecDescriptions[0]!;
+      // Empty PCM has no duration estimate; retain the description's nominal bitrate.
+      if (track.duration === 0 && track.samples.length === 0 && desc.codecName.startsWith("pcm_")) {
+        const bitRate = String(desc.sampleRate! * desc.channels! * desc.bitsPerSample!);
+        return { ...result,
+          streams: result.streams.map(stream => ({ ...stream, duration_ts: undefined, duration: undefined,
+            nb_frames: undefined, bit_rate: bitRate })),
+          format: { ...result.format!, duration: undefined, bit_rate: bitRate }
+        };
+      }
+      return result;
     },
     serialize(doc, options = {}) {
       const track = doc.tracks.find(track => track.type === "audio");

@@ -10709,6 +10709,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = output;
                       } else if (trimmed === "earwax") {
+                        if (origRate !== 44100) {
+                          const length = Math.ceil((stretched[0]?.length ?? 0) * 44100 / origRate);
+                          if (!Number.isSafeInteger(length)) throw new Error("earwax: output sample count is too large");
+                          budget.checkDuration(length / 44100);
+                          budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
+                          stretched = await resampleAudio(stretched, length, origRate, 44100, budget, context.signal);
+                          filteredSampleFormat = "flt";
+                          panPcm16 = false;
+                          audioStartSample = Math.round(audioStartSample * 44100 / origRate);
+                          for (const frame of audioTimestamps ?? []) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            frame.start = Math.round(frame.start * 44100 / origRate);
+                            frame.end = Math.round(frame.end * 44100 / origRate);
+                            frame.pts = Math.round(frame.pts * 44100 / origRate);
+                          }
+                          origRate = 44100;
+                        }
                         if (origRate === 44100 && stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
                           const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
                             stretched, filteredChannelMask, panPcm16, budget, context.signal);

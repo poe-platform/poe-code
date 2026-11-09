@@ -60,7 +60,7 @@ const native = {
 } as const;
 
 for (const complex of [false, true]) {
-  for (const name of ["impulses", "clipping", "mono", "mono explicit stereo", "48000 Hz"] as const) {
+  for (const name of ["impulses", "clipping", "mono", "mono explicit stereo"] as const) {
     it(`earwax ${complex ? "graph" : "simple"}: ${name}`, async () => {
       const mono = name.startsWith("mono");
       const length = name === "impulses" ? 8192 : mono ? 2059 : 80;
@@ -76,7 +76,7 @@ for (const complex of [false, true]) {
       }
       const filter = name === "mono explicit stereo" ? "aformat=channel_layouts=stereo,earwax" : "earwax";
       const volume = Volume.fromJSON({});
-      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: name === "48000 Hz" ? 48000 : 44100, channels }));
+      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 44100, channels }));
       let stderr = "";
       const result = await createFfmpegCommand().execute({
         args: ["-v", "error", "-y", "-i", "/in.wav", ...(complex
@@ -90,12 +90,6 @@ for (const complex of [false, true]) {
         stdin: (async function* () {})(), stdout: { async write() {} },
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
-      if (name === "48000 Hz") {
-        assert.notEqual(result.exitCode, 0);
-        assert.match(stderr, /earwax: 44100 Hz stereo input required/);
-        assert.equal(volume.existsSync("/out.wav"), false);
-        return;
-      }
       assert.equal(result.exitCode, 0, stderr);
       const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
       assert.equal(audio.channels, 2);

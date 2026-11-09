@@ -497,10 +497,10 @@ Both `type=time` and `type=freq` use bounded direct convolution, preserve the so
 frame count and sample rate, and apply native gain (−6 dB for stereo plus `gain`).
 Use `map=FR|FL` to reverse the response assignments. All three inputs must be stereo
 PCM at the same sample rate; multichannel HRIR files and preceding filters are unsupported.
-`earwax` applies the headphone stereo filter to 44100 Hz mono or stereo input,
-converting mono to stereo with native gain before filtering. It preserves the
-frame count with native signed 16-bit filtering and clipping. Other input rates
-and channel counts are rejected.
+`earwax` applies the headphone stereo filter to mono or stereo input, resampling
+other input rates to 44100 Hz and converting mono to stereo with native gain.
+It preserves the resampled frame count, including the drained tail, with native
+signed 16-bit filtering and clipping. Other channel counts are rejected.
 
 Swap stereo PCM channels with `-af 'channelmap=FR|FL'` or
 `-af 'channelmap=map=1|0:channel_layout=stereo'`.

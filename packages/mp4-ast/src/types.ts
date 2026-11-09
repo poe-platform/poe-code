@@ -754,6 +754,8 @@ export interface SerializeMediaOptions {
   readonly singleFile?: boolean | undefined;
   /** DASH single-file resource template; defaults to stream$RepresentationID$.mp4. */
   readonly singleFileName?: string | undefined;
+  /** DASH presentation profiles: dash (default), dvb_dash, or dash+dvb_dash. */
+  readonly mpdProfile?: string | undefined;
   /** Use DASH SegmentTemplate (default: true); false emits explicit SegmentList references. */
   readonly useTemplate?: boolean | undefined;
   /** Use DASH SegmentTimeline (default: true); false uses fixed-duration templates. */

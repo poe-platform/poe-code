@@ -372,6 +372,14 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
 
 /** Produces the manifest and every referenced initialization/media resource. */
 export function serializeDashDocument(doc: MediaDocument, options: SerializeMediaOptions = {}): { manifest: Uint8Array; resources: ReadonlyMap<string, Uint8Array> } {
+  const profiles = (options.mpdProfile ?? "dash").split("+");
+  if (profiles.some(profile => profile !== "dash" && profile !== "dvb_dash")) {
+    throw new Error("Invalid DASH mpd_profile");
+  }
+  const profileUrns = [
+    ...(profiles.includes("dash") ? ["urn:mpeg:dash:profile:isoff-live:2011"] : []),
+    ...(profiles.includes("dvb_dash") ? ["urn:dvb:dash:profile:dvb-dash:2014"] : [])
+  ].join(",");
   const adaptations = options.adaptationSets
     ? options.adaptationSets.trim().split(" ").filter(Boolean).map(value => {
       const fields = value.split(",");
@@ -601,7 +609,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   }
   const lines = [
     '<?xml version="1.0" encoding="utf-8"?>',
-    `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" maxSegmentDuration="PT${segmentDuration.toFixed(6)}S" mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S" minBufferTime="PT${(2 * bufferDuration).toFixed(6)}S" profiles="urn:mpeg:dash:profile:isoff-live:2011">`,
+    `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" maxSegmentDuration="PT${segmentDuration.toFixed(6)}S" mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S" minBufferTime="PT${(2 * bufferDuration).toFixed(6)}S" profiles="${profileUrns}">`,
     ...(doc.metadata.title ? [`<ProgramInformation><Title>${doc.metadata.title.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</Title></ProgramInformation>`] : []),
     '<Period id="0" start="PT0S">'
   ];

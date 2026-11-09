@@ -546,6 +546,7 @@ preserving surviving packet timestamps; missing initialization files and other r
 `.mpd`) writes the manifest plus `init-stream*.m4s` and `chunk-stream*.m4s` files
 beside it. Use `-init_seg_name 'i-$RepresentationID$.mp4'` and
 `-media_seg_name 'm-$RepresentationID$-$Number$.m4s'` to customize the names.
+Use `-mpd_profile dvb_dash` to declare the DVB DASH profile, or `-mpd_profile dash+dvb_dash` for both DVB and the default ISO live profile.
 Use `-frag_type every_frame` for one fragment per frame inside each media segment, keeping `-seg_duration` unchanged; `none` (default) writes one fragment per segment.
 Use `-use_template 0` for explicit `SegmentList` output; the default (`1`) retains `SegmentTemplate`.
 Use `-use_timeline 0` for fixed-duration templates without a timeline (`-seg_duration` defaults to 5 seconds); `1` retains the default timeline.

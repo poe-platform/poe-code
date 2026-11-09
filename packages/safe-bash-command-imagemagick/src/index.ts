@@ -1934,6 +1934,8 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
             }
         }
     }
+    if ((img.space === "b-w" || img.space === "grey16") && (bg.r !== bg.g || bg.g !== bg.b))
+        img = { ...img, space: "srgb", channels: 4 };
     const virtualCanvas = magickResizeCanvas(img, outW, outH);
     return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), hasAlpha: true, ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
@@ -9386,6 +9388,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
             }
         }
     }
+    if (token === "-splice" && (image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
+        image = { ...image, space: "srgb", channels: 4 };
     const virtualCanvas = token !== "-roll" ? magickResizeCanvas(image, width, height) : undefined;
     return { ...image, position, width, height, ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { hasAlpha: true } : {}),
         ...(virtualCanvas ? { virtualCanvas } : {}) };

@@ -4791,8 +4791,10 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
                 svgElements.length = 0;
             }
-            if (Math.round(x) < 0 || Math.round(y) < 0 || Math.round(x) >= img.width || Math.round(y) >= img.height) throw new Error(`${cmd} floodfill seed is outside the image`);
-            yield { kind: "floodfill", x: Math.round(x), y: Math.round(y), color: fillColor, alphaOnly: cmd === "alpha" };
+            // Native draw coordinates select the lower pixel at exact half ties.
+            const seedX = Math.ceil(x - 0.5), seedY = Math.ceil(y - 0.5);
+            if (seedX < 0 || seedY < 0 || seedX >= img.width || seedY >= img.height) throw new Error(`${cmd} floodfill seed is outside the image`);
+            yield { kind: "floodfill", x: seedX, y: seedY, color: fillColor, alphaOnly: cmd === "alpha" };
         }
         else if (cmd === "rectangle") {
             const x0 = num();

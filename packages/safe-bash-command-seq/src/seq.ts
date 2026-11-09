@@ -222,7 +222,7 @@ export function createSeqWithSettings(limits: StreamFormatLimits): CommandDefini
     const args = session.context.args;
     for (let index = 0; index < args.length; index++) {
       const argument = args[index]!;
-      if (ended || !argument.startsWith("-") || /^-[\d.]/u.test(argument)) { operands.push(argument); continue; }
+      if (ended || argument === "-" || !argument.startsWith("-") || /^-[\d.]/u.test(argument)) { ended = true; operands.push(argument); continue; }
       if (argument === "--") { ended = true; continue; }
       if (argument.startsWith("--")) {
         const equals = argument.indexOf("=");

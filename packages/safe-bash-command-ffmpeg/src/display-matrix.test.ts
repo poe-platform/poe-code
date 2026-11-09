@@ -8,6 +8,8 @@ for (const sync of [false, true]) {
   for (const fragmented of [false, true]) {
     for (const [rotation, expected] of [
       [undefined, [-65536, 0, 0, 0, 65536, 0, 0, 0, 1073741824]],
+      [undefined, [131072, 0, 0, 0, 65536, 0, 0, 0, 1073741824]],
+      [undefined, [65536, 0, 0, 0, 65536, 0, 196608, 131072, 1073741824]],
       [90, [0, -65536, 0, 65536, 0, 0, 0, 0, 1073741824]],
       [-90, [0, 65536, 0, -65536, 0, 0, 0, 0, 1073741824]],
       [45, [46340, -46340, 0, 46340, 46340, 0, 0, 0, 1073741824]],
@@ -15,8 +17,8 @@ for (const sync of [false, true]) {
       [-32.5, [55272, 35212, 0, -35212, 55272, 0, 0, 0, 1073741824]],
       [0, [65536, 0, 0, 0, 65536, 0, 0, 0, 1073741824]]
     ] as const) {
-      it(`writes the requested display matrix during stream copy (sync=${sync}, fragmented=${fragmented}, rotation=${rotation})`, async () => {
-        const matrix = [-65536, 0, 0, 0, 65536, 0, 0, 0, 1073741824];
+      it(`writes the requested display matrix during stream copy (sync=${sync}, fragmented=${fragmented}, rotation=${rotation}, matrix=${expected})`, async () => {
+        const matrix = rotation === undefined ? expected : [-65536, 0, 0, 0, 65536, 0, 0, 0, 1073741824];
         const base = parseMp4(createSyntheticMp4({ width: 16, height: 16, frameCount: 2 }));
         const input = serializeMp4({ ...base, tracks: base.tracks.map(track => ({ ...track, rotation: undefined, matrix })) });
         const volume = Volume.fromJSON({ "/in.mp4": Buffer.from(input) });

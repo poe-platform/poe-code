@@ -113,7 +113,7 @@ it.each([false, true])("matches native threshold maps in retained=%s", async ret
 });
 
 it.each([false, true])("rejects unsupported maps and invalid levels without replacing output, retained=%s", async retained => {
-    for (const argument of ["unknown,4", "o8x8,nan", "o8x8,-2", "o8x8,Infinity"]) {
+    for (const argument of ["unknown,4", "o8x8,1e999", "o8x8,2,-2"]) {
         const original = new Uint8Array([1, 2, 3]);
         const files = new Map([["out.png", original]]), fs = new MemoryFileSystem();
         await fs.writeFile("/out.png", original);

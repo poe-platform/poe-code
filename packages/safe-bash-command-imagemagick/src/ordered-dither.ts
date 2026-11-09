@@ -25,11 +25,52 @@ const maps: Record<string, { width: number; height: number; divisor: number; val
 };
 
 export function parseOrderedDither(argument: string) {
-    const [name, ...rawLevels] = argument.split(",");
-    const map = Object.entries(maps).find(([key, value]) => key === name?.toLowerCase() || value.alias === name)?.[1];
+    let position = 0;
+    while (position < argument.length && (argument[position] === "," || argument[position]!.trim() === "")) position++;
+    const start = position;
+    while (position < argument.length && argument[position] !== "," && argument[position]!.trim() !== "") position++;
+    const name = argument.slice(start, position).toLowerCase();
+    const map = Object.entries(maps).find(([key, value]) => key === name || value.alias === name)?.[1];
     if (!map) throw new Error(`unsupported ordered-dither threshold map '${name}'`);
-    const supplied = rawLevels.map(Number);
-    if (supplied.length > 5 || supplied.some(value => !Number.isFinite(value) || value < 0 || value > Number.MAX_SAFE_INTEGER / map.divisor))
+    const supplied: number[] = [];
+    position = argument.indexOf(",", start) + 1;
+    // Native only reads levels when a digit immediately follows the first comma.
+    if (position > 0 && argument[position] !== undefined && "0123456789".includes(argument[position]!)) {
+        const nextToken = (): string => {
+            while (position < argument.length && argument[position]!.trim() === "") position++;
+            const begin = position;
+            if (argument[position] === ",") position++;
+            else if (argument.slice(position, position + 2).toLowerCase() === "0x") {
+                position += 2;
+                while (position < argument.length && "0123456789abcdefABCDEF".includes(argument[position]!)) position++;
+                if (argument[position] === "%") position++;
+            } else if (Number.isFinite(Number.parseFloat(argument.slice(position)))) {
+                if (argument[position] === "+" || argument[position] === "-") position++;
+                while (position < argument.length && "0123456789".includes(argument[position]!)) position++;
+                if (argument[position] === ".") position++;
+                while (position < argument.length && "0123456789".includes(argument[position]!)) position++;
+                if (argument[position] === "e" || argument[position] === "E") {
+                    let exponent = position + 1;
+                    if (argument[exponent] === "+" || argument[exponent] === "-") exponent++;
+                    const digits = exponent;
+                    while (exponent < argument.length && "0123456789".includes(argument[exponent]!)) exponent++;
+                    if (exponent > digits) position = exponent;
+                }
+                if (argument[position] === "%") position++;
+            } else {
+                while (position < argument.length && argument[position] !== "," && argument[position]!.trim() !== "") position++;
+            }
+            const token = argument.slice(begin, position);
+            while (position < argument.length && argument[position]!.trim() === "") position++;
+            return token;
+        };
+        do {
+            let token = nextToken();
+            if (token === ",") token = nextToken();
+            supplied.push(token.toLowerCase().startsWith("0x") ? Number.parseInt(token, 16) : Number.parseFloat(token) || 0);
+        } while (position < argument.length && supplied.length < 5);
+    }
+    if (supplied.some(value => !Number.isFinite(value) || value < 0 || value > Number.MAX_SAFE_INTEGER / map.divisor))
         throw new Error(`invalid ordered-dither levels '${argument}'`);
     // Native uses the first count as a default, then overrides channels with
     // subsequent counts, in selected-channel order. Zero and one leave it alone.

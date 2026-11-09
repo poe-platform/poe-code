@@ -241,6 +241,9 @@ timestamp discontinuities. Waits honor cancellation and command resource limits.
 `adeclick` removes impulsive noise from decoded PCM using autoregressive interpolation.
 It accepts `window`/`w`, `overlap`/`o`, `arorder`/`a`, `threshold`/`t`,
 `burst`/`b`, and `method`/`m` (`add` or `save`), with native defaults.
+`adeclip` reconstructs clipped PCM peaks using the same interpolation. It accepts
+`window`/`w`, `overlap`/`o`, `arorder`/`a`, `threshold`/`t`, `hsize`/`n`, and
+`method`/`m` (`add` or `save`), with native defaults; channels are restored independently.
 `[0:a][1:a]join=inputs=2:channel_layout=stereo:map=1.0-FL|0.0-FR[mix]`
 routes the second input's first channel to left and the first input's first channel
 to right, stopping at the shorter input. Join supports two decoded PCM inputs with

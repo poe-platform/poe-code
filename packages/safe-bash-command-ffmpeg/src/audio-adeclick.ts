@@ -5,22 +5,24 @@ export async function declickAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
   filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
-  const options = { window: 55, overlap: 75, arorder: 2, threshold: 2, burst: 2, method: 0 };
-  const names = Object.keys(options) as (keyof typeof options)[];
-  const aliases = { w: "window", o: "overlap", a: "arorder", t: "threshold", b: "burst", m: "method" } as const;
-  const ranges = { window: [10, 100], overlap: [50, 95], arorder: [0, 25], threshold: [1, 100], burst: [0, 10], method: [0, 1] };
+  const declip = filter.split("=", 1)[0] === "adeclip";
+  const name = declip ? "adeclip" : "adeclick";
+  const options = { window: 55, overlap: 75, arorder: declip ? 8 : 2, threshold: declip ? 10 : 2, burst: 2, hsize: 1000, method: 0 };
+  const names = (Object.keys(options) as (keyof typeof options)[]).filter(key => key !== (declip ? "burst" : "hsize"));
+  const aliases = { w: "window", o: "overlap", a: "arorder", t: "threshold", b: "burst", n: "hsize", m: "method" } as const;
+  const ranges = { window: [10, 100], overlap: [50, 95], arorder: [0, 25], threshold: [1, 100], burst: [0, 10], hsize: [100, 9999], method: [0, 1] };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [i, part] of (argument ? argument.split(":") : []).entries()) {
     const separator = part.indexOf("=");
-    const name = separator < 0 ? names[i] : part.slice(0, separator).trim();
-    const key = (aliases[name as keyof typeof aliases] ?? name) as keyof typeof options;
-    if (!key || !Object.hasOwn(options, key)) throw new Error(`adeclick: unsupported option ${name}`);
+    const option = separator < 0 ? names[i] : part.slice(0, separator).trim();
+    const key = (aliases[option as keyof typeof aliases] ?? option) as keyof typeof options;
+    if (!names.includes(key)) throw new Error(`${name}: unsupported option ${option}`);
     const raw = (separator < 0 ? part : part.slice(separator + 1)).trim();
     const value = key === "method" && ["add", "a"].includes(raw) ? 0
       : key === "method" && ["save", "s"].includes(raw) ? 1 : Number(raw);
     const [min, max] = ranges[key];
-    if (!raw || !Number.isFinite(value) || value < min! || value > max! || (key === "method" && !Number.isInteger(value))) {
-      throw new Error(`adeclick: invalid ${key}`);
+    if (!raw || !Number.isFinite(value) || value < min! || value > max! || ((key === "method" || key === "hsize") && !Number.isInteger(value))) {
+      throw new Error(`${name}: invalid ${key}`);
     }
     options[key] = value;
   }
@@ -30,7 +32,8 @@ export async function declickAudio(
   const skip = options.method ? Math.trunc((size - hop) / 2) : 0;
   const burst = Math.trunc(size * options.burst / 1000);
   const length = channels[0]?.length ?? 0;
-  budget.allocateMemory(channels.length * length * 8 + size * 40 + (order + 1) * 32);
+  budget.allocateMemory(channels.length * length * 8 + size * 40 + (order + 1) * 32 + (declip ? options.hsize * 4 : 0));
+  const histogram = new Uint32Array(declip ? options.hsize : 0);
   const output = channels.map(() => new Float64Array(length));
   const frame = new Float64Array(size), repaired = new Float64Array(size);
   const clicks = new Uint8Array(size), indices = new Int32Array(size);
@@ -66,14 +69,31 @@ export async function declickAudio(
       repaired.set(frame);
       if (coefficients.every(Number.isFinite)) {
         clicks.fill(0);
-        let previous = -1;
-        for (let i = order; i < size; i++) {
-          let residual = 0;
-          for (let j = 0; j <= order; j++) residual += coefficients[j]! * frame[i - j]!;
-          if (Math.abs(residual) > Math.sqrt(variance) * options.threshold) {
-            clicks[i] = 1;
-            if (previous >= 0 && i <= previous + burst) clicks.fill(1, previous + 1, i);
-            previous = i;
+        if (declip) {
+          histogram.fill(0);
+          for (const sample of frame) {
+            const bin = Math.trunc(Math.min(Math.abs(sample), 1) * (histogram.length - 1));
+            histogram[bin] = histogram[bin]! + 1;
+          }
+          // A pile-up in the highest occupied amplitude bin identifies clipped peaks.
+          for (let bin = histogram.length - 1; bin > 1; bin--) {
+            if (!histogram[bin]) continue;
+            if (histogram[bin]! / Math.max(histogram[bin - 1]!, 1) > options.threshold) {
+              const amplitude = bin / histogram.length;
+              for (let i = order; i < size - order; i++) clicks[i] = Number(Math.abs(frame[i]!) >= amplitude);
+            }
+            break;
+          }
+        } else {
+          let previous = -1;
+          for (let i = order; i < size; i++) {
+            let residual = 0;
+            for (let j = 0; j <= order; j++) residual += coefficients[j]! * frame[i - j]!;
+            if (Math.abs(residual) > Math.sqrt(variance) * options.threshold) {
+              clicks[i] = 1;
+              if (previous >= 0 && i <= previous + burst) clicks.fill(1, previous + 1, i);
+              previous = i;
+            }
           }
         }
         clicks.fill(0, 0, order); clicks.fill(0, size - order);
@@ -100,22 +120,23 @@ export async function declickAudio(
             solution[i] = sum;
           }
           // LDL transpose factorization solves the missing samples jointly.
+          // The matrix and its factors have bandwidth at most the prediction order.
           for (let i = 0; i < count; i++) {
             await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
             let diagonal = matrix[i * count + i]!;
-            for (let k = 0; k < i; k++) diagonal -= matrix[k * count + k]! * matrix[i * count + k]! ** 2;
-            if (!Number.isFinite(diagonal) || diagonal === 0) throw new Error("adeclick: singular interpolation matrix");
+            for (let k = Math.max(0, i - order); k < i; k++) diagonal -= matrix[k * count + k]! * matrix[i * count + k]! ** 2;
+            if (!Number.isFinite(diagonal) || diagonal === 0) throw new Error(`${name}: singular interpolation matrix`);
             matrix[i * count + i] = diagonal;
-            for (let j = i + 1; j < count; j++) {
+            for (let j = i + 1; j < Math.min(count, i + order + 1); j++) {
               let value = matrix[j * count + i]!;
-              for (let k = 0; k < i; k++) value -= matrix[k * count + k]! * matrix[i * count + k]! * matrix[j * count + k]!;
+              for (let k = Math.max(0, j - order); k < i; k++) value -= matrix[k * count + k]! * matrix[i * count + k]! * matrix[j * count + k]!;
               matrix[j * count + i] = value / diagonal;
             }
-            for (let j = 0; j < i; j++) solution[i] = solution[i]! - matrix[i * count + j]! * solution[j]!;
+            for (let j = Math.max(0, i - order); j < i; j++) solution[i] = solution[i]! - matrix[i * count + j]! * solution[j]!;
           }
           for (let i = count - 1; i >= 0; i--) {
             solution[i] = solution[i]! / matrix[i * count + i]!;
-            for (let j = i + 1; j < count; j++) solution[i] = solution[i]! - matrix[j * count + i]! * solution[j]!;
+            for (let j = i + 1; j < Math.min(count, i + order + 1); j++) solution[i] = solution[i]! - matrix[j * count + i]! * solution[j]!;
             repaired[indices[i]!] = solution[i]!;
           }
         }

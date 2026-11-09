@@ -8201,7 +8201,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = stereo.channels;
                         filteredChannelMask = stereo.channelMask;
                       }
-                      if (trimmed === "adeclick" || trimmed.startsWith("adeclick=")) {
+                      if (filterName === "adeclick" || filterName === "adeclip") {
                         stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal);
                         continue;
                       }

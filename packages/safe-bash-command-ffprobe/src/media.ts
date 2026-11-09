@@ -361,15 +361,20 @@ function createStreamSelector(selectStreams: string | undefined, programs: Probe
   let spec = selectStreams ?? "";
   const types: string[] = [];
   let excludePictures = false;
-  while (["v", "V", "a", "s", "d", "t"].includes(spec.split(":")[0]!)) {
-    if (spec[0] === "V") excludePictures = true;
-    types.push(spec[0] === "v" || spec[0] === "V" ? "video" : spec[0] === "a" ? "audio" : spec[0] === "s" ? "subtitle" : spec[0] === "d" ? "data" : "attachment");
-    spec = spec.slice(2);
+  let programIndices: Set<number> | undefined;
+  while (spec) {
+    if (spec.startsWith("p:")) {
+      const [, id, ...suffix] = spec.split(":");
+      const members = programs?.filter(program => program.program_id === parseStreamOrdinal(id!.startsWith("+") ? id!.slice(1) : id!))
+        .flatMap(program => program.streams.map(stream => stream.index)) ?? [];
+      programIndices = new Set(members.filter(index => !programIndices || programIndices.has(index)));
+      spec = suffix.join(":");
+    } else if (["v", "V", "a", "s", "d", "t"].includes(spec.split(":")[0]!)) {
+      if (spec[0] === "V") excludePictures = true;
+      types.push(spec[0] === "v" || spec[0] === "V" ? "video" : spec[0] === "a" ? "audio" : spec[0] === "s" ? "subtitle" : spec[0] === "d" ? "data" : "attachment");
+      spec = spec.slice(2);
+    } else break;
   }
-  const programIndices = spec.startsWith("p:")
-    ? new Set(programs?.filter(program => program.program_id === parseStreamOrdinal(spec.slice(spec[2] === "+" ? 3 : 2)))
-      .flatMap(program => program.streams.map(stream => stream.index)))
-    : undefined;
   const streamId = spec.startsWith("i:") ? parseStreamId(spec.slice(2))
     : spec.startsWith("#") ? parseStreamId(spec.slice(1)) : undefined;
   let typeOrdinal = 0;
@@ -393,7 +398,7 @@ function createStreamSelector(selectStreams: string | undefined, programs: Probe
       }
       const ordinal = parseStreamOrdinal(spec);
       if (ordinal !== undefined) {
-        const index = types.length > 0 ? typeOrdinal++ : stream.index;
+        const index = types.length > 0 || programIndices ? typeOrdinal++ : stream.index;
         if (index !== ordinal) return false;
       }
     }
@@ -1012,8 +1017,16 @@ function parseProbeArguments(args: readonly string[]) {
   if (!inputTarget) throw new Error("must specify an input file");
   if (selectStreams) {
     let spec = selectStreams;
-    while (["v", "V", "a", "s", "d", "t"].includes(spec.split(":")[0]!) && spec.includes(":")) {
-      spec = spec.slice(2);
+    while (spec) {
+      if (spec.startsWith("p:")) {
+        const [, id, ...suffix] = spec.split(":");
+        if (!id || parseStreamOrdinal(id.startsWith("+") ? id.slice(1) : id) === undefined) {
+          throw new Error(`Invalid stream specifier: ${selectStreams}`);
+        }
+        spec = suffix.join(":");
+      } else if (["v", "V", "a", "s", "d", "t"].includes(spec.split(":")[0]!) && spec.includes(":")) {
+        spec = spec.slice(2);
+      } else break;
     }
     const [kind, ...parts] = spec.split(":");
     const index = parts.length === 0 ? kind! : parts[0]!;
@@ -1021,9 +1034,8 @@ function parseProbeArguments(args: readonly string[]) {
     const id = spec.startsWith("i:") ? spec.slice(2)
       : spec.startsWith("#") ? spec.slice(1) : "";
     const validId = parseStreamId(id) !== undefined;
-    const valid = selectStreams === "u" || spec === "" || kind === "m" && parts.length > 0
+    const valid = spec === "u" || spec === "" || kind === "m" && parts.length > 0
       || ["v", "V", "a", "s", "d", "t"].includes(kind!) && parts.length === 0
-      || kind === "p" && parts.length === 1 && parseStreamOrdinal(index.startsWith("+") ? index.slice(1) : index) !== undefined
       || parts.length === 0 && numeric || validId;
     if (!valid) throw new Error(`Invalid stream specifier: ${selectStreams}`);
   }

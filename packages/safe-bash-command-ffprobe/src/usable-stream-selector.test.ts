@@ -41,6 +41,40 @@ for (const { path, inventory, usable } of fixtures) {
   }
 }
 
+for (const [selector, indices] of [
+  ["u", [0, 1, 2]], ["a:u", [0, 1]], ["a:a:u", [0, 1]], ["s:u", [2]], ["t:u", []]
+] as const) {
+  for (const route of ["file", "stdin", "sync"]) {
+    for (const section of ["streams", "packets"]) {
+      it(`selects ${selector} ${section} via ${route}`, async () => {
+        const bytes = readFileSync(new URL("../../mp4-ast/src/fixtures/attachments.mkv", import.meta.url));
+        const args = ["-v", "error", "-select_streams", selector, "-show_entries",
+          section === "streams" ? "stream=index" : "packet=stream_index", "-of", "json",
+          route === "stdin" ? "-" : "/input.mkv"];
+        let output = "", diagnostic = "";
+        if (route === "sync") output = evalSyncFfprobe(undefined, args, () => bytes)!;
+        else {
+          const fs = new MemoryFileSystem();
+          await fs.writeFile("/input.mkv", bytes);
+          const result = await createFfprobeCommand().execute({
+            command: "ffprobe", ...createCommandArguments(args), cwd: "/", env: {}, fs,
+            signal: new AbortController().signal,
+            stdin: { async *[Symbol.asyncIterator]() { if (route === "stdin") yield bytes; } },
+            stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
+            stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
+          });
+          expect(result.exitCode, diagnostic).toBe(0);
+          expect(diagnostic).toBe("");
+        }
+        const parsed = JSON.parse(output);
+        if (section === "streams") expect(parsed.streams).toEqual(indices.map(index => ({ index })));
+        else expect([...new Set(parsed.packets.map((packet: { stream_index: number }) => packet.stream_index))].sort())
+          .toEqual(indices);
+      });
+    }
+  }
+}
+
 const probe = wavAst().probe(encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }), {});
 // FFmpeg libavformat/avformat.c requires codec identity, plus audio rate/channels/
 // sample format or video dimensions/pixel format. Other known codecs are usable.

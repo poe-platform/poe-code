@@ -1,4 +1,4 @@
-import { FsError, resolvePath, type ByteSource } from "safe-bash-contracts";
+import { FsError, type ByteSource } from "safe-bash-contracts";
 import type { OutputOperation } from "safe-bash-contracts/output";
 import { Budget, TsortError, bytes, fileQuote, pathText } from "./internal.js";
 
@@ -106,7 +106,8 @@ export class Reader {
         let needsAcquisitionCleanup = false;
         if (this.name === "-") source = budget.context.stdin;
         else {
-          const path = resolvePath(budget.context.cwd, pathText(this.name));
+          const operand = pathText(this.name);
+          const path = operand.startsWith("/") ? operand : `${budget.context.cwd}/${operand}`;
           const fs = budget.context.fs;
           this.lifecycle.assertOpen();
           const statMethod = fs.stat;

@@ -2,6 +2,36 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import * as entry from "../../src/index.js";
 
+for (const [operand, error] of [
+  ["missing/../f", "No such file or directory"],
+  ["f/", "Not a directory"],
+  ["f/.", "Not a directory"],
+  ["f/../f", "Not a directory"],
+  ["f", ""],
+  ["./f", ""],
+  ["dir/../f", ""],
+] as const) {
+  for (const absolute of [false, true]) {
+    for (const mode of ["direct", "substitution", "loop"] as const) {
+      test(`tsort validates input components: ${absolute ? "/work/" : ""}${operand} (${mode})`, async () => {
+        const fs = entry.createMemoryFileSystem();
+        await fs.mkdir("/work/dir", { recursive: true });
+        await fs.writeFile("/work/f", new TextEncoder().encode("a b\n"));
+        const shell = new entry.Shell({ fs, cwd: "/work" }).use(entry.agentCommands());
+        const path = absolute ? `/work/${operand}` : operand;
+        const command = `tsort ${path}`;
+        const capture = `value=$(${command}); status=$?; printf '%s' "$value"; exit "$status"`;
+        try {
+          const result = await shell.exec(mode === "direct" ? command : mode === "substitution" ? capture : `for i in 1; do ${capture}; done`);
+          assert.equal(result.exitCode, error ? 1 : 0);
+          assert.equal(result.stdout, error ? "" : mode === "direct" ? "a\nb\n" : "a\nb");
+          assert.equal(result.stderr, error ? `tsort: ${path}: ${error}\n` : "");
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
+
 test("the default preset and public factories expose tsort", () => {
   assert.equal(entry.createAgentCommands().filter(command => command.name === "tsort").length, 1);
   for (const name of ["createTsortCommand", "createTsortCommands", "tsortCommands"]) {

@@ -36,6 +36,39 @@ for (const [ignore, extglob, expected] of [
   });
 }
 
+for (const recursive of [false, true]) {
+  for (const arrays of [false, true]) {
+    for (const [source, status, names] of [
+      ["GLOBIGNORE=skip", 0, [".hidden", "visible"]],
+      ["GLOBIGNORE=skip; shopt -u dotglob", 1, ["visible"]],
+      ["GLOBIGNORE=skip; GLOBIGNORE=", 0, [".hidden", "visible"]],
+      ["shopt -s dotglob; GLOBIGNORE=skip; unset GLOBIGNORE", 1, ["visible"]],
+      ["GLOBIGNORE=skip; shopt -u dotglob; GLOBIGNORE=", 1, ["visible"]],
+      ["GLOBIGNORE=skip; shopt -u dotglob; GLOBIGNORE=skip", 0, [".hidden", "visible"]],
+      ["export GLOBIGNORE=skip", 0, [".hidden", "visible"]],
+      ["printf -v GLOBIGNORE %s skip", 0, [".hidden", "visible"]],
+      ["read GLOBIGNORE <<< skip", 0, [".hidden", "visible"]],
+      ["GLOBIGNORE=$'\\xff'", 0, [".hidden", "visible"]],
+      ["for n in 1 2; do GLOBIGNORE=skip; done", 0, [".hidden", "visible"]],
+      ["GLOBIGNORE=skip; for n in 1 2; do unset GLOBIGNORE; done", 1, ["visible"]],
+      ["shopt -s dotglob; unset GLOBIGNORE", 1, ["visible"]],
+    ] as const) {
+      test(`GLOBIGNORE option transitions: ${source} (recursive=${recursive}, arrays=${arrays})`, async () => {
+        const { fs, shell } = setup({ extensions: arrays ? [arraysExtension()] : [] });
+        shell.use(standardCommands());
+        await fs.mkdir("/work");
+        for (const name of [".hidden", "visible"]) await fs.writeFile(`/work/${name}`, new Uint8Array());
+        try {
+          const result = await shell.exec(`cd /work; ${recursive ? "shopt -s globstar; " : ""}${source}; shopt -q dotglob; echo option=$?; args ${recursive ? "**/*" : "*"}`);
+          assert.equal(result.exitCode, 0);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, `option=${status}\n${JSON.stringify(names)}`);
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
+
 test("GLOBIGNORE retains prefixed log files and filters local names through standardCommands", async () => {
   const { shell } = setup({ env: { LC_ALL: "C", HOME: "/" }, extensions: [arraysExtension()] });
   shell.use(standardCommands());

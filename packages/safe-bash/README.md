@@ -233,6 +233,9 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   files from `>` redirection; `>|` overrides it and `>>` still appends.
   `GLOBIGNORE` filters expanded paths: `*.log` excludes local log files,
   while `logs/*.log` excludes log files from `logs/*`.
+  Assigning a nonempty `GLOBIGNORE` enables `dotglob`; assigning an empty value
+  leaves it unchanged, and unsetting `GLOBIGNORE` disables it. A subsequent
+  `shopt -u dotglob` excludes dotfiles even while `GLOBIGNORE` remains set.
   `shopt -s dotglob` includes dotfiles in globs. `globskipdots` defaults on;
   `shopt -u globskipdots` lets explicitly dotted patterns such as `.*` match `.` and `..`.
   `failglob` rejects unmatched

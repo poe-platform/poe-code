@@ -314,6 +314,7 @@ export class StateMonitor {
       if (key === "locals") this._localsProxy = undefined;
     } else if (field === "variables" && (this.raw.variables === target || this._variablesProxy === target || this.raw.variables === this._wrapped?.get(target))) {
       if (key === "PATH") this.raw.hashedCommands?.clear();
+      if (key === "GLOBIGNORE" && this.raw.variables.GLOBIGNORE !== "") this.raw.dotglob = Boolean(this.raw.variables.GLOBIGNORE);
       this.values.invalidate(String(key));
     } else if (field === "positional" && (this.raw.positional === target || this._positionalProxy === target || this.raw.positional === this._wrapped?.get(target))) {
       this._positionals?.invalidate();
@@ -547,6 +548,7 @@ export class StateMonitor {
     const tickets = this.mutation(name);
     this.values.publishString(name, value, this.raw.variables);
     if (name === "PATH") this.raw.hashedCommands?.clear();
+    if (name === "GLOBIGNORE" && value !== "") this.raw.dotglob = true;
     writeDynamicVariable(this.raw, name, value);
     this.finish(tickets, name);
   }

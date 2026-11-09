@@ -1784,6 +1784,7 @@ export function publishVariable(state: State, name: string, value: ShellValue): 
     return;
   }
   state.variables[name] = shellValueText(value);
+  if (name === "GLOBIGNORE" && state.variables[name] !== "") state.dotglob = true;
   writeDynamicVariable(state, name, shellValueText(value));
 }
 export function tryRestoreVariableSync(state: State, name: string, saved: SavedVariable): boolean {
@@ -2976,6 +2977,7 @@ export class Runtime {
     if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
     delete state.variables[name];
     if (name === "PATH") state.hashedCommands?.clear();
+    if (name === "GLOBIGNORE") state.dotglob = false;
     if (name === "RANDOM") state.randomDisabled = true;
     if (name === "SECONDS") state.secondsDisabled = true;
     state.exported.delete(name);
@@ -11035,7 +11037,7 @@ export class Runtime {
               for (const name of [".", ".."]) if (await matchesDot(name)) addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${name}`, "directory");
             }
             for (const entry of entries) {
-              if (entry.name !== "." && entry.name !== ".." && (state.dotglob || Boolean(state.variables.GLOBIGNORE) || !entry.name.startsWith(".") || segment.startsWith(".") || segment.startsWith("\\.")) && await matches(entry.name)) {
+              if (entry.name !== "." && entry.name !== ".." && (state.dotglob || !entry.name.startsWith(".") || segment.startsWith(".") || segment.startsWith("\\.")) && await matches(entry.name)) {
                 addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${entry.name}`, entry.type);
               }
             }

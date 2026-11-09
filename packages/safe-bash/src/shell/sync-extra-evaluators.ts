@@ -11183,6 +11183,7 @@ const syncExtraRuntimeMethods = {
                   monitor.epoch = rmTickets.epoch;
                 }
                 delete rawState.variables[targetName];
+                if (targetName === "GLOBIGNORE") rawState.dotglob = false;
                 if (this._syncArithRawWriteOnly && this._syncArithTouched) this._syncArithTouched.delete(targetName);
                 rawState.exported.delete(targetName);
                 monitor.values.invalidate(targetName);
@@ -12808,6 +12809,7 @@ const syncExtraRuntimeMethods = {
     let lastExpanded = "";
     for (const uvn of uVars) {
       delete rawState.variables[uvn];
+      if (uvn === "GLOBIGNORE") rawState.dotglob = false;
       rawState.exported.delete(uvn);
       monitor.proxy.exported.delete(uvn);
       touched.add(uvn);

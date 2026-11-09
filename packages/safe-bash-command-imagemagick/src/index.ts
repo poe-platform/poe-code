@@ -6294,8 +6294,10 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             const sums = [0, 0, 0, 0];
             for (let channel = 0; channel < channelCount; channel++) for (let value = 0; value < levels; value++) sums[channel]! += histogram[channel]![value]! * value;
             const sharedMean = sums.reduce((sum, value) => sum + value, 0) / (count * channelCount * (levels - 1));
-            // Explicit channels use independent RGB means; native leaves alpha unchanged.
-            const active = [channels.r, channels.g, channels.b, !independent && image.hasAlpha];
+            // Grayscale has one logical color channel (R), replicated in our RGB storage.
+            // Explicit channels use independent means; native leaves alpha unchanged.
+            const gray = image.space === "b-w" || image.space === "grey16";
+            const active = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, !independent && image.hasAlpha];
             for (let channel = 0; channel < channelCount; channel++) {
                 if (!active[channel]) continue;
                 const mean = independent ? sums[channel]! / (count * (levels - 1)) : sharedMean;

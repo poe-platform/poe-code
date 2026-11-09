@@ -51,3 +51,20 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect(Array.from(output.data16 ?? [])).toEqual(expected.flatMap((value, index) => index % 3 === 2 ? [value, 65535] : [value]));
     });
 }
+
+for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each(["R", "G", "B", "RGB", "RGBA", "A"])(`uses logical grayscale channels for %s via ${mode}`, async channels => {
+        const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAQAAABuBnYAAAAAAmJLR0QA/4ePzL8AAAAHdElNRQfqCwcXDiVd4tfQAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDI2LTExLTA3VDIzOjE0OjM3KzAwOjAw7viRrQAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyNi0xMS0wN1QyMzoxNDozNyswMDowMJ+lKREAAAAodEVYdGRhdGU6dGltZXN0YW1wADIwMjYtMTEtMDdUMjM6MTQ6MzcrMDA6MDDIsAjOAAAATklEQVQI1z3Mqw2AUBAAweECCBAvJDg8/fdDBxRwBnEIPm6STbbb59VgcrqsLtGQSE0p8ZBSErGAtEk0vaOk3viGYFSo9xX189nGx297A38WHjPLBVGcAAAAAElFTkSuQmCC", "base64");
+        // Full RGBA reference captured with ImageMagick 7.1.2-31 Q16-HDRI.
+        const corrected = Buffer.from("aGhoC39/fwuEhIQLjo6OC3h4eAtycnILh4eHC4KCggt6enoLf39/C3p6eguOjo4LbGxsC4KCgguGhoYLgYGBC3p6egt0dHQLiYmJC46Ojgtra2sLgYGBC3x8fAuBgYELi4uLC3R0dAuJiYkLhISEC4iIiAt2dnYLfHx8C4+PjwuLi4vmc3Nz5n9/f+aDg4Pmjo6O5nZ2duZ8fHzmhoaG5ouLi+Z6enrmfn5+5oODg+aNjY3mdnZ25nFxceaGhobmioqK5nl5eeZ+fn7meXl55o2NjeZra2vmgYGB5oWFheaAgIDmeXl55nNzc+aIiIjmjY2N5mlpaeaAgIDme3t75g==", "base64");
+        const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const args = ["input.png", "-channel", channels, "-auto-gamma", "+channel", "PNG32:out.png"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+        const actual = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!).data;
+        const original = decodeImage(input).data;
+        expect(Array.from(actual)).toEqual(Array.from(channels.includes("R") ? corrected : original));
+    });
+}

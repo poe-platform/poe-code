@@ -12,8 +12,9 @@ https://github.com/poe-platform/poe-code/tree/main/packages/media-codecs
 The build includes only H.264, AAC, MP3, Vorbis and Opus decoding, RGBA conversion, Vorbis encoding,
 Opus, AAC, and MP3 encoding. It disables native assembly, threads, network and file I/O.
 The generated factory's unnecessary `async` modifier is removed after verifying
-that initialization has no await. No codec algorithms or upstream source files
-are patched. FFmpeg's shared film-grain cleanup source is explicitly linked
+that initialization has no await. The tracked `../scripts/mp3-simd-rounding.patch` matches x86 SIMD MP3
+transform coefficients and floating-point accumulation order in portable scalar
+code; the source archives remain unmodified. FFmpeg's shared film-grain cleanup source is explicitly linked
 because its H.264-only configuration omits that object from the archive.
 
 The generated runtime is replaceable: rebuild it from these sources with the

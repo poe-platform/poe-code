@@ -24,7 +24,7 @@ const config = join(output, "em-config");
 const temporary = join(output, "tmp");
 mkdirSync(temporary);
 writeFileSync(config, `LLVM_ROOT = ${JSON.stringify(join(upstream, "bin"))}\nBINARYEN_ROOT = ${JSON.stringify(upstream)}\nNODE_JS = ${JSON.stringify(process.execPath)}\n`);
-const environment = { ...process.env, EM_CONFIG: config, EM_CACHE: join(outputRoot, "media-codecs-emscripten-4.0.13-cache"), TMPDIR: temporary,
+const environment = { ...process.env, EMCC_CORES: "1", EM_CONFIG: config, EM_CACHE: join(outputRoot, "media-codecs-emscripten-4.0.13-cache"), TMPDIR: temporary,
   PATH: compilerRoot + ":" + process.env.PATH };
 function run(command, args, name, cwd = output, env = environment) {
   const result = spawnSync(command, args, { cwd, env, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
@@ -49,6 +49,7 @@ for (const [name, flags] of [
   run("make", ["install"], name + "-install", directory, audioEnvironment);
 }
 const source = join(output, "ffmpeg-7.1.1");
+run("patch", ["-p1", "-i", join(root, "scripts/mp3-simd-rounding.patch")], "mp3-simd-rounding", source);
 run("./configure", ["--cc=" + compiler, "--ar=" + join(compilerRoot, "emar"), "--ranlib=" + join(compilerRoot, "emranlib"),
   "--arch=wasm32", "--target-os=none", "--enable-cross-compile", "--disable-asm", "--disable-x86asm", "--disable-everything",
   "--disable-programs", "--disable-doc", "--disable-network", "--disable-autodetect", "--disable-avdevice", "--disable-avformat",

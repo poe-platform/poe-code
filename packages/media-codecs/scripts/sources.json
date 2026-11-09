@@ -47,8 +47,8 @@
     },
     {
       "path": "scripts/build.mjs",
-      "bytes": 5829,
-      "sha256": "6f86f0c0d6d8c09572f3478e447a14d595bb307fc948c3885469312ae526d525"
+      "bytes": 5951,
+      "sha256": "935293272b3cee78c1a6928e21316121c169e3c16135c79f08283311cd571ced"
     },
     {
       "path": "scripts/normalize-runtime.mjs",
@@ -79,11 +79,16 @@
       "path": "vendor/LICENSE.lame",
       "bytes": 25284,
       "sha256": "bfe4a52dc4645385f356a8e83cc54216a293e3b6f1cb4f79f5fc0277abf937fd"
+    },
+    {
+      "path": "scripts/mp3-simd-rounding.patch",
+      "bytes": 5171,
+      "sha256": "65f820a93f4ebe426be65207b68d37d0c45d1a3d46b788cb6d249ca85686d976"
     }
   ],
   "artifact": {
     "path": "vendor/runtime.js",
-    "bytes": 7491429,
-    "sha256": "0a50c47bdc0976758c0d98dc57f30dbe34b5040e99a096f8b4677fb5f96cc1b5"
+    "bytes": 7493934,
+    "sha256": "743f93fa13f03f79a059948111e53ecbd75a6cc3ed149625c3b96e7ff23702ed"
   }
 }

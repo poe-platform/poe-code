@@ -9,7 +9,7 @@ compilation. The static JavaScript runtime initializes only when a codec is used
   scales retained native pixels before RGB conversion; it returns `undefined` for
   frames whose RGBA buffer or dimensions have been replaced. Treat decoded buffers as immutable.
 - AAC/MP3/Vorbis/Opus: `decodeAudio(codec, packets, extra)` decodes access units to planar float PCM, retaining timestamps and priming
-  for the container to apply presentation edits. Vorbis timestamps are derived in sample units from packet block sizes; the container applies page granules.
+  for the container to apply presentation edits. MP3 transforms follow native x86 SIMD rounding for PCM output. Vorbis timestamps are derived in sample units from packet block sizes; the container applies page granules.
 - AAC/MP3 encoding: `encodeAudio(codec, sampleRate, channelData)` produces compressed packets, codec configuration, frame size, and encoder delay from planar PCM for container writers.
 - Ogg audio: Vorbis and mono/stereo Opus packets, codec headers, encoder delay,
   and exact final granule positions. Pass packets to your container writer.

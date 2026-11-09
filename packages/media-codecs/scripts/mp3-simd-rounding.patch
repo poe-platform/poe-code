@@ -1,0 +1,155 @@
+--- a/libavcodec/dct32_template.c
++++ b/libavcodec/dct32_template.c
+@@ -48,6 +48,40 @@
+ 
+ /* tab[i][j] = 1.0 / (2.0 * cos(pi*(2*k+1) / 2^(6 - j))) */
+ 
++#if DCT32_FLOAT
++/* Use the coefficients from x86/dct32.asm, including their decimal precision. */
++#define COS0_0 FIXHR(0.500603/2)
++#define COS0_1 FIXHR(0.505471/2)
++#define COS0_2 FIXHR(0.515447/2)
++#define COS0_3 FIXHR(0.531043/2)
++#define COS0_4 FIXHR(0.553104/2)
++#define COS0_5 FIXHR(0.582935/2)
++#define COS0_6 FIXHR(0.622504/2)
++#define COS0_7 FIXHR(0.674808/2)
++#define COS0_8 FIXHR(0.744536/2)
++#define COS0_9 FIXHR(0.839350/2)
++#define COS0_10 FIXHR(0.972568/2)
++#define COS0_11 FIXHR(1.169440/4)
++#define COS0_12 FIXHR(1.484165/4)
++#define COS0_13 FIXHR(2.057781/8)
++#define COS0_14 FIXHR(3.407609/8)
++#define COS0_15 FIXHR(10.190008/32)
++#define COS1_0 FIXHR(0.502419/2)
++#define COS1_1 FIXHR(0.522499/2)
++#define COS1_2 FIXHR(0.566944/2)
++#define COS1_3 FIXHR(0.646822/2)
++#define COS1_4 FIXHR(0.788155/2)
++#define COS1_5 FIXHR(1.060678/4)
++#define COS1_6 FIXHR(1.722447/4)
++#define COS1_7 FIXHR(5.101149/16)
++#define COS2_0 FIXHR(0.509796/2)
++#define COS2_1 FIXHR(0.601345/2)
++#define COS2_2 FIXHR(0.899976/2)
++#define COS2_3 FIXHR(2.562916/8)
++#define COS3_0 FIXHR(0.541196/2)
++#define COS3_1 FIXHR(1.306563/4)
++#define COS4_0 FIXHR(0.707107/2)
++#else
+ /* cos(i*pi/64) */
+ 
+ #define COS0_0  FIXHR(0.50060299823519630134/2)
+@@ -86,6 +120,8 @@
+ 
+ #define COS4_0 FIXHR(M_SQRT1_2/2)
+ 
++#endif
++
+ /* butterfly operator */
+ #define BF(a, b, c, s)\
+ {\
+--- a/libavcodec/mpegaudiodsp_template.c
++++ b/libavcodec/mpegaudiodsp_template.c
+@@ -124,6 +124,29 @@
+                                   int *dither_state, OUT_INT *samples,
+                                   ptrdiff_t incr)
+ {
++#if USE_FLOATS
++    /* Match the separate SIMD window accumulators before combining them. */
++    float a[16] = {0}, b[16] = {0}, c[16] = {0}, d[16] = {0};
++    memcpy(synth_buf + 512, synth_buf, 32 * sizeof(*synth_buf));
++    for (int j = 0; j < 16; j++) {
++        for (int k = 0; k < 8; k++) {
++            const float x = synth_buf[16 + j + 64*k];
++            const float y = synth_buf[32 + j + 64*k];
++            a[j] -= window[j + 64*k] * x;
++            c[j] -= window[512 + j + 16*k] * x;
++            b[j] -= window[48 + j + 64*k] * y;
++            d[j] -= window[640 + j + 16*k] * y;
++        }
++    }
++    for (int k = 0; k < 8; k++)
++        a[0] += window[32 + 64*k] * synth_buf[48 + 64*k];
++    samples[0] = -a[0];
++    samples[16 * incr] = b[0];
++    for (int j = 1; j < 16; j++) {
++        samples[j * incr] = d[16-j] - a[j];
++        samples[(32-j) * incr] = b[16-j] + c[j];
++    }
++#else
+     register const MPA_INT *w, *w2, *p;
+     int j;
+     OUT_INT *samples2;
+@@ -171,6 +194,7 @@
+     SUM8(MLSS, sum, w + 32, p);
+     *samples = round_sample(&sum);
+     *dither_state= sum;
++#endif
+ }
+ 
+ /* 32 sub band synthesis filter. Input: 32 sub band samples, Output:
+@@ -271,7 +295,7 @@
+ };
+ 
+ /* using Lee like decomposition followed by hand coded 9 points DCT */
+-static void imdct36(INTFLOAT *out, INTFLOAT *buf, SUINTFLOAT *in, INTFLOAT *win)
++static void imdct36(INTFLOAT *out, INTFLOAT *buf, SUINTFLOAT *in, INTFLOAT *win, int single)
+ {
+     int i, j;
+     SUINTFLOAT t0, t1, t2, t3, s0, s1, s2, s3;
+@@ -286,6 +310,31 @@
+         tmp1 = tmp + j;
+         in1 = in + j;
+ 
++#if USE_FLOATS
++        /* Match x86 imdct36_float for the trailing one to three blocks. */
++        if (single) {
++            const float a = in1[0] - in1[12];
++            const float b = in1[4] - in1[16];
++            const float c = in1[0] + 0.5f * in1[12];
++            const float d = -2*C5 * in1[2] + -2*C5 * in1[14];
++            const float e = 2*C8 * (in1[16] - in1[8]);
++            const float f = 2*C7 * (in1[14] - in1[10]);
++            const float g = -2*C4 * (in1[16] + in1[4]);
++            const float h = 2*C3 * in1[6];
++            const float k = -2*C2 * (in1[4] + in1[8]);
++            const float l = -2*C1 * (in1[2] + in1[10]);
++            tmp1[0] = h - l + f;
++            tmp1[2] = c - k + e;
++            tmp1[4] = -2*C3 * in1[10] + 2*C3 * (in1[2] - in1[14]);
++            tmp1[6] = -0.5f * in1[8] + a - -0.5f * b;
++            tmp1[8] = -(h + d - f);
++            tmp1[10] = k - g + c;
++            tmp1[12] = -l - h + d;
++            tmp1[14] = g + c - e;
++            tmp1[16] = a - b + in1[8];
++            continue;
++        }
++#endif
+         t2 = in1[2*4] + in1[2*8] - in1[2*2];
+ 
+         t3 = in1[2*0] + SHR(in1[2*6],1);
+@@ -308,7 +357,12 @@
+ 
+         t1 = MULH3(in1[2*1] + in1[2*7],   -C5, 2);
+ 
++#if USE_FLOATS
++        /* The four-block SIMD transform accumulates the odd lane in this order. */
++        tmp1[ 0] = j ? t3 + t0 + t2 : t2 + t3 + t0;
++#else
+         tmp1[ 0] = t2 + t3 + t0;
++#endif
+         tmp1[12] = t2 + t1 - t0;
+         tmp1[ 8] = t3 - t1 - t0;
+     }
+@@ -362,7 +416,7 @@
+         int win_idx = (switch_point && j < 2) ? 0 : block_type;
+         INTFLOAT *win = RENAME(ff_mdct_win)[win_idx + (4 & -(j & 1))];
+ 
+-        imdct36(out, buf, in, win);
++        imdct36(out, buf, in, win, j >= (count & ~3));
+ 
+         in  += 18;
+         buf += ((j&3) != 3 ? 1 : (72-3));

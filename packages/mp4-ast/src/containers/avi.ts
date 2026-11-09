@@ -917,6 +917,19 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             sampleDescriptionIndex: 1
           });
         }
+      } else if (soundFormat === 7 || soundFormat === 8) {
+        const payload = tagData.subarray(1);
+        const channels = (tagData[0]! & 1) + 1;
+        audioDescription = {
+          formatFourCC: soundFormat === 7 ? "alaw" : "ulaw",
+          codecName: soundFormat === 7 ? "pcm_alaw" : "pcm_mulaw",
+          sampleRate: 8000, channels, bitsPerSample: 8
+        };
+        audioSamples.push({
+          data: payload, dts: timestampMs, pts: timestampMs, cts: 0,
+          duration: payload.byteLength / channels / 8000 * 1000, size: payload.byteLength,
+          isKeyframe: true, sampleDescriptionIndex: 1
+        });
       } else if ((soundFormat === 2 || soundFormat === 14) && tagData.byteLength >= 5) {
         const payload = tagData.subarray(1);
         const header = new DataView(payload.buffer, payload.byteOffset, payload.byteLength).getUint32(0);
@@ -981,7 +994,13 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       language: "und",
       enabled: true,
       codecDescriptions: [audioDescription],
-      samples: audioSamples
+      samples: audioSamples,
+      ...((audioDescription.codecName === "pcm_mulaw" || audioDescription.codecName === "pcm_alaw") && options.decodeAudio !== false ? {
+        decodedAudio: rawAudioAsts().find(plugin => plugin.id === (audioDescription.codecName === "pcm_mulaw" ? "mulaw" : "alaw"))!
+          .parse(concatBytes(audioSamples.map(sample => sample.data)), {
+            ...options, sampleRate: 8000, channels: audioDescription.channels
+          }).tracks[0]!.decodedAudio
+      } : {})
     });
   }
 
@@ -1101,6 +1120,10 @@ export function serializeFlv(doc: MediaDocument, options: SerializeMediaOptions 
     const rateBits = rate >= 44100 ? 3 : rate >= 22050 ? 2 : rate >= 11025 ? 1 : 0;
     audioHeader = ((rate === 8000 ? 14 : 2) << 4) | (rateBits << 2) | 2 | (desc.channels === 1 ? 0 : 1);
     audioSamples = audioTrack.samples;
+  } else if (audioTrack?.codecDescriptions[0]?.codecName === "pcm_mulaw" || audioTrack?.codecDescriptions[0]?.codecName === "pcm_alaw") {
+    const desc = audioTrack.codecDescriptions[0];
+    audioHeader = ((desc.codecName === "pcm_alaw" ? 7 : 8) << 4) | 2 | (desc.channels === 1 ? 0 : 1);
+    audioSamples = audioTrack.samples;
   } else if (audioTrack) {
     const desc = audioTrack.codecDescriptions[0];
     const sr = desc?.sampleRate ?? 44100;
@@ -1199,7 +1222,7 @@ export function flvAst(): MediaAstPlugin {
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: ["h264", "flv1"],
-    supportedAudioCodecs: ["aac", "mp3"],
+    supportedAudioCodecs: ["aac", "mp3", "pcm_mulaw", "pcm_alaw"],
     detect(bytes, filename) {
       if (isFlvSignature(bytes)) return true;
       if (filename && filename.toLowerCase().endsWith(".flv") && bytes.byteLength >= 9) {

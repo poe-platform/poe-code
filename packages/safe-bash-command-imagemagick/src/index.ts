@@ -1726,7 +1726,8 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     const sw = g.width, sh = g.height;
     // Native splice rounds the gravity box and the splice anchor separately.
     const box = gravityAdjustBox(img.width, img.height, sw, sh, g.x, g.y, gravity);
-    const anchor = resolveGravityOffset(sw, sh, gravity);
+    // Native West splice uses the width for its vertical anchor.
+    const anchor = resolveGravityOffset(sw, gravity === "west" ? sw : sh, gravity);
     const outW = img.width + sw;
     const outH = img.height + sh;
     const xOffset = box.x + anchor.left;
@@ -8937,7 +8938,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     } else if (token === "-splice") {
         const { width: sw, height: sh } = resolveMagickSpliceGeometry(geometry, w, h);
         const box = gravityAdjustBox(w, h, sw, sh, g.x, g.y, state.gravity);
-        const anchor = resolveGravityOffset(sw, sh, state.gravity);
+        // Native West splice uses the width for its vertical anchor.
+        const anchor = resolveGravityOffset(sw, state.gravity === "west" ? sw : sh, state.gravity);
         width += sw; height += sh;
         const xOffset = box.x + anchor.left;
         const spliceWidth = Math.max(0, sw + Math.min(0, xOffset));

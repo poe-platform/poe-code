@@ -1465,9 +1465,13 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           const separator = option.indexOf("=");
           const key = separator < 0 ? ["inputs", "map"][index] : option.slice(0, separator);
           const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
-          const value = raw ? Number(raw) : NaN;
-          if (key === "inputs") count = value;
-          else if (key === "map") selected = value;
+          if (key === "inputs") {
+            const value = parseFilterExpression(raw, "astreamselect", {});
+            if (value < 2 || value > 2147483647) throw new Error("astreamselect: inputs out of range");
+            // AVOption integers validate the range before rounding, with ties to even.
+            const lower = Math.floor(value);
+            count = value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
+          } else if (key === "map") selected = raw ? Number(raw) : NaN;
           else throw new Error(`astreamselect: unsupported option ${key}`);
         }
         if (!Number.isInteger(count) || count < 2 || count !== sources.length) {

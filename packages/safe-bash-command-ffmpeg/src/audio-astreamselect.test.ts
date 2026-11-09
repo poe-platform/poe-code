@@ -36,6 +36,10 @@ for (const [filter, expected] of [
   ["astreamselect=inputs=2:map=0", a.slice(0, b.length)],
   ["astreamselect=inputs=2:map=1", b],
   ["astreamselect=2:1", b],
+  ["astreamselect=inputs=1+1:map=1", b],
+  ["astreamselect=inputs=2.5:map=1", b],
+  ["astreamselect=1+1:1", b],
+  ["astreamselect=2.5:1", b],
   ["astreamselect=map=1,volume=0.5", b.map(value => value / 2)],
   ["map:0:a", a], ["map:1:a", b]
 ] as const) {
@@ -55,6 +59,9 @@ for (const [filter, expected] of [
 }
 for (const filter of ["astreamselect", "astreamselect=inputs=3:map=1", "astreamselect=map=2",
   "astreamselect=map=-1", "astreamselect=map=0.5", "astreamselect=map=", "astreamselect=map=no",
+  "astreamselect=inputs=0b10:map=1", "astreamselect=inputs=1.5:map=1",
+  "astreamselect=inputs=2.51:map=1", "astreamselect=inputs=2147483648:map=1",
+  "astreamselect=inputs=1/0:map=1", "astreamselect=inputs=:map=1",
   "astreamselect=map=0 1", "astreamselect=map=1:unknown=0"]) {
   it(`rejects ${filter} without replacing output`, async () => {
     const { result, volume } = await select(filter, a, b);

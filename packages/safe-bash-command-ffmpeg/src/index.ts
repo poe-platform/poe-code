@@ -8965,12 +8965,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const modes = ["lr>lr", "lr>ms", "ms>lr", "lr>ll", "lr>rr", "lr>l+r", "lr>rl", "ms>ll", "ms>rr", "ms>rl", "lr>l-r"];
                         let mode = 0;
                         const flags = { mutel: false, muter: false, phasel: false, phaser: false };
+                        const levels = { level_in: 1, level_out: 1 };
                         const argument = trimmed.slice("stereotools=".length);
                         for (const option of argument ? argument.split(":") : []) {
                           const separator = option.indexOf("=");
                           const key = option.slice(0, separator).trim();
                           const value = option.slice(separator + 1).trim();
-                          if (key === "mode") {
+                          if (key === "level_in" || key === "level_out") {
+                            const level = parseFilterExpression(value, "stereotools", {});
+                            if (!Number.isFinite(level) || level < 0.015625 || level > 64) {
+                              throw new Error(`stereotools: ${key} must be in the range [0.015625, 64]`);
+                            }
+                            levels[key] = level;
+                          } else if (key === "mode") {
                             mode = modes.indexOf(value);
                             if (mode < 0 && value !== "") mode = Number(value);
                             if (!Number.isInteger(mode) || mode < 0 || mode >= modes.length) {
@@ -8989,8 +8996,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const right = new Float32Array(left.length);
                         for (let i = 0; i < left.length; i++) {
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          const l = stretched[0]![i]!;
-                          const r = stretched[1]![i]!;
+                          const l = stretched[0]![i]! * levels.level_in;
+                          const r = stretched[1]![i]! * levels.level_in;
                           let outputLeft = l;
                           let outputRight = r;
                           switch (mode) {
@@ -9005,8 +9012,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             case 9: outputLeft = l - r; outputRight = l + r; break;
                             case 10: outputLeft = outputRight = (l - r) / 2; break;
                           }
-                          left[i] = flags.mutel ? 0 : outputLeft * (flags.phasel ? -1 : 1);
-                          right[i] = flags.muter ? 0 : outputRight * (flags.phaser ? -1 : 1);
+                          left[i] = flags.mutel ? 0 : outputLeft * (flags.phasel ? -1 : 1) * levels.level_out;
+                          right[i] = flags.muter ? 0 : outputRight * (flags.phaser ? -1 : 1) * levels.level_out;
                         }
                         stretched = [left, right];
                       } else if (trimmed.startsWith("channelmap=")) {

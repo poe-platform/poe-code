@@ -4543,15 +4543,11 @@ function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtual
     };
 }
 
-function* applyMagickCropSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition): Generator<void, RgbaImage, void> {
-    return (yield* applyMagickCropToStackSteps(img, geomStr, gravity))[0]!;
-}
-
-function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition, analysis?: { warnings: string }): Generator<void, RgbaImage[], void> {
+function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition, analysis?: { warnings: string }, warningSource = geomStr): Generator<void, RgbaImage[], void> {
     const tiles: RgbaImage[] = [];
     for (const area of magickCropAreas(img, geomStr, gravity)) {
         yield;
-        if (!area && analysis) analysis.warnings += `magick: geometry does not contain image '${geomStr}'\n`;
+        if (!area && analysis) analysis.warnings += `magick: geometry does not contain image '${warningSource}'\n`;
         if (area === null) {
             tiles.push({ ...(yield* createSolidRgbaImageSteps(1, 1, { r: 255, g: 255, b: 255, a: 0 })),
                 ...(img.delay ? { delay: img.delay } : {}),
@@ -5478,17 +5474,17 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
   }
 }
 
-function* parseInputOperandSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array): Generator<void, RgbaImage | undefined, void> {
-    const list = (yield* parseInputOperandsSteps(token, files, state, stdinBytes));
+function* parseInputOperandSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, analysis?: { warnings: string }): Generator<void, RgbaImage | undefined, void> {
+    const list = (yield* parseInputOperandsSteps(token, files, state, stdinBytes, undefined, undefined, undefined, analysis));
     return list?.[0];
 }
 
-function* applyInlineReadModifierSteps(img: RgbaImage, inlineGeom: string, kernel: ResizeKernel | undefined, settings?: ResizeFilterSettings, preserveSamples = false): Generator<void, RgbaImage, void> {
+function* applyInlineReadModifierSteps(img: RgbaImage, inlineGeom: string, filename: string, kernel: ResizeKernel | undefined, settings?: ResizeFilterSettings, preserveSamples = false, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {
     const g = parseMagickGeometry(inlineGeom);
     if (g.hasOffset) {
         // Read geometry ignores offsets when both dimensions match the raster.
         if (g.width === img.width && g.height === img.height) return img;
-        return (yield* applyMagickCropSteps(img, inlineGeom, "northwest"));
+        return (yield* applyMagickCropToStackSteps(img, inlineGeom, "northwest", analysis, filename))[0]!;
     }
     // Read geometry compares the raw width before applying the area modifier.
     if (g.areaLimit === img.width) return img;
@@ -5615,7 +5611,7 @@ function* selectedInputPages(pageSpec: string | undefined, totalPages: number): 
     }
 }
 
-function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number, extract?: string, registers?: ReadonlyMap<string, RgbaImage[]>): Generator<void, RgbaImage[] | undefined, void> {
+function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number, extract?: string, registers?: ReadonlyMap<string, RgbaImage[]>, analysis?: { warnings: string }): Generator<void, RgbaImage[] | undefined, void> {
     if (token.slice(0, 4).toLowerCase() === "mpr:") {
         const { baseToken, pageSpec, inlineGeom } = parseInputToken(token);
         const saved = registers?.get(baseToken.slice(4).toLowerCase());
@@ -5624,7 +5620,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         for (const index of selectedInputPages(pageSpec, saved.length)) {
             yield;
             const image = { ...saved[index]!, data: new Uint8Array(saved[index]!.data) };
-            images.push(inlineGeom ? yield* applyInlineReadModifierSteps(image, inlineGeom, state.kernel, state.resizeFilter) : image);
+            images.push(inlineGeom ? yield* applyInlineReadModifierSteps(image, inlineGeom, baseToken, state.kernel, state.resizeFilter, false, analysis) : image);
         }
         return images;
     }
@@ -5648,13 +5644,13 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 const delay = state.delay.value;
                 im = { ...im, delay: (im.delay ?? [0]).map(current => parseDelayOption(delay, current)) };
             }
-            return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, state.kernel, state.resizeFilter, extract !== undefined) : im;
+            return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, baseToken, state.kernel, state.resizeFilter, extract !== undefined, analysis) : im;
         });
     }
     const lower = baseToken.toLowerCase();
     if (lower.startsWith("tile:")) {
         if (!state.hasSize) throw new Error("must specify image size for TILE input");
-        const patterns = (yield* parseInputOperandsSteps(baseToken.slice(5), files, state, stdinBytes, undefined, undefined, registers));
+        const patterns = (yield* parseInputOperandsSteps(baseToken.slice(5), files, state, stdinBytes, undefined, undefined, registers, analysis));
         if (!patterns)
             return undefined;
         return yield* applyMod((yield* mapSteps(patterns, function* (pattern) {
@@ -8175,7 +8171,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const t = tokens[i]!;
         if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
         if (operandsOnly) {
-            const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes, undefined, undefined, registers);
+            const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes, undefined, undefined, registers, analysis);
             if (!loaded) throw new Error(`unable to open image '${t}'`);
             for (const warning of loaded[0]?.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
             stack.push(...loaded);
@@ -8289,7 +8285,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (t === "-write-mask" || t === "+write-mask" || t === "-clip-mask" || t === "+clip-mask") {
             const path = t.startsWith("-") ? tokens[++i] : undefined;
             if (t.startsWith("-") && !path) throw new Error(`missing argument '${t}'`);
-            const mask = path ? yield* parseInputOperandSteps(path, files, state, stdinBytes) : undefined;
+            const mask = path ? yield* parseInputOperandSteps(path, files, state, stdinBytes, analysis) : undefined;
             if (path && !mask) throw new Error(`unable to open image '${path}'`);
             stack = yield* mapSteps(stack, function* (image) {
                 const writeMask = mask && (mask.width !== image.width || mask.height !== image.height)
@@ -8729,7 +8725,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const spec = t === "-read-mask" ? tokens[++i] : undefined;
             if (t === "-read-mask" && !spec) throw new Error(`missing argument '${t}'`);
-            const readMask = spec ? yield* parseInputOperandSteps(spec, files, state, stdinBytes) : undefined;
+            const readMask = spec ? yield* parseInputOperandSteps(spec, files, state, stdinBytes, analysis) : undefined;
             if (spec && !readMask) throw new Error(`unable to read mask '${spec}'`);
             stack = yield* mapSteps(stack, function* (image) { yield; return { ...image, readMask }; });
         }
@@ -8741,7 +8737,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     { width: stack.reduce((sum, image) => sum + image.width * image.height, 0), height: 1, hasAlpha: stack.some(image => image.hasAlpha) }, stack)
                 : palSpec.slice(0, 4).toLowerCase() === "mpr:"
                 ? registers.get(palSpec.slice(4).toLowerCase())?.[0]
-                : yield* parseInputOperandSteps(palSpec, files, state, stdinBytes);
+                : yield* parseInputOperandSteps(palSpec, files, state, stdinBytes, analysis);
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const hueSpace = t === "-remap" && (im.magickColorspace === "HSL" || im.magickColorspace === "HSB" || im.magickColorspace === "HSV") ? im.magickColorspace : undefined;
@@ -9211,7 +9207,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-draw") {
             const drawSpec = tokens[++i] ?? "";
-            const tile = state.tile === undefined ? undefined : yield* parseInputOperandSteps(state.tile, files, state, stdinBytes);
+            const tile = state.tile === undefined ? undefined : yield* parseInputOperandSteps(state.tile, files, state, stdinBytes, analysis);
             if (state.tile !== undefined && !tile) throw new Error(`Unable to read drawing tile '${state.tile}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 for (const step of magickDrawSteps(im, drawSpec, state)) {
@@ -9474,7 +9470,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 state.background = { r: 0, g: 0, b: 0, a: 0 };
             }
             const maxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
-            const loaded = (yield* parseInputOperandsSteps(t, files, state, stdinBytes, maxDecodeDim, undefined, registers));
+            const loaded = (yield* parseInputOperandsSteps(t, files, state, stdinBytes, maxDecodeDim, undefined, registers, analysis));
             if (mergeOntoCanvas) {
                 state.background = prevBg;
             }
@@ -10229,7 +10225,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const path = token.startsWith("-") ? tokens[++i] : undefined, settings = { ...state };
             if (token.startsWith("-") && !path) throw new Error(`missing argument '${token}'`);
             stackStep(async (stack, backend) => {
-                const mask = path ? await parseStoredCompareInput(path, settings, backend, signal) : undefined;
+                const mask = path ? await parseStoredCompareInput(path, settings, backend, signal, { analysis }) : undefined;
                 if (path && !mask) throw new Error(`unable to open image '${path}'`);
                 for (let n = 0; n < stack.length; n++) {
                     const image = (await stack.get(n))!;
@@ -10924,7 +10920,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-read-mask" && !spec) throw new Error(`missing argument '${token}'`);
             stackStep(async (stack, backend) => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
-                const mask = spec ? await parseStoredCompareInput(spec, settings, backend, signal) : undefined;
+                const mask = spec ? await parseStoredCompareInput(spec, settings, backend, signal, { analysis }) : undefined;
                 if (spec && !mask) throw new Error(`unable to read mask '${spec}'`);
                 const readMask = mask ? { width: mask.width, height: mask.height, position: mask.position } : undefined;
                 for (let n = 0; n < stack.length; n++) await stack.set(n, { ...(await stack.get(n))!, readMask } as StoredRgbaImage);
@@ -10964,7 +10960,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 let colors: StoredRgbaImage | undefined = palette.slice(0, 4).toLowerCase() === "mpr:"
                     ? await registers.get(palette.slice(4).toLowerCase())?.get(0)
-                    : await parseStoredCompareInput(palette, settings, backend, signal);
+                    : await parseStoredCompareInput(palette, settings, backend, signal, { analysis });
                 if (!colors) throw new Error(`unable to open image '${palette}'`);
                 const hueSpace = image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" ? image.magickColorspace : undefined;
                 if (hueSpace) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
@@ -11001,7 +10997,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const drawing = tokens[++i] ?? "", settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const tile = settings.tile === undefined ? undefined : await parseStoredCompareInput(settings.tile, settings, backend, signal);
+                const tile = settings.tile === undefined ? undefined : await parseStoredCompareInput(settings.tile, settings, backend, signal, { analysis });
                 for (const step of magickDrawSteps(image, drawing, settings)) {
                     if (!step) { await yieldTurn(signal); continue; }
                     if ((image.space === "b-w" || image.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
@@ -11413,7 +11409,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const base = stack.length === 1 ? await stack.get(0) : undefined, lower = token.toLowerCase();
                 const merge = !literal && (lower.startsWith("label:") || lower.startsWith("caption:")) && base && captured.hasSize && base.width === captured.sizeWidth && base.height === captured.sizeHeight && Object.values(captured.background).every(value => value === 255);
                 const settings = merge ? { ...captured, background: { r: 0, g: 0, b: 0, a: 0 } } : captured;
-                const loaded = await parseStoredCompareInput(token, settings, backend, signal, { registers, visit: async image => {
+                const loaded = await parseStoredCompareInput(token, settings, backend, signal, { analysis, registers, visit: async image => {
                     for (const warning of image.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
                     if (merge) {
                         const composed = await compositeStoredMagick(base, image, backend, signal, 0, 0, "over");
@@ -11936,12 +11932,13 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
 }
 
 
-async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom: string, state: MagickState, backend: CompareFileSession, signal: AbortSignal, preserveSamples = false): Promise<StoredRgbaImage> {
+async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom: string, filename: string, state: MagickState, backend: CompareFileSession, signal: AbortSignal, preserveSamples = false, analysis?: { warnings: string }): Promise<StoredRgbaImage> {
     const geometry = parseMagickGeometry(inlineGeom);
     if (geometry.hasOffset) {
         // Read geometry ignores offsets when both dimensions match the raster.
         if (geometry.width === image.width && geometry.height === image.height) return image;
         const area = magickCropArea(image, inlineGeom, "northwest");
+        if (!area && analysis) analysis.warnings += `magick: geometry does not contain image '${filename}'\n`;
         if (area === null) return {
             ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend, signal),
             ...(image.delay ? { delay: image.delay } : {}),
@@ -11957,7 +11954,7 @@ async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom:
     return image;
 }
 
-async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{registers?:ReadonlyMap<string, StoredImageStack>|undefined;source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;extract?:string;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
+async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{analysis?:{warnings:string}|undefined;registers?:ReadonlyMap<string, StoredImageStack>|undefined;source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;extract?:string;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
  const {baseToken,pageSpec,inlineGeom=readOptions.extract}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
  if (token.slice(0, 4).toLowerCase() === "mpr:") {
      const { baseToken, pageSpec, inlineGeom } = parseInputToken(token);
@@ -11966,7 +11963,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
      for (const index of selectedInputPages(pageSpec, saved.length)) {
          await yieldTurn(signal);
          const savedImage = (await saved.get(index))!;
-         image = inlineGeom ? await applyStoredInlineReadModifier(savedImage, inlineGeom, state, backend, signal) : savedImage;
+         image = inlineGeom ? await applyStoredInlineReadModifier(savedImage, inlineGeom, baseToken, state, backend, signal, false, readOptions.analysis) : savedImage;
          await readOptions.visit?.(image);
          if (!readOptions.visit && !readOptions.lastPage) break;
      }
@@ -11975,10 +11972,10 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  if(lower.startsWith("tile:")){
   if(!state.hasSize)throw new Error("must specify image size for TILE input");
   if(readOptions.visit){
-   await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{registers:readOptions.registers,source:readOptions.source,visit:async pattern=>{image=await finish(await tile(pattern));await readOptions.visit!(image);}});
+   await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{analysis:readOptions.analysis,registers:readOptions.registers,source:readOptions.source,visit:async pattern=>{image=await finish(await tile(pattern));await readOptions.visit!(image);}});
    return image;
   }
-  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{registers:readOptions.registers,source:readOptions.source,lastPage:readOptions.lastPage===true});if(!pattern)return;
+  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{analysis:readOptions.analysis,registers:readOptions.registers,source:readOptions.source,lastPage:readOptions.lastPage===true});if(!pattern)return;
   image=await tile(pattern);
  }else if(lower.startsWith("ftxt:")){
   if(!state.hasSize)throw new Error("must specify image size for FTXT input");
@@ -12132,7 +12129,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    },
   } };
  }
- if(inlineGeom)image=await applyStoredInlineReadModifier(image,inlineGeom,state,backend,signal,readOptions.extract !== undefined);
+ if(inlineGeom)image=await applyStoredInlineReadModifier(image,inlineGeom,baseToken,state,backend,signal,readOptions.extract !== undefined,readOptions.analysis);
  return image;
  }
 }

@@ -15,6 +15,14 @@ for (const [filter, indices, expected] of [
   ["afade=t=in:ss=0:ns=4:silence=0.25:unity=0.75", [0, 1, 2, 3, 4, 5], [3000, 4500, 6000, 7500, 9000, 9000]],
   ["afade=t=out:ns=4:silence=0.25:unity=0.75", [0, 1, 2, 3, 4, 5], [9000, 7500, 6000, 4500, 3000, 3000]],
   ["afade=ns=4,volume=0.5", [0, 1, 2, 3, 4], [0, 1500, 3000, 4500, 6000]],
+  ["afade=t=in:d=1us", [0, 1, 2, 3], [0, 12000, 12000, 12000]],
+  ["afade=t=in:d=62us", [0, 1, 2, 3], [0, 12000, 12000, 12000]],
+  ["afade=t=out:d=1us", [0, 1, 2, 3], [0, 0, 0, 0]],
+  ["afade=t=out:d=62us", [0, 1, 2, 3], [0, 0, 0, 0]],
+  ["afade=t=in:d=63us", [0, 1, 2, 3], [0, 12000, 12000, 12000]],
+  ["afade=t=out:d=63us", [0, 1, 2, 3], [12000, 0, 0, 0]],
+  ["afade=t=in:ss=2:d=1us", [0, 1, 2, 3], [0, 0, 0, 12000]],
+  ["afade=t=out:ss=2:d=1us", [0, 1, 2, 3], [12000, 12000, 0, 0]],
   ["asetpts=PTS+8,afade=ns=4", [0, 1, 2, 3, 4], [12000, 12000, 12000, 12000, 12000]],
   ["asetpts=PTS+2,afade=ns=4", [0, 1, 2, 3, 4], [6000, 9000, 12000, 12000, 12000]],
   ["asetpts=PTS-2,afade=ns=4", [0, 1, 2, 3, 4, 6], [0, 0, 0, 3000, 6000, 12000]],
@@ -49,7 +57,7 @@ for (const [filter, indices, expected] of [
   });
 }
 
-for (const filter of ["afade=ns=0", "afade=ss=-1", "afade=ns=1.5", "afade=st=bad",
+for (const filter of ["afade=ns=0", "afade=ns=0:d=1us", "afade=ss=-1", "afade=ns=1.5", "afade=st=bad",
   "afade=d=Infinity", "afade=t=bad", "afade=curve=bad", "afade=unity=1.1",
   "afade=silence=-0.1", "afade=ns=", "afade=unknown=1", "afade=ns=9007199254740992"]) {
   it(`${filter} fails without replacing output`, async () => {

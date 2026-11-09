@@ -11,7 +11,7 @@ const expected = "7cb1575899ce547b5174a949568bc06b5c91c678669bd08d88ad5ca483b863
 const validAngles = ["60", "60x1", "60%", "60!", "60x1+2", "6e1%", "60.0%"];
 
 for (const mode of ["buffered", "retained", "command", "mogrify"])
-it.each([...validAngles, "bad", "60bad", "60e", "60+1", "x1", "", "1000000000", "1000000000x1", "1e999%"])(`parses rotational blur angle %s safely (${mode})`, async angle => {
+it.each([...validAngles, "bad", "0b10", "0o10", "60bad", "60e", "60+1", "x1", "", "1000000000", "1000000000x1", "1e999%"])(`parses rotational blur angle %s safely (${mode})`, async angle => {
     const keep = Buffer.from("keep");
     const files = new Map<string, Uint8Array>([["in.png", input], ["out.png", keep]]);
     const filesystem = new MemoryFileSystem();

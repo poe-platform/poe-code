@@ -7785,7 +7785,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         const setting = applyMagickReadSetting(tokens, state, i);
-        if (setting === undefined && (t === "-solarize" || (t === "-modulate" && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
+        if (setting === undefined && (t === "-solarize" || (t === "-colorize" && tokens[i + 1]?.includes("%[")) || (t === "-modulate" && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
@@ -9679,7 +9679,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, channels, signal), signal) : undefined);
             continue;
         }
-        if (!operandsOnly && (token === "-solarize" || (token === "-modulate" && tokens[i + 1]?.includes("%[")) || ((token === "-level" || token === "+level" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%[")) || token === "-color-matrix" || token === "-gamma" || token === "+gamma" || token === "-brightness-contrast" || token === "-tint")) {
+        if (!operandsOnly && (token === "-solarize" || (token === "-colorize" && tokens[i + 1]?.includes("%[")) || (token === "-modulate" && tokens[i + 1]?.includes("%[")) || ((token === "-level" || token === "+level" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%[")) || token === "-color-matrix" || token === "-gamma" || token === "+gamma" || token === "-brightness-contrast" || token === "-tint")) {
             const value = tokens[++i] ?? (token === "-solarize" ? "50%" : token === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : token === "-brightness-contrast" || token === "-tint" ? "" : "1"), settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;

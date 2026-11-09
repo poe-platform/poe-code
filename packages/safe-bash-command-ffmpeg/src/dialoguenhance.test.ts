@@ -49,6 +49,49 @@ for (const shared of [false, true]) {
 }
 
 for (const complex of [false, true]) {
+  for (const enable of ["0", "1", "gte(t,0.04)", "lt(t,0.04)", "eq(n,4)"]) {
+    it(`selects dialogue analysis blocks with ${enable} (${complex ? "graph" : "simple"})`, async () => {
+      const volume = Volume.fromJSON({});
+      const channel = Float64Array.from({ length: 8192 }, (_, i) =>
+        (Math.floor(i / 50) % 2 ? 6000 : -6000) / 32768);
+      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 44100, channels: [channel, channel] }));
+      const filter = `dialoguenhance=enable='${enable}'`;
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-y", "-v", "error", "-i", "/in.wav",
+          ...(complex ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"] : ["-af", filter]),
+          "-c:a", "pcm_s16le", "/out.wav"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      assert.equal(audio.channels, 3);
+      assert.equal(audio.channelData[0]!.length, channel.length);
+      const center = Buffer.from(reference.center, "base64");
+      for (let i = 0; i < channel.length; i++) {
+        // 0.04 seconds lies inside block 3; native switches at sample 2048.
+        const enabled = enable === "1" || (enable === "gte(t,0.04)" && i >= 2048)
+          || (enable === "lt(t,0.04)" && i < 2048)
+          || (enable === "eq(n,4)" && i >= 2048 && i < 2560);
+        for (let c = 0; c < 2; c++) {
+          assert.equal(audio.channelData[c]![i], i < 1536 ? 0 : channel[i - 1536]);
+        }
+        const expected = enabled ? center.readInt16LE(i * 2) : 0;
+        assert.ok(Math.abs(audio.channelData[2]![i]! * 32768 - expected) <= (enabled ? 1 : 0),
+          `center frame ${i}`);
+      }
+    });
+  }
+}
+
+for (const complex of [false, true]) {
   for (const expression of [
     "original=-1", "enhance=4", "voice=1", "voice=NaN", "unknown=1", "1:1:2:3",
     "original=", "enhance=", "voice=", "original=   ", "voice=0b10", "voice=0o10",

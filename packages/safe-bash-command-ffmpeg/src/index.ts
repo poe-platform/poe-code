@@ -10053,10 +10053,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           : await stretchAudio(stretched, origRate, tempo, budget, context.signal);
                       } else if (trimmed === "dialoguenhance" || trimmed.startsWith("dialoguenhance=")) {
                         const values = [1, 1, 2];
+                        let enable: string | undefined;
                         const names = ["original", "enhance", "voice"];
                         const argument = trimmed.slice("dialoguenhance=".length);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
+                          if (separator >= 0 && option.slice(0, separator).trim() === "enable") {
+                            enable = option.slice(separator + 1).trim();
+                            continue;
+                          }
                           const key = separator < 0 ? index : names.indexOf(option.slice(0, separator).trim());
                           const value = parseFilterExpression(separator < 0 ? option : option.slice(separator + 1), "dialoguenhance", {});
                           if (key < 0 || key > 2 || !Number.isFinite(value) || value < (key === 2 ? 2 : 0) || value > [1, 3, 32][key]!) {
@@ -10075,8 +10080,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           while (previous && frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
                           const frame = previous?.[frameIndex];
-                          audioTimestamps.push({ start, end: Math.min(length, start + dialogue.frameSize),
-                            pts: frame ? frame.pts + start - frame.start : audioStartSample + start });
+                          const pts = frame ? frame.pts + start - frame.start : audioStartSample + start;
+                          const end = Math.min(length, start + dialogue.frameSize);
+                          if (enable !== undefined && !(Math.abs(parseFilterExpression(enable, "dialoguenhance enable", {
+                            n: audioTimestamps.length, t: pts / origRate
+                          })) >= 0.5)) {
+                            stretched[2]!.fill(0, start, end);
+                          }
+                          audioTimestamps.push({ start, end, pts });
                         }
                         filteredChannelMask = 7;
                       } else if (trimmed === "crystalizer" || trimmed.startsWith("crystalizer=")) {

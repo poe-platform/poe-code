@@ -60,9 +60,13 @@ async function* lzw(reader:SourceBytes,start:number,length:number,expected:numbe
 async function* packBits(reader:SourceBytes,start:number,length:number,expected:number) {
  let at=start,written=0;
  while(at<start+length&&written<expected){const n=await reader.at(at++)??0;
-  if(n<128){for(let i=0;i<=n&&at<start+length&&written<expected;i++){yield await reader.at(at++)??0;written++;}}
-  else if(n!==128){if(at>=start+length)break;const value=await reader.at(at++)??0;for(let i=0;i<257-n&&written<expected;i++){yield value;written++;}}
+  if(n<128){
+   if(n+1>start+length-at)throw new Error("Truncated TIFF PackBits literal run");
+   for(let i=0;i<=n&&written<expected;i++){yield await reader.at(at++)??0;written++;}
+  }
+  else if(n!==128){if(at>=start+length)throw new Error("Truncated TIFF PackBits repeat run");const value=await reader.at(at++)??0;for(let i=0;i<257-n&&written<expected;i++){yield value;written++;}}
  }
+ if(written<expected)throw new Error("Truncated TIFF PackBits pixels");
 }
 
 /** Classic TIFF and BigTIFF strips/tiles and tags stay in the caller's source and scratch storage. */
@@ -100,7 +104,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   if(tag===262)(properties??={})["tiff:photometric"]=tiffPhotometricNames[first]??"unknown";
   if(tag===278)(properties??={})["tiff:rows-per-strip"]=String(first);
   if(tag===256)width=first;else if(tag===257)height=first;
-  else if(tag===258&&first>0)bits=first;else if(tag===259&&first>0)compression=first;
+  else if(tag===258&&first>0)bits=first;else if(tag===259)compression=first;
   else if(tag===262)photometric=first;else if(tag===273&&available)offsets=values;
   else if(tag===274&&first>=1&&first<=8)orientation=first;else if(tag===277&&first>0)samples=first;
   else if(tag===278&&first>0)rows=first;else if(tag===279&&available)counts=values;
@@ -115,6 +119,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   else if(tag===339)sampleFormat=first;
   else if(tag===347){const offset=n<=offsetSize?p+valueOffset:await number(p+valueOffset,offsetSize);if(offset+n<=source.size)jpegTables={start:offset,length:n};}
  }
+ if(![1,3,4,5,6,7,8,32773,32946].includes(compression))throw new Error(`Unsupported TIFF compression: ${compression}`);
  const sampleBytes=Math.max(1,bits>>>3),chunkSamples=planar?1:samples,pixelBytes=chunkSamples*sampleBytes,stride=width*pixelBytes,planeBytes=height*stride,total=planeBytes*(planar?samples:1);
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(samples)||samples<=0||!Number.isSafeInteger(total)||!Number.isSafeInteger(width*height*4))throw new RangeError("Invalid TIFF dimensions");
  checkLimitInputPixels(width,height,options);

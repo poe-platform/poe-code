@@ -467,19 +467,21 @@ function decodePackBits(src: Uint8Array, expectedLen: number): Uint8Array {
     const n = (src[sp++]! << 24) >> 24;
     if (n >= 0) {
       const count = n + 1;
-      for (let i = 0; i < count && sp < src.length && dp < expectedLen; i++) {
+      if (count > src.length - sp) throw new Error("Truncated TIFF PackBits literal run");
+      for (let i = 0; i < count && dp < expectedLen; i++) {
         out[dp++] = src[sp++]!;
       }
     } else if (n !== -128) {
       const count = 1 - n;
-      if (sp >= src.length) break;
+      if (sp >= src.length) throw new Error("Truncated TIFF PackBits repeat run");
       const val = src[sp++]!;
       for (let i = 0; i < count && dp < expectedLen; i++) {
         out[dp++] = val;
       }
     }
   }
-  return out.subarray(0, dp);
+  if (dp < expectedLen) throw new Error("Truncated TIFF PackBits pixels");
+  return out;
 }
 
 function decodeTiffLzw(src: Uint8Array, expectedLen: number): Uint8Array {
@@ -596,7 +598,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
     if (tag === 256) width = first;
     else if (tag === 257) height = first;
     else if (tag === 258 && first > 0) bitsPerSample = first;
-    else if (tag === 259 && first > 0) compression = first;
+    else if (tag === 259) compression = first;
     else if (tag === 292 || tag === 293) faxOptions = first;
     else if (tag === 266) fillOrder = first;
     else if (tag === 262) photometric = first;
@@ -625,6 +627,8 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
       }
     }
   }
+
+  if (![1, 3, 4, 5, 6, 7, 8, 32773, 32946].includes(compression)) throw new Error(`Unsupported TIFF compression: ${compression}`);
 
   const bytesPerSample = Math.max(1, bitsPerSample >>> 3);
   const chunkSamples = planar ? 1 : samplesPerPixel;

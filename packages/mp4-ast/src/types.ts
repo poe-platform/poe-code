@@ -704,6 +704,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** Five-bit PAT, PMT and SDT version (0–31, default 0). */
+  readonly mpegtsTablesVersion?: number | undefined;
   /** MPEG-TS SDT service type (default: 1, digital TV; 2 is digital radio). */
   readonly mpegtsServiceType?: number | undefined;
   /** MPEG-TS: use LOAS/LATM AAC framing and stream type 0x11 instead of ADTS. */

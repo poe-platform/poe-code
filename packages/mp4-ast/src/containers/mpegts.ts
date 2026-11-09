@@ -543,6 +543,11 @@ export function serializeMpegTs(
     }
   };
 
+  const tablesVersion = options.mpegtsTablesVersion ?? 0;
+  if (!Number.isInteger(tablesVersion) || tablesVersion < 0 || tablesVersion > 31) {
+    throw new Error("MPEG-TS tables version must be an integer from 0 through 31");
+  }
+  const versionByte = 0xc1 | (tablesVersion << 1);
   const serviceType = options.mpegtsServiceType ?? 1;
   if (!Number.isInteger(serviceType) || serviceType < 1 || serviceType > 255) {
     throw new Error("MPEG-TS service type must be an integer from 1 through 255");
@@ -558,7 +563,7 @@ export function serializeMpegTs(
   const sdtBody = concatBytes([
     new Uint8Array([
       0x42, 0xf0 | (sdtLength >>> 8), sdtLength & 0xff,
-      0x00, 0x01, 0xc1, 0x00, 0x00, 0xff, 0x01, 0xff,
+      0x00, 0x01, versionByte, 0x00, 0x00, 0xff, 0x01, 0xff,
       0x00, 0x01, 0xfc, 0x80 | (descriptor.length >>> 8), descriptor.length & 0xff
     ]), descriptor
   ]);
@@ -569,7 +574,7 @@ export function serializeMpegTs(
 
   // Build PAT (PID 0x0000 -> Program 1 -> PMT PID 0x1000)
   const patBody = new Uint8Array([
-    0x00, 0xb0, 0x0d, 0x00, 0x01, 0xc1, 0x00, 0x00,
+    0x00, 0xb0, 0x0d, 0x00, 0x01, versionByte, 0x00, 0x00,
     0x00, 0x01, 0xf0, 0x00
   ]);
   const patCrc = mpeg2Crc32(patBody);
@@ -603,7 +608,7 @@ export function serializeMpegTs(
     0xb0 | ((pmtSecLen >>> 8) & 0x0f),
     pmtSecLen & 0xff,
     0x00, 0x01,
-    0xc1,
+    versionByte,
     0x00, 0x00,
     0xe0 | ((pcrPid >>> 8) & 0x1f),
     pcrPid & 0xff,

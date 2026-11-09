@@ -459,6 +459,10 @@ export function serializeMpegTs(
   if (!Number.isInteger(serviceId) || serviceId < 1 || serviceId > 65535) {
     throw new Error("Invalid mpegts_service_id: expected an integer from 1 to 65535");
   }
+  const pcrPeriod = options.pcrPeriod ?? -1;
+  if (!Number.isInteger(pcrPeriod) || pcrPeriod < -1 || pcrPeriod > 2147483647) {
+    throw new Error("Invalid pcr_period: expected milliseconds from -1 to 2147483647");
+  }
   const muxRate = options.muxRate ?? 1;
   if (!Number.isInteger(muxRate) || muxRate < 0 || muxRate > 2147483647) {
     throw new Error("Invalid muxrate: expected an integer from 0 to 2147483647 bits/s");
@@ -491,7 +495,8 @@ export function serializeMpegTs(
   const ccByPid = new Map<number, number>();
   let clockOrigin90k = 0;
   let lastPcrPacket = -Infinity;
-  const pcrInterval = Math.max(1, Math.ceil(muxRate * 0.02 / (188 * 8)));
+  const pcrInterval = Math.max(1, muxRate * (pcrPeriod < 0 ? 20 : pcrPeriod) / (1000 * 188 * 8));
+  let lastPcr90k = -Infinity;
 
   const appendPacket = (packet: Uint8Array) => {
     budget.checkCpu();
@@ -513,7 +518,10 @@ export function serializeMpegTs(
     packet[9] = (base >>> 1) & 0xff;
     packet[10] = ((base & 1) << 7) | 0x7e | (extension >>> 8);
     packet[11] = extension & 0xff;
-    lastPcrPacket = tsPackets.length;
+    // Keep fractional deadlines so packet rounding does not accumulate clock drift.
+    lastPcrPacket = Number.isFinite(lastPcrPacket)
+      ? Math.max(tsPackets.length - pcrInterval, lastPcrPacket + pcrInterval) : 0;
+    lastPcr90k = dts90k;
   };
 
   const emitPcrPacket = () => {
@@ -538,7 +546,7 @@ export function serializeMpegTs(
 
   const emitSectionPacket = (pid: number, section: Uint8Array) => {
     if (muxRate > 1 && Number.isFinite(lastPcrPacket)
-        && tsPackets.length - lastPcrPacket >= pcrInterval) emitPcrPacket();
+        && pcrPeriod !== 0 && tsPackets.length - lastPcrPacket >= pcrInterval) emitPcrPacket();
     for (let offset = 0; offset < section.byteLength;) {
       const first = offset === 0;
       const pkt = new Uint8Array(188).fill(0xff);
@@ -577,7 +585,7 @@ export function serializeMpegTs(
       const targetPackets = Math.ceil((dts90k - delay90k - clockOrigin90k) * muxRate / (90000 * 188 * 8));
       budget.checkOutputBytes(targetPackets * 188);
       while (tsPackets.length < targetPackets) {
-        if (tsPackets.length - lastPcrPacket >= pcrInterval) {
+        if (pcrPeriod !== 0 && tsPackets.length - lastPcrPacket >= pcrInterval) {
           emitPcrPacket();
         } else {
           const packet = new Uint8Array(188).fill(0xff);
@@ -616,7 +624,7 @@ export function serializeMpegTs(
         emitSectionPacket(0x1000, pmtSection);
         lastPatDts = dts90k;
       }
-      if (muxRate > 1 && pid !== pcrPid && tsPackets.length - lastPcrPacket >= pcrInterval) emitPcrPacket();
+      if (muxRate > 1 && pid !== pcrPid && pcrPeriod !== 0 && tsPackets.length - lastPcrPacket >= pcrInterval) emitPcrPacket();
       const pkt = new Uint8Array(188).fill(0xff);
       pkt[0] = 0x47;
       pkt[1] = (first ? 0x40 : 0x00) | ((pid >>> 8) & 0x1f);
@@ -624,8 +632,9 @@ export function serializeMpegTs(
 
       const remaining = fullPes.byteLength - offset;
       const needPcr = muxRate > 1
-        ? pid === pcrPid && tsPackets.length - lastPcrPacket >= pcrInterval
-        : first && withPcr;
+        ? pid === pcrPid && pcrPeriod !== 0 && tsPackets.length - lastPcrPacket >= pcrInterval
+        : first && withPcr && pcrPeriod !== 0
+          && (pcrPeriod < 0 || dts90k - lastPcr90k >= pcrPeriod * 90);
       const randomAccess = first && isKeyframe && !options.mpegtsOmitRai;
       const discontinuity = options.initialDiscontinuity && !discontinuityPids.has(pid);
       const minAdaptation = needPcr ? 8 : randomAccess || discontinuity ? 2 : 0; // 1 length byte + 1 flags byte + 6 PCR bytes

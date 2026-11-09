@@ -4307,6 +4307,7 @@ export function evalSyncFfmpeg(
     let writeBext = false;
     let patPeriod: number | undefined;
     let muxRate: number | undefined;
+    let pcrPeriod: number | undefined;
     let writeCrc32 = true;
     let live = false;
     let writeTmcd = true;
@@ -4798,6 +4799,9 @@ export function evalSyncFfmpeg(
           throw new Error("Invalid rf64 value: expected always, auto or never");
         }
         rf64 = value;
+      } else if (arg === "-pcr_period") {
+        const value = args[++i];
+        pcrPeriod = value?.trim() ? Number(value) : NaN;
       } else if (arg === "-muxrate") {
         muxRate = parseAudioBitrate(args[++i]);
         if (muxRate === undefined) return undefined;
@@ -5137,7 +5141,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { patPmtAtFrames: (mpegtsFlags & 16) !== 0, patPeriod, muxDelay, omitVideoPesLength, mpegtsTablesVersion, mpegtsServiceType, mpegtsLatm: !!(mpegtsFlags & 8), initialDiscontinuity: !!(mpegtsFlags & 32), mpegtsOmitRai: !!(mpegtsFlags & 64), live, writeHeader, writeBext, writeCrc32, muxRate, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, mpegtsServiceId, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeApetag, writeId3v2, writeMpeg2, mpegtsStartPid, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { patPmtAtFrames: (mpegtsFlags & 16) !== 0, patPeriod, muxDelay, omitVideoPesLength, mpegtsTablesVersion, mpegtsServiceType, mpegtsLatm: !!(mpegtsFlags & 8), initialDiscontinuity: !!(mpegtsFlags & 32), mpegtsOmitRai: !!(mpegtsFlags & 64), live, writeHeader, writeBext, writeCrc32, muxRate, pcrPeriod, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, mpegtsServiceId, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeApetag, writeId3v2, writeMpeg2, mpegtsStartPid, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -5568,6 +5572,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeBext = false;
         let patPeriod: number | undefined;
         let muxRate: number | undefined;
+        let pcrPeriod: number | undefined;
         let writeCrc32 = true;
         let live = false;
         let writeTmcd = true;
@@ -6890,6 +6895,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             rf64 = value;
+          } else if (arg === "-pcr_period") {
+            const value = args[++i];
+            pcrPeriod = value?.trim() ? Number(value) : NaN;
           } else if (arg === "-muxrate") {
             muxRate = parseAudioBitrate(args[++i]);
             if (muxRate === undefined) {
@@ -11113,6 +11121,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 let segBytes = segPlugin.serialize(segmentDoc, {
                   patPmtAtFrames: (mpegtsFlags & 16) !== 0, patPeriod,
                   muxRate,
+                  pcrPeriod,
                   fragmented: isFmp4,
                   // HLS keeps the segment timeline without transport mux delay.
                   muxDelay: 0,
@@ -11497,6 +11506,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               patPmtAtFrames: (mpegtsFlags & 16) !== 0, patPeriod,
               writeCrc32,
               muxRate,
+              pcrPeriod,
               muxDelay,
               rf64,
               writePeak,

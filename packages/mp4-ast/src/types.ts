@@ -704,6 +704,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** MPEG-TS PCR interval in milliseconds; -1 selects automatic (20 ms at constant rate), 0 disables PCR. */
+  readonly pcrPeriod?: number | undefined;
   /** MPEG-TS transport bitrate in bits/s; 0 or 1 (default) keeps variable-rate output. */
   readonly muxRate?: number | undefined;
   /** Mark only the first packet of each MPEG-TS PID as discontinuous. */

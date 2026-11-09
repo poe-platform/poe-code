@@ -6410,6 +6410,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const listText = new TextDecoder().decode(rawBytes);
                 const listDir = filePath === "-" ? context.cwd : dirnameOf(resolvePath(context.cwd, filePath));
                 const concatDocs: MediaDocument[] = [];
+                const chapters: NonNullable<MediaDocument["chapters"]>[number][] = [];
                 const startTimesSeconds: number[] = [];
                 let nextStartSeconds = 0;
                 const segments: { path: string; inpoint: number | undefined; outpoint: number | undefined; duration: number | undefined; ignoreEditList?: boolean; tags?: Record<string, string> }[] = [];
@@ -6464,7 +6465,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                     return target;
                   };
-                  if (keyword === "file_packet_meta") {
+                  if (keyword === "chapter") {
+                    const [idToken = "", startToken = "", endToken = ""] = line.slice(cursor).split("\t").join(" ").split(" ").filter(Boolean);
+                    const id = Number(idToken);
+                    const digits = idToken.startsWith("-") || idToken.startsWith("+") ? idToken.slice(1) : idToken;
+                    const startTimeSeconds = parseHlsDuration(startToken);
+                    const endTimeSeconds = parseHlsDuration(endToken);
+                    if (!digits || Array.from(digits).some(char => char < "0" || char > "9") || !Number.isSafeInteger(id)
+                      || !Number.isFinite(startTimeSeconds) || !Number.isFinite(endTimeSeconds)
+                      || Math.abs(startTimeSeconds) >= 2 ** 63 / 1_000_000 || Math.abs(endTimeSeconds) >= 2 ** 63 / 1_000_000
+                      || startTimeSeconds < 0 || endTimeSeconds < startTimeSeconds) {
+                      throw new Error(`Line ${l + 1}: invalid chapter`);
+                    }
+                    const chapter = { id, startTimeSeconds, endTimeSeconds, title: "", tags: {}, timeBase: { numerator: 1, denominator: 1_000_000 } };
+                    const existing = chapters.findIndex(item => item.id === id);
+                    if (existing < 0) chapters.push(chapter);
+                    else chapters[existing] = chapter;
+                  } else if (keyword === "file_packet_meta") {
                     const key = readToken();
                     const value = readToken();
                     if (!key || !value) throw new Error(`Line ${l + 1}: string required`);
@@ -6578,7 +6595,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   concatDocs.push(itemDoc);
                 }
                 // Concat starts at zero even when the first file retains negative preroll.
-                return { ...concatMp4(concatDocs, { startTimesSeconds, limits: options.limits, budget }), containerFormat: "concat" };
+                return { ...concatMp4(concatDocs, { startTimesSeconds, limits: options.limits, budget }), chapters, containerFormat: "concat" };
               }
 
               const plugin = explicitFormat !== undefined

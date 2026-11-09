@@ -384,7 +384,7 @@ Disposition selectors accept a type, an absolute index, all streams, or an outpu
 `0`, `1`, `default`, `comment`, and `attached_pic`, with `+`/`-` flag updates and combinations such as
 `default+comment`. MP4 output writes `comment` as a commentary track role. Other disposition values fail explicitly.
 For FLAC cover art, map the audio and PNG/JPEG inputs with `-map 0:a -map 1:v -c copy -disposition:v:0 attached_pic`; unmarked video streams are omitted.
-Chapters default to the first input with chapters, independently of stream selection. `-map_chapters -1` removes output chapters; `-map_chapters N` copies chapters from input N. MP4/M4A `-movflags +disable_chpl` omits the Nero chapter box while retaining the referenced QuickTime chapter track; `-movflags -disable_chpl` restores the Nero box. FFmetadata export preserves imported chapter time bases, including sample-accurate boundaries.
+Chapters default to the first input with chapters, independently of stream selection. `-map_chapters -1` removes output chapters; `-map_chapters N` copies chapters from input N. MP4/M4A `-movflags +disable_chpl` omits the Nero chapter box while retaining the referenced QuickTime chapter track; `-movflags -disable_chpl` restores the Nero box. FFmetadata export preserves imported chapter time bases, including sample-accurate boundaries. Concat manifests accept `chapter id start end` directives and export them with a microsecond time base; chapters do not trim the concatenated media.
 `xfade` supports the default `fade` and `transition=wipeleft`; other transitions fail
 without creating or replacing output.
 `trim` supports `start` (`starti`), `end` (`endi`), `duration` (`durationi`), `start_frame`, `end_frame`, `start_pts`, and `end_pts`; frame

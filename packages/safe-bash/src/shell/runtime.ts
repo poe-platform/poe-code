@@ -6706,6 +6706,10 @@ export class Runtime {
             }
             return { exitCode: await this.scriptFile(context, state, io, target, context.args, true) };
           }
+          if (state.functions.has("command_not_found_handle")) {
+            const handlerArguments = this.admitArguments([commandName, ...context.argumentValues.values], allocation);
+            return await this.invoke("command_not_found_handle", handlerArguments.args, { argumentValues: handlerArguments }, context, state, scope);
+          }
           const localeValue = (key: string) => temporaryEnvironment?.has(key) && !previous?.has(key)
             ? temporaryEnvironment.get(key)!.value ?? "" : state.variables[key] ?? "";
           const displayed = diagnosticCommandName(commandName, byteLocale({

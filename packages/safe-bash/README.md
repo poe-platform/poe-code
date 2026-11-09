@@ -243,6 +243,9 @@ Shell builtins beyond the tools below: `:`, `cd`, `pushd`, `popd`, `dirs`, `set`
 `command -p` bypasses functions and searches `/bin:/usr/bin` in the supplied
 filesystem while preserving `PATH`; registered commands remain available.
 Combine it with `-v` or `-V` for discovery, including `command -pV printf`.
+For missing command names, a script-defined `command_not_found_handle` receives
+the command and its arguments in isolated shell state; its return status becomes
+the command status. Discovery queries and explicit paths bypass the handler.
 `unset -v NAME` removes variables; `unset -f NAME` removes functions without changing
 variables of the same name. Use `--` to end option parsing.
 `read -a NAME` replaces an indexed array with the record's IFS-separated fields.

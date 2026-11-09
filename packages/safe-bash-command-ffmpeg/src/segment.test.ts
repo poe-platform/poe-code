@@ -197,3 +197,50 @@ it("quotes CSV filenames and protects the list and inputs", async () => {
   assert.equal(volume.readFileSync("/list.csv", "utf8"),
     '"part,""00.wav",0.000000,2.048000\n"part,""01.wav",2.048000,3.000000\n');
 });
+
+for (const minimum of ["0.1", "100ms", "00:00:00.100000", "0.064", "0"]) {
+  it(`enforces minimum segment duration ${minimum} at WAV packet boundaries`, async () => {
+    const volume = source();
+    const result = await run(volume, ["-segment_time", "0.1", "-min_seg_duration", minimum, "-segment_list", "/list.csv"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const lengths = minimum === "0.064" || minimum === "0"
+      ? [1024, 1024, 512, 1024, 512, 1024, 512, 1024, 1024, 512, 1024, 512, 1024, 512, 1024,
+        512, 1024, 1024, 512, 1024, 512, 1024, 512, 1024, 1024, 512, 1024, 512, 1024, 448]
+      : [...Array<number>(23).fill(1024), 448];
+    const parts = volume.readdirSync("/").filter(name => String(name).startsWith("part"));
+    const pcm = parts.map(name => parseWav(volume.readFileSync(`/${name}`) as Buffer).tracks[0]!.decodedAudio!.channelData[0]!);
+    assert.deepEqual(pcm.map(channel => channel.length), lengths);
+    assert.deepEqual(pcm.flatMap(channel => Array.from(channel)),
+      Array.from(parseWav(volume.readFileSync("/a.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!));
+    let start = 0;
+    assert.equal(volume.readFileSync("/list.csv", "utf8"), lengths.map((length, index) => {
+      const end = start + length;
+      const row = `part${String(index).padStart(2, "0")}.wav,${(start / 8000).toFixed(6)},${(end / 8000).toFixed(6)}\n`;
+      start = end;
+      return row;
+    }).join(""));
+  });
+}
+
+for (const minimum of ["-1", "NaN", "Infinity", "", "1.2"]) {
+  it(`rejects invalid minimum segment duration ${JSON.stringify(minimum)} before writing`, async () => {
+    const volume = source();
+    const result = await run(volume, ["-min_seg_duration", minimum, "-segment_time", "1"]);
+    assert.notEqual(result.exitCode, 0);
+    assert.match(result.stderr, /min_seg_duration/);
+    assert.deepEqual(volume.readdirSync("/"), ["a.wav"]);
+  });
+}
+
+for (const [option, value, lengths] of [
+  ["-segment_times", "0.1,0.2,0.3", [1024, 1024, 512, 21440]],
+  ["-segment_frames", "1,2,3", [512, 512, 512, 22464]]
+] as const) {
+  it(`ignores minimum segment duration with explicit ${option}`, async () => {
+    const volume = source();
+    const result = await run(volume, [option, value, "-min_seg_duration", "1"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const parts = volume.readdirSync("/").filter(name => String(name).startsWith("part"));
+    assert.deepEqual(parts.map(name => parseWav(volume.readFileSync(`/${name}`) as Buffer).tracks[0]!.decodedAudio!.channelData[0]!.length), lengths);
+  });
+}

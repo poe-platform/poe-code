@@ -5033,6 +5033,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let surroundMixLevel: number | undefined;
         let lfeMixLevel: number | undefined;
         let segmentTime = 2;
+        let minSegmentDuration = 0;
         let segmentWrap = 0;
         let segmentTimes: number[] | undefined;
         let resetTimestamps = false;
@@ -5311,6 +5312,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             segmentTime = parseHlsDuration(value ?? "");
             if (!Number.isFinite(segmentTime) || segmentTime < 0) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_time\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-min_seg_duration") {
+            minSegmentDuration = parseHlsDuration(args[++i] ?? "");
+            if (!Number.isFinite(minSegmentDuration) || minSegmentDuration < 0 || minSegmentDuration > 9_223_372_036_854.775) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid min_seg_duration\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-segment_wrap") {
@@ -9719,6 +9726,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             if (outputFormat === "segment") {
+              if (segmentTimes === undefined && segmentFrames === undefined && minSegmentDuration > segmentTime) {
+                throw new Error("min_seg_duration cannot be greater than segment_time");
+              }
               const segmentPlugin = registry.findByFilename(outputTarget);
               const track = workingDoc.tracks.find(track => track.type === "video") ?? workingDoc.tracks[0];
               if (!track || !(segmentPlugin?.id === "mp4" ||
@@ -9734,8 +9744,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 budget.checkCpu();
                 const seconds = packet.pts / track.timescale;
                 const reached = segmentFrames === undefined
-                  ? seconds >= (segmentTimes === undefined ? boundaries.length * segmentTime
-                    : segmentTimes[boundaries.length - 1] ?? Infinity)
+                  ? segmentTimes === undefined
+                    ? seconds >= boundaries.length * segmentTime &&
+                      Math.round((seconds - boundaries[boundaries.length - 1]!) * 1_000_000) >= Math.round(minSegmentDuration * 1_000_000)
+                    : seconds >= (segmentTimes[boundaries.length - 1] ?? Infinity)
                   : frame >= (segmentFrames[boundaries.length - 1] ?? Infinity);
                 if (seconds > boundaries[boundaries.length - 1]! && reached &&
                     (track.type !== "video" || packet.isKeyframe)) {

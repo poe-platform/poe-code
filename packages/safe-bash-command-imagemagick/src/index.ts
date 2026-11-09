@@ -1072,6 +1072,12 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
             if (data16) data16[i + channel] = Math.round(Math.max(0, Math.min(65535, value * 257)));
             out[i + channel] = data16 ? Math.round(data16[i + channel]! / 257) : clampByteVal(value);
         }
+        if (img.space === "b-w" || img.space === "grey16") {
+            // Native RGB channel writes share one gray sample; the blue row wins.
+            out[i] = out[i + 1] = out[i + 2]!;
+            if (data16) data16[i] = data16[i + 1] = data16[i + 2]!;
+            evaluateSamples[i] = evaluateSamples[i + 1] = evaluateSamples[i + 2]!;
+        }
     }
     return { ...img, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
 }

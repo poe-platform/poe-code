@@ -645,9 +645,15 @@ export function serializeMpegTs(
   // Build PMT (PID 0x1000)
   const streamEntries = tracks.map((track, index) => {
     const pid = startPid + index;
-    return new Uint8Array([
-      track.type === "video" ? 0x1b : options.mpegtsLatm ? 0x11 : 0x0f,
-      0xe0 | ((pid >>> 8) & 0x1f), pid & 0xff, 0xf0, 0x00
+    const language = track.type === "audio" ? track.language : undefined;
+    const languageDescriptor = language && language.length === 3
+      ? new Uint8Array([0x0a, 4, language.charCodeAt(0), language.charCodeAt(1), language.charCodeAt(2), 0])
+      : new Uint8Array(0);
+    return concatBytes([
+      new Uint8Array([
+        track.type === "video" ? 0x1b : options.mpegtsLatm ? 0x11 : 0x0f,
+        0xe0 | ((pid >>> 8) & 0x1f), pid & 0xff, 0xf0, languageDescriptor.length
+      ]), languageDescriptor
     ]);
   });
   const streamsBytes = concatBytes(streamEntries);
@@ -670,7 +676,9 @@ export function serializeMpegTs(
   new DataView(pmtSection.buffer).setUint32(pmtWithoutCrc.byteLength, pmtCrc, false);
   emitSectionPacket(0x1000, pmtSection);
 
-  // Emit video packets
+  const streams: Generator<Parameters<typeof emitPesPackets>>[] = [];
+
+  // Prepare one PES at a time per track.
   if (videoTrack) {
     const ts = videoTrack.timescale || 90000;
     const desc = videoTrack.codecDescriptions[0];
@@ -698,26 +706,28 @@ export function serializeMpegTs(
       });
     }
 
-    for (let i = 0; i < samples.length; i++) {
-      const s = samples[i]!;
-      const pts90k = Math.round((s.pts / ts) * 90000);
-      const dts90k = Math.round((s.dts / ts) * 90000);
-      const audNalu = new Uint8Array([0x00, 0x00, 0x00, 0x01, 0x09, 0xf0]);
-      const annexB = avccToAnnexB(
-        s.data,
-        lengthSize,
-        s.isKeyframe || i === 0 ? { sps: spsList, pps: ppsList } : undefined
-      );
-      emitPesPackets(
-        videoPid,
-        0xe0,
-        pts90k,
-        dts90k,
-        concatBytes([audNalu, annexB]),
-        s.isKeyframe || i === 0,
-        s.isKeyframe
-      );
-    }
+    streams.push((function* (): Generator<Parameters<typeof emitPesPackets>> {
+      for (let i = 0; i < samples.length; i++) {
+        const s = samples[i]!;
+        const pts90k = Math.round((s.pts / ts) * 90000);
+        const dts90k = Math.round((s.dts / ts) * 90000);
+        const audNalu = new Uint8Array([0x00, 0x00, 0x00, 0x01, 0x09, 0xf0]);
+        const annexB = avccToAnnexB(
+          s.data,
+          lengthSize,
+          s.isKeyframe || i === 0 ? { sps: spsList, pps: ppsList } : undefined
+        );
+        yield [
+          videoPid,
+          0xe0,
+          pts90k,
+          dts90k,
+          concatBytes([audNalu, annexB]),
+          s.isKeyframe || i === 0,
+          s.isKeyframe
+        ];
+      }
+    })());
   }
 
   // Emit audio packets
@@ -747,14 +757,31 @@ export function serializeMpegTs(
     }
 
     const latmPackets = options.mpegtsLatm ? serializeLatmPackets({ ...audioTrack, samples }) : undefined;
-    for (const [index, s] of samples.entries()) {
-      const pts90k = Math.round((s.pts / ts) * 90000);
-      const frame = latmPackets?.[index] ?? (
-        s.data.byteLength >= 7 && s.data[0] === 0xff && (s.data[1]! & 0xf0) === 0xf0
-          ? s.data
-          : wrapAdtsFrame(s.data, sampleRate, channels));
-      emitPesPackets(pid, 0xc0, pts90k, pts90k, frame, pid === pcrPid, s.isKeyframe);
+    streams.push((function* (): Generator<Parameters<typeof emitPesPackets>> {
+      for (const [index, s] of samples.entries()) {
+        const pts90k = Math.round((s.pts / ts) * 90000);
+        const frame = latmPackets?.[index] ?? (
+          s.data.byteLength >= 7 && s.data[0] === 0xff && (s.data[1]! & 0xf0) === 0xf0
+            ? s.data
+            : wrapAdtsFrame(s.data, sampleRate, channels));
+        yield [pid, 0xc0, pts90k, pts90k, frame, pid === pcrPid, s.isKeyframe];
+      }
+    })());
+  }
+
+  // Merge by decode time, retaining track order and per-PID continuity.
+  const pending = streams.map(stream => stream.next());
+  while (true) {
+    let next = -1;
+    for (let i = 0; i < pending.length; i++) {
+      const packet = pending[i]!;
+      if (!packet.done && (next < 0 || packet.value[3] < pending[next]!.value[3])) next = i;
     }
+    if (next < 0) break;
+    const packet = pending[next]!;
+    if (packet.done) break;
+    emitPesPackets(...packet.value);
+    pending[next] = streams[next]!.next();
   }
 
   return concatBytes(tsPackets);

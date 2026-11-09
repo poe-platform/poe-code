@@ -99,7 +99,7 @@ Read headerless RGB with `magick -size 2x1 rgb:input.dat output.png` (or `rgb:-`
 
 Raw RGB, RGBA, BGR, BGRA and grayscale output supports extensions (`out.rgb`) and explicit coders (`rgba:out.bin`, `gray:-`), including intermediate `-write` outputs.
 
-`-grayscale` and `-colorspace Gray` preserve 16-bit color and alpha, retaining calculated precision from 8-bit input for subsequent sepia or smush operations. `-sepia-tone` keeps grayscale pixels neutral: `-channel R` or `Gray` normalizes the gray sample, while `G` and `B` leave its normalization unchanged; alpha follows its own channel selection. `-colorspace HSB` (also spelled `HSV`), `-colorspace HSL`, and `-colorspace HWB` convert pixels and report hue with saturation/brightness, saturation/lightness, or whiteness/blackness; converting back to `sRGB` restores RGB pixels.
+`-grayscale` and `-colorspace Gray` preserve 16-bit color and alpha, retaining calculated precision from 8-bit input for subsequent sepia or smush operations. `-smush` and `+smush` retain HSL, HSB, XYZ and HWB color spaces and blend their channels before conversion back to sRGB. `-sepia-tone` keeps grayscale pixels neutral: `-channel R` or `Gray` normalizes the gray sample, while `G` and `B` leave its normalization unchanged; alpha follows its own channel selection. `-colorspace HSB` (also spelled `HSV`), `-colorspace HSL`, and `-colorspace HWB` convert pixels and report hue with saturation/brightness, saturation/lightness, or whiteness/blackness; converting back to `sRGB` restores RGB pixels.
 
 `-colorspace Lab` converts to working CIELab values for pixel inspection and connected-component analysis; converting back to `sRGB` restores RGB pixels.
 

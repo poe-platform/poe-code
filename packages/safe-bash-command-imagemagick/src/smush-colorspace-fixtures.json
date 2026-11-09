@@ -1,0 +1,14 @@
+[
+  {"space":"HSL","colors":["#dc0a1e","#0a28d2"],"background":"white","gap":"0","pixels":[220,10,30,255,10,40,210,255]},
+  {"space":"HSL","colors":["#33b078a6","white"],"background":"none","gap":"1","pixels":[51,176,120,166,0,0,0,0,255,255,255,255]},
+  {"space":"HSL","colors":["#dc0a1ea6","#0a28d280","#80808090"],"background":"#12345680","gap":"-1","pixels":[99,162,78,245]},
+  {"space":"HSB","colors":["#dc0a1e","#0a28d2"],"background":"white","gap":"0","pixels":[220,10,30,255,10,40,210,255]},
+  {"space":"HSB","colors":["#33b078a6","white"],"background":"none","gap":"1","pixels":[51,176,120,166,0,0,0,0,255,255,255,255]},
+  {"space":"HSB","colors":["#dc0a1ea6","#0a28d280","#80808090"],"background":"#12345680","gap":"-1","pixels":[115,158,101,245]},
+  {"space":"XYZ","colors":["#dc0a1e","#0a28d2"],"background":"white","gap":"0","pixels":[220,10,30,255,10,40,210,255]},
+  {"space":"XYZ","colors":["#33b078a6","white"],"background":"none","gap":"1","pixels":[51,176,120,166,0,0,0,0,255,255,244,255]},
+  {"space":"XYZ","colors":["#dc0a1ea6","#0a28d280","#80808090"],"background":"#12345680","gap":"-1","pixels":[130,106,146,245]},
+  {"space":"HWB","colors":["#dc0a1e","#0a28d2"],"background":"white","gap":"0","pixels":[220,10,30,255,10,40,210,255]},
+  {"space":"HWB","colors":["#33b078a6","white"],"background":"none","gap":"1","pixels":[51,176,120,166,255,0,0,0,255,255,255,255]},
+  {"space":"HWB","colors":["#dc0a1ea6","#0a28d280","#80808090"],"background":"#12345680","gap":"-1","pixels":[162,81,81,245]}
+]

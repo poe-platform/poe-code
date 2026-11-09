@@ -64,8 +64,22 @@ export function quote(value: string, env: CommandContext["env"]): string {
   const escapes: Readonly<Record<string, string>> = { "\x07": "\\a", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t", "\v": "\\v", "\\": "\\\\", "'": utf8 ? "'" : "\\'" };
   // Diagnostics use byte-valued strings, including the UTF-8 quotation marks.
   let result = utf8 ? "\xe2\x80\x98" : "'";
-  for (const character of value) {
+  const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+  for (let index = 0; index < value.length; index++) {
+    const character = value[index]!;
     const code = character.charCodeAt(0);
+    if (utf8 && code >= 0xc2 && code <= 0xf4) {
+      const width = code < 0xe0 ? 2 : code < 0xf0 ? 3 : 4;
+      const candidate = value.slice(index, index + width);
+      let decoded: string | undefined;
+      try { decoded = decoder.decode(bytes(candidate)); }
+      catch { /* Invalid UTF-8 remains byte-escaped below. */ }
+      if (decoded !== undefined && !/[\p{Cc}\p{Cs}\p{Cn}\p{Zl}\p{Zp}]/u.test(decoded)) {
+        result += decoded === "’" ? `\\${candidate}` : candidate;
+        index += width - 1;
+        continue;
+      }
+    }
     result += escapes[character] ?? (code >= 32 && code < 127 ? character : `\\${code.toString(8).padStart(3, "0")}`);
   }
   return result + (utf8 ? "\xe2\x80\x99" : "'");

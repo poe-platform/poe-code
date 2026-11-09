@@ -438,6 +438,8 @@ Expressions support arithmetic, `val(channel)`, `ch`,
 layout and repeats the last expression when needed. `aeval=abs(val(1))` rectifies negative
 right-channel samples; `abs(x)` also accepts constants and arithmetic expressions. `sin(x)` takes radians, and
 `PI` is available for waveforms such as `aeval=sin(PI*n/2)/2`.
+`aeval=sqrt(val(ch)):c=same` takes each channel sample’s square root. Negative
+roots remain NaN during evaluation and encode as zero in PCM16 output.
 `sgn(x)` returns -1, 0, or 1 for negative, zero, or positive values;
 `aeval=sgn(val(ch))/10:c=same` extracts each channel’s sign at one-tenth amplitude.
 `enable=0` bypasses the filter; `enable=1` applies it. Timeline expressions use

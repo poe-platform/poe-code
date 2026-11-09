@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { predicateCommands } from "../../src/commands/predicates.js";
+import { filesystemCommands } from "../../src/commands/filesystem.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { FsError } from "../../src/contracts/index.js";
 import { setup } from "./helpers.js";
@@ -227,5 +230,94 @@ for (const [command, closing] of [["[[", " ]]"], ["test", ""], ["[", " ]"]] as c
         assert.equal(result.stderr, "", source);
       }
     }
+  });
+}
+
+for (const [command, closing] of [["[[", " ]]"], ["test", ""], ["[", " ]"]] as const) {
+  test(`${command} tests open file descriptors without consuming their input`, async t => {
+    const { fs, shell } = setup();
+    shell.use(async (_context, next) => next());
+    t.after(() => shell.dispose());
+    for (const definition of predicateCommands()) shell.commands.register(definition);
+    await fs.writeFile("/sample", new TextEncoder().encode("data\n"));
+    const result = await shell.exec(`
+      exec 3<sample
+      ${command} -f /dev/fd/3${closing}; say "file=$?"
+      ${command} -s /dev/fd/3${closing}; say "size=$?"
+      ${command} /dev/fd/3 -ef sample${closing}; say "same=$?"
+      exec 4<&3
+      exec 3<&-
+      ${command} -e /dev/fd/3${closing}; say "closed=$?"
+      ${command} -f /dev/fd/4${closing}; say "copy=$?"
+      IFS= read -r line <&4; say "$line"
+      exec 4<&-
+      exec 0<sample
+      ${command} -f /dev/stdin${closing}; say "stdin=$?"
+      IFS= read -r line; say "$line"
+    `);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "file=0\nsize=0\nsame=0\nclosed=1\ncopy=0\ndata\nstdin=0\ndata\n");
+  });
+}
+
+for (const [command, closing] of [["[[", " ]]"], ["test", ""], ["[", " ]"]] as const) {
+  test(`${command} retains descriptor metadata after rename, replacement and unlink`, async t => {
+    const { fs, shell } = setup();
+    t.after(() => shell.dispose());
+    for (const definition of [...predicateCommands(), ...filesystemCommands()]) shell.commands.register(definition);
+    await fs.writeFile("/sample", new TextEncoder().encode("data\n"));
+    const result = await shell.exec(`
+      exec 3<>sample
+      mv sample moved
+      : >sample
+      ${command} -f /dev/fd/3${closing}; say "file=$?"
+      ${command} -s /dev/fd/3${closing}; say "size=$?"
+      ${command} /dev/fd/3 -ef moved${closing}; say "moved=$?"
+      ${command} /dev/fd/3 -ef sample${closing}; say "replacement=$?"
+      rm moved
+      ${command} -s /dev/fd/3${closing}; say "unlinked=$?"
+      IFS= read -r line <&3; say "$line"
+    `);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "file=0\nsize=0\nmoved=0\nreplacement=1\nunlinked=0\ndata\n");
+  });
+
+  test(`${command} descriptor aliases match native bash without accessing virtual /dev`, async t => {
+    const { fs, shell } = setup();
+    t.after(() => shell.dispose());
+    for (const definition of [...predicateCommands(), ...basicCommands()]) shell.commands.register(definition);
+    const fixture = fileURLToPath(new URL("./helpers.ts", import.meta.url));
+    await fs.writeFile("/sample", readFileSync(fixture));
+    const source = `
+      exec 3<"$1"
+      ${command} -f /dev/fd/3${closing}; echo "file=$?"
+      ${command} -s /dev/fd/3${closing}; echo "size=$?"
+      ${command} -d /dev/fd/3${closing}; echo "directory=$?"
+      ${command} -e /dev/fd/99${closing}; echo "missing=$?"
+      ${command} -f /dev/stdout${closing} 1<&3; echo "stdout=$?"
+      ${command} -f /dev/stderr${closing} 2<&3; echo "stderr=$?"
+      ${command} -f /dev/stdin${closing} <&3; echo "stdin=$?"
+      IFS= read -r line <&3; echo "$line"
+      exec 3<&-
+      ${command} -e /dev/fd/3${closing}; echo "closed=$?"
+    `;
+    const oracle = spawnSync("bash", ["--noprofile", "--norc", "-c", source, "bash", fixture], {
+      encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C", BASH_ENV: "/dev/null" },
+    });
+    assert.equal(oracle.error, undefined);
+    assert.equal(oracle.signal, null);
+    assert.equal(oracle.status, 0);
+    assert.equal(oracle.stderr, "");
+    const stat = fs.stat.bind(fs);
+    fs.stat = async (path, options) => {
+      assert.ok(!path.startsWith("/dev/"), `unexpected filesystem lookup: ${path}`);
+      return stat(path, options);
+    };
+    const result = await shell.exec(`set -- /sample\n${source}`);
+    assert.equal(result.exitCode, oracle.status);
+    assert.equal(result.stderr, oracle.stderr);
+    assert.equal(result.stdout, oracle.stdout);
   });
 }

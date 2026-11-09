@@ -1,9 +1,9 @@
 import { compareUtf8 } from "../byte-encoding.js";
-import { FsError, type CommandContext, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
+import { FsError, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { codeOf, define, pathOf, UsageError } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { predicateRequirements } from "./portable-requirements.js";
-import { evaluateFilePredicate, type PredicateIdentity } from "./file-predicates.js";
+import { filePredicateMetadata, evaluateFilePredicate, type PredicateIdentity } from "./file-predicates.js";
 
 import { variablePresence } from "./variable-presence.js";
 
@@ -13,21 +13,6 @@ const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s
 const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
 const numeric = new Set(["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]);
 export const defaultPredicateExecutors = new WeakSet<CommandHandler>();
-
-async function metadata(context: CommandContext, path: string, link = false): Promise<FileStat | undefined> {
-  assertCommandRequirements(context, predicateRequirements, ["metadata"]);
-  try {
-    // The non-mutating exclusive query preserves the final link, matching lstat.
-    if (context.fs.capabilitiesFor) assertCommandRequirements(context, predicateRequirements, ["metadata"],
-      await context.fs.capabilitiesFor(pathOf(context, path), { signal: context.signal, ...(link ? { creation: "exclusive" as const } : {}) }));
-    return await context.fs[link ? "lstat" : "stat"](pathOf(context, path), { signal: context.signal });
-  }
-  catch (error) {
-    context.signal.throwIfAborted();
-    if (["ENOENT", "ENOTDIR", "EACCES", "ELOOP"].includes(codeOf(error) ?? "")) return undefined;
-    throw error;
-  }
-}
 
 export function predicateCommands(identity: { readonly effectiveUid?: number; readonly effectiveGid?: number } = {}): CommandDefinition[] {
   for (const id of [identity.effectiveUid, identity.effectiveGid]) {
@@ -141,7 +126,7 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
           if (["-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G", "-N"].includes(token)) {
             return evaluateFilePredicate(context, token, operand, undefined, context.capabilities?.predicateIdentity as PredicateIdentity | undefined ?? identity);
           }
-          const stat = await metadata(context, operand, token === "-L" || token === "-h");
+          const stat = await filePredicateMetadata(context, operand, token === "-L" || token === "-h");
           if (!stat) return false;
           if (token === "-f") return stat.type === "file";
           if (token === "-c") return stat.type === "character";

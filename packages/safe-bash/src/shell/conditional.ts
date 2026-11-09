@@ -8,7 +8,7 @@ import type { Word } from "./parser.js";
 import { matchesPattern } from "./pattern.js";
 import { cCollation, utf8Locale } from "./locale.js";
 import type { StringWork } from "./string-operations.js";
-import { evaluateFilePredicate, type PredicateIdentity } from "../commands/file-predicates.js";
+import { filePredicateMetadata, evaluateFilePredicate, type PredicateIdentity } from "../commands/file-predicates.js";
 
 export type ConditionalExpression =
   | { kind: "nonempty"; operand: Word }
@@ -107,7 +107,6 @@ async function unary(operator: string, value: string, context: ConditionalContex
   }
   if (!["-e", "-a", "-f", "-d", "-c", "-s", "-L", "-h", "-r", "-w", "-x"].includes(operator)) unsupported(operator);
   if (value === "") return false;
-  if (/^\/dev\/(?:fd(?:\/|$)|stdin$|stdout$|stderr$)/u.test(value)) unsupported("descriptor predicate");
   const access = ["-r", "-w", "-x"].includes(operator);
   try {
     if (access) {
@@ -116,8 +115,9 @@ async function unary(operator: string, value: string, context: ConditionalContex
       await context.fs.access(pathOf(context, value), operator === "-r" ? 4 : operator === "-w" ? 2 : 1, { signal: context.signal });
       context.signal.throwIfAborted(); return true;
     }
-    const metadata = await (operator === "-L" || operator === "-h" ? context.fs.lstat(pathOf(context, value), { signal: context.signal }) : context.fs.stat(pathOf(context, value), { signal: context.signal }));
+    const metadata = await filePredicateMetadata(context, value, operator === "-L" || operator === "-h");
     context.signal.throwIfAborted();
+    if (!metadata) return false;
     if (operator === "-f") return metadata.type === "file";
     if (operator === "-c") return metadata.type === "character";
     if (operator === "-d") return metadata.type === "directory";

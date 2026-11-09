@@ -11,9 +11,9 @@ export interface PredicateIdentity {
 
 type FilePredicateContext = Pick<CommandContext, "fs" | "cwd" | "signal"> & { readonly command?: string; readonly shellPredicates?: Pick<NonNullable<CommandContext["shellPredicates"]>, "descriptorStat"> };
 
-async function metadata(context: FilePredicateContext, path: string): Promise<FileStat | undefined> {
+export async function filePredicateMetadata(context: FilePredicateContext, path: string, link = false): Promise<FileStat | undefined> {
   const descriptorStat = context.shellPredicates?.descriptorStat;
-  if (descriptorStat) {
+  if (!link && descriptorStat) {
     const name = path.startsWith("/dev/fd/") ? path.slice(8) : "";
     const descriptor = path === "/dev/stdin" ? 0 : path === "/dev/stdout" ? 1 : path === "/dev/stderr" ? 2
       : name.length > 0 && [...name].every(character => character >= "0" && character <= "9") ? Number(name) : undefined;
@@ -27,8 +27,8 @@ async function metadata(context: FilePredicateContext, path: string): Promise<Fi
   assertCommandRequirements(requirementsContext, predicateRequirements, ["metadata"]);
   try {
     if (context.fs.capabilitiesFor) assertCommandRequirements(requirementsContext, predicateRequirements, ["metadata"],
-      await context.fs.capabilitiesFor(pathOf(context, path), { signal: context.signal }));
-    const stat = await context.fs.stat(pathOf(context, path), { signal: context.signal });
+      await context.fs.capabilitiesFor(pathOf(context, path), { signal: context.signal, ...(link ? { creation: "exclusive" as const } : {}) }));
+    const stat = await context.fs[link ? "lstat" : "stat"](pathOf(context, path), { signal: context.signal });
     context.signal.throwIfAborted();
     return stat;
   } catch (error) {
@@ -39,9 +39,9 @@ async function metadata(context: FilePredicateContext, path: string): Promise<Fi
 }
 
 export async function evaluateFilePredicate(context: FilePredicateContext, operator: string, left: string, right?: string, identity: PredicateIdentity = {}): Promise<boolean> {
-  const first = await metadata(context, left);
+  const first = await filePredicateMetadata(context, left);
   if (right !== undefined) {
-    const second = await metadata(context, right);
+    const second = await filePredicateMetadata(context, right);
     if (operator === "-nt") return first !== undefined && (!second || first.mtimeMs > second.mtimeMs);
     if (operator === "-ot") return second !== undefined && (!first || first.mtimeMs < second.mtimeMs);
     const comparison = compareCopyIdentity(first, second);

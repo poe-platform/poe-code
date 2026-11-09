@@ -214,6 +214,10 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   File predicates in `[[ … ]]`, `test` and `[` evaluate symlink traversal loops
   as false; `-L`/`-h` still recognize the link itself. Access checks `-r`/`-w`/`-x`
   evaluate denied access as false, and `-N` compares modification and access times.
+  Metadata predicates such as `-e`, `-f`, `-s` and `-ef` inspect open virtual files
+  through `/dev/fd/N`, `/dev/stdin`, `/dev/stdout` and `/dev/stderr` without
+  consuming input. Closed descriptors and streams without file metadata test
+  false; descriptors remain nonterminal.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
   runs a script in the current shell. `BASH_SOURCE` tracks script and function
   definition paths, so `${BASH_SOURCE[0]%/*}` locates sibling files.

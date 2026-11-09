@@ -969,7 +969,7 @@ export interface State extends DynamicVariableState {
   callerFrames?: (CallerFrame & { readonly routine: string })[];
   callerTopLevel?: boolean;
   shellStartedAt?: number;
-  hashedCommands?: Map<string, string>;
+  hashedCommands?: Map<string, { path: string; hits: number }>;
 }
 export const declarationArrays = Symbol("declarationArrays");
 export function captureCallerFrame(state: State, io: IO, routine: string, line = io.diagnosticLine ?? 1): CallerFrame & { readonly routine: string } {
@@ -1657,6 +1657,7 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
   if (raw.sourceNames) cloned.sourceNames = [...raw.sourceNames];
   if (raw.callerFrames) cloned.callerFrames = [...raw.callerFrames];
   if (raw.aliases) cloned.aliases = new Map(raw.aliases);
+  if (raw.hashedCommands) cloned.hashedCommands = new Map([...raw.hashedCommands].map(([name, entry]) => [name, { ...entry }]));
   if (raw.loopDepth > 0 || (raw as { _subshellInLoop?: boolean })._subshellInLoop) {
     (cloned as { _subshellInLoop?: boolean })._subshellInLoop = true;
   }
@@ -1761,6 +1762,7 @@ export function hasActiveVariableAttributes(state: State): boolean {
   return false;
 }
 export function publishVariable(state: State, name: string, value: ShellValue): void {
+  if (name === "PATH") state.hashedCommands?.clear();
   const monitor = stateMonitor(state);
   if (monitor) {
     if (typeof value === "string") {
@@ -2964,6 +2966,7 @@ export class Runtime {
     if (dereference) name = this.referenceName(state, name);
     if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
     delete state.variables[name];
+    if (name === "PATH") state.hashedCommands?.clear();
     if (name === "RANDOM") state.randomDisabled = true;
     if (name === "SECONDS") state.secondsDisabled = true;
     state.exported.delete(name);
@@ -6657,8 +6660,16 @@ export class Runtime {
             return { exitCode: await this.interpreter(virtualName ? this.virtualExecutionContext(context, virtualName) : context, state, io) };
           }
           if (context.command.includes("/") || !defaultPath && state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
-          const [target] = await this.searchPaths(context.command, state, false, false, defaultPath);
-          if (target !== undefined) return { exitCode: await this.scriptFile(context, state, io, target, context.args, true) };
+          const cached = defaultPath ? undefined : state.hashedCommands?.get(context.command);
+          const target = cached?.path ?? (await this.searchPaths(context.command, state, false, false, defaultPath))[0];
+          if (target !== undefined) {
+            if (!defaultPath) {
+              const entry = cached ?? { path: target, hits: 0 };
+              entry.hits++;
+              (state.hashedCommands ??= new Map()).set(context.command, entry);
+            }
+            return { exitCode: await this.scriptFile(context, state, io, target, context.args, true) };
+          }
           const localeValue = (key: string) => temporaryEnvironment?.has(key) && !previous?.has(key)
             ? temporaryEnvironment.get(key)!.value ?? "" : state.variables[key] ?? "";
           const displayed = diagnosticCommandName(commandName, byteLocale({
@@ -6813,7 +6824,8 @@ export class Runtime {
       if (mode === "path" && (matches[0]?.kind === "command" && !shellBuiltinNames.has(name)
         || matches[0]?.kind === "interpreter")) matches = [];
       if (all || !matches.length) {
-        const paths = await this.searchPaths(name, state, all, true, defaultPath);
+        const cached = !all && !defaultPath ? state.hashedCommands?.get(name) : undefined;
+        const paths = cached ? [cached.path] : await this.searchPaths(name, state, all, true, defaultPath);
         matches.push(...paths.map(path => {
           const absolute = command && mode === "describe";
           if ((absolute || state.profile === "sh") && !name.includes("/") && !path.startsWith("/")) {
@@ -8288,14 +8300,15 @@ export class Runtime {
       }
       if (hashArgs.length === 0) {
         if (!reset && state.hashedCommands?.size) {
+          if (!listMode) await writeText(stdout, "hits\tcommand\n");
           for (const [name, target] of state.hashedCommands) {
-            await writeText(stdout, listMode ? `builtin hash -p ${target} ${name}\n` : `0\t${target}\n`);
+            await writeText(stdout, listMode ? `builtin hash -p ${target.path} ${name}\n` : `${String(target.hits).padStart(4)}\t${target.path}\n`);
           }
         }
         return 0;
       }
       let status = 0;
-      const table = (state.hashedCommands ??= new Map<string, string>());
+      const table = (state.hashedCommands ??= new Map());
       for (const name of hashArgs) {
         if (deleteMode) {
           if (!table.delete(name)) {
@@ -8305,11 +8318,11 @@ export class Runtime {
           continue;
         }
         if (customPath !== undefined) {
-          table.set(name, customPath);
+          table.set(name, { path: customPath, hits: 0 });
           continue;
         }
         if (printTarget) {
-          const existing = table.get(name);
+          const existing = table.get(name)?.path;
           if (existing === undefined) {
             await this.diagnostic(context, `hash: ${name}: not found`);
             status = 1;
@@ -8319,7 +8332,7 @@ export class Runtime {
           continue;
         }
         const [resolved] = await this.searchPaths(name, state, false, true, false);
-        if (resolved !== undefined) table.set(name, resolved); else if (!shellBuiltinNames.has(name) && !this.commands.has(name) && name !== "bash" && name !== "sh" && name !== "zsh") {
+        if (resolved !== undefined) table.set(name, { path: resolved, hits: 0 }); else if (!shellBuiltinNames.has(name) && !this.commands.has(name) && name !== "bash" && name !== "sh" && name !== "zsh") {
           await this.diagnostic(context, `hash: ${name}: not found`);
           status = 1;
         }

@@ -107,7 +107,6 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seek
     header.byteLength = Math.min(end, riffEnd);
     header.dataSize = Math.min(header.dataSize, Math.max(0, end - header.dataOffset));
   };
-  const labels = new Map<number, string>();
   const cueIndices = new Map<number, number>();
   const chunkHeader = wave64 ? 24 : 8;
   while (pos + chunkHeader <= Math.min(byteLength, riffEnd)) {
@@ -266,7 +265,9 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seek
             }
             title += decoder.decode();
             const zero = title.indexOf("\0");
-            labels.set(id, zero < 0 ? title : title.slice(0, zero));
+            // FFmpeg resolves labels only against cue IDs encountered so far.
+            const index = cueIndices.get(id);
+            if (index !== undefined) header.cues![index]!.title = zero < 0 ? title : title.slice(0, zero);
           }
           offset += 8 + length + (length & 1);
         }
@@ -305,10 +306,6 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seek
   if (header.dataChunks) {
     for (const chunk of header.dataChunks) chunk.size = Math.min(chunk.size, Math.max(0, header.byteLength - chunk.offset));
     header.dataSize = header.dataChunks.reduce((sum, chunk) => sum + chunk.size, 0);
-  }
-  for (const cue of header.cues ?? []) {
-    const title = labels.get(cue.id);
-    if (title !== undefined) cue.title = title;
   }
   return header;
 }

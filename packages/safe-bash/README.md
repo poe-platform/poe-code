@@ -905,12 +905,14 @@ and credential protections remain in effect.
 
 - This is a Bash-like interpreter, not full Bash or POSIX certification. No
   background jobs/job control, `exec`,
-  associative arrays, or C-style `for ((…))` loops. `shopt` supports `dotglob`,
+  associative arrays, or C-style `for ((…))` loops. `shopt` supports `checkhash`, `dotglob`,
   `globskipdots`, `globstar`, `nullglob`, `nocaseglob`, `nocasematch`, `lastpipe`, `failglob`,
   `inherit_errexit`, `expand_aliases`, and `xpg_echo`, plus `-o` for supported
   `set` options. `shopt -s extglob` enables extended patterns, including parameter trimming.
   Enable it on a preceding line before using unquoted extended patterns; syntax on the
   same command line or inside a function body is parsed before that line executes.
+  `checkhash` defaults off: a removed cached executable fails with status 127.
+  `shopt -s checkhash` searches `PATH` again when a cached executable is no longer usable.
   `shopt -s xpg_echo` enables backslash escapes in builtin `echo`; `echo -E` disables them for that call.
   Process substitutions use temporary files in virtual `TMPDIR` (default `/tmp`),
   requiring a writable temporary directory. They buffer data rather than running

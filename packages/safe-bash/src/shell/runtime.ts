@@ -937,6 +937,7 @@ export interface State extends DynamicVariableState {
   getopts?: GetoptsBinding | undefined;
   directoryStack?: { readonly entries: readonly string[]; readonly bytes: number } | undefined;
   directoryStackCwdPublication?: symbol;
+  checkhash?: boolean;
   dotglob?: boolean;
   globskipdots?: boolean;
   extglob?: boolean;
@@ -6661,7 +6662,11 @@ export class Runtime {
             return { exitCode: await this.interpreter(virtualName ? this.virtualExecutionContext(context, virtualName) : context, state, io) };
           }
           if (context.command.includes("/") || !defaultPath && state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
-          const cached = defaultPath ? undefined : state.hashedCommands?.get(context.command);
+          let cached = defaultPath ? undefined : state.hashedCommands?.get(context.command);
+          if (cached && state.checkhash && !(await this.searchPaths(pathOf(state, cached.path), state, false, true)).length) {
+            state.hashedCommands!.delete(context.command);
+            cached = undefined;
+          }
           const target = cached?.path ?? (await this.searchPaths(context.command, state, false, false, defaultPath))[0];
           if (target !== undefined) {
             if (!defaultPath) {
@@ -7993,7 +7998,7 @@ export class Runtime {
       return 1;
     }
     const options = new Map<string, { enabled: boolean }>();
-    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["dotglob", "expand_aliases", "extglob", "failglob", "globskipdots", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob", "xpg_echo"] as const) {
+    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["checkhash", "dotglob", "expand_aliases", "extglob", "failglob", "globskipdots", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob", "xpg_echo"] as const) {
       options.set(name, {
         get enabled() { return name === "braceexpand" || name === "globskipdots" ? state[name] !== false : !!state[name]; }, set enabled(value) { state[name] = value; }, });
     }

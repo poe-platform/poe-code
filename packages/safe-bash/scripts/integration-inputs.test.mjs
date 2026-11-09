@@ -90,6 +90,7 @@ test("LLM calling and input admission regressions remain in active discovery", (
 
 test("shell option and alias regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/checkhash.test.ts"));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/shopt-runtime.test.ts"));
 });
 

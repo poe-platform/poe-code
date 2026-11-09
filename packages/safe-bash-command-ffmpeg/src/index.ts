@@ -44,7 +44,7 @@ import { measureEbur128 } from "./audio-ebur128.js";
 import { crc32Table, serializeFrameChecksum } from "./frame-checksum.js";
 import { murmur3 } from "./murmur3.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
-import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
+import { sha224, sha256, sha384, sha512, sha512_224, sha512_256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { createFfprobeCommand } from "safe-bash-command-ffprobe";
 export { createFfprobeCommand } from "safe-bash-command-ffprobe";
@@ -265,7 +265,7 @@ function serializeChecksum(
   if (name === "murmur3") {
     return encodeUtf8(`murmur3=${bytesToHex(murmur3(packets.map(packet => packet.bytes), budget))}\n`);
   }
-  const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512 };
+  const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512, "sha512/224": sha512_224, "sha512/256": sha512_256 };
   if (!Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
   const hash = hashes[name as keyof typeof hashes].create();
   for (const { bytes } of packets) {

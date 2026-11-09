@@ -143,7 +143,8 @@ Use `-map 0:a -map 1:a -f streamhash -` for a separate digest per mapped audio
 stream, in output order, labeled `0,a,SHA256=...`, `1,a,SHA256=...`, and so on.
 With `-c:a adpcm_ima_wav` or `-c:a flac`, stream hashes cover the encoder's compressed packets, excluding container headers, and honor the codec's encoding options.
 Video with retained native pixel planes (including YUV420 Y4M input) is also supported: checksums cover frame pixels without container headers, and `streamhash` labels video streams with `v`.
-Hash selection supports CRC32, MD5, SHA160, SHA224, SHA256, SHA384, and SHA512. `hash` and `streamhash` also support case-insensitive `adler32` selection and emit the native lowercase `adler32` label.
+Hash selection supports CRC32, MD5, SHA160, SHA224, SHA256, SHA384, SHA512,
+SHA512/224, and SHA512/256. `hash` and `streamhash` also support case-insensitive `adler32` selection and emit the native lowercase `adler32` label.
 Whole-output and per-stream hashes also accept `-hash murmur3` case-insensitively,
 emitting FFmpeg's native 128-bit digest with the lowercase `murmur3` label.
 Audio filters and explicit PCM encoders apply before hashing; `-c:a copy` hashes

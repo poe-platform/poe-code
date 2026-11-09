@@ -6264,10 +6264,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     if (token === "-colorspace" || token === "-grayscale" || token === "-type") {
         const value = tokens[++i];
         const imageType = token === "-type" ? (value ?? "").toLowerCase() : undefined;
-        if (imageType !== undefined && !["bilevel", "grayscale", "grayscalealpha"].includes(imageType)) {
+        if (imageType !== undefined && !["bilevel", "grayscale", "grayscalealpha", "truecoloralpha", "palette"].includes(imageType)) {
             throw new Error(`unsupported image type '${value ?? ""}'`);
         }
-        const space = imageType === undefined ? (value ?? "gray").toLowerCase() : "gray";
+        const space = imageType === undefined ? (value ?? "gray").toLowerCase()
+            : imageType === "truecoloralpha" || imageType === "palette" ? "srgb" : "gray";
         if (token === "-grayscale" && !["average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(space)) {
             throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
         }
@@ -6295,6 +6296,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const { magickColorspace: ignored, ...metadata } = image;
                 image = { ...metadata, data, data16, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: "RGB" as const } : {}) };
                 if (linearize) return image;
+            }
+            if (imageType === "truecoloralpha" || imageType === "palette") {
+                const hasAlpha = imageType === "truecoloralpha";
+                // Enabling absent alpha makes it opaque; Palette discards alpha without compositing RGB.
+                if (!hasAlpha || !image.hasAlpha) image = yield* prepareInactiveAlphaOutput({ ...image, hasAlpha: false });
+                return { ...image, isPalette: !hasAlpha, hasAlpha, channels: hasAlpha ? 4 : 3, space: "srgb" };
             }
             if (space === "cmyk") return yield* convertCmykPixels(image);
             if (space === "lab" || space === "cielab") return yield* convertHuePixels(image, "CIELab");
@@ -7990,11 +7997,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (pixelOperation.warning) analysis.warnings += pixelOperation.warning;
             if (t === "-contrast" || t === "+contrast") analysis.warnings += `magick: option has been replaced '${t}', use "${t[0]}level"\n`;
             i = pixelOperation.end;
-            stack = yield* mapMagickImagesSteps(stack, image => {
+            const palette = t === "-type" && tokens[i]?.toLowerCase() === "palette";
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const { evaluateSamples: ignoredEvaluate, ...bounded } = image;
                 const input = pixelOperation.evaluate ? image : bounded;
                 const { data16: ignored, ...pixels } = input;
-                return pixelOperation.apply(pixelOperation.highDepth ? input : pixels);
+                const converted = yield* pixelOperation.apply(pixelOperation.highDepth ? input : pixels);
+                return palette ? yield* applyMagickRasterSteps(converted, quantizePixelSteps(converted.data.length, 256), signal) : converted;
             }, pixelOperation.maskAlpha);
         }
         else if (warpOperation) {
@@ -9888,7 +9897,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             i = pixelOperation.end;
-            steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => image ? transformStoredMagickPixels(image, backend, pixelOperation, signal) : undefined, { maskAlpha: pixelOperation.maskAlpha }));
+            const palette = token === "-type" && tokens[i]?.toLowerCase() === "palette";
+            steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
+                if (!image) return;
+                const converted = await transformStoredMagickPixels(image, backend, pixelOperation, signal);
+                return palette ? transformStoredMagickRaster(converted, backend, quantizePixelSteps(image.width * image.height * 4, 256), signal) : converted;
+            }, { maskAlpha: pixelOperation.maskAlpha }));
             continue;
         }
         if (!operandsOnly && token === "-hough-lines") {

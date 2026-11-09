@@ -104,7 +104,7 @@ export async function* encodeGifFromStorage(
     }
     if (transdiff) transparent = true;
     const disposal = resetFrames ? 3 : options.optimizeFrames && currentDisposal <= 1 ? 1 : frameDisposal;
-    yield gifFrameHeader(image, palette, options, layout, frame, transparent, frameDelay, disposal, { left, top, width, height, comment: rectangle?.comment });
+    yield gifFrameHeader(image, palette, options, layout, frame, transparent, frameDelay, disposal, { left, top, width, height, comment: rectangle?.comment, gifCommentBytes: rectangle?.gifCommentBytes });
     const codes = new GifCodes();
     codes.code(256);
     let emitted = 0;

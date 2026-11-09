@@ -3436,6 +3436,7 @@ export const gifInputVectors: GifInputVector[] = [
     options: { animated: true },
     metadata: {
       properties: {comment: "x".repeat(100003)},
+      gifCommentBytes: new Uint8Array(100003).fill(120),
       format: "gif",
       width: 9,
       height: 44,
@@ -3452,6 +3453,7 @@ export const gifInputVectors: GifInputVector[] = [
     },
     expected: {
       properties: {comment: "x".repeat(100003)},
+      gifCommentBytes: new Uint8Array(100003).fill(120),
       width: 9,
       height: 44,
       format: "gif",

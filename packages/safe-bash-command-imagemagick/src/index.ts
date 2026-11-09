@@ -6810,7 +6810,7 @@ function* prepareGifFrames(stack: readonly MagickImage[], dither: MagickState["d
         pageHeight: fh,
         delay: delays,
         disposal: disposals,
-        gifFrames: stack.map(frame => ({ comment: frame.properties?.comment, width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 })),
+        gifFrames: stack.map(frame => ({ comment: frame.properties?.comment, gifCommentBytes: frame.gifCommentBytes, width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 })),
         data: combined
     };
 }
@@ -6836,7 +6836,7 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
     return { ...metadata, position, width, height: height * stack.length, pages: stack.length, pageHeight: height,
         storedGifFrame: { async at(index) {
             const frame = (await stack.get(index))!;
-            return { comment: frame.properties?.comment, width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 };
+            return { comment: frame.properties?.comment, gifCommentBytes: frame.gifCommentBytes, width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 };
         } },
         storedDisposal: { length: stack.length, async at(index) {
             const frame = (await stack.get(index))!;

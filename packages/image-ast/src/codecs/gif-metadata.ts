@@ -5,7 +5,7 @@ export function isGifBytes(bytes:Uint8Array):boolean {
 }
 
 /** Read requests and frame events keep the shared animation scanner independent of storage. */
-export function* gifAnimationSteps(size:number,start:number,page=0):Generator<number|{frame:number;delay:number},{frames:number;loop:number|undefined;properties?:Record<string,string>},number|undefined> {
+export function* gifAnimationSteps(size:number,start:number,page=0):Generator<number|{frame:number;delay:number},{frames:number;loop:number|undefined;properties?:Record<string,string>;gifCommentBytes?:Uint8Array},number|undefined> {
  const skip=function*(at:number):Generator<number,number,number|undefined>{while(at<size){const length=(yield at++)??0;if(!length)break;at+=length;}return at;};
  const word=function*(at:number):Generator<number,number,number|undefined>{return ((yield at)??0)|(((yield at+1)??0)<<8);};
  let comments: number[] = [];
@@ -36,8 +36,9 @@ export function* gifAnimationSteps(size:number,start:number,page=0):Generator<nu
    const flags=(yield at+8)??0;at+=9;if(flags&128)at+=3*(1<<((flags&7)+1));at=yield* skip(at+1);
   }else break;
  }
+ const gifCommentBytes = new Uint8Array(comments);
  // Without a looping extension, an animation plays exactly once.
- return {frames,loop:loop ?? (frames>1?1:undefined),...(comments.length?{properties:{comment:new TextDecoder().decode(new Uint8Array(comments))}}:{})};
+ return {frames,loop:loop ?? (frames>1?1:undefined),...(comments.length?{properties:{comment:new TextDecoder().decode(gifCommentBytes)},gifCommentBytes}:{})};
 }
 
 export function gifMetadataFields(width:number,height:number,size:number,frames:number,loop:number|undefined,options?:Pick<SharpInputOptions,"animated"|"page"|"pages">):ImageMetadata {

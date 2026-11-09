@@ -11,7 +11,7 @@ export interface GifOptions {
   readonly optimizeFrames?: boolean;
   readonly gifTransdiff?: boolean;
 }
-export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal" | "virtualCanvas" | "gifFrames" | "backgroundColor" | "properties">;
+export type GifImage = Pick<RgbaImage, "width" | "height" | "pageHeight" | "delay" | "loop" | "disposal" | "virtualCanvas" | "gifFrames" | "backgroundColor" | "properties" | "gifCommentBytes">;
 /** The wire palette is fixed at 256 entries, independent of raster size. */
 export class GifPalette {
   readonly bytes = new Uint8Array(768);
@@ -169,7 +169,7 @@ export function gifFrameHeader(
   transparent: boolean,
   frameDelay = image.delay?.[frame],
   frameDisposal = typeof image.disposal === "number" ? image.disposal : image.disposal?.[frame],
-  rectangle: { left: number; top: number; width: number; height: number; comment?: string | undefined } = { left: 0, top: 0, width: layout.width, height: layout.frameHeight }
+  rectangle: { left: number; top: number; width: number; height: number; comment?: string | undefined; gifCommentBytes?: Uint8Array | undefined } = { left: 0, top: 0, width: layout.width, height: layout.frameHeight }
 ) {
   const { frames } = layout,
     { width, height } = rectangle,
@@ -181,7 +181,9 @@ export function gifFrameHeader(
         ? options.delay
         : (frameDelay ?? (frames > 1 ? 100 : 0)),
     centiseconds = Math.max(0, Math.round(delay / 10));
-  const bytes = new TextEncoder().encode(options.gifVersion === "87a" ? "" : rectangle.comment ?? (frame === 0 ? image.properties?.comment ?? "" : ""));
+  const text = options.gifVersion === "87a" ? undefined : rectangle.comment ?? (frame === 0 ? image.properties?.comment : undefined);
+  const original = rectangle.gifCommentBytes ?? (frame === 0 ? image.gifCommentBytes : undefined);
+  const bytes = original && text === new TextDecoder().decode(original) ? original : new TextEncoder().encode(text);
   const nul = bytes.indexOf(0);
   const comment = nul < 0 ? bytes : bytes.subarray(0, nul);
   const commentSize = bytes.length ? 3 + comment.length + Math.ceil(comment.length / 255) : 0;

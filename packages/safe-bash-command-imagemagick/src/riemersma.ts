@@ -23,7 +23,7 @@ export function* hilbertPixels(img: { width: number; height: number }): Generato
 }
 
 /** ImageMagick Riemersma diffusion: a 16-entry weighted error queue. */
-export function* riemersmaRemapSteps(image: { width: number; height: number }, paletteImage: { width: number; height: number; hasAlpha: boolean }, highDepth: boolean, diffusionAmount: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* riemersmaRemapSteps(image: { width: number; height: number }, paletteImage: { width: number; height: number; hasAlpha: boolean }, highDepth: boolean, diffusionAmount: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     const palette: Float64Array[] = [], seen = new Set<string>();
     for (let position = 0; position < paletteImage.width * paletteImage.height * 4; position += 4096) {
         yield;
@@ -68,4 +68,5 @@ export function* riemersmaRemapSteps(image: { width: number; height: number }, p
             ? { kind: "write", highDepth: true, position, data: new Uint8Array(Uint16Array.from(best, value => Math.round(value * 257)).buffer) }
             : { kind: "write", position, data: Uint8Array.from(best, Math.round) };
     }
+    return palette.reverse().map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!));
 }

@@ -93,5 +93,8 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
         }
         scanned += length;
     }
-    return { ...image, position, ...(storedData16 ? { storedData16 } : {}) };
+    const { pngPalette: ignoredPalette, storedPngIndices: ignoredIndices, ...metadata } = image;
+    // Search visits the last octree entry first for ties; cycling uses tree order.
+    const indexedColors = palette.reverse().map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!));
+    return { ...metadata, position, indexedColors, isPalette: true, ...(storedData16 ? { storedData16 } : {}) };
 }

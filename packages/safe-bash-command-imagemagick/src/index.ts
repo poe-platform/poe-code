@@ -1261,7 +1261,9 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
             }
         }
     }
-    return { ...img, data: out, ...(data16 ? { data16 } : {}) };
+    const { pngPalette: ignoredPalette, pngIndices: ignoredIndices, ...metadata } = img;
+    const indexedColors = palette.reverse().map(color => Math.round(color.a) * 16777216 + Math.round(color.r) * 65536 + Math.round(color.g) * 256 + Math.round(color.b));
+    return { ...metadata, data: out, indexedColors, isPalette: true, ...(data16 ? { data16 } : {}) };
 }
 
 type MagickImage = RgbaImage & { [magickInput]?: MagickFormatContext };
@@ -3947,7 +3949,7 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
     }
     // Raster steps replace the pixels; original depth and arithmetic samples are stale.
     const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, ...metadata } = img;
-    if (next.value) delete metadata.pngPalette;
+    if (next.value) { delete metadata.pngPalette; delete metadata.pngIndices; }
     return { ...metadata, ...(next.value ? { indexedColors: next.value, isPalette: true } : {}), width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(pngIndices ? { pngIndices } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
@@ -9733,7 +9735,7 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
         }
     }
     const { storedData16: ignoredData16, storedEvaluateSamples: ignoredEvaluateSamples, ...metadata } = image;
-    if (next.value) delete metadata.pngPalette;
+    if (next.value) { delete metadata.pngPalette; delete metadata.storedPngIndices; }
     return { ...metadata, ...(next.value ? { indexedColors: next.value, isPalette: true } : {}), width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedPngIndices ? { storedPngIndices } : {}), ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }) };
 }
 

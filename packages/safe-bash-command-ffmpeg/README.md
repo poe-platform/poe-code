@@ -236,6 +236,8 @@ Input-side `-ss`, `-t`, and `-to` cut audio before filtering; output-side cuts a
 `arealtime` preserves audio samples while pacing frame timestamps at the requested
 `speed` (default 1). Its `limit` duration (default 2 seconds) resets pacing across
 timestamp discontinuities. Waits honor cancellation and command resource limits.
+`afwtdn=sigma=0.12:levels=4:samples=1024` denoises PCM with wavelets, independently per channel, in simple or labeled audio filter chains. It supports `sigma`, `levels`, `wavet` (`sym2`, `sym4`, `rbior68`, `deb10`, `sym10`, `coif5`, `bl3`), `percent`, `profile`, `adaptive`, `samples`, and `softness`, including positional options in that order. Window history, startup delay, and final padding follow native FFmpeg.
+
 `deesser=i=0.8:m=0.5:f=0.5` reduces sibilance independently per channel. Intensity (`i`, default 0), maximum deessing (`m`, default 0.5), and frequency (`f`, default 0.5) accept values from 0 to 1. Output mode `s` selects input (`i`/`0`), processed audio (`o`/`1`, default), or removed sibilance (`e`/`2`). Positional options follow `i:m:f:s`.
 
 `adeclick` removes impulsive noise from decoded PCM using autoregressive interpolation.

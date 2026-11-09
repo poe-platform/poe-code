@@ -1,3 +1,4 @@
+import { denoiseWavelets } from "./audio-afwtdn.js";
 import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { parseTee, selectTeeTracks } from "./tee.js";
 import { measureReplayGain } from "./audio-replaygain.js";
@@ -8281,6 +8282,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       }
                       if (filterName === "adeclick" || filterName === "adeclip") {
                         stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal);
+                        continue;
+                      }
+                      if (filterName === "afwtdn") {
+                        stretched = await denoiseWavelets(stretched, origRate, trimmed, budget, context.signal);
                         continue;
                       }
                       if (trimmed === "deesser" || trimmed.startsWith("deesser=")) {

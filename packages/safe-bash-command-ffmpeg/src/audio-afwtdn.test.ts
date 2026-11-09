@@ -1,0 +1,83 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { encodeWav } from "@poe-code/audio-ast";
+import { it } from "node:test";
+import { Volume } from "memfs";
+import { MediaBudgetTracker, parseWav } from "@poe-code/mp4-ast";
+import { denoiseWavelets } from "./audio-afwtdn.js";
+import references from "./fixtures/afwtdn-native.json" with { type: "json" };
+import { createFfmpegCommand } from "./index.js";
+
+const input = readFileSync(new URL("./fixtures/afwtdn-noise.wav", import.meta.url));
+const expected = parseWav(readFileSync(new URL("./fixtures/afwtdn-native.wav", import.meta.url))).tracks[0]!.decodedAudio!;
+
+for (const graph of [false, true]) it(`afwtdn matches native PCM across all windows (graph=${graph})`, async () => {
+  const { fs, result, stderr } = await run("afwtdn=sigma=0.12:levels=4:samples=1024", graph);
+  assert.equal(result.exitCode, 0, stderr);
+  const actual = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+  assert.equal(actual.sampleRate, 16000);
+  assert.equal(actual.channels, 1);
+  assert.equal(actual.channelData[0]!.length, 8192);
+  assert.deepEqual(actual.channelData, expected.channelData);
+  const original = parseWav(input).tracks[0]!.decodedAudio!.channelData[0]!;
+  assert.equal(actual.channelData[0]!.filter((sample, i) => sample !== original[i]).length, 8191);
+  assert.equal(Math.max(...actual.channelData[0]!.map(sample => Math.abs(sample * 32768))), 7648);
+});
+
+it("preserves the original PCM without filtering", async () => {
+  const { fs, result, stderr } = await run();
+  assert.equal(result.exitCode, 0, stderr);
+  assert.deepEqual(parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData,
+    parseWav(input).tracks[0]!.decodedAudio!.channelData);
+});
+
+async function run(filter?: string, graph = false, bytes = input) {
+  const fs = Volume.fromJSON({ "/out.wav": "KEEP" });
+  fs.writeFileSync("/in.wav", bytes);
+  let stderr = "";
+  const result = await createFfmpegCommand().execute({
+    args: ["-y", "-v", "error", "-i", "/in.wav", ...(filter ? graph
+      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter] : []), "-c:a", "pcm_s16le", "/out.wav"],
+    cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: {
+      async readFile(path: string) { return fs.readFileSync(path); },
+      async writeFile(path: string, bytes: Uint8Array) { fs.writeFileSync(path, bytes); },
+      async stat(path: string) { return fs.statSync(path); }
+    },
+    stdin: (async function* () {})(), stdout: { async write() {} },
+    stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+  } as never);
+  return { fs, result, stderr };
+}
+
+// Native FFmpeg 7.0.2 hashes of interleaved s16le PCM (not WAV headers).
+const mono = Float64Array.from(parseWav(input).tracks[0]!.decodedAudio!.channelData[0]!);
+for (const reference of references) it(`matches native ${reference.input}: ${reference.filter}`, async () => {
+  const channels = reference.input === "short" ? [mono.slice(0, 777)]
+    : reference.input === "stereo" ? [mono.slice(0, 1301), mono.slice(0, 1301).reverse()]
+    : reference.input === "silence" ? [new Float64Array(1024)] : [mono];
+  const { fs, result, stderr } = await run(reference.filter, false, Buffer.from(encodeWav({ sampleRate: 16000, channels })));
+  assert.equal(result.exitCode, 0, stderr);
+  const actual = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData;
+  const count = actual[0]!.length;
+  assert.equal(count * actual.length, reference.samples);
+  const pcm = Buffer.alloc(count * actual.length * 2);
+  for (let i = 0; i < count; i++) for (let c = 0; c < actual.length; c++) pcm.writeInt16LE(actual[c]![i]! * 32768, (i * actual.length + c) * 2);
+  assert.equal(createHash("sha256").update(pcm).digest("hex"), reference.sha256);
+});
+
+for (const option of ["sigma=-1", "sigma=1.1", "sigma=NaN", "levels=0", "levels=13",
+  "wavet=unknown", "wavet=7", "percent=101", "profile=2", "profile=1.0", "adaptive=-1", "samples=511", "samples=65537", "softness=-1", "unknown=1"])
+  it(`rejects ${option} without replacing output`, async () => {
+    const { fs, result, stderr } = await run(`afwtdn=${option}`);
+    assert.equal(result.exitCode, 1);
+    assert.ok(stderr.includes("afwtdn:"), stderr);
+    assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");
+  });
+
+it("honors memory limits and cancellation", async () => {
+  await assert.rejects(denoiseWavelets([mono], 16000, "afwtdn", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
+  await assert.rejects(denoiseWavelets([mono], 16000, "afwtdn", new MediaBudgetTracker(), AbortSignal.abort()));
+  await assert.rejects(denoiseWavelets([mono], 16000, "afwtdn", new MediaBudgetTracker({ maxCpuMs: -1 })), /maxCpuMs/);
+});

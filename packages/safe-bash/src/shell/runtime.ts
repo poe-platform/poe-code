@@ -7905,6 +7905,50 @@ export class Runtime {
       admit(context.args[index]);
       if ((index + 1) % 128 === 0) await checkpoint();
     }
+    if (context.args[0] === "--help") {
+      await writeText(context.stdout, [
+        "getopts: getopts optstring name [arg ...]",
+        "    Parse option arguments.",
+        "    ",
+        "    Getopts is used by shell procedures to parse positional parameters",
+        "    as options.",
+        "    ",
+        "    OPTSTRING contains the option letters to be recognized; if a letter",
+        "    is followed by a colon, the option is expected to have an argument,",
+        "    which should be separated from it by white space.",
+        "    ",
+        "    Each time it is invoked, getopts will place the next option in the",
+        "    shell variable $name, initializing name if it does not exist, and",
+        "    the index of the next argument to be processed into the shell",
+        "    variable OPTIND.  OPTIND is initialized to 1 each time the shell or",
+        "    a shell script is invoked.  When an option requires an argument,",
+        "    getopts places that argument into the shell variable OPTARG.",
+        "    ",
+        "    getopts reports errors in one of two ways.  If the first character",
+        "    of OPTSTRING is a colon, getopts uses silent error reporting.  In",
+        "    this mode, no error messages are printed.  If an invalid option is",
+        "    seen, getopts places the option character found into OPTARG.  If a",
+        "    required argument is not found, getopts places a ':' into NAME and",
+        "    sets OPTARG to the option character found.  If getopts is not in",
+        "    silent mode, and an invalid option is seen, getopts places '?' into",
+        "    NAME and unsets OPTARG.  If a required argument is not found, a '?'",
+        "    is placed in NAME, OPTARG is unset, and a diagnostic message is",
+        "    printed.",
+        "    ",
+        "    If the shell variable OPTERR has the value 0, getopts disables the",
+        "    printing of error messages, even if the first character of",
+        "    OPTSTRING is not a colon.  OPTERR has the value 1 by default.",
+        "    ",
+        "    Getopts normally parses the positional parameters, but if arguments",
+        "    are supplied as ARG values, they are parsed instead.",
+        "    ",
+        "    Exit Status:",
+        "    Returns success if an option is found; fails if the end of options is",
+        "    encountered or an error occurs.",
+        "",
+      ].join("\n"));
+      return 2;
+    }
     const offset = context.args[0] === "--" ? 1 : 0;
     if (!offset && context.args[0]?.startsWith("-") && context.args[0] !== "-") {
       await this.diagnostic(context, `getopts: -${context.args[0][1]}: invalid option`);

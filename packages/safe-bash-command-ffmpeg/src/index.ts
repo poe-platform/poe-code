@@ -1176,7 +1176,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     }
     const filters = parseFilterChain(expression);
     const last = filters.at(-1)!;
-    const split = last === "channelsplit" || last.startsWith("channelsplit=") ? parseChannelSplit(last) : undefined;
+    const split = last === "channelsplit" || last.startsWith("channelsplit=") || last.startsWith("channelsplit@") ? parseChannelSplit(last) : undefined;
     let outputCount = split?.selected.length ?? 1;
     if (last === "asplit" || last.startsWith("asplit=")) {
       const argument = last.slice("asplit=".length);

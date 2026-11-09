@@ -8,6 +8,10 @@ import { createFfmpegCommand } from "./index.js";
 const left = [1000, 2000, 3000, 4000];
 const right = [-4000, -3000, -2000, -1000];
 for (const [filters, expected] of [
+  ...["channelsplit@stage=stereo:all", "channelsplit@stage", "anull,channelsplit@stage=channel_layout=stereo:channels=all"].map(filter => [
+    ["-filter_complex", `[0:a]${filter}[A][B]`, "-map", "[A]", "/first.wav", "-map", "[B]", "/second.wav"],
+    [["/first.wav", left], ["/second.wav", right]]
+  ] as const),
   ...([
     ["FL+FR", left, right],
     ["FR+FL", right, left],

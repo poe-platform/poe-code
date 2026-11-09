@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
@@ -49,5 +50,53 @@ for (const filter of ["speechnorm=p=-1", "speechnorm=p=1.1", "speechnorm=p=NaN",
     } as never);
     assert.equal(result.exitCode, 1);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
+  });
+}
+
+// Native FFmpeg 7.0.2 references: a late peak must not change earlier periods.
+for (const [sampleRate, frameSize, attenuatedFrom, reverseAt = 4097] of [
+  [8000, 0, 2048], [8000, 80, 1760], [8000, 800, 1600],
+  [8000, 801, 1602], [8000, 4097, 0], [16000, 80, 1680], [44100, 80, 0],
+  [7999, 800, 2400], [8000, 80, 1760, 3000]
+] as const) for (const polarity of [1, -1]) for (const graph of [false, true]) {
+  it(`speechnorm bounds long periods at ${sampleRate} Hz, frames ${frameSize}, polarity ${polarity}, reversal ${reverseAt} (${graph ? "graph" : "simple"})`, async () => {
+    const fs = Volume.fromJSON({});
+    const samples = Float64Array.from({ length: 4097 }, (_, i) => polarity * (i >= reverseAt ? -1 : 1) * (i === 2400 ? 29000 : 500) / 32768);
+    fs.writeFileSync("/in.wav", encodeWav({ sampleRate, channels: [samples] }));
+    const filter = `${frameSize ? `asetnsamples=n=${frameSize}:p=0,` : ""}speechnorm=p=0.5`;
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-i", "/in.wav", ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-f", "s16le", "/out.pcm"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
+      stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { stderr += new TextDecoder().decode(b); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    const output = fs.readFileSync("/out.pcm") as Buffer;
+    assert.equal(output.length, samples.length * 2);
+    for (let i = 0; i < samples.length; i++) {
+      const expected = polarity * (i >= reverseAt ? -283 : i === 2400 ? 16384 : i < attenuatedFrom ? 1000 : 282);
+      assert.equal(output.readInt16LE(i * 2), expected, `sample ${i}`);
+    }
+  });
+}
+
+for (const frameSize of [0, 80, 4097]) for (const graph of [false, true]) {
+  it(`speechnorm retains zero-crossing periods across frames ${frameSize} (${graph ? "graph" : "simple"})`, async () => {
+    const fs = Volume.fromJSON({});
+    const samples = Float64Array.from({ length: 4097 }, (_, i) => (i % 16 < 8 ? 1 : -1) * (i === 2400 ? 29000 : 500) / 32768);
+    fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [samples] }));
+    const filter = `${frameSize ? `asetnsamples=n=${frameSize}:p=0,` : ""}speechnorm=p=0.5`;
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-i", "/in.wav", ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-f", "s16le", "/out.pcm"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
+      stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { stderr += new TextDecoder().decode(b); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    const output = fs.readFileSync("/out.pcm") as Buffer;
+    assert.equal(output.length, samples.length * 2);
+    assert.equal(createHash("sha256").update(output).digest("hex"), "12478d5e86fd1b50ef490a985fcc6ce0490bbb46e9a8d6f68b7dca06f37984bf");
   });
 }

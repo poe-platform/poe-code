@@ -3,7 +3,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function normalizeSpeech(
-  channels: readonly (Float32Array | Float64Array)[], filter: string, sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, frameSamples: (index: number) => number,
+  filter: string, sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   const options = { peak: 0.95, expansion: 2, compression: 2, threshold: 0, raise: 0.001, fall: 0.001 };
   const names = Object.keys(options) as (keyof typeof options)[];
@@ -26,16 +27,22 @@ export async function normalizeSpeech(
   const output = channels.map(channel => new Float64Array(channel.length));
   // Native keeps gain state in double precision, but applies it in the negotiated sample format.
   const round = sampleFormat === "dblp" ? (value: number) => value : Math.fround;
+  const maxPeriod = Math.floor(sampleRate / 10);
   for (const [c, channel] of channels.entries()) {
     let gain = options.expansion;
     let start = 0;
     let peak = Number.MIN_VALUE;
-    // Each half-wave gets one gain. Loud periods cap it immediately;
+    let frameIndex = 0;
+    let frameEnd = frameSamples(frameIndex++);
+    // Each analysis period gets one gain. Loud periods cap it immediately;
     // subsequent quiet periods recover by the configured raise amount.
     for (let end = 0; end <= channel.length; end++) {
       if (end % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-      if (end > start && (end === channel.length ||
-          ((channel[end]! >= 0) !== (channel[end - 1]! >= 0) && peak >= 1 / 32768))) {
+      const signChange = end > 0 && end < channel.length && (channel[end]! >= 0) !== (channel[end - 1]! >= 0);
+      // Native analysis checks the period limit between frames or sign runs,
+      // not inside a frame's uninterrupted run of samples with the same sign.
+      const periodLimit = end - start > maxPeriod && (end === frameEnd || signChange);
+      if (end > start && (end === channel.length || periodLimit || signChange && peak >= 1 / 32768)) {
         const limit = Math.min(options.expansion, options.peak / peak);
         gain = Math.min(limit, peak >= options.threshold
           ? gain + options.raise : Math.max(1 / options.compression, gain - options.fall));
@@ -45,8 +52,10 @@ export async function normalizeSpeech(
           output[c]![i] = round(round(channel[i]!) * appliedGain);
         }
         start = end;
-        peak = Number.MIN_VALUE;
+        // A frame split carries its peak forward until the next sign change.
+        if (signChange) peak = Number.MIN_VALUE;
       }
+      if (end === frameEnd) frameEnd += frameSamples(frameIndex++);
       if (end < channel.length) peak = Math.max(peak, Math.abs(round(channel[end]!)));
     }
   }

@@ -756,7 +756,7 @@ three quarters of the analysis window (1536 samples at 44100 Hz). It accepts
 
 `dcshift=0.125` adds a DC offset to every audio channel, preserving the sample rate and frame count and clipping samples to the full-scale range. `shift=0.125` is also accepted; shifts must be between -1 and 1. Limiter options are unsupported and fail explicitly.
 
-`speechnorm=p=0.5` adjusts PCM half-wave gains, limiting loud sections and gradually restoring gain in quiet sections. Supports peak (`p`/`peak`), expansion (`e`/`expansion`), compression (`c`/`compression`), threshold (`t`/`threshold`), and gain adjustment (`r`/`raise`, `f`/`fall`). Channels are processed independently; other options fail explicitly.
+`speechnorm=p=0.5` adjusts PCM half-wave gains, limiting loud sections and gradually restoring gain in quiet sections. Long stretches without a zero crossing are split at input frame boundaries after exceeding 100 ms, so a distant peak does not attenuate earlier periods. Supports peak (`p`/`peak`), expansion (`e`/`expansion`), compression (`c`/`compression`), threshold (`t`/`threshold`), and gain adjustment (`r`/`raise`, `f`/`fall`). Channels are processed independently; other options fail explicitly.
 
 `adecorrelate=stages=4:seed=23` decorrelates audio channels with seeded all-pass filters, preserving sample rate and frame count. Stages range from 1 to 16 (default 6); seed ranges from 0 to 4294967295, with -1 (default) choosing a random seed. Positional `adecorrelate=4:23` is also supported.
 

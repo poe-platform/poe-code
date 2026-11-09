@@ -346,6 +346,8 @@ The selected speaker is retained in the output channel layout.
 input layout: `-af 'pan=mono|c0=c1'` extracts the right channel and
 `-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. Weighted sums use `=`,
 and `<` divides gains by the sum of their magnitudes, preserving polarity, for example `pan=mono|c0<2*c0+-1*c1`.
+Terms accept subtraction (`c0-c1`), compact gains (`.5c1`), and signed exponents
+(`1e+0*c1` or `5e-1c1`).
 Stereo layouts also accept `0x3` and `FL+FR`. `pan=5.1|FC=c1|LFE=c0` routes
 stereo into center and LFE; unassigned speakers stay silent. Output preserves
 the layout’s speaker order and channel mask.

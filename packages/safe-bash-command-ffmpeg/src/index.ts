@@ -1105,12 +1105,28 @@ async function panAudio(
     const output = channelIndex(parts[0]!.trim(), names, names.length);
     if (assigned.has(output)) throw new Error("pan: duplicate output channel");
     assigned.add(output);
-    for (const term of parts[1].split("+")) {
-      const factors = term.split("*").map(value => value.trim());
-      if (factors.length > 2) throw new Error("pan: invalid gain");
-      const gain = factors.length === 1 ? 1 : factors[0] ? Number(factors[0]) : NaN;
+    const expression = parts[1];
+    let offset = 0;
+    let sign = 1;
+    while (true) {
+      while (expression[offset]?.trim() === "") offset++;
+      const gainStart = offset;
+      if (expression[offset] === "+" || expression[offset] === "-") offset++;
+      while (offset < expression.length &&
+        ((expression[offset]! >= "0" && expression[offset]! <= "9") || expression[offset] === ".")) offset++;
+      if (offset > gainStart && (expression[offset] === "e" || expression[offset] === "E")) {
+        offset++;
+        if (expression[offset] === "+" || expression[offset] === "-") offset++;
+        while (offset < expression.length && expression[offset]! >= "0" && expression[offset]! <= "9") offset++;
+      }
+      const hasGain = offset > gainStart;
+      const gain = sign * (hasGain ? Number(expression.slice(gainStart, offset)) : 1);
       if (!Number.isFinite(gain)) throw new Error("pan: invalid gain");
-      const inputName = factors.at(-1)!;
+      while (expression[offset]?.trim() === "") offset++;
+      if (hasGain && expression[offset] === "*") offset++;
+      const channelStart = offset;
+      while (offset < expression.length && expression[offset] !== "+" && expression[offset] !== "-") offset++;
+      const inputName = expression.slice(channelStart, offset).trim();
       const input = channelIndex(inputName, inputNames, channels.length);
       const numbered = inputName.startsWith("c");
       if (numberedInputs !== undefined && numberedInputs !== numbered) {
@@ -1118,6 +1134,9 @@ async function panAudio(
       }
       numberedInputs = numbered;
       gains[output]![input] = gains[output]![input]! + gain;
+      if (offset === expression.length) break;
+      sign = expression[offset] === "-" ? -1 : 1;
+      offset++;
     }
     if (normalize) {
       const total = gains[output]!.reduce((sum, gain) => sum + Math.abs(gain), 0);

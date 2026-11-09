@@ -6159,7 +6159,13 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     }
     if (!["-auto-level", "-auto-gamma", "-normalize", "-contrast-stretch", "-linear-stretch", "-equalize"].includes(token ?? "")) return;
     let end = start;
-    const argument = token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";
+    let argument = "";
+    if (token === "-contrast-stretch" || token === "-linear-stretch") {
+        argument = tokens[++end] ?? "";
+        if (!Number.isFinite(Number.parseFloat(argument)) || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+            throw new Error(`invalid argument for option '${token}': ${argument}`);
+        }
+    }
     const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
     return { end, highDepth: true, luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, transform(histogram, image) {
         const levels = histogram[0]!.length;

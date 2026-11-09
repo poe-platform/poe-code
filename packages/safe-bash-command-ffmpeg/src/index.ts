@@ -4753,7 +4753,7 @@ export function evalSyncFfmpeg(
   }
 }
 
-function formatImageSequence(pattern: string, number: number, allowMultiple = true): string | undefined {
+function formatImageSequence(pattern: string, number: number, allowMultiple = true, preservePercent = false): string | undefined {
   let filename = "";
   let numbered = false;
   for (let i = 0; i < pattern.length; i++) {
@@ -4763,7 +4763,7 @@ function formatImageSequence(pattern: string, number: number, allowMultiple = tr
     }
     i++;
     if (pattern[i] === "%") {
-      filename += "%";
+      filename += preservePercent ? "%%" : "%";
       continue;
     }
     let width = 0;
@@ -10149,7 +10149,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     maxArguments: Infinity, maxArgumentBytes: Infinity, maxEnvironmentEntries: Infinity
                   }).slice(0, -1)
                   : segPattern;
-                const filename = strftime && !hlsSecondLevelSegmentIndex ? pattern : formatImageSequence(pattern, number);
+                // HLS keeps literal percent pairs; image2 unescapes them.
+                const filename = strftime && !hlsSecondLevelSegmentIndex ? pattern : formatImageSequence(pattern, number, true, true);
                 if (!filename) throw new Error(`Invalid segment filename template '${segPattern}'`);
                 return filename;
               };

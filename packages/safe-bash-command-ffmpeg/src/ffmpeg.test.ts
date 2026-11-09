@@ -4865,7 +4865,7 @@ describe("HLS start_number", () => {
     [undefined, ["out5.ts", "out6.ts"]],
     ["/hls/part%d.ts", ["part5.ts", "part6.ts"]],
     ["/hls/part%03d.ts", ["part005.ts", "part006.ts"]],
-    ["/hls/part%%_%03d.ts", ["part%_005.ts", "part%_006.ts"]]
+    ["/hls/part%%_%03d.ts", ["part%%_005.ts", "part%%_006.ts"]]
   ] as const) {
     for (const windowed of [false, true]) {
       it(`starts sequences and filenames at five with ${pattern ?? "default names"} (windowed=${windowed})`, async () => {

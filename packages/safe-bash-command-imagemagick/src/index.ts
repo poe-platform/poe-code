@@ -6310,6 +6310,17 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     if (token === "-contrast-stretch" || token === "-linear-stretch") {
         argument = tokens[++end] ?? "";
     }
+    // Parse the clipping fields once for both histogram stretch operations.
+    const geometry = [...argument].filter(c => c.trim() !== "" && !"%!<>#^@()".includes(c)).join("");
+    const fields = geometry.replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x").split("x");
+    let blackPoint = Number.parseFloat(fields[0]!) || 0;
+    let whitePoint = Number.parseFloat(fields[1] ?? "");
+    if (geometry.includes(":") && Number.isFinite(whitePoint)) {
+        // Native ratio geometry normalizes rho:sigma to rho/sigma x 1.
+        blackPoint /= Math.max(1e-12, whitePoint);
+        whitePoint = 1;
+    }
+    const percentage = argument.includes("%");
     const independent = !state.channelDefault;
     const channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
     return { end, highDepth: true, luminance: token === "-linear-stretch" || token === "-equalize" && state.channelSync || (token === "-normalize" || token === "-contrast-stretch") && !independent, transform(histogram, image) {
@@ -6356,10 +6367,9 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 if (active[channel] && range > 0) for (let value = 0; value < levels; value++) lookup[channel]![value] = Math.round(Math.max(0, Math.min(levels - 1, (value - mins[channel]!) / range * (levels - 1))));
             }
         } else if (token === "-linear-stretch") {
-            const [black, white] = argument.replaceAll(",", "x").replaceAll("/", "x").split("x"), percentage = argument.includes("%");
-            const lowTarget = (parseFloat(black || "0") || 0) * (percentage ? count / 100 : 1);
+            const lowTarget = blackPoint * (percentage ? count / 100 : 1);
             // An omitted white point is the remaining pixel count, not the black point.
-            const highTarget = white === undefined || white === "" ? count - lowTarget : (parseFloat(white) || 0) * (percentage ? count / 100 : 1);
+            const highTarget = Number.isFinite(whitePoint) ? whitePoint * (percentage ? count / 100 : 1) : count - lowTarget;
             const bins = histogram[4]!;
             let low = 0, high = bins.length - 1, sum = 0;
             for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum >= lowTarget) break; }
@@ -6373,9 +6383,8 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     : Math.round(Math.max(0, Math.min(levels - 1, (value * 65535 / (levels - 1) - low) / (high - low) * (levels - 1))));
             }
         } else if (token === "-normalize" || token === "-contrast-stretch") {
-            const [black, white] = argument.split("x"), percentage = argument.includes("%");
-            const blackValue = parseFloat(black || "0") || 0, whiteValue = white === undefined || white === "" ? blackValue : parseFloat(white) || 0;
-            const lowTarget = token === "-normalize" ? 0.02 * count : percentage ? blackValue / 100 * count : blackValue;
+            const whiteValue = Number.isFinite(whitePoint) ? whitePoint : blackPoint;
+            const lowTarget = token === "-normalize" ? 0.02 * count : percentage ? blackPoint / 100 * count : blackPoint;
             const highTarget = token === "-normalize" ? 0.01 * count : percentage ? whiteValue / 100 * count : whiteValue;
             const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];
             for (let channel = 0; channel < 4; channel++) {

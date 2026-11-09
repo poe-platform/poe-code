@@ -418,6 +418,8 @@ rates and channel counts are rejected.
 Swap stereo PCM channels with `-af 'channelmap=FR|FL'` or
 `-af 'channelmap=map=1|0:channel_layout=stereo'`.
 Channel maps accept input speaker names or numeric indices and allow repeated sources.
+A single trailing `|` is accepted without adding a channel; leading, interior, or
+repeated empty entries are rejected.
 With only `channel_layout=stereo`, `channelmap` preserves the input channels;
 with only `channel_layout=mono`, it selects the first input channel without downmixing.
 Output layouts accept `mono`, `stereo`, `quad`, `5.1`, the count aliases `1c`,

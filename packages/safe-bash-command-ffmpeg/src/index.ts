@@ -10365,6 +10365,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             outputNames = speakers.filter(name => outputNames!.includes(name));
                           }
                         }
+                        if (map?.endsWith("|")) map = map.slice(0, -1);
                         const entries = map === undefined && outputNames
                           ? outputNames.map((_, index) => [String(index)])
                           : (map ?? "").split("|").map(value => value.split("-"));

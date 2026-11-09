@@ -453,7 +453,8 @@ function parseColorRgba(colorStr: string): [number, number, number, number] {
     const suffix = value.slice(separator + 1);
     const opacity = Number(suffix);
     const maximum = suffix.startsWith("0x") ? 255 : 1;
-    if (!suffix || !Number.isFinite(opacity) || opacity < 0 || opacity > maximum) {
+    if (!suffix || !Number.isFinite(opacity) || opacity < 0 || opacity > maximum
+      || ["0b", "0o"].includes(suffix.trimStart().slice(0, 2))) {
       throw new Error(`Invalid color alpha: ${colorStr}`);
     }
     alpha = Math.floor(opacity * 255 / maximum);

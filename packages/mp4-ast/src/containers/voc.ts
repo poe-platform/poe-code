@@ -69,13 +69,60 @@ export function vocAst(): MediaAstPlugin {
   return {
     id: "voc", formatName: "voc", formatLongName: "Creative Voice",
     extensions: ["voc"], mimeTypes: ["audio/x-voc"],
-    canDemux: true, canMux: false, supportedVideoCodecs: [],
+    canDemux: true, canMux: true, supportedVideoCodecs: [],
     supportedAudioCodecs: [...encodings.values()].map(format => `pcm_${format}`),
     detect, parse: parseVoc,
     probe(bytes, options = {}) {
       return buildProbeResultFromDoc(parseVoc(bytes, { ...options, decodeAudio: false }), bytes.length, options.filename,
         { ...options, formatName: "voc", formatLongName: "Creative Voice" });
     },
-    serialize() { throw new Error("VOC output is not supported"); }
+    serialize(doc, options = {}) {
+      const track = doc.tracks.find(track => track.type === "audio");
+      if (!track) throw new Error("VOC output requires an audio stream");
+      const description = track.codecDescriptions[0];
+      const codec = options.audioCodec === "copy" ? description?.codecName : options.audioCodec ?? "pcm_s16le";
+      const encoding = [...encodings].find(([, format]) => `pcm_${format}` === codec);
+      if (!encoding) throw new Error(`Unsupported VOC audio codec '${codec}'`);
+      const sampleRate = track.decodedAudio?.sampleRate ?? description?.sampleRate;
+      const channels = track.decodedAudio?.channels ?? description?.channels;
+      if (!Number.isInteger(sampleRate) || !sampleRate || sampleRate < 1 || sampleRate > 0x7fffffff ||
+          !Number.isInteger(channels) || !channels || channels < 1 || channels > 255) {
+        throw new Error("Invalid VOC sample rate or channel count");
+      }
+      const data = raw.find(plugin => plugin.id === encoding[1])!.serialize(doc, options);
+      const bits = encoding[1] === "s16le" ? 16 : 8;
+      const frameBytes = channels * bits / 8;
+      if (data.length % frameBytes) throw new Error("Incomplete VOC audio frame");
+      // Block lengths are 24-bit and include the twelve-byte sound description.
+      const blockBytes = Math.floor((0xffffff - 12) / frameBytes) * frameBytes;
+      const blocks = Math.max(1, Math.ceil(data.length / blockBytes));
+      const size = 26 + blocks * 16 + data.length + 1;
+      options.budget?.checkOutputBytes(size);
+      options.budget?.allocateMemory(size);
+      const bytes = new Uint8Array(size);
+      const view = new DataView(bytes.buffer);
+      bytes.set(signature);
+      view.setUint16(20, 26, true);
+      view.setUint16(22, 0x0114, true);
+      view.setUint16(24, (~0x0114 + 0x1234) & 0xffff, true);
+      let offset = 26;
+      for (let block = 0; block < blocks; block++) {
+        options.budget?.checkCpu();
+        const start = block * blockBytes;
+        const payload = data.subarray(start, start + blockBytes);
+        const length = 12 + payload.length;
+        bytes[offset] = 9;
+        bytes[offset + 1] = length & 255;
+        bytes[offset + 2] = (length >> 8) & 255;
+        bytes[offset + 3] = length >> 16;
+        view.setUint32(offset + 4, sampleRate, true);
+        bytes[offset + 8] = bits;
+        bytes[offset + 9] = channels;
+        view.setUint16(offset + 10, encoding[0], true);
+        bytes.set(payload, offset + 16);
+        offset += 16 + payload.length;
+      }
+      return bytes;
+    }
   };
 }

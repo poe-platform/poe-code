@@ -181,6 +181,7 @@ Copy PCM audio into native-readable NUT with `ffmpeg -i input.wav -c copy output
 
 Read Creative Voice PCM16 and G.711 audio, including continuation blocks, with
 `ffmpeg -i input.voc -c:a pcm_s16le output.wav`; use `-f voc` before `-i` for explicit input selection.
+Write VOC with `ffmpeg -i input.wav -c:a pcm_s16le output.voc` or `-f voc`. PCM16 is the default; G.711 encoding and `-c:a copy` are also supported.
 
 Read and write Sun AU audio with `ffmpeg -i input.wav output.au` or
 `ffmpeg -i input.au -c:a pcm_s16le output.wav`. AU defaults to big-endian PCM16.

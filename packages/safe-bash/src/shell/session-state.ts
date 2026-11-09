@@ -66,6 +66,7 @@ export function captureShellSessionState(state: State, exitCode: number): ShellS
     checkhash: Boolean(state.checkhash),
     dotglob: Boolean(state.dotglob),
     globskipdots: state.globskipdots !== false,
+    sourcepath: state.sourcepath !== false,
     globstar: Boolean(state.globstar),
     nullglob: Boolean(state.nullglob),
     failglob: Boolean(state.failglob),
@@ -230,6 +231,7 @@ export async function restoreShellSessionState(
     if (opts.checkhash !== undefined) state.checkhash = opts.checkhash;
     if (opts.dotglob !== undefined) state.dotglob = opts.dotglob;
     if (opts.globskipdots !== undefined) state.globskipdots = opts.globskipdots;
+    if (opts.sourcepath !== undefined) state.sourcepath = opts.sourcepath;
     if (opts.globstar !== undefined) state.globstar = opts.globstar;
     if (opts.nullglob !== undefined) state.nullglob = opts.nullglob;
     if (opts.failglob !== undefined) state.failglob = opts.failglob;

@@ -223,7 +223,11 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   consuming input. Closed descriptors and streams without file metadata test
   false; descriptors remain nonterminal.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
-  runs a script in the current shell. `BASH_SOURCE` tracks script and function
+  runs a script in the current shell. `source -p path file [arguments]` (also `. -p`)
+  searches a colon-separated path for that call without changing `PATH` or falling
+  back to the current directory. Filenames containing `/` are used directly.
+  `shopt -u sourcepath` disables normal `PATH` lookup; explicit `-p` still searches.
+  `BASH_SOURCE` tracks script and function
   definition paths, so `${BASH_SOURCE[0]%/*}` locates sibling files.
   `bash -n script.sh` (also `sh -n`) checks
   syntax without executing commands; `set -n` / `set -o noexec` parses the

@@ -105,6 +105,7 @@ export interface ShellSessionOptionsSnapshot {
   readonly checkhash?: boolean | undefined;
   readonly dotglob?: boolean | undefined;
   readonly globskipdots?: boolean | undefined;
+  readonly sourcepath?: boolean | undefined;
   readonly globstar?: boolean | undefined;
   readonly nullglob?: boolean | undefined;
   readonly failglob?: boolean | undefined;

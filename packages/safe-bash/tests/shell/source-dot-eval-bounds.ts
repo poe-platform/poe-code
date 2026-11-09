@@ -54,6 +54,6 @@ if (mode === "source") {
   await new Promise(resolve => setTimeout(resolve, 30));
   await fs.chmod("/lib", 0);
   assert.notEqual((await shell.exec(". /lib")).exitCode, 0);
-  assert.equal((await shell.exec("source -p / lib")).exitCode, 2);
+  assert.equal((await shell.exec("source -p / lib")).exitCode, 1);
 }
 console.log(`PASS ${mode} current-state bounds`);

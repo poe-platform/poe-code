@@ -1602,9 +1602,16 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         }
         const first = sources[0]!.track;
         const a = first.decodedAudio;
-        const b = sources[1]!.track.decodedAudio;
+        let b = sources[1]!.track.decodedAudio;
         if (!a || !b) throw new Error("amerge requires decoded PCM audio");
-        if (a.sampleRate !== b.sampleRate) throw new Error("amerge requires matching sample rates");
+        if (a.sampleRate !== b.sampleRate) {
+          const length = Math.ceil(b.channelData[0]!.length * a.sampleRate / b.sampleRate);
+          budget.checkSamples(length);
+          budget.checkDuration(length / a.sampleRate);
+          budget.allocateMemory(length * b.channels * Float32Array.BYTES_PER_ELEMENT);
+          b = { ...b, sampleRate: a.sampleRate,
+            channelData: await resampleAudio(b.channelData, length, b.sampleRate, a.sampleRate, budget, signal) };
+        }
         const defaultMasks = [0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f];
         const masks = [a, b].map(audio => audio.channelMask || defaultMasks[audio.channels] || 0);
         const inputs = [a, b].flatMap((audio, input) => {

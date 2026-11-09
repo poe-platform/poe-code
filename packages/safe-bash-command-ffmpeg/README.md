@@ -785,7 +785,8 @@ other layouts must match.
 Single-input filters on either branch run before multiplication, for example
 `[0:a]volume=0.5[x];[x][1:a]amultiply[out]`.
 
-`[0:a][1:a]amerge=inputs=2[out]` merges two inputs at the same sample rate,
+`[0:a][1:a]amerge=inputs=2[out]` merges channels after resampling the second input
+to the first input’s sample rate,
 ending with the shorter input. Disjoint speaker layouts are combined in speaker
 order: FR plus FL produces stereo ordered FL, FR; mono center plus stereo
 produces 3.0 ordered FL, FR, FC. Overlapping speaker layouts concatenate channels

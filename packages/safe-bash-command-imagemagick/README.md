@@ -1,4 +1,5 @@
 # `safe-bash-command-imagemagick`
+`magick input.xwd output.png` decodes version-7 X11 window dumps with 8-bit palettes or 24/32-bit true-color pixels, preserving scanline padding and byte order.
 
 ImageMagick (`magick`, `convert`, `mogrify`, `composite`, `montage`, `compare`, `identify`) command-line tools for `safe-bash`, powered by `@poe-code/image-ast`.
 

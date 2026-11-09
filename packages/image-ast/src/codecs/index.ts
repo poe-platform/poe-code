@@ -1,3 +1,4 @@
+import { isXwdBytes, readXwdHeader, decodeXwdImage } from "./xwd-input.js";
 import { isQoiBytes, readQoiMetadata, decodeQoiImage } from "./qoi-input.js";
 import { encodeQoiImage } from "./qoi-output.js";
 import { isMiffBytes, readMiffHeader, decodeMiffImage } from "./miff-input.js";
@@ -73,6 +74,7 @@ import {
 
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
+  if (isXwdBytes(bytes)) return "xwd";
   if (isQoiBytes(bytes)) return "qoi";
   if (isMiffBytes(bytes)) return "miff";
   if (isExrBytes(bytes)) return "exr";
@@ -173,6 +175,7 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
+    case "xwd": meta = readXwdHeader(bytes).metadata; break;
     case "qoi": meta = readQoiMetadata(bytes); break;
     case "hdr": meta = readRadianceHeader(bytes).metadata; break;
     case "exr": meta = readExrHeader(bytes).metadata; break;
@@ -414,6 +417,7 @@ export function decodeImage(
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;
   switch (meta.format) {
+    case "xwd": decoded = decodeXwdImage(bytes, options); break;
     case "qoi": decoded = decodeQoiImage(bytes, options); break;
     case "hdr": decoded = decodeRadianceImage(bytes, options); break;
     case "exr": decoded = decodeExrImage(bytes, options); break;

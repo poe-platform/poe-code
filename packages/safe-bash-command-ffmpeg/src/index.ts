@@ -1235,6 +1235,25 @@ async function panAudio(
   return { channels: output, channelMask: names.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0) };
 }
 
+function parseAmergeInputs(filter: string): number {
+  const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  let count = 2;
+  const options = argument ? argument.split(":") : [];
+  if (options.at(-1) === "") options.pop();
+  for (const [index, option] of options.entries()) {
+    const separator = option.indexOf("=");
+    const key = separator < 0 ? (index === 0 ? "inputs" : undefined) : option.slice(0, separator).trim();
+    if (key !== "inputs") throw new Error("amerge: unsupported option");
+    const value = parseFilterExpression(separator < 0 ? option : option.slice(separator + 1),
+      "amerge", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2, min: 1, max: 64, default: 2 });
+    if (value < 1 || value > 64) throw new Error("amerge: inputs out of range");
+    // AVOption integers validate each assignment before rounding, with ties to even.
+    const lower = Math.floor(value);
+    count = value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
+  }
+  return count;
+}
+
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
 async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, budget: MediaBudgetTracker, signal?: AbortSignal) {
   const nodes = new Map<string, { inputs: string[]; expression: string }>();
@@ -1330,8 +1349,12 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
   const usedInputs = new Set<MediaTrack>();
   for (const { inputs, expression } of nodes.values()) {
     for (const input of inputs) if (!nodes.has(input)) usedInputs.add(inputTrack(input));
-    const first = parseFilterChain(expression)[0]?.split("=", 1)[0]?.split("@", 1)[0];
-    const inputCount = first === "acrossfade" || first === "amerge" ? 2 : 1;
+    const filter = parseFilterChain(expression)[0]!;
+    const first = filter.split("=", 1)[0]?.split("@", 1)[0];
+    const inputCount = first === "amerge" ? parseAmergeInputs(filter) : first === "acrossfade" ? 2 : 1;
+    if (first === "amerge" && inputs.length > inputCount) {
+      throw new Error(`amerge requires ${inputCount} inputs (inputs=${inputCount})`);
+    }
     // Split outputs share this input list; bind it once, before output mapping order matters.
     while (inputs.length < inputCount) {
       let connected = false;
@@ -1577,53 +1600,48 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "amerge" || filters[0]?.startsWith("amerge=")) {
-        const argument = filters[0].slice("amerge=".length);
-        let count = 2;
-        const options = argument ? argument.split(":") : [];
-        if (options.at(-1) === "") options.pop();
-        for (const [index, option] of options.entries()) {
-          const separator = option.indexOf("=");
-          const key = separator < 0 ? (index === 0 ? "inputs" : undefined) : option.slice(0, separator).trim();
-          if (key !== "inputs") throw new Error("amerge: unsupported option");
-          const value = parseFilterExpression(separator < 0 ? option : option.slice(separator + 1),
-            "amerge", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2, min: 1, max: 64, default: 2 });
-          if (value < 1 || value > 64) throw new Error("amerge: inputs out of range");
-          // AVOption integers validate each assignment before rounding, with ties to even.
-          const lower = Math.floor(value);
-          count = value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
-        }
-        if (count !== 2 || sources.length !== 2) {
-          throw new Error("amerge requires two inputs (inputs=2)");
-        }
         if (sources.some(source => source.expression && source.expression !== "anull")) {
           throw new Error("amerge does not support preceding single-input filters");
         }
         const first = sources[0]!.track;
-        const a = first.decodedAudio;
-        let b = sources[1]!.track.decodedAudio;
-        if (!a || !b) throw new Error("amerge requires decoded PCM audio");
-        if (a.sampleRate !== b.sampleRate) {
-          const length = Math.ceil(b.channelData[0]!.length * a.sampleRate / b.sampleRate);
+        const audio = sources.map(source => {
+          if (!source.track.decodedAudio) throw new Error("amerge requires decoded PCM audio");
+          return source.track.decodedAudio;
+        });
+        const a = audio[0]!;
+        if (audio.reduce((count, input) => count + input.channels, 0) > 64) {
+          throw new Error("amerge supports at most 64 output channels");
+        }
+        for (let index = 1; index < audio.length; index++) {
+          const input = audio[index]!;
+          if (input.sampleRate === a.sampleRate) continue;
+          const length = Math.ceil(input.channelData[0]!.length * a.sampleRate / input.sampleRate);
           budget.checkSamples(length);
           budget.checkDuration(length / a.sampleRate);
-          budget.allocateMemory(length * b.channels * Float32Array.BYTES_PER_ELEMENT);
-          b = { ...b, sampleRate: a.sampleRate,
-            channelData: await resampleAudio(b.channelData, length, b.sampleRate, a.sampleRate, budget, signal) };
+          budget.allocateMemory(length * input.channels * Float32Array.BYTES_PER_ELEMENT);
+          audio[index] = { ...input, sampleRate: a.sampleRate,
+            channelData: await resampleAudio(input.channelData, length, input.sampleRate, a.sampleRate, budget, signal) };
         }
         const defaultMasks = [0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f];
-        const masks = [a, b].map(audio => audio.channelMask || defaultMasks[audio.channels] || 0);
-        const inputs = [a, b].flatMap((audio, input) => {
+        const masks = audio.map(input => input.channelMask || defaultMasks[input.channels] || 0);
+        const inputs = audio.flatMap((audio, input) => {
           const speakers = Array.from({ length: 32 }, (_, bit) => 2 ** bit)
             .filter(speaker => (masks[input]! & speaker) !== 0);
           if (speakers.length !== audio.channels) throw new Error("amerge requires known speaker layouts");
           return audio.channelData.map((samples, channel) => ({ samples, speaker: speakers[channel]! }));
         });
         let channelMask = defaultMasks[inputs.length] ?? 0;
-        if ((masks[0]! & masks[1]!) === 0) {
-          inputs.sort((left, right) => left.speaker - right.speaker);
-          channelMask = (masks[0]! | masks[1]!) >>> 0;
+        let combinedMask = 0;
+        let overlap = false;
+        for (const mask of masks) {
+          overlap ||= (combinedMask & mask) !== 0;
+          combinedMask |= mask;
         }
-        const length = Math.min(a.channelData[0]!.length, b.channelData[0]!.length);
+        if (!overlap) {
+          inputs.sort((left, right) => left.speaker - right.speaker);
+          channelMask = combinedMask >>> 0;
+        }
+        const length = Math.min(...audio.map(input => input.channelData[0]!.length));
         budget.checkSamples(length);
         budget.checkDuration(length / a.sampleRate);
         budget.allocateMemory(length * inputs.length * 8);

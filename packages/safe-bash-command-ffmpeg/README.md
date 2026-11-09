@@ -792,13 +792,16 @@ nearest integer with ties to even (`1.5` and `2.5` both select two inputs).
 Repeated assignments use the last value, but every assignment must be valid
 and within 1–64 before rounding. Invalid options preserve existing output.
 
-`[0:a][1:a]amerge=inputs=2[out]` merges channels after resampling the second input
-to the first input’s sample rate,
-ending with the shorter input. Disjoint speaker layouts are combined in speaker
+`amerge=inputs=N` merges 1–64 inputs into at most 64 output channels, resampling
+to the first input’s sample rate and ending with the shortest input. Omitted
+input labels bind unused audio streams until all declared pads are connected.
+`[0:a][1:a][2:a]amerge=inputs=3[out]` combines three inputs.
+ Disjoint speaker layouts are combined in speaker
 order: FR plus FL produces stereo ordered FL, FR; mono center plus stereo
 produces 3.0 ordered FL, FR, FC. Overlapping speaker layouts concatenate channels
 in input order using the default layout for the total channel count: two mono
-inputs produce stereo, and two stereo inputs produce 4.0 (WAV mask `0x107`).
+inputs produce stereo, three mono inputs produce 2.1 (WAV mask `0x0b`), and
+two stereo inputs produce 4.0 (WAV mask `0x107`).
 `amerge` defaults to two inputs; filters after the merge are supported. Filters
 before the merge are currently unsupported.
 Named instances such as `acrossfade@join=ns=4` and `amerge@pair=inputs=2`

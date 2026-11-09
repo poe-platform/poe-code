@@ -51,8 +51,8 @@ for (const [filter, values, expected] of [
 for (const [graph, error] of [
   ["[0:a][1:a][2:a]acrossfade@join=ns=4[out]", "acrossfade requires two inputs"],
   ["[0:a][1:a]acrossfade@join=ns=0[out]", "acrossfade: invalid sample count"],
-  ["[0:a][1:a][2:a]amerge@pair[out]", "amerge requires two inputs"],
-  ["[0:a][1:a]amerge@pair=inputs=3[out]", "amerge requires two inputs"]
+  ["[0:a][1:a][2:a]amerge@pair[out]", "amerge requires 2 inputs"],
+  ["[0:a][1:a]amerge@pair=inputs=4[out]", "No available stream"]
 ]) {
   it(`validates named filter without replacing output: ${graph}`, async () => {
     const result = await run(graph!, [8000, -4000, 2000]);

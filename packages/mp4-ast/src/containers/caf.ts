@@ -23,6 +23,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   let framesPerPacket = 0, bytesPerPacket = 0, bytesPerFrame = 0;
   let format: string | undefined;
   let channelLayout: string | undefined;
+  let channelMask: number | undefined;
   let data: Uint8Array | undefined;
   let cookie: Uint8Array | undefined, packetTable: Uint8Array | undefined;
   const metadata: { title?: string; artist?: string } = {};
@@ -80,9 +81,15 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
       if (size < 24) throw new Error("Invalid CAF packet table header");
       if (view.getBigInt64(start) < 0n) throw new Error("Invalid CAF packet count");
       packetTable = bytes.subarray(start, start + size);
-    } else if (id === 0x6368616e) {
+    } else if (id === 0x6368616e && !(data && ["-", "pipe:", "pipe:0"].includes(options.filename ?? ""))) {
       if (size < 12) throw new Error("Invalid CAF channel layout chunk");
       const tag = view.getUint32(start);
+      // Core Audio's low 18 bitmap bits match the WAVE speaker positions.
+      // A pipe cannot seek back to apply a layout found after the audio data.
+      const bitmap = tag === 0x10000 ? view.getUint32(start + 4) : 0;
+      let speakers = 0;
+      for (let bit = 0; bit < 18; bit++) if (bitmap & (1 << bit)) speakers++;
+      channelMask = bitmap > 0 && bitmap < 0x40000 && speakers === channels ? bitmap : undefined;
       const layouts: Record<number, string> = {
         0x00640001: "mono", 0x00650002: "stereo", 0x006c0004: "quad", 0x00840004: "quad(side)"
       };
@@ -261,6 +268,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     metadata: { ...doc.metadata, ...metadata }, containerFormat: "caf", byteLength: bytes.length,
     tracks: doc.tracks.map(track => ({ ...track, duration,
       declaredSampleCount: doc.duration,
+      ...(track.decodedAudio && channelMask ? { decodedAudio: { ...track.decodedAudio, channelMask } } : {}),
       codecDescriptions: track.codecDescriptions.map(desc => ({ ...desc, channelLayout })),
       samples
     })) };

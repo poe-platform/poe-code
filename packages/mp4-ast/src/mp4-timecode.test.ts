@@ -1,11 +1,18 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
-import { muxMp4, parseMp4, serializeMp4 } from "./mp4.js";
+import { muxMp4, parseMp4, probeMp4, serializeMp4 } from "./mp4.js";
 
 // ffmpeg -f lavfi -i testsrc2=size=32x24:rate=25:duration=0.4
 //   -c:v libx264 -g 1 -timecode 01:02:03:04 timecode.mp4
 const fixture = new Uint8Array(readFileSync(new URL("./fixtures/timecode.mp4", import.meta.url)));
+
+for (const [name, bitrate] of [['drop', '319'], ['tagged', '266']] as const) {
+  it(`uses exact sample duration for resident timecode bitrate: ${name}`, () => {
+    const bytes = readFileSync(new URL(`./fixtures/timecode-${name}.mp4`, import.meta.url));
+    assert.equal(probeMp4(bytes).streams[1]!.bit_rate, bitrate);
+  });
+}
 
 it("reads the native video-to-timecode track reference", () => {
   const doc = parseMp4(fixture);

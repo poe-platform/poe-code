@@ -8,7 +8,7 @@ for (const separator of ["\n", "\n\n", "\n \t\n\n"]) {
       const input = `1\n00:00:01,000 --> 00:00:02,000\nalpha${separator}third\n${nextCue ? "\n2\n00:00:01,500 --> 00:00:03,000\nbeta\n" : ""}`;
       const doc = parseSubtitleDocument(new TextEncoder().encode(input), "srt");
       assert.deepEqual(doc.tracks[0]!.samples.map(sample => [sample.pts, sample.duration, new TextDecoder().decode(sample.data)]),
-        [[1000, 1000, "alpha\nthird"], ...(nextCue ? [[1500, 1500, "beta"]] : [])]);
+        [[1000, 1000, separator.includes("\t") ? "alpha\n \t\nthird" : "alpha\nthird"], ...(nextCue ? [[1500, 1500, "beta"]] : [])]);
     });
   }
 }

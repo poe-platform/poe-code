@@ -2320,7 +2320,7 @@ export function parseSubtitleDocument(
   for (const rawBlock of blocks) {
     const lines = rawBlock
       .split("\n")
-      .map((l) => format === "webvtt" ? l : format === "srt" ? l.replace(/[ \t]+$/, "") : l.trimEnd())
+      .map((l) => format === "subviewer" ? l.trimEnd() : l)
       .filter((l) => l.length > 0);
     if (lines.length === 0) continue;
     if (lines[0]!.startsWith("WEBVTT") || lines[0]!.startsWith("NOTE")) continue;
@@ -2348,7 +2348,7 @@ export function parseSubtitleDocument(
     const endMs = format === "subviewer" ? Math.max(startMs + 1, parsedEndMs) : parsedEndMs;
     const rawCueLines = lines.slice(arrowLineIdx + 1).join("\n");
     const cueLines = format === "subviewer" ? rawCueLines.replaceAll("[br]", "\n") : rawCueLines;
-    const cueText = format === "srt" ? cueLines.replace(/^[ \t\n]+|[ \t\n]+$/g, "") : format === "webvtt" ? cueLines : cueLines.trim();
+    const cueText = format === "subviewer" ? cueLines.trim() : cueLines;
     if (!cueText && format !== "webvtt") continue;
 
     if (format === "srt" || format === "webvtt") {
@@ -2442,7 +2442,7 @@ export function serializeSubtitleDocument(
   for (const s of samples) {
     const text = decodeUtf8(s.data);
     const codec = subTrack?.codecDescriptions[s.sampleDescriptionIndex - 1]?.codecName;
-    const cueText = format === "webvtt" ? text : format === "srt" && codec === "ass" ? text.trimStart() : text.trim();
+    const cueText = format === "webvtt" || (format === "srt" && codec === "subrip") ? text : format === "srt" && codec === "ass" ? text.trimStart() : text.trim();
     if (!cueText && format !== "webvtt") continue;
     const startMs = Math.round((s.pts / ts) * 1000);
     const endMs = Math.round(((s.pts + s.duration) / ts) * 1000);

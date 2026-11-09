@@ -9733,8 +9733,9 @@ export class Runtime {
   }
   private async partValue(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString: boolean, split: boolean, hereDocument: boolean): Promise<ShellValue> {
     this.signal.throwIfAborted();
-    if (part.kind === "compound-substitution-eof") {
-      await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: command substitution: line ${io.diagnosticLine ?? part.line}: syntax error: unexpected end of file\n`);
+    if (part.kind === "compound-substitution-eof" || part.kind === "quote-substitution-eof") {
+      const reason = part.kind === "quote-substitution-eof" ? `unexpected EOF while looking for matching \`${part.quote}'` : "syntax error: unexpected end of file";
+      await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: command substitution: line ${io.diagnosticLine ?? part.line}: ${reason}\n`);
       throw completedExit(2);
     }
     if (part.kind === "failed-parameter") throw new ExpansionFailure(`${part.source}: bad substitution`, io.diagnosticLine ?? part.line);

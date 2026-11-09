@@ -89,6 +89,7 @@ export type WordPart =
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
   | { kind: "failed-parameter"; source: string; line: number; quoted: boolean }
   | { kind: "compound-substitution-eof"; line: number; quoted: boolean }
+  | { kind: "quote-substitution-eof"; quote: string; line: number; quoted: boolean }
   | { kind: "substitution"; form?: "backtick" | "dollar-parenthesis"; script: Script; line: number; sourceLine?: number; quoted: boolean }
   | { kind: "process-substitution"; direction: "<" | ">"; script: Script; line: number; sourceLine?: number; quoted: boolean };
 
@@ -1945,18 +1946,22 @@ export function parseShellInputUnit(source: string, byteLocale = false, budgetOr
 function parseSource(source: string, depth: number, warnings: string[], lineOffset: number, byteLocale: boolean, budget: ParseBudget, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax, aliases?: ReadonlyMap<string, string>, extglob = false): Script {
   budget.admit();
   const warningCount = warnings.length;
-  const parser = new Parser(budget, source, depth, warnings, lineOffset, undefined, byteLocale, false, undefined, 0, ordinaryBacktick, sourceValues, byteSource, syntax, aliases, extglob);
+  let parser: Parser | undefined;
   try {
+    parser = new Parser(budget, source, depth, warnings, lineOffset, undefined, byteLocale, false, undefined, 0, ordinaryBacktick, sourceValues, byteSource, syntax, aliases, extglob);
     const script = parser.script(new Set(), false, ordinaryBacktick);
     if (parser.current.kind !== "end") parser.error("Unexpected token");
     return script;
   } catch (error) {
-    if (!(error instanceof CompoundListEofError) || warnings.length !== warningCount) throw error;
-    const prefix = parser.completedInput;
+    if (!(error instanceof ShellSyntaxError) || (!(error instanceof CompoundListEofError) && !(ordinaryBacktick && error.unclosedQuote)) || warnings.length !== warningCount) throw error;
+    const prefix = parser?.completedInput;
     budget.admit(6 + (prefix?.count ?? 0));
     const lists = prefix?.lists.slice(0, prefix.count) ?? [];
-    const line = lineOffset + source.split("\n").length + Number(!source.endsWith("\n"));
-    lists.push({ pipelines: [{ negate: false, commands: [{ kind: "simple", line, redirects: [], words: [{ offset: source.length, parts: [{ kind: "compound-substitution-eof", line, quoted: true }] }] }] }], operators: [] });
+    const line = error.unclosedQuote?.line ?? lineOffset + source.split("\n").length + Number(!source.endsWith("\n"));
+    const part: WordPart = error.unclosedQuote
+      ? { kind: "quote-substitution-eof", quote: error.unclosedQuote.quote, line, quoted: true }
+      : { kind: "compound-substitution-eof", line, quoted: true };
+    lists.push({ pipelines: [{ negate: false, commands: [{ kind: "simple", line, redirects: [], words: [{ offset: source.length, parts: [part] }] }] }], operators: [] });
     return { lists, line: prefix?.line ?? lineOffset + 1 };
   }
 }

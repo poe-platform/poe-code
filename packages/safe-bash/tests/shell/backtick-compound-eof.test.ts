@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { Shell, agentCommands, createMemoryFileSystem, parseShell, ShellSyntaxError, ShellLimitError, type FileSystem } from "../../src/index.js";
 import { MockS3Client, S3FileSystem } from "poe-code/safe-fs";
@@ -29,6 +30,32 @@ const cases = [
 ] as const;
 
 for (const backend of ["memory", "s3"] as const) {
+  for (const source of [
+    'printf \'<%s>\\n\' "`printf %s a\\"b`"; echo after',
+    'value=`printf "unterminated`; printf "status=%s value=<%s>\\n" "$?" "$value"',
+    'value=`"unterminated`; printf "status=%s value=<%s>\\n" "$?" "$value"',
+    "value=`printf 'unterminated`; printf 'status=%s value=<%s>\\n' \"$?\" \"$value\"",
+    'value=`printf prior\nprintf "unterminated`; printf "status=%s value=<%s>\\n" "$?" "$value"',
+    'value=`printf hidden; printf "unterminated`; printf "status=%s value=<%s>\\n" "$?" "$value"',
+    'value=`printf prior; exit 7\nprintf "unterminated`; printf "status=%s value=<%s>\\n" "$?" "$value"',
+    'false && printf "%s" "`printf %s a\\"b`"; echo after',
+    'set -e; value=`printf "unterminated`; echo unreachable',
+    'printf \'<%s>\\n\' "`if true; then`"; echo after',
+    'printf \'<%s>\\n\' "$(printf %s a\\"b)"; echo after',
+    'printf \'<%s>\\n\' "`echo valid`"; echo after',
+  ]) test(`closed backtick quote EOF: ${backend}: ${JSON.stringify(source)}`, async () => {
+    const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source, "shell"], { encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" } });
+    assert.ifError(native.error);
+    assert.equal(native.signal, null);
+    const fs: FileSystem = backend === "memory" ? createMemoryFileSystem()
+      : new S3FileSystem({ transport: new MockS3Client({ buckets: ["bucket"] }), bucket: "bucket" });
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      const result = await shell.exec(source);
+      assert.deepEqual({ stdout: result.stdout, stderr: result.stderr, status: result.exitCode },
+        { stdout: native.stdout, stderr: native.stderr, status: native.status });
+    } finally { await shell.dispose(); }
+  });
   for (const specimen of cases) test(`closed backtick compound EOF: ${backend}: ${specimen.name}`, async () => {
     const fs: FileSystem = backend === "memory" ? createMemoryFileSystem()
       : new S3FileSystem({ transport: new MockS3Client({ buckets: ["bucket"] }), bucket: "bucket" });
@@ -86,7 +113,7 @@ for (const backend of ["memory", "s3"] as const) {
 for (const source of [
   "if", "value=$(if)", "value=`if", "value=`value=$(if)`",
   "value=`if true; then printf |`", "value=`if true; then printf >`", "value=`if true; then [[`",
-  "value=`if ; then true; fi`", "value=`printf |`", "value=`printf >`", 'value=`printf "unterminated`',
+  "value=`if ; then true; fi`", "value=`printf |`", "value=`printf >`", 'value=`printf "unterminated',
   "value=`(`", "value=`for`", "value=`for 1`", "value=`for ;`", "value=`case`", "value=`case item in a`", "value=`case item in a|`", "value=`case item in (`", "value=`case item in a ;`", "value=`if true; then cat <<EOF\nbody`",
 ]) test(`compound EOF exclusions remain parse errors: ${source}`, () => {
   assert.throws(() => parseShell(source), ShellSyntaxError);

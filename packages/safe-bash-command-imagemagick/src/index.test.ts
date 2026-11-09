@@ -647,9 +647,6 @@ describe("safe-bash-command-imagemagick", () => {
         "/valid.png",
         "-fx",
         "a = 1/0; b = 0/0; c = sqrt(-9) + log(-5) + p{-999,9999}.r + u[0].g; clamp(c) * 0 + 0.5",
-        "-distort",
-        "Perspective",
-        "0,0 0,0  0,0 0,0  0,0 0,0  0,0 0,0",
         "/path-fx.png"
       ],
       files
@@ -658,6 +655,13 @@ describe("safe-bash-command-imagemagick", () => {
     const pathRaw = await sharp(files.get("/path-fx.png")!).raw().toBuffer();
     // NaN survives clamp(c) * 0 + 0.5 and is encoded as zero.
     expect(pathRaw[0]).toBe(0);
+    const singular = await runMagickCli([
+      "/valid.png", "-distort", "Perspective",
+      "0,0 0,0  0,0 0,0  0,0 0,0  0,0 0,0", "/singular.png"
+    ], files);
+    expect(singular.exitCode).toBe(1);
+    expect(singular.stderr).toContain("Unsolvable Matrix");
+    expect(files.has("/singular.png")).toBe(false);
   });
 
   it("supports -floodfill, -evaluate-sequence, arbitrary -convolve/-morphology, -color-matrix, -equalize, -dither/-remap, -crop MxN@, rose:, txt:-, histogram:info:-, and %[fx:...]/%[pixel:...]", async () => {
@@ -881,7 +885,7 @@ describe("safe-bash-command-imagemagick", () => {
     const alphaExt = await sharp(files.get("/alpha-ext.png")!).raw().toBuffer();
     expect(alphaExt[0]).toBe(128);
 
-    await runMagickCli(["/src.png", "-background", "#ffffff", "-alpha", "remove", "/alpha-rem.png"], files);
+    await runMagickCli(["/src.png", "-background", "#ffffff", "-alpha", "remove", "-depth", "8", "/alpha-rem.png"], files);
     const alphaRem = await sharp(files.get("/alpha-rem.png")!).ensureAlpha().raw().toBuffer();
     expect(alphaRem[0]).toBe(227);
     expect(alphaRem[3]).toBe(255);

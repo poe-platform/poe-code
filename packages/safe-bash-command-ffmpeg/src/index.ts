@@ -5125,6 +5125,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let dashUtcTimingUrl: string | undefined;
         let dashAdaptationSets: string | undefined;
         let dashSegmentDuration = 5;
+        let dashSegmentType: "auto" | "mp4" | "webm" = "auto";
         let dashFragmentType: "none" | "every_frame" | "duration" = "none";
         let dashStreaming = false;
         let dashLowLatency = false;
@@ -5554,6 +5555,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             dashWindowSize = Number(value);
             if (!value.trim() || !Number.isInteger(dashWindowSize) || dashWindowSize < 0 || dashWindowSize > 2_147_483_647) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid window_size\n"), context.signal);
+              return { exitCode: 234 };
+            }
+          } else if (arg === "-dash_segment_type") {
+            const value = args[++i];
+            if (value === "auto" || value === "0") dashSegmentType = "auto";
+            else if (value === "mp4" || value === "1") dashSegmentType = "mp4";
+            else if (value === "webm" || value === "2") dashSegmentType = "webm";
+            else {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid dash_segment_type (expected auto, mp4 or webm)\n"), context.signal);
               return { exitCode: 234 };
             }
           } else if (arg === "-frag_type") {
@@ -10236,7 +10246,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (!registry.findByFormatName("dash")?.canMux) throw new Error("DASH AST is not registered");
               const outResolved = resolvePath(context.cwd, outputTarget);
               const outDir = outResolved.slice(0, outResolved.lastIndexOf("/")) || "/";
-              const { resources, publications } = serializeDashDocument(workingDoc, { utcTimingUrl: dashUtcTimingUrl, mpdProfile: dashMpdProfile, hlsPlaylist: dashHlsPlaylist, adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.$ext$", minPlaybackRate: dashMinPlaybackRate, maxPlaybackRate: dashMaxPlaybackRate, segmentDuration: dashSegmentDuration, fragmentType: dashFragmentType, fragmentDuration, streaming: dashStreaming, lowLatency: dashLowLatency, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
+              const { resources, publications } = serializeDashDocument(workingDoc, { utcTimingUrl: dashUtcTimingUrl, mpdProfile: dashMpdProfile, hlsPlaylist: dashHlsPlaylist, adaptationSets: dashAdaptationSets, singleFile: dashSingleFile, singleFileName: outResolved.slice(outResolved.lastIndexOf("/") + 1, outResolved.lastIndexOf(".") > outResolved.lastIndexOf("/") ? outResolved.lastIndexOf(".") : undefined) + "-stream$RepresentationID$.$ext$", minPlaybackRate: dashMinPlaybackRate, maxPlaybackRate: dashMaxPlaybackRate, segmentDuration: dashSegmentDuration, segmentType: dashSegmentType, fragmentType: dashFragmentType, fragmentDuration, streaming: dashStreaming, lowLatency: dashLowLatency, windowSize: dashWindowSize, useTemplate: dashUseTemplate, useTimeline: dashUseTimeline, initSegmentName: dashInitSegmentName, mediaSegmentName: dashMediaSegmentName, limits: options.limits, budget });
               await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
               for (const publication of publications()) {
                 for (const [uri, bytes] of publication.resources) {

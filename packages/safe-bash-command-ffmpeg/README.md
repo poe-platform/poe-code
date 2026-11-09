@@ -549,6 +549,7 @@ beside it. It publishes a dynamic manifest after completed segments become avail
 Use `-mpd_profile dvb_dash` to declare the DVB DASH profile, or `-mpd_profile dash+dvb_dash` for both DVB and the default ISO live profile.
 MP4 media chunks include a local `sidx` index covering their fragments. Use `-streaming 1` to omit indexes and write one fragment per frame (`0` is the default).
 Use `-ldash 1` to enable per-frame streaming and low-latency GOP-based buffering without changing segment boundaries; `-ldash 0` is the default. `-streaming 1` alone retains standard buffer timing.
+Use `-dash_segment_type auto|mp4|webm` (also `0|1|2`) to select the segment container, filenames and manifest MIME type together. Explicit MP4 supports VP9 stream copy; WebM rejects incompatible codecs.
 Use `-frag_type every_frame` for one fragment per frame inside each media segment, keeping `-seg_duration` unchanged; `none` (default) writes one fragment per segment. Use `-frag_type duration -frag_duration 0.5` for half-second fragments inside each segment; DASH uses seconds, while MP4 uses integer microseconds. Zero disables duration cuts, and fragment duration cannot exceed segment duration.
 Use `-utc_timing_url https://example.invalid/time` to advertise an HTTP xsdate UTC timing source in the MPD without fetching it; empty or omitted values add no timing source.
 Use `-use_template 0` for explicit `SegmentList` output; the default (`1`) retains `SegmentTemplate`.

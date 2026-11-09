@@ -463,7 +463,12 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   for (let index = 0; index < doc.tracks.length; index++) {
     const track = doc.tracks[index]!;
     if (track.type !== "video" && track.type !== "audio") throw new Error("DASH output supports video and audio tracks");
-    const webm = track.codecDescriptions[0]?.codecName === "vp9";
+    const codecName = track.codecDescriptions[0]?.codecName;
+    const webm = options.segmentType === "webm" ||
+      (options.segmentType !== "mp4" && codecName === "vp9");
+    if (webm && !["vp8", "vp9", "av1", "vorbis", "opus"].includes(codecName ?? "")) {
+      throw new Error(`WebM DASH does not support codec ${codecName}`);
+    }
     const extension = webm ? "webm" : "m4s";
     const initName = (options.initSegmentName ?? "init-stream$RepresentationID$.$ext$").replaceAll("$ext$", extension);
     const mediaName = (options.mediaSegmentName ?? "chunk-stream$RepresentationID$-$Number%05d$.$ext$").replaceAll("$ext$", extension);

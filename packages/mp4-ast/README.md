@@ -61,6 +61,7 @@ relative to the containing playlist.
 
 `serializeDashDocument()` also returns `publications()`: iterate its resource batches, write each batch before its manifest, and publish dynamic updates followed by the final static manifest.
 
+Set `segmentType: "mp4"` or `"webm"` to select the DASH container explicitly; `"auto"` keeps codec-based selection. Resource extensions and manifest MIME types follow the selected container.
 Set `useTemplate: false` to emit explicit `SegmentList` resource references instead of the default `SegmentTemplate`.
 Set `useTimeline: false` for fixed-duration `SegmentTemplate` output without a timeline.
 Set `utcTimingUrl` to advertise an HTTP xsdate UTC timing source in the MPD without fetching it; empty or omitted values add no timing source.

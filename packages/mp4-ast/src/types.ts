@@ -753,6 +753,8 @@ export interface SerializeMediaOptions {
   readonly windowSize?: number | undefined;
   /** Target DASH segment duration in seconds (default: 5); video cuts at keyframes. */
   readonly segmentDuration?: number | undefined;
+  /** DASH segment container; auto selects the container from each track codec. */
+  readonly segmentType?: "auto" | "mp4" | "webm" | undefined;
   /** DASH fragment subdivision within each media segment (default: none). */
   readonly fragmentType?: "none" | "every_frame" | "duration" | undefined;
   /** DASH: write per-frame fragments without local segment indexes. */

@@ -25,7 +25,7 @@ for (const count of [false, true]) {
     const args = ["-v", "error", ...(count ? ["-count_packets", "-count_frames"] : []),
       "-show_entries", "packet=pts,duration,size:stream=sample_rate,duration_ts,nb_frames" +
         (count ? ",nb_read_packets,nb_read_frames" : ""), "-of", "json", "/plain.caf"];
-    expect(JSON.parse(evalSyncFfprobe(input, [...args.slice(0, -1), "pipe:0"])!)).toMatchObject(expected);
+    expect(JSON.parse(evalSyncFfprobe(undefined, args, () => input)!)).toMatchObject(expected);
     const fs = new MemoryFileSystem();
     await fs.writeFile("/plain.caf", input);
     let output = "", diagnostic = "";

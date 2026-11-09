@@ -20,7 +20,7 @@ for (const { name, duration, hex } of cases) {
     };
     expect(cafAst().probe(bytes, { showPackets: true })).toMatchObject(expected);
     const args = ["-v", "error", "-show_entries", "packet=pts,duration,size:stream=sample_rate,duration_ts,nb_frames", "-of", "json", `/${name}`];
-    expect(JSON.parse(evalSyncFfprobe(bytes, [...args.slice(0, -1), "pipe:0"])!)).toMatchObject(expected);
+    expect(JSON.parse(evalSyncFfprobe(undefined, args, () => bytes)!)).toMatchObject(expected);
     const fs = new MemoryFileSystem();
     await fs.writeFile(`/${name}`, bytes);
     let stdout = "", stderr = "";

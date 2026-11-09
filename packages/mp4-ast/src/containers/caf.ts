@@ -284,20 +284,41 @@ export function cafAst(): MediaAstPlugin {
     parse: parseCaf,
     probe(bytes, options = {}) {
       const doc = parseCaf(bytes, { ...options, decodeAudio: false });
-      const result = buildProbeResultFromDoc(doc, bytes.length, options.filename,
+      let result = buildProbeResultFromDoc(doc, bytes.length, options.filename,
         { ...options, formatName: "caf", formatLongName: "Apple CAF (Core Audio Format)" });
       const track = doc.tracks[0]!;
       const desc = track.codecDescriptions[0]!;
       // Empty PCM has no duration estimate; retain the description's nominal bitrate.
       if (track.duration === 0 && track.samples.length === 0 && desc.codecName.startsWith("pcm_")) {
         const bitRate = String(desc.sampleRate! * desc.channels! * desc.bitsPerSample!);
-        return { ...result,
+        result = { ...result,
           streams: result.streams.map(stream => ({ ...stream, duration_ts: undefined, duration: undefined,
             nb_frames: undefined, bit_rate: bitRate })),
           format: { ...result.format!, duration: undefined, bit_rate: bitRate }
         };
       }
-      return result;
+      if (options.seekable !== false) return result;
+      // Parsing validates the chunks and retains all audio. Only a packet table
+      // encountered before data establishes duration for a nonseekable probe.
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      let durationKnown = false;
+      for (let offset = 8; offset + 12 <= bytes.length;) {
+        options.budget?.checkCpu();
+        const id = view.getUint32(offset);
+        if (id === 0x64617461) break;
+        if (id === 0x70616b74) durationKnown = true;
+        offset += 12 + Number(view.getBigInt64(offset + 4));
+      }
+      return { ...result,
+        streams: result.streams.map(stream => ({ ...stream,
+          duration: durationKnown ? stream.duration : undefined,
+          duration_ts: durationKnown ? stream.duration_ts : undefined
+        })),
+        format: { ...result.format, size: undefined,
+          duration: durationKnown ? result.format.duration : undefined,
+          bit_rate: durationKnown ? undefined : result.streams[0]?.bit_rate
+        }
+      };
     },
     serialize(doc, options = {}) {
       const track = doc.tracks.find(track => track.type === "audio");

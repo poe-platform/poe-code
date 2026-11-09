@@ -13,7 +13,7 @@ for (const trailing of [false, true]) {
       packets: [{ pts: 0, duration: 8, size: "16" }],
       streams: [{ sample_rate: "8000", duration_ts: trailing ? 16 : 8, nb_frames: "8" }]
     };
-    expect(JSON.parse(evalSyncFfprobe(bytes, [...args.slice(0, -1), "pipe:0"])!)).toMatchObject(expected);
+    expect(JSON.parse(evalSyncFfprobe(undefined, args, () => bytes)!)).toMatchObject(expected);
     const fs = new MemoryFileSystem();
     await fs.writeFile("/in.caf", bytes);
     let output = "", diagnostic = "";

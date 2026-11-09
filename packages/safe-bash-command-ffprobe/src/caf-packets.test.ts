@@ -16,7 +16,7 @@ for (const info of [Buffer.alloc(0), Buffer.from("696e666f0000000000000004000000
     ], streams: [{ duration_ts: 6000 }] };
     expect(cafAst().probe(bytes, { showPackets: true })).toMatchObject(expected);
     const args = ["-v", "error", "-show_packets", "-show_entries", "packet=pos,size,duration:stream=duration_ts", "-of", "json", "/in.caf"];
-    expect(JSON.parse(evalSyncFfprobe(bytes, [...args.slice(0, -1), "pipe:0"])!)).toMatchObject(expected);
+    expect(JSON.parse(evalSyncFfprobe(undefined, args, () => bytes)!)).toMatchObject(expected);
     const fs = new MemoryFileSystem();
     await fs.writeFile("/in.caf", bytes);
     let output = "", diagnostic = "";

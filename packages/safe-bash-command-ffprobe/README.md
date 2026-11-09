@@ -9,6 +9,8 @@ ffprobe -v quiet -of json -show_format -show_streams recording.wav
 ffprobe -show_entries stream=sample_rate,channels:format=duration -of csv recording.wav
 ```
 
+CAF inputs on stdin omit file size and report duration only when a packet table precedes audio data; named files retain seekable duration and size.
+
 Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 `json`, `compact`, `csv`, `default`, `flat`, `ini`, `xml`; `-show_format`, `-show_streams`,
 `-show_error` for structured missing-input errors (with a nonzero exit status),

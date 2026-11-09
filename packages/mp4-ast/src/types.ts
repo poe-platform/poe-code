@@ -565,7 +565,7 @@ export interface MediaProbeFormat {
   readonly format_long_name: string;
   readonly start_time: string;
   readonly duration?: string | undefined;
-  readonly size: string;
+  readonly size?: string | undefined;
   readonly bit_rate?: string | undefined;
   readonly probe_score: number;
   readonly tags?: Readonly<Record<string, string>> | undefined;

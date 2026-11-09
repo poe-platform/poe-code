@@ -34,7 +34,7 @@ import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { rawNetpbmInput } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
-import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewPixelSteps } from "./deskew.js";
+import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewBackground } from "./deskew.js";
 import { compareLayerBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
 import { plasmaPixelSteps } from "./plasma.js";
 import { createMagickRandom } from "./random.js";
@@ -9055,13 +9055,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const spec = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const plan = deskewPlan(image, yield* deskewAngleSteps(image, spec), state.pointFilter);
-                const rotated = { ...yield* applyMagickRasterSteps(image, deskewPixelSteps(image, plan, state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background, state.deskewAutoCrop), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
+                let background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
+                if (state.deskewAutoCrop === "1") background = deskewBackground(image, background, [0, image.height - 1].map(y => image.data.subarray(y * image.width * 4, (y * image.width + Math.min(2, image.width)) * 4)));
+                const rotated = { ...yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
                 if (!["1", "true", "yes", "on"].includes(state.deskewAutoCrop ?? "")) return rotated;
-                const median = yield* applyMagickRasterSteps(rotated, morphologyPixelSteps(rotated, magickMedianRows("3"), "median"), signal);
+                const median = yield* applyMagickRasterSteps(rotated, morphologyPixelSteps(rotated, magickMedianRows("3"), "median", undefined, "background", background), signal);
                 // Native crop geometry is relative to the virtual page, not the raster origin.
                 const bounds = yield* trimMagickSteps({ ...median, virtualCanvas: { ...plan.virtualCanvas, x: 0, y: 0 } }, state.alphaFuzz);
                 if (bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1) return bounds;
-                return { ...yield* extractImageSteps(rotated, { left: bounds.virtualCanvas!.x - plan.virtualCanvas.x, top: bounds.virtualCanvas!.y - plan.virtualCanvas.y, width: bounds.width, height: bounds.height }), virtualCanvas: bounds.virtualCanvas! };
+                const left = bounds.virtualCanvas!.x - plan.virtualCanvas.x, top = bounds.virtualCanvas!.y - plan.virtualCanvas.y;
+                return { ...yield* extractImageSteps(rotated, { left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) }), virtualCanvas: bounds.virtualCanvas! };
             });
         }
         else if (t === "-blur" || t === "-gaussian-blur") {
@@ -11230,12 +11233,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, spec, signal), pointFilter);
-                const rotated = { ...await transformStoredMagickRaster(image, backend, deskewPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background, autoCrop), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
+                let color = backgroundExplicit ? background : image.backgroundColor ?? background;
+                if (autoCrop === "1") color = deskewBackground(image, color, await Promise.all([0, image.height - 1].map(y => backend.storage.read(image.position + y * image.width * 4, Math.min(2, image.width) * 4))));
+                const rotated = { ...await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, color, "background"), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
                 if (!["1", "true", "yes", "on"].includes(autoCrop ?? "")) return rotated;
-                const median = await transformStoredMagickRaster(rotated, backend, morphologyPixelSteps(rotated, magickMedianRows("3"), "median"), signal);
+                const median = await transformStoredMagickRaster(rotated, backend, morphologyPixelSteps(rotated, magickMedianRows("3"), "median", undefined, "background", color), signal);
                 const bounds = await trimStoredMagick({ ...median, virtualCanvas: { ...plan.virtualCanvas, x: 0, y: 0 } }, backend.storage, fuzz, signal);
                 if (bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1) return bounds;
-                return { ...await transformStoredImage(rotated, backend.storage, { kind: "extract", left: bounds.virtualCanvas!.x - plan.virtualCanvas.x, top: bounds.virtualCanvas!.y - plan.virtualCanvas.y, width: bounds.width, height: bounds.height }, signal), virtualCanvas: bounds.virtualCanvas! };
+                const left = bounds.virtualCanvas!.x - plan.virtualCanvas.x, top = bounds.virtualCanvas!.y - plan.virtualCanvas.y;
+                return { ...await transformStoredImage(rotated, backend.storage, { kind: "extract", left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) }, signal), virtualCanvas: bounds.virtualCanvas! };
             });
         } else if (!operandsOnly && token === "-rotate") {
             const spec = tokens[++i] ?? "0", settings = { ...state };

@@ -5,7 +5,7 @@ import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { deskewAngleSteps } from "./deskew.js";
-import { createConvertCommand, runConvertCli, runConvertCliSync, runMogrifyCli } from "./index.js";
+import { createConvertCommand, createMagickCommand, runConvertCli, runConvertCliSync, runMogrifyCli } from "./index.js";
 
 const nativeAvailable = spawnSync("magick", ["-version"]).status === 0;
 it.skipIf(!nativeAvailable).each(["buffered", "retained", "sync"])("deskews the sticker with native geometry and pixels (%s)", async mode => {
@@ -92,7 +92,7 @@ for (const slope of [-0.0625, 0, 0.0625]) {
 
 it.skipIf(!nativeAvailable).each(["buffered", "retained", "sync"])("honors deskew auto-crop values and reset (%s)", async mode => {
     const input = spawnSync("magick", ["-size", "96x48", "xc:white", "+antialias", "-fill", "black", "-stroke", "none", "-draw", "polygon 8,8 80,12 80,15 8,11", "-draw", "polygon 8,18 80,22 80,25 8,21", "-draw", "polygon 8,28 80,32 80,35 8,31", "PNG24:-"]).stdout;
-    for (const value of [undefined, "1", "4", "true", "false", "reset"]) {
+    for (const value of [undefined, "0", "1", "2", "3", "4", "true", "false", "reset"]) {
         const define = value === undefined ? [] : value === "reset" ? ["-define", "deskew:auto-crop=1", "+define", "deskew:auto-crop"] : ["-define", `deskew:auto-crop=${value}`];
         const args = ["/input.png", ...define, "-deskew", "40%", "png:-"];
         const files = new Map([["/input.png", new Uint8Array(input)]]);
@@ -106,6 +106,33 @@ it.skipIf(!nativeAvailable).each(["buffered", "retained", "sync"])("honors deske
         expect([actual.width, actual.height, actual.virtualCanvas], String(value)).toEqual([expected.width, expected.height, expected.virtualCanvas]);
         expect(Math.max(...actual.data.map((v, i) => Math.abs(v - expected.data[i]!))), String(value)).toBeLessThanOrEqual(2);
     }
+});
+
+it.each(["buffered", "retained", "sync", "mogrify", "public"])("clips deskew auto-crop to the rotated raster for edge-reaching stripes (%s)", async mode => {
+    const input = readFileSync(new URL("./fixtures/deskew-edge-stripes.png", import.meta.url));
+    // ImageMagick 7.1.2: 67x32 pixels on page 68x39+0+1.
+    const expected = decodeImage(readFileSync(new URL("./fixtures/deskew-edge-stripes-cropped.png", import.meta.url)));
+    const files = new Map([["/input.png", new Uint8Array(input)]]), filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/input.png", input);
+    const options = ["-define", "deskew:auto-crop=1", "-deskew", "40%"];
+    const args = ["/input.png", ...options, "PNG32:-"];
+    let output: Uint8Array;
+    if (mode === "public") {
+        const result = await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(["/input.png", ...options, "PNG32:/output.png"]).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write() {} }, stderr: { async write() {} },
+        });
+        expect(result.exitCode).toBe(0);
+        output = await filesystem.readFile("/output.png");
+    } else {
+        const result = mode === "mogrify" ? await runMogrifyCli([...options, "/input.png"], files) : mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode, result.stderr).toBe(0);
+        output = mode === "mogrify" ? files.get("/input.png")! : result.stdoutBytes!;
+    }
+    const actual = decodeImage(output);
+    expect([actual.width, actual.height, actual.virtualCanvas]).toEqual([67, 32, { width: 68, height: 39, x: 0, y: 1 }]);
+    expect(Math.max(...actual.data.map((value, i) => Math.abs(value - expected.data[i]!)))).toBeLessThanOrEqual(2);
 });
 
 // Fixed geometry keeps this regression active when native ImageMagick is absent.

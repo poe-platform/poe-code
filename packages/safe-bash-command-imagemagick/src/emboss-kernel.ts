@@ -1,11 +1,8 @@
 import type { Region } from "./region.js";
-import type { RgbaColor } from "@poe-code/image-ast/portable";
-import type { VirtualPixelMethod } from "./warp-kernel.js";
-import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-/** Native emboss diagonal Gaussian convolution followed by synchronized equalization. */
-export function* embossPixelSteps(image: { width: number; height: number; hasAlpha: boolean; region?: Region | undefined }, geometry: { width?: number; height?: number }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+/** Native emboss diagonal Gaussian convolution followed by channel-aware equalization. */
+export function* embossPixelSteps(image: { width: number; height: number; hasAlpha: boolean; region?: Region | undefined }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.max(1e-12, Math.abs(geometry.height ?? 1));
     let half = radius > 0 ? Math.ceil(radius) : 1;
     if (radius <= 0 && sigma > 1e-12) {
@@ -26,11 +23,9 @@ export function* embossPixelSteps(image: { width: number; height: number; hasAlp
     }
     const reciprocal = Math.abs(total) < 1e-12 ? (total < 0 ? -1e12 : 1e12) : 1 / total;
     for (let k = 0; k < weights.length; k++) weights[k]! *= reciprocal;
-    const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
-    const fill = (virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
-        ? [background.r, background.g, background.b, background.a]
-        : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
-    const histogram = new Float64Array(65536), lookup = new Float64Array(65536);
+    const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : [true, true, true, image.hasAlpha];
+    const histograms = Array.from({ length: channels ? 4 : 1 }, () => new Float64Array(65536));
+    const lookups = histograms.map(() => new Float64Array(65536));
     const bin = (value: number): number => Math.max(0, Math.min(65535, Math.round(value * 257)));
     // Recompute bounded spans for the second pass, retaining floating point values
     // until equalization instead of rounding the convolution to eight bits.
@@ -42,34 +37,21 @@ export function* embossPixelSteps(image: { width: number; height: number; hasAlp
                 yield;
                 const weight = weights[k + half]!;
                 if (weight === 0) continue;
-                const map = (x: number) => virtualPixelIndex(left + x - k, y + k, width, height, virtualPixel);
-                for (let x = 0; x < count;) {
-                    yield;
-                    const pixel = map(x);
-                    let run = 1;
-                    const direction = map(x + 1) - pixel;
-                    if (direction >= -1 && direction <= 1) {
-                        while (x + run < count && (pixel < 0 ? map(x + run) < 0 : map(x + run) === pixel + run * direction && pixel + run * direction >= 0)) run++;
-                    }
-                    let samples: Uint8Array | number[] = fill;
-                    if (pixel >= 0) {
-                        const start = direction === -1 ? pixel - run + 1 : pixel;
-                        const length = (direction === 0 ? 1 : run) * 4;
-                        const bytes = yield { kind: "read", position: start * 4, length };
-                        if (!bytes || bytes.length !== length) throw new Error("Truncated emboss pixels");
-                        samples = bytes;
-                    }
-                    for (let i = 0; i < run; i++) {
-                        const offset = (pixel < 0 || direction === 0 ? 0 : direction === -1 ? run - i - 1 : i) * 4;
-                        const alpha = image.hasAlpha ? samples[offset + 3]! / 255 : 1;
-                        for (let channel = 0; channel < 3; channel++) sums[(x + i) * 4 + channel]! += samples[offset + channel]! * weight * alpha;
-                        sums[(x + i) * 4 + 3]! += weight * alpha;
-                    }
-                    x += run;
+                const sy = Math.max(0, Math.min(height - 1, y + k));
+                const first = Math.max(0, Math.min(width - 1, left - k));
+                const last = Math.max(0, Math.min(width - 1, left + count - 1 - k));
+                const length = (last - first + 1) * 4;
+                const bytes = yield { kind: "read", position: (sy * width + first) * 4, length };
+                if (!bytes || bytes.length !== length) throw new Error("Truncated emboss pixels");
+                for (let x = 0; x < count; x++) {
+                    const offset = (Math.max(0, Math.min(width - 1, left + x - k)) - first) * 4;
+                    const alpha = image.hasAlpha ? bytes[offset + 3]! / 255 : 1;
+                    for (let channel = 0; channel < 3; channel++) sums[x * 4 + channel]! += bytes[offset + channel]! * weight * alpha;
+                    sums[x * 4 + 3]! += weight * alpha;
                 }
             }
-            // Native convolution blends colors using alpha, then equalizes the
-            // unrounded colors and filtered alpha with the shared intensity map.
+            // Keep convolution values unrounded until equalization. Explicit
+            // selections use per-channel maps; the default shares an intensity map.
             for (let x = 0; x < count; x++) {
                 const alpha = sums[x * 4 + 3]!;
                 if (image.hasAlpha) for (let channel = 0; channel < 3; channel++) {
@@ -91,10 +73,16 @@ export function* embossPixelSteps(image: { width: number; height: number; hasAlp
                 sums[x * 4 + 3] = bytes![x * 4 + 3]!;
             }
             if (pass === 0) {
-                for (let x = 0; x < count; x++) histogram[bin(sums[x * 4]! * 0.212656 + sums[x * 4 + 1]! * 0.715158 + sums[x * 4 + 2]! * 0.072186)]!++;
+                for (let x = 0; x < count; x++) {
+                    if (channels) {
+                        for (let channel = 0; channel < 4; channel++) if (mask[channel]) histograms[channel]![bin(sums[x * 4 + channel]!)]!++;
+                    } else histograms[0]![bin(sums[x * 4]! * 0.212656 + sums[x * 4 + 1]! * 0.715158 + sums[x * 4 + 2]! * 0.072186)]!++;
+                }
             } else {
-                const data = new Uint8Array(bytes!), black = histogram[0]!;
+                const data = new Uint8Array(bytes!);
                 for (let x = 0; x < count; x++) for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) {
+                    if (!mask[channel]) continue;
+                    const map = channels ? channel : 0, black = histograms[map]![0]!, lookup = lookups[map]!;
                     const value = sums[x * 4 + channel]!;
                     let equalized = black === width * height ? value : lookup[bin(value)]!;
                     // Equalization writes through the same mask using the convolved source.
@@ -108,7 +96,9 @@ export function* embossPixelSteps(image: { width: number; height: number; hasAlp
                 yield { kind: "write", position, data };
             }
         }
-        if (pass === 0) {
+        if (pass === 0) for (let channel = 0; channel < histograms.length; channel++) {
+            if (channels && !mask[channel]) continue;
+            const histogram = histograms[channel]!, lookup = lookups[channel]!;
             let sum = 0;
             const black = histogram[0]!, range = width * height - black;
             for (let i = 0; i < histogram.length; i++) {

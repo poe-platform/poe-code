@@ -9,11 +9,11 @@ const a = Array.from({ length: 8192 }, (_, i) => i % 8 < 4 ? 8192 : -8192);
 const b = Array.from({ length: 4096 }, (_, i) => i < 2048 ? -16384 : 1024);
 const join = "join=inputs=2:channel_layout=stereo:map=1.0-FL|0.0-FR";
 
-async function run(filters: string[]) {
+async function run(filters: string[], inputs: number[][][] = [[a], [b]]) {
   const volume = Volume.fromJSON({ "/out.wav": "preserve" });
-  for (const [name, samples] of [["a", a], ["b", b]] as const) {
-    volume.writeFileSync(`/${name}.wav`, encodeWav({ sampleRate: 8000,
-      channels: [Float64Array.from(samples, sample => sample / 32768)] }));
+  for (const [index, channels] of inputs.entries()) {
+    volume.writeFileSync(`/${index === 0 ? "a" : "b"}.wav`, encodeWav({ sampleRate: 8000,
+      channels: channels.map(samples => Float64Array.from(samples, sample => sample / 32768)) }));
   }
   let stderr = "";
   const result = await createFfmpegCommand().execute({
@@ -56,11 +56,36 @@ for (const [index, expected] of [a, b].entries()) {
   });
 }
 
-for (const map of ["2.0-FL|0.0-FR", "1.1-FL|0.0-FR", "1.0-FL|0.0-FL", "1.0-BOGUS|0.0-FR", "1.0-FL"]) {
+for (const map of ["2.0-FL|0.0-FR", "1.1-FL|0.0-FR", "1.0-FL|0.0-FL", "1.0-BOGUS|0.0-FR"]) {
   it(`rejects invalid join mapping without replacing output: ${map}`, async () => {
     const { result, stderr, bytes } = await run(["-filter_complex", `[0:a][1:a]join=inputs=2:channel_layout=stereo:map=${map}[mix]`, "-map", "[mix]"]);
     assert.notEqual(result.exitCode, 0);
     assert.match(stderr, /join/);
     assert.equal(bytes.toString(), "preserve");
+  });
+}
+
+// Native FFmpeg matches speakers before falling back to unused input channels.
+for (const [inputs, filter, expected] of [
+  [[[8000], [12000, -2000]], "join", [12000, -2000]],
+  [[[8000], [12000, -2000]], "join=map=0.0-FL", [8000, -2000]],
+  [[[8000], [-4000]], "join", [8000, -4000]],
+  [[[8000], [-4000]], "join=map=1.0-FL", [-4000, 8000]],
+  [[[8000], [-4000]], "join=map=0.0-FR", [-4000, 8000]],
+  [[[8000], [12000, -2000]], "join=map=1.0-FR", [8000, 12000]],
+  [[[8000], [-4000]], "join=map=0.0-FL|0.0-FR", [8000, 8000]],
+  [[[8000], [12000, -2000]], "join=map=1.1-FL|0.0-FR", [-2000, 8000]]
+] as const) {
+  it(`automatically assigns unused join channels: ${JSON.stringify(inputs)} ${filter}`, async () => {
+    const { result, stderr, bytes } = await run([
+      "-filter_complex", `[0:a][1:a]${filter}[mix]`, "-map", "[mix]"
+    ], inputs.map(channels => channels.map(sample => Array<number>(32).fill(sample))));
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(bytes).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 8000);
+    assert.equal(audio.channels, 2);
+    assert.equal(audio.channelMask ?? 3, 3);
+    assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)),
+      expected.map(sample => Array<number>(32).fill(sample)));
   });
 }

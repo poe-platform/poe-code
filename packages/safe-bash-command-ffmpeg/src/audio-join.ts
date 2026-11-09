@@ -19,9 +19,9 @@ export async function joinAudio(
     return track.decodedAudio;
   });
   if (audio[0]!.sampleRate !== audio[1]!.sampleRate) throw new Error("join requires matching sample rates");
-  if (!options.map) throw new Error("join requires an explicit channel map");
+  const used = audio.map(() => new Set<number>());
   const selected = new Map<string, Float32Array | Float64Array>();
-  for (const mapping of options.map.split("|")) {
+  for (const mapping of options.map ? options.map.split("|") : []) {
     const [source, output, ...extra] = mapping.split("-");
     const indices = source!.split(".");
     if (extra.length || !["FL", "FR"].includes(output ?? "") || selected.has(output!) ||
@@ -31,8 +31,26 @@ export async function joinAudio(
     const channel = audio[Number(indices[0])]?.channelData[Number(indices[1])];
     if (!channel) throw new Error("join: invalid input channel");
     selected.set(output!, channel);
+    used[Number(indices[0])]!.add(Number(indices[1]));
   }
-  if (selected.size !== 2) throw new Error("join: map must assign both stereo channels");
+  // Reserve matching speakers before filling any gaps with unused channels.
+  for (const matchSpeaker of [true, false]) {
+    for (const [outputIndex, name] of ["FL", "FR"].entries()) {
+      if (selected.has(name)) continue;
+      for (const [inputIndex, input] of audio.entries()) {
+        const mask = input.channelMask || (input.channels === 1 ? 4 : input.channels === 2 ? 3 : 0);
+        const channelIndex = matchSpeaker
+          ? (mask & (1 << outputIndex) ? (outputIndex === 1 && (mask & 1) ? 1 : 0) : -1)
+          : input.channelData.findIndex((_, index) => !used[inputIndex]!.has(index));
+        const channel = input.channelData[channelIndex];
+        if (!channel || used[inputIndex]!.has(channelIndex)) continue;
+        selected.set(name, channel);
+        used[inputIndex]!.add(channelIndex);
+        break;
+      }
+    }
+  }
+  if (selected.size !== 2) throw new Error("join: not enough unused input channels");
   const length = Math.min(...audio.map(input => input.channelData[0]!.length));
   const sampleRate = audio[0]!.sampleRate;
   budget.checkSamples(length);

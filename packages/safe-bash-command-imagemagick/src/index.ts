@@ -2054,7 +2054,7 @@ function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a
     const channel = part.trim();
     if (channel === "all" || channel === "default") {
       mask.r = mask.g = mask.b = true;
-      if (channel === "all") mask.a = true;
+      mask.a = true;
     } else if (channel === "red" || channel === "0") mask.r = true;
     else if (channel === "green" || channel === "1") mask.g = true;
     else if (channel === "blue" || channel === "2") mask.b = true;

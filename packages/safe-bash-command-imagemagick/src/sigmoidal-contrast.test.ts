@@ -6,12 +6,15 @@ import { runConvertCli, runConvertCliSync } from "./index.js";
 for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([
         [[], [114, 184, 230, 195]],
+        [["-channel", "Default"], [114, 184, 230, 195]],
+        [["-channel", "All"], [114, 184, 230, 195]],
         [["-channel", "RGB"], [114, 184, 230, 160]],
         [["-channel", "RGBA"], [114, 184, 230, 195]],
         [["-channel", "A"], [100, 150, 200, 195]],
         [["-channel", "R"], [114, 150, 200, 160]],
         [["-channel", "RGB", "+channel"], [114, 184, 230, 195]],
         [["-alpha", "off"], [114, 184, 230, 255]],
+        [["-alpha", "off", "-channel", "Default"], [114, 184, 230, 255]],
         [["-alpha", "off", "-channel", "RGBA"], [114, 184, 230, 255]],
     ] as const)(`matches native sigmoidal contrast with %j via ${mode}`, async (options, expected) => {
         // Native magick: input.png [options] -sigmoidal-contrast 5x40% -depth 8 rgba:-

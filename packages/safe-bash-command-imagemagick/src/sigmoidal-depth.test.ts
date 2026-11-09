@@ -9,7 +9,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         ["-sigmoidal-contrast", [0x2f90, 0x8ae1, 0xbce0, 0xa360]],
         ["+sigmoidal-contrast", [0x5434, 0x8506, 0x9e9b, 0x90bf]]
     ] as const) {
-        it.each([undefined, "RGB", "R", "A"])(`${mode}: preserves native 16-bit samples for ${option} with channel %s`, async channel => {
+        it.each([undefined, "Default", "default", "All", "RGBA", "RGB", "R", "A"])(`${mode}: preserves native 16-bit samples for ${option} with channel %s`, async channel => {
             const samples = [0x4321, 0x8765, 0xabcd, 0x9876];
             const input = encodeImage({ width: 1, height: 1,
                 data: Uint8Array.from(samples, value => Math.round(value / 257)),

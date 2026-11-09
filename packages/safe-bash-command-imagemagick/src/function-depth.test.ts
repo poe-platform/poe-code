@@ -26,6 +26,14 @@ for (const mode of ["command", "buffered", "sync"] as const) {
         return mode === "command" ? await fs.readFile("/out.png") : files.get("out.png")!;
     }
 
+    it.each([undefined, "Default", "default", "All", "RGBA", "RGB"])(`${mode}: constant Polynomial respects channel %s`, async channel => {
+        const samples = [11, 22, 33, 88, 55, 66, 77, 99].map(value => value * 257);
+        const output = await convert(samples, [
+            ...(channel ? ["-channel", channel] : []), "-function", "Polynomial", "0.8", "-depth", "16"
+        ]);
+        expect([...decodeImage(output).data16!]).toEqual(samples.map((value, index) =>
+            channel === "RGB" && index % 4 === 3 ? value : 52428));
+    });
 
     // Native ImageMagick Q16-HDRI results, compared as full-depth samples.
     it.each([

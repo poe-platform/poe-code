@@ -6421,7 +6421,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     } };
 }
 
-type MagickPixelOperation = { maskAlpha?: "transparent" | "opaque" | undefined; warning?: string; evaluate?: boolean; highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number): Generator<void, RgbaImage, void> };
+type MagickPixelOperation = { handlesWriteMask?: boolean; maskAlpha?: "transparent" | "opaque" | undefined; warning?: string; evaluate?: boolean; highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number): Generator<void, RgbaImage, void> };
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
     let i = start, apply: MagickPixelOperation["apply"], highDepth = false, warning: string | undefined;
@@ -7166,15 +7166,28 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...im, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
         };
     }
-    else if (token === "-level" || token === "+level") {
+    else if (token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors") {
         highDepth = true;
-        const raw = tokens[++i] ?? "0,100%";
-        if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+        const colorEndpoints = token.endsWith("-colors");
+        const raw = tokens[++i] ?? (colorEndpoints ? "" : "0,100%");
+        let endpointColors: RgbaColor[] | undefined;
+        if (colorEndpoints) {
+            // Functional color names contain commas inside parentheses.
+            let nesting = 0, separator = -1;
+            for (let index = 0; index < raw.length; index++) {
+                if (raw[index] === "(") nesting++;
+                else if (raw[index] === ")") nesting--;
+                else if (raw[index] === "," && nesting === 0) { separator = index; break; }
+            }
+            endpointColors = separator < 0 ? [parseColor(raw || "black", true), parseColor(raw || "black", true)]
+                : [parseColor(raw.slice(0, separator) || "black", true), parseColor(raw.slice(separator + 1) || "white", true)];
+        }
+        else if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
         const parts = raw.replaceAll("!", "").replaceAll("x", ",").replaceAll("/", ",").replaceAll(":", ",").split(",");
         // Colon geometry expresses a ratio with a unit white point.
-        if (raw.includes(":")) {
+        if (!colorEndpoints && raw.includes(":")) {
             parts[0] = String(parseFloat(parts[0]!) / parseFloat(parts[1]!));
             parts[1] = "1";
         }
@@ -7187,44 +7200,63 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             return parseFloat(p) / 257;
         };
-        const black = parsePt(parts[0], 0);
-        const white = parsePt(parts[1], 255 - black);
-        const gamma = parts[2] !== undefined ? parseFloat(parts[2]) : 1.0;
+        const blackPoint = parsePt(parts[0], 0);
+        const black = endpointColors ? [endpointColors[0]!.r, endpointColors[0]!.g, endpointColors[0]!.b, endpointColors[0]!.a] : [blackPoint, blackPoint, blackPoint, blackPoint];
+        const whitePoint = parsePt(parts[1], 255 - blackPoint);
+        const white = endpointColors ? [endpointColors[1]!.r, endpointColors[1]!.g, endpointColors[1]!.b, endpointColors[1]!.a] : [whitePoint, whitePoint, whitePoint, whitePoint];
+        const gamma = !colorEndpoints && parts[2] !== undefined ? parseFloat(parts[2]) : 1.0;
         const exponent = 1 / (Math.abs(gamma) >= 1e-12 ? gamma : gamma < 0 ? -1e-12 : 1e-12);
-        const inverse = token === "+level" || raw.includes("!");
+        const inverse = token === "+level-colors" || token === "+level" || !colorEndpoints && raw.includes("!");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = function* (im) {
             const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
-            const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
+            const data16 = im.data16 ? new Uint16Array(im.data16) : colorEndpoints && im.writeMask ? Uint16Array.from(im.data, value => value * 257) : undefined;
             const evaluateSamples = im.evaluateSamples?.slice() ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
-            const span = white === black ? 1e-6 : white - black;
+            const spans = white.map((value, channel) => value - black[channel]!);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
+                const writeMask = colorEndpoints ? im.writeMask : undefined;
+                const maskOffset = writeMask ? (Math.min(Math.floor(idx / 4 / im.width), writeMask.height - 1) * writeMask.width + Math.min(idx / 4 % im.width, writeMask.width - 1)) * 4 : 0;
+                const protection = writeMask ? (0.212656 * writeMask.data[maskOffset]! + 0.715158 * writeMask.data[maskOffset + 1]! + 0.072186 * writeMask.data[maskOffset + 2]!) / 255 : 0;
+                const alpha = im.hasAlpha ? evaluateSamples[idx + 3]! / 255 : 1;
                 for (let c = 0; c < 4; c++) {
                     if (++pixelWork % 16384 === 0)
                         yield;
                     if (!mask[c])
                         continue;
                     const v = evaluateSamples[idx + c]!;
+                    const span = spans[c]!;
                     let value: number;
                     if (inverse) {
                         const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), gamma);
-                        value = black + gVal * span;
+                        value = black[c]! + gVal * span;
                     }
                     else {
-                        const norm = (v - black) / span;
+                        const norm = (v - black[c]!) / (span === 0 ? 1e-6 : span);
                         // Native gamma_pow leaves negative samples unchanged, then -level clamps the curve.
-                        value = Math.max(0, Math.min(1, norm < 0 ? norm : Math.pow(norm, exponent))) * 255;
+                        const curve = (norm < 0 ? norm : Math.pow(norm, exponent)) * 255;
+                        value = protection > 0 ? curve : Math.max(0, Math.min(255, curve));
+                    }
+                    if (protection > 0) {
+                        if (c === 3) value = v;
+                        else {
+                            // Native levels sync each selected channel separately. Minus levels
+                            // sync again when clamping, so write masks blend a second time.
+                            const sourceAlpha = protection * alpha;
+                            value = Math.fround((v * sourceAlpha + value * alpha * (1 - sourceAlpha)) * 257) / 257;
+                            if (!inverse) value = value * sourceAlpha + Math.max(0, Math.min(255, value)) * alpha * (1 - sourceAlpha);
+                        }
                     }
                     evaluateSamples[idx + c] = Math.fround(value * 257) / 257;
                     out[idx + c] = clampByteVal(value);
                     if (data16) data16[idx + c] = Math.max(0, Math.min(65535, Math.round(value * 257)));
                 }
             }
-            return { ...im, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
+            const colored = endpointColors?.some(color => color.r !== color.g || color.g !== color.b);
+            return { ...im, ...(colorEndpoints && im.writeMask ? { writeMask: { ...im.writeMask } } : {}), ...(colored && (im.space === "b-w" || im.space === "grey16") ? { space: "srgb" as const, channels: im.hasAlpha ? 4 as const : 3 as const } : {}), data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
         };
     }
     else if (token === "-black-threshold" || token === "-white-threshold") {
@@ -7268,7 +7300,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, handlesWriteMask: token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelSelections(expression: string): number[][] {
@@ -7324,8 +7356,10 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
         const evaluateBytes = operation.evaluate && image.storedEvaluateSamples !== undefined ? await backend.storage.read(image.storedEvaluateSamples + offset * 8, data.length * 8) : undefined;
         const evaluateSamples = evaluateBytes ? new Float64Array(evaluateBytes.buffer.slice(evaluateBytes.byteOffset, evaluateBytes.byteOffset + evaluateBytes.byteLength)) : undefined;
         const { storedEvaluateSamples: ignoredEvaluate, storedData16: ignoredSource, storedHueSamples: ignoredHue, ...inputMetadata } = image;
-        const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(evaluateSamples ? {evaluateSamples} : {}), ...(data16 ? {data16} : {}), ...(hueSamples ? {hueSamples} : {}) }, offset / 4), signal);
-        const { data: pixels, evaluateSamples: outputEvaluate, data16: output16, hueSamples: outputHue, ...metadata } = transformed;
+        const writeMask = operation.handlesWriteMask && image.storedWriteMask
+            ? { ...image.storedWriteMask, width: data.length / 4, height: 1, data: await backend.storage.read(image.storedWriteMask.position + offset, data.length) } : undefined;
+        const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(writeMask ? { writeMask } : {}), ...(evaluateSamples ? {evaluateSamples} : {}), ...(data16 ? {data16} : {}), ...(hueSamples ? {hueSamples} : {}) }, offset / 4), signal);
+        const { data: pixels, writeMask: ignoredMask, evaluateSamples: outputEvaluate, data16: output16, hueSamples: outputHue, ...metadata } = transformed;
         if (outputEvaluate) {
             storedEvaluateSamples ??= backend.storage.allocate(size * 8);
             await backend.storage.write(storedEvaluateSamples + offset * 8, new Uint8Array(outputEvaluate.buffer, outputEvaluate.byteOffset, outputEvaluate.byteLength));
@@ -7339,7 +7373,7 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
             await backend.storage.write(storedData16.position + offset * 2, new Uint8Array(output16.buffer, output16.byteOffset, output16.byteLength));
         }
         await backend.storage.write(position + offset, pixels);
-        result = { ...metadata, width: image.width, height: image.height, position, ...(storedEvaluateSamples === undefined ? {} : {storedEvaluateSamples}), ...(storedData16 ? {storedData16} : {}), ...(storedHueSamples === undefined ? {} : {storedHueSamples}) };
+        result = { ...metadata, ...(writeMask ? { storedWriteMask: { ...image.storedWriteMask! } } : {}), width: image.width, height: image.height, position, ...(storedEvaluateSamples === undefined ? {} : {storedEvaluateSamples}), ...(storedData16 ? {storedData16} : {}), ...(storedHueSamples === undefined ? {} : {storedHueSamples}) };
     }
     return result;
 }
@@ -8207,7 +8241,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         const setting = applyMagickReadSetting(tokens, state, i);
-        if (setting === undefined && (t === "-solarize" || ((t === "-colorize" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
+        if (setting === undefined && (t === "-solarize" || ((t === "-colorize" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-level-colors" || t === "+level-colors" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
@@ -10201,7 +10235,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-solarize" || ((token === "-colorize" || token === "-threshold" || token === "-black-threshold" || token === "-white-threshold") && tokens[i + 1]?.includes("%[")) || (token === "-modulate" && tokens[i + 1]?.includes("%[")) || ((token === "-level" || token === "+level" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%[")) || token === "-color-matrix" || token === "-gamma" || token === "+gamma" || token === "-brightness-contrast" || token === "-tint")) {
+        if (!operandsOnly && (token === "-solarize" || ((token === "-colorize" || token === "-threshold" || token === "-black-threshold" || token === "-white-threshold") && tokens[i + 1]?.includes("%[")) || (token === "-modulate" && tokens[i + 1]?.includes("%[")) || ((token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%[")) || token === "-color-matrix" || token === "-gamma" || token === "+gamma" || token === "-brightness-contrast" || token === "-tint")) {
             const value = tokens[++i] ?? (token === "-solarize" ? "50%" : token === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : token === "-brightness-contrast" || token === "-tint" ? "" : "1"), settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;

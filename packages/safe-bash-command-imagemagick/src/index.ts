@@ -8321,7 +8321,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-extent") {
             const geom = tokens[++i] ?? "100%";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickExtentSteps(im, geom, state, signal));
+                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                return (yield* applyMagickExtentSteps(im, expanded, state, signal));
             });
         }
         else if (t === "-border") {
@@ -10569,7 +10570,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = tokens[++i] ?? "100%", captured = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const layout = magickExtentLayout(image, geometry, captured);
+                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: captured.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const layout = magickExtentLayout(image, expanded, captured);
                 if (!layout) return image;
                 const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
                 const source = (image as StoredMagickImage)[magickInput];

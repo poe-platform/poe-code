@@ -541,7 +541,7 @@ class Parser {
     const set: CharacterSet = { negate: this.at("^"), ranges: [], classes: [] };
     if (set.negate) this.position++;
     const element = (): number | string => {
-      if (this.at("[") && [":", ".", "="].includes(this.tokens[this.position + 1]!)) {
+      if (this.at("[") && (this.emacs ? [".", "="] : [":", ".", "="]).includes(this.tokens[this.position + 1]!)) {
         const marker = this.tokens[this.position + 1]!;
         this.position += 2;
         let name = "";

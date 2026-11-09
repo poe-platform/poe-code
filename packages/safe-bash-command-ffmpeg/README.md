@@ -142,6 +142,10 @@ Leading `+` and trailing text are accepted, as in `+2S`, `0.5ms`, or `2Sabc`. `a
 when false or omitted, unspecified channels are unchanged. Empty entries are skipped,
 so `adelay=|1S` delays the first channel. Omitted delays pass audio through unchanged,
 including `adelay`, `adelay=`, and `adelay=all=1`.
+`enable` expressions are evaluated at input frame timestamps, as in
+`adelay=0S|23S:enable='gte(t,0.3)'`. Disabled frames pass through and freeze
+the delay buffers. Common leading silence and the full delayed tail are retained;
+the final input frame’s enable state controls whether the tail drains buffered audio or emits silence.
 `asetrate=16000` changes the sample rate without resampling PCM, changing playback speed and duration. Later filters use the new rate; `r` and `sample_rate` are accepted option names.
 `format` accepts `monob`, `pal8`, `rgba`, `bgra`, `rgb24`, `bgr24`, `gray`, `gray8`, `ya8` (grayscale with alpha), `rgba64be`, `rgb48be`, `gray16be`, `yuv420p`, `yuv422p`, and `yuv444p`, directly or with `pix_fmts=`, including `|`-separated lists. `monob` uses ordered monochrome dithering, discards alpha, and writes packed 1-bit grayscale PNGs. `pal8` uses FFmpeg’s fixed 256-color palette with error diffusion, discards alpha, and writes 8-bit indexed PNGs. `gray` and `gray8` use full-range BT.601 luminance, discard alpha, and write single-channel grayscale PNGs. `pad` converts border colors to grayscale on grayscale inputs and preserves alpha on `ya8` inputs. The 16-bit formats write 16-bit PNG samples with RGBA, RGB, or grayscale layout respectively, expanding the decoded 8-bit channels. The YUV formats convert to limited-range BT.601 with the selected chroma subsampling and discard alpha before subsequent filters run. Every list entry is validated before output is replaced. Other pixel formats and options (including `color_spaces` and `color_ranges`) are unsupported and fail explicitly.
 Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.

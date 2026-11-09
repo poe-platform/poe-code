@@ -10277,6 +10277,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "adelay" || trimmed.startsWith("adelay=")) {
                         let delays = "";
                         let all = false;
+                        let enable: string | undefined;
                         for (const [index, option] of trimmed.slice("adelay=".length).split(":").entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["delays", "all"][index] : option.slice(0, separator).trim();
@@ -10288,6 +10289,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error("adelay: invalid all option");
                             }
                             all = ["1", "true", "yes", "on"].includes(flag);
+                          } else if (key === "enable") {
+                            enable = value;
+                            parseFilterExpression(enable, "adelay enable", { n: 0, t: 0 });
                           } else throw new Error(`adelay: unsupported option ${key}`);
                         }
                         const values = delays.split("|").filter(value => value !== "");
@@ -10312,39 +10316,64 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const padding = Math.min(...offsets);
                         const length = inputLength + Math.max(0, ...offsets);
                         budget.checkDuration(length / origRate);
-                        budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
-                        // adelay emits common silence in 2048-sample frames, then
-                        // preserves input frame sizes and flushes remaining channel delays.
+                        budget.allocateMemory((length * stretched.length + offsets.reduce((sum, offset) => sum + offset - padding, 0)) * Float32Array.BYTES_PER_ELEMENT);
+                        const output = stretched.map(() => new Float32Array(length));
+                        const history = offsets.map(offset => new Float32Array(offset - padding));
                         const previous = audioTimestamps;
                         audioTimestamps = [];
                         let nextPts = previous?.[0]?.pts ?? (t.samples[0] ? t.samples[0].pts * origRate / t.timescale : audioStartSample);
+                        let enabled = true;
+                        let position = 0;
+                        // Common silence is unconditional. Bypassed input freezes the delay
+                        // buffers; EOF drains them using the final input frame's enable state.
                         for (let start = 0, n = 0; start < length;) {
-                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          budget.checkCpu();
+                          await yieldTurn(context.signal);
+                          context.signal?.throwIfAborted();
                           let end: number;
-                          if (start < padding) end = Math.min(padding, start + 2048);
-                          else if (start < padding + inputLength) {
-                            const frame = previous?.[n];
-                            const packet = t.samples[n++];
-                            const count = frame ? frame.end - frame.start
-                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                            nextPts = (frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start - padding)) + padding;
-                            end = Math.min(padding + inputLength, start + count);
-                          } else end = Math.min(length, start + 2048);
+                          let pts = nextPts;
+                          if (start < padding) {
+                            end = Math.min(padding, start + 2048);
+                            nextPts += end - start;
+                          } else {
+                            if (start < padding + inputLength) {
+                              const frame = previous?.[n];
+                              const packet = t.samples[n];
+                              const count = frame ? frame.end - frame.start
+                                : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                              const inputPts = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start - padding);
+                              enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "adelay enable", {
+                                n, t: inputPts / origRate
+                              })) >= 0.5;
+                              n++;
+                              end = Math.min(padding + inputLength, start + count);
+                              pts = inputPts + (enabled ? padding : 0);
+                              if (enabled) nextPts = inputPts + end - start;
+                            } else {
+                              end = Math.min(length, start + 2048);
+                              nextPts += end - start;
+                              if (enabled) pts += padding;
+                            }
+                            for (let i = start; i < end; i++) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              for (let c = 0; c < stretched.length; c++) {
+                                const sample = stretched[c]![i - padding] ?? 0;
+                                const buffer = history[c]!;
+                                if (!enabled || buffer.length === 0) output[c]![i] = sample;
+                                else {
+                                  const slot = position % buffer.length;
+                                  output[c]![i] = buffer[slot]!;
+                                  buffer[slot] = sample;
+                                }
+                              }
+                              if (enabled) position++;
+                            }
+                          }
                           budget.allocateMemory(24);
-                          audioTimestamps.push({ start, end, pts: nextPts });
-                          nextPts += end - start;
+                          audioTimestamps.push({ start, end, pts });
                           start = end;
                         }
-                        stretched = await mapWork(stretched, async (channel, c) => {
-                          const output = new Float32Array(length);
-                          for (let start = 0; start < channel.length; start += 16384) {
-                            await yieldTurn(context.signal);
-                            context.signal?.throwIfAborted();
-                            budget.checkCpu();
-                            output.set(channel.subarray(start, start + 16384), offsets[c]! + start);
-                          }
-                          return output;
-                        }, context.signal);
+                        stretched = output;
                       } else if (trimmed === "atempo" || trimmed.startsWith("atempo=")) {
                         const argument = trimmed === "atempo" ? "1" : trimmed.slice("atempo=".length).trim();
                         const tempo = parseFilterExpression(argument.startsWith("tempo=") ? argument.slice("tempo=".length) : argument, "atempo", {});

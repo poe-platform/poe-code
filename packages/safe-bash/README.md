@@ -185,7 +185,8 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   `${@:offset:length}` and `${*:offset:length}` slices), parameter expansion
   (including scalar `${!name}` indirection and `^`/`^^` and `,`/`,,` case
   conversion with optional patterns),
-  `$(command)` and backtick substitution, arithmetic expansion, and pathname globs.
+  `$(command)` and backtick substitution, arithmetic expansion, pathname globs,
+  and tilde expansion including directory stack references (`~N`, `~+N`, `~-N`).
 - Pipelines (`|`, `|&`), lists (`;`, `&&`, `||`, `!`), file redirection (`<`, `>`,
   `>>`, `<>`), combined output redirection (`&>`, `>& file`, `&>>`), descriptor
   redirection such as `2>&1`, here-documents, and here-strings. `<>` opens without

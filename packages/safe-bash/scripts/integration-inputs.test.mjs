@@ -19,6 +19,11 @@ import * as typecheckInputs from "./typecheck-inputs.mjs";
 
 const owner = "fixture producer";
 
+test("directory stack tilde regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/directory-stack-tilde.test.ts"));
+});
+
 test("streaming shell regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/streaming.test.ts"));

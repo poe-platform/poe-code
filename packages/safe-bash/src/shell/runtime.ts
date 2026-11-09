@@ -36,7 +36,7 @@ import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./
 import { createAliasCommand } from "safe-bash-command-alias";
 import { createCallerCommand, type CallerFrame } from "safe-bash-command-caller";
 import { createUnaliasCommand } from "safe-bash-command-unalias";
-import { expandTildes } from "./tilde-expansion.js";
+import { expandTildes, resolveTildePrefix } from "./tilde-expansion.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, compilePatternBoundaries, matchesPattern } from "./pattern.js";
 import { nextCodePointOffset, scanString, stringCheckpoint } from "./string-operations.js";
@@ -9782,7 +9782,7 @@ export class Runtime {
         const operandIO = this.parameterOperandIO(part.alternate!, state, io);
         let alternate: string;
         const altWord = !hereDocument && !part.quoted && operator === "="
-          ? { ...part.alternate!, parts: expandTildes(part.alternate!.parts, state.variables, this.budget, undefined, true) }
+          ? { ...part.alternate!, parts: expandTildes(part.alternate!.parts, state, this.budget, undefined, true) }
           : part.alternate!;
         if (operator === "=" && arrayStore(state)?.get(part.name)) {
           alternate = "";
@@ -9942,10 +9942,15 @@ export class Runtime {
     const replacementIO = part.replacement ? this.parameterOperandIO(part.replacement, state, io) : io;
     for (const [index, entry] of (part.replacement?.parts ?? []).entries()) {
       let value = entry.kind === "text" ? entry.value : await this.part(entry, state, replacementIO, hereString);
-      if (index === 0 && entry.kind === "text" && !entry.quoted && /^~(?:\/|$)/u.test(value)) {
-        const home = state.variables.HOME ?? "~";
-        scratch.reserve((home.length + value.length - 1) * 2, 0);
-        value = home + value.slice(1);
+      if (index === 0 && entry.kind === "text" && !entry.quoted && value.startsWith("~")) {
+        const slash = value.indexOf("/");
+        const end = slash === -1 ? value.length : slash;
+        scratch.reserve((end - 1) * 2, 0);
+        const home = resolveTildePrefix(value.slice(1, end), state, this.budget);
+        if (home !== undefined) {
+          scratch.reserve((home.length + value.length - end) * 2, 0);
+          value = home + value.slice(end);
+        }
       }
       replacementBytes += shellValueByteLength(value);
       if (replacementBytes > limit) this.budget.fail("maxExpansionBytes");
@@ -10184,7 +10189,7 @@ export class Runtime {
         }
       }
       } finally { separatorScope.close(); }};
-    const parts = (hereDocument ? word.parts : expandTildes(word.parts, state.variables, this.budget, assignmentStart)).map((part) => ({ part, splitText: false, io }));
+    const parts = (hereDocument ? word.parts : expandTildes(word.parts, state, this.budget, assignmentStart)).map((part) => ({ part, splitText: false, io }));
     for (let index = 0; index < parts.length; index++) {
       let { part } = parts[index]!;
       const { splitText, io: partIO } = parts[index]!;
@@ -10216,7 +10221,7 @@ export class Runtime {
         if (part.operator!.endsWith("+") ? !missing : missing) {
           const operandIO = this.parameterOperandIO(part.alternate!, state, partIO);
           scratch?.reserve(part.alternate!.parts.length * 32, 0);
-          const alternate = (part.quoted ? part.alternate!.parts : expandTildes(part.alternate!.parts, state.variables, this.budget)).map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true, io: operandIO }));
+          const alternate = (part.quoted ? part.alternate!.parts : expandTildes(part.alternate!.parts, state, this.budget)).map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true, io: operandIO }));
           if (!alternate.length && part.quoted) append("", false, true);
           parts.splice(index + 1, 0, ...alternate);
           continue;

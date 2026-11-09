@@ -119,7 +119,7 @@ test("replacement tilde expansion is admitted before constructing its suffix", a
   });
   const slice = String.prototype.slice;
   context.mock.method(String.prototype, "slice", function(this: string, start: number, end?: number) {
-    if (String(this) === "~/" && start === 1) assert.equal(admitted, true, "tilde allocation preceded admission");
+    if (String(this) === "~/" && start === 1 && end === undefined) assert.equal(admitted, true, "tilde allocation preceded admission");
     return slice.call(this, start, end);
   });
   try {

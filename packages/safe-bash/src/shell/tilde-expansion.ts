@@ -1,8 +1,24 @@
-import type { Budget } from "./runtime.js";
+import type { Budget, State } from "./runtime.js";
 import type { WordPart } from "./parser.js";
 
+export function resolveTildePrefix(prefix: string, state: State, budget: Budget): string | undefined {
+  if (prefix === "") return state.variables.HOME;
+  if (prefix === "+") return state.variables.PWD;
+  if (prefix === "-") return state.variables.OLDPWD;
+  let position = 0;
+  for (let digit = prefix[0] === "+" || prefix[0] === "-" ? 1 : 0; digit < prefix.length; digit++) {
+    if (digit % 1024 === 0) budget.cpuCheckpoint();
+    const code = prefix.charCodeAt(digit);
+    if (code < 48 || code > 57) return undefined;
+    position = position * 10 + code - 48;
+  }
+  const entries = state.directoryStack?.entries;
+  if (prefix[0] === "-") position = (entries?.length ?? 0) - position;
+  return position === 0 ? state.variables.PWD : entries?.[position - 1];
+}
+
 /** Expand lexical prefixes before parameter expansion, preserving their quoting. */
-export function expandTildes(parts: readonly WordPart[], variables: Readonly<Record<string, string>>, budget: Budget, assignmentStart?: number, colonEndsInitialTilde = false): WordPart[] {
+export function expandTildes(parts: readonly WordPart[], state: State, budget: Budget, assignmentStart?: number, colonEndsInitialTilde = false): WordPart[] {
   const result: WordPart[] = [];
   for (let index = 0; index < parts.length; index++) {
     const part = parts[index]!;
@@ -21,7 +37,7 @@ export function expandTildes(parts: readonly WordPart[], variables: Readonly<Rec
       // A quoted or expanded continuation belongs to the prefix, even when empty.
       if (end === part.value.length && index + 1 < parts.length) continue;
       const prefix = part.value.slice(offset + 1, end);
-      const home = prefix === "" ? variables.HOME : prefix === "+" ? variables.PWD : prefix === "-" ? variables.OLDPWD : undefined;
+      const home = resolveTildePrefix(prefix, state, budget);
       if (home === undefined) continue;
       if (retained < offset) result.push({ ...part, value: part.value.slice(retained, offset) });
       result.push({ kind: "text", value: home, quoted: true });

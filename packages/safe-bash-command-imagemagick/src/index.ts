@@ -9124,9 +9124,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-kuwahara") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const raw = tokens[++i] ?? "";
-            validateMagickTransformGeometry(raw, t);
-            const geometry = parseMagickGeometry(raw);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                validateMagickTransformGeometry(expanded, "-kuwahara");
+                const geometry = parseMagickGeometry(expanded);
                 return yield* applyMagickRasterSteps(im, kuwaharaPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
             });
         }
@@ -11306,9 +11307,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const raw = tokens[++i] ?? "";
-            validateMagickTransformGeometry(raw, token);
-            const geometry = parseMagickGeometry(raw), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, kuwaharaPixelSteps(image, geometry, background, virtualPixel, channels), signal) : undefined);
+            const background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickTransformGeometry(expanded, "-kuwahara");
+                const geometry = parseMagickGeometry(expanded);
+                return transformStoredMagickRaster(image, backend, kuwaharaPixelSteps(image, geometry, background, virtualPixel, channels), signal);
+            });
         } else if (!operandsOnly && token === "-motion-blur") {
             const geometry = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {

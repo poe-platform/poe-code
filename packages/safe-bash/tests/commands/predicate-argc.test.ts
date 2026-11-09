@@ -26,6 +26,12 @@ const cases: readonly (readonly [readonly string[], number])[] = [
   [["!", "-n", "value"], 1],
   [["!", "=", "!"], 0],
   [["(", "=", ")"], 1],
+  [[")", "=", ")"], 0],
+  [["!", ")", "=", ")"], 1],
+  [["(", "x", "=", "x", ")"], 0],
+  [["(", ")", "!=", "x", ")"], 0],
+  [["(", ")", ")"], 0],
+  [["(", "-n", ")", ")"], 0],
   [["(", "-n", "value", ")"], 0],
   [["(", "!", "", ")"], 0],
   [["Alpha", "-a", ""], 1],
@@ -39,6 +45,33 @@ const cases: readonly (readonly [readonly string[], number])[] = [
 ];
 
 for (const command of ["test", "["]) {
+  test(`${command} rejects invalid two-argument groups before binary comparison`, async () => {
+    const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry([...basicCommands(), ...predicateCommands()]) });
+    try {
+      for (const left of [")", "x", ""]) {
+        for (const operator of ["=", "==", "!=", "-eq"]) {
+          const args = ["(", left, operator, ")", ")"];
+          const result = await run(command, command === "[" ? [...args, "]"] : args, { commands: predicateCommands() });
+          assert.equal(result.exitCode, 2, JSON.stringify(args));
+          assert.equal(result.stdout, "");
+          assert.equal(result.stderr, `${command}: ${left}: unary operator expected\n`);
+          const source = `${command} '(' "$v" '${operator}' ')' ')'${command === "[" ? " ]" : ""}`;
+          for (const invocation of [source, `for i in 1 2; do ${source}; done`]) {
+            const invoked = await shell.exec(`v='${left}'; ${invocation}`);
+            assert.equal(invoked.exitCode, 2, invocation);
+            assert.equal(invoked.stdout, "");
+            assert.ok(invoked.stderr.includes(`${left}: unary operator expected\n`), invoked.stderr);
+          }
+        }
+      }
+      const suffix = command === "[" ? " ]" : "";
+      const result = await shell.exec(`v=')'; ${command} '(' "$v" = "$v" ')'${suffix} && echo success`);
+      assert.equal(result.exitCode, 2);
+      assert.equal(result.stdout, "");
+      assert.ok(result.stderr.includes("): unary operator expected\n"), result.stderr);
+    } finally { await shell.dispose(); }
+  });
+
   test(`${command} treats a trailing negated unary-looking word as a string`, async () => {
     const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry([...basicCommands(), ...predicateCommands()]) });
     try {

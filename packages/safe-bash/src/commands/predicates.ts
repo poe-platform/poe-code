@@ -155,6 +155,11 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
           offset++;
           if (token === "!") frame.pendingNot = !frame.pendingNot;
           else {
+            // A binary operator cannot consume the closing delimiter of a two-argument group.
+            if (args[offset + 2] === ")" && binary.has(args[offset + 1]!)
+              && args[offset] !== "!" && !unary.has(args[offset]!)) {
+              throw new UsageError(`${args[offset]}: unary operator expected`);
+            }
             frames.push({ groups: [[]], negate: frame.pendingNot, pendingNot: false });
             frame.pendingNot = false;
           }

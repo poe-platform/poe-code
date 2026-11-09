@@ -904,7 +904,7 @@ function* applyMagickFloodfillSteps(
   geomStr: string,
   targetColor: RgbaColor | undefined,
   replacement: RgbaColor,
-  fuzz: number, signal?: AbortSignal, alphaOnly = false): Generator<void, RgbaImage, void> {
+  fuzz: number, signal?: AbortSignal, alphaOnly = false, channels?: readonly boolean[]): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = parseMagickGeometry(geomStr);
   const w = img.width;
@@ -945,11 +945,11 @@ function* applyMagickFloodfillSteps(
         const cur = queue[head++]!;
     const off = cur * 4;
     if (!alphaOnly) {
-      out[off] = replacement.r;
-      out[off + 1] = replacement.g;
-      out[off + 2] = replacement.b;
+      if (!channels || channels[0]) out[off] = replacement.r;
+      if (!channels || channels[1]) out[off + 1] = replacement.g;
+      if (!channels || channels[2]) out[off + 2] = replacement.b;
     }
-    out[off + 3] = replacement.a;
+    if (!channels || channels[3]) out[off + 3] = replacement.a;
 
     const cx = cur % w;
     const cy = Math.floor(cur / w);
@@ -7998,7 +7998,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
             }
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickFloodfillSteps(im, geom, targetColor, state.fill, state.fuzz, signal));
+                return (yield* applyMagickFloodfillSteps(im, geom, targetColor, state.fill, state.fuzz, signal, false, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined));
             });
         }
         else if (t === "-evaluate-sequence" || t === "-average") {
@@ -9841,6 +9841,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-floodfill") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "+0+0"), candidate = tokens[i + 1], replacement = state.fill, fuzz = state.fuzz;
+            const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             let target: RgbaColor | undefined;
             if (candidate && !candidate.startsWith("-") && !candidate.startsWith("+")) {
                 let file = false;
@@ -9852,7 +9853,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const x = Math.max(0, Math.min(image.width - 1, Math.round(geometry.x || geometry.width || 0)));
                 const y = Math.max(0, Math.min(image.height - 1, Math.round(geometry.y || geometry.height || 0)));
-                return floodfillStoredImage(image, backend.storage, x, y, target, replacement, fuzz, signal);
+                return floodfillStoredImage(image, backend.storage, x, y, target, replacement, fuzz, signal, false, channels);
             });
         } else if (!operandsOnly && token === "-draw") {
             const drawing = tokens[++i] ?? "", settings = { ...state };

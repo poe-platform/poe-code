@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
@@ -57,24 +56,27 @@ it.each(["buffered", "retained"].flatMap(mode => [
     expect(mode === "buffered" ? files.get("out.png") : await fs.readFile("/out.png")).toEqual(original);
 });
 it("preserves original floodfill pixel vectors", async () => {
-    const bytes = await fixture(), hashes: string[] = [];
-    for (const args of operators) {
-        const files = new Map([["input", bytes]]);
+    const bytes = await fixture();
+    const fills = [
+        { side: "left", color: [255, 0, 0, 255] },
+        { side: "left", color: [18, 52, 86, 128] },
+        { side: "all", color: [0, 0, 0, 0] },
+        { side: "left", color: [0, 0, 255, 255] },
+        { side: "right", color: [0, 128, 0, 255] },
+        undefined,
+        { side: "left", color: [0, 0, 255, 255] },
+        { side: "all", color: [16, 32, 48, 64] }
+    ];
+    for (const [index, args] of operators.entries()) {
+        const files = new Map([["input", bytes]]), expected = decodeImage(bytes).data.slice();
         expect((await runConvertCli(["input", ...args, "out.png"], files)).exitCode).toBe(0);
-        hashes.push(createHash("sha256").update(files.get("out.png")!).digest("hex"));
+        const fill = fills[index];
+        if (fill) for (let pixel = 0; pixel < 53 * 37; pixel++) {
+            if (fill.side === "all" || (pixel % 53 < 53 / 2 ? "left" : "right") === fill.side)
+                expected.set(fill.color, pixel * 4);
+        }
+        expect(decodeImage(files.get("out.png")!).data).toEqual(expected);
     }
-    expect(hashes).toMatchInlineSnapshot(`
-      [
-        "1376cb781375f6492d0ead21fc2ddb67a1b3b131a6d6d71076f67414314d7e60",
-        "74f81aebc3fc745f290152a2bb3fe26f960385bb77e914fb0029eed21c9c29cc",
-        "569b12d2ba9fdf8ac87b8675f6d32ffb98bc8183c53029b0f73a777ccf94c09c",
-        "3da7a6e516999b7b59207049517b789ba0ef19020865bab1838b396cf7037b1c",
-        "0868a5aa4841122db7219ed0a699fe517e7ad0886ebad2af8fac0a60a235c7c2",
-        "cdf6882cb8db5ba218f7197385a15bb3463041d8f4010dd896d1f10fd85e16e4",
-        "3da7a6e516999b7b59207049517b789ba0ef19020865bab1838b396cf7037b1c",
-        "dd1d93f43d9cdc9e2bdf848022663d3baf0a903d66dbabd262643f23aa95bcfd",
-      ]
-    `);
 });
 it.each(operators.flatMap(args => [[53, 37], [1031, 31], [1, 1]].map(([width, height]) => ({ width: width!, height: height!, args }))))("retains $width x $height $args", async ({ width, height, args }) => {
     const bytes = await fixture(width, height), fs = new MemoryFileSystem(), files = new Map([["input", bytes]]);

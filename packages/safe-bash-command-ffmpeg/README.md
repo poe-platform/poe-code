@@ -127,6 +127,7 @@ duration, raw pixel byte count, and a digest (MD5, SHA256, or Adler-32 respectiv
 before the stream headers; PCM output has no extradata header.
 For audio, these formats retain PCM packet boundaries after filtering, including the
 short final packet, and checksum each packet separately.
+`framecrc` includes a `#software` header by default; `-bitexact` or `-fflags +bitexact` omits it without changing packet rows.
 For AAC decoded to PCM, audio rows follow decoder frames, skipping priming and
 retaining the complete final frame even when the container duration ends earlier.
 With `-map 0:s -c:s copy`, they checksum original subtitle packets, retaining style

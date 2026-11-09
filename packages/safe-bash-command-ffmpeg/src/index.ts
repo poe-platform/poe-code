@@ -10555,7 +10555,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             const serializedBytes = checksumOutput
               ? (frameChecksumOutput
-                ? serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec)
+                ? serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec, bitexact)
                 : serializeChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget,
                   audioCodec === "flac" ? registry.findByFormatName("flac") : audioCodec === "adpcm_ima_wav" ? registry.findByFormatName("wav") : undefined,
                   { blockSize, trellis, compressionLevel, sampleFormat, frameSize, lpcType, channelMode, lpcPasses,

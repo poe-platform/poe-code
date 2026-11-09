@@ -5,6 +5,10 @@ import {decodeImage} from "@poe-code/image-ast";
 import {createMagickCommand} from "./index.js";
 
 const fixtures = [
+    {name: "P5 maxval 65535", header: "P5\n1 1\n65535\n", raster: Buffer.from([128, 0]), gray: [128]},
+    {name: "P5 maxval 65536", header: "P5\n1 1\n65536\n", raster: Buffer.from([0, 0, 128, 0]), gray: [128]},
+    {name: "P5 four-byte over-range", header: "P5\n1 1\n65536\n", raster: Buffer.from([255, 255, 255, 255]), gray: [255]},
+    {name: "P5 unsigned four-byte", header: "P5\n1 1\n4294967295\n", raster: Buffer.from([255, 255, 255, 255]), gray: [255]},
     {name: "P1", header: "P1\n4 1\n", raster: Buffer.from("0 1 0 1"), gray: [255, 0, 255, 0]},
     {name: "P4 nine-bit row", header: "P4\n9 1\n", raster: Buffer.from([0x80, 0x80]), gray: [0, 255, 255, 255, 255, 255, 255, 255, 0]},
     {name: "P4 row padding", header: "P4\n1 2\n", raster: Buffer.from([0x80, 0]), gray: [0, 255]},

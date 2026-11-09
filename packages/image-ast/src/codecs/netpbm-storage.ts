@@ -52,6 +52,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  const sample=async():Promise<number>=>{
   if(magic==="P1"||magic==="P2"||magic==="P3") return ascii();
   const hi=await reader.at(position++)??0;
+  if(magic==="P5"&&maxval>65535) return hi*16777216+(await reader.at(position++))!*65536+(await reader.at(position++))!*256+(await reader.at(position++))!;
   return maxval>255?(hi<<8)|(await reader.at(position++)??0):hi;
  };
  for(let y=0;y<height;y++) for(let x=0;x<width;x++) {

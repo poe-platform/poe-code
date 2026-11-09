@@ -138,14 +138,15 @@ export function* netpbmSequenceSteps(size: number, page?: number): Generator<num
     first ??= header;
     const selected = pages++ === page;
     const { width, height, magic, maxval } = header;
+    const sampleBytes = magic === "P5" && maxval > 65535 ? 4 : maxval > 255 ? 2 : 1;
     if (!Number.isSafeInteger(width * height) || width <= 0 || height <= 0) throw new RangeError("Invalid Netpbm dimensions");
     if (magic === "P4" && size - header.dataOffset < Math.ceil(width / 8) * height) throw new Error("Truncated PBM raster");
-    if (magic === "P5" && size - header.dataOffset < width * height * (maxval > 255 ? 2 : 1)) throw new Error("Truncated PGM raster");
+    if (magic === "P5" && size - header.dataOffset < width * height * sampleBytes) throw new Error("Truncated PGM raster");
     if (selected && magic !== "P1") return { header, pages };
     offset = header.dataOffset;
     if (magic === "P4") offset += Math.ceil(width / 8) * height;
     else if (magic === "P5" || magic === "P6" || magic === "P7") {
-      offset += width * height * header.channels * (maxval > 255 ? 2 : 1);
+      offset += width * height * header.channels * sampleBytes;
       if (magic === "P7" && offset > size) throw new Error("Truncated PAM raster");
     }
     else {

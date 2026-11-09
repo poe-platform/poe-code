@@ -821,16 +821,23 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
     : decodedAudio?.channelData[0]?.length ?? ([80, 85, 0x2000].includes(formatTag) && samples.length
       ? samples.reduce((sum, sample) => sum + sample.duration, 0) : wavFrames(header));
   const durationSeconds = totalPcmSamples / Math.max(1, sampleRate);
+  // Resolve distinct starts backwards while preserving the original chapter order.
+  const cueEnds = new Map<number, number>();
+  let nextCueStart = totalPcmSamples;
+  for (const start of [...new Set(header.cues?.map(cue => cue.start))].sort((a, b) => b - a)) {
+    cueEnds.set(start, Math.max(start, nextCueStart));
+    nextCueStart = Math.min(start, nextCueStart);
+  }
   return {
     containerFormat: header.containerFormat,
     timescale: sampleRate,
     duration: totalPcmSamples,
     durationSeconds,
-    chapters: header.chapters ?? header.cues?.map((cue, index, cues) => ({
+    chapters: header.chapters ?? header.cues?.map(cue => ({
       id: cue.id,
       timescale: sampleRate,
       startTimeSeconds: cue.start / sampleRate,
-      endTimeSeconds: (cues[index + 1]?.start ?? totalPcmSamples) / sampleRate,
+      endTimeSeconds: cueEnds.get(cue.start)! / sampleRate,
       title: cue.title ?? "",
       tags: cue.title === undefined ? {} : { title: cue.title }
     })),

@@ -7939,6 +7939,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapSteps(stack, function* (image) { yield; return { ...image, readMask }; });
         }
         else if (t === "-remap") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const palSpec = tokens[++i] ?? "";
             const palImg = (yield* parseInputOperandSteps(palSpec, files, state, stdinBytes));
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
@@ -9819,6 +9820,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-remap") {
             const palette = tokens[++i] ?? "", settings = { ...state };
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const colors = await parseStoredCompareInput(palette, settings, backend, signal);

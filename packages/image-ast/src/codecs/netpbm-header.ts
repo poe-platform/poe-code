@@ -133,9 +133,12 @@ export function* netpbmSequenceSteps(size: number, page?: number): Generator<num
     const header = { ...next.value, dataOffset: offset + next.value.dataOffset };
     if (!["P1", "P2", "P3", "P4", "P5", "P6", "P7"].includes(header.magic)) throw new Error("Invalid Netpbm signature");
     first ??= header;
-    if (pages++ === page) return { header, pages };
+    const selected = pages++ === page;
     const { width, height, magic, maxval } = header;
     if (!Number.isSafeInteger(width * height) || width <= 0 || height <= 0) throw new RangeError("Invalid Netpbm dimensions");
+    if (magic === "P4" && size - header.dataOffset < Math.ceil(width / 8) * height) throw new Error("Truncated PBM raster");
+    if (magic === "P5" && size - header.dataOffset < width * height * (maxval > 255 ? 2 : 1)) throw new Error("Truncated PGM raster");
+    if (selected && magic !== "P1") return { header, pages };
     offset = header.dataOffset;
     if (magic === "P4") offset += Math.ceil(width / 8) * height;
     else if (magic === "P5" || magic === "P6" || magic === "P7") {
@@ -143,7 +146,7 @@ export function* netpbmSequenceSteps(size: number, page?: number): Generator<num
       if (magic === "P7" && offset > size) throw new Error("Truncated PAM raster");
     }
     else {
-      for (let samples = width * height * (magic === "P3" ? 3 : 1); samples > 0 && offset < size; samples--) {
+      for (let samples = width * height * (magic === "P3" ? 3 : 1); samples > 0; samples--) {
         while (offset < size) {
           const c = (yield offset)!;
           if (c === 35) { while (offset < size && (yield offset) !== 10 && (yield offset) !== 13) offset++; }
@@ -155,9 +158,13 @@ export function* netpbmSequenceSteps(size: number, page?: number): Generator<num
           offset++;
           if (magic === "P1") break;
         }
-        if (start === offset) { offset = size; break; }
+        if (start === offset) {
+          if (magic === "P1") throw new Error("Truncated PBM raster");
+          offset = size; break;
+        }
       }
     }
+    if (selected) return { header, pages };
     while (offset < size) {
       const c = (yield offset)!;
       if (c === 35) { while (offset < size && (yield offset) !== 10 && (yield offset) !== 13) offset++; }

@@ -97,9 +97,9 @@ function source(bytes:Uint8Array){const borrowed=new Uint8Array(4096);return {si
 const digest=(bytes:Uint8Array)=>createHash("sha256").update(bytes).digest("hex");
 it.each(vectors)("preserves P$spec.magic max=$spec.maxval header=$spec.variant truncated=$spec.truncated",async vector=>{
  const bytes=fixture(vector.spec),before=new Uint8Array(bytes),{storage,memory}=backing(),input=source(bytes),signal=new AbortController().signal;
- if(vector.spec.magic===6&&vector.spec.truncated) {
-  expect(()=>decodeNetpbmImage(bytes)).toThrow("Truncated PPM raster");
-  await expect(decodeNetpbmToStorage(input,storage,signal)).rejects.toThrow("Truncated PPM raster");
+ if([1,4,5,6].includes(vector.spec.magic)&&vector.spec.truncated) {
+  expect(()=>decodeNetpbmImage(bytes)).toThrow("Truncated");
+  await expect(decodeNetpbmToStorage(input,storage,signal)).rejects.toThrow("Truncated");
   expect(storage.allocate).not.toHaveBeenCalled();
   return;
  }
@@ -138,10 +138,11 @@ it.each(["identity","version","read","abort"])("preserves output and closes hand
 
 it.each([{"header":"P6\n2 1\n255","metadata":{"format":"ppm","width":2,"height":1,"space":"srgb","channels":3,"depth":"uchar","density":72,"hasAlpha":false,"size":10},"hash":"d5953f0c4e8f8c1510a9c0b37278a3b3855b97c5cf8155f2f4efe96b63da630b"},{"header":"P6\n2 1\n255\r","metadata":{"format":"ppm","width":2,"height":1,"space":"srgb","channels":3,"depth":"uchar","density":72,"hasAlpha":false,"size":11},"hash":"d5953f0c4e8f8c1510a9c0b37278a3b3855b97c5cf8155f2f4efe96b63da630b"},{"header":"P6\n2 1\n255 # unterminated","metadata":{"format":"ppm","width":2,"height":1,"space":"srgb","channels":3,"depth":"uchar","density":72,"hasAlpha":false,"size":25},"hash":"d5953f0c4e8f8c1510a9c0b37278a3b3855b97c5cf8155f2f4efe96b63da630b"},{"header":"P5\n2 1\n65535\r\n","metadata":{"format":"pgm","width":2,"height":1,"space":"b-w","channels":1,"depth":"ushort","density":72,"hasAlpha":false,"size":14},"hash":"d5953f0c4e8f8c1510a9c0b37278a3b3855b97c5cf8155f2f4efe96b63da630b"},{"header":"P4\n9 1","metadata":{"format":"pbm","width":9,"height":1,"space":"b-w","channels":1,"depth":"bit","density":72,"hasAlpha":false,"size":6},"hash":"c38236f1e6d5ba2e8616b0c8a115bf8bf0814ddae740ac6cbea93d063417cd0e"},{"header":"P4\n9 1 # eof","metadata":{"format":"pbm","width":9,"height":1,"space":"b-w","channels":1,"depth":"bit","density":72,"hasAlpha":false,"size":12},"hash":"c38236f1e6d5ba2e8616b0c8a115bf8bf0814ddae740ac6cbea93d063417cd0e"},{"header":"P3\n2 1\n0\n","metadata":{"format":"ppm","width":2,"height":1,"space":"srgb","channels":3,"depth":"uchar","density":72,"hasAlpha":false,"size":9},"hash":"d5953f0c4e8f8c1510a9c0b37278a3b3855b97c5cf8155f2f4efe96b63da630b"},{"header":"P2\n2 1\n255\n-7","metadata":{"format":"pgm","width":2,"height":1,"space":"b-w","channels":1,"depth":"uchar","density":72,"hasAlpha":false,"size":13},"hash":"d5953f0c4e8f8c1510a9c0b37278a3b3855b97c5cf8155f2f4efe96b63da630b"}])("handles header EOF and lookahead $header",async vector=>{const bytes=new TextEncoder().encode(vector.header),{storage,memory}=backing();
  const comment=vector.header.includes("#")?vector.header.split("#")[1]+"\n":undefined;
- expect(readNetpbmMetadata(bytes)).toEqual({...vector.metadata,...(comment?{properties:{comment}}:{})});
- if(vector.header.startsWith("P6")) {
-  expect(()=>decodeNetpbmImage(bytes)).toThrow("Truncated PPM raster");
-  await expect(decodeNetpbmToStorage(source(bytes),storage,new AbortController().signal)).rejects.toThrow("Truncated PPM raster");
+ if(vector.header.startsWith("P4")||vector.header.startsWith("P5")) expect(()=>readNetpbmMetadata(bytes)).toThrow("Truncated");
+ else expect(readNetpbmMetadata(bytes)).toEqual({...vector.metadata,...(comment?{properties:{comment}}:{})});
+ if(["P4","P5","P6"].includes(vector.header.slice(0,2))) {
+  expect(()=>decodeNetpbmImage(bytes)).toThrow("Truncated");
+  await expect(decodeNetpbmToStorage(source(bytes),storage,new AbortController().signal)).rejects.toThrow("Truncated");
   expect(storage.allocate).not.toHaveBeenCalled();
   return;
  }

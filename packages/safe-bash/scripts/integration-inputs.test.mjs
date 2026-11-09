@@ -864,6 +864,7 @@ function assertSource7Discovery(files) {
     "tests/shell/session-hooks.test.ts",
     "tests/shell/globstar.test.ts",
     "tests/shell/pathname-globbing.test.ts",
+    "tests/shell/globskipdots.test.ts",
     "tests/shell/globignore.test.ts",
     "tests/shell/shopt-matching.test.ts",
     "tests/shell/prefix-names.test.ts",

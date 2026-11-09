@@ -103,6 +103,7 @@ export interface ShellSessionArraySnapshot {
 
 export interface ShellSessionOptionsSnapshot {
   readonly dotglob?: boolean | undefined;
+  readonly globskipdots?: boolean | undefined;
   readonly globstar?: boolean | undefined;
   readonly nullglob?: boolean | undefined;
   readonly failglob?: boolean | undefined;

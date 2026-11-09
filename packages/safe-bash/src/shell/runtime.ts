@@ -938,6 +938,7 @@ export interface State extends DynamicVariableState {
   directoryStack?: { readonly entries: readonly string[]; readonly bytes: number } | undefined;
   directoryStackCwdPublication?: symbol;
   dotglob?: boolean;
+  globskipdots?: boolean;
   extglob?: boolean;
   globstar?: boolean;
   nullglob?: boolean;
@@ -7955,9 +7956,9 @@ export class Runtime {
       return 1;
     }
     const options = new Map<string, { enabled: boolean }>();
-    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["dotglob", "expand_aliases", "extglob", "failglob", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob", "xpg_echo"] as const) {
+    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["dotglob", "expand_aliases", "extglob", "failglob", "globskipdots", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob", "xpg_echo"] as const) {
       options.set(name, {
-        get enabled() { return name === "braceexpand" ? state.braceexpand !== false : !!state[name]; }, set enabled(value) { state[name] = value; }, });
+        get enabled() { return name === "braceexpand" || name === "globskipdots" ? state[name] !== false : !!state[name]; }, set enabled(value) { state[name] = value; }, });
     }
     for (const [name, option] of (setNamespace ? state.extensions?.options : state.extensions?.shoptOptions) ?? []) options.set(name, option);
     const emit = async (name: string, enabled: boolean): Promise<void> => {
@@ -10623,14 +10624,18 @@ export class Runtime {
           for (const candidate of candidates) add(make(candidate, literal, bytes, true, candidate.depth));
         } else {
           const matches = await compilePattern(segment, work, !!state.nocaseglob, !!state.extglob);
+          const matchesDot = state.globskipdots === false && !state.variables.GLOBIGNORE ? await compilePattern(segment, work, !!state.nocaseglob, !!state.extglob, false, true) : undefined;
           for (const candidate of candidates) {
             let entries;
             try { entries = await read(candidate); }
             catch (error) { if (ignored(error)) continue; throw error; }
+            if (matchesDot) {
+              for (const name of [".", ".."]) if (await matchesDot(name)) add(make(candidate, name, name.length, true, candidate.depth));
+            }
             for (const entry of entries) {
               const pending = stringCheckpoint(work);
               if (pending) await pending;
-              if (entry.name !== "." && entry.name !== ".." && (state.dotglob || !entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) add(make(candidate, entry.name, (await scanString(entry.name, work)).bytes, true, candidate.depth));
+              if (entry.name !== "." && entry.name !== ".." && (state.dotglob || !entry.name.startsWith(".") || segment.startsWith(".") || segment.startsWith("\\.")) && await matches(entry.name)) add(make(candidate, entry.name, (await scanString(entry.name, work)).bytes, true, candidate.depth));
             }
           }
           wildcardPrefix = true;
@@ -10697,6 +10702,7 @@ export class Runtime {
         work.allocation = scratch;
         try {
           const matches = await compilePattern(segment, work, !!state.nocaseglob, !!state.extglob);
+          const matchesDot = state.globskipdots === false && !state.variables.GLOBIGNORE ? await compilePattern(segment, work, !!state.nocaseglob, !!state.extglob, false, true) : undefined;
           for (const candidate of candidates) {
             let entries;
             try {
@@ -10708,8 +10714,11 @@ export class Runtime {
               if (["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "")) continue;
               throw error;
             }
+            if (matchesDot) {
+              for (const name of [".", ".."]) if (await matchesDot(name)) addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${name}`, "directory");
+            }
             for (const entry of entries) {
-              if (entry.name !== "." && entry.name !== ".." && (state.dotglob || Boolean(state.variables.GLOBIGNORE) || !entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) {
+              if (entry.name !== "." && entry.name !== ".." && (state.dotglob || Boolean(state.variables.GLOBIGNORE) || !entry.name.startsWith(".") || segment.startsWith(".") || segment.startsWith("\\.")) && await matches(entry.name)) {
                 addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${entry.name}`, entry.type);
               }
             }

@@ -222,7 +222,9 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   files from `>` redirection; `>|` overrides it and `>>` still appends.
   `GLOBIGNORE` filters expanded paths: `*.log` excludes local log files,
   while `logs/*.log` excludes log files from `logs/*`.
-  `shopt -s dotglob` includes dotfiles in globs. `failglob` rejects unmatched
+  `shopt -s dotglob` includes dotfiles in globs. `globskipdots` defaults on;
+  `shopt -u globskipdots` lets explicitly dotted patterns such as `.*` match `.` and `..`.
+  `failglob` rejects unmatched
   patterns; `lastpipe` retains the final foreground pipeline stage's shell changes;
   `inherit_errexit` carries `set -e` into command substitutions. Enable
   `expand_aliases` to expand aliases on subsequently read command lines.
@@ -904,7 +906,7 @@ and credential protections remain in effect.
 - This is a Bash-like interpreter, not full Bash or POSIX certification. No
   background jobs/job control, `exec`,
   associative arrays, or C-style `for ((…))` loops. `shopt` supports `dotglob`,
-  `globstar`, `nullglob`, `nocaseglob`, `nocasematch`, `lastpipe`, `failglob`,
+  `globskipdots`, `globstar`, `nullglob`, `nocaseglob`, `nocasematch`, `lastpipe`, `failglob`,
   `inherit_errexit`, `expand_aliases`, and `xpg_echo`, plus `-o` for supported
   `set` options. `shopt -s extglob` enables extended patterns, including parameter trimming.
   Enable it on a preceding line before using unquoted extended patterns; syntax on the

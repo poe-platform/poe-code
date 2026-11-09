@@ -64,6 +64,7 @@ export function captureShellSessionState(state: State, exitCode: number): ShellS
 
   const options: ShellSessionOptionsSnapshot = {
     dotglob: Boolean(state.dotglob),
+    globskipdots: state.globskipdots !== false,
     globstar: Boolean(state.globstar),
     nullglob: Boolean(state.nullglob),
     failglob: Boolean(state.failglob),
@@ -221,6 +222,7 @@ export async function restoreShellSessionState(
   if (snapshot.options) {
     const opts = snapshot.options;
     if (opts.dotglob !== undefined) state.dotglob = opts.dotglob;
+    if (opts.globskipdots !== undefined) state.globskipdots = opts.globskipdots;
     if (opts.globstar !== undefined) state.globstar = opts.globstar;
     if (opts.nullglob !== undefined) state.nullglob = opts.nullglob;
     if (opts.failglob !== undefined) state.failglob = opts.failglob;

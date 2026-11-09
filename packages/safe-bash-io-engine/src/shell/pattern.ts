@@ -168,7 +168,7 @@ function acceptsSingleChar(token: Exclude<PatternToken, { kind: "star" | "extglo
   return token.expression.test(ch);
 }
 
-function createExtglobEvaluator(chars: readonly string[], work: StringWork, ignoreCase: boolean, pathname = false) {
+function createExtglobEvaluator(chars: readonly string[], work: StringWork, ignoreCase: boolean, pathname = false, explicitPeriod = false) {
   const N = chars.length;
   const branchMemo = new Map<PatternToken, Map<number, Uint8Array>>();
 
@@ -207,14 +207,14 @@ function createExtglobEvaluator(chars: readonly string[], work: StringWork, igno
       if (token.kind === "star") {
         let seen = 0;
         for (let p = startCp; p <= N; p++) {
-          if (cur[p]) seen = 1;
+          if (cur[p] && (!explicitPeriod || p !== 0)) seen = 1;
           if (seen) next[p] = 1;
           // Bash's terminal star accepts the remainder, including slashes.
           if (pathname && tIdx + 1 < seq.length && chars[p] === "/") seen = 0;
         }
       } else if (token.kind === "extglob") {
         for (let p = startCp; p <= N; p++) {
-          if (!cur[p]) continue;
+          if (!cur[p] || explicitPeriod && p === 0 && token.operator === "!") continue;
           chargeStep(N - p + 1);
           const u = unionBranchesAt(token, p);
           if (token.operator === "@") {
@@ -237,7 +237,7 @@ function createExtglobEvaluator(chars: readonly string[], work: StringWork, igno
         }
       } else {
         for (let p = startCp; p < N; p++) {
-          if (cur[p] && acceptsSingleChar(token, chars[p]!, ignoreCase, pathname)) {
+          if (cur[p] && (!explicitPeriod || p !== 0 || token.kind === "literal") && acceptsSingleChar(token, chars[p]!, ignoreCase, pathname)) {
             next[p + 1] = 1;
           }
         }
@@ -250,16 +250,17 @@ function createExtglobEvaluator(chars: readonly string[], work: StringWork, igno
   return { allEnds, N };
 }
 
-export async function compilePattern(pattern: string, work: StringWork, ignoreCase = false, extglob = false, pathname = false): Promise<(value: string, start?: number, end?: number) => boolean | Promise<boolean>> {
+export async function compilePattern(pattern: string, work: StringWork, ignoreCase = false, extglob = false, pathname = false, explicitPeriod = false): Promise<(value: string, start?: number, end?: number) => boolean | Promise<boolean>> {
   work.signal.throwIfAborted();
   const { patternTokens } = await tokens(pattern, work, ignoreCase, extglob);
   if (hasExtglobTokens(patternTokens)) {
     return (value, start = 0, end = value.length) => {
       const chars = Array.from(value.slice(start, end));
-      const evaluator = createExtglobEvaluator(chars, work, ignoreCase, pathname);
+      const evaluator = createExtglobEvaluator(chars, work, ignoreCase, pathname, explicitPeriod);
       return evaluator.allEnds(patternTokens, 0)[evaluator.N] === 1;
     };
   }
+  if (explicitPeriod && (patternTokens[0]?.kind !== "literal" || patternTokens[0].value !== ".")) return () => false;
   return (value, start = 0, end = value.length) => matchTokens(patternTokens, value, work, start, end, ignoreCase, pathname);
 }
 

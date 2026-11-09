@@ -819,7 +819,11 @@ function buildAudioStsdEntry(desc: MediaCodecDescription): Uint8Array {
     writer.writeBytes(makeBox("dOps", desc.dOps.rawBytes));
   }
 
-  const format = desc.codecName === "pcm_mulaw" ? "ulaw" : desc.codecName === "pcm_alaw" ? "alaw" : desc.formatFourCC || "mp4a";
+  const format = desc.codecName === "pcm_s16le" ? "sowt"
+    : desc.codecName === "pcm_s16be" ? "twos"
+    : desc.codecName === "pcm_mulaw" ? "ulaw"
+    : desc.codecName === "pcm_alaw" ? "alaw"
+    : desc.formatFourCC || "mp4a";
   return makeBox(format, writer.toUint8Array());
 }
 

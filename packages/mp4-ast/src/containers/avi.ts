@@ -256,13 +256,20 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         continue;
       }
 
-      const isFlv1 = info.fccHandler.toUpperCase() === "FLV1";
+      const fccUpper = info.fccHandler.toUpperCase();
+      const codecName = fccUpper === "VP90" ? "vp9" : fccUpper === "FLV1" ? "flv1" :
+        fccUpper.includes("MJPG") || fccUpper.includes("JPEG")
+          ? "mjpeg"
+          : fccUpper.includes("FMP4") || fccUpper.includes("XVID")
+            ? "mpeg4"
+            : "h264";
+      const isH264 = codecName === "h264";
       let allSps: Uint8Array[] = [];
       let allPps: Uint8Array[] = [];
-      const directAvcC = !isFlv1 && info.extradata && info.extradata.byteLength >= 7 && info.extradata[0] === 1
+      const directAvcC = isH264 && info.extradata && info.extradata.byteLength >= 7 && info.extradata[0] === 1
         ? parseAvcC(info.extradata)
         : undefined;
-      if (!isFlv1 && !directAvcC && info.extradata && info.extradata.byteLength >= 4) {
+      if (isH264 && !directAvcC && info.extradata && info.extradata.byteLength >= 4) {
         const extConv = annexBToAvcc(info.extradata);
         if (extConv.sps.length > 0) allSps = extConv.sps;
         if (extConv.pps.length > 0) allPps = extConv.pps;
@@ -299,14 +306,14 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         }
         let data = s.data;
         let isKey = s.isKeyframe || convertedSamples.length === 0;
-        if (!isFlv1 && isAnnexB(s.data)) {
+        if (isH264 && isAnnexB(s.data)) {
           const conv = annexBToAvcc(s.data);
           if (conv.sps.length > 0) allSps = conv.sps;
           if (conv.pps.length > 0) allPps = conv.pps;
           if (conv.avccData.byteLength > 0) data = conv.avccData;
           if (conv.isKeyframe) isKey = true;
         } else {
-          if (!isFlv1 && hasIdrInAvcc(data)) isKey = true;
+          if (isH264 && hasIdrInAvcc(data)) isKey = true;
         }
         if (data.byteLength === 0) continue;
         convertedSamples.push({
@@ -322,20 +329,13 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         curDts += frameDur;
       }
 
-      if (!isFlv1 && !directAvcC && allSps.length === 0) {
+      if (isH264 && !directAvcC && allSps.length === 0) {
         const gen = buildH264SpsPps(w, h, fps);
         allSps = [gen.sps];
         allPps = [gen.pps];
       }
 
-      const avcC = isFlv1 ? undefined : directAvcC ?? parseAvcC(buildAvcC(allSps, allPps));
-      const fccUpper = info.fccHandler.toUpperCase();
-      const codecName = isFlv1 ? "flv1" :
-        fccUpper.includes("MJPG") || fccUpper.includes("JPEG")
-          ? "mjpeg"
-          : fccUpper.includes("FMP4") || fccUpper.includes("XVID")
-            ? "mpeg4"
-            : "h264";
+      const avcC = isH264 ? directAvcC ?? parseAvcC(buildAvcC(allSps, allPps)) : undefined;
 
       tracks.push({
         id: i + 1,
@@ -349,7 +349,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         height: h,
         codecDescriptions: [
           {
-            formatFourCC: isFlv1 ? "FLV1" : codecName === "mjpeg" ? "jpeg" : "avc1",
+            formatFourCC: codecName === "vp9" ? "vp09" : codecName === "flv1" ? "FLV1" : codecName === "mjpeg" ? "jpeg" : "avc1",
             codecName,
             width: w,
             height: h,
@@ -361,7 +361,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         ],
         samples: convertedSamples,
         metadata,
-        decodedVideoFrames: options.decodeFrames && !isFlv1
+        decodedVideoFrames: options.decodeFrames && isH264
           ? [...decodeH264Samples(convertedSamples, [{ formatFourCC: "avc1", codecName: "h264", avcC }], w, h, timescale)]
           : undefined
       });
@@ -534,7 +534,7 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
       if (desc?.codecName === "rawvideo" && !rawBitmap) {
         throw new Error("AVI rawvideo stream copy requires a bitmap header");
       }
-      const codec = rawBitmap ? "\0\0\0\0" : desc?.codecName === "mjpeg" ? "MJPG" : desc?.codecName === "mpeg4" ? "FMP4" : "H264";
+      const codec = rawBitmap ? "\0\0\0\0" : desc?.codecName === "mjpeg" ? "MJPG" : desc?.codecName === "mpeg4" ? "FMP4" : desc?.codecName === "vp9" ? "VP90" : "H264";
       strh.writeFourCC("vids");
       strh.writeFourCC(codec);
       strh.writeU32LE(0);
@@ -719,7 +719,7 @@ export function aviAst(): MediaAstPlugin {
     mimeTypes: ["video/x-msvideo"],
     canDemux: true,
     canMux: true,
-    supportedVideoCodecs: ["h264", "mpeg4", "mjpeg", "rawvideo"],
+    supportedVideoCodecs: ["h264", "mpeg4", "mjpeg", "rawvideo", "vp9"],
     supportedAudioCodecs: ["mp3", "aac", "pcm_s16le", "pcm_mulaw", "pcm_alaw"],
     detect(bytes, filename) {
       if (isAviSignature(bytes)) return true;

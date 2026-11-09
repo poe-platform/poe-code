@@ -579,6 +579,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
   let rowsPerStrip = 0;
   let predictor = 1;
   let xRes = 72, yRes = 72;
+  let xPosition = 0, yPosition = 0;
   let hasResolution = false;
   let resUnit = 2;
   let orientation = 1;
@@ -610,6 +611,8 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
     else if (tag === 282 && first > 0) { xRes = first; hasResolution = true; }
     else if (tag === 283 && first > 0) { yRes = first; hasResolution = true; }
     else if (tag === 284) planar = first === 2;
+    else if (tag === 286) xPosition = first;
+    else if (tag === 287) yPosition = first;
     else if (tag === 296 && (first === 1 || first === 2 || first === 3)) resUnit = first;
     else if (tag === 317 && first > 0) predictor = first;
     else if (tag === 320) colorMap = vals;
@@ -861,6 +864,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
     data: rgba,
     ...(data16 ? {data16} : {}),
     format: "tiff",
+    ...(xPosition || yPosition ? {virtualCanvas: {width, height, x: Math.round(xPosition * xRes), y: Math.round(yPosition * yRes)}} : {}),
     ...(pages > 1 ? {pages} : {}),
     space:
       !palette && samplesPerPixel < 3

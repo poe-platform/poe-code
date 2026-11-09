@@ -1,5 +1,5 @@
 import { parseAudioChannelLayout } from "./audio-channel-layout.js";
-import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
+import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
@@ -81,6 +81,21 @@ export async function joinAudio(
       channelData[index]!.set(selected.get(name)!.subarray(start, Math.min(start + 4096, length)), start);
     }
   }
-  return { ...tracks[0]!, timescale: sampleRate, duration: length, samples: [], editList: undefined,
+  // join consumes the other inputs in frames sized by its first input.
+  const first = tracks[0]!;
+  const frames: MediaSample[] = [];
+  for (let start = 0, n = 0; start < length; n++) {
+    if (n % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+    const packet = first.samples[n];
+    const count = packet ? Math.max(0, Math.round(packet.duration * sampleRate / first.timescale)
+      - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+    if (count === 0) continue;
+    const end = Math.min(length, start + count);
+    budget.allocateMemory(96);
+    frames.push({ data: new Uint8Array(0), size: 0, dts: start, pts: start, cts: 0,
+      duration: end - start, isKeyframe: true, sampleDescriptionIndex: 1 });
+    start = end;
+  }
+  return { ...first, timescale: sampleRate, duration: length, samples: frames, editList: undefined,
     decodedAudio: { ...audio[0]!, channels: outputNames.length, channelMask: outputMask, channelData } };
 }

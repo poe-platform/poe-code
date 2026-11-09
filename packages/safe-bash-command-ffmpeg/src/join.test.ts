@@ -9,10 +9,10 @@ const a = Array.from({ length: 8192 }, (_, i) => i % 8 < 4 ? 8192 : -8192);
 const b = Array.from({ length: 4096 }, (_, i) => i < 2048 ? -16384 : 1024);
 const join = "join=inputs=2:channel_layout=stereo:map=1.0-FL|0.0-FR";
 
-async function run(filters: string[], inputs: number[][][] = [[a], [b]]) {
+async function run(filters: string[], inputs: number[][][] = [[a], [b]], sampleRate = 8000) {
   const volume = Volume.fromJSON({ "/out.wav": "preserve" });
   for (const [index, channels] of inputs.entries()) {
-    volume.writeFileSync(`/${index === 0 ? "a" : "b"}.wav`, encodeWav({ sampleRate: 8000,
+    volume.writeFileSync(`/${index === 0 ? "a" : "b"}.wav`, encodeWav({ sampleRate,
       channels: channels.map(samples => Float64Array.from(samples, sample => sample / 32768)) }));
   }
   let stderr = "";
@@ -87,5 +87,31 @@ for (const [inputs, filter, expected] of [
     assert.equal(audio.channelMask ?? 3, 3);
     assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)),
       expected.map(sample => Array<number>(32).fill(sample)));
+  });
+}
+
+// Native FFmpeg 7.0.2 emits 512-sample frames for these 8 kHz PCM inputs.
+for (const [filter, sampleRate, length, lengths, gains] of [
+  ["aselect=not(n)", 8000, 2048, [512], [1]],
+  ["volume=n:eval=frame", 8000, 2048, [512, 512, 512, 512], [0, 1, 2, 3]],
+  ["volume=0.5", 8000, 2048, [2048], [0.5]],
+  ["volume=n:eval=frame", 8000, 1300, [512, 512, 276], [0, 1, 2]],
+  ["volume=n:eval=frame", 16000, 2300, [1024, 1024, 252], [0, 1, 2]]
+] as const) {
+  it(`preserves join frames for ${filter} at ${sampleRate} Hz (${lengths.join("+")})`, async () => {
+    const { result, stderr, bytes } = await run([
+      "-filter_complex", `[0:a][1:a]join=map=0.0-FL|1.0-FR,${filter}[mix]`, "-map", "[mix]"
+    ], [8000, -4000].map(value => [Array<number>(length).fill(value)]), sampleRate);
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(bytes).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, sampleRate);
+    assert.equal(audio.channels, 2);
+    for (const [channel, value] of [8000, -4000].entries()) {
+      const expected = lengths.flatMap((count, index) => Array<number>(count).fill(value * gains[index]!));
+      assert.equal(audio.channelData[channel]!.length, expected.length);
+      for (const [index, sample] of expected.entries()) {
+        assert.equal(audio.channelData[channel]![index]! * 32768, sample || 0, `channel ${channel}, sample ${index}`);
+      }
+    }
   });
 }

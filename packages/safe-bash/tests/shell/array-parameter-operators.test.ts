@@ -3,6 +3,26 @@ import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { setup } from './helpers.js';
 
+for (const bounded of [false, true]) for (const [source, expected, diagnostic] of [
+  ['set -u; s=none; a=abc; say "${#a[0]}"; say end', '', 'a[0]: unbound variable'],
+  ['set -u; a=abc; say "${#a}"; say end', '3\nend\n', ''],
+  ['set +u; a=abc; say "${#a[0]}"; say end', '3\nend\n', ''],
+  ['set -u; a=(abc); say "${#a[0]}"; say end', '3\nend\n', ''],
+  ['set -u; a=abc; say "${a[0]}"; say end', 'abc\nend\n', ''],
+] as const) test(`scalar subscript length (${bounded ? 'bounded' : 'unbounded'}): ${source}`, async t => {
+  const { shell } = setup(bounded ? { limits: { maxExpansionBytes: 1024 * 1024 } } : {});
+  t.after(() => shell.dispose());
+  const result = await shell.exec(source);
+  assert.equal(result.stdout, expected);
+  if (diagnostic) {
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes(diagnostic), result.stderr);
+  } else {
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, '');
+  }
+});
+
 for (const mode of ['inline', 'bash', 'sh'] as const) for (const [source, expected] of [
   ['a=(a b c d); args "${a[@]:1:2}" "${a[*]:1:2}"', ['b', 'c', 'b c']],
   ['a=(hello world); args "${a[0]:1:3}" "${a[1]: -3}"', ['ell', 'rld']],
@@ -47,6 +67,18 @@ for (const mode of ['inline', 'bash', 'sh'] as const) for (const source of [
     assert.match(result.stderr, /missing/);
     assert.equal(result.stdout, '');
   } finally { await shell.dispose(); }
+});
+
+for (const nounset of [false, true]) for (const selector of ['@', '*']) for (const [assignment, expected] of [
+  ['a=("")', ['fallback', '', '', 'yes']],
+  ['a=(x)', ['x', 'yes', 'x', 'yes']],
+] as const) test(`single array member defaults: ${assignment}, ${selector}, nounset=${nounset}`, async t => {
+  const { shell } = setup();
+  t.after(() => shell.dispose());
+  const result = await shell.exec(`set ${nounset ? '-' : '+'}u; ${assignment}; args "\${a[${selector}]:-fallback}" "\${a[${selector}]:+yes}" "\${a[${selector}]-fallback}" "\${a[${selector}]+yes}"`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, '');
+  assert.deepEqual(JSON.parse(result.stdout), expected);
 });
 
 test('array trimming, substitution and slices match native Bash', async () => {

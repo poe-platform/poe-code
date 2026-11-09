@@ -9462,7 +9462,7 @@ export class Runtime {
     const memberSelector = getArraySelector(part);
     if (part.kind === "variable" && memberSelector?.kind === "members" && part.operator && defaultParameterOperators.includes(part.operator)) {
       const members = await this.arrayMembers(part.name, state, io);
-      const missing = members.length === 0;
+      const missing = members.length === 0 || part.operator.startsWith(":") && members.length === 1 && shellValueByteLength(members[0]!) === 0;
       const operator = part.operator.at(-1)!;
       if (operator === "+" ? !missing : missing) {
         if (operator === "=") throw new ArrayFailure(`${part.name}[${memberSelector.separator}]: bad array subscript`);
@@ -9504,6 +9504,7 @@ export class Runtime {
         }
         return operator === "+" ? "" : value ?? "";
       }
+      if (part.length && !binding && !entries) this.requireParameter(undefined, `${part.name}[${element.index.decimal}]`, state, io, part.line);
       if (!(part.length && binding?.assigned)) this.requireParameter(value === undefined ? undefined : shellValueText(value), part.name, state, io, part.line);
       if (part.length) return this.valueLength(value ?? "", state, io);
       if (part.substring) return this.substring(part, value, state, io);
@@ -10379,7 +10380,7 @@ export class Runtime {
           ? state.variables[part.name] === undefined ? undefined : this.referenceName(state, part.name)
           : this.variable(state, part.name);
         if (defaultMembers) {
-          value = defaultMembers.length ? part.name === "@" && defaultMembers.length === 1 ? defaultMembers[0] : "set" : undefined;
+          value = defaultMembers.length ? defaultMembers.length === 1 ? defaultMembers[0] : "set" : undefined;
         } else if (selector?.kind === "element") {
           const binding = arrayStore(state)?.get(part.name);
           const index = binding?.associative

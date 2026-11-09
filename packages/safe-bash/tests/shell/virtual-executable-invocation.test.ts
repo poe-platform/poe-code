@@ -1,11 +1,45 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
+import { standardCommands } from "../../src/commands/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { whichCommands } from "../../src/commands/which/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { workerRuntimeContexts } from "../../src/worker/runtime-context.js";
+
+for (const middleware of [false, true]) {
+  for (const command of [":", "cd", "absent"]) {
+    test(`exec rejects missing executables instead of running ${command}, middleware=${middleware}`, async () => {
+      const shell = new Shell({ fs: createMemoryFileSystem() }).use(standardCommands());
+      if (middleware) shell.use((_context, next) => next());
+      try {
+        const result = await shell.exec(`PATH=.; exec ${command}; echo unreachable`);
+        assert.equal(result.exitCode, 127);
+        assert.equal(result.stdout, "");
+        assert.ok(result.stderr.includes(`${command}: command not found`), result.stderr);
+      } finally { await shell.dispose(); }
+    });
+  }
+
+  for (const command of [":", "cd", "f"]) {
+    for (const redirect of [false, true]) {
+      test(`exec runs executable ${command} on PATH, redirect=${redirect}, middleware=${middleware}`, async () => {
+        const fs = createMemoryFileSystem();
+        await fs.writeFile(`/${command}`, new TextEncoder().encode('#!/bin/sh\necho external:$1\n'), { mode: 0o755 });
+        const shell = new Shell({ fs }).use(standardCommands());
+        if (middleware) shell.use((_context, next) => next());
+        try {
+          const result = await shell.exec(`f() { echo function; }; export -f f; PATH=.; exec ${command} arg${redirect ? " >/output" : ""}; echo unreachable`);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, redirect ? "" : "external:arg\n");
+          if (redirect) assert.equal(new TextDecoder().decode(await fs.readFile("/output")), "external:arg\n");
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
 
 test("virtual executable directory spellings cannot invoke commands", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });

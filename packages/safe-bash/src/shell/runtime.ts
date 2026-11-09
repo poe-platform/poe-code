@@ -6528,7 +6528,7 @@ export class Runtime {
       stateMonitor(state)?.openOverlay(prevMap);
       }
       try {
-        const selectedKind = this.firstInternalDiscovery(context.command, state, bypassFunctions);
+        const selectedKind = state.externalInvocation ? undefined : this.firstInternalDiscovery(context.command, state, bypassFunctions);
         const body = selectedKind === "function" ? state.functions.get(context.command) : undefined;
         if (body) {
           ensureRuntimeContext();
@@ -6693,7 +6693,7 @@ export class Runtime {
           state.lastArgument = context.args.at(-1) ?? context.command;
           return outcome.value;
         }
-        if (selectedKind === "builtin" && (forceBuiltin || !this.hasBuiltinOverride(context.command)) && !(state.externalInvocation && this.commands.has(context.command))) {
+        if (selectedKind === "builtin" && (forceBuiltin || !this.hasBuiltinOverride(context.command))) {
           ensureRuntimeContext();
           const extensionBuiltin = state.extensions?.builtins.get(context.command);
           const special = state.profile === "sh" && !bypassFunctions && (specialBuiltinNames.has(context.command) || !!extensionBuiltin?.special);

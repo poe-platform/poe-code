@@ -17,7 +17,13 @@ export function* gifAnimationSteps(size:number,start:number,page=0):Generator<nu
   const intro=yield at++;if(intro===59)break;
   if(intro===33){
    const label=yield at++;
-   if(label===249){const length=(yield at++)??0;if(length>=4&&at+length<=size)pending=(yield* word(at+1))*10;at=yield* skip(at+length);}
+   if(label===249){
+    const length=(yield at++)??0;
+    const low=length>1&&at+1<size?((yield at+1)??0):0;
+    const high=length>2&&at+2<size?((yield at+2)??0):0;
+    pending=(low|(high<<8))*10;
+    at=yield* skip(at+length);
+   }
    else if(label===255){
     const length=(yield at++)??0;let name="";
     if(at+length<=size)for(let i=0;i<length;i++)name+=String.fromCharCode((yield at+i)??0);

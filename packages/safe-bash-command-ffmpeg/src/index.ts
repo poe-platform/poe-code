@@ -9908,9 +9908,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const balance = { mpan: 0, sbal: 0, balance_in: 0, balance_out: 0 };
                         const balanceModes = { bmode_in: 0, bmode_out: 0 };
                         const argument = trimmed.slice("stereotools=".length);
-                        for (const option of argument ? argument.split(":") : []) {
+                        const positionalKeys = ["level_in", "level_out", "balance_in", "balance_out", "softclip",
+                          "mutel", "muter", "phasel", "phaser", "mode", "slev", "sbal", "mlev", "mpan",
+                          "base", "delay", "sclevel", "phase", "bmode_in", "bmode_out"];
+                        let sawNamed = false;
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
-                          const key = option.slice(0, separator).trim();
+                          const key = separator < 0 ? positionalKeys[index] : option.slice(0, separator).trim();
+                          if (separator < 0 && (sawNamed || key === undefined)) {
+                            throw new Error("stereotools: unsupported positional option");
+                          }
+                          sawNamed ||= separator >= 0;
                           const value = option.slice(separator + 1).trim();
                           if (key === "level_in" || key === "level_out" || key === "mlev" || key === "slev") {
                             const level = parseFilterExpression(value, "stereotools", {});

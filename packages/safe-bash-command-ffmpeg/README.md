@@ -349,6 +349,8 @@ Other layouts and surround options are rejected.
 (`phasel`, `phaser`), stereo pair rotation (`phase=0`–`360` degrees), and all `mode`
 channel conversions, including `lr>ms` and
 `ms>lr`. For example, `-af stereotools=mutel=1` silences only the left channel.
+Positional arguments follow FFmpeg option order: `stereotools=1:1:0:0:0:0:1`
+is equivalent to `stereotools=muter=1`. Named arguments may follow positional ones.
 `stereotools=phase=90` maps `(L, R)` to `(-R, L)`. Rotation follows mute,
 polarity, delay, and width, and precedes output balance and gain.
 Input and output gains (`level_in`, `level_out`) default to 1, range from 0.015625

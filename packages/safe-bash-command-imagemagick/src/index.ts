@@ -9344,7 +9344,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 next = layout.next((image.data16 ?? image.data).subarray(request.position, request.position + request.length));
             }
             const { width, height, virtualCanvas, offsets } = next.value;
-            let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background), magickColorspace: image.magickColorspace };
+            let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background), ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}) };
             for (let n = 0; n < stack.length; n++) {
                 canvas = yield* applyMagickRasterSteps(canvas, smushCompositePixelSteps(canvas, stack[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || stack[n]!.data16)), signal, canvas, [canvas, stack[n]!]);
             }
@@ -10450,7 +10450,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     } else next = layout.next(await backend.storage.read(image.position + request.position, request.length));
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
-                let canvas: StoredRgbaImage = { ...await createStoredCanvas(width, height, background, backend, signal), magickColorspace: images[0]!.magickColorspace };
+                let canvas: StoredRgbaImage = { ...await createStoredCanvas(width, height, background, backend, signal), ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}) };
                 for (let n = 0; n < images.length; n++) canvas = await transformStoredMagickRaster(canvas, backend, smushCompositePixelSteps(canvas, images[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || images[n]!.storedData16)), signal, canvas, [canvas, images[n]!]);
                 stack.length = 0;
                 await stack.push({ ...canvas, virtualCanvas, density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) });

@@ -167,7 +167,7 @@ for (const [label, source, stdin, stdout] of [
   ["assigns partial EOF record", 'read -a items; args "$?" "${items[@]}"', "a b", '["1","a","b"]'],
   ["restores local binding", 'items=(outer saved); f() { local -a items; read -a items; args "${items[@]}"; }; f; args "${items[@]}"', "a b\n", '["a","b"]["outer","saved"]'],
   ["leaves unread tail", 'read -a items; args "${items[@]}"; pass', "a b\nTAIL", '["a","b"]TAIL'],
-  ["ignores invalid extra operand", 'read -a items invalid-name; args "${items[@]}"', "a b\n", '["a","b"]'],
+  ["ignores later invalid extra operand", 'read -a items good invalid-name; args "${items[@]}"', "a b\n", '["a","b"]'],
   ["empty IFS retains whole record", 'IFS= read -a items; args "${items[@]}"', " a b \n", '[" a b "]'],
 ] as const) {
   test(`default read array: ${label}`, async () => {
@@ -177,6 +177,18 @@ for (const [label, source, stdin, stdout] of [
       const result = await shell.exec(source, { stdin });
       assert.equal(result.stdout, stdout);
       assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const options of ["-a items", "-raitems", "-N 8 -a items"]) {
+  test(`default read array validates the first extra destination before consuming input: ${options}`, async () => {
+    const { shell } = setup();
+    try {
+      const result = await shell.exec(`items=(old saved); read ${options} bad-name; args "$?" "\${items[@]}"; pass`, { stdin: "one two\nthree\n" });
+      assert.equal(result.stdout, '["1","old","saved"]one two\nthree\n');
+      assert.equal(result.stderr, "shell: line 1: read: `bad-name': not a valid identifier\n");
       assert.equal(result.exitCode, 0);
     } finally { await shell.dispose(); }
   });

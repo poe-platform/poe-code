@@ -9532,14 +9532,13 @@ export class Runtime {
         if (invalid) break;
       }
       if (names[0] === "--") names.shift();
-      if (array !== undefined) names.splice(0, names.length, array);
-      const invalidName = names.find(name => !this.variableTarget(name));
-      if (!invalid && invalidName !== undefined && (exact || array === undefined && invalidName === names[0])) {
+      const invalidName = (array === undefined ? names : names.slice(0, 1)).find(name => !this.variableTarget(name));
+      if (!invalid && invalidName !== undefined && (exact || invalidName === names[0])) {
         const diagnosticIO: IO = context;
         await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${invalidName}': not a valid identifier\n`);
         return 1;
       }
-      if (invalid || array !== undefined && invalidName !== undefined) {
+      if (invalid || array !== undefined && !this.variableTarget(array)) {
         await writeDiagnostic(stderr, "read: invalid variable name or unsupported option\n");
         return 2;
       }

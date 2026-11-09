@@ -9,6 +9,14 @@ for (const mode of ["buffered", "retained", "sync", "mogrify"] as const) {
         { expression: "red<=>blue", expected: [0, 0, 255, 255, 255, 0, 0, 255] },
         { expression: "R <=> G", expected: [0, 255, 0, 255, 0, 0, 255, 255] },
         { expression: "red<=>red", expected: [255, 0, 0, 255, 0, 0, 255, 255] },
+        { expression: "0=>2", expected: [255, 0, 255, 255, 0, 0, 0, 255] },
+        { expression: "cyan=>magenta", expected: [255, 255, 0, 255, 0, 0, 255, 255] },
+        { expression: " C <=> Y, 1 => 0 ", expected: [0, 0, 255, 255, 0, 0, 0, 255] },
+        { expression: "yellow=>cyan", expected: [0, 0, 0, 255, 255, 0, 255, 255] },
+        { expression: "gray=>M", expected: [255, 255, 0, 255, 0, 0, 255, 255] },
+        { expression: "4=>0", expected: [255, 0, 0, 255, 255, 0, 255, 255] },
+        { expression: "2=>4", expected: [255, 0, 0, 0, 0, 0, 255, 255] },
+        { expression: "O=>G", expected: [255, 255, 0, 255, 0, 255, 255, 255] },
         { expression: "red=>blue", expected: [255, 0, 255, 255, 0, 0, 0, 255] },
         { expression: "R => G, G => B", expected: [255, 255, 0, 255, 0, 0, 0, 255] },
         { expression: "blue=>alpha", expected: [255, 0, 0, 0, 0, 0, 255, 255] },
@@ -41,12 +49,12 @@ for (const retained of [false, true]) {
 }
 
 for (const retained of [false, true]) {
-    it(`preserves 16-bit samples, retained=${retained}`, async () => {
+    it.each(["red=>blue", "0=>2", "cyan=>yellow"])(`preserves 16-bit samples for %s, retained=${retained}`, async expression => {
         // Native: magick 'xc:#123456789abc' -depth 16 -strip PNG48:-
         const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABEAIAAADA54+dAAAAD0lEQVQI12MQMgmrmLUHAAYnAmsGA8PKAAAAAElFTkSuQmCC", "base64");
         const files = new Map([["/input.png", input]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/input.png", input);
-        const result = await runConvertCli(["/input.png", "-channel-fx", "red=>blue", "-depth", "16", "/out.png"], retained ? { filesystem, cwd: "/" } : files);
+        const result = await runConvertCli(["/input.png", "-channel-fx", expression, "-depth", "16", "/out.png"], retained ? { filesystem, cwd: "/" } : files);
         expect(result).toMatchObject({ exitCode: 0, stderr: "" });
         const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
         expect([...output.data16!]).toEqual([0x1234, 0x5678, 0x1234, 65535]);
@@ -121,3 +129,37 @@ for (const retained of [false, true]) {
         expect([...output.data16!]).toEqual(Array.from({ length: 4097 }, () => [65535, 0, 0x1234, 65535]).flat());
     });
 }
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI, 2x1 RGBA8 input 12345678 abcdefee.
+it.each([
+    { expression: "0=>2", expected: "12341278abcdabee" },
+    { expression: "cyan=>magenta", expected: "12125678ababefee" },
+    { expression: "0<=>2", expected: "56341278efcdabee" },
+    { expression: "4=>0", expected: "78345678eecdefee" },
+    { expression: "0=>4", expected: "12345612abcdefab" },
+    { expression: "red=>unknown", expected: undefined },
+    { expression: "3=>0", expected: undefined },
+])("resolves channel IDs and aliases through the command: $expression", async ({ expression, expected }) => {
+    const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDhUMDI6MjI6NTUrMDA6MDCZ5uVXAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA4VDAyOjIyOjU1KzAwOjAw6Ltd6wAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wOFQwMjoyMjo1NSswMDowML+ufDQAAAARSURBVAjXYxAyCatYffb9OwAOQARqQ6nkkgAAAABJRU5ErkJggg==", "base64");
+    const fs = new MemoryFileSystem(), original = new Uint8Array([1, 2, 3]);
+    await fs.writeFile("/input.png", input);
+    await fs.writeFile("/out.png", original);
+    let stderr = "";
+    const result = await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(["input.png", "-channel-fx", expression, "+append", "PNG32:out.png"]).args,
+        cwd: "/", env: {}, fs, signal: new AbortController().signal,
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    });
+    expect(result.exitCode, stderr).toBe(expected === undefined ? 1 : 0);
+    const output = await fs.readFile("/out.png");
+    if (expected === undefined) {
+        expect(stderr).toContain("channel-fx");
+        expect(output).toEqual(original);
+    } else {
+        expect(stderr).toBe("");
+        const image = decodeImage(output);
+        expect([image.width, image.height]).toEqual([2, 1]);
+        expect(Buffer.from(image.data).toString("hex")).toBe(expected);
+    }
+});

@@ -7545,7 +7545,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
 }
 
 function parseChannelAssignments(expression: string): ChannelAssignment[] {
-    const names = [["r", "red"], ["g", "green"], ["b", "blue"], ["a", "alpha"]];
+    // ImageMagick's channel ID 3 is black; alpha is 4, stored at RGBA offset 3.
+    const names = [["0", "r", "red", "c", "cyan", "gray"], ["1", "g", "green", "m", "magenta"], ["2", "b", "blue", "y", "yellow"], ["4", "a", "alpha", "o"]];
     expression = expression.trim();
     const image = expression.startsWith("|") ? 1 : 0;
     if (image) expression = expression.slice(1);

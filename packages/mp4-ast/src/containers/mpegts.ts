@@ -546,7 +546,7 @@ export function serializeMpegTs(
     while (offset < fullPes.byteLength) {
       if (lastPatDts === undefined) {
         lastPatDts = dts90k;
-      } else if (dts90k - lastPatDts >= patPeriod90k) {
+      } else if ((first && videoTrack && pid === videoPid && options.patPmtAtFrames) || dts90k - lastPatDts >= patPeriod90k) {
         emitSectionPacket(0x0000, patSection);
         emitSectionPacket(0x1000, pmtSection);
         lastPatDts = dts90k;

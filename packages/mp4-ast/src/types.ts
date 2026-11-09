@@ -704,6 +704,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** MPEG-TS: repeat PAT/PMT before every video frame, regardless of patPeriod. */
+  readonly patPmtAtFrames?: boolean | undefined;
   /** MPEG-TS PAT/PMT repetition interval in seconds (default: 0.1); zero repeats for each packet. */
   readonly patPeriod?: number | undefined;
   /** MPEG-TS program/service ID in PAT, PMT and SDT (1–65535; default: 1). */

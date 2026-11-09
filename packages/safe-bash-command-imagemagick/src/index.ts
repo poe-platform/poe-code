@@ -3348,6 +3348,23 @@ function parseMagickRotation(spec: string) {
 }
 function parseMagickWarpOperation(tokens: readonly string[], state: MagickState, start: number, analysis: { warnings: string }) {
     const token = tokens[start]!;
+    if (token === "-interpolative-resize") {
+        const geometry = tokens[start + 1] ?? "", interpolation = state.interpolation ?? "bilinear";
+        validateMagickTransformGeometry(geometry, token);
+        if (interpolation === "mesh") throw new Error("Unsupported interpolative-resize interpolation: mesh");
+        const background = state.background, virtualPixel = state.virtualPixel ?? "edge";
+        return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">) => {
+            const options = magickResizeOptions(image, geometry, undefined);
+            if (!options || options.width === image.width && options.height === image.height) return;
+            const width = options.width!, height = options.height!;
+            const plan: WarpPlan = {
+                width, height, hasAlpha: image.hasAlpha, interpolation,
+                virtualCanvas: magickResizeCanvas(image, width, height),
+                map: (x, y) => [(x + 0.5) * image.width / width - 0.5, (y + 0.5) * image.height / height - 0.5]
+            };
+            return { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel) };
+        } };
+    }
     // Right angles retain the lossless pixel permutation; arbitrary rotations
     // use ImageMagick's best-fit SRT canvas and background virtual pixels.
     if (token === "-rotate") {
@@ -10568,6 +10585,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
     const readSettings: string[] = [];
     const flagsWithOneArg = new Set([
         "-resample",
+        "-interpolative-resize",
         "-resize",
         "-scale",
         "-sample",

@@ -21,12 +21,14 @@ import { drainWork } from "./work.js";
 import {
   BinaryReader,
   BinaryWriter,
+  BitWriter,
   bytesEqual,
   concatBytes,
   detachBytesBuffer,
   decodeFourCC,
   decodeUtf8,
   encodeUtf8,
+  escapeRbsp,
   IDENTITY_MATRIX,
   makeBox,
   makeFullBox,
@@ -1103,12 +1105,37 @@ function materializeTrackSamples(track: MediaTrack): {
     const samples: MediaSample[] = [];
     let dts = 0;
     const refBuffer: { y?: Uint8Array; u?: Uint8Array; v?: Uint8Array } = {};
+    const stereoMode = track.codecDescriptions[0]?.stereoMode;
+    let stereoSei: Uint8Array | undefined;
+    if (stereoMode === 1 || stereoMode === 3) {
+      // H.264 D.1.25 frame_packing_arrangement, left view first.
+      const bits = new BitWriter();
+      bits.writeUE(0); // arrangement_id
+      bits.writeBit(0); // cancel_flag
+      bits.writeBits(stereoMode === 1 ? 3 : 4, 7); // arrangement_type
+      bits.writeBit(0); // quincunx_sampling_flag
+      bits.writeBits(1, 6); // content_interpretation_type
+      bits.writeBits(0, 4); // spatial/frame flips, field views, current frame
+      bits.writeBits(3, 2); // both views self contained
+      bits.writeBits(0, 16); // frame grid positions
+      bits.writeBits(0, 8); // reserved byte
+      bits.writeUE(16384); // repetition_period: persists across following frames
+      bits.writeBit(0); // extension_flag
+      bits.writeRbspTrailingBits();
+      const payload = bits.toUint8Array();
+      const rbsp = escapeRbsp(concatBytes([new Uint8Array([45, payload.length]), payload, new Uint8Array([0x80])]));
+      stereoSei = new Uint8Array(5 + rbsp.length);
+      new DataView(stereoSei.buffer).setUint32(0, 1 + rbsp.length);
+      stereoSei[4] = 6;
+      stereoSei.set(rbsp, 5);
+    }
 
     for (let i = 0; i < track.decodedVideoFrames.length; i++) {
       const frame = track.decodedVideoFrames[i]!;
       const duration = Math.max(1, Math.round(frame.durationSeconds * timescale));
       const pts = Math.round(frame.ptsSeconds * timescale);
-      const encoded = encodeH264IdrFrame(frame.data, width, height, i, refBuffer);
+      const picture = encodeH264IdrFrame(frame.data, width, height, i, refBuffer);
+      const encoded = stereoSei && (picture[4]! & 0x1f) === 5 ? concatBytes([stereoSei, picture]) : picture;
       detachBytesBuffer(frame.data);
       samples.push({
         data: encoded,
@@ -1118,7 +1145,7 @@ function materializeTrackSamples(track: MediaTrack): {
         duration,
         size: encoded.byteLength,
         // The encoder emits one length-prefixed NAL unit, including predicted pictures.
-        isKeyframe: (encoded[4]! & 0x1f) === 5,
+        isKeyframe: (picture[4]! & 0x1f) === 5,
         sampleDescriptionIndex: 1
       });
       dts += duration;

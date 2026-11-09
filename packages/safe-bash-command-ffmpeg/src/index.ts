@@ -8166,19 +8166,29 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     t.type === "video" ? { ...t, samples: [], decodedVideoFrames: outFrames } : t
                   )
                 };
-              } else if ((filterComplex.includes("vstack") || filterComplex.includes("hstack")) && loadedDocs.length >= 2) {
-                const vertical = filterComplex.includes("vstack");
-                const filter = vertical ? "vstack" : "hstack";
+              } else if ((filterComplex.includes("vstack") || filterComplex.includes("hstack") || filterComplex.includes("framepack")) && loadedDocs.length >= 2) {
+                const framepack = filterComplex.includes("framepack");
+                let vertical = filterComplex.includes("vstack");
+                const filter = framepack ? "framepack" : vertical ? "vstack" : "hstack";
                 const spec = filterComplex.slice(filterComplex.indexOf(filter) + filter.length)
                   .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
                 const options = (spec.startsWith("=") ? spec.slice(1) : "").split(":");
+                if (framepack) {
+                  const option = options[0]?.trim() ?? "";
+                  const layout = (option.startsWith("format=") ? option.slice(7) : option) || "sbs";
+                  if (options.length !== 1 || !["sbs", "tab", "3", "4"].includes(layout)) {
+                    throw new Error("framepack: supported formats are sbs and tab");
+                  }
+                  vertical = layout === "tab" || layout === "4";
+                }
                 const inputOption = options.find(option => option.trim().startsWith("inputs="))
                   ?.split("=")[1]?.trim() ?? (options[0]?.includes("=") ? undefined : options[0]?.trim());
-                const inputCount = Number(inputOption || 2);
+                const inputCount = framepack ? 2 : Number(inputOption || 2);
                 if (!Number.isInteger(inputCount) || inputCount < 2 || inputCount > loadedDocs.length) {
                   throw new Error(`${filter}: inputs must specify at least two available inputs`);
                 }
                 const inputs: MediaVideoFrame[][] = [];
+                const inputTracks: MediaTrack[] = [];
                 let pads = filterComplex.slice(0, filterComplex.indexOf(filter)).trim();
                 for (let i = 0; i < inputCount; i++) {
                   let inputIndex = i;
@@ -8199,19 +8209,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const doc = loadedDocs[inputIndex];
                   const track = doc?.tracks.filter(t => t.type === "video")[streamIndex];
                   if (!doc || !track) throw new Error(`${filter}: input ${inputIndex}:v:${streamIndex} is unavailable`);
+                  inputTracks.push(track);
                   inputs.push(await ensureDecodedFrames(track, doc.timescale, budget, context.signal));
                 }
                 if (pads) throw new Error(`${filter}: unsupported input labels ${pads}`);
                 const shortestOption = options.find((option) => option.trim().startsWith("shortest="))
                   ?.split("=")[1]?.trim() ?? options[1]?.trim();
-                const stopAtShortest = ["1", "true", "yes", "on"].includes(shortestOption ?? "0");
+                const stopAtShortest = framepack || ["1", "true", "yes", "on"].includes(shortestOption ?? "0");
                 const lengths = inputs.map(frames => frames.length);
-                const count = stopAtShortest || lengths.includes(0)
+                let count = stopAtShortest || lengths.includes(0)
                   ? Math.min(...lengths) : Math.max(...lengths);
+                // Native framepack stops on decoder EOF before consuming the final
+                // queued left frame. Generated sources deliver EOF after their last frame.
+                if (framepack && !inputTracks[0]!.decodedVideoFrames) count = Math.max(0, Math.min(lengths[0]! - 1, lengths[1]!));
                 const stacked: MediaVideoFrame[] = [];
                 for (let i = 0; i < count; i++) {
                   const frames = inputs.map(input => input[Math.min(i, input.length - 1)]!);
                   const first = frames[0]!;
+                  if (framepack && frames.some(frame => frame.width !== first.width || frame.height !== first.height ||
+                      Math.abs(frame.durationSeconds - first.durationSeconds) > 1e-6)) {
+                    throw new Error("framepack: inputs must have matching dimensions and frame rates");
+                  }
                   const timing = inputs.find(input => input[i])![i]!;
                   const axis = vertical ? "width" : "height";
                   for (const [index, frame] of frames.entries()) {
@@ -8249,6 +8267,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           width: stacked[0]?.width ?? t.width,
                           height: stacked[0]?.height ?? t.height,
                           samples: [],
+                          ...(framepack ? { codecDescriptions: [{ ...t.codecDescriptions[0]!, stereoMode: vertical ? 3 : 1 }] } : {}),
                           decodedVideoFrames: stacked
                         }
                       : t

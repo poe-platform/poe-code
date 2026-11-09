@@ -91,6 +91,44 @@ for (const [filter, frames, padding] of [
   }
 }
 
+for (const [filter, limit, expected] of [
+  ["apad=packet_size=2:pad_len=4", 2, 6],
+  ["apad=2:4", 2, 6],
+  ["apad=packet_size=2:pad_len=4", undefined, 8],
+  ["apad=pad_len=4", 2, 8],
+  ["apad=packet_size=2:whole_len=9", 3, 8],
+  ["apad=2:5", 4, 9],
+  ["apad=pad_len=5000", 2, 4100],
+  ["asetnsamples=n=2:p=0,apad=2:4", 3, 6],
+  ["apad=2:2,apad=1:2", 3, 7]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${filter} emits padding frames with frame limit ${limit} (${graph ? "graph" : "simple"})`, async () => {
+      const volume = Volume.fromJSON({});
+      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000,
+        channels: [Float64Array.from([1000, -2000, 3000, -4000], sample => sample / 32768)] }));
+      const errors: Uint8Array[] = [];
+      const result = await createFfmpegCommand().execute({
+        args: ["-y", "-i", "/in.wav", ...(graph
+          ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          ...(limit === undefined ? [] : ["-frames:a", String(limit)]), "-c:a", "pcm_s16le", "/out.wav"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+      const actual = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+      assert.deepEqual(Array.from(actual, sample => sample * 32768),
+        [1000, -2000, 3000, -4000, ...Array(expected - 4).fill(0)]);
+    });
+  }
+}
+
 for (const graph of [false, true]) {
   for (const options of [["-t", "0.002"], ["-to", "0.002"], ["-ss", "0.001", "-t", "0.002"]]) {
     it(`bare apad honors ${options.join(" ")} (${graph ? "graph" : "simple"})`, async () => {

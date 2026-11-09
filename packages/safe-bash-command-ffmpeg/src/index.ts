@@ -9733,22 +9733,33 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioTimestamps = undefined;
                       } else if (trimmed === "apad" || trimmed.startsWith("apad=")) {
                         const options: Record<string, number | undefined> = {};
+                        let packetSize = 4096;
+                        const names = ["packet_size", "pad_len", "whole_len", "pad_dur", "whole_dur"];
                         const argument = trimmed.slice("apad=".length);
-                        for (const option of argument ? argument.split(":") : []) {
-                          const [key, value, extra] = option.split("=");
-                          if (!["pad_len", "whole_len", "pad_dur", "whole_dur"].includes(key!)) {
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? names[index] : option.slice(0, separator);
+                          const value = separator < 0 ? option : option.slice(separator + 1);
+                          if (key === "packet_size") {
+                            packetSize = Number(value);
+                            if (!value.trim() || !Number.isInteger(packetSize) || packetSize < 1 || packetSize > 2147483647) {
+                              throw new Error("apad: invalid packet_size");
+                            }
+                            continue;
+                          }
+                          if (!names.includes(key!)) {
                             throw new Error(`apad: unsupported option ${key}`);
                           }
                           const duration = key!.endsWith("_dur");
                           const number = duration ? parseHlsDuration(value ?? "") : parseFilterExpression(value ?? "", "apad", {});
                           const samples = duration ? Math.round(number * origRate) : roundToEven(number);
-                          if (!value?.trim() || extra !== undefined || number < (duration ? 0 : -1) || !Number.isSafeInteger(samples)) {
+                          if (!value?.trim() || number < (duration ? 0 : -1) || !Number.isSafeInteger(samples)) {
                             throw new Error(`apad: invalid ${key}`);
                           }
                           options[key!] = samples === -1 ? undefined : samples;
                         }
                         const padding = options.pad_dur ?? options.pad_len;
-                        const minimum = options.whole_dur ?? options.whole_len;
+                        let minimum = options.whole_dur ?? options.whole_len;
                         // FFmpeg rejects only explicit sample-count conflicts, before duration overrides.
                         if (options.pad_len !== undefined && options.whole_len !== undefined) {
                           throw new Error("apad: pad_len and whole_len are mutually exclusive");
@@ -9763,6 +9774,28 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const inputLength = stretched[0]?.length ?? 0;
                         const length = padding !== undefined ? inputLength + padding : Math.max(inputLength, minimum!);
                         budget.checkDuration(length / origRate);
+                        if (!audioTimestamps) {
+                          audioTimestamps = [];
+                          for (let start = 0, n = 0; start < inputLength; n++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const packet = t.samples[n];
+                            const count = packet ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
+                              - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+                            if (count === 0) continue;
+                            const end = Math.min(inputLength, start + count);
+                            budget.allocateMemory(24);
+                            audioTimestamps.push({ start, end, pts: audioStartSample + start });
+                            start = end;
+                          }
+                        }
+                        const lastFrame = audioTimestamps.at(-1);
+                        const paddingPts = lastFrame ? lastFrame.pts + lastFrame.end - lastFrame.start : audioStartSample;
+                        budget.allocateMemory(Math.ceil((length - inputLength) / packetSize) * 24);
+                        for (let start = inputLength; start < length; start += packetSize) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          audioTimestamps.push({ start, end: Math.min(length, start + packetSize),
+                            pts: paddingPts + start - inputLength });
+                        }
                         budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
                         stretched = await mapWork(stretched, async channel => {
                           const output = new Float32Array(length);

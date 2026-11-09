@@ -409,6 +409,8 @@ export interface MediaTrack {
 }
 
 export interface Mp4MetadataTags {
+  /** Original spellings of recognized FFmetadata keys, indexed by normalized metadata field. */
+  readonly keySpellings?: Readonly<Record<string, string>> | undefined;
   readonly title?: string | undefined;
   readonly artist?: string | undefined;
   readonly albumArtist?: string | undefined;

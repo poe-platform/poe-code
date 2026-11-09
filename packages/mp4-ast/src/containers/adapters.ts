@@ -2581,6 +2581,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   lines.push(text.slice(lineStart));
   const tags: Record<string, string> = {};
   const custom = new Map<string, string>();
+  const keySpellings: Record<string, string> = {};
   const chapters: Mp4Chapter[] = [];
 
   let section: "global" | "chapter" | "other" = "global";
@@ -2672,6 +2673,8 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       const normalizedKey = key.toLowerCase();
       if (["title", "artist", "album", "date", "comment", "genre", "encoder"].includes(normalizedKey)) {
         tags[normalizedKey] = val;
+        if (key !== normalizedKey) keySpellings[normalizedKey] = key;
+        else delete keySpellings[normalizedKey];
       } else {
         custom.set(key, val);
       }
@@ -2686,6 +2689,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     durationSeconds: chapters[chapters.length - 1]?.endTimeSeconds ?? 0,
     tracks: [],
     metadata: {
+      ...(Object.keys(keySpellings).length > 0 ? { keySpellings } : {}),
       title: tags.title,
       artist: tags.artist,
       album: tags.album,
@@ -2712,14 +2716,14 @@ function escapeFfmetadata(value: string): string {
 export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
   const lines: string[] = [";FFMETADATA1"];
   const m = doc.metadata;
-  if (m.title !== undefined) lines.push(`title=${escapeFfmetadata(m.title)}`);
-  if (m.artist !== undefined) lines.push(`artist=${escapeFfmetadata(m.artist)}`);
-  if (m.album !== undefined) lines.push(`album=${escapeFfmetadata(m.album)}`);
-  if (m.date !== undefined) lines.push(`date=${escapeFfmetadata(m.date)}`);
-  if (m.comment !== undefined) lines.push(`comment=${escapeFfmetadata(m.comment)}`);
-  if (m.copyright !== undefined) lines.push(`copyright=${escapeFfmetadata(m.copyright)}`);
-  if (m.genre !== undefined) lines.push(`genre=${escapeFfmetadata(m.genre)}`);
-  if (m.encoder !== undefined) lines.push(`encoder=${escapeFfmetadata(m.encoder)}`);
+  if (m.title !== undefined) lines.push(`${m.keySpellings?.title ?? "title"}=${escapeFfmetadata(m.title)}`);
+  if (m.artist !== undefined) lines.push(`${m.keySpellings?.artist ?? "artist"}=${escapeFfmetadata(m.artist)}`);
+  if (m.album !== undefined) lines.push(`${m.keySpellings?.album ?? "album"}=${escapeFfmetadata(m.album)}`);
+  if (m.date !== undefined) lines.push(`${m.keySpellings?.date ?? "date"}=${escapeFfmetadata(m.date)}`);
+  if (m.comment !== undefined) lines.push(`${m.keySpellings?.comment ?? "comment"}=${escapeFfmetadata(m.comment)}`);
+  if (m.copyright !== undefined) lines.push(`${m.keySpellings?.copyright ?? "copyright"}=${escapeFfmetadata(m.copyright)}`);
+  if (m.genre !== undefined) lines.push(`${m.keySpellings?.genre ?? "genre"}=${escapeFfmetadata(m.genre)}`);
+  if (m.encoder !== undefined) lines.push(`${m.keySpellings?.encoder ?? "encoder"}=${escapeFfmetadata(m.encoder)}`);
   for (const [key, value] of Object.entries(m.custom ?? {})) {
     lines.push(`${key}=${escapeFfmetadata(value)}`);
   }

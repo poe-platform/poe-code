@@ -2550,7 +2550,9 @@ export function buildProbeResultFromDoc(
   }
   for (const key of Object.keys(mp4ProbeMetadataKeys) as (keyof typeof mp4ProbeMetadataKeys)[]) {
     const value = doc.metadata[key];
-    if (value) formatTags[mp4ProbeMetadataKeys[key]] = value;
+    if (value) formatTags[doc.containerFormat === "ffmetadata"
+      ? doc.metadata.keySpellings?.[key] ?? mp4ProbeMetadataKeys[key]
+      : mp4ProbeMetadataKeys[key]] = value;
   }
 
   const startTime = Number.isFinite(formatStart) ? formatStart : 0;

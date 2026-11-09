@@ -486,7 +486,8 @@ export function serializeMpegTs(
     pesHeader.writeU8(0x01);
     pesHeader.writeU8(streamId);
     const pesLen = 3 + headerDataLen + esPayload.byteLength;
-    pesHeader.writeU16BE(pesLen <= 0xffff ? pesLen : 0);
+    const omitLength = (streamId & 0xf0) === 0xe0 && (options.omitVideoPesLength ?? true);
+    pesHeader.writeU16BE(!omitLength && pesLen <= 0xffff ? pesLen : 0);
     pesHeader.writeU8(0x80); // '10', data_alignment_indicator = 0
     pesHeader.writeU8(hasDts ? 0xc0 : 0x80);
     pesHeader.writeU8(headerDataLen);

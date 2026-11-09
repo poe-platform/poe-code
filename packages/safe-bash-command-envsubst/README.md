@@ -9,7 +9,7 @@ Expand `$VAR` and `${VAR}` references from the shell environment with optional `
 ## Features
 
 - `envsubst [SHELL-FORMAT]` — Replace all or only allowlisted `$VAR` / `${VAR}` placeholders
-- `-v` / `--variables` — List every environment variable referenced in `SHELL-FORMAT`; short options can be grouped, such as `-vv` or `-vh`
+- `-v` / `--variables` — List every environment variable referenced in `SHELL-FORMAT`; short options can be grouped, such as `-vv` or `-vh`; long options accept unique prefixes such as `--var`, `--ver`, and `--he` (`--v` is ambiguous)
 
 ## Quick Start
 

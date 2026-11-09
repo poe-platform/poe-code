@@ -228,15 +228,15 @@ export function createEnvsubstCommand(options: EnvsubstCommandsOptions = {}): Co
           endOfOptions = true;
           continue;
         }
-        if (!endOfOptions && (arg === "--help" || arg === "-h")) {
+        if (!endOfOptions && (arg === "-h" || (arg.startsWith("--h") && "--help".startsWith(arg)))) {
           help = true;
           continue;
         }
-        if (!endOfOptions && (arg === "--version" || arg === "-V")) {
+        if (!endOfOptions && (arg === "-V" || (arg.startsWith("--ve") && "--version".startsWith(arg)))) {
           version = true;
           continue;
         }
-        if (!endOfOptions && (arg === "--variables" || arg === "-v")) {
+        if (!endOfOptions && (arg === "-v" || (arg.startsWith("--va") && "--variables".startsWith(arg)))) {
           variablesMode = true;
           continue;
         }

@@ -96,3 +96,31 @@ for (const posix of [undefined, "", "1"]) {
     });
   });
 }
+
+for (const option of ["--variables", "--version", "--help"]) {
+  const minimumLength = option === "--help" ? 3 : 4;
+  for (let length = minimumLength; length < option.length; length++) {
+    const prefix = option.slice(0, length);
+    test(`envsubst accepts unique long-option prefix ${prefix}`, async () => {
+      const result = await runEnvsubst([prefix, "$A ${B} $A"], "", {});
+      const full = await runEnvsubst([option, "$A ${B} $A"], "", {});
+      assert.equal(result.exitCode, 0);
+      assert.deepEqual(result, full);
+      if (option === "--variables") assert.equal(result.stdout, "A\nB\nA\n");
+    });
+  }
+}
+
+for (const option of ["--v", "--unknown", "--variables-extra", "--var=value", "--ver=value", "--he=value"]) {
+  test(`envsubst rejects ambiguous or invalid option ${option}`, async () => {
+    const result = await runEnvsubst([option, "$A"], "", {});
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+  });
+}
+
+test("envsubst treats prefixes after -- as operands", async () => {
+  const result = await runEnvsubst(["--", "--var $A"], "$A $B", { A: "a", B: "b" });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "a $B");
+});

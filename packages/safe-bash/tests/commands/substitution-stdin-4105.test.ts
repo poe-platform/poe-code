@@ -17,6 +17,8 @@ function shell() {
 const cases = [
   ["envsubst", "hello $FOO $BAR", "hello world there"],
   ["envsubst '$FOO'", "hello $FOO $BAR", "hello world $BAR"],
+  ["envsubst --var '$FOO $BAR'", "ignored", "FOO\nBAR"],
+  ["envsubst --vari '$FOO $BAR'", "ignored", "FOO\nBAR"],
   ["factor", "12", "12: 2 2 3"],
   ["factor -h", "12", "12: 2^2 3"],
   ["tsort", "a b", "a\nb"],
@@ -78,5 +80,48 @@ exit "$status"`);
         assert.equal(captured.exitCode, expectedStatus);
       }
     } finally { await sh.dispose(); }
+  });
+}
+
+for (const [option, status, stdout] of [
+  ["--var", 0, "A\n"],
+  ["--vari", 0, "A\n"],
+  ["--v", 1, ""],
+] as const) {
+  // GNU gettext-runtime 0.21, LC_ALL=C: variables/version share the ambiguous --v prefix.
+  for (const capture of [false, true]) {
+    test(`envsubst ${option} preserves native output and status${capture ? " in substitution" : ""}`, async () => {
+      const instance = shell();
+      try {
+        const command = `envsubst ${option} '$A'`;
+        const script = capture
+          ? `value=$(${command}); status=$?; printf '%s' "$value"; exit "$status"`
+          : command;
+        const result = await instance.exec(script);
+        assert.equal(result.exitCode, status);
+        assert.equal(result.stdout, capture ? stdout.trimEnd() : stdout);
+        if (status === 0) assert.equal(result.stderr, "");
+        else assert.notEqual(result.stderr, "");
+      } finally { await instance.dispose(); }
+    });
+  }
+}
+
+for (const [prefix, option] of [["--he", "--help"], ["--ver", "--version"]] as const) {
+  test(`envsubst ${prefix} matches full informational option in direct calls and substitutions`, async () => {
+    const instance = shell();
+    try {
+      for (const capture of [false, true]) {
+        const script = (arg: string) => capture
+          ? `value=$(envsubst ${arg}); status=$?; printf '%s' "$value"; exit "$status"`
+          : `envsubst ${arg}`;
+        const full = await instance.exec(script(option));
+        const abbreviated = await instance.exec(script(prefix));
+        assert.equal(abbreviated.exitCode, 0);
+        assert.equal(abbreviated.stderr, "");
+        assert.equal(abbreviated.stdout, full.stdout);
+        assert.notEqual(abbreviated.stdout, "");
+      }
+    } finally { await instance.dispose(); }
   });
 }

@@ -25385,7 +25385,7 @@ const syncExtraRuntimeMethods = {
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if (!endOfOptions && a === "--") { endOfOptions = true; continue; }
-      if (!endOfOptions && (a === "-v" || a === "--variables")) { variablesMode = true; continue; }
+      if (!endOfOptions && (a === "-v" || (a.startsWith("--va") && "--variables".startsWith(a)))) { variablesMode = true; continue; }
       if (!endOfOptions && a !== "-" && a.startsWith("-")) return undefined;
       operands.push(a);
       if (rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined) endOfOptions = true;

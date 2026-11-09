@@ -8298,7 +8298,13 @@ export class Runtime {
       return 2;
     }
     const allocation = this.budget.values.scope();
-    context[invocationScope].register(() => allocation.close());
+    let closed = false;
+    const close = (): void => {
+      if (closed) return;
+      closed = true;
+      allocation.close();
+    };
+    context[invocationScope].register(close);
     const chunks: ShellValue[] = [];
     let length = 0;
     let terminated = false;
@@ -8377,7 +8383,7 @@ export class Runtime {
         assignments.delete(name);
       }
       return status;
-    } finally { allocation.close(); }
+    } finally { close(); }
   }
   private async mapfileBuiltin(context: CommandContext & IO, state: State): Promise<number> {
     const allocation = this.budget.values.scope();

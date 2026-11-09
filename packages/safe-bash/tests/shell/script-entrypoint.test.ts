@@ -12,6 +12,31 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
 const encoder = new TextEncoder();
 
+for (const middleware of [false, true]) {
+  for (const [source, expected] of [
+    [`printf '%s\\n' 'echo "$0"' | bash --noprofile --norc -s -- one`, "bash\n"],
+    [`printf '%s\\n' 'echo "$#"' | bash --noprofile --norc -s -- one`, "1\n"],
+    [`printf '%s\\n' 'echo "$@"' | bash --noprofile --norc -s -- one`, "one\n"],
+    [`bash -c 'echo "$0"' label one`, "label\n"],
+  ]) {
+    test(`piped interpreter positional parameters: ${source}, middleware=${middleware}`, async context => {
+      const errors: unknown[] = [];
+      const shell = new Shell({ fs: new MemoryFileSystem(), onInternalError: error => { errors.push(error); } }).use(standardCommands());
+      context.after(() => shell.dispose());
+      if (middleware) shell.use((_context, next) => next());
+      const native = spawnSync(process.env.SAFE_BASH_TEST_BASH ?? "/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", timeout: 2000 });
+      assert.equal(native.status, 0, native.stderr);
+      assert.equal(native.stderr, "");
+      assert.equal(native.stdout, expected);
+      const result = await shell.exec(source);
+      assert.deepEqual(errors, []);
+      assert.equal(result.exitCode, native.status, result.stderr);
+      assert.equal(result.stderr, native.stderr);
+      assert.equal(result.stdout, native.stdout);
+    });
+  }
+}
+
 async function script(fs: FileSystem, path: string, body: string, mode = 0o755): Promise<void> {
   await fs.writeFile(path, encoder.encode(body), { mode });
 }

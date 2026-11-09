@@ -13,4 +13,6 @@ shell.use(nlCommands());
 const result = await shell.exec("nl --help");
 ```
 
+Numbering options accept unambiguous long-name prefixes, such as `--number-f=rz`, `--body a`, `--star 2`, and `--no-ren`.
+
 The module also exports `createNlCommand`, its command-list factory, and typed options and limits.

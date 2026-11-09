@@ -8,6 +8,21 @@ import { command, forEachRecord, type Session, type StreamFormatLimits } from "s
 
 type Style = "a" | "t" | "n" | Pattern;
 
+const longOptions: Record<string, string> = {
+  "header-numbering": "h", "body-numbering": "b", "footer-numbering": "f",
+  "starting-line-number": "v", "line-increment": "i", "no-renumber": "p",
+  "join-blank-lines": "l", "number-separator": "s", "number-width": "w",
+  "number-format": "n", "section-delimiter": "d",
+};
+// Include informational options when deciding whether a prefix is unique.
+const longNames = [...Object.keys(longOptions), "help", "version"];
+for (const [name, key] of Object.entries(longOptions)) {
+  for (let length = 1; length < name.length; length++) {
+    const prefix = name.slice(0, length);
+    if (longNames.filter(candidate => candidate.startsWith(prefix)).length === 1) longOptions[prefix] = key;
+  }
+}
+
 class PatternBudget extends Budget {
   constructor(readonly session: Session) {
     super({ ...session.context, signal: session.signal }, { maxSteps: session.limits.maxSteps, maxBufferBytes: session.limits.maxRecordBytes });
@@ -52,12 +67,7 @@ export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinit
     let separator = bytesFrom("\t");
     const defaultDelimiter = bytesFrom("\\:");
     let delimiter: Uint8Array = defaultDelimiter;
-    const parsed = options(session.context.args, "h:b:f:v:i:pl:s:w:n:d:", {
-      "header-numbering": "h", "body-numbering": "b", "footer-numbering": "f",
-      "starting-line-number": "v", "line-increment": "i", "no-renumber": "p",
-      "join-blank-lines": "l", "number-separator": "s", "number-width": "w",
-      "number-format": "n", "section-delimiter": "d",
-    }, false, undefined, (key, index, offset) => {
+    const parsed = options(session.context.args, "h:b:f:v:i:pl:s:w:n:d:", longOptions, false, undefined, (key, index, offset) => {
       if (key === "s") separator = bytesFrom(arguments_.bytes(index)!.subarray(offset));
       if (key === "d") {
         const next = arguments_.bytes(index)!.subarray(offset);

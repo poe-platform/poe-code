@@ -5,6 +5,36 @@ import { Session } from "../../../src/commands/stream-format/shared.js";
 import { shell, type NativeCase } from "./helpers.js";
 
 const pages = "head\n\\:\\:\\:\nH\n\n\\:\\:\nA\n\nB\n\\:\nF\n\\:\\:\nC\n";
+for (const [options, input, expected] of [
+  ["--number-f=rz", "A\n", "000001\tA"],
+  ["--number-f rz", "A\n", "000001\tA"],
+  ["--body a", "\nA\n", "     1\t\n     2\tA"],
+  ["--star 2", "A\n", "     2\tA"],
+  ["--no-ren", "A\n\\:\\:\nB\n", "     1\tA\n\n     2\tB"],
+] as const) test(`nl command substitution accepts ${options}`, async () => {
+  const instance = shell();
+  try {
+    assert.equal((await instance.exec("cat > /input", { stdin: input })).exitCode, 0);
+    for (const command of [`nl ${options} /input`, `cat /input | nl ${options}`]) {
+      const result = await instance.exec(`result=$(${command}); status=$?; printf '%s' "$result"; exit "$status"`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected);
+      assert.equal(result.stderr, "");
+    }
+  } finally { await instance.dispose(); }
+});
+
+for (const option of ["--num=rz", "--num rz", "--unknown"]) test(`nl command substitution rejects ${option}`, async () => {
+  const instance = shell();
+  try {
+    assert.equal((await instance.exec("cat > /input", { stdin: "A\n" })).exitCode, 0);
+    const result = await instance.exec(`result=$(nl ${option} /input)`);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.notEqual(result.stderr, "");
+  } finally { await instance.dispose(); }
+});
+
 export const nlCases: readonly NativeCase[] = [
   { args: [], input: "a\n\nb\nlast" }, { args: ["-ba"], input: "\na\n\n" },
   { args: ["-bt"], input: " \n\t\n\n" }, { args: ["-bn"], input: "a\n\nb" },

@@ -6765,7 +6765,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
-        const parts = raw.replaceAll("x", ",").replaceAll("/", ",").replaceAll(":", ",").split(",");
+        const parts = raw.replaceAll("!", "").replaceAll("x", ",").replaceAll("/", ",").replaceAll(":", ",").split(",");
         // Colon geometry expresses a ratio with a unit white point.
         if (raw.includes(":")) {
             parts[0] = String(parseFloat(parts[0]!) / parseFloat(parts[1]!));
@@ -6784,7 +6784,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const white = parsePt(parts[1], 255 - black);
         const gamma = parts[2] !== undefined ? parseFloat(parts[2]) : 1.0;
         const exponent = 1 / (Math.abs(gamma) >= 1e-12 ? gamma : gamma < 0 ? -1e-12 : 1e-12);
-        const inverse = token === "+level";
+        const inverse = token === "+level" || raw.includes("!");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = function* (im) {
             const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha];

@@ -40,6 +40,9 @@ for (const stereo of [false, true]) {
     ["amix=duration=shortest:weights='0.5 -1':normalize=0", b.map((v, i) => a[i]! / 2 + v)],
     ["amix=dropout_transition=0:weights='1 0'", a],
     ["amix=dropout_transition=0:weights='0 0'", a.map(() => 0)],
+    ["amix=duration=shortest:weights='2\t1'", b.map((v, i) => Math.round((2 * a[i]! + v) / 3))],
+    ["amix=duration=shortest:weights=' \t2\t 1\t9 7'", b.map((v, i) => Math.round((2 * a[i]! + v) / 3))],
+    ["amix=duration=shortest:weights='0.5':normalize=0", b.map((v, i) => (a[i]! + v) / 2)],
     ["map:0:a", a], ["map:1:a", b]
   ] as const) {
     it(`matches native PCM for ${filter}, stereo=${stereo}`, async () => {
@@ -56,6 +59,8 @@ for (const stereo of [false, true]) {
 }
 
 for (const [filter, first, second, points] of [
+  ["amix=weights=1 2 9", Array(2048).fill(8000), Array(750).fill(-4000),
+    [[0, 0], [750, 2690], [1024, 2734], [1536, 2779]]],
   ["amix=dropout_transition=0.5", Array(16000).fill(8192), Array(4096).fill(-4096),
     [[0, 2048], [4096, 4376], [5120, 5069], [6144, 6024], [7168, 7420], [8192, 8192]]],
   ["amix=dropout_transition=0.5", Array(4096).fill(8192), Array(16000).fill(-4096),
@@ -79,6 +84,7 @@ for (const [filter, runs] of [
   ["amix=dropout_transition=0.256", [[1024, 4000], [512, 6857], [512, 8000], [512, 9600], [2560, 12000]]],
   ["amix=dropout_transition=0.128", [[1024, 4000], [512, 8000], [3584, 12000]]],
   ["amix=dropout_transition=0.128:weights=1 3", [[1024, 0], [512, 4000], [512, 6000], [3072, 12000]]],
+  ["amix=dropout_transition=0.128:weights=1 3 9", [[1024, 0], [512, 4000], [512, 6000], [3072, 12000]]],
   ["amix=dropout_transition=0", [[1024, 4000], [4096, 12000]]],
   ["amix=dropout_transition=0.128:normalize=0", [[1024, 8000], [4096, 12000]]],
   ["amix=duration=shortest:dropout_transition=0.128", [[1024, 4000]]],

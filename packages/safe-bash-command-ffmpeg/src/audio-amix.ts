@@ -31,8 +31,8 @@ export async function mixAudio(
       if (!["0", "1", "false", "true"].includes(value)) throw new Error("amix: invalid normalize");
       normalize = value === "1" || value === "true";
     } else if (key === "weights") {
-      weights = value.split(" ").filter(Boolean).map(Number);
-      if (!weights.length || weights.length > 2 || weights.some(weight => !Number.isFinite(weight))) {
+      weights = value.replaceAll("\t", " ").split(" ").filter(Boolean).slice(0, 2).map(Number);
+      if (!weights.length || weights.some(weight => !Number.isFinite(weight))) {
         throw new Error("amix: invalid weights");
       }
       if (weights.length === 1) weights.push(weights[0]!);

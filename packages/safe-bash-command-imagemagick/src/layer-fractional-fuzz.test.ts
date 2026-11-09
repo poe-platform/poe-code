@@ -1,0 +1,37 @@
+import { expect, it } from "vitest";
+import { decodeImage, encodeImage } from "@poe-code/image-ast";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
+
+for (const mode of ["sync", "buffered", "retained", "command"]) {
+  for (const operation of [["-layers", "RemoveDups"], ["-layers", "CompareAny"], ["-deconstruct"]]) {
+    it.each(["0.2%", "0.3%"])(`${mode} ${operation.join(" ")} preserves fractional fuzz %s`, async fuzz => {
+      const input = encodeImage({ width: 1, height: 2, pageHeight: 1, pages: 2,
+        data: new Uint8Array([100, 100, 100, 255, 101, 101, 101, 255]),
+        delay: [30, 50], disposal: 1 }, { format: "gif", pageHeight: 1 }).data;
+      const files = new Map([["in.gif", input]]);
+      const filesystem = new MemoryFileSystem();
+      await filesystem.writeFile("/in.gif", input);
+      const args = ["in.gif", "-fuzz", fuzz, ...operation, "out.gif"];
+      const arguments_ = createCommandArguments(args);
+      const result = mode === "command"
+        ? await createMagickCommand().execute({
+          command: "magick", args: arguments_.args, argumentValues: arguments_, cwd: "/", env: {},
+          signal: new AbortController().signal, fs: filesystem,
+          stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} },
+          registerCleanup() {},
+        } as unknown as CommandContext)
+        : mode === "sync" ? runConvertCliSync(args, files)
+          : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+      expect(result.exitCode).toBe(0);
+      const output = decodeImage(mode === "retained" || mode === "command"
+        ? await filesystem.readFile("/out.gif") : files.get("out.gif")!, { animated: true });
+      const collapse = fuzz === "0.3%";
+      expect(output.pages ?? 1).toBe(collapse ? 1 : 2);
+      expect(output.delay).toEqual(collapse ? [operation[1] === "RemoveDups" ? 80 : 30] : [30, 50]);
+      expect([...output.data]).toEqual(collapse ? (operation[1] === "RemoveDups" ? [101, 101, 101, 255] : [100, 100, 100, 255])
+        : [100, 100, 100, 255, 101, 101, 101, 255]);
+    });
+  }
+}

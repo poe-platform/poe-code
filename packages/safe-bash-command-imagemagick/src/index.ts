@@ -6730,7 +6730,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
-        const parts = raw.replaceAll("x", ",").split(",");
+        const parts = raw.replaceAll("x", ",").replaceAll(":", ",").split(",");
+        // Colon geometry expresses a ratio with a unit white point.
+        if (raw.includes(":")) {
+            parts[0] = String(parseFloat(parts[0]!) / parseFloat(parts[1]!));
+            parts[1] = "1";
+        }
         const anyPct = raw.includes("%");
         const parsePt = (p: string | undefined, def: number) => {
             if (!p || p.length === 0)

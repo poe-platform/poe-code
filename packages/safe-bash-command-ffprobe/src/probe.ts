@@ -88,7 +88,7 @@ export function parseArguments(args: readonly string[]) {
     default: ["nokey", "nk", "noprint_wrappers", "nw"],
     compact: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
     csv: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
-    flat: ["s", "sep_char"],
+    flat: ["s", "sep_char", "h", "hierarchical"],
     ini: ["h", "hierarchical"]
   };
   for (const [key, value] of settings) {
@@ -329,7 +329,7 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
       lines.push(values.join(sep));
     } else if (format === "flat") {
       const sep = settings.get("s") ?? settings.get("sep_char") ?? ".";
-      const prefix = section === "stream" ? `streams${sep}stream${sep}${streamIndex++}` : "format";
+      const prefix = section === "stream" ? `${(settings.get("h") ?? settings.get("hierarchical")) === "0" ? "" : "streams" + sep}stream${sep}${streamIndex++}` : "format";
       for (const [key, value] of fields)
         lines.push(
           `${prefix}${sep}${key.startsWith("tag:") ? "tags" + sep + key.slice(4) : key}=${typeof value === "number" ? value : JSON.stringify(value)}`

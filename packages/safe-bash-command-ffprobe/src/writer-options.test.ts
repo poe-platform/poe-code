@@ -7,7 +7,7 @@ import { evalSyncFfprobe } from "./media.js";
 import { parseArguments } from "./probe.js";
 
 const bytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(16)] });
-const invalid = ["json=nokey=1", "json=nw=1", "json=s=,", "default=c=1", "default=p=0", "compact=nw=1", "csv=compact=1", "flat=nk=1", "ini=nk=1"];
+const invalid = ["json=nokey=1", "json=nw=1", "json=s=,", "json=h=0", "default=hierarchical=0", "compact=h=0", "csv=hierarchical=0", "default=c=1", "default=p=0", "compact=nw=1", "csv=compact=1", "flat=nk=1", "ini=nk=1"];
 
 for (const writer of invalid) for (const section of ["packet=size", "stream=index"]) {
   it(`rejects ${writer} before emitting ${section}`, async () => {

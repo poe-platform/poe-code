@@ -31,14 +31,9 @@ export function createReadlinkCommand(configuration: ReadlinkCommandsOptions = {
       if (parsed.flags.has("n") && parsed.operands.length > 1) {
         await diagnostic(context, new PublicDiagnostic("ignoring --no-newline with multiple arguments"));
       }
-      const operandContext = verboseMode === "quiet"
-        ? { ...context, stderr: { async write() {} } }
-        : verboseMode === "default"
-        ? { ...context, stderr: { async write(bytes: Uint8Array) {
-            const text = new TextDecoder().decode(bytes);
-            if (!text.includes("EINVAL") && !text.includes("ENOENT")) await context.stderr.write(bytes);
-          } } }
-        : context;
+      const operandContext = context.env.POSIXLY_CORRECT !== undefined || verboseMode === "verbose"
+        ? context
+        : { ...context, stderr: { async write() {} } };
       let operandIndex = 0;
       const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
       return eachOperand(operandContext, parsed.operands, async operand => {

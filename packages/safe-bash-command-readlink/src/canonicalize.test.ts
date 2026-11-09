@@ -37,7 +37,7 @@ for (const mode of ["-e", "-f"]) {
    const result = await readlink(fs, [mode, "hop0"]);
    assert.equal(result.exitCode, 1, target);
    assert.equal(result.stdout, "", target);
-   if (target === "a") assert.ok(result.stderr.includes("ELOOP"), result.stderr);
+   assert.equal(result.stderr, "");
    await fs.rm("/hop65");
   }
   for (const target of ["missing", "missing/"]) {

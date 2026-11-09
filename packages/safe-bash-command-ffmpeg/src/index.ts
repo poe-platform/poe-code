@@ -10784,7 +10784,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           options[key] = value;
                         }
-                        const delay = Math.floor(origRate * Math.fround(options.delay) / 1000);
+                        // Match native float arithmetic and lrintf's ties-to-even rounding.
+                        const delay = roundToEven(Math.fround(Math.fround(origRate * Math.fround(options.delay)) / 1000));
                         const feedback = Math.fround(options.feedback);
                         const crossfeed = Math.fround(options.crossfeed);
                         const drymix = Math.fround(options.drymix);

@@ -22,9 +22,9 @@ for (const mode of ["buffered", "retained", "sync", "command"]) for (const opera
                 stdout: { async write(chunk) { stdout += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } },
                 stderr: { async write(chunk) { stderr += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } },
             }) : mode === "sync" ? runMagickCliSync(args, files) : await runMagickCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" });
-            expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+            expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(0);
             if (operation === "inspect") {
-                expect(("stdout" in result ? result.stdout : stdout).trim()).toBe(`${space.toUpperCase()}|${space.toLowerCase()}a(210,100%,29.0196%,0.435294)`);
+                expect(("stdout" in result && typeof result.stdout === "string" ? result.stdout : stdout).trim()).toBe(`${space.toUpperCase()}|${space.toLowerCase()}a(210,100%,29.0196%,0.435294)`);
                 continue;
             }
             const output = decodeImage(mode === "buffered" || mode === "sync" ? files.get("out.png")! : await filesystem.readFile("/out.png"));

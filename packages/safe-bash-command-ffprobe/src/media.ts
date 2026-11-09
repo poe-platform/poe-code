@@ -1204,8 +1204,8 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
               filename: inputTarget,
               limits: options.limits,
               budget,
-              showPackets,
-              showFrames
+              showPackets: showPackets || countPackets,
+              showFrames: showFrames || countFrames
             });
             probeResult = exportPathMetadata && plugin.id === "image2" && !isStdin(inputTarget)
               ? { ...probe, packets: probe.packets?.map(packet => ({ ...packet, ...imagePathMetadata(inputTarget) })) } : probe;
@@ -1325,8 +1325,8 @@ export function evalSyncFfprobe(
       ignoreLength, maxSize,
       filename: inputTarget,
       budget,
-      showPackets,
-      showFrames,
+      showPackets: showPackets || countPackets,
+      showFrames: showFrames || countFrames,
     });
     if ((showData || showDataHash) && !raw && !probeResult.packetData && !["wav", "mp3", "flac", "mp4", "mov"].includes(plugin!.id)) return undefined;
     const packets = showData || showDataHash ? probeResult.packets?.map(packet => {

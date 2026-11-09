@@ -2481,7 +2481,7 @@ export function buildProbeResultFromDoc(
     const aacMediaStart = (doc.containerFormat === "mp4" || doc.containerFormat === "mov") &&
       track.type === "audio" && desc?.codecName === "aac"
       ? track.editList?.find(edit => edit.mediaTime >= 0)?.mediaTime : undefined;
-    const stream = buildProbeStream({ ...track, duration }, desc, {
+    let stream = buildProbeStream({ ...track, duration }, desc, {
       totalBytes: materialized.samples.reduce((total, sample) => total + sample.size, 0),
       count: materialized.samples.length,
       ticks: materialized.samples.reduce((total, sample) => total + sample.duration, 0),
@@ -2490,6 +2490,10 @@ export function buildProbeResultFromDoc(
         : Math.max(0, Math.round((aacMediaStart - firstSample.pts) * (desc?.sampleRate ?? track.timescale) / track.timescale)),
       hasReorderedSamples: materialized.samples.some((sample, i, samples) => i > 0 && sample.pts < samples[i - 1]!.pts)
     }, idx, doc.containerFormat);
+    // Standalone WebVTT learns its start timestamp only when cues are read.
+    if (doc.containerFormat === "webvtt" && (!firstSample || !(options.showPackets || options.showFrames))) {
+      stream = { ...stream, start_pts: undefined, start_time: undefined };
+    }
     const timestampOffset = aacMediaStart === undefined ? 0 : firstPts - aacMediaStart;
     const primingPackets = aacMediaStart === undefined ? 0 : materialized.samples.reduce(
       (count, sample) => count + (sample.pts + sample.duration <= aacMediaStart ? 1 : 0), 0);

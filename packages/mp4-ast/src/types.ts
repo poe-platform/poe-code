@@ -529,8 +529,8 @@ export interface MediaProbeStream {
   readonly r_frame_rate: string;
   readonly avg_frame_rate: string;
   readonly time_base: string;
-  readonly start_pts: number;
-  readonly start_time: string;
+  readonly start_pts?: number | undefined;
+  readonly start_time?: string | undefined;
   readonly duration_ts?: number | undefined;
   readonly duration?: string | undefined;
   readonly bit_rate?: string | undefined;

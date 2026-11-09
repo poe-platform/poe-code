@@ -14,7 +14,6 @@ export class PngPalette {
 
   add(pixels: Uint8Array): boolean {
     for (let i = 0; i < pixels.length; i += 4) {
-      if (!this.original && pixels[i + 3] !== 255) return false;
       const color = (pixels[i]! * 65536 + pixels[i + 1]! * 256 + pixels[i + 2]!) * 256 + pixels[i + 3]!;
       if (!this.colors.has(color)) {
         if (this.original || this.colors.size === 256) return false;
@@ -33,7 +32,11 @@ export class PngPalette {
   }
 
   get transparency(): Uint8Array | undefined {
-    return this.original?.transparency;
+    if (this.original) return this.original.transparency;
+    const alpha = Uint8Array.from(this.colors.keys(), color => color & 255);
+    let length = alpha.length;
+    while (length > 0 && alpha[length - 1] === 255) length--;
+    return length ? alpha.subarray(0, length) : undefined;
   }
 
   pack(pixels: Uint8Array, indices?: Uint8Array): Uint8Array {

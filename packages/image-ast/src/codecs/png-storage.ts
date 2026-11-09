@@ -254,7 +254,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   const monochrome = !coder && options.pngBitDepth === 1 && gray && !alpha && !palette;
   if (!coder && options.pngBitDepth === 1 && !monochrome) throw new Error("1-bit PNG requires grayscale without alpha");
   const sampleBytes = monochrome ? 1 : palette ? 1 : !coder && options.pngBitDepth ? options.pngBitDepth / 8 : coder === "png48" || coder === "png64" || (!coder && image.storedData16) ? 2 : 1;
-  let exactPalette = options.palette && !options.pngCoder && options.pngBitDepth === undefined && requestedColor === undefined && !options.pngBitDepth && !gray && !alpha && sampleBytes === 1 ? new PngPalette() : undefined;
+  let exactPalette = options.palette && !options.forceOpaque && !options.pngCoder && options.pngBitDepth === undefined && requestedColor === undefined && !options.pngBitDepth && !gray && sampleBytes === 1 ? new PngPalette() : undefined;
   if (options.pngPreserveColormap && !options.forceOpaque && image.pngPalette && !coder && requestedColor === undefined && !options.pngBitDepth && sampleBytes === 1) exactPalette = new PngPalette(image.pngPalette);
   for (let offset = 0; exactPalette && offset < width * height * 4; offset += 4096) {
     if (!exactPalette.add(await read(position + offset, Math.min(4096, width * height * 4 - offset)))) exactPalette = undefined;

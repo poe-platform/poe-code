@@ -293,7 +293,7 @@ export function encodePngImage(
 
   if (requestedColor === 4 || requestedColor === 6 || coder === "png32" || coder === "png64") hasAlpha = true;
   const isBw = !coder && requestedColor !== 2 && requestedColor !== 3 && requestedColor !== 6 && (img.space === "b-w" || img.channels === 1 || img.channels === 2);
-  let exactPalette = options?.palette && !options.pngCoder && options.pngBitDepth === undefined && requestedColor === undefined && !options?.pngBitDepth && !isBw && !hasAlpha && !data16 ? new PngPalette() : undefined;
+  let exactPalette = options?.palette && !options.forceOpaque && !options.pngCoder && options.pngBitDepth === undefined && requestedColor === undefined && !options?.pngBitDepth && !isBw && !data16 ? new PngPalette() : undefined;
   if (options?.pngPreserveColormap && !options.forceOpaque && img.pngPalette && !coder && requestedColor === undefined && !bitDepth && !data16) exactPalette = new PngPalette(img.pngPalette);
   if (exactPalette && !exactPalette.add(data)) exactPalette = undefined;
   const colorType = exactPalette || palette ? 3 : isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);

@@ -26,22 +26,22 @@ for (const mode of ["memory", "retained", "public"]) {
   }
 }
 
-for (const retained of [false, true]) {
-  it.each([2, 3, 5, 17, 256, 257])(`packs odd-width rows across storage chunks without losing colors, retained=${retained}, colors=%s`, async colors => {
+for (const retained of [false, true]) for (const alpha of [false, true]) {
+  it.each([2, 3, 5, 17, 256, 257])(`packs odd-width rows across storage chunks without losing colors, retained=${retained}, alpha=${alpha}, colors=%s`, async colors => {
     const width = 1031, height = 2;
     const data = new Uint8Array(width * height * 4);
     for (let i = 0; i < width * height; i++) {
       const color = i % colors;
-      data.set([color & 255, color >>> 8, 123, 255], i * 4);
+      data.set(alpha ? [123, color >>> 8, 123, color & 255] : [color & 255, color >>> 8, 123, 255], i * 4);
     }
-    const source = encodeImage({ width, height, data, density: 72, format: "png", channels: 3, hasAlpha: false, space: "srgb", depth: "uchar" }, { format: "png" }).data;
+    const source = encodeImage({ width, height, data, density: 72, format: "png", channels: alpha ? 4 : 3, hasAlpha: alpha, space: "srgb", depth: "uchar" }, { format: "png" }).data;
     const files = new Map([["/input.png", source]]);
     const fs = new MemoryFileSystem();
     await fs.writeFile("/input.png", source);
     const result = await runConvertCli(["/input.png", "-write", "/output.png", "null:"], retained ? { filesystem: fs, cwd: "/" } : files);
     expect(result.exitCode).toBe(0);
     const bytes = retained ? await fs.readFile("/output.png") : files.get("/output.png")!;
-    expect(Array.from(bytes.slice(24, 26))).toEqual([colors <= 2 ? 1 : colors <= 4 ? 2 : colors <= 16 ? 4 : 8, colors <= 256 ? 3 : 2]);
+    expect(Array.from(bytes.slice(24, 26))).toEqual([colors <= 2 ? 1 : colors <= 4 ? 2 : colors <= 16 ? 4 : 8, colors <= 256 ? 3 : alpha ? 6 : 2]);
     expect(decodeImage(bytes).data).toEqual(data);
   });
 }

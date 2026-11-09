@@ -1477,7 +1477,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
     W: String(page.width), H: String(page.height),
     z: bitDepth, q: "16", r: `${meta.isPalette ? "PseudoClass" : "DirectClass"} ${space} ${meta.hasAlpha ? "Alpha" : ""}`,
-    f: baseName, t: dot < 0 ? baseName : baseName.slice(0, dot), e: dot < 0 ? "" : baseName.slice(dot + 1), i: filePath,
+    f: baseName, t: dot < 0 ? baseName : baseName.slice(0, dot), e: dot < 0 ? "" : baseName.slice(dot + 1), i: filePath, M: context.originalInput ?? filePath,
     d: filePath.slice(0, Math.max(0, filePath.lastIndexOf("/"))),
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
     x: String(resolution ? Number((resolution.x / resolutionScale).toPrecision(6)) : meta.density ?? 72),
@@ -6041,7 +6041,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let precision = 6;
     let locateMaximum = false;
     let locateLimit = 0;
-    const targets: { path: string; sceneCount?: number; listIndex: number; customFormat: string | undefined }[] = [];
+    const targets: { path: string; originalInput: string; sceneCount?: number; listIndex: number; customFormat: string | undefined }[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -6090,7 +6090,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
         }
         else if (a === "-" || !a.startsWith("-")) {
-            targets.push({ path: a, listIndex: 0, customFormat });
+            targets.push({ path: a, originalInput: a, listIndex: 0, customFormat });
         }
     }
     if (targets.length === 0) {
@@ -6141,7 +6141,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                         let offset = 0;
                         for (const page of selectedInputPages(parsed.pageSpec, metadata.pages ?? 1)) {
                             yield;
-                            targets.splice(targetIndex + ++offset, 0, { path: `${baseInPath}[${page}]`, listIndex: offset - 1, customFormat });
+                            targets.splice(targetIndex + ++offset, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, listIndex: offset - 1, customFormat });
                         }
                         for (let index = 1; index <= offset; index++) targets[targetIndex + index]!.sceneCount = offset;
                     }
@@ -6160,7 +6160,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const sceneCount = target.sceneCount ?? (pageIdx === undefined ? undefined : 1);
         const analysis = { warnings: "" };
         let inspected:IdentifyInspection|undefined;
-        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
+        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
         const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
         if (!bytes&&!inspected) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
@@ -6175,7 +6175,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             if (pageIdx === undefined && (meta.format === "tiff" || meta.format === "gif") && (meta.pages ?? 1) > 1) {
                 for (let page = 1; page < meta.pages!; page++) {
                     yield;
-                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, sceneCount: meta.pages!, listIndex: page, customFormat });
+                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, sceneCount: meta.pages!, listIndex: page, customFormat });
                 }
                 inPath = `${baseInPath}[0]`;
             }
@@ -6184,7 +6184,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
             if (customFormat !== undefined) {
                 outParts.push(inspected?.formatted??(yield* formatMagickPropertyStringSteps(customFormat, meta, () => decodeImage(encoded!, inputOptions), {
-                    filePath: baseInPath, byteLen: size, sceneIdx: pageIdx ?? 0, listIndex: target.listIndex, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis
+                    filePath: baseInPath, originalInput: target.originalInput, byteLen: size, sceneIdx: pageIdx ?? 0, listIndex: target.listIndex, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis
                 })));
             }
             else if (locateMaximum) {

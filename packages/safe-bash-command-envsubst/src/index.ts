@@ -217,6 +217,8 @@ export function createEnvsubstCommand(options: EnvsubstCommandsOptions = {}): Co
       }
 
       let variablesMode = false;
+      let help = false;
+      let version = false;
       const operands: string[] = [];
       let endOfOptions = false;
 
@@ -227,15 +229,27 @@ export function createEnvsubstCommand(options: EnvsubstCommandsOptions = {}): Co
           continue;
         }
         if (!endOfOptions && (arg === "--help" || arg === "-h")) {
-          await writeText(context.stdout, HELP_TEXT);
-          return { exitCode: 0 };
+          help = true;
+          continue;
         }
         if (!endOfOptions && (arg === "--version" || arg === "-V")) {
-          await writeText(context.stdout, VERSION_TEXT);
-          return { exitCode: 0 };
+          version = true;
+          continue;
         }
         if (!endOfOptions && (arg === "--variables" || arg === "-v")) {
           variablesMode = true;
+          continue;
+        }
+        if (!endOfOptions && arg.startsWith("-") && !arg.startsWith("--") && arg.length > 1) {
+          for (const option of arg.slice(1)) {
+            if (option === "v") variablesMode = true;
+            else if (option === "h") help = true;
+            else if (option === "V") version = true;
+            else {
+              await writeText(context.stderr, `envsubst: invalid option '${arg}'\n`);
+              return { exitCode: 1 };
+            }
+          }
           continue;
         }
         if (!endOfOptions && arg !== "-" && arg.startsWith("-")) {
@@ -243,6 +257,11 @@ export function createEnvsubstCommand(options: EnvsubstCommandsOptions = {}): Co
           return { exitCode: 1 };
         }
         operands.push(arg);
+      }
+
+      if (version || help) {
+        await writeText(context.stdout, version ? VERSION_TEXT : HELP_TEXT);
+        return { exitCode: 0 };
       }
 
       if (operands.length > 1) {

@@ -56,3 +56,28 @@ for (const option of ["-x", "--invalid"]) {
     assert.equal(result.stdout, "");
   });
 }
+
+// GNU gettext-runtime 0.21: version wins over help; unknown letters still fail.
+for (const [args, equivalent] of [
+  [["-vv", "$A ${B} $A"], ["-v", "-v", "$A ${B} $A"]],
+  [["-vvv", "$A"], ["-v", "$A"]],
+  [["-vh"], ["--help"]],
+  [["-hV"], ["--version"]],
+  [["-Vh"], ["--version"]],
+  [["-vVh"], ["--version"]],
+  [["-h", "-V"], ["--version"]],
+  [["-vv", "--", "-$A"], ["-v", "--", "-$A"]],
+  [["--", "-vv"], ["--", "-vv"]],
+]) {
+  test(`envsubst grouped options: ${args!.join(" ")}`, async () => {
+    const expected = await runEnvsubst(equivalent!, "input $A", { A: "value" });
+    assert.equal(expected.exitCode, 0);
+    assert.deepEqual(await runEnvsubst(args!, "input $A", { A: "value" }), expected);
+  });
+}
+
+for (const option of ["-vx", "-xv", "-hx", "-Vx", "-xV", "-vhx"]) {
+  test(`envsubst rejects unknown letters in ${option}`, async () => {
+    assert.deepEqual(await runEnvsubst([option, "$A"], "", {}), { exitCode: 1, stdout: "" });
+  });
+}

@@ -45,3 +45,38 @@ test("stdin-independent substitutions and relative tsort files remain valid", as
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "a\nb\n12: 2 2 3\nFOO\nBAR\n");
 });
+
+// Output/status captured from GNU gettext-runtime 0.21 with LC_ALL=C.
+for (const [options, expectedOutput, expectedStatus] of [
+  ["-vv '$A ${B} $A'", "A\nB\nA\n", 0],
+  ["-vv -- '-$A'", "A\n", 0],
+  ["-vv", "", 1],
+  ["-vx '$A'", "", 1],
+  ["-hx", "", 1],
+  ["-Vx", "", 1],
+  ["-vh", "help", 0],
+  ["-hV", "version", 0],
+  ["-Vh", "version", 0],
+] as const) {
+  test(`envsubst grouped options preserve direct and substitution results: ${options}`, async () => {
+    const sh = shell();
+    try {
+      const expected = expectedOutput === "help" || expectedOutput === "version"
+        ? (await sh.exec(`envsubst --${expectedOutput}`)).stdout
+        : expectedOutput;
+      const direct = await sh.exec(`envsubst ${options}`);
+      assert.equal(direct.stdout, expected);
+      assert.equal(direct.exitCode, expectedStatus);
+      assert.equal(direct.stderr.length > 0, expectedStatus !== 0);
+      for (const header of ["", "for i in 1 2; do", "for ((i=0;i<2;i++)); do"]) {
+        const captured = await sh.exec(`${header}
+value=$(envsubst ${options}); status=$?; printf '%s' "$value"
+${header ? "done" : ""}
+exit "$status"`);
+        assert.equal(captured.stdout, expected.trimEnd().repeat(header ? 2 : 1));
+        assert.equal(captured.stderr, direct.stderr.repeat(header ? 2 : 1));
+        assert.equal(captured.exitCode, expectedStatus);
+      }
+    } finally { await sh.dispose(); }
+  });
+}

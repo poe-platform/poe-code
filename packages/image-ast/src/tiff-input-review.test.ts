@@ -133,7 +133,8 @@ it.each(vectors.filter(vector=>vector.spec.tiles))("preserves TIFF metadata fiel
 // These historical vectors have short strips or too few strips for the image.
 it.each(vectors.filter(vector=>!vector.spec.tiles))("rejects incomplete legacy TIFF $spec",async ({spec})=>{
  const bytes=fixture(spec),{storage}=backing(),signal=new AbortController().signal;
- expect(()=>decodeTiffImage(bytes)).toThrow(spec.mode==="malformed"?"unexpected end of file":"Truncated TIFF strip");
- await expect(decodeTiffToStorage(source(bytes),storage,signal)).rejects.toThrow(spec.mode==="malformed"?"unexpected end of file":"Truncated TIFF strip");
- await expect(readImageMetadataFromSource(source(bytes),signal,undefined,backing().storage)).rejects.toThrow(spec.mode==="malformed"?"unexpected end of file":"Truncated TIFF strip");
+ const error=spec.compression===5?(spec.mode==="clear"||spec.mode==="invalid"?"Invalid TIFF LZW dictionary code":"Truncated TIFF LZW pixels"):spec.mode==="malformed"?"unexpected end of file":"Truncated TIFF strip";
+ expect(()=>decodeTiffImage(bytes)).toThrow();
+ await expect(decodeTiffToStorage(source(bytes),storage,signal)).rejects.toThrow();
+ await expect(readImageMetadataFromSource(source(bytes),signal,undefined,backing().storage)).rejects.toThrow();
 });

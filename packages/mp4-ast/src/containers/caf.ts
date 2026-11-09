@@ -245,9 +245,10 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
         isKeyframe: true, sampleDescriptionIndex: 1
       });
     }
-    // CAF estimates stream duration from bytes, while packet durations and
-    // decoded audio count only complete sample frames.
-    duration = Math.round(data.length * framesPerPacket / bytesPerPacket);
+    // Without a packet table, FFmpeg estimates duration from the data start
+    // through EOF, including trailing chunks. Packets and decoding stay bounded.
+    const durationBytes = packetTable ? data.length : bytes.length - (data.byteOffset - bytes.byteOffset);
+    duration = Math.round(durationBytes * framesPerPacket / bytesPerPacket);
   }
   if (packetTable && bytesPerPacket && framesPerPacket) {
     const pv = new DataView(packetTable.buffer, packetTable.byteOffset, packetTable.byteLength);

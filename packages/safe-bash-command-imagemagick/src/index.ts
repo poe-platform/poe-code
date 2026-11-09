@@ -7941,7 +7941,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-remap") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const palSpec = tokens[++i] ?? "";
-            const palImg = (yield* parseInputOperandSteps(palSpec, files, state, stdinBytes));
+            const palImg = palSpec.slice(0, 4).toLowerCase() === "mpr:"
+                ? registers.get(palSpec.slice(4))?.[0]
+                : yield* parseInputOperandSteps(palSpec, files, state, stdinBytes);
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return state.dither === "riemersma"
@@ -9826,7 +9828,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const colors = await parseStoredCompareInput(palette, settings, backend, signal);
+                const colors = palette.slice(0, 4).toLowerCase() === "mpr:"
+                    ? await registers.get(palette.slice(4))?.get(0)
+                    : await parseStoredCompareInput(palette, settings, backend, signal);
                 if (!colors) throw new Error(`unable to open image '${palette}'`);
                 return settings.dither === "riemersma"
                     ? transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!image.storedData16, settings.diffusionAmount ?? 1), signal, image, [image, colors])

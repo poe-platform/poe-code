@@ -9,7 +9,7 @@ interface Options {
   unpaired: Set<number>;
   paired: boolean;
   separator: number;
-  delimiter: number | undefined;
+  delimiter: Uint8Array | undefined;
   whole: boolean;
   replacement: Uint8Array;
   format: Field[] | "auto" | undefined;
@@ -26,7 +26,9 @@ function number(value: string, label: string): number {
 function parse(context: CommandContext, budget: Budget): Options {
   const options: Options = { files: [], fields: [0, 0], unpaired: new Set(), paired: true, separator: 10, delimiter: undefined, whole: false, replacement: empty, format: undefined, fold: false, header: false, order: "default" };
   let literal = false;
-  let delimiterChoice: number | undefined;
+  let delimiterChoice: Uint8Array | undefined;
+  const locale = (context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C").toUpperCase().split("@")[0]!;
+  const utf8 = locale.endsWith("UTF-8") || locale.endsWith("UTF8");
   const explicitFields: [number | undefined, number | undefined] = [undefined, undefined];
   let replacementSet = false;
   const fieldCandidates: ("1" | "2" | "o" | undefined)[] = [];
@@ -55,14 +57,15 @@ function parse(context: CommandContext, budget: Budget): Options {
       options.replacement = bytes;
     }
     else if (flag === "t") {
-      const bytes = rawValue ?? encode(value);
-      const choice = value === "\\0" ? 0 : bytes.length ? bytes[0]! : -1;
-      if (delimiterChoice !== undefined && delimiterChoice !== choice) fail("incompatible field delimiters");
-      delimiterChoice = choice;
-      if (value === "\\0") { options.delimiter = 0; options.whole = false; }
-      else if (!bytes.length) { options.whole = true; options.delimiter = undefined; }
-      else if (bytes.length !== 1) fail("join delimiter must be one byte in the C locale");
-      else { options.delimiter = bytes[0]; options.whole = false; }
+      const bytes = value === "\\0" ? Uint8Array.of(0) : rawValue ?? encode(value);
+      if (delimiterChoice !== undefined && compare(delimiterChoice, bytes) !== 0) fail("incompatible field delimiters");
+      delimiterChoice = bytes;
+      if (bytes.length > 1) {
+        if (!utf8) fail("join delimiter must be one byte in the C locale");
+        if (bytes.length > 4 || Array.from(value).length !== 1 || compare(encode(value), bytes) !== 0) fail("join delimiter must be one character");
+      }
+      options.whole = bytes.length === 0;
+      options.delimiter = options.whole ? undefined : bytes;
     } else if (flag === "o") {
       if (value === "auto") {
         if (Array.isArray(options.format)) fail("conflicting output format specifications");
@@ -145,8 +148,15 @@ function split(bytes: Uint8Array, options: Options, budget: Budget): readonly Ui
     fields.push(bytes.subarray(start, end));
   };
   if (options.delimiter !== undefined) {
+    const delimiter = options.delimiter;
     let start = 0;
-    for (let offset = 0; offset < bytes.length; offset++) if (bytes[offset] === options.delimiter) { add(start, offset); start = offset + 1; }
+    for (let offset = 0; offset <= bytes.length - delimiter.length; offset++) {
+      if (bytes[offset] === delimiter[0] && delimiter.every((byte, index) => bytes[offset + index] === byte)) {
+        add(start, offset);
+        start = offset + delimiter.length;
+        offset = start - 1;
+      }
+    }
     add(start, bytes.length);
   } else {
     const blank = (byte: number): boolean => byte === 32 || byte === 9 || (options.separator === 0 && byte === 10);
@@ -166,7 +176,7 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
   return command("join", limits, async (context, budget) => {
     const options = parse(context, budget);
     const inputs = new Inputs(context, budget, options.separator), order = new OrderCheck(options.order, context, budget);
-    const terminator = Uint8Array.of(options.separator), delimiter = Uint8Array.of(options.delimiter ?? 32);
+    const terminator = Uint8Array.of(options.separator), delimiter = options.delimiter ?? Uint8Array.of(32);
     try {
       const readers = [await inputs.open(options.files[0]!), await inputs.open(options.files[1]!)];
       const previous: (Uint8Array | undefined)[] = [undefined, undefined];

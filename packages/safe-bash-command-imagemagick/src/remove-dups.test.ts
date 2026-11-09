@@ -23,7 +23,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     expect(result).toMatchObject({ exitCode: 0, stderr: "" });
     const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.gif") : files.get("out.gif")!, { animated: true });
     expect(output.delay).toEqual(delays);
-    expect(output.loop).toBe(decodeImage(input, { animated: true }).loop);
+    expect(output.loop).toBe(delays.length > 1 ? decodeImage(input, { animated: true }).loop : undefined);
     expect([...output.data]).toEqual(colors.flatMap(channel => Array.from({ length: 3 }, () => [channel === 0 ? 255 : 0, 0, channel === 2 ? 255 : 0, 255]).flat()));
   });
 }

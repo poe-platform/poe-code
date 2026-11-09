@@ -7665,7 +7665,17 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const method = t === "-layers" ? tokens[i + 1]!.toLowerCase() : "compareany";
             const optimizePlus = t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizeplus";
             const removeDups = optimizePlus || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "removedups");
-            if (optimizePlus) state.optimizeLayers = true;
+            if (optimizePlus) {
+                for (const frame of stack) {
+                    if (frame.width !== stack[0]!.width || frame.height !== stack[0]!.height)
+                        throw new Error("images are not the same size");
+                    if ((frame.virtualCanvas?.width || frame.width) !== frame.width ||
+                        (frame.virtualCanvas?.height || frame.height) !== frame.height ||
+                        frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
+                    yield;
+                }
+                state.optimizeLayers = true;
+            }
             if (t === "-layers") i++;
             const frames: RgbaImage[] = stack.length ? [stack[0]!] : [];
             for (let n = 1; n < stack.length; n++) {
@@ -9351,6 +9361,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-layers") i++;
             const fuzz = state.alphaFuzz;
             stackStep(async (stack, backend) => {
+                if (optimizePlus) {
+                    const first = await stack.get(0);
+                    for (let n = 0; n < stack.length; n++) {
+                        const frame = (await stack.get(n))!;
+                        if (frame.width !== first!.width || frame.height !== first!.height)
+                            throw new Error("images are not the same size");
+                        if ((frame.virtualCanvas?.width || frame.width) !== frame.width ||
+                            (frame.virtualCanvas?.height || frame.height) !== frame.height ||
+                            frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
+                    }
+                }
                 const frames = new StoredImageStack(backend.storage, signal);
                 let previous = await stack.get(0);
                 if (previous) await frames.push(previous);

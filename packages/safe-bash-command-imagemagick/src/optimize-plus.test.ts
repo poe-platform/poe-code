@@ -28,7 +28,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     const bytes = mode === "retained" || mode === "command" ? await filesystem.readFile("/out.gif") : files.get("out.gif")!;
     const output = decodeImage(bytes, { animated: true });
     expect(output.delay).toEqual(delays);
-    expect(output.loop).toBe(decodeImage(input, { animated: true }).loop);
+    expect(output.loop).toBe(delays.length > 1 ? decodeImage(input, { animated: true }).loop : undefined);
     expect([...output.data]).toEqual(colors.flatMap(channel => Array.from({ length: 3 }, () => [channel === 0 ? 255 : 0, 0, channel === 2 ? 255 : 0, 255]).flat()));
     const rectangles: number[] = [], disposals: number[] = [];
     let at = 13 + 3 * (1 << ((bytes[10]! & 7) + 1));
@@ -48,5 +48,46 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     }
     expect(rectangles).toEqual(widths);
     expect(disposals).toEqual(widths.map(() => 1));
+  });
+}
+
+// Native GIFs: RRR/B/RBR with a one-pixel middle frame, and offset green frames.
+const uncoalesced = [
+  { input: "R0lGODlhAwABAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEDAAAh+QQEAwAAACwAAAAAAwABAAACAoQLACH5BAQGAAAALAEAAAABAAEAgAAA/wAAAAICRAEAIfkEBAkAAAAsAAAAAAMAAQCA/wAAAAD/AgJEUAA7", error: "images are not the same size" },
+  { input: "R0lGODlhAwABAPAAAACAAAAAACH/C05FVFNDQVBFMi4wAwEDAAAh+QQEAwAAACwBAAAAAQABAAACAkQBACH5BAQGAAAALAIAAAABAAEAAAICRAEAOw==", error: "image pages are not coalesced" },
+];
+
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+  it.each(uncoalesced.flatMap(fixture => [false, true].map(coalesce => ({ ...fixture, coalesce }))))(`${mode} validates OptimizePlus input: $error, coalesce=$coalesce`, async ({ input, error, coalesce }) => {
+    const bytes = Buffer.from(input, "base64"), keep = new TextEncoder().encode("keep");
+    const files = new Map<string, Uint8Array>([["in.gif", bytes], ["out.gif", keep]]);
+    const filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/in.gif", bytes);
+    await filesystem.writeFile("/out.gif", keep);
+    const args = ["in.gif", ...(coalesce ? ["-coalesce"] : []), "-layers", "OptimizePlus", "out.gif"];
+    let stderr = "";
+    const result = mode === "command" ? await createMagickCommand().execute({
+      command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+      stdin: (async function* () {})(), signal: new AbortController().signal,
+      stdout: { write: async () => {} }, stderr: { write: async chunk => { stderr += new TextDecoder().decode(chunk); } },
+    }) : mode === "sync" ? runConvertCliSync(args, files)
+      : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    if (coalesce) {
+      expect(result.exitCode).toBe(0);
+      const output = mode === "retained" || mode === "command" ? await filesystem.readFile("/out.gif") : files.get("out.gif")!;
+      expect(decodeImage(output, { animated: true }).loop).toBe(4);
+      if (error === "images are not the same size") {
+        expect(decodeImage(output, { animated: true }).delay).toEqual([30, 150]);
+        expect(decodeImage(output, { page: 0, coalesce: false })).toMatchObject({ width: 3, height: 1 });
+        expect(decodeImage(output, { page: 1, coalesce: false })).toMatchObject({
+          width: 1, height: 1, virtualCanvas: { width: 3, height: 1, x: 1, y: 0 },
+          data: new Uint8Array([0, 0, 255, 255]),
+        });
+      }
+      return;
+    }
+    expect(result.exitCode).toBe(1);
+    expect("stderr" in result ? result.stderr : stderr).toContain(error);
+    expect(mode === "retained" || mode === "command" ? await filesystem.readFile("/out.gif") : files.get("out.gif")).toEqual(keep);
   });
 }

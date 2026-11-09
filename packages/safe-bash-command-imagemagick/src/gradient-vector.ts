@@ -1,0 +1,19 @@
+/** ImageMagick vector placement, including its radial center and start-pixel rule. */
+export function gradientVector(width: number, height: number, value: string | undefined, radial: boolean): ((x: number, y: number) => number) | undefined {
+    if (value === undefined) return undefined;
+    const coordinates = value.replaceAll(",", " ").split(" ").filter(Boolean).map(Number);
+    if (coordinates.length !== 4 || !coordinates.every(Number.isFinite)) return undefined;
+    const [x1, y1, x2, y2] = coordinates as [number, number, number, number];
+    const dx = x2 - x1, dy = y2 - y1;
+    const lengthSquared = dx * dx + dy * dy;
+    const radius = Math.max(width - 1, height - 1) / 2;
+    const startX = Math.ceil(x1 - 0.5), startY = Math.ceil(y1 - 0.5);
+    return (x, y) => {
+        // Native retains the preceding offset at the rounded start pixel.
+        if (x === startX && y === startY) x = Math.max(0, x - 1);
+        const t = radial
+            ? Math.hypot(x - x2 / 2, y - y2 / 2) / (radius || 1e-12)
+            : lengthSquared === 0 ? 0 : ((x - x1) * dx + (y - y1) * dy) / lengthSquared;
+        return Math.max(0, Math.min(1, t));
+    };
+}

@@ -1,3 +1,4 @@
+import { gradientVector } from "./gradient-vector.js";
 import { gradientProjection } from "./gradient.js";
 import { besselJ } from "./bessel.js";
 import { localThresholdPixelSteps, parseLocalThresholdGeometry } from "./local-threshold-kernel.js";
@@ -530,6 +531,7 @@ interface MagickState {
   gradientBoundingBox?: MagickGeometry;
   gradientDirection?: string;
   gradientAngle?: number;
+  gradientVector?: string;
   ftxtFormat?: string;
   comment?: string;
   label?: string;
@@ -1595,13 +1597,14 @@ function writeGradientPixel(data: Uint8Array, samples: Uint16Array, offset: numb
     samples[offset + 3] = Math.round(alpha * 257);
     data[offset + 3] = clampByteVal(samples[offset + 3]! / 257);
 }
-function* createGradientImageSteps(width: number, height: number, c1: RgbaColor, c2: RgbaColor, radial: boolean, direction?: string, angle?: number, box?: MagickGeometry): Generator<void, RgbaImage, void> {
+function* createGradientImageSteps(width: number, height: number, c1: RgbaColor, c2: RgbaColor, radial: boolean, direction?: string, angle?: number, vector?: string, box?: MagickGeometry): Generator<void, RgbaImage, void> {
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
     const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     const data16 = new Uint16Array(w * h * 4);
-    if (!radial && direction === undefined && angle === undefined && box === undefined) {
+    const vectorFactor = gradientVector(w, h, radial || angle === undefined ? vector : undefined, radial);
+    if (!radial && direction === undefined && angle === undefined && !vectorFactor && box === undefined) {
         const u64 = new BigUint64Array(data16.buffer);
         const u32 = new Uint32Array(data.buffer, 0, w * h);
         const tmp = new Uint8Array(4);
@@ -1628,7 +1631,7 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
                 if (++work % 16384 === 0)
                     yield;
                 const outside = box && (x < box.x || y < box.y || x >= box.x + (box.width ?? w) || y >= box.y + (box.height ?? h));
-                const t = outside ? 0 : radial ? Math.min(1, Math.hypot(x - cx, y - cy) / maxR) : Math.max(0, Math.min(1, projection.offset + x * projection.x + y * projection.y));
+                const t = outside ? 0 : vectorFactor ? vectorFactor(x, y) : radial ? Math.min(1, Math.hypot(x - cx, y - cy) / maxR) : Math.max(0, Math.min(1, projection.offset + x * projection.x + y * projection.y));
                 const idx = (y * w + x) * 4;
                 writeGradientPixel(data, data16, idx, c1, c2, t);
             }
@@ -5311,7 +5314,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const [c1Str, c2Str] = spec ? spec.split("-") : [];
         const c1 = parseColor(c1Str || "#ffffff");
         const c2 = parseColor(c2Str || "#000000");
-        return yield* applyMod([(yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientBoundingBox))]);
+        return yield* applyMod([(yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientVector, state.gradientBoundingBox))]);
     }
     if (lower.startsWith("pattern:") || lower.startsWith("plasma:")) {
         return yield* applyMod([(yield* createCheckerboardImageSteps(state.sizeWidth, state.sizeHeight))]);
@@ -7150,6 +7153,7 @@ if (t === "-seed") {
             if (key === "gradient:bounding-box") delete state.gradientBoundingBox;
             if (key === "gradient:direction") delete state.gradientDirection;
             if (key === "gradient:angle") delete state.gradientAngle;
+            if (key === "gradient:vector") delete state.gradientVector;
             if (key === "filename:literal") delete state.filenameLiteral;
             if (key === "ftxt:format") delete state.ftxtFormat;
             if (key === "icon:auto-resize") delete state.iconAutoResize;
@@ -7194,6 +7198,7 @@ if (t === "-seed") {
             if (defStr.toLowerCase().startsWith("magnify:method=")) state.magnifyMethod = parseMagnifyMethod(defStr.slice("magnify:method=".length));
             const [filterKey, filterValue] = defStr.toLowerCase().split("=");
             if (filterKey === "gradient:bounding-box") state.gradientBoundingBox = parseMagickGeometry(filterValue ?? "");
+            if (filterKey === "gradient:vector") state.gradientVector = filterValue ?? "";
             if (filterKey === "gradient:direction") state.gradientDirection = filterValue ?? "south";
             if (filterKey === "gradient:angle") state.gradientAngle = Number.parseFloat(filterValue ?? "") || 0;
             if (filterKey === "filename:literal") state.filenameLiteral = filterValue === undefined || ["true", "1", "yes", "on"].includes(filterValue);
@@ -10608,13 +10613,14 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const [first,last]=baseToken.slice(baseToken.indexOf(":")+1).split("-"),a=parseColor(checker?"white":first||"#ffffff"),b=parseColor(checker?"black":last||"#000000");
   const cx=(width-1)/2,cy=(height-1)/2,radius=Math.max(1,cx,cy);
   const projection=gradientProjection(width,height,state.gradientDirection,state.gradientAngle);
+  const vectorFactor=gradientVector(width,height,radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial);
   for(let start=0;start<width*height;start+=4096){
    if(start%262144===0)await yieldTurn(signal);
    const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4);
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
     if(checker){const cell=((Math.floor(x/8)+Math.floor(y/8))&1)===0?102:153;bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
-    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:radial?Math.min(1,Math.hypot(x-cx,y-cy)/radius):Math.max(0,Math.min(1,projection.offset+x*projection.x+y*projection.y));writeGradientPixel(bytes,samples!,offset,a,b,t);}
+    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot(x-cx,y-cy)/radius):Math.max(0,Math.min(1,projection.offset+x*projection.x+y*projection.y));writeGradientPixel(bytes,samples!,offset,a,b,t);}
    }
    await backend.storage.write(position+start*4,bytes);
    if(storedData16&&samples)await backend.storage.write(storedData16.position+start*8,new Uint8Array(samples.buffer));

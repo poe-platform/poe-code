@@ -4629,7 +4629,12 @@ function matchesImageGlob(pattern: string, name: string, budget: MediaBudgetTrac
         let end = i + 1;
         if (pattern[end] === "!" || pattern[end] === "^") end++;
         if (pattern[end] === "]") end++;
-        while (end < pattern.length && pattern[end] !== "]") end++;
+        while (end < pattern.length && pattern[end] !== "]") {
+          if (pattern[end] === "\\" && end + 1 < pattern.length) end += 2;
+          else if (pattern.startsWith("[:", end) && pattern.indexOf(":]", end + 2) !== -1) {
+            end = pattern.indexOf(":]", end + 2) + 2;
+          } else end++;
+        }
         if (end < pattern.length) { contents = pattern.slice(i + 1, end); i = end; }
       }
       for (const p of positions) {
@@ -4641,6 +4646,35 @@ function matchesImageGlob(pattern: string, name: string, budget: MediaBudgetTrac
           const negated = contents[0] === "!" || contents[0] === "^";
           let included = false;
           for (let c = negated ? 1 : 0; c < contents.length; c++) {
+            budget.checkCpu();
+            if (contents.startsWith("[:", c)) {
+              const end = contents.indexOf(":]", c + 2);
+              if (end !== -1) {
+                const lower = character >= "a" && character <= "z";
+                const upper = character >= "A" && character <= "Z";
+                const digit = character >= "0" && character <= "9";
+                // POSIX character classes use the C locale, like byte-wise ranges.
+                const classes: Record<string, boolean> = {
+                  alnum: lower || upper || digit,
+                  alpha: lower || upper,
+                  blank: character === " " || character === "\t",
+                  cntrl: character < " " || character === "\x7f",
+                  digit,
+                  graph: character >= "!" && character <= "~",
+                  lower,
+                  print: character >= " " && character <= "~",
+                  punct: character >= "!" && character <= "~" && !lower && !upper && !digit,
+                  space: " \t\n\r\v\f".includes(character),
+                  upper,
+                  xdigit: digit || (character >= "a" && character <= "f") || (character >= "A" && character <= "F")
+                };
+                const className = contents.slice(c + 2, end);
+                if (!Object.hasOwn(classes, className)) return false;
+                included ||= classes[className]!;
+                c = end + 1;
+                continue;
+              }
+            }
             let start = contents[c]!;
             if (start === "\\" && c + 1 < contents.length) start = contents[++c]!;
             if (contents[c + 1] === "-" && c + 2 < contents.length) {

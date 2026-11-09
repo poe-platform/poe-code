@@ -369,7 +369,7 @@ must have matching sample rates; preceding filters other than `anull` are unsupp
 
 `aphasemeter=video=0` measures stereo phase correlation without changing PCM. Read each frame's value with `aphasemeter=video=0,ametadata=mode=print:key=lavfi.aphasemeter.phase:file=phase.txt`. Omit `file` to print at info log level on stderr, or use `file=-` for stdout. Add per-frame tags with `ametadata=mode=add:key=audit:value=left,ametadata=mode=print:key=audit:file=tag.txt`; adding an existing key preserves its value. Omit `key` in print mode to print all tags. Video generation and metadata modes other than `add` and `print` are unsupported.
 
-`ashowinfo` reports audio frame timestamps, sample counts, and PCM Adler-32 checksums on stderr at info log level or above, without changing the samples.
+`ashowinfo` reports audio frame timestamps, sample counts, the intermediate sample format, and Adler-32 checksums for the frame and each sample plane on stderr at info log level or above, without changing the samples.
 
 `silencedetect=noise=-40dB:d=0.1` reports silence starts, ends, and durations on stderr without changing PCM. Noise thresholds accept numeric expressions such as `silencedetect=n=1/25:d=0.125`. Signed 16-bit PCM thresholds use native integer scaling and truncation; floating-point filter output retains floating-point thresholds. Duration accepts seconds or `s`, `ms`, and `us` suffixes (for example, `d=125ms`). Add `:mono=1` to measure each channel separately; trailing silence closes at end of input.
 

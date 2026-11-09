@@ -8,6 +8,18 @@ import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 
 for (const extension of [false, true]) {
   for (const command of ["mapfile", "readarray"]) {
+    for (const declaration of ["export A=old", "declare -ax A=(old tail stale)"]) {
+      for (const preserve of [false, true]) test(`${command} populates ${declaration}, preserve=${preserve}, extension=${extension}`, async () => {
+        const { shell, fs } = setup({ extensions: extension ? [mapfileExtension()] : [] });
+        try {
+          await fs.writeFile("/records", new TextEncoder().encode("ONE\nTWO\n"));
+          const result = await shell.exec(`${declaration}; ${command} -t ${preserve ? "-O 1" : ""} A < /records; code=$?; args "$code" "\${A@a}" "\${A[@]}"; envget A; exit "$code"`);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, JSON.stringify(["0", "ax", ...(preserve ? ["old"] : []), "ONE", "TWO"]) + "<unset>");
+        } finally { await shell.dispose(); }
+      });
+    }
     for (const alias of [false, true]) {
       for (const redirect of ["exec 3</other", "exec 3<&5", "exec 3<&-"]) {
         for (const count of [1, 2]) test(`${command} callback redirects input: extension=${extension}, alias=${alias}, ${redirect}, count=${count}`, async () => {
@@ -59,6 +71,23 @@ for (const extension of [false, true]) {
 }
 
 for (const command of ["mapfile", "readarray"]) {
+  for (const [declaration, name, diagnostic] of [
+    ["export A=old; readonly A", "A", "readonly variable"],
+    ["declare -arx A=(old)", "A", "readonly variable"],
+    ["export IFS=old", "IFS", "control"],
+  ] as const) test(`${command} refuses ${declaration} before reading or changing the destination`, async () => {
+    const { shell } = setup();
+    let pulls = 0;
+    const stdin = { async *[Symbol.asyncIterator]() { pulls++; yield Uint8Array.of(97, 10); } };
+    try {
+      const result = await shell.exec(`${declaration}; ${command} -t ${name}; code=$?; args "\${${name}}"; exit "$code"`, { stdin });
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, '["old"]');
+      assert.ok(result.stderr.includes(diagnostic));
+      assert.equal(pulls, 0);
+    } finally { await shell.dispose(); }
+  });
+
   test(`${command} succeeds when its callback closes the input descriptor`, async () => {
     const { shell, fs } = setup();
     try {

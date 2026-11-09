@@ -8452,7 +8452,7 @@ export class Runtime {
       options.name = this.referenceName(state, options.name);
       if (arrayStore(state)?.get(options.name)?.associative) throw new MapfileUsageError(`${options.name}: not an indexed array`, 1);
       if (state.readonlyVariables?.has(options.name)) throw new MapfileUsageError(`${options.name}: readonly variable`, 1);
-      if (controlNames.has(options.name) || state.exported.has(options.name)) throw new ArrayFailure("control or exported binding cannot be indexed");
+      if (controlNames.has(options.name)) throw new ArrayFailure("control binding cannot be indexed");
       const store = requireArrays(state);
       const holding = store.owner.hold();
       releaseHolding = () => holding.release();

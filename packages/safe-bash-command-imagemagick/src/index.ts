@@ -693,6 +693,7 @@ interface MagickState {
   formatStr: string | undefined;
   channels: { r: boolean; g: boolean; b: boolean; a: boolean };
   channelExplicit: boolean;
+  channelSync: boolean;
   intensity: string;
   precision?: number;
   connectedVerbose?: boolean;
@@ -747,6 +748,7 @@ function createDefaultState(): MagickState {
     formatStr: undefined,
     channels: { r: true, g: true, b: true, a: false },
     channelExplicit: false,
+    channelSync: true,
     intensity: "rec709luma"
   };
 }
@@ -2208,13 +2210,13 @@ function formatSceneOutputPath(pattern: string, index: number, literal = false, 
   return `${path}-${index}`;
 }
 
-function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a: boolean } {
+function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a: boolean; sync: boolean } {
   const names: Record<string, string> = {
     r: "r", red: "r", c: "r", cyan: "r", gray: "r", h: "r", hue: "r",
     g: "g", green: "g", m: "g", magenta: "g", s: "g", saturation: "g",
     b: "b", blue: "b", y: "b", yellow: "b", l: "b", lightness: "b",
     a: "a", alpha: "a", o: "a",
-    all: "rgba", default: "rgba", sync: "", k: "", black: "",
+    all: "rgba", default: "rgbaS", sync: "S", k: "", black: "",
     "0": "r", "1": "g", "2": "b", "3": "", "4": "a",
     readmask: "", writemask: "", meta0: ""
   };
@@ -2233,7 +2235,7 @@ function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a
       for (const c of token) selected += names[c];
     } else throw new Error(`unrecognized channel type '${spec}'`);
   }
-  return { r: selected.includes("r"), g: selected.includes("g"), b: selected.includes("b"), a: selected.includes("a") };
+  return { r: selected.includes("r"), g: selected.includes("g"), b: selected.includes("b"), a: selected.includes("a"), sync: selected.includes("S") };
 }
 
 function clampByteVal(n: number): number {
@@ -6167,7 +6169,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         }
     }
     const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
-    return { end, highDepth: true, luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, transform(histogram, image) {
+    return { end, highDepth: true, luminance: token === "-linear-stretch" || token === "-equalize" && state.channelSync || (token === "-normalize" || token === "-contrast-stretch") && !independent, transform(histogram, image) {
         const levels = histogram[0]!.length;
         const lookup = Array.from({ length: 4 }, () => levels === 65536
             ? Uint16Array.from({ length: levels }, (_, value) => value)
@@ -7340,12 +7342,15 @@ if (t === "-seed") {
         }
         else if (t === "+intensity") { state.intensity = "rec709luma"; }
         else if (t === "-channel") {
-            state.channels = parseChannelMask(tokens[++i] ?? "rgb");
+            const { sync, ...channels } = parseChannelMask(tokens[++i] ?? "rgb");
+            state.channels = channels;
+            state.channelSync = sync;
             state.channelExplicit = true;
         }
         else if (t === "+channel") {
             state.channels = { r: true, g: true, b: true, a: false };
             state.channelExplicit = false;
+            state.channelSync = true;
         }
         else if (t === "-depth") {
             state.inputDepth = Number(tokens[++i]);

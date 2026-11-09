@@ -42,6 +42,15 @@ for (const [filter, indices, expected] of [
   ["asetpts=PTS+8,asetpts=PTS-STARTPTS,afade=ns=4", [0, 1, 2, 3, 4], [0, 3000, 6000, 9000, 12000]],
   ["afade=type=0:start_sample=1000:nb_samples=2000:c=6", positions, [0, 0, 750, 3000, 11988, 12000]],
   ["afade=ss=2:ns=4:st=125ms:d=250ms", positions, [0, 0, 3000, 6000, 11994, 12000]],
+  ["afade=ss=9007199254740992:ns=4", positions, [0, 0, 0, 0, 0, 0]],
+  ["afade=start_sample=9007199254740992:nb_samples=4", positions, [0, 0, 0, 0, 0, 0]],
+  ["afade=in:9007199254740992:4", positions, [0, 0, 0, 0, 0, 0]],
+  ["afade=ns=9007199254740992", positions, [0, 0, 0, 0, 0, 0]],
+  ["afade=ss=2^53:ns=4", positions, [0, 0, 0, 0, 0, 0]],
+  ["afade=t=out:ss=9007199254740992:ns=4", positions, [12000, 12000, 12000, 12000, 12000, 12000]],
+  ["afade=nb_samples=9223372036854775807", positions, [0, 0, 0, 0, 0, 0]],
+  ["afade=ss=9223372036854774784:ns=4", positions, [0, 0, 0, 0, 0, 0]],
+  ["afade=ss=9007199254740992:ns=4:st=0.125:d=0.25", positions, [0, 0, 3000, 6000, 11994, 12000]],
   ["afade", [0, 2205, 4410], [0, 600, 1200]]
 ] as const) {
   for (const graph of [false, true]) it(`${filter} (${graph ? "graph" : "simple"})`, async () => {
@@ -50,7 +59,7 @@ for (const [filter, indices, expected] of [
       new Float64Array(8000).fill(12000 / 32768), new Float64Array(8000).fill(-12000 / 32768)
     ] }));
     const errors: Uint8Array[] = [];
-    const result = await createFfmpegCommand().execute({
+    const result = await createFfmpegCommand({ limits: { maxMemoryBytes: 1024 * 1024 } }).execute({
       args: ["-i", "/in.wav", ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", "/out.wav"],
       cwd: "/", env: {}, signal: new AbortController().signal,
       fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
@@ -90,7 +99,8 @@ for (const curve of ["qsin", "1", "par", "10", "nofade", "-1"]) {
 for (const filter of ["afade=c=-2", "afade=c=23", "afade=c=NaN", "afade=c=", "afade=c=__proto__",
   "afade=ns=0", "afade=ns=0:d=1us", "afade=ss=-1", "afade=ns=0.9", "afade=ss=-0.1", "afade=st=bad",
   "afade=d=Infinity", "afade=t=bad", "afade=curve=bad", "afade=unity=1.1",
-  "afade=silence=-0.1", "afade=ns=", "afade=unknown=1", "afade=ns=9007199254740992"]) {
+  "afade=silence=-0.1", "afade=ns=", "afade=unknown=1", "afade=ss=9223372036854775808:ns=4", "afade=ns=18446744073709551616",
+  "afade=ss=4611686018427387904:ns=4611686018427387904"]) {
   it(`${filter} fails without replacing output`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
     fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));

@@ -10,8 +10,9 @@ export async function fadeAudio(
   budget: MediaBudgetTracker, signal?: AbortSignal, pcm16 = false
 ): Promise<Float64Array[]> {
   let type = "in";
-  let start = 0;
-  let samples = 44100;
+  const maxSamples = (1n << 63n) - 1n;
+  let startOption = 0n;
+  let samplesOption = 44100n;
   let startTime = 0;
   let duration = 0;
   let curve = curves.tri!;
@@ -56,11 +57,13 @@ export async function fadeAudio(
       if (key === "ss" || key === "start_sample" || key === "ns" || key === "nb_samples") {
         // FFmpeg integer options round to nearest, with exact halves going to even.
         const rounded = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
-        if (!Number.isSafeInteger(rounded)) throw new Error(`afade: invalid ${key}`);
-        if (key === "ss" || key === "start_sample") start = rounded;
+        if (rounded > 2 ** 63) throw new Error(`afade: invalid ${key}`);
+        // FFmpeg evaluates options as doubles and saturates the rounded INT64_MAX.
+        const integer = rounded === 2 ** 63 ? maxSamples : BigInt(rounded);
+        if (key === "ss" || key === "start_sample") startOption = integer;
         else {
           if (number < 1) throw new Error("afade: nb_samples must be positive");
-          samples = rounded;
+          samplesOption = integer;
         }
       } else if (key === "st" || key === "start_time") startTime = number;
       else if (key === "d" || key === "duration") duration = number;
@@ -71,9 +74,12 @@ export async function fadeAudio(
       } else throw new Error(`afade: unsupported option ${key}`);
     }
   }
+  if (startOption + samplesOption > maxSamples) throw new Error("afade: invalid timing");
+  let start = Number(startOption);
+  let samples = Number(samplesOption);
   if (startTime > 0) start = Math.round(startTime * sampleRate);
   if (duration > 0) samples = Math.round(duration * sampleRate);
-  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(samples) || samples < 0) throw new Error("afade: invalid timing");
+  if (!Number.isInteger(start) || !Number.isInteger(samples) || start > 2 ** 63 || samples > 2 ** 63 || samples < 0) throw new Error("afade: invalid timing");
   const length = channels[0]?.length ?? 0;
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));

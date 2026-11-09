@@ -3229,7 +3229,8 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
     }
     if (method === "barrel") {
         if (![3, 4, 5, 6, 8, 10].includes(nums.length) || !nums.every(Number.isFinite)) throw new Error("Invalid Barrel arguments");
-        const a = nums[0] ?? 0, b = nums[1] ?? 0, c = nums[2] ?? 0, d = nums[3] ?? 1 - a - b - c, ox = nums[4] ?? cx, oy = nums[5] ?? cy, radius = Math.min(w, h) / 2;
+        // Explicit centers use pixel edges; sampling uses pixel centers.
+        const a = nums[0] ?? 0, b = nums[1] ?? 0, c = nums[2] ?? 0, d = nums[3] ?? 1 - a - b - c, ox = nums[4] === undefined ? cx : nums[4] - 0.5, oy = nums[5] === undefined ? cy : nums[5] - 0.5, radius = Math.min(w, h) / 2;
         return { ...result((x, y) => { const dx = (x - ox) / radius, dy = (y - oy) / radius, r = Math.hypot(dx, dy), factor = a * r * r * r + b * r * r + c * r + d; return [ox + dx * factor * radius, oy + dy * factor * radius]; }),
             derivatives(x, y) {
                 const dx = (x - ox) / radius, dy = (y - oy) / radius, r = Math.hypot(dx, dy);

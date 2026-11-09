@@ -1495,6 +1495,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   };
   const properties: Record<string, string> = {
     ...meta.properties,
+    magick: short.m!,
     directory: short.d!, basename: short.t!, extension: short.e!,
     scene: short.s!, scenes: short.n!,
     profiles: [...(meta.icc ? ["icc"] : []), ...(meta.xmp ? ["xmp"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),

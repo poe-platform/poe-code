@@ -8611,7 +8611,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await decorrelateAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "aphaser" || trimmed.startsWith("aphaser=")) {
                         stretched = await phaseAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
-                      } else if (trimmed === "aphaseshift" || trimmed.startsWith("aphaseshift=")) {
+                      } else if (filterName === "aphaseshift" || filterName === "afreqshift") {
                         stretched = await shiftAudioPhase(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "tremolo" || trimmed.startsWith("tremolo=")) {

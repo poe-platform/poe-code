@@ -171,7 +171,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
           backgroundColor = {r,g:length === 2 ? r : Math.round(view.getUint16(2) * scale),b:length === 2 ? r : Math.round(view.getUint16(4) * scale),a:255};
         }
       }
-    } else if (type === "pHYs" && len >= 9) {
+    } else if (type === "pHYs") {
       if (hasIdat) {
         decodeWarnings.push("pHYs: out of place");
         pos = dataStart + len + 4;
@@ -182,12 +182,22 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
         pos = dataStart + len + 4;
         continue;
       }
+      if (len !== 9) {
+        decodeWarnings.push("pHYs: invalid");
+        pos = dataStart + len + 4;
+        continue;
+      }
       hasPhys = true;
       const chunk=yield {position:dataStart,length:9};
       const view = new DataView(chunk.buffer,chunk.byteOffset,chunk.byteLength);
       const ppuX = view.getUint32(0, false);
+      const ppuY = view.getUint32(4, false);
+      if (ppuX === 0 || ppuY === 0) {
+        pos = dataStart + len + 4;
+        continue;
+      }
       const unit = chunk[8]!;
-      resolution = { x: ppuX, y: view.getUint32(4, false), unit: unit === 1 ? "meter" : "unknown" };
+      resolution = { x: ppuX, y: ppuY, unit: unit === 1 ? "meter" : "unknown" };
       if (unit === 1 && ppuX > 0) {
         density = Math.max(1, Math.round(ppuX * 0.0254));
       } else if (ppuX > 0) {

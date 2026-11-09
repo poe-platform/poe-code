@@ -3,9 +3,11 @@ import type { MediaProbePacket, MediaProbeFrame } from "@poe-code/mp4-ast";
 type Rows<T> = Iterable<T> | AsyncIterable<T>;
 
 // Frame DTS identifies the packet that releases a decoded frame. Frames without
-// DTS are decoder flush output and follow the final packet.
+// DTS are decoder flush output and follow the final packet. Audio skip samples
+// can advance frame DTS within its packet; its byte position still identifies it.
 function released(frame: MediaProbeFrame, packet: MediaProbePacket): boolean {
-  return frame.stream_index === packet.stream_index && frame.pkt_dts !== undefined && frame.pkt_dts <= packet.dts;
+  return frame.stream_index === packet.stream_index && frame.pkt_dts !== undefined && (frame.pkt_dts <= packet.dts
+    || frame.media_type === "audio" && Number(frame.pkt_pos) >= 0 && frame.pkt_pos === packet.pos);
 }
 
 export function interleaveProbeRecords(packets: Rows<MediaProbePacket>, frames: Rows<MediaProbeFrame>) {

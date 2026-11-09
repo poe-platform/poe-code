@@ -56,7 +56,11 @@ export async function* scanMp4Frames(source: MediaProbeSource, options: Mp4Packe
       pix_fmt: track.type === 'video' ? (track.codec?.pixFmt ?? 'yuv420p') : undefined,
       pict_type: undefined,
       sample_fmt: probeSampleFormat(track.type, track.codec?.codecName ?? (track.type === 'video' ? 'h264' : 'aac')),
-      nb_samples: track.type === 'audio' ? sample.duration : undefined, channels: track.type === 'audio' ? (track.codec?.channels ?? 2) : undefined,
+      nb_samples: track.type === 'audio'
+        ? track.codec?.codecName === 'amr_nb' || track.codec?.codecName === 'amr_wb'
+          ? (track.codec.codecName === 'amr_nb' ? 160 : 320) - (record.skipSamples ?? 0)
+          : sample.duration
+        : undefined, channels: track.type === 'audio' ? (track.codec?.channels ?? 2) : undefined,
       channel_layout: track.type === 'audio' ? ((track.codec?.channels ?? 2) === 1 ? 'mono' : 'stereo') : undefined };
   }
 }
@@ -201,6 +205,8 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     formatEnd = Math.max(formatEnd, start + probeDuration / Math.max(1, timescale));
     if (mode === 'summary') continue;
     const timestampOffset = result.value ? result.value.start - result.value.mediaStart : 0;
+    const audioMediaStart = type === 'audio' && ['aac', 'amr_nb', 'amr_wb'].includes(codec?.codecName ?? '')
+      ? result.value?.mediaStart : undefined;
     let firstPacket = true;
     let cursor = 0, previousPts = -Infinity, primingPackets = 0;
     const stats: ProbeSampleStats = { totalBytes: 0, count: 0, ticks: 0, firstPts: startPts, hasReorderedSamples: false };
@@ -254,17 +260,22 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
         }
         // Map media time to the movie timeline, retaining negative decoder preroll.
         const sample = { ...rawSample, pts: rawSample.pts + timestampOffset, dts: rawSample.dts + timestampOffset };
-        // AAC packets wholly before the edit's media start only prime the decoder.
-        if (type === 'audio' && codec?.codecName === 'aac' && result.value &&
-            rawSample.pts + rawSample.duration <= result.value.mediaStart) {
+        // Audio packets wholly before the edit's media start only prime the decoder.
+        if (audioMediaStart !== undefined && rawSample.pts + rawSample.duration <= audioMediaStart) {
           primingPackets++;
           if (mode === 'frames') continue;
         }
         if (type !== 'subtitle' || !count || allPacked) {
+          const skipTicks = audioMediaStart === undefined ? 0 : Math.max(0, audioMediaStart - rawSample.pts);
+          if (mode === 'frames' && skipTicks) {
+            sample.pts += skipTicks;
+            sample.dts += skipTicks;
+            sample.duration -= skipTicks;
+          }
           const row = packet(sample);
-          if (mode === 'packets' && type === 'audio' && codec?.codecName === 'aac' && result.value) {
-            row.discard = rawSample.pts + rawSample.duration <= result.value.mediaStart;
-            if (firstPacket) row.skipSamples = Math.max(0, Math.round((result.value.mediaStart - rawSample.pts) * (codec.sampleRate ?? timescale) / timescale));
+          if (mode === 'packets' && audioMediaStart !== undefined) row.discard = rawSample.pts + rawSample.duration <= audioMediaStart;
+          if (mode === 'frames' || mode === 'packets' && firstPacket) {
+            row.skipSamples = Math.round(skipTicks * (codec?.sampleRate ?? timescale) / timescale);
           }
           firstPacket = false;
           if (decodeSamples) {

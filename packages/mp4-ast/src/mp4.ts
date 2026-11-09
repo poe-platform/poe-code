@@ -2502,16 +2502,16 @@ export function buildProbeResultFromDoc(
       formatStart = Math.min(formatStart, start);
       formatEnd = Math.max(formatEnd, start + duration / Math.max(1, track.timescale));
     }
-    const aacMediaStart = (doc.containerFormat === "mp4" || doc.containerFormat === "mov") &&
-      track.type === "audio" && desc?.codecName === "aac"
+    const audioMediaStart = (doc.containerFormat === "mp4" || doc.containerFormat === "mov") &&
+      track.type === "audio" && ["aac", "amr_nb", "amr_wb"].includes(desc?.codecName ?? "")
       ? track.editList?.find(edit => edit.mediaTime >= 0)?.mediaTime : undefined;
     let stream = buildProbeStream({ ...track, duration }, desc, {
       totalBytes: materialized.samples.reduce((total, sample) => total + sample.size, 0),
       count: materialized.samples.length,
       ticks: materialized.samples.reduce((total, sample) => total + sample.duration, 0),
       firstPts,
-      initialPadding: aacMediaStart === undefined || !firstSample ? 0
-        : Math.max(0, Math.round((aacMediaStart - firstSample.pts) * (desc?.sampleRate ?? track.timescale) / track.timescale)),
+      initialPadding: audioMediaStart === undefined || !firstSample ? 0
+        : Math.max(0, Math.round((audioMediaStart - firstSample.pts) * (desc?.sampleRate ?? track.timescale) / track.timescale)),
       hasReorderedSamples: materialized.samples.some((sample, i, samples) => i > 0 && sample.pts < samples[i - 1]!.pts)
     }, idx, doc.containerFormat);
     if (track.timecodeTrackId !== undefined && (doc.containerFormat === "mp4" || doc.containerFormat === "mov")) {
@@ -2530,9 +2530,9 @@ export function buildProbeResultFromDoc(
       const timecode = decodeMp4Timecode(desc.extraData, firstSample.data);
       if (timecode !== undefined) stream = { ...stream, tags: { ...stream.tags, timecode } };
     }
-    const timestampOffset = aacMediaStart === undefined ? 0 : firstPts - aacMediaStart;
-    const primingPackets = aacMediaStart === undefined ? 0 : materialized.samples.reduce(
-      (count, sample) => count + (sample.pts + sample.duration <= aacMediaStart ? 1 : 0), 0);
+    const timestampOffset = audioMediaStart === undefined ? 0 : firstPts - audioMediaStart;
+    const primingPackets = audioMediaStart === undefined ? 0 : materialized.samples.reduce(
+      (count, sample) => count + (sample.pts + sample.duration <= audioMediaStart ? 1 : 0), 0);
     streams.push(primingPackets ? { ...stream, nb_read_frames: String(materialized.samples.length - primingPackets) } : stream);
     const w = stream.width, h = stream.height, sampleFormat = stream.sample_fmt;
 
@@ -2555,51 +2555,56 @@ export function buildProbeResultFromDoc(
             duration_time: desc?.codecName === "" ? undefined : durTime,
             size: String(s.size),
             pos: String(s.offset ?? (doc.containerFormat === "mp4" || doc.containerFormat === "mov" ? -1 : bytePos)),
-            flags: `${s.isKeyframe ? "K" : "_"}${aacMediaStart !== undefined && rawSample.pts + rawSample.duration <= aacMediaStart ? "D" : "_"}_`,
+            flags: `${s.isKeyframe ? "K" : "_"}${audioMediaStart !== undefined && rawSample.pts + rawSample.duration <= audioMediaStart ? "D" : "_"}_`,
             ...(s.webvtt?.identifier || s.webvtt?.settings ? {
               side_data_list: [
                 ...(s.webvtt.identifier ? [{ side_data_type: "WebVTT ID" }] : []),
                 ...(s.webvtt.settings ? [{ side_data_type: "WebVTT Settings" }] : [])
               ]
             } : {}),
-            ...(firstPacket && aacMediaStart !== undefined && aacMediaStart > rawSample.pts ? {
+            ...(firstPacket && audioMediaStart !== undefined && audioMediaStart > rawSample.pts ? {
               side_data_list: [{ side_data_type: "Skip Samples",
-                skip_samples: Math.round((aacMediaStart - rawSample.pts) * (desc?.sampleRate ?? track.timescale) / track.timescale),
+                skip_samples: Math.round((audioMediaStart - rawSample.pts) * (desc?.sampleRate ?? track.timescale) / track.timescale),
                 discard_padding: 0, skip_reason: 0, discard_reason: 0 }]
             } : {})
           });
         }
         firstPacket = false;
-        if (options.showFrames && track.type !== "data" && !(aacMediaStart !== undefined && s.pts + s.duration <= firstPts)) {
+        if (options.showFrames && track.type !== "data" && !(audioMediaStart !== undefined && s.pts + s.duration <= firstPts)) {
+          const skipTicks = audioMediaStart === undefined ? 0 : Math.max(0, firstPts - s.pts);
+          const frame = skipTicks ? { ...s, pts: s.pts + skipTicks, dts: s.dts + skipTicks, duration: s.duration - skipTicks } : s;
+          const ptsTime = (frame.pts / Math.max(1, track.timescale)).toFixed(6);
+          const dtsTime = (frame.dts / Math.max(1, track.timescale)).toFixed(6);
+          const durTime = (frame.duration / Math.max(1, track.timescale)).toFixed(6);
           // AVSubtitle uses microsecond PTS and millisecond display bounds.
           if (track.type === "subtitle" && (doc.containerFormat === "matroska" || doc.containerFormat === "webm" || doc.containerFormat === "webvtt")) {
             frames.push({
               media_type: "subtitle",
               stream_index: idx,
-              pkt_dts: s.dts,
-              pts: Math.round(s.pts * 1_000_000 / Math.max(1, track.timescale)),
+              pkt_dts: frame.dts,
+              pts: Math.round(frame.pts * 1_000_000 / Math.max(1, track.timescale)),
               pts_time: ptsTime,
               format: 1,
               start_display_time: 0,
-              end_display_time: Math.floor(s.duration * 1000 / Math.max(1, track.timescale)),
-              num_rects: s.size > 0 ? 1 : 0
+              end_display_time: Math.floor(frame.duration * 1000 / Math.max(1, track.timescale)),
+              num_rects: frame.size > 0 ? 1 : 0
             });
           } else frames.push({
             media_type: track.type,
             stream_index: idx,
-            key_frame: s.isKeyframe ? 1 : 0,
-            pts: s.pts,
+            key_frame: frame.isKeyframe ? 1 : 0,
+            pts: frame.pts,
             pts_time: ptsTime,
-            pkt_dts: s.dts,
+            pkt_dts: frame.dts,
             pkt_dts_time: dtsTime,
-            best_effort_timestamp: s.pts,
+            best_effort_timestamp: frame.pts,
             best_effort_timestamp_time: ptsTime,
             ...(["gif", "mp4", "mov"].includes(doc.containerFormat)
-              ? { duration: s.duration, duration_time: durTime }
-              : { pkt_duration: s.duration, pkt_duration_time: durTime }),
-            ...(["wav", "w64", "matroska", "aiff", "au"].includes(doc.containerFormat) ? { duration: s.duration, duration_time: durTime } : {}),
-            pkt_size: String(s.size),
-            ...(["mp4", "mov", "wav", "w64", "matroska", "webm", "aiff", "au"].includes(doc.containerFormat) ? { pkt_pos: String(s.offset ?? -1) } : {}),
+              ? { duration: frame.duration, duration_time: durTime }
+              : { pkt_duration: frame.duration, pkt_duration_time: durTime }),
+            ...(["wav", "w64", "matroska", "aiff", "au"].includes(doc.containerFormat) ? { duration: frame.duration, duration_time: durTime } : {}),
+            pkt_size: String(frame.size),
+            ...(["mp4", "mov", "wav", "w64", "matroska", "webm", "aiff", "au"].includes(doc.containerFormat) ? { pkt_pos: String(frame.offset ?? -1) } : {}),
             width: w,
             height: h,
             ...(stream.sample_aspect_ratio ? { sample_aspect_ratio: stream.sample_aspect_ratio } : {}),
@@ -2608,8 +2613,10 @@ export function buildProbeResultFromDoc(
             sample_fmt: sampleFormat,
             nb_samples: track.type === "audio"
               ? doc.containerFormat === "matroska" && desc?.codecName?.startsWith("pcm_") && (desc.channels ?? 0) > 0 && (desc.bitsPerSample ?? 0) > 0
-                ? Math.floor(s.size / (desc.channels! * Math.ceil(desc.bitsPerSample! / 8)))
-                : s.duration
+                ? Math.floor(frame.size / (desc.channels! * Math.ceil(desc.bitsPerSample! / 8)))
+                : desc?.codecName === "amr_nb" || desc?.codecName === "amr_wb"
+                  ? (desc.codecName === "amr_nb" ? 160 : 320) - Math.round(skipTicks * (desc.sampleRate ?? track.timescale) / track.timescale)
+                  : frame.duration
               : undefined,
             channels: track.type === "audio" ? (desc?.channels ?? 2) : undefined,
             ...(["mp4", "mov"].includes(doc.containerFormat) ? { channel_layout: stream.channel_layout } : {})

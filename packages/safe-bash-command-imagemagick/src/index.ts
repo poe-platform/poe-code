@@ -992,14 +992,17 @@ function* applyMagickFloodfillSteps(
   const sy = Math.round(g.y);
   if (sx < 0 || sy < 0 || sx >= w || sy >= h) return img;
   const out = new Uint8Array(img.data);
+  const data16 = img.data16?.slice();
+  const samples = img.data16 ?? img.data;
+  const scale = img.data16 ? 257 : 1;
   const seedOff = (sy * w + sx) * 4;
-  const refR = targetColor ? targetColor.r : out[seedOff]!;
-  const refG = targetColor ? targetColor.g : out[seedOff + 1]!;
-  const refB = targetColor ? targetColor.b : out[seedOff + 2]!;
+  const refR = targetColor ? targetColor.r : samples[seedOff]! / scale;
+  const refG = targetColor ? targetColor.g : samples[seedOff + 1]! / scale;
+  const refB = targetColor ? targetColor.b : samples[seedOff + 2]! / scale;
 
   const matchesRef = (pIdx: number): boolean => {
     const off = pIdx * 4;
-    return fillToBorder !== matchesAlphaFloodfill(out[off]!, out[off + 1]!, out[off + 2]!, out[off + 3]!, refR, refG, refB, (fillToBorder || !alphaOnly) && targetColor ? targetColor.a : img.data[seedOff + 3]!, fuzz, targetColor ? 0 : fuzz);
+    return fillToBorder !== matchesAlphaFloodfill(samples[off]! / scale, samples[off + 1]! / scale, samples[off + 2]! / scale, samples[off + 3]! / scale, refR, refG, refB, (fillToBorder || !alphaOnly) && targetColor ? targetColor.a : samples[seedOff + 3]! / scale, fuzz, targetColor ? 0 : fuzz);
   };
 
   const startIdx = sy * w + sx;
@@ -1024,6 +1027,13 @@ function* applyMagickFloodfillSteps(
     }
     if (!channels || channels[3]) out[off + 3] = Math.round(replacement.a);
 
+    if (data16) {
+      for (let channel = 0; channel < 4; channel++) {
+        if ((alphaOnly && channel !== 3) || (channels && !channels[channel])) continue;
+        data16[off + channel] = Math.round([replacement.r, replacement.g, replacement.b, replacement.a][channel]! * 257);
+      }
+    }
+
     const cx = cur % w;
     const cy = Math.floor(cur / w);
     const neighbors = [
@@ -1041,7 +1051,7 @@ function* applyMagickFloodfillSteps(
       }
     }
   }
-  return { ...img, data: out, hasAlpha: true };
+  return { ...img, data: out, ...(data16 ? { data16 } : {}), hasAlpha: true };
 }
 
 function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: string, channels: readonly boolean[] | undefined, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -8640,7 +8650,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (i + 2 >= tokens.length) throw new Error(`missing argument '${t}'`);
             const geom = tokens[++i]!, value = tokens[++i]!;
             let targetColor: RgbaColor;
-            try { targetColor = parseColor(value); }
+            try { targetColor = parseColor(value, true); }
             catch {
                 analysis.warnings += `magick: unrecognized color \`${value}'\n`;
                 targetColor = { r: 0, g: 0, b: 0, a: 255 };
@@ -10893,7 +10903,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseMagickGeometry(tokens[++i]!), value = tokens[++i]!, replacement = state.fill, fuzz = state.alphaFuzz;
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             let target: RgbaColor;
-            try { target = parseColor(value); }
+            try { target = parseColor(value, true); }
             catch {
                 analysis.warnings += `magick: unrecognized color \`${value}'\n`;
                 target = { r: 0, g: 0, b: 0, a: 255 };

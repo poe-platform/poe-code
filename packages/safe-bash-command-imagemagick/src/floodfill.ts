@@ -9,11 +9,19 @@ export function matchesAlphaFloodfill(r: number, g: number, b: number, a: number
 }
 
 export async function floodfillStoredImage(image: StoredRgbaImage, storage: ImageByteStorage, seedX: number, seedY: number, target: RgbaColor | undefined, replacement: RgbaColor, fuzz: number, signal: AbortSignal, alphaOnly = false, channels?: readonly boolean[], fillToBorder = false): Promise<StoredRgbaImage> {
-    const count = image.width * image.height, source = { position: image.position, length: count * 4 }, cache = new RasterBackingCache(storage, signal);
-    const start = seedY * image.width + seedX, seed = await cache.uint32(source, start * 4);
-    const r = target ? target.r : seed & 255, g = target ? target.g : seed >>> 8 & 255, b = target ? target.b : seed >>> 16 & 255;
-    const a = (fillToBorder || !alphaOnly) && target ? target.a : seed >>> 24;
-    const matches = (pixel: number) => fillToBorder !== matchesAlphaFloodfill(pixel & 255, pixel >>> 8 & 255, pixel >>> 16 & 255, pixel >>> 24, r, g, b, a, fuzz, target ? 0 : fuzz);
+    const count = image.width * image.height, source = { position: image.storedData16?.position ?? image.position, length: count * (image.storedData16 ? 8 : 4) }, cache = new RasterBackingCache(storage, signal);
+    const readPixel = async (index: number): Promise<readonly number[]> => {
+        if (image.storedData16) {
+            const rg = await cache.uint32(source, index * 8), ba = await cache.uint32(source, index * 8 + 4);
+            return [(rg & 65535) / 257, (rg >>> 16) / 257, (ba & 65535) / 257, (ba >>> 16) / 257];
+        }
+        const pixel = await cache.uint32(source, index * 4);
+        return [pixel & 255, pixel >>> 8 & 255, pixel >>> 16 & 255, pixel >>> 24];
+    };
+    const start = seedY * image.width + seedX, seed = await readPixel(start);
+    const r = target ? target.r : seed[0]!, g = target ? target.g : seed[1]!, b = target ? target.b : seed[2]!;
+    const a = (fillToBorder || !alphaOnly) && target ? target.a : seed[3]!;
+    const matches = (pixel: readonly number[]) => fillToBorder !== matchesAlphaFloodfill(pixel[0]!, pixel[1]!, pixel[2]!, pixel[3]!, r, g, b, a, fuzz, target ? 0 : fuzz);
     if (!matches(seed)) return image;
     const visited = await cache.allocate(count), stack = await cache.allocate(count * 4);
     let tail = 1;
@@ -22,16 +30,19 @@ export async function floodfillStoredImage(image: StoredRgbaImage, storage: Imag
     while (tail > 0) {
         const current = await cache.uint32(stack, --tail * 4), x = current % image.width, y = Math.floor(current / image.width);
         for (const next of [y > 0 ? current - image.width : -1, y + 1 < image.height ? current + image.width : -1, x > 0 ? current - 1 : -1, x + 1 < image.width ? current + 1 : -1]) {
-            if (next < 0 || await cache.byte(visited, next) || !matches(await cache.uint32(source, next * 4))) continue;
+            if (next < 0 || await cache.byte(visited, next) || !matches(await readPixel(next))) continue;
             await cache.mark(visited, next);
             await cache.setUint32(stack, tail++ * 4, next);
         }
     }
     await cache.flush();
     const position = storage.allocate(count * 4);
+    const storedData16 = image.storedData16 ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
     for (let start = 0; start < count; start += 1024) {
         await yieldTurn(signal);
         const length = Math.min(1024, count - start), pixels = new Uint8Array(await storage.read(image.position + start * 4, length * 4, { signal }));
+        const highBytes = image.storedData16 ? await storage.read(image.storedData16.position + start * 8, length * 8, { signal }) : undefined;
+        const data16 = highBytes ? new Uint16Array(highBytes.buffer.slice(highBytes.byteOffset, highBytes.byteOffset + highBytes.byteLength)) : undefined;
         const flags = await storage.read(visited.position + start, length, { signal });
         if (pixels.length !== length * 4 || flags.length !== length) throw new Error("Truncated floodfill pixels");
         for (let i = 0; i < length; i++) if (flags[i]) {
@@ -41,8 +52,13 @@ export async function floodfillStoredImage(image: StoredRgbaImage, storage: Imag
                 if (!channels || channels[2]) pixels[i * 4 + 2] = Math.round(replacement.b);
             }
             if (!channels || channels[3]) pixels[i * 4 + 3] = Math.round(replacement.a);
+            if (data16) for (let channel = 0; channel < 4; channel++) {
+                if ((alphaOnly && channel !== 3) || (channels && !channels[channel])) continue;
+                data16[i * 4 + channel] = Math.round([replacement.r, replacement.g, replacement.b, replacement.a][channel]! * 257);
+            }
         }
         await storage.write(position + start * 4, pixels, { signal });
+        if (storedData16 && data16) await storage.write(storedData16.position + start * 8, new Uint8Array(data16.buffer), { signal });
     }
-    return { ...image, position, hasAlpha: true };
+    return { ...image, position, ...(storedData16 ? { storedData16 } : {}), hasAlpha: true };
 }

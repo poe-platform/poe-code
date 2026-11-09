@@ -27,8 +27,8 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
 
 for (const mode of ["sync", "buffered", "retained"] as const) {
     it(`preserves HDR values and rejects truncated flat pixels (${mode})`, async () => {
-        const header = new TextEncoder().encode("#?RGBE\nFORMAT=32-bit_rle_rgbe\n\n+Y 1 -X 2\n");
-        const bytes = new Uint8Array([...header, 0, 0, 128, 130, 128, 0, 0, 129]);
+        const header = new TextEncoder().encode("#?RGBE\nFORMAT=32-bit_rle_rgbe\n\n-Y 1 +X 2\n");
+        const bytes = new Uint8Array([...header, 128, 0, 0, 129, 0, 0, 128, 130]);
         const files = new Map([["/in.hdr", bytes]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/in.hdr", bytes);
         const run = () => mode === "sync" ? runConvertCliSync(["/in.hdr", "/out.pfm"], files) : runConvertCli(["/in.hdr", "/out.pfm"], mode === "retained" ? { filesystem, cwd: "/" } : files);

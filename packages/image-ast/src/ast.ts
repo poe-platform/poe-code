@@ -324,7 +324,7 @@ export interface SharpInputOptions {
   /** Decode a single GIF frame rectangle without compositing preceding frames. */
   readonly coalesce?: boolean;
   readonly autoOrient?: boolean;
-  /** Preserve Radiance Y scanline order for ImageMagick compatibility. */
+  /** Preserve Radiance Y scanline order and reject unsupported layouts for ImageMagick compatibility. */
   readonly hdrPreserveScanlineOrder?: boolean;
   readonly limitInputPixels?: number | boolean | undefined;
   readonly sequentialRead?: boolean;

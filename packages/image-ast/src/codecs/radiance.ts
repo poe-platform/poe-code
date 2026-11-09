@@ -40,6 +40,9 @@ type Header = ReturnType<typeof readRadianceHeader>;
 
 // Shared byte parser: buffered and retained inputs use identical RLE validation.
 export function* radianceRows(header: Header, options?: SharpInputOptions): Generator<number | { indices: number[]; data: Uint8Array; data16: Uint16Array; dataFloat: Float32Array }, void, number | undefined> {
+    // Native ImageMagick accepts Y-first rows followed by positive X, regardless of the Y sign.
+    if (options?.hdrPreserveScanlineOrder && (header.axes[0]![1] !== "Y" || header.axes[1] !== "+X"))
+        throw new Error("no pixels defined in cache");
     let offset = header.offset;
     function* byte(): Generator<number, number, number | undefined> {
         const value = yield offset++;

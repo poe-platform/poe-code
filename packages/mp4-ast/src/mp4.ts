@@ -1,4 +1,5 @@
 import { decodeMovText, encodeMovText } from "./mov-text.js";
+import { rawAudioAsts } from "./containers/raw-audio.js";
 import { readImageMetadata } from "@poe-code/image-ast/portable";
 import { h264FieldOrderSteps } from './h264-field-order.js';
 import { buildProbeStream } from './probe-stream.js';
@@ -623,6 +624,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
     }
 
     const timecodeReference = findBox(findBox(trak.children, "tref")?.children, "tmcd");
+    const audioDescription = codecDescriptions[0];
     tracks.push({
       id: trackId,
       timecodeTrackId: timecodeReference && timecodeReference.payload.length >= 4
@@ -643,6 +645,12 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       editList: editList.length > 0 ? editList : undefined,
       declaredSampleCount,
       samples,
+      ...((audioDescription?.codecName === "pcm_mulaw" || audioDescription?.codecName === "pcm_alaw") && options.decodeAudio !== false ? {
+        decodedAudio: rawAudioAsts().find(plugin => plugin.id === (audioDescription.codecName === "pcm_mulaw" ? "mulaw" : "alaw"))!
+          .parse(concatBytes(samples.map(sample => sample.data)), {
+            ...options, budget, sampleRate: audioDescription.sampleRate, channels: audioDescription.channels
+          }).tracks[0]!.decodedAudio
+      } : {}),
       decodedVideoFrames
     });
   }

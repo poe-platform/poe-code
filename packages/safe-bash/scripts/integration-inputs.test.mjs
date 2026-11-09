@@ -1078,6 +1078,7 @@ function assertSource7Discovery(files) {
   ]) assert.ok(files.includes(path), "command name diagnostic test is missing: " + path);
   for (const path of [
     "tests/shell/extensions/mapfile/arguments.test.ts",
+    "tests/shell/extensions/mapfile/associative-destination.test.ts",
     "tests/shell/extensions/mapfile/behavior.test.ts",
     "tests/shell/extensions/mapfile/nameref.test.ts",
     "tests/shell/extensions/mapfile/callback-boundary.test.ts",

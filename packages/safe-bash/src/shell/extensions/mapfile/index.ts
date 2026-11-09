@@ -194,7 +194,9 @@ async function execute(context: ShellExtensionContext): Promise<number> {
         await context.stdout.write(new TextEncoder().encode(`${context.command}: ${context.command} ${synopsis}\n${body}`));
         return 2;
       }
-      if (context.bindings.describe(options.array).readonly) {
+      const binding = context.bindings.describe(options.array);
+      if (binding.kind === "associative") throw new MapfileArgumentError(`${options.array}: not an indexed array`, 1);
+      if (binding.readonly) {
         await context.diagnostic(`${options.array}: readonly variable`);
         return 1;
       }

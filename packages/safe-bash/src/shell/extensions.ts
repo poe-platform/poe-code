@@ -7,7 +7,7 @@ import type { CapturedShellSyntax, ShellSyntaxDeclarations } from "./parser.js";
 import { defaultPortableTrapExtension, isIdlePortableTrapInstance } from "./trap.js";
 
 export interface ShellBindingDescription {
-  readonly kind: "unset" | "scalar" | "indexed";
+  readonly kind: "unset" | "scalar" | "indexed" | "associative";
   readonly readonly: boolean;
   readonly exported: boolean;
 }

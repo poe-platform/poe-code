@@ -3795,7 +3795,8 @@ export class Runtime {
       describe: (name: string) => {
         checkName(name);
         name = this.referenceName(state, name);
-        const kind = arrayStore(state)?.get(name) ? "indexed" : state.variables[name] === undefined ? "unset" : "scalar";
+        const binding = arrayStore(state)?.get(name);
+        const kind = binding ? binding.associative ? "associative" : "indexed" : state.variables[name] === undefined ? "unset" : "scalar";
         return Object.freeze({ kind, readonly: state.readonlyVariables?.has(name) ?? false, exported: state.exported.has(name) });
       }, get: (name: string, index = 0) => {
         checkName(name);

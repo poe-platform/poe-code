@@ -7957,7 +7957,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const lut = stack[t === "-clut" ? 1 : stack.length - 1]!;
                 const im = stack[0]!;
                 const hasAlpha = im.hasAlpha || (t === "-hald-clut" && lut.hasAlpha && (state.channels.a || !state.channelExplicit));
-                let result = yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? im.hasAlpha && (state.channels.a || !state.channelExplicit) : state.channels.a || !state.channelExplicit], !!(im.data16 || lut.data16), state.interpolation), signal, { ...im, hasAlpha }, [im, lut]);
+                const { magickColorspace: ignoredColorspace, ...metadata } = im;
+                const colorspace = t === "-hald-clut" ? lut.magickColorspace : im.magickColorspace;
+                let result = yield* applyMagickRasterSteps({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: "srgb", channels: hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? im.hasAlpha && (state.channels.a || !state.channelExplicit) : state.channels.a || !state.channelExplicit], !!(im.data16 || lut.data16), state.interpolation), signal, { ...im, hasAlpha }, [im, lut]);
                 if (im.region) result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!result.data16), signal, result, [result, im]);
                 if (im.writeMask) result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!result.data16), signal, result, [result, im, im.writeMask]);
                 stack = [result];
@@ -9078,11 +9080,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (token === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
                 if (token === "-clut" || token === "-hald-clut") {
                     if (stack.length < 2) throw new Error(`image sequence is required '${token}'`);
-                    const lut = (await stack.get(token === "-clut" ? 1 : stack.length - 1))!;
+                    const lut = (await stack.get(token === "-clut" ? 1 : stack.length - 1))! as StoredRgbaImage;
                     const image = (await stack.get(0))! as StoredRgbaImage;
                     const mask = [settings.channels.r, settings.channels.g, settings.channels.b, token === "-clut" ? image.hasAlpha && (settings.channels.a || !settings.channelExplicit) : settings.channels.a || !settings.channelExplicit];
                     const hasAlpha = image.hasAlpha || (token === "-hald-clut" && lut.hasAlpha && mask[3]!);
-                    let result = await transformStoredMagickRaster({ ...image, space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16), settings.interpolation), signal, { ...image, hasAlpha }, [image, lut]);
+                    const { magickColorspace: ignoredColorspace, ...metadata } = image;
+                    const colorspace = token === "-hald-clut" ? lut.magickColorspace : image.magickColorspace;
+                    let result = await transformStoredMagickRaster({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16), settings.interpolation), signal, { ...image, hasAlpha }, [image, lut]);
                     if (image.region) result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!result.storedData16), signal, result, [result, image]);
                     if (image.storedWriteMask) result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!result.storedData16), signal, result, [result, image, { ...image, ...image.storedWriteMask }]);
                     await stack.set(0, result);

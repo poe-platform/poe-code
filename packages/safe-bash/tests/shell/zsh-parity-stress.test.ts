@@ -50,18 +50,53 @@ test("Bug #3: ANSI-C $'...' and locale $\"...\" quoting in here-document delimit
   assert.equal(res.stdout, "hello world\nbody1:$foo\nbody2:$foo\n");
 });
 
-test("Bug #4: break and continue inside forked subshells exit the subshell without breaking enclosing loop", async () => {
+test("Bug #4: Bash parenthesized subshells reset loop control while command substitutions retain it", async () => {
   const { shell } = createTestShell();
   const res = await shell.exec(`
     for x in 1 2 3; do
-      (break; echo unreachable)
+      (break; echo child)
       r=$(continue; echo unreachable)
       echo "iter:$x:$?"
     done
   `);
   assert.equal(res.exitCode, 0);
-  assert.equal(res.stdout, "iter:1:0\niter:2:0\niter:3:0\n");
+  assert.equal(res.stdout, "child\niter:1:0\nchild\niter:2:0\nchild\niter:3:0\n");
+  assert.equal(res.stderr, "break: only meaningful in a loop\n".repeat(3));
 });
+
+for (const command of ["break", "continue"]) {
+  test(`${command} in a parenthesized subshell leaves child work and parent iterations intact`, async () => {
+    const { shell } = createTestShell();
+    const res = await shell.exec(`for i in 1 2; do (${command}; echo child:$?); echo item:$i; done; echo end`);
+    assert.equal(res.exitCode, 0);
+    assert.equal(res.stdout, "child:0\nitem:1\nchild:0\nitem:2\nend\n");
+    assert.equal(res.stderr, `${command}: only meaningful in a loop\n`.repeat(2));
+  });
+
+  test(`${command} in a command substitution still exits only the substitution`, async () => {
+    const { shell } = createTestShell();
+    const res = await shell.exec(`for i in 1 2; do r=$(${command}; echo child); echo item:$i:$r:$?; done; echo end`);
+    assert.equal(res.exitCode, 0);
+    assert.equal(res.stdout, "item:1::0\nitem:2::0\nend\n");
+    assert.equal(res.stderr, "");
+  });
+
+  test(`${command} cannot inherit an outer loop through a parenthesized subshell`, async () => {
+    const { shell } = createTestShell();
+    const res = await shell.exec(`for i in 1 2; do ((${command}; echo nested); r=$(${command}; echo captured); echo child:$r); echo item:$i; done; echo end`);
+    assert.equal(res.exitCode, 0);
+    assert.equal(res.stdout, "nested\nchild:captured\nitem:1\nnested\nchild:captured\nitem:2\nend\n");
+    assert.equal(res.stderr, `${command}: only meaningful in a loop\n`.repeat(4));
+  });
+
+  test(`${command} still controls a loop created inside a parenthesized subshell`, async () => {
+    const { shell } = createTestShell();
+    const res = await shell.exec(`for i in 1 2; do (for j in a b; do echo $j; ${command}; echo skipped; done; echo child); echo item:$i; done; echo end`);
+    assert.equal(res.exitCode, 0);
+    assert.equal(res.stdout, command === "break" ? "a\nchild\nitem:1\na\nchild\nitem:2\nend\n" : "a\nb\nchild\nitem:1\na\nb\nchild\nitem:2\nend\n");
+    assert.equal(res.stderr, "");
+  });
+}
 
 test("Bug #5: printf format string preserves literal \\c while %b and echo -e stop output on \\c", async () => {
   const { shell } = createTestShell();

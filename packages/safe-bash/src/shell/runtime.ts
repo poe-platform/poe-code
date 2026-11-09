@@ -5180,6 +5180,8 @@ export class Runtime {
           child.commandString = false;
           child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
           child.loopDepth = 0;
+          // Bash parenthesized groups stop inherited loop control, unlike command substitutions.
+          (child as { _subshellInLoop?: boolean })._subshellInLoop = false;
           if (state.extensions?.checkpoints.length) await this.extensionCheckpoint("child-job-install", state, io);
           started = true;
           status = await this.run(command.body, child, io);

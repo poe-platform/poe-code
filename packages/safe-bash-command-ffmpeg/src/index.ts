@@ -1114,15 +1114,34 @@ async function panAudio(
       while (expression[offset]?.trim() === "") offset++;
       const gainStart = offset;
       if (expression[offset] === "+" || expression[offset] === "-") offset++;
+      const hexadecimal = expression[offset] === "0" && expression[offset + 1]?.toLowerCase() === "x";
+      if (hexadecimal) offset += 2;
+      const digitsStart = offset;
       while (offset < expression.length &&
-        ((expression[offset]! >= "0" && expression[offset]! <= "9") || expression[offset] === ".")) offset++;
-      if (offset > gainStart && (expression[offset] === "e" || expression[offset] === "E")) {
-        offset++;
+        ((expression[offset]! >= "0" && expression[offset]! <= "9") || expression[offset] === "." ||
+          (hexadecimal && "abcdef".includes(expression[offset]!.toLowerCase())))) offset++;
+      const digitsEnd = offset;
+      let exponent = 0;
+      if (offset > gainStart && expression[offset]?.toLowerCase() === (hexadecimal ? "p" : "e")) {
+        const exponentStart = ++offset;
         if (expression[offset] === "+" || expression[offset] === "-") offset++;
+        const exponentDigits = offset;
         while (offset < expression.length && expression[offset]! >= "0" && expression[offset]! <= "9") offset++;
+        if (offset > exponentDigits) exponent = Number(expression.slice(exponentStart, offset));
       }
       const hasGain = offset > gainStart;
-      const gain = sign * (hasGain ? Number(expression.slice(gainStart, offset)) : 1);
+      let gain = sign * (hasGain ? Number(expression.slice(gainStart, offset)) : 1);
+      if (hexadecimal) {
+        const [integer, fraction = "", ...extra] = expression.slice(digitsStart, digitsEnd).split(".");
+        if ((!integer && !fraction) || extra.length) throw new Error("pan: invalid gain");
+        let fractional = 0;
+        for (let digit = fraction.length - 1; digit >= 0; digit--) {
+          fractional = (fractional + parseInt(fraction[digit]!, 16)) / 16;
+        }
+        // scanf's hexadecimal gains use binary exponents, including an omitted exponent of zero.
+        gain = sign * (expression[gainStart] === "-" ? -1 : 1) *
+          (Number(`0x${integer || "0"}`) + fractional) * 2 ** exponent;
+      }
       if (!Number.isFinite(gain)) throw new Error("pan: invalid gain");
       while (expression[offset]?.trim() === "") offset++;
       if (hasGain && expression[offset] === "*") offset++;

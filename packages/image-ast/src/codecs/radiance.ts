@@ -6,7 +6,7 @@ export function isRadianceBytes(bytes: Uint8Array): boolean {
     return signature.startsWith("#?RADIANCE\n") || signature.startsWith("#?RADIANCE\r") || signature.startsWith("#?RGBE\n") || signature.startsWith("#?RGBE\r");
 }
 
-export function* radianceHeader(size: number): Generator<number, { metadata: ImageMetadata; offset: number; axes: string[]; counts: number[] }, number | undefined> {
+export function* radianceHeader(size: number): Generator<number, { metadata: ImageMetadata & { magickColorspace: "RGB" }; offset: number; axes: string[]; counts: number[] }, number | undefined> {
     let offset = 0;
     function* line(): Generator<number, string, number | undefined> {
         let value = "";
@@ -27,7 +27,7 @@ export function* radianceHeader(size: number): Generator<number, { metadata: Ima
     const axes = [parts[0]!, parts[2]!], counts = [Number(parts[1]), Number(parts[3])];
     if (parts.length !== 4 || axes.some(axis => !["+X", "-X", "+Y", "-Y"].includes(axis)) || axes[0]![1] === axes[1]![1] || counts.some(count => !Number.isSafeInteger(count) || count <= 0) || !Number.isSafeInteger(counts[0]! * counts[1]! * 16)) throw new Error("Invalid Radiance dimensions");
     const width = counts[axes[0]![1] === "X" ? 0 : 1]!, height = counts[axes[0]![1] === "Y" ? 0 : 1]!;
-    return { metadata: { format: "hdr", width, height, channels: 3, depth: "float", space: "srgb", hasAlpha: false, density: 72, size }, offset, axes, counts };
+    return { metadata: { format: "hdr", width, height, channels: 3, depth: "float", space: "srgb", magickColorspace: "RGB", gamma: 1, hasAlpha: false, density: 72, size }, offset, axes, counts };
 }
 
 export function readRadianceHeader(bytes: Uint8Array) {

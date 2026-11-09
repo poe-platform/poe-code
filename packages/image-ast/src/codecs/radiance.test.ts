@@ -7,7 +7,7 @@ function hdr(raster: number[], resolution = "-Y 1 +X 2", format = "32-bit_rle_rg
 
 it("reads flat RGBE, black exponents, and values above one without applying gamma", () => {
     const bytes = hdr([128, 64, 32, 130, 255, 255, 255, 0]);
-    expect(readImageMetadata(bytes)).toMatchObject({ format: "hdr", width: 2, height: 1, channels: 3, hasAlpha: false });
+    expect(readImageMetadata(bytes)).toMatchObject({ format: "hdr", width: 2, height: 1, channels: 3, hasAlpha: false, magickColorspace: "RGB", gamma: 1 });
     const image = decodeImage(bytes);
     expect(Array.from(image.dataFloat!)).toEqual([2, 1, .5, 1, 0, 0, 0, 1]);
     expect(Array.from(image.data16!)).toEqual([65535, 65535, 32768, 65535, 0, 0, 0, 65535]);

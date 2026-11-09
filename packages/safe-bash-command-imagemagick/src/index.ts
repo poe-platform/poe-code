@@ -5285,36 +5285,40 @@ function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlph
 
 function* smushCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "magickColorspace">, frame: Pick<RgbaImage, "width" | "height">, left: number, top: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const hue = canvas.magickColorspace !== undefined && canvas.magickColorspace !== "RGB";
-    const quantum = hue ? 1 : highDepth ? 65535 : 255;
+    const quantum = hue ? 1 : 255;
     for (let y = 0; y < canvas.height; y++) {
         for (let x = 0; x < canvas.width; x += 4096) {
             yield;
             const count = Math.min(4096, canvas.width - x), position = (y * canvas.width + x) * 4;
             const bytes = (yield { kind: "read", position, length: count * 4, highDepth })!;
-            const working = hue ? yield { kind: "read", position, length: count * 4, hue: true } : undefined;
+            const working = yield { kind: "read", position, length: count * 4, hue, evaluate: !hue };
             const integers = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes.slice();
-            const output = hue ? working?.length ? new Float64Array(working.slice().buffer) : Float64Array.from(integers, value => value / (highDepth ? 65535 : 255)) : integers;
+            const output = working?.length ? new Float64Array(working.slice().buffer) : Float64Array.from(integers, value => value / (highDepth ? 65535 : 255) * quantum);
             const start = Math.max(x, left), end = Math.min(x + count, left + frame.width);
             if (y >= top && y < top + frame.height && start < end) {
                 const input = (yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, highDepth })!;
-                const working = hue ? yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, hue: true } : undefined;
+                const working = yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, hue, evaluate: !hue };
                 const integers = highDepth ? new Uint16Array(input.slice().buffer) : input;
-                const samples = hue ? working?.length ? new Float64Array(working.slice().buffer) : Float64Array.from(integers, value => value / (highDepth ? 65535 : 255)) : integers;
+                const samples = working?.length ? new Float64Array(working.slice().buffer) : Float64Array.from(integers, value => value / (highDepth ? 65535 : 255) * quantum);
                 for (let pixel = start; pixel < end; pixel++) {
                     const src = (pixel - start) * 4, dst = (pixel - x) * 4;
                     const sa = samples[src + 3]! / quantum, da = output[dst + 3]! / quantum * (1 - sa), alpha = sa + da;
                     if (sa === 0) continue;
                     for (let channel = 0; channel < 3; channel++) {
                         const value = (samples[src + channel]! * sa + output[dst + channel]! * da) / alpha;
-                        output[dst + channel] = hue ? Math.max(0, Math.min(1, value)) : Math.round(value);
+                        output[dst + channel] = hue ? Math.max(0, Math.min(1, value)) : value;
                     }
-                    output[dst + 3] = hue ? alpha : Math.round(alpha * quantum);
+                    output[dst + 3] = alpha * quantum;
                 }
             }
             if (hue) {
                 yield { kind: "write", position, data: new Uint8Array(output.buffer, output.byteOffset, output.byteLength), hue: true };
                 yield { kind: "write", position, data: new Uint8Array(Uint16Array.from(output, value => Math.round(Math.max(0, Math.min(1, value)) * 65535)).buffer), highDepth: true };
-            } else yield { kind: "write", position, data: new Uint8Array(output.buffer, output.byteOffset, output.byteLength), highDepth };
+            } else {
+                yield { kind: "write", position, data: new Uint8Array(output.buffer), evaluate: true };
+                const pixels = highDepth ? Uint16Array.from(output, value => Math.round(value * 257)) : Uint8Array.from(output, Math.round);
+                yield { kind: "write", position, data: new Uint8Array(pixels.buffer), highDepth };
+            }
         }
     }
 }

@@ -21,11 +21,15 @@ export function createTsortCommand(options: TsortCommandsOptions = {}): CommandD
       const files: string[] = [];
       for (const argument of args) {
         if (!optionsEnded && argument === "--") { optionsEnded = true; continue; }
-        if (!optionsEnded && argument.length > 2 && ("--help".startsWith(argument) || "--version".startsWith(argument))) {
-          information = argument;
+        if (!optionsEnded && argument.startsWith("--")) {
+          const equals = argument.indexOf("=");
+          const name = equals < 0 ? argument : argument.slice(0, equals);
+          const option = name.length > 2 ? ["--help", "--version"].find(value => value.startsWith(name)) : undefined;
+          if (option === undefined) throw new TsortError(`unrecognized option '${argument}'`, true);
+          if (equals >= 0) throw new TsortError(`option '${option}' doesn't allow an argument`, true);
+          information = option;
           break;
         }
-        if (!optionsEnded && argument.startsWith("--")) throw new TsortError(`unrecognized option '${argument}'`, true);
         if (!optionsEnded && argument.length > 1 && argument.startsWith("-")) {
           for (let index = 1; index < argument.length; index++) {
             if (argument[index] !== "w") throw new TsortError(`invalid option -- '${argument[index]}'`, true);

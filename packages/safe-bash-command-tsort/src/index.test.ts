@@ -54,6 +54,7 @@ for (const operand of [".", "empty"]) {
 for (const [args, expected] of [
   [["--help"], "Usage: tsort"],
   [["--he"], "Usage: tsort"],
+  [["--hel"], "Usage: tsort"],
   [["f", "--help"], "Usage: tsort"],
   [["--help", "f"], "Usage: tsort"],
   [["f", "--h"], "Usage: tsort"],
@@ -63,6 +64,7 @@ for (const [args, expected] of [
   [["--help", "--version"], "Usage: tsort"],
   [["--help", "--bogus"], "Usage: tsort"],
   [["--version"], "tsort (virtual-bash)"],
+  [["--ver"], "tsort (virtual-bash)"],
   [["f", "--version"], "tsort (virtual-bash)"],
   [["--version", "f"], "tsort (virtual-bash)"],
   [["f", "--v"], "tsort (virtual-bash)"],
@@ -97,11 +99,24 @@ for (const [args, posix, exitCode, expected] of [
   [["--v", "f"], true, 0, "tsort (virtual-bash)"],
   [["--bogus", "--help"], false, 1, "unrecognized option '--bogus'"],
   [["-x", "--help"], false, 1, "invalid option -- 'x'"],
-  [["--help=foo"], false, 1, "unrecognized option '--help=foo'"],
+  [["--help=x"], false, 1, "option '--help' doesn't allow an argument"],
+  [["--help="], false, 1, "option '--help' doesn't allow an argument"],
+  [["--h=x"], false, 1, "option '--help' doesn't allow an argument"],
+  [["--hel=x=y"], false, 1, "option '--help' doesn't allow an argument"],
+  [["--version=2"], false, 1, "option '--version' doesn't allow an argument"],
+  [["--version="], false, 1, "option '--version' doesn't allow an argument"],
+  [["--ver=2"], false, 1, "option '--version' doesn't allow an argument"],
+  [["--v="], false, 1, "option '--version' doesn't allow an argument"],
+  [["--bogus=x"], false, 1, "unrecognized option '--bogus=x'"],
+  [["--helper=x"], false, 1, "unrecognized option '--helper=x'"],
+  [["--", "--help=x"], false, 0, "a\nb\n"],
+  [["--", "--ver=2"], false, 0, "a\nb\n"],
+  [["--help=x"], true, 1, "option '--help' doesn't allow an argument"],
+  [["f", "--help=x"], true, 1, "extra operand '--help=x'"],
 ] as const) {
   test(`tsort respects parsing boundaries: ${args.join(" ")} (POSIX=${posix})`, async () => {
     const fs = createMemoryFileSystem();
-    for (const file of ["f", "--help", "--version"]) {
+    for (const file of ["f", "--help", "--version", "--help=x", "--ver=2"]) {
       await fs.writeFile(`/${file}`, new TextEncoder().encode("a b"));
     }
     const values = createCommandArguments([...args]);

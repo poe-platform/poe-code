@@ -9551,6 +9551,10 @@ export class Runtime {
       if (array !== undefined) {
         array = this.referenceName(state, array);
         if (state.readonlyVariables?.has(array)) { await this.diagnostic(context, `${array}: readonly variable`); return 1; }
+        if (arrayStore(state)?.get(array)?.associative) {
+          await this.diagnostic(context, `read: ${array}: not an indexed array`);
+          return 1;
+        }
         const writer = await this.incrementalIndexed(state, context, array, true);
         try {
           const separators = exact ? "" : stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";

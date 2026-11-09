@@ -69,6 +69,8 @@ the leaf never infers regular/pollable provenance itself.
   transaction implementation refused exported targets; that refusal is superseded,
   not a preserved supported profile. The shared API supplies indexed ownership
   and publication rather than private leaf array state.
+- Associative targets consume the input record, then fail with status 1 and
+  `read: NAME: not an indexed array`, preserving their type and cells.
 - Readonly arrays preserve existing cells but consume the input record before
   reporting failure. Invalid array names are diagnosed after consumption; an
   invalid first scalar operand is diagnosed before consumption even with `-a`.

@@ -245,6 +245,10 @@ export async function executeRead(nonTerminalInput: boolean, context: ShellExten
       const name = shellValueText(options.array);
       if (!identifier(name)) return invalidName(options.array);
       if (context.bindings.describe(name).readonly) { await context.diagnostic(`${name}: readonly variable`); return 1; }
+      if (context.bindings.describe(name).kind === "associative") {
+        await context.diagnostic(`read: ${name}: not an indexed array`);
+        return 1;
+      }
       writer = await context.bindings.openIndexed(name, { clear: true });
       check();
       const fields = await record?.fields(ifs) ?? [];

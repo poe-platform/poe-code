@@ -20,6 +20,30 @@ function setup(transform?: (context: ShellExtensionContext) => ShellExtensionCon
   return { shell, fs, failures };
 }
 
+for (const command of ["read", "read_probe"]) {
+  for (const options of ["", "-u0", "-t1"]) {
+    test(`${command} ${options} preserves associative targets after consuming input`, async context => {
+      const { shell, fs } = setup();
+      context.after(() => shell.dispose());
+      await fs.writeFile("/input", Buffer.from("one two\nthree\n"));
+      const actual = await shell.exec(`declare -A a=([k]=old); { ${command} ${options} -a a; rc=$?; read rest; printf '%s|%s|' "$rc" "$rest"; declare -p a; } </input`);
+      assert.equal(actual.exitCode, 0, actual.stderr);
+      assert.equal(actual.stdout, '1|three|declare -A a=(["k"]="old")\n');
+      assert.equal(actual.stderr, "shell: line 1: read: a: not an indexed array\n");
+    });
+
+    test(`${command} ${options} still replaces indexed targets`, async context => {
+      const { shell, fs } = setup();
+      context.after(() => shell.dispose());
+      await fs.writeFile("/input", Buffer.from("one two\nthree\n"));
+      const actual = await shell.exec(`a=(old stale extra); { ${command} ${options} -a a; rc=$?; read rest; printf '%s|%s|%s|%s' "$rc" "$rest" "\${#a[@]}" "\${a[*]}"; } </input`);
+      assert.equal(actual.exitCode, 0, actual.stderr);
+      assert.equal(actual.stdout, "0|three|2|one two");
+      assert.equal(actual.stderr, "");
+    });
+  }
+}
+
 for (const entry of readCases) test(`read leaf: ${entry.name}`, async context => {
   const { shell, fs } = setup();
   context.after(() => shell.dispose());

@@ -9980,7 +9980,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const key = separator < 0 ? ["m", "c"][index] : option.slice(0, separator).trim();
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (key === "m") {
-                            multiplier = Math.fround(parseFilterExpression(value, "extrastereo", {}));
+                            multiplier = Math.fround(parseFilterExpression(value, "extrastereo", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }));
                             if (!Number.isFinite(multiplier) || multiplier < -10 || multiplier > 10) {
                               throw new Error("extrastereo: m must be in the range [-10, 10]");
                             }

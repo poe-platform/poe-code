@@ -353,6 +353,7 @@ Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
 Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.
 `extrastereo=m=0` averages left and right while retaining stereo; `m=-1` swaps them.
 The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
+Width expressions accept `E`, `PI`, and `PHI`, for example `extrastereo=m=PI/2`.
 `surround` upmixes stereo to 5.1 (FL, FR, FC, LFE, BL, BR) using a
 windowed frequency transform, retaining the sample rate and frame count.
 `surround=chl_out=5.1:win_size=1024:lfe=0` silences only LFE. The default

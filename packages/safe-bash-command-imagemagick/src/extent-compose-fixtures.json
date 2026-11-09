@@ -1,0 +1,1430 @@
+{
+  "input": "iVBORw0KGgoAAAANSUhEUgAAAAMAAAACCAYAAACddGYaAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDdUMTg6NDk6NDQrMDA6MDDK1D+jAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA3VDE4OjQ5OjQ0KzAwOjAwu4mHHwAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wN1QxODo0OTo0NCswMDowMOycpsAAAAAiSURBVAjXY/jPwPCf4T9DAwPDfwZGThG5/9wicgxcInIMAGh4BjFUybDVAAAAAElFTkSuQmCC",
+  "input16": "iVBORw0KGgoAAAANSUhEUgAAAAMAAAACEAYAAADN5LpZAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRP///////wlY99wAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDlUMTI6MTc6MjUrMDA6MDDfjzHsAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA5VDEyOjE3OjI1KzAwOjAwrtKJUAAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wOVQxMjoxNzoyNSswMDowMPnHqI8AAAArSURBVAjXY/j/n4GBgeH/fwhumA/jMXJqiBjL2f7/z80tIiInx8DAxQWhAZ42DNxH1XLxAAAAAElFTkSuQmCC",
+  "cases": [
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Dst",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Dst",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/"
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Dst",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Dst",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Copy",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Copy",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP//AAD/AP8AgAAA/wAgQID/IECA/yBAgP8gQID/CRQe/xQoPP8ePFr/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/"
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Copy",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Copy",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/AAD/AP8AgAAA/wAAAAAAAAAAAAAAAAAAAAAACRQe/xQoPP8ePFr/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Src",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Src",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP//AAD/AP8AgAAA/wAgQID/IECA/yBAgP8gQID/CRQe/xQoPP8ePFr/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/"
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Src",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Src",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/AAD/AP8AgAAA/wAAAAAAAAAAAAAAAAAAAAAACRQe/xQoPP8ePFr/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "DstOver",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "DstOver",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/"
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "DstOver",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "DstOver",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/AAD/AP8AgAAAAAAAAAAAAAAAAAAAAAAAAAAACRQe/xQoPP8ePFr/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Over",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Over",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/AAD/AP8AgAAAAAAAAAAAAAAAAAAAAAAAAAAACRQe/xQoPP8ePFr/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Blend",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Blend",
+        "-define",
+        "compose:args=30,70",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP9jLVr/GmJp2SBAgLMgQID/IECA/yBAgP8gQID/GTNj/xw5bP8fP3X/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/"
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Blend",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Blend",
+        "-define",
+        "compose:args=30,70",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/AABNAP8AJgAAAAAAAAAAAAAAAAAAAAAAAAAACRQeTRQoPE0ePFpNAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+0+0",
+      "compose": "Dst",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "Dst",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+0+0",
+      "compose": "Dst",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "Dst",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+0+0",
+      "compose": "Copy",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "Copy",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "/wAA/wD/AIAAAP8AIECA/yBAgP8JFB7/FCg8/x48Wv8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+0+0",
+      "compose": "Copy",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "Copy",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "/wAA/wD/AIAAAP8AAAAAAAAAAAAJFB7/FCg8/x48Wv8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+0+0",
+      "compose": "Src",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "Src",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "/wAA/wD/AIAAAP8AIECA/yBAgP8JFB7/FCg8/x48Wv8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+0+0",
+      "compose": "Src",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "Src",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "/wAA/wD/AIAAAP8AAAAAAAAAAAAJFB7/FCg8/x48Wv8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+0+0",
+      "compose": "DstOver",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "DstOver",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+0+0",
+      "compose": "DstOver",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "DstOver",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "/wAA/wD/AIAAAAAAAAAAAAAAAAAJFB7/FCg8/x48Wv8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+0+0",
+      "compose": "Over",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "Over",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "/wAA/wD/AIAAAAAAAAAAAAAAAAAJFB7/FCg8/x48Wv8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+0+0",
+      "compose": "Blend",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "Blend",
+        "-define",
+        "compose:args=30,70",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "Yy1a/xpiadkgQICzIECA/yBAgP8ZM2P/HDls/x8/df8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+0+0",
+      "compose": "Blend",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "Blend",
+        "-define",
+        "compose:args=30,70",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "/wAATQD/ACYAAAAAAAAAAAAAAAAJFB5NFCg8TR48Wk0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "5x4+0+0",
+      "compose": "Dst",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Dst",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "5x4+0+0",
+      "compose": "Dst",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Dst",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "5x4+0+0",
+      "compose": "Copy",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Copy",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID//wAA/wD/AIAAAP8AIECA/yBAgP8JFB7/FCg8/x48Wv8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "5x4+0+0",
+      "compose": "Copy",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Copy",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAA/wD/AIAAAP8AAAAAAAAAAAAJFB7/FCg8/x48Wv8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "5x4+0+0",
+      "compose": "Src",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Src",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID//wAA/wD/AIAAAP8AIECA/yBAgP8JFB7/FCg8/x48Wv8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "5x4+0+0",
+      "compose": "Src",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Src",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAA/wD/AIAAAP8AAAAAAAAAAAAJFB7/FCg8/x48Wv8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "5x4+0+0",
+      "compose": "DstOver",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "DstOver",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "5x4+0+0",
+      "compose": "DstOver",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "DstOver",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAA/wD/AIAAAAAAAAAAAAAAAAAJFB7/FCg8/x48Wv8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "5x4+0+0",
+      "compose": "Over",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Over",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAA/wD/AIAAAAAAAAAAAAAAAAAJFB7/FCg8/x48Wv8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "5x4+0+0",
+      "compose": "Blend",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Blend",
+        "-define",
+        "compose:args=30,70",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/Yy1a/xpiadkgQICzIECA/yBAgP8ZM2P/HDls/x8/df8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "5x4+0+0",
+      "compose": "Blend",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Blend",
+        "-define",
+        "compose:args=30,70",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAATQD/ACYAAAAAAAAAAAAAAAAJFB5NFCg8TR48Wk0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "SouthEast",
+      "geometry": "5x4+0+0",
+      "compose": "Dst",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "SouthEast",
+        "-compose",
+        "Dst",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "SouthEast",
+      "geometry": "5x4+0+0",
+      "compose": "Dst",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "SouthEast",
+        "-compose",
+        "Dst",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "SouthEast",
+      "geometry": "5x4+0+0",
+      "compose": "Copy",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "SouthEast",
+        "-compose",
+        "Copy",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID//wAA/wD/AIAAAP8AIECA/yBAgP8JFB7/FCg8/x48Wv8="
+    },
+    {
+      "depth": 8,
+      "gravity": "SouthEast",
+      "geometry": "5x4+0+0",
+      "compose": "Copy",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "SouthEast",
+        "-compose",
+        "Copy",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAA/wD/AIAAAP8AAAAAAAAAAAAJFB7/FCg8/x48Wv8="
+    },
+    {
+      "depth": 8,
+      "gravity": "SouthEast",
+      "geometry": "5x4+0+0",
+      "compose": "Src",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "SouthEast",
+        "-compose",
+        "Src",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID//wAA/wD/AIAAAP8AIECA/yBAgP8JFB7/FCg8/x48Wv8="
+    },
+    {
+      "depth": 8,
+      "gravity": "SouthEast",
+      "geometry": "5x4+0+0",
+      "compose": "Src",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "SouthEast",
+        "-compose",
+        "Src",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAA/wD/AIAAAP8AAAAAAAAAAAAJFB7/FCg8/x48Wv8="
+    },
+    {
+      "depth": 8,
+      "gravity": "SouthEast",
+      "geometry": "5x4+0+0",
+      "compose": "DstOver",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "SouthEast",
+        "-compose",
+        "DstOver",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "SouthEast",
+      "geometry": "5x4+0+0",
+      "compose": "DstOver",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "SouthEast",
+        "-compose",
+        "DstOver",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAA/wD/AIAAAAAAAAAAAAAAAAAJFB7/FCg8/x48Wv8="
+    },
+    {
+      "depth": 8,
+      "gravity": "SouthEast",
+      "geometry": "5x4+0+0",
+      "compose": "Over",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "SouthEast",
+        "-compose",
+        "Over",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAA/wD/AIAAAAAAAAAAAAAAAAAJFB7/FCg8/x48Wv8="
+    },
+    {
+      "depth": 8,
+      "gravity": "SouthEast",
+      "geometry": "5x4+0+0",
+      "compose": "Blend",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "SouthEast",
+        "-compose",
+        "Blend",
+        "-define",
+        "compose:args=30,70",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/Yy1a/xpiadkgQICzIECA/yBAgP8ZM2P/HDls/x8/df8="
+    },
+    {
+      "depth": 8,
+      "gravity": "SouthEast",
+      "geometry": "5x4+0+0",
+      "compose": "Blend",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "SouthEast",
+        "-compose",
+        "Blend",
+        "-define",
+        "compose:args=30,70",
+        "-extent",
+        "5x4+0+0"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAATQD/ACYAAAAAAAAAAAAAAAAJFB5NFCg8TR48Wk0="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "2x1+0+0",
+      "compose": "Dst",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Dst",
+        "-extent",
+        "2x1+0+0"
+      ],
+      "width": 2,
+      "height": 1,
+      "rgba": "IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "2x1+0+0",
+      "compose": "Dst",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Dst",
+        "-extent",
+        "2x1+0+0"
+      ],
+      "width": 2,
+      "height": 1,
+      "rgba": "AAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "2x1+0+0",
+      "compose": "Copy",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Copy",
+        "-extent",
+        "2x1+0+0"
+      ],
+      "width": 2,
+      "height": 1,
+      "rgba": "/wAA/wCAAIA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "2x1+0+0",
+      "compose": "Copy",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Copy",
+        "-extent",
+        "2x1+0+0"
+      ],
+      "width": 2,
+      "height": 1,
+      "rgba": "/wAA/wCAAIA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "2x1+0+0",
+      "compose": "Src",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Src",
+        "-extent",
+        "2x1+0+0"
+      ],
+      "width": 2,
+      "height": 1,
+      "rgba": "/wAA/wD/AIA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "2x1+0+0",
+      "compose": "Src",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Src",
+        "-extent",
+        "2x1+0+0"
+      ],
+      "width": 2,
+      "height": 1,
+      "rgba": "/wAA/wD/AIA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "2x1+0+0",
+      "compose": "DstOver",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "DstOver",
+        "-extent",
+        "2x1+0+0"
+      ],
+      "width": 2,
+      "height": 1,
+      "rgba": "IECA/yBAgP8="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "2x1+0+0",
+      "compose": "DstOver",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "DstOver",
+        "-extent",
+        "2x1+0+0"
+      ],
+      "width": 2,
+      "height": 1,
+      "rgba": "/wAA/wD/AIA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "2x1+0+0",
+      "compose": "Over",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Over",
+        "-extent",
+        "2x1+0+0"
+      ],
+      "width": 2,
+      "height": 1,
+      "rgba": "/wAA/wD/AIA="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "2x1+0+0",
+      "compose": "Blend",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Blend",
+        "-define",
+        "compose:args=30,70",
+        "-extent",
+        "2x1+0+0"
+      ],
+      "width": 2,
+      "height": 1,
+      "rgba": "Yy1a/xpiadk="
+    },
+    {
+      "depth": 8,
+      "gravity": "Center",
+      "geometry": "2x1+0+0",
+      "compose": "Blend",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Blend",
+        "-define",
+        "compose:args=30,70",
+        "-extent",
+        "2x1+0+0"
+      ],
+      "width": 2,
+      "height": 1,
+      "rgba": "/wAATQD/ACY="
+    },
+    {
+      "depth": 16,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Dst",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Dst",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//"
+    },
+    {
+      "depth": 16,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Dst",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Dst",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "depth": 16,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Copy",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Copy",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID/////AAAAAP//AAD//wAAn4AAAAAA//8AACAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//KAkzFD0e//8zFEcoWzz//z0eWzx5Wv//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//"
+    },
+    {
+      "depth": 16,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Copy",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Copy",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAP//AAD//wAAn4AAAAAA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKAkzFD0e//8zFEcoWzz//z0eWzx5Wv//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "depth": 16,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Src",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Src",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID/////AAAAAP//AAD//wAAn4AAAAAA//8AACAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//KAkzFD0e//8zFEcoWzz//z0eWzx5Wv//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//"
+    },
+    {
+      "depth": 16,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Src",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Src",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAP//AAD//wAAn4AAAAAA//8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKAkzFD0e//8zFEcoWzz//z0eWzx5Wv//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "depth": 16,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "DstOver",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "DstOver",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//"
+    },
+    {
+      "depth": 16,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "DstOver",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "DstOver",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAP//AAD//wAAn4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKAkzFD0e//8zFEcoWzz//z0eWzx5Wv//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "depth": 16,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Over",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Over",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAP//AAD//wAAn4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKAkzFD0e//8zFEcoWzz//z0eWzx5Wv//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "depth": 16,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Blend",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Blend",
+        "-define",
+        "compose:args=30,70",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//0lj+izzWf//bxo5YrxpydkgIEBAgIAzsyAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//PBkJMwZj//+MHA85D2z//48fFT8Ydf//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//ICBAQICA//8gIEBAgID//yAgQECAgP//"
+    },
+    {
+      "depth": 16,
+      "gravity": "Center",
+      "geometry": "7x6+1+1",
+      "compose": "Blend",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Blend",
+        "-define",
+        "compose:args=30,70",
+        "-extent",
+        "7x6+1+1"
+      ],
+      "width": 7,
+      "height": 6,
+      "rgba": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAM1MAAD//wAAliYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKAkzFD0ezUwzFEcoWzzNTD0eWzx5Ws1MAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "depth": 16,
+      "gravity": "Center",
+      "geometry": "2x1+0+0",
+      "compose": "Copy",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "Center",
+        "-compose",
+        "Copy",
+        "-extent",
+        "2x1+0+0"
+      ],
+      "width": 2,
+      "height": 1,
+      "rgba": "//8AAAAA//8AAJ+AAACfgA=="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+1+1",
+      "compose": "Copy",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "Copy",
+        "-extent",
+        "5x4+1+1"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "FCg8/x48Wv8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+1+1",
+      "compose": "Src",
+      "background": "none",
+      "args": [
+        "-background",
+        "none",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "Src",
+        "-extent",
+        "5x4+1+1"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "FCg8/x48Wv8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "depth": 8,
+      "gravity": "NorthWest",
+      "geometry": "5x4+20+20",
+      "compose": "Copy",
+      "background": "#204080",
+      "args": [
+        "-background",
+        "#204080",
+        "-gravity",
+        "NorthWest",
+        "-compose",
+        "Copy",
+        "-extent",
+        "5x4+20+20"
+      ],
+      "width": 5,
+      "height": 4,
+      "rgba": "IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8gQID/IECA/yBAgP8="
+    }
+  ]
+}

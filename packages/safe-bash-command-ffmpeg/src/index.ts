@@ -15,6 +15,7 @@ import { tmix } from "./tmix.js";
 import { decimate } from "./decimate.js";
 import { cutSubAudio } from "./audio-asubcut.js";
 import { boostSubAudio } from "./audio-asubboost.js";
+import { highpassAudio } from "./audio-highpass.js";
 import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
 import { renderTestsrc } from "./testsrc.js";
@@ -8599,6 +8600,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await cutSubAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
                       } else if (trimmed === "asubboost" || trimmed.startsWith("asubboost=")) {
                         stretched = await boostSubAudio(stretched, origRate, trimmed, budget, context.signal);
+                      } else if (trimmed === "highpass" || trimmed.startsWith("highpass=")) {
+                        stretched = await highpassAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "aexciter" || trimmed.startsWith("aexciter=")) {
                         stretched = await exciteAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "adecorrelate" || trimmed.startsWith("adecorrelate=")) {

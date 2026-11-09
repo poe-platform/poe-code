@@ -5510,7 +5510,7 @@ describe("decoded audio editing", () => {
     }
   });
 
-  for (const filter of ["no_such_filter", "highpass=f=200", "volume=0.5,no_such_filter,areverse"]) {
+  for (const filter of ["no_such_filter", "volume=0.5,no_such_filter,areverse"]) {
     for (const existing of [false, true]) {
       it(`rejects unsupported audio filter ${filter} and preserves ${existing ? "existing" : "absent"} output`, async () => {
         const input = encodeWav({ sampleRate: 16000, channels: [new Float64Array(160).fill(0.5)] });
@@ -5519,7 +5519,7 @@ describe("decoded audio editing", () => {
         const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", "-i", "/input.wav", "-af", filter, "/output.wav"], vfs);
         assert.equal(result.exitCode, 1, result.stderr);
         assert.ok(result.stderr.includes("Unsupported audio filter:"), result.stderr);
-        assert.ok(result.stderr.includes(filter.includes("no_such_filter") ? "no_such_filter" : "highpass"), result.stderr);
+        assert.ok(result.stderr.includes("no_such_filter"), result.stderr);
         assert.deepEqual(vfs.store.get("/output.wav"), existing ? original : undefined);
         assert.deepEqual(vfs.store.get("/input.wav"), input);
       });

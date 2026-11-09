@@ -30,6 +30,21 @@ async function select(filter: string, a: number[], b: number[], stereo = false) 
   return { result, volume, error: Buffer.concat(errors).toString() };
 }
 
+for (const map of [0, 1]) {
+  it(`selects all samples through a named astreamselect instance with map=${map}`, async () => {
+    for (const name of ["astreamselect", "astreamselect@route"]) {
+      const { result, volume, error } = await select(`${name}=map=${map}`,
+        Array(2048).fill(8000), Array(2048).fill(-4000));
+      assert.equal(result.exitCode, 0, error);
+      const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 8000);
+      assert.equal(audio.channels, 1);
+      assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768),
+        Array(2048).fill(map === 0 ? 8000 : -4000));
+    }
+  });
+}
+
 const a = Array.from({ length: 8192 }, (_, i) => i % 8 < 4 ? 8192 : -8192);
 const b = Array.from({ length: 4096 }, (_, i) => i < 2048 ? -16384 : 1024);
 for (const map of [0, 1]) for (const length of [2048, 1300]) for (const stereo of [false, true]) {

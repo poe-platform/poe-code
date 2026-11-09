@@ -1,3 +1,4 @@
+import { setHevcMetadata } from "./hevc-metadata.js";
 import { setVp9Metadata } from "./vp9-metadata.js";
 import { setPacketTimestamps } from "./setts.js";
 import { rechunkPcm } from "./pcm-rechunk.js";
@@ -111,6 +112,10 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
     }
     if (filter === "av1_metadata" || filter.startsWith("av1_metadata=")) {
       tracks = setAv1Timing(tracks, filter, budget);
+      continue;
+    }
+    if (filter === "hevc_metadata" || filter.startsWith("hevc_metadata=")) {
+      tracks = setHevcMetadata(tracks, filter, budget);
       continue;
     }
     if (filter === "h264_mp4toannexb") {

@@ -7,6 +7,26 @@ import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { Shell } from "../../src/shell/shell.js";
 
+for (const extensions of [[], [arraysExtension()]]) for (const command of ["declare", "typeset", "local"]) {
+  for (const [source, expected] of [
+    [`set -a; ${command} +x V=new`, "V=new\nparent:new\n"],
+    [`set +a; ${command} +x V=new`, "parent:new\n"],
+    [`set -a; ${command} V=new; ${command} +x V`, "parent:new\n"],
+    [`set -a; ${command} V=old; ${command} +x V+=new`, "V=oldnew\nparent:oldnew\n"],
+    [`set -a; ${command} +x V=`, "V=\nparent:\n"],
+    ["set -a; export -n V=new", "parent:new\n"],
+  ]) test(`declaration allexport (${extensions.length ? "arrays" : "default"}, ${command}): ${source}`, async t => {
+    const { shell, commands } = setup({ extensions });
+    for (const builtin of createStandardCommands()) commands.register(builtin);
+    t.after(() => shell.dispose());
+    const body = `${source}; env | while IFS= read -r row; do case "$row" in V=*) echo "$row";; esac; done; echo "parent:$V"`;
+    const result = await shell.exec(command === "local" ? `f() { ${body}; }; f` : body);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  });
+}
+
 for (const extensions of [[], [arraysExtension()]]) for (const command of ["declare", "typeset"]) {
   for (const initial of ["unset x", "x=old"]) for (const [body, call, expected] of [
     [`${command} -g x=global; echo "$x"`, "x=temp f", "temp\nglobal\n"],

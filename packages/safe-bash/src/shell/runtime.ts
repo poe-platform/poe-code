@@ -9052,6 +9052,7 @@ export class Runtime {
         }
         const attributeName = namerefDeclaration || disabled.has("n") ? name : this.variableTarget(this.referenceName(state, name))!.name;
         if (command === "declare" || command === "local") this.declareAttributes(state, attributeName, enabled, disabled);
+        if (disabled.has("x")) state.exported.delete(attributeName);
         if (match[2] !== undefined && arrayStore(state)?.get(name)) {
           await this.arrayZero(state, name, context, async () => assignedValue(), append, command === "readonly");
         } else if (match[2] !== undefined) {
@@ -9072,7 +9073,6 @@ export class Runtime {
         } else if (command === "local" && name === "OPTIND") this.syncGetopts(state);
         if (command === "export" && !enabled.has("n") || enabled.has("x")) state.exported.add(attributeName);
         if (command === "export" && enabled.has("n")) state.exported.delete(attributeName);
-        if (disabled.has("x")) state.exported.delete(attributeName);
         if (command === "readonly" || enabled.has("r")) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(attributeName); }
         if (command !== "declare" || localDeclaration || enabled.has("x") || enabled.has("r")) {
           const previous = assignments.get(name);

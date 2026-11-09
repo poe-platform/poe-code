@@ -5038,6 +5038,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let minSegmentDuration = 0;
         let segmentWrap = 0;
         let segmentTimes: number[] | undefined;
+        let segmentFormat: string | undefined;
         let resetTimestamps = false;
         let segmentFrames: number[] | undefined;
         let segmentList: string | undefined;
@@ -5315,6 +5316,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             segmentStartNumber = value?.trim() ? Number(value) : NaN;
             if (!Number.isInteger(segmentStartNumber) || segmentStartNumber < 0 || segmentStartNumber > 2147483647) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: -segment_start_number requires an integer from 0 to 2147483647\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-segment_format") {
+            segmentFormat = args[++i];
+            if (!segmentFormat) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing segment_format value\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-segment_time") {
@@ -9752,15 +9759,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (segmentTimes === undefined && segmentFrames === undefined && minSegmentDuration > segmentTime) {
                 throw new Error("min_seg_duration cannot be greater than segment_time");
               }
-              const segmentPlugin = registry.findByFilename(outputTarget);
+              const segmentPlugin = segmentFormat === undefined ? registry.findByFilename(outputTarget)
+                : (registry.findById(segmentFormat) ?? registry.findByFormatName(segmentFormat));
+              const audioSegment = segmentPlugin?.id === "wav" ||
+                segmentPlugin?.supportedAudioCodecs.includes(`pcm_${segmentPlugin.id}`);
               const track = workingDoc.tracks.find(track => track.type === "video") ?? workingDoc.tracks[0];
-              if (!track || !(segmentPlugin?.id === "mp4" ||
-                  (segmentPlugin?.id === "wav" && workingDoc.tracks.length === 1 && track.type === "audio"))) {
-                throw new Error("segment output requires MP4 filenames or a single audio track with WAV filenames");
+              if (!track || !segmentPlugin?.canMux || !(segmentPlugin.id === "mp4" ||
+                  (audioSegment && workingDoc.tracks.length === 1 && track.type === "audio"))) {
+                throw new Error("segment output requires MP4 format or a single audio track with WAV or raw audio format");
               }
               if (formatImageSequence(outputTarget, 0) === undefined) {
                 throw new Error("segment output requires a numbered filename pattern");
               }
+              validateRawAudioCodec(workingDoc, segmentPlugin, audioCodec);
               validateStreamCopy(workingDoc, segmentPlugin.id, { audio: audioCodec, video: videoCodec });
               const boundaries = [0];
               for (const [frame, packet] of track.samples.entries()) {
@@ -9810,7 +9821,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 context.signal.throwIfAborted();
                 const start = boundaries[index]!;
                 const end = boundaries[index + 1]!;
-                const segment = segmentPlugin.id === "wav"
+                const segment = audioSegment
                   ? sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget })
                   : { ...workingDoc, tracks: workingDoc.tracks.map(track => ({
                     ...track,
@@ -9820,7 +9831,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       (index === 0 || sample.dts >= start * track.timescale) &&
                       (index === paths.length - 1 || sample.dts < end * track.timescale))
                   })) };
-                const bytes = segmentPlugin.serialize(resetTimestamps && segmentPlugin.id !== "wav"
+                const bytes = segmentPlugin.serialize(resetTimestamps && !audioSegment
                   ? shiftTimestamps(segment, -start, budget) : segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, reserveIndexSpace, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;

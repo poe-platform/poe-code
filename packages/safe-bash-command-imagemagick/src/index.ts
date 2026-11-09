@@ -6133,7 +6133,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
             if(inspected&&"error" in inspected)throw inspected.error;
             const meta = inspected?.metadata??readImageMetadata(bytes!, inputOptions),size=inspected?.size??bytes!.byteLength;
-            if (pageIdx === undefined && meta.format === "tiff" && (meta.pages ?? 1) > 1) {
+            if (pageIdx === undefined && (meta.format === "tiff" || meta.format === "gif") && (meta.pages ?? 1) > 1) {
                 for (let page = 1; page < meta.pages!; page++) {
                     yield;
                     targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, sceneCount: meta.pages! });

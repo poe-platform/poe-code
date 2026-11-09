@@ -4692,7 +4692,11 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         tokens.push(drawCmd.slice(start, offset));
     }
     let i = 0;
-    const num = () => Number(tokens[i++] ?? 0);
+    const num = () => {
+        const value = Number(tokens[i++]);
+        if (!Number.isFinite(value)) throw new Error("Drawing requires finite numeric coordinates");
+        return value;
+    };
     while (i < tokens.length) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -4803,14 +4807,13 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 const py = num();
                 pts.push(`${px},${py}`);
             }
-            if (pts.length >= 2) {
-                if (cmd === "polygon") {
-                    svgElements.push(`<polygon points="${pts.join(" ")}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
-                }
-                else {
-                    const lineStroke = stroke === "none" ? fill : stroke;
-                    svgElements.push(`<polyline points="${pts.join(" ")}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
-                }
+            if (pts.length < (cmd === "polygon" ? 3 : 1)) throw new Error(`${cmd} drawing has too few points`);
+            if (cmd === "polygon") {
+                svgElements.push(`<polygon points="${pts.join(" ")}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+            }
+            else {
+                const lineStroke = stroke === "none" ? fill : stroke;
+                svgElements.push(`<polyline points="${pts.join(" ")}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
             }
         }
         else if (cmd === "bezier") {
@@ -4823,6 +4826,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                     yield;
                 pts.push({ x: num(), y: num() });
             }
+            if (pts.length < 3) throw new Error("bezier drawing has too few points");
             if (pts.length === 3) {
                 const lineStroke = stroke === "none" ? fill : stroke;
                 svgElements.push(`<path d="M ${pts[0]!.x} ${pts[0]!.y} Q ${pts[1]!.x} ${pts[1]!.y} ${pts[2]!.x} ${pts[2]!.y}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);

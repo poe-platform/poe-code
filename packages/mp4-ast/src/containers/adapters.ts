@@ -874,8 +874,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     const source = audioTrack?.codecDescriptions[0];
     const truncate = formatTag === 1 && (source?.codecName === "flac" || source?.codecName.startsWith("pcm_s")) &&
       (source.bitsPerSample ?? 0) > bitsPerSample;
-    // FFmpeg packs PCM8/PCM24 from the high bytes of signed PCM16/PCM32.
-    const scale = 2 ** ((bitsPerSample === 8 ? 16 : bitsPerSample === 24 ? 32 : bitsPerSample) - 1);
+    // PCM8 rounds directly; companded audio and PCM24 use PCM16/PCM32 precision.
+    const scale = 2 ** ((bitsPerSample === 8 && formatTag !== 1 ? 16 : bitsPerSample === 24 ? 32 : bitsPerSample) - 1);
     pcmBytes = new Uint8Array(numSamples * channels * bytesPerSample);
     const pView = new DataView(pcmBytes.buffer);
     for (let i = 0; i < numSamples; i++) {
@@ -894,7 +894,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
         const sample = Math.min(scale - 1, truncate ? lower : rounded);
         if (formatTag === 6 || formatTag === 7) pcmBytes[offset] = (formatTag === 7 ? mulawTable : alawTable)[(sample & 65535) >> 2]!;
         else if (bitsPerSample === 64) pView.setBigInt64(offset, val >= 1 ? (1n << 63n) - 1n : BigInt(sample), true);
-        else if (bitsPerSample === 8) pView.setUint8(offset, (sample >> 8) + 128);
+        else if (bitsPerSample === 8) pView.setUint8(offset, (sample | 0) + 128);
         else if (bitsPerSample === 16) pView.setInt16(offset, sample, true);
         else if (bitsPerSample === 24) {
           pcmBytes[offset] = (sample >> 8) & 255;

@@ -491,6 +491,10 @@ Delay is in milliseconds (1–100, default 20),
 rounded to the nearest sample with exact halves rounding to even;
 feedback (0–0.9), crossfeed (0–0.8), and drymix (0–1) default to 0.3, 0.3, and 0.8.
 Setting `feedback=0:crossfeed=0:drymix=1` preserves the input samples.
+`asendcmd=c='0.064 stereowiden@x feedback 0',stereowiden@x=feedback=0.5`
+changes feedback at the next audio frame without resetting delay history. Commands
+select the named instance or the first subsequent `stereowiden` instance; invalid
+feedback values retain the current setting.
 Downstream `ashowinfo` reports packed float (`flt`) frames before output encoding.
 `enable` selects frames by time (`t`) or frame number (`n`); bypassed frames still
 feed the delay history, so re-enabling retains their delayed contributions.

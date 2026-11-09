@@ -9429,11 +9429,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const supported = action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
                             || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
+                            || action === "feedback" && (target === "stereowiden" || target?.startsWith("stereowiden@"))
                             || action === "dry" && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
                             || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME alimiter[@NAME] limit LIMIT or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME alimiter[@NAME] limit LIMIT or TIME dialoguenhance[@NAME] original GAIN");
                           }
                           return { time, target, expression };
                         });
@@ -10862,7 +10863,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         // Match native float arithmetic and lrintf's ties-to-even rounding.
                         const delay = roundToEven(Math.fround(Math.fround(origRate * Math.fround(options.delay)) / 1000));
-                        const feedback = Math.fround(options.feedback);
+                        let feedback = Math.fround(options.feedback);
+                        const commands = audioCommands.filter(command => command.target === "stereowiden" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        // Native sends each command to the first matching filter instance.
+                        audioCommands = audioCommands.filter(command => command.target !== "stereowiden" && command.target !== filterTarget);
+                        let nextCommand = 0;
                         const crossfeed = Math.fround(options.crossfeed);
                         const drymix = Math.fround(options.drymix);
                         const output = stretched.map(channel => new Float32Array(channel.length));
@@ -10882,6 +10888,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               await yieldTurn(context.signal);
                               context.signal?.throwIfAborted();
                               budget.checkCpu();
+                            }
+                            while (nextCommand < commands.length && commands[nextCommand]!.sample <= i) {
+                              const command = commands[nextCommand++]!;
+                              try {
+                                const value = parseFilterExpression(command.expression, "stereowiden", {});
+                                if (Number.isFinite(value) && value >= 0 && value <= 0.9) feedback = Math.fround(value);
+                              } catch { /* Rejected runtime commands leave the current feedback unchanged. */ }
                             }
                             for (let c = 0; c < 2; c++) {
                               const opposite = stretched[1 - c]!;

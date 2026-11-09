@@ -10972,16 +10972,21 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let verbose = false;
     let regardWarnings = false;
     let compose = "over";
-    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient";
+    type Rotation = { rotation: string; settings: MagickState };
+    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation;
     const operands: string[] = [];
     const operandOperations: CompareOperation[][] = [];
     let leadingOperations: CompareOperation[] = [];
+    let groupStart = 0;
+    const groups: number[] = [];
+    // Compare reapplies ungrouped trailing rotations to the difference image.
+    let outputRotations: Rotation[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
         // An option after an input ends the leading operator group.
-        if (operands.length && (t.startsWith("-") || t.startsWith("+"))) leadingOperations = [];
+        if (operands.length > groupStart && (t.startsWith("-") || t.startsWith("+"))) leadingOperations = [];
         if (t === "--help" || t === "-help" || t === "-h") {
             return {
                 exitCode: 0,
@@ -11103,6 +11108,34 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const g = parseMagickGeometry(argv[++i] ?? "72");
             state.density = Math.max(1, Math.round(g.width ?? 72));
         }
+        else if (t === "(") {
+            groups.push(groupStart);
+            groupStart = operands.length;
+            leadingOperations = [];
+            outputRotations = [];
+        }
+        else if (t === ")") {
+            const parent = groups.pop();
+            if (parent === undefined) return { exitCode: 2, stdout: "", stderr: "compare: unbalanced parenthesis\n" };
+            groupStart = parent;
+            leadingOperations = [];
+            outputRotations = [];
+        }
+        else if (t === "-rotate") {
+            const rotation = argv[++i];
+            if (rotation === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-rotate'\n" };
+            try { parseMagickRotation(rotation); }
+            catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
+            const operation = { rotation, settings: { ...state } };
+            if (operands.length > groupStart) {
+                for (const operations of operandOperations.slice(groupStart)) operations.push(operation);
+                outputRotations.push(operation);
+            } else leadingOperations.push(operation);
+        }
+        else if (t === "-background") {
+            state.background = parseColor(argv[++i] ?? "white");
+            state.backgroundExplicit = true;
+        }
         else if (t === "-gravity") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-gravity'\n" };
@@ -11117,12 +11150,12 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             try { validateMagickTransformGeometry(geometry, t); }
             catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
             const crop = { geometry, gravity: state.gravity };
-            if (operands.length) for (const crops of operandOperations) crops.push(crop);
+            if (operands.length > groupStart) for (const crops of operandOperations.slice(groupStart)) crops.push(crop);
             else leadingOperations.push(crop);
         }
         else if (t === "+crop") leadingOperations = [];
         else if (t === "-auto-orient") {
-            if (operands.length) for (const operations of operandOperations) operations.push("auto-orient");
+            if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push("auto-orient");
             else leadingOperations.push("auto-orient");
         }
         else if (t === "-quality") {
@@ -11133,7 +11166,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         else {
             operands.push(t);
-            operandOperations.push(leadingOperations.map(operation => operation === "auto-orient" ? operation : { ...operation, gravity: state.gravity }));
+            operandOperations.push(leadingOperations.map(operation => typeof operation === "object" && "geometry" in operation ? { ...operation, gravity: state.gravity } : operation));
         }
     }
     if (operands.length < 2) {
@@ -11142,6 +11175,27 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             stdout: "",
             stderr: "compare: missing an image filename\n"
         };
+    }
+    if (groups.length) return { exitCode: 2, stdout: "", stderr: "compare: unbalanced parenthesis\n" };
+    function rotateImage(image: RgbaImage, operation: Rotation): Generator<IdentifyStep, RgbaImage, void>;
+    function rotateImage(image: StoredRgbaImage, operation: Rotation): Generator<IdentifyStep, StoredRgbaImage, void>;
+    function rotateImage(image: RgbaImage | StoredRgbaImage, operation: Rotation): Generator<IdentifyStep, RgbaImage | StoredRgbaImage, void>;
+    function* rotateImage(image: RgbaImage | StoredRgbaImage, operation: Rotation): Generator<IdentifyStep, RgbaImage | StoredRgbaImage, void> {
+        const { rotation, settings } = operation;
+        const { angle, applies } = parseMagickRotation(rotation);
+        if (!applies(image)) return image;
+        const plan = parseMagickWarpOperation(["-rotate", rotation], settings, 0, { warnings: "" })?.plan(image);
+        let rotated = image;
+        if ("data" in image) rotated = plan
+            ? yield* applyMagickRasterSteps(image, plan.steps, signal, plan)
+            : yield* rotateImageSteps(image, angle, settings.background);
+        else yield { async run() {
+            rotated = plan
+                ? await transformStoredMagickRaster(image, backend!, plan.steps, signal!, plan)
+                : await transformStoredImage(image, backend!.storage, { kind: "rotate", angle, background: settings.background }, signal!);
+        } };
+        const virtualCanvas = plan?.virtualCanvas ?? (image.virtualCanvas ? magickRotateCanvas(image, angle) : undefined);
+        return virtualCanvas ? { ...rotated, virtualCanvas } : rotated;
     }
     const refSpec = operands[0]!;
     const outSpec = operands[operands.length - 1]!;
@@ -11154,6 +11208,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (!operation) {
             if (!imgA) imgA = image;
             else if (!imgB) imgB = image;
+            return;
+        }
+        if (typeof operation === "object" && "rotation" in operation) {
+            yield* acceptImage(yield* rotateImage(image, operation), operations, index + 1);
             return;
         }
         if (operation === "auto-orient") {
@@ -11298,7 +11356,9 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (backend) yield { async run() {
             const active = signal ?? new AbortController().signal;
             const stack = new StoredImageStack(backend.storage, active);
-            await stack.push({ ...metadata, position: diffPosition! });
+            let difference: StoredRgbaImage = { ...metadata, position: diffPosition! };
+            for (const operation of outputRotations) difference = await drainIdentifySteps(rotateImage(difference, operation), signal);
+            await stack.push(difference);
             if (similarityPosition !== undefined) await stack.push({ ...metadata, position: similarityPosition });
             if (split) {
                 for (let index = 0; index < stack.length; index++) {
@@ -11315,7 +11375,9 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
         } };
         else {
-            const stack: RgbaImage[] = [{ ...metadata, data: diffData! }];
+            let difference: RgbaImage = { ...metadata, data: diffData! };
+            for (const operation of outputRotations) difference = yield* rotateImage(difference, operation);
+            const stack: RgbaImage[] = [difference];
             if (similarityData) stack.push({ ...metadata, data: similarityData });
             if (split) {
                 for (let index = 0; index < stack.length; index++) {

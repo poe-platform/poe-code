@@ -10689,24 +10689,25 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (stretched.length !== 2) throw new Error("crossfeed: stereo input required");
                         let enable: string | undefined;
-                        const options = { strength: 0.2, range: 0.5, slope: 0.5, level_in: 0.9, level_out: 1 };
+                        const options = { strength: 0.2, range: 0.5, slope: 0.5, level_in: 0.9, level_out: 1, block_size: 0 };
                         const argument = trimmed.slice("crossfeed=".length);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? ["strength", "range", "slope", "level_in", "level_out"][index] : option.slice(0, separator).trim();
+                          const key = separator < 0 ? ["strength", "range", "slope", "level_in", "level_out", "block_size"][index] : option.slice(0, separator).trim();
                           if (key === "enable") {
                             enable = option.slice(separator + 1).trim();
                             continue;
                           }
-                          if (key !== "strength" && key !== "range" && key !== "slope" && key !== "level_in" && key !== "level_out") {
+                          if (key !== "strength" && key !== "range" && key !== "slope" && key !== "level_in" && key !== "level_out" && key !== "block_size") {
                             throw new Error(`crossfeed: unsupported option ${key}`);
                           }
                           const value = parseFilterExpression((separator < 0 ? option : option.slice(separator + 1)).trim(), "crossfeed", {});
                           const min = key === "slope" ? 0.01 : 0;
-                          if (!Number.isFinite(value) || value < min || value > 1) {
-                            throw new Error(`crossfeed: ${key} must be in the range [${min}, 1]`);
+                          const max = key === "block_size" ? 32768 : 1;
+                          if (!Number.isFinite(value) || value < min || value > max) {
+                            throw new Error(`crossfeed: ${key} must be in the range [${min}, ${max}]`);
                           }
-                          options[key] = value;
+                          options[key] = key === "block_size" ? roundToEven(value) : value;
                         }
                         const commands = audioCommands.filter(command => command.target === "crossfeed" || command.target === filterTarget)
                           .sort((a, b) => a.sample - b.sample);
@@ -10727,42 +10728,98 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const b2 = gain * ((gain + 1) - (gain - 1) * cosine - beta) / a0;
                         let w1 = 0;
                         let w2 = 0;
-                        const output = stretched.map(channel => new Float64Array(channel.length));
                         const length = stretched[0]!.length;
-                        if (enable !== undefined && length === 0) parseFilterExpression(enable, "crossfeed enable", { n: 0, t: 0 });
-                        for (let start = 0, n = 0; start < length; n++) {
-                          const packet = t.samples[n];
-                          const timestamp = audioTimestamps?.[n];
-                          const count = timestamp ? timestamp.end - timestamp.start
-                            : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                          const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
-                          const end = enable === undefined ? length : Math.min(length, start + count);
-                          const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "crossfeed enable", {
-                            n, t: pts / origRate
-                          })) >= 0.5;
-                          for (let i = start; i < end; i++) {
-                            if (i % 4096 === 0) {
-                              await yieldTurn(context.signal);
-                              context.signal?.throwIfAborted();
-                              budget.checkCpu();
+                        const size = options.block_size;
+                        budget.allocateMemory((length * 2 + size * 2) * Float64Array.BYTES_PER_ELEMENT);
+                        const output = stretched.map(channel => new Float64Array(channel.length));
+                        if (size === 0) {
+                          if (enable !== undefined && length === 0) parseFilterExpression(enable, "crossfeed enable", { n: 0, t: 0 });
+                          for (let start = 0, n = 0; start < length; n++) {
+                            const packet = t.samples[n];
+                            const timestamp = audioTimestamps?.[n];
+                            const count = timestamp ? timestamp.end - timestamp.start
+                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
+                            const end = enable === undefined ? length : Math.min(length, start + count);
+                            const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "crossfeed enable", {
+                              n, t: pts / origRate
+                            })) >= 0.5;
+                            for (let i = start; i < end; i++) {
+                              if (i % 4096 === 0) {
+                                await yieldTurn(context.signal);
+                                context.signal?.throwIfAborted();
+                                budget.checkCpu();
+                              }
+                              while (nextCommand < commands.length && commands[nextCommand]!.sample <= i) {
+                                const command = commands[nextCommand++]!;
+                                try {
+                                  const value = parseFilterExpression(command.expression, "crossfeed", {});
+                                  if (Number.isFinite(value) && value >= 0 && value <= 1) options.level_out = value;
+                                } catch { /* Rejected runtime commands leave the current gain unchanged. */ }
+                              }
+                              const mid = (stretched[0]![i]! + stretched[1]![i]!) * options.level_in * 0.5;
+                              const side = (stretched[0]![i]! - stretched[1]![i]!) * options.level_in * 0.5;
+                              const filtered = side * b0 + w1;
+                              w1 = b1 * side + w2 - a1 * filtered;
+                              w2 = b2 * side - a2 * filtered;
+                              // Keep the low-shelf history running even when the output is bypassed.
+                              output[0]![i] = enabled ? (mid + filtered) * options.level_out : stretched[0]![i]!;
+                              output[1]![i] = enabled ? (mid - filtered) * options.level_out : stretched[1]![i]!;
                             }
-                            while (nextCommand < commands.length && commands[nextCommand]!.sample <= i) {
+                            start = end;
+                          }
+                        } else {
+                          // Retain two forward-filtered blocks. A reverse pass over both
+                          // supplies lookahead for the older block; EOF also drains the newer one.
+                          const forward = new Float64Array(size * 2);
+                          const previous = audioTimestamps;
+                          budget.allocateMemory((Math.ceil(length / size) + 1) * 24);
+                          audioTimestamps = [{ start: 0, end: 0, pts: 0 }];
+                          let frameIndex = 0;
+                          for (let start = 0; start < length; start += size) {
+                            while (previous && frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
+                            const frame = previous?.[frameIndex];
+                            const pts = frame ? frame.pts + start - frame.start : audioStartSample + start;
+                            // Upstream commands arrive while the next input block is filled.
+                            while (nextCommand < commands.length && commands[nextCommand]!.sample < Math.min(length, start + size)) {
                               const command = commands[nextCommand++]!;
                               try {
                                 const value = parseFilterExpression(command.expression, "crossfeed", {});
                                 if (Number.isFinite(value) && value >= 0 && value <= 1) options.level_out = value;
                               } catch { /* Rejected runtime commands leave the current gain unchanged. */ }
                             }
-                            const mid = (stretched[0]![i]! + stretched[1]![i]!) * options.level_in * 0.5;
-                            const side = (stretched[0]![i]! - stretched[1]![i]!) * options.level_in * 0.5;
-                            const filtered = side * b0 + w1;
-                            w1 = b1 * side + w2 - a1 * filtered;
-                            w2 = b2 * side - a2 * filtered;
-                            // Keep the low-shelf history running even when the output is bypassed.
-                            output[0]![i] = enabled ? (mid + filtered) * options.level_out : stretched[0]![i]!;
-                            output[1]![i] = enabled ? (mid - filtered) * options.level_out : stretched[1]![i]!;
+                            const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "crossfeed enable", {
+                              n: start / size, t: pts / origRate
+                            })) >= 0.5;
+                            for (let i = 0; i < size; i++) {
+                              if (++work % 4096 === 0) {
+                                budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted();
+                              }
+                              const side = ((stretched[0]![start + i] ?? 0) - (stretched[1]![start + i] ?? 0)) * options.level_in * 0.5;
+                              const filtered = side * b0 + w1;
+                              w1 = b1 * side + w2 - a1 * filtered;
+                              w2 = b2 * side - a2 * filtered;
+                              forward[size + i] = filtered;
+                            }
+                            let reverseW1 = 0;
+                            let reverseW2 = 0;
+                            for (let i = size * 2 - 1; i >= 0; i--) {
+                              if (++work % 4096 === 0) {
+                                budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted();
+                              }
+                              const side = forward[i]!;
+                              const filtered = side * b0 + reverseW1;
+                              reverseW1 = b1 * side + reverseW2 - a1 * filtered;
+                              reverseW2 = b2 * side - a2 * filtered;
+                              const sample = start - size + i;
+                              if (sample < 0 || sample >= length || (i >= size && start + size < length)) continue;
+                              const mid = (stretched[0]![sample]! + stretched[1]![sample]!) * options.level_in * 0.5;
+                              output[0]![sample] = enabled ? (mid + filtered) * options.level_out : sample < start ? stretched[0]![start + i] ?? 0 : 0;
+                              output[1]![sample] = enabled ? (mid - filtered) * options.level_out : sample < start ? stretched[1]![start + i] ?? 0 : 0;
+                            }
+                            forward.copyWithin(0, size);
+                            audioTimestamps.push({ start, end: Math.min(length, start + size), pts });
                           }
-                          start = end;
                         }
                         stretched = output;
                       } else if (trimmed === "earwax") {

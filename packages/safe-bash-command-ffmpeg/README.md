@@ -486,7 +486,9 @@ first matching instance; unmatched targets and invalid gains leave it unchanged.
 Timeline expressions such as `crossfeed=enable='gte(t,0.064)'` evaluate at audio
 frame boundaries using frame time `t` or frame number `n`. Bypassed frames retain
 the input samples while the filter history continues updating.
-Block processing (`block_size`) is unsupported.
+`block_size=256` enables forward/reverse block processing (0–32768 samples,
+default 0 for the causal filter). It also accepts a sixth positional value.
+Partial final blocks are zero-padded for filtering and drained without adding output samples.
 `stereowiden=delay=5:feedback=0.3:crossfeed=0.3:drymix=0.8` widens stereo
 with delayed cross-channel subtraction. Mono input is automatically converted to stereo
 at √½ gain per channel; labeled 5.1 input uses the same downmix as `stereotools`.

@@ -14,7 +14,7 @@ for (const complex of [false, true]) {
     ["crossfeed=0.5:0.5:0.5:0.9:1", "9bf42806f3d74fedfd6d928042213aad1462cfeee11bb498f69808969ba8ef36"],
     ["crossfeed=strength=0:level_in=1:level_out=1", "27a4a79694997729ddfdb326d2f6eed655519c749116ba8b9348f0814e226324"],
     ["crossfeed=strength=0.8:range=0.2:slope=0.7:level_in=0.6:level_out=0.4", "c82d7cac75932912d30686580f8aecc12429b526df8e0276335437dd3d2bec5c"],
-    ...["strength=-1", "strength=2", "range=2", "slope=0", "level_in=2", "level_out=-1", "strength=NaN", "unknown=1", "block_size=32"].map(option => [`crossfeed=${option}`, undefined] as const)
+    ...["strength=-1", "strength=2", "range=2", "slope=0", "level_in=2", "level_out=-1", "strength=NaN", "unknown=1", "block_size=-1", "block_size=32769", "block_size=NaN"].map(option => [`crossfeed=${option}`, undefined] as const)
   ] as const) {
     it(`crossfeed ${complex ? "graph" : "simple"}: ${filter}`, async () => {
       const channels = [new Float64Array(8192), new Float64Array(8192)];

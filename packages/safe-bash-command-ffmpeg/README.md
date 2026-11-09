@@ -184,6 +184,8 @@ Read and write Sun AU audio with `ffmpeg -i input.wav output.au` or
 
 Encode mono or stereo Yamaha ADPCM WAV with `-c:a adpcm_yamaha output.wav`. Encode mono 8000 Hz PCM to G.726 WAV with `-c:a g726 output.wav` (32 kbit/s by default); `-b:a 16k`, `24k`, `32k`, or `40k` selects the bitrate. Encode mono or stereo Microsoft ADPCM WAV with `-c:a adpcm_ms output.wav`, or decode it to PCM including padded final blocks. Microsoft ADPCM encoding also accepts `-block_size` (32–8192, power of two; default 1024). Encode mono or stereo IMA ADPCM WAV with `-c:a adpcm_ima_wav output.wav`; `-block_size` selects a power-of-two block size from 32 through 8192 bytes (default: 1024). Select `-trellis 1..16` for trellis encoding; `-trellis 0` (the default) uses greedy encoding. Three-channel input defaults to stereo; an explicit output `-ac 3` is rejected.
 
+AIFF output supports `-write_id3v2 0|1` (default `0`) and `-id3v2_version 3|4` (default `4`) to write an embedded ID3 metadata chunk while preserving copied audio.
+
 MP3 output supports `-id3v2_version 0|3|4` (default `4`; `0` omits ID3v2) and `-write_id3v1 0|1` (default `0`). Stream copy preserves audio packets while rewriting tags.
 
 Ogg Opus input supports audio filters such as `-af volume=0`, with encoder delay and final padding removed.

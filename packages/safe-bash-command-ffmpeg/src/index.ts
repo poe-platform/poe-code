@@ -3824,6 +3824,7 @@ export function evalSyncFfmpeg(
     let writeBext = false;
     let writeTmcd = true;
     let sampleFormat: string | undefined;
+    let trellis: number | undefined;
     let blockSize: number | undefined;
     let frameSize: number | undefined;
     let channelMode: string | undefined;
@@ -4092,6 +4093,10 @@ export function evalSyncFfmpeg(
       } else if (arg === "-ch_mode") {
         channelMode = args[++i];
         if (!channelMode) throw new Error("Missing ch_mode value");
+      } else if (arg === "-trellis") {
+        const value = args[++i];
+        trellis = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(trellis) || trellis < 0 || trellis > 16) throw new Error("Invalid trellis: expected an integer from 0 to 16");
       } else if (arg === "-block_size") {
         const value = args[++i];
         blockSize = value?.trim() ? Number(value) : NaN;
@@ -4525,7 +4530,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, reserveIndexSpace, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeId3v1, metadataHeaderPadding, reserveIndexSpace, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -4847,6 +4852,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let writeBext = false;
         let writeTmcd = true;
         let sampleFormat: string | undefined;
+        let trellis: number | undefined;
         let blockSize: number | undefined;
         let frameSize: number | undefined;
         let channelMode: string | undefined;
@@ -5761,6 +5767,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-ch_mode") {
             channelMode = args[++i];
             if (!channelMode) throw new Error("Missing ch_mode value");
+          } else if (arg === "-trellis") {
+            const value = args[++i];
+            trellis = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(trellis) || trellis < 0 || trellis > 16) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid trellis: expected an integer from 0 to 16\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-block_size") {
             const value = args[++i];
             blockSize = value?.trim() ? Number(value) : NaN;
@@ -9139,7 +9152,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   validateSubtitleEncoder(subtitleCodec, doc, plugin.id);
                   const bytes = serializeLimitedWav(doc, plugin, {
                     format: slave.format, seekable: !isStdout(slave.target),
-                    audioCodec, videoCodec, audioBitrate, blockSize, sampleFormat, metadata: metaTags, budget
+                    audioCodec, videoCodec, audioBitrate, blockSize, trellis, sampleFormat, metadata: metaTags, budget
                   }, undefined);
                   totalBytes += bytes.byteLength;
                   budget.checkOutputBytes(totalBytes);
@@ -9228,7 +9241,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       (index === paths.length - 1 || sample.dts < end * track.timescale))
                   })) };
                 const bytes = segmentPlugin.serialize(resetTimestamps && segmentPlugin.id !== "wav"
-                  ? shiftTimestamps(segment, -start, budget) : segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, blockSize, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, reserveIndexSpace, budget, limits: options.limits });
+                  ? shiftTimestamps(segment, -start, budget) : segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, reserveIndexSpace, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
@@ -9846,7 +9859,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               maxPredictionOrder,
               predictionOrderMethod,
               multiDimQuant,
-              blockSize,
+              blockSize, trellis,
               frameSize,
               channelMode,
               sampleFormat,

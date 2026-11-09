@@ -1,3 +1,5 @@
+import type { MediaBudgetTracker } from "../types.js";
+
 // IMA/DVI ADPCM uses one predictor/index header per channel, then groups of
 // four bytes per channel. Each byte stores the earlier sample in its low nibble.
 export const steps = [7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31,
@@ -54,7 +56,8 @@ export function decodeImaWav(data: Uint8Array, channels: number, blockAlign: num
   return frame === frames ? output : output.map(samples => samples.subarray(0, frame));
 }
 
-export function encodeImaWav(channelData: readonly (Float32Array | Float64Array)[], blockAlign: number): Uint8Array {
+export function encodeImaWav(channelData: readonly (Float32Array | Float64Array)[], blockAlign: number, trellis = 0, budget?: MediaBudgetTracker): Uint8Array {
+  if (!Number.isInteger(trellis) || trellis < 0 || trellis > 16) throw new Error("Invalid trellis: expected an integer from 0 to 16");
   const channels = channelData.length;
   if (channels < 1 || channels > 2) throw new Error("IMA WAV encoding supports mono or stereo audio");
   const frames = imaBlockFrames(blockAlign, channels);
@@ -69,6 +72,15 @@ export function encodeImaWav(channelData: readonly (Float32Array | Float64Array)
       let index = indices[ch]!;
       view.setInt16(offset + ch * 4, predictor, true);
       output[offset + ch * 4 + 2] = index;
+      if (trellis > 0) {
+        const encoded = encodeTrellis(samples, frame + 1, frames - 1, predictor, index, trellis, budget);
+        for (let i = 0; i < encoded.nibbles.length; i += 2) {
+          const position = offset + channels * 4 + Math.floor(i / 8) * channels * 4 + ch * 4 + (i % 8) / 2;
+          output[position] = encoded.nibbles[i]! | (encoded.nibbles[i + 1]! << 4);
+        }
+        indices[ch] = encoded.index;
+        continue;
+      }
       let sample = frame + 1;
       for (let group = offset + channels * 4; group < offset + blockAlign; group += channels * 4) {
         for (let byte = 0; byte < 4; byte++) {
@@ -93,4 +105,84 @@ export function encodeImaWav(channelData: readonly (Float32Array | Float64Array)
     }
   }
   return output;
+}
+
+// Match FFmpeg's heap ordering and predictor deduplication, including ties.
+// Freeze the best path every 128 samples to bound search history.
+function encodeTrellis(samples: Float32Array | Float64Array, start: number, count: number,
+  predictor: number, index: number, depth: number, budget?: MediaBudgetTracker): { nibbles: Uint8Array; index: number } {
+  const frontier = 1 << depth;
+  const memory = frontier * (128 * 5 + 128) + 65536 + count;
+  budget?.allocateMemory(memory);
+  try {
+    const previous = new Uint32Array(frontier * 128);
+    const codes = new Uint8Array(frontier * 128);
+    const seen = new Uint8Array(65536).fill(255);
+    const nibbles = new Uint8Array(count);
+    type Node = { error: number; predictor: number; index: number; path: number };
+    let nodes: Node[] = [{ error: 0, predictor, index, path: 0 }];
+    let pathCount = 0, frozen = -1, generation = 0;
+    for (let i = 0; i < count; i++) {
+      budget?.checkCpu();
+      const target = Math.max(-32768, Math.min(32767, Math.round((samples[start + i] ?? 0) * 32768)));
+      const next: Node[] = [];
+      let heapPosition = 0;
+      for (let j = 0; j < nodes.length; j++) {
+        const node = nodes[j]!;
+        const range = j < frontier / 2 ? 1 : 0;
+        const step = steps[node.index]!;
+        const div = Math.trunc((target - node.predictor) * 4 / step);
+        let min = Math.max(-7, Math.min(6, div - range));
+        let max = Math.max(-6, Math.min(7, div + range));
+        if (min <= 0) min--;
+        if (max < 0) max--;
+        for (let candidate = min; candidate <= max; candidate++) {
+          const nibble = candidate < 0 ? 7 - candidate : candidate;
+          const delta = Math.trunc(step * (2 * (nibble & 7) + 1) * (nibble & 8 ? -1 : 1) / 8);
+          const value = Math.max(-32768, Math.min(32767, node.predictor + delta));
+          const error = (node.error + (target - value) ** 2) >>> 0;
+          if (error < node.error || seen[value & 65535] === generation) continue;
+          let position: number;
+          if (heapPosition < frontier) position = heapPosition++;
+          else {
+            position = (frontier >> 1) + (heapPosition & ((frontier >> 1) - 1));
+            if (error > next[position]!.error) continue;
+            heapPosition++;
+          }
+          seen[value & 65535] = generation;
+          const path = next[position]?.path ?? pathCount++;
+          next[position] = { error, predictor: value,
+            index: Math.max(0, Math.min(88, node.index + indexChanges[nibble & 7]!)), path };
+          codes[path] = nibble;
+          previous[path] = node.path;
+          while (position > 0) {
+            const parent = (position - 1) >> 1;
+            if (next[parent]!.error <= error) break;
+            [next[parent], next[position]] = [next[position]!, next[parent]!];
+            position = parent;
+          }
+        }
+      }
+      nodes = next;
+      if (++generation === 255) { seen.fill(255); generation = 0; }
+      const best = nodes[0]!;
+      if (best.error > 1 << 28) {
+        for (let j = 1; j < nodes.length; j++) nodes[j]!.error -= best.error;
+        best.error = 0;
+      }
+      if (i === frozen + 128 || i === count - 1) {
+        let path = best.path;
+        for (let k = i; k > frozen; k--) {
+          nibbles[k] = codes[path]!;
+          path = previous[path]!;
+        }
+        frozen = i;
+        pathCount = 0;
+        nodes.length = 1;
+      }
+    }
+    return { nibbles, index: nodes[0]!.index };
+  } finally {
+    budget?.releaseMemory(memory);
+  }
 }

@@ -768,7 +768,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       throw new Error("Invalid block_size: expected a power of two from 32 to 8192");
     }
     const frames = imaBlockFrames(blockAlign, channels);
-    pcmBytes = encodeImaWav(decodedAudio.channelData, blockAlign);
+    pcmBytes = encodeImaWav(decodedAudio.channelData, blockAlign, options.trellis, options.budget);
     formatBytes = new Uint8Array(20);
     const format = new DataView(formatBytes.buffer);
     format.setUint16(0, 17, true);

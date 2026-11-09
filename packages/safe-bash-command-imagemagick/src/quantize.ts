@@ -1,5 +1,28 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
+/** Quantize packed list pixels without adding canvas padding. */
+export function* quantizeImageListSteps(images: readonly { length: number; hasAlpha: boolean }[], requested: number, grayscale = false, treeDepth = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const steps = quantizePixelSteps(images.reduce((sum, image) => sum + image.length, 0), requested, grayscale, treeDepth);
+    let next = steps.next(), image = 0, start = 0;
+    while (!next.done) {
+        const request = next.value;
+        if (!request || request.kind !== "read") { yield request; next = steps.next(); continue; }
+        if (request.position < start) { image = 0; start = 0; }
+        const data = new Uint8Array(request.length);
+        for (let offset = 0; offset < data.length;) {
+            const position = request.position + offset;
+            while (position >= start + images[image]!.length) start += images[image++]!.length;
+            const length = Math.min(data.length - offset, start + images[image]!.length - position);
+            const bytes = yield { kind: "read", image, position: position - start, length };
+            if (!bytes || bytes.length !== length) throw new Error("Truncated quantization pixels");
+            data.set(bytes, offset);
+            if (!images[image]!.hasAlpha) for (let i = offset + 3; i < offset + length; i += 4) data[i] = 255;
+            offset += length;
+        }
+        next = steps.next(data);
+    }
+}
+
 // Sums retain RGBA and RGB multiplied by alpha, so merged bins keep exact weights.
 interface ColorBin { count: number; sums: number[]; color: number[]; node?: ColorNode }
 interface ColorNode {
@@ -13,11 +36,12 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     const prepare = (source: Uint8Array): Uint8Array => {
         const data = new Uint8Array(source);
         for (let i = 0; i < data.length; i += 4) {
+            if (!hasAlpha) data[i + 3] = 255;
             if (grayscale) {
                 const luma = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
                 data[i] = data[i + 1] = data[i + 2] = requested === 2 ? (luma >= 127.5 ? 255 : 0) : Math.round(luma);

@@ -46,7 +46,7 @@ import { morphPixelSteps, pointResizePixelSteps, resizePixelSteps, type MagickRe
 import { trimGeometrySteps, trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { gifDitherSteps } from "./gif-dither.js";
-import { quantizePixelSteps } from "./quantize.js";
+import { quantizeImageListSteps, quantizePixelSteps } from "./quantize.js";
 import { uniqueColorsSteps, uniqueColorsStored } from "./unique-colors.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
 import { type LookupInterpolation, clutPixelSteps, haldClutPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
@@ -664,6 +664,7 @@ interface MagickState {
   dither: false | "riemersma" | "floydsteinberg";
   diffusionAmount?: number;
   quantizeGray?: boolean;
+  colors?: number;
   treeDepth?: number;
   formatStr: string | undefined;
   channels: { r: boolean; g: boolean; b: boolean; a: boolean };
@@ -7602,9 +7603,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-colors") {
             const colors = Number(tokens[++i]);
+            state.colors = colors;
             stack = yield* mapMagickImagesSteps(stack, image => {
                 const { data16: ignored, hueSamples: ignoredHue, ...pixels } = image;
-                return applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, colors, state.quantizeGray, state.treeDepth), signal);
+                return applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, colors, state.quantizeGray, state.treeDepth, image.hasAlpha), signal);
             });
         }
         else if (pixelOperation) {
@@ -7949,10 +7951,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (spec && !readMask) throw new Error(`unable to read mask '${spec}'`);
             stack = yield* mapSteps(stack, function* (image) { yield; return { ...image, readMask }; });
         }
-        else if (t === "-remap") {
+        else if (t === "-remap" || t === "+remap") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const palSpec = tokens[++i] ?? "";
-            const palImg = palSpec.slice(0, 4).toLowerCase() === "mpr:"
+            const palSpec = t === "-remap" ? tokens[++i] ?? "" : "";
+            const palImg = t === "+remap"
+                ? yield* applyMagickRasterSteps(stack[0]!, quantizeImageListSteps(stack.map(image => ({ length: image.data.length, hasAlpha: image.hasAlpha })), state.colors ?? 256, state.quantizeGray, state.treeDepth), signal,
+                    { width: stack.reduce((sum, image) => sum + image.width * image.height, 0), height: 1, hasAlpha: stack.some(image => image.hasAlpha) }, stack)
+                : palSpec.slice(0, 4).toLowerCase() === "mpr:"
                 ? registers.get(palSpec.slice(4))?.[0]
                 : yield* parseInputOperandSteps(palSpec, files, state, stdinBytes);
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
@@ -9289,7 +9294,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-colors") {
             const colors = Number(tokens[++i]), grayscale = state.quantizeGray, treeDepth = state.treeDepth;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, colors, grayscale, treeDepth), signal) : undefined);
+            state.colors = colors;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, colors, grayscale, treeDepth, image.hasAlpha), signal) : undefined);
             continue;
         }
         if (!operandsOnly && token === "-ordered-dither") {
@@ -9840,6 +9846,30 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (spec && !mask) throw new Error(`unable to read mask '${spec}'`);
                 const readMask = mask ? { width: mask.width, height: mask.height, position: mask.position } : undefined;
                 for (let n = 0; n < stack.length; n++) await stack.set(n, { ...(await stack.get(n))!, readMask } as StoredRgbaImage);
+                return stack;
+            });
+        } else if (!operandsOnly && token === "+remap") {
+            const settings = { ...state };
+            stackStep(async (stack, backend) => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                const images: { length: number; hasAlpha: boolean }[] = [];
+                let width = 0, hasAlpha = false;
+                for (let n = 0; n < stack.length; n++) {
+                    await yieldTurn(signal);
+                    const image = (await stack.get(n))!;
+                    images.push({ length: image.width * image.height * 4, hasAlpha: image.hasAlpha });
+                    width += image.width * image.height;
+                    hasAlpha ||= image.hasAlpha;
+                }
+                const colors = await transformStoredMagickRaster((await stack.get(0))!, backend,
+                    quantizeImageListSteps(images, settings.colors ?? 256, settings.quantizeGray, settings.treeDepth), signal,
+                    { width, height: 1, hasAlpha }, async index => (await stack.get(index))!);
+                for (let n = 0; n < stack.length; n++) {
+                    const image = (await stack.get(n))!;
+                    await stack.set(n, settings.dither === "riemersma"
+                        ? await transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!image.storedData16, settings.diffusionAmount ?? 1), signal, image, [image, colors])
+                        : await remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal));
+                }
                 return stack;
             });
         } else if (!operandsOnly && token === "-remap") {
@@ -10495,7 +10525,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
         "-auto-level", "-auto-gamma", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
-        "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
+        "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin", "+remap",
         "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+treedepth", "+compress", "+depth", "+endian", "+size",
         "+read-mask", "+interpolate", "+intensity", "+filter", "+page", "+orient",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"

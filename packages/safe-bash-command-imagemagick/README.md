@@ -2,7 +2,7 @@
 
 ImageMagick (`magick`, `convert`, `mogrify`, `composite`, `montage`, `compare`, `identify`) command-line tools for `safe-bash`, powered by `@poe-code/image-ast`.
 
-`pattern:NAME` renders the requested built-in ImageMagick tile, including stripes, crosshatches, bricks and gray density patterns. Use `-size 32x17 pattern:vertical out.png` to repeat it across a canvas; without `-size`, the native tile dimensions are used. Unknown names fail without replacing the output.
+`+remap` builds a shared palette across loaded images using the current `-colors` limit and dithering settings. `pattern:NAME` renders the requested built-in ImageMagick tile, including stripes, crosshatches, bricks and gray density patterns. Use `-size 32x17 pattern:vertical out.png` to repeat it across a canvas; without `-size`, the native tile dimensions are used. Unknown names fail without replacing the output.
 
 `-seed 123 -size 64x64 plasma:fractal out.png` creates reproducible plasma noise. Use `plasma:red-blue` for a color gradient with plasma displacement; changing the seed changes the pixels.
 

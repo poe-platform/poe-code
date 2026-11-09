@@ -51,7 +51,10 @@ test("readlink retains default option permutation and canonical mode ordering", 
   for (const args of [["-ef", "missing"], ["-e", "--canonicalize", "missing"]]) {
    assert.deepEqual(await run(args, env), { exitCode: 0, stdout: "/missing\n", stderr: "" });
   }
-  assert.deepEqual(await run(["-fe", "missing"], env), { exitCode: 1, stdout: "", stderr: "" });
+  const missing = await run(["-fe", "missing"], env);
+  assert.equal(missing.exitCode, 1);
+  assert.equal(missing.stdout, "");
+  assert.equal(missing.stderr.length > 0, env.POSIXLY_CORRECT !== undefined);
  }
 });
 

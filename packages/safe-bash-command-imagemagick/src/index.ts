@@ -9334,7 +9334,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 canvas = yield* applyMagickRasterSteps(canvas, smushCompositePixelSteps(canvas, stack[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || stack[n]!.data16)), signal, canvas, [canvas, stack[n]!]);
             }
             for (const image of stack) detachRgbaBuffer(image.data);
-            stack = [{ ...canvas, virtualCanvas }];
+            stack = [{ ...canvas, virtualCanvas, density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) }];
         }
         else if (t === "-append" || t === "+append") {
             const oldStack = stack;
@@ -10438,7 +10438,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let canvas = await createStoredCanvas(width, height, background, backend, signal);
                 for (let n = 0; n < images.length; n++) canvas = await transformStoredMagickRaster(canvas, backend, smushCompositePixelSteps(canvas, images[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || images[n]!.storedData16)), signal, canvas, [canvas, images[n]!]);
                 stack.length = 0;
-                await stack.push({ ...canvas, virtualCanvas });
+                await stack.push({ ...canvas, virtualCanvas, density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) });
                 return stack;
             });
             continue;

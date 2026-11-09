@@ -45,9 +45,10 @@ export function writePngPixel(rawData: Uint8Array, rowStart: number, x: number, 
       rgba[outIdx + 3] = a;
     } else if (colorType === 3) {
       const pIdx = rawData[rowStart + x]!;
-      rgba[outIdx] = palette ? (palette[pIdx * 3] ?? 0) : 0;
-      rgba[outIdx + 1] = palette ? (palette[pIdx * 3 + 1] ?? 0) : 0;
-      rgba[outIdx + 2] = palette ? (palette[pIdx * 3 + 2] ?? 0) : 0;
+      if (!palette || pIdx * 3 + 2 >= palette.length) throw new Error("PNG invalid colormap index");
+      rgba[outIdx] = palette[pIdx * 3]!;
+      rgba[outIdx + 1] = palette[pIdx * 3 + 1]!;
+      rgba[outIdx + 2] = palette[pIdx * 3 + 2]!;
       rgba[outIdx + 3] = trns && pIdx < trns.length ? trns[pIdx]! : 255;
     }
   } else if (bitDepth === 16) {
@@ -112,9 +113,10 @@ export function writePngPixel(rawData: Uint8Array, rowStart: number, x: number, 
     const mask = (1 << bitDepth) - 1;
     const sample = (rawData[byteIndex]! >>> shift) & mask;
     if (colorType === 3) {
-      rgba[outIdx] = palette ? (palette[sample * 3] ?? 0) : 0;
-      rgba[outIdx + 1] = palette ? (palette[sample * 3 + 1] ?? 0) : 0;
-      rgba[outIdx + 2] = palette ? (palette[sample * 3 + 2] ?? 0) : 0;
+      if (!palette || sample * 3 + 2 >= palette.length) throw new Error("PNG invalid colormap index");
+      rgba[outIdx] = palette[sample * 3]!;
+      rgba[outIdx + 1] = palette[sample * 3 + 1]!;
+      rgba[outIdx + 2] = palette[sample * 3 + 2]!;
       rgba[outIdx + 3] = trns && sample < trns.length ? trns[sample]! : 255;
     } else {
       const scaled = Math.round((sample * 255) / mask);

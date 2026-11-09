@@ -28,7 +28,7 @@ import { ftxtPixels, storedFtxt } from "./ftxt.js";
 import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
-import { regionPixelSteps, type Region } from "./region.js";
+import { chopRegion, regionPixelSteps, type Region } from "./region.js";
 import { writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
 import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
@@ -2060,7 +2060,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
         }
     }
     const virtualCanvas = magickResizeCanvas(img, outW, outH);
-    return { ...img, width: outW, height: outH, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
+    return { ...img, ...(img.region ? { region: chopRegion(img.region, cx0, cy0, cx1, cy1) } : {}), width: outW, height: outH, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
@@ -9869,6 +9869,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     const g = token === "-roll" ? parseMagickRollGeometry(geometry) : parseMagickGeometry(geometry), w = image.width, h = image.height;
     type Span = { source: number; target: number; length: number };
     let xs: Span[], ys: Span[], width = w, height = h;
+    let region = image.region;
     if (token === "-roll") {
         const dx = ((g.x % w) + w) % w;
         const dy = ((g.y % h) + h) % h;
@@ -9907,6 +9908,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
             return image;
         }
         width -= x1 - x0; height -= y1 - y0;
+        if (region) region = chopRegion(region, x0, y0, x1, y1);
         xs = [{ source: 0, target: 0, length: x0 }, { source: x1, target: x0, length: w - x1 }];
         ys = [{ source: 0, target: 0, length: y0 }, { source: y1, target: y0, length: h - y1 }];
     }
@@ -9983,7 +9985,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     if (token === "-splice" && (image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
         image = { ...image, space: "srgb", channels: 4 };
     const virtualCanvas = token !== "-roll" ? magickResizeCanvas(image, width, height) : undefined;
-    return { ...image, position, width, height, ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { hasAlpha: true } : {}),
+    return { ...image, region, position, width, height, ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { hasAlpha: true } : {}),
         ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 

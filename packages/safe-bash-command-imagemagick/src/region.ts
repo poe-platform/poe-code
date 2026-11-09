@@ -3,6 +3,19 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 
 export interface Region { x: number; y: number; width: number; height: number }
 
+/** Removing rows and columns keeps a rectangular region rectangular. */
+export function chopRegion(region: Region, x0: number, y0: number, x1: number, y1: number): Region {
+    const x = region.x - Math.max(0, Math.min(region.x, x1) - x0);
+    const y = region.y - Math.max(0, Math.min(region.y, y1) - y0);
+    const right = region.x + region.width;
+    const bottom = region.y + region.height;
+    return {
+        x, y,
+        width: right - Math.max(0, Math.min(right, x1) - x0) - x,
+        height: bottom - Math.max(0, Math.min(bottom, y1) - y0) - y,
+    };
+}
+
 /** Apply a white write mask outside the selected rectangle in bounded chunks. */
 export function* regionPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined }, region: Region, highDepth = false, channels?: MaskChannels): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const left = Math.max(0, Math.min(image.width, region.x));

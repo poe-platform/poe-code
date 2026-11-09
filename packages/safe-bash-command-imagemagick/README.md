@@ -3,6 +3,8 @@
 
 ImageMagick (`magick`, `convert`, `mogrify`, `composite`, `montage`, `compare`, `identify`) command-line tools for `safe-bash`, powered by `@poe-code/image-ast`. Read saved MPR registers with frame selectors (`mpr:Seq[1]`, `mpr:Seq[2-0]`) or crop geometry (`mpr:Saved[1x1+1+0]`); ranges preserve the requested order. `.xwd` and `XWD:` outputs write version-7, 24-bit RGB XWD for true-color or indexed inputs, including `-write`; alpha is omitted.
 
+`-copy 2x1+0+0 +2+1` copies a pixel rectangle within each image. Overlapping copies follow native scan order, so earlier writes can become the source of later pixels.
+
 `+remap` builds a shared palette across loaded images using the current `-colors` limit and dithering settings. `pattern:NAME` renders the requested built-in ImageMagick tile, including stripes, crosshatches, bricks and gray density patterns. Use `-size 32x17 pattern:vertical out.png` to repeat it across a canvas; without `-size`, the native tile dimensions are used. Unknown names fail without replacing the output.
 
 `-seed 123 -size 64x64 plasma:fractal out.png` creates reproducible plasma noise. Use `plasma:red-blue` for a color gradient with plasma displacement; changing the seed changes the pixels.

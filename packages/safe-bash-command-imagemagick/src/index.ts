@@ -4436,6 +4436,49 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
 type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor });
 type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
+function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    validateMagickTransformGeometry(geometry, "-copy");
+    validateMagickTransformGeometry(offset, "-copy");
+    const source = parseMagickGeometry(geometry), destination = parseMagickGeometry(offset);
+    const width = source.width ?? image.width, height = source.height ?? image.height;
+    const left = destination.x, top = destination.y, right = left + width, bottom = top + height;
+    if (left < 0 || top < 0 || right > image.width || bottom > image.height) throw new Error("geometry does not contain image");
+    const dx = left - source.x, dy = top - source.y;
+    const pixelBytes = highDepth ? 8 : 4;
+    for (let y = 0; y < image.height; y++) for (let start = 0; start < image.width; start += 1024) {
+        yield;
+        const count = Math.min(1024, image.width - start), data = new Uint8Array(count * pixelBytes);
+        let runStart = 0, runSource = -1, previous = -2;
+        for (let i = 0; i <= count; i++) {
+            let position = -1;
+            if (i < count) {
+                let x = start + i, sy = y;
+                if (x >= left && x < right && y >= top && y < bottom) {
+                    // Follow earlier writes back to their original pixel in constant time.
+                    let copies = 1;
+                    if (dy > 0 || (dy === 0 && dx > 0)) {
+                        const horizontal = dx > 0 ? Math.floor((x - left) / dx) : dx < 0 ? Math.floor((right - 1 - x) / -dx) : Infinity;
+                        const vertical = dy > 0 ? Math.floor((y - top) / dy) : Infinity;
+                        copies += Math.min(horizontal, vertical);
+                    }
+                    x -= copies * dx;
+                    sy -= copies * dy;
+                }
+                position = (Math.max(0, Math.min(image.height - 1, sy)) * image.width + Math.max(0, Math.min(image.width - 1, x))) * 4;
+            }
+            if (i > runStart && (i === count || position !== previous + 4)) {
+                const bytes = yield { kind: "read", position: runSource, length: (i - runStart) * 4, highDepth };
+                if (!bytes || bytes.length !== (i - runStart) * pixelBytes) throw new Error("Truncated copy pixels");
+                data.set(bytes, runStart * pixelBytes);
+                runStart = i;
+            }
+            if (i === runStart) runSource = position;
+            previous = position;
+        }
+        yield { kind: "write", position: (y * image.width + start) * 4, data, highDepth };
+    }
+}
+
 function* drawPointPixelSteps(image: Pick<RgbaImage, "width" | "height">, point: { kind: "paint-point" | "reset"; x: number; y: number; color: RgbaColor; alphaOnly: boolean }, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const seed = point.y * image.width + point.x, scale = highDepth ? 257 : 1;
     for (let start = 0; start < image.width * image.height; start += 1024) {
@@ -5130,7 +5173,7 @@ function inferMaxDecodeDimensionFromUpcomingTokens(
         }
     }
     const coordDependentOps = new Set([
-        "-crop", "-chop", "-splice", "-trim", "-roll", "-shave", "-sort-pixels",
+        "-copy", "-crop", "-chop", "-splice", "-trim", "-roll", "-shave", "-sort-pixels",
         "-extent", "-border", "-frame", "-draw", "-annotate",
         "-region", "-floodfill", "+floodfill", "-repage", "+repage", "-distort"
     ]);
@@ -8022,6 +8065,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return (yield* applyMagickChopSteps(im, expanded, state.gravity, signal, analysis));
             });
         }
+        else if (t === "-copy") {
+            const geometry = tokens[++i] ?? "", offset = tokens[++i] ?? "";
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                return yield* applyMagickRasterSteps(image, copyMagickPixelSteps(image, geometry, offset, !!image.data16), signal);
+            });
+        }
         else if (t === "-roll") {
             const geom = tokens[++i] ?? "+0+0";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -10297,6 +10346,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const spec = tokens[++i] ?? "1";
             const kernel = parseMagickConvolveKernel(spec);
             steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
+        } else if (!operandsOnly && token === "-copy") {
+            const geometry = tokens[++i] ?? "", offset = tokens[++i] ?? "";
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, copyMagickPixelSteps(image, geometry, offset, !!image.storedData16), signal) : undefined);
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
             steps.push(async (image, backend) => {
@@ -10856,7 +10908,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-clone", "-insert", "-swap", "-delete", "-smush", "+smush", "-layers", "-recolor",
         "-contrast-stretch", "-linear-stretch", "-intensity", "-connected-components", "+connected-components"
     ]);
-    const flagsWithTwoArgs = new Set(["-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
+    const flagsWithTwoArgs = new Set(["-copy", "-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
     const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label"]);
     const flagsWithoutArgs = new Set([
         "-despeckle",

@@ -657,6 +657,7 @@ interface MagickState {
   formatStr: string | undefined;
   channels: { r: boolean; g: boolean; b: boolean; a: boolean };
   channelExplicit: boolean;
+  intensity: string;
   precision?: number;
   connectedVerbose?: boolean;
   connectedExcludeHeader?: boolean;
@@ -709,7 +710,8 @@ function createDefaultState(): MagickState {
     dither: "riemersma",
     formatStr: undefined,
     channels: { r: true, g: true, b: true, a: false },
-    channelExplicit: false
+    channelExplicit: false,
+    intensity: "rec709luma"
   };
 }
 
@@ -6086,14 +6088,37 @@ function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" 
   }
 }
 
+function magickIntensity(r: number, g: number, b: number, method: string, quantum: number, linear: boolean): number {
+    switch (method) {
+        case "average": case "mean": return (r + g + b) / 3;
+        case "brightness": return Math.max(r, g, b);
+        case "lightness": return (Math.min(r, g, b) + Math.max(r, g, b)) / 2;
+        case "ms": return (r * r + g * g + b * b) / (3 * quantum);
+        case "rms": return Math.sqrt((r * r + g * g + b * b) / 3);
+    }
+    const luminance = method === "rec601luminance" || method === "rec709luminance";
+    if (luminance && !linear) {
+        r = quantum * (r / quantum <= 0.04045 ? r / quantum / 12.92 : ((r / quantum + 0.055) / 1.055) ** 2.4);
+        g = quantum * (g / quantum <= 0.04045 ? g / quantum / 12.92 : ((g / quantum + 0.055) / 1.055) ** 2.4);
+        b = quantum * (b / quantum <= 0.04045 ? b / quantum / 12.92 : ((b / quantum + 0.055) / 1.055) ** 2.4);
+    } else if (!luminance && linear) {
+        r = quantum * (r / quantum <= 0.0031308 ? r / quantum * 12.92 : 1.055 * (r / quantum) ** (1 / 2.4) - 0.055);
+        g = quantum * (g / quantum <= 0.0031308 ? g / quantum * 12.92 : 1.055 * (g / quantum) ** (1 / 2.4) - 0.055);
+        b = quantum * (b / quantum <= 0.0031308 ? b / quantum * 12.92 : 1.055 * (b / quantum) ** (1 / 2.4) - 0.055);
+    }
+    return method === "rec601luma" || method === "rec601luminance"
+        ? 0.298839 * r + 0.586811 * g + 0.11435 * b
+        : 0.212656 * r + 0.715158 * g + 0.072186 * b;
+}
+
 type MagickHistogram = Float64Array[];
 type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">): MagickPixelOperation["apply"] };
-function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram): Generator<void, void, void> {
+function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram, method: string, linear: boolean): Generator<void, void, void> {
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
         for (let channel = 0; channel < 4; channel++) histogram[channel]![data[i + channel]!]!++;
         // Keep ImageMagick's 16-bit histogram precision for fractional luma.
-        if (histogram[4]) histogram[4][Math.round((data instanceof Uint16Array ? 1 : 257) * (0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!))]!++;
+        if (histogram[4]) histogram[4][Math.round((data instanceof Uint16Array ? 1 : 257) * magickIntensity(data[i]!, data[i + 1]!, data[i + 2]!, method, data instanceof Uint16Array ? 65535 : 255, linear))]!++;
     }
 }
 function* applyMagickLookup(image: RgbaImage, lookup: Uint8Array[]): Generator<void, RgbaImage, void> {
@@ -6484,7 +6509,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
-                    const inten = clampByteVal(0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!);
+                    const inten = clampByteVal(magickIntensity(out[idx]!, out[idx + 1]!, out[idx + 2]!, state.intensity, 255, im.magickColorspace === "RGB"));
                     if (mode === "shape") {
                         out[idx] = state.background.r;
                         out[idx + 1] = state.background.g;
@@ -7308,6 +7333,14 @@ if (t === "-seed") {
         else if (t === "+quantize") {
             state.quantizeGray = false;
         }
+        else if (t === "-intensity") {
+            const method = (tokens[++i] ?? "").toLowerCase();
+            if (!["undefined", "average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(method)) {
+                throw new Error(`unrecognized intensity method '${tokens[i] ?? ""}'`);
+            }
+            state.intensity = method === "undefined" ? "rec709luma" : method;
+        }
+        else if (t === "+intensity") { state.intensity = "rec709luma"; }
         else if (t === "-channel") {
             state.channels = parseChannelMask(tokens[++i] ?? "rgb");
             state.channelExplicit = true;
@@ -7921,7 +7954,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i = analysisOperation.end;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || analysisOperation.highDepth && image.data16 ? 65536 : 256));
-                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram);
+                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB");
                 return yield* analysisOperation.transform(histogram, image)(image);
             });
         }
@@ -9673,6 +9706,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         const analysisOperation = operandsOnly ? undefined : parseMagickAnalysisOperation(tokens, state, i);
         if (analysisOperation) {
             i = analysisOperation.end;
+            const intensity = state.intensity;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || analysisOperation.highDepth && image.storedData16 ? 65536 : 256)), size = image.width * image.height * 4;
@@ -9680,7 +9714,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (offset % 1048576 === 0) await yieldTurn(signal);
                     const original = analysisOperation.highDepth ? image.storedData16 : undefined;
                     const bytes = await backend.storage.read((original?.position ?? image.position) + offset * (original ? 2 : 1), Math.min(16384, size - offset) * (original ? 2 : 1));
-                    await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram), signal);
+                    await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB"), signal);
                 }
                 return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, apply: analysisOperation.transform(histogram, image) }, signal, analysisOperation.highDepth);
             });
@@ -10759,7 +10793,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-region", "-write-mask", "-clip-mask", "-sketch", "-seed", "-quantize", "-virtual-pixel", "-orient", "-profile", "+profile",
         "-scene", "-delay", "-loop", "-transparent-color", "-dispose", "-morph", "-repage", "-raise", "+raise",
         "-clone", "-insert", "-swap", "-delete", "-smush", "+smush", "-layers", "-recolor",
-        "-contrast-stretch", "-linear-stretch", "-connected-components", "+connected-components"
+        "-contrast-stretch", "-linear-stretch", "-intensity", "-connected-components", "+connected-components"
     ]);
     const flagsWithTwoArgs = new Set(["-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
     const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label"]);
@@ -10771,7 +10805,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin",
         "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+compress", "+depth", "+endian", "+size",
-        "+read-mask", "+interpolate", "+filter", "+page", "+orient",
+        "+read-mask", "+interpolate", "+intensity", "+filter", "+page", "+orient",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
     ]);
     for (let i = 0; i < argv.length; i++) {

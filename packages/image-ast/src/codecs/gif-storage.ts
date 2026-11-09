@@ -81,14 +81,14 @@ export async function* encodeGifFromStorage(
     const transdiff = options.gifTransdiff && frame > 0 && currentDisposal <= 1 && previousDisposal <= 1
       && left === 0 && top === 0 && width === layout.width && height === layout.frameHeight
       && (!previousRectangle || (previousRectangle.x === 0 && previousRectangle.y === 0 && previousRectangle.width === layout.width && previousRectangle.height === layout.frameHeight));
-    if (resetFrames || (options.optimizeFrames && frame > 0 && currentDisposal <= 1 && previousDisposal <= 1
+    if (resetFrames || (options.optimizeFrames && currentDisposal <= 1 && previousDisposal <= 1
       && left === 0 && top === 0 && width === layout.width && height === layout.frameHeight
       && (!previousRectangle || (previousRectangle.x === 0 && previousRectangle.y === 0 && previousRectangle.width === layout.width && previousRectangle.height === layout.frameHeight)))) {
       cropped = true;
       let right = -1, bottom = -1;
       left = width; top = height;
       for (let i = 0; i < count; i++) {
-        const different = resetFrames ? (await pixels.pixel(pixel(i))) >>> 24 >= 128 : await pixels.pixel(pixel(i)) !== await previousPixels.pixel(start - layout.framePixels + i);
+        const different = resetFrames || frame === 0 ? (await pixels.pixel(pixel(i))) >>> 24 >= 128 : await pixels.pixel(pixel(i)) !== await previousPixels.pixel(start - layout.framePixels + i);
         if (different) {
           const x = i % layout.width, y = Math.floor(i / layout.width);
           left = Math.min(left, x); top = Math.min(top, y);

@@ -317,7 +317,7 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
     const transdiff = options.gifTransdiff && frame > 0 && currentDisposal <= 1 && previousDisposal <= 1
       && left === 0 && top === 0 && width === layout.width && height === layout.frameHeight
       && (!previousRectangle || (previousRectangle.x === 0 && previousRectangle.y === 0 && previousRectangle.width === layout.width && previousRectangle.height === layout.frameHeight));
-    if (resetFrames || (options.optimizeFrames && frame > 0 && currentDisposal <= 1 && previousDisposal <= 1
+    if (resetFrames || (options.optimizeFrames && currentDisposal <= 1 && previousDisposal <= 1
       && left === 0 && top === 0 && width === layout.width && height === layout.frameHeight
       && (!previousRectangle || (previousRectangle.x === 0 && previousRectangle.y === 0 && previousRectangle.width === layout.width && previousRectangle.height === layout.frameHeight)))) {
       cropped = true;
@@ -325,7 +325,7 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
       left = width; top = height;
       for (let i = 0; i < layout.framePixels; i++) {
         const at = (start + i) * 4, previous = at - layout.framePixels * 4;
-        const different = resetFrames ? data[at + 3]! >= 128 : data[at] !== data[previous] || data[at + 1] !== data[previous + 1] || data[at + 2] !== data[previous + 2] || data[at + 3] !== data[previous + 3];
+        const different = resetFrames || frame === 0 ? data[at + 3]! >= 128 : data[at] !== data[previous] || data[at + 1] !== data[previous + 1] || data[at + 2] !== data[previous + 2] || data[at + 3] !== data[previous + 3];
         if (different) {
           const x = i % layout.width, y = Math.floor(i / layout.width);
           left = Math.min(left, x); top = Math.min(top, y);

@@ -67,8 +67,10 @@ it.each([
     ["G", [141,0,54,40, 142,9,55,120, 161,255,76,200]],
     ["B", [141,106,0,40, 142,107,9,120, 161,127,255,200]],
     ["RGB", [0,0,0,40, 4,4,5,120, 255,255,255,200]],
+    ["RGB,Sync", [0,0,0,40, 4,4,5,120, 255,255,255,200]],
     ["A", [141,106,54,0, 142,107,55,128, 170,134,80,255]],
     ["RGBA", [0,0,0,0, 4,4,5,128, 255,255,255,255]],
+    ["RGBA,Sync", [0,0,0,0, 4,4,5,128, 255,255,255,255]],
 ] as const)(`matches native sepia channel %s (width=${width}, retained=${retained})`, async (channel, expected) => {
     // ImageMagick 7.1.2-31 Q16-HDRI: independent normalization of selected channels.
     const colors = [32,96,160,40, 192,64,16,120, 80,112,176,200];
@@ -81,5 +83,5 @@ it.each([
     const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!).data;
     expect(output.length).toBe(pixels.length);
     // Independent Q16 histogram rounding can differ by one output byte.
-    expect(Math.max(...output.map((value, index) => Math.abs(value - expected[index % expected.length]!)))).toBeLessThanOrEqual(channel === "RGB" || channel === "RGBA" ? 1 : 0);
+    expect(Math.max(...output.map((value, index) => Math.abs(value - expected[index % expected.length]!)))).toBeLessThanOrEqual(channel.startsWith("RGB") ? 1 : 0);
 });

@@ -6225,7 +6225,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         const argument = tokens[start + 1] ?? "", raw = parseFloat(argument);
         // Native CLI percentages span QuantumRange + 1 (65536), in Q16 units.
         const threshold = (argument.endsWith("%") ? raw * 65536 / 100 : raw) / 257;
-        const independent = state.channelExplicit, channels = [state.channels.r, state.channels.g, state.channels.b, state.channels.a], method = state.intensity;
+        const independent = !state.channelDefault, channels = [state.channels.r, state.channels.g, state.channels.b, state.channels.a], method = state.intensity;
         return { end: start + 1, luminance: true, highDepth: true, transform(histogram, image) {
             if (!argument.trim() || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
                 throw new Error(`invalid argument '-sepia-tone' '${argument}'`);

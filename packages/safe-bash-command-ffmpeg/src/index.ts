@@ -6,6 +6,7 @@ import { surroundAudio } from "./audio-surround.js";
 import { denoiseWavelets } from "./audio-afwtdn.js";
 import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { parseTee, selectTeeTracks } from "./tee.js";
+import { measureAstats } from "./audio-astats.js";
 import { measureReplayGain } from "./audio-replaygain.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { autoConvertConcatTrack } from "./concat-auto-convert.js";
@@ -9469,8 +9470,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
                         let reset = 0;
-                        let perChannel = new Set(["Peak_level", "RMS_level"]);
-                        let overall = new Set(["Peak_level", "RMS_level", "Number_of_samples"]);
+                        let perChannel: ReadonlySet<string> | undefined;
+                        let overall: ReadonlySet<string> | undefined;
                         const supported = ["DC_offset", "Min_level", "Max_level", "Peak_level", "RMS_level", "Number_of_samples"];
                         if (trimmed.startsWith("astats=")) {
                           for (const option of trimmed.slice("astats=".length).split(":")) {
@@ -9507,52 +9508,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         const statsChannels = statsStart ? stretched.map(channel => channel.subarray(statsStart)) : stretched;
-                        let totalSquares = 0;
-                        let totalCount = 0;
-                        let overallPeak = 0;
-                        let overallDc = 0;
-                        let overallMin = Infinity;
-                        let overallMax = -Infinity;
-                        let report = "";
-                        const db = (power: number) => power === 0 ? "-inf" : (10 * Math.log10(power)).toFixed(6);
-                        // Min/max retain native integer units until a filter promotes samples to float.
-                        const levelScale = statsScale === 32768 / 32767 ? 32768
-                          : statsScale === 2147483648 / 2147483647 ? 2147483648 : 1;
-                        const measurements = (mask: Set<string>, dc: number, min: number, max: number, peak: number, squares: number, count: number, samples: number) => {
-                          let result = "";
-                          if (mask.has("DC_offset")) result += `DC offset: ${dc.toFixed(6)}\n`;
-                          if (mask.has("Min_level")) result += `Min level: ${min.toFixed(6)}\n`;
-                          if (mask.has("Max_level")) result += `Max level: ${max.toFixed(6)}\n`;
-                          if (mask.has("Peak_level")) result += `Peak level dB: ${db(peak * peak)}\n`;
-                          if (mask.has("RMS_level")) result += `RMS level dB: ${db(squares / count)}\n`;
-                          if (mask.has("Number_of_samples")) result += `Number of samples: ${samples}\n`;
-                          return result;
-                        };
-                        for (const [index, channel] of statsChannels.entries()) {
-                          let squares = 0;
-                          let peak = 0;
-                          let sum = 0;
-                          let min = Infinity;
-                          let max = -Infinity;
-                          for (const value of channel) {
-                            if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            const sample = value * statsScale;
-                            squares += sample * sample;
-                            sum += sample;
-                            min = Math.min(min, value * levelScale);
-                            max = Math.max(max, value * levelScale);
-                            peak = Math.max(peak, Math.abs(sample));
-                          }
-                          const dc = sum / channel.length;
-                          if (perChannel.size) report += `Channel: ${index + 1}\n${measurements(perChannel, dc, min, max, peak, squares, channel.length, channel.length)}`;
-                          totalSquares += squares;
-                          totalCount += channel.length;
-                          overallPeak = Math.max(overallPeak, peak);
-                          if (Math.abs(dc) > Math.abs(overallDc)) overallDc = dc;
-                          overallMin = Math.min(overallMin, min);
-                          overallMax = Math.max(overallMax, max);
-                        }
-                        if (overall.size) report += `Overall\n${measurements(overall, overallDc, overallMin, overallMax, overallPeak, totalSquares, totalCount, totalCount / stretched.length)}`;
+                        const report = await measureAstats(statsChannels, origRate, statsScale, budget, context.signal, perChannel, overall);
                         await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "loudnorm" || trimmed.startsWith("loudnorm=")) {
                         const normalized = await normalizeLoudness(stretched, origRate,

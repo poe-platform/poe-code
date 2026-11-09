@@ -367,8 +367,11 @@ and the native peak-level histogram on stderr, measuring audio after preceding
 filters without changing PCM samples. The histogram includes empty bins between
 the peak and the bin reaching the loudest 0.1% of samples; inputs shorter than
 1000 samples have no histogram.
-`astats` (also `astats=metadata=0:reset=0`) reports per-channel and overall peak/RMS
-levels in dB and the overall sample count on stderr without changing PCM samples.
+`astats` (also `astats=metadata=0:reset=0`) reports per-channel and overall PCM
+statistics on stderr without changing samples: DC offset, signed extrema, sample
+differences, peak/RMS levels, flat factor, peak counts, noise floor, entropy and
+bit depth. Channel reports also include crest factor, dynamic range and zero
+crossings; the overall report includes the sample count.
 `measure_perchannel` and `measure_overall` independently select `none` or a `+`-joined
 list of `DC_offset`, `Min_level`, `Max_level`, `Peak_level`, `RMS_level`, and
 `Number_of_samples`. For example, `astats=measure_perchannel=RMS_level:measure_overall=none`

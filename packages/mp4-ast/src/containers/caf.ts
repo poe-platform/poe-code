@@ -208,7 +208,12 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   }
   // CAF estimates stream duration from bytes, while packet durations and
   // decoded audio count only complete sample frames.
-  const duration = Math.round(data.length * framesPerPacket / bytesPerPacket);
+  let duration = Math.round(data.length * framesPerPacket / bytesPerPacket);
+  if (packetTable && bytesPerPacket && framesPerPacket) {
+    const pv = new DataView(packetTable.buffer, packetTable.byteOffset, packetTable.byteLength);
+    duration = Number(pv.getBigInt64(0)) * framesPerPacket;
+    if (!Number.isSafeInteger(duration) || duration < 0) throw new Error("Invalid CAF packet duration");
+  }
   budget.checkDuration(duration / sampleRate);
   return { ...doc, duration, durationSeconds: duration / sampleRate,
     metadata: { ...doc.metadata, ...metadata }, containerFormat: "caf", byteLength: bytes.length,

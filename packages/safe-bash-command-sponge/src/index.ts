@@ -91,22 +91,16 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
           endOfOptions = true;
           continue;
         }
-        if (!endOfOptions && arg === "--append") { append = true; continue; }
-        if (!endOfOptions && (arg === "--help" || arg === "-h")) {
-          await writeText(context.stdout, "Usage: sponge [-a] [FILE]\nSoak up standard input and write to FILE (or stdout).\n");
-          return { exitCode: 0 };
-        }
-        if (!endOfOptions && arg === "--version") {
-          await writeText(context.stdout, "sponge (virtual-bash)\n");
-          return { exitCode: 0 };
-        }
         if (!endOfOptions && arg.startsWith("-") && arg.length > 1) {
           for (let i = 1; i < arg.length; i++) {
             const ch = arg[i];
             if (ch === "a") append = true;
+            else if (ch === "h") {
+              await writeText(context.stdout, "sponge [-a] <file>: soak up all input from stdin and write it to <file>\n");
+              return { exitCode: 0 };
+            }
             else {
               await writeText(context.stderr, `sponge: invalid option -- '${ch}'\n`);
-              return { exitCode: 2 };
             }
           }
           continue;
@@ -224,16 +218,11 @@ export function evalSyncSponge(
       endOfOptions = true;
       continue;
     }
-    if (!endOfOptions && arg === "--append") continue;
-    if (!endOfOptions && (arg === "--help" || arg === "-h")) {
-      return "Usage: sponge [-a] [FILE]\nSoak up standard input and write to FILE (or stdout).\n";
-    }
-    if (!endOfOptions && arg === "--version") {
-      return "sponge (virtual-bash)\n";
-    }
     if (!endOfOptions && arg.startsWith("-") && arg.length > 1) {
       for (let i = 1; i < arg.length; i++) {
-        if (arg[i] !== "a") return undefined;
+        if (arg[i] === "a") continue;
+        else if (arg[i] === "h") return "sponge [-a] <file>: soak up all input from stdin and write it to <file>\n";
+        else return undefined;
       }
       continue;
     }

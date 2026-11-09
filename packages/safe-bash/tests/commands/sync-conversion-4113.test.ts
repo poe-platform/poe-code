@@ -901,8 +901,10 @@ test("evaluates dd of=/seek=/iflag=/oflag=/conv=notrunc, install -D/-t/-b, and s
   assert.equal(r.exitCode, 0, r.stderr);
   assert.equal(
     r.stdout,
-    "__3456____#install: creating directory '/tmp/w198_dir',install: creating directory '/tmp/w198_dir/sub','/tmp/w198.in' -> '/tmp/w198_dir/sub/out.txt',#pass#0123456789tail\n",
+    "__3456____#install: creating directory '/tmp/w198_dir',install: creating directory '/tmp/w198_dir/sub','/tmp/w198.in' -> '/tmp/w198_dir/sub/out.txt',##0123456789tail\n",
   );
+  assert.equal(new TextDecoder().decode(await fs.readFile("/tmp/-")), "pass");
+  assert.equal(r.stderr, Array.from("-ppend", ch => `sponge: invalid option -- '${ch}'\n`).join(""));
 });
 
 test("evaluates cp/mv -t/--target-directory/-n and multi-source, mkdir -pv, and rmdir -pv in sync substitutions (Wave 199)", async () => {

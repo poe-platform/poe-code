@@ -1527,7 +1527,7 @@ test("sync substitution and pipeline fast path for sponge, truncate, install, an
       $(printf "abcdef\n" | sponge /sp.txt)
       $(truncate -s 4 /sp.txt)
       in_out=$(install -v /sp.txt /inst.txt)
-      sp_ver=$(sponge --version)
+      sp_ver=$(printf "version-input" | sponge --version)
       tr_ver=$(truncate --version)
       in_ver=$(install --version)
       ap_out=$(printf "*** Begin Patch\n*** Add File: /patched.txt\n+hello patch\n*** End Patch\n" | apply_patch)
@@ -1538,7 +1538,8 @@ test("sync substitution and pipeline fast path for sponge, truncate, install, an
   assert.equal(r.exitCode, 0, r.stderr);
   const parts = r.stdout.trim().split("|");
   assert.equal(parts[0], "soaked-line");
-  assert.equal(parts[1], "sponge (virtual-bash)");
+  assert.equal(parts[1], "version-input");
+  assert.equal(r.stderr, Array.from("-version", ch => `sponge: invalid option -- '${ch}'\n`).join("").repeat(3));
   assert.match(parts[2] ?? "", /^truncate /);
   assert.equal(parts[3], "removed \x27/inst.txt\x27\n\x27/sp.txt\x27 -> \x27/inst.txt\x27");
   assert.match(parts[4] ?? "", /^install /);

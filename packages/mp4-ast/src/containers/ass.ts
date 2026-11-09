@@ -81,13 +81,26 @@ function parseAss(bytes: Uint8Array, options?: ParseMediaOptions): MediaDocument
   const header: string[] = [];
   const samples: MediaSample[] = [];
   let fields = eventFields;
-  let events = false;
+  let styleFields: string[] = [];
+  const boldStyles = new Set<string>();
+  let section = "";
   let duration = 0;
   for (const raw of decodeAss(bytes).split("\n")) {
     const line = raw.trim();
-    if (copy && !(events && line.startsWith("Dialogue:"))) header.push(raw.endsWith("\r") ? raw.slice(0, -1) : raw);
-    if (line.startsWith("[")) { events = line === "[Events]"; continue; }
-    if (!events) continue;
+    if (copy && !(section === "[Events]" && line.startsWith("Dialogue:"))) header.push(raw.endsWith("\r") ? raw.slice(0, -1) : raw);
+    if (line.startsWith("[")) { section = line; continue; }
+    if (!copy && section === "[V4+ Styles]") {
+      if (line.startsWith("Format:")) styleFields = line.slice(7).split(",").map(field => field.trim());
+      if (line.startsWith("Style:")) {
+        const values = line.slice(6).trimStart().split(",");
+        const name = values[styleFields.indexOf("Name")];
+        if (name !== undefined) {
+          if (Number(values[styleFields.indexOf("Bold")])) boldStyles.add(name);
+          else boldStyles.delete(name);
+        }
+      }
+    }
+    if (section !== "[Events]") continue;
     if (line.startsWith("Format:")) { fields = line.slice(7).split(",").map(field => field.trim()); continue; }
     if (!line.startsWith("Dialogue:")) continue;
     // The final Text field may itself contain commas.
@@ -109,7 +122,7 @@ function parseAss(bytes: Uint8Array, options?: ParseMediaOptions): MediaDocument
     // ASS packets carry read order and event fields; timing lives on the sample.
     const data = encodeUtf8(copy
       ? [String(samples.length), ...packetFields.map(field => field === "Text" ? text : values[fields.indexOf(field)] ?? "")].join(",")
-      : decodeAssText(text));
+      : decodeAssText((boldStyles.has(values[fields.indexOf("Style")] ?? "") ? "{\\b1}" : "") + text));
     // FFmpeg decodes ASS durations into an unsigned 32-bit millisecond field.
     const sampleDuration = copy ? end - start : (end - start) >>> 0;
     samples.push({ data, dts: start, pts: start, cts: 0, duration: sampleDuration,

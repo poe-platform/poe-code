@@ -32,9 +32,16 @@ it.each(["sync", "map", "filesystem", "stream", "identify", "magick"])("omits un
   await fs.writeFile("/photo.png", bytes);
   const files = new Map([["/photo.png", bytes]]);
   for (const { format, expected, unknown } of [
-    { format: "A%[missing_demo_property]B", expected: "AB", unknown: ["missing_demo_property"] },
-    { format: "A%[filename]B", expected: "AB", unknown: ["filename"] },
-    { format: "%[width]x%[height]|%f|%[missing_demo_property]|%[filename]|%[opaque]", expected: "3x2|photo.png|||True", unknown: ["missing_demo_property", "filename"] },
+    ...["a", "j", "v", "E", "!", "?"].map(character => ({
+      format: `A%${character}B`, expected: "AB", unknown: [`%${character}`]
+    })),
+    { format: "%a%w%?%h%j", expected: "32", unknown: ["%a", "%?", "%j"] },
+    { format: "%c|%l|%u|%o|%%|%%a|\\%?|end%", expected: "||||%|%a|%?|end%", unknown: [] },
+    { format: "50%a|50%?|50%%|%w", expected: "50%a|50%?|50%|3", unknown: [] },
+    { format: "A%'B|A%\"B", expected: "A%'B|A%\"B", unknown: [] },
+    { format: "A%[missing_demo_property]B", expected: "AB", unknown: ["%[missing_demo_property]"] },
+    { format: "A%[filename]B", expected: "AB", unknown: ["%[filename]"] },
+    { format: "%[width]x%[height]|%f|%[missing_demo_property]|%[filename]|%[opaque]", expected: "3x2|photo.png|||True", unknown: ["%[missing_demo_property]", "%[filename]"] },
     { format: "%%[missing_demo_property]|%[width]x%[height]", expected: "%[missing_demo_property]|3x2", unknown: [] },
     { format: "%%[width]|%%[]|%%[width", expected: "%[width]|%[]|%[width", unknown: [] }
   ]) {
@@ -63,7 +70,6 @@ it.each(["sync", "map", "filesystem", "stream", "identify", "magick"])("omits un
     }
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toBe(expected);
-    for (const property of unknown) expect(result.stderr).toContain(`unknown image property '%[${property}]'`);
-    if (!unknown.length) expect(result.stderr).toBe("");
+    expect(result.stderr).toBe(unknown.map(property => `magick: unknown image property '${property}'\n`).join(""));
   }
 });

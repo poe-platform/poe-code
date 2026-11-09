@@ -1514,29 +1514,31 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const parts: string[] = [];
   // Only tokenize the original template. Expanded filenames and literal percent
   // escapes must never become new input, including for computed properties.
-  const tokens = /\\[\s\S]|%%|%\[|%[a-z#@]/gi;
   let previous = 0;
-  let match: RegExpExecArray | null;
-  while ((match = tokens.exec(fmt)) !== null) {
-    // Native single-letter escapes stay literal immediately after a digit.
-    if (match[0].startsWith("%") && match[0] !== "%[" && match[0] !== "%%"
-      && "0123456789".includes(fmt[match.index - 1] ?? " ")) continue;
-    parts.push(fmt.slice(previous, match.index));
-    let token = match[0];
+  for (let index = 0; index + 1 < fmt.length; index++) {
+    const character = fmt[index]!, next = fmt[index + 1]!;
+    if (character !== "%" && character !== "\\") continue;
+    // A trailing percent or one before a quote stays literal.
+    if (character === "%" && (next === "'" || next === '"')) continue;
+    // Native short escapes stay literal immediately after a digit.
+    if (character === "%" && next !== "[" && next !== "%"
+      && "0123456789".includes(fmt[index - 1] ?? " ")) continue;
+    parts.push(fmt.slice(previous, index));
+    let end = index + 2;
+    let token = fmt.slice(index, end);
     if (token === "%[") {
       let depth = 1;
-      let end = tokens.lastIndex;
       for (; end < fmt.length && depth > 0; end++) {
         if (end % 16384 === 0) yield;
         if (fmt[end] === "[") depth++;
         else if (fmt[end] === "]") depth--;
       }
-      if (depth !== 0) throw new Error(`unbalanced braces '${fmt.slice(match.index)}'`);
-      token = fmt.slice(match.index, end);
+      if (depth !== 0) throw new Error(`unbalanced braces '${fmt.slice(index)}'`);
+      token = fmt.slice(index, end);
       if (token === "%[]") throw new Error("unknown image property '%[]'");
-      tokens.lastIndex = end;
     }
-    previous = tokens.lastIndex;
+    previous = end;
+    index = end - 1;
     if (token[0] === "\\") {
       parts.push(({ n: "\n", r: "\r", "\n": "" } as Record<string, string>)[token[1]!] ?? token[1]!);
     } else if (token === "%%") {
@@ -1566,7 +1568,9 @@ function* formatMagickPropertyStringSteps<Step=never>(
       }
       parts.push(short.k!);
     } else if (token[1] !== "[") {
-      parts.push(short[token[1]!] ?? token);
+      const value = short[token[1]!];
+      if (value !== undefined) parts.push(value);
+      else if (context.analysis) context.analysis.warnings += `magick: unknown image property '${token}'\n`;
     } else {
       const property = token.slice(2, -1);
       const key = property.toLowerCase();

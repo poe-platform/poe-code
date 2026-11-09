@@ -131,7 +131,7 @@ Async `runIdentifyCli(args, { filesystem, cwd, stdin, stdout, stderr })` uses th
 
 `identify +format` restores the default description for subsequent images; earlier images keep their format.
 
-Unknown bracket properties such as `%[missing_demo_property]` expand to an empty string and report an `unknown image property` warning; identify still exits successfully.
+Unknown properties such as `%a`, `%?`, and `%[missing_demo_property]` expand to an empty string and report an `unknown image property` warning; identify still exits successfully.
 Empty or unclosed bracket properties fail without emitting the formatted text. Escaped properties such as `%%[width]` remain literal text.
 
 `identify -format` and `magick ... -format FORMAT info:` interpret `\n` and `\r` as line endings, remove backslash-newline continuations, and otherwise emit the character after a backslash literally (so `\t` emits `t`). They support literal `%%`,

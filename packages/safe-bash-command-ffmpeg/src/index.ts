@@ -9002,6 +9002,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let loudnormResampling = false;
                   let filteredChannelMask = audio.channelMask;
                   let panPcm16 = ["pcm_s16le", "pcm_s16be"].includes(t.codecDescriptions[0]?.codecName ?? "");
+                  const inputCodec = t.codecDescriptions[0]?.codecName;
+                  let filteredSampleFormat = inputCodec === "pcm_s16le" ? "s16" : inputCodec === "pcm_s32le" ? "s32"
+                    : inputCodec === "pcm_f32le" ? "flt" : "dbl";
                   const volFactor = t.volume ?? 1.0;
                   let stretched: typeof audio.channelData = audio.channelData;
                   let replayGainAvailable = true;
@@ -9317,10 +9320,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed === "ashowinfo") {
                         if (logLevel < 32) continue;
-                        const codec = t.codecDescriptions[0]?.codecName;
-                        const format = codec === "pcm_s16le" ? "s16" : codec === "pcm_s32le" ? "s32"
-                          : codec === "pcm_f32le" ? "flt" : "dbl";
-                        const bytesPerSample = format === "s16" ? 2 : format === "dbl" ? 8 : 4;
+                        const format = filteredSampleFormat;
+                        const planar = format === "dblp";
+                        const bytesPerSample = format === "u8" ? 1 : format === "s16" ? 2 : format === "dbl" || planar ? 8 : 4;
                         const sample = new DataView(new ArrayBuffer(bytesPerSample));
                         const length = stretched[0]?.length ?? 0;
                         const channels = stretched.length;
@@ -9336,22 +9338,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const end = Math.min(length, start + count);
                           const pts = timestamp?.pts ?? audioStartSample + start;
                           let a = 0, b = 0;
-                          for (let i = start; i < end; i++) {
-                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            for (const channel of stretched) {
-                              const value = channel[i]!;
-                              if (format === "s16") sample.setInt16(0, Math.max(-32768, Math.min(32767, Math.round(value * 32768))), true);
-                              else if (format === "s32") sample.setInt32(0, Math.max(-2147483648, Math.min(2147483647, Math.round(value * 2147483648))), true);
-                              else if (format === "flt") sample.setFloat32(0, value, true);
-                              else sample.setFloat64(0, value, true);
-                              for (let byte = 0; byte < bytesPerSample; byte++) {
-                                a = (a + sample.getUint8(byte)) % 65521;
-                                b = (b + a) % 65521;
+                          const planeChecksums: string[] = [];
+                          for (let plane = 0; plane < (planar ? channels : 1); plane++) {
+                            let pa = 0, pb = 0;
+                            for (let i = start; i < end; i++) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              for (let c = planar ? plane : 0; c < (planar ? plane + 1 : channels); c++) {
+                                const value = stretched[c]![i]!;
+                                if (format === "u8") sample.setUint8(0, Math.max(0, Math.min(255, Math.round(value * 128) + 128)));
+                                else if (format === "s16") sample.setInt16(0, Math.max(-32768, Math.min(32767, Math.round(value * 32768))), true);
+                                else if (format === "s32") sample.setInt32(0, Math.max(-2147483648, Math.min(2147483647, Math.round(value * 2147483648))), true);
+                                else if (format === "flt") sample.setFloat32(0, value, true);
+                                else sample.setFloat64(0, value, true);
+                                for (let byte = 0; byte < bytesPerSample; byte++) {
+                                  const value = sample.getUint8(byte);
+                                  a = (a + value) % 65521;
+                                  b = (b + a) % 65521;
+                                  pa = (pa + value) % 65521;
+                                  pb = (pb + pa) % 65521;
+                                }
                               }
                             }
+                            planeChecksums.push(((pb * 65536 + pa) >>> 0).toString(16).padStart(8, "0").toUpperCase());
                           }
                           const checksum = ((b * 65536 + a) >>> 0).toString(16).padStart(8, "0").toUpperCase();
-                          await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${pts} pts_time:${Number((pts / origRate).toPrecision(6))} pos:-1 fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${checksum} ]\n`), context.signal);
+                          await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${pts} pts_time:${Number((pts / origRate).toPrecision(6))} pos:-1 fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${planeChecksums.join(" ")} ]\n`), context.signal);
                           start = end;
                         }
                       } else if (trimmed === "asubcut" || trimmed.startsWith("asubcut=")) {
@@ -9408,6 +9419,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "afade" || trimmed.startsWith("afade=")) {
                         stretched = await fadeAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "dynaudnorm" || trimmed.startsWith("dynaudnorm=")) {
+                        filteredSampleFormat = "dblp";
                         stretched = await normalizeAudio(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "silenceremove" || trimmed.startsWith("silenceremove=")) {
@@ -10338,6 +10350,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (key === "sample_fmts" || key === "f") {
                             if (value !== "u8" && value !== "s16") throw new Error(`aformat: unsupported sample format ${value}`);
                             panPcm16 = value === "s16";
+                            filteredSampleFormat = value;
                             const scale = value === "u8" ? 128 : 32768;
                             const codec = t.codecDescriptions[0]?.codecName;
                             const truncate = value === "u8" && (codec === "pcm_s16le" || codec === "pcm_s32le" || codec === "pcm_u8");

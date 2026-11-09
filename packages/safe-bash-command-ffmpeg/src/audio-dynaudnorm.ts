@@ -37,9 +37,14 @@ export async function normalizeAudio(
   const length = channels[0]?.length ?? 0;
   budget.allocateMemory(length * channels.length * 8 + size * 4 * 8);
   const output = channels.map(() => new Float64Array(length));
-  const weights = Array.from({ length: size }, (_, i) => Math.exp(-0.5 * ((i - half) / (size / 6)) ** 2));
+  // Preserve FFmpeg's coefficient evaluation order for double-precision frames.
+  const sigma = ((size / 2 - 1) / 3) + 1 / 3;
+  const scale = 1 / (sigma * Math.sqrt(2 * Math.PI));
+  const variance = 2 * sigma * sigma;
+  const weights = Array.from({ length: size }, (_, i) => scale * Math.exp(-(i - half) * (i - half) / variance));
   const total = weights.reduce((sum, value) => sum + value, 0);
-  for (let i = 0; i < size; i++) weights[i]! /= total;
+  const adjust = 1 / total;
+  for (let i = 0; i < size; i++) weights[i]! *= adjust;
   // Smoothly cap the gain with maxGain * erf(sqrt(pi) / 2 * gain / maxGain).
   // This error-function approximation has absolute error below 1.5e-7.
   const bound = (gain: number) => {

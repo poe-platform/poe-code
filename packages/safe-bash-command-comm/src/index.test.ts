@@ -43,6 +43,36 @@ for (const reverse of [false, true]) {
  });
 }
 
+for (const reverse of [false, true]) {
+ const args = reverse ? ["/b", "/a"] : ["/a", "/b"];
+ const files = { "/a": "b\na\n", "/b": "b\na\nc\n" };
+ for (const flags of [[], ["--total"], ["-12"], ["-123", "--total"], ["--nocheck-order"]]) {
+  test(`comm allows paired disorder before EOF with ${JSON.stringify(flags)}, reversed ${reverse}`, async () => {
+   const result = await run([...flags, ...args], files);
+   const common = flags.includes("-123") ? "" : flags.includes("-12") ? "b\na\n" : "\t\tb\n\t\ta\n";
+   const unpaired = flags.includes("-12") || flags.includes("-123") ? "" : reverse ? "c\n" : "\tc\n";
+   const total = flags.includes("--total") ? `${reverse ? "1\t0" : "0\t1"}\t2\ttotal\n` : "";
+   assert.equal(result.stdout, common + unpaired + total);
+   assert.equal(result.stderr, "");
+   assert.equal(result.exitCode, 0);
+  });
+ }
+
+ test(`comm strictly checks paired disorder before EOF, reversed ${reverse}`, async () => {
+  const result = await run(["--check-order", ...args], files);
+  assert.equal(result.stdout, "\t\tb\n");
+  assert.ok(result.stderr.includes("file 1 is not in sorted order"));
+  assert.equal(result.exitCode, 1);
+ });
+
+ test(`comm still detects disorder after an unpaired row, reversed ${reverse}`, async () => {
+  const result = await run(args, { "/a": "a\nd\nc\n", "/b": "a\nb\n" });
+  assert.equal(result.stdout, reverse ? "\t\ta\nb\n\td\n\tc\n" : "\t\ta\n\tb\nd\nc\n");
+  assert.equal(result.stderr, `comm: file ${reverse ? 2 : 1} is not in sorted order\ncomm: input is not in sorted order\n`);
+  assert.equal(result.exitCode, 1);
+ });
+}
+
 test("fully paired disorder remains allowed by default", async () => {
  const files = { "/a": "c\na\nb\n", "/b": "c\na\nb\n" };
  assert.equal((await run(["/a", "/b"], files)).exitCode, 0);

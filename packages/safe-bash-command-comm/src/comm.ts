@@ -31,7 +31,6 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
     try {
       const readers = [await inputs.open(files[0]!), await inputs.open(files[1]!)];
       const rows = [await readers[0]!.next(), await readers[1]!.next()];
-      const previous: (Uint8Array | undefined)[] = [undefined, undefined];
       const totals = [0n, 0n, 0n];
       while (rows[0] !== undefined || rows[1] !== undefined) {
         const step = budget.step(); if (step) await step;
@@ -48,8 +47,8 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
         for (let index = 0; index < 2; index++) {
           if ((index === 0 && comparison > 0) || (index === 1 && comparison < 0)) continue;
           const next = await readers[index]!.next();
-          const oc = next === undefined ? order.check(previous[index], rows[index], index + 1) : order.check(rows[index], next, index + 1); if (oc) await oc;
-          previous[index] = rows[index]; rows[index] = next;
+          const oc = order.check(rows[index], next, index + 1); if (oc) await oc;
+          rows[index] = next;
         }
       }
       for (const [index, reader] of readers.entries()) await reader.closeOperand(files[index]!);

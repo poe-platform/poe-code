@@ -8,6 +8,21 @@ import { ParseBudget } from "../../src/shell/parse-budget.js";
 import { expansionSpellings, hereDocumentWords, parseShellUnit } from "../../src/shell/parser.js";
 import { setup } from "./helpers.js";
 
+for (const range of ["1..5", "5..1", "a..e", "e..a"]) {
+  for (const stride of ["-9223372036854775808", "-9223372036854775807", "9223372036854775807", "9223372036854775808"]) {
+    test(`brace range signed stride boundary: {${range}..${stride}}`, async context => {
+      const { shell } = setup();
+      context.after(() => shell.dispose());
+      const expression = `{${range}..${stride}}`;
+      const result = await shell.exec(`args ${expression}`);
+      const expected = stride.endsWith("8") ? expression : range.split("..")[0];
+      assert.equal(result.stdout, JSON.stringify([expected]));
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    });
+  }
+}
+
 for (const [pattern, expected] of [["@(a){1..2}", ["a1"]], ["!(a){1..2}", ["b1"]], ["+(a){1..2}", ["a1"]]] as const) {
   for (const loop of [false, true]) test(`brace ranges preserve extglob expansion: ${pattern}, loop=${loop}`, async context => {
     const { shell, fs } = setup();

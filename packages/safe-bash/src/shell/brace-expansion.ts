@@ -235,7 +235,8 @@ export async function* expandBraces(word: Word, budget: Budget, signal: AbortSig
       end = BigInt(last.charCodeAt(0));
     }
     let step = pieces.length === 3 ? await integer(pieces[2]!, checkpoint) : 1n;
-    if (step === undefined) return undefined;
+    // Bash cannot represent the magnitude of the minimum signed 64-bit stride.
+    if (step === undefined || step === -9223372036854775808n) return undefined;
     if (step < 0n) step = -step;
     if (step === 0n) step = 1n;
     const distance = end! - start!;

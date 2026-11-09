@@ -10733,11 +10733,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (key === "starti" || key === "endi") key = key.slice(0, -1);
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           const samples = key === "start_sample" || key === "end_sample";
-                          if (!samples && key !== "start" && key !== "end") {
+                          const pts = key === "start_pts" || key === "end_pts";
+                          if (key === undefined || (!samples && !pts && key !== "start" && key !== "end")) {
                             throw new Error(`atrim: unsupported option ${key}`);
                           }
-                          const number = samples ? Number(value) : parseHlsDuration(value);
-                          const boundary = samples ? number : Math.round(number * origRate);
+                          const number = samples || pts ? Number(value) : parseHlsDuration(value);
+                          const boundary = samples || pts ? number : Math.round(number * origRate);
                           let frame = samples ? boundary : boundary - audioStartSample;
                           if (!value || !Number.isFinite(number) || !Number.isSafeInteger(frame) || (samples && number < 0)) {
                             throw new Error(`atrim: invalid ${key}`);
@@ -10755,8 +10756,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           bounds.set(key, frame);
                         }
-                        let start = Math.min(bounds.get("start") ?? Infinity, bounds.get("start_sample") ?? Infinity);
-                        let end = Math.max(bounds.get("end") ?? -Infinity, bounds.get("end_sample") ?? -Infinity);
+                        let start = Math.min(bounds.get("start") ?? Infinity, bounds.get("start_sample") ?? Infinity, bounds.get("start_pts") ?? Infinity);
+                        let end = Math.max(bounds.get("end") ?? -Infinity, bounds.get("end_sample") ?? -Infinity, bounds.get("end_pts") ?? -Infinity);
                         start = start === Infinity ? 0 : Math.max(0, Math.min(length, start));
                         end = end === -Infinity ? length : Math.max(start, Math.min(length, end));
                         stretched = stretched.map(channel => channel.subarray(start, end));

@@ -9211,7 +9211,7 @@ export class Runtime {
         await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${invalidName}': not a valid identifier\n`);
         return 1;
       }
-      if (invalid || invalidName !== undefined) {
+      if (invalid || array !== undefined && invalidName !== undefined) {
         await writeDiagnostic(stderr, "read: invalid variable name or unsupported option\n");
         return 2;
       }
@@ -9236,6 +9236,11 @@ export class Runtime {
         const separators = exact ? "" : stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";
         const fields = await line?.fields(separators, names.length) ?? [];
         for (let index = 0; index < names.length; index++) {
+          if (!this.variableTarget(names[index]!)) {
+            const diagnosticIO: IO = context;
+            await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${names[index]}': not a valid identifier\n`);
+            return 1;
+          }
           if (state.readonlyVariables?.has(names[index]!)) {
             await this.diagnostic(context, `${names[index]}: readonly variable`);
             return index === names.length - 1 ? 1 : 2;

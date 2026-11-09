@@ -5,6 +5,51 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 import { agentCommands, createMemoryFileSystem, Shell } from "../../src/core.js";
 
+for (const [destinations, first, last] of [
+  ["x bad-name", "one", "old"],
+  ["x bad-name z", "one", "old"],
+  ["bad-name x z", "old", "old"],
+  ["x z bad-name", "one", "two"],
+  ["x second z", "one", ""],
+] as const) {
+  test(`ordinary read consumes the record and assigns in order: ${destinations}`, async () => {
+    const { shell, commands } = setup();
+    for (const command of basicCommands()) commands.register(command);
+    const source = `printf 'one two\\nnext\\n' | { x=old; z=old; read ${destinations}; rc=$?; read y; printf '%s|%s|%s|%s\\n' "$rc" "$x" "$y" "$z"; }`;
+    try {
+      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
+      assert.equal(native.error, undefined);
+      assert.equal(native.status, 0);
+      const expected = `${destinations.includes("bad-name") ? 1 : 0}|${first}|next|${last}\n`;
+      assert.equal(native.stdout, expected);
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, native.status);
+      assert.equal(result.stdout, expected);
+      assert.equal(result.stderr, destinations.includes("bad-name") ? "shell: line 1: read: `bad-name': not a valid identifier\n" : "");
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("ordinary read assigns partial EOF input before rejecting a later destination", async () => {
+  const { shell } = setup();
+  try {
+    const result = await shell.exec('x=old; read x bad-name; args "$?" "$x"; pass', { stdin: "one two" });
+    assert.equal(result.stdout, '["1","one"]');
+    assert.equal(result.stderr, "shell: line 1: read: `bad-name': not a valid identifier\n");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("ordinary read rejects invalid options before consuming input or assigning destinations", async () => {
+  const { shell } = setup();
+  try {
+    const result = await shell.exec('x=old; read -p; args "$?" "$x"; pass', { stdin: "one two\nnext\n" });
+    assert.equal(result.stdout, '["2","old"]one two\nnext\n');
+    assert.equal(result.stderr, "read: invalid variable name or unsupported option\n");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
 for (const target of ["items", "'items[0]'", "'fresh[0]'"]) {
   for (const initialize of ["", "IFS=original;", "unset IFS;"]) {
     test(`read restores temporary scalar prefixes after array target ${target}: ${initialize || "default IFS"}`, async () => {

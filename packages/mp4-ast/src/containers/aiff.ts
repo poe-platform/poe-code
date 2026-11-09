@@ -20,6 +20,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   const compressed = text(8, 4) === "AIFC";
   let littleEndian = false;
   let compressedFormat: string | undefined;
+  let channelLayout: string | undefined;
   let channels = 0, frames = 0, bits = 0, sampleRate = 0;
   let sound: Uint8Array | undefined;
   const metadata: { title?: string; copyright?: string; comment?: string; custom?: Record<string, string> } = {};
@@ -52,6 +53,11 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       const mantissa = view.getUint32(start + 10) * 2 ** 32 + view.getUint32(start + 14);
       sampleRate = Math.round(mantissa * 2 ** (exponent - 16383 - 63));
       if (exponent & 0x8000 || !Number.isSafeInteger(sampleRate) || sampleRate <= 0) throw new Error("Invalid AIFF sample rate");
+    } else if (id === "CHAN" && size >= 12) {
+      const tag = view.getUint32(start);
+      const bitmap = view.getUint32(start + 4);
+      channelLayout = tag === 0x00640001 || (tag === 0x00010000 && bitmap === 4) ? "mono"
+        : tag === 0x00650002 || (tag === 0x00010000 && bitmap === 3) ? "stereo" : undefined;
     } else if (id === "ID3 ") {
       Object.assign(metadata, parseId3(bytes.subarray(start, start + size)).tags);
     } else if (["NAME", "AUTH", "(c) ", "ANNO"].includes(id)) {
@@ -74,6 +80,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   if (compressedFormat === "ima4") {
     const doc = parseImaQt(sound, channels, sampleRate, frames, options, budget);
     return { ...doc, metadata, byteLength: bytes.length, tracks: doc.tracks.map(track => ({ ...track, declaredSampleCount: frames,
+      codecDescriptions: track.codecDescriptions.map(desc => ({ ...desc, channelLayout })),
       samples: track.samples.map(sample => ({ ...sample, offset: sample.data.byteOffset - bytes.byteOffset }))
     })) };
   }
@@ -97,7 +104,8 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
           isKeyframe: true, sampleDescriptionIndex: 1 });
       }
       return { ...track, duration: frames, declaredSampleCount: frames, samples,
-        codecDescriptions: compressed ? track.codecDescriptions : track.codecDescriptions.map(desc => ({ ...desc, formatFourCC: "\0\0\0\0" })),
+        codecDescriptions: track.codecDescriptions.map(desc => ({ ...desc, channelLayout,
+          ...(!compressed ? { formatFourCC: "\0\0\0\0" } : {}) })),
         ...(options.decodeAudio !== false && sound.length % bytesPerFrame ? {
           decodeErrors: [`Invalid PCM packet: ${sound.length % bytesPerFrame} trailing bytes cannot form a ${bytesPerFrame}-byte sample frame`]
         } : {})

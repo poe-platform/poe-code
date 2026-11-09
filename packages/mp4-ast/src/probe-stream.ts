@@ -145,7 +145,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     channels: track.type === "audio" ? (desc?.channels ?? 2) : undefined,
     channel_layout:
       containerFormat === "au" ? undefined :
-      containerFormat === "caf" ? desc?.channelLayout : track.type === "audio"
+      containerFormat === "caf" || containerFormat === "aiff" ? desc?.channelLayout : track.type === "audio"
         ? (desc?.channels ?? 2) === 1
           ? "mono"
           : "stereo"

@@ -97,6 +97,7 @@ import {
   createSyntheticMp4,
   decodeH264Samples,
   decodeAacTrack,
+  decodeMp3Track,
   parseAdtsStream,
   scaleVideoPicture,
   decodeUtf8,
@@ -7900,7 +7901,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const filter = afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal).at(-1);
                   if (audioRate === undefined && audioChannels === undefined && rematrixVolume === 1 && !filter && maxAudioFrames === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") return t;
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
-                    ? decodeAacTrack(workingDoc, t) : undefined);
+                    ? decodeAacTrack(workingDoc, t) : t.codecDescriptions[0]?.codecName === "mp3"
+                      ? decodeMp3Track(t) : undefined);
                   if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
                   let matrixMaxval = rematrixMaxval;
                   let remixVolume = rematrixVolume;
@@ -7924,7 +7926,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     for (let start = 0, n = 0; start < length; n++) {
                       if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                       const packet = t.samples[n];
-                      const count = packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                      const count = packet ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
+                        - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+                      if (count === 0) continue;
                       const end = Math.min(length, start + count);
                       budget.allocateMemory(24);
                       audioTimestamps.push({ start, end, pts: start });

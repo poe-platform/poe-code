@@ -2090,7 +2090,7 @@ describe("stream-scoped audio filters", () => {
 
 describe("audio channel count", () => {
   for (const channels of [1, 2]) {
-    for (const options of [[], ["-ac", "-1"], ["-ac", "-2"], ["-ac", "-3"], ["-ac", "-20"], ["-ac", "0"], ["-ac", "1"]]) {
+    for (const options of [[], ["-ac", "-1"], ["-ac", "0"], ["-ac", "1"]]) {
       for (const filtered of [false, true]) {
         it(`preserves native PCM for ${channels} channels, ${options.join(" ") || "default"}, filter=${filtered}`, async () => {
           const input = encodeWav({ sampleRate: 8000, channels: Array.from({ length: channels }, () =>

@@ -126,8 +126,8 @@ duration, raw pixel byte count, and a digest (MD5, SHA256, or Adler-32 respectiv
 `framecrc` also reports copied streams’ codec extradata sizes and Adler-32 checksums
 before the stream headers; PCM output has no extradata header.
 For audio, these formats retain PCM packet boundaries after filtering, including the
-short final packet, and checksum each packet separately.
-`framecrc` includes a `#software` header by default; `-bitexact` or `-fflags +bitexact` omits it without changing packet rows.
+short final packet, and checksum each packet separately. MP3 inputs are decoded before
+filtering, preserving encoder-delay and end-padding trimming in the checksum packets.
 For AAC decoded to PCM, audio rows follow decoder frames, skipping priming and
 retaining the complete final frame even when the container duration ends earlier.
 With `-map 0:s -c:s copy`, they checksum original subtitle packets, retaining style
@@ -429,7 +429,7 @@ With `eval=frame`, a NaN gain becomes silence; `isnan()` can supply a fallback g
 `-filter:a:0 volume=0` (or `-af:0 volume=0`)
 mutes the first output audio stream; numeric audio selectors follow output mapping
 and leave nonmatching streams unchanged. Filtering a matching stream with `-c:a copy`
-fails without writing output. Negative output `-ac` values retain the input channel count and layout. `-ac 1` downmixes stereo and
+fails without writing output. `-ac -1` retains the input channel count. `-ac 1` downmixes stereo and
 5.1 WAV audio (back or side surrounds) using normalized FFmpeg weights, preserving
 center dialogue and omitting LFE. Stereo upmixing with `-ac 3` or `-ac 4` preserves
 left and right audio and leaves added channels silent. Other conversions from

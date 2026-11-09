@@ -56,8 +56,7 @@ export function serializeFrameChecksum(
   budget: MediaBudgetTracker,
   formatVersion = 2,
   videoCodec?: string,
-  subtitleCodec?: string,
-  bitexact = false
+  subtitleCodec?: string
 ): Uint8Array {
   const name = algorithm.toLowerCase();
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512 };
@@ -74,7 +73,6 @@ export function serializeFrameChecksum(
       if (extra?.length) lines.push(`#extradata ${index}: ${String(extra.length).padStart(8)}, ${frameCrc(extra, budget)}`);
     }
   }
-  if (format === "framecrc" && !bitexact) lines.push("#software: Lavf61.7.100");
   for (const [index, track] of doc.tracks.entries()) {
     if (track.type === "video") {
       if (videoCodec && videoCodec !== "rawvideo" && videoCodec !== "copy") throw new Error(`Unsupported frame checksum video codec '${videoCodec}'`);

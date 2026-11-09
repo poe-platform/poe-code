@@ -387,7 +387,9 @@ favor the right channel. `bmode_in` and `bmode_out` accept `balance` (default),
 Stereo width `base` ranges from -1 to 1 (default 0): `base=-1` averages both
 channels, negative values narrow the image, and positive values widen it.
 Width applies after mute, phase inversion and delay, before output balance/gain.
-Other stereotools options are rejected.
+Both filters support timeline expressions such as `enable=n` (bypass the first
+audio frame) and `enable=0` (bypass all frames). `n` counts audio frames and `t`
+is the frame timestamp in seconds. Other stereotools options are rejected.
 Both filters accept case-insensitive Boolean
 words (`true`/`false`, `yes`/`no`, `on`/`off`, `y`/`n`, `enable`/`disable`,
 `enabled`/`disabled`) and decimal 0/1 values, such as `phasel=True` or `c=OFF`.

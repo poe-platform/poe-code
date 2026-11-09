@@ -9868,6 +9868,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "extrastereo" || trimmed.startsWith("extrastereo=")) {
                         let multiplier = 2.5;
                         let clip = true;
+                        let enable: string | undefined;
                         const argument = trimmed.slice("extrastereo".length + 1);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
@@ -9880,14 +9881,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                           } else if (key === "c") {
                             clip = parseFilterBoolean(value, "extrastereo: invalid clipping option");
-                          } else throw new Error(`extrastereo: unsupported option ${key}`);
+                          } else if (key === "enable") enable = value;
+                          else throw new Error(`extrastereo: unsupported option ${key}`);
                         }
                         if (stretched.length !== 2) throw new Error("extrastereo: stereo input required");
                         if (filteredChannelMask && filteredChannelMask !== 3 && filteredChannelMask !== 12) {
                           throw new Error(`extrastereo: unsupported input channel layout (mask ${filteredChannelMask})`);
                         }
                         const output = stretched.map(channel => new Float32Array(channel.length));
+                        let frameEnd = 0;
+                        let frameIndex = 0;
+                        let enabled = true;
                         for (let i = 0; i < stretched[0]!.length; i++) {
+                          if (enable !== undefined && i >= frameEnd) {
+                            const packet = t.samples[frameIndex];
+                            const timestamp = audioTimestamps?.[frameIndex];
+                            const frameLength = timestamp ? timestamp.end - timestamp.start
+                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
+                            enabled = Math.abs(parseFilterExpression(enable, "extrastereo enable", {
+                              n: frameIndex, t: pts / origRate
+                            })) >= 0.5;
+                            frameEnd = i + frameLength;
+                            frameIndex++;
+                          }
+
                           if (i % 4096 === 0) {
                             await yieldTurn(context.signal);
                             context.signal?.throwIfAborted();
@@ -9895,6 +9913,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           const left = filteredChannelMask === 12 ? Math.fround(stretched[0]![i]! * Math.SQRT1_2) : stretched[0]![i]!;
                           const right = filteredChannelMask === 12 ? left : stretched[1]![i]!;
+                          if (!enabled) {
+                            output[0]![i] = left;
+                            output[1]![i] = right;
+                            continue;
+                          }
                           const average = Math.fround(Math.fround(left + right) / 2);
                           for (let c = 0; c < 2; c++) {
                             const value = Math.fround(average + Math.fround(multiplier * Math.fround((c === 0 ? left : right) - average)));
@@ -10179,6 +10202,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const levels = { level_in: 1, level_out: 1, mlev: 1, slev: 1 };
                         const balance = { mpan: 0, sbal: 0, balance_in: 0, balance_out: 0 };
                         const balanceModes = { bmode_in: 0, bmode_out: 0 };
+                        let enable: string | undefined;
                         const argument = trimmed.slice("stereotools=".length);
                         const positionalKeys = ["level_in", "level_out", "balance_in", "balance_out", "softclip",
                           "mutel", "muter", "phasel", "phaser", "mode", "slev", "sbal", "mlev", "mpan",
@@ -10239,7 +10263,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                           } else if (key === "mutel" || key === "muter" || key === "phasel" || key === "phaser" || key === "softclip") {
                             flags[key] = parseFilterBoolean(value, `stereotools: invalid ${key}`);
-                          } else {
+                          } else if (key === "enable") enable = value;
+                          else {
                             throw new Error(`stereotools: unsupported option ${key}`);
                           }
                         }
@@ -10277,8 +10302,30 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const sideLeft = 1 - Math.max(0, balance.sbal);
                         const sideRight = 1 + Math.min(0, balance.sbal);
                         const delayed = new Float64Array(delayFrames);
+                        let delayPosition = 0;
+                        let frameEnd = 0;
+                        let frameIndex = 0;
+                        let enabled = true;
                         for (let i = 0; i < left.length; i++) {
+                          if (enable !== undefined && i >= frameEnd) {
+                            const packet = t.samples[frameIndex];
+                            const timestamp = audioTimestamps?.[frameIndex];
+                            const frameLength = timestamp ? timestamp.end - timestamp.start
+                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
+                            enabled = Math.abs(parseFilterExpression(enable, "stereotools enable", {
+                              n: frameIndex, t: pts / origRate
+                            })) >= 0.5;
+                            frameEnd = i + frameLength;
+                            frameIndex++;
+                          }
+
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          if (!enabled) {
+                            left[i] = stretched[0]![i]!;
+                            right[i] = stretched[1]![i]!;
+                            continue;
+                          }
                           let l = stretched[0]![i]! * levels.level_in * inputLeft;
                           let r = stretched[1]![i]! * levels.level_in * inputRight;
                           if (flags.softclip) {
@@ -10318,7 +10365,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           outputLeft = flags.mutel ? 0 : outputLeft * (flags.phasel ? -1 : 1);
                           outputRight = flags.muter ? 0 : outputRight * (flags.phaser ? -1 : 1);
                           if (delayFrames > 0) {
-                            const slot = i % delayFrames;
+                            const slot = delayPosition++ % delayFrames;
                             const previous = delayed[slot]!;
                             delayed[slot] = delay < 0 ? outputLeft : outputRight;
                             if (delay < 0) outputLeft = previous;

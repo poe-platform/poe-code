@@ -23,6 +23,37 @@ async function run(filter: string, channels = 1, secondLength = 4096, firstLengt
   return { result, error: Buffer.concat(errors).toString(), bytes, audio: bytes ? parseWav(bytes).tracks[0]!.decodedAudio! : undefined };
 }
 
+for (const branch of [0, 1]) for (const filter of ["volume=-1", "volume=0", "anull"]) {
+  it(`axcorrelate applies ${filter} to input branch ${branch}`, async () => {
+    const samples = Float64Array.from({ length: 4000 }, (_, i) => (i % 8 < 4 ? 8192 : -8192) / 32768);
+    const input = encodeWav({ sampleRate: 8000, channels: [samples] });
+    const graph = `[${branch}:a]${filter}[filtered];${branch === 0 ? "[filtered][1:a]" : "[0:a][filtered]"}axcorrelate=128:best[mix]`;
+    const { result, error, audio } = await run(graph, 1, 4000, 4000, [input, input]);
+    assert.equal(result.exitCode, 0, error);
+    assert.equal(audio!.sampleRate, 8000);
+    assert.equal(audio!.channels, 1);
+    const expected = filter === "volume=-1" ? -32768 : filter === "volume=0" ? 0 : 32767;
+    assert.equal(audio!.channelData[0]!.length, 4000);
+    for (const sample of audio!.channelData[0]!) assert.equal(sample * 32768, expected);
+  });
+}
+
+for (const branch of [0, 1]) {
+  it(`axcorrelate preserves branch ${branch} when applying upstream filters`, async () => {
+    const graph = `[${branch}:a]volume=-1,atrim=end_sample=3109[filtered];${branch === 0 ? "[filtered][1:a]" : "[0:a][filtered]"}axcorrelate=128:best,volume=0.5[mix]`;
+    const input = await run(`${branch}:a`);
+    const samples = Float64Array.from(input.audio!.channelData[0]!.subarray(0, 3109), value => -value);
+    const filtered = encodeWav({ sampleRate: 8000, channels: [samples] });
+    const other = await run(`${1 - branch}:a`);
+    const expected = await run("[0:a][1:a]axcorrelate=128:best,volume=0.5[mix]", 1, 4096, 8192,
+      branch === 0 ? [filtered, other.bytes!] : [other.bytes!, filtered]);
+    const actual = await run(graph);
+    assert.equal(expected.result.exitCode, 0, expected.error);
+    assert.equal(actual.result.exitCode, 0, actual.error);
+    assert.deepEqual(actual.audio, expected.audio);
+  });
+}
+
 for (const channels of [1, 2]) for (const algo of ["slow", "best", "0", "2"]) {
   it(`axcorrelate ${algo} matches native PCM at steady regions and boundaries (${channels} channels)`, async () => {
     const { result, error, audio } = await run(`[0:a][1:a]axcorrelate=size=128:algo=${algo}[mix]`, channels);

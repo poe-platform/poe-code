@@ -326,7 +326,7 @@ with halfway values rounded to even (`2.5` becomes `2`, `3.5` becomes `4`).
 If the first input has at most `size` samples, no audio is emitted;
 a short second input still produces audio when the first exceeds `size`. Windows
 look forward and use silence past the packets received when either input ends. Filters can follow axcorrelate;
-preceding single-input filters are rejected.
+preceding single-input filters apply to their respective input branches before correlation.
 
 `sidechaingate` uses the second audio input to gate the first, stopping at the shorter
 input. For example, `[0:a][1:a]sidechaingate=threshold=0.1:ratio=8:attack=1:release=20[mix]`

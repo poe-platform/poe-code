@@ -779,7 +779,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       }
       yield "\n";
     } else if (fmt === "flat") {
-      const sep = paramMap.s ?? ".", prefix = parentPath + (name === "program" ? `programs${sep}program${sep}${index}${sep}` : name === "stream" ? `streams${sep}stream${sep}${index}${sep}` : name === "packet" || name === "frame" ? `${name}s${sep}${name}${sep}${index}${sep}` : `${name}${sep}`);
+      const sep = paramMap.s ?? paramMap.sep_char ?? ".", prefix = parentPath + (name === "program" ? `programs${sep}program${sep}${index}${sep}` : name === "stream" ? `streams${sep}stream${sep}${index}${sep}` : name === "packet" || name === "frame" ? `${name}s${sep}${name}${sep}${index}${sep}` : `${name}${sep}`);
       for (const [key, value] of probeEntries(section, `tags${sep}`, `disposition${sep}`)) {
         if (value === undefined || typeof value === "object" && !isProbeText(value)) continue;
         yield `${prefix}${key}=`; yield probeText(value); yield "\n";
@@ -991,7 +991,7 @@ function parseProbeArguments(args: readonly string[]) {
     default: ["nokey", "nk", "noprint_wrappers", "nw"],
     compact: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
     csv: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
-    flat: [],
+    flat: ["s", "sep_char"],
     xml: [],
     ini: ["h", "hierarchical"]
   };

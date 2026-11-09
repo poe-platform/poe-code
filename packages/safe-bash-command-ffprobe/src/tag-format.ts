@@ -169,9 +169,10 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
       }
       yield "\n";
     } else if (format === "flat") {
-      const prefix = section === "stream" ? `streams.stream.${streamIndex++}` : "format";
+      const sep = settings.get("s") ?? settings.get("sep_char") ?? ".";
+      const prefix = section === "stream" ? `streams${sep}stream${sep}${streamIndex++}` : "format";
       for await (const field of fields()) {
-        yield prefix + "." + (field.tag ? "tags." : ""); yield* parts(field.key); yield "=";
+        yield prefix + sep + (field.tag ? "tags" + sep : ""); yield* parts(field.key); yield "=";
         if (typeof field.value === "number") yield String(field.value); else yield* jsonString(parts(field.value));
         yield "\n";
       }

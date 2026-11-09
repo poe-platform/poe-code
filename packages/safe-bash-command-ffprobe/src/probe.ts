@@ -88,7 +88,7 @@ export function parseArguments(args: readonly string[]) {
     default: ["nokey", "nk", "noprint_wrappers", "nw"],
     compact: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
     csv: ["nokey", "nk", "print_section", "p", "item_sep", "s"],
-    flat: [],
+    flat: ["s", "sep_char"],
     ini: ["h", "hierarchical"]
   };
   for (const [key, value] of settings) {
@@ -328,10 +328,11 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
       if (enabled("print_section", "p", true)) values.unshift(section);
       lines.push(values.join(sep));
     } else if (format === "flat") {
-      const prefix = section === "stream" ? `streams.stream.${streamIndex++}` : "format";
+      const sep = settings.get("s") ?? settings.get("sep_char") ?? ".";
+      const prefix = section === "stream" ? `streams${sep}stream${sep}${streamIndex++}` : "format";
       for (const [key, value] of fields)
         lines.push(
-          `${prefix}.${key.startsWith("tag:") ? "tags." + key.slice(4) : key}=${typeof value === "number" ? value : JSON.stringify(value)}`
+          `${prefix}${sep}${key.startsWith("tag:") ? "tags" + sep + key.slice(4) : key}=${typeof value === "number" ? value : JSON.stringify(value)}`
         );
     } else {
       if (!enabled("noprint_wrappers", "nw", false)) lines.push("[" + section.toUpperCase() + "]");

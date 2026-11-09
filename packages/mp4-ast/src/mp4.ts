@@ -2545,7 +2545,7 @@ export function buildProbeResultFromDoc(
           });
         }
         firstPacket = false;
-        if (options.showFrames && !(aacMediaStart !== undefined && s.pts + s.duration <= firstPts)) {
+        if (options.showFrames && track.type !== "data" && !(aacMediaStart !== undefined && s.pts + s.duration <= firstPts)) {
           // AVSubtitle uses microsecond PTS and millisecond display bounds.
           if (track.type === "subtitle" && (doc.containerFormat === "matroska" || doc.containerFormat === "webm" || doc.containerFormat === "webvtt")) {
             frames.push({

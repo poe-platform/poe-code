@@ -159,7 +159,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
       ? undefined : String(track.declaredSampleCount ?? nbFrames),
     ...(!matroska && containerFormat !== "webvtt" && track.declaredSampleCount === undefined ? {} : {
       nb_read_packets: String(stats.count),
-      nb_read_frames: String(stats.count)
+      nb_read_frames: String(track.type === "data" ? 0 : stats.count)
     }),
     disposition: {
       default: containerFormat !== "webvtt" && track.enabled ? 1 : 0,

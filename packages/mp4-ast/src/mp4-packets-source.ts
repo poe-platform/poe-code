@@ -41,6 +41,7 @@ export async function* scanMp4Frames(source: MediaProbeSource, options: Mp4Packe
   for await (const record of scanProbeRecords(source, options, 'frames')) {
     if (!('sample' in record)) continue;
     const { sample, track, frameDts } = record;
+    if (track.type === 'data') continue;
     const scale = Math.max(1, track.timescale), ptsTime = (sample.pts / scale).toFixed(6);
     yield { media_type: track.type, stream_index: track.index, key_frame: sample.isKeyframe ? 1 : 0,
       pts: sample.pts, pts_time: ptsTime,

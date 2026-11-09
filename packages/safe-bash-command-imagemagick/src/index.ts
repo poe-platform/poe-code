@@ -3264,6 +3264,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
     if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(spec, token);
     const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort || token === "-implode" ? "edge" : undefined);
+    const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
     return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample">) => {
         if (token === "-shear") {
             const plan = shearPlan(image, spec);
@@ -3283,7 +3284,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             if (gray && virtualPixel !== "background") color = { r: color.b, g: color.b, b: color.b, a: color.a };
             return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, plan, color, "background") };
         }
-        return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel) } : undefined;
+        return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, kernel, filter) } : undefined;
     } };
 }
 

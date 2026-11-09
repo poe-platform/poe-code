@@ -1475,7 +1475,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
     "exif:orientation": meta.orientation === undefined ? "" : String(meta.orientation),
-    colorspace: space, channels: `${space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.writeMask || meta.storedWriteMask ? 1 : 0)}.0`,
+    colorspace: space, channels: `${space === "LinearGray" ? "gray" : space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.writeMask || meta.storedWriteMask ? 1 : 0)}.0`,
     width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
     depth: bitDepth, size: short.b!, compression, quality: short.Q!, page: short.P!,
     "resolution.x": short.x!, "resolution.y": short.y!,
@@ -6399,6 +6399,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
         }
         evaluate = token !== "-type" && (token === "-grayscale" || ["rgb", "srgb", "gray", "grey", "rec709luma", "rec601luma"].includes(space));
+        const luminance = space === "rec601luminance" || space === "rec709luminance";
         apply = function* (image) {
             const linearGray = (image.space === "b-w" || image.space === "grey16") && image.gamma === 1;
             if (linearGray && space === "rgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3, magickColorspace: "RGB" };
@@ -6452,7 +6453,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (idx % 65536 === 0) yield;
                 let r = samples[idx]! / scale, g = samples[idx + 1]! / scale, b = samples[idx + 2]! / scale;
                 // Grayscale reads the active channels; only sRGB luminance and RGB luma apply gamma.
-                if ((space === "rec601luminance" || space === "rec709luminance") && !image.magickColorspace && (image.space === "srgb" || image.space === "rgb16")) {
+                if (luminance && !image.magickColorspace && (image.space === "srgb" || image.space === "rgb16")) {
                     r = 255 * (r / 255 <= 0.04045 ? r / 255 / 12.92 : ((r / 255 + 0.055) / 1.055) ** 2.4);
                     g = 255 * (g / 255 <= 0.04045 ? g / 255 / 12.92 : ((g / 255 + 0.055) / 1.055) ** 2.4);
                     b = 255 * (b / 255 <= 0.04045 ? b / 255 / 12.92 : ((b / 255 + 0.055) / 1.055) ** 2.4);
@@ -6480,7 +6481,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             const { data16: ignored, magickColorspace: ignoredSpace, hueSamples: ignoredHue, storedHueSamples: ignoredStoredHue, ...metadata } = image;
             const hasAlpha = imageType === undefined ? image.hasAlpha : imageType === "grayscalealpha";
-            return { ...metadata, data: out, evaluateSamples, space: "b-w", hasAlpha, channels: hasAlpha ? 2 : 1 };
+            return { ...metadata, data: out, evaluateSamples, space: "b-w", ...(luminance ? { gamma: 1 } : {}), hasAlpha, channels: hasAlpha ? 2 : 1 };
         };
     }
     else if (token === "-gamma" || token === "+gamma") {

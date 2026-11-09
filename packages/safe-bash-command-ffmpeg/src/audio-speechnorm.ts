@@ -3,7 +3,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function normalizeSpeech(
-  channels: readonly (Float32Array | Float64Array)[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  channels: readonly (Float32Array | Float64Array)[], filter: string, sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   const options = { peak: 0.95, expansion: 2, compression: 2, threshold: 0, raise: 0.001, fall: 0.001 };
   const names = Object.keys(options) as (keyof typeof options)[];
@@ -24,6 +24,8 @@ export async function normalizeSpeech(
   }
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
   const output = channels.map(channel => new Float64Array(channel.length));
+  // Native keeps gain state in double precision, but applies it in the negotiated sample format.
+  const round = sampleFormat === "dblp" ? (value: number) => value : Math.fround;
   for (const [c, channel] of channels.entries()) {
     let gain = options.expansion;
     let start = 0;
@@ -37,14 +39,15 @@ export async function normalizeSpeech(
         const limit = Math.min(options.expansion, options.peak / peak);
         gain = Math.min(limit, peak >= options.threshold
           ? gain + options.raise : Math.max(1 / options.compression, gain - options.fall));
+        const appliedGain = round(gain);
         for (let i = start; i < end; i++) {
           if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-          output[c]![i] = channel[i]! * gain;
+          output[c]![i] = round(round(channel[i]!) * appliedGain);
         }
         start = end;
         peak = Number.MIN_VALUE;
       }
-      if (end < channel.length) peak = Math.max(peak, Math.abs(channel[end]!));
+      if (end < channel.length) peak = Math.max(peak, Math.abs(round(channel[end]!)));
     }
   }
   return output;

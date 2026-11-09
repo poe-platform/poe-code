@@ -9416,7 +9416,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioTimestamps = limited.frames;
                         statsScale = 1;
                       } else if (trimmed === "speechnorm" || trimmed.startsWith("speechnorm=")) {
-                        stretched = await normalizeSpeech(stretched, trimmed, budget, context.signal);
+                        filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
+                        stretched = await normalizeSpeech(stretched, trimmed, filteredSampleFormat, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "agate" || trimmed.startsWith("agate=")) {
                         stretched = await applyAudioGate(stretched, origRate, trimmed, budget, context.signal);

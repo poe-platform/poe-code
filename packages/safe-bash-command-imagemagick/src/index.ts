@@ -4878,7 +4878,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             }
             if (pts.length < (cmd === "polygon" ? 3 : 1)) throw new Error(`${cmd} drawing has too few points`);
             if (cmd === "polygon") {
-                svgElements.push(`<polygon points="${pts.join(" ")}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
+                svgElements.push(`<polygon data-magick-fill="1" points="${pts.join(" ")}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
             }
             else {
                 const lineStroke = stroke === "none" ? paintFill : paintStroke;
@@ -4906,7 +4906,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         }
         else if (cmd === "path") {
             const d = tokens[i++] ?? "";
-            svgElements.push(`<path d="${escapeXml(d)}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
+            svgElements.push(`<path data-magick-fill="1" d="${escapeXml(d)}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
         }
         else {
             throw new Error(`Unsupported drawing primitive: ${cmd}`);

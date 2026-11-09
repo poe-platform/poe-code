@@ -9,7 +9,7 @@ import {SvgRecords} from "./svg-records.js";
 import {rasterSvgElement,svgInheritedFields,type SvgMatrix,type SvgPixel,type SvgPoint} from "./svg-renderer.js";
 import {applySvgTransform,multiplySvgMatrices} from "./svg-transform.js";
 
-const fieldNames=['shape-rendering','cx','cy','fill','fill-opacity','font-size','height','opacity','r','rx','ry','stroke','stroke-opacity','stroke-width','text-anchor','width','x','x1','x2','y','y1','y2','d','points','transform'];
+const fieldNames=["data-magick-fill",'shape-rendering','cx','cy','fill','fill-opacity','font-size','height','opacity','r','rx','ry','stroke','stroke-opacity','stroke-width','text-anchor','width','x','x1','x2','y','y1','y2','d','points','transform'];
 const word=(byte:number|undefined)=>byte!==undefined&&(byte>=48&&byte<=57||byte>=65&&byte<=90||byte>=97&&byte<=122||byte===95);
 
 async function matches(reader:SourceBytes,start:number,end:number,text:string,fold=false):Promise<boolean>{

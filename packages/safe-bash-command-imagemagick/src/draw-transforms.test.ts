@@ -13,7 +13,7 @@ for (const mode of ["map", "filesystem", "command"]) {
         ["translate 1,0 affine 2,0,0,2,1,0 point 1,1", [[4, 2]]],
         ["affine 1,0,1,1,0,0 point 1,2", [[3, 2]]],
         ["translate 2,1 rectangle 0,0 1,1", [[2, 1], [3, 1], [2, 2], [3, 2]]],
-        ["translate 2,1 path 'M 0 0 L 2 0 L 2 2 L 0 2 Z'", [[2, 1], [3, 1], [2, 2], [3, 2]]],
+        ["translate 2,1 path 'M 0 0 L 2 0 L 2 2 L 0 2 Z'", [[2, 1], [3, 1], [4, 1], [2, 2], [3, 2], [4, 2], [2, 3], [3, 3], [4, 3]]],
         ["translate 1,0 point 0,0 scale 2,2 point 1,1", [[1, 0], [3, 2]]],
         ["translate 1,0 push graphic-context scale 2,2 point 1,1 pop graphic-context point 1,1", [[3, 2], [2, 1]]],
         ["point 0,0 translate 2,0 color 0,0 floodfill", Array.from({ length: 35 }, (_, i) => [i % 7, Math.floor(i / 7)])],

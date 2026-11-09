@@ -203,6 +203,7 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
         effAlpha > 0 &&
         (tag === "polygon" || (tag === "path" && fillAttr !== "none") || attrs["fill"] !== undefined);
       if (shouldFill) {
+        const magickFill = attrs["data-magick-fill"] === "1";
         let minX = width;
         let maxX = 0;
         let minY = height;
@@ -219,11 +220,12 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
         const x0 = Math.max(0, Math.floor(minX));
         const x1 = Math.min(width - 1, Math.ceil(maxX));
         for (let y = y0; y <= y1; y++) {
-          const py = y + 0.5;
+          const py = y + (magickFill ? 0 : 0.5);
           for (let x = x0; x <= x1; x++) {
           if (++rasterWork % 16384 === 0) yield undefined;
-            const px = x + 0.5;
+            const px = x + (magickFill ? 0 : 0.5);
             let inside = false;
+            let distance = Infinity;
             let previous = yield* point(0), start = previous;
             for (let i = 1; i <= pointCount; i++) {
               const next = i < pointCount ? yield* point(i) : undefined;
@@ -231,14 +233,25 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
               const current = next && !next[2] ? next : start;
               const [xi, yi] = current;
               const [xj, yj] = previous;
+              if (magickFill) {
+                const dx = xj - xi, dy = yj - yi;
+                const lengthSquared = dx * dx + dy * dy;
+                const t = lengthSquared === 0 ? 0 : Math.max(0, Math.min(1, ((px - xi) * dx + (py - yi) * dy) / lengthSquared));
+                distance = Math.min(distance, Math.hypot(px - xi - t * dx, py - yi - t * dy));
+              }
               if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
                 inside = !inside;
               }
               if (next?.[2]) start = next;
               if (next) previous = next;
             }
-            if (inside) {
-              yield* blendPixel(x, y, fill.r, fill.g, fill.b, effAlpha);
+            // ImageMagick fills pixel centers on the boundary completely, with
+            // squared distance coverage for the adjacent exterior pixels.
+            const coverage = inside ? 1 : !magickFill ? 0
+              : attrs["shape-rendering"] === "crispEdges" ? (distance <= 0.5 ? 1 : 0)
+              : Math.max(0, 1 - distance) ** 2;
+            if (coverage > 0) {
+              yield* blendPixel(x, y, fill.r, fill.g, fill.b, Math.round(effAlpha * coverage));
             }
           }
         }

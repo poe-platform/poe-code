@@ -12,7 +12,7 @@ for (const nounset of ['+u', '-u']) for (const selector of ['@', '*']) {
   ]) test(`scalar member substring matches Bash: ${nounset}, ${initialize}, [${selector}]:${slice}`, async () => {
     const expansion = '${a[' + selector + ']:' + slice + '}';
     const source = `set ${nounset}; ${initialize}; args "${expansion}"`;
-    const native = spawnSync('/bin/bash', ['--noprofile', '--norc', '-c', `args() { printf '%s\\0' "$#" "$@"; }; ${source}`], { encoding: 'utf8', env: { LC_ALL: 'C', PATH: process.env.PATH } });
+    const native = spawnSync(process.env.SAFE_BASH_TEST_BASH ?? '/bin/bash', ['--noprofile', '--norc', '-c', `args() { printf '%s\\0' "$#" "$@"; }; ${source}`], { encoding: 'utf8', env: { LC_ALL: 'C', PATH: process.env.PATH } });
     assert.equal(native.error, undefined);
     assert.equal(native.status, 0, native.stderr);
     assert.equal(native.stderr, '');

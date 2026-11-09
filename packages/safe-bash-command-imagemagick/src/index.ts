@@ -3736,12 +3736,12 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
                     : mask[channel] || img.hasAlpha && channels.a ? 0 : input[channel]!;
             }
             out[3] = img.hasAlpha && channels.a ? 0 : input[3]!;
-        } else if (dither && img.hasAlpha && target[3]! < 255) {
+        } else if (dither && (img.hasAlpha && target[3]! < 255 || dither === "riemersma" && !img.hasAlpha)) {
             // ImageMagick searches the parent of the deepest matching RGBA
             // octree node, using associated alpha for both lookup and distance.
             if (!palette) {
                 palette = { children: [] };
-                for (let a = 0; a < levels; a++) for (let b = 0; b < levels; b++) for (let g = 0; g < levels; g++) for (let r = 0; r < levels; r++) {
+                for (let a = img.hasAlpha ? 0 : levels - 1; a < levels; a++) for (let b = 0; b < (channels.b ? levels : 1); b++) for (let g = 0; g < (channels.g ? levels : 1); g++) for (let r = 0; r < (channels.r ? levels : 1); r++) {
                     if (++cooperativeWork % 1024 === 0) { signal?.throwIfAborted(); yield; }
                     const color = a === 0 ? [0, 0, 0, 0] : [r * step, g * step, b * step, a * step];
                     const bytes = color.map((value, channel) => Math.round(channel === 3 ? value : value * color[3]! / 255));
@@ -3789,8 +3789,12 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
         }
         if (dither === "riemersma") {
             errors.copyWithin(0, 4);
-            const outputAlpha = img.hasAlpha ? out[3]! / 255 : 1;
-            for (let channel = 0; channel < 4; channel++) errors[60 + channel] = target[channel]! - out[channel]! * (channel === 3 ? 1 : outputAlpha);
+            const outputAlpha = img.hasAlpha ? Math.round(out[3]! / step) * step / 255 : 1;
+            for (let channel = 0; channel < 4; channel++) {
+                // Propagate the palette sample before rounding it to an output byte.
+                const color = Math.round(out[channel]! / step) * step;
+                errors[60 + channel] = target[channel]! - color * (channel === 3 ? 1 : outputAlpha);
+            }
         } else if (dither === "floydsteinberg") {
             const direction = Math.floor(i / 4 / img.width) % 2 ? -1 : 1;
             const outputAlpha = img.hasAlpha ? Math.round(out[3]! / step) * step / 255 : 1;

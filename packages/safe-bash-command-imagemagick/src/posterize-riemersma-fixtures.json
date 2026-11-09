@@ -1,0 +1,120 @@
+{
+  "input": "iVBORw0KGgoAAAANSUhEUgAAAAcAAAAFCAIAAAAG+GGPAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDdUMjE6NDQ6NTArMDA6MDD8O7+tAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA3VDIxOjQ0OjUwKzAwOjAwjWYHEQAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wN1QyMTo0NDo1MCswMDowMNpzJs4AAAA6SURBVAjXY/TaeknaOBoNMT868OzNmZw3PjlvfN688cl545Pz5swbxiP1ZzDVMjY+8cQiaud5DFMUAPPcJRu9Ax9NAAAAAElFTkSuQmCC",
+  "cases": [
+    {
+      "levels": 2,
+      "mode": "default",
+      "options": [],
+      "rgba": "00ffffff00ff00ffff00ffffff00ffffff0000ffffffffffffffffff000000ff0000ffff00ff00ff00ff00ff00ffffffff0000ffff0000ffff00ffffffff00ffffffffff0000ffff000000ff0000ffff00ffffffffff00ffff00ffffff00ffffff0000ffffffffff00ff00ff000000ff0000ffff00ff00ff00ff00ffffffffffff0000ffff00ffffff00ffff"
+    },
+    {
+      "levels": 2,
+      "mode": "Riemersma",
+      "options": [
+        "-dither",
+        "Riemersma"
+      ],
+      "rgba": "00ffffff00ff00ffff00ffffff00ffffff0000ffffffffffffffffff000000ff0000ffff00ff00ff00ff00ff00ffffffff0000ffff0000ffff00ffffffff00ffffffffff0000ffff000000ff0000ffff00ffffffffff00ffff00ffffff00ffffff0000ffffffffff00ff00ff000000ff0000ffff00ff00ff00ff00ffffffffffff0000ffff00ffffff00ffff"
+    },
+    {
+      "levels": 2,
+      "mode": "disabled",
+      "options": [
+        "+dither"
+      ],
+      "rgba": "00ffffff00ff00ffff00ffffff00ffffffff00ffffffffffffffffff000000ff0000ffff00ff00ff00ff00ff00ffffffff0000ffff0000ffff00ffffffff00ffffffffff0000ffff000000ff0000ffff00ffffffffff00ffff00ffffff00ffffff0000ffffffffff00ff00ff000000ff0000ffff000000ff00ff00ffffffffffff0000ffff00ffffff00ffff"
+    },
+    {
+      "levels": 3,
+      "mode": "default",
+      "options": [],
+      "rgba": "8080ffff80ff00ff800080ff8080ffff808000ffff8080ffffffffff000080ff008080ff008000ff808080ff80ff80ff800000ff808080ffff80ffffff8000ffffff80ff0000ffff008000ff808080ff8080ffff80ff80ff800080ff8080ffffff8080ffff8080ff00ff00ff000080ff0080ffff808000ff808080ff80ffffff800000ffff8080ffff80ffff"
+    },
+    {
+      "levels": 3,
+      "mode": "Riemersma",
+      "options": [
+        "-dither",
+        "Riemersma"
+      ],
+      "rgba": "8080ffff80ff00ff800080ff8080ffff808000ffff8080ffffffffff000080ff008080ff008000ff808080ff80ff80ff800000ff808080ffff80ffffff8000ffffff80ff0000ffff008000ff808080ff8080ffff80ff80ff800080ff8080ffffff8080ffff8080ff00ff00ff000080ff0080ffff808000ff808080ff80ffffff800000ffff8080ffff80ffff"
+    },
+    {
+      "levels": 3,
+      "mode": "disabled",
+      "options": [
+        "+dither"
+      ],
+      "rgba": "8080ffff80ff00ff800080ff8080ffff808000ffff8080ffffffffff000080ff008080ff008000ff808080ff80ff80ff800000ff808080ffff80ffffff8000ffffff80ff0000ffff008000ff808080ff8080ffff80ff80ff800080ff8080ffffff8080ffff8080ff00ff00ff000080ff0080ffff808000ff808080ff80ffffff800000ffff8080ffff80ffff"
+    },
+    {
+      "levels": 5,
+      "mode": "default",
+      "options": [],
+      "rgba": "40bfbfff40ff40ff800080ff8040ffffbf8040ffbfbf80ffffffffff000040ff4040bfff408000ff40bf40ff40ffbfff800000ffbf4040ffbf80bfffffbf40ffffff80ff0000bfff404040ff408080ff40bfffff80ff40ff8000bfffbf40ffffbf4040ffffbfbfff00ff00ff400040ff4040bfff404040ff40bf40ff80ffbfffbf0040ffbf4080ffff40ffff"
+    },
+    {
+      "levels": 5,
+      "mode": "Riemersma",
+      "options": [
+        "-dither",
+        "Riemersma"
+      ],
+      "rgba": "40bfbfff40ff40ff800080ff8040ffffbf8040ffbfbf80ffffffffff000040ff4040bfff408000ff40bf40ff40ffbfff800000ffbf4040ffbf80bfffffbf40ffffff80ff0000bfff404040ff408080ff40bfffff80ff40ff8000bfffbf40ffffbf4040ffffbfbfff00ff00ff400040ff4040bfff404040ff40bf40ff80ffbfffbf0040ffbf4080ffff40ffff"
+    },
+    {
+      "levels": 5,
+      "mode": "disabled",
+      "options": [
+        "+dither"
+      ],
+      "rgba": "40bfbfff80ff40ff800080ff8040ffffbf8040ffbfbf80ffffffffff000040ff4040bfff408000ff40bf80ff80ffbfff800000ffbf4080ffbf80bfffbfbf40ffffff80ff0000bfff404040ff408080ff80bfffff80ff40ff8000bfffbf40ffffbf8040ffffbfbfff00ff00ff400080ff4040bfff408040ff80bf80ff80ffbfffbf0040ffbf4080ffff80ffff"
+    },
+    {
+      "levels": 9,
+      "mode": "default",
+      "options": [],
+      "rgba": "40bfdfff60df20ff802080ff9f40dfffbf8040ffdfbf9fffdfdfffff002040ff20409fff208000ff60bf60ff60dfbfff802020ff9f4060ffdf60dfffdfbf20ffffdf80ff2020dfff204020ff40609fff60bfdfff80df40ff9f209fffbf40ffffdf6060ffdfbfbfff00df20ff202060ff2040dfff606020ff60bf60ff80dfdfff9f2020ffdf4080ffdf60dfff"
+    },
+    {
+      "levels": 9,
+      "mode": "Riemersma",
+      "options": [
+        "-dither",
+        "Riemersma"
+      ],
+      "rgba": "40bfdfff60df20ff802080ff9f40dfffbf8040ffdfbf9fffdfdfffff002040ff20409fff208000ff60bf60ff60dfbfff802020ff9f4060ffdf60dfffdfbf20ffffdf80ff2020dfff204020ff40609fff60bfdfff80df40ff9f209fffbf40ffffdf6060ffdfbfbfff00df20ff202060ff2040dfff606020ff60bf60ff80dfdfff9f2020ffdf4080ffdf60dfff"
+    },
+    {
+      "levels": 9,
+      "mode": "disabled",
+      "options": [
+        "+dither"
+      ],
+      "rgba": "40bfdfff60df20ff802080ff9f40dfffbf8040ffdfbf9fffdfdfffff002040ff20409fff408000ff60bf60ff80dfbfff802020ff9f4080ffbf80bfffdfbf20ffffdf80ff2020dfff404040ff40809fff60bfdfff80df40ff9f209fffbf40ffffdf8060ffdfbfbfff00df20ff202060ff4040bfff608020ff809f80ff80dfdfff9f2040ffbf4080ffdf80dfff"
+    },
+    {
+      "levels": 16,
+      "mode": "default",
+      "options": [],
+      "rgba": "44bbccff66ee33ff881188ff9955eeffbb8833ffccbb99ffeeeeeeff001155ff2255aaff338800ff55bb66ff77eebbff881111ffaa4477ffcc77ccffddaa22ffffee88ff1111ddff334433ff447799ff66aaeeff88ee44ff9911aaffbb44ffffcc7755ffeeaabbff00ee11ff221166ff3344ccff557722ff77aa77ff88eeddffaa1133ffcc4488ffee77eeff"
+    },
+    {
+      "levels": 16,
+      "mode": "Riemersma",
+      "options": [
+        "-dither",
+        "Riemersma"
+      ],
+      "rgba": "44bbccff66ee33ff881188ff9955eeffbb8833ffccbb99ffeeeeeeff001155ff2255aaff338800ff55bb66ff77eebbff881111ffaa4477ffcc77ccffddaa22ffffee88ff1111ddff334433ff447799ff66aaeeff88ee44ff9911aaffbb44ffffcc7755ffeeaabbff00ee11ff221166ff3344ccff557722ff77aa77ff88eeddffaa1133ffcc4488ffee77eeff"
+    },
+    {
+      "levels": 16,
+      "mode": "disabled",
+      "options": [
+        "+dither"
+      ],
+      "rgba": "44bbccff66ee33ff882288ff9955ddffbb8844ffccbb99ffeeeeeeff002255ff2255aaff448800ff55bb66ff77eebbff881111ffaa4477ffcc77ccffddaa22ffffdd88ff1111ddff334433ff447799ff66aaeeff88dd44ff9911aaffbb44ffffcc7755ffeeaabbff00dd11ff221166ff4444ccff557722ff77aa77ff88ddddffaa1133ffcc4488ffdd77eeff"
+    }
+  ]
+}

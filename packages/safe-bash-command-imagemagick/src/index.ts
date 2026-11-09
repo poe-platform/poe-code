@@ -1743,6 +1743,16 @@ function resolveMagickChopGeometry(g: MagickGeometry, raw: string, width: number
     };
 }
 
+function parseMagickRotationalBlurAngle(raw: string): number {
+    const suffix = [...raw].findIndex(c => "xX!#%(),/:<>@\\^".includes(c));
+    const degrees = (suffix < 0 ? raw : raw.slice(0, suffix)).trim();
+    const angle = Number(degrees);
+    if (!degrees || Number.isNaN(angle) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+        throw new Error(`invalid argument for option '-rotational-blur': ${raw}`);
+    }
+    return angle;
+}
+
 function parseMagickVignetteGeometry(raw: string): MagickGeometry {
     if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '-vignette': ${raw}`);
@@ -8393,7 +8403,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-rotational-blur") {
-            const angle = Number(tokens[++i] ?? 0);
+            const angle = parseMagickRotationalBlurAngle(tokens[++i] ?? "");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, rotationalBlurPixelSteps(im, angle, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
             });
@@ -10148,7 +10158,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, kuwaharaPixelSteps(image, geometry, background, virtualPixel, channels), signal) : undefined);
         } else if (!operandsOnly && token === "-rotational-blur") {
-            const angle = Number(tokens[++i] ?? 0), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
+            const angle = parseMagickRotationalBlurAngle(tokens[++i] ?? ""), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, rotationalBlurPixelSteps(image, angle, background, virtualPixel, channels), signal) : undefined);
         } else if (!operandsOnly && token === "-sharpen") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");

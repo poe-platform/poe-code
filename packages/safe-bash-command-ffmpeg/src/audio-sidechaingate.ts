@@ -32,14 +32,19 @@ export async function gateAudio(
   const upward = choice("mode", ["downward", "upward"]) === 1;
   const thresholdValue = number("threshold", 0, 1);
   const range = number("range", 0, 1);
-  const expansion = number("ratio", 1, 9000) - 1;
-  const attack = Math.min(1, 4000 / (number("attack", 0.01, 9000) * sampleRate));
-  const release = Math.min(1, 4000 / (number("release", 0.01, 9000) * sampleRate));
+  const ratio = number("ratio", 1, 9000);
+  const attack = Math.min(1, 1 / (number("attack", 0.01, 9000) * sampleRate / 4000));
+  const release = Math.min(1, 1 / (number("release", 0.01, 9000) * sampleRate / 4000));
   const makeup = number("makeup", 1, 64);
-  const width = Math.log(number("knee", 1, 8));
+  const knee = number("knee", 1, 8);
   const maximum = choice("link", ["average", "maximum"]) === 1;
   const rms = choice("detection", ["peak", "rms"]) === 1;
-  const threshold = Math.log(rms ? thresholdValue ** 2 : thresholdValue);
+  const linearThreshold = rms ? thresholdValue * thresholdValue : thresholdValue;
+  const linearKneeStart = linearThreshold / Math.sqrt(knee);
+  const linearKneeStop = linearThreshold * Math.sqrt(knee);
+  const threshold = Math.log(linearThreshold);
+  const kneeStart = Math.log(linearKneeStart);
+  const kneeStop = Math.log(linearKneeStop);
   const detectorLevel = number("level_sc", 0.015625, 64);
   const length = Math.min(channels[0]?.length ?? 0, sidechain[0]?.length ?? 0);
   budget.checkSamples(length);
@@ -58,13 +63,31 @@ export async function gateAudio(
     if (rms) detected *= detected;
     envelope += (detected - envelope) * (detected > envelope ? attack : release);
     let gain = 1;
-    if (envelope > 0) {
-      const distance = (Math.log(envelope) - threshold) * (upward ? 1 : -1);
-      // The gate expands log levels below the threshold (above it in upward mode).
-      // RMS detection uses squared levels throughout, including the knee.
-      const expanded = distance >= width / 2 ? distance
-        : distance > -width / 2 ? (distance + width / 2) ** 2 / (2 * width) : 0;
-      gain = Math.max(range, Math.exp((upward ? 1 : -1) * expansion * expanded));
+    if (envelope > 0 && (upward ? envelope > linearKneeStart : envelope < linearKneeStop)) {
+      const slope = Math.log(envelope);
+      let outputLevel = (slope - threshold) * ratio + threshold;
+      // Preserve native evaluation order: reducing this to a gain polynomial can
+      // move a sample across a PCM rounding boundary.
+      if (knee > 1 && (upward ? slope < kneeStop : slope > kneeStart)) {
+        const start = upward ? kneeStop : kneeStart;
+        const stop = upward ? kneeStart : kneeStop;
+        const width = stop - start;
+        const t = (slope - start) / width;
+        const t2 = t * t;
+        const t3 = t2 * t;
+        const p0 = (start - threshold) * ratio + threshold;
+        const m0 = ratio * width;
+        const ct2 = -3 * p0 - 2 * m0 + 3 * stop - width;
+        const ct3 = 2 * p0 + m0 - 2 * stop + width;
+        outputLevel = ct3 * t3 + ct2 * t2 + m0 * t + p0;
+      }
+      const logGain = outputLevel - slope;
+      const exponent = Math.round(logGain / Math.LN2);
+      // Reduce with split ln(2) before exponentiation so the final power-of-two
+      // scaling is exact, retaining the low bit that decides PCM half samples.
+      const reduced = (logGain - exponent * 0.6931471803691238) - exponent * 1.9082149292705877e-10;
+      gain = Math.max(range, exponent >= -1022 && exponent <= 1023
+        ? Math.exp(reduced) * 2 ** exponent : Math.exp(logGain));
     }
     const scale = level * gain * makeup;
     for (let c = 0; c < channels.length; c++) output[c]![i] = channels[c]![i]! * scale;

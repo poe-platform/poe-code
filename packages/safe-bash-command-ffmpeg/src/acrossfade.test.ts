@@ -20,7 +20,6 @@ for (const [options, length, fade, expected] of [
   ["d=0.0005:ns=214748365", 8, 0, []],
   ["214748365:0.0005", 8, 0, []],
   ["ns=0", 8, 0, []],
-  ["ns=9", 8, 0, []],
   ["ns=4:c1=unknown", 8, 0, []],
   ["ns=4:o=2", 8, 0, []]
 ] as const) {
@@ -57,4 +56,45 @@ for (const [options, length, fade, expected] of [
     assert.deepEqual([samples[length - fade], samples[length - fade / 2], samples[length - 1]], expected);
     if (!overlap) assert.deepEqual(samples.slice(length, length + fade), [0, -1000, -2000, -3000]);
   });
+}
+
+// FFmpeg 7.0.2 emits only the first input's prefix if either fade is incomplete.
+for (const [aLength, bLength] of [[1301, 37], [37, 1301], [37, 37]] as const) {
+  for (const fade of [37, 38, 128]) {
+    for (const overlap of [0, 1]) {
+      it(`acrossfade handles EOF (${aLength}/${bLength}, ns=${fade}, o=${overlap})`, async () => {
+        const volume = Volume.fromJSON({});
+        for (const [name, length, value] of [["a", aLength, 11840], ["b", bLength, -3996]] as const) {
+          volume.writeFileSync(`/${name}.wav`, encodeWav({ sampleRate: 8000,
+            channels: [new Float64Array(length).fill(value / 32768)] }));
+        }
+        let stderr = "";
+        const result = await createFfmpegCommand().execute({
+          args: ["-i", "/a.wav", "-i", "/b.wav", "-filter_complex",
+            `[0:a][1:a]acrossfade=ns=${fade}:o=${overlap}[mix]`, "-map", "[mix]", "-f", "s16le", "/out.pcm"],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) { return volume.readFileSync(path); },
+            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(), stdout: { async write() {} },
+          stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+        } as never);
+        assert.equal(result.exitCode, 0, stderr);
+        const output = volume.readFileSync("/out.pcm") as Buffer;
+        const samples = Array.from({ length: output.length / 2 }, (_, i) => output.readInt16LE(i * 2));
+        const prefix = new Array(Math.max(0, aLength - fade)).fill(11840);
+        if (fade > Math.min(aLength, bLength)) {
+          assert.deepEqual(samples, prefix);
+        } else {
+          assert.equal(samples.length, aLength + bLength - (overlap ? fade : 0));
+          assert.deepEqual(samples.slice(0, prefix.length), prefix);
+          assert.equal(samples[prefix.length], Math.round(11840 * (fade - 1) / fade));
+          assert.equal(samples[aLength - 1], overlap ? Math.round(-3996 * (fade - 1) / fade) : 0);
+          assert.deepEqual(samples.slice(aLength + (overlap ? 0 : fade)), new Array(bLength - fade).fill(-3996));
+        }
+      });
+    }
+  }
 }

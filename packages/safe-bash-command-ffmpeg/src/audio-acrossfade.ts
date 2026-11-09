@@ -2,6 +2,7 @@ import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function acrossfadeAudio(
   first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -21,8 +22,11 @@ export async function acrossfadeAudio(
     const key = separator < 0 ? ["ns", "d", "o", "c1", "c2"][index] : option.slice(0, separator);
     const value = separator < 0 ? option : option.slice(separator + 1);
     if (key === "ns" || key === "nb_samples") {
-      samples = Number(value);
-      if (!Number.isSafeInteger(samples) || samples < 1 || samples > 214748364) throw new Error("acrossfade: invalid sample count");
+      samples = parseFilterExpression(value, "acrossfade", {});
+      if (samples < 1 || samples > 214748364) throw new Error("acrossfade: invalid sample count");
+      // Native integer options validate bounds before rounding ties to even.
+      const floor = Math.floor(samples);
+      samples = samples - floor === 0.5 ? floor + floor % 2 : Math.round(samples);
     } else if (key === "d" || key === "duration") {
       duration = parseHlsDuration(value);
       if (!value || !Number.isFinite(duration) || duration < 0) throw new Error("acrossfade: invalid duration");
@@ -38,14 +42,17 @@ export async function acrossfadeAudio(
   if (samples === 0) return first;
   const aLength = a.channelData[0]!.length;
   const bLength = b.channelData[0]!.length;
-  if (samples > aLength || samples > bLength) {
-    throw new Error("acrossfade: transition must fit both inputs");
-  }
-  const length = aLength + bLength - (overlap ? samples : 0);
+  if (samples < 1) throw new Error("acrossfade: invalid sample count");
+  // FFmpeg 7 ends before the transition if either input cannot fill it.
+  const length = samples > aLength || samples > bLength
+    ? Math.max(0, aLength - samples)
+    : aLength + bLength - (overlap ? samples : 0);
   budget.checkSamples(length);
   budget.checkDuration(length / a.sampleRate);
   budget.allocateMemory(length * a.channels * 8);
   const channelData = a.channelData.map(() => new Float64Array(length));
+  const pcm16 = [first, second].every(track =>
+    ["pcm_s16le", "pcm_s16be"].includes(track.codecDescriptions[0]?.codecName ?? ""));
   for (let i = 0; i < length; i++) {
     if (i % 4096 === 0) {
       await yieldTurn(signal);
@@ -59,7 +66,9 @@ export async function acrossfadeAudio(
         (transition < 0 ? 1 : (samples - 1 - transition) / samples);
       const secondValue = secondIndex < 0 ? 0 : b.channelData[channel]![secondIndex]! *
         (secondIndex >= samples ? 1 : secondIndex / samples);
-      channelData[channel]![i] = firstValue + secondValue;
+      // Native S16 fades cast the mixed sample to int16 before encoding.
+      const value = firstValue + secondValue;
+      channelData[channel]![i] = pcm16 ? Math.trunc(value * 32768) / 32768 : value;
     }
   }
   const frames: MediaSample[] = [];

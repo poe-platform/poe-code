@@ -24,7 +24,7 @@ for (const [name, hex, pos] of fixtures) for (const frames of [false, true]) {
       ]);
     }
     const args = ["-v", "error", "-show_entries", frames ? "frame=nb_samples,pkt_pos,pkt_size,duration,pts" : "packet=pos,size,pts,duration", "-of", "json", "/in.aiff"];
-    expect(JSON.parse(evalSyncFfprobe(bytes, [...args.slice(0, -1), "pipe:0"])!)).toEqual(expected);
+    expect(JSON.parse(evalSyncFfprobe(bytes, args, () => bytes)!)).toEqual(expected);
     const fs = new MemoryFileSystem();
     await fs.writeFile("/in.aiff", bytes);
     let output = "", diagnostic = "";

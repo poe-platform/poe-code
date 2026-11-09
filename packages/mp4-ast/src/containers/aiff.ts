@@ -67,6 +67,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       else if (id === "(c) ") metadata.copyright = value;
       else metadata.comment = value;
     } else if (id === "SSND") {
+      if (options.seekable === false && !channels) throw new Error("AIFF file is not seekable: SSND precedes COMM");
       const available = Math.min(size, bytes.length - start);
       if (available < 8) throw new Error("Invalid AIFF SSND chunk");
       const skip = view.getUint32(start);

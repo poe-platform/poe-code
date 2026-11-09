@@ -1365,7 +1365,7 @@ function buildTrakBox(
 
 export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
-  const isMov = options.format === "mov" || doc.containerFormat === "mov";
+  const isMov = (options.format ?? doc.containerFormat) === "mov";
   const majorBrand = options.majorBrand ?? (isMov ? "qt  " : (doc.majorBrand ?? "isom"));
   const compatibleBrands =
     options.compatibleBrands ??
@@ -1397,6 +1397,13 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
       };
     }
     const materialized = materializeTrackSamples(t);
+    if (!isMov && t.type === "audio") {
+      for (const description of materialized.codecDescriptions) {
+        if (description.codecName === "pcm_mulaw" || description.codecName === "pcm_alaw") {
+          throw new Error(`Could not find tag for codec ${description.codecName}, codec not currently supported in container mp4`);
+        }
+      }
+    }
     if (t.type === "video") {
       // MP4 decode timestamps must increase. Repair overlapping packets without
       // shifting the later timeline, as FFmpeg does when stream-copying concat.

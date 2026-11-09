@@ -1095,6 +1095,7 @@ async function panAudio(
   };
   const gains = names.map(() => new Float64Array(channels.length));
   const assigned = new Set<number>();
+  let numberedInputs: boolean | undefined;
   for (const assignment of assignments) {
     const normalize = assignment.includes("<");
     const parts = assignment.split(normalize ? "<" : "=");
@@ -1107,7 +1108,13 @@ async function panAudio(
       if (factors.length > 2) throw new Error("pan: invalid gain");
       const gain = factors.length === 1 ? 1 : factors[0] ? Number(factors[0]) : NaN;
       if (!Number.isFinite(gain)) throw new Error("pan: invalid gain");
-      const input = channelIndex(factors.at(-1)!, inputNames, channels.length);
+      const inputName = factors.at(-1)!;
+      const input = channelIndex(inputName, inputNames, channels.length);
+      const numbered = inputName.startsWith("c");
+      if (numberedInputs !== undefined && numberedInputs !== numbered) {
+        throw new Error("pan: cannot mix named and numbered input channels");
+      }
+      numberedInputs = numbered;
       gains[output]![input] = gains[output]![input]! + gain;
     }
     if (normalize) {
@@ -8935,7 +8942,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (key === "channel_layout") layout = value;
                           else throw new Error(`channelmap: unsupported option ${key}`);
                         }
-                        const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR"];
+                        const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR",
+                          "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"];
                         const inputNames = filteredChannelMask
                           ? speakers.filter((_, index) => (filteredChannelMask! & (1 << index)) !== 0)
                           : stretched.length === 1 ? ["FC"] : stretched.length === 2 ? ["FL", "FR"] : [];

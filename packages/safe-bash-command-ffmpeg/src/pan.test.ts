@@ -11,6 +11,16 @@ for (const [expression, expected] of [
   ["mono|c0=c1", [right]],
   ["stereo|c0=c1|c1=c0", [right, left]],
   ["stereo|FL=FR|FR=FL", [right, left]],
+  ["stereo|FL=FL|FR=FR", [left, right]],
+  ["stereo|FL=c0|c1=c1", [left, right]],
+  ["stereo|c0=FL|FR=FR", [left, right]],
+  ["stereo|FL=FL|FR=FR,pan=stereo|c0=c0|c1=c1", [left, right]],
+  ["mono|c0=FL+c1", null],
+  ["mono|c0=c0+FR", null],
+  ["mono|c0<FL+c1", null],
+  ["mono|c0=FL+0*c1", null],
+  ["stereo|FL=FL|FR=c1", null],
+  ["stereo|c0=c0|c1=FR", null],
   ["mono|c0<2*c0+c1", [[-667, 333, 1333, 2333]]],
   ["mono|c0=0.5*c0+0.5*c1", [[-1500, -500, 500, 1500]]],
   ["stereo|c1=c0", [[0, 0, 0, 0], left]],
@@ -22,7 +32,7 @@ for (const [expression, expected] of [
 ] as const) {
   for (const complex of [false, true]) {
     it(`pans PCM channels (${complex ? "graph" : "simple"}): ${expression}`, async () => {
-      const volume = Volume.fromJSON({});
+      const volume = Volume.fromJSON({ "/out.wav": "keep" });
       volume.writeFileSync("/twins.wav", encodeWav({ sampleRate: 8000,
         channels: [left, right].map(samples => Float64Array.from(samples, sample => sample / 32768)) }));
       let stderr = "";
@@ -43,7 +53,7 @@ for (const [expression, expected] of [
       if (expected === null) {
         assert.equal(result.exitCode, 1);
         assert.ok(stderr.includes("pan:"), stderr);
-        assert.equal(volume.existsSync("/out.wav"), false);
+        assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
         return;
       }
       assert.equal(result.exitCode, 0, stderr);

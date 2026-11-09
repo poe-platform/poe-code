@@ -310,7 +310,9 @@ the sample rate and frame count. Custom Haas options are not supported.
 the frame count with native signed 16-bit filtering and clipping. Other input
 rates and channel counts are rejected.
 
-Swap stereo PCM channels with `-af 'channelmap=map=1|0:channel_layout=stereo'`.
+Swap stereo PCM channels with `-af 'channelmap=FR|FL'` or
+`-af 'channelmap=map=1|0:channel_layout=stereo'`.
+Channel maps accept input speaker names or numeric indices and allow repeated sources.
 With only `channel_layout=stereo`, `channelmap` preserves the input channels;
 with only `channel_layout=mono`, it selects the first input channel without downmixing.
 Output layouts accept `mono`, `stereo`, `quad`, `5.1`, the count aliases `1c`,
@@ -344,6 +346,8 @@ The selected speaker is retained in the output channel layout.
 input layout: `-af 'pan=mono|c0=c1'` extracts the right channel and
 `-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. Weighted sums use `=`,
 and `<` normalizes gains, for example `pan=mono|c0<2*c0+c1`.
+All input references in a pan filter must use the same style: named or numbered.
+Output labels may mix styles, as in `pan=stereo|FL=c0|c1=c1`.
 Use `-ch_layout mono` or `-channel_layout mono` for mono output, equivalent to `-ac 1`. Other output layouts are not supported by these options.
 `aformat=channel_layouts=mono` (or `aformat=cl=mono`) downmixes stereo by
 averaging left and right samples, or preserves mono input.

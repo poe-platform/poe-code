@@ -2,27 +2,41 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
-import { parseWav } from "@poe-code/mp4-ast";
+import { parseWav, serializeWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
-const left = [1000, 2000, 3000, 4000];
-const right = [-4000, -3000, -2000, -1000];
-for (const [expression, expected, mask] of [
-  ["1|0|1", [right, left, right], 0x0b],
-  ["0|1|1|0", [left, right, right, left], 0x107],
+const left = [101, 202, 303, 404, 505, 606];
+const right = [-901, -802, -703, -604, -505, -406];
+for (const [expression, expected, inputMask, raw, mask] of [
+  ["FR|FL", [right, left]],
+  ["FR|FL", [right, left], undefined, true],
+  ["1|0", [right, left], undefined, true],
+  ["0|0", [left, left], undefined, true],
+  ["FR:mono,channelmap=FC", [right]],
+  ["map=FR|FL:channel_layout=stereo", [right, left]],
+  ["FR:mono", [right]],
+  ["FL|FL", [left, left]],
   ["0|0", [left, left]],
-  ["0|1|0|1|0", [left, right, left, right, left], 0x37],
-  ["0|1|0|1|0|1", [left, right, left, right, left, right], 0x3f],
-  ["0|1|0|1|0|1|0", [left, right, left, right, left, right, left], 0x70f],
-  ["0|1|0|1|0|1|0|1", [left, right, left, right, left, right, left, right], 0x63f],
+  ["FC|LFE", [left, right], 12],
+  ["LFE|FC", [right, left], 12],
+  ["SR|SL", [right, left], 0x600],
+  ["FL|FR", undefined, 12],
+  ["FC|FL", undefined],
+  ["invalid|FL", undefined],
+  ["1|0|1", [right, left, right], undefined, undefined, 0x0b],
+  ["0|1|1|0", [left, right, right, left], undefined, undefined, 0x107],
+  ["0|1|0|1|0", [left, right, left, right, left], undefined, undefined, 0x37],
+  ["0|1|0|1|0|1", [left, right, left, right, left, right], undefined, undefined, 0x3f],
+  ["0|1|0|1|0|1|0", [left, right, left, right, left, right, left], undefined, undefined, 0x70f],
+  ["0|1|0|1|0|1|0|1", [left, right, left, right, left, right, left, right], undefined, undefined, 0x63f],
   ["0-1|1-0", [right, left]],
   ["1-0|0-1", [right, left]],
   ["0-FR|1-FL", [right, left]],
   ["FL-1|FR-0", [right, left]],
   ["FL-FR|FR-FL", [right, left]],
-  ["1-FR", [right], 2],
-  ["0-FC|1-LFE", [left, right], 12],
-  ["1-LFE|0-FC", [left, right], 12],
+  ["1-FR", [right], undefined, undefined, 2],
+  ["0-FC|1-LFE", [left, right], undefined, undefined, 12],
+  ["1-LFE|0-FC", [left, right], undefined, undefined, 12],
   ["0-0|1-0", undefined],
   ["FL-0|1-1", undefined],
   ["0-FL|1-1", undefined],
@@ -61,17 +75,32 @@ for (const [expression, expected, mask] of [
   ["map=1:channel_layout=stereo", undefined]
 ] as const) {
   for (const complex of [false, true]) {
-    it(`maps PCM channels (${complex ? "graph" : "simple"}): ${expression}`, async () => {
+    it(`maps PCM channels (${complex ? "graph" : "simple"} ${raw ? "raw" : "WAV"}): ${expression}`, async () => {
       const volume = Volume.fromJSON({ "/out.wav": "keep" });
       volume.writeFileSync("/twins.wav", encodeWav({ sampleRate: 8000,
         channels: [left, right].map(samples => Float64Array.from(samples, sample => sample / 32768)) }));
+      if (inputMask !== undefined) {
+        const doc = parseWav(volume.readFileSync("/twins.wav") as Buffer);
+        volume.writeFileSync("/twins.wav", serializeWav({ ...doc, tracks: [{ ...doc.tracks[0]!,
+          decodedAudio: { ...doc.tracks[0]!.decodedAudio!, channelMask: inputMask }
+        }] }, { audioCodec: "pcm_s16le" }));
+      }
+      if (raw) {
+        const bytes = Buffer.alloc(left.length * 4);
+        for (const [frame, sample] of left.entries()) {
+          bytes.writeInt16LE(sample, frame * 4);
+          bytes.writeInt16LE(right[frame]!, frame * 4 + 2);
+        }
+        volume.writeFileSync("/twins.wav", bytes);
+      }
       let stderr = "";
       const filter = expression ? `channelmap=${expression}` : "channelmap";
       const filters = complex
         ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"]
         : ["-af", filter];
       const result = await createFfmpegCommand().execute({
-        args: ["-y", "-v", "error", "-i", "/twins.wav", ...filters, "/out.wav"],
+        args: ["-y", "-v", "error", ...(raw ? ["-f", "s16le", "-ar", "8000", "-ac", "2"] : []),
+          "-i", "/twins.wav", ...filters, "-c:a", "pcm_s16le", "/out.wav"],
         cwd: "/", env: {}, signal: new AbortController().signal,
         fs: {
           async readFile(path: string) { return volume.readFileSync(path); },

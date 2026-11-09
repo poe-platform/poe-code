@@ -1905,9 +1905,9 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     // Clip the inserted band at the left edge; the canvas still grows by sw.
     // Unfilled columns read virtual edge pixels from the source.
     const spliceWidth = Math.max(0, sw + Math.min(0, xOffset));
-    const sx = xOffset > img.width ? outW : Math.max(0, xOffset);
+    const sx = Math.max(0, Math.min(outW, xOffset));
     if (box.y + anchor.top > outH) throw new Error("pixels are not authentic");
-    const sy = Math.max(0, Math.min(img.height, box.y + anchor.top));
+    const sy = Math.max(0, box.y + anchor.top);
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
     const background = [bg.r, bg.g, bg.b, bg.a].map(value => Math.round(value * 257));
@@ -1927,7 +1927,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
             }
             else {
                 const origX = Math.min(img.width - 1, x < sx ? x : x - spliceWidth);
-                const origY = y < sy ? y : y - sh;
+                const origY = Math.min(img.height - 1, y < sy ? y : y - sh);
                 const srcIdx = (origY * img.width + origX) * 4;
                 out[dstIdx] = img.data[srcIdx]!;
                 out[dstIdx + 1] = img.data[srcIdx + 1]!;
@@ -9378,11 +9378,11 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         width += sw; height += sh;
         const xOffset = box.x + anchor.left;
         const spliceWidth = Math.max(0, sw + Math.min(0, xOffset));
-        const x = xOffset > w ? width : Math.max(0, xOffset);
+        const x = Math.max(0, Math.min(width, xOffset));
         if (box.y + anchor.top > height) throw new Error("pixels are not authentic");
-        const y = Math.max(0, Math.min(h, box.y + anchor.top));
+        const y = Math.max(0, box.y + anchor.top);
         xs = [{ source: 0, target: 0, length: x }, { source: x, target: x + spliceWidth, length: Math.max(0, width - x - spliceWidth) }];
-        ys = [{ source: 0, target: 0, length: y }, { source: y, target: y + sh, length: h - y }];
+        ys = [{ source: 0, target: 0, length: y }, { source: y, target: y + sh, length: Math.max(0, h - y) }];
     } else {
         const { width: cw, height: ch } = resolveMagickChopGeometry(g, geometry, w, h);
         // Zero axes use the native page/image bitwise union only for gravity placement.
@@ -9434,7 +9434,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
                 const length = Math.min(4096, x.length - offset) * plane.stride;
                 const sourceX = Math.min(w - 1, x.source + offset);
                 const sourceLength = Math.min(length, (w - sourceX) * plane.stride);
-                let bytes = await backend.storage.read(plane.source + ((y.source + row) * w + sourceX) * plane.stride, sourceLength);
+                let bytes = await backend.storage.read(plane.source + (Math.min(h - 1, y.source + row) * w + sourceX) * plane.stride, sourceLength);
                 if (sourceLength < length) {
                     const extended = new Uint8Array(length);
                     extended.set(bytes);

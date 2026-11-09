@@ -9745,8 +9745,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         const padding = options.pad_dur ?? options.pad_len;
                         const minimum = options.whole_dur ?? options.whole_len;
-                        if (padding !== undefined && minimum !== undefined) {
-                          throw new Error("apad: padding and minimum length are mutually exclusive");
+                        // FFmpeg rejects only explicit sample-count conflicts, before duration overrides.
+                        if (options.pad_len !== undefined && options.whole_len !== undefined) {
+                          throw new Error("apad: pad_len and whole_len are mutually exclusive");
                         }
                         if (padding === undefined && minimum === undefined) {
                           throw new Error("apad: a finite padding or minimum length is required");

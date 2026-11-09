@@ -48,26 +48,50 @@ function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [num
     }
 }
 
-export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">>, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source;
     const filter = kernel === undefined || kernel === "nearest" ? undefined : resizeFilter(kernel, settings, true);
     const blur = Math.max(1e-12, (settings?.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485 : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
     const support = filter ? filter.radius * blur : 2;
     const weights = filter ? Float64Array.from({ length: 1024 }, (_, i) => filter.weight(Math.sqrt(i / 1024) * filter.radius)) : robidoux;
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
+    const evaluate = !!source.evaluateSamples || source.storedEvaluateSamples !== undefined;
+    const cache = new Map<number, Float64Array>();
+    function* readPixel(position: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {
+        if (evaluate) {
+            const page = Math.floor(position / 1024) * 1024;
+            let samples = cache.get(page);
+            if (!samples) {
+                const length = Math.min(1024, width * height * 4 - page);
+                const bytes = yield { kind: "read", evaluate: true, position: page, length };
+                if (!bytes || bytes.length !== length * 8) throw new Error("Truncated warp pixels");
+                samples = new Float64Array(bytes.slice().buffer);
+                if (cache.size === 32) cache.delete(cache.keys().next().value!);
+                cache.set(page, samples);
+            }
+            return samples.subarray(position - page, position - page + 4).map(value => value * scale);
+        }
+        const bytes = yield { kind: "read", highDepth, position, length: 4 };
+        if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated warp pixels");
+        return highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
+    }
     for (let start = 0; start < plan.width * plan.height; start += 1024) {
         yield;
         const count = Math.min(1024, plan.width * plan.height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
+        const evaluateSamples = new Float64Array(count * 4);
         for (let i = 0; i < count; i++) {
             const px = (start + i) % plan.width, py = Math.floor((start + i) / plan.width);
             const [sx, sy, copy] = plan.map(px, py), offset = i * 4;
             if (copy) {
-                const bytes = yield { kind: "read", highDepth, position: (sy * width + sx) * 4, length: 4 };
-                if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated warp pixels");
-                data.set(highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes, offset);
+                const pixel = yield* readPixel((sy * width + sx) * 4);
+                for (let c = 0; c < 4; c++) {
+                    evaluateSamples[offset + c] = pixel[c]! / scale;
+                    data[offset + c] = Math.max(0, Math.min(maximum, Math.round(pixel[c]!)));
+                }
                 continue;
             }
             if (virtualPixel === undefined && (sx < -0.5 || sy < -0.5 || sx > width - 0.5 || sy > height - 0.5)) {
+                evaluateSamples.set([background.r, background.g, background.b, background.a], offset);
                 data[offset] = background.r * scale; data[offset + 1] = background.g * scale; data[offset + 2] = background.b * scale; data[offset + 3] = background.a * scale;
                 continue;
             }
@@ -102,9 +126,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                         }
                     }
                     if (pixel === undefined) {
-                        const bytes = yield { kind: "read", highDepth, position: (y * width + x) * 4, length: 4 };
-                        if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated warp pixels");
-                        pixel = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
+                        pixel = yield* readPixel((y * width + x) * 4);
                     }
                     const opacity = pixel[3]!;
                     alpha += opacity * weight; total += weight;
@@ -126,10 +148,15 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                 const values = [red * colorScale, green * colorScale, blue * colorScale, alpha * alphaScale];
                 // Q16-HDRI stores float32 quantum samples before output-depth rounding.
                 const quantumScale = highDepth ? 1 : 257;
-                for (let c = 0; c < 4; c++) data[offset + c] = Math.max(0, Math.min(maximum, Math.round(Math.fround(values[c]! * quantumScale) / quantumScale)));
+                for (let c = 0; c < 4; c++) {
+                    const quantum = Math.fround(values[c]! * quantumScale);
+                    evaluateSamples[offset + c] = quantum / 257;
+                    data[offset + c] = Math.max(0, Math.min(maximum, Math.round(quantum / quantumScale)));
+                }
                 break;
             }
         }
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
+        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(evaluateSamples.buffer) };
     }
 }

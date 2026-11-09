@@ -14,6 +14,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
  for (const [space, colors, expected] of [
   ["HSL", ["red", "blue"], ["hsl(0,100%,50%)", "hsl(240,100%,50%)"]],
   ["HSB", ["red", "blue"], ["hsb(0,100%,100%)", "hsb(240,100%,100%)"]],
+  ["HSV", ["red", "blue"], ["hsv(0,100%,100%)", "hsv(240,100%,100%)"]],
   ["XYZ", ["red", "blue"], ["xyz(41.2396,21.2586,1.92972)", "xyz(18.0493,7.22005,95.0497)"]],
   ["RGB", ["red", "blue"], ["rgb(255,0,0)", "rgb(0,0,255)"]],
   ["Gray", ["black", "white"], ["gray(0)", "gray(255)"]],

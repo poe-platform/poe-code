@@ -97,7 +97,7 @@ Read headerless RGB with `magick -size 2x1 rgb:input.dat output.png` (or `rgb:-`
 
 Raw RGB, RGBA, BGR, BGRA and grayscale output supports extensions (`out.rgb`) and explicit coders (`rgba:out.bin`, `gray:-`), including intermediate `-write` outputs.
 
-`-colorspace HSB`, `-colorspace HSL`, and `-colorspace HWB` convert pixels and report hue with saturation/brightness, saturation/lightness, or whiteness/blackness; converting back to `sRGB` restores RGB pixels.
+`-colorspace HSB` (also spelled `HSV`), `-colorspace HSL`, and `-colorspace HWB` convert pixels and report hue with saturation/brightness, saturation/lightness, or whiteness/blackness; converting back to `sRGB` restores RGB pixels.
 
 `-colorspace Lab` converts to working CIELab values for pixel inspection and connected-component analysis; converting back to `sRGB` restores RGB pixels.
 

@@ -4678,7 +4678,8 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     let tile = state.tile !== undefined;
     let stroke = rgbaToCss(state.stroke);
     let strokeWidth = state.strokeWidth;
-    const contexts: { fill: string; tile: boolean; stroke: string; strokeWidth: number }[] = [];
+    let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
+    const contexts: { fill: string; tile: boolean; stroke: string; strokeWidth: number; affine: typeof affine }[] = [];
     const tokens: string[] = [];
     for (let offset = 0; offset < drawCmd.length;) {
         if (++cooperativeWork % 65536 === 0) yield;
@@ -4707,14 +4708,28 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (++cooperativeWork % 65536 === 0)
             yield;
         const cmd = tokens[i++]!.toLowerCase();
+        const elementStart = svgElements.length;
+        const transformed = affine.some((value, index) => value !== (index === 0 || index === 3 ? 1 : 0));
         if (cmd === "push" || cmd === "pop") {
             if (tokens[i++]?.toLowerCase() !== "graphic-context") throw new Error(`${cmd} drawing requires graphic-context`);
-            if (cmd === "push") contexts.push({ fill, tile, stroke, strokeWidth });
+            if (cmd === "push") contexts.push({ fill, tile, stroke, strokeWidth, affine });
             else {
                 const context = contexts.pop();
                 if (!context) throw new Error("Cannot pop graphic-context without a matching push");
-                ({ fill, tile, stroke, strokeWidth } = context);
+                ({ fill, tile, stroke, strokeWidth, affine } = context);
             }
+        }
+        else if (cmd === "translate" || cmd === "scale" || cmd === "rotate" || cmd === "affine") {
+            let next: typeof affine;
+            if (cmd === "translate") next = [1, 0, 0, 1, num(), num()];
+            else if (cmd === "scale") next = [num(), 0, 0, num(), 0, 0];
+            else if (cmd === "rotate") {
+                const angle = (num() % 360) * Math.PI / 180, cosine = Math.cos(angle), sine = Math.sin(angle);
+                next = [cosine, sine, -sine, cosine, 0, 0];
+            } else next = [num(), num(), num(), num(), num(), num()];
+            const [a, b, c, d, e, f] = affine, [g, h, j, k, l, m] = next;
+            affine = [a * g + c * h, b * g + d * h, a * j + c * k, b * j + d * k, a * l + c * m + e, b * l + d * m + f];
+            if (!affine.every(Number.isFinite)) throw new Error("Drawing requires a finite transform");
         }
         else if (cmd === "fill") {
             fill = rgbaToCss(parseColor(tokens[i++] ?? "#000000"));
@@ -4727,7 +4742,8 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             strokeWidth = Math.max(0, num());
         }
         else if (cmd === "color" || cmd === "alpha") {
-            const x = num(), y = num(), method = tokens[i++]?.toLowerCase();
+            const px = num(), py = num(), method = tokens[i++]?.toLowerCase();
+            const x = affine[0] * px + affine[2] * py + affine[4], y = affine[1] * px + affine[3] * py + affine[5];
             if (method !== "floodfill" || !Number.isFinite(x) || !Number.isFinite(y)) throw new Error(`${cmd} drawing requires finite coordinates and the floodfill method`);
             if (svgElements.length > 0) {
                 yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
@@ -4744,7 +4760,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const ry = Math.min(y0, y1);
             const rw = Math.max(1, Math.abs(x1 - x0) + 1);
             const rh = Math.max(1, Math.abs(y1 - y0) + 1);
-            if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0) {
+            if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0 && !transformed) {
                 yield { kind: "shape", shape: "rectangle", tile, color: parseColor(fill), x: rx, y: ry, width: rw, height: rh };
             } else {
                 if (fill !== "none") {
@@ -4779,7 +4795,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const px = num();
             const py = num();
             const r = Math.max(1, Math.hypot(px - cx, py - cy));
-            if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0) {
+            if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0 && !transformed) {
                 yield { kind: "shape", shape: "circle", tile, color: parseColor(fill), x: cx, y: cy, radius: r, antialias: state.antialias !== false };
             } else {
                 svgElements.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
@@ -4803,8 +4819,9 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             svgElements.push(`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
         }
         else if (cmd === "point") {
-            const x = num();
-            const y = num();
+            const px = num(), py = num();
+            const x = affine[0] * px + affine[2] * py + affine[4], y = affine[1] * px + affine[3] * py + affine[5];
+            if (!Number.isFinite(x) || !Number.isFinite(y)) throw new Error("Drawing requires finite point coordinates");
             svgElements.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${fill}"/>`);
         }
         else if (cmd === "text") {
@@ -4858,6 +4875,10 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         }
         else {
             throw new Error(`Unsupported drawing primitive: ${cmd}`);
+        }
+        if (transformed && cmd !== "point" && svgElements.length > elementStart) {
+            const elements = svgElements.splice(elementStart);
+            svgElements.push(`<g transform="matrix(${affine.join(" ")})">${elements.join("")}</g>`);
         }
     }
     if (svgElements.length > 0) yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };

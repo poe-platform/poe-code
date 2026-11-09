@@ -106,7 +106,7 @@ Use `TIFF64:out.tif` to write BigTIFF at `out.tif`, including intermediate `-wri
 
 Use `+antialias` for hard-edged drawing and `-antialias` to restore smoothing for subsequent draws. Filled circles preserve untouched 16-bit source pixels.
 
-`-draw` supports nested `push graphic-context` / `pop graphic-context` to save and restore fill, tile fill, stroke, and stroke width. A pop without a matching push fails without replacing the output.
+`-draw` supports `translate x,y`, `scale x,y`, `rotate degrees`, and `affine sx,rx,ry,sy,tx,ty`, composed in declaration order for subsequent primitives and floodfill seeds. Transforms reset between `-draw` options. Nested `push graphic-context` / `pop graphic-context` save and restore the transform, fill, tile fill, stroke, and stroke width. A pop without a matching push fails without replacing the output.
 
 Unsupported `-draw` primitives, including the old `matte` primitive, return an error without replacing the output. Use `-alpha on -fill none -draw 'alpha 0,0 floodfill'` to remove a connected background while preserving RGB values and enclosed details. Alpha floodfill uses four-connected neighbors and alpha-aware `-fuzz` matching (percentages or Q16 units); `color x,y floodfill` replaces all RGBA channels.
 

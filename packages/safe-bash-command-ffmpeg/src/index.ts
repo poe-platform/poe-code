@@ -5528,6 +5528,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioBitstreamFilter: string | undefined;
         let subtitleBitstreamFilter: string | undefined;
         let videoCodec: string | undefined;
+        let zeroLatency = false;
         let maxBFrames: number | undefined;
         let forceKeyFrames: number[] | undefined;
         let rawPixelFormat: string | undefined;
@@ -5809,6 +5810,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid B-frame count\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-tune") {
+            const tune = args[++i];
+            if (tune !== "zerolatency") {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unsupported tune '${tune ?? ""}'\n`), context.signal);
+              return { exitCode: 1 };
+            }
+            zeroLatency = true;
           } else if (arg === "-b:a") {
             audioBitrate = parseAudioBitrate(args[++i]);
             if (audioBitrate === undefined) {
@@ -8683,12 +8691,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (maxBFrames > 0 && outPlugin?.id !== "mp4" && outPlugin?.id !== "mov") throw new Error("B-frame encoding requires MP4 or MOV output");
             }
 
+            if (zeroLatency && videoCodec !== "copy" && features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
             // Output frame counts refer to displayed pictures, never encoded packets.
             if (videoCodec !== "copy") {
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async (track, index) => {
-                  if (track.type !== "video" || (!imageOutput && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && !track.decodedVideoFrames)) return track;
+                  if (track.type !== "video" || (!zeroLatency && !imageOutput && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && !track.decodedVideoFrames)) return track;
                   const limit = vfFilters.length === 0 && outputFps === undefined ? streamFrameLimits[index] : undefined;
                   const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
                   return { ...track, samples: [], decodedVideoFrames: frames };

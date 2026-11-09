@@ -9016,17 +9016,20 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
             const flatten = t === "-flatten" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "flatten");
+            const merge = t === "-layers" && tokens[i + 1]?.toLowerCase() === "merge";
             const mosaic = t === "-mosaic" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "mosaic");
             if (t === "-layers")
                 i++;
             if (stack.length > 0) {
                 const oldStack = stack;
-                const maxW = flatten ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : Math.max(mosaic ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : 0, ...oldStack.map((im) => im.width + (mosaic ? im.virtualCanvas?.x ?? 0 : 0)));
-                const maxH = flatten ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : Math.max(mosaic ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : 0, ...oldStack.map((im) => im.height + (mosaic ? im.virtualCanvas?.y ?? 0 : 0)));
+                const originX = merge ? Math.min(...oldStack.map(im => im.virtualCanvas?.x ?? 0)) : 0;
+                const originY = merge ? Math.min(...oldStack.map(im => im.virtualCanvas?.y ?? 0)) : 0;
+                const maxW = flatten ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : Math.max(mosaic ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : -Infinity, ...oldStack.map(im => im.width + (im.virtualCanvas?.x ?? 0))) - originX;
+                const maxH = flatten ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : Math.max(mosaic ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : -Infinity, ...oldStack.map(im => im.height + (im.virtualCanvas?.y ?? 0))) - originY;
                 const canvas = (yield* createSolidRgbaImageSteps(maxW, maxH, state.background));
                 const layers: CompositeLayer[] = [];
                 for (const im of oldStack) {
-                    const x = flatten || mosaic ? im.virtualCanvas?.x ?? 0 : 0, y = flatten || mosaic ? im.virtualCanvas?.y ?? 0 : 0;
+                    const x = (im.virtualCanvas?.x ?? 0) - originX, y = (im.virtualCanvas?.y ?? 0) - originY;
                     const left = Math.max(0, -x), top = Math.max(0, -y);
                     const width = Math.min(im.width - left, maxW - Math.max(0, x)), height = Math.min(im.height - top, maxH - Math.max(0, y));
                     if (width <= 0 || height <= 0) continue;
@@ -9042,6 +9045,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 const first = oldStack[0]! as MagickImage;
                 stack = [{ ...flattened, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0] }];
+                if (merge) stack[0] = { ...stack[0]!, virtualCanvas: {
+                    width: first.virtualCanvas?.width || maxW + Math.max(0, originX),
+                    height: first.virtualCanvas?.height || maxH + Math.max(0, originY),
+                    x: originX, y: originY,
+                } };
                 if (flatten && first.orientation !== undefined) stack[0] = { ...stack[0]!, orientation: first.orientation };
             }
         }
@@ -10070,6 +10078,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && (["-append", "+append", "-flatten", "-mosaic", "-composite"].includes(token) || (token === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
             const flatten = token === "-flatten" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "flatten");
+            const merge = token === "-layers" && tokens[i + 1]?.toLowerCase() === "merge";
             const mosaic = token === "-mosaic" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "mosaic");
             if (token === "-layers") i++;
             const settings = { ...state };
@@ -10094,7 +10103,22 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     width = first.virtualCanvas?.width || first.width;
                     height = first.virtualCanvas?.height || first.height;
                 }
-                for (let n = 0; n < (flatten ? 1 : stack.length); n++) { await yieldTurn(signal); const frame = (await stack.get(n))!; cmyk ||= frame.space === "cmyk"; nonCmyk ||= frame.space !== "cmyk"; highDepth ||= !!frame.storedData16; width = append && !vertical ? width + frame.width : Math.max(width, frame.width + (mosaic ? frame.virtualCanvas?.x ?? 0 : 0)); height = append && vertical ? height + frame.height : Math.max(height, frame.height + (mosaic ? frame.virtualCanvas?.y ?? 0 : 0)); }
+                let originX = 0, originY = 0;
+                for (let n = 0; n < (flatten ? 1 : stack.length); n++) {
+                    await yieldTurn(signal);
+                    const frame = (await stack.get(n))!;
+                    cmyk ||= frame.space === "cmyk"; nonCmyk ||= frame.space !== "cmyk"; highDepth ||= !!frame.storedData16;
+                    if (merge) {
+                        const x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
+                        const left = n ? Math.min(originX, x) : x, top = n ? Math.min(originY, y) : y;
+                        width = n ? Math.max(originX + width, x + frame.width) - left : frame.width;
+                        height = n ? Math.max(originY + height, y + frame.height) - top : frame.height;
+                        originX = left; originY = top;
+                    } else {
+                        width = append && !vertical ? width + frame.width : Math.max(width, frame.width + (mosaic ? frame.virtualCanvas?.x ?? 0 : 0));
+                        height = append && vertical ? height + frame.height : Math.max(height, frame.height + (mosaic ? frame.virtualCanvas?.y ?? 0 : 0));
+                    }
+                }
                 if (flatten) {
                     const first = (await stack.get(0))!;
                     width = first.virtualCanvas?.width || first.width;
@@ -10128,13 +10152,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                         result = { ...result, hasAlpha: result.hasAlpha || frame.hasAlpha };
                     }
-                    else result = await compositeStoredMagick(result, frame, backend, signal, flatten || mosaic ? frame.virtualCanvas?.x ?? 0 : 0, flatten || mosaic ? frame.virtualCanvas?.y ?? 0 : 0, settings.compose, undefined, true, true);
+                    else result = await compositeStoredMagick(result, frame, backend, signal, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, settings.compose, undefined, true, true);
                     cursor += vertical ? frame.height : frame.width;
                 }
                 if (append) result = { ...result, channels: result.hasAlpha ? 4 : 3 };
                 if (!append) {
                     const first = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;
                     result = { ...result, delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };
+                    if (merge) result = { ...result, virtualCanvas: {
+                        width: first.virtualCanvas?.width || width + Math.max(0, originX),
+                        height: first.virtualCanvas?.height || height + Math.max(0, originY),
+                        x: originX, y: originY,
+                    } };
                     if (flatten && first.orientation !== undefined) result = { ...result, orientation: first.orientation };
                 }
                 stack.length = 0; await stack.push(result); return stack;

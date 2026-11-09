@@ -3794,8 +3794,8 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
             next = steps.next();
         }
     }
-    // Raster steps replace the pixels; the original high-depth samples are stale.
-    const { data16: _data16, ...metadata } = img;
+    // Raster steps replace the pixels; original depth and arithmetic samples are stale.
+    const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, ...metadata } = img;
     return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
@@ -9256,7 +9256,7 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
             next = steps.next(request.highDepth && !highDepth ? new Uint8Array(Uint16Array.from(bytes, value => value * 257).buffer) : bytes);
         }
     }
-    const { storedData16: _storedData16, ...metadata } = image;
+    const { storedData16: ignoredData16, storedEvaluateSamples: ignoredEvaluateSamples, ...metadata } = image;
     return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }) };
 }
 

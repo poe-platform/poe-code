@@ -1245,10 +1245,18 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
             });
             const automaticPlugin = explicitPlugin ?? streamPlugins.find(plugin => plugin.detect(sniffed.prefix, inputTarget));
             if (id3HeaderSize(sniffed.prefix) && (!explicitPlugin || explicitPlugin.formatName === "mp3")) {
-              probeResult = await withStagedProbeSource(context, sniffed.stream, source => probeSourceMetadata(context, streamPlugins, source, inputTarget, budget,
-                { showPackets, showFrames, ignoreLength, maxSize, ...(mp4Records ? { mp4Records } : {}) },
-                automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, !explicitPlugin), retain);
-              if (!probeResult) throw new Error("Unsupported audio after ID3 tag");
+              probeResult = await withStagedProbeSource(context, sniffed.stream, async source => {
+                const result = await probeSourceMetadata(context, streamPlugins, source, inputTarget, budget,
+                  { showPackets, showFrames, ignoreLength, maxSize, ...(mp4Records ? { mp4Records } : {}) },
+                  automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, !explicitPlugin);
+                if (!result) replay = (async function* () {
+                  for (let offset = 0; offset < source.size; offset += 16384) {
+                    context.signal.throwIfAborted();
+                    yield await source.read(offset, Math.min(16384, source.size - offset));
+                  }
+                })();
+                return result;
+              }, retain);
             } else if (automaticPlugin) {
               if (!showData && !showDataHash && !automaticAudio && !automaticPlugin.probeRecords && automaticPlugin.probeMetadataStream) {
                 // Sniff replay already admits each source chunk exactly once.

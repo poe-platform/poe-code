@@ -562,7 +562,7 @@ export function aacAst(): MediaAstPlugin {
     supportedVideoCodecs: [],
     supportedAudioCodecs: ["aac"],
     detect(bytes, filename) {
-      if (isAdtsSignature(bytes)) return true;
+      if (isAdtsSignature(bytes.subarray(id3HeaderSize(bytes)))) return true;
       if (filename && filename.toLowerCase().endsWith(".aac")) return bytes.byteLength >= 7;
       return false;
     },
@@ -1376,11 +1376,8 @@ export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
 // --- 4. MP3 (.mp3), FLAC (.flac), OGG (.ogg) ---
 
 export function isMp3Signature(bytes: Uint8Array): boolean {
+  bytes = bytes.subarray(id3HeaderSize(bytes));
   if (bytes.byteLength < 4) return false;
-  if (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) {
-    const offset = id3HeaderSize(bytes);
-    return bytes.length < offset + 4 || decodeFourCC(bytes, offset) !== "fLaC";
-  }
   return bytes[0] === 0xff && (bytes[1]! & 0xe0) === 0xe0 && (bytes[1]! & 0x06) !== 0x00;
 }
 

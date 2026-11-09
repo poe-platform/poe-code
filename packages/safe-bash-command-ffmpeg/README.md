@@ -662,6 +662,8 @@ APNG output (`out.apng` or `-f apng`) writes all video frames into one animation
 
 `asubboost=boost=4:cutoff=100:feedback=0.4` boosts low frequencies in decoded PCM, independently per channel. It supports numeric `dry`, `wet`, `boost`, `decay`, `feedback`, `cutoff`, `slope`, and `delay` options, in that positional order, with native defaults and ranges. Channel selection is not supported.
 
+`asupercut=cutoff=20000:order=8` attenuates ultrasonic PCM frequencies while preserving sample rate, channels, and sample count. Cutoff accepts 20000–192000 Hz (default 20000), order accepts 3–20 (default 10), and input `level` accepts 0–1 (default 1). Positional `cutoff:order:level` options and audio filter graphs are supported. Cutoffs at or above half the sample rate bypass filtering and input gain.
+
 `aexciter` enhances high-frequency harmonics in decoded PCM. It supports `level_in`,
 `level_out`, `amount`, `drive`, `blend`, `freq`, `ceil`, and `listen`, including
 positional options and use in audio filter chains.

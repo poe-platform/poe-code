@@ -1,3 +1,4 @@
+import { rawAudioAsts } from "./raw-audio.js";
 import { mpegFrame } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import {
@@ -372,9 +373,12 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           ? "mp3"
           : info.formatTag === 0x00ff
             ? "aac"
-            : "pcm_s16le";
+            : info.formatTag === 7 ? "pcm_mulaw"
+              : info.formatTag === 6 ? "pcm_alaw" : "pcm_s16le";
+      const g711 = codecName === "pcm_mulaw" || codecName === "pcm_alaw";
+      let audioDuration = 0;
       const nonEmptyAudio = rawSamples.filter((s) => s.data.byteLength > 0);
-      const samples = nonEmptyAudio.map((s, idx) => {
+      const samples = nonEmptyAudio.map((s) => {
         let payload = s.data;
         if (
           codecName === "aac" &&
@@ -385,13 +389,16 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           const hdrLen = (payload[1]! & 0x01) === 0 ? 9 : 7;
           if (payload.byteLength > hdrLen) payload = payload.subarray(hdrLen);
         }
+        const dts = audioDuration;
+        const duration = g711 ? payload.byteLength / channels : 1024;
+        audioDuration += duration;
         return {
           ...s,
           data: payload,
           size: payload.byteLength,
-          dts: idx * 1024,
-          pts: idx * 1024,
-          duration: 1024
+          dts,
+          pts: dts,
+          duration
         };
       });
       tracks.push({
@@ -399,12 +406,12 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         type: "audio",
         handlerType: "soun",
         timescale: sampleRate,
-        duration: samples.length * 1024,
+        duration: audioDuration,
         language: "und",
         enabled: true,
         codecDescriptions: [
           {
-            formatFourCC: codecName === "aac" ? "mp4a" : codecName === "mp3" ? ".mp3" : "sowt",
+            formatFourCC: codecName === "aac" ? "mp4a" : codecName === "mp3" ? ".mp3" : codecName === "pcm_mulaw" ? "ulaw" : codecName === "pcm_alaw" ? "alaw" : "sowt",
             codecName,
             sampleRate,
             channels,
@@ -415,6 +422,11 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           }
         ],
         samples,
+        ...(g711 && options.decodeAudio !== false ? {
+          decodedAudio: rawAudioAsts().find(plugin => plugin.id === (codecName === "pcm_mulaw" ? "mulaw" : "alaw"))!
+            .parse(concatBytes(samples.map(sample => sample.data)), { ...options, sampleRate, channels })
+            .tracks[0]!.decodedAudio
+        } : {}),
         metadata
       });
     }
@@ -591,8 +603,9 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
     } else {
       const sr = desc?.sampleRate ?? 44100;
       const ch = desc?.channels ?? 2;
-      const pcm = desc?.codecName === "pcm_s16le";
-      const bits = desc?.bitsPerSample ?? 16;
+      const g711 = desc?.codecName === "pcm_mulaw" || desc?.codecName === "pcm_alaw";
+      const pcm = desc?.codecName === "pcm_s16le" || g711;
+      const bits = g711 ? 8 : desc?.bitsPerSample ?? 16;
       const blockAlign = pcm ? ch * bits / 8 : 4;
       if (samples.length === 0 && !pcm) {
         const data = createSilentAacFrame(ch);
@@ -615,7 +628,7 @@ export function serializeAvi(doc: MediaDocument, options: SerializeMediaOptions 
       strh.writeU32LE(pcm ? blockAlign : 0);
       strh.writeZeros(8);
 
-      strf.writeU16LE(pcm ? 0x0001 : desc?.codecName === "mp3" ? 0x0055 : 0x00ff);
+      strf.writeU16LE(g711 ? (desc?.codecName === "pcm_mulaw" ? 7 : 6) : pcm ? 0x0001 : desc?.codecName === "mp3" ? 0x0055 : 0x00ff);
       strf.writeU16LE(ch);
       strf.writeU32LE(sr);
       strf.writeU32LE(pcm ? sr * blockAlign : 16000);
@@ -707,7 +720,7 @@ export function aviAst(): MediaAstPlugin {
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: ["h264", "mpeg4", "mjpeg", "rawvideo"],
-    supportedAudioCodecs: ["mp3", "aac", "pcm_s16le"],
+    supportedAudioCodecs: ["mp3", "aac", "pcm_s16le", "pcm_mulaw", "pcm_alaw"],
     detect(bytes, filename) {
       if (isAviSignature(bytes)) return true;
       if (filename && filename.toLowerCase().endsWith(".avi") && bytes.byteLength >= 12) {

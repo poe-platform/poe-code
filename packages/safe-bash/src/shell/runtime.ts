@@ -7948,8 +7948,6 @@ export class Runtime {
     state.cwd = path;
     stackHooks?.onCwdPublished();
     await this.writeVariable(state, "PWD", path, context);
-    state.exported.add("PWD");
-    state.exported.add("OLDPWD");
     const printedPath = selected.print ?? (operand === "-" ? target : undefined);
     if (printedPath !== undefined) {
       if (stackHooks) await stackHooks.emit(`${printedPath}\n`);

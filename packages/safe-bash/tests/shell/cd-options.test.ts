@@ -13,6 +13,31 @@ async function fixture() {
   return { fs, shell };
 }
 
+for (const [before, command, previous, destination] of [
+  ["", "cd dir", "/work", "/work/dir"],
+  ["", "cd -P link", "/work", "/work/dir/child"],
+  ["", "pushd dir >/dev/null", "/work", "/work/dir"],
+  ["pushd dir >/dev/null;", "popd >/dev/null", "/work/dir", "/work"],
+] as const) {
+  for (const [setup, pwdFlag, oldpwdFlag] of [
+    [":", "-x", "-x"],
+    ["export -n PWD OLDPWD", "--", "--"],
+    ["export -n PWD", "--", "-x"],
+    ["export -n OLDPWD", "-x", "--"],
+    ["unset OLDPWD", "-x", "--"],
+    ["export -n PWD OLDPWD; export PWD OLDPWD", "-x", "-x"],
+  ] as const) {
+    test(`${command} preserves export attributes after ${setup}`, async context => {
+      const { shell } = await fixture();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`${before} ${setup}; ${command}; declare -p PWD OLDPWD`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `declare ${pwdFlag} PWD="${destination}"\ndeclare ${oldpwdFlag} OLDPWD="${previous}"\n`);
+    });
+  }
+}
+
 for (const [option, expected] of [["-P", "dir"], ["-L", "linkdir"]]) {
   test(`cd ${option} accepts the reported symlink operand`, async context => {
     const { shell } = await fixture();

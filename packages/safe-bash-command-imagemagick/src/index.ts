@@ -1,3 +1,4 @@
+import { liquidRescalePixelSteps } from "./liquid-rescale.js";
 import { whiteBalancePixelSteps } from "./white-balance-kernel.js";
 import { compareColorspaceSteps } from "./compare-colorspace.js";
 import { magickIntensity } from "./intensity.js";
@@ -8206,6 +8207,21 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return virtualCanvas ? { ...resized, virtualCanvas } : resized;
             });
         }
+        else if (t === "-liquid-rescale") {
+            const geometry = tokens[++i] ?? "";
+            validateMagickTransformGeometry(geometry, t);
+            const seam = parseMagickGeometry(geometry);
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const options = magickResizeOptions(image, geometry, state.kernel);
+                if (!options) return image;
+                const width = options.width!, height = options.height!;
+                if (width <= 2 || height <= 2) return yield* applyMagickResizeSteps(image, geometry, state.kernel, false, false, false, state.resizeFilter);
+                if (width === image.width && height === image.height) return image;
+                const result = yield* applyMagickRasterSteps(image, liquidRescalePixelSteps(image, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0), signal, { ...image, width, height });
+                const virtualCanvas = magickResizeCanvas(image, width, height);
+                return { ...result, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) };
+            });
+        }
         else if (t === "-resize" || t === "-scale" || t === "-sample" || t === "-thumbnail") {
             const geom = tokens[++i] ?? "100%";
             validateMagickTransformGeometry(geom, t);
@@ -10244,6 +10260,21 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const resized = await transformStoredMagickRaster(image, backend, adaptiveResizePixelSteps(image, width, height, !!image.storedData16), signal, { ...image, width, height });
                 const virtualCanvas = magickResizeCanvas(image, width, height);
                 return virtualCanvas ? { ...resized, virtualCanvas } : resized;
+            });
+        } else if (!operandsOnly && token === "-liquid-rescale") {
+            const geometry = tokens[++i] ?? "", kernel = state.kernel, settings = state.resizeFilter;
+            validateMagickTransformGeometry(geometry, token);
+            const seam = parseMagickGeometry(geometry);
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const options = magickResizeOptions(image, geometry, kernel);
+                if (!options) return image;
+                const width = options.width!, height = options.height!;
+                if (width <= 2 || height <= 2) return resizeStoredMagickImage(image, backend, options, signal, false, false, false, settings);
+                if (width === image.width && height === image.height) return image;
+                const result = await transformStoredMagickRaster(image, backend, liquidRescalePixelSteps(image, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0), signal, { ...image, width, height });
+                const virtualCanvas = magickResizeCanvas(image, width, height);
+                return { ...result, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) };
             });
         } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
             const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter, sampleOffset = state.sampleOffset;

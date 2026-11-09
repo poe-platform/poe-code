@@ -32,6 +32,7 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
   const image=await (compression===4?decodeJpegToStorage:decodePngToStorage)(payload,storage,signal,options);
   return {...image,format:"bmp",density:metadata.density,...(metadata.resolution?{resolution:metadata.resolution}:{})};
  }
+ if(compression!==1&&compression!==2&&rowStride*height>source.size-dataOffset) throw new Error("Truncated BMP rows");
  const bitfieldMasks=readBmpMasks(view);
  const palette=new Uint8Array(bpp<=8?(bpp===8?256:bpp===4?16:bpp===1?2:1)*3:0),paletteOffset=14+dibHeaderSize,paletteStep=dibHeaderSize===12?3:4;
  for(let i=0;i<palette.length/3;i++) for(let c=0;c<3;c++) palette[i*3+c]=await reader.at(paletteOffset+i*paletteStep+c)??0;

@@ -253,6 +253,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   const topDown = dibHeaderSize !== 12 && view.getInt32(22, true) < 0;
   const bpp = view.getUint16(dibHeaderSize === 12 ? 24 : 28, true);
   const rowStride = Math.floor((meta.width * bpp + 31) / 32) * 4;
+  if (compression !== 1 && compression !== 2 && rowStride * meta.height > bytes.length - dataOffset) throw new Error("Truncated BMP rows");
   const bitfieldMasks = readBmpMasks(view);
   const rgba = new Uint8Array(meta.width * meta.height * 4);
   const paletteOffset = 14 + dibHeaderSize;

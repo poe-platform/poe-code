@@ -562,11 +562,20 @@ export function aacAst(): MediaAstPlugin {
     },
     probe(bytes, options) {
       const doc = parseAacAdts(bytes);
-      return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.aac", {
+      const probe = buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.aac", {
         ...options,
         formatName: "aac",
         formatLongName: "raw ADTS AAC (Advanced Audio Coding)"
       });
+      if (!probe.packets) return probe;
+      // Demuxed AAC samples omit ADTS headers; ffprobe packets include them.
+      const frames = parseAdtsStream(bytes, true).frames;
+      const packets = probe.packets.map((packet, index) => ({ ...packet,
+        pos: String(frames[index]!.byteOffset - bytes.byteOffset),
+        size: String(frames[index]!.byteLength)
+      }));
+      return { ...probe, packets, packetData: new Map(packets.map((packet, index) =>
+        [`${packet.pos}:${packet.size}`, frames[index]!])) };
     },
     concat(docs, options) {
       return concatMp4(docs, options);

@@ -5,7 +5,7 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
-async function mix(filter: string, a: number[], b: number[], stereo = false) {
+async function mix(filter: string, a: number[], b: number[], stereo = false, codec = "pcm_s16le") {
   const volume = Volume.fromJSON({ "/out.wav": "keep" });
   for (const [path, samples] of [["/a.wav", a], ["/b.wav", b]] as const) {
     const channel = Float64Array.from(samples, sample => sample / 32768);
@@ -17,7 +17,7 @@ async function mix(filter: string, a: number[], b: number[], stereo = false) {
     args: ["-y", "-i", "/a.wav", "-i", "/b.wav", ...(
       filter.startsWith("map:") ? ["-map", filter.slice(4)] :
         ["-filter_complex", `[0:a][1:a]${filter}[mix]`, "-map", "[mix]"]),
-      "-c:a", "pcm_s16le", "/out.wav"],
+      "-c:a", codec, "/out.wav"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },
@@ -39,7 +39,7 @@ for (const stereo of [false, true]) {
     ["amix=duration=first:dropout_transition=0", a.map((v, i) => i < b.length ? (v + b[i]!) / 2 : v)],
     ["amix=duration=shortest:weights='0.5 -1':normalize=0", b.map((v, i) => a[i]! / 2 + v)],
     ["amix=dropout_transition=0:weights='1 0'", a],
-    ["amix=dropout_transition=0:weights='0 0'", a.map(() => 0)],
+    ["amix=dropout_transition=0:weights='0 0':normalize=0", a.map(() => 0)],
     ["amix=duration=shortest:weights='2\t1'", b.map((v, i) => Math.round((2 * a[i]! + v) / 3))],
     ["amix=duration=shortest:weights=' \t2\t 1\t9 7'", b.map((v, i) => Math.round((2 * a[i]! + v) / 3))],
     ["amix=duration=shortest:weights='0.5':normalize=0", b.map((v, i) => (a[i]! + v) / 2)],
@@ -175,4 +175,33 @@ for (const options of [
     assert.equal(result.exitCode, 1, error);
     assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
   });
+}
+
+// FFmpeg 7.0.2 preserves NaN in float output when normalized weights sum to zero.
+for (const stereo of [false, true]) {
+  for (const [options, expected] of [
+    ["weights=0 0", NaN],
+    ["weights=0", NaN],
+    ["weights=0 0:normalize=1", NaN],
+    ["weights=0 0:dropout_transition=0", NaN],
+    ["weights=0 0:normalize=0", 0],
+    ["weights=0 1", -4000],
+    ["weights=1 0", 8000]
+  ] as const) {
+    it(`preserves native float amix ${options}, stereo=${stereo}`, async () => {
+      const { result, volume, error } = await mix(`amix=${options}`,
+        Array(2048).fill(8000), Array(2048).fill(-4000), stereo, "pcm_f32le");
+      assert.equal(result.exitCode, 0, error);
+      const track = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!;
+      assert.equal(track.codecDescriptions[0]!.codecName, "pcm_f32le");
+      const audio = track.decodedAudio!;
+      assert.equal(audio.sampleRate, 8000);
+      assert.equal(audio.channels, stereo ? 2 : 1);
+      for (const [index, channel] of audio.channelData.entries()) {
+        assert.equal(channel.length, 2048);
+        const sample = index && expected ? -expected : expected;
+        assert.deepEqual(Array.from(channel, value => value * 32768), Array(2048).fill(sample));
+      }
+    });
+  }
 }

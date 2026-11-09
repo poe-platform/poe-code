@@ -70,7 +70,8 @@ export async function mixAudio(
       ...lengths.filter(inputLength => inputLength > start));
     const activeWeight = weights.reduce((sum, weight, i) => sum + (start < lengths[i]! ? Math.abs(weight) : 0), 0);
     const gains = weights.map((weight, i) => {
-      if (start >= lengths[i]! || weight === 0) return 0;
+      // Zero total weight must retain the native 0/0 normalization and NaN samples.
+      if (start >= lengths[i]!) return 0;
       const target = activeWeight / Math.abs(weight);
       if (scales[i]! > target) {
         scales[i] = Math.max(target, Math.fround(scales[i]! -

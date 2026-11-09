@@ -57,6 +57,11 @@ for (const fixture of nativeCases) {
         assert.equal(result.exitCode, 0);
         assert.equal(result.stderr, "");
         assert.equal(result.stdout, fixture.name === "version" ? "tsort (virtual-bash)\n" : "Usage: tsort [OPTION] [FILE]\nWrite a topological ordering of whitespace-separated node pairs.\nWith no FILE, or FILE -, read standard input.\nOptions: --help --version\n");
+      } else if (fixture.name === "directory-read") {
+        // Preserve the original capture; directory reads must follow GNU/Linux semantics.
+        assert.deepEqual({ stdout: result.stdout, stderr: result.stderr, status: result.exitCode }, {
+          stdout: "", stderr: "tsort: .: read error: Is a directory\n", status: 1,
+        });
       } else assert.deepEqual({ stdout: Buffer.from(result.stdoutBytes).toString("base64"), stderr: Buffer.from(result.stderrBytes).toString("base64"), status: result.exitCode }, {
         stdout: fixture.stdoutBase64, stderr: fixture.stderrBase64, status: fixture.status,
       });

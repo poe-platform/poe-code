@@ -113,7 +113,7 @@ export class Reader {
           this.lifecycle.assertOpen();
           const stat = await Reflect.apply(statMethod, fs, [path, { signal: budget.signal }]);
           this.lifecycle.assertOpen();
-          if (stat.type === "directory") { this.ended = true; return; }
+          if (stat.type === "directory") throw new TsortError(`${fileQuote(this.name)}: read error: Is a directory`);
           if (stat.type !== "file" && stat.type !== "character") throw new FsError("ENOTSUP", { path });
           const capabilitiesFor = fs.capabilitiesFor;
           this.lifecycle.assertOpen();

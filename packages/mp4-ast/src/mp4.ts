@@ -1,3 +1,4 @@
+import { encodeAmrTrack } from "./amr.js";
 import { composeDisplayMatrices } from "./display-matrix.js";
 import { decodeMp4Timecode } from "./mp4-timecode-sample.js";
 import { decodeAmrWb } from "./amr-wb.js";
@@ -874,6 +875,8 @@ function buildAudioStsdEntry(desc: MediaCodecDescription): Uint8Array {
       ? makeBox("esds", desc.esds.rawEsdsBytes)
       : buildEsdsBox(sampleRate, channels, 128000, desc.esds?.decoderSpecificInfo);
     writer.writeBytes(esdsBox);
+  } else if (desc.codecName === "amr_nb") {
+    writer.writeBytes(makeBox("damr", Uint8Array.of(70, 70, 77, 80, 0, 0x81, 0xff, 0, 1)));
   } else if (desc.dOps) {
     writer.writeBytes(makeBox("dOps", desc.dOps.rawBytes));
   }
@@ -1437,10 +1440,11 @@ function buildTrakBox(
 export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   const isMov = (options.format ?? doc.containerFormat) === "mov";
-  const majorBrand = options.majorBrand ?? (isMov ? "qt  " : (doc.majorBrand ?? "isom"));
+  const is3gp = options.format === "3gp";
+  const majorBrand = options.majorBrand ?? (is3gp ? "3gp4" : isMov ? "qt  " : (doc.majorBrand ?? "isom"));
   const compatibleBrands =
     options.compatibleBrands ??
-    (isMov ? ["qt  "] : (doc.compatibleBrands && doc.compatibleBrands.length > 0 ? doc.compatibleBrands : ["isom", "iso2", "avc1", "mp41"]));
+    (is3gp ? ["3gp4", "isom", "iso2"] : isMov ? ["qt  "] : (doc.compatibleBrands && doc.compatibleBrands.length > 0 ? doc.compatibleBrands : ["isom", "iso2", "avc1", "mp41"]));
 
   // ftyp
   const ftypWriter = new BinaryWriter(16 + compatibleBrands.length * 4);
@@ -1452,6 +1456,9 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
   const movieTimescale = doc.timescale || 1000;
   // Only fragmented MP4 needs track descriptions before any packets are written.
   const materializedTracks = doc.tracks.filter(t => t.disposition?.attached_pic !== 1).map((t) => {
+    if (t.type === "audio" && (options.audioCodec === "libopencore_amrnb" || options.audioCodec === "amr_nb")) {
+      t = encodeAmrTrack(t, budget, options.audioBitrate);
+    }
     if (t.type === "audio" && options.audioCodec === "alac") t = encodeAlacTrack(t, budget);
     const sampleRate = t.codecDescriptions[0]?.sampleRate;
     const targetTimescale = t.type === "subtitle" && t.codecDescriptions[0]?.codecName !== "mov_text"
@@ -2817,7 +2824,7 @@ export function mp4Ast(): MediaAstPlugin {
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: ["h264", "hevc", "av1", "vp8", "vp9", "mpeg4", "mjpeg", "png"],
-    supportedAudioCodecs: ["aac", "mp3", "opus", "flac", "alac", "ac3", "eac3", "pcm_s16le"],
+    supportedAudioCodecs: ["aac", "mp3", "amr_nb", "opus", "flac", "alac", "ac3", "eac3", "pcm_s16le"],
     supportedSubtitleCodecs: ["mov_text", "webvtt", "ttml"],
     detect(bytes, filename) {
       if (isMp4Signature(bytes)) return true;
@@ -2833,7 +2840,7 @@ export function mp4Ast(): MediaAstPlugin {
       return parseMp4(bytes, options);
     },
     serialize(doc, options) {
-      return serializeMp4(doc, { ...options, format: "mp4" });
+      return serializeMp4(doc, { ...options, format: options?.format === "3gp" ? "3gp" : "mp4" });
     },
     probe(bytes, options) {
       return probeMp4(bytes, options);

@@ -1,3 +1,4 @@
+import { encodeAmrTrack } from "../amr.js";
 import { encodeUtf8 } from "../binary.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
 import { MediaBudgetTracker, type MediaAstPlugin, type MediaDocument, type MediaSample, type ParseMediaOptions } from "../types.js";
@@ -52,9 +53,14 @@ export function amrAst(): MediaAstPlugin {
     detect: bytes => detectVariant(bytes) !== undefined,
     parse: parseAmr,
     serialize(doc, options = {}) {
-      const track = doc.tracks[0];
+      const budget = options.budget ?? new MediaBudgetTracker(options.limits);
+      let track = doc.tracks[0];
       if (doc.tracks.length !== 1 || track?.type !== "audio") {
         throw new Error("AMR output requires exactly one audio stream");
+      }
+      if (options.audioCodec === "libopencore_amrnb" || options.audioCodec === "amr_nb" ||
+          options.audioCodec === undefined && track.decodedAudio) {
+        track = encodeAmrTrack(track, budget, options.audioBitrate);
       }
       const codec = track.codecDescriptions[0]?.codecName;
       if ((codec !== "amr_nb" && codec !== "amr_wb") || track.codecDescriptions.some(
@@ -62,7 +68,6 @@ export function amrAst(): MediaAstPlugin {
       )) {
         throw new Error("AMR output requires mono AMR-NB or AMR-WB packets");
       }
-      const budget = options.budget ?? new MediaBudgetTracker(options.limits);
       const header = encodeUtf8(codec === "amr_wb" ? "#!AMR-WB\n" : "#!AMR\n");
       let size = header.length;
       for (const sample of track.samples) {

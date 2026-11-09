@@ -21,7 +21,7 @@ MPEG-TS program maps (`-map 0:p:202`) select streams by program ID; `-map 0:p:20
 
 MP4/MOV output `-streamid 0:21 -streamid 1:43 -use_stream_ids_as_track_ids 1` assigns track IDs to output stream ordinals after mapping. Without the muxer switch, IDs remain sequential starting at 1; with it, unassigned streams use ID 0. Options apply only to the next output.
 
-Audio stream copy from 3GP to `.amr` (or `-f amr`) writes the AMR-NB/WB header and preserves compressed frames without re-encoding.
+`-c:a libopencore_amrnb -b:a 12.2k` encodes mono 8000 Hz PCM into `.3gp` or `.amr` output. Audio stream copy from 3GP to `.amr` (or `-f amr`) writes the AMR-NB/WB header and preserves compressed frames without re-encoding.
 
 AAC decoding retains the complete final frame, including samples beyond the container duration; explicit `-t`/`-to` limits still trim PCM at the requested sample. Audio stream copy keeps the full last packet selected by input or output `-t`/`-to`, so its end can exceed the requested cutoff. Output `-ss` with PCM WAV stream copy drops packets that start before the seek time, including in segmented output; segment lists retain the actual packet timestamps. Use `-map 0:a -c copy -f tee 'one.wav|two.wav'` to duplicate mapped audio into multiple destinations. Tee requires explicit maps; `[select=1:f=wav]one.wav` selects the second mapped output stream. Destination options support `f`, `select` (stream index or type selector), and `onfail=ignore|abort`; ignored failures are logged, and at least one destination must succeed.
 

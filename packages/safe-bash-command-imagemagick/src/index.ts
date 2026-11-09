@@ -3656,6 +3656,11 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
                 continue;
             }
             const samples = source.data16?.subarray(request.position, request.position + request.length);
+            if (request.evaluate) {
+                const samples = source.evaluateSamples?.subarray(request.position, request.position + request.length);
+                next = steps.next(samples ? new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength) : new Uint8Array());
+                continue;
+            }
             next = steps.next(request.highDepth
                 ? samples ? new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength) : new Uint8Array(Uint16Array.from(source.data.subarray(request.position, request.position + request.length), value => value * 257).buffer)
                 : source.data.subarray(request.position, request.position + request.length));
@@ -8845,6 +8850,10 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
                 next = steps.next(source.storedHueSamples === undefined ? new Uint8Array() : await backend.storage.read(source.storedHueSamples + request.position * 8, request.length * 8));
                 continue;
             }
+            if (request.evaluate) {
+                next = steps.next(source.storedEvaluateSamples === undefined ? new Uint8Array() : await backend.storage.read(source.storedEvaluateSamples + request.position * 8, request.length * 8));
+                continue;
+            }
             const highDepth = request.highDepth && source.storedData16, stride = highDepth ? 2 : 1;
             const base = highDepth ? highDepth.position : source.position;
             const offset = request.position * stride, length = request.length * stride;
@@ -11025,6 +11034,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let pending = false;
     let extract: string | undefined;
     const operands: { token: string; extract: string | undefined }[] = [];
+    const operandResizes: string[][] = [];
+    const resizeSteps: (number | "(" | ")" | "option" | { geometry: string })[] = [];
     const operandOperations: CompareOperation[][] = [];
     const operandSettings: MagickState[] = [];
     let leadingOperations: CompareOperation[] = [];
@@ -11037,6 +11048,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
+        if (t.startsWith("-") || t.startsWith("+")) resizeSteps.push("option");
         if ((t.startsWith("-") || t.startsWith("+")) && t.length > 1) pending = operands.length > 0;
         // An option after an input ends the leading operator group.
         if (operands.length > groupStart && (t.startsWith("-") || t.startsWith("+"))) leadingOperations = [];
@@ -11208,6 +11220,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             state.density = Math.max(1, Math.round(g.width ?? 72));
         }
         else if (t === "(") {
+            resizeSteps.push(t);
             stackSteps.push({ operand: operands.length, token: t });
             groups.push(groupStart);
             groupStart = operands.length;
@@ -11215,6 +11228,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             outputRotations = [];
         }
         else if (t === ")") {
+            resizeSteps.push(t);
             stackSteps.push({ operand: operands.length, token: t });
             const parent = groups.pop();
             if (parent === undefined) return { exitCode: 2, stdout: "", stderr: "compare: unbalanced parenthesis\n" };
@@ -11271,6 +11285,13 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push("auto-orient");
             else leadingOperations.push("auto-orient");
         }
+        else if (t === "-resize") {
+            const geometry = argv[++i];
+            if (geometry === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-resize'\n" };
+            try { validateMagickTransformGeometry(geometry, t); }
+            catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
+            resizeSteps.push({ geometry });
+        }
         else if (t === "-quality") {
             state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
         }
@@ -11285,10 +11306,12 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return { exitCode: 2, stdout: "", stderr: `compare: unrecognized option '${t}'\n` };
         }
         else {
+            resizeSteps.push(operands.length);
             if (pending) operationFlushes.set(operands.length, [...pixelOperations]);
             pending = false;
             operands.push({ token: t, extract });
             operandSettings.push({ ...state });
+            operandResizes.push([]);
             operandOperations.push(leadingOperations.map(operation => typeof operation === "object" && "geometry" in operation ? { ...operation, gravity: state.gravity } : operation));
         }
     }
@@ -11320,6 +11343,36 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const virtualCanvas = plan?.virtualCanvas ?? (image.virtualCanvas ? magickRotateCanvas(image, angle) : undefined);
         return virtualCanvas ? { ...rotated, virtualCanvas } : rotated;
     }
+    // Native compare replays pending operators before the next input, then again
+    // at the end of the scope. Parentheses flush and advance that operator range.
+    const scopeStarts = [0];
+    let inputCount = 0, resizePending = false;
+    let pendingResizes: string[] = [];
+    const flushResizes = (advance: boolean) => {
+        const start = scopeStarts[scopeStarts.length - 1]!;
+        if (inputCount === start) return;
+        for (let index = start; index < inputCount; index++) operandResizes[index]!.push(...pendingResizes);
+        if (advance) pendingResizes = [];
+        resizePending = false;
+    };
+    for (const step of resizeSteps) {
+        if (typeof step === "number") {
+            if (step === operands.length - 1) continue;
+            if (resizePending) flushResizes(false);
+            inputCount++;
+        } else if (step === "option") resizePending = inputCount > scopeStarts[scopeStarts.length - 1]!;
+        else if (step === "(") {
+            if (resizePending) flushResizes(true);
+            if (scopeStarts.length === 128) return { exitCode: 2, stdout: "", stderr: "compare: parenthesis nested too deeply\n" };
+            scopeStarts.push(inputCount);
+        } else if (step === ")") {
+            if (scopeStarts.length === 1) return { exitCode: 2, stdout: "", stderr: "compare: unable to parse expression ')'\n" };
+            flushResizes(true);
+            scopeStarts.pop();
+        } else pendingResizes.push(step.geometry);
+    }
+    if (scopeStarts.length !== 1) return { exitCode: 2, stdout: "", stderr: "compare: unbalanced parenthesis\n" };
+    flushResizes(true);
     const refSpec = operands[0]!.token;
     const outSpec = operands[operands.length - 1]!.token;
     const images: RgbaImage[] = [];
@@ -11429,11 +11482,16 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         if (final) break;
         const operations = operandOperations[operandIndex]!;
+        const resizes = operandResizes[operandIndex]!;
         try {
             let found = false;
             if (backend) yield { async run() {
                 await parseStoredCompareInput(operand, operandSettings[operandIndex]!, backend, signal!, { ...(extract === undefined ? {} : { extract }), visit: async image => {
                     found = true;
+                    for (const geometry of resizes) {
+                        const options = magickResizeOptions(image, geometry, state.kernel);
+                        if (options) image = await resizeStoredMagickImage(image, backend, options, signal!, false, false, false, state.resizeFilter, undefined, true);
+                    }
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
                     await drainIdentifySteps(acceptImage(image, operations), signal);
                 } });
@@ -11441,7 +11499,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             else {
                 const images = yield* parseInputOperandsSteps(operand, files, operandSettings[operandIndex]!, stdinBytes, undefined, extract);
                 found = Boolean(images?.length);
-                for (const image of images ?? []) {
+                for (let image of images ?? []) {
+                    for (const geometry of resizes) image = yield* applyMagickResizeSteps(image, geometry, state.kernel, false, false, false, state.resizeFilter, undefined, true);
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
                     yield* acceptImage(image, operations);
                 }

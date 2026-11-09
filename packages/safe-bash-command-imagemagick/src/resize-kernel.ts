@@ -149,7 +149,7 @@ type ResizeImage = { width: number; height: number; hasAlpha: boolean; space?: s
 type ResizeSamples = Generator<ConvolveRequest | { kind: "samples"; position: number; data: Float64Array } | undefined, void, Uint8Array | undefined>;
 
 /** Keep HDRI samples unclamped until all resizing and morph blending is finished. */
-function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: MagickResizeKernel, highDepth = false, settings: ResizeFilterSettings = {}, inks = false): ResizeSamples {
+function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: MagickResizeKernel, highDepth = false, settings: ResizeFilterSettings = {}, inks = false, preserveSamples = false): ResizeSamples {
     // An explicit window selects the Sinc weighting function with four-lobe support.
     if (settings.window) kernel = "sinc";
     // Working CMYK rows use C, M, Y, alpha, K; black is never an alpha weight.
@@ -175,9 +175,17 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
                     for (let start = first; start < end; start += 1024) {
                         if (start > first) yield;
                         const length = Math.min(1024, end - start);
-                        const bytes = yield { kind: "read", highDepth, position: (sy * image.width + start) * 4, length: length * 4 };
-                        if (!bytes || bytes.length !== length * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated resize pixels");
-                        const pixels = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+                        const position = (sy * image.width + start) * 4;
+                        const samples = preserveSamples ? yield { kind: "read", evaluate: true, position, length: length * 4 } : undefined;
+                        let pixels: Uint8Array | Uint16Array | Float64Array;
+                        if (samples?.length) {
+                            pixels = new Float64Array(samples.slice().buffer);
+                            if (highDepth) pixels = pixels.map(value => value * 257);
+                        } else {
+                            const bytes = yield { kind: "read", highDepth, position, length: length * 4 };
+                            if (!bytes || bytes.length !== length * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated resize pixels");
+                            pixels = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+                        }
                         let cmyk: Float64Array | undefined;
                         if (inks && image.space === "cmyk") {
                             const bytes = yield { kind: "read", hue: true, position: (sy * image.width + start) * 4, length: length * 4 };
@@ -217,7 +225,7 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
 }
 
 export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: MagickResizeKernel = "lanczos3", highDepth = false, settings?: ResizeFilterSettings, preserveSamples = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const samples = resizeSamples(image, width, height, thumbnail, scale, kernel, highDepth, settings);
+    const samples = resizeSamples(image, width, height, thumbnail, scale, kernel, highDepth, settings, false, preserveSamples);
     const range = highDepth ? 65535 : 255;
     let next = samples.next();
     while (!next.done) {

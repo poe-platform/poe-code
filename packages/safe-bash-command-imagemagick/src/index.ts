@@ -1042,7 +1042,7 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
         .trim()
         .split(/[\s,]+/)
         .filter((s) => s.length > 0)
-        .map(Number);
+        .map(s => Number(s.endsWith("%") ? s.slice(0, -1) : s));
     if (!spec.includes(":") && !Number.isFinite(m[0]))
         throw new Error("Invalid color matrix: expected a numeric first coefficient");
     const geometry = !named && spec.includes(":") ? parseMagickGeometry(spec.slice(0, spec.indexOf(":"))) : undefined;

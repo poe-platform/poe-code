@@ -4551,7 +4551,7 @@ export function evalSyncFfmpeg(
   }
 }
 
-function formatImageSequence(pattern: string, number: number): string | undefined {
+function formatImageSequence(pattern: string, number: number, allowMultiple = true): string | undefined {
   let filename = "";
   let numbered = false;
   for (let i = 0; i < pattern.length; i++) {
@@ -4570,6 +4570,7 @@ function formatImageSequence(pattern: string, number: number): string | undefine
       i++;
     }
     if (pattern[i] !== "d") return undefined;
+    if (numbered && !allowMultiple) throw new Error("Numbered image2 input requires a single numeric field");
     filename += (number < 0 ? "-" : "") + String(Math.abs(number)).padStart(width, "0");
     numbered = true;
   }
@@ -6408,7 +6409,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                     imgBytes = pipeBytes.subarray(start, pipeOffset);
                   } else {
-                    const formatted = globPaths ? globPaths[idx]! : literalPlane ? filePath : formatImageSequence(filePath, idx)!;
+                    const formatted = globPaths ? globPaths[idx]! : literalPlane ? filePath : formatImageSequence(filePath, idx, false)!;
                     const resolved = resolvePath(context.cwd, formatted);
                     try {
                       imgBytes = await readInput(resolved);

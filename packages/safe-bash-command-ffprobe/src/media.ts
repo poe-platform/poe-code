@@ -323,7 +323,22 @@ function formatQualifiedAudio(probe: ProbeSourceRows, opts: FfprobeFormatOptions
   }
 }
 
+function mp3ReplayGain<T extends ProbeSourceRows>(probe: T, audioInput?: AudioProbeInput): T {
+  if (probe.format?.format_name !== "mp3" || !audioInput || !("bytes" in audioInput) || !Array.isArray(probe.streams)) return probe;
+  try {
+    if (!id3HeaderSize(audioInput.bytes)) return probe;
+    const { tags } = parseAudio(audioInput.bytes);
+    if (Object.keys(tags).some(key => ["replaygain_track_gain", "replaygain_album_gain"].includes(key.toLowerCase()))) {
+      return { ...probe, streams: probe.streams.map(stream => ({ ...stream,
+        side_data_list: [...stream.side_data_list ?? [], { side_data_type: "Replay Gain" }] })),
+        format: { ...probe.format, tags } };
+    }
+  } catch { /* Preserve the general-media fallback for malformed audio. */ }
+  return probe;
+}
+
 export function* formatFfprobeResultChunks(probe: SyncProbeRows, opts: FfprobeFormatOptions, audioInput?: AudioProbeInput): Generator<string> {
+  probe = mp3ReplayGain(probe, audioInput);
   const audio = formatQualifiedAudio(probe, opts, audioInput);
   if (audio !== undefined) { yield audio; return; }
   if (audioInput && "bytes" in audioInput && probe.format?.format_name === "flac") {
@@ -345,6 +360,7 @@ export function* formatFfprobeResultChunks(probe: SyncProbeRows, opts: FfprobeFo
 /** Consume one-shot caller-backed records with backpressure and iterator cleanup. */
 export async function* formatFfprobeSourceChunks(probe: ProbeSourceRows, opts: FfprobeFormatOptions, audioInput?: AudioProbeInput, signal?: AbortSignal): AsyncGenerator<string> {
   signal?.throwIfAborted();
+  probe = mp3ReplayGain(probe, audioInput);
   const audio = formatQualifiedAudio(probe, opts, audioInput);
   if (audio !== undefined) { yield audio; return; }
   if (audioInput && "bytes" in audioInput && probe.format?.format_name === "flac") {
@@ -983,23 +999,27 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
     const ogg = await probeStoredOgg(source, context, retain);
     return onAudio ? { oggRows: ogg.rows } : probeOggStreamMetadata(ogg.first, source.size, probeOptions);
   }
-  const result: MediaProbeSourceRecords = await (plugin.probeRecords ?? plugin.probeMetadata)!.call(plugin, source, { ...records, filename, seekable: !isStdin(filename), signal: context.signal, budget, limits: budget.limits });
+  let result: MediaProbeSourceRecords = await (plugin.probeRecords ?? plugin.probeMetadata)!.call(plugin, source, { ...records, filename, seekable: !isStdin(filename), signal: context.signal, budget, limits: budget.limits });
   if (result.close) retain(result.close.bind(result));
-  if ((onAudio || plugin.formatName === "flac") && !(plugin.formatName === "wav" && result.format?.tags?.time_reference !== undefined)) {
+  if ((onAudio || plugin.formatName === "flac" || plugin.formatName === "mp3") && !(plugin.formatName === "wav" && result.format?.tags?.time_reference !== undefined)) {
     const initialTags = plugin.formatName === "flac" ? new FlacTags(source, context, { flac: true }) : new SourceAudioTags(source, context);
     retain(initialTags.close);
-    let checkpoints = 0;
+    let checkpoints = 0, hasReplayGain = false;
     try {
       const audio = initialTags instanceof FlacTags
         ? await probeFlacSource(source, { signal: context.signal, onComment: async span => {
           try { await initialTags.add(span); } catch (error) { sourceFailed = true; throw error; }
         } })
         : plugin.formatName === "mp3" ? await probeMp3Source(source, { signal: context.signal, checkpoint: async () => { if (++checkpoints % 256 === 0) await yieldTurn(context.signal); }, onTag: async span => {
+          if (["replaygain_track_gain", "replaygain_album_gain"].includes(span.key.toLowerCase())) hasReplayGain = true;
           try { await initialTags.add(span); } catch (error) { sourceFailed = true; throw error; }
         } })
         : await probeWavSource(source, { signal: context.signal, onTag: async span => {
           try { await initialTags.add(span); } catch (error) { sourceFailed = true; throw error; }
         } });
+      if (hasReplayGain && Array.isArray(result.streams)) result = { ...result,
+        streams: result.streams.map(stream => ({ ...stream,
+          side_data_list: [...stream.side_data_list ?? [], { side_data_type: "Replay Gain" }] })) };
       let tags = initialTags;
       if (tags instanceof FlacTags && tags.count === 0 && id3HeaderSize(await source.read(0, Math.min(10, source.size)))) {
         const id3Tags = new SourceAudioTags(source, context);
@@ -1158,7 +1178,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         if (!probeResult) probeResult = retainedPlugins.length && !isStdin(inputTarget)
           ? await probeRetainedMetadata(context, retainedPlugins, resolvePath(context.cwd, inputTarget), inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize, ...(mp4Records ? { mp4Records } : {}) }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, !explicitPlugin)
           : undefined;
-        if (!probeResult && explicitPlugin && !showData && !showDataHash)
+        if (!probeResult && explicitPlugin && explicitPlugin.formatName !== "mp3" && !showData && !showDataHash)
           probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize });
         let replay: AsyncIterable<Uint8Array> | undefined;
         const streamPlugins = explicitPlugin ? retainedPlugins : automaticPlugins;
@@ -1169,10 +1189,10 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
               context.inputBudget?.check(total); budget.checkInputBytes(total);
             });
             const automaticPlugin = explicitPlugin ?? streamPlugins.find(plugin => plugin.detect(sniffed.prefix, inputTarget));
-            if (!explicitPlugin && id3HeaderSize(sniffed.prefix)) {
+            if (id3HeaderSize(sniffed.prefix) && (!explicitPlugin || explicitPlugin.formatName === "mp3")) {
               probeResult = await withStagedProbeSource(context, sniffed.stream, source => probeSourceMetadata(context, streamPlugins, source, inputTarget, budget,
                 { showPackets, showFrames, ignoreLength, maxSize, ...(mp4Records ? { mp4Records } : {}) },
-                automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, true), retain);
+                automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, !explicitPlugin), retain);
               if (!probeResult) throw new Error("Unsupported audio after ID3 tag");
             } else if (automaticPlugin) {
               if (!showData && !showDataHash && !automaticAudio && !automaticPlugin.probeRecords && automaticPlugin.probeMetadataStream) {
@@ -1227,7 +1247,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
             probeResult = exportPathMetadata && plugin.id === "image2" && !isStdin(inputTarget)
               ? { ...probe, packets: probe.packets?.map(packet => ({ ...packet, ...imagePathMetadata(inputTarget) })) } : probe;
             if ((showData || showDataHash) && ["wav", "mp3", "flac", "mp4", "mov"].includes(plugin.id)) probeResult = { ...probeResult, packetSource: { size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } } };
-            if (!options.asts && !explicitFormat) audioInput = { bytes, args };
+            if (!options.asts && (!explicitFormat || explicitFormat === "mp3")) audioInput = { bytes, args };
           }
         }
 
@@ -1372,7 +1392,7 @@ export function evalSyncFfprobe(
       countFrames,
       countPackets,
       maxSize,
-    }, !explicitFormat ? { bytes, args } : undefined);
+    }, !explicitFormat || explicitFormat === "mp3" ? { bytes, args } : undefined);
     return probeOut.includes("\0") ? undefined : probeOut;
   } catch {
     return undefined;

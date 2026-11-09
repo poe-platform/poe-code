@@ -3974,7 +3974,9 @@ function* compositeMaskPixelSteps(image: Pick<RgbaImage, "width" | "height">, ma
 }
 
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal, fuzz = 0, clipToOverlay = false): Generator<void, RgbaImage, void> {
-    const { delegated, preservesAlpha } = magickCompositeMode(modeRaw);
+    const { name, delegated, preservesAlpha } = magickCompositeMode(modeRaw);
+    if (name === "dst" || name === "dest") return dst;
+    dst = { ...dst, evaluateSamples: undefined };
     if (delegated) {
         const ox = Math.round(left);
         const oy = Math.round(top);
@@ -4033,6 +4035,7 @@ function* blitOverRgbaInPlaceSteps(
   const x1 = Math.min(dst.width, ox + src.width);
   const y1 = Math.min(dst.height, oy + src.height);
   if (x1 <= x0 || y1 <= y0) return;
+  dst.evaluateSamples = undefined;
   const dstData = dst.data;
   const srcData = src.data;
   let work = 0;
@@ -9366,6 +9369,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
 
 async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false, montageRounding = false, tile = false, fuzz = 0, clipToOverlay = false): Promise<StoredRgbaImage> {
     const compositeMode = magickCompositeMode(mode);
+    if (!generic && (compositeMode.name === "dst" || compositeMode.name === "dest")) return base;
     let hasAlpha = base.hasAlpha || (!generic && !compositeMode.delegated && !compositeMode.preservesAlpha);
     const position = inPlace ? base.position : backend.storage.allocate(base.width * base.height * 4);
     for (let start = 0; !inPlace && start < base.width * base.height * 4; start += 16384) {
@@ -9415,7 +9419,7 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
             x += count;
         }
     }
-    return { ...base, position, hasAlpha, channels: hasAlpha ? base.channels : base.channels <= 2 ? 1 : 3 };
+    return { ...base, storedEvaluateSamples: undefined, position, hasAlpha, channels: hasAlpha ? base.channels : base.channels <= 2 ? 1 : 3 };
 }
 
 function applyMagickProfile<T extends { readonly icc?: Uint8Array; readonly exif?: Uint8Array }>(image: T, name: string, profile?: Uint8Array): T {

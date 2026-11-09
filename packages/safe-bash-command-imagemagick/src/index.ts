@@ -11,7 +11,7 @@ import { identifyHullSteps } from "./identify-hull.js";
 import { identifyMomentsSteps } from "./identify-moments.js";
 import { identifyMaximumSteps, identifyStoredMaximum } from "./identify-locate.js";
 import { hilbertPixels, riemersmaRemapSteps } from "./riemersma.js";
-import { convertCmykPixels, formatCmykPixel, rgbToCmyk } from "./colorspace-cmyk.js";
+import { convertCmykPixels, copyCmykChannelsToRgb, formatCmykPixel, rgbToCmyk } from "./colorspace-cmyk.js";
 import { modulateRgb } from "./modulate.js";
 import { cyclePixelSteps } from "./cycle.js";
 import { magnifyPixelSteps, parseMagnifyMethod, type MagnifyMethod } from "./magnify-kernel.js";
@@ -5273,7 +5273,9 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
     const canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, background, stack.some(im => !!im.data16)));
     let hasAlpha = background.a < 255;
     let cursor = 0;
-    for (const im of stack) {
+    const mixedCmyk = stack.some(image => image.space === "cmyk") && stack.some(image => image.space !== "cmyk");
+    for (let im of stack) {
+        if (mixedCmyk && im.space === "cmyk") im = yield* copyCmykChannelsToRgb(im);
         if (++work % 16384 === 0)
             yield;
         const off = resolveGravityOffset(vertical ? totalW - im.width : 0, vertical ? 0 : totalH - im.height, state.gravity);
@@ -9851,8 +9853,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const append = token.endsWith("append"), vertical = token === "-append";
                 if (append && stack.length === 1) return stack;
-                let width = 0, height = 0, highDepth = false;
-                for (let n = 0; n < (flatten ? 1 : stack.length); n++) { await yieldTurn(signal); const frame = (await stack.get(n))!; highDepth ||= !!frame.storedData16; width = append && !vertical ? width + frame.width : Math.max(width, frame.width); height = append && vertical ? height + frame.height : Math.max(height, frame.height); }
+                let width = 0, height = 0, highDepth = false, cmyk = false, nonCmyk = false;
+                for (let n = 0; n < (flatten ? 1 : stack.length); n++) { await yieldTurn(signal); const frame = (await stack.get(n))!; cmyk ||= frame.space === "cmyk"; nonCmyk ||= frame.space !== "cmyk"; highDepth ||= !!frame.storedData16; width = append && !vertical ? width + frame.width : Math.max(width, frame.width); height = append && vertical ? height + frame.height : Math.max(height, frame.height); }
                 if (flatten) {
                     const first = (await stack.get(0))!;
                     width = first.virtualCanvas?.width || first.width;
@@ -9866,7 +9868,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {
-                    const frame = (await stack.get(n))!, offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, settings.gravity);
+                    let frame = (await stack.get(n))!;
+                    if (append && cmyk && nonCmyk && frame.space === "cmyk") frame = await transformStoredMagickPixels(frame, backend, { end: 0, highDepth: true, apply: copyCmykChannelsToRgb }, signal);
+                    const offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, settings.gravity);
                     if (append) {
                         const left = vertical ? offset.left : cursor, top = vertical ? cursor : offset.top;
                         for (let y = 0; y < frame.height; y++) {

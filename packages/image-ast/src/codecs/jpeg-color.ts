@@ -60,3 +60,14 @@ export function jpegColor(
   }
   return (r & 255) | ((g & 255) << 8) | ((b & 255) << 16);
 }
+
+/** Preserve the original inks independently of the RGB display backing. */
+export function jpegCmyk(y: number, cb: number, cr: number, k: number, adobeTransform: number | undefined): number[] {
+  if (adobeTransform === 2) {
+    const cmy = jpegColor(y, cb, cr, undefined, false, false, undefined);
+    return [(cmy & 255) / 255, ((cmy >>> 8) & 255) / 255, (cmy >>> 16) / 255, 1 - k / 255];
+  }
+  return adobeTransform === 0
+    ? [1 - y / 255, 1 - (cb + 128) / 255, 1 - (cr + 128) / 255, 1 - k / 255]
+    : [y / 255, (cb + 128) / 255, (cr + 128) / 255, k / 255];
+}

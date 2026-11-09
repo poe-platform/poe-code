@@ -3726,7 +3726,8 @@ it.each(jpegInputVectors)("decodes retained JPEG against frozen input $name", as
     await expect(decoded).rejects.toThrow(vector.error);
     return;
   }
-  const { position, exif, ...metadata } = await decoded;
+  const { position, exif, storedHueSamples, ...metadata } = await decoded;
+  expect(storedHueSamples !== undefined).toBe(metadata.space === "cmyk");
   // Encoded fixtures carry an APP1 Exif profile after the 18-byte APP0 segment.
   expect(exif).toEqual(vector.spec.kind === "encoded"
     ? bytes.slice(30, 22 + new DataView(bytes.buffer, bytes.byteOffset).getUint16(22))
@@ -3808,7 +3809,7 @@ function harness(
   input: Uint8Array,
   hook?: (event: Event, position: number, length: number) => void
 ) {
-  const memory = new Uint8Array(8 * 1024 * 1024),
+  const memory = new Uint8Array(16 * 1024 * 1024),
     borrowed = new Uint8Array(4096),
     controller = new AbortController();
   let next = 17,
@@ -3863,13 +3864,13 @@ function harness(
     allocations,
     counts: () => ({ reads, writes }),
     async decode(options?: Parameters<typeof decodeJpegToStorage>[3]) {
-      const { position, ...meta } = await decodeJpegToStorage(
+      const { position, storedHueSamples, ...meta } = await decodeJpegToStorage(
         source,
         storage,
         controller.signal,
         options
       );
-      return { ...meta, data: memory.slice(position, position + meta.width * meta.height * 4) };
+      return { ...meta, data: memory.slice(position, position + meta.width * meta.height * 4), ...(storedHueSamples === undefined ? {} : { hueSamples: new Float64Array(memory.slice(storedHueSamples, storedHueSamples + meta.width * meta.height * 32).buffer) }) };
     }
   };
 }

@@ -20,6 +20,21 @@ export function* convertCmykPixels(image: RgbaImage & HueMetadata): Generator<vo
     return { ...image, space: "cmyk", channels: 4, hueSamples };
 }
 
+/** Mixed append copies ink channels into the sRGB canvas without converting them. */
+export function* copyCmykChannelsToRgb(image: RgbaImage & HueMetadata): Generator<void, RgbaImage, void> {
+    const { hueSamples, storedHueSamples: ignoredStored, ...metadata } = yield* convertCmykPixels(image);
+    const data = new Uint8Array(image.data), data16 = image.data16?.slice();
+    for (let offset = 0; offset < data.length; offset += 4) {
+        if (offset % 65536 === 0) yield;
+        for (let channel = 0; channel < 3; channel++) {
+            const value = hueSamples![offset + channel]!;
+            data[offset + channel] = Math.max(0, Math.min(255, Math.round(value * 255)));
+            if (data16) data16[offset + channel] = Math.max(0, Math.min(65535, Math.round(value * 65535)));
+        }
+    }
+    return { ...metadata, data, ...(data16 ? { data16 } : {}), space: "srgb", channels: image.hasAlpha ? 4 : 3 };
+}
+
 export function formatCmykPixel(channels: readonly number[], hasAlpha: boolean): string {
     return `cmyk${hasAlpha ? "a" : ""}(${channels.slice(0, 4).map(value => formatMetricNum(value * 255)).join(",")}${hasAlpha ? `,${formatMetricNum(channels[4] ?? 1)}` : ""})`;
 }

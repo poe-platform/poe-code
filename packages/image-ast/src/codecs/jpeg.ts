@@ -2,7 +2,7 @@ import { createJpegArithmeticEncoder } from "./jpeg-arithmetic.js";
 import {readJpegFrame} from "./jpeg-frame.js";
 import {JpegTables} from "./jpeg-tables.js";
 import {applyJpegMetadata,type JpegMetadataState} from "./jpeg-metadata.js";
-import {jpegColor, JpegColorEncoding} from "./jpeg-color.js";
+import {jpegCmyk, jpegColor, JpegColorEncoding} from "./jpeg-color.js";
 import {createJpegScan} from "./jpeg-decode-kernel.js";
 import type { ImageMetadata, RgbaImage, SharpInputOptions } from "../ast.js";
 import { buildExifApp1Segment } from "./exif.js";
@@ -387,6 +387,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
   let useStripDecode = false;
   const colorEncoding = new JpegColorEncoding();
   let outRgba: Uint8Array | undefined;
+  let hueSamples: Float64Array | undefined;
   let maxH = 1;
   let maxV = 1;
   let mcusX = 0;
@@ -450,6 +451,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
       }
       if (useStripDecode && !outRgba) {
         outRgba = new Uint8Array(outWidth * outHeight * 4);
+        if (meta.space === "cmyk") hueSamples = new Float64Array(outRgba.length);
       }
       const ssPos = 1 + scanCompsCount * 2;
       const spectralStart = payload[ssPos] ?? 0;
@@ -581,6 +583,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
                   const crVal = pCr[crRow + (hCr === maxH ? x : Math.floor((x * hCr) / maxH))]! - 128;
                   const kVal = hasK && pK && c3 ? Number(pK[kRow + (c3.h === maxH ? x : Math.floor((x * c3.h) / maxH))]) : undefined;
                   const rgb=jpegColor(yVal,cbVal,crVal,kVal,true,colorEncoding.rgb, colorEncoding.adobeTransform);
+                  if (hueSamples && kVal !== undefined) hueSamples.set(jpegCmyk(yVal, cbVal, crVal, kVal, colorEncoding.adobeTransform), outIdx);
                   outRgba[outIdx] = rgb&255;
                   outRgba[outIdx + 1] = (rgb>>>8)&255;
                   outRgba[outIdx + 2] = rgb>>>16;
@@ -604,6 +607,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
       width: outWidth,
       height: outHeight,
       data: outRgba,
+      ...(hueSamples ? { hueSamples } : {}),
       format: "jpeg",
       space: meta.space,
       channels: meta.channels,
@@ -675,6 +679,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
   };
 
   const rgba = new Uint8Array(width * height * 4);
+  if (meta.space === "cmyk") hueSamples = new Float64Array(rgba.length);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const outIdx = (y * width + x) * 4;
@@ -696,6 +701,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
         const cK=compPixels.length===4?compPixels[3]:undefined;
         const kVal=cK?Number(cK.pixels[Math.floor((y * cK.comp.v) / maxV) * cK.stride + Math.floor((x * cK.comp.h) / maxH)]):undefined;
         const rgb=jpegColor(yVal,cbVal,crVal,kVal,false,colorEncoding.rgb, colorEncoding.adobeTransform);
+        if (hueSamples && kVal !== undefined) hueSamples.set(jpegCmyk(yVal, cbVal, crVal, kVal, colorEncoding.adobeTransform), outIdx);
         rgba[outIdx] = rgb&255;
         rgba[outIdx + 1] = (rgb>>>8)&255;
         rgba[outIdx + 2] = rgb>>>16;
@@ -708,6 +714,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
     width,
     height,
     data: rgba,
+    ...(hueSamples ? { hueSamples } : {}),
     format: "jpeg",
     space: meta.space,
     channels: meta.channels,

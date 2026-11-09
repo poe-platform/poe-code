@@ -1,6 +1,6 @@
 import { readJpegFrame } from "./jpeg-frame.js";
 import { JpegTables } from "./jpeg-tables.js";
-import { jpegColor, JpegColorEncoding } from "./jpeg-color.js";
+import { jpegCmyk, jpegColor, JpegColorEncoding } from "./jpeg-color.js";
 import { defaultRuntime } from "@poe-code/compression";
 import type { ImageMetadata, SharpInputOptions } from "../ast.js";
 import { checkLimitInputPixels } from "../limits.js";
@@ -282,6 +282,7 @@ export async function decodeJpegToStorage(
   let useStripDecode = false;
   const colorEncoding = new JpegColorEncoding();
   let outRgba: Region | undefined;
+  let storedHueSamples: number | undefined;
   let maxH = 1;
   let maxV = 1;
   let mcusX = 0;
@@ -372,6 +373,7 @@ export async function decodeJpegToStorage(
       }
       if (useStripDecode && !outRgba) {
         outRgba = await cache.allocate(outWidth * outHeight * 4);
+        if (meta.space === "cmyk") storedHueSamples = storage.allocate(outWidth * outHeight * 32);
       }
       const ssPos = 1 + scanCompsCount * 2;
       const spectralStart = payload[ssPos] ?? 0;
@@ -491,12 +493,14 @@ export async function decodeJpegToStorage(
             // Convert at most 1024 pixels per span. Plane bytes are owned before
             // another cache read can evict them; no per-pixel Promise allocation.
             const row = new Uint8Array(4096);
+            const inks = storedHueSamples === undefined ? undefined : new Float64Array(512);
+            const span = inks ? 128 : 1024;
             const count = components.length === 1 ? 1 : components.length === 4 ? 4 : components.length >= 3 ? 3 : 0;
             let work = 0;
             for (let y = yStart; y < yEnd; y++) {
               const ly = y - yStart;
-              for (let xStart = 0; xStart < outWidth; xStart += 1024) {
-                const xEnd = Math.min(outWidth, xStart + 1024);
+              for (let xStart = 0; xStart < outWidth; xStart += span) {
+                const xEnd = Math.min(outWidth, xStart + span);
                 const planes: { bytes: Uint8Array; start: number; h: number }[] = [];
                 for (let plane = 0; plane < count; plane++) {
                   const comp = components[plane]!;
@@ -516,12 +520,14 @@ export async function decodeJpegToStorage(
                     row[at] = g; row[at + 1] = g; row[at + 2] = g;
                   } else if (components.length >= 3) {
                     const rgb = jpegColor(sample(0, x), sample(1, x) - 128, sample(2, x) - 128, components.length === 4 ? sample(3, x) : undefined, true, colorEncoding.rgb, colorEncoding.adobeTransform);
+                    if (inks) inks.set(jpegCmyk(sample(0, x), sample(1, x) - 128, sample(2, x) - 128, sample(3, x), colorEncoding.adobeTransform), at);
                     row[at] = rgb & 255; row[at + 1] = (rgb >>> 8) & 255; row[at + 2] = rgb >>> 16;
                   }
                   row[at + 3] = 255;
                 }
                 if (components.length === 1 || components.length >= 3)
                   await outRgba.write((y * outWidth + xStart) * 4, row.subarray(0, (xEnd - xStart) * 4));
+                if (inks && storedHueSamples !== undefined) await storage.write(storedHueSamples + (y * outWidth + xStart) * 32, new Uint8Array(inks.buffer, 0, (xEnd - xStart) * 32), { signal });
                 work += xEnd - xStart;
                 if (work >= 16384) { await defaultRuntime.yieldTurn(signal); work = 0; }
               }
@@ -542,6 +548,7 @@ export async function decodeJpegToStorage(
       width: outWidth,
       height: outHeight,
       position: outRgba.position,
+      ...(storedHueSamples === undefined ? {} : { storedHueSamples }),
       format: "jpeg",
       space: meta.space,
       channels: meta.channels,
@@ -615,6 +622,8 @@ export async function decodeJpegToStorage(
   };
 
   const rgba = await cache.allocate(width * height * 4);
+  if (meta.space === "cmyk") storedHueSamples = storage.allocate(width * height * 32);
+  const inks = storedHueSamples === undefined ? undefined : new Float64Array(Math.min(width, 128) * 4);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const outIdx = (y * width + x) * 4;
@@ -640,10 +649,15 @@ export async function decodeJpegToStorage(
             )
           : undefined;
         const rgb = jpegColor(yVal, cbVal, crVal, kVal, false, colorEncoding.rgb, colorEncoding.adobeTransform);
+        if (inks && kVal !== undefined) inks.set(jpegCmyk(yVal, cbVal, crVal, kVal, colorEncoding.adobeTransform), (x % 128) * 4);
         await rgba.set(outIdx, rgb & 255);
         await rgba.set(outIdx + 1, (rgb >>> 8) & 255);
         await rgba.set(outIdx + 2, rgb >>> 16);
         await rgba.set(outIdx + 3, 255);
+      }
+      if (inks && storedHueSamples !== undefined && (x % 128 === 127 || x === width - 1)) {
+        const start = x - x % 128;
+        await storage.write(storedHueSamples + (y * width + start) * 32, new Uint8Array(inks.buffer, 0, (x - start + 1) * 32), { signal });
       }
     }
   }
@@ -653,6 +667,7 @@ export async function decodeJpegToStorage(
     width,
     height,
     position: rgba.position,
+    ...(storedHueSamples === undefined ? {} : { storedHueSamples }),
     format: "jpeg",
     space: meta.space,
     channels: meta.channels,

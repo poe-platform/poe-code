@@ -18,13 +18,15 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
     for (const specification of parsed.values.get("w") ?? []) width = integer(specification, 1);
     const locale = (session.context.env.LC_ALL || session.context.env.LC_CTYPE || session.context.env.LANG || "C.UTF-8").toUpperCase().split("@")[0]!;
     const utf8 = locale.endsWith("UTF-8") || locale.endsWith("UTF8");
-    const adjust = (column: number, unit: FoldUnit): number => {
-      if (mode === "bytes") return column + unit.length;
-      const byte = unit.cp;
-      if (byte === 8) return Math.max(0, column - 1);
-      if (byte === 13) return 0;
-      const cells = mode === "characters" ? 1 : utf8 && unit.valid ? portableWidth(byte) : 1;
-      return column + (byte === 9 ? 8 - column % 8 : cells < 0 ? 1 : cells);
+    let lastWidth = 0;
+    const adjust = (column: number, cp: number, length: number, valid: boolean): number => {
+      if (mode === "bytes") return column + length;
+      if (cp === 8) return Math.max(0, column - lastWidth);
+      if (cp === 13) return 0;
+      if (cp === 9) return column + 8 - column % 8;
+      const cells = mode === "characters" || (cp >= 32 && cp < 127) ? 1 : utf8 && valid ? portableWidth(cp) : 1;
+      lastWidth = cells < 0 ? 1 : cells;
+      return column + lastWidth;
     };
     await session.files(session.names(parsed.operands), async source => {
       const record = new RecordBuffer(session);
@@ -58,7 +60,7 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
           await emitLine(record.view());
           record.clear(); column = 0; lastBlank = -1; return;
         }
-        while (adjust(column, unit) > width && record.size) {
+        while (adjust(column, unit.cp, unit.length, unit.valid) > width && record.size) {
           const boundary = hasSpaces && lastBlank >= 0 ? lastBlank + 1 : record.size;
           await emitLine(record.view().subarray(0, boundary));
           record.drop(boundary); column = 0; lastBlank = -1;
@@ -68,7 +70,7 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
             if (!utf8 || first < 128) {
               const s = session.step(1);
               if (s) await s;
-              column = mode === "bytes" ? column + 1 : first === 8 ? Math.max(0, column - 1) : first === 13 ? 0 : column + (first === 9 ? 8 - column % 8 : first === 0 && utf8 && mode === "columns" ? 0 : 1);
+              column = adjust(column, first, 1, true);
               offset++;
               if (first === 32 || first === 9) lastBlank = offset - 1;
               continue;
@@ -76,12 +78,12 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
             const glyph = decodeFoldUnit(retained, offset, retained.length - offset, true)!;
             const s = session.step(glyph.length);
             if (s) await s;
-            column = adjust(column, glyph);
+            column = adjust(column, glyph.cp, glyph.length, glyph.valid);
             offset += glyph.length;
             if (glyph.cp === 32 || glyph.cp === 9) lastBlank = offset - 1;
           }
         }
-        column = adjust(column, unit);
+        column = adjust(column, unit.cp, unit.length, unit.valid);
         for (let i = 0; i < byteLen; i++) record.push(bytes[byteOffset + i]!);
         if (unit.cp === 32 || unit.cp === 9) lastBlank = record.size - 1;
       };
@@ -102,7 +104,7 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
           if (s) await s;
           if (!utf8 || (pending.length === 0 && byte < 128)) {
             if (byte !== 10) {
-              const nextCol = mode === "bytes" ? column + 1 : byte === 8 ? Math.max(0, column - 1) : byte === 13 ? 0 : column + (byte === 9 ? 8 - column % 8 : byte === 0 && utf8 && mode === "columns" ? 0 : 1);
+              const nextCol = adjust(column, byte, 1, true);
               if (nextCol <= width || !record.size) {
                 column = nextCol;
                 record.push(byte);

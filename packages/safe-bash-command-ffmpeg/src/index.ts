@@ -9189,7 +9189,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let filteredChannelMask = audio.channelMask;
                   let panPcm16 = ["pcm_s16le", "pcm_s16be"].includes(t.codecDescriptions[0]?.codecName ?? "");
                   const inputCodec = t.codecDescriptions[0]?.codecName;
-                  let filteredSampleFormat = inputCodec === "pcm_s16le" ? "s16" : inputCodec === "pcm_s32le" ? "s32"
+                  let filteredSampleFormat = inputCodec === "pcm_s16le" ? "s16" : ["pcm_s24le", "pcm_s32le"].includes(inputCodec ?? "") ? "s32"
                     : inputCodec === "pcm_f32le" ? "flt" : "dbl";
                   const volFactor = t.volume ?? 1.0;
                   let stretched: typeof audio.channelData = audio.channelData;
@@ -10728,6 +10728,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           [-6, -11, -5, 3, 5, 0, 1, 3, -1, -3, -5, 1, -7, -29, -3, 4,
                             7, 23, 0, -6, -5, -18, 7, -10, 22, -2, 9, -12, -6, -11, -5, 0]
                         ];
+                        // Native signed integer conversion discards low bits before convolution.
+                        const quantize = filteredSampleFormat === "s32" ? Math.floor : roundToEven;
                         const history = [new Int16Array(32), new Int16Array(32)];
                         const output = stretched.map(channel => new Float64Array(channel.length));
                         for (let i = 0; i < stretched[0]!.length; i++) {
@@ -10749,10 +10751,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             output[c]![i] = Math.max(-32768, Math.min(32767, mixed)) / 32768;
                           }
                           for (let c = 0; c < 2; c++) {
-                            history[c]![i % 32] = Math.max(-32768, Math.min(32767, roundToEven(stretched[c]![i]! * 32768)));
+                            history[c]![i % 32] = Math.max(-32768, Math.min(32767, quantize(stretched[c]![i]! * 32768)));
                           }
                         }
                         stretched = output;
+                        filteredSampleFormat = "s16";
+                        panPcm16 = true;
                       } else if (trimmed === "haas") {
                         if (stretched.length !== 2) throw new Error("haas: stereo input required");
                         const leftDelay = Math.floor(2.05 * 0.001 * origRate);

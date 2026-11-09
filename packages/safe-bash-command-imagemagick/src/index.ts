@@ -1451,7 +1451,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const baseName = filePath.slice(filePath.lastIndexOf("/") + 1);
   const dot = baseName.lastIndexOf(".");
   const bitDepth = String(meta.bitsPerSample ?? (meta.depth === "ushort" ? 16 : meta.depth === "bit" ? 1 : 8));
-  const space = meta.magickColorspace ?? (meta.space === "b-w" || meta.space === "grey16" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB");
+  const space = meta.magickColorspace ?? (meta.space === "b-w" || meta.space === "grey16" ? meta.gamma === 1 ? "LinearGray" : "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB");
   const compression = ({ png: "Zip", jpeg: "JPEG", gif: "LZW", heic: "HEVC", heif: "HEVC", avif: "AV1" } as Partial<Record<ImageFormat, string>>)[meta.format] ?? "None";
   const page = meta.virtualCanvas ?? { width: meta.width, height: meta.height, x: 0, y: 0 };
   const pageX = `${page.x < 0 ? "" : "+"}${page.x}`, pageY = `${page.y < 0 ? "" : "+"}${page.y}`;
@@ -6398,6 +6398,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         evaluate = token !== "-type" && (token === "-grayscale" || ["rgb", "srgb", "gray", "grey", "rec709luma", "rec601luma"].includes(space));
         apply = function* (image) {
+            const linearGray = (image.space === "b-w" || image.space === "grey16") && image.gamma === 1;
+            if (linearGray && space === "rgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3, magickColorspace: "RGB" };
             if (image.magickColorspace === "RGB" && space === "rgb") return image;
             if ((image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") && (space === image.magickColorspace.toLowerCase() || (space === "lab" && image.magickColorspace === "CIELab"))) return image;
             if (token !== "-grayscale" && (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab")) image = yield* convertHuePixels(image, "sRGB");
@@ -6405,7 +6407,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const { hueSamples: ignoredCmyk, storedHueSamples: ignoredStoredCmyk, ...rgb } = image;
                 image = { ...rgb, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
             }
-            if (token !== "-grayscale" && (space === "rgb" || image.magickColorspace === "RGB")) {
+            if (token !== "-grayscale" && (space === "rgb" || image.magickColorspace === "RGB" || linearGray)) {
                 const linearize = space === "rgb";
                 const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
                 const input = image.evaluateSamples ?? image.data16 ?? image.data, range = image.evaluateSamples ? 255 : image.data16 ? 65535 : 255;
@@ -6421,7 +6423,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     data16[idx] = Math.round(value * 65535);
                 }
                 const { magickColorspace: ignored, ...metadata } = image;
-                image = { ...metadata, data, data16, evaluateSamples, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: "RGB" as const } : {}) };
+                image = { ...metadata, data, data16, evaluateSamples, space: "srgb", gamma: linearize ? 1 : 1 / 2.2, channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: "RGB" as const } : {}) };
                 if (linearize) return image;
             }
             if (!evaluate) {

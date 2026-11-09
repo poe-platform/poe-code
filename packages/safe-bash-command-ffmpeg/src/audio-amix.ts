@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { resampleAudio } from "./audio-resample.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
 
@@ -7,10 +8,10 @@ export async function mixAudio(
   first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaTrack> {
   const a = first.decodedAudio;
-  const b = second.decodedAudio;
+  let b = second.decodedAudio;
   if (!a || !b) throw new Error("amix requires decoded PCM audio");
-  if (a.sampleRate !== b.sampleRate || a.channels !== b.channels || a.channelMask !== b.channelMask) {
-    throw new Error("amix requires matching sample rates and channel layouts");
+  if (a.channels !== b.channels || a.channelMask !== b.channelMask) {
+    throw new Error("amix requires matching channel layouts");
   }
   let duration = "longest";
   let transition = 2;
@@ -40,6 +41,14 @@ export async function mixAudio(
     } else if (key === "weights") {
       weights = parseWeights(value);
     } else throw new Error(`amix: unsupported option ${key}`);
+  }
+  if (a.sampleRate !== b.sampleRate) {
+    const length = Math.ceil(b.channelData[0]!.length * a.sampleRate / b.sampleRate);
+    budget.checkSamples(length);
+    budget.checkDuration(length / a.sampleRate);
+    budget.allocateMemory(length * b.channels * Float32Array.BYTES_PER_ELEMENT);
+    b = { ...b, sampleRate: a.sampleRate,
+      channelData: await resampleAudio(b.channelData, length, b.sampleRate, a.sampleRate, budget, signal) };
   }
   const inputs = [a, b];
   const lengths = inputs.map(input => input.channelData[0]!.length);

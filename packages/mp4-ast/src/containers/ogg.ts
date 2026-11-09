@@ -271,7 +271,8 @@ export function demuxOggOpus(bytes: Uint8Array, doc: MediaDocument, decodeAudio 
     lanes[serialLanes.get(packet.serial)!]!.push(packet);
     if (packet.eos) active.delete(packet.serial);
   }
-  return { ...doc, tracks: lanes.map((packets, index) => {
+  // Opus comments belong to each logical stream, not to the Ogg container.
+  return { ...doc, metadata: {}, tracks: lanes.map((packets, index) => {
     const head = packets[0]!.data;
     const preSkip = new DataView(head.buffer, head.byteOffset, head.byteLength).getUint16(10, true);
     const samples: MediaSample[] = [];

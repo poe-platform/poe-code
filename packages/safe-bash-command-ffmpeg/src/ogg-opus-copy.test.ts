@@ -41,17 +41,19 @@ for (const chained of [false, true]) for (const sync of [false, true]) {
     assert.equal(track.samples[37]!.discardPaddingNs, 3_500_000);
     assert.ok(Math.abs(track.samples[0]!.pts + 6.5) <= 0.5);
     if (chained) assert.equal(track.samples[38]!.pts, 750);
-    assert.equal(copied.metadata.title, "Tone440");
+    assert.equal(track.metadata?.title, "Tone440");
+    assert.equal(copied.metadata.title, undefined);
+    assert.equal(copied.metadata.encoder, "@poe-code/mp4-ast");
   });
 }
 
 // Native multiplex: ffmpeg -i tone-opus.ogg -i tone-opus-880.ogg -map 0:a -map 1:a -c copy two-opus.ogg
-for (const [selected, format] of [[false, "mkv"], [false, "ogg"], [true, "ogg"]] as const) {
-  it(`copies ${selected ? "second" : "both"} multiplexed Opus tracks into ${format}`, async () => {
+for (const [selected, format] of [[false, "mkv"], [true, "mkv"], [false, "ogg"], [true, "ogg"]] as const) for (const title of format === "mkv" ? [undefined, "Meeting"] : [undefined]) {
+  it(`copies ${selected ? "second" : "both"} multiplexed Opus tracks into ${format} with title=${title}`, async () => {
     const input = readFileSync(new URL("./fixtures/two-opus.ogg", import.meta.url));
     const volume = Volume.fromJSON({ "/in.ogg": input });
     const output = `/out.${format}`;
-    const args = ["-y", "-v", "error", "-i", "/in.ogg", "-map", selected ? "0:a:1" : "0", "-c", "copy", output];
+    const args = ["-y", "-v", "error", "-i", "/in.ogg", "-map", selected ? "0:a:1" : "0", "-c", "copy", ...(title ? ["-metadata", `title=${title}`] : []), output];
     let stderr = "";
     const result = await createFfmpegCommand().execute({
       args, cwd: "/", env: {}, signal: new AbortController().signal,
@@ -66,6 +68,10 @@ for (const [selected, format] of [[false, "mkv"], [false, "ogg"], [true, "ogg"]]
     assert.equal(result.exitCode, 0, stderr);
     const bytes = new Uint8Array(volume.readFileSync(output) as Buffer);
     const copied = format === "ogg" ? oggAst().parse(bytes) : parseMkv(bytes);
+    if (format === "mkv") {
+      assert.equal(copied.metadata.title, title);
+      assert.equal(copied.metadata.encoder, "@poe-code/mp4-ast");
+    }
     const source = readOgg(input).packets;
     const serials = [...new Set(source.map(packet => packet.serial))];
     assert.equal(copied.tracks.length, selected ? 1 : 2);

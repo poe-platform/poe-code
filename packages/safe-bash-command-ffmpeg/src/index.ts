@@ -1,3 +1,4 @@
+import { ffmpegColors } from "./ffmpeg-colors.js";
 import { encodeH264PresetTrack, h264Presets } from "@poe-code/mp4-ast";
 import { parseFeedbackGraph, applyFeedback } from "./feedback.js";
 import { applyOutputColors, parseOutputColorOption, type OutputColorOption } from "./color-options.js";
@@ -459,27 +460,8 @@ function parseColorRgba(colorStr: string): [number, number, number, number] {
     }
     alpha = Math.floor(opacity * 255 / maximum);
   }
-  const named: Record<string, [number, number, number, number]> = {
-    aliceblue: [240, 248, 255, 255],
-    black: [0, 0, 0, 255],
-    white: [255, 255, 255, 255],
-    red: [255, 0, 0, 255],
-    green: [0, 128, 0, 255],
-    lime: [0, 255, 0, 255],
-    blue: [0, 0, 255, 255],
-    yellow: [255, 255, 0, 255],
-    cyan: [0, 255, 255, 255],
-    magenta: [255, 0, 255, 255],
-    gray: [128, 128, 128, 255],
-    grey: [128, 128, 128, 255],
-    orange: [255, 165, 0, 255],
-    purple: [128, 0, 128, 255]
-  };
-  if (named[s]) {
-    const color = named[s]!;
-    color[3] = alpha ?? color[3];
-    return color;
-  }
+  const named = Object.hasOwn(ffmpegColors, s) ? ffmpegColors[s] : undefined;
+  if (named) return [...named, alpha ?? 255];
   const hex = s.startsWith("#") ? s.slice(1) : s.startsWith("0x") ? s.slice(2) : s;
   if ((hex.length === 6 || hex.length === 8) && [...hex].every((digit) => "0123456789abcdef".includes(digit))) {
     return [

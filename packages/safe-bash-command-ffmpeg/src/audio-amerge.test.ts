@@ -35,6 +35,36 @@ for (const reverse of [false, true]) {
   }
 }
 
+// Native FFmpeg negotiates the first input's PCM format before merging.
+for (const reverse of [false, true]) {
+  for (const gain of [1, 0.5]) {
+    it(`amerge negotiates PCM16/float samples before downstream volume (reversed=${reverse}, gain=${gain})`, async () => {
+      const floats = [0.111111, -0.222222, 1, -1, 0.5 / 32768, 1.5 / 32768, -0.5 / 32768, -1.5 / 32768];
+      const quantized = [3641, -7282, 32767, -32768, 0, 2, 0, -2].map(value => value / 32768);
+      const integer = new Float64Array(floats.length + 1).fill(8000 / 32768);
+      const doc = parseWav(encodeWav({ sampleRate: 8000, channels: [integer] }));
+      const track = doc.tracks[0]!;
+      const volume = Volume.fromJSON({});
+      volume.writeFileSync("/integer.wav", serializeWav(doc, { audioCodec: "pcm_s16le" }));
+      volume.writeFileSync("/float.wav", serializeWav({ ...doc, tracks: [{ ...track,
+        decodedAudio: { ...track.decodedAudio!, channelData: [Float64Array.from(floats)] }
+      }] }, { audioCodec: "pcm_f32le" }));
+      const result = await run(volume, ["-v", "error", "-y", "-i", "/integer.wav", "-i", "/float.wav",
+        "-filter_complex", `${reverse ? "[1:a][0:a]" : "[0:a][1:a]"}amerge${gain === 1 ? "" : ",volume=0.5"}[out]`,
+        "-map", "[out]", "-c:a", "pcm_f32le", "/out.wav"]);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 8000);
+      assert.equal(audio.channels, 2);
+      assert.equal(audio.channelMask ?? 3, 3);
+      const expected = [Array.from(integer.subarray(0, floats.length)), reverse ? floats.map(Math.fround) : quantized];
+      if (reverse) expected.reverse();
+      assert.deepEqual(audio.channelData.map(channel => Array.from(channel)),
+        expected.map(channel => channel.map(sample => Math.fround(sample * gain))));
+    });
+  }
+}
+
 const left = [100, 200, 300, 400, 500, 600];
 const right = [-1100, -1200, -1300, -1400];
 const center = [2100, 2200, 2300, 2400, 2500];

@@ -1625,12 +1625,20 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         budget.checkDuration(length / a.sampleRate);
         budget.allocateMemory(length * inputs.length * 8);
         const channelData = inputs.map(() => new Float64Array(length));
+        const pcm16 = ["pcm_s16le", "pcm_s16be"].includes(first.codecDescriptions[0]?.codecName ?? "");
         for (let offset = 0; offset < length; offset += 4096) {
           await yieldTurn(signal);
           signal?.throwIfAborted();
           budget.checkCpu();
           for (const [channel, input] of inputs.entries()) {
-            channelData[channel]!.set(input.samples.subarray(offset, Math.min(offset + 4096, length)), offset);
+            const end = Math.min(offset + 4096, length);
+            if (pcm16) {
+              // amerge negotiates the first input's format before downstream filters.
+              for (let i = offset; i < end; i++) {
+                channelData[channel]![i] = Math.max(-32768, Math.min(32767,
+                  roundToEven(input.samples[i]! * 32768))) / 32768;
+              }
+            } else channelData[channel]!.set(input.samples.subarray(offset, end), offset);
           }
         }
         return { track: { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,

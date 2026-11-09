@@ -511,6 +511,8 @@ Valid input channels absent from the input contribute silence: on stereo,
 Numbered input channels range from `c0` to `c63`. Invalid identifiers and output
 channels outside the selected layout fail without replacing existing output.
 Use `-ch_layout mono` or `-channel_layout mono` for mono output, equivalent to `-ac 1`. Other output layouts are not supported by these options.
+`aformat=channel_layouts=mono` also converts a single FL or FR speaker to mono
+without changing its samples, including after `channelsplit`.
 `aformat=channel_layouts=mono` (or `aformat=cl=mono`) downmixes stereo by
 averaging left and right samples, or preserves mono input. `stereo` preserves
 stereo input or converts mono with equal-power gains. Lists such as `mono|stereo`

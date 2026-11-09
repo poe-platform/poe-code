@@ -7529,6 +7529,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ? { ...track, samples: track.samples.filter(sample => sample.pts >= outputSs * track.timescale) }
                     : track) };
               }
+              const uncutTracks = workingDoc.tracks;
               workingDoc = sliceMp4(workingDoc, {
                 startSeconds: outputSs,
                 endSeconds: outputDuration === undefined ? outputTo : undefined,
@@ -7536,6 +7537,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 copyAudio: audioCodec === "copy"
               });
               if (outputSs !== undefined) workingDoc = discardOutputPreroll(workingDoc, { video: videoCodec, audio: audioCodec }, copyInitialNonKeyframes);
+              // Audio filters consume the input cut; output cuts consume their result.
+              let audioOrdinal = 0;
+              workingDoc = { ...workingDoc, tracks: workingDoc.tracks.map((track, index) => {
+                if (track.type !== "audio") return track;
+                const ordinal = audioOrdinal++;
+                return afFilters.some(filter => filter.ordinal === undefined || filter.ordinal === ordinal)
+                  ? uncutTracks[index]! : track;
+              }) };
             }
 
             const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);
@@ -9017,6 +9026,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         throw new Error(`Unsupported audio filter: ${trimmed}`);
                       }
                     }
+                  }
+
+                  if (filter && (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined)) {
+                    const start = outputSs === undefined ? 0 : Math.max(0, Math.round(outputSs * origRate) - audioStartSample);
+                    const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
+                    const end = endSeconds === undefined ? undefined : Math.max(start, Math.round(endSeconds * origRate) - audioStartSample);
+                    stretched = stretched.map(channel => channel.subarray(start, end));
                   }
 
                   if (maxAudioFrames !== undefined) {

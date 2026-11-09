@@ -7,11 +7,10 @@ import { command, RecordBuffer, type StreamInspectionLimits } from "safe-bash-te
 export function createFoldCommand(limits: StreamInspectionLimits): CommandDefinition {
   return command("fold", limits, async session => {
     let mode: "columns" | "bytes" | "characters" = "columns";
-    const characters = "characters";
-    const parsed = numericOptions(session.context.args, "bcsw:", {
-      bytes: "b", spaces: "s", width: "w",
-      ...Object.fromEntries(Array.from(characters, (_, index) => [characters.slice(0, index + 1), "c"])),
-    }, "w", key => {
+    const parsed = numericOptions(session.context.args, "bcsw:", Object.fromEntries(
+      ["bytes", "characters", "spaces", "width"].flatMap(name =>
+        Array.from(name, (_, index) => [name.slice(0, index + 1), name[0]!])),
+    ), "w", key => {
       if (key === "b" || key === "c") mode = key === "b" ? "bytes" : "characters";
     });
     let width = 80;

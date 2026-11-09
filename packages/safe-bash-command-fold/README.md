@@ -22,8 +22,9 @@ try {
 Use `foldCommands({ locale?, limits?, replace? })` for registration or
 `createFoldCommand({ locale?, limits? })` for a command definition. With
 `agentCommands()`, use `replace: true` to replace its existing fold command.
-The default aggregate fold accepts `-c`, `--characters`, unique abbreviations
-such as `--char`, and grouped flags such as `-sc`. It counts decoded scalars in
+The default aggregate fold accepts unique long option abbreviations such as
+`--byt`, `--char`, `--space`, `--wi=2`, and `--wi 2`, plus grouped flags such as
+`-sc`. It counts decoded scalars in
 UTF-8 locales and bytes in C, retaining TAB/CR/BS controls; the last `-b` or `-c`
 wins. UTF-8 locale column wrapping uses the same pinned Unicode width table.
 Register this plugin for an explicit locale profile and additional controls below.

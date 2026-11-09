@@ -6529,6 +6529,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let sliceEnd = segment.outpoint;
                   const wavTrack = itemDoc.containerFormat === "wav" ? itemDoc.tracks[0] : undefined;
                   const packetFrames = wavTrack?.samples[0]?.duration;
+                  if (wavTrack && packetFrames && !wavTrack.decodedAudio &&
+                    wavTrack.codecDescriptions[0]?.codecName?.startsWith("pcm_") &&
+                    segment.inpoint !== undefined && segment.inpoint > 0) {
+                    // A PCM seek starts fresh packets at the requested sample frame.
+                    const bytesPerFrame = wavTrack.samples[0]!.data.length / packetFrames;
+                    const bytes = concatBytes(wavTrack.samples.map(sample => sample.data));
+                    const startFrame = Math.round(segment.inpoint * wavTrack.timescale);
+                    const samples: MediaTrack["samples"][number][] = [];
+                    for (let frame = startFrame; frame * bytesPerFrame < bytes.length; frame += packetFrames) {
+                      budget.checkCpu();
+                      const data = bytes.subarray(frame * bytesPerFrame, (frame + packetFrames) * bytesPerFrame);
+                      samples.push({ data, dts: frame, pts: frame, cts: 0, size: data.length,
+                        duration: data.length / bytesPerFrame, isKeyframe: true, sampleDescriptionIndex: 1 });
+                    }
+                    itemDoc = { ...itemDoc, tracks: [{ ...wavTrack, samples }] };
+                  }
                   if (sliceEnd !== undefined && wavTrack && packetFrames) {
                     // WAV seeking starts a new packet at the inpoint. Concat keeps
                     // the whole packet whose DTS precedes the outpoint.

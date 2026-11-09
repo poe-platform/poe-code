@@ -1298,7 +1298,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
             }
 
             const resolveResource = await loadManifestResources(plugin, bytes, inputTarget, context.cwd, readInput, budget, allowedExtensions);
-            const probe = plugin.probe(bytes, {
+            let probe = plugin.probe(bytes, {
               webvttKind, ignoreLength, maxSize, seekable: !isStdin(inputTarget) && !inlineInput,
               resolveResource,
               filename: inputTarget,
@@ -1308,6 +1308,9 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
               showFrames: showFrames || countFrames
             });
             const stream = probe.streams[0];
+            if (!explicitFormat && plugin.id === "image2" && stream?.codec_name === "png") {
+              probe = { ...probe, format: { ...probe.format, format_name: "png_pipe", format_long_name: "piped png sequence" } };
+            }
             if (readIntervals && plugin.id === "aiff" && stream?.codec_name?.startsWith("pcm_") && stream.bits_per_sample && stream.channels) {
               intervalPcm = { sampleRate: Number(stream.sample_rate), blockAlign: stream.channels * stream.bits_per_sample / 8 };
             }
@@ -1426,13 +1429,16 @@ export function evalSyncFfprobe(
     const plugin = registry.detect(bytes, inputTarget, explicitFormat);
     if (explicitFormat !== "rawvideo" && (!plugin || !plugin.canDemux)) return undefined;
     const raw = explicitFormat === "rawvideo" ? probeRawVideo(bytes, inputTarget, videoSize, pixelFormat, frameRate, budget) : undefined;
-    const probeResult = raw ? { ...raw, packets: Array.from(raw.packets ?? []), frames: Array.from(raw.frames ?? []) } : plugin!.probe(bytes, {
+    let probeResult = raw ? { ...raw, packets: Array.from(raw.packets ?? []), frames: Array.from(raw.frames ?? []) } : plugin!.probe(bytes, {
       webvttKind, ignoreLength, maxSize, seekable: !isStdin(inputTarget),
       filename: inputTarget,
       budget,
       showPackets: showPackets || countPackets,
       showFrames: showFrames || countFrames,
     });
+    if (!explicitFormat && plugin?.id === "image2" && probeResult.streams[0]?.codec_name === "png") {
+      probeResult = { ...probeResult, format: { ...probeResult.format, format_name: "png_pipe", format_long_name: "piped png sequence" } };
+    }
     if ((showData || showDataHash) && !raw && !probeResult.packetData && !["wav", "mp3", "flac", "mp4", "mov"].includes(plugin!.id)) return undefined;
     const packets = showData || showDataHash ? probeResult.packets?.map(packet => {
       if (probeResult.packetData?.has(`${packet.pos}:${packet.size}`)) return packet;

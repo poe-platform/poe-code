@@ -1440,8 +1440,10 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       }
       if (filters[0] === "sidechaingate" || filters[0]?.startsWith("sidechaingate=")) {
         if (sources.length !== 2) throw new Error("sidechaingate requires two inputs");
-        if (sources.some(source => source.expression && source.expression !== "anull")) {
-          throw new Error("sidechaingate does not support preceding single-input filters");
+        for (const source of sources) {
+          if (source.expression && source.expression !== "anull") {
+            source.track = await filterAudio(source.track, source.expression);
+          }
         }
         const first = sources[0]!.track;
         const a = first.decodedAudio;

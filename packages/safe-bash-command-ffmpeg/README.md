@@ -352,8 +352,9 @@ audio frame boundaries (`t` is time in seconds; `n` is the frame index). Disable
 frames pass through unchanged while the gate continues tracking the control input.
 Numeric options accept expressions such as `level_sc=1/2`, `attack=2+3`, and
 `makeup=sqrt(4)`. Invalid or out-of-range values fail without replacing output.
-Inputs must share a sample rate. Filters after the gate are supported; filters before
-the gate are currently unsupported.
+Filters after the gate are supported. Upstream filters run independently on each input:
+`[1:a]volume=0.5[key];[0:a][key]sidechaingate[out]` halves the control signal,
+while `[0:a]volume=0.5[program];[program][1:a]sidechaingate[out]` halves the program.
 
 `sidechaincompress` uses a second audio input to control compression of the first,
 for example `[0:a][1:a]sidechaincompress=threshold=0.05:ratio=8:attack=1:release=20[mix]`.

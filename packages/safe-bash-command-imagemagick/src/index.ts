@@ -6172,7 +6172,7 @@ function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" 
 }
 
 type MagickHistogram = Float64Array[];
-type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">): MagickPixelOperation["apply"] };
+type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "magickColorspace">): MagickPixelOperation["apply"] };
 function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram, method: string, linear: boolean, selection?: Uint8Array): Generator<void, void, void> {
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
@@ -6225,7 +6225,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         const argument = tokens[start + 1] ?? "", raw = parseFloat(argument);
         // Native CLI percentages span QuantumRange + 1 (65536), in Q16 units.
         const threshold = (argument.endsWith("%") ? raw * 65536 / 100 : raw) / 257;
-        const independent = state.channelExplicit, channels = [state.channels.r, state.channels.g, state.channels.b, state.channels.a];
+        const independent = state.channelExplicit, channels = [state.channels.r, state.channels.g, state.channels.b, state.channels.a], method = state.intensity;
         return { end: start + 1, luminance: true, highDepth: true, transform(histogram, image) {
             if (!argument.trim() || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
                 throw new Error(`invalid argument '-sepia-tone' '${argument}'`);
@@ -6240,7 +6240,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             // Tone is monotonic, so input luma percentiles also locate the toned percentiles.
             const luma = (value: number) => {
                 const [r, g, b] = magickSepiaTone(value / 257, threshold, gray);
-                return Math.round(257 * (0.212656 * r + 0.715158 * g + 0.072186 * b)) / 257;
+                return Math.round(257 * magickIntensity(r, g, b, method, 255, image.magickColorspace === "RGB")) / 257;
             };
             const black = luma(low), white = luma(high);
             const blacks = [black, black, black, black], whites = [white, white, white, white];
@@ -6262,7 +6262,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 const samples = pixels.data16 ?? pixels.data, scale = pixels.data16 ? 257 : 1;
                 for (let i = 0; i < data.length; i += 4) {
                     if (i % 65536 === 0) yield;
-                    const intensity = (0.212656 * samples[i]! + 0.715158 * samples[i + 1]! + 0.072186 * samples[i + 2]!) / scale;
+                    const intensity = magickIntensity(samples[i]!, samples[i + 1]!, samples[i + 2]!, method, 255 * scale, image.magickColorspace === "RGB") / scale;
                     const tone = magickSepiaTone(intensity, threshold, gray);
                     // Sepia tones all RGB channels; only normalization honors the channel mask.
                     for (let channel = 0; channel < 4; channel++) {

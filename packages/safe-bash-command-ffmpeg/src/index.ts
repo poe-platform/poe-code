@@ -6699,6 +6699,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         outputs.push(async () => {
           const outputTarget = target;
           try {
+            let concatInputSeek = false;
             const loadSingleDocument = async (
               filePath: string,
               explicitFormat?: string,
@@ -7161,8 +7162,65 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (streamIds.length && !concatDocs.some(doc => doc.tracks.length)) {
                   throw new Error("Output file does not contain any stream");
                 }
+                // Only manifest declarations build concat's seek index. Reading
+                // clip durations later does not make an unindexed input seekable.
+                const seekable = segments.every(segment => segment.duration !== undefined ||
+                  segment.inpoint !== undefined && segment.outpoint !== undefined);
+                if (input?.startSeconds !== undefined && input.startSeconds > 0 && seekable) {
+                  // The duration index selects a file before its demuxer seeks.
+                  // Seeking the merged packet list would retain PCM before -ss.
+                  let index = startTimesSeconds.length - 1;
+                  while (index > 0 && startTimesSeconds[index]! > input.startSeconds) index--;
+                  const source = concatDocs[index];
+                  const track = source?.containerFormat === "wav" && source.tracks.length === 1
+                    ? source.tracks[0] : undefined;
+                  const packet = track?.samples[0];
+                  if (track && packet && !track.decodedAudio &&
+                    track.codecDescriptions[0]?.codecName?.startsWith("pcm_")) {
+                    const bytes = concatBytes(track.samples.map(sample => sample.data));
+                    const bytesPerFrame = packet.data.length / packet.duration;
+                    const requestedFrame = Math.round((input.startSeconds - startTimesSeconds[index]!) * track.timescale);
+                    // A failed WAV seek past EOF leaves the final packet queued.
+                    const startFrame = requestedFrame > bytes.length / bytesPerFrame
+                      ? track.samples.at(-1)!.dts : requestedFrame;
+                    const samples: MediaTrack["samples"][number][] = [];
+                    for (let frame = startFrame; frame * bytesPerFrame < bytes.length; frame += packet.duration) {
+                      budget.checkCpu();
+                      const data = bytes.subarray(frame * bytesPerFrame, (frame + packet.duration) * bytesPerFrame);
+                      samples.push({ ...packet, data, size: data.length, dts: frame - startFrame,
+                        pts: frame - startFrame, duration: data.length / bytesPerFrame });
+                    }
+                    const duration = bytes.length / bytesPerFrame - startFrame;
+                    const seekSeconds = startTimesSeconds[index]! + startFrame / track.timescale;
+                    concatDocs.splice(0, index + 1, { ...source!, durationSeconds: duration / track.timescale,
+                      duration: Math.round(duration / track.timescale * source!.timescale),
+                      tracks: [{ ...track, samples, duration, editList: undefined }] });
+                    startTimesSeconds.splice(0, index + 1, seekSeconds);
+                    for (let i = 0; i < startTimesSeconds.length; i++) startTimesSeconds[i]! -= seekSeconds;
+                    concatInputSeek = true;
+                  }
+                }
                 // Concat starts at zero even when the first file retains negative preroll.
-                return { ...concatMp4(concatDocs, { startTimesSeconds, limits: options.limits, budget }), chapters, containerFormat: "concat" };
+                const document = { ...concatMp4(concatDocs, { startTimesSeconds, limits: options.limits, budget }), chapters, containerFormat: "concat" };
+                if (input?.startSeconds !== undefined && input.startSeconds > 0 && !seekable) {
+                  if (logLevel >= 24) await writeBytes(context.stderr,
+                    encodeUtf8(`ffmpeg: could not seek to position ${input.startSeconds.toFixed(3)}\n`), context.signal);
+                  const track = concatDocs[0]?.tracks[0];
+                  const packet = track?.samples[0];
+                  if (track && packet && concatDocs[0]?.containerFormat === "wav" &&
+                    track.codecDescriptions[0]?.codecName?.startsWith("pcm_")) {
+                    // Seeking flushes the packet buffered by stream probing even
+                    // when the demuxer cannot seek. Stream copy resumes there;
+                    // decoding still discards samples before the requested time.
+                    const probeEnd = (packet.dts + packet.duration) / track.timescale;
+                    concatInputSeek = true;
+                    return sliceMp4(document, {
+                      startSeconds: audioCodec === "copy" ? probeEnd : Math.max(probeEnd, input.startSeconds),
+                      copyAudio: audioCodec === "copy"
+                    });
+                  }
+                }
+                return document;
               }
 
               const plugin = explicitFormat !== undefined
@@ -7226,6 +7284,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             for (const inp of inputs) {
               await yieldTurn(context.signal);
               context.signal.throwIfAborted();
+              concatInputSeek = false;
               let doc = await loadSingleDocument(inp.path, inp.format, inp.fps, inp);
               if (!dumpedInputs.has(inp)) {
                 for (const [specifier, filename] of inp.dumpAttachments ?? []) {
@@ -7430,8 +7489,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
                 // An empty raw seek is already sliced; retain its PCM codec and decoded audio.
                 if (!rawSeek || doc.durationSeconds > 0) doc = sliceMp4(doc, {
-                  startSeconds: rawSeek ? 0 : startSeconds,
-                  endSeconds: rawSeek && inp.endSeconds !== undefined ? inp.endSeconds - startSeconds! : inp.endSeconds,
+                  startSeconds: rawSeek || concatInputSeek ? 0 : startSeconds,
+                  endSeconds: (rawSeek || concatInputSeek) && inp.endSeconds !== undefined ? inp.endSeconds - startSeconds! : inp.endSeconds,
                   durationSeconds: inp.durationSeconds,
                   copyAudio: audioCodec === "copy"
                 });

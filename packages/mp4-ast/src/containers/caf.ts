@@ -1,6 +1,7 @@
 import { MediaBudgetTracker, type MediaSample, type MediaDocument, type MediaAstPlugin, type ParseMediaOptions } from "../types.js";
 import { buildProbeResultFromDoc, concatMp4, parseMp4Boxes, sliceMp4 } from "../mp4.js";
 import { sampleEntryHeader } from "../mp4-codec-metadata.js";
+import { parseImaQt } from "./aiff-ima.js";
 import { rawAudioAsts } from "./raw-audio.js";
 
 import { BinaryWriter, BitReader, concatBytes, makeBox } from "../binary.js";
@@ -45,7 +46,8 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
       const encoding = view.getUint32(start + 8);
       if (encoding === 0x616c6163) {
         format = "alac";
-
+      } else if (encoding === 0x696d6134) {
+        format = "ima4";
       } else if (encoding === 0x756c6177 || encoding === 0x616c6177) {
         if (flags !== 0 || bits !== 8) throw new Error("Unsupported CAF audio encoding");
         format = encoding === 0x756c6177 ? "mulaw" : "alaw";
@@ -58,7 +60,8 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
       }
       framesPerPacket = view.getUint32(start + 20);
       bytesPerPacket = view.getUint32(start + 16);
-      if (framesPerPacket === 0 || (format !== "alac" && (bytesPerPacket === 0 ||
+      if (format === "ima4" ? (channels < 1 || channels > 65535 || framesPerPacket !== 64 || bytesPerPacket !== 34 * channels)
+        : framesPerPacket === 0 || (format !== "alac" && (bytesPerPacket === 0 ||
           bytesPerPacket !== framesPerPacket * channels * bits / 8))) {
         throw new Error("Unsupported CAF audio encoding");
       }
@@ -97,6 +100,16 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     offset = start + size;
   }
   if (!format || !data) throw new Error("Missing CAF description or data");
+  if (format === "ima4") {
+    if (!Number.isSafeInteger(sampleRate) || sampleRate <= 0) throw new Error("Invalid CAF sample rate");
+    const doc = parseImaQt(data, channels, sampleRate, data.length / bytesPerPacket, options, budget);
+    return { ...doc, containerFormat: "caf", metadata, byteLength: bytes.length,
+      tracks: doc.tracks.map(track => ({ ...track,
+        codecDescriptions: track.codecDescriptions.map(desc => ({ ...desc, channelLayout })),
+        samples: track.samples.map((sample, index) => ({ ...sample,
+          offset: data.byteOffset - bytes.byteOffset + index * bytesPerPacket }))
+      })) };
+  }
   if (format === "alac") {
     // CAF cookies may wrap the ALACSpecificConfig in frma/alac atoms.
     let config = cookie;

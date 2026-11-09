@@ -1,3 +1,4 @@
+import { localContrastPixelSteps, parseLocalContrastGeometry } from "./local-contrast-kernel.js";
 import { liquidRescalePixelSteps } from "./liquid-rescale.js";
 import { whiteBalancePixelSteps } from "./white-balance-kernel.js";
 import { compareColorspaceSteps } from "./compare-colorspace.js";
@@ -8385,6 +8386,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* applyMagickRasterSteps(im, enhancePixelSteps(im, state.background, state.virtualPixel), signal);
             });
         }
+        else if (t === "-local-contrast") {
+            const geometry = parseLocalContrastGeometry(tokens[++i] ?? "");
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                return yield* applyMagickRasterSteps(im, localContrastPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
+            });
+        }
         else if (t === "-wavelet-denoise") {
             const geometry = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -10347,6 +10354,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-enhance") {
             const { background, virtualPixel } = state;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, enhancePixelSteps(image, background, virtualPixel), signal) : undefined);
+        } else if (!operandsOnly && token === "-local-contrast") {
+            const geometry = parseLocalContrastGeometry(tokens[++i] ?? ""), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, localContrastPixelSteps(image, geometry, background, virtualPixel, channels), signal) : undefined);
         } else if (!operandsOnly && token === "-wavelet-denoise") {
             const geometry = tokens[++i] ?? "";
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, waveletDenoisePixelSteps(image, geometry), signal) : undefined);
@@ -10748,6 +10758,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-rotational-blur",
         "-lat",
         "-mean-shift",
+        "-local-contrast",
         "-wavelet-denoise",
         "-sharpen",
         "-unsharp",

@@ -3506,6 +3506,28 @@ function applyMagickDistortViewport(plan: WarpPlan, image: Pick<RgbaImage, "widt
     return plan;
 }
 
+function scaleMagickWarpPlan(plan: WarpPlan, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, scale: number): WarpPlan {
+    const original = plan, originX = original.virtualCanvas?.x ?? 0, originY = original.virtualCanvas?.y ?? 0;
+    let width = Math.floor(original.width * scale + 0.5), height = Math.floor(original.height * scale + 0.5);
+    if (width === 0 || height === 0) { width = image.width; height = image.height; }
+    const x = Math.trunc(originX * scale + 0.5), y = Math.trunc(originY * scale + 0.5);
+    if (![width, height, x, y, width * height * 8].every(Number.isSafeInteger) || width < 1 || height < 1)
+        throw new Error("Distortion dimensions exceed limit");
+    // Scale destination pixel centers and the inverse-map filter footprint.
+    return {
+        ...original, width, height,
+        ...(original.virtualCanvas ? { virtualCanvas: {
+            width: Math.floor((image.virtualCanvas?.width ?? image.width) * width / image.width + 0.5),
+            height: Math.floor((image.virtualCanvas?.height ?? image.height) * height / image.height + 0.5), x, y
+        } } : {}),
+        map: (px, py) => original.map((px + x + 0.5) / scale - 0.5 - originX, (py + y + 0.5) / scale - 0.5 - originY),
+        ...(original.derivatives ? { derivatives: (px: number, py: number) => {
+            const [ux, uy, vx, vy] = original.derivatives!((px + x + 0.5) / scale - 0.5 - originX, (py + y + 0.5) / scale - 0.5 - originY);
+            return [ux / scale, uy / scale, vx / scale, vy / scale] as const;
+        } } : {})
+    };
+}
+
 function parseMagickWarpOperation(tokens: readonly string[], state: MagickState, start: number, analysis: { warnings: string }) {
     const token = tokens[start]!;
     if (token === "-interpolative-resize") {
@@ -3552,6 +3574,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
                 width: Math.floor(page.width * plan.width / image.width + 0.5),
                 height: Math.floor(page.height * plan.height / image.height + 0.5)
             } };
+            if (scale !== undefined) plan = scaleMagickWarpPlan(plan, image, scale);
             return { ...plan, steps: warpPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background, "background", kernel, filter) };
         } };
     }
@@ -3609,27 +3632,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             if (gray && virtualPixel !== "background") color = { r: color.b, g: color.b, b: color.b, a: color.a };
             return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, { ...plan, interpolation }, color, "background") };
         }
-        if (plan && scale !== undefined) {
-            const original = plan, originX = original.virtualCanvas?.x ?? 0, originY = original.virtualCanvas?.y ?? 0;
-            let width = Math.floor(original.width * scale + 0.5), height = Math.floor(original.height * scale + 0.5);
-            if (width === 0 || height === 0) { width = image.width; height = image.height; }
-            const x = Math.trunc(originX * scale + 0.5), y = Math.trunc(originY * scale + 0.5);
-            if (![width, height, x, y, width * height * 8].every(Number.isSafeInteger) || width < 1 || height < 1)
-                throw new Error("Distortion dimensions exceed limit");
-            // Scale destination pixel centers and the inverse-map filter footprint.
-            plan = {
-                ...original, width, height,
-                ...(original.virtualCanvas ? { virtualCanvas: {
-                    width: Math.floor((image.virtualCanvas?.width ?? image.width) * width / image.width + 0.5),
-                    height: Math.floor((image.virtualCanvas?.height ?? image.height) * height / image.height + 0.5), x, y
-                } } : {}),
-                map: (px, py) => original.map((px + x + 0.5) / scale - 0.5 - originX, (py + y + 0.5) / scale - 0.5 - originY),
-                ...(original.derivatives ? { derivatives: (px: number, py: number) => {
-                    const [ux, uy, vx, vy] = original.derivatives!((px + x + 0.5) / scale - 0.5 - originX, (py + y + 0.5) / scale - 0.5 - originY);
-                    return [ux / scale, uy / scale, vx / scale, vy / scale] as const;
-                } } : {})
-            };
-        }
+        if (plan && scale !== undefined) plan = scaleMagickWarpPlan(plan, image, scale);
         return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, kernel, filter) } : undefined;
     } };
 }

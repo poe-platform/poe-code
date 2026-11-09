@@ -340,3 +340,31 @@ test("silent mode and OPTERR suppression perform zero parser writes", async () =
     assert.equal(result.stderrBytes.length, 0);
   }
 });
+
+for (const bounded of [false, true]) {
+  for (const [spec, args, expected, diagnostic] of [
+    ["ab:", "rest", "1|unset|keep", ""],
+    ["ab:", "--", "1|unset|keep", ""],
+    ["ab:", "-x", "0|unset|keep", "shell: illegal option -- x\n"],
+    ["ab:", "-b", "0|unset|keep", "shell: option requires an argument -- b\n"],
+    ["ab:", "-bYES", "0|YES|YES", ""],
+    ["ab:", "-a", "0|unset|unset", ""],
+    [":ab:", "-x", "0|x|x", ""],
+    [":ab:", "-b", "0|b|b", ""],
+  ]) {
+    test(`getopts OPTARG nameref with ${spec} ${args} (${bounded ? "bounded" : "unlimited"})`, async () => {
+      const { shell } = runtimeSetup(bounded ? { limits: { maxExpansionBytes: 4096 } } : {});
+      try {
+        const result = await shell.exec(`saved=keep
+declare -n OPTARG=saved
+getopts ${spec} o ${args}
+say "$?|\${OPTARG-unset}|\${saved-unset}"
+OPTARG=rebound
+say "$saved"`);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, diagnostic);
+        assert.equal(result.stdout, `${expected}\n${expected.endsWith("|keep") ? "keep" : "rebound"}\n`);
+      } finally { await shell.dispose(); }
+    });
+  }
+}

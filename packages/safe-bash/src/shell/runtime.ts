@@ -8036,9 +8036,9 @@ export class Runtime {
     try {
       if (argument !== undefined) await this.writeVariable(state, "OPTARG", argument, context, "getopts");
       else {
-        // EOF and verbose option errors remove even a readonly OPTARG binding.
+        // EOF and verbose option errors remove OPTARG itself, even readonly or nameref bindings.
         if (result.kind !== "option") state.readonlyVariables?.delete("OPTARG");
-        this.unsetVariable(state, "OPTARG", true);
+        this.unsetVariable(state, "OPTARG", true, result.kind === "option");
       }
     } catch (error) {
       if (!(error instanceof PublicDiagnostic)) throw error;

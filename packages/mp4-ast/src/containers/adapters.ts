@@ -876,7 +876,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
   ) {
     pcmBytes = concatBytes(audioTrack.samples.map((s) => s.data));
     bitsPerSample = audioTrack.codecDescriptions[0]!.bitsPerSample ?? 16;
-    formatTag = audioTrack.codecDescriptions[0]!.codecName.startsWith("pcm_f") ? 3 : 1;
+    const codec = audioTrack.codecDescriptions[0]!.codecName;
+    formatTag = codec === "pcm_mulaw" ? 7 : codec === "pcm_alaw" ? 6 : codec.startsWith("pcm_f") ? 3 : 1;
   } else {
     throw new Error("WAV encoding requires decoded PCM audio");
   }

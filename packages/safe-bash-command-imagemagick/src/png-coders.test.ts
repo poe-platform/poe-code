@@ -82,3 +82,48 @@ it.each([["PNG8", 8, 3], ["PNG48", 16, 2], ["PNG64", 16, 6], ["PNG00", 16, 6]] a
   expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input.png", "output.png"]);
   expect(Array.from((await fs.readFile("/output.png")).slice(24, 26))).toEqual([depth, color]);
 });
+
+for (const retained of [false, true]) {
+  for (const append of [false, true]) {
+    it.each([false, true])(`writes only used PNG8 palette entries, retained=${retained}, append=${append}, transparent=%s`, async transparent => {
+      const pixels = Uint8Array.of(17, 34, 51, 255, 17, 34, 51, transparent ? 0 : 255);
+      const source = encodeImage({ width: 2, height: 1, data: pixels, format: "png", channels: 4, hasAlpha: true, space: "srgb", depth: "uchar", density: 72 }, { format: "png" }).data;
+      const files = new Map([["/input.png", source]]);
+      const fs = new MemoryFileSystem();
+      await fs.writeFile("/input.png", source);
+      const args = ["/input.png", ...(append ? ["/input.png", "-append"] : []), "PNG8:/output.png"];
+      const result = retained ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args,
+        cwd: "/", env: {}, fs, stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { async write() {} }, stderr: { async write() {} }
+      }) : await runConvertCli(args, files);
+      expect(result.exitCode).toBe(0);
+      const bytes = retained ? await fs.readFile("/output.png") : files.get("/output.png")!;
+      const chunks = new Map<string, Uint8Array>();
+      for (let offset = 8; offset < bytes.length;) {
+        const length = new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getUint32(0);
+        chunks.set(new TextDecoder().decode(bytes.subarray(offset + 4, offset + 8)), bytes.slice(offset + 8, offset + 8 + length));
+        offset += length + 12;
+      }
+      expect(Array.from(bytes.slice(24, 26))).toEqual([8, 3]);
+      expect(chunks.get("PLTE")!.length / 3).toBe(transparent ? 2 : 1);
+      expect(chunks.get("tRNS")).toEqual(transparent ? Uint8Array.of(255, 0) : undefined);
+      const expected = transparent ? Uint8Array.of(17, 34, 51, 255, 255, 255, 255, 0) : pixels;
+      expect(decodeImage(bytes).data).toEqual(append ? Uint8Array.from([...expected, ...expected]) : expected);
+    });
+  }
+}
+
+it.each([false, true])("keeps quantized PNG8 colors opaque, retained=%s", async retained => {
+  const pixels = Uint8Array.from(Array.from({ length: 300 }, (_, i) => [i & 255, i >>> 8, (i * 37) & 255, 255]).flat().concat([255, 255, 255, 255]));
+  const image = { width: 301, height: 1, data: pixels, format: "png", channels: 4, hasAlpha: true, space: "srgb", depth: "uchar", density: 72 } as const;
+  const source = encodeImage(image, { format: "png" }).data;
+  const files = new Map([["/input.png", source]]);
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input.png", source);
+  const result = await runConvertCli(["/input.png", "PNG8:-"], retained ? { filesystem: fs, cwd: "/" } : files);
+  expect(result.exitCode).toBe(0);
+  const decoded = decodeImage(result.stdoutBytes!);
+  expect(decoded.hasAlpha).toBe(false);
+  expect(decoded.data).toEqual(decodeImage(encodeImage(image, { format: "gif" }).data).data);
+});

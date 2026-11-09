@@ -274,9 +274,8 @@ export function encodePngImage(
   const palette = (coder === "png8" || requestedColor === 3) ? new GifPalette() : undefined;
   if (palette) {
     for (let i = 0; i < data.length; i += 4) palette.add(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!);
-    palette.finish();
-    palette.bytes.set([255, 255, 255], 255 * 3);
   }
+  const pngPalette = palette?.finishPng();
   const density = options?.density ?? img.density ?? 72;
   const resolution = options?.density === undefined ? img.resolution : undefined;
   const scale = resolution?.unit === "inch" ? 1 / 0.0254 : resolution?.unit === "cm" ? 100 : 1;
@@ -373,8 +372,8 @@ export function encodePngImage(
         const prevIdx = x > 0 ? srcIdx - dx * 4 : -1;
         const outCol = dstRow + 1 + x * bpp;
         if (palette) {
-          const value = palette.index(srcRowData[srcIdx]!, srcRowData[srcIdx + 1]!, srcRowData[srcIdx + 2]!, srcRowData[srcIdx + 3]!);
-          const previous = prevIdx < 0 ? 0 : palette.index(srcRowData[prevIdx]!, srcRowData[prevIdx + 1]!, srcRowData[prevIdx + 2]!, srcRowData[prevIdx + 3]!);
+          const value = pngPalette!.indices[palette.index(srcRowData[srcIdx]!, srcRowData[srcIdx + 1]!, srcRowData[srcIdx + 2]!, srcRowData[srcIdx + 3]!)]!;
+          const previous = prevIdx < 0 ? 0 : pngPalette!.indices[palette.index(srcRowData[prevIdx]!, srcRowData[prevIdx + 1]!, srcRowData[prevIdx + 2]!, srcRowData[prevIdx + 3]!)]!;
           raw[outCol] = (value - previous) & 255;
         } else if (data16) {
           for (let channel = 0; channel < channels.length; channel++) {
@@ -460,7 +459,7 @@ export function encodePngImage(
     ...(img.gamma === undefined ? [] : [gammaChunk(img.gamma)]),
     ...(img.icc ? [iccChunk(img.icc)] : []),
     ...(exactPalette ? [makeChunk("PLTE", exactPalette.bytes), ...(exactPalette.transparency ? [makeChunk("tRNS", exactPalette.transparency)] : [])] : []),
-    ...(palette ? [makeChunk("PLTE", palette.bytes), makeChunk("tRNS", Uint8Array.from({ length: 256 }, (_, i) => i === 255 ? 0 : 255))] : []),
+    ...(palette ? [makeChunk("PLTE", pngPalette!.bytes), ...(pngPalette!.transparency ? [makeChunk("tRNS", pngPalette!.transparency)] : [])] : []),
     ...(!options?.omitPngResolution && (resolution !== undefined || options?.density !== undefined) ? [makeChunk("pHYs", phys)] : []),
     ...exifChunk,
     ...textChunks(img.properties),

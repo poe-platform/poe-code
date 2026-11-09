@@ -237,9 +237,8 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
       const bytes = await read(position + offset, Math.min(4096, width * height * 4 - offset));
       for (let i = 0; i < bytes.length; i += 4) palette.add(bytes[i]!, bytes[i + 1]!, bytes[i + 2]!, bytes[i + 3]!);
     }
-    palette.finish();
-    palette.bytes.set([255, 255, 255], 255 * 3);
   }
+  const pngPalette = palette?.finishPng();
   let alpha = Boolean(image.hasAlpha || image.channels === 4 || image.channels === 2);
   if (requestedColor === 0 || requestedColor === 2 || coder === "png24" || coder === "png48" || options.forceOpaque) alpha = false;
   else if (!alpha) {
@@ -272,7 +271,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
     for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
   }
   if (exactPalette) { yield makeChunk("PLTE", exactPalette.bytes); if (exactPalette.transparency) yield makeChunk("tRNS", exactPalette.transparency); }
-  if (palette) { yield makeChunk("PLTE", palette.bytes); yield makeChunk("tRNS", Uint8Array.from({ length: 256 }, (_, i) => i === 255 ? 0 : 255)); }
+  if (palette) { yield makeChunk("PLTE", pngPalette!.bytes); if (pngPalette!.transparency) yield makeChunk("tRNS", pngPalette!.transparency); }
   const density = options.density ?? image.density ?? 72;
   const resolution = options.density === undefined ? image.resolution : undefined;
   const scale = resolution?.unit === "inch" ? 1 / 0.0254 : resolution?.unit === "cm" ? 100 : 1;
@@ -325,7 +324,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
           const raw = new Uint8Array(palette ? count : count * channels.length * sampleBytes);
           if (palette) {
             for (let index = 0; index < count; index++) {
-              const value = palette.index(pixels[index * 4]!, pixels[index * 4 + 1]!, pixels[index * 4 + 2]!, pixels[index * 4 + 3]!);
+              const value = pngPalette!.indices[palette.index(pixels[index * 4]!, pixels[index * 4 + 1]!, pixels[index * 4 + 2]!, pixels[index * 4 + 3]!)]!;
               raw[index] = (value - previous[0]!) & 255;
               previous[0] = value;
             }

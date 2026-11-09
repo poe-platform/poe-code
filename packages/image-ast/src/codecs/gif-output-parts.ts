@@ -70,6 +70,28 @@ export class GifPalette {
       this.quantized = quantizeGif(this.histogram, this.bytes);
     }
   }
+  /** PNG has no fixed table size: omit unused entries and remap raster indices. */
+  finishPng() {
+    this.finish();
+    const used = this.quantized ? new Set<number>() : this.used;
+    if (this.quantized) {
+      for (let i = 0; i < this.quantized.length; i++) {
+        if (this.histogram[i * 4 + 3]) used.add(this.quantized[i]!);
+      }
+      if (this.used.has(254)) used.add(254);
+    }
+    if (this.hasTransparentColor) used.add(255);
+    const entries = [...used].sort((a, b) => a - b);
+    const indices = new Uint8Array(256);
+    const bytes = new Uint8Array(entries.length * 3);
+    entries.forEach((entry, index) => {
+      indices[entry] = index;
+      bytes.set(entry === 255 ? [255, 255, 255] : this.bytes.subarray(entry * 3, entry * 3 + 3), index * 3);
+    });
+    const transparency = this.hasTransparentColor ? new Uint8Array(entries.length).fill(255) : undefined;
+    if (transparency) transparency[indices[255]!] = 0;
+    return { bytes, indices, transparency };
+  }
   index(r: number, g: number, b: number, a: number) {
     if (a < 128) return 255;
     if (this.quantized) {

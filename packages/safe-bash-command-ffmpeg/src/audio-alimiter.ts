@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function limitAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -14,7 +15,7 @@ export async function limitAudio(
     if (!key || !Object.hasOwn(options, key)) throw new Error(`alimiter: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const boolean = key === "asc" || key === "level" || key === "latency";
-    const number = !boolean ? Number(value)
+    const number = !boolean ? parseFilterExpression(value, "alimiter", {})
       : ["1", "true", "yes", "on"].includes(value.toLowerCase()) ? 1
       : ["0", "false", "no", "off"].includes(value.toLowerCase()) ? 0 : NaN;
     const [min, max] = ranges[key];

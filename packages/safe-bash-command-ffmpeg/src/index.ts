@@ -6479,7 +6479,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                     segment!.ignoreEditList = value === "1" || value === "true";
                   } else if (["inpoint", "outpoint", "duration"].includes(keyword)) {
-                    const value = line.slice(keyword.length).trim();
+                    while (cursor < line.length && " \t".includes(line[cursor]!)) cursor++;
+                    const start = cursor;
+                    while (cursor < line.length && !" \t".includes(line[cursor]!)) cursor++;
+                    const value = line.slice(start, cursor);
                     // FFmpeg durations are decimal seconds (optionally s/ms/us)
                     // or signed [hours:]minutes:seconds, with no trailing text.
                     if (!/^-?(?:(?:\d+(?:\.\d*)?|\.\d+)(?:s|ms|us)?|(?:\d+:)?[0-5]?\d:[0-5]?\d(?:\.\d*)?)$/.test(value)) {

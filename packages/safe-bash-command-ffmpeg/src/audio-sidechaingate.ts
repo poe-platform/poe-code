@@ -1,19 +1,25 @@
-import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
+import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function gateAudio(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, sidechain: readonly (Float32Array | Float64Array)[], signal?: AbortSignal
+  first: MediaTrack, filter: string, budget: MediaBudgetTracker, sidechain: readonly (Float32Array | Float64Array)[], signal?: AbortSignal
 ): Promise<Float64Array[]> {
+  const { channelData: channels, sampleRate } = first.decodedAudio!;
   const options: Record<string, string> = {
     level_in: "1", mode: "downward", range: "0.06125", threshold: "0.125", ratio: "2",
     attack: "20", release: "250", makeup: "1", knee: "2.828427125", detection: "rms", link: "average", level_sc: "1"
   };
   const names = Object.keys(options);
+  let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
+    if (key === "enable") {
+      enable = option.slice(separator + 1).trim();
+      continue;
+    }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`sidechaingate: unsupported option ${key}`);
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
   }
@@ -53,8 +59,25 @@ export async function gateAudio(
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
   let envelope = 0;
+  let frame = 0;
+  let nextFrame = 0;
+  let enabled = true;
+  if (enable !== undefined && length === 0) {
+    parseFilterExpression(enable, "sidechaingate enable", { t: 0, n: 0, w: 0, h: 0 });
+  }
   for (let i = 0; i < length; i++) {
     if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+    if (enable !== undefined && i === nextFrame) {
+      const packet = first.samples[frame];
+      const count = packet ? Math.round(packet.duration * sampleRate / first.timescale)
+        - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0) : length - i;
+      enabled = Math.abs(parseFilterExpression(enable, "sidechaingate enable", {
+        t: packet ? packet.pts / first.timescale + (packet.skipSamples ?? 0) / sampleRate : i / sampleRate,
+        n: frame, w: 0, h: 0
+      })) >= 0.5;
+      nextFrame += Math.max(1, count);
+      frame++;
+    }
     let detected = 0;
     for (const channel of sidechain) {
       const value = Math.abs(channel[i]! * detectorLevel);
@@ -90,7 +113,8 @@ export async function gateAudio(
       gain = Math.max(range, exponent >= -1022 && exponent <= 1023
         ? Math.exp(reduced) * 2 ** exponent : Math.exp(logGain));
     }
-    const scale = level * gain * makeup;
+    // Timeline bypass leaves the detector running, but skips all program gain.
+    const scale = enabled ? level * gain * makeup : 1;
     for (let c = 0; c < channels.length; c++) output[c]![i] = channels[c]![i]! * scale;
   }
   return output;

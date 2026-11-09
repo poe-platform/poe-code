@@ -1434,7 +1434,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const b = sources[1]!.track.decodedAudio;
         if (!a || !b) throw new Error("sidechaingate requires decoded PCM audio");
         if (a.sampleRate !== b.sampleRate) throw new Error("sidechaingate requires matching sample rates");
-        const channelData = await gateAudio(a.channelData, a.sampleRate, filters[0]!, budget, b.channelData, signal);
+        const channelData = await gateAudio(first, filters[0]!, budget, b.channelData, signal);
         return { track: { ...first, timescale: a.sampleRate, duration: channelData[0]!.length, samples: [], editList: undefined,
           decodedAudio: { ...a, channelData } }, expression: filters.slice(1).join(",") || "anull" };
       }

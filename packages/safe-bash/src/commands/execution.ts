@@ -31,7 +31,6 @@ export function directExecutor(fallback: CommandHandler): CommandHandler {
 
 async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replacement = false, lines = false): AsyncGenerator<Uint8Array | null> {
   const current: number[] = [];
-  const pendingBlanks: number[] = [];
   let active = false;
   let escaped = false;
   let quote = 0;
@@ -43,7 +42,6 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
       if (byte === 0) throw new UsageError("NUL in non-NUL-delimited input is not supported");
       const blank = byte === 32 || byte === 9;
       if (byte === 10 && !quote && !escaped) {
-        pendingBlanks.length = 0;
         if (active) { yield Uint8Array.from(current); current.length = 0; active = false; }
         if (lines && lineActive && !trailingBlank) { yield null; lineActive = false; }
         trailingBlank = false;
@@ -51,11 +49,6 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
       }
       if (!blank || quote || escaped) lineActive = true;
       trailingBlank = blank && !quote && !escaped;
-      if (replacement && blank && !quote && !escaped) {
-        if (active) pendingBlanks.push(byte);
-        continue;
-      }
-      if (pendingBlanks.length) { for (const byte of pendingBlanks) current.push(byte); pendingBlanks.length = 0; }
       if (escaped) { current.push(byte); active = true; escaped = false; }
       else if (quote) {
         if (byte === 10) throw new UsageError("unmatched quote in input");
@@ -661,11 +654,13 @@ export function evalSyncXargs(
       }
     } else if (replaceStr !== undefined) {
       if (text.includes("\"") || text.includes("'") || text.includes("\\")) return undefined;
-      for (const rawLine of text.split(/\r?\n/)) {
-        const trimmed = rawLine.trim();
-        if (!trimmed) continue;
-        if (eofStr !== undefined && trimmed === eofStr) break;
-        items.push(trimmed);
+      for (const rawLine of text.split("\n")) {
+        let start = 0;
+        while (rawLine[start] === " " || rawLine[start] === "\t") start++;
+        const line = rawLine.slice(start);
+        if (!line) continue;
+        if (eofStr !== undefined && line === eofStr) break;
+        items.push(line);
       }
     } else {
       if (maxLines !== undefined && /[ \t]\r?\n/.test(text)) return undefined;

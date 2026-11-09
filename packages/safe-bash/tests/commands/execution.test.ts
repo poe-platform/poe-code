@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { collectBytes, createCommandArguments, getCommandArguments, toByteSource, type CommandContext, type CommandInvoker } from "../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
-import { createStandardCommands } from "../../src/commands/index.js";
+import { createStandardCommands, standardCommands } from "../../src/commands/index.js";
+import { Shell } from "../../src/shell/shell.js";
 import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
 import { options as commandOptions } from "../../src/commands/internal.js";
 import { chunks, fixture, run } from "./helpers.js";
@@ -167,14 +168,42 @@ test("xargs null/custom delimiters, replacement, empty input and errors are expl
   assert.equal((await run("xargs", ["unknown"], { stdin: "one" })).exitCode, 127);
 });
 
-test("xargs replacement defaults to echo and trims only unquoted trailing blanks", async () => {
+test("xargs replacement defaults to echo and preserves trailing blanks", async () => {
   assert.equal((await run("xargs", ["-I", "{}"], { stdin: chunks("a\nb\n") })).stdout, "a\nb\n");
   const result = await run("xargs", ["-I", "{}", "printf", "<%s>\n", "{}"], {
     stdin: chunks("  a  \nb\t\n'c  '  \nd\\ \t\ne  f  "),
   });
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "<a>\n<b>\n<c  >\n<d >\n<e  f>\n");
+  assert.equal(result.stdout, "<a  >\n<b\t>\n<c    >\n<d \t>\n<e  f  >\n");
 });
+
+for (const ending of ["\n", ""]) {
+  const stdin = " \t\n  a/b  \n\t a  b\t" + ending;
+  const expected = "<a/b  >\n<a  b\t>\n";
+  const args = ["-I{}", "printf", "<%s>\n", "{}"];
+  test(`xargs replacement retains trailing spaces and tabs at ${ending ? "newline" : "EOF"}`, async () => {
+    const result = await run("xargs", args, { stdin: chunks(stdin) });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  });
+  test(`sync xargs replacement retains trailing spaces and tabs at ${ending ? "newline" : "EOF"}`, () => {
+    assert.equal(evalSyncXargs(new TextEncoder().encode(stdin), args), expected);
+  });
+  test(`shell xargs replacement preserves file input at ${ending ? "newline" : "EOF"}`, async () => {
+    const shell = new Shell({ fs: await fixture({ input: stdin }) }).use(standardCommands());
+    try {
+      for (const command of [
+        "xargs -I{} printf '<%s>\\n' '{}' < /work/input",
+        "result=$(xargs -I{} printf '<%s>\\n' '{}' < /work/input); printf '%s\\n' \"$result\"",
+      ]) {
+        const result = await shell.exec(command);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, expected);
+        assert.equal(result.stderr, "");
+      }
+    } finally { await shell.dispose(); }
+  });
+}
 
 for (const entry of [
   { options: ["-n", "1", "-I", "{}"], expected: "a b\nc d\n" },

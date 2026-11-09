@@ -546,7 +546,13 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   };
 }
 
-function parseDelay(value: string, current = 0): number {
+function parseDelay(value: string): number {
+  value = value.replaceAll("%", "");
+  const [delay, ticks = "100"] = value.split("x");
+  return Math.floor(Number(delay) * 100 / (Number(ticks) || 1)) * 10;
+}
+
+function parseDelayOption(value: string, current: number): number {
   value = value.replaceAll("%", "");
   const geometry = [...value].filter(character => character !== ">" && character !== "<").join("");
   if (!geometry.trim() || geometry.split("x").some(part => !Number.isFinite(Number(part)))) {
@@ -5163,7 +5169,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             if (state.disposal !== undefined) im = { ...im, disposal: state.disposal };
             if (state.delay !== undefined) {
                 const delay = state.delay;
-                im = { ...im, delay: (im.delay ?? [0]).map(current => parseDelay(delay, current)) };
+                im = { ...im, delay: (im.delay ?? [0]).map(current => parseDelayOption(delay, current)) };
             }
             return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, state.kernel, state.resizeFilter) : im;
         });
@@ -7705,6 +7711,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-delay") {
             state.delay = tokens[++i] ?? "0";
+            parseDelayOption(state.delay, 0);
         }
         else if (t === "-transparent-color") {
             state.transparentColor = parseColor(tokens[++i] ?? "");
@@ -9531,7 +9538,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }); continue;
         }
         if (!operandsOnly && token === "-format") { state.formatStr = tokens[++i] ?? ""; continue; }
-        if (!operandsOnly && token === "-delay") { state.delay = tokens[++i] ?? "0"; continue; }
+        if (!operandsOnly && token === "-delay") { state.delay = tokens[++i] ?? "0";
+            parseDelayOption(state.delay, 0); continue; }
         if (!operandsOnly && token === "-transparent-color") { state.transparentColor = parseColor(tokens[++i] ?? ""); continue; }
         if (!operandsOnly && token === "-loop") { state.loop = Number(tokens[++i] ?? 0); continue; }
         if (!operandsOnly && token === "-dispose") { state.disposal = parseMagickDisposal(tokens[++i] ?? ""); continue; }
@@ -10892,7 +10900,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    length: original.storedDelay?.length ?? original.delay?.length ?? 1,
    async at(scene, options) {
     const current = await original.storedDelay?.at(scene, options) ?? original.delay?.[scene] ?? 0;
-    return parseDelay(delay, current);
+    return parseDelayOption(delay, current);
    },
   } };
  }

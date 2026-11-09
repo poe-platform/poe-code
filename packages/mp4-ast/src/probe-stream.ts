@@ -17,6 +17,8 @@ const CODEC_LONG_NAMES: Record<string, string> = {
   webp: "WebP image",
   rawvideo: "raw video",
   aac: "AAC (Advanced Audio Coding)",
+  amr_nb: "AMR-NB (Adaptive Multi-Rate NarrowBand)",
+  amr_wb: "AMR-WB (Adaptive Multi-Rate WideBand)",
   mp3: "MP3 (MPEG audio layer 3)",
   opus: "Opus (Opus Interactive Audio Codec)",
   vorbis: "Vorbis",

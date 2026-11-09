@@ -130,6 +130,12 @@ export function finishCodecMetadata(state: CodecEntryState): Mp4CodecMetadata {
       const aliases: Record<string,string> = { Opus:'opus',fLaC:'flac',alac:'alac','ac-3':'ac3','ec-3':'eac3',sowt:'pcm_s16le',twos:'pcm_s16be',lpcm:'pcm_s16le','.mp3':'mp3',ulaw:'pcm_mulaw',alaw:'pcm_alaw',ima4:'adpcm_ima_qt',samr:'amr_nb',sawb:'amr_wb' };
       metadata.codecName = aliases[format] ?? metadata.codecName;
     }
+    if (format === 'samr' || format === 'sawb') {
+      // AMR is compressed mono audio; sample-entry PCM defaults do not apply.
+      metadata.sampleRate = format === 'samr' ? 8000 : 16000;
+      metadata.channels = 1;
+      metadata.bitsPerSample = 0;
+    }
   } else if (format === 'tx3g' || format === 'text') metadata.codecName = 'mov_text';
   else if (format === 'wvtt') metadata.codecName = 'webvtt';
   else if (format === 'stpp') metadata.codecName = 'ttml';

@@ -2685,7 +2685,7 @@ export function probeMp4(
   bytes: Uint8Array,
   options: ParseMediaOptions & { showPackets?: boolean; showFrames?: boolean } = {}
 ): MediaProbeResult {
-  const doc = parseMp4(bytes, options);
+  const doc = parseMp4(bytes, { ...options, decodeAudio: false });
   return buildProbeResultFromDoc(doc, bytes.byteLength, options.filename ?? "input.mp4", options);
 }
 

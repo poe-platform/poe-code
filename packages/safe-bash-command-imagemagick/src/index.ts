@@ -904,7 +904,7 @@ function* applyMagickFloodfillSteps(
   geomStr: string,
   targetColor: RgbaColor | undefined,
   replacement: RgbaColor,
-  fuzz: number, signal?: AbortSignal, alphaOnly = false, channels?: readonly boolean[]): Generator<void, RgbaImage, void> {
+  fuzz: number, signal?: AbortSignal, alphaOnly = false, channels?: readonly boolean[], fillToBorder = false): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = parseMagickGeometry(geomStr);
   const w = img.width;
@@ -920,7 +920,7 @@ function* applyMagickFloodfillSteps(
 
   const matchesRef = (pIdx: number): boolean => {
     const off = pIdx * 4;
-    return matchesAlphaFloodfill(out[off]!, out[off + 1]!, out[off + 2]!, out[off + 3]!, refR, refG, refB, !alphaOnly && targetColor ? targetColor.a : img.data[seedOff + 3]!, fuzz, targetColor ? 0 : fuzz);
+    return fillToBorder !== matchesAlphaFloodfill(out[off]!, out[off + 1]!, out[off + 2]!, out[off + 3]!, refR, refG, refB, (fillToBorder || !alphaOnly) && targetColor ? targetColor.a : img.data[seedOff + 3]!, fuzz, targetColor ? 0 : fuzz);
   };
 
   const startIdx = sy * w + sx;
@@ -4595,7 +4595,7 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
 }
 
 type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor });
-type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | { kind: "floodfill"; x: number; y: number; color: RgbaColor; alphaOnly: boolean };
+type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | { kind: "floodfill"; x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
 function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape, highDepth = false, tile?: Pick<RgbaImage, "width" | "height">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const quantum = highDepth ? 65535 : 255, scale = highDepth ? 257 : 1;
@@ -4786,7 +4786,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         else if (cmd === "color" || cmd === "alpha") {
             const px = num(), py = num(), method = tokens[i++]?.toLowerCase();
             const x = affine[0] * px + affine[2] * py + affine[4], y = affine[1] * px + affine[3] * py + affine[5];
-            if (method !== "floodfill" || !Number.isFinite(x) || !Number.isFinite(y)) throw new Error(`${cmd} drawing requires finite coordinates and the floodfill method`);
+            if ((method !== "floodfill" && method !== "filltoborder") || !Number.isFinite(x) || !Number.isFinite(y)) throw new Error(`${cmd} drawing requires finite coordinates and the floodfill or filltoborder method`);
             if (svgElements.length > 0) {
                 yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
                 svgElements.length = 0;
@@ -4794,7 +4794,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             // Native draw coordinates select the lower pixel at exact half ties.
             const seedX = Math.ceil(x - 0.5), seedY = Math.ceil(y - 0.5);
             if (seedX < 0 || seedY < 0 || seedX >= img.width || seedY >= img.height) throw new Error(`${cmd} floodfill seed is outside the image`);
-            yield { kind: "floodfill", x: seedX, y: seedY, color: fillColor, alphaOnly: cmd === "alpha" };
+            yield { kind: "floodfill", x: seedX, y: seedY, color: fillColor, alphaOnly: cmd === "alpha", fillToBorder: method === "filltoborder" };
         }
         else if (cmd === "rectangle") {
             const x0 = num();
@@ -5261,7 +5261,7 @@ function inferMaxDecodeDimensionFromUpcomingTokens(
     const coordDependentOps = new Set([
         "-crop", "-chop", "-splice", "-trim", "-roll", "-shave",
         "-extent", "-border", "-frame", "-draw", "-annotate",
-        "-region", "-floodfill", "-repage", "+repage", "-distort"
+        "-region", "-floodfill", "+floodfill", "-repage", "+repage", "-distort"
     ]);
     for (let k = startIdx; k < tokens.length; k++) {
         const tok = tokens[k]!;
@@ -7997,7 +7997,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!argument.trim() || !Number.isFinite(count)) throw new Error(`invalid argument for option '-morph': ${argument}`);
             stack = (yield* applyMagickMorphSteps(stack, count, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.kernel, signal, state.resizeFilter));
         }
-        else if (t === "-floodfill") {
+        else if (t === "-floodfill" || t === "+floodfill") {
             const geom = tokens[++i] ?? "+0+0";
             const nextTok = tokens[i + 1];
             let targetColor: RgbaColor | undefined;
@@ -8011,7 +8011,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
             }
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickFloodfillSteps(im, geom, targetColor, state.fill, state.alphaFuzz, signal, false, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined));
+                return (yield* applyMagickFloodfillSteps(im, geom, targetColor, state.fill, state.alphaFuzz, signal, false, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, t === "+floodfill"));
             });
         }
         else if (t === "-evaluate-sequence" || t === "-average") {
@@ -8405,7 +8405,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if ((im.space === "b-w" || im.space === "grey16") && !(step.kind === "floodfill" && step.alphaOnly))
                         im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
                     if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile), signal, im, tile ? [im, tile] : [im]);
-                    else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, undefined, step.color, state.alphaFuzz, signal, step.alphaOnly);
+                    else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, step.fillToBorder ? state.borderColor : undefined, step.color, state.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
                     else {
                         const overlay = decodeImage(new TextEncoder().encode(step.svg), { density: state.density });
                         im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay), signal, im, [im, overlay]);
@@ -9852,7 +9852,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     ? transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!image.storedData16, settings.diffusionAmount ?? 1), signal, image, [image, colors])
                     : remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal);
             });
-        } else if (!operandsOnly && token === "-floodfill") {
+        } else if (!operandsOnly && (token === "-floodfill" || token === "+floodfill")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "+0+0"), candidate = tokens[i + 1], replacement = state.fill, fuzz = state.alphaFuzz;
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             let target: RgbaColor | undefined;
@@ -9867,7 +9867,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const x = Math.round(geometry.x);
                 const y = Math.round(geometry.y);
                 if (x < 0 || y < 0 || x >= image.width || y >= image.height) return image;
-                return floodfillStoredImage(image, backend.storage, x, y, target, replacement, fuzz, signal, false, channels);
+                return floodfillStoredImage(image, backend.storage, x, y, target, replacement, fuzz, signal, false, channels, token === "+floodfill");
             });
         } else if (!operandsOnly && token === "-draw") {
             const drawing = tokens[++i] ?? "", settings = { ...state };
@@ -9879,7 +9879,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if ((image.space === "b-w" || image.space === "grey16") && !(step.kind === "floodfill" && step.alphaOnly))
                         image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
                     if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile), signal, image, tile ? [image, tile] : [image]);
-                    else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, undefined, step.color, settings.alphaFuzz, signal, step.alphaOnly);
+                    else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, step.fillToBorder ? settings.borderColor : undefined, step.color, settings.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
                     else {
                         const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);
                         image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay), signal, image, [image, overlay]);
@@ -10465,7 +10465,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-clone", "-insert", "-swap", "-delete", "-smush", "+smush", "-layers", "-recolor",
         "-contrast-stretch", "-linear-stretch", "-connected-components", "+connected-components"
     ]);
-    const flagsWithTwoArgs = new Set(["-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill"]);
+    const flagsWithTwoArgs = new Set(["-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
     const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label"]);
     const flagsWithoutArgs = new Set([
         "-antialias", "+antialias",

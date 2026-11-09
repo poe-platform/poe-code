@@ -9513,8 +9513,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "ashowinfo") {
                         if (logLevel < 32) continue;
                         const format = filteredSampleFormat;
-                        const planar = format === "fltp" || format === "dblp";
-                        const bytesPerSample = format === "u8" ? 1 : format === "s16" ? 2 : format === "dbl" || format === "dblp" ? 8 : 4;
+                        const planar = format === "s16p" || format === "fltp" || format === "dblp";
+                        const bytesPerSample = format === "u8" ? 1 : format === "s16" || format === "s16p" ? 2 : format === "dbl" || format === "dblp" ? 8 : 4;
                         const sample = new DataView(new ArrayBuffer(bytesPerSample));
                         const length = stretched[0]?.length ?? 0;
                         const channels = stretched.length;
@@ -9539,7 +9539,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               for (let c = planar ? plane : 0; c < (planar ? plane + 1 : channels); c++) {
                                 const value = stretched[c]![i]!;
                                 if (format === "u8") sample.setUint8(0, Math.max(0, Math.min(255, Math.round(value * 128) + 128)));
-                                else if (format === "s16") sample.setInt16(0, Math.max(-32768, Math.min(32767, Math.round(value * 32768))), true);
+                                else if (format === "s16" || format === "s16p") sample.setInt16(0, Math.max(-32768, Math.min(32767, Math.round(value * 32768))), true);
                                 else if (format === "s32") sample.setInt32(0, Math.max(-2147483648, Math.min(2147483647, Math.round(value * 2147483648))), true);
                                 else if (format === "flt" || format === "fltp") sample.setFloat32(0, value, true);
                                 else sample.setFloat64(0, value, true);
@@ -10829,7 +10829,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         stretched = output;
-                        filteredSampleFormat = "s16";
+                        filteredSampleFormat = "s16p";
                         panPcm16 = true;
                       } else if (trimmed === "haas" || trimmed.startsWith("haas=")) {
                         if (stretched.length !== 2) throw new Error("haas: stereo input required");

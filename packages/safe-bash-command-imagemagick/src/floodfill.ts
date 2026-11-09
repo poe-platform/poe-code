@@ -37,28 +37,28 @@ export async function floodfillStoredImage(image: StoredRgbaImage, storage: Imag
     }
     await cache.flush();
     const position = storage.allocate(count * 4);
-    const storedData16 = image.storedData16 ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
+    const paint = [replacement.r, replacement.g, replacement.b, replacement.a];
+    const storedData16 = image.storedData16 || paint.some(value => !Number.isInteger(value))
+        ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
     for (let start = 0; start < count; start += 1024) {
         await yieldTurn(signal);
         const length = Math.min(1024, count - start), pixels = new Uint8Array(await storage.read(image.position + start * 4, length * 4, { signal }));
-        const highBytes = image.storedData16 ? await storage.read(image.storedData16.position + start * 8, length * 8, { signal }) : undefined;
-        const data16 = highBytes ? new Uint16Array(highBytes.buffer.slice(highBytes.byteOffset, highBytes.byteOffset + highBytes.byteLength)) : undefined;
         const flags = await storage.read(visited.position + start, length, { signal });
         if (pixels.length !== length * 4 || flags.length !== length) throw new Error("Truncated floodfill pixels");
+        const bytes16 = image.storedData16 ? await storage.read(image.storedData16.position + start * 8, length * 8, { signal }) : undefined;
+        if (bytes16 && bytes16.length !== length * 8) throw new Error("Truncated floodfill pixels");
+        const data16 = bytes16 ? new Uint16Array(new Uint8Array(bytes16).buffer)
+            : storedData16 ? Uint16Array.from(pixels, value => value * 257) : undefined;
         for (let i = 0; i < length; i++) if (flags[i]) {
-            if (!alphaOnly) {
-                if (!channels || channels[0]) pixels[i * 4] = Math.round(replacement.r);
-                if (!channels || channels[1]) pixels[i * 4 + 1] = Math.round(replacement.g);
-                if (!channels || channels[2]) pixels[i * 4 + 2] = Math.round(replacement.b);
-            }
-            if (!channels || channels[3]) pixels[i * 4 + 3] = Math.round(replacement.a);
-            if (data16) for (let channel = 0; channel < 4; channel++) {
-                if ((alphaOnly && channel !== 3) || (channels && !channels[channel])) continue;
-                data16[i * 4 + channel] = Math.round([replacement.r, replacement.g, replacement.b, replacement.a][channel]! * 257);
+            for (let channel = alphaOnly ? 3 : 0; channel < 4; channel++) {
+                if (channels && !channels[channel]) continue;
+                const offset = i * 4 + channel;
+                if (data16) data16[offset] = Math.round(paint[channel]! * 257);
+                pixels[offset] = Math.round(data16 ? data16[offset]! / 257 : paint[channel]!);
             }
         }
         await storage.write(position + start * 4, pixels, { signal });
-        if (storedData16 && data16) await storage.write(storedData16.position + start * 8, new Uint8Array(data16.buffer), { signal });
+        if (data16) await storage.write(storedData16!.position + start * 8, new Uint8Array(data16.buffer), { signal });
     }
     return { ...image, position, ...(storedData16 ? { storedData16 } : {}), hasAlpha: true };
 }

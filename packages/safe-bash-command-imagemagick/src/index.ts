@@ -992,7 +992,9 @@ function* applyMagickFloodfillSteps(
   const sy = Math.round(g.y);
   if (sx < 0 || sy < 0 || sx >= w || sy >= h) return img;
   const out = new Uint8Array(img.data);
-  const data16 = img.data16?.slice();
+  const paint = [replacement.r, replacement.g, replacement.b, replacement.a];
+  const data16 = img.data16 ? new Uint16Array(img.data16)
+    : paint.some(value => !Number.isInteger(value)) ? Uint16Array.from(img.data, value => value * 257) : undefined;
   const samples = img.data16 ?? img.data;
   const scale = img.data16 ? 257 : 1;
   const seedOff = (sy * w + sx) * 4;
@@ -1020,18 +1022,10 @@ function* applyMagickFloodfillSteps(
             yield;
         const cur = queue[head++]!;
     const off = cur * 4;
-    if (!alphaOnly) {
-      if (!channels || channels[0]) out[off] = Math.round(replacement.r);
-      if (!channels || channels[1]) out[off + 1] = Math.round(replacement.g);
-      if (!channels || channels[2]) out[off + 2] = Math.round(replacement.b);
-    }
-    if (!channels || channels[3]) out[off + 3] = Math.round(replacement.a);
-
-    if (data16) {
-      for (let channel = 0; channel < 4; channel++) {
-        if ((alphaOnly && channel !== 3) || (channels && !channels[channel])) continue;
-        data16[off + channel] = Math.round([replacement.r, replacement.g, replacement.b, replacement.a][channel]! * 257);
-      }
+    for (let channel = alphaOnly ? 3 : 0; channel < 4; channel++) {
+      if (channels && !channels[channel]) continue;
+      if (data16) data16[off + channel] = Math.round(paint[channel]! * 257);
+      out[off + channel] = Math.round(data16 ? data16[off + channel]! / 257 : paint[channel]!);
     }
 
     const cx = cur % w;
@@ -4935,14 +4929,14 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     yield;
     let cooperativeWork = 0;
     const svgElements: string[] = [];
-    let fill = rgbaToCss(state.fill);
+    let fill = state.fill;
     let tile = state.tile !== undefined;
     let stroke = rgbaToCss(state.stroke);
     let strokeWidth = state.strokeWidth;
     let fillOpacity: number | undefined;
     let strokeOpacity: number | undefined;
     let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
-    const contexts: { fill: string; tile: boolean; stroke: string; strokeWidth: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
+    const contexts: { fill: RgbaColor; tile: boolean; stroke: string; strokeWidth: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
     const tokens: string[] = [];
     for (let offset = 0; offset < drawCmd.length;) {
         if (++cooperativeWork % 65536 === 0) yield;
@@ -4971,8 +4965,8 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (++cooperativeWork % 65536 === 0)
             yield;
         const cmd = tokens[i++]!.toLowerCase();
-        const fillColor = { ...parseColor(fill) }, strokeColor = { ...parseColor(stroke) };
-        if (fillOpacity !== undefined && fill !== "none") fillColor.a = fillOpacity * 255;
+        const fillColor = { ...fill }, strokeColor = { ...parseColor(stroke) };
+        if (fillOpacity !== undefined && fill.a !== 0) fillColor.a = fillOpacity * 255;
         if (strokeOpacity !== undefined && stroke !== "none") strokeColor.a = strokeOpacity * 255;
         const paintFill = rgbaToCss(fillColor), paintStroke = rgbaToCss(strokeColor);
         if (svgElements.length > 0 && (["line", "circle"].includes(cmd) ||
@@ -5004,7 +4998,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             if (!affine.every(Number.isFinite)) throw new Error("Drawing requires a finite transform");
         }
         else if (cmd === "fill") {
-            fill = rgbaToCss(parseColor(tokens[i++] ?? "#000000"));
+            fill = parseColor(tokens[i++] ?? "#000000", true);
             tile = false;
         }
         else if (cmd === "stroke") {
@@ -5044,10 +5038,10 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const ry = Math.min(y0, y1);
             const rw = Math.max(1, Math.abs(x1 - x0) + 1);
             const rh = Math.max(1, Math.abs(y1 - y0) + 1);
-            if (fill !== "none" && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0 && !transformed) {
+            if (fill.a !== 0 && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0 && !transformed) {
                 yield { kind: "shape", shape: "rectangle", tile, color: fillColor, x: rx, y: ry, width: rw, height: rh };
             } else {
-                if (fill !== "none") {
+                if (fill.a !== 0) {
                     svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${paintFill}"/>`);
                 }
                 if (stroke !== "none" && strokeWidth > 0) {
@@ -5066,7 +5060,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const ry = Math.min(y0, y1);
             const rw = Math.max(1, Math.abs(x1 - x0) + 1);
             const rh = Math.max(1, Math.abs(y1 - y0) + 1);
-            if (fill !== "none") {
+            if (fill.a !== 0) {
                 svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="${wc}" ry="${hc}" fill="${paintFill}"/>`);
             }
             if (stroke !== "none" && strokeWidth > 0) {
@@ -5079,7 +5073,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const px = num();
             const py = num();
             const r = Math.max(1, Math.hypot(px - cx, py - cy));
-            if (fill !== "none" && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0 && !transformed) {
+            if (fill.a !== 0 && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0 && !transformed) {
                 yield { kind: "shape", shape: "circle", tile, color: fillColor, x: cx, y: cy, radius: r, antialias: state.antialias !== false };
             } else {
                 svgElements.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);

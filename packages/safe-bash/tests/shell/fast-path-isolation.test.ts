@@ -8,6 +8,7 @@ import { Capture } from "../../src/shell/runtime.js";
 import { searchCommands } from "../../src/commands/search/index.js";
 import { structuredCommands } from "../../src/commands/structured/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
+import { printenvCommands } from "../../src/commands/printenv/index.js";
 
 for (const command of [
   "mkdir -p PATH/new",
@@ -165,6 +166,37 @@ for (const [source, expected] of [
   assert.equal(result.stderr, "");
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, expected);
+});
+
+for (const [binding, shellValue, childValue, parentValue] of [
+  ["local V", "unset", "old", "old"],
+  ["local V=inner; unset V", "unset", "old", "old"],
+  ["local V=inner; export -n V", "inner", "old", "old"],
+  ["local V=", "", "", "old"],
+  ["local V=inner", "inner", "inner", "old"],
+  ["local V=local; declare -gx V=global", "local", "local", "global"],
+] as const) for (const middleware of [false, true]) {
+  test(`child environment through local binding: ${binding}, middleware=${middleware}`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(printenvCommands());
+    context.after(() => shell.dispose());
+    if (middleware) shell.use((_context, next) => next());
+    const result = await shell.exec(`export V=old; f() { ${binding}; printf 'shell=<%s>\\n' "\${V-unset}"; sh -c 'printf "child=<%s>\\n" "\${V-unset}"'; env | grep '^V='; printf 'sub=<%s>\\n' "$(printenv V)"; }; f; printenv V`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, `shell=<${shellValue}>\nchild=<${childValue}>\nV=${childValue}\nsub=<${childValue}>\n${parentValue}\n`);
+  });
+}
+
+for (const source of [
+  'V=old; f() { local V=local; declare -gx V=global; printf "%s\\n" "$V"; sh -c \'echo "$V"\'; }; f; printenv V',
+  'export V=old; f() { local V=global; g() { local V; sh -c \'echo "$V"\'; }; echo local; g; }; f; echo global',
+]) test(`outer exported child environment: ${source}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(printenvCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(source);
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "local\nglobal\nglobal\n");
 });
 
 test("ERE matching and capture replacement work without global Buffer", async context => {

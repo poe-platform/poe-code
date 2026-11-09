@@ -1719,6 +1719,28 @@ function shellCharacterWidth(bytes: Uint8Array, offset: number, byteCount: boole
   }
   return length;
 }
+export function exportedEnvironment(state: State): Record<string, string> {
+  const env = Object.create(null) as Record<string, string>;
+  // Local bindings hide shell values, but only exported, set values replace
+  // an outer binding in the environment passed to commands.
+  for (const locals of state.locals) {
+    for (const [key, saved] of locals) {
+      if (saved.exported && saved.value !== undefined) env[key] = saved.value;
+    }
+  }
+  for (const key of state.exported) {
+    const value = state.variables[key];
+    if (value !== undefined) env[key] = value;
+  }
+  if (state.exportedFunctions) {
+    for (const key of state.exportedFunctions) {
+      const body = state.functions.get(key);
+      if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
+    }
+  }
+  return env;
+}
+
 export function saveVariable(state: State, name: string): SavedVariable {
   const monitor = stateMonitor(state);
   const value = monitor?.values.get(name, state.variables[name] ?? "");
@@ -6229,17 +6251,7 @@ export class Runtime {
     }
     let builtinFailure: { error: unknown; diagnostic: string } | undefined;
     const hasMiddleware = this.middleware.length > 0;
-    const env = Object.create(null) as Record<string, string>;
-    for (const key of state.exported) {
-      const value = state.variables[key];
-      if (value !== undefined) env[key] = value;
-    }
-    if (state.exportedFunctions) {
-      for (const key of state.exportedFunctions) {
-        const body = state.functions.get(key);
-        if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
-      }
-    }
+    const env = exportedEnvironment(state);
     const initialEnv = hasMiddleware ? { ...env } : env;
     const runtimeFrame: RuntimeOutcomeFrame = {};
     let scopedSignal: AbortSignal | undefined = signalIsScoped ? this.signal : undefined;

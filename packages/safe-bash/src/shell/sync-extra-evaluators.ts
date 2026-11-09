@@ -234,7 +234,6 @@ import { controlNames, IndexedBinding, textToken } from "./arrays/bindings.js";
 import { ensureStateMonitor, monitorSymbol, requireArrays, trackState, trySnapshotStateSync, type Restoration } from "./arrays/state.js";
 import { workerRuntimeContexts } from "../worker/runtime-context.js";
 import { captureIgnoredTrapSignals } from "./trap.js";
-import { functionDisplay } from "./display.js";
 import { bindFileOutputBudget } from "../contracts/filesystem-output.js";
 import { pipelineStatusTarget, publishPipelineStatus } from "./pipestatus.js";
 import { OwnedText, tryTextTokenSync } from "./arrays/bindings.js";
@@ -321,7 +320,7 @@ import { text as awkValueText, compare as awkCompare, inputValue as awkInputValu
 import { shellValueByteLength } from "../contracts/value.js";
 import { stateMonitor } from "./arrays/state.js";
 import type { RootShellState, State } from "./runtime.js";
-import { Budget, Runtime } from "./runtime.js";
+import { Budget, Runtime, exportedEnvironment } from "./runtime.js";
 function canWriteBuiltinOutput(budget: Budget, pipe: BudgetedPipeStageSink | undefined, byteLength: number): boolean {
   return (!pipe || pipe.canWriteSync(byteLength)) && (budget.bytes + byteLength <= budget.maxOutputBytesSmi || byteLength <= budget.limits.maxOutputBytes - budget.bytes);
 }
@@ -3242,24 +3241,7 @@ export class FastShellCommandContext {
     const self = this._self ?? this;
     if (!self._env) {
       const state = self._state;
-      const raw = (stateMonitor(state)?.raw ?? state) as State & { _exported?: Set<string> };
-      const built = Object.create(null) as Record<string, string>;
-      if (raw._exported === undefined && "_exported" in raw) {
-        const pwd = raw.variables.PWD;
-        if (pwd !== undefined) built.PWD = pwd;
-      } else {
-        for (const key of raw.exported) {
-          const value = raw.variables[key];
-          if (value !== undefined) built[key] = value;
-        }
-      }
-      if (raw.exportedFunctions) {
-        for (const key of raw.exportedFunctions) {
-          const body = raw.functions.get(key);
-          if (body) built[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
-        }
-      }
-      self._env = built;
+      self._env = exportedEnvironment(stateMonitor(state)?.raw ?? state);
     }
     return self._env;
   }
@@ -3634,17 +3616,7 @@ const syncExtraRuntimeMethods = {
   },
   async dispatchFastCommand( name: string, definition: NonNullable<ReturnType<CommandRegistry["get"]>>, values: readonly ShellValue[], state: State, io: IO, scope: InvocationScope, ): Promise<number> {
     this.budget.values.assertOpen();
-    const env = Object.create(null) as Record<string, string>;
-    for (const key of state.exported) {
-      const value = state.variables[key];
-      if (value !== undefined) env[key] = value;
-    }
-    if (state.exportedFunctions) {
-      for (const key of state.exportedFunctions) {
-        const body = state.functions.get(key);
-        if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
-      }
-    }
+    const env = exportedEnvironment(state);
     const context = new FastShellCommandContext(this as unknown as Runtime, state, io, scope, name, values as readonly string[], undefined, env, this._isMemoryBackingFs, definition);
     const runtimeFrame: RuntimeOutcomeFrame = {};
     scope.enterWork();
@@ -17910,6 +17882,14 @@ const syncExtraRuntimeMethods = {
     return progress;
   },
   tryFastPureSubstitution(this: any, part: Extract<WordPart, { kind: "substitution" }>, state: State, rawState: State, io: IO): string | undefined {
+    // These evaluators read the visible exports directly. Dispatch normally
+    // when a child must instead inherit an exported value hidden by a local.
+    for (const locals of rawState.locals) {
+      for (const [name, saved] of locals) {
+        if (saved.exported && saved.value !== undefined &&
+            (!rawState.exported.has(name) || rawState.variables[name] === undefined)) return undefined;
+      }
+    }
     // Cached and pipeline substitutions may contain echo as well as direct calls.
     if (rawState.xpg_echo) return undefined;
     if (!cCollation(rawState.variables.LC_ALL || rawState.variables.LC_COLLATE || rawState.variables.LANG || "C")) return undefined;

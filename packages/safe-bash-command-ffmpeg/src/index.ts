@@ -1050,10 +1050,10 @@ function parseChannelSplit(spec: string): string[] {
   }
   if (layout !== "stereo") throw new Error(`channelsplit: unsupported channel layout ${layout}`);
   const selected = channels === "all" ? ["FL", "FR"] : channels.split("+");
-  if (selected.some(channel => channel !== "FL" && channel !== "FR") || new Set(selected).size !== selected.length) {
+  if (selected.some(channel => channel !== "FL" && channel !== "FR")) {
     throw new Error(`channelsplit: invalid channels ${channels}`);
   }
-  return ["FL", "FR"].filter(channel => selected.includes(channel));
+  return selected;
 }
 
 async function panAudio(

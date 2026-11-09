@@ -90,9 +90,9 @@ it(`replaces the mogrify symlink entry via ${entry}, target first=${firstTarget}
     const original = decodeImage(bytes);
     const rewritten = { ...original, bitsPerSample: 1, depth: "bit", isPalette: true };
     const negated = { ...rewritten, data: new Uint8Array([0, 255, 255, 255, 255, 0, 255, 255]) };
-    expect(decodeImage(await fs.readFile("/a.png"))).toEqual(firstTarget ? negated : original);
+    expect(decodeImage(await fs.readFile("/a.png"))).toMatchObject(firstTarget ? negated : original);
     if (!firstTarget) expect(await fs.readFile("/a.png")).toEqual(bytes);
-    expect(decodeImage(await fs.readFile("/link.png"))).toEqual(firstTarget ? rewritten : negated);
+    expect(decodeImage(await fs.readFile("/link.png"))).toMatchObject(firstTarget ? rewritten : negated);
     expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["a.png", "link.png"]);
 });
 

@@ -9538,7 +9538,7 @@ export class Runtime {
         await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${invalidName}': not a valid identifier\n`);
         return 1;
       }
-      if (invalid || array !== undefined && !variableTarget(array)) {
+      if (invalid) {
         await writeDiagnostic(stderr, "read: invalid variable name or unsupported option\n");
         return 2;
       }
@@ -9548,6 +9548,11 @@ export class Runtime {
           ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), byteCount: byteLocale(state.variables), exact, });
       try {
       if (array !== undefined) {
+        if (!isShellIdentifier(array)) {
+          const diagnosticIO: IO = context;
+          await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${array}': not a valid identifier\n`);
+          return 1;
+        }
         array = this.referenceName(state, array);
         if (state.readonlyVariables?.has(array)) { await this.diagnostic(context, `${array}: readonly variable`); return 1; }
         if (arrayStore(state)?.get(array)?.associative) {

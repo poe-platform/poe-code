@@ -250,8 +250,41 @@ test("default read array preserves readonly members after consuming the record",
   } finally { await shell.dispose(); }
 });
 
+for (const [options, status, rest, members, invalidName] of [
+  ["-a bad-name", 1, "three", "old", "bad-name"],
+  ["-abad-name", 1, "three", "old", "bad-name"],
+  ["-a ''", 1, "three", "old", ""],
+  ["-a 'items[0]'", 1, "three", "old", "items[0]"],
+  ["-N 2 -a bad-name", 1, "e two", "old", "bad-name"],
+  ["-n 0 -a bad-name", 1, "one two", "old", "bad-name"],
+  ["-a items bad-name", 1, "one two", "old", "bad-name"],
+  ["-a bad-name other-bad", 1, "one two", "old", "other-bad"],
+  ["-a items", 0, "three", "one two", undefined],
+  ["-a items ignored bad-name", 0, "three", "one two", undefined],
+] as const) {
+  test(`read array validation consumes the correct record: ${options}`, async () => {
+    const { shell, commands, fs } = setup();
+    for (const command of basicCommands()) commands.register(command);
+    const source = `items=(old); { read ${options}; rc=$?; read rest; printf '%s|%s|%s' "$rc" "$rest" "\${items[*]}"; }`;
+    const diagnostic = invalidName === undefined ? "" : `shell: line 1: read: \`${invalidName}': not a valid identifier\n`;
+    const expected = `${status}|${rest}|${members}`;
+    try {
+      const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source, "shell"], { input: "one two\nthree\n", encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
+      assert.equal(native.error, undefined);
+      assert.equal(native.status, 0);
+      assert.equal(native.stdout, expected);
+      assert.equal(native.stderr, diagnostic);
+      await fs.writeFile("/data", new TextEncoder().encode("one two\nthree\n"));
+      const result = await shell.exec(`${source} <data`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, expected);
+      assert.equal(result.stderr, diagnostic);
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("default read array rejects malformed options without consuming input", async () => {
-  for (const option of ["-a", "-a invalid-name"]) {
+  for (const option of ["-a", "-a bad-name -Z"]) {
     const { shell } = setup();
     try {
       const result = await shell.exec(`read ${option}; args "$?"; pass`, { stdin: "untouched" });

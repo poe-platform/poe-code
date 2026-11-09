@@ -1618,7 +1618,7 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
     } else {
         const cx = (w - 1) / 2;
         const cy = (h - 1) / 2;
-        const maxR = Math.max(1, Math.hypot(cx, cy));
+        const maxR = Math.max(1, cx, cy);
         const projection = gradientProjection(w, h, direction, angle);
         for (let y = 0; y < h; y++) {
             if (++work % 16384 === 0)
@@ -10602,7 +10602,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const checker=lower.startsWith("pattern:")||lower.startsWith("plasma:"),radial=lower.startsWith("radial-gradient:");
   const storedData16=checker?undefined:{position:backend.storage.allocate(width*height*8),length:width*height*4};
   const [first,last]=baseToken.slice(baseToken.indexOf(":")+1).split("-"),a=parseColor(checker?"white":first||"#ffffff"),b=parseColor(checker?"black":last||"#000000");
-  const cx=(width-1)/2,cy=(height-1)/2,radius=Math.max(1,Math.hypot(cx,cy));
+  const cx=(width-1)/2,cy=(height-1)/2,radius=Math.max(1,cx,cy);
   const projection=gradientProjection(width,height,state.gradientDirection,state.gradientAngle);
   for(let start=0;start<width*height;start+=4096){
    if(start%262144===0)await yieldTurn(signal);

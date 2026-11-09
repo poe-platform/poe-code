@@ -333,7 +333,9 @@ endpoint syntax are rejected before writing output.
 `aeval=val(1)|val(0)` evaluates separate expressions against the input samples to swap
 stereo channels. Mono/stereo expressions support arithmetic, `val(channel)`, `ch`,
 `n`, `t`, `s`, `nb_in_channels`, and `nb_out_channels`; `c=same` retains the input
-layout and repeats the last expression when needed.
+layout and repeats the last expression when needed. `st(index,value)` and `ld(index)`
+store and read ten initially zero registers per output channel expression. Registers
+persist across samples and remain separate even when the last expression is repeated.
 Duplicate an audio input into independently filtered outputs with
 `-filter_complex '[1:a]asplit=2[x][t];[t]volume=0.5[y]' -map '[x]' one.wav -map '[y]' two.wav`.
 `asplit` defaults to two outputs; `asplit=outputs=3` selects three.

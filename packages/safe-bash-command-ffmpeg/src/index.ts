@@ -8768,6 +8768,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           throw new Error("aeval: unsupported channel layout or invalid expressions");
                         }
                         const output = Array.from({ length: count }, () => new Float64Array(stretched[0]!.length));
+                        const registers = Array.from({ length: count }, () => new Float64Array(10));
                         const variables = { ch: 0, n: 0, t: 0, s: origRate, nb_in_channels: stretched.length, nb_out_channels: count };
                         const sampleValue = (channel: number) => stretched[Math.max(0, Math.min(stretched.length - 1, Math.trunc(channel)))]![variables.n]!;
                         for (let i = 0; i < stretched[0]!.length; i++) {
@@ -8780,7 +8781,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           variables.t = i / origRate;
                           for (let c = 0; c < count; c++) {
                             variables.ch = c;
-                            output[c]![i] = parseFilterExpression(exprs[Math.min(c, exprs.length - 1)]!, "aeval", variables, sampleValue);
+                            output[c]![i] = parseFilterExpression(exprs[Math.min(c, exprs.length - 1)]!, "aeval", variables, sampleValue, registers[c]);
                           }
                         }
                         stretched = output;

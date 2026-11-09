@@ -5033,6 +5033,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let surroundMixLevel: number | undefined;
         let lfeMixLevel: number | undefined;
         let segmentTime = 2;
+        let segmentWrap = 0;
         let segmentTimes: number[] | undefined;
         let resetTimestamps = false;
         let segmentFrames: number[] | undefined;
@@ -5310,6 +5311,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             segmentTime = parseFfmpegTimestamp(value ?? "");
             if (!Number.isFinite(segmentTime) || segmentTime <= 0) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_time\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-segment_wrap") {
+            const value = args[++i] ?? "";
+            segmentWrap = Number(value);
+            if (!value.trim() || !Number.isInteger(segmentWrap) || segmentWrap < 0 || segmentWrap > 2147483647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_wrap\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-segment_frames") {
@@ -9736,10 +9744,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               boundaries.push(workingDoc.durationSeconds);
               const paths = boundaries.slice(1).map((_, index) =>
-                resolvePath(context.cwd, formatImageSequence(outputTarget, index)!));
+                resolvePath(context.cwd, formatImageSequence(outputTarget, segmentWrap ? index % segmentWrap : index)!));
               const listPath = segmentList === undefined ? undefined : resolvePath(context.cwd, segmentList);
-              const destinations = listPath === undefined ? paths : [...paths, listPath];
-              if (new Set(destinations).size !== destinations.length) throw new Error("Segment output filenames collide");
+              if (listPath !== undefined && paths.includes(listPath)) throw new Error("Segment output filenames collide");
+              const destinations = new Set(listPath === undefined ? paths : [...paths, listPath]);
               for (const path of destinations) {
                 if (inputs.some(input => input.format !== "lavfi" && resolvePath(context.cwd, input.path) === path)) {
                   throw new Error(`Output ${path} is also an input; cannot edit existing files in-place`);

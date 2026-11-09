@@ -47,6 +47,48 @@ for (const [options, lengths] of [
   });
 }
 
+for (const wrap of [0, 1, 2, 4]) {
+  it(`wraps segment filenames at ${wrap} while retaining chronological CSV rows`, async () => {
+    const volume = source();
+    const result = await run(volume, ["-y", "-segment_time", "1", "-segment_wrap", String(wrap), "-segment_list", "/list.csv"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const input = parseWav(volume.readFileSync("/a.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+    const expected = new Map<string, number[]>();
+    const boundaries = [0, 8192, 16384, 24000];
+    const rows = [];
+    for (let index = 0; index < 3; index++) {
+      const name = `part${String(wrap ? index % wrap : index).padStart(2, "0")}.wav`;
+      expected.set(name, Array.from(input.slice(boundaries[index], boundaries[index + 1])));
+      rows.push(`${name},${(boundaries[index]! / 8000).toFixed(6)},${(boundaries[index + 1]! / 8000).toFixed(6)}\n`);
+    }
+    assert.deepEqual(volume.readdirSync("/").filter(name => String(name).startsWith("part")), [...expected.keys()]);
+    for (const [name, samples] of expected) {
+      assert.deepEqual(Array.from(parseWav(volume.readFileSync(`/${name}`) as Buffer).tracks[0]!.decodedAudio!.channelData[0]!), samples);
+    }
+    assert.equal(volume.readFileSync("/list.csv", "utf8"), rows.join(""));
+  });
+}
+
+it("allows wrapping within a run while protecting existing files and list collisions", async () => {
+  const volume = source();
+  const options = ["-segment_time", "1", "-segment_wrap", "2"];
+  const result = await run(volume, options);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const original = volume.readFileSync("/part00.wav");
+  assert.notEqual((await run(volume, options)).exitCode, 0);
+  assert.deepEqual(volume.readFileSync("/part00.wav"), original);
+  assert.notEqual((await run(volume, ["-y", ...options, "-segment_list", "/part00.wav"])).exitCode, 0);
+  assert.deepEqual(volume.readFileSync("/part00.wav"), original);
+});
+
+for (const value of ["-1", "1.5", "NaN", "Infinity", "2147483648", ""]) {
+  it(`rejects invalid segment wrap ${JSON.stringify(value)} before writing`, async () => {
+    const volume = source();
+    assert.notEqual((await run(volume, ["-segment_wrap", value])).exitCode, 0);
+    assert.deepEqual(volume.readdirSync("/"), ["a.wav"]);
+  });
+}
+
 it("defers synchronous segment output to the asynchronous command without reporting false success", () => {
   const volume = source();
   assert.equal(evalSyncFfmpeg(["-y", "-i", "/a.wav", "-c", "copy", "-f", "segment", "/part%02d.wav"], undefined,

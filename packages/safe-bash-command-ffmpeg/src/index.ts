@@ -9393,8 +9393,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (trimmed === "alimiter" || trimmed.startsWith("alimiter=")) {
-                        filteredSampleFormat = "dbl";
+                      } else if (filterName === "alimiter" || filterName === "speechnorm") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -9411,18 +9410,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        const limited = await limitAudio(stretched, origRate, trimmed, budget, context.signal, audioTimestamps);
-                        stretched = limited.channels;
-                        audioTimestamps = limited.frames;
-                        statsScale = 1;
-                      } else if (trimmed === "speechnorm" || trimmed.startsWith("speechnorm=")) {
-                        filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
-                        stretched = await normalizeSpeech(stretched, origRate, n => {
-                          const frame = audioTimestamps?.[n];
-                          const packet = t.samples[n];
-                          return frame ? frame.end - frame.start
-                            : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                        }, trimmed, filteredSampleFormat, budget, context.signal);
+                        if (filterName === "alimiter") {
+                          filteredSampleFormat = "dbl";
+                          const limited = await limitAudio(stretched, origRate, trimmed, budget, context.signal, audioTimestamps);
+                          stretched = limited.channels;
+                          audioTimestamps = limited.frames;
+                        } else {
+                          filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
+                          stretched = await normalizeSpeech(stretched, origRate, audioTimestamps, trimmed, filteredSampleFormat, budget, context.signal);
+                        }
                         statsScale = 1;
                       } else if (trimmed === "agate" || trimmed.startsWith("agate=")) {
                         stretched = await applyAudioGate(stretched, origRate, trimmed, budget, context.signal);

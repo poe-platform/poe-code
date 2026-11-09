@@ -2,34 +2,6 @@ import { FsError } from "safe-bash-contracts";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
-const pathPosix = {
-  resolve(cwd: string, target: string): string {
-    const raw = target.startsWith("/") ? target : (cwd.endsWith("/") ? cwd + target : cwd + "/" + target);
-    const parts = raw.split("/");
-    const stack: string[] = [];
-    for (const part of parts) {
-      if (!part || part === ".") continue;
-      if (part === "..") stack.pop();
-      else stack.push(part);
-    }
-    return "/" + stack.join("/");
-  },
-  join(a: string, b: string): string {
-    if (!a || a === ".") return b;
-    return a.endsWith("/") ? a + b : a + "/" + b;
-  },
-  dirname(p: string): string {
-    const idx = p.lastIndexOf("/");
-    if (idx < 0) return ".";
-    if (idx === 0) return "/";
-    return p.slice(0, idx);
-  },
-  basename(p: string): string {
-    const idx = p.lastIndexOf("/");
-    return idx < 0 ? p : p.slice(idx + 1);
-  },
-};
-
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -152,7 +124,9 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
           return { exitCode: 0 };
         }
 
-        const targetPath = pathPosix.resolve(context.cwd, files[0]!);
+        const target = files[0]!;
+        // Keep traversal components so the filesystem checks each directory before writing.
+        const targetPath = target.startsWith("/") ? target : `${context.cwd}/${target}`;
         let targetStat: FileStat | undefined;
         try {
           targetStat = await context.fs.lstat(targetPath, { signal: context.signal });
@@ -182,7 +156,7 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
             else await context.fs.writeFile(targetPath, data, { signal: context.signal });
             return;
           }
-          const temporary = pathPosix.join(pathPosix.dirname(targetPath), `.sponge-${crypto.randomUUID()}`);
+          const temporary = `${targetPath.slice(0, targetPath.lastIndexOf("/") + 1)}.sponge-${crypto.randomUUID()}`;
           let created = false;
           try {
             if (append) {

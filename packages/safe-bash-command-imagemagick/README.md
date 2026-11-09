@@ -127,6 +127,8 @@ Async `runIdentifyCli(args, { filesystem, cwd, stdin, stdout, stderr })` uses th
 
 `identify -format '%@' image.png` reports trim bounds without changing the image or its canvas dimensions; a uniform image reports `0x0+width+height` with a geometry warning.
 
+`%S` reports the default scene setting (`2147483647`), independently of the current frame (`%s`) and image count (`%n`).
+
 `identify -format` and `magick ... -format FORMAT info:` support literal `%%`,
 geometry (`%g`, `%P`), storage class (`%r`), compression (`%C`, `%Q`), and named properties including
 `%[channels]`, `%[width]`, `%[height]`, `%[depth]`, `%[bit-depth]`, `%[opaque]`,

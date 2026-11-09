@@ -3528,11 +3528,14 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
                 parts.push("\n");
               } else if (["b", "i", "u"].includes(tag)) {
                 styles.push(tag);
-                parts.push(`<${tag}>`);
+                parts.push(codec === "webvtt" && containerCodec === "ass" ? `{\\${tag}1}` : `<${tag}>`);
               } else if (["/b", "/i", "/u"].includes(tag)) {
                 const open = styles.lastIndexOf(tag.slice(1));
                 if (open >= 0) {
-                  while (styles.length > open) parts.push(`</${styles.pop()!}>`);
+                  while (styles.length > open) {
+                    const style = styles.pop()!;
+                    parts.push(codec === "webvtt" && containerCodec === "ass" ? `{\\${style}0}` : `</${style}>`);
+                  }
                 }
               } else if (encodeSrt && ["s", "/s"].includes(tag)) {
                 parts.push(`<${tag}>`);
@@ -3572,6 +3575,13 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
                 parts.push("</font>".repeat(fonts.pop() ?? 0));
               }
               position = end + 1;
+            } else if (codec === "webvtt" && text[position] === "&") {
+              const reference = ([
+                ["&amp;", "&"], ["&lt;", "<"], ["&gt;", ">"],
+                ["&nbsp;", "\\h"], ["&lrm;", ""], ["&rlm;", ""]
+              ] as const).find(([name]) => text.startsWith(name, position));
+              parts.push(reference ? reference[1] : "&");
+              position += reference ? reference[0].length : 1;
             } else {
               if (codec === "webvtt" && (text[position] === "{" || text[position] === "}")) parts.push("\\");
               parts.push(text[position]!);
@@ -3584,7 +3594,10 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           }
           parts.push(text.slice(position));
           while (fonts.length) parts.push("</font>".repeat(fonts.pop()!));
-          while (styles.length > 0) parts.push(`</${styles.pop()!}>`);
+          while (styles.length > 0) {
+            const style = styles.pop()!;
+            parts.push(codec === "webvtt" && containerCodec === "ass" ? `{\\${style}0}` : `</${style}>`);
+          }
           const data = encodeUtf8(parts.join(""));
           sample = { ...sample, data, size: data.byteLength, webvtt: undefined };
         }
@@ -3592,7 +3605,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           // Matroska ASS packets omit timestamps and include a read-order prefix.
           if (codec === "ass" && description?.extraData) return sample;
           let text = decodeUtf8(sample.data).replaceAll("\r\n", "\n").replaceAll("\n", "\\N");
-          for (const tag of ["i", "b", "u", "s"]) {
+          for (const tag of codec === "webvtt" ? [] : ["i", "b", "u", "s"]) {
             text = text.replaceAll(`<${tag}>`, `{\\${tag}1}`).replaceAll(`</${tag}>`, `{\\${tag}0}`);
           }
           const data = encodeUtf8(`${index},0,Default,,0,0,0,,${text}`);

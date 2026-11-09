@@ -5,6 +5,7 @@ export { icoAst } from "./ico.js";
 import { apngAst } from "./apng.js";
 export { apngAst } from "./apng.js";
 import { pjsAst } from "./pjs.js";
+import { realtextAst } from "./realtext.js";
 import { samiAst } from "./sami.js";
 import { lrcAst } from "./lrc.js";
 import { mpl2Ast } from "./mpl2.js";
@@ -2996,6 +2997,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     ttmlAst(),
     lrcAst(),
     samiAst(),
+    realtextAst(),
     subviewerAst(),
     microdvdAst(),
     mpl2Ast(),

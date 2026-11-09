@@ -53,3 +53,5 @@ export { encodeTga } from "./containers/tga.js";
 export { nutAst } from "./containers/nut.js";
 
 export { vocAst } from "./containers/voc.js";
+
+export { realtextAst } from "./containers/realtext.js";

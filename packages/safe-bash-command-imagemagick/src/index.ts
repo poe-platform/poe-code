@@ -5064,6 +5064,8 @@ function* applyInlineReadModifierSteps(img: RgbaImage, inlineGeom: string, kerne
     if (g.hasOffset) {
         return (yield* applyMagickCropSteps(img, inlineGeom, "northwest"));
     }
+    // Read geometry compares the raw width before applying the area modifier.
+    if (g.areaLimit === img.width) return img;
     return (yield* applyMagickResizeSteps(img, inlineGeom, kernel, false, false, false, settings, undefined, preserveSamples));
 }
 
@@ -11000,7 +11002,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    },
   } };
  }
- if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),...(image.delay?{delay:image.delay}:{}),...(image.storedDelay?{storedDelay:image.storedDelay}:{}),...((image as StoredMagickImage)[magickInput]?{[magickInput]:(image as StoredMagickImage)[magickInput]}:{}),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal,false,false,false,state.resizeFilter,undefined,readOptions.extract !== undefined);}}
+ if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),...(image.delay?{delay:image.delay}:{}),...(image.storedDelay?{storedDelay:image.storedDelay}:{}),...((image as StoredMagickImage)[magickInput]?{[magickInput]:(image as StoredMagickImage)[magickInput]}:{}),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else if(geometry.areaLimit!==image.width){const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal,false,false,false,state.resizeFilter,undefined,readOptions.extract !== undefined);}}
  return image;
  }
 }

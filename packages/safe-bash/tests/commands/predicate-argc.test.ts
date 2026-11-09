@@ -25,6 +25,18 @@ const cases: readonly (readonly [readonly string[], number])[] = [
   [["", "-o", "!"], 0],
   [["!", "-n", "value"], 1],
   [["!", "=", "!"], 0],
+  [["(", "!", "=", "!", ")"], 0],
+  [["(", "!", "==", "!", ")"], 0],
+  [["(", "!", "!=", "x", ")"], 0],
+  [["(", "!", "=", "x", ")"], 1],
+  [["!", "(", "!", "=", "!", ")"], 1],
+  [["!", "(", "!", "=", "x", ")"], 0],
+  [["(", "!", "!", "=", "!", ")"], 1],
+  [["(", "!", "!", "=", "x", ")"], 0],
+  [["(", "!", "=", "!", ")", "-a", "x"], 0],
+  [["(", "!", "=", "x", ")", "-o", "x"], 0],
+  [["x", "-a", "(", "!", "=", "!", ")"], 0],
+  [["(", "(", "!", "=", "!", ")", ")"], 0],
   [["(", "=", ")"], 1],
   [[")", "=", ")"], 0],
   [["!", ")", "=", ")"], 1],
@@ -97,12 +109,14 @@ for (const command of ["test", "["]) {
     } finally { await shell.dispose(); }
   });
 
-  test(`${command} applies recursive negation grammar throughout compound expressions`, async () => {
+  test(`${command} preserves recursive negation outside small grouped comparisons`, async () => {
     const expressions = [
       ["x", "-a", "!", "!=", "x"],
       ["y", "=", "y", "-o", "!", "=", "!"],
-      ["(", "!", "!=", "x", ")"],
-      ["(", "!", "=", "!", ")", "-a", "x"],
+      ["(", "!", "=", "!", "-a", "x", ")"],
+      ["(", "!", "!", "!", "=", "!", ")"],
+      ["(", "!", "=", "(", ")"],
+      ["(", "!", "=", ")", ")"],
     ];
     const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry([...basicCommands(), ...predicateCommands()]) });
     try {
@@ -114,6 +128,20 @@ for (const command of ["test", "["]) {
         const invoked = await shell.exec(source);
         assert.equal(invoked.exitCode, 2, source);
         assert.notEqual(invoked.stderr, "", source);
+      }
+    } finally { await shell.dispose(); }
+  });
+
+  test(`${command} compares expanded literal negation operands inside groups`, async () => {
+    const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry([...basicCommands(), ...predicateCommands()]) });
+    try {
+      for (const value of ["!", "x"]) {
+        for (const [prefix, exitCode] of [["", 0], ["! ", 1]] as const) {
+          const result = await shell.exec(`v='${value}'; ${command} ${prefix}'(' "$v" = "$v" ')'${command === "[" ? " ]" : ""}`);
+          assert.equal(result.exitCode, exitCode);
+          assert.equal(result.stdout, "");
+          assert.equal(result.stderr, "");
+        }
       }
     } finally { await shell.dispose(); }
   });

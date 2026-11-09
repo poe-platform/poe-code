@@ -140,8 +140,8 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
     };
     type Expression = { kind: "atom"; evaluate: Predicate } | { kind: "not"; inner: Expression }
       | { kind: "or"; groups: Expression[][] };
-    type Frame = { groups: Expression[][]; negate: boolean; pendingNot: boolean };
-    const frames: Frame[] = [{ groups: [[]], negate: false, pendingNot: false }];
+    type Frame = { groups: Expression[][]; negate: boolean; pendingNot: boolean; binaryOffset: number };
+    const frames: Frame[] = [{ groups: [[]], negate: false, pendingNot: false, binaryOffset: args.length === 3 ? 0 : -1 }];
     let expecting = true;
     while (true) {
       context.signal.throwIfAborted();
@@ -151,7 +151,7 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
         const shortGroup = token === "(" && (args.length > 3 && args[offset + 2] === ")"
           || args[offset + 1] === "!" && args[offset + 3] === ")");
         if (!shortGroup && (token === "!" || token === "(")
-          && !(args.length === 3 && offset === 0 && binary.has(args[1]!))) {
+          && !(offset === frame.binaryOffset && binary.has(args[offset + 1]!))) {
           offset++;
           if (token === "!") frame.pendingNot = !frame.pendingNot;
           else {
@@ -160,7 +160,18 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
               && args[offset] !== "!" && !unary.has(args[offset]!)) {
               throw new UsageError(`${args[offset]}: unary operator expected`);
             }
-            frames.push({ groups: [[]], negate: frame.pendingNot, pendingNot: false });
+            // Bash 5.3 applies argc rules to groups of up to four operands.
+            // Scan past the first operand, which may itself be a literal paren.
+            let binaryOffset = -1;
+            for (let end = offset + 1, depth = 1; end < args.length && end <= offset + 4; end++) {
+              if (args[end] === ")") depth--;
+              else if (args[end] === "(") depth++;
+              if (depth !== 0) continue;
+              if (end - offset === 3) binaryOffset = offset;
+              else if (end - offset === 4 && args[offset] === "!") binaryOffset = offset + 1;
+              break;
+            }
+            frames.push({ groups: [[]], negate: frame.pendingNot, pendingNot: false, binaryOffset });
             frame.pendingNot = false;
           }
           continue;

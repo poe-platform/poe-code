@@ -6,7 +6,7 @@ import { CommandRegistry } from "../../src/contracts/index.js";
 import { Shell } from "../../src/shell/shell.js";
 import { fixture, run } from "./helpers.js";
 
-function parentheses(depth: number, operands: readonly string[] = ["value"]): string[] {
+function parentheses(depth: number, operands: readonly string[] = ["value", "=", "value"]): string[] {
   return [...Array<string>(depth).fill("("), ...operands, ...Array<string>(depth).fill(")")];
 }
 
@@ -35,22 +35,20 @@ for (const command of ["test", "["]) {
   }
 
   test(`${command} keeps sibling nesting independent and string operands literal`, async () => {
-    for (const operands of [["x", "=", "x"], ["x", "!=", "y"]]) {
+    for (const operands of [["x", "=", "x"], ["x", "!=", "y"], ["!", "=", "!"]]) {
       const result = await run(command, [...parentheses(256, operands), ...suffix]);
       assert.equal(result.exitCode, 0);
       assert.equal(result.stderr, "");
     }
-    const result = await run(command, [...parentheses(256, [""]), "-o", ...parentheses(256), ...suffix]);
+    const result = await run(command, [...parentheses(256, ["", "=", "x"]), "-o", ...parentheses(256), ...suffix]);
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
   });
 
-  test(`${command} parses leading negation and parentheses as operators in nested expressions`, async () => {
-    for (const operands of [["!", "=", "!"], ["(", "=", "("]]) {
-      const result = await run(command, [...parentheses(256, operands), ...suffix]);
-      assert.equal(result.exitCode, 2);
-      assert.match(result.stderr, /missing '\)'/u);
-    }
+  test(`${command} parses unbalanced operand parentheses as operators in nested expressions`, async () => {
+    const result = await run(command, [...parentheses(256, ["(", "=", "("]), ...suffix]);
+    assert.equal(result.exitCode, 2);
+    assert.match(result.stderr, /missing '\)'/u);
   });
 
   test(`${command} preserves bounded filesystem predicates, negation and short circuiting`, async () => {
@@ -81,7 +79,7 @@ for (const command of ["test", "["]) {
   test(`${command} reports 3000 parentheses through Shell without a host stack diagnostic`, async () => {
     const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry([...basicCommands(), ...predicateCommands()]) });
     try {
-      const result = await shell.exec(`${command} ${"\\( ".repeat(3000)}value${" \\)".repeat(3000)}${suffix.length ? " ]" : ""}; echo rc=$?`);
+      const result = await shell.exec(`${command} ${"\\( ".repeat(3000)}value = value${" \\)".repeat(3000)}${suffix.length ? " ]" : ""}; echo rc=$?`);
       assert.equal(result.exitCode, 0);
       assert.equal(result.stdout, "rc=0\n");
       assert.equal(result.stderr, "");

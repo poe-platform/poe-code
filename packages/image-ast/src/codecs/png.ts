@@ -602,6 +602,7 @@ export function decodePngToCanvas(
   try {
     for (let i = 0; i < idatChunks.length; i++) {
       for (const chunk of inf.push(idatChunks[i]!, i === idatChunks.length - 1)) onData(chunk);
+      if (inf.complete) break;
     }
   } catch (error) {
     if (error instanceof ByteCodecError) return undefined;

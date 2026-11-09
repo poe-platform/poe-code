@@ -27,11 +27,19 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   let palette: Uint8Array | undefined;
 
   const decodeWarnings: string[] = [];
+  let hasIdat = false;
+  let idatEnded = false;
   let pos = 8;
   while (pos + 8 <= size) {
     const header=yield {position:pos,length:8};
     const len=new DataView(header.buffer,header.byteOffset,header.byteLength).getUint32(0,false);
     const type=String.fromCharCode(header[4]!,header[5]!,header[6]!,header[7]!);
+    if (type === "IDAT") {
+      if (idatEnded) throw new Error("PNG IDAT chunks must be consecutive");
+      hasIdat = true;
+    } else if (hasIdat) {
+      idatEnded = true;
+    }
     const dataStart=pos+8;
     if(dataStart+len>size)break;
     if ((header[4]! & 32) !== 0) {

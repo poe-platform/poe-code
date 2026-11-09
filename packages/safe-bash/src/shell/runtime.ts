@@ -7013,10 +7013,19 @@ export class Runtime {
     if (denied && !matches.length && !discovery) throw denied;
     return matches;
   }
-  processState(context: CommandContext, state: State, io: IO, arg0: ShellValue, args: readonly string[]): State {
+  async processState(context: CommandContext, state: State, io: IO, arg0: ShellValue, args: readonly string[]): Promise<State> {
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const variables = Object.assign(Object.create(null) as Record<string, string>, context.env, { PWD: state.logicalCwd ?? state.cwd });
     const exported = new Set(Object.keys(variables));
+    if (variables.OLDPWD !== undefined) {
+      try {
+        if (!variables.OLDPWD || (await interruptible(this.fs.stat(pathOf(state, variables.OLDPWD), { signal: this.signal }), this.signal)).type !== "directory") delete variables.OLDPWD;
+      } catch (error) {
+        this.signal.throwIfAborted();
+        if (!(error instanceof FsError)) throw error;
+        delete variables.OLDPWD;
+      }
+    }
     variables.OPTIND = "1";
     variables.OPTERR = "1";
     const child = trackState({
@@ -7081,7 +7090,7 @@ export class Runtime {
     }
     const arg0 = script ?? (commandString && args.length ? getCommandArguments(context).values[context.args.length - args.length]! : (context.argv0 ?? context.command));
     if (commandString) args.shift();
-    const child = this.processState(context, state, io, arg0, args);
+    const child = await this.processState(context, state, io, arg0, args);
     Object.assign(child, options);
     for (const args of shoptArguments) {
       if (await this.shoptBuiltin({ ...io, ...context, args }, child)) return 2;
@@ -7419,7 +7428,7 @@ export class Runtime {
     }
     source = scriptSource.source;
     const lineIndex = new SourceLineIndex(source, this.budget.parsing);
-    child ??= this.processState(context, state, io, target, args);
+    child ??= await this.processState(context, state, io, target, args);
     child.callerTopLevel = true;
     child.sourceNames = [target];
     if (direct) child.errexit = errexit;

@@ -16,6 +16,57 @@ async function script(fs: FileSystem, path: string, body: string, mode = 0o755):
   await fs.writeFile(path, encoder.encode(body), { mode });
 }
 
+for (const entry of ["bash --noprofile --norc -c", "bash -s", "bash /program", "/program"]) {
+  test(`child startup validates inherited OLDPWD without changing the parent: ${entry}`, async (context) => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work/a", { recursive: true });
+    await fs.writeFile("/work/file", encoder.encode("file"));
+    await fs.symlink("a", "/work/link");
+    await fs.symlink("missing", "/work/broken");
+    const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands());
+    context.after(() => shell.dispose());
+    const source = 'echo "old=<${OLDPWD-unset}>"';
+    await script(fs, "/program", `#!/bin/bash\n${source}`);
+    for (const [value, expected] of [
+      ["missing", "unset"], ["/work/missing", "unset"], ["", "unset"],
+      ["file", "unset"], ["file/child", "unset"], ["broken", "unset"],
+      ["./a", "./a"], ["/work/a", "/work/a"], ["link", "link"],
+    ]) {
+      const command = entry.endsWith("-c") ? `${entry} '${source}'` : entry;
+      const result = await shell.exec(`export OLDPWD='${value}'; ${command}; ${source}`, { stdin: source });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `old=<${expected}>\nold=<${value}>\n`, value);
+    }
+  });
+}
+
+test("discarded inherited OLDPWD stays exported but absent from command environments", async (context) => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  const result = await shell.exec("OLDPWD=missing bash -c 'declare -p OLDPWD; envget OLDPWD; OLDPWD=.; envget OLDPWD'");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "declare -x OLDPWD\n<unset>.");
+});
+
+test("inherited OLDPWD validation preserves filesystem cancellation", async (context) => {
+  const fs = new MemoryFileSystem();
+  const controller = new AbortController();
+  const reason = new FsError("ENOENT", "cancelled");
+  const stat = fs.stat.bind(fs);
+  fs.stat = async (path, options) => {
+    if (path === "/old") {
+      controller.abort(reason);
+      throw reason;
+    }
+    return stat(path, options);
+  };
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  await assert.rejects(shell.exec("OLDPWD=/old bash -c 'echo unexpected'", { signal: controller.signal }), error => error === reason);
+});
+
 for (const entry of ["./program", "/program", "bash program", "bash -- ./program", "sh program", "sh -- ./program"]) {
   test(`VFS script entry preserves literal arguments and argv0: ${entry}`, async () => {
     const { shell, fs } = setup();

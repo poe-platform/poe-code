@@ -36,7 +36,8 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
   const codecLongName = CODEC_LONG_NAMES[codecName] ?? codecName;
   const matroska = containerFormat === "matroska" || containerFormat === "webm";
   // Internal MP4/QuickTime aliases are not tags in standalone WebVTT or Matroska PCM.
-  const noCodecTag = containerFormat === "webvtt" || containerFormat === "matroska" && codecName === "pcm_s16le";
+  const noCodecTag = containerFormat === "webvtt" || containerFormat === "matroska" && codecName === "pcm_s16le"
+    || containerFormat === "aiff" && desc?.formatFourCC === "\0\0\0\0";
   const rawTag = desc?.formatFourCC ?? (track.type === "video" ? "avc1" : "mp4a");
   const tagFourCC = Array.from(rawTag).map(c => c.charCodeAt(0) < 32 ? `[${c.charCodeAt(0)}]` : c).join("");
   const sampleFormat = probeSampleFormat(track.type, codecName);

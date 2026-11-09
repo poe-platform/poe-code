@@ -97,6 +97,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
           isKeyframe: true, sampleDescriptionIndex: 1 });
       }
       return { ...track, duration: frames, samples,
+        codecDescriptions: compressed ? track.codecDescriptions : track.codecDescriptions.map(desc => ({ ...desc, formatFourCC: "\0\0\0\0" })),
         ...(options.decodeAudio !== false && sound.length % bytesPerFrame ? {
           decodeErrors: [`Invalid PCM packet: ${sound.length % bytesPerFrame} trailing bytes cannot form a ${bytesPerFrame}-byte sample frame`]
         } : {})

@@ -2252,14 +2252,15 @@ function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement:
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        const dr = Math.abs(samples[i]! / scale - target.r);
-        const dg = Math.abs(samples[i + 1]! / scale - target.g);
-        const db = Math.abs(samples[i + 2]! / scale - target.b);
-        const alpha = samples[i + 3]! / scale;
+        const dr = samples[i]! - target.r * scale;
+        const dg = samples[i + 1]! - target.g * scale;
+        const db = samples[i + 2]! - target.b * scale;
+        const alpha = samples[i + 3]!;
         // Native opaque painting compares alpha plus opacity-weighted RGB distance.
-        const distance = (alpha - target.a) ** 2
-            + (dr ** 2 + dg ** 2 + db ** 2) * (alpha / 255) * (target.a / 255) / 3;
-        const matched = distance <= fuzz ** 2;
+        // Subtract in sample units to preserve exact Q16 fuzz boundaries.
+        const distance = (alpha - target.a * scale) ** 2
+            + (dr ** 2 + dg ** 2 + db ** 2) * (alpha / (255 * scale)) * (target.a / 255) / 3;
+        const matched = distance <= (fuzz * scale) ** 2;
         if (invert ? !matched : matched) {
             for (let channel = 0; channel < 4; channel++) {
                 if (!mask[channel]) continue;
@@ -2284,14 +2285,15 @@ function* applyMagickTransparentSteps(img: RgbaImage, target: RgbaColor, fuzz: n
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        const dr = Math.abs(samples[i]! / scale - target.r);
-        const dg = Math.abs(samples[i + 1]! / scale - target.g);
-        const db = Math.abs(samples[i + 2]! / scale - target.b);
-        const alpha = samples[i + 3]! / scale;
+        const dr = samples[i]! - target.r * scale;
+        const dg = samples[i + 1]! - target.g * scale;
+        const db = samples[i + 2]! - target.b * scale;
+        const alpha = samples[i + 3]!;
         // Native transparent painting compares alpha plus opacity-weighted RGB distance.
-        const distance = (alpha - target.a) ** 2
-            + (dr ** 2 + dg ** 2 + db ** 2) * (alpha / 255) * (target.a / 255) / 3;
-        const matched = distance <= fuzz ** 2;
+        // Subtract in sample units to preserve exact Q16 fuzz boundaries.
+        const distance = (alpha - target.a * scale) ** 2
+            + (dr ** 2 + dg ** 2 + db ** 2) * (alpha / (255 * scale)) * (target.a / 255) / 3;
+        const matched = distance <= (fuzz * scale) ** 2;
         if (invert ? !matched : matched) {
             out[i + 3] = 0;
             if (data16) data16[i + 3] = 0;

@@ -1,3 +1,4 @@
+import { magickInput } from "./stored-stack.js";
 import { encodeStoredImage, isRawCoder, type OutputEncodeOptions } from "./raw-output.js";
 import { EncodedSnapshots } from "./encoded-snapshots.js";
 import { decodeFileImage } from "./image-raster.js";
@@ -115,6 +116,11 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                 try {
                     const consume = async (source: ImageByteSource) => {
                         entered = true;
+                        let mtimeMs: number | undefined;
+                        if (path !== "-") {
+                            try { mtimeMs = (await fs.stat(resolvePath(cwd, path), io)).mtimeMs; }
+                            catch (error) { if (!(error instanceof FsError) || error.code !== "ENOENT") throw error; }
+                        }
                         const checked: ImageByteSource = { size: source.size, async read(position, length) { try {
                                 return await source.read(position, length, io);
                             }
@@ -158,6 +164,11 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                                     }
                                     image = await retain(decodeImage(bytes, configured));
                                 }
+                                image = Object.assign(image, { [magickInput]: {
+                                    filePath: path, byteLen: checked.size, mtimeMs,
+                                    originalWidth: metadata?.width ?? image.width, originalHeight: metadata?.height ?? image.height,
+                                    sceneCount: metadata?.pages ?? 1, sceneIdx: configured.page ?? 0
+                                } });
                                 await visit?.(image, configured, metadata, checked.size);
                                 last = image; processed++; next = iterator.next();
                             }

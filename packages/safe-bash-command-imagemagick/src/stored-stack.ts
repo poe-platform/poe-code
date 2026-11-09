@@ -6,6 +6,7 @@ export const magickInput = Symbol("magickInput");
 export interface MagickFormatContext {
     filePath?: string;
     byteLen?: number;
+    mtimeMs?: number;
     originalWidth?: number;
     originalHeight?: number;
     sceneIdx?: number;

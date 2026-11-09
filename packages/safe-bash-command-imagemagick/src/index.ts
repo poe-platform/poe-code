@@ -4329,10 +4329,25 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
     };
 }
 
+function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickFormatContext }): ImageMetadata["properties"] {
+    const source = image[magickInput];
+    if (!source?.filePath) return image.properties;
+    const path = source.filePath;
+    return {
+        ...image.properties,
+        "Thumb::Image::Width": String(source.originalWidth ?? image.width),
+        "Thumb::Image::Height": String(source.originalHeight ?? image.height),
+        "Thumb::Document::Pages": String(source.sceneCount ?? 1),
+        "Thumb::URI": path.startsWith("/") ? `file://${path}` : path.includes(":") || path.startsWith(".") ? path : `./${path}`,
+        ...(source.byteLen === undefined ? {} : { "Thumb::Size": String(source.byteLen) }),
+        ...(source.mtimeMs === undefined ? {} : { "Thumb::MTime": String(Math.floor(source.mtimeMs / 1000)) })
+    };
+}
+
 function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Generator<void, RgbaImage, void> {
     if (thumbnail) {
         const { virtualCanvas: ignoredCanvas, ...reset } = img;
-        img = { ...reset, properties: updateMagickProperty(reset.properties, "comment") };
+        img = { ...reset, properties: updateMagickProperty(thumbnailProperties(reset), "comment") };
     }
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczos3" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
@@ -4365,7 +4380,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
 async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: ReturnType<typeof magickResizeOptions>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Promise<StoredRgbaImage> {
     if (thumbnail) {
         const { virtualCanvas: ignoredCanvas, ...reset } = image;
-        image = { ...reset, properties: updateMagickProperty(reset.properties, "comment") };
+        image = { ...reset, properties: updateMagickProperty(thumbnailProperties(reset), "comment") };
     }
     if (!options) return image;
     const width = options.width!, height = options.height!;
@@ -5719,7 +5734,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         });
         const source: MagickFormatContext = {
             filePath: cleanToken, byteLen: rawBytes.byteLength,
-            originalWidth: inputMeta?.width ?? img.width, originalHeight: inputMeta?.height ?? img.height, sceneIdx: pageIdx
+            originalWidth: inputMeta?.width ?? img.width, originalHeight: inputMeta?.height ?? img.height, sceneCount: totalPages, sceneIdx: pageIdx
         };
         img = Object.assign(img, { [magickInput]: source });
         results.push(img);
@@ -11796,7 +11811,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    let path=baseToken;const colon=path.indexOf(":");if(colon>0&&extToImageFormat(path.slice(0,colon)))path=path.slice(colon+1);
    if(readOptions.visit){
-    await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total))yield {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame,configured,metadata,byteLength)=>{image=await finish(Object.assign(frame,{[magickInput]:{filePath:path,byteLen:byteLength,originalWidth:metadata?.width??frame.width,originalHeight:metadata?.height??frame.height,sceneIdx:configured.page??0}}));await readOptions.visit!(image);},readOptions.source);
+    await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total))yield {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame)=>{image=await finish(frame);await readOptions.visit!(image);},readOptions.source);
     return image;
    }
    image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},undefined,readOptions.source);

@@ -33,7 +33,9 @@ export async function fadeAudio(
     } else {
       const time = key === "st" || key === "start_time" || key === "d" || key === "duration";
       const scale = time && value.endsWith("ms") ? 0.001 : time && value.endsWith("us") ? 0.000001 : 1;
-      const number = Number(time && value.endsWith("s") ? value.slice(0, scale === 1 ? -1 : -2) : value) * scale;
+      const number = time
+        ? Number(value.endsWith("s") ? value.slice(0, scale === 1 ? -1 : -2) : value) * scale
+        : parseFilterExpression(value, "afade", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
       if (!value || !Number.isFinite(number) || number < 0) throw new Error(`afade: invalid ${key}`);
       if (key === "ss" || key === "start_sample" || key === "ns" || key === "nb_samples") {
         // FFmpeg integer options round to nearest, with exact halves going to even.
@@ -55,7 +57,7 @@ export async function fadeAudio(
   }
   if (startTime > 0) start = Math.round(startTime * sampleRate);
   if (duration > 0) samples = Math.round(duration * sampleRate);
-  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(samples) || samples < 0) throw new Error("afade: invalid timing");
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(samples) || samples < 1) throw new Error("afade: invalid timing");
   const length = channels[0]?.length ?? 0;
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
@@ -76,10 +78,7 @@ export async function fadeAudio(
     }
     const pts = frame ? frame.pts + i - frame.start : startSample + i;
     const progress = Math.max(0, Math.min(1, (pts - start) / samples));
-    // A positive duration can round to zero samples; both fades mute the boundary.
-    const fraction = samples === 0
-      ? (type === "out" ? (pts < start ? 1 : 0) : (pts > start ? 1 : 0))
-      : type === "out" ? 1 - progress : progress;
+    const fraction = type === "out" ? 1 - progress : progress;
     const gain = enabled ? silence + (unity - silence) * (curve === "qua" ? fraction * fraction : fraction) : 1;
     for (let c = 0; c < channels.length; c++) {
       const sample = channels[c]![i]! * gain;

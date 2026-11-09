@@ -6374,6 +6374,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else if (token === "-alpha") {
         const mode = (tokens[++i] ?? "on").toLowerCase();
+        highDepth = ["deactivate", "associate", "disassociate", "off", "opaque", "activate", "on", "set", "extract"].includes(mode);
         if (mode === "remove") {
             highDepth = true;
             apply = function* (im) {
@@ -6401,16 +6402,25 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         else if (mode === "associate" || mode === "disassociate") {
             apply = function* (im) {
                 const out = new Uint8Array(im.data);
+                const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (idx % 65536 === 0) yield;
-                    const alpha = im.hasAlpha ? out[idx + 3]! / 255 : 1;
+                    const alpha = im.hasAlpha ? (data16 ? data16[idx + 3]! / 65535 : out[idx + 3]! / 255) : 1;
                     const scale = mode === "associate" ? alpha : 1 / Math.max(alpha, 1e-12);
-                    for (let channel = 0; channel < 3; channel++)
-                        out[idx + channel] = clampByteVal(out[idx + channel]! * scale);
-                    out[idx + 3] = 255;
+                    for (let channel = 0; channel < 3; channel++) {
+                        if (data16) {
+                            data16[idx + channel] = Math.min(65535, Math.round(data16[idx + channel]! * scale));
+                            out[idx + channel] = clampByteVal(data16[idx + channel]! / 257);
+                        } else out[idx + channel] = clampByteVal(out[idx + channel]! * scale);
+                    }
                 }
-                const { data16: ignored, ...metadata } = im;
-                return { ...metadata, data: out, hasAlpha: false };
+                return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: false };
+            };
+        }
+        else if (mode === "deactivate") {
+            apply = function* (im) {
+                yield;
+                return { ...im, hasAlpha: false };
             };
         }
         else if (mode === "background") {
@@ -6429,17 +6439,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 return { ...im, data: out };
             };
         }
-        else if (mode === "off" || mode === "deactivate" || mode === "opaque") {
-            highDepth = true;
+        else if (mode === "off" || mode === "opaque") {
             apply = function* (im) {
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);
-                const data16 = im.data16?.slice();
+                const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
                 for (let idx = 3; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
-                    out[idx] = 255;
-                    if (data16) data16[idx] = 65535;
+                    out[idx] = mode === "off" ? 0 : 255;
+                    if (data16) data16[idx] = mode === "off" ? 0 : 65535;
                 }
                 return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: mode === "opaque" };
             };
@@ -6474,26 +6483,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 return { ...im, data: out, hasAlpha: true };
             };
         }
-        else if (mode === "on" || mode === "set" || mode === "activate") {
+        else if (mode === "activate") {
             apply = function* (im) {
-                return (yield* ensureAlphaImageSteps(im, 1));
+                yield;
+                return { ...im, hasAlpha: true, channels: im.channels <= 2 ? 2 : 4 };
+            };
+        }
+        else if (mode === "on" || mode === "set") {
+            apply = function* (im) {
+                if (im.hasAlpha) return im;
+                const opaque = yield* prepareInactiveAlphaOutput(im);
+                return { ...opaque, hasAlpha: true, channels: im.channels <= 2 ? 2 : 4 };
             };
         }
         else if (mode === "extract") {
-            highDepth = true;
             apply = function* (im) {
-                const mask = yield* extractChannelImageSteps((yield* ensureAlphaImageSteps(im, 1)), 3);
-                if (im.data16) {
-                    const data16 = new Uint16Array(im.data16.length);
-                    for (let idx = 0; idx < data16.length; idx += 4) {
-                        if (idx % 65536 === 0) yield;
-                        const alpha = im.hasAlpha ? im.data16[idx + 3]! : 65535;
-                        data16[idx] = data16[idx + 1] = data16[idx + 2] = alpha;
-                        data16[idx + 3] = 65535;
-                    }
-                    return { ...mask, data16 };
-                }
-                return mask;
+                return yield* extractChannelImageSteps({ ...im, hasAlpha: true }, 3);
             };
         }
         else { throw new Error(`Unsupported alpha mode: ${mode}`); }
@@ -7165,11 +7170,24 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
     };
 }
 
+// Inactive alpha remains in the working pixels, but must not leak into encoded output.
+function* prepareInactiveAlphaOutput(image: RgbaImage): Generator<void, RgbaImage, void> {
+    if (image.hasAlpha) return image;
+    const data = new Uint8Array(image.data);
+    const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+    for (let index = 3; index < data.length; index += 4) {
+        if (index % 65536 === 3) yield;
+        data[index] = 255;
+        if (data16) data16[index] = 65535;
+    }
+    return { ...image, data, ...(data16 ? { data16 } : {}) };
+}
+
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: MagickState["dither"] = false, diffusionAmount = 1): Generator<void, RgbaImage, void> {
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
     if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
-    image = yield* prepareHueOutput(image, format);
+    image = yield* prepareInactiveAlphaOutput(yield* prepareHueOutput(image, format));
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) image = { ...image, backgroundColor: { r: image.data[0]!, g: image.data[1]!, b: image.data[2]!, a: 255 } };
     if (format === "miff") {
         const scene = (image as MagickImage)[magickInput]?.sceneIdx ?? 0;
@@ -7187,6 +7205,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
     }
+    if (!image.hasAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) {
         const pixel = await backend.storage.read(image.position, 4);
         image = { ...image, backgroundColor: { r: pixel[0]!, g: pixel[1]!, b: pixel[2]!, a: 255 } };

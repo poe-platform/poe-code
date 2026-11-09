@@ -166,3 +166,5 @@ Read default RGB FTXT records with `magick -size 2x1 ftxt:rgb.dat out.png`. Each
 Write portable half-float maps with `magick input.png output.phm` (or `phm:out.bin` / `phm:-`); output uses big-endian binary16 RGB or grayscale samples in bottom-to-top order, without alpha. Read portable half-float maps with `magick input.phm output.png`; RGB and grayscale inputs support both byte orders and retain the original row order.
 
 Read RGB and RGBA QOI images with lossless 8-bit samples, including colors under fully transparent pixels.
+
+`-alpha deactivate` preserves alpha samples for later `activate` or `extract`. `associate` and `disassociate` also preserve those samples while transforming RGB. Disabled alpha writes opaque output; `off` clears stored alpha, while `set` initializes disabled alpha to opaque.

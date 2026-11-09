@@ -4,7 +4,8 @@ Split virtual files or streamed input into smaller files with Safe Bash. Choose
 line counts (`-l`), byte counts (`-b`), bounded line windows (`-C`), or chunk
 selection/distribution (`-n`). Alphabetic, decimal and hexadecimal suffixes,
 explicit suffix widths, custom record separators and empty-file elision (`-e`)
-are supported. Long options accept unique GNU-style abbreviations, such as
+are supported. Byte and line counts may exceed JavaScript’s safe-integer range;
+large counts do not allocate buffers beyond the input actually read. Long options accept unique GNU-style abbreviations, such as
 `--by=2` and `--verb`; ambiguous prefixes such as `--ver` are rejected.
 Separators must be one byte (or `\0` for NUL). As in GNU split on signed-char
 targets, bytes `0x80`–`0xff` are accepted and use newline boundaries.

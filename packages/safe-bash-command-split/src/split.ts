@@ -14,12 +14,12 @@ async function* segment(cursor: Cursor, args: SplitArguments): AsyncGenerator<Ui
   while (remaining > 0) {
     const bytes = await cursor.peek();
     if (!bytes.length) break;
-    let count = args.mode === "bytes" ? Math.min(remaining, bytes.length) : bytes.length;
+    let count = args.mode === "bytes" ? (remaining < bytes.length ? Number(remaining) : bytes.length) : bytes.length;
     if (args.mode === "lines") {
       for (let offset = 0; offset < bytes.length; offset++) {
-        if (bytes[offset] === args.separator && --remaining === 0) { count = offset + 1; break; }
+        if (bytes[offset] === args.separator && --remaining === 0n) { count = offset + 1; break; }
       }
-    } else remaining -= count;
+    } else remaining -= BigInt(count);
     { const s = cursor.budget.step(count); if (s) await s; }
     yield cursor.take(count);
   }
@@ -83,7 +83,7 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       }
     }
     cursor = new Cursor(context, args.input, budget);
-    const window = args.mode === "line-bytes" ? new LineBytes(cursor, args.size, args.separator) : undefined;
+    const window = args.mode === "line-bytes" ? new LineBytes(cursor, Number(args.size), args.separator) : undefined;
     let chunkInput: Uint8Array | undefined;
     if (args.mode === "chunks") {
       const source = (async function* (): ByteSource {
@@ -96,13 +96,14 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       })();
       chunkInput = await collectBytes(source, { signal, ...(Number.isFinite(limits.maxBufferBytes) ? { maxBytes: limits.maxBufferBytes } : {})});
     }
+    const size = Number(args.size);
     const records = new Map<number, [number, number][]>();
     if (chunkInput && args.chunkMode === "round-robin") {
       let start = 0, record = 0;
       for (let offset = 0; offset < chunkInput.length; offset++) {
         { const s = budget.step(1); if (s) await s; }
         if (chunkInput[offset] !== args.separator && offset + 1 !== chunkInput.length) continue;
-        const index = record++ % args.size;
+        const index = record++ % size;
         const ranges = records.get(index) ?? [];
         ranges.push([start, offset + 1]);
         records.set(index, ranges);
@@ -112,9 +113,9 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
     let files = 0;
     let chunkIndex = 0;
     let chunkOffset = 0;
-    const chunkSize = chunkInput ? Math.floor(chunkInput.length / args.size) : 0;
+    const chunkSize = chunkInput ? Math.floor(chunkInput.length / size) : 0;
     while (true) {
-      if (chunkInput && chunkIndex === args.size) break;
+      if (chunkInput && chunkIndex === size) break;
       const chunks = chunkInput ? (async function* (): AsyncGenerator<Uint8Array> {
         if (args.chunkMode === "round-robin") {
           for (const [start, end] of records.get(chunkIndex) ?? []) {
@@ -122,7 +123,7 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
           }
           return;
         }
-        let end = chunkSize * (chunkIndex + 1) + Math.min(chunkIndex + 1, chunkInput.length % args.size);
+        let end = chunkSize * (chunkIndex + 1) + Math.min(chunkIndex + 1, chunkInput.length % size);
         if (args.chunkMode === "lines") {
           end = Math.max(end, chunkOffset);
           while (end < chunkInput.length && end > 0 && chunkInput[end - 1] !== args.separator) {
@@ -202,6 +203,8 @@ export function evalSyncSplit(
     if (args.input === "-" && inBytes === undefined) return undefined;
     const src = args.input === "-" ? inBytes! : readFileSync?.(args.input);
     if (!src) return undefined;
+    // A synchronous input is a single bounded byte array; larger counts cannot split it.
+    const size = Number(args.size);
     const fatalDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
     const decodeSyncSlice = (bytes: Uint8Array): string | undefined => {
       if (bytes.includes(0)) return undefined;
@@ -215,7 +218,7 @@ export function evalSyncSplit(
         let record = 0;
         for (let offset = 0; offset < src.length; offset++) {
           if (src[offset] !== args.separator && offset + 1 !== src.length) continue;
-          if (record++ % args.size === ci) {
+          if (record++ % size === ci) {
             parts.push(src.subarray(start, offset + 1));
           }
           start = offset + 1;
@@ -229,8 +232,8 @@ export function evalSyncSplit(
         }
         return decodeSyncSlice(merged);
       }
-      const chunkSize = Math.floor(src.length / args.size);
-      const rem = src.length % args.size;
+      const chunkSize = Math.floor(src.length / size);
+      const rem = src.length % size;
       if (args.chunkMode === "bytes") {
         const start = chunkSize * ci + Math.min(ci, rem);
         const end = chunkSize * (ci + 1) + Math.min(ci + 1, rem);
@@ -252,14 +255,14 @@ export function evalSyncSplit(
     const names = new Names(args, limits);
     const chunks: Uint8Array[] = [];
     if (args.mode === "bytes") {
-      for (let off = 0; off < src.length; off += args.size) {
-        chunks.push(src.subarray(off, Math.min(src.length, off + args.size)));
+      for (let off = 0; off < src.length; off += size) {
+        chunks.push(src.subarray(off, Math.min(src.length, off + size)));
       }
     } else if (args.mode === "lines") {
       let start = 0;
       let lines = 0;
       for (let off = 0; off < src.length; off++) {
-        if (src[off] === args.separator && ++lines === args.size) {
+        if (src[off] === args.separator && ++lines === size) {
           chunks.push(src.subarray(start, off + 1));
           start = off + 1;
           lines = 0;
@@ -285,12 +288,12 @@ export function evalSyncSplit(
         if (end < src.length) end++;
         let lineSlice = src.subarray(pos, end);
         pos = end;
-        while (lineSlice.length > args.size) {
+        while (lineSlice.length > size) {
           flushBuf();
-          chunks.push(lineSlice.subarray(0, args.size));
-          lineSlice = lineSlice.subarray(args.size);
+          chunks.push(lineSlice.subarray(0, size));
+          lineSlice = lineSlice.subarray(size);
         }
-        if (bufLen + lineSlice.length > args.size) flushBuf();
+        if (bufLen + lineSlice.length > size) flushBuf();
         if (lineSlice.length > 0) {
           bufParts.push(lineSlice);
           bufLen += lineSlice.length;
@@ -299,12 +302,12 @@ export function evalSyncSplit(
       flushBuf();
     } else if (args.mode === "chunks") {
       if (args.chunkMode === "round-robin") {
-        const buckets: Uint8Array[][] = Array.from({ length: args.size }, () => []);
+        const buckets: Uint8Array[][] = Array.from({ length: size }, () => []);
         let start = 0;
         let rec = 0;
         for (let off = 0; off < src.length; off++) {
           if (src[off] !== args.separator && off + 1 !== src.length) continue;
-          buckets[rec++ % args.size]!.push(src.subarray(start, off + 1));
+          buckets[rec++ % size]!.push(src.subarray(start, off + 1));
           start = off + 1;
         }
         for (const b of buckets) {
@@ -315,10 +318,10 @@ export function evalSyncSplit(
           chunks.push(merged);
         }
       } else {
-        const chunkSize = Math.floor(src.length / args.size);
-        const rem = src.length % args.size;
+        const chunkSize = Math.floor(src.length / size);
+        const rem = src.length % size;
         let chunkOffset = 0;
-        for (let idx = 0; idx < args.size; idx++) {
+        for (let idx = 0; idx < size; idx++) {
           let end = chunkSize * (idx + 1) + Math.min(idx + 1, rem);
           if (args.chunkMode === "lines") {
             end = Math.max(end, chunkOffset);

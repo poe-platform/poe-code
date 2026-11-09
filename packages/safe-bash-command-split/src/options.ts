@@ -32,7 +32,7 @@ export function settings(options: SplitCommandsOptions): SplitLimits {
 
 export interface SplitArguments {
   readonly mode: "lines" | "bytes" | "line-bytes" | "chunks";
-  readonly size: number;
+  readonly size: bigint;
   readonly chunkMode: "bytes" | "lines" | "round-robin";
   readonly selectedChunk: number;
   readonly input: string;
@@ -47,23 +47,29 @@ export interface SplitArguments {
   readonly verbose: boolean;
 }
 
-function number(text: string, label: string, units = false, zero = false): number {
+function count(text: string, label: string, units = false, zero = false): bigint {
   const match = /^[\t\n\v\f\r ]*\+?([0-9]*)([a-zA-Z]*)$/u.exec(text);
   if (!match || (!match[1] && (!units || !match[2] || text !== match[2]))) throw new PublicDiagnostic(`invalid ${label}: '${text}'`);
   const suffix = match[2]!;
-  let multiplier = 1;
+  let multiplier = 1n;
   if (suffix) {
     if (!units) throw new PublicDiagnostic(`invalid ${label}: '${text}'`);
-    if (suffix === "b") multiplier = 512;
+    if (suffix === "b") multiplier = 512n;
     else {
       const unit = /^([kKmMGTPEZYRQ])(?:(i?B))?$/u.exec(suffix);
       if (!unit) throw new PublicDiagnostic(`invalid ${label}: '${text}'`);
       const exponent = "KMGTPEZYRQ".indexOf(unit[1]!.toUpperCase()) + 1;
-      multiplier = (unit[2] === "B" ? 1000 : 1024) ** exponent;
+      multiplier = (unit[2] === "B" ? 1000n : 1024n) ** BigInt(exponent);
     }
   }
-  const value = Number(match[1] || "1") * multiplier;
-  if (!Number.isSafeInteger(value) || value < (zero ? 0 : 1)) throw new PublicDiagnostic(`invalid ${label}: '${text}'`);
+  const value = BigInt(match[1] || "1") * multiplier;
+  if (value < (zero ? 0n : 1n)) throw new PublicDiagnostic(`invalid ${label}: '${text}'`);
+  return value;
+}
+
+function number(text: string, label: string, units = false, zero = false): number {
+  const value = Number(count(text, label, units, zero));
+  if (!Number.isSafeInteger(value)) throw new PublicDiagnostic(`invalid ${label}: '${text}'`);
   return value;
 }
 
@@ -74,7 +80,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits, arg
     throw new PublicDiagnostic("split argument limit exceeded");
   }
   let mode: SplitArguments["mode"] | undefined;
-  let size = 1000;
+  let size = 1000n;
   let legacyLines: string | undefined;
   let chunkMode: SplitArguments["chunkMode"] = "bytes";
   let selectedChunk = 0;
@@ -117,14 +123,14 @@ export function parseArguments(args: readonly string[], limits: SplitLimits, arg
         const parts = value!.slice(start).split("/");
         if (parts[0] === "l" || parts[0] === "r") chunkMode = parts.shift() === "l" ? "lines" : "round-robin";
         if (parts.length < 1 || parts.length > 2) throw new PublicDiagnostic(`invalid number of chunks: '${value}'`);
-        size = number(parts[parts.length - 1]!, "number of chunks");
+        size = BigInt(number(parts[parts.length - 1]!, "number of chunks"));
         if (parts.length === 2) {
           selectedChunk = number(parts[0]!, "chunk number");
           if (selectedChunk > size) throw new PublicDiagnostic(`invalid chunk number: '${value}'`);
         }
         return;
       }
-      size = number(value!, option === "l" ? "number of lines" : option === "n" ? "number of chunks" : "number of bytes", option === "b" || option === "C");
+      size = count(value!, option === "l" ? "number of lines" : option === "n" ? "number of chunks" : "number of bytes", option === "b" || option === "C");
     }
   };
   const long: Readonly<Record<string, string>> = {

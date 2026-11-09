@@ -99,7 +99,7 @@ test("legacy counts still reject modern split modes and invalid final counts bef
     assert.ok(result.stderr.includes("cannot split in more than one way"));
     assert.deepEqual(await files(result.fs), {});
   }
-  for (const args of [["-1", "-0"], ["-d0"], ["-9007199254740992"]]) {
+  for (const args of [["-1", "-0"], ["-d0"]]) {
     const result = await run(args, "a\nb\n");
     assert.equal(result.exitCode, 1);
     assert.deepEqual(await files(result.fs), {});

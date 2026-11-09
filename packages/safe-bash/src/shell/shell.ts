@@ -880,6 +880,7 @@ export class Shell implements PluginHost {
           true,
         );
         // Finalizers run after child scopes and cooperative cleanup, including cancellation.
+        if (currentState instanceof RootShellState) currentState.directoryFileSystem = runtime.fs;
         scope.registerFinalizer(runtime.releaseAnchorResources.bind(runtime));
         }
         const aliases = currentState.expand_aliases ? currentState.aliases : undefined;

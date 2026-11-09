@@ -117,6 +117,10 @@ export class DeviceFileSystem implements FileSystem {
 
   _entryAuthority = sharedUnknownEntryAuthority;
 
+  get trackDirectory(): FileSystem["trackDirectory"] {
+    return this.#filesystem.trackDirectory?.bind(this.#filesystem);
+  }
+
   constructor(filesystem: FileSystem) {
     this.#filesystem = filesystem;
     this.capabilities = globalCapabilities(filesystem);

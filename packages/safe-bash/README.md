@@ -54,7 +54,10 @@ This bounds shell output transport, not arbitrary programs: command substitution
 variables, arrays, arguments, process substitution and individual commands may
 retain data. See [streaming boundaries](src/contracts/streaming-execution.md).
 Each `exec()` starts fresh shell variables, functions, and working-directory state;
-filesystem changes persist in the supplied `fs`. The invocation-local `umask`
+filesystem changes persist in the supplied `fs`. With the memory filesystem,
+relative file access follows working-directory and ancestor renames; `pwd -P`
+reports the moved path while logical `PWD` stays unchanged until `cd`.
+The invocation-local `umask`
 starts at `0022`, accepts octal or symbolic modes, and is inherited by child shells.
 Use `shell.createSession()` to retain shell state, including aliases and `set --`
 arguments, across `session.exec()` calls. With `backgroundJobs: true`, session

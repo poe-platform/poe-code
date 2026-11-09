@@ -99,6 +99,7 @@ cause. Preserve cancellation/control exceptions separately. Cross-family
 | Read and write bytes | `readFile`, `writeFile`, `appendFile` |
 | Inspect entries | `stat`, `lstat`, `readdir`, `realpath`, `access` |
 | Change the namespace | `mkdir`, `rm`, `rename`, `copyFile` |
+| Follow directory renames | Optional synchronous `trackDirectory(path)` metadata; memory tracks directory and ancestor moves. Returns `undefined` when unavailable; removal ends tracking. |
 | Remove an empty directory | Optional `rmdir`; never a recursive-delete fallback |
 | Links and metadata | Optional `readlink`, `symlink`, `link`, `chmod`, `utimes`, `truncate` |
 | Enumerate directories lazily | Optional `iterateDirectory`; memory, native and paged S3 backends, with mount/overlay/readonly/quota/device/scoped delegation; backend order, no sorted-array fallback |

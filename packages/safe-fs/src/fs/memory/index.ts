@@ -758,6 +758,7 @@ export class MemoryFileSystem implements FileSystem {
   mutationTick = 0;
   readonly _owner: OwnedStore;
   private readonly root: DirectoryNode;
+  private readonly directoryLocations = new WeakMap<DirectoryNode, { parent: DirectoryNode; name: string }>();
   private totalBytes = 0;
   symlinkCount = 0;
 
@@ -2729,6 +2730,9 @@ export class MemoryFileSystem implements FileSystem {
       this.changed(target.parent);
       node.ctimeMs = Date.now();
       node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
+      if (node.type === "directory" && this.directoryLocations.has(node)) {
+        this.rememberDirectory(target.path);
+      }
     } catch (error) {
       if (error instanceof FsError) throw new FsError(error.code, { syscall: "rename", path: source, dest: destination, cause: error });
       throw error;
@@ -2755,6 +2759,46 @@ export class MemoryFileSystem implements FileSystem {
   async realpath(path: string, options: FsOptions = {}): Promise<string> {
     options.signal?.throwIfAborted();
     return this.resolve(path, "realpath").path;
+  }
+
+  private rememberDirectory(path: string): void {
+    let parent = this.root;
+    for (const name of path.split("/").filter(Boolean)) {
+      const node = parent.entries.get(name);
+      if (node?.type !== "directory") return;
+      this.directoryLocations.set(node, { parent, name });
+      parent = node;
+    }
+  }
+
+  trackDirectory(path: string): { readonly path: string } | undefined {
+    let resolved: ReturnType<MemoryFileSystem["resolve"]>;
+    try { resolved = this.resolve(path, "trackDirectory"); }
+    catch (error) {
+      if (error instanceof FsError && ["ENOENT", "ENOTDIR", "EACCES"].includes(error.code)) return undefined;
+      throw error;
+    }
+    const directory = resolved.node;
+    if (directory?.type !== "directory") return undefined;
+    this.rememberDirectory(resolved.path);
+    const inode = directory.ino;
+    let currentPath = resolved.path;
+    let tick = this.mutationTick;
+    return Object.freeze(Object.defineProperty({ path: currentPath }, "path", { get: () => {
+      if (tick === this.mutationTick) return currentPath;
+      tick = this.mutationTick;
+      if (directory.ino !== inode) return currentPath;
+      const names: string[] = [];
+      let node = directory;
+      while (node !== this.root) {
+        const location = this.directoryLocations.get(node);
+        if (!location || location.parent.entries.get(location.name) !== node) return currentPath;
+        names.push(location.name);
+        node = location.parent;
+      }
+      currentPath = `/${names.reverse().join("/")}`;
+      return currentPath;
+    } }));
   }
 
   access(path: string, mode = 0, options: FsOptions = {}): Promise<void> {

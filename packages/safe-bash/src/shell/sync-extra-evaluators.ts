@@ -18197,7 +18197,7 @@ const syncExtraRuntimeMethods = {
           stage0Formatted = evalSyncEnv(subArgs0, rawState.exported, rawState.variables);
         } else if (w0Plain0 === "pwd") {
           if (subArgs0.length === 0 || (subArgs0.length === 1 && (subArgs0[0] === "-L" || subArgs0[0] === "--logical"))) {
-            stage0Formatted = rawState.cwd + "\n";
+            stage0Formatted = (rawState.logicalCwd ?? rawState.cwd) + "\n";
           }
         } else if (w0Plain0 === "awk") {
           const awk0 = this.evalSyncAwk([], subArgs0);

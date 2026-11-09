@@ -946,6 +946,7 @@ export interface State extends DynamicVariableState {
   checkhash?: boolean;
   dotglob?: boolean;
   globskipdots?: boolean;
+  sourcepath?: boolean;
   extglob?: boolean;
   globstar?: boolean;
   nullglob?: boolean;
@@ -7033,8 +7034,9 @@ export class Runtime {
     }
     variables.OPTIND = "1";
     variables.OPTERR = "1";
-    const child = trackState({
-      umask: state.umask ?? 0o022, extensions: forkExtensions(state.extensions, "process"), cwd: state.cwd, logicalCwd: state.logicalCwd, variables, exported, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true }, directoryStack: { entries: [], bytes: 0 }, dotglob: false, globstar: false, positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, errexit: false, }, this.budget, io[invocationScope]);
+    const child = trackState(Object.assign(new RootShellState(state.cwd, variables, exported, forkExtensions(state.extensions, "process")), {
+      directoryFileSystem: this.fs, logicalCwd: state.logicalCwd,
+      umask: state.umask ?? 0o022, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true }, directoryStack: { entries: [], bytes: 0 }, dotglob: false, globstar: false, positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, errexit: false, }), this.budget, io[invocationScope]);
     for (const name of state.exportedFunctions ?? []) {
       const body = state.functions.get(name);
       const key = `BASH_FUNC_${name}%%`;
@@ -7544,9 +7546,18 @@ export class Runtime {
   }
   async sourceBuiltin(context: CommandContext, state: State, io: IO, special: boolean): Promise<number> {
     const args = [...context.args];
-    if (args[0] === "--") args.shift();
-    else if (args[0]?.startsWith("-") && args[0] !== "-") {
-      await this.diagnostic(io, `${context.command}: ${args[0]}: unsupported option`);
+    let searchPath: string | undefined;
+    while (args[0]?.startsWith("-") && args[0] !== "-") {
+      const option = args.shift()!;
+      if (option === "--") break;
+      if (option.startsWith("-p")) {
+        searchPath = option.length > 2 ? option.slice(2) : args.shift();
+        if (searchPath !== undefined) continue;
+        await this.diagnostic(io, `${context.command}: -p: option requires an argument`);
+      } else {
+        await this.diagnostic(io, `${context.command}: ${option}: unsupported option`);
+      }
+      await writeDiagnostic(io.stderr, `${context.command}: usage: ${context.command} [-p path] filename [arguments]\n`);
       if (special) throw new Flow("exit", 2);
       return 2;
     }
@@ -7562,9 +7573,10 @@ export class Runtime {
     let source: string;
     try {
       const options = { signal: this.signal };
-      if (filename && !filename.includes("/") && state.variables.PATH) {
+      const pathList = searchPath ?? (state.sourcepath !== false ? state.variables.PATH : undefined);
+      if (filename && !filename.includes("/") && pathList !== undefined) {
         let found = false;
-        for (const candidate of pathTargets(filename, state.variables.PATH, this.budget.limits, this.signal, limit => this.budget.fail(limit))) {
+        for (const candidate of pathTargets(filename, pathList, this.budget.limits, this.signal, limit => this.budget.fail(limit))) {
           const path = pathOf(state, candidate);
           try {
             if (!await interruptible(this.budget.pathLookup.isFile(this.fs, path, this.signal), this.signal)) continue;
@@ -7577,7 +7589,7 @@ export class Runtime {
             if (!["ENOENT", "ENOTDIR", "EACCES", "EPERM"].includes(errorCode(error) ?? "")) throw error;
           }
         }
-        if (!found && state.profile === "sh") throw new CommandFailure(`${context.command}: ${filename}: file not found`, 1);
+        if (!found && (searchPath !== undefined || state.profile === "sh")) throw new CommandFailure(`${context.command}: ${filename}: file not found`, 1);
       }
       if (!filename) throw new CommandFailure(": No such file or directory", 1);
       const path = pathOf(state, target);
@@ -7969,7 +7981,13 @@ export class Runtime {
     if (target === undefined) { await writeDiagnostic(context.stderr, `${name}: ${operand === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
     let selected: { path: string; physicalPath: string; print?: string };
     try {
-      selected = await lookup.find(this.fs, physical ? state.cwd : state.logicalCwd ?? state.cwd, target || ".", state.variables.CDPATH, physical);
+      const cwd = physical ? state.cwd : state.logicalCwd ?? state.cwd;
+      try {
+        selected = await lookup.find(this.fs, cwd, target || ".", state.variables.CDPATH, physical);
+      } catch (error) {
+        if (!(error instanceof FsError) || error.code !== "ENOENT" || cwd === state.cwd || target.startsWith("/")) throw error;
+        selected = await lookup.find(this.fs, state.cwd, target || ".", state.variables.CDPATH, physical);
+      }
     } catch (error) {
       this.signal.throwIfAborted();
       const description = filesystemDiagnostic(error, "", this.budget.onInternalError);
@@ -11134,7 +11152,22 @@ export class RootShellState implements State {
   shellStartedAt = Date.now();
   declare umask: number;
   declare extensions: ShellExtensionState | undefined;
-  declare cwd: string;
+  private _cwd = "/";
+  directoryFileSystem?: FileSystem;
+  private directoryReference: { readonly path: string } | undefined;
+  declare logicalCwd: string | undefined;
+  get cwd(): string {
+    const self = (stateMonitor(this)?.raw ?? this) as RootShellState;
+    if (!self.directoryReference && self.directoryFileSystem?.trackDirectory) {
+      self.directoryReference = self.directoryFileSystem.trackDirectory(self._cwd);
+    }
+    return self.directoryReference?.path ?? self._cwd;
+  }
+  set cwd(path: string) {
+    if (path === (this.directoryReference?.path ?? this._cwd)) return;
+    this._cwd = path;
+    this.directoryReference = undefined;
+  }
   declare variables: Record<string, string>;
   declare _functions: Map<string, Command> | undefined;
   declare getopts: GetoptsBinding | undefined;
@@ -11156,6 +11189,7 @@ export class RootShellState implements State {
   declare secondsOrigin: number;
   constructor( cwd: string, variables: Record<string, string>, exported: Set<string> | undefined, extensions: ShellExtensionState | undefined, ) {
     this.cwd = cwd;
+    this.logicalCwd = cwd;
     this.variables = variables;
     this._exported = exported;
     this.extensions = extensions;

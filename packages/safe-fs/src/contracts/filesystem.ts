@@ -372,6 +372,10 @@ export interface ExtractionOptions extends FsOptions {
 }
 
 export interface FileSystem {
+  /** Synchronous metadata for following directory and ancestor renames. Returns
+   * undefined when unavailable. Not a lease, retained inode, or permission bypass;
+   * removal invalidates tracking and leaves the last known path. */
+  readonly trackDirectory?: ((path: string) => { readonly path: string } | undefined) | undefined;
   /** Retain each extraction root and enforce no-symlink ancestry atomically with
    * every mutation (including metadata and both hardlink paths). Returned views
    * must refuse unsupported mutations; no check-then-write emulation is allowed.

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
@@ -8,9 +9,10 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 for (const sync of [false, true]) {
   for (const channels of [1, 2]) {
-    for (const count of [9, 4097]) {
-      it(`${sync ? "sync" : "async"} encodes ${count} samples of ${channels}-channel IMA WAV`, async () => {
-        const samples = [-32768, -16385, -257, -1, 0, 1, 257, 16385, 32767];
+    for (const count of [9, 4097]) for (const smallChanges of [false, true]) {
+      it(`${sync ? "sync" : "async"} encodes ${count} samples of ${channels}-channel IMA WAV (${smallChanges ? "small" : "large"} changes)`, async () => {
+        const samples = smallChanges ? Array.from({ length: 13 }, (_, i) => i - 6)
+          : [-32768, -16385, -257, -1, 0, 1, 257, 16385, 32767];
         const input = encodeWav({ sampleRate: 8000, channels: Array.from({ length: channels }, (_, ch) =>
           Float64Array.from({ length: count }, (_, i) => samples[(i + ch) % samples.length]! / 32768)) });
         const volume = Volume.fromJSON({});
@@ -46,6 +48,11 @@ for (const sync of [false, true]) {
         assert.equal(output.readUInt32LE(48), Math.ceil(count / frames) * frames);
         assert.equal(output.toString("ascii", 52, 56), "data");
         assert.equal(output.readUInt32LE(56), Math.ceil(count / frames) * 1024);
+        if (smallChanges && channels === 1 && count === 9) {
+          // Full native FFmpeg payload, including the padded tail.
+          assert.equal(createHash("sha256").update(output.subarray(60)).digest("hex"),
+            "dbb373355a474f4324bab2f15bb4b7d46a9cba6fecc5db7f5481c0d894e7f360");
+        }
         const inspected = spawnSync("ffmpeg", ["-hide_banner", "-i", "pipe:0"], { input: output });
         assert.match(inspected.stderr.toString(), /Audio: adpcm_ima_wav/);
         const audio = parseWav(output).tracks[0]!.decodedAudio!;
@@ -58,7 +65,8 @@ for (const sync of [false, true]) {
             assert.equal(native.stdout.readInt16LE((i * channels + ch) * 2), audio.channelData[ch]![i]! * 32768);
           }
         }
-        if (channels === 1) assert.deepEqual(Array.from(audio.channelData[0]!.slice(0, 3), n => n * 32768), [-32768, -32757, -32727]);
+        if (channels === 1) assert.deepEqual(Array.from(audio.channelData[0]!.slice(0, 3), n => n * 32768),
+          smallChanges ? [-6, -6, -5] : [-32768, -32757, -32727]);
       });
     }
   }

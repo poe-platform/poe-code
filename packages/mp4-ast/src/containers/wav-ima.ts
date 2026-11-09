@@ -75,18 +75,13 @@ export function encodeImaWav(channelData: readonly (Float32Array | Float64Array)
           let value = 0;
           for (let shift = 0; shift < 8; shift += 4) {
             const target = Math.max(-32768, Math.min(32767, Math.round((samples[sample++] ?? 0) * 32768)));
-            let difference = target - predictor;
-            let nibble = difference < 0 ? 8 : 0;
-            difference = Math.abs(difference);
+            const difference = target - predictor;
             const step = steps[index]!;
-            let delta = step >>> 3;
-            for (let bit = 4, threshold = step; bit > 0; bit >>>= 1, threshold >>>= 1) {
-              if (difference >= threshold) {
-                nibble |= bit;
-                difference -= threshold;
-                delta += threshold;
-              }
-            }
+            // FFmpeg quantizes before rounding the reconstructed difference.
+            // Subtracting truncated step fractions overstates small changes.
+            const magnitude = Math.min(7, Math.floor(Math.abs(difference) * 4 / step));
+            const nibble = magnitude | (difference < 0 ? 8 : 0);
+            const delta = ((2 * magnitude + 1) * step) >>> 3;
             predictor = Math.max(-32768, Math.min(32767, predictor + ((nibble & 8) ? -delta : delta)));
             index = Math.max(0, Math.min(88, index + indexChanges[nibble & 7]!));
             value |= nibble << shift;

@@ -4,29 +4,30 @@ import { argument, command, empty, encode, fail, Inputs, settings, type TableTex
 
 function delimiters(bytes: Uint8Array, locale: string): readonly Uint8Array[] {
   const byteLocale = locale === "C" || locale === "POSIX";
-  const characters = byteLocale ? Array.from(bytes, byte => String.fromCharCode(byte)) : Array.from(new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes));
   const result: Uint8Array[] = [];
-  const escapes: Record<string, string> = { b: "\b", f: "\f", n: "\n", r: "\r", t: "\t", v: "\v" };
-  for (let offset = 0; offset < characters.length; offset++) {
-    let character = characters[offset]!;
-    if (character === "\\") {
-      const escaped = characters[++offset];
+  const escapes: Record<number, number> = { 98: 8, 102: 12, 110: 10, 114: 13, 116: 9, 118: 11 };
+  for (let offset = 0; offset < bytes.length;) {
+    if (bytes[offset] === 92) {
+      const escaped = bytes[++offset];
       if (escaped === undefined) fail("delimiter list ends in an unescaped backslash");
-      if (escaped === "0") { result.push(empty); continue; }
-      character = escapes[escaped] ?? escaped;
+      if (escaped === 48) { result.push(empty); offset++; continue; }
+      if (escapes[escaped] !== undefined) { result.push(Uint8Array.of(escapes[escaped]!)); offset++; continue; }
     }
-    result.push(byteLocale ? Uint8Array.of(character.charCodeAt(0)) : encode(character));
+    const first = bytes[offset]!;
+    let length = 1;
+    if (!byteLocale && first >= 0xc2 && first <= 0xf4) {
+      const width = first < 0xe0 ? 2 : first < 0xf0 ? 3 : 4;
+      const second = bytes[offset + 1] ?? 0;
+      const minimum = first === 0xe0 ? 0xa0 : first === 0xf0 ? 0x90 : 0x80;
+      const maximum = first === 0xed ? 0x9f : first === 0xf4 ? 0x8f : 0xbf;
+      if (offset + width <= bytes.length && second >= minimum && second <= maximum
+        && bytes.subarray(offset + 2, offset + width).every(byte => byte >= 0x80 && byte <= 0xbf)) length = width;
+    }
+    // Invalid or incomplete UTF-8 consumes one original byte, never a replacement character.
+    result.push(bytes.subarray(offset, offset + length));
+    offset += length;
   }
   return result.length ? result : [empty];
-}
-
-function operandName(value: ShellValue): string {
-  if (typeof value === "string") return value;
-  try {
-    return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(shellValueBytes(value));
-  } catch {
-    fail("filename is not valid UTF-8");
-  }
 }
 
 export function createPasteCommand(options: TableTextCommandsOptions = {}): CommandDefinition {

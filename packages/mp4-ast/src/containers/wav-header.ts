@@ -209,6 +209,7 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
         parts.push(read.bytes);
       }
       const id3 = parseId3(concatBytes(parts));
+      header.metadata = { ...header.metadata, ...id3.tags };
       (header.pictures ??= []).push(...id3.pictures);
     } else if (!wave64 && id === "LIST" && size >= 4) {
       const list = yield { offset: start, length: 4 };

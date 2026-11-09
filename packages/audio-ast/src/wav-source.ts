@@ -1,4 +1,5 @@
 import { Reader, cleanText } from "./binary.js";
+import { probeId3Source, type Id3TextSpan } from "./id3-source.js";
 import { infoNames, wavStream } from "./wav.js";
 import type { AudioAst, AudioTags } from "./types.js";
 
@@ -11,7 +12,7 @@ export interface AudioProbeSource {
 export interface WavTagSpan { readonly key: string; readonly offset: number; readonly length: number; }
 
 /** Skip sample/unknown payloads and AST nodes. onTag exposes spans instead of materialized tag strings. */
-export async function probeWavSource(source: AudioProbeSource, options: { signal?: AbortSignal; onTag?: (span: WavTagSpan) => Promise<void> } = {}): Promise<Omit<AudioAst, "data" | "nodes" | "pictures">> {
+export async function probeWavSource(source: AudioProbeSource, options: { signal?: AbortSignal; onTag?: (span: WavTagSpan | Id3TextSpan) => Promise<void> } = {}): Promise<Omit<AudioAst, "data" | "nodes" | "pictures">> {
   const read = async (offset: number, size: number): Promise<Reader> => {
     options.signal?.throwIfAborted();
     if (!Number.isSafeInteger(source.size) || !Number.isSafeInteger(offset) || !Number.isSafeInteger(size) || offset < 0 || size < 0 || size > source.size - offset)
@@ -50,6 +51,15 @@ export async function probeWavSource(source: AudioProbeSource, options: { signal
     } else if (type === "data") { dataSize += size; hasData = true; }
     else if (type === "fact" && size < 4) throw new Error("Short WAV fact");
     else if (type === "bext" && size < 602) throw new Error("Short Broadcast Wave extension");
+    else if (type === "id3 " || type === "ID3 ") {
+      const id3 = await probeId3Source({ size, read: async (offset, length) => (await read(start + offset, length)).bytes }, {
+        ...options,
+        ...(options.onTag ? { onTag: async (span: Id3TextSpan) => {
+          await options.onTag!({ ...span, offset: start + span.offset });
+        } } : {})
+      });
+      Object.assign(tags, id3.tags);
+    }
     else if (type === "LIST" && size >= 4 && (await read(start, 4)).text(0, 4) === "INFO") {
       for (let pos = start + 4; pos < start + size;) {
         const info = await read(pos, 8), id = info.text(0, 4), length = info.u32(4, true);

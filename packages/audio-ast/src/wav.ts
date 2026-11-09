@@ -1,4 +1,5 @@
 import { Reader, ascii, cleanText, duration, join, uint32 } from "./binary.js";
+import { parseId3 } from "./id3.js";
 import type { AudioAst, AudioNode, AudioTags, PcmAudio, WavOptions } from "./types.js";
 
 export const infoNames: Record<string, string> = {
@@ -103,6 +104,8 @@ export function parseWav(bytes: Uint8Array): AudioAst {
         umid: r.slice(start + 348, 64),
         codingHistory: r.text(start + 602, size - 602)
       };
+    } else if (type === "id3 " || type === "ID3 ") {
+      Object.assign(tags, parseId3(node.data).tags);
     } else if (type === "LIST" && size >= 4 && r.text(start, 4) === "INFO") {
       node.children = [];
       for (let pos = start + 4; pos < start + size; ) {

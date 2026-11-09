@@ -5,7 +5,7 @@ Inspect audio containers, edit their metadata, and process PCM samples in JavaSc
 | API                                                  | Use                                                                                                       |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `parseAudio(bytes)`                                  | WAV, MP3, FLAC, Ogg Vorbis/Opus, and M4A audio AST with byte spans, metadata, pictures, and stream timing |
-| `probeWavSource({ size, read }, { signal })` | Strict WAV stream metadata through caller-owned retained reads; skips samples and AST nodes |
+| `probeWavSource({ size, read }, { signal })` | Strict WAV stream metadata and INFO/embedded ID3 text tags through caller-owned retained reads; skips samples and AST nodes |
 | `probeFlacSource({ size, read }, { signal, onComment })` | Strict FLAC metadata validation with bounded ranges; skips frames, pictures and seek-point models |
 | `probeId3Source({ size, read }, { signal, onTag })` | ID3v2 validation with bounded reads and replayable text spans; skips picture models |
 | `probeMp3Source({ size, read }, { signal, onTag })` | Strict MPEG timing and ID3 tags through bounded source reads; skips encoded samples |

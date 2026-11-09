@@ -3557,7 +3557,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
               } else if (encodeSrt && ["s", "/s"].includes(tag)) {
                 parts.push(`<${tag}>`);
               } else if (codec === "subrip" && !(encodeAss && (tag.startsWith("font ") || tag === "font" || tag === "/font"))
-                && ((!webvtt && !encodeSrt) || Array.from(tag.split(" ", 1)[0]!).some(char =>
+                && ((!webvtt && !encodeSrt && !encodeAss) || Array.from(tag.split(" ", 1)[0]!).some(char =>
                 !(char >= "0" && char <= "9" || char >= "a" && char <= "z"
                   || char >= "A" && char <= "Z" || char === "_" || char === "/")))) {
                 // SubRip timestamp-like text is literal, unlike WebVTT timestamp tags.

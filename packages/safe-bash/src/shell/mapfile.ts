@@ -101,6 +101,7 @@ export async function collectMapfile(options: MapfileOptions, input: ShellInput,
   let written = 0;
   while (!options.count || written < options.count) {
     hooks.loop();
+    if (input._isViewClosed()) break;
     if (options.callback === undefined && hooks.tryWriteSync) {
       const fastRec = input.tryMapfileRecordSync(options.delimiter, options.strip);
       if (fastRec !== undefined) {

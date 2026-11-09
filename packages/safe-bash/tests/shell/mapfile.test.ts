@@ -5,6 +5,17 @@ import { getCommandArguments } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 
 for (const command of ["mapfile", "readarray"]) {
+  test(`${command} succeeds when its callback closes the input descriptor`, async () => {
+    const { shell, fs } = setup();
+    try {
+      await fs.writeFile("/data", new TextEncoder().encode("one\ntwo\n"));
+      const result = await shell.exec(`exec 3</data; stop() { exec 3<&-; }; ${command} -t -u 3 -C stop -c 1 A; code=$?; args "\${A[@]}"; exit "$code"`);
+      assert.equal(result.stdout, '["one"]');
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+
   for (const flags of ["-u 0 -t", "-u0 -t", "-tu0"]) {
     for (const redirected of [false, true]) test(`${command} explicit stdin: ${flags}, redirected=${redirected}`, async () => {
       const { shell, fs } = setup();

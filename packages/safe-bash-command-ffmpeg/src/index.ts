@@ -5039,6 +5039,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let resetTimestamps = false;
         let segmentFrames: number[] | undefined;
         let segmentList: string | undefined;
+        let segmentListEntryPrefix = "";
         let segmentListSize = 0;
         let segmentListType: "flat" | "csv" | undefined;
         let hlsTime = 2;
@@ -5358,6 +5359,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_list_size\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-segment_list_entry_prefix") {
+            const value = args[++i];
+            if (value === undefined) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: missing segment_list_entry_prefix value\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            segmentListEntryPrefix = value;
           } else if (arg === "-segment_list") {
             segmentList = args[++i];
             if (!segmentList) {
@@ -9802,7 +9810,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));
                 if (segmentListSize > 0 && index < paths.length - segmentListSize) continue;
-                const name = path.slice(path.lastIndexOf("/") + 1);
+                const name = segmentListEntryPrefix + path.slice(path.lastIndexOf("/") + 1);
                 if (listType === "m3u8") {
                   list.push(`#EXTINF:${(end - start).toFixed(6)},\n${name}\n`);
                 } else if (listType === "flat") {

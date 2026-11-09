@@ -2615,15 +2615,19 @@ export function buildProbeResultFromDoc(
       probe_score: 100,
       tags: formatTags
     },
-    chapters: (doc.chapters ?? []).map((ch: Mp4Chapter) => ({
-      id: ch.id,
-      time_base: `1/${ch.timescale ?? 1000}`,
-      start: Math.round(ch.startTimeSeconds * (ch.timescale ?? 1000)),
-      start_time: ch.startTimeSeconds.toFixed(6),
-      end: Math.round(ch.endTimeSeconds * (ch.timescale ?? 1000)),
-      end_time: ch.endTimeSeconds.toFixed(6),
-      tags: ch.tags ?? { title: ch.title }
-    })),
+    chapters: (doc.chapters ?? []).map((ch: Mp4Chapter) => {
+      const { numerator, denominator } = ch.timeBase ?? { numerator: 1, denominator: ch.timescale ?? 1000 };
+      const factor = numerator / denominator;
+      return {
+        id: ch.id,
+        time_base: `${numerator}/${denominator}`,
+        start: Math.round(ch.startTimeSeconds / factor),
+        start_time: ch.startTimeSeconds.toFixed(6),
+        end: Math.round(ch.endTimeSeconds / factor),
+        end_time: ch.endTimeSeconds.toFixed(6),
+        tags: ch.tags ?? { title: ch.title }
+      };
+    }),
     packets: options.showPackets ? packets : undefined,
     frames: options.showFrames ? frames : undefined
   };

@@ -3,6 +3,13 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Native shear uses pixel-edge centers and crops the bordered, sequential X/Y shear. */
 export function shearPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, spec: string) {
+    // Native geometry permits modifiers, but requires a complete first angle.
+    const geometry = [...spec].filter(char => char.trim() !== "" && !"%!<>#^@()".includes(char)).join("");
+    const separator = [...geometry].findIndex(char => "xX,:/".includes(char));
+    const firstAngle = separator < 0 ? geometry : geometry.slice(0, separator);
+    if (!firstAngle || !Number.isFinite(Number(firstAngle)) || [...geometry].some(char => !"0123456789eExX+,-./:".includes(char))) {
+        throw new Error(`invalid argument for option '-shear': ${spec}`);
+    }
     const [xAngle = 0, yAngle = 0] = spec.toLowerCase().split("x").map(value => parseFloat(value) || 0);
     if ((xAngle !== 0 && xAngle % 90 === 0) || (yAngle !== 0 && yAngle % 90 === 0)) throw new Error("angle is discontinuous");
     const tx = -Math.tan(xAngle * Math.PI / 180), ty = Math.tan(yAngle * Math.PI / 180);

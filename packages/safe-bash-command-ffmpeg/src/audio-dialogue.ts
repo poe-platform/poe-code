@@ -3,6 +3,7 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 import { parseFilterExpression } from "./filter-expression.js";
 import { transform } from "./audio-fft.js";
+import { dialogueSpectrum } from "./audio-dialogue-fft.js";
 
 export async function enhanceDialogue(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
@@ -16,6 +17,7 @@ export async function enhanceDialogue(
   budget.allocateMemory(3 * length * 4 + size * 8 * 12);
   const output = Array.from({ length: 3 }, () => new Float32Array(length));
   const window = Float32Array.from({ length: size }, (_, i) => Math.sin(Math.fround(Math.PI * i / (size - 1))));
+  const cosine = Float32Array.from({ length: size / 4 + 1 }, (_, i) => i === size / 4 ? 0 : Math.cos(2 * Math.PI * i / size));
   const input = [new Float64Array(size), new Float64Array(size)];
   const real = [new Float64Array(size), new Float64Array(size)];
   const imaginary = [new Float64Array(size), new Float64Array(size)];
@@ -38,9 +40,8 @@ export async function enhanceDialogue(
     for (let c = 0; c < 2; c++) {
       input[c]!.copyWithin(0, hop);
       input[c]!.set(channels[c]!.subarray(start, start + count), delay);
-      imaginary[c]!.fill(0);
       for (let i = 0; i < size; i++) real[c]![i] = Math.fround(input[c]![i]! * window[i]!);
-      transform(real[c]!, imaginary[c]!);
+      dialogueSpectrum(real[c]!, imaginary[c]!, cosine);
       output[c]!.set(input[c]!.subarray(0, count), start);
     }
     let centerFlux = 0, differenceFlux = 0;

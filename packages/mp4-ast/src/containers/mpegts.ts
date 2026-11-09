@@ -455,6 +455,12 @@ export function serializeMpegTs(
   doc: MediaDocument,
   options: SerializeMediaOptions = {}
 ): Uint8Array {
+  const requestedPayloadSize = options.pesPayloadSize ?? 2930;
+  if (!Number.isInteger(requestedPayloadSize) || requestedPayloadSize < 0 || requestedPayloadSize > 2147483647) {
+    throw new Error("Invalid pes_payload_size: expected an integer from 0 to 2147483647 bytes");
+  }
+  // Include the 14-byte PES header, then round up to whole TS payloads.
+  const pesPayloadSize = Math.ceil((requestedPayloadSize + 14) / 184) * 184 - 14;
   const serviceId = options.mpegtsServiceId ?? 1;
   if (!Number.isInteger(serviceId) || serviceId < 1 || serviceId > 65535) {
     throw new Error("Invalid mpegts_service_id: expected an integer from 1 to 65535");
@@ -844,13 +850,27 @@ export function serializeMpegTs(
 
     const latmPackets = options.mpegtsLatm ? serializeLatmPackets({ ...audioTrack, samples }) : undefined;
     streams.push((function* (): Generator<Parameters<typeof emitPesPackets>> {
-      for (const [index, s] of samples.entries()) {
-        const pts90k = Math.round((s.pts / ts) * 90000);
-        const frame = latmPackets?.[index] ?? (
-          s.data.byteLength >= 7 && s.data[0] === 0xff && (s.data[1]! & 0xf0) === 0xf0
-            ? s.data
-            : wrapAdtsFrame(s.data, sampleRate, channels));
-        yield [pid, 0xc0, pts90k, pts90k, frame, pid === pcrPid, s.isKeyframe];
+      for (let index = 0; index < samples.length;) {
+        const first = samples[index]!;
+        const pts90k = Math.round((first.pts / ts) * 90000);
+        const dts90k = Math.round((first.dts / ts) * 90000);
+        const frames: Uint8Array[] = [];
+        let payloadSize = 0;
+        for (; index < samples.length; index++) {
+          budget.checkCpu();
+          const sample = samples[index]!;
+          const frame = latmPackets?.[index] ?? (
+            sample.data.byteLength >= 7 && sample.data[0] === 0xff && (sample.data[1]! & 0xf0) === 0xf0
+              ? sample.data
+              : wrapAdtsFrame(sample.data, sampleRate, channels));
+          if (frames.length && (payloadSize + frame.byteLength > pesPayloadSize ||
+              Math.round((sample.dts / ts) * 90000) - dts90k >= Math.floor(delay90k / 2))) break;
+          frames.push(frame);
+          payloadSize += frame.byteLength;
+        }
+        budget.allocateMemory(payloadSize);
+        yield [pid, 0xc0, pts90k, dts90k, concatBytes(frames), pid === pcrPid, first.isKeyframe];
+        budget.releaseMemory(payloadSize);
       }
     })());
   }

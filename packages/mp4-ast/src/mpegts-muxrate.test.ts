@@ -12,6 +12,7 @@ function inspect(bytes: Uint8Array) {
   const payloads = new Map<number, number[]>();
   const continuity = new Map<number, number>();
   let nulls = 0;
+  const dts: number[] = [];
   for (let offset = 0; offset < bytes.length; offset += 188) {
     const p = bytes.subarray(offset, offset + 188);
     assert.equal(p.length, 188);
@@ -30,13 +31,16 @@ function inspect(bytes: Uint8Array) {
     let pos = 4 + ((adaptation & 2) ? 1 + p[4]! : 0);
     if (p[1]! & 64) {
       assert.deepEqual([...p.subarray(pos, pos + 3)], [0, 0, 1]);
+      const time = pos + 9 + ((p[pos + 7]! & 64) ? 5 : 0);
+      dts.push((p[time]! & 14) * 536870912 + p[time + 1]! * 4194304 +
+        (p[time + 2]! & 254) * 16384 + p[time + 3]! * 128 + (p[time + 4]! >> 1));
       pos += 9 + p[pos + 8]!;
     }
     const payload = payloads.get(pid) ?? [];
     payload.push(...p.subarray(pos));
     payloads.set(pid, payload);
   }
-  return { clocks, payloads, nulls };
+  return { clocks, payloads, nulls, dts };
 }
 
 for (const doc of [audio, source, { ...source, tracks: [...source.tracks, { ...audio.tracks[0]!, id: 3 }] }]) {
@@ -57,7 +61,8 @@ for (const doc of [audio, source, { ...source, tracks: [...source.tracks, { ...a
       for (let i = 1; i < actual.clocks.length; i++) {
         assert.ok((actual.clocks[i]!.packet - actual.clocks[i - 1]!.packet) * 1504 / muxRate <= 0.02 + 1504 / muxRate);
       }
-      const lastDts = Math.max(...doc.tracks.flatMap(t => t.samples.map(s => s.dts / t.timescale)));
+      // Padding follows PES decode times; grouped audio includes later samples.
+      const lastDts = (Math.max(...actual.dts) - Math.min(...actual.dts)) / 90000;
       assert.ok(bytes.length * 8 / muxRate >= lastDts);
       assert.ok(bytes.length * 8 / muxRate < lastDts + 0.1);
     });

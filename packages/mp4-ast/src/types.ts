@@ -704,6 +704,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** MPEG-TS audio PES payload target in bytes (default: 2930), rounded to TS capacity; flushes after half muxDelay. */
+  readonly pesPayloadSize?: number | undefined;
   /** MPEG-TS PCR interval in milliseconds; -1 selects automatic (20 ms at constant rate), 0 disables PCR. */
   readonly pcrPeriod?: number | undefined;
   /** MPEG-TS transport bitrate in bits/s; 0 or 1 (default) keeps variable-rate output. */

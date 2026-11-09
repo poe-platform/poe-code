@@ -3691,7 +3691,16 @@ function parseAudioChannels(option: string, value: string | undefined): [string,
   if (parts.length > 1 || (parts[0] && !Array.from(parts[0]).every(char => char >= "0" && char <= "9"))) {
     throw new Error(`Invalid -ac stream specifier: ${specifier}`);
   }
-  return [specifier, parseInt(value ?? "0", 10) || undefined];
+  const text = value?.trimStart();
+  const unsigned = text?.startsWith("+") || text?.startsWith("-") ? text.slice(1) : text;
+  const channels = unsigned?.toLowerCase().startsWith("0x")
+    ? Number(unsigned) * (text!.startsWith("-") ? -1 : 1) : Number(text);
+  if (text === undefined || text !== text.trimEnd() || value !== "" && !text ||
+      unsigned?.toLowerCase().startsWith("0b") || unsigned?.toLowerCase().startsWith("0o") ||
+      !Number.isInteger(channels) || channels < -2147483648 || channels > 2147483647) {
+    throw new Error("Invalid -ac channel count: expected a whole 32-bit integer");
+  }
+  return [specifier, channels];
 }
 
 function audioChannelsForStream(options: readonly [string, number | undefined][], trackIndex: number, audioIndex: number): number | undefined {
@@ -5779,7 +5788,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
           } else if (arg === "-ac" || arg.startsWith("-ac:")) {
-            audioChannelOptions.push(parseAudioChannels(arg, args[++i]));
+            try {
+              audioChannelOptions.push(parseAudioChannels(arg, args[++i]));
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-ch_layout" || arg === "-channel_layout") {
             const layout = args[++i];
             const beforeInput = args.slice(i + 1).includes("-i");
@@ -7949,7 +7963,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                   if (t.type !== "audio") return t;
                   const ordinal = audioOrdinal++;
-                  const audioChannels = audioChannelsForStream(audioChannelOptions, index, ordinal);
+                  let audioChannels = audioChannelsForStream(audioChannelOptions, index, ordinal);
+                  if (audioChannels !== undefined && audioChannels <= 0) audioChannels = undefined;
                   const filter = afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal).at(-1);
                   if (audioRate === undefined && audioChannels === undefined && rematrixVolume === 1 && !filter && maxAudioFrames === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") return t;
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"

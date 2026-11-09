@@ -155,6 +155,7 @@ rate remains the source sample rate. Use `-vn` to exclude video.
 Read headerless samples, including unsigned `u16le/be`, `u24le/be`, and `u32le/be`,
 with input format, rate, and channel options:
 `ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
+`-ac` requires a complete integer channel count, including hexadecimal (`0x10`) and exponent (`1e1`) forms; malformed values fail before replacing output. Raw input requires a positive count; output `-ac 0` retains the input channel count.
 Raw PCM decoding ignores an incomplete trailing frame when complete frames precede it; input containing only an incomplete frame fails. Stream copy preserves all payload bytes.
 Input `-sample_rate 8000` also sets the raw PCM sample rate; place it before `-i`.
 Channel counts accept stream selectors on input and output: `-ac:a`, `-ac:a:0`, and `-ac:0`. Only matching audio streams change; the last matching option wins. For example, `-i input.wav -ac:a:0 1 output.wav` downmixes the first audio stream to mono.

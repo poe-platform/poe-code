@@ -2670,7 +2670,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       if (key.toUpperCase() === "TITLE") curTitle = val;
     } else if (section === "global") {
       const normalizedKey = key.toLowerCase();
-      if (["title", "artist", "album", "date", "year", "comment", "genre", "encoder"].includes(normalizedKey)) {
+      if (["title", "artist", "album", "date", "comment", "genre", "encoder"].includes(normalizedKey)) {
         tags[normalizedKey] = val;
       } else {
         custom.set(key, val);
@@ -2689,7 +2689,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       title: tags.title,
       artist: tags.artist,
       album: tags.album,
-      date: tags.date ?? tags.year,
+      date: tags.date,
       comment: tags.comment,
       genre: tags.genre,
       encoder: tags.encoder,

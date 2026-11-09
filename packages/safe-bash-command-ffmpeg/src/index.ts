@@ -38,6 +38,7 @@ import { pulsateAudio } from "./audio-apulsator.js";
 import { tremoloAudio } from "./audio-tremolo.js";
 import { decorrelateAudio } from "./audio-adecorrelate.js";
 import { phaseAudio } from "./audio-aphaser.js";
+import { flangeAudio } from "./audio-flanger.js";
 import { echoAudio } from "./audio-aecho.js";
 import { shiftAudioPhase } from "./audio-aphaseshift.js";
 import { correlateAudio } from "./audio-axcorrelate.js";
@@ -9570,6 +9571,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await exciteAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "adecorrelate" || trimmed.startsWith("adecorrelate=")) {
                         stretched = await decorrelateAudio(stretched, origRate, trimmed, budget, context.signal);
+                      } else if (filterName === "flanger") {
+                        stretched = await flangeAudio(stretched, origRate, trimmed, budget, context.signal);
+                        filteredSampleFormat = "dblp";
                       } else if (filterName === "aecho") {
                         const inputLength = stretched[0]?.length ?? 0;
                         stretched = await echoAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);

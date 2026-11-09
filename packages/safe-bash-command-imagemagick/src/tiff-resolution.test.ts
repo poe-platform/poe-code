@@ -37,7 +37,7 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
 for (const mode of ["sync", "buffered", "retained"] as const) {
   it.each([false, true])(`preserves TIFF resolution presence through PNG conversion (${mode}, tags=%s)`, async tagged => {
     const pixels = Uint8Array.from([0, 255, 0, 255].flatMap(value => [value, value, value, 255]));
-    const { data } = encodeImage({ width: 2, height: 2, data: pixels, format: "tiff", space: "srgb", channels: 3, depth: "ushort", density: 144, hasAlpha: false }, { format: "tiff", tiffIntegerDepth: 16 });
+    const { data } = encodeImage({ width: 2, height: 2, data: pixels, format: "tiff", space: "srgb", channels: 3, depth: "ushort", density: 144, hasAlpha: false }, { format: "tiff", tiffIntegerDepth: 16, density: 144 });
     const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
     const ifd = view.getUint32(4, true);
     let count = view.getUint16(ifd, true);

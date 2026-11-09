@@ -2049,24 +2049,21 @@ function formatSceneOutputPath(pattern: string, index: number, literal = false, 
 }
 
 function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a: boolean } {
-  const s = spec.toLowerCase().trim();
-  if (s === "all" || s === "rgba" || s === "sync,rgba") {
-    return { r: true, g: true, b: true, a: true };
+  const mask = { r: false, g: false, b: false, a: false };
+  for (const part of spec.toLowerCase().split(",")) {
+    const channel = part.trim();
+    if (channel === "all" || channel === "default") {
+      mask.r = mask.g = mask.b = true;
+      if (channel === "all") mask.a = true;
+    } else if (channel === "red" || channel === "0") mask.r = true;
+    else if (channel === "green" || channel === "1") mask.g = true;
+    else if (channel === "blue" || channel === "2") mask.b = true;
+    else if (channel === "alpha" || channel === "opacity" || channel === "4") mask.a = true;
+    else if ([...channel].every(letter => "rgba".includes(letter))) {
+      for (const letter of channel) mask[letter as keyof typeof mask] = true;
+    }
   }
-  if (s === "rgb" || s === "default") {
-    return { r: true, g: true, b: true, a: false };
-  }
-  if (s === "alpha" || s === "opacity" || s === "a") {
-    return { r: false, g: false, b: false, a: true };
-  }
-  const r = s.includes("r") || s.includes("red");
-  const g = s.includes("g") || s.includes("green");
-  const b = s.includes("b") || s.includes("blue");
-  const a = s.includes("a") || s.includes("alpha") || s.includes("opacity");
-  if (!r && !g && !b && !a) {
-    return { r: true, g: true, b: true, a: false };
-  }
-  return { r, g, b, a };
+  return mask;
 }
 
 function clampByteVal(n: number): number {

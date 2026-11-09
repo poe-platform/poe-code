@@ -909,8 +909,8 @@ function* applyMagickFloodfillSteps(
     const g = parseMagickGeometry(geomStr);
   const w = img.width;
   const h = img.height;
-  const sx = Math.round(g.x || g.width || 0);
-  const sy = Math.round(g.y || g.height || 0);
+  const sx = Math.round(g.x);
+  const sy = Math.round(g.y);
   if (sx < 0 || sy < 0 || sx >= w || sy >= h) return img;
   const out = new Uint8Array(img.data);
   const seedOff = (sy * w + sx) * 4;
@@ -9862,8 +9862,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const x = Math.round(geometry.x || geometry.width || 0);
-                const y = Math.round(geometry.y || geometry.height || 0);
+                const x = Math.round(geometry.x);
+                const y = Math.round(geometry.y);
                 if (x < 0 || y < 0 || x >= image.width || y >= image.height) return image;
                 return floodfillStoredImage(image, backend.storage, x, y, target, replacement, fuzz, signal, false, channels);
             });

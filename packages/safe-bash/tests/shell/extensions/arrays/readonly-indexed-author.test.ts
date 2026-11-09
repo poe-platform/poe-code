@@ -100,7 +100,7 @@ for (const [name, source, output] of [
   ["append preserves tail", `a=(old tail); readonly -a a+=new; printf '<%s>' "\${a[@]}"`, "<oldnew><tail>"],
   ["sparse listing of user bindings", `a=([3]='one two' [9]=''); readonly -a a; readonly -ap`, 'declare -ar a=([3]="one two" [9]="")\n'],
   ["unset indexed declaration is absent from indexed listing", `readonly -a empty; readonly -a`, ""],
-  ["unset declaration retains scalar listing", `readonly -a empty; readonly -p`, 'declare -r BASHOPTS="globskipdots:sourcepath"\ndeclare -r SHELLOPTS="braceexpand:hashall"\ndeclare -r empty\n'],
+  ["unset declaration retains scalar listing", `readonly -a empty; readonly -p`, 'declare -r BASHOPTS="globskipdots:patsub_replacement:sourcepath"\ndeclare -r SHELLOPTS="braceexpand:hashall"\ndeclare -r empty\n'],
   ["empty initialized array listing", `readonly -a a=(); readonly -a`, "declare -ar a=()\n"],
   ["explicit p operand declares without printing", `readonly -a a=(one two); readonly -p a`, ""],
   ["quoted compound stops without executing trailing source", `a=(OLD TAIL); readonly -a a='(one); printf INJECTED'; printf 'status=%s;' "$?"; printf '<%s>' "\${a[@]}"`, "status=0;<one>"],

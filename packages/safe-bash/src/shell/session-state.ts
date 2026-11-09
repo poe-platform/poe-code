@@ -75,6 +75,7 @@ export function captureShellSessionState(state: State, exitCode: number): ShellS
     expand_aliases: Boolean(state.expand_aliases),
     nocaseglob: Boolean(state.nocaseglob),
     nocasematch: Boolean(state.nocasematch),
+    patsub_replacement: state.patsub_replacement !== false,
     sourcepath: state.sourcepath !== false,
     xpg_echo: Boolean(state.xpg_echo),
     varredir_close: Boolean(state.varredir_close),
@@ -241,6 +242,7 @@ export async function restoreShellSessionState(
     if (opts.expand_aliases !== undefined) state.expand_aliases = opts.expand_aliases;
     if (opts.nocaseglob !== undefined) state.nocaseglob = opts.nocaseglob;
     if (opts.nocasematch !== undefined) state.nocasematch = opts.nocasematch;
+    if (opts.patsub_replacement !== undefined) state.patsub_replacement = opts.patsub_replacement;
     if (opts.sourcepath !== undefined) state.sourcepath = opts.sourcepath;
     if (opts.xpg_echo !== undefined) state.xpg_echo = opts.xpg_echo;
     if (opts.varredir_close !== undefined) state.varredir_close = opts.varredir_close;

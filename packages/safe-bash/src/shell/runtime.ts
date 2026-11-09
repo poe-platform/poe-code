@@ -964,6 +964,7 @@ export interface State extends DynamicVariableState {
   processSubstitutionIds?: { next: number };
   nocaseglob?: boolean;
   nocasematch?: boolean;
+  patsub_replacement?: boolean;
   xpg_echo?: boolean;
   varredir_close?: boolean;
   braceexpand?: boolean;
@@ -10360,7 +10361,7 @@ export class Runtime {
         }
         await append(text, position, start);
         for (const replacement of replacements) {
-          if (replacement.quoted) await append(replacement.value);
+          if (replacement.quoted || state.patsub_replacement === false) await append(replacement.value);
           else {
             let fragment = 0;
             for (let cursor = 0; cursor < replacement.value.length; cursor++) {

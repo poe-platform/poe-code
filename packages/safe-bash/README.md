@@ -934,9 +934,11 @@ and credential protections remain in effect.
   background jobs/job control, `exec`,
   associative arrays, or C-style `for ((…))` loops. `shopt` supports `checkhash`, `dotglob`,
   `globskipdots`, `globstar`, `nullglob`, `nocaseglob`, `nocasematch`, `lastpipe`, `failglob`,
-  `inherit_errexit`, `expand_aliases`, `sourcepath`, `varredir_close`, and `xpg_echo`, plus `-o` for supported
+  `inherit_errexit`, `expand_aliases`, `patsub_replacement`, `sourcepath`, `varredir_close`, and `xpg_echo`, plus `-o` for supported
   `set` options. Readonly `SHELLOPTS` and `BASHOPTS` list enabled supported options,
   separated by colons; environment values do not enable startup options.
+  `patsub_replacement` defaults on; `shopt -u patsub_replacement` keeps `&` literal
+  in parameter replacement text such as `${value//pattern/[&]}`.
   `shopt -s extglob` enables extended patterns, including parameter trimming.
 
   Enable it on a preceding line before using unquoted extended patterns; syntax on the

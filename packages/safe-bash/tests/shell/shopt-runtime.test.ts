@@ -30,9 +30,9 @@ echo "$SHELLOPTS|$BASHOPTS"
 bash -o pipefail -c 'echo "$SHELLOPTS|$BASHOPTS"; false | true; echo "rc=$?"'
 `, { onState() {} });
     assert.equal(result.stderr, "");
-    assert.equal(result.stdout, "braceexpand:hashall|globskipdots:sourcepath\nbraceexpand:hashall:pipefail|globskipdots:nullglob:sourcepath\nbraceexpand:hashall|globskipdots:sourcepath\nbraceexpand:hashall:pipefail|globskipdots:nullglob:sourcepath\nbraceexpand:hashall:pipefail|globskipdots:sourcepath\nrc=1\n");
+    assert.equal(result.stdout, "braceexpand:hashall|globskipdots:patsub_replacement:sourcepath\nbraceexpand:hashall:pipefail|globskipdots:nullglob:patsub_replacement:sourcepath\nbraceexpand:hashall|globskipdots:patsub_replacement:sourcepath\nbraceexpand:hashall:pipefail|globskipdots:nullglob:patsub_replacement:sourcepath\nbraceexpand:hashall:pipefail|globskipdots:patsub_replacement:sourcepath\nrc=1\n");
     const restored = await shell.exec('echo "$SHELLOPTS|$BASHOPTS"', { state: result.state });
-    assert.equal(restored.stdout, "braceexpand:hashall:pipefail|globskipdots:nullglob:sourcepath\n");
+    assert.equal(restored.stdout, "braceexpand:hashall:pipefail|globskipdots:nullglob:patsub_replacement:sourcepath\n");
   } finally { await shell.dispose(); }
 });
 
@@ -54,7 +54,7 @@ set -o pipefail
 shopt -s nullglob
 bash -c 'echo "$SHELLOPTS|$BASHOPTS"'`, { env: { SHELLOPTS: "pipefail", BASHOPTS: "nullglob" } });
     assert.equal(result.stderr, "");
-    assert.equal(result.stdout, "braceexpand:hashall|globskipdots:sourcepath\nbraceexpand:hashall|globskipdots:sourcepath\n");
+    assert.equal(result.stdout, "braceexpand:hashall|globskipdots:patsub_replacement:sourcepath\nbraceexpand:hashall|globskipdots:patsub_replacement:sourcepath\n");
   } finally { await shell.dispose(); }
 });
 
@@ -76,7 +76,7 @@ set +B
 shopt -u globskipdots
 echo "$SHELLOPTS|$BASHOPTS"`);
     assert.equal(result.stderr, "");
-    assert.equal(result.stdout, "allexport:braceexpand:errexit:hashall:noclobber:noglob:nounset:pipefail:zeta|alpha:checkhash:dotglob:expand_aliases:extglob:failglob:globskipdots:globstar:inherit_errexit:lastpipe:nocaseglob:nocasematch:nullglob:sourcepath:varredir_close:xpg_echo\nallexport:errexit:hashall:noclobber:noglob:nounset:pipefail|checkhash:dotglob:expand_aliases:extglob:failglob:globstar:inherit_errexit:lastpipe:nocaseglob:nocasematch:nullglob:sourcepath:varredir_close:xpg_echo\n");
+    assert.equal(result.stdout, "allexport:braceexpand:errexit:hashall:noclobber:noglob:nounset:pipefail:zeta|alpha:checkhash:dotglob:expand_aliases:extglob:failglob:globskipdots:globstar:inherit_errexit:lastpipe:nocaseglob:nocasematch:nullglob:patsub_replacement:sourcepath:varredir_close:xpg_echo\nallexport:errexit:hashall:noclobber:noglob:nounset:pipefail|checkhash:dotglob:expand_aliases:extglob:failglob:globstar:inherit_errexit:lastpipe:nocaseglob:nocasematch:nullglob:patsub_replacement:sourcepath:varredir_close:xpg_echo\n");
     const noexec = await shell.exec("set -n", { onState() {} });
     assert.equal(noexec.state?.variables.SHELLOPTS, "braceexpand:hashall:noexec:zeta");
   } finally { await shell.dispose(); }

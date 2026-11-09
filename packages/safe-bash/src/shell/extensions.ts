@@ -414,7 +414,7 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
       options.set(option.name, option);
     }
     for (const option of instance.shoptOptions ?? []) {
-      if (!option.name || ["checkhash", "dotglob", "extglob", "globskipdots", "globstar", "nocaseglob", "nocasematch", "nullglob", "sourcepath"].includes(option.name) || shoptOptions.has(option.name) || option.flag !== undefined || typeof option.enabled !== "boolean") throw new TypeError("Invalid or duplicate extension shopt option");
+      if (!option.name || ["checkhash", "dotglob", "extglob", "globskipdots", "globstar", "nocaseglob", "nocasematch", "nullglob", "patsub_replacement", "sourcepath"].includes(option.name) || shoptOptions.has(option.name) || option.flag !== undefined || typeof option.enabled !== "boolean") throw new TypeError("Invalid or duplicate extension shopt option");
       shoptOptions.set(option.name, option);
     }
     return { definition, instance };

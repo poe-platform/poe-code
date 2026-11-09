@@ -9051,6 +9051,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-deskew") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const spec = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const plan = deskewPlan(image, yield* deskewAngleSteps(image, spec), state.pointFilter);
@@ -11220,6 +11221,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return virtualCanvas ? { ...output, virtualCanvas } : output;
             });
         } else if (!operandsOnly && token === "-deskew") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const spec = tokens[++i] ?? "", background = state.background, autoCrop = state.deskewAutoCrop, fuzz = state.alphaFuzz, pointFilter = state.pointFilter;
             const backgroundExplicit = state.backgroundExplicit;
             steps.push(async (image, backend) => {

@@ -67,7 +67,7 @@ import { uniqueColorsSteps, uniqueColorsStored } from "./unique-colors.js";
 import { magickResizeCanvas } from "./resize-canvas.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
 import { parseMagickPoly, polyPixelSteps } from "./poly-kernel.js";
-import { type LookupInterpolation, clutPixelSteps, haldClutPixelSteps, channelFxPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
+import { type LookupInterpolation, type ChannelAssignment, clutPixelSteps, haldClutPixelSteps, channelFxPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
 import { srgbDepthEnumerationLine, gray16EnumerationLine, pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, sparseColorPoints, storedSparseColor, encodeText } from "./text-output.js";
@@ -7544,12 +7544,21 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     return { end: i, apply, handlesWriteMask: token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-color-threshold" || token === "-blue-shift" || token === "-threshold" || token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
-function parseChannelAssignments(expression: string): { image: number; source: number; target: number }[] {
+function parseChannelAssignments(expression: string): ChannelAssignment[] {
     const names = [["r", "red"], ["g", "green"], ["b", "blue"], ["a", "alpha"]];
     expression = expression.trim();
     const image = expression.startsWith("|") ? 1 : 0;
     if (image) expression = expression.slice(1);
-    return expression.split(",").flatMap(assignment => {
+    return expression.split(",").flatMap<ChannelAssignment>(assignment => {
+        if (!assignment.includes("=>")) {
+            const parts = assignment.split("="), target = names.findIndex(aliases => aliases.includes(parts[0]!.trim().toLowerCase()));
+            const literal = parts[1]?.trim() ?? "", percent = literal.endsWith("%");
+            const number = percent ? literal.slice(0, -1).trim() : literal;
+            const value = Number(number);
+            if (parts.length !== 2 || target < 0 || !Number.isFinite(value) || Number.parseFloat(number) !== value)
+                throw new Error(`unsupported channel-fx assignment '${assignment}'`);
+            return [{ target, value: Math.fround(percent ? value * 65535 / 100 : value) / 257 }];
+        }
         const exchange = assignment.includes("<=>");
         const parts = assignment.split(exchange ? "<=>" : "=>");
         const channels = parts.map(part => names.findIndex(aliases => aliases.includes(part.trim().toLowerCase())));
@@ -9431,11 +9440,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-channel-fx") {
             const expression = tokens[++i] ?? "", image = stack[0];
             const result: RgbaImage[] = [];
-            if (expression.includes("=>")) {
+            if (expression.includes("=")) {
                 const assignments = parseChannelAssignments(expression);
                 if (image) {
                     const hasAlpha = image.hasAlpha || assignments.some(({ target }) => target === 3);
-                    result.push(yield* applyMagickRasterSteps({ ...image, space: "srgb", channels: hasAlpha ? 4 : 3 }, channelFxPixelSteps(stack, assignments, stack.some(source => !!source.data16)), signal, { ...image, hasAlpha }, stack));
+                    result.push(yield* applyMagickRasterSteps({ ...image, space: "srgb", channels: hasAlpha ? 4 : 3 }, channelFxPixelSteps(stack, assignments, stack.some(source => !!source.data16) || assignments.some(assignment => "value" in assignment)), signal, { ...image, hasAlpha }, stack));
                 }
             } else {
                 const selections = parseChannelSelections(expression);
@@ -10315,15 +10324,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         });
         if (!operandsOnly && token === "-channel-fx") {
             const expression = tokens[++i] ?? "";
-            const assignments = expression.includes("=>") ? parseChannelAssignments(expression) : undefined;
+            const assignments = expression.includes("=") ? parseChannelAssignments(expression) : undefined;
             const selections = assignments ? [] : parseChannelSelections(expression);
             stackStep(async (stack, backend) => {
                 const result = new StoredImageStack(backend.storage, signal, stack), image = await stack.get(0);
                 if (image && assignments) {
                     const sources = [image];
-                    if (assignments.some(assignment => assignment.image === 1) && stack.length > 1) sources.push((await stack.get(1))!);
+                    if (assignments.some(assignment => "image" in assignment && assignment.image === 1) && stack.length > 1) sources.push((await stack.get(1))!);
                     const hasAlpha = image.hasAlpha || assignments.some(({ target }) => target === 3);
-                    await result.push(await transformStoredMagickRaster({ ...image, space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16)), signal, { ...image, hasAlpha }, sources));
+                    await result.push(await transformStoredMagickRaster({ ...image, space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16) || assignments.some(assignment => "value" in assignment)), signal, { ...image, hasAlpha }, sources));
                 } else if (image) for (const channels of selections) {
                     await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: image => selectMagickChannels(image, channels) }, signal));
                 }

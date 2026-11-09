@@ -112,23 +112,41 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
     }
 }
 
-export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | "height" | "hasAlpha">[], assignments: readonly { image: number; source: number; target: number }[], highDepth: boolean): Steps {
+export type ChannelAssignment = { target: number } & ({ image: number; source: number } | { value: number });
+
+export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | "height" | "hasAlpha">[], assignments: readonly ChannelAssignment[], highDepth: boolean): Steps {
     const { width, height } = inputs[0]!;
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 2048) {
         yield;
         const position = (y * width + x) * 4, length = Math.min(2048, width - x) * 4;
-        const base = (yield { kind: "read", highDepth, position, length })!;
-        const data = highDepth ? new Uint16Array(base.slice().buffer) : new Uint8Array(base);
+        const working = yield { kind: "read", evaluate: true, position, length };
+        const base = working?.length ? new Float64Array(working.slice().buffer)
+            : Float64Array.from(highDepth ? new Uint16Array((yield { kind: "read", highDepth, position, length })!.slice().buffer)
+                : (yield { kind: "read", position, length })!, value => highDepth ? value / 257 : value);
+        const data = base.slice();
         for (const assignment of assignments) {
+            if ("value" in assignment) {
+                for (let offset = assignment.target; offset < length; offset += 4) data[offset] = assignment.value;
+                continue;
+            }
             const image = Math.min(assignment.image, inputs.length - 1), input = inputs[image]!;
             if (y >= input.height || x >= input.width) continue;
             const count = Math.min(length, (input.width - x) * 4);
-            const bytes = image === 0 ? base : (yield { kind: "read", highDepth, image, position: (y * input.width + x) * 4, length: count })!;
-            const samples = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+            let samples = base;
+            if (image !== 0) {
+                const position = (y * input.width + x) * 4;
+                const working = yield { kind: "read", evaluate: true, image, position, length: count };
+                const bytes = working?.length ? working : (yield { kind: "read", highDepth, image, position, length: count })!;
+                samples = working?.length ? new Float64Array(bytes.slice().buffer)
+                    : Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes, value => highDepth ? value / 257 : value);
+            }
             for (let offset = 0; offset < count; offset += 4)
-                data[offset + assignment.target] = assignment.source === 3 && !input.hasAlpha ? (highDepth ? 65535 : 255) : samples[offset + assignment.source]!;
+                data[offset + assignment.target] = assignment.source === 3 && !input.hasAlpha ? 255 : samples[offset + assignment.source]!;
         }
-        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
+        const bounded = highDepth ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(65535, value * 257))))
+            : Uint8Array.from(data, value => Math.round(Math.max(0, Math.min(255, value))));
+        yield { kind: "write", highDepth, position, data: new Uint8Array(bounded.buffer) };
     }
 }
 

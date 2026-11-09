@@ -104,9 +104,10 @@ export async function* encodeStoredImage(image: StoredRgbaImage, storage: ImageB
         return yield* encodeStoredRaster(image, storage, signal, { ...options, format: options.format, ...(options.format === "jpeg" && options.jpegExtent !== undefined ? { quality, chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4" } : {}), synthesizeExif: false });
     }
     let size = 0, channels = 0;
-    for (let pixel = 0; pixel < image.width * image.height; pixel += 4096) {
+    const chunkPixels = image.storedData16 ? 2048 : 4096;
+    for (let pixel = 0; pixel < image.width * image.height; pixel += chunkPixels) {
         await yieldTurn(signal);
-        const count = Math.min(4096, image.width * image.height - pixel);
+        const count = Math.min(chunkPixels, image.width * image.height - pixel);
         const data = new Uint8Array(await storage.read(image.position + pixel * 4, count * 4, { signal }));
         if (data.length !== count * 4) throw new Error("Truncated raw pixel storage");
         let data16: Uint16Array | undefined;

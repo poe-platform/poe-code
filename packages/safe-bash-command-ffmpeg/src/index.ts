@@ -1076,7 +1076,7 @@ function parseChannelSplit(spec: string): { input: string[]; selected: string[] 
 }
 
 async function panAudio(
-  spec: string, channels: MediaAudioData["channelData"], channelMask: number | undefined,
+  spec: string, channels: MediaAudioData["channelData"], channelMask: number | undefined, pcm16: boolean,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: Float32Array[]; channelMask: number }> {
   const [layout, ...assignments] = spec.split("|").map(value => value.trim());
@@ -1148,6 +1148,18 @@ async function panAudio(
       }
     }
   }
+  if (pcm16) {
+    for (const row of gains) {
+      let remainder = 0;
+      for (let input = 0; input < row.length; input++) {
+        // libswresample carries coefficient error across each Q15 matrix row.
+        const target = row[input]! * 32768 + remainder;
+        const quantized = roundToEven(Math.fround(target));
+        remainder += target - quantized;
+        if (row[input] !== 0) row[input] = quantized;
+      }
+    }
+  }
   const output = gains.map(() => new Float32Array(channels[0]?.length ?? 0));
   for (let sample = 0; sample < (channels[0]?.length ?? 0); sample++) {
     if (sample % 4096 === 0) {
@@ -1158,7 +1170,8 @@ async function panAudio(
     for (let out = 0; out < output.length; out++) {
       let value = 0;
       for (let input = 0; input < channels.length; input++) value += channels[input]![sample]! * gains[out]![input]!;
-      output[out]![sample] = value;
+      output[out]![sample] = pcm16
+        ? Math.max(-32768, Math.min(32767, Math.floor(value + 0.5))) / 32768 : value;
     }
   }
   return { channels: output, channelMask: names.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0) };
@@ -7743,6 +7756,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let origRate = audio.sampleRate;
                   let loudnormResampling = false;
                   let filteredChannelMask = audio.channelMask;
+                  let panPcm16 = ["pcm_s16le", "pcm_s16be"].includes(t.codecDescriptions[0]?.codecName ?? "");
                   const volFactor = t.volume ?? 1.0;
                   let stretched: typeof audio.channelData = audio.channelData;
                   let replayGainAvailable = true;
@@ -7764,6 +7778,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (instance >= 0 && (equals < 0 || instance < equals)) {
                         trimmed = trimmed.slice(0, instance) + (equals < 0 ? "" : trimmed.slice(equals));
                       }
+                      // These filters retain their input sample format. Other DSP filters
+                      // negotiate floating-point audio before a subsequent pan mixer.
+                      const filterName = trimmed.split("=", 1)[0]!;
+                      if (!["anull", "acopy", "ametadata", "arealtime", "asendcmd", "asetrate",
+                        "asetnsamples", "ashowinfo", "afade", "silencedetect", "astats", "volume",
+                        "aloop", "aresample", "apad", "adelay", "atempo", "aformat", "pan",
+                        "channelmap", "channelsplit", "asetpts", "aselect", "atrim", "areverse"
+                      ].includes(filterName)) panPcm16 = false;
                       if (trimmed === "adeclick" || trimmed.startsWith("adeclick=")) {
                         stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal);
                         continue;
@@ -8277,6 +8299,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const length = stretched[0]?.length ?? 0;
                         const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_u8" ? 128
                           : t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
+                        panPcm16 = precision === "fixed" && sampleScale === 32768;
                         const variables: Record<string, number> = { PI: Math.PI, nan: NaN, inf: Infinity, sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
                           // Native volume leaves sample counters unavailable in both evaluation modes.
                           nb_samples: NaN, nb_consumed_samples: NaN, startpts: NaN, startt: NaN,
@@ -8727,6 +8750,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const value = option.slice(separator + 1).trim();
                           if (key === "sample_fmts" || key === "f") {
                             if (value !== "u8" && value !== "s16") throw new Error(`aformat: unsupported sample format ${value}`);
+                            panPcm16 = value === "s16";
                             const scale = value === "u8" ? 128 : 32768;
                             const codec = t.codecDescriptions[0]?.codecName;
                             const truncate = value === "u8" && (codec === "pcm_s16le" || codec === "pcm_s32le" || codec === "pcm_u8");
@@ -8755,12 +8779,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (stretched.length !== 2 || (filteredChannelMask && filteredChannelMask !== 3)) {
                             throw new Error("aformat: mono conversion requires mono or stereo input");
                           }
-                          const mixed = await panAudio("mono|c0=0.5*c0+0.5*c1", stretched, filteredChannelMask, budget, context.signal);
+                          const mixed = await panAudio("mono|c0=0.5*c0+0.5*c1", stretched, filteredChannelMask, panPcm16, budget, context.signal);
                           stretched = mixed.channels;
                           filteredChannelMask = mixed.channelMask;
                         }
                       } else if (trimmed === "pan" || trimmed.startsWith("pan=")) {
-                        const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, budget, context.signal);
+                        const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, panPcm16, budget, context.signal);
                         stretched = panned.channels;
                         filteredChannelMask = panned.channelMask;
                       } else if (trimmed === "crossfeed" || trimmed.startsWith("crossfeed=")) {

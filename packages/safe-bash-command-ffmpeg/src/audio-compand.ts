@@ -3,7 +3,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function compandAudio(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
+  warn?: (message: string) => Promise<void>
 ): Promise<Float64Array[]> {
   const options: Record<string, string> = {
     attacks: "0", decays: "0.8", points: "-70/-70|-60/-20|1/0", "soft-knee": "0.01", gain: "0", volume: "0", delay: "0"
@@ -27,9 +28,14 @@ export async function compandAudio(
     return parsed;
   };
   const items = (value: string) => value.split("|").flatMap(part => part.split(" ")).filter(Boolean);
-  const attacks = items(options.attacks!).map(value => number(value, 0));
-  const decays = items(options.decays!).map(value => number(value, 0));
-  if (!attacks.length || !decays.length || Math.min(attacks.length, channels.length) !== Math.min(decays.length, channels.length)) {
+  const attackItems = items(options.attacks!);
+  const decayItems = items(options.decays!);
+  if (attackItems.length > channels.length || decayItems.length > channels.length) {
+    await warn?.("Number of attacks/decays bigger than number of channels. Ignoring rest of entries.\n");
+  }
+  const attacks = attackItems.slice(0, channels.length).map(value => number(value, 0));
+  const decays = decayItems.slice(0, channels.length).map(value => number(value, 0));
+  if (!attacks.length || !decays.length || attacks.length !== decays.length) {
     throw new Error("compand: attacks and decays must have matching channel counts");
   }
   const knee = numericOption("soft-knee", 0.01, 900);

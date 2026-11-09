@@ -11,7 +11,11 @@ export async function acrossfadeAudio(
   const a = first.decodedAudio;
   const b = second.decodedAudio;
   if (!a || !b) throw new Error("acrossfade requires decoded PCM audio");
-  if (a.channels !== b.channels || a.channelMask !== b.channelMask) {
+  const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : undefined);
+  const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : undefined);
+  const remix = a.channels !== b.channels &&
+    (layoutA === 4 && layoutB === 3 || layoutA === 3 && layoutB === 4);
+  if (!remix && (a.channels !== b.channels || layoutA !== layoutB)) {
     throw new Error("acrossfade requires matching channel layouts");
   }
   let samples = 44100;
@@ -73,9 +77,11 @@ export async function acrossfadeAudio(
       const secondIndex = i - (overlap ? aLength - samples : aLength);
       const firstValue = i >= aLength ? 0 : a.channelData[channel]![i]! *
         (transition < 0 ? 1 : (samples - 1 - transition) / samples);
-      const secondSample = secondIndex < 0 ? 0 : secondChannels[channel]![secondIndex]!;
-      // Automatic rate conversion negotiates S16 before the fade's truncating cast.
-      const secondValue = (pcm16 && ratio !== 1
+      const secondSample = secondIndex < 0 ? 0 : !remix ? secondChannels[channel]![secondIndex]!
+        : b.channels === 1 ? secondChannels[0]![secondIndex]! * (pcm16 ? 23170 / 32768 : Math.SQRT1_2)
+          : (secondChannels[0]![secondIndex]! + secondChannels[1]![secondIndex]!) / 2;
+      // Automatic rate/layout conversion negotiates S16 before the fade's truncating cast.
+      const secondValue = (pcm16 && (ratio !== 1 || remix)
         ? Math.max(-32768, Math.min(32767, Math.round(secondSample * 32768))) / 32768
         : secondSample) *
         (secondIndex >= samples ? 1 : secondIndex / samples);

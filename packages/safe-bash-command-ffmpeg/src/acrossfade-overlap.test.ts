@@ -26,6 +26,34 @@ async function run(options: string) {
   return { result, stderr, output: volume.readFileSync("/out.pcm") };
 }
 
+it("acrossfade trims whitespace at option key and value boundaries", async () => {
+  const control = await run("ns=4:o=1");
+  assert.equal(control.result.exitCode, 0, control.stderr);
+  for (const options of [
+    "ns=4: o = 1", "ns=4:o= 1", " ns = 4 : overlap = 1 ",
+    "\tnb_samples\t=\t4\t:\to\t=\t1\t", " 4 : 0 : 1 ",
+    " ns = 4 : duration = 0 : o = 1 : curve1 = tri : curve2 = tri "
+  ]) {
+    const actual = await run(options);
+    assert.equal(actual.result.exitCode, 0, `${options}: ${actual.stderr}`);
+    assert.deepEqual(actual.output, control.output, options);
+  }
+});
+
+it("acrossfade still rejects invalid options after trimming whitespace", async () => {
+  for (const [options, error] of [
+    ["ns=4: unknown = 1 ", "unsupported option unknown"],
+    ["ns=4: o = 2 ", "invalid overlap"],
+    ["ns=4: o = tr ue ", "invalid overlap"],
+    [" ns = 0 : o = 1 ", "invalid sample count"]
+  ] as const) {
+    const actual = await run(options);
+    assert.equal(actual.result.exitCode, 1, options);
+    assert.ok(actual.stderr.includes(`acrossfade: ${error}`), actual.stderr);
+    assert.equal(actual.output.toString(), "sentinel");
+  }
+});
+
 for (const prefix of ["ns=128:o=", "ns=128:overlap=", "128:0:"]) {
   for (const [overlap, values] of [
     [false, ["0", "no", "No", "OFF", "off", "false", "FaLsE", "n", "disable", "disabled", "", "-0", "00"]],

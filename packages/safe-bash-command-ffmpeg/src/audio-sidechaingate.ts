@@ -4,7 +4,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function gateAudio(
   first: MediaTrack, filter: string, budget: MediaBudgetTracker, sidechain: readonly (Float32Array | Float64Array)[], signal?: AbortSignal
-): Promise<Float64Array[]> {
+): Promise<MediaTrack> {
   const { channelData: channels, sampleRate } = first.decodedAudio!;
   const options: Record<string, number> = {
     level_in: 1, mode: 0, range: 0.06125, threshold: 0.125, ratio: 2,
@@ -63,6 +63,7 @@ export async function gateAudio(
   budget.checkDuration(length / sampleRate);
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
+  const frames: MediaTrack["samples"][number][] = [];
   let envelope = 0;
   let frame = 0;
   let nextFrame = 0;
@@ -72,15 +73,22 @@ export async function gateAudio(
   }
   for (let i = 0; i < length; i++) {
     if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-    if (enable !== undefined && i === nextFrame) {
+    if (i === nextFrame) {
       const packet = first.samples[frame];
       const count = packet ? Math.round(packet.duration * sampleRate / first.timescale)
         - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0) : length - i;
-      enabled = Math.abs(parseFilterExpression(enable, "sidechaingate enable", {
-        t: packet ? packet.pts / first.timescale + (packet.skipSamples ?? 0) / sampleRate : i / sampleRate,
-        n: frame, w: 0, h: 0
-      })) >= 0.5;
-      nextFrame += Math.max(1, count);
+      const pts = packet ? packet.pts * sampleRate / first.timescale + (packet.skipSamples ?? 0) : i;
+      if (enable !== undefined) {
+        enabled = Math.abs(parseFilterExpression(enable, "sidechaingate enable", {
+          t: pts / sampleRate, n: frame, w: 0, h: 0
+        })) >= 0.5;
+      }
+      nextFrame = Math.min(length, i + Math.max(1, count));
+      // Downstream filters must receive the gate's program frames, including a
+      // final frame shortened when either input ends.
+      budget.allocateMemory(96);
+      frames.push({ data: new Uint8Array(0), size: 0, pts, dts: pts, cts: 0,
+        duration: nextFrame - i, isKeyframe: true, sampleDescriptionIndex: 1 });
       frame++;
     }
     let detected = 0;
@@ -122,5 +130,6 @@ export async function gateAudio(
     const scale = enabled ? level * gain * makeup : 1;
     for (let c = 0; c < channels.length; c++) output[c]![i] = channels[c]![i]! * scale;
   }
-  return output;
+  return { ...first, timescale: sampleRate, duration: length, samples: frames, editList: undefined,
+    decodedAudio: { ...first.decodedAudio!, channelData: output } };
 }

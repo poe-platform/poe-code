@@ -1457,9 +1457,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           budget.allocateMemory(length * b.channels * Float32Array.BYTES_PER_ELEMENT);
           control = await resampleAudio(b.channelData, length, b.sampleRate, a.sampleRate, budget, signal);
         }
-        const channelData = await gateAudio(first, filters[0]!, budget, control, signal);
-        return { track: { ...first, timescale: a.sampleRate, duration: channelData[0]!.length, samples: [], editList: undefined,
-          decodedAudio: { ...a, channelData } }, expression: serializeFilterChain(filters.slice(1)) || "anull" };
+        return { track: await gateAudio(first, filters[0]!, budget, control, signal),
+          expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "sidechaincompress" || filters[0]?.startsWith("sidechaincompress=")) {
         if (sources.length !== 2) throw new Error("sidechaincompress requires two inputs");

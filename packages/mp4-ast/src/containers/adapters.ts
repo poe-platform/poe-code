@@ -209,15 +209,15 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
   let demuxError: MediaTrack["demuxError"];
 
   while (cursor < bytes.byteLength) {
-    if (decodeUtf8(bytes.subarray(cursor, cursor + 5)) !== "FRAME") {
+    let fEnd = cursor;
+    while (fEnd < bytes.byteLength && fEnd - cursor < 80 && bytes[fEnd] !== 0x0a) fEnd++;
+    if (fEnd - cursor >= 80 || decodeUtf8(bytes.subarray(cursor, cursor + 5)) !== "FRAME") {
       demuxError = {
         message: "Error during demuxing: Invalid data found when processing input",
         timestamp: frameIdx * Math.max(1, fpsDen)
       };
       break;
     }
-    let fEnd = cursor;
-    while (fEnd < bytes.byteLength && bytes[fEnd] !== 0x0a) fEnd++;
     cursor = fEnd + 1;
     if (cursor + frameByteSize > bytes.byteLength) break;
 

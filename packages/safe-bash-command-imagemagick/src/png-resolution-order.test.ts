@@ -17,7 +17,7 @@ function chunks(bytes: Uint8Array) {
 
 for (const mode of ["buffered", "command"] as const) {
   it.each(["valid", "late", "none"])(`only preserves PNG resolution before IDAT (%s, ${mode})`, async placement => {
-    const tagged = encodePngImage({ width: 1, height: 1, data: Uint8Array.of(17, 34, 51, 255),
+    const tagged = encodePngImage({ format: "png", space: "srgb", channels: 3, depth: "uchar", density: 72, hasAlpha: false, width: 1, height: 1, data: Uint8Array.of(17, 34, 51, 255),
       resolution: { x: 1000, y: 2000, unit: "meter" } });
     const physical = chunks(tagged).find(chunk => chunk.name === "pHYs")!;
     const input = new Uint8Array(Buffer.concat([tagged.subarray(0, 8),

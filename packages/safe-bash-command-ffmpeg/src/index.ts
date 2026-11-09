@@ -10725,6 +10725,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {
                         const bounds = new Map<string, number>();
+                        const length = stretched[0]?.length ?? 0;
                         const argument = trimmed.slice("atrim=".length);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
@@ -10735,19 +10736,42 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             throw new Error(`atrim: unsupported option ${key}`);
                           }
                           const number = samples ? Number(value) : parseHlsDuration(value);
-                          const frame = samples ? number : Math.round(number * origRate) - audioStartSample;
+                          const boundary = samples ? number : Math.round(number * origRate);
+                          let frame = samples ? boundary : boundary - audioStartSample;
                           if (!value || !Number.isFinite(number) || !Number.isSafeInteger(frame) || (samples && number < 0)) {
                             throw new Error(`atrim: invalid ${key}`);
+                          }
+                          if (!samples && audioTimestamps) {
+                            // Time bounds follow frame PTS; sample bounds count the input data.
+                            frame = length;
+                            for (const timestamp of audioTimestamps) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              if (boundary <= timestamp.pts + timestamp.end - timestamp.start) {
+                                frame = timestamp.start + Math.max(0, boundary - timestamp.pts);
+                                break;
+                              }
+                            }
                           }
                           bounds.set(key, frame);
                         }
                         let start = Math.min(bounds.get("start") ?? Infinity, bounds.get("start_sample") ?? Infinity);
                         let end = Math.max(bounds.get("end") ?? -Infinity, bounds.get("end_sample") ?? -Infinity);
-                        const length = stretched[0]?.length ?? 0;
                         start = start === Infinity ? 0 : Math.max(0, Math.min(length, start));
                         end = end === -Infinity ? length : Math.max(start, Math.min(length, end));
                         stretched = stretched.map(channel => channel.subarray(start, end));
-                        audioStartSample += start;
+                        if (audioTimestamps) {
+                          const retained: typeof audioTimestamps = [];
+                          for (const frame of audioTimestamps) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const first = Math.max(start, frame.start);
+                            const last = Math.min(end, frame.end);
+                            if (last <= first) continue;
+                            budget.allocateMemory(24);
+                            retained.push({ start: first - start, end: last - start, pts: frame.pts + first - frame.start });
+                          }
+                          audioTimestamps = retained;
+                        }
+                        audioStartSample = audioTimestamps?.[0]?.pts ?? audioStartSample + start;
                       } else if (trimmed === "areverse") {
                         stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);
                         if (audioTimestamps) {

@@ -4363,7 +4363,7 @@ function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtual
         width: geometry.width ?? page.width,
         height: geometry.height ?? (geometry.width === undefined ? page.height : geometry.width),
         x: geometry.hasOffset ? geometry.x + (geometry.forceExact ? page.x : 0) : page.x,
-        y: geometry.hasOffset ? geometry.y + (geometry.forceExact ? page.y : 0) : page.y
+        y: geometry.hasYOffset ? geometry.y + (geometry.forceExact ? page.y : 0) : page.y
     };
 }
 

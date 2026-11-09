@@ -187,7 +187,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Includes ordered image2 brace alternatives and the current command graph (1,178,057 bytes).
   // Current dependencies plus asubcut measure 1,294,815 bytes (baseline 1,291,909).
   // Current command graph, including apad frame boundaries, measures 1,405,997 bytes.
-  assert.ok(otherCodeBytes < 1_410_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Current audio timestamp handling and atrim integer expressions measure 1,413,903 bytes.
+  assert.ok(otherCodeBytes < 1_420_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

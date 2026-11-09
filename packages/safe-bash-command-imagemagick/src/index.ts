@@ -5939,9 +5939,9 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     let end = start;
     const argument = token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";
     const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
-    return { end, highDepth: token === "-equalize" || token === "-auto-gamma" || token === "-auto-level", luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, transform(histogram, image) {
+    return { end, highDepth: token !== "-linear-stretch", luminance: token === "-linear-stretch" || (token === "-normalize" || token === "-contrast-stretch" || token === "-equalize") && !independent, transform(histogram, image) {
         const levels = histogram[0]!.length;
-        const lookup = Array.from({ length: 4 }, () => (token === "-auto-gamma" || token === "-auto-level") && levels === 65536
+        const lookup = Array.from({ length: 4 }, () => token !== "-equalize" && levels === 65536
             ? Uint16Array.from({ length: levels }, (_, value) => value)
             : Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
         const count = Math.max(1, image.width * image.height);
@@ -5997,12 +5997,12 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];
             for (let channel = 0; channel < 4; channel++) {
                 if (!active[channel]) continue;
-                const bins = histogram[4] ?? histogram[channel]!, scale = histogram[4] ? 257 : 1;
+                const bins = histogram[4] ?? histogram[channel]!, scale = histogram[4] ? 65535 / (levels - 1) : 1;
                 let low = 0, high = bins.length - 1, sum = 0;
                 for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum > lowTarget) break; }
                 sum = 0;
                 for (; high > 0; high--) { sum += bins[high]!; if (sum > highTarget) break; }
-                if (high > low) for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal((value * scale - low) / (high - low) * 255);
+                if (high > low) for (let value = 0; value < levels; value++) lookup[channel]![value] = Math.round(Math.max(0, Math.min(levels - 1, (value * scale - low) / (high - low) * (levels - 1))));
             }
         } else if (token === "-equalize") {
             const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];

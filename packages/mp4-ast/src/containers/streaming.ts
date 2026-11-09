@@ -423,11 +423,9 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   const streams = buildProbeResultFromDoc(doc, 0).streams;
   const hlsStreams: { codec: string; bandwidth: number }[] = [];
   let totalBytes = 0;
-  const lines = [
-    '<?xml version="1.0" encoding="utf-8"?>',
-    `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" maxSegmentDuration="PT${segmentDuration.toFixed(6)}S" mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S" minBufferTime="PT1S" profiles="urn:mpeg:dash:profile:isoff-live:2011">`,
-    '<Period id="0" start="PT0S">'
-  ];
+  const hasVideo = doc.tracks.some(track => track.type === "video");
+  let bufferDuration = 0;
+  let lastSegmentEnd = -Infinity;
   for (let index = 0; index < doc.tracks.length; index++) {
     const track = doc.tracks[index]!;
     if (track.type !== "video" && track.type !== "audio") throw new Error("DASH output supports video and audio tracks");
@@ -492,6 +490,16 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       const time = Math.max(0, (samples[0]?.dts ?? 0) - mediaStart);
       const last = samples.at(-1);
       const duration = last ? Math.max(0, last.dts + last.duration - mediaStart) - time : track.duration;
+      if (index === 0 && segment === 0) bufferDuration = duration / track.timescale;
+      // Keep the last completed video (or audio-only) segment duration when
+      // flushing a shorter final segment, matching FFmpeg's buffer signaling.
+      if (segment + 1 < starts.length && (!hasVideo || track.type === "video")) {
+        const end = Math.max(0, track.samples[starts[segment + 1]!]!.dts - mediaStart) / track.timescale;
+        if (end >= lastSegmentEnd) {
+          lastSegmentEnd = end;
+          bufferDuration = end - time / track.timescale;
+        }
+      }
       segments.push({ time, duration, bytes: media });
       if (segment < firstSegment) continue;
       const previous = timeline.at(-1);
@@ -591,6 +599,11 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       '</Representation>'
     ];
   }
+  const lines = [
+    '<?xml version="1.0" encoding="utf-8"?>',
+    `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" maxSegmentDuration="PT${segmentDuration.toFixed(6)}S" mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S" minBufferTime="PT${(2 * bufferDuration).toFixed(6)}S" profiles="urn:mpeg:dash:profile:isoff-live:2011">`,
+    '<Period id="0" start="PT0S">'
+  ];
   for (const adaptation of adaptations) {
     lines.push(`<AdaptationSet id="${adaptation.id}" ${adaptationAttributes[adaptation.indices[0]!]}>`);
     for (const index of adaptation.indices) lines.push(...representations[index]!);

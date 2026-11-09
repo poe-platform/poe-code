@@ -793,7 +793,8 @@ Named instances such as `acrossfade@join=ns=4` and `amerge@pair=inputs=2`
 use the same input handling and options as their unnamed forms.
 
 `[0:a][1:a]astreamselect=inputs=2:map=1[out]` selects the second decoded PCM
-input, preserving its channels and samples and ending with the shortest input.
+input, preserving its channels, samples, and frame boundaries for downstream
+filters and ending with the shortest input.
 Inputs must share a sample rate. `inputs` defaults to two; `map` must select one
 input. Map indices follow FFmpeg's integer-prefix parsing: decimal, leading-zero
 octal, and `0x` hexadecimal, with an optional sign. Suffixes stop parsing, so

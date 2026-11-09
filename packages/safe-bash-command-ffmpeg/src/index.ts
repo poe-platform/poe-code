@@ -1502,7 +1502,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const length = Math.min(...sources.map(source => source.track.decodedAudio!.channelData[0]!.length));
         budget.checkSamples(length);
         budget.checkDuration(length / audio.sampleRate);
-        return { track: { ...track, timescale: audio.sampleRate, duration: length, samples: [], editList: undefined,
+        return { track: { ...track, duration: length * track.timescale / audio.sampleRate, editList: undefined,
           decodedAudio: { ...audio, channelData: audio.channelData.map(channel => channel.subarray(0, length)) } },
           expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }

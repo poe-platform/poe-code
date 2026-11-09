@@ -12,3 +12,6 @@ Use `-a` to append to that file.
 
 When `POSIXLY_CORRECT` is set (even to an empty value), option parsing stops at
 the destination: `sponge f -a` overwrites `f`, while `sponge -a f` appends.
+
+Omit the file operand to write to stdout. A literal `-` operand names a file
+called `-`, including with `-a` or after `--`.

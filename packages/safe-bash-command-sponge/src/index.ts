@@ -119,7 +119,7 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
         const maxBytes = Math.min(limits.maxBufferedBytes, (context as { limits?: { maxInputBytes?: number } }).limits?.maxInputBytes ?? limits.maxBufferedBytes);
         const buffered = await collectSourceBytes(context.stdin, maxBytes, context.signal, admit);
 
-        if (files.length === 0 || files[0] === "-") {
+        if (files.length === 0) {
           await writeBytes(context.stdout, buffered, context.signal);
           return { exitCode: 0 };
         }
@@ -242,7 +242,7 @@ export function evalSyncSponge(
   }
   if (inBytes === undefined) return undefined;
   const payload = inBytes;
-  if (files.length === 0 || files[0] === "-") {
+  if (files.length === 0) {
     if (payload.some(b => b === 0 || b >= 128)) return undefined;
     return decoder.decode(payload);
   }

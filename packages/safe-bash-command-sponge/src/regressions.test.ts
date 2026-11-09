@@ -1,20 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createSpongeCommand } from "./index.js";
+import { createSpongeCommand, evalSyncSponge } from "./index.js";
 
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { type CommandContext, createCommandArguments } from "safe-bash-contracts";
 
 function fixture(args: string[] = [], input = "abcdef") {
   let diagnostic = "";
+  let output = "";
   const context: CommandContext = {
     command: "sponge", args, cwd: "/", env: {}, fs: createMemoryFileSystem(),
     stdin: { async *[Symbol.asyncIterator]() { yield new TextEncoder().encode(input); } },
-    stdout: { async write() {} },
+    stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } },
     stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } },
     signal: new AbortController().signal,
   };
-  return { context, diagnostic: () => diagnostic };
+  return { context, diagnostic: () => diagnostic, output: () => output };
 }
 
 test("sponge propagates filesystem output budget failures", async () => {
@@ -156,3 +157,55 @@ for (const append of [false, true]) {
     assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["output"]);
   });
 }
+
+for (const args of [["-"], ["--", "-"], ["-a", "-"], ["-a", "--", "-"]]) {
+  for (const existing of [undefined, "old"]) {
+    test(`sponge ${args.join(" ")} writes to ${existing === undefined ? "a new" : "an existing"} literal dash file`, async () => {
+      const run = fixture(args, "abc");
+      if (existing !== undefined) await run.context.fs.writeFile("/-", new TextEncoder().encode(existing));
+      assert.equal((await createSpongeCommand().execute(run.context)).exitCode, 0);
+      assert.equal(run.output(), "");
+      assert.equal(run.diagnostic(), "");
+      assert.deepEqual(await run.context.fs.readFile("/-"), new TextEncoder().encode(
+        (args.includes("-a") ? existing ?? "" : "") + "abc",
+      ));
+    });
+  }
+}
+
+for (const args of [[], ["-a"]]) {
+  test(`sponge ${args.join(" ")} writes to stdout without a file operand`, async () => {
+    const run = fixture(args, "abc");
+    await run.context.fs.writeFile("/-", new TextEncoder().encode("old"));
+    assert.equal((await createSpongeCommand().execute(run.context)).exitCode, 0);
+    assert.equal(run.output(), "abc");
+    assert.equal(run.diagnostic(), "");
+    assert.deepEqual(await run.context.fs.readFile("/-"), new TextEncoder().encode("old"));
+  });
+}
+
+for (const args of [["-"], ["--", "-"]]) {
+  for (const bytes of [new TextEncoder().encode("abc"), new Uint8Array([0, 255, 10])]) {
+    test(`sponge sync ${args.join(" ")} defers literal dash file bytes ${bytes}`, () => {
+      assert.equal(evalSyncSponge(bytes, args, undefined, () => {
+        assert.fail("file writes must use the command executor");
+      }), undefined);
+    });
+  }
+}
+
+test("sponge sync falls back for literal dash append and unavailable writes", () => {
+  const bytes = new TextEncoder().encode("abc");
+  for (const args of [["-a", "-"], ["-a", "--", "-"]]) {
+    assert.equal(evalSyncSponge(bytes, args, undefined, () => {
+      assert.fail("append must fall back before writing");
+    }), undefined);
+  }
+  assert.equal(evalSyncSponge(bytes, ["-"]), undefined);
+  assert.equal(evalSyncSponge(bytes, ["-"], undefined, () => false), undefined);
+});
+
+test("sponge sync writes to stdout without a file operand", () => {
+  const bytes = new TextEncoder().encode("abc");
+  for (const args of [[], ["-a"]]) assert.equal(evalSyncSponge(bytes, args), "abc");
+});

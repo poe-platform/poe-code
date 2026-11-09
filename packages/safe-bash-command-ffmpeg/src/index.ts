@@ -10077,7 +10077,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const registers = Array.from({ length: count }, () => new Float64Array(10));
                         const randomStates = Array.from({ length: count }, () => new Array<BigUint64Array>(10));
                         const variables = { PI: Math.PI, ch: 0, n: 0, t: 0, s: origRate, nb_in_channels: stretched.length, nb_out_channels: count };
-                        const sampleValue = (channel: number) => stretched[Math.max(0, Math.min(stretched.length - 1, Math.trunc(channel)))]![variables.n]!;
+                        const sampleValue = (channel: number) => {
+                          const index = Math.min(stretched.length - 1, Math.trunc(channel));
+                          return index < 0 ? 0 : stretched[index]![variables.n]!;
+                        };
                         let frameEnd = 0;
                         let frameIndex = 0;
                         let enabled = true;

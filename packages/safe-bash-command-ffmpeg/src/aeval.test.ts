@@ -33,7 +33,7 @@ for (const [expression, expected] of [
   ["val(ch)|val(ch)", [left, right]],
   ["val(1)", [right]],
   ["val(1):channel_layout=mono", [right]],
-  ["val(-1)|val(4)", [left, right]],
+  ["val(-1)|val(4)", [[0, 0, 0, 0], right]],
   ["val(1):c=stereo", [right, right]],
   ["val(ch):c=same", [left, right]],
   ["sgn(val(ch))/10:c=same", [[3277, 3277, 3277, 3277], [-3277, -3277, -3277, -3277]]],

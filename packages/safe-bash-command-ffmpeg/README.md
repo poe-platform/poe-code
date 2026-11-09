@@ -440,7 +440,8 @@ order. Named destinations retain their speaker layout, including `1-FR` and
 `0-FC|1-LFE`. Unavailable inputs, duplicate destinations, and mixed numeric/named
 endpoint syntax are rejected before writing output.
 `aeval=val(1)|val(0)` evaluates separate expressions against the input samples to swap
-stereo channels. Explicit output layouts include `c=quad`, `c=5.1`, speaker lists
+stereo channels. `val(channel)` truncates fractional indices toward zero, returns
+silence for negative indices, and caps high indices at the last input channel. Explicit output layouts include `c=quad`, `c=5.1`, speaker lists
 such as `c=FL+FR`, masks such as `c=0x3`, and channel aliases such as `c=2c`.
 With no layout option, each expression produces one output channel (up to 64),
 so `aeval=val(0)|val(1)|0` adds a silent third channel.

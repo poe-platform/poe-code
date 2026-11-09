@@ -74,6 +74,28 @@ for (const [filter, first, second, points] of [
   });
 }
 
+// Native FFmpeg 7.0.2 PCM16 output at 8 kHz, including every recovery frame.
+for (const [filter, runs] of [
+  ["amix=dropout_transition=0.256", [[1024, 4000], [512, 6857], [512, 8000], [512, 9600], [2560, 12000]]],
+  ["amix=dropout_transition=0.128", [[1024, 4000], [512, 8000], [3584, 12000]]],
+  ["amix=dropout_transition=0.128:weights=1 3", [[1024, 0], [512, 4000], [512, 6000], [3072, 12000]]],
+  ["amix=dropout_transition=0", [[1024, 4000], [4096, 12000]]],
+  ["amix=dropout_transition=0.128:normalize=0", [[1024, 8000], [4096, 12000]]],
+  ["amix=duration=shortest:dropout_transition=0.128", [[1024, 4000]]],
+  ["map:0:a", [[5120, 12000]]],
+  ["map:1:a", [[1024, -4000]]]
+] as const) {
+  it(`matches native dropout recovery and output length for ${filter}`, async () => {
+    const { result, volume, error } = await mix(filter, Array(5120).fill(12000), Array(1024).fill(-4000));
+    assert.equal(result.exitCode, 0, error);
+    const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 8000);
+    assert.equal(audio.channels, 1);
+    assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768),
+      runs.flatMap(([length, value]) => Array(length).fill(value)));
+  });
+}
+
 for (const filter of ["amix=inputs=3", "amix=duration=invalid", "amix=normalize=maybe",
   "amix=dropout_transition=-1", "amix=weights=bad", "amix=unknown=1"]) {
   it(`rejects ${filter} without replacing output`, async () => {

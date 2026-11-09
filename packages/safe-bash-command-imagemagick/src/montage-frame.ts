@@ -1,19 +1,21 @@
-import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 // Shared by convert frames and montage's 15-pixel matte with 3-pixel bevels.
-export function* magickFramePixels(source: { width: number; height: number }, width: number, height: number,
+export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, width: number, height: number,
     border: RgbaColor, matte: RgbaColor, frameX: number, frameY: number, outer: number, inner: number, compositeSource = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (outer < 0 || inner < 0 || outer + inner > Math.min(frameX, frameY)) throw new Error("frame is less than image size");
+    const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     const shade = (factor: number, lighten: boolean) => [matte.r, matte.g, matte.b].map(value =>
-        Math.round(lighten ? value + (255 - value) * factor / 255 : value * factor / 255)).concat(matte.a);
+        Math.round((lighten ? value + (255 - value) * factor / 255 : value * factor / 255) * scale)).concat(Math.round(matte.a * scale));
     const accent = shade(80, true), highlight = shade(125, true), shadow = shade(135, false), trough = shade(110, false);
-    const flat = [matte.r, matte.g, matte.b, matte.a], interior = [border.r, border.g, border.b, border.a];
+    const flat = [matte.r, matte.g, matte.b, matte.a].map(value => Math.round(value * scale));
+    const interior = [border.r, border.g, border.b, border.a].map(value => Math.round(value * scale));
     const insetX = Math.ceil((width - 2 * frameX - source.width) / 2), insetY = Math.ceil((height - 2 * frameY - source.height) / 2);
     const innerW = source.width + insetX * 2, innerH = source.height + insetY * 2;
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {
         yield;
-        const count = Math.min(1024, width - left), data = new Uint8Array(count * 4);
+        const count = Math.min(1024, width - left), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
         for (let i = 0; i < count; i++) {
             const x = left + i;
             let color = flat;
@@ -33,16 +35,17 @@ export function* magickFramePixels(source: { width: number; height: number }, wi
         }
         const sy = y - frameY - insetY, first = Math.max(left, frameX + insetX), end = Math.min(left + count, frameX + insetX + source.width);
         if (compositeSource && sy >= 0 && sy < source.height && end > first) {
-            const bytes = yield { kind: "read", position: (sy * source.width + first - frameX - insetX) * 4, length: (end - first) * 4 };
+            const bytes = yield { kind: "read", position: (sy * source.width + first - frameX - insetX) * 4, length: (end - first) * 4, highDepth };
             if (!bytes) throw new Error("Missing montage frame pixels");
+            const samples = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
             for (let x = first; x < end; x++) {
-                const src = (x - first) * 4, dst = (x - left) * 4, alpha = bytes[src + 3]! / 255;
+                const src = (x - first) * 4, dst = (x - left) * 4, alpha = samples[src + 3]! / maximum;
                 const outAlpha = alpha + border.a / 255 * (1 - alpha);
-                for (let c = 0; c < 3; c++) data[dst + c] = outAlpha ? Math.round((bytes[src + c]! * alpha + interior[c]! * border.a / 255 * (1 - alpha)) / outAlpha) : 0;
-                data[dst + 3] = Math.round(outAlpha * 255);
+                for (let c = 0; c < 3; c++) data[dst + c] = outAlpha ? Math.round((samples[src + c]! * alpha + interior[c]! * border.a / 255 * (1 - alpha)) / outAlpha) : 0;
+                data[dst + 3] = Math.round(outAlpha * maximum);
             }
         }
-        yield { kind: "write", position: (y * width + left) * 4, data };
+        yield { kind: "write", position: (y * width + left) * 4, data: new Uint8Array(data.buffer), highDepth };
     }
 }
 

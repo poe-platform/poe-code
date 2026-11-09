@@ -2860,8 +2860,7 @@ export function ffmetadataAst(): MediaAstPlugin {
     canMux: true,
     supportedVideoCodecs: [],
     supportedAudioCodecs: [],
-    detect(bytes, filename) {
-      if (filename && /\.(ffmeta|ffmetadata)$/i.test(filename)) return true;
+    detect(bytes) {
       if (bytes.byteLength >= 12) {
         const head = decodeUtf8(bytes.subarray(0, Math.min(64, bytes.byteLength))).trimStart();
         if (head.startsWith(";FFMETADATA")) return true;
@@ -3094,9 +3093,10 @@ export function createMediaAstRegistry(plugins: readonly MediaAstPlugin[]): Medi
       // SubRip requires a numbered cue signature for automatic detection;
       // unnumbered cues are accepted only when the input format is explicit.
       // SubViewer shares .sub with MicroDVD, so its timecode signature is required.
+      // FFmetadata also requires its header unless the format is explicit.
       if (filename) {
         const byExt = this.findByFilename(filename);
-        if (byExt?.id !== "srt" && byExt?.id !== "subviewer") return byExt;
+        if (byExt?.id !== "srt" && byExt?.id !== "subviewer" && byExt?.id !== "ffmetadata") return byExt;
       }
       return undefined;
     }

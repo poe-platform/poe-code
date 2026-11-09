@@ -1,3 +1,4 @@
+import { encodeH264PresetTrack, h264Presets } from "@poe-code/mp4-ast";
 import { parseFeedbackGraph, applyFeedback } from "./feedback.js";
 import { applyOutputColors, parseOutputColorOption, type OutputColorOption } from "./color-options.js";
 import { surroundAudio } from "./audio-surround.js";
@@ -4454,7 +4455,7 @@ export function evalSyncFfmpeg(
         validateBitstreamFilters(args[++i]);
       }
       else if (arg === "-vsync" || arg === "-fps_mode" || arg.startsWith("-fps_mode:")) return undefined;
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-tag:a") i++;
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-crf" || arg === "-b:v" || arg === "-tag:a") i++;
       else if (arg === "-bf") {
         const value = args[++i];
         maxBFrames = value?.trim() ? Number(value) : NaN;
@@ -5530,6 +5531,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let videoCodec: string | undefined;
         let zeroLatency = false;
         let maxBFrames: number | undefined;
+        let videoPreset: string | undefined;
         let forceKeyFrames: number[] | undefined;
         let rawPixelFormat: string | undefined;
         let audioCodec: string | undefined;
@@ -5801,7 +5803,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
             }
-          } else if (arg === "-threads" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-tag:a") {
+          } else if (arg === "-threads" || arg === "-crf" || arg === "-b:v" || arg === "-tag:a") {
             i++;
           } else if (arg === "-bf") {
             const value = args[++i];
@@ -5817,6 +5819,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             zeroLatency = true;
+          } else if (arg === "-preset" || arg === "-preset:v" || arg === "-preset:v:0") {
+            videoPreset = args[++i];
+            if (videoPreset === undefined) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Missing value for ${arg}\n`), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-b:a") {
             audioBitrate = parseAudioBitrate(args[++i]);
             if (audioBitrate === undefined) {
@@ -8692,12 +8700,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             if (zeroLatency && videoCodec !== "copy" && features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
+            if (videoPreset !== undefined && videoCodec !== "copy") {
+              if (!h264Presets.some(name => name === videoPreset)) throw new Error(`invalid preset '${videoPreset}'`);
+              if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
+            }
+
             // Output frame counts refer to displayed pictures, never encoded packets.
             if (videoCodec !== "copy") {
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async (track, index) => {
-                  if (track.type !== "video" || (!zeroLatency && !imageOutput && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && !track.decodedVideoFrames)) return track;
+                  if (track.type !== "video" || (!zeroLatency && !imageOutput && videoPreset === undefined && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && !track.decodedVideoFrames)) return track;
                   const limit = vfFilters.length === 0 && outputFps === undefined ? streamFrameLimits[index] : undefined;
                   const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
                   return { ...track, samples: [], decodedVideoFrames: frames };
@@ -10839,6 +10852,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   ...(track.timecodeTrackId === undefined ? {} : { timecodeTrackId: ids.get(track.timecodeTrackId)! })
                 })) };
               }
+            }
+
+            if (videoPreset !== undefined && videoCodec !== "copy") {
+              if (videoCodec !== undefined && videoCodec !== "libx264" && videoCodec !== "h264") throw new Error("Presets require H.264 encoding");
+              workingDoc = { ...workingDoc, tracks: await mapWork(workingDoc.tracks, track =>
+                encodeH264PresetTrack(track, videoPreset!, budget, forceKeyFrames, maxBFrames, undefined, undefined, zeroLatency), context.signal) };
             }
 
             let decodeExitCode = demuxExitCode;

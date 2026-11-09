@@ -359,3 +359,5 @@ export function encodeAudio(
     module._decoder_free(encoder);
   }
 }
+
+export { encodeH264Preset, h264Presets } from "./x264-encoder.js";

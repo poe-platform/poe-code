@@ -11,6 +11,7 @@ To reproduce the frozen runtime, supply an installed Emscripten 4.0.13 compiler:
 
 ```sh
 node packages/media-codecs/scripts/build.mjs /absolute/path/to/emcc
+node packages/media-codecs/scripts/build-x264.mjs /absolute/path/to/emcc
 ```
 
 The recipe validates the compiler version and all pinned sources and owned build

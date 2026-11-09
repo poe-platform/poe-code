@@ -69,3 +69,6 @@ export { vplayerAst } from "./containers/vplayer.js";
 export { ac3Ast } from "./containers/ac3.js";
 
 export { amrAst } from "./containers/amr.js";
+
+export { encodeH264PresetTrack } from "./h264-preset.js";
+export { h264Presets } from "@poe-code/media-codecs";

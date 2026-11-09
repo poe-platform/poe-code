@@ -20,3 +20,5 @@ because its H.264-only configuration omits that object from the archive.
 The generated runtime is replaceable: rebuild it from these sources with the
 same ABI, or replace the public codec module. Normal package builds only verify
 and bundle the frozen artifact; they do not download sources or invoke a C compiler.
+
+`x264-encoder.js` contains x264 revision c24e06c2e184345ceb33eb20a15d1024d9fd3497 (GPL-2.0-or-later), compiled to static JavaScript with Emscripten 4.0.13. Its complete corresponding source is `sources/x264-c24e06c.tar.gz`; the license is `LICENSE.x264`. The owned ABI, pinned hashes and reproducible build recipe are `../scripts/x264-encoder.c`, `../scripts/x264-sources.json` and `../scripts/build-x264.mjs`. Assembly, threads, OpenCL and host file I/O are disabled.

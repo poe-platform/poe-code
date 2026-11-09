@@ -4,7 +4,7 @@ FFmetadata exposes each `[STREAM]` section as a data track, including empty sect
 
 Decoded H.264 frames retain native pixels for `scaleVideoPicture(frame, width, height)`
 to resize before RGB conversion. Treat frame buffers as immutable; replaced RGBA
-buffers or dimensions make native scaling unavailable.
+buffers or dimensions make native scaling unavailable. `encodeH264PresetTrack(track, "medium")` encodes a decoded video track with any x264 preset, retaining timestamps and delayed B frames for the output container.
 When encoding decoded frames with `serializeMp4`, use `{ forceKeyFrames: [0.5, 1.25] }`
 to force H.264 keyframes at presentation times in seconds, rounded to the encoder time base.
 

@@ -1,0 +1,36 @@
+{
+  "toolchain": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 4.0.13 (2659582941bef14008476903f48941909db1b196)",
+  "source": "https://github.com/mirror/x264/tree/c24e06c2e184345ceb33eb20a15d1024d9fd3497",
+  "inputs": [
+    {
+      "path": "vendor/sources/x264-c24e06c.tar.gz",
+      "bytes": 1035587,
+      "sha256": "090d730e867fc63631782a1287974635d1237d0fa7c6fd1d09fd543620a56689"
+    },
+    {
+      "path": "vendor/LICENSE.x264",
+      "bytes": 17992,
+      "sha256": "32b1062f7da84967e7019d01ab805935caa7ab7321a7ced0e30ebe75e5df1670"
+    },
+    {
+      "path": "scripts/x264-encoder.c",
+      "bytes": 3276,
+      "sha256": "e3615d9432bd8e3ee43f941e4606972b2393ce840ac63285ded001a77a692015"
+    },
+    {
+      "path": "scripts/build-x264.mjs",
+      "bytes": 4257,
+      "sha256": "b7646f8f366092923e4c5e43f9d80d8086fa3535a43b2ce4173501e0c12cf4a6"
+    },
+    {
+      "path": "vendor/x264-encoder.d.ts",
+      "bytes": 607,
+      "sha256": "8c769fc78fc1b1ef6ceecf080ae8ac404d61098fd34a2e0b62a1f388553a8e2b"
+    }
+  ],
+  "artifact": {
+    "path": "vendor/x264-encoder.js",
+    "bytes": 1180841,
+    "sha256": "60592cb05ca23fb7042d923ecda4a0a5e76290f79599d7677ff1c74e358b7448"
+  }
+}

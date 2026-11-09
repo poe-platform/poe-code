@@ -4,7 +4,8 @@ import { readFileSync } from "node:fs";
 
 const root = new URL("../", import.meta.url);
 const manifest = JSON.parse(readFileSync(new URL("sources.json", import.meta.url), "utf8"));
-for (const entry of [...manifest.archives, ...manifest.inputs, manifest.artifact]) {
+const x264 = JSON.parse(readFileSync(new URL("x264-sources.json", import.meta.url), "utf8"));
+for (const entry of [...x264.inputs, x264.artifact, ...manifest.archives, ...manifest.inputs, manifest.artifact]) {
   const bytes = readFileSync(new URL(entry.path, root));
   assert.equal(createHash("sha256").update(bytes).digest("hex"), entry.sha256, `Codec artifact/input changed: ${entry.path}`);
   if (entry.bytes !== undefined) assert.equal(bytes.length, entry.bytes);

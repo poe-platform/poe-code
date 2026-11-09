@@ -38,6 +38,7 @@ export function parseWav(bytes: Uint8Array): AudioAst {
   const nodes: AudioNode[] = [],
     tags: AudioTags = {};
   let channelMask: number | undefined;
+  let hasFmt = false;
   let format = 0,
     sampleRate = 0,
     channels = 0,
@@ -53,7 +54,8 @@ export function parseWav(bytes: Uint8Array): AudioAst {
     if (size > end - start) throw new Error("WAV chunk exceeds RIFF bounds");
     const node: AudioNode = { type, offset, size: size + 8, data: r.slice(start, size) };
     nodes.push(node);
-    if (type === "fmt ") {
+    if (type === "fmt " && !hasFmt) {
+      hasFmt = true;
       if (size < 16) throw new Error("Short WAV fmt chunk");
       format = r.u16(start, true);
       channels = r.u16(start + 2, true);
@@ -121,7 +123,7 @@ export function parseWav(bytes: Uint8Array): AudioAst {
     offset = start + size + (size % 2);
     if (offset > end) throw new Error("Missing WAV chunk padding");
   }
-  if (!nodes.some((n) => n.type === "fmt ") || !nodes.some((n) => n.type === "data"))
+  if (!hasFmt || !nodes.some((n) => n.type === "data"))
     throw new Error("WAV requires fmt and data");
   const stream = wavStream({ format, sampleRate, channels, bits, validBits, align, dataSize });
   if (channelMask !== undefined) Object.assign(stream, { channelMask });

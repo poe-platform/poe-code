@@ -34,7 +34,7 @@ export async function probeWavSource(source: AudioProbeSource, options: { signal
     const chunk = await read(offset, 8), type = chunk.text(0, 4), declaredSize = chunk.u32(4, true), start = offset + 8;
     const size = type === "data" && declaredSize === 0xffffffff ? end - start : declaredSize;
     if (size > end - start) throw new Error("WAV chunk exceeds RIFF bounds");
-    if (type === "fmt ") {
+    if (type === "fmt " && !hasFmt) {
       if (size < 16) throw new Error("Short WAV fmt chunk");
       const fmt = await read(start, Math.min(size, 40));
       format = fmt.u16(0, true); channels = fmt.u16(2, true); sampleRate = fmt.u32(4, true);

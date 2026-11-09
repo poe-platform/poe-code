@@ -1105,6 +1105,7 @@ async function panAudio(
     const output = channelIndex(parts[0]!.trim(), names, names.length);
     if (assigned.has(output)) throw new Error("pan: duplicate output channel");
     assigned.add(output);
+    const referenced = new Set<number>();
     const expression = parts[1];
     let offset = 0;
     let sign = 1;
@@ -1133,7 +1134,9 @@ async function panAudio(
         throw new Error("pan: cannot mix named and numbered input channels");
       }
       numberedInputs = numbered;
-      gains[output]![input] = gains[output]![input]! + gain;
+      if (referenced.has(input)) throw new Error(`pan: Can not reference in channel ${input} twice`);
+      referenced.add(input);
+      gains[output]![input] = gain;
       if (offset === expression.length) break;
       sign = expression[offset] === "-" ? -1 : 1;
       offset++;

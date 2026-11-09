@@ -351,6 +351,8 @@ Terms accept subtraction (`c0-c1`), compact gains (`.5c1`), and signed exponents
 Stereo layouts also accept `0x3` and `FL+FR`. `pan=5.1|FC=c1|LFE=c0` routes
 stereo into center and LFE; unassigned speakers stay silent. Output preserves
 the layout’s speaker order and channel mask.
+Each input channel may appear only once per output equation, including zero-gain
+terms; the same input may be used in separate output equations.
 All input references in a pan filter must use the same style: named or numbered.
 Output labels may mix styles, as in `pan=stereo|FL=c0|c1=c1`.
 Use `-ch_layout mono` or `-channel_layout mono` for mono output, equivalent to `-ac 1`. Other output layouts are not supported by these options.

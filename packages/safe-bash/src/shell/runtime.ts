@@ -8298,7 +8298,7 @@ export class Runtime {
     }
     const arguments_ = incoming.slice(offset);
     const format = arguments_.args[0] === "--" ? arguments_.args[1] : arguments_.args[0];
-    if (format === undefined || arguments_.args[0] !== "--" && format.startsWith("-")) {
+    if (format === undefined || arguments_.args[0] !== "--" && format.startsWith("-") && format !== "-") {
       await writeDiagnostic(context.stderr, "printf: usage: printf [-v var] format [arguments]\n");
       return 2;
     }

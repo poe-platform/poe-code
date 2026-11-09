@@ -41,6 +41,39 @@ for (const prefix of ["", "builtin ", "command "]) {
   }
 }
 
+for (const prefix of ["", "builtin ", "command "]) {
+  for (const separator of ["", "-- "]) {
+    for (const loop of [false, true]) {
+      test(`${prefix}printf accepts a lone hyphen with ${separator || "no separator"}, loop=${loop}`, async context => {
+        const body = `${prefix}printf ${separator}-; value=old; ${prefix}printf -v value ${separator}-; echo "$?:$value"`;
+        const script = loop ? `for i in 1 2; do ${body}; done` : body;
+        const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 2000 });
+        assert.ifError(oracle.error);
+        assert.equal(oracle.status, 0);
+        assert.equal(oracle.stderr, "");
+        assert.equal(oracle.stdout, loop ? "-0:-\n-0:-\n" : "-0:-\n");
+        const { shell } = fixture();
+        context.after(() => shell.dispose());
+        const result = await shell.exec(script, { env: { LC_ALL: "C" } });
+        assert.equal(result.exitCode, oracle.status, result.stderr);
+        assert.equal(result.stderr, oracle.stderr);
+        assert.equal(result.stdout, oracle.stdout);
+      });
+    }
+  }
+  test(`${prefix}printf still rejects unknown options`, async context => {
+    const { shell } = fixture();
+    context.after(() => shell.dispose());
+    const output = await shell.exec(`${prefix}printf -x`);
+    assert.notEqual(output.exitCode, 0);
+    assert.equal(output.stdout, "");
+    assert.match(output.stderr, /invalid option/);
+    const assignment = await shell.exec(`value=old; ${prefix}printf -v value -x; echo "$?:$value"`);
+    assert.equal(assignment.stdout, "2:old\n");
+    assert.match(assignment.stderr, /printf: usage:/);
+  });
+}
+
 for (const name of ["IFS", "OPTIND", "RANDOM", "SECONDS"]) {
   test(`printf -v ${name} uses the normal variable writer`, async context => {
     const writes = context.mock.method(Runtime.prototype, "writeVariable");

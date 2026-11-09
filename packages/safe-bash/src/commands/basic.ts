@@ -178,7 +178,7 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
   const args = arguments_.args;
   requireOperands(args);
   const format = args[0]!;
-  if (format.startsWith("-") && incoming.args[0] !== "--") throw new UsageError(`invalid option '${format}'`);
+  if (format.startsWith("-") && format !== "-" && incoming.args[0] !== "--") throw new UsageError(`invalid option '${format}'`);
   const rawFormat = typeof arguments_.values[0] === "string" ? undefined : arguments_.bytes(0)!;
   const formatLength = rawFormat?.length ?? format.length;
   let argument = 1;

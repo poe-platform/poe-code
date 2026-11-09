@@ -7105,7 +7105,29 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     else if (data16) out[idx + c] = clampByteVal(data16[idx + c]! / 257);
                 }
             }
-            return { ...im, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
+            // Negation retains the colormap and its entry order, including unused colors.
+            const negateColor = (r: number, g: number, b: number, a: number): number => {
+                if (!onlyGray || r === g && g === b) {
+                    if (mask[0]) r = 255 - r;
+                    if (mask[1]) g = 255 - g;
+                    if (mask[2]) b = 255 - b;
+                    if (mask[3]) a = 255 - a;
+                }
+                return a * 16777216 + r * 65536 + g * 256 + b;
+            };
+            const indexedColors = im.indexedColors?.map(color => negateColor((color >>> 16) & 255, (color >>> 8) & 255, color & 255, color >>> 24));
+            let pngPalette = im.pngPalette;
+            if (pngPalette) {
+                const bytes = new Uint8Array(pngPalette.bytes);
+                const transparency = pngPalette.transparency || mask[3] ? new Uint8Array(bytes.length / 3) : undefined;
+                for (let i = 0; i < bytes.length; i += 3) {
+                    const color = negateColor(bytes[i]!, bytes[i + 1]!, bytes[i + 2]!, pngPalette.transparency?.[i / 3] ?? 255);
+                    bytes[i] = color >>> 16; bytes[i + 1] = color >>> 8; bytes[i + 2] = color;
+                    if (transparency) transparency[i / 3] = color >>> 24;
+                }
+                pngPalette = { ...pngPalette, bytes, ...(transparency ? { transparency } : {}) };
+            }
+            return { ...im, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
         };
     }
     else if (token === "-contrast" || token === "+contrast") {

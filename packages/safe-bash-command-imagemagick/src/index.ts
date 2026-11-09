@@ -1488,7 +1488,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
     "exif:orientation": meta.orientation === undefined ? "" : String(meta.orientation),
     colorspace: space, channels: `${space === "LinearGray" ? "gray" : space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.writeMask || meta.storedWriteMask ? 1 : 0)}.0`,
-    width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
+    w: short.w!, width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
     depth: bitDepth, size: short.b!, compression, quality: short.Q!, page: short.P!,
     "resolution.x": short.x!, "resolution.y": short.y!,
     units: resolution?.unit === "meter" ? "PixelsPerCentimeter" : "Undefined"
@@ -8322,8 +8322,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-cycle") {
-            const amount = parseMagickCycleAmount(tokens[++i] ?? "");
-            stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, cyclePixelSteps(image, amount), signal));
+            const value = tokens[++i] ?? "";
+            const amount = value.includes("%[") ? undefined : parseMagickCycleAmount(value);
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const expandedAmount = amount ?? parseMagickCycleAmount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }));
+                return yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount), signal);
+            });
         }
         else if (t === "-unique-colors") {
             stack = yield* mapMagickImagesSteps(stack, uniqueColorsSteps);
@@ -10232,8 +10236,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-cycle") {
-            const amount = parseMagickCycleAmount(tokens[++i] ?? "");
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, cyclePixelSteps(image, amount), signal) : undefined);
+            const value = tokens[++i] ?? "", optionProperties = state.optionProperties;
+            const amount = value.includes("%[") ? undefined : parseMagickCycleAmount(value);
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expandedAmount = amount ?? parseMagickCycleAmount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
+                return transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount), signal);
+            });
             continue;
         }
         if (!operandsOnly && token === "-unique-colors") {

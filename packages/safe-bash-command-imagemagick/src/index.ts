@@ -3281,16 +3281,17 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const scale = distort && state.distortScale !== undefined ? Math.abs(Number.parseFloat(state.distortScale)) : undefined;
     if (scale !== undefined && (!Number.isFinite(scale) || scale < 0.1)) throw new Error("invalid argument for option distort:scale");
     const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
-    if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(spec, token);
+    if (["-wave", "-swirl", "-implode"].includes(token) && !spec.includes("%[")) validateMagickTransformGeometry(spec, token);
     const interpolation = state.interpolation ?? "bilinear";
     const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort || token === "-implode" ? "edge" : undefined);
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
-    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">) => {
+    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">, geometry = spec) => {
         if (token === "-shear") {
             const plan = shearPlan(image, spec);
             return { ...plan, virtualCanvas: undefined, steps: shearPixelSteps(image, plan, background) };
         }
-        let plan = magickWarpPlan(image, token, spec, args);
+        if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(geometry, token);
+        let plan = magickWarpPlan(image, token, geometry, args);
         const samplingOrigin = plan?.virtualCanvas;
         if (plan && distort && image.virtualCanvas) {
             const page = image.virtualCanvas, origin = plan.virtualCanvas;
@@ -7979,8 +7980,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (warpOperation) {
             i = warpOperation.end;
+            const geometry = ["-wave", "-swirl", "-implode"].includes(t) ? tokens[i] : undefined;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const plan = warpOperation.plan(image);
+                const expanded = geometry?.includes("%[") ? yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : geometry;
+                const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 const output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
                 return { ...output, ...("space" in plan && plan.space ? { space: plan.space, channels: plan.space === "srgb" ? 4 as const : output.channels } : {}), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
@@ -9594,9 +9597,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         const warpOperation = operandsOnly ? undefined : parseMagickWarpOperation(tokens, state, i, analysis);
         if (warpOperation) {
             i = warpOperation.end;
+            const geometry = ["-wave", "-swirl", "-implode"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const plan = warpOperation.plan(image);
+                const expanded = geometry?.includes("%[") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal) : geometry;
+                const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 const output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
                 return { ...output, ...("space" in plan && plan.space ? { space: plan.space, channels: plan.space === "srgb" ? 4 as const : output.channels } : {}), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };

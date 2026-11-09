@@ -3705,8 +3705,12 @@ function* applyMagickSolarizeSteps(img: RgbaImage, thresh: number, channels: Mag
     if (img.space === "b-w" || img.space === "grey16")
         img = { ...img, space: "srgb", channels: img.hasAlpha ? 4 : 3 };
     let cooperativeWork = 0;
+    const cmyk = img.space === "cmyk";
+    if (cmyk) img = yield* convertCmykPixels(img);
     // Native palette solarize updates the RGB colormap, ignoring the channel mask.
-    const mask = img.isPalette ? [true, true, true, false] : [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
+    const mask = cmyk ? [false, false, false, channels.a && img.hasAlpha]
+        : img.isPalette ? [true, true, true, false] : [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
+    const inks = [channels.r, channels.g, channels.b, channels.k];
     const out = new Uint8Array(img.data);
     const data16 = img.data16?.slice();
     const hueSamples = img.hueSamples?.slice();
@@ -3716,17 +3720,31 @@ function* applyMagickSolarizeSteps(img: RgbaImage, thresh: number, channels: Mag
             signal?.throwIfAborted();
             yield;
         }
+        if (cmyk && hueSamples) {
+            // The working plane holds CMYK; alpha remains in the RGBA backing.
+            for (let channel = 0; channel < 4; channel++) {
+                const offset = i + channel;
+                if (inks[channel] && hueSamples[offset]! * 65535 > thresh)
+                    hueSamples[offset] = (65535 - hueSamples[offset]! * 65535) / 65535;
+            }
+            for (let channel = 0; channel < 3; channel++) {
+                const offset = i + channel, value = (1 - hueSamples[offset]!) * (1 - hueSamples[i + 3]!) * 65535;
+                out[offset] = clampByteVal(value / 257);
+                if (data16) data16[offset] = Math.round(Math.max(0, Math.min(65535, value)));
+                if (evaluateSamples) evaluateSamples[offset] = value / 257;
+            }
+        }
         for (let channel = 0; channel < 4; channel++) {
             if (!mask[channel]) continue;
             const offset = i + channel;
             const value = evaluateSamples ? evaluateSamples[offset]! * 257
-                : hueSamples ? hueSamples[offset]! * 65535
+                : hueSamples && !cmyk ? hueSamples[offset]! * 65535
                 : data16 ? data16[offset]! : out[offset]! * 257;
             if (!(value > thresh)) continue;
             const next = 65535 - value;
             out[offset] = clampByteVal(next / 257);
             if (data16) data16[offset] = Math.round(Math.max(0, Math.min(65535, next)));
-            if (hueSamples) hueSamples[offset] = next / 65535;
+            if (hueSamples && !cmyk) hueSamples[offset] = next / 65535;
             if (evaluateSamples) evaluateSamples[offset] = next / 257;
         }
     }
@@ -6892,7 +6910,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             return field.endsWith("%") ? (raw / 100) * 65535 : raw;
         });
-        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = image => applyMagickSolarizeSteps(image, thresholds[0]!, channels, signal);
     } else if (token === "-ordered-dither") {
         highDepth = true;

@@ -1,0 +1,151 @@
+{
+  "input": "iVBORw0KGgoAAAANSUhEUgAAAAQAAAACCAYAAAB/qH1jAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDhUMDI6MTE6NTErMDA6MDAffBxGAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA4VDAyOjExOjUxKzAwOjAwbiGk+gAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wOFQwMjoxMTo1MSswMDowMDk0hSUAAAArSURBVAjXY6hvaNRvOPHhhJaJ2//FwhEpLE/F3C9u9pSeaRFRLyrDo9oKAAKLDYJuAVXgAAAAAElFTkSuQmCC",
+  "cases": [
+    {
+      "args": [
+        "-colorspace",
+        "CMYK",
+        "-solarize",
+        "32896",
+        "+channel",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "7f80812f80c8f0376f89b900a39058646496c800e8ab79614f698a22bf7faf16"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "CMYK",
+        "-channel",
+        "K",
+        "-solarize",
+        "32896",
+        "+channel",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "7f80812f80c8f0c86f89b9ffa31358646496c800e8ab6f614f698addbf40afe9"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "CMYK",
+        "-channel",
+        "Default",
+        "-solarize",
+        "32896",
+        "+channel",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "7f80812f80c8f0376f89b900a39058646496c800e8ab79614f698a22bf7faf16"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "CMYK",
+        "-channel",
+        "All",
+        "-solarize",
+        "32896",
+        "+channel",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "7f80812f80c8f0376f89b900a39058646496c800e8ab79614f698a22bf7faf16"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "CMYK",
+        "-channel",
+        "CMY",
+        "-solarize",
+        "32896",
+        "+channel",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "7f80812f80c8f0c82a3446ffa39058646496c80017110c614f698addbf7fafe9"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "CMYK",
+        "-channel",
+        "CMYK",
+        "-solarize",
+        "32896",
+        "+channel",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "7f80812f80c8f0c86f89b9ffa39058646496c800e8ab79614f698addbf7fafe9"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "CMYK",
+        "-channel",
+        "A",
+        "-solarize",
+        "32896",
+        "+channel",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "7f80812f80c8f0372a344600a31358646496c80017110b614f698a22bf40af16"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "CMYK",
+        "-channel",
+        "C",
+        "-solarize",
+        "32896",
+        "+channel",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "7f80812f80c8f0c82a3446ffa31358646496c80017110b614f698addbf40afe9"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "CMYK",
+        "-channel",
+        "K,A",
+        "-solarize",
+        "32896",
+        "+channel",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "7f80812f80c8f0376f89b900a31358646496c800e8ab6f614f698a22bf40af16"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "CMYK",
+        "-solarize",
+        "0",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "02017ed007030f374a30b9005c512a9b1c0e3700e83d799e321c7522402b0516"
+    },
+    {
+      "args": [
+        "-colorspace",
+        "CMYK",
+        "-solarize",
+        "100%",
+        "-colorspace",
+        "sRGB"
+      ],
+      "rgba": "7f80812f80c8f0c82a3446ffa31358646496c80017110b614f698addbf40afe9"
+    }
+  ]
+}

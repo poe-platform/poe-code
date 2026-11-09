@@ -110,6 +110,13 @@ const FIELD_ORDERS: Readonly<Record<number, MediaCodecDescription["fieldOrder"]>
   0: "progressive", 1: "tt", 6: "bb", 9: "tb", 14: "bt"
 };
 
+const WEBVTT_KINDS: Readonly<Record<string, string>> = {
+  "D_WEBVTT/SUBTITLES": "subtitles",
+  "D_WEBVTT/CAPTIONS": "captions",
+  "D_WEBVTT/DESCRIPTIONS": "descriptions",
+  "D_WEBVTT/METADATA": "metadata"
+};
+
 const TRACK_DISPOSITIONS: Readonly<Record<number, string>> = {
   0x88: "default",
   0x55aa: "forced",
@@ -528,6 +535,8 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   const tracks: MediaTrack[] = [];
 
   for (const [trkNum, info] of trackMap.entries()) {
+    const webvttKind = WEBVTT_KINDS[info.codecId];
+    if (webvttKind && webvttKind !== "subtitles") info.disposition[webvttKind] = 1;
     let g711Tag: number | undefined;
     if (info.codecId === "A_MS/ACM" && info.codecPrivate && info.codecPrivate.byteLength >= 18) {
       const wave = new DataView(info.codecPrivate.buffer, info.codecPrivate.byteOffset, info.codecPrivate.byteLength);
@@ -554,7 +563,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         : undefined;
       const dur = cur.duration > 0 ? cur.duration : pcmTicks ?? (defaultTicks || inferred);
       rawSamples[i] = { ...cur, dts: cur.dts - codecDelayTicks, pts: cur.pts - codecDelayTicks, duration: dur };
-      if (info.codecId === "D_WEBVTT/SUBTITLES") {
+      if (webvttKind) {
         const identifierEnd = cur.data.indexOf(10);
         const settingsEnd = cur.data.indexOf(10, identifierEnd + 1);
         if (identifierEnd < 0 || settingsEnd < 0) throw new Error("Invalid Matroska WebVTT packet");
@@ -570,7 +579,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     }
 
     const type: MediaTrackType =
-      info.trackType === 1 ? "video" : info.trackType === 2 ? "audio" : "subtitle";
+      webvttKind ? "subtitle" : info.trackType === 1 ? "video" : info.trackType === 2 ? "audio" : "subtitle";
 
     let codecName = "h264";
     let formatFourCC = "avc1";
@@ -643,7 +652,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       const bits = info.bitDepth ?? 16;
       codecName = `pcm_${floating ? "f" : "s"}${bits}${bits === 8 ? "" : bigEndian ? "be" : "le"}`;
       formatFourCC = floating ? (bits === 64 ? "fl64" : "fl32") : bigEndian ? "twos" : "sowt";
-    } else if (info.trackType === 17 || info.codecId.startsWith("S_TEXT")) {
+    } else if (webvttKind || info.trackType === 17 || info.codecId.startsWith("S_TEXT")) {
       codecName = info.codecId === "S_TEXT/ASS" ? "ass" : info.codecId.includes("WEBVTT") ? "webvtt" : "subrip";
       formatFourCC = codecName === "ass" ? "ass " : codecName === "webvtt" ? "wvtt" : "tx3g";
     }
@@ -919,14 +928,17 @@ export function serializeMkv(
           buildAudioSpecificConfig(desc?.sampleRate ?? 44100, desc?.channels ?? 2, 2);
       }
     } else if (trk.type === "subtitle") {
-      codecId = desc?.codecName === "ass" ? "S_TEXT/ASS" : desc?.codecName === "webvtt" ? "D_WEBVTT/SUBTITLES" : "S_TEXT/UTF8";
+      codecId = desc?.codecName === "webvtt"
+        ? Object.entries(WEBVTT_KINDS).find(([, kind]) => trk.disposition?.[kind])?.[0] ?? "D_WEBVTT/SUBTITLES"
+        : desc?.codecName === "ass" ? "S_TEXT/ASS" : "S_TEXT/UTF8";
       if (desc?.codecName !== "ass") codecPrivate = undefined;
     }
 
     const entryParts: Uint8Array[] = [
       makeEbmlUint(0xd7, trackNum), // TrackNumber
       makeEbmlUint(0x73c5, trackNum), // TrackUID
-      makeEbmlUint(0x83, trk.type === "video" ? 1 : trk.type === "audio" ? 2 : 17), // TrackType
+      makeEbmlUint(0x83, trk.type === "video" ? 1 : trk.type === "audio" ? 2
+        : WEBVTT_KINDS[codecId] === "descriptions" || WEBVTT_KINDS[codecId] === "metadata" ? 33 : 17), // TrackType
       makeEbmlString(0x86, codecId), // CodecID
       makeEbmlString(0x22b59c, trk.language || "und") // Language
     ];
@@ -1000,7 +1012,7 @@ export function serializeMkv(
         blockAdditions: s.blockAdditions,
         isSubtitle: trk.type === "subtitle",
         trackNum,
-        data: codecId === "D_WEBVTT/SUBTITLES"
+        data: WEBVTT_KINDS[codecId]
           ? concatBytes([encodeUtf8(`${s.webvtt?.identifier ?? ""}\n${s.webvtt?.settings ?? ""}\n`), s.data])
           : s.data,
         isKeyframe: s.isKeyframe

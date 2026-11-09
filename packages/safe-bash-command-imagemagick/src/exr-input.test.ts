@@ -30,22 +30,49 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
     });
 }
 
-for (const retained of [false, true]) {
-    it(`preserves negative EXR samples and alpha at a shifted data window (retained=${retained})`, async () => {
+for (const mode of ["sync", "buffered", "retained"] as const) {
+    const retained = mode === "retained";
+    it(`preserves negative EXR samples and alpha at a shifted data window (${mode})`, async () => {
         const bytes = new Uint8Array(Buffer.from(fixtures.alpha, "base64"));
         expect(readImageMetadata(bytes)).toMatchObject({ format: "exr", width: 2, height: 1, depth: "float", hasAlpha: true });
         expect(Array.from(decodeImage(bytes).dataFloat!)).toEqual([-.25, .125, 1.5, .5, 0, Math.fround(.5001), 1, 1]);
         const filesystem = new MemoryFileSystem(), files = new Map([["/in.exr", bytes]]);
         await filesystem.writeFile("/in.exr", bytes);
         const context = retained ? { filesystem, cwd: "/" } : files;
-        expect(await runConvertCli(["/in.exr", "/out.pfm"], context)).toMatchObject({ exitCode: 0, stderr: "" });
+        expect(await (mode === "sync" ? runConvertCliSync(["/in.exr", "/out.pfm"], files) : runConvertCli(["/in.exr", "/out.pfm"], context))).toMatchObject({ exitCode: 0, stderr: "" });
         const output = retained ? await filesystem.readFile("/out.pfm") : files.get("/out.pfm")!;
         const view = new DataView(output.buffer, output.byteOffset + output.length - 24, 24);
-        expect(Array.from({ length: 6 }, (_, i) => view.getFloat32(i * 4, false))).toEqual([-.25, .125, 1.5, 0, Math.fround(.5001), 1]);
-        expect(await runConvertCli(["/in.exr", "/out.png"], context)).toMatchObject({ exitCode: 0, stderr: "" });
+        expect(Array.from({ length: 6 }, (_, i) => view.getFloat32(i * 4, false))).toEqual([-.25, .125, 1.5, 0, .5, 1]);
+        expect(await (mode === "sync" ? runConvertCliSync(["/in.exr", "/out.png"], files) : runConvertCli(["/in.exr", "/out.png"], context))).toMatchObject({ exitCode: 0, stderr: "" });
         const png = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
         expect(Array.from(png.data)).toEqual([0, 32, 255, 128, 0, 128, 255, 255]);
     });
+}
+
+
+for (const mode of ["sync", "buffered", "retained"] as const) {
+    it(`rounds EXR FLOAT channels to nearest-even binary16 (${mode})`, async () => {
+        const bytes = new Uint8Array(Buffer.from(fixtures.alpha, "base64"));
+        // Uncompressed scanline channels are A, B, G, R, with two samples each.
+        const samples = [.5001, 1, 2 ** -25, 3 * 2 ** -25, .500244140625, .500732421875, -1.00048828125, 65504];
+        const raster = new DataView(bytes.buffer, bytes.byteOffset + bytes.length - 32, 32);
+        samples.forEach((sample, index) => raster.setFloat32(index * 4, sample, true));
+        const files = new Map([["/in.exr", bytes]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.exr", bytes);
+        const args = ["/in.exr", "/out.pfm"];
+        const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+        const output = mode === "retained" ? await filesystem.readFile("/out.pfm") : files.get("/out.pfm")!;
+        const view = new DataView(output.buffer, output.byteOffset + output.length - 24, 24);
+        expect(Array.from({ length: 6 }, (_, i) => view.getFloat32(i * 4, false))).toEqual([-1, .5, 0, 65504, .5009765625, 2 ** -23]);
+        const alphaArgs = ["/in.exr", "-depth", "16", "/out.png"];
+        expect(await (mode === "sync" ? runConvertCliSync(alphaArgs, files) : runConvertCli(alphaArgs, mode === "retained" ? { filesystem, cwd: "/" } : files))).toMatchObject({ exitCode: 0, stderr: "" });
+        const png = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+        expect(Array.from(png.data16!)).toEqual([0, 32768, 0, 32768, 65535, 32831, 0, 65535]);
+    });
+}
+
+for (const retained of [false, true]) {
     for (const damage of ["header", "raster", "tiled", "compression", "offset"] as const) it(`rejects invalid EXR ${damage} without replacing output (retained=${retained})`, async () => {
         let bytes = new Uint8Array(Buffer.from(fixtures["zip-half"], "base64"));
         if (damage === "header") bytes = bytes.slice(0, 24);

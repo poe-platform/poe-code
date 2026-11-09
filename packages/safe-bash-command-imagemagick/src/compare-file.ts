@@ -1,8 +1,9 @@
+import { decodeMagickImage as decodeImage } from "./image-raster.js";
 import { magickInput } from "./stored-stack.js";
 import { encodeStoredImage, isRawCoder, type OutputEncodeOptions } from "./raw-output.js";
 import { EncodedSnapshots } from "./encoded-snapshots.js";
 import { decodeFileImage } from "./image-raster.js";
-import { readImageMetadataFromSource, tryPdfMetadata, readImageMetadata, decodeImage, tryImageFile, UnsupportedStoredResource, UnsupportedImageFormat, type ImageMetadata, type SharpInputOptions, type StoredRgbaImage, type RgbaImage, type ImageByteSource } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, tryPdfMetadata, readImageMetadata, tryImageFile, UnsupportedStoredResource, UnsupportedImageFormat, type ImageMetadata, type SharpInputOptions, type StoredRgbaImage, type RgbaImage, type ImageByteSource } from "@poe-code/image-ast/portable";
 import { PagedStorage, PagedStorageCache } from "@poe-code/safe-fs/storage";
 import { FsError, type FileSystem } from "@poe-code/safe-fs/contracts";
 import { resolvePath } from "safe-bash-contracts/path";

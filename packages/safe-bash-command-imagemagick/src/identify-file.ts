@@ -1,10 +1,11 @@
+import { decodeMagickImage as decodeImage } from "./image-raster.js";
 import { storedHistogram } from "./text-output.js";
 import { identifyStoredStatistics } from "./identify-statistics.js";
 import { identifyStoredHull } from "./identify-hull.js";
 import { identifyStoredMoments } from "./identify-moments.js";
 import { decodeFileImage } from "./image-raster.js";
 import { withImageInputs, type ImageFileInput } from "./image-input.js";
-import { readImageMetadataFromSource, tryPdfMetadata, computeStoredImageStats, readImageMetadata, decodeImage, computeImageStatsSteps, UnsupportedStoredResource, UnsupportedImageFormat, type ImageMetadata, type ImageStats, type ImageByteSource, type StoredRgbaImage, type ImageByteStorage } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, tryPdfMetadata, computeStoredImageStats, readImageMetadata, computeImageStatsSteps, UnsupportedStoredResource, UnsupportedImageFormat, type ImageMetadata, type ImageStats, type ImageByteSource, type StoredRgbaImage, type ImageByteStorage } from "@poe-code/image-ast/portable";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { FsError } from "@poe-code/safe-fs/contracts";
 import { drainCooperativeSteps } from "safe-bash-contracts/yield";

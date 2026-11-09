@@ -41,8 +41,9 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     const size = id === 0x64617461 && (length === -1n || length > BigInt(bytes.length - start))
       ? bytes.length - start : Number(length);
     if (size < 0 || !Number.isSafeInteger(size) || size > bytes.length - start) throw new Error("Invalid CAF chunk bounds");
-    if (id === 0x64657363) {
-      if (format || size !== 32) throw new Error("Invalid CAF description");
+    // The initial description defines the stream; skip later descriptions.
+    if (id === 0x64657363 && offset === 8) {
+      if (size !== 32) throw new Error("Invalid CAF description");
       // FFmpeg exposes the CAF double as an integer sample rate.
       sampleRate = Math.trunc(view.getFloat64(start));
       const flags = view.getUint32(start + 12);

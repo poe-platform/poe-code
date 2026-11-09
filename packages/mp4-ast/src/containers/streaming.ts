@@ -1,4 +1,5 @@
 import { cbc } from "@noble/ciphers/aes.js";
+import { vp9CodecString } from "../vp9.js";
 import { parseXml, type XmlElement } from "@poe-code/xml-ast";
 import { concatBytes, decodeUtf8, encodeUtf8, gcd, makeBox } from "../binary.js";
 import { buildProbeResultFromDoc, concatMp4, muxMp4, parseMp4, parseMp4Boxes, serializeMp4 } from "../mp4.js";
@@ -543,6 +544,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       const avc = description.avcC;
       codec = `avc1.${[avc.profileIdc, avc.profileCompatibility, avc.levelIdc].map(v => v.toString(16).padStart(2, "0")).join("")}`;
     } else if (description?.codecName === "aac") codec = `mp4a.40.${description.esds?.audioObjectType ?? 2}`;
+    else if (description?.codecName === "vp9") codec = vp9CodecString(track);
     hlsStreams.push({ codec, bandwidth: Number(bandwidth) });
     if (options.hlsPlaylist) {
       const uri = options.singleFile

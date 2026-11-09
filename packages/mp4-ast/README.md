@@ -69,6 +69,7 @@ Set `mpdProfile: "dvb_dash"` to declare the DVB DASH profile, or `"dash+dvb_dash
 Set `windowSize` to bound each DASH timeline or segment list to its last N segments (`0` retains all), preserving segment numbers and resource references.
 For DASH output, `serializeDashDocument(doc, { segmentDuration: 1 })` splits at the requested duration
 (in seconds, default 5), aligning video cuts to keyframes, and returns `{ manifest, resources }`.
+VP9 representations declare their profile, level, and bit depth in `codecs` (for example, `vp09.00.10.08`) while preserving the encoded packets.
 Audio timelines exclude encoder priming while retaining every packet and the initialization edit list.
 Write the manifest and each `resources` entry beside it; the output contains one
 initialization file and media fragments per audio/video track. Set

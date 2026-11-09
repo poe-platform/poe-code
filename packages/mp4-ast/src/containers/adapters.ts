@@ -16,7 +16,7 @@ import { encodeAudio } from "@poe-code/media-codecs";
 import { decodeCompressedWav } from "./wav-compressed.js";
 import { decodeG726 } from "./au-g726.js";
 import { decodeYamahaWav, encodeYamahaWav } from "./wav-yamaha.js";
-import { decodeMsWav, msBlockFrames } from "./wav-ms.js";
+import { decodeMsWav, encodeMsWav, msBlockFrames, msCoefficients } from "./wav-ms.js";
 import { decodeImaWav, encodeImaWav, imaBlockFrames } from "./wav-ima.js";
 import { readMp3Frames, readMp3SourceFrames, readMp3StreamFrames, writeMp3Frames, type Mp3Frame } from "./mp3-frames.js";
 import { decodeMp3Track, encodeMp3 } from "../mp3.js";
@@ -775,23 +775,33 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     format.setUint16(14, 4, true);
     factBytes = new Uint8Array(4);
     new DataView(factBytes.buffer).setUint32(0, decodedAudio.channelData[0]!.length, true);
-  } else if (decodedAudio && options.audioCodec === "adpcm_ima_wav") {
+  } else if (decodedAudio && (options.audioCodec === "adpcm_ima_wav" || options.audioCodec === "adpcm_ms")) {
     const blockAlign = options.blockSize ?? 1024;
     if (!Number.isInteger(blockAlign) || blockAlign < 32 || blockAlign > 8192 || (blockAlign & (blockAlign - 1)) !== 0) {
       throw new Error("Invalid block_size: expected a power of two from 32 to 8192");
     }
-    const frames = imaBlockFrames(blockAlign, channels);
-    pcmBytes = encodeImaWav(decodedAudio.channelData, blockAlign, options.trellis, options.budget);
-    formatBytes = new Uint8Array(20);
+    const microsoft = options.audioCodec === "adpcm_ms";
+    if (microsoft && options.trellis) throw new Error("MS ADPCM trellis encoding is not supported");
+    const frames = microsoft ? msBlockFrames(blockAlign, channels) : imaBlockFrames(blockAlign, channels);
+    pcmBytes = microsoft ? encodeMsWav(decodedAudio.channelData, blockAlign, options.budget)
+      : encodeImaWav(decodedAudio.channelData, blockAlign, options.trellis, options.budget);
+    formatBytes = new Uint8Array(microsoft ? 50 : 20);
     const format = new DataView(formatBytes.buffer);
-    format.setUint16(0, 17, true);
+    format.setUint16(0, microsoft ? 2 : 17, true);
     format.setUint16(2, channels, true);
     format.setUint32(4, sampleRate, true);
     format.setUint32(8, Math.floor(sampleRate * blockAlign / frames), true);
     format.setUint16(12, blockAlign, true);
     format.setUint16(14, 4, true);
-    format.setUint16(16, 2, true);
+    format.setUint16(16, formatBytes.length - 18, true);
     format.setUint16(18, frames, true);
+    if (microsoft) {
+      format.setUint16(20, msCoefficients.length, true);
+      msCoefficients.forEach(([first, second], index) => {
+        format.setInt16(22 + index * 4, first, true);
+        format.setInt16(24 + index * 4, second, true);
+      });
+    }
     factBytes = new Uint8Array(4);
     new DataView(factBytes.buffer).setUint32(0, Math.max(1, decodedAudio.channelData[0]!.length), true);
   } else if (formatBytes) {
@@ -844,7 +854,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       }
     }
   } else if (
-    options.audioCodec !== "aac" && options.audioCodec !== "mp3" && options.audioCodec !== "adpcm_ima_wav" && options.audioCodec !== "adpcm_yamaha" &&
+    options.audioCodec !== "aac" && options.audioCodec !== "mp3" && options.audioCodec !== "adpcm_ima_wav" && options.audioCodec !== "adpcm_ms" && options.audioCodec !== "adpcm_yamaha" &&
     audioTrack &&
     audioTrack.codecDescriptions[0]?.codecName.startsWith("pcm_")
   ) {
@@ -1132,7 +1142,7 @@ export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: [],
-    supportedAudioCodecs: ["pcm_s16le", "adpcm_ima_wav", "adpcm_yamaha", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_s64le", "pcm_f64le", "pcm_mulaw", "pcm_alaw"],
+    supportedAudioCodecs: ["pcm_s16le", "adpcm_ima_wav", "adpcm_ms", "adpcm_yamaha", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_s64le", "pcm_f64le", "pcm_mulaw", "pcm_alaw"],
     detect(bytes, filename) {
       if (wave64) return isWave64Signature(bytes);
       if (isWavSignature(bytes)) return true;

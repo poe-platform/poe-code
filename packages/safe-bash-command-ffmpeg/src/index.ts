@@ -4389,7 +4389,7 @@ export function evalSyncFfmpeg(
     if (shortest) workingDoc = limitCopyPackets(workingDoc, [], { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec }, true);
     if (workingDoc.tracks.length === 0 && outPlugin?.id !== "ffmetadata") return undefined;
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
-    if (audioCodec === "adpcm_ima_wav" && workingDoc.tracks.some(track =>
+    if ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") && workingDoc.tracks.some(track =>
       track.type === "audio" && (track.decodedAudio?.channels ?? track.codecDescriptions[0]?.channels ?? 0) > 2)) return undefined;
     if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
       outPlugin?.id, subtitleCodec);
@@ -7416,7 +7416,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio
-            if ((audioRate !== undefined || audioChannels !== undefined || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined || audioCodec === "adpcm_ima_wav") && audioCodec !== "copy") {
+            if ((audioRate !== undefined || audioChannels !== undefined || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined || (audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms")) && audioCodec !== "copy") {
               let audioOrdinal = 0;
               workingDoc = {
                 ...workingDoc,
@@ -7427,7 +7427,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (t.type !== "audio") return t;
                   const ordinal = audioOrdinal++;
                   const filter = afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal).at(-1);
-                  if (audioRate === undefined && audioChannels === undefined && rematrixVolume === 1 && !filter && maxAudioFrames === undefined && audioCodec !== "adpcm_ima_wav") return t;
+                  if (audioRate === undefined && audioChannels === undefined && rematrixVolume === 1 && !filter && maxAudioFrames === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") return t;
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
                     ? decodeAacTrack(workingDoc, t) : undefined);
                   if (!audio) throw new Error("Audio filtering requires decoded PCM audio");
@@ -8776,9 +8776,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                   if (maxAudioFrames !== undefined) {
                     let inputFrames = maxAudioFrames;
-                    if (audioCodec === "adpcm_ima_wav" && maxAudioFrames > 0) {
+                    if ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") && maxAudioFrames > 0) {
                       const channels = audioChannels === undefined || audioChannels === -1 ? stretched.length : audioChannels;
-                      const blockSamples = 1 + ((blockSize ?? 1024) - 4 * channels) * 2 / channels;
+                      const blockSamples = audioCodec === "adpcm_ms"
+                        ? 2 + ((blockSize ?? 1024) - 7 * channels) * 2 / channels
+                        : 1 + ((blockSize ?? 1024) - 4 * channels) * 2 / channels;
                       const required = maxAudioFrames * blockSamples * origRate / (audioRate ?? origRate);
                       // Consume complete input frames, then flush the encoder's partial block.
                       let end = 0;
@@ -8804,7 +8806,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (cutoff) stretched = stretched.map(channel => channel.subarray(0, cutoff.start));
                   }
 
-                  if (!filter && audioRate === undefined && audioChannels === undefined && audioCodec !== "adpcm_ima_wav") {
+                  if (!filter && audioRate === undefined && audioChannels === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") {
                     return { ...t, duration: (stretched[0]?.length ?? 0) * t.timescale / origRate,
                       samples: [], decodedAudio: { ...audio, channelData: stretched } };
                   }
@@ -8812,9 +8814,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const origCh = stretched.length;
                   const targetRate = audioRate ?? origRate;
                   const targetCh = audioChannels === -1 ? origCh : audioChannels ??
-                    (audioCodec === "adpcm_ima_wav" ? Math.min(origCh, 2) : origCh);
-                  if (audioCodec === "adpcm_ima_wav" && targetCh > 2) {
-                    throw new Error(`adpcm_ima_wav: unsupported channel count ${targetCh}`);
+                    ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") ? Math.min(origCh, 2) : origCh);
+                  if ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") && targetCh > 2) {
+                    throw new Error(`${audioCodec}: unsupported channel count ${targetCh}`);
                   }
                   // FFmpeg guesses 2.1 for three-channel PCM without an explicit layout.
                   const channelMask = filteredChannelMask ?? (origCh === 3 ? 11 : undefined);

@@ -4,6 +4,31 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createTsortCommand } from "./index.js";
 
+for (const locale of ["C", "C.UTF-8"]) {
+ for (const args of [[""], [], ["-"], ["."]]) {
+  test(`tsort input selection: ${JSON.stringify(args)} (${locale})`, async () => {
+   const values = createCommandArguments(args);
+   let stdout = "";
+   let stderr = "";
+   const result = await createTsortCommand().execute({
+    command: "tsort", args: values.args, argumentValues: values, cwd: "/",
+    env: { LC_ALL: locale }, fs: createMemoryFileSystem(), stdin: toByteSource("a b"),
+    stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    signal: new AbortController().signal,
+   });
+   const readsStdin = args.length === 0 || args[0] === "-";
+   assert.deepEqual({ exitCode: result.exitCode, stdout, stderr }, {
+    exitCode: readsStdin ? 0 : 1,
+    stdout: readsStdin ? "a\nb\n" : "",
+    stderr: readsStdin ? "" : args[0] === ""
+     ? "tsort: '': No such file or directory\n"
+     : "tsort: .: read error: Is a directory\n",
+   });
+  });
+ }
+}
+
 for (const operand of [".", "empty"]) {
  test(`tsort distinguishes a directory from an empty file: ${operand}`, async () => {
   const fs = createMemoryFileSystem();

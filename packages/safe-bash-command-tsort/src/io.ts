@@ -107,6 +107,7 @@ export class Reader {
         if (this.name === "-") source = budget.context.stdin;
         else {
           const operand = pathText(this.name);
+          if (operand === "") throw new FsError("ENOENT", { path: operand });
           const path = operand.startsWith("/") ? operand : `${budget.context.cwd}/${operand}`;
           const fs = budget.context.fs;
           this.lifecycle.assertOpen();

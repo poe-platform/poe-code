@@ -6332,8 +6332,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                     alternativePaths = matches;
                   }
-                  alternativePaths.sort();
-                  for (const path of alternativePaths) globPaths.push(path);
+                  // C-locale glob ordering compares filename bytes, not UTF-16 units.
+                  const encodedPaths = alternativePaths.map(path => ({ path, bytes: encodeUtf8(path) }));
+                  encodedPaths.sort((a, b) => {
+                    for (let i = 0; i < Math.min(a.bytes.length, b.bytes.length); i++) {
+                      const difference = a.bytes[i]! - b.bytes[i]!;
+                      if (difference) return difference;
+                    }
+                    return a.bytes.length - b.bytes.length;
+                  });
+                  for (const { path } of encodedPaths) globPaths.push(path);
                 }
               }
 

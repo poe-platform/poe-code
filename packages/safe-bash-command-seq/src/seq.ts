@@ -7,7 +7,7 @@ interface Decimal { readonly coefficient: bigint; readonly scale: number; readon
 interface Format { readonly prefix: string; readonly suffix: string; readonly flags: string; readonly width: number; readonly precision: number; readonly kind: string }
 
 function decimal(text: string, session: Session): Decimal {
-  const hexadecimal = /^([+-]?)0x(?:([\da-f]+)(?:\.([\da-f]*))?|\.([\da-f]+))(?:p([+-]?\d+))?$/iu.exec(text.trim());
+  const hexadecimal = /^([+-]?)0x(?:([\da-f]+)(?:\.([\da-f]*))?|\.([\da-f]+))(?:p([+-]?\d+))?$/iu.exec(text.trimStart());
   if (hexadecimal) {
     const digits = (hexadecimal[2] ?? "0") + (hexadecimal[3] ?? hexadecimal[4] ?? "");
     const power = Number(hexadecimal[5] ?? 0) - 4 * (hexadecimal[3] ?? hexadecimal[4] ?? "").length;
@@ -23,7 +23,7 @@ function decimal(text: string, session: Session): Decimal {
     while (precision > 0 && reduced % 10n === 0n) { reduced /= 10n; precision--; }
     return { coefficient, scale, precision, width: 0, negativeZero: coefficient === 0n && hexadecimal[1] === "-" };
   }
-  const match = /^([+-]?)(?:(\d+)(?:\.(\d*))?|\.(\d+))(?:[eE]([+-]?\d+))?$/u.exec(text.trim());
+  const match = /^([+-]?)(?:(\d+)(?:\.(\d*))?|\.(\d+))(?:[eE]([+-]?\d+))?$/u.exec(text.trimStart());
   if (!match) throw new UsageError(`invalid decimal argument: '${text}'`);
   const fraction = match[3] ?? match[4] ?? "";
   const digits = (match[2] ?? "0") + fraction;

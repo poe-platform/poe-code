@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { shell, type NativeCase } from "./helpers.js";
+import { quote, shell, type NativeCase } from "./helpers.js";
 
 export const seqCases: readonly NativeCase[] = [
   { args: ["4"] }, { args: ["0"] }, { args: ["3", "1"] }, { args: ["-2", "2"] },
@@ -18,6 +18,47 @@ export const seqCases: readonly NativeCase[] = [
   { args: ["-f", "%g %g", "3"], failure: true }, { args: ["NaN"], failure: true },
   { args: ["1", "2", "3", "4"], failure: true }, { args: ["--bad"], failure: true },
 ];
+
+test("seq rejects trailing whitespace in every operand directly and in command substitutions", async () => {
+  const instance = shell();
+  try {
+    for (const number of ["2", "0x2"]) {
+      for (const whitespace of [" ", "\t", "\n", "\r", "\v", "\f"]) {
+        const operand = number + whitespace;
+        for (const args of [[operand], [operand, "3"], ["1", operand, "3"]]) {
+          const command = `seq ${args.map(quote).join(" ")}`;
+          for (const script of [command, `values=$(${command})`]) {
+            const result = await instance.exec(script);
+            assert.equal(result.exitCode, 1, JSON.stringify(script));
+            assert.equal(result.stdout, "", JSON.stringify(script));
+            assert.ok(result.stderr.includes("invalid decimal argument"), result.stderr);
+          }
+          const captured = await instance.exec(`values=$(${command}); status=$?; printf '%s:<%s>\\n' "$status" "$values"`);
+          assert.equal(captured.stdout, "1:<>\n", JSON.stringify(command));
+        }
+      }
+    }
+  } finally { await instance.dispose(); }
+});
+
+test("seq retains clean and leading-whitespace operands directly and in command substitutions", async () => {
+  const instance = shell();
+  try {
+    for (const number of ["2", "0x2"]) {
+      for (const whitespace of ["", " ", "\t", "\n", "\r", "\v", "\f"]) {
+        const command = `seq ${quote(whitespace + number)}`;
+        const direct = await instance.exec(command);
+        assert.equal(direct.exitCode, 0, direct.stderr);
+        assert.equal(direct.stdout, "1\n2\n", JSON.stringify(command));
+        assert.equal(direct.stderr, "");
+        const captured = await instance.exec(`values=$(${command}); status=$?; printf '%s:<%s>\\n' "$status" "$values"`);
+        assert.equal(captured.exitCode, 0, captured.stderr);
+        assert.equal(captured.stdout, "0:<1\n2>\n", JSON.stringify(command));
+        assert.equal(captured.stderr, "");
+      }
+    }
+  } finally { await instance.dispose(); }
+});
 
 test("seq exact bounded decimal extension does not accumulate floating drift", async () => {
   const instance = shell();

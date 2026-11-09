@@ -4,14 +4,18 @@ import type { CommandContext } from "safe-bash-contracts/command";
 import { readBytes } from "safe-bash-contracts/io";
 import { readFileStream } from "safe-bash-contracts/filesystem";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { resolveInputPath } from "./input-path.js";
 
 export async function openProbeStream(context: CommandContext, path?: string): Promise<AsyncIterable<Uint8Array> | undefined> {
   context.signal.throwIfAborted();
   if (path === undefined) return readBytes(context.stdin, context.signal);
+  const input = resolveInputPath(context.cwd, path);
+  path = input.path;
   const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
   context.signal.throwIfAborted();
-  if (!context.fs.readStream || capabilities.streamingRead === false || context.fs.capabilities.streamingRead === false) return undefined;
-  return readFileStream(context.fs, path, { signal: context.signal, chunkSize: 16384 });
+  const streaming = context.fs.readStream && capabilities.streamingRead !== false && context.fs.capabilities.streamingRead !== false;
+  if (!streaming && (!context.fs.openReadFile || capabilities.retainedRead !== true)) return undefined;
+  return readFileStream(context.fs, path, { ...input, signal: context.signal, chunkSize: 16384 });
 }
 
 /** Retain only the signature and the current borrowed chunk; replay every byte once. */

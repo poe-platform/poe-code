@@ -1,6 +1,7 @@
 import { MediaBudgetTracker, type MediaSample, type MediaDocument, type MediaAstPlugin, type ParseMediaOptions } from "../types.js";
 import { buildProbeResultFromDoc, concatMp4, parseMp4Boxes, sliceMp4 } from "../mp4.js";
 import { sampleEntryHeader } from "../mp4-codec-metadata.js";
+import { encodeImaQt } from "./aiff-ima-encoder.js";
 import { parseImaQt } from "./aiff-ima.js";
 import { rawAudioAsts } from "./raw-audio.js";
 
@@ -229,7 +230,7 @@ export function cafAst(): MediaAstPlugin {
       const codec = options.audioCodec === "copy" ? desc?.codecName : options.audioCodec ?? "pcm_s16be";
       const raw = cafAudio.find(plugin => `pcm_${plugin.id}` === codec);
       const alac = codec === "alac" && options.audioCodec === "copy";
-      const ima = codec === "adpcm_ima_qt" && options.audioCodec === "copy";
+      const ima = codec === "adpcm_ima_qt";
       if (!raw && !alac && !ima) throw new Error(`Unsupported CAF audio codec '${codec}'`);
       const sampleRate = track.decodedAudio?.sampleRate ?? desc?.sampleRate ?? 0;
       const channels = track.decodedAudio?.channels ?? desc?.channels ?? 0;
@@ -278,9 +279,15 @@ export function cafAst(): MediaAstPlugin {
           chunks.push(chunk.toUint8Array());
         }
       }
-      const dataLength = alac || ima ? track.samples.reduce((sum, sample) => sum + sample.data.length, 0) : 0;
-      budget.checkOutputBytes(dataLength);
-      const data = alac || ima ? concatBytes(track.samples.map(sample => sample.data)) : raw!.serialize(doc, options);
+      let data: Uint8Array;
+      if (ima && options.audioCodec !== "copy") {
+        if (!track.decodedAudio) throw new Error("QuickTime IMA encoding requires decoded audio");
+        data = encodeImaQt(track.decodedAudio.channelData, budget);
+      } else {
+        const dataLength = alac || ima ? track.samples.reduce((sum, sample) => sum + sample.data.length, 0) : 0;
+        budget.checkOutputBytes(dataLength);
+        data = alac || ima ? concatBytes(track.samples.map(sample => sample.data)) : raw!.serialize(doc, options);
+      }
       const companded = raw?.id === "mulaw" || raw?.id === "alaw";
       const bits = alac || ima ? 0 : companded ? 8 : Number.parseInt(raw!.id.slice(1), 10);
       const frameSize = ima ? channels * 34 : channels * bits / 8;

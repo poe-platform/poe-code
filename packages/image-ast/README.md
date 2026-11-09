@@ -29,7 +29,7 @@ contracts of the format-specific codecs. `encodeStoredImage(image, storage, sign
 options)` streams the corresponding output and returns final output information.
 Both encoders preserve both resolution axes, resolution units, and 16-bit MIFF samples and accept `miffDepth: 8 | 16` to select output depth and `miffCompression: "rle"` for run-length compression or `"bzip"` for lossless BZip compression. The default is `"none"`. Set `miffCompression: "zip"` for lossless Zip compression.
 XWD version-7 ZPixmap input supports 8-bit indexed colors and 24/32-bit true-color pixels, including row padding and either pixel byte order, through buffered and retained decoding.
-Both encoders accept `format: "xpm"` for XPM C source with an RGB palette and binary transparency.
+Both encoders accept `format: "xpm"` for XPM C source with an RGB palette and binary transparency. `format: "xwd"` writes version-7, 24-bit RGB XWD with padded rows, including indexed inputs; alpha is omitted. The sharp API also accepts `.toFormat("xwd")`.
 Both encoders accept `format: "tga"` for RGB/RGBA TGA output, with optional
 `tgaCompression: "rle"` (default: uncompressed).
 Both `encodeImage` and `encodeStoredImage` accept `format: "apng"` to encode

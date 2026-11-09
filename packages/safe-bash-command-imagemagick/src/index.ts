@@ -4988,6 +4988,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
       return "xbm";
     case "xpm":
       return "xpm";
+    case "xwd":
+      return "xwd";
     case "tga":
       return "tga";
     case "txt":

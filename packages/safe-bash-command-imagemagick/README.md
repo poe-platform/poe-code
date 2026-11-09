@@ -1,7 +1,7 @@
 # `safe-bash-command-imagemagick`
 `magick input.xwd output.png` decodes version-7 X11 window dumps with 8-bit palettes or 24/32-bit true-color pixels, preserving scanline padding and byte order.
 
-ImageMagick (`magick`, `convert`, `mogrify`, `composite`, `montage`, `compare`, `identify`) command-line tools for `safe-bash`, powered by `@poe-code/image-ast`.
+ImageMagick (`magick`, `convert`, `mogrify`, `composite`, `montage`, `compare`, `identify`) command-line tools for `safe-bash`, powered by `@poe-code/image-ast`. `.xwd` and `XWD:` outputs write version-7, 24-bit RGB XWD for true-color or indexed inputs, including `-write`; alpha is omitted.
 
 `+remap` builds a shared palette across loaded images using the current `-colors` limit and dithering settings. `pattern:NAME` renders the requested built-in ImageMagick tile, including stripes, crosshatches, bricks and gray density patterns. Use `-size 32x17 pattern:vertical out.png` to repeat it across a canvas; without `-size`, the native tile dimensions are used. Unknown names fail without replacing the output.
 

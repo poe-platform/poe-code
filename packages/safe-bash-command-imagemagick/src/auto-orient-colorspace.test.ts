@@ -34,7 +34,7 @@ for (const mode of ["buffered", "retained", "sync", "command"]) {
           stdout: { write: async () => {} }, stderr: { write: async bytes => { stderr += new TextDecoder().decode(bytes); } },
         }) : mode === "sync" ? runConvertCliSync(args, files)
           : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-        expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+        expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(0);
         const output = decodeImage(mode === "retained" || mode === "command" ? await fs.readFile("/out.png") : files.get("/out.png")!);
         expect(output).toMatchObject({ width: orientation >= 5 ? 3 : 5, height: orientation >= 5 ? 5 : 3, orientation: 1 });
         expect(Array.from(output.data)).toEqual(order.flatMap(index => Array.from(source.data.subarray(index * 4, index * 4 + 4))));

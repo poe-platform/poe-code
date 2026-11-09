@@ -3097,7 +3097,8 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         const scaleX = radius / centerX, scaleY = radius / centerY;
         return result((x, y) => {
             const dx = (x - centerX) * scaleX, dy = (y - centerY) * scaleY, r = Math.hypot(dx, dy);
-            if (r >= radius || radians === 0) return [x, y];
+            if (r >= radius) return [x, y, true];
+            if (radians === 0) return [x, y];
             const factor = 1 - r / radius, angle = factor * factor * radians, cos = Math.cos(angle), sin = Math.sin(angle);
             return [centerX + (dx * cos - dy * sin) / scaleX, centerY + (dx * sin + dy * cos) / scaleY];
         }, w, h, img.hasAlpha);
@@ -3107,7 +3108,8 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         const scaleX = radius / centerX, scaleY = radius / centerY;
         return result((x, y) => {
             const dx = x - centerX, dy = y - centerY, r = Math.hypot(dx * scaleX, dy * scaleY);
-            if (!(r < radius && r > 0)) return [x, y];
+            if (r >= radius) return [x, y, true];
+            if (r === 0) return [x, y];
             const scale = Math.pow(Math.sin(Math.PI * r / radius / 2), -amount);
             return [centerX + dx * scale, centerY + dy * scale];
         }, w, h, img.hasAlpha);
@@ -3317,6 +3319,8 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         }
         if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(geometry, token);
         let plan = magickWarpPlan(image, token, geometry, args);
+        if (plan && (token === "-swirl" || token === "-implode")) plan = { ...plan, interpolation: "bilinear",
+            hasAlpha: plan.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 };
         const samplingOrigin = plan?.virtualCanvas;
         if (plan && distort && image.virtualCanvas) {
             const page = image.virtualCanvas, origin = plan.virtualCanvas;

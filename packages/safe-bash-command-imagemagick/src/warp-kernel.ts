@@ -11,7 +11,7 @@ export interface WarpPlan {
     readonly interpolation?: LookupInterpolation;
     readonly virtualCanvas?: RgbaImage["virtualCanvas"];
     derivatives?(x: number, y: number): readonly [number, number, number, number];
-    map(x: number, y: number): readonly [number, number];
+    map(x: number, y: number): readonly [x: number, y: number, copy?: boolean];
 }
 export type VirtualPixelMethod = "edge" | "background" | "transparent" | "black" | "white" | "gray" | "tile" | "mirror" | "horizontal-tile" | "vertical-tile" | "checker-tile" | "horizontal-tile-edge" | "vertical-tile-edge";
 
@@ -60,7 +60,13 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
         const count = Math.min(1024, plan.width * plan.height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
         for (let i = 0; i < count; i++) {
             const px = (start + i) % plan.width, py = Math.floor((start + i) / plan.width);
-            const [sx, sy] = plan.map(px, py), offset = i * 4;
+            const [sx, sy, copy] = plan.map(px, py), offset = i * 4;
+            if (copy) {
+                const bytes = yield { kind: "read", highDepth, position: (sy * width + sx) * 4, length: 4 };
+                if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated warp pixels");
+                data.set(highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes, offset);
+                continue;
+            }
             if (virtualPixel === undefined && (sx < -0.5 || sy < -0.5 || sx > width - 0.5 || sy > height - 0.5)) {
                 data[offset] = background.r * scale; data[offset + 1] = background.g * scale; data[offset + 2] = background.b * scale; data[offset + 3] = background.a * scale;
                 continue;

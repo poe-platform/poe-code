@@ -8812,9 +8812,11 @@ export class Runtime {
         if (command === "export" && enabled.has("n")) state.exported.delete(attributeName);
         if (disabled.has("x")) state.exported.delete(attributeName);
         if (command === "readonly" || enabled.has("r")) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(attributeName); }
-        const previous = assignments.get(name);
-        if (previous && locals?.get(name) !== previous) previous.heldValue?.release();
-        assignments.delete(name);
+        if (command !== "declare" || localDeclaration || enabled.has("x") || enabled.has("r")) {
+          const previous = assignments.get(name);
+          if (previous && locals?.get(name) !== previous) previous.heldValue?.release();
+          assignments.delete(name);
+        }
         } finally {
           if (globalFrame && visibleLocal) {
             try {

@@ -3,6 +3,26 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { createStandardCommands } from "../../src/commands/index.js";
+import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
+
+for (const extensions of [[], [arraysExtension()]]) for (const command of ["declare", "typeset"]) {
+  for (const initial of ["unset V", "V=old", "export V=old"]) {
+    for (const declaration of ["V", "V=fixed", "+x V", "-x V", "-x V=fixed", "-r V"]) {
+      test(`temporary declaration assignment (${extensions.length ? "arrays" : "default"}): ${initial}; V=temp ${command} ${declaration}`, async t => {
+        const { shell, commands } = setup({ extensions });
+        for (const builtin of basicCommands()) commands.register(builtin);
+        t.after(() => shell.dispose());
+        const persistent = declaration.startsWith("-x") || declaration.startsWith("-r");
+        const parent = persistent ? declaration.endsWith("=fixed") ? "fixed" : "temp" : initial === "unset V" ? "unset" : "old";
+        const child = persistent ? parent : initial === "export V=old" ? "old" : "unset";
+        const result = await shell.exec(`${initial}; V=temp ${command} ${declaration}; printf 'parent:%s\\n' "\${V-unset}"; sh -c 'printf "child:%s\\n" "\${V-unset}"'`);
+        assert.equal(result.stdout, `parent:${parent}\nchild:${child}\n`);
+        assert.equal(result.stderr, "");
+        assert.equal(result.exitCode, 0);
+      });
+    }
+  }
+}
 
 for (const [source, stdout, exitCode] of [
   [

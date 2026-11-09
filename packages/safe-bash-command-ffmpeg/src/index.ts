@@ -8775,10 +8775,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (key === "channel_layout" || key === "c") layout = value;
                           else throw new Error(`aeval: unsupported option ${key}`);
                         }
-                        const exprs = expressions.split("|");
+                        const exprs = expressions.split("|").filter(Boolean);
                         const count = layout === "same" ? stretched.length : layout === "mono" ? 1
                           : layout === "stereo" ? 2 : layout === "" ? exprs.length : 0;
-                        if (!count || count > 2 || exprs.length > count || exprs.some(expr => !expr.trim())) {
+                        if (!count || count > 2 || !exprs.length || exprs.length > count || exprs.some(expr => !expr.trim())) {
                           throw new Error("aeval: unsupported channel layout or invalid expressions");
                         }
                         const output = Array.from({ length: count }, () => new Float64Array(stretched[0]!.length));

@@ -9,6 +9,16 @@ const left = [1000, 2000, 3000, 4000];
 const right = [-4000, -3000, -2000, -1000];
 for (const [expression, expected] of [
   ["val(1)|val(0)", [right, left]],
+  ["val(0)||val(1)", [left, right]],
+  ["|val(1)", [right]],
+  ["val(0)|", [left]],
+  ["val(0)||", [left]],
+  ["||val(1)|||val(0)||", [right, left]],
+  ["exprs=|val(1)||val(0)|", [right, left]],
+  ["|val(ch)||:c=same", [left, right]],
+  ["|val(1)||:c=stereo", [right, right]],
+  ["|val(0)||:channel_layout=mono", [left]],
+  ["|nb_out_channels/32768||", [[1, 1, 1, 1]]],
   ["exprs=val(1)|val(0)", [right, left]],
   ["val(0)+val(1)|val(0)-val(1)", [[-3000, -1000, 1000, 3000], [5000, 5000, 5000, 5000]]],
   ["val(1)|val(0),areverse", [[...right].reverse(), [...left].reverse()]],
@@ -28,7 +38,12 @@ for (const [expression, expected] of [
   ["val(0):c=unknown", undefined],
   ["val(0):unsupported=1", undefined],
   ["val(0)|missing(1)", undefined],
-  ["val(0)|", undefined]
+  ["", undefined],
+  ["||", undefined],
+  ["||:c=same", undefined],
+  ["||:c=mono", undefined],
+  ["||:c=stereo", undefined],
+  ["val(0)| |val(1)", undefined]
 ] as const) {
   for (const complex of [false, true]) {
     it(`evaluates PCM channel expressions (${complex ? "graph" : "simple"}): ${expression}`, async () => {

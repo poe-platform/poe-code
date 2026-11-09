@@ -336,7 +336,8 @@ endpoint syntax are rejected before writing output.
 `aeval=val(1)|val(0)` evaluates separate expressions against the input samples to swap
 stereo channels. Mono/stereo expressions support arithmetic, `val(channel)`, `ch`,
 `n`, `t`, `s`, `nb_in_channels`, and `nb_out_channels`; `c=same` retains the input
-layout and repeats the last expression when needed.
+layout and repeats the last expression when needed. Empty fields between `|` separators
+are skipped, including leading and trailing fields; at least one expression is required.
 Conditionals `if(condition,then[,else])` and `ifnot(condition,then[,else])` evaluate
 only the selected branch and default an omitted else to zero. For example,
 `aeval=if(n\,1/n\,0)` avoids division by zero at the first sample. Both branches

@@ -36,7 +36,7 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     // Keep byte-scaled fractions for Q16 transfers; round only at output precision.
     const round = (value: number) => highDepth ? Math.round(value * 257) / 257 : Math.round(value);
@@ -56,7 +56,15 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         return data;
     };
     let bins = new Map<number | string, ColorBin>(), mask = 0xffffffff, precision = 8;
-    const key = (data: Float64Array, i: number) => highDepth && precision === 8 ? data.subarray(i, i + 4).join(",") : (data[i]! << 24 | data[i + 1]! << 16 | data[i + 2]! << 8 | data[i + 3]!) & mask;
+    const key = (data: Float64Array, i: number) => {
+        // Native palette conversion classifies Q16 samples in byte-sized cubes,
+        // but keeps full-precision sums for each cube's mean color.
+        if (cycle !== undefined) {
+            const alpha = data[i + 3]! / 255;
+            return (Math.round(data[i]! * alpha) << 24 | Math.round(data[i + 1]! * alpha) << 16 | Math.round(data[i + 2]! * alpha) << 8 | Math.round(data[i + 3]!)) & mask;
+        }
+        return highDepth && precision === 8 ? data.subarray(i, i + 4).join(",") : (data[i]! << 24 | data[i + 1]! << 16 | data[i + 2]! << 8 | data[i + 3]!) & mask;
+    };
     for (let position = 0; position < length; position += 4096) {
         yield;
         const size = Math.min(4096, length - position), source = yield { kind: "read", highDepth, position, length: size };
@@ -93,17 +101,19 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     const palette: number[][] = [];
     let work = 0;
     const channels = [...bins.values()].some(bin => bin.sums[3] !== 255 * bin.count) ? 4 : 3;
-    if (bins.size <= requested && channels === 3) {
+    if (bins.size <= requested && (channels === 3 || cycle !== undefined)) {
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;
-            bin.color = bin.sums.slice(0, 4).map(value => round(value / bin.count));
+            bin.color = bin.sums.slice(0, 4).map((value, channel) => round(
+                cycle !== undefined && channel < 3 && bin.sums[3]! > 0 ? bin.sums[channel + 4]! / bin.sums[3]! : value / bin.count
+            ));
         }
         // Match the color tree's octant order even when no reduction is needed.
         const ordered = [...bins.values()].map(bin => {
             let order = 0;
             for (let bit = 7; bit >= 0; bit--) {
                 let octant = 0;
-                for (let channel = 0; channel < 4; channel++) octant |= ((Math.round(bin.color[channel]!) >>> bit) & 1) << channel;
+                for (let channel = 0; channel < 4; channel++) octant |= ((Math.round(bin.color[channel]! * (cycle !== undefined && channel < 3 ? bin.color[3]! / 255 : 1)) >>> bit) & 1) << channel;
                 order = order * 16 + octant;
             }
             return { order, color: bin.color };
@@ -236,6 +246,15 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             yield* search(cube.parent ?? root);
             bin.color = nodeColors.get(node)!;
         }
+    }
+    if (cycle !== undefined) {
+        const indices = new Map(palette.map((color, index) => [color, index]));
+        const shift = ((cycle % palette.length) + palette.length) % palette.length;
+        for (const bin of bins.values()) {
+            if (++work % 1024 === 0) yield;
+            bin.color = palette[(indices.get(bin.color)! + shift) % palette.length]!;
+        }
+        for (const color of palette) color[3] = 255;
     }
     for (let position = 0; position < length; position += 4096) {
         yield;

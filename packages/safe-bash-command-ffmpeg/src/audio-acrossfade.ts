@@ -2,7 +2,6 @@ import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
-import { parseFilterExpression } from "./filter-expression.js";
 
 export async function acrossfadeAudio(
   first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal

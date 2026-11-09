@@ -35,7 +35,8 @@ export function* gifAnimationSteps(size:number,start:number,page=0):Generator<nu
    const flags=(yield at+8)??0;at+=9;if(flags&128)at+=3*(1<<((flags&7)+1));at=yield* skip(at+1);
   }else break;
  }
- return {frames,loop,...(comments.length?{properties:{comment:new TextDecoder().decode(new Uint8Array(comments))}}:{})};
+ // Without a looping extension, an animation plays exactly once.
+ return {frames,loop:loop ?? (frames>1?1:undefined),...(comments.length?{properties:{comment:new TextDecoder().decode(new Uint8Array(comments))}}:{})};
 }
 
 export function gifMetadataFields(width:number,height:number,size:number,frames:number,loop:number|undefined,options?:Pick<SharpInputOptions,"animated"|"page"|"pages">):ImageMetadata {

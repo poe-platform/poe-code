@@ -23,3 +23,24 @@ for (const retained of [false, true]) {
     expect(await sharp(output, { animated: true }).metadata()).toMatchObject({ pages: 2, delay: [100, 200] });
   });
 }
+
+for (const retained of [false, true]) {
+  it.each([0, 1, 4])(`preserves GIF loop %i on rewrite (retained=${retained})`, async loop => {
+    const pixels = Uint8Array.of(255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255);
+    const input = await sharp(pixels, { raw: { width: 2, height: 2, channels: 4 } })
+      .gif({ pageHeight: 1, delay: [70, 130], loop }).toBuffer();
+    const files = new Map([["in.gif", input]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/in.gif", input);
+    expect(await runConvertCli(["in.gif", "out.gif"], retained ? { filesystem: fs, cwd: "/" } : files))
+      .toMatchObject({ exitCode: 0 });
+    const output = retained ? await fs.readFile("/out.gif") : files.get("out.gif")!;
+    const extension = Buffer.from(output).indexOf("NETSCAPE2.0");
+    if (loop === 1) expect(extension).toBe(-1);
+    else {
+      expect(extension).toBeGreaterThan(-1);
+      expect([...output.subarray(extension + 11, extension + 16)]).toEqual([3, 1, loop === 0 ? 0 : 3, 0, 0]);
+    }
+    expect(await sharp(output, { animated: true }).metadata()).toMatchObject({ pages: 2, delay: [70, 130], loop });
+    expect(await sharp(output, { animated: true }).raw().toBuffer()).toEqual(pixels);
+  });
+}

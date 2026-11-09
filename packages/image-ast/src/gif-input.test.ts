@@ -3061,7 +3061,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0,
+      loop: 1,
       size: 987
     },
     expected: {
@@ -3077,7 +3077,7 @@ export const gifInputVectors: GifInputVector[] = [
       sourcePages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0
+      loop: 1
     },
     hash: "a58d4889dce96215ce3f39e6785a602c23544d5571ec8025f86577a417d376f9"
   },
@@ -3096,7 +3096,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0,
+      loop: 1,
       size: 986
     },
     expected: {
@@ -3112,7 +3112,7 @@ export const gifInputVectors: GifInputVector[] = [
       sourcePages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0
+      loop: 1
     },
     hash: "a58d4889dce96215ce3f39e6785a602c23544d5571ec8025f86577a417d376f9"
   },
@@ -3131,7 +3131,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0,
+      loop: 1,
       size: 985
     },
     expected: {
@@ -3147,7 +3147,7 @@ export const gifInputVectors: GifInputVector[] = [
       sourcePages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0
+      loop: 1
     },
     hash: "a58d4889dce96215ce3f39e6785a602c23544d5571ec8025f86577a417d376f9"
   },
@@ -3166,7 +3166,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0,
+      loop: 1,
       size: 981
     },
     expected: {
@@ -3182,7 +3182,7 @@ export const gifInputVectors: GifInputVector[] = [
       sourcePages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0
+      loop: 1
     },
     hash: "966144dea838b98dae52b578519b2a4c8856c548b3ee44381bc817a3ffae8b15"
   },
@@ -3201,7 +3201,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0,
+      loop: 1,
       size: 975
     },
     expected: {
@@ -3217,7 +3217,7 @@ export const gifInputVectors: GifInputVector[] = [
       sourcePages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0
+      loop: 1
     },
     hash: "34f9172920b0cd5170b0f2d42f3789ced2008285f93d9839c7630adf30304f82"
   },
@@ -3236,7 +3236,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0,
+      loop: 1,
       size: 963
     },
     expected: {
@@ -3252,7 +3252,7 @@ export const gifInputVectors: GifInputVector[] = [
       sourcePages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0
+      loop: 1
     },
     hash: "fbc8d3799794ed82aded86402fec0f0e9397835423ed617220f93ec2329c7a52"
   },
@@ -3271,7 +3271,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0,
+      loop: 1,
       size: 928
     },
     expected: {
@@ -3287,7 +3287,7 @@ export const gifInputVectors: GifInputVector[] = [
       sourcePages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0
+      loop: 1
     },
     hash: "658bcfc3e7ea798fb776473e18d1bf49833b22810a87c049ac8307ed8b0c5eff"
   },
@@ -3306,7 +3306,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 4,
       pageHeight: 11,
       delay: [0, 70, 140, 210],
-      loop: 0,
+      loop: 1,
       size: 426
     },
     expected: {
@@ -3322,7 +3322,7 @@ export const gifInputVectors: GifInputVector[] = [
       sourcePages: 4,
       pageHeight: 11,
       delay: [0, 70, 140, 210],
-      loop: 0
+      loop: 1
     },
     hash: "9d132d1af172bb88c0687a047c3d66f6ccfdd9c71ab2fe4da8d9c191289c22e5"
   },
@@ -3411,7 +3411,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 4,
       pageHeight: 1,
       delay: [0, 70, 140, 210],
-      loop: 0,
+      loop: 1,
       size: 874
     },
     expected: {
@@ -3427,7 +3427,7 @@ export const gifInputVectors: GifInputVector[] = [
       sourcePages: 4,
       pageHeight: 1,
       delay: [0, 70, 140, 210],
-      loop: 0
+      loop: 1
     },
     hash: "a713375f22a68bf536ba36ae4a1f4c1064187ce76df26178604a9089f36f2ea1"
   },
@@ -3447,7 +3447,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 4,
       pageHeight: 11,
       delay: [0, 70, 140, 210],
-      loop: 0,
+      loop: 1,
       size: 101569
     },
     expected: {
@@ -3464,7 +3464,7 @@ export const gifInputVectors: GifInputVector[] = [
       sourcePages: 4,
       pageHeight: 11,
       delay: [0, 70, 140, 210],
-      loop: 0
+      loop: 1
     },
     hash: "92cf497309357db87f489f1ef998ebe7fb6384647ac5262506b5d33d1f75f978"
   },
@@ -3512,7 +3512,7 @@ export const gifInputVectors: GifInputVector[] = [
       pages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0,
+      loop: 1,
       size: 976
     },
     expected: {
@@ -3528,7 +3528,7 @@ export const gifInputVectors: GifInputVector[] = [
       sourcePages: 2,
       pageHeight: 11,
       delay: [0, 70],
-      loop: 0
+      loop: 1
     },
     hash: "b6bbad150c0533ff94ca15191322d17f86882362e11c9b86bd85fc5547cc7372"
   }

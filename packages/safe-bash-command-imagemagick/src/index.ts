@@ -6736,10 +6736,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const beta = Math.max(1e-4, strength);
         const mRaw = parseFloat(mStr || "50");
         const alpha = (mStr ?? "50%").endsWith("%") ? mRaw / 100 : mRaw / 65535;
-        const sig = (u: number) => 1 / (1 + Math.exp(beta * (alpha - u)));
+        const sig = (u: number) => Math.tanh(0.5 * beta * (u - alpha));
         const s0 = sig(0);
         const s1 = sig(1);
-        const span = Math.max(1e-6, s1 - s0);
+        const span = Math.max(2e-6, s1 - s0);
         const inverse = token === "+sigmoidal-contrast";
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = function* (im) {
@@ -6757,8 +6757,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     if (!mask[c])
                         continue;
                     const u = samples[idx + c]! / range;
+                    // Match ImageMagick's epsilon clamp so saturated endpoints stay finite.
                     const value = inverse
-                        ? alpha - Math.log(1 / (s0 + u * span) - 1) / beta
+                        ? alpha + (2 / beta) * Math.atanh(Math.max(-1 + 1e-12, Math.min(1 - 1e-12, (s1 - s0) * u + s0)))
                         : (sig(u) - s0) / span;
                     samples[idx + c] = Math.max(0, Math.min(range, Math.round(value * range)));
                     if (data16) out[idx + c] = clampByteVal(data16[idx + c]! / 257);

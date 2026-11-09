@@ -518,11 +518,11 @@ test('output quota failure preserves previously delivered bytes and closes input
   await Promise.all(f.cleanups.map(cleanup => cleanup()));
 });
 
-test('stdin invocation uses no network, VFS fallback or environment capability', async t => {
+test('stdin invocation uses only the supplied POSIX option environment', async t => {
   const f = fixture(['-w2'], 'abcd');
   const denied = () => { throw new Error('Denied external capability'); };
   const network = t.mock.method(globalThis, 'fetch', denied);
-  const context = { ...f.context, fs: new Proxy({}, { get: denied }), env: new Proxy({}, { get: denied, ownKeys: denied }) } as CommandContext;
+  const context = { ...f.context, fs: new Proxy({}, { get: denied }), env: new Proxy({}, { get(_target, key) { assert.equal(key, 'POSIXLY_CORRECT'); return undefined; }, ownKeys: denied }) } as CommandContext;
   assert.equal((await createFoldCommand().execute(context)).exitCode, 0);
   assert.equal(f.text(), 'ab\ncd'); assert.equal(network.mock.callCount(), 0);
 });

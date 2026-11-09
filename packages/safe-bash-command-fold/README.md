@@ -37,6 +37,10 @@ Register this plugin for an explicit locale profile and additional controls belo
 | `-w N`, `--width=N` | Positive decimal width; default 80 columns. Attached `-w5` and legacy `-12` work. |
 | `--` | End options; remaining operands are literal VFS paths. |
 
+When `POSIXLY_CORRECT` is set (including an empty value), both the aggregate
+and plugin stop parsing options at the first file or `-`; later arguments are
+literal filenames. Otherwise, options may follow filenames.
+
 Grouped flags (`-bc`), unique long abbreviations (`--wid=5`), leading whitespace,
 `+5` and `05` widths are accepted. Zero, negative, fractional, suffixed and
 out-of-range widths are rejected. CLI widths accept the released 64-bit range

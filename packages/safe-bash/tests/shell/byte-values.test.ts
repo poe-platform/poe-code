@@ -88,6 +88,25 @@ for (const [expression, expected] of [
 });
 
 
+for (const [ifs, separator] of [["IFS=:", ":"], ["IFS=''", ""], ["unset IFS", " "], ["IFS=:,", ":"]] as const) {
+  for (const [operand, join] of [
+    ["<<<$*", separator], ["<<<${*}", separator], ["<<<${*:1}", separator],
+    ['<<<"$*"', separator], ["<<<$@", " "], ['<<<"$@"', " "],
+    ["<<EOF\n$*\nEOF", " "], ["<<EOF\n$@\nEOF", " "],
+  ]) {
+    for (const byte of [false, true]) test(`positional redirect ${operand}, ${ifs}, raw byte=${byte}`, async t => {
+      const { shell } = setup();
+      t.after(() => shell.dispose());
+      const first = byte ? "$'A \\377B'" : "'A B'";
+      const result = await shell.exec(`${ifs}; set -- ${first} '' C; pass ${operand}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      const expected = `${byte ? "A \xffB" : "A B"}${join}${join}C\n`;
+      assert.deepEqual(result.stdoutBytes, Uint8Array.from(expected, character => character.charCodeAt(0)));
+    });
+  }
+}
+
 const portableByteScripts = [
   ["ANSI-C quote", "printf '%s' $'\\377'"],
   ["command substitution", "printf '%s' \"$(printf '\\377')\""],

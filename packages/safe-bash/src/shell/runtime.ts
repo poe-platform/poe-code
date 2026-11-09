@@ -9767,7 +9767,7 @@ export class Runtime {
     }
     if (part.substring && (part.name === "@" || part.name === "*")) {
       const values = await this.positionalSlice(part, state, io);
-      const separator = part.name === "@" && (state.variables.IFS === "" || !split && !part.quoted) || hereString && !part.quoted ? " " : this.ifsSeparator(state, io);
+      const separator = io.nameExpansionContext === "document" || part.name === "@" && (state.variables.IFS === "" || !split && !part.quoted) ? " " : this.ifsSeparator(state, io);
       return concatShellValues(values.flatMap((entry, index) => index ? [separator, entry] : [entry]), io[valueScope]);
     }
     const namerefName = part.indirect && state.variableAttributes?.get(part.name)?.includes("n");
@@ -9776,7 +9776,7 @@ export class Runtime {
       : part.name === "?" ? String(state.status)
       : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}`
       : part.name === "#" ? String(state.positional.length)
-      : part.name === "@" || part.name === "*" ? state.positional.join(part.name === "@" && !split || hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
+      : part.name === "@" || part.name === "*" ? state.positional.join(io.nameExpansionContext === "document" || part.name === "@" && (!split || hereString) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
       : part.name === "LINENO" ? (state.extensions ? String(io.diagnosticLine ?? part.line ?? 1) : state.variables.LINENO ?? String(io.diagnosticLine ?? part.line ?? 1)) : this.variable(state, part.name);
@@ -9790,7 +9790,7 @@ export class Runtime {
       } else if (/^0+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(zeroPositionKey, value) ?? value;
       else if (/^[0-9]+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(String(Number(part.name) - 1), value) ?? value;
       else if (part.name === "@" || part.name === "*") {
-        const separator = part.name === "@" && !split || hereString && (part.name === "@" || !part.quoted) ? " " : this.ifsSeparator(state, io);
+        const separator = io.nameExpansionContext === "document" || part.name === "@" && (!split || hereString) ? " " : this.ifsSeparator(state, io);
         const values = this.positionalValues(state);
         retained = concatShellValues(values.flatMap((entry, index) => index ? [separator, entry] : [entry]), io[valueScope]);
       }

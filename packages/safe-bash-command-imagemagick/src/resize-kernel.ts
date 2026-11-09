@@ -216,13 +216,18 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
     }
 }
 
-export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: MagickResizeKernel = "lanczos3", highDepth = false, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: MagickResizeKernel = "lanczos3", highDepth = false, settings?: ResizeFilterSettings, preserveSamples = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const samples = resizeSamples(image, width, height, thumbnail, scale, kernel, highDepth, settings);
     const range = highDepth ? 65535 : 255;
     let next = samples.next();
     while (!next.done) {
         const request = next.value;
         if (request?.kind !== "samples") { next = samples.next(yield request); continue; }
+        if (preserveSamples) {
+            // Comparison uses HDRI values, including negative filter lobes.
+            const values = request.data.map(sample => Math.fround(sample * (highDepth ? 1 : 257)) / 257);
+            yield { kind: "write", evaluate: true, position: request.position, data: new Uint8Array(values.buffer) };
+        }
         const rounded = request.data.map((sample, index) => {
             const value = Math.max(0, Math.min(range, highDepth ? Math.fround(sample) : sample));
             // Match the Q16-HDRI float quantum conversion at half-byte ties.

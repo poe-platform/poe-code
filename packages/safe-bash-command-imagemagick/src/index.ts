@@ -3640,6 +3640,7 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
 function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal?: AbortSignal, dimensions: Pick<RgbaImage, "width" | "height" | "hasAlpha"> = img, sources: readonly RgbaImage[] = [img]): Generator<void, RgbaImage, void> {
     const data = new Uint8Array(dimensions.width * dimensions.height * 4);
     let hueSamples: Float64Array | undefined;
+    let evaluateSamples: Float64Array | undefined;
     let data16: Uint16Array | undefined;
     let next = steps.next();
     while (!next.done) {
@@ -3661,6 +3662,9 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
             if (request.hue) {
                 hueSamples ??= new Float64Array(data.length);
                 hueSamples.set(new Float64Array(request.data.slice().buffer), request.position);
+            } else if (request.evaluate) {
+                evaluateSamples ??= new Float64Array(data.length);
+                evaluateSamples.set(new Float64Array(request.data.slice().buffer), request.position);
             } else if (request.highDepth) {
                 const samples = new Uint16Array(request.data.slice().buffer);
                 data16 ??= new Uint16Array(data.length);
@@ -3672,7 +3676,7 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
     }
     // Raster steps replace the pixels; the original high-depth samples are stale.
     const { data16: _data16, ...metadata } = img;
-    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
+    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
 function resolveGravityOffset(
@@ -4112,14 +4116,14 @@ function magickResizeCanvas(image: Pick<RgbaImage, "width" | "height" | "virtual
     return { width: pageWidth, height: pageHeight, x: Math.ceil(scaleX * page.x - 0.5), y: Math.ceil(scaleY * page.y - 0.5) };
 }
 
-function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }): Generator<void, RgbaImage, void> {
+function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Generator<void, RgbaImage, void> {
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczos3" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
     let resized = !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
-        : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings), undefined, { ...img, width, height });
+        : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples), undefined, { ...img, width, height });
     if (!scale && kernel === "nearest" && img.data16) {
         const source = new Uint8Array(img.data16.buffer, img.data16.byteOffset, img.data16.byteLength);
         const data16 = new Uint16Array(width * height * 4), bytes = new Uint8Array(data16.buffer);
@@ -4137,12 +4141,12 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
 
-async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: NonNullable<ReturnType<typeof magickResizeOptions>>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }): Promise<StoredRgbaImage> {
+async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: NonNullable<ReturnType<typeof magickResizeOptions>>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Promise<StoredRgbaImage> {
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
     let resized = !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
-        : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings), signal, { ...image, width, height });
+        : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples), signal, { ...image, width, height });
     if (!scale && options.kernel === "nearest" && image.storedData16) {
         const storedData16 = { position: backend.storage.allocate(width * height * 8), length: width * height * 4 };
         const steps = pointResizePixelSteps(image, width, height, sample, 8, sampleOffset);
@@ -5046,12 +5050,12 @@ function* parseInputOperandSteps(token: string, files: Map<string, Uint8Array>, 
     return list?.[0];
 }
 
-function* applyInlineReadModifierSteps(img: RgbaImage, inlineGeom: string, kernel: ResizeKernel | undefined, settings?: ResizeFilterSettings): Generator<void, RgbaImage, void> {
+function* applyInlineReadModifierSteps(img: RgbaImage, inlineGeom: string, kernel: ResizeKernel | undefined, settings?: ResizeFilterSettings, preserveSamples = false): Generator<void, RgbaImage, void> {
     const g = parseMagickGeometry(inlineGeom);
     if (g.hasOffset) {
         return (yield* applyMagickCropSteps(img, inlineGeom, "northwest"));
     }
-    return (yield* applyMagickResizeSteps(img, inlineGeom, kernel, false, false, false, settings));
+    return (yield* applyMagickResizeSteps(img, inlineGeom, kernel, false, false, false, settings, undefined, preserveSamples));
 }
 
 function inferMaxDecodeDimensionFromUpcomingTokens(
@@ -5174,9 +5178,9 @@ function* selectedInputPages(pageSpec: string | undefined, totalPages: number): 
     }
 }
 
-function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number): Generator<void, RgbaImage[] | undefined, void> {
+function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number, extract?: string): Generator<void, RgbaImage[] | undefined, void> {
     let work = 0;
-    const {baseToken,pageSpec,inlineGeom}=parseInputToken(token);
+    const {baseToken,pageSpec,inlineGeom=extract}=parseInputToken(token);
     function* applyMod(imgs: RgbaImage[]): Generator<void, RgbaImage[], void> {
         return yield* mapSteps(imgs, function* (im) {
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
@@ -5194,7 +5198,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 const delay = state.delay.value;
                 im = { ...im, delay: (im.delay ?? [0]).map(current => parseDelayOption(delay, current)) };
             }
-            return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, state.kernel, state.resizeFilter) : im;
+            return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, state.kernel, state.resizeFilter, extract !== undefined) : im;
         });
     }
     const lower = baseToken.toLowerCase();
@@ -8792,6 +8796,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
 async function transformStoredMagickRaster(image: StoredRgbaImage, backend: CompareFileSession, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal: AbortSignal, dimensions: Pick<StoredRgbaImage, "width" | "height" | "hasAlpha"> = image, sources: readonly StoredRgbaImage[] | ((index: number) => Promise<StoredRgbaImage>) = [image], checkpoint?: () => Promise<void>): Promise<StoredRgbaImage> {
     const position = backend.storage.allocate(dimensions.width * dimensions.height * 4), cache = new Map<string, Uint8Array>();
     let storedHueSamples: number | undefined;
+    let storedEvaluateSamples: number | undefined;
     let storedData16: StoredRgbaImage["storedData16"];
     let next = steps.next();
     while (!next.done) {
@@ -8802,6 +8807,9 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
             if (request.hue) {
                 storedHueSamples ??= backend.storage.allocate(dimensions.width * dimensions.height * 32);
                 await backend.storage.write(storedHueSamples + request.position * 8, request.data);
+            } else if (request.evaluate) {
+                storedEvaluateSamples ??= backend.storage.allocate(dimensions.width * dimensions.height * 32);
+                await backend.storage.write(storedEvaluateSamples + request.position * 8, request.data);
             } else if (request.highDepth) {
                 storedData16 ??= { position: backend.storage.allocate(dimensions.width * dimensions.height * 8), length: dimensions.width * dimensions.height * 4 };
                 await backend.storage.write(storedData16.position + request.position * 2, request.data);
@@ -8835,7 +8843,7 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
         }
     }
     const { storedData16: _storedData16, ...metadata } = image;
-    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }) };
+    return { ...metadata, width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }) };
 }
 
 async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal, channels?: readonly boolean[], virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Promise<StoredRgbaImage> {
@@ -10797,8 +10805,8 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
 }
 
 
-async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
- const {baseToken,pageSpec,inlineGeom}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
+async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;extract?:string;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
+ const {baseToken,pageSpec,inlineGeom=readOptions.extract}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
  if(lower.startsWith("tile:")){
   if(!state.hasSize)throw new Error("must specify image size for TILE input");
   if(readOptions.visit){
@@ -10942,7 +10950,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    },
   } };
  }
- if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),...(image.delay?{delay:image.delay}:{}),...(image.storedDelay?{storedDelay:image.storedDelay}:{}),...((image as StoredMagickImage)[magickInput]?{[magickInput]:(image as StoredMagickImage)[magickInput]}:{}),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal,false,false,false,state.resizeFilter);}}
+ if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area===null)image={...await createStoredCanvas(1,1,{r:255,g:255,b:255,a:0},backend,signal),...(image.delay?{delay:image.delay}:{}),...(image.storedDelay?{storedDelay:image.storedDelay}:{}),...((image as StoredMagickImage)[magickInput]?{[magickInput]:(image as StoredMagickImage)[magickInput]}:{}),virtualCanvas:{...magickCropCanvas(image,0,0),x:-1,y:-1}};else if(area)image={...await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal),virtualCanvas:magickCropCanvas(image,area.left,area.top)};}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await resizeStoredMagickImage(image,backend,resize,signal,false,false,false,state.resizeFilter,undefined,readOptions.extract !== undefined);}}
  return image;
  }
 }
@@ -10978,7 +10986,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const pixelOperations: MagickPixelOperation[] = [];
     const operationFlushes = new Map<number, readonly MagickPixelOperation[]>();
     let pending = false;
-    const operands: string[] = [];
+    let extract: string | undefined;
+    const operands: { token: string; extract: string | undefined }[] = [];
     const operandOperations: CompareOperation[][] = [];
     let leadingOperations: CompareOperation[] = [];
     let groupStart = 0;
@@ -11209,13 +11218,20 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "-quality") {
             state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
         }
+        else if (t === "-extract") {
+            extract = argv[++i];
+            if (extract === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-extract'\n" };
+            try { validateMagickTransformGeometry(extract, t); }
+            catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
+        }
+        else if (t === "+extract") extract = undefined;
         else if (t.startsWith("-") && t.length > 1) {
             return { exitCode: 2, stdout: "", stderr: `compare: unrecognized option '${t}'\n` };
         }
         else {
             if (pending) operationFlushes.set(operands.length, [...pixelOperations]);
             pending = false;
-            operands.push(t);
+            operands.push({ token: t, extract });
             operandOperations.push(leadingOperations.map(operation => typeof operation === "object" && "geometry" in operation ? { ...operation, gravity: state.gravity } : operation));
         }
     }
@@ -11247,8 +11263,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const virtualCanvas = plan?.virtualCanvas ?? (image.virtualCanvas ? magickRotateCanvas(image, angle) : undefined);
         return virtualCanvas ? { ...rotated, virtualCanvas } : rotated;
     }
-    const refSpec = operands[0]!;
-    const outSpec = operands[operands.length - 1]!;
+    const refSpec = operands[0]!.token;
+    const outSpec = operands[operands.length - 1]!.token;
     const images: RgbaImage[] = [];
     const storedImages = backend ? new StoredImageStack(backend.storage, signal!) : undefined;
     const frameStarts = [0];
@@ -11319,7 +11335,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
     }
     // Compare consumes the first two images in the combined input sequence.
-    for (const [operandIndex, operand] of operands.entries()) {
+    for (const [operandIndex, { token: operand, extract }] of operands.entries()) {
         const final = operandIndex === operands.length - 1;
         // Native compare flushes pending operators before the next input, then
         // replays them over the combined sequence when finalizing the comparison.
@@ -11359,14 +11375,14 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         try {
             let found = false;
             if (backend) yield { async run() {
-                await parseStoredCompareInput(operand, state, backend, signal!, { visit: async image => {
+                await parseStoredCompareInput(operand, state, backend, signal!, { ...(extract === undefined ? {} : { extract }), visit: async image => {
                     found = true;
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
                     await drainIdentifySteps(acceptImage(image, operations), signal);
                 } });
             } };
             else {
-                const images = yield* parseInputOperandsSteps(operand, files, state, stdinBytes);
+                const images = yield* parseInputOperandsSteps(operand, files, state, stdinBytes, undefined, extract);
                 found = Boolean(images?.length);
                 for (const image of images ?? []) {
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
@@ -11423,11 +11439,14 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
           const image = request.mask ? readMask! : request.image === 0 ? imgA : imgB;
           let samples!: Uint8Array | Float64Array;
           if ("data" in image) {
-              samples = image.data16
+              samples = image.evaluateSamples?.subarray(request.position, request.position + request.length) ?? (image.data16
                   ? Float64Array.from(image.data16.subarray(request.position, request.position + request.length), value => value / 257)
-                  : image.data.subarray(request.position, request.position + request.length);
+                  : image.data.subarray(request.position, request.position + request.length));
           } else yield { async run() {
-              if (image.storedData16) {
+              if (image.storedEvaluateSamples !== undefined) {
+                  const bytes = await backend!.storage.read(image.storedEvaluateSamples + request.position * 8, request.length * 8);
+                  samples = new Float64Array(bytes.slice().buffer);
+              } else if (image.storedData16) {
                   const bytes = await backend!.storage.read(image.storedData16.position + request.position * 2, request.length * 2);
                   samples = Float64Array.from(new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2), value => value / 257);
               } else samples = await backend!.storage.read(image.position + request.position, request.length);

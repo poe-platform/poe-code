@@ -1830,6 +1830,12 @@ function parseMagickRaiseGeometry(raw: string, option: string): MagickGeometry {
     return parseMagickGeometry(raw);
 }
 
+function validateMagickStatisticGeometry(raw: string): void {
+    if (!Number.isFinite(Number.parseFloat(raw)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+        throw new Error(`invalid argument for option '-statistic': ${raw}`);
+    }
+}
+
 function validateMagickSpliceGeometry(raw: string): void {
     // Native geometry permits modifiers and separators, but never ignores unknown characters.
     if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
@@ -8322,6 +8328,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const statType = tokens[++i] ?? "median";
             validateMagickStatistic(statType);
             const geom = tokens[++i] ?? "3x3";
+            validateMagickStatisticGeometry(geom);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickMorphology4ChSteps(im, statType, geom, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background));
             });
@@ -10024,6 +10031,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-statistic") {
                 validateMagickStatistic(tokens[i] ?? "median");
                 spec = tokens[++i] ?? "3x3";
+                validateMagickStatisticGeometry(spec);
             }
             else if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) spec = tokens[++i]!;
             if (token === "-morphology" && (method.split(":")[0] === "convolve" || method.split(":")[0] === "correlate")) {

@@ -1,4 +1,5 @@
 import { encodeAlacTrack } from "./alac.js";
+import { decodeAlac } from "./alac-decoder.js";
 import { decodeMovText, encodeMovText } from "./mov-text.js";
 import { rawAudioAsts } from "./containers/raw-audio.js";
 import { readImageMetadata } from "@poe-code/image-ast/portable";
@@ -626,6 +627,21 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
 
     const timecodeReference = findBox(findBox(trak.children, "tref")?.children, "tmcd");
     const audioDescription = codecDescriptions[0];
+    const pcmDecoder = type === "audio" && options.decodeAudio !== false
+      ? rawAudioAsts().find(plugin => plugin.supportedAudioCodecs.includes(audioDescription?.codecName ?? ""))
+      : undefined;
+    let alacAudio: MediaAudioData | undefined;
+    if (type === "audio" && options.decodeAudio !== false && audioDescription?.codecName === "alac") {
+      const entry = audioDescription.rawStsdEntryBytes;
+      const childOffset = entry && sampleEntryHeader("alac", entry.subarray(8)).childOffset;
+      const boxes = entry && childOffset !== undefined
+        ? parseMp4Boxes(entry.subarray(8 + childOffset), 0, 0, budget) : [];
+      const wave = boxes.find(box => box.type === "wave");
+      const config = boxes.find(box => box.type === "alac") ??
+        (wave && parseMp4Boxes(wave.payload, 0, 0, budget).find(box => box.type === "alac"));
+      if (!config || config.payload.length !== 28) throw new Error("Missing MOV ALAC decoder configuration");
+      alacAudio = decodeAlac(samples, config.payload.subarray(4), budget);
+    }
     tracks.push({
       id: trackId,
       timecodeTrackId: timecodeReference && timecodeReference.payload.length >= 4
@@ -646,12 +662,13 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       editList: editList.length > 0 ? editList : undefined,
       declaredSampleCount,
       samples,
-      ...((audioDescription?.codecName === "pcm_mulaw" || audioDescription?.codecName === "pcm_alaw") && options.decodeAudio !== false ? {
-        decodedAudio: rawAudioAsts().find(plugin => plugin.id === (audioDescription.codecName === "pcm_mulaw" ? "mulaw" : "alaw"))!
+      ...(pcmDecoder && audioDescription ? {
+        decodedAudio: pcmDecoder
           .parse(concatBytes(samples.map(sample => sample.data)), {
             ...options, budget, sampleRate: audioDescription.sampleRate, channels: audioDescription.channels
           }).tracks[0]!.decodedAudio
       } : {}),
+      ...(alacAudio ? { decodedAudio: alacAudio } : {}),
       decodedVideoFrames
     });
   }

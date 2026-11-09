@@ -17,6 +17,11 @@ for (const [format, tag] of [["s16le", "sowt"], ["s16be", "twos"]] as const) {
       assert.equal(track.codecDescriptions[0]!.channels, 2);
       assert.equal(track.codecDescriptions[0]!.sampleRate, 8000);
       assert.deepEqual(Buffer.concat(track.samples.map(sample => sample.data)), Buffer.from(bytes));
+      assert.equal(track.decodedAudio, undefined);
+      const decoded = parseMp4(serializeMp4(input, { format: "mov" }));
+      assert.equal(decoded.tracks[0]!.decodedAudio?.sampleRate, 8000);
+      assert.equal(decoded.tracks[0]!.decodedAudio?.channels, 2);
+      assert.deepEqual(Buffer.from(raw.serialize(decoded)), Buffer.from(bytes));
     });
   }
 }

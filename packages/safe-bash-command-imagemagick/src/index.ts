@@ -7773,8 +7773,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         const setting = applyMagickReadSetting(tokens, state, i);
-        if (setting === undefined && (t === "-solarize" || t === "-color-matrix")) {
-            const value = tokens[++i] ?? (t === "-solarize" ? "50%" : "1,0,0 0,1,0 0,0,1");
+        if (setting === undefined && (t === "-solarize" || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast")) {
+            const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" ? "" : "1");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 return yield* parseMagickPixelOperation([t, expanded], state, 0, signal)!.apply(image);
@@ -9663,8 +9663,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, channels, signal), signal) : undefined);
             continue;
         }
-        if (!operandsOnly && (token === "-solarize" || token === "-color-matrix")) {
-            const value = tokens[++i] ?? (token === "-solarize" ? "50%" : "1,0,0 0,1,0 0,0,1"), settings = { ...state };
+        if (!operandsOnly && (token === "-solarize" || token === "-color-matrix" || token === "-gamma" || token === "+gamma" || token === "-brightness-contrast")) {
+            const value = tokens[++i] ?? (token === "-solarize" ? "50%" : token === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : token === "-brightness-contrast" ? "" : "1"), settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);

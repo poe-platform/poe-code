@@ -1,4 +1,5 @@
 import { rawAudioAsts } from "./raw-audio.js";
+import { imaBlockFrames } from "./wav-ima.js";
 import { mpegFrame } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import {
@@ -98,6 +99,8 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     channels?: number;
     bitsPerSample?: number;
     formatTag?: number;
+    blockAlign?: number;
+    waveFormat?: Uint8Array;
     extradata?: Uint8Array;
     title?: string;
   }
@@ -170,11 +173,13 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           if (chunkSize > 40) {
             cur.extradata = bytes.subarray(payloadStart + 40, payloadEnd);
           }
-        } else if (cur.fccType === "auds" && chunkSize >= 14) {
+        } else if (cur.fccType === "auds" && payloadEnd - payloadStart >= 16) {
           cur.formatTag = view.getUint16(payloadStart - pos + 0, true);
           cur.channels = view.getUint16(payloadStart - pos + 2, true) || 2;
           cur.sampleRate = view.getUint32(payloadStart - pos + 4, true) || 44100;
           cur.bitsPerSample = view.getUint16(payloadStart - pos + 14, true) || 16;
+          cur.blockAlign = view.getUint16(payloadStart - pos + 12, true);
+          cur.waveFormat = bytes.subarray(payloadStart, payloadEnd);
           if (chunkSize > 18) {
             cur.extradata = bytes.subarray(payloadStart + 18, payloadEnd);
           }
@@ -374,8 +379,12 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           : info.formatTag === 0x00ff
             ? "aac"
             : info.formatTag === 7 ? "pcm_mulaw"
-              : info.formatTag === 6 ? "pcm_alaw" : "pcm_s16le";
+              : info.formatTag === 6 ? "pcm_alaw"
+                : info.formatTag === 17 ? "adpcm_ima_wav" : "pcm_s16le";
       const g711 = codecName === "pcm_mulaw" || codecName === "pcm_alaw";
+      const ima = codecName === "adpcm_ima_wav";
+      const blockAlign = info.blockAlign ?? 0;
+      const blockFrames = ima ? imaBlockFrames(blockAlign, channels) : 0;
       let audioDuration = 0;
       const nonEmptyAudio = rawSamples.filter((s) => s.data.byteLength > 0);
       const samples = nonEmptyAudio.map((s) => {
@@ -390,7 +399,10 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           if (payload.byteLength > hdrLen) payload = payload.subarray(hdrLen);
         }
         const dts = audioDuration;
-        const duration = g711 ? payload.byteLength / channels : 1024;
+        const tail = ima ? Math.floor((payload.byteLength % blockAlign) / (channels * 4)) * channels * 4 : 0;
+        const duration = ima
+          ? Math.floor(payload.byteLength / blockAlign) * blockFrames + (tail ? imaBlockFrames(tail, channels) : 0)
+          : g711 ? payload.byteLength / channels : 1024;
         audioDuration += duration;
         return {
           ...s,
@@ -411,11 +423,12 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         enabled: true,
         codecDescriptions: [
           {
-            formatFourCC: codecName === "aac" ? "mp4a" : codecName === "mp3" ? ".mp3" : codecName === "pcm_mulaw" ? "ulaw" : codecName === "pcm_alaw" ? "alaw" : "sowt",
+            formatFourCC: ima ? "\x11\0\0\0" : codecName === "aac" ? "mp4a" : codecName === "mp3" ? ".mp3" : codecName === "pcm_mulaw" ? "ulaw" : codecName === "pcm_alaw" ? "alaw" : "sowt",
             codecName,
             sampleRate,
             channels,
             bitsPerSample: info.bitsPerSample ?? 16,
+            ...(ima ? { rawWavFormatBytes: info.waveFormat } : {}),
             ...(codecName === "aac" && info.extradata?.length ? {
               esds: parseEsds(buildEsdsBox(sampleRate, channels, 0, info.extradata).subarray(8))
             } : {})

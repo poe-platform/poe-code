@@ -46,6 +46,7 @@ import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { despecklePixelSteps } from "./despeckle-kernel.js";
 import { waveletDenoisePixelSteps } from "./wavelet-denoise-kernel.js";
 import { meanShiftPixelSteps, parseMeanShiftGeometry } from "./mean-shift-kernel.js";
+import { kmeansPixelSteps, parseKmeansGeometry } from "./kmeans.js";
 import { motionBlurPixelSteps } from "./motion-blur-kernel.js";
 import { rotationalBlurPixelSteps } from "./rotational-blur-kernel.js";
 import { bilateralBlurPixelSteps } from "./bilateral-blur-kernel.js";
@@ -8405,6 +8406,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* applyMagickRasterSteps(im, localThresholdPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
             });
         }
+        else if (t === "-kmeans") {
+            const geometry = parseKmeansGeometry(tokens[++i] ?? "");
+            stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps({ ...image, isPalette: true }, kmeansPixelSteps(image, geometry), signal));
+        }
         else if (t === "-mean-shift") {
             const geometry = parseMeanShiftGeometry(tokens[++i] ?? "");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -10370,6 +10375,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-lat") {
             const geometry = parseLocalThresholdGeometry(tokens[++i] ?? ""), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, localThresholdPixelSteps(image, geometry, background, virtualPixel, channels), signal) : undefined);
+        } else if (!operandsOnly && token === "-kmeans") {
+            const geometry = parseKmeansGeometry(tokens[++i] ?? "");
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, kmeansPixelSteps(image, geometry), signal) : undefined);
         } else if (!operandsOnly && token === "-mean-shift") {
             const geometry = parseMeanShiftGeometry(tokens[++i] ?? ""), background = state.background, virtualPixel = state.virtualPixel;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, meanShiftPixelSteps(image, geometry, background, virtualPixel), signal) : undefined);
@@ -10769,6 +10777,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-rotational-blur",
         "-lat",
         "-mean-shift",
+        "-kmeans",
         "-local-contrast",
         "-wavelet-denoise",
         "-sharpen",

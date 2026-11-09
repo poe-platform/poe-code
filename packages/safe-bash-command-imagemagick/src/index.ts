@@ -4600,11 +4600,10 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
     return image;
 }
 
-type MagickDrawShape = { kind: "shape"; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number });
+type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number });
 type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | { kind: "floodfill"; x: number; y: number; color: RgbaColor; alphaOnly: boolean };
 
-function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape, highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const { color } = shape;
+function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape, highDepth = false, tile?: Pick<RgbaImage, "width" | "height">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const quantum = highDepth ? 65535 : 255, scale = highDepth ? 257 : 1;
     const x0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.x : shape.x - shape.radius - 1));
     const y0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.y : shape.y - shape.radius - 1));
@@ -4623,6 +4622,12 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
             // disabling antialiasing thresholds it at one half.
             if (shape.shape === "circle" && shape.antialias === false)
                 coverage = Math.hypot(x - shape.x, y - shape.y) <= shape.radius + 1 - Math.SQRT1_2 ? 1 : 0;
+            let color = shape.color;
+            if (shape.tile && tile) {
+                const source = yield { kind: "read", image: 1, position: ((y % tile.height) * tile.width + x % tile.width) * 4, length: 4 };
+                if (!source || source.length !== 4) throw new Error("Truncated drawing tile");
+                color = { r: source[0]!, g: source[1]!, b: source[2]!, a: source[3]! };
+            }
             const alpha = color.a / 255 * coverage, offset = i * 4;
             if (alpha >= 0.999) {
                 data[offset] = color.r * scale; data[offset + 1] = color.g * scale; data[offset + 2] = color.b * scale; data[offset + 3] = quantum;
@@ -4670,6 +4675,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     let cooperativeWork = 0;
     const svgElements: string[] = [];
     let fill = rgbaToCss(state.fill);
+    let tile = state.tile !== undefined;
     let stroke = rgbaToCss(state.stroke);
     let strokeWidth = state.strokeWidth;
     const tokens: string[] = [];
@@ -4693,6 +4699,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         const cmd = tokens[i++]!.toLowerCase();
         if (cmd === "fill") {
             fill = rgbaToCss(parseColor(tokens[i++] ?? "#000000"));
+            tile = false;
         }
         else if (cmd === "stroke") {
             stroke = rgbaToCss(parseColor(tokens[i++] ?? "#000000"));
@@ -4719,7 +4726,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const rw = Math.max(1, Math.abs(x1 - x0) + 1);
             const rh = Math.max(1, Math.abs(y1 - y0) + 1);
             if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0) {
-                yield { kind: "shape", shape: "rectangle", color: parseColor(fill), x: rx, y: ry, width: rw, height: rh };
+                yield { kind: "shape", shape: "rectangle", tile, color: parseColor(fill), x: rx, y: ry, width: rw, height: rh };
             } else {
                 if (fill !== "none") {
                     svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${fill}"/>`);
@@ -4754,7 +4761,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const py = num();
             const r = Math.max(1, Math.hypot(px - cx, py - cy));
             if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0) {
-                yield { kind: "shape", shape: "circle", color: parseColor(fill), x: cx, y: cy, radius: r, antialias: state.antialias !== false };
+                yield { kind: "shape", shape: "circle", tile, color: parseColor(fill), x: cx, y: cy, radius: r, antialias: state.antialias !== false };
             } else {
                 svgElements.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
             }
@@ -7072,6 +7079,7 @@ if (t === "-seed") {
         }
         else if (t === "-fill") {
             state.fill = parseColor(tokens[++i] ?? "#000000");
+            state.tile = undefined;
         }
         else if (t === "-antialias" || t === "+antialias") {
             state.antialias = t === "-antialias";
@@ -8300,12 +8308,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-draw") {
             const drawSpec = tokens[++i] ?? "";
+            const tile = state.tile === undefined ? undefined : yield* parseInputOperandSteps(state.tile, files, state, stdinBytes);
+            if (state.tile !== undefined && !tile) throw new Error(`Unable to read drawing tile '${state.tile}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 for (const step of magickDrawSteps(im, drawSpec, state)) {
                     if (!step) { yield; continue; }
                     if ((im.space === "b-w" || im.space === "grey16") && !(step.kind === "floodfill" && step.alphaOnly))
                         im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
-                    if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16), signal);
+                    if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile), signal, im, tile ? [im, tile] : [im]);
                     else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, undefined, step.color, step.alphaOnly ? state.alphaFuzz : state.fuzz, signal, step.alphaOnly);
                     else {
                         const overlay = decodeImage(new TextEncoder().encode(step.svg), { density: state.density });
@@ -9772,11 +9782,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const drawing = tokens[++i] ?? "", settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const tile = settings.tile === undefined ? undefined : await parseStoredCompareInput(settings.tile, settings, backend, signal);
                 for (const step of magickDrawSteps(image, drawing, settings)) {
                     if (!step) { await yieldTurn(signal); continue; }
                     if ((image.space === "b-w" || image.space === "grey16") && !(step.kind === "floodfill" && step.alphaOnly))
                         image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
-                    if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16), signal);
+                    if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile), signal, image, tile ? [image, tile] : [image]);
                     else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, undefined, step.color, step.alphaOnly ? settings.alphaFuzz : settings.fuzz, signal, step.alphaOnly);
                     else {
                         const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);

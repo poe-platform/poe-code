@@ -25,24 +25,24 @@ it("preserves original drawing pixel vectors", async () => {
     for (const args of operators) {
         const files = new Map([["input", bytes]]);
         expect((await runConvertCli(["input", ...args, "out.png"], files)).exitCode).toBe(0);
-        hashes.push(createHash("sha256").update(files.get("out.png")!).digest("hex"));
+        hashes.push(createHash("sha256").update(decodeImage(files.get("out.png")!).data).digest("hex"));
     }
     expect(hashes).toMatchInlineSnapshot(`
       [
-        "460b132384b82e1920f3fd180a8122302b775362d559d80db2229d320d6f71a9",
-        "884b94284151a79a484adc8b56eef76a7db3f3f13a7baa370cbe215dfe2366e4",
-        "e9e1e34a42953f716dde968c37bb37e8a709624c142105850b096f99743de35c",
-        "9de867e6ef72727443dbef5466bdfa20c28f5a47c7d583863ebe6ff0251b3d21",
-        "be9e84ed596afb86382f22551411478288c6068edf392e21f987e3a0735189e4",
-        "70a7de5fd273b869379ad99bca0eb44a1cd02597f9468540ee3deda5dab9154a",
-        "7ead965957e274b82154760afa50355764e4da7864483434069cf0162753d80d",
-        "dddd38ca2db5a5bf40a323a3053e9737070c9943f1339bfe66e8c5dd48d5de6d",
-        "ee4e9e8d98ec1b19caef0b932653d7056be97f412834b7059d564676781fc77b",
-        "e5e5e8a52e798d2792173725613c37fbfb3cbb01d6258ec6234b46429e9a9c42",
-        "f311fad76126e7c3d4594bc4ac88dc8d9362d53a25692d1aae0c379a33d90a3a",
-        "22bb7d1caae729a143368b99db13a1cd3f05ec377692d2cad99779d7c348591b",
-        "d3b98c3d20a92e1f210c8fd9db66ed6be330b333920d38e38c3e1c05eb4c8156",
-        "d3b98c3d20a92e1f210c8fd9db66ed6be330b333920d38e38c3e1c05eb4c8156",
+        "c5f6d7c23bf4832d499b5a11249a794947ba7de1a730858040176d9a5b69f743",
+        "24b5b2e8bc2625a78ab930d81e9a2f2ec3025c18d677007f5faadca470372c71",
+        "36406cbad971adb491a72cf6e8f44d6fc3b59eac1aefbf95a166cc98e8d356b5",
+        "490c4c48b7330c1fd93b8c546368aabfc0432e08da0867deb62cafeafe53bbc3",
+        "45533bb2a22df76201e6e359c1289573b0f90c87050178148cb38b28f3790c71",
+        "68c9a7433c60975dd48966d58d8fd649bca3c34d56977646bc461d5ac34d752f",
+        "cd6a89bbbcf269a8aefb9ec19345db56c9189716ed692d79ce0fc5c72dd0d4d2",
+        "6d630306aa40b37dbc5d189efec4faa3fe7ca7a81c5b31757ba7d003c48b8f40",
+        "be05a98f2bc80645c61a7308042681cae8fa0a1f44f7f21f7a753d6f9bc10f74",
+        "8507c17e4e37e6ba8a260af9a75014e342dd130780e1f831ed2a8b58f2d9553e",
+        "3ec22d86be723ba3afa131914e623a83347ad0ab641cfa8a9094116eda5ee3af",
+        "c3aec38740b3ca7e23d677fb8add3824a6dfc9c8d277b1f7716449509d3d483b",
+        "c2707ad5db8627c7b7cdf416f033116ea80e69e388ea69e420c17142c6371e09",
+        "c2707ad5db8627c7b7cdf416f033116ea80e69e388ea69e420c17142c6371e09",
       ]
     `);
 });

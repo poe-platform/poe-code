@@ -5529,6 +5529,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioBitstreamFilter: string | undefined;
         let subtitleBitstreamFilter: string | undefined;
         let videoCodec: string | undefined;
+        let videoQp: number | undefined;
         let zeroLatency = false;
         let maxBFrames: number | undefined;
         let videoPreset: string | undefined;
@@ -5803,6 +5804,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-qp") {
+            const value = args[++i] ?? "";
+            const qp = value.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(qp) || qp < -1 || qp > 51) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -qp: ${value}\n`), context.signal);
+              return { exitCode: 234 };
+            }
+            videoQp = qp === -1 ? undefined : qp;
           } else if (arg === "-threads" || arg === "-crf" || arg === "-b:v" || arg === "-tag:a") {
             i++;
           } else if (arg === "-bf") {
@@ -8705,12 +8714,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
             }
 
+            if (videoQp !== undefined && videoCodec !== "copy" && features.videoTranscode === false) {
+              throw new Error("Video transcoding is disabled by consumer feature configuration");
+            }
             // Output frame counts refer to displayed pictures, never encoded packets.
             if (videoCodec !== "copy") {
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async (track, index) => {
-                  if (track.type !== "video" || (!zeroLatency && !imageOutput && videoPreset === undefined && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && !track.decodedVideoFrames)) return track;
+                  if (track.type !== "video" || (!zeroLatency && !imageOutput && videoPreset === undefined && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && videoQp === undefined && !track.decodedVideoFrames)) return track;
                   const limit = vfFilters.length === 0 && outputFps === undefined ? streamFrameLimits[index] : undefined;
                   const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
                   return { ...track, samples: [], decodedVideoFrames: frames };
@@ -10855,10 +10867,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
             }
 
-            if (videoPreset !== undefined && videoCodec !== "copy") {
+            if ((videoPreset !== undefined || videoQp !== undefined) && videoCodec !== "copy") {
               if (videoCodec !== undefined && videoCodec !== "libx264" && videoCodec !== "h264") throw new Error("Presets require H.264 encoding");
               workingDoc = { ...workingDoc, tracks: await mapWork(workingDoc.tracks, track =>
-                encodeH264PresetTrack(track, videoPreset!, budget, forceKeyFrames, maxBFrames, undefined, undefined, zeroLatency), context.signal) };
+                encodeH264PresetTrack(track, videoPreset ?? "medium", budget, forceKeyFrames, maxBFrames, videoQp, undefined, zeroLatency), context.signal) };
             }
 
             let decodeExitCode = demuxExitCode;

@@ -8907,7 +8907,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const { angle: deg, applies } = parseMagickRotation(expanded);
                 if (!applies(im)) return im;
                 const plan = operation?.plan(im);
-                if (plan) return { ...yield* applyMagickRasterSteps(im, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
+                if (plan) return { ...yield* applyMagickRasterSteps({ ...im, isPalette: false }, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
                 return { ...yield* rotateImageSteps(im, deg, state.background), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) };
             }));
         }
@@ -11131,7 +11131,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const { angle, applies } = parseMagickRotation(expanded);
                 if (!applies(image)) return image;
                 const plan = operation?.plan(image);
-                if (plan) return { ...await transformStoredMagickRaster(image, backend, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
+                if (plan) return { ...await transformStoredMagickRaster({ ...image, isPalette: false }, backend, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
                 return {
                     ...await transformStoredImage(image, backend.storage, { kind: "rotate", angle, background: settings.background }, signal),
                     ...(image.virtualCanvas ? { virtualCanvas: magickRotateCanvas(image, angle) } : {})

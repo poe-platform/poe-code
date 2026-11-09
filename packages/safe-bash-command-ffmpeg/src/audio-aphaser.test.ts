@@ -59,6 +59,43 @@ for (const filter of ["aphaser=delay=0", "aphaser=delay=6", "aphaser=speed=0", "
   });
 }
 
+// The reported FFmpeg 7.0.2 x86 conversion returns INT32_MIN on overflow.
+// Keep s16 wrapping distinct, even when the requested output format is s32.
+for (const bits of [16, 32] as const) {
+  for (const outputBits of [16, 32] as const) {
+    for (const graph of [false, true]) {
+      it(`aphaser preserves ${bits}-bit overflow before ${outputBits}-bit output (${graph ? "graph" : "simple"})`, async () => {
+        const volume = Volume.fromJSON({});
+        volume.writeFileSync("/in.wav", encodeWav({
+          sampleRate: 8000,
+          channels: [Float64Array.from([-25000, 25000, -9000, 9000, 0], value => value / 32768)]
+        }, { bitsPerSample: bits }));
+        let stderr = "";
+        const filter = "aphaser=out_gain=9:decay=0";
+        const result = await createFfmpegCommand().execute({
+          args: ["-v", "error", "-i", "/in.wav", ...(graph
+            ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          "-f", `s${outputBits}le`, "/out.raw"],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) { return volume.readFileSync(path); },
+            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(), stdout: { async write() {} },
+          stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+        } as never);
+        assert.equal(result.exitCode, 0, stderr);
+        const output = volume.readFileSync("/out.raw") as Buffer;
+        const expected = bits === 32 ? [-32768, -32768, -32400, 32400, 0] : [-24464, 24464, -32400, 32400, 0];
+        assert.equal(output.length, expected.length * outputBits / 8);
+        assert.deepEqual(expected.map((_, i) => outputBits === 32 ? output.readInt32LE(i * 4) : output.readInt16LE(i * 2)),
+          expected.map(value => value * (outputBits === 32 ? 65536 : 1)));
+      });
+    }
+  }
+}
+
 async function run(filter: string, graph = false, frames = 2048, input?: Uint8Array) {
   const channels = [
     Float64Array.from({ length: frames }, (_, i) => ((i * 67) % 14000 - 7000) / 32768),

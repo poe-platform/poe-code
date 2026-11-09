@@ -52,8 +52,9 @@ export async function phaseAudio(
       history[channel]![position] = value;
       const sample = value * options.out_gain;
       // Native integer phasers truncate and retain the sample format between filters.
+      // x86 int32 conversion produces INT32_MIN on overflow rather than wrapping.
       output[channel]![frame] = scale === 32768 ? ((Math.trunc(sample) << 16) >> 16) / scale
-        : scale === 2147483648 ? (Math.trunc(sample) | 0) / scale
+        : scale === 2147483648 ? (Math.trunc(sample) < -2147483648 || Math.trunc(sample) > 2147483647 ? -2147483648 : Math.trunc(sample)) / scale
         : codec === "pcm_f32le" ? Math.fround(sample) : sample;
     }
   }

@@ -1820,6 +1820,23 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
     return geometry;
 }
 
+function parseMagickShaveGeometry(raw: string, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">): MagickGeometry {
+    const geometry = parseMagickGeometry(raw.replace(":", "x").replaceAll("@", ""));
+    if (!raw.includes("@")) return geometry;
+    const hasDimensions = raw.toLowerCase().includes("x") || raw.includes(":");
+    let width = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? 0));
+    let height = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? (hasDimensions ? 0 : image.virtualCanvas?.height || image.height)));
+    // ParsePageGeometry applies the area to the requested border dimensions,
+    // then copies the resolved width to an omitted height in scalar geometry.
+    const area = geometry.width ?? 0;
+    if (width * height > area) {
+        const scale = Math.sqrt(area / (width * height));
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+    }
+    return { ...geometry, isPercent: false, width, height: hasDimensions ? height : width };
+}
+
 function resolveMagickChopGeometry(g: MagickGeometry, raw: string, width: number, height: number) {
     if (g.aspectRatio !== undefined) {
         return {
@@ -8365,7 +8382,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geometry, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
                 validateMagickTransformGeometry(expanded, t);
-                const g = parseMagickGeometry(expanded.replace(":", "x"));
+                const g = parseMagickShaveGeometry(expanded, im);
                 const sw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
                 const sh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? (expanded.toLowerCase().includes("x") ? 0 : sw)));
                 if ((!g.isPercent && hasSignedMagickShaveDimensions(expanded)) || (g.hasOffset && g.width === undefined && g.height === undefined) || sw * 2 >= im.width || sh * 2 >= im.height) {
@@ -10571,7 +10588,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, (image as StoredMagickImage)[magickInput] ?? {}, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, token);
-                const parsed = parseMagickGeometry(expanded.replace(":", "x"));
+                const parsed = parseMagickShaveGeometry(expanded, image);
                 const width = Math.max(0, Math.round(parsed.isPercent ? image.width * (parsed.percentX ?? 100) / 100 : parsed.width ?? 0));
                 const height = Math.max(0, Math.round(parsed.isPercent ? image.height * (parsed.percentY ?? 100) / 100 : parsed.height ?? (expanded.toLowerCase().includes("x") ? 0 : width)));
                 if ((!parsed.isPercent && hasSignedMagickShaveDimensions(expanded)) || (parsed.hasOffset && parsed.width === undefined && parsed.height === undefined) || width * 2 >= image.width || height * 2 >= image.height) {

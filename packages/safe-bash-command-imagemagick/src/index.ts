@@ -10983,6 +10983,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let leadingOperations: CompareOperation[] = [];
     let groupStart = 0;
     const groups: number[] = [];
+    const stackSteps: { operand: number; token: string; spec?: string }[] = [];
     // Compare reapplies ungrouped trailing rotations to the difference image.
     let outputRotations: Rotation[] = [];
     for (let i = 0; i < argv.length; i++) {
@@ -11142,17 +11143,26 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             state.density = Math.max(1, Math.round(g.width ?? 72));
         }
         else if (t === "(") {
+            stackSteps.push({ operand: operands.length, token: t });
             groups.push(groupStart);
             groupStart = operands.length;
             leadingOperations = [];
             outputRotations = [];
         }
         else if (t === ")") {
+            stackSteps.push({ operand: operands.length, token: t });
             const parent = groups.pop();
             if (parent === undefined) return { exitCode: 2, stdout: "", stderr: "compare: unbalanced parenthesis\n" };
             groupStart = parent;
             leadingOperations = [];
             outputRotations = [];
+        }
+        else if (t === "-delete" || t === "+delete") {
+            const spec = t === "+delete" ? "-1" : argv[++i];
+            if (spec === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-delete'\n" };
+            try { parseMagickIndices(spec); }
+            catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
+            stackSteps.push({ operand: operands.length, token: t, spec });
         }
         else if (t === "-rotate") {
             const rotation = argv[++i];
@@ -11239,15 +11249,17 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
     const refSpec = operands[0]!;
     const outSpec = operands[operands.length - 1]!;
-    let imgA: RgbaImage | StoredRgbaImage | undefined;
-    let imgB: RgbaImage | StoredRgbaImage | undefined;
+    const images: RgbaImage[] = [];
+    const storedImages = backend ? new StoredImageStack(backend.storage, signal!) : undefined;
+    const frameStarts = [0];
+    let stackStep = 0;
     let inputErrors = "";
     let imageDetails = "";
     function* acceptImage(image: RgbaImage | StoredRgbaImage, operations: readonly CompareOperation[], index = 0): Generator<IdentifyStep, void, void> {
         const operation = operations[index];
         if (!operation) {
-            if (!imgA) imgA = image;
-            else if (!imgB) imgB = image;
+            if ("data" in image) images.push(image);
+            else yield { async run() { await storedImages!.push(image); } };
             return;
         }
         if (typeof operation === "object" && "trim" in operation) {
@@ -11312,18 +11324,33 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         // Native compare flushes pending operators before the next input, then
         // replays them over the combined sequence when finalizing the comparison.
         for (const operation of (final ? pixelOperations : operationFlushes.get(operandIndex)) ?? []) {
-            if (imgA) {
-                if ("data" in imgA) imgA = yield* operation.apply(imgA);
-                else {
-                    const image = imgA;
-                    yield { async run() { imgA = await transformStoredMagickPixels(image, backend!, operation, signal!); } };
+            if (storedImages) yield { async run() {
+                for (let index = 0; index < storedImages.length; index++) {
+                    await storedImages.set(index, await transformStoredMagickPixels((await storedImages.get(index))!, backend!, operation, signal!));
                 }
-            }
-            if (imgB) {
-                if ("data" in imgB) imgB = yield* operation.apply(imgB);
+            } };
+            else for (let index = 0; index < images.length; index++) images[index] = yield* operation.apply(images[index]!);
+        }
+        while (stackSteps[stackStep]?.operand === operandIndex) {
+            const step = stackSteps[stackStep++]!;
+            const length = storedImages?.length ?? images.length;
+            if (step.token === "(") frameStarts.push(length);
+            else if (step.token === ")") frameStarts.pop();
+            else {
+                const start = frameStarts[frameStarts.length - 1]!;
+                if (length === start) return { exitCode: 2, stdout: "", stderr: `compare: no images found for operation '${step.token}'\n` };
+                const indices = parseMagickIndexSpec(step.spec!, length - start, "delete");
+                if (storedImages) yield { async run() {
+                    await storedImages.remove((function* () { for (const index of indices) yield start + index; })());
+                } };
                 else {
-                    const image = imgB;
-                    yield { async run() { imgB = await transformStoredMagickPixels(image, backend!, operation, signal!); } };
+                    const removed = new Set(indices);
+                    let next = start;
+                    for (let index = start; index < images.length; index++) {
+                        if (++cooperativeWork % 64 === 0) yield;
+                        if (!removed.has(index - start)) images[next++] = images[index]!;
+                    }
+                    images.length = next;
                 }
             }
         }
@@ -11354,6 +11381,12 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             inputErrors += `compare: improper image header: ${(err as Error).message}\n`;
         }
     }
+    const comparedImages: (RgbaImage | StoredRgbaImage | undefined)[] = images.slice(0, 2);
+    if (storedImages) yield { async run() {
+        comparedImages[0] = await storedImages.get(0);
+        comparedImages[1] = await storedImages.get(1);
+    } };
+    let [imgA, imgB] = comparedImages;
     if (!imgA || !imgB) {
         return {
             exitCode: 2,

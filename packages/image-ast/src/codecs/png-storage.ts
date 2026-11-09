@@ -104,6 +104,9 @@ export async function decodePngToStorage(source: ImageByteSource, storage: Image
       const checksum = await range(source, chunk.start + chunk.length, 4, signal);
       if (crc !== new DataView(checksum.buffer).getUint32(0)) throw new Error(`PNG ${chunk.name} CRC mismatch`);
     }
+    if ((chunk.name.charCodeAt(0) & 32) === 0 && chunk.name !== "IHDR" && chunk.name !== "PLTE" && chunk.name !== "IDAT" && chunk.name !== "IEND") {
+      throw new Error(`PNG unhandled critical chunk ${chunk.name}`);
+    }
     if (chunk.name === "IHDR" && chunk.length >= 13) header = await range(source, chunk.start, 13, signal);
     else if (chunk.name === "PLTE") palette = await range(source, chunk.start, Math.min(chunk.length, 768), signal);
     else if (chunk.name === "tRNS") transparency = await range(source, chunk.start, Math.min(chunk.length, 256), signal);

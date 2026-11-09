@@ -74,6 +74,9 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
         pngCrc32(bytes.subarray(pos + 4, dataStart + len)) !== view.getUint32(dataStart + len, false)) {
       throw new Error(`PNG ${type} CRC mismatch`);
     }
+    if ((bytes[pos + 4]! & 32) === 0 && type !== "IHDR" && type !== "PLTE" && type !== "IDAT" && type !== "IEND") {
+      throw new Error(`PNG unhandled critical chunk ${type}`);
+    }
     const chunk = bytes.subarray(dataStart, dataStart + len);
     if (type === "IHDR" && len >= 13) {
       bitDepth = chunk[8]!;
@@ -498,6 +501,9 @@ export function decodePngToCanvas(
     if ((bytes[pos + 4]! & 32) === 0 &&
         pngCrc32(bytes.subarray(pos + 4, dataStart + len)) !== view.getUint32(dataStart + len, false)) {
       throw new Error(`PNG ${type} CRC mismatch`);
+    }
+    if ((bytes[pos + 4]! & 32) === 0 && type !== "IHDR" && type !== "PLTE" && type !== "IDAT" && type !== "IEND") {
+      throw new Error(`PNG unhandled critical chunk ${type}`);
     }
     const chunk = bytes.subarray(dataStart, dataStart + len);
     if (type === "IHDR" && len >= 13) {

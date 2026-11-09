@@ -9,7 +9,7 @@ const evidence = JSON.parse(await readFile(new URL("gnu-evidence.json", import.m
 assert.equal(evidence.observations.length, tableCases.length);
 for (const [index, fixture] of tableCases.entries()) {
   const currentStdoutHex = currentPasteStdout(fixture, evidence.observations[index]!.stdoutHex);
-  const currentOrderCheck = ["comm: unsorted unpaired ", "join: unsorted unpaired ", "join: unsorted empty side "].includes(fixture.name);
+  const currentOrderCheck = fixture.name === "comm: unsorted unpaired ";
   const sharedStdinArtifact = fixture.name === "comm: shared stdin";
   test(`${currentOrderCheck ? "current default order checking" : currentStdoutHex !== undefined ? "current paste profile" : sharedStdinArtifact ? "frozen GNU 9.7 shared-stdin regression" : "frozen GNU 9.7"} ${fixture.name}`, async () => {
     const expected = evidence.observations[index]!;

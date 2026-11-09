@@ -440,6 +440,9 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   const serviceDescription = minPlaybackRate <= maxPlaybackRate && (minPlaybackRate !== 1 || maxPlaybackRate !== 1)
     ? [`<ServiceDescription id="0"><PlaybackRate min="${minPlaybackRate.toFixed(2)}" max="${maxPlaybackRate.toFixed(2)}"/></ServiceDescription>`]
     : [];
+  const utcTiming = options.utcTimingUrl
+    ? `<UTCTiming schemeIdUri="urn:mpeg:dash:utc:http-xsdate:2014" value="${options.utcTimingUrl.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>`
+    : "";
   const windowSize = options.windowSize ?? 0;
   if (!Number.isInteger(windowSize) || windowSize < 0 || windowSize > 2_147_483_647) throw new Error("Invalid DASH window size");
   const segmentDuration = options.segmentDuration ?? 5;
@@ -741,7 +744,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     totalBytes += bytes.length;
     resources.set("master.m3u8", bytes);
   }
-  lines.push('</Period></MPD>', '');
+  lines.push(`</Period>${utcTiming}</MPD>`, '');
   const manifest = encodeUtf8(lines.join("\n"));
   budget.checkOutputBytes(totalBytes + manifest.length);
   return {

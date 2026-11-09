@@ -63,6 +63,7 @@ relative to the containing playlist.
 
 Set `useTemplate: false` to emit explicit `SegmentList` resource references instead of the default `SegmentTemplate`.
 Set `useTimeline: false` for fixed-duration `SegmentTemplate` output without a timeline.
+Set `utcTimingUrl` to advertise an HTTP xsdate UTC timing source in the MPD without fetching it; empty or omitted values add no timing source.
 Set `hlsPlaylist: true` to also return `master.m3u8` and per-stream `media_N.m3u8` playlists referencing the same DASH fragments (including single-file byte ranges).
 VP9 DASH uses WebM initialization and Cluster segments with `.webm` names; H.264 retains fragmented MP4.
 Separate MP4 DASH media files start with an `styp` box carrying the `msdh`/`msix` brands.

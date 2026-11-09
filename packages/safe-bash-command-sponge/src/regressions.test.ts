@@ -62,6 +62,7 @@ test("sponge allows timer cancellation with a frozen clock and no setImmediate",
 
 test("sponge append does not swallow cancellation while reading the existing target", async () => {
   const run = fixture(["-a", "output"]);
+  await run.context.fs.writeFile("/output", new TextEncoder().encode("OLD"));
   const controller = new AbortController();
   const reason = new Error("append cancelled");
   run.context.fs.readFile = async () => { controller.abort(reason); throw reason; };
@@ -133,16 +134,23 @@ for (const append of [false, true]) {
     assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["alias", "output"]);
   });
 
-  test(`sponge ${append ? "append" : "overwrite"} follows symlinks without replacing them`, async () => {
-    const run = fixture(append ? ["-a", "output"] : ["output"], "NEW");
-    const fs = run.context.fs;
-    await fs.writeFile("/target", new TextEncoder().encode("OLD"));
-    await fs.link!("/target", "/alias");
-    await fs.symlink!("/target", "/output");
-    assert.equal((await createSpongeCommand().execute(run.context)).exitCode, 0);
-    assert.equal(await fs.readlink!("/output"), "/target");
-    assert.equal(new TextDecoder().decode(await fs.readFile("/alias")), append ? "OLDNEW" : "NEW");
-  });
+  for (const existing of ["OLD", undefined]) {
+    for (const maxBufferedBytes of [3, Infinity]) {
+      test(`sponge ${append ? "append" : "overwrite"} overwrites through ${existing ? "existing" : "dangling"} symlinks with limit ${maxBufferedBytes}`, async () => {
+        const run = fixture(append ? ["-a", "output"] : ["output"], "NEW");
+        const fs = run.context.fs;
+        if (existing) {
+          await fs.writeFile("/target", new TextEncoder().encode(existing));
+          await fs.link!("/target", "/alias");
+        }
+        await fs.symlink!("/target", "/output");
+        assert.equal((await createSpongeCommand({ maxBufferedBytes }).execute(run.context)).exitCode, 0, run.diagnostic());
+        assert.equal(await fs.readlink!("/output"), "/target");
+        assert.equal(new TextDecoder().decode(await fs.readFile("/target")), "NEW");
+        if (existing) assert.equal(new TextDecoder().decode(await fs.readFile("/alias")), "NEW");
+      });
+    }
+  }
 }
 
 for (const append of [false, true]) {

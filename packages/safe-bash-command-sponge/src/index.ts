@@ -133,7 +133,7 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
         } catch (error) {
           if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
         }
-        if (append) {
+        if (append && targetStat?.type === "file") {
           let existing: Uint8Array = new Uint8Array(0);
           try {
             existing = await context.fs.readFile(targetPath, {
@@ -152,8 +152,7 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
         }
         await writeFileOutput(context, buffered, async data => {
           if (targetStat?.type !== "file") {
-            if (append) await context.fs.appendFile(targetPath, data, { signal: context.signal });
-            else await context.fs.writeFile(targetPath, data, { signal: context.signal });
+            await context.fs.writeFile(targetPath, data, { signal: context.signal });
             return;
           }
           const temporary = `${targetPath.slice(0, targetPath.lastIndexOf("/") + 1)}.sponge-${crypto.randomUUID()}`;

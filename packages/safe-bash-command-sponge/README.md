@@ -5,7 +5,10 @@ Collect a pipeline before writing its output with `sponge` inside
 value to limit retained input. Explicit `Infinity` disables the quota.
 
 Regular file destinations are replaced while preserving permissions, so other
-hard links and open readers keep the original contents. Symlinks are followed.
+hard links and open readers keep the original contents. Symlinks are followed
+without replacing the link. Like moreutils, `-a` appends only to regular file
+destinations: through a symlink, it overwrites the target with stdin instead of
+retaining the target’s old contents. Dangling symlinks create their target.
 
 `sponge [FILE]` writes to the first file operand and ignores additional operands.
 Use `-a` to append to that file.

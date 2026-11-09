@@ -2587,7 +2587,8 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   let tbNum = 1;
   let tbDen = 1_000_000_000;
   let curStart = 0;
-  let curEnd = 0;
+  let curEnd: number | undefined;
+  let missingEndChapter: Mp4Chapter | undefined;
   let chapterTags = new Map<string, string>();
   let curTitle = "";
   let chapterHeader: "timebase" | "start" | "end" | "tags" = "timebase";
@@ -2596,14 +2597,22 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     if (section !== "chapter") return;
     if (curEnd !== undefined && curEnd < curStart) throw new Error(`Chapter end time ${curEnd} before start ${curStart}`);
     const factor = tbNum / Math.max(1, tbDen);
-    chapters.push({
+    if (missingEndChapter) {
+      chapters[missingEndChapter.id] = {
+        ...missingEndChapter,
+        endTimeSeconds: Math.max(missingEndChapter.startTimeSeconds, curStart * factor)
+      };
+    }
+    const chapter: Mp4Chapter = {
       id: chapters.length,
       timeBase: { numerator: tbNum, denominator: Math.max(1, tbDen) },
       startTimeSeconds: curStart * factor,
-      endTimeSeconds: curEnd * factor,
+      endTimeSeconds: (curEnd ?? curStart) * factor,
       title: curTitle,
       tags: Object.fromEntries(chapterTags)
-    });
+    };
+    chapters.push(chapter);
+    missingEndChapter = curEnd === undefined ? chapter : undefined;
   };
 
   for (const rawLine of lines) {
@@ -2615,7 +2624,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       tbNum = 1;
       tbDen = 1_000_000_000;
       curStart = 0;
-      curEnd = 0;
+      curEnd = undefined;
       chapterTags = new Map();
       curTitle = "";
       chapterHeader = "timebase";

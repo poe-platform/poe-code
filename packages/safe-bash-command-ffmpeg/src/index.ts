@@ -4781,7 +4781,7 @@ function formatImageSequence(pattern: string, number: number, allowMultiple = tr
       i++;
     }
     if (pattern[i] !== "d") return undefined;
-    if (numbered && !allowMultiple) throw new Error("Numbered image2 input requires a single numeric field");
+    if (numbered && !allowMultiple) throw new Error("Numbered filename pattern requires a single numeric field");
     filename += (number < 0 ? "-" : "") + String(Math.abs(number)).padStart(width, "0");
     numbered = true;
   }
@@ -10000,7 +10000,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   (audioSegment && workingDoc.tracks.length === 1 && track.type === "audio"))) {
                 throw new Error("segment output requires MP4 format or a single audio track with WAV or raw audio format");
               }
-              if (formatImageSequence(outputTarget, 0) === undefined) {
+              if (formatImageSequence(outputTarget, 0, false) === undefined) {
                 throw new Error("segment output requires a numbered filename pattern");
               }
               validateRawAudioCodec(workingDoc, segmentPlugin, audioCodec);

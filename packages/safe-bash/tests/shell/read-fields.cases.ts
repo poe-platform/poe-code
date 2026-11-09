@@ -42,6 +42,32 @@ for (const raw of [false, true]) {
   });
 }
 
+for (const trailing of [" ", "\t"]) {
+  for (const terminated of [false, true]) {
+    for (const [label, command, input, expected] of [
+      ["multiple fields", "read first", `a b\\${trailing}`, ["a b", "", ""]],
+      ["last variable remainder", "read first second", `a b c\\${trailing}`, ["a", "b c", ""]],
+      ["one field per variable", "read first second", `a b\\${trailing}`, ["a", `b${trailing}`, ""]],
+      ["single field", "read first", `ab\\${trailing}`, [`ab${trailing}`, "", ""]],
+      ["raw input", "read -r first", `a b\\${trailing}`, ["a b\\", "", ""]],
+      ["default REPLY", "read", `a b\\${trailing}`, ["", "", `a b${trailing}`]],
+      ["non-IFS whitespace", "IFS=, read first", `a,b\\${trailing}`, [`a,b${trailing}`, "", ""]],
+      ["escaped non-whitespace delimiter", "IFS=, read first", "a,b\\,", ["a,b,", "", ""]],
+    ] as const) {
+      test(`read trailing escaped ${JSON.stringify(trailing)}: ${label}, terminated=${terminated}`, async () => {
+        const { shell } = setup();
+        try {
+          const result = await shell.exec(`${command}; args "$?" "$first" "$second" "$REPLY"`, {
+            stdin: input + (terminated ? "\n" : ""),
+          });
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, JSON.stringify([terminated ? "0" : "1", ...expected]));
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
+
 for (const [label, source, input, expected] of [
   ["one trailing separator", "IFS=, read first; args \"$first\"", "x,\n", ["x"]],
   ["extra empty field", "IFS=, read first; args \"$first\"", "x,,\n", ["x,,"]],

@@ -1831,7 +1831,15 @@ export class ShellInput implements ByteSource, CommandInput {
               while (position < end && whitespace(position)) { const pending = advance(); if (pending) await pending; }
               if (position < end && separator(position)) { const pending = advance(); if (pending) await pending; }
               while (position < end && whitespace(position)) { const pending = advance(); if (pending) await pending; }
-              if (maximum !== undefined && fields.length === maximum - 1 && position < end) fieldEnd = end;
+              if (maximum !== undefined && fields.length === maximum - 1 && position < end) {
+                fieldEnd = end;
+                // Bash trims even escaped IFS whitespace when assigning a multi-field remainder.
+                while (fieldEnd > start && (bytes[fieldEnd - 1] === 32 || bytes[fieldEnd - 1] === 9 || bytes[fieldEnd - 1] === 10)
+                  && keys.has(257 + bytes[fieldEnd - 1]!)) {
+                  fieldEnd--;
+                  if (++steps % 1024 === 0) { await yieldTurn(this.signal); assertOpen(); }
+                }
+              }
               scope.reserve(64, 1);
               const fieldValue = asciiStringValue !== undefined
                 ? asciiStringValue.slice(start, fieldEnd)

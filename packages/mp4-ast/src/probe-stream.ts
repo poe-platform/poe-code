@@ -166,7 +166,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     },
     tags: containerFormat === "webvtt" && Object.keys(streamTags).length === 0 ? undefined : streamTags,
     side_data_list: track.rotation
-      ? [{ side_data_type: "Display Matrix", rotation: -track.rotation }]
+      ? [{ side_data_type: "Display Matrix", rotation: ((180 - track.rotation) % 360 + 360) % 360 - 180 }]
       : undefined
   };
 }

@@ -5,28 +5,32 @@ import { parseFilterExpression } from "./filter-expression.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
 
 export async function mixAudio(
-  first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaTrack> {
-  const a = first.decodedAudio;
-  let b = second.decodedAudio;
-  if (!a || !b) throw new Error("amix requires decoded PCM audio");
-  if (a.channels !== b.channels || a.channelMask !== b.channelMask) {
+  const inputs = tracks.map(track => {
+    if (!track.decodedAudio) throw new Error("amix requires decoded PCM audio");
+    return track.decodedAudio;
+  });
+  const a = inputs[0];
+  if (!a) throw new Error("amix requires decoded PCM audio");
+  if (inputs.some(input => input.channels !== a.channels || input.channelMask !== a.channelMask)) {
     throw new Error("amix requires matching channel layouts");
   }
+  let count = 2;
   let duration = "longest";
   let transition = 2;
   let normalize = true;
-  let weights = [1, 1];
+  let weights = [1];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["inputs", "duration", "dropout_transition", "weights", "normalize"][index] : option.slice(0, separator);
     const value = separator < 0 ? option : option.slice(separator + 1);
     if (key === "inputs") {
-      const inputs = parseFilterExpression(value, "amix", {});
+      const numeric = parseFilterExpression(value, "amix", {});
+      if (numeric < 1 || numeric > 32767) throw new Error("amix: invalid inputs");
       // Native integer options round to nearest, with halfway values going to even.
-      const rounded = inputs % 1 === 0.5 ? 2 * Math.round(inputs / 2) : Math.round(inputs);
-      if (rounded !== 2) throw new Error("amix requires two inputs");
+      count = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
     } else if (key === "duration") {
       const numeric = parseFilterExpression(value, "amix", { longest: 0, shortest: 1, first: 2 });
       if (numeric < 0 || numeric > 2) throw new Error("amix: invalid duration");
@@ -39,18 +43,20 @@ export async function mixAudio(
     } else if (key === "normalize") {
       normalize = parseFilterBoolean(value, "amix: invalid normalize");
     } else if (key === "weights") {
-      weights = parseWeights(value);
+      weights = parseWeights(value, tracks.length);
     } else throw new Error(`amix: unsupported option ${key}`);
   }
-  if (a.sampleRate !== b.sampleRate) {
-    const length = Math.ceil(b.channelData[0]!.length * a.sampleRate / b.sampleRate);
+  if (count !== inputs.length) throw new Error("amix: inputs must match the number of connected inputs");
+  while (weights.length < count) weights.push(weights[weights.length - 1]!);
+  for (const [index, input] of inputs.entries()) {
+    if (input.sampleRate === a.sampleRate) continue;
+    const length = Math.ceil(input.channelData[0]!.length * a.sampleRate / input.sampleRate);
     budget.checkSamples(length);
     budget.checkDuration(length / a.sampleRate);
-    budget.allocateMemory(length * b.channels * Float32Array.BYTES_PER_ELEMENT);
-    b = { ...b, sampleRate: a.sampleRate,
-      channelData: await resampleAudio(b.channelData, length, b.sampleRate, a.sampleRate, budget, signal) };
+    budget.allocateMemory(length * input.channels * Float32Array.BYTES_PER_ELEMENT);
+    inputs[index] = { ...input, sampleRate: a.sampleRate,
+      channelData: await resampleAudio(input.channelData, length, input.sampleRate, a.sampleRate, budget, signal) };
   }
-  const inputs = [a, b];
   const lengths = inputs.map(input => input.channelData[0]!.length);
   const length = duration === "first" ? lengths[0]! : duration === "shortest" ? Math.min(...lengths) : Math.max(...lengths);
   budget.checkSamples(length);
@@ -75,7 +81,7 @@ export async function mixAudio(
       const target = activeWeight / Math.abs(weight);
       if (scales[i]! > target) {
         scales[i] = Math.max(target, Math.fround(scales[i]! -
-          (totalWeight / Math.abs(weight) / 2) * (end - start) / (transition * a.sampleRate)));
+          (totalWeight / Math.abs(weight) / count) * (end - start) / (transition * a.sampleRate)));
       }
       return normalize ? Math.fround(Math.sign(weight) / scales[i]!) : Math.abs(weight);
     });
@@ -86,20 +92,23 @@ export async function mixAudio(
           signal?.throwIfAborted();
           budget.checkCpu();
         }
-        channelData[channel]![sample] = Math.fround((a.channelData[channel]![sample] ?? 0) * gains[0]!) +
-          Math.fround((b.channelData[channel]![sample] ?? 0) * gains[1]!);
+        let mixed = 0;
+        for (let input = 0; input < count; input++) {
+          mixed = Math.fround(mixed + Math.fround((inputs[input]!.channelData[channel]![sample] ?? 0) * gains[input]!));
+        }
+        channelData[channel]![sample] = mixed;
       }
     }
     start = end;
   }
-  return { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
+  return { ...tracks[0]!, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
     decodedAudio: { ...a, channelData } };
 }
 
-function parseWeights(source: string): number[] {
+function parseWeights(source: string, count: number): number[] {
   const weights: number[] = [];
   let offset = 0;
-  while (weights.length < 2) {
+  while (weights.length < count) {
     const start = offset;
     while (source[offset] && " \t\n\r\v\f".includes(source[offset]!)) offset++;
     const numberStart = offset;
@@ -161,7 +170,6 @@ function parseWeights(source: string): number[] {
     if (!Number.isFinite(value)) throw new Error("amix: invalid weights");
     weights.push(value);
     if (offset === source.length) {
-      if (weights.length === 1) weights.push(value);
       break;
     }
     // amix skips exactly one separator, even when it is not whitespace.

@@ -5,18 +5,20 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
-async function mix(filter: string, a: number[], b: number[], stereo = false, codec = "pcm_s16le") {
+async function mix(filter: string, a: number[], b: number[] | undefined, stereo = false, extra: number[][] = [], codec = "pcm_s16le") {
   const volume = Volume.fromJSON({ "/out.wav": "keep" });
-  for (const [path, samples] of [["/a.wav", a], ["/b.wav", b]] as const) {
+  const inputs = [a, ...(b ? [b] : []), ...extra];
+  for (const [index, samples] of inputs.entries()) {
+    const path = `/${index}.wav`;
     const channel = Float64Array.from(samples, sample => sample / 32768);
     volume.writeFileSync(path, encodeWav({ sampleRate: 8000,
       channels: stereo ? [channel, channel.map(sample => -sample)] : [channel] }));
   }
   const errors: Uint8Array[] = [];
   const result = await createFfmpegCommand().execute({
-    args: ["-y", "-i", "/a.wav", "-i", "/b.wav", ...(
+    args: ["-y", ...inputs.flatMap((_, index) => ["-i", `/${index}.wav`]), ...(
       filter.startsWith("map:") ? ["-map", filter.slice(4)] :
-        ["-filter_complex", `[0:a][1:a]${filter}[mix]`, "-map", "[mix]"]),
+        ["-filter_complex", `${inputs.map((_, index) => `[${index}:a]`).join("")}${filter}[mix]`, "-map", "[mix]"]),
       "-c:a", codec, "/out.wav"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
@@ -39,7 +41,7 @@ for (const stereo of [false, true]) {
     ["amix=duration=first:dropout_transition=0", a.map((v, i) => i < b.length ? (v + b[i]!) / 2 : v)],
     ["amix=duration=shortest:weights='0.5 -1':normalize=0", b.map((v, i) => a[i]! / 2 + v)],
     ["amix=dropout_transition=0:weights='1 0'", a],
-    ["amix=dropout_transition=0:weights='0 0':normalize=0", a.map(() => 0)],
+    ["amix=dropout_transition=0:weights='0 0'", a.map(() => 0)],
     ["amix=duration=shortest:weights='2\t1'", b.map((v, i) => Math.round((2 * a[i]! + v) / 3))],
     ["amix=duration=shortest:weights=' \t2\t 1\t9 7'", b.map((v, i) => Math.round((2 * a[i]! + v) / 3))],
     ["amix=duration=shortest:weights='0.5':normalize=0", b.map((v, i) => (a[i]! + v) / 2)],
@@ -176,6 +178,68 @@ for (const options of [
     assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
   });
 }
+for (const stereo of [false, true]) {
+  for (const [filter, values, expected] of [
+    ["amix=inputs=1", [8000], 8000],
+    ["amix=inputs=3:weights=1 1 2", [8000, -4000, 12000], 7000],
+    ["amix=inputs=3", [8000, -4000, 12000], 5333],
+    ["amix=3:normalize=0", [8000, -4000, 12000], 16000],
+    ["amix=inputs=3:weights=1 2", [8000, -4000, 12000], 4800],
+    ["amix=inputs=4", [8000, -4000, 12000, 16000], 8000]
+  ] as const) {
+    it(`mixes the declared inputs for ${filter}, stereo=${stereo}`, async () => {
+      const inputs = values.map(value => Array(2048).fill(value));
+      const { result, volume, error } = await mix(filter, inputs[0]!, inputs[1], stereo, inputs.slice(2));
+      assert.equal(result.exitCode, 0, error);
+      const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      assert.equal(audio.sampleRate, 8000);
+      assert.equal(audio.channels, stereo ? 2 : 1);
+      for (const [index, channel] of audio.channelData.entries()) {
+        assert.deepEqual(Array.from(channel, sample => sample * 32768),
+          Array(2048).fill(index ? -expected : expected));
+      }
+    });
+  }
+}
+
+for (const [filter, count] of [
+  ["amix", 1], ["amix", 3], ["amix=inputs=1", 2], ["amix=inputs=3", 2],
+  ["amix=inputs=2", 3], ["amix=inputs=0", 2], ["amix=inputs=0.5", 2],
+  ["amix=inputs=NaN", 2], ["amix=inputs=32768", 2]
+] as const) {
+  it(`rejects ${filter} with ${count} connected pads without replacing output`, async () => {
+    const inputs = Array.from({ length: count }, () => [8000]);
+    const { result, volume } = await mix(filter, inputs[0]!, inputs[1], false, inputs.slice(2));
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+  });
+}
+
+for (const [duration, runs] of [
+  ["longest", [[512, 4000], [512, 8000], [512, 12000]]],
+  ["shortest", [[512, 4000]]],
+  ["first", [[512, 4000], [512, 8000]]]
+] as const) {
+  it(`handles three unequal inputs with duration=${duration}`, async () => {
+    const { result, volume, error } = await mix(
+      `amix=inputs=3:duration=${duration}:dropout_transition=0`,
+      Array(1024).fill(4000), Array(512).fill(-4000), false, [Array(1536).fill(12000)]);
+    assert.equal(result.exitCode, 0, error);
+    const channel = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+    assert.deepEqual(Array.from(channel, sample => sample * 32768),
+      runs.flatMap(([length, value]) => Array(length).fill(value)));
+  });
+}
+
+it("matches native three-input dropout recovery across two EOF boundaries", async () => {
+  const { result, volume, error } = await mix("amix=inputs=3:dropout_transition=0.128",
+    Array(1536).fill(4000), Array(512).fill(-4000), false, [Array(2560).fill(12000)]);
+  assert.equal(result.exitCode, 0, error);
+  const channel = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+  // Native FFmpeg PCM16 output at 8 kHz.
+  assert.deepEqual(Array.from(channel, sample => sample * 32768),
+    [4000, 6400, 8000, 8000, 12000].flatMap(value => Array(512).fill(value)));
+});
 
 // FFmpeg 7.0.2 preserves NaN in float output when normalized weights sum to zero.
 for (const stereo of [false, true]) {
@@ -190,7 +254,7 @@ for (const stereo of [false, true]) {
   ] as const) {
     it(`preserves native float amix ${options}, stereo=${stereo}`, async () => {
       const { result, volume, error } = await mix(`amix=${options}`,
-        Array(2048).fill(8000), Array(2048).fill(-4000), stereo, "pcm_f32le");
+        Array(2048).fill(8000), Array(2048).fill(-4000), stereo, [], "pcm_f32le");
       assert.equal(result.exitCode, 0, error);
       const track = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!;
       assert.equal(track.codecDescriptions[0]!.codecName, "pcm_f32le");

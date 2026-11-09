@@ -5574,7 +5574,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let mpegtsFlags = 0;
         let mpegtsTablesVersion: number | undefined;
         let omitVideoPesLength = true;
-    let mpegtsServiceType: number | undefined;
+        let mpegtsServiceType: number | undefined;
         let fragmented = false;
         let fragmentKeyframes = false;
         let fragmentEveryFrame = false;
@@ -6883,8 +6883,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
           } else if (arg === "-omit_video_pes_length") {
-        omitVideoPesLength = parseFilterBoolean(args[++i] ?? "invalid", "Invalid omit_video_pes_length: expected a boolean");
-      } else if (arg === "-mpegts_service_type") {
+            try {
+              omitVideoPesLength = parseFilterBoolean(args[++i] ?? "invalid", "Invalid omit_video_pes_length: expected a boolean");
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-mpegts_service_type") {
             try {
               mpegtsServiceType = parseMpegtsServiceType(args[++i] ?? "");
             } catch (error) {

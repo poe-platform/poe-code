@@ -3503,6 +3503,8 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           const text = decodeUtf8(sample.data);
           const parts: string[] = [];
           const styles: string[] = [];
+          const fonts: number[] = [];
+          const encodeSrt = codec === "subrip" && outputFormat === "srt";
           const webvtt = outputFormat === "webvtt" || containerCodec === "webvtt";
           let position = 0;
           while (position < text.length) {
@@ -3510,7 +3512,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
             if (codec === "subrip" && webvtt && text.startsWith("{\\", position)) {
               const end = text.indexOf("}", position + 2);
               position = end < 0 ? text.length : end + 1;
-            } else if (codec === "subrip" && webvtt && text[position] === "\\"
+            } else if (codec === "subrip" && (webvtt || encodeSrt) && text[position] === "\\"
               && (text[position + 1] === "N" || text[position + 1] === "n")) {
               parts.push("\n");
               position += 2;
@@ -3530,11 +3532,42 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
                 if (open >= 0) {
                   while (styles.length > open) parts.push(`</${styles.pop()!}>`);
                 }
-              } else if (codec === "subrip" && (!webvtt || Array.from(tag.split(" ", 1)[0]!).some(char =>
+              } else if (encodeSrt && ["s", "/s"].includes(tag)) {
+                parts.push(`<${tag}>`);
+              } else if (codec === "subrip" && ((!webvtt && !encodeSrt) || Array.from(tag.split(" ", 1)[0]!).some(char =>
                 !(char >= "0" && char <= "9" || char >= "a" && char <= "z"
                   || char >= "A" && char <= "Z" || char === "_" || char === "/")))) {
                 // SubRip timestamp-like text is literal, unlike WebVTT timestamp tags.
                 parts.push(`<${tag}>`);
+              }
+              if (encodeSrt && tag.startsWith("font ")) {
+                let attributes = tag.slice(5).trimStart();
+                let count = 0;
+                while (attributes) {
+                  const equals = attributes.indexOf("=");
+                  if (equals < 0) break;
+                  const name = attributes.slice(0, equals).trim();
+                  attributes = attributes.slice(equals + 1).trimStart();
+                  const quoted = attributes.startsWith('"');
+                  if (quoted) attributes = attributes.slice(1);
+                  let end = quoted ? attributes.indexOf('"') : attributes.indexOf(" ");
+                  if (end < 0) end = attributes.length;
+                  let value = attributes.slice(0, end);
+                  attributes = attributes.slice(end + 1).trimStart();
+                  if (!["face", "size", "color"].includes(name)) continue;
+                  if (name === "color") {
+                    try {
+                      value = "#" + parseColorRgba(value).slice(0, 3)
+                        .map(channel => channel.toString(16).padStart(2, "0")).join("");
+                    } catch { continue; }
+                  }
+                  if (name === "size" && !(Number(value) > 0)) continue;
+                  parts.push(`<font ${name}="${value}">`);
+                  count++;
+                }
+                fonts.push(count);
+              } else if (encodeSrt && tag === "/font") {
+                parts.push("</font>".repeat(fonts.pop() ?? 0));
               }
               position = end + 1;
             } else {
@@ -3548,6 +3581,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
             }
           }
           parts.push(text.slice(position));
+          while (fonts.length) parts.push("</font>".repeat(fonts.pop()!));
           while (styles.length > 0) parts.push(`</${styles.pop()!}>`);
           const data = encodeUtf8(parts.join(""));
           sample = { ...sample, data, size: data.byteLength, webvtt: undefined };

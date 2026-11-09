@@ -46,7 +46,7 @@ import { byteLocale, cCollation, utf8Locale } from "./locale.js";
 import { diagnosticCommandName } from "./diagnostic-name.js";
 import { trimParameter } from "./parameter-trim.js";
 import { ownedShellSource, type OwnedShellSource } from "./source-value.js";
-import { functionDisplay, scriptText } from "./display.js";
+import { commandText, functionDisplay, scriptText } from "./display.js";
 import { ConditionalUnsupported, evaluateConditional, type ConditionalExpression } from "./conditional.js";
 import { invocationScope, throwCleanupFailures, InvocationScope } from "./cleanup.js";
 import { bindFileOutputBudget, openFileOutput } from "../contracts/filesystem-output.js";
@@ -4845,6 +4845,9 @@ export class Runtime {
     io.descriptors ??= new Map<number, Descriptor>([
       [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }], [1, { output: io.stdout }], [2, { output: io.stderr }], ]);
     io[invocationScope].assertOpen();
+    if (command.kind === "subshell" && state.extensions && !state.extensions.eventDepth) {
+      publishCommandSpelling(state, commandText(command, ""));
+    }
     if (state.extensions && (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional")) {
       const description = commandSpelling(command);
       if (!state.extensions.eventDepth) publishCommandSpelling(state, description);

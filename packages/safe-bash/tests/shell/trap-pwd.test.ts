@@ -5,6 +5,24 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { trapExtension } from "../../src/shell/extensions/trap/index.js";
 
 for (const extensions of [undefined, [trapExtension()]]) {
+  for (const [source, stdout, status] of [
+    [":; (exit 7)", "7:( exit 7 )\n", 7],
+    ["(exit 7)", "7:( exit 7 )\n", 7],
+    [":; false", "1:false\n", 1],
+    ["set -e; :; (exit 7); printf unreachable", "7:( exit 7 )\n", 7],
+    ["set -E; :; (false)", "1:false\n1:( false )\n", 1],
+    [":; (exit 7) 2>/dev/null", "7:( exit 7 ) 2> /dev/null\n", 7],
+    [":; ( (exit 7) )", "7:( ( exit 7 ) )\n", 7],
+    [":; (exit 7) || :", "", 0],
+  ] as const) test(`ERR command spelling ${extensions ? "configured" : "default"}: ${source}`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), ...(extensions ? { extensions } : {}) });
+    context.after(() => shell.dispose());
+    for (const command of basicCommands()) shell.register(command);
+    const result = await shell.exec(`trap 'printf "%s:%s\\n" "$?" "$BASH_COMMAND"' ERR; ${source}`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, status);
+    assert.equal(result.stdout, stdout);
+  });
   test(`automatic command spelling preserves expansion budgets ${extensions ? "configured" : "default"}`, async context => {
     const shell = new Shell({ fs: new MemoryFileSystem(), ...(extensions ? { extensions } : {}) });
     context.after(() => shell.dispose());

@@ -8,7 +8,7 @@ export function scriptText(script: Script, indent: string, terminate = false): s
   ).join(" ") + (list.terminator ? ` ${list.terminator.operator}` : terminate || listIndex < script.lists.length - 1 ? ";" : "")).join(`\n${indent}`);
 }
 
-function commandText(command: Command, indent: string): string {
+export function commandText(command: Command, indent: string): string {
   const nested = `${indent}    `;
   let text: string;
   switch (command.kind) {

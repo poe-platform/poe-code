@@ -25,19 +25,35 @@ export async function correlateAudio(
       if (!value || !["slow", "fast", "best"].includes(algo)) throw new Error("axcorrelate: invalid algo");
     } else throw new Error(`axcorrelate: unsupported option ${key}`);
   }
-  // FFmpeg fills the first input beyond the window before requesting the second.
-  // If the first input ends sooner, EOF is reached without any paired samples.
-  const length = a.channelData[0]!.length <= size ? 0
-    : Math.min(a.channelData[0]!.length, b.channelData[0]!.length);
+  // Native requests the first input whose FIFO has at most one window left.
+  // Once either input reports EOF, only already received packets are drained.
+  const tracks = [first, second];
+  const lengths = [a.channelData[0]!.length, b.channelData[0]!.length];
+  const received = [0, 0];
+  const packets = [0, 0];
+  let drained = 0;
+  for (let requests = 0; ; requests++) {
+    if (requests % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+    drained = Math.max(drained, Math.min(...received) - size);
+    const input = received[0]! - drained <= size ? 0 : 1;
+    if (received[input]! >= lengths[input]!) break;
+    const track = tracks[input]!;
+    const packet = track.samples[packets[input]!];
+    packets[input]!++;
+    const count = packet ? Math.round(packet.duration * a.sampleRate / track.timescale)
+      - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0) : lengths[input]! - received[input]!;
+    received[input] = Math.min(lengths[input]!, received[input]! + Math.max(0, count));
+  }
+  const length = Math.min(...received);
   budget.checkSamples(length);
   budget.checkDuration(length / a.sampleRate);
   budget.allocateMemory(length * a.channels * 8);
   const channelData = a.channelData.map(() => new Float64Array(length));
   for (let c = 0; c < a.channels && length > 0; c++) {
-    const x = a.channelData[c]!;
-    const y = b.channelData[c]!;
+    const x = a.channelData[c]!.subarray(0, received[0]);
+    const y = b.channelData[c]!.subarray(0, received[1]);
     let sx = 0, sy = 0, xx = 0, yy = 0, xy = 0;
-    // Each forward window is padded with silence past that input's end.
+    // Pad past the last packet received, even if the source has more samples.
     for (let i = 0; i < size; i++) {
       if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
       const u = x[i] ?? 0, v = y[i] ?? 0;

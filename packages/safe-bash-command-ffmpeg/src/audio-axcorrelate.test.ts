@@ -5,9 +5,9 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
-async function run(filter: string, channels = 1, secondLength = 4096) {
+async function run(filter: string, channels = 1, secondLength = 4096, firstLength = 8192) {
   const fs = Volume.fromJSON({});
-  const a = Float64Array.from({ length: 8192 }, (_, i) => (i % 8 < 4 ? 8192 : -8192) / 32768);
+  const a = Float64Array.from({ length: firstLength }, (_, i) => (i % 8 < 4 ? 8192 : -8192) / 32768);
   const b = Float64Array.from({ length: secondLength }, (_, i) => (i < 2048 ? -16384 : 1024) / 32768);
   fs.writeFileSync("/a.wav", encodeWav({ sampleRate: 8000, channels: Array.from({ length: channels }, () => a) }));
   fs.writeFileSync("/b.wav", encodeWav({ sampleRate: 8000, channels: Array.from({ length: channels }, (_, c) => c ? b.map(x => -x) : b) }));
@@ -70,3 +70,21 @@ it("axcorrelate defaults to best with a 256-sample window", async () => {
   assert.equal(explicit.result.exitCode, 0, explicit.error);
   assert.deepEqual(implicit.audio, explicit.audio);
 });
+
+for (const length of [512, 513, 1025]) for (const reverse of [false, true]) for (const algo of ["best", "fast"]) {
+  it(`axcorrelate drains available packets at EOF (${length}, reversed=${reverse}, ${algo})`, async () => {
+    const inputs = reverse ? "[1:a][0:a]" : "[0:a][1:a]";
+    const { result, error, audio } = await run(`${inputs}axcorrelate=128:${algo}[mix]`, 1, 4096, length);
+    assert.equal(result.exitCode, 0, error);
+    const channel = audio!.channelData[0]!;
+    assert.equal(channel.length, length);
+    // Native FFmpeg PCM16 output for these deterministic WAV inputs.
+    const expected = length === 512 && !reverse
+      ? (algo === "best" ? [0, 23, 0, 32767, 32767] : [0, 258, 0, 32767, 32767])
+      : algo === "best" ? [0, 0, 0, 0, 0]
+      : length === 512 ? [0, 257, 0, 5793, 2896] : [0, 257, 0, 2896, -2896];
+    [length - 128, length - 127, length - 64, length - 4, length - 1].forEach((index, i) => {
+      assert.ok(Math.abs(channel[index]! * 32768 - expected[i]!) <= 1, `sample ${index}: ${channel[index]! * 32768}`);
+    });
+  });
+}

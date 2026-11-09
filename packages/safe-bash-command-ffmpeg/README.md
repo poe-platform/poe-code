@@ -322,7 +322,7 @@ sample rates and channel layouts, stopping at the shorter input. For example,
 (default 256); `algo` accepts `slow`, `fast` (assumes zero means), or `best`
 (default). If the first input has at most `size` samples, no audio is emitted;
 a short second input still produces audio when the first exceeds `size`. Windows
-look forward and use silence past each input's end. Filters can follow axcorrelate;
+look forward and use silence past the packets received when either input ends. Filters can follow axcorrelate;
 preceding single-input filters are rejected.
 
 `sidechaingate` uses the second audio input to gate the first, stopping at the shorter

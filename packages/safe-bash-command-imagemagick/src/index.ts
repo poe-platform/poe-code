@@ -1615,7 +1615,7 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
         const steps = h === 1 ? w : h;
         const span = h === 1 ? 1 : w;
         for (let i = 0; i < steps; i++) {
-            const t = steps <= 1 ? 0 : i / (steps - 1);
+            const t = steps <= 1 ? 0 : i * (1 / (steps - 1));
             writeGradientPixel(tmp, samples, 0, c1, c2, t);
             u64.fill(tmp64[0]!, i * span, (i + 1) * span);
             u32.fill(tmp32[0]!, i * span, (i + 1) * span);

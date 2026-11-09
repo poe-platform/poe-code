@@ -3617,15 +3617,15 @@ function parsePosterizeLevels(value: string): number {
     return levels;
 }
 
-function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, levelsRaw: number, dither: boolean, channels: MagickState["channels"], signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, levelsRaw: number, dither: MagickState["dither"], channels: MagickState["channels"], signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     let cooperativeWork = 0;
     const levels = Math.max(2, Math.trunc(levelsRaw));
     const step = 255 / (levels - 1);
     const mask = [channels.r, channels.g, channels.b, channels.a];
     type PaletteNode = { children: PaletteNode[]; color?: number[] };
     let palette: PaletteNode | undefined;
-    // Native posterize uses Riemersma only for palettes with 2–16 levels.
-    dither &&= levelsRaw >= 2 && levels <= 16;
+    // Native posterize dithers only palettes with 2–16 levels.
+    if (levelsRaw < 2 || levels > 16) dither = false;
     if (!dither && levelsRaw >= 2) {
         // Quantize Q16 samples directly; an eight-bit palette loses both input
         // precision and output levels. Transfers stay bounded in caller storage.
@@ -3643,17 +3643,25 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
     }
     const errors = new Float64Array(16 * 4);
     const weights = Float64Array.from({ length: 16 }, (_, i) => 16 ** (-1 - i / 15));
+    let row = new Float64Array(dither === "floydsteinberg" ? img.width * 4 : 0), nextRow = new Float64Array(row.length);
     function* scan(): Generator<number> {
-        for (let i = 0; i < img.width * img.height * 4; i += 4) yield i;
+        for (let y = 0; y < img.height; y++) {
+            for (let x = 0; x < img.width; x++) yield (y * img.width + (dither === "floydsteinberg" && y % 2 ? img.width - x - 1 : x)) * 4;
+            [row, nextRow] = [nextRow, row];
+            nextRow.fill(0);
+        }
     }
-    for (const i of dither ? hilbertPixels(img) : scan()) {
+    for (const i of dither === "riemersma" ? hilbertPixels(img) : scan()) {
         if (++cooperativeWork % 1024 === 0) { signal?.throwIfAborted(); yield; }
         const input = (yield { kind: "read", position: i, length: 4 })!;
         const out = new Uint8Array(4);
         const alpha = img.hasAlpha ? input[3]! / 255 : 1;
         const target = [input[0]! * alpha, input[1]! * alpha, input[2]! * alpha, input[3]!];
+        const x = i / 4 % img.width;
         if (dither) for (let channel = 0; channel < 4; channel++) {
-            for (let entry = 0; entry < 16; entry++) target[channel]! += weights[entry]! * errors[entry * 4 + channel]!;
+            if (dither === "riemersma") {
+                for (let entry = 0; entry < 16; entry++) target[channel]! += weights[entry]! * errors[entry * 4 + channel]!;
+            } else target[channel]! += row[x * 4 + channel]!;
             target[channel] = Math.max(0, Math.min(255, target[channel]!));
         }
         if (levelsRaw < 0) {
@@ -3721,10 +3729,24 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
                     : clampByteVal(Math.round(((dither ? target[channel]! : input[channel]!) / 255) * (levels - 1)) * step);
             }
         }
-        if (dither) {
+        if (dither === "riemersma") {
             errors.copyWithin(0, 4);
             const outputAlpha = img.hasAlpha ? out[3]! / 255 : 1;
             for (let channel = 0; channel < 4; channel++) errors[60 + channel] = target[channel]! - out[channel]! * (channel === 3 ? 1 : outputAlpha);
+        } else if (dither === "floydsteinberg") {
+            const direction = Math.floor(i / 4 / img.width) % 2 ? -1 : 1;
+            const outputAlpha = img.hasAlpha ? Math.round(out[3]! / step) * step / 255 : 1;
+            for (let channel = 0; channel < 4; channel++) {
+                // Diffuse the palette value before rounding it to an output byte.
+                const color = Math.round(out[channel]! / step) * step;
+                const error = (target[channel]! - color * (channel === 3 ? 1 : outputAlpha)) / 16;
+                if (x + direction >= 0 && x + direction < img.width) {
+                    row[(x + direction) * 4 + channel]! += error * 7;
+                    nextRow[(x + direction) * 4 + channel]! += error;
+                }
+                if (x - direction >= 0 && x - direction < img.width) nextRow[(x - direction) * 4 + channel]! += error * 3;
+                nextRow[x * 4 + channel]! += error * 5;
+            }
         }
         yield { kind: "write", position: i, data: out };
     }
@@ -6520,7 +6542,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const levels = parsePosterizeLevels(tokens[++i] ?? "");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        apply = image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, state.dither !== false, channels, signal), signal);
+        apply = image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, state.dither, channels, signal), signal);
     } else if (token === "-monochrome") {
         apply = function* (image) { return yield* thresholdImageSteps(yield* grayscaleImageSteps(image), 128, true); };
     } else if (token === "-modulate") {
@@ -9716,7 +9738,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-posterize") {
             const levels = parsePosterizeLevels(tokens[++i] ?? "");
-            const dither = state.dither !== false, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+            const dither = state.dither, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, channels, signal), signal) : undefined);
             continue;
         }

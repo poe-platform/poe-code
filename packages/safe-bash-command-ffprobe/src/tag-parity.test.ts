@@ -26,7 +26,7 @@ it("preserves every writer, field selection, numeric order and duplicate-tag sem
   const source = { size: bytes.length, async read(offset: number, length: number) { return bytes.slice(offset, offset + length); } }, tags = new SourceAudioTags(source, context);
   try {
     const audio = await probeWavSource(source, { onTag: span => tags.add(span) });
-    for (const writer of ["json", "default", "default:nw=1:nk=1", "flat", "compact", "compact:s=||:nk=1:p=0", "compact:s=", "compact:s=n", "compact:s=\\", "csv", "csv:s=||:nk=0", "csv:s=:p=0"]) {
+    for (const writer of ["json", "default", "default:nw=1:nk=1", "flat", "compact", "compact:s=|:nk=1:p=0", "compact:s=n", "compact:s=\\", "csv", "csv:s=|:nk=0", "csv:s=;:p=0"]) {
       for (const selection of [[], ["-show_format"], ["-show_streams", "-show_format"], ["-show_entries", "stream_tags:format_tags"], ["-show_entries", "stream=channels:format=tags,duration"], ["-show_entries", "stream_tags=title,date:format_tags=9999,ZZZZ"], ["-show_entries", "format_tags=missing"]]) {
         const args = ["-of", writer, ...selection, "input.wav"];
         let actual = ""; for await (const part of formatTaggedAudio(audio, bytes.length, args, tags)) actual += part;

@@ -7,7 +7,7 @@ const base=wavAst().probe(encodeWav({sampleRate:8000,channels:[new Float64Array(
 const options={printFormat:'json',showStreams:true,showFormat:true,showPackets:false,showFrames:false,showChapters:true,showPrograms:false};
 const value='é😀,"\n\r\\\t||end';
 const text={kind:'text' as const,async *chunks(){for(let i=0;i<value.length;i++)yield value[i]!;}};
-for(const writer of ['json','json:compact=1','default','default=nw=1:nk=1','flat','compact','csv','csv=s=||'])it(`streams tag fields with exact ${writer} escaping`,async()=>{
+for(const writer of ['json','json:compact=1','default','default=nw=1:nk=1','flat','compact','csv','csv=s=|'])it(`streams tag fields with exact ${writer} escaping`,async()=>{
   const probe={...base,streams:base.streams.map(stream=>({...stream,tags:{title:value,empty:''}})),format:{...base.format,tags:{title:value}},chapters:[{id:0,time_base:'1/1000',start:0,start_time:'0',end:1,end_time:'0.001',tags:{title:value}}]};
   const source={...probe,streams:probe.streams.map(stream=>({...stream,tags:{title:text,empty:{kind:'text' as const,async *chunks(){}}}})),format:{...probe.format,tags:{title:text}},chapters:probe.chapters.map(chapter=>({...chapter,tags:{title:text}}))};
   let output='';for await(const part of formatFfprobeSourceChunks(source,{...options,printFormat:writer}))output+=part;

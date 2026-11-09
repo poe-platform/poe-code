@@ -12,7 +12,7 @@ ffprobe -show_entries stream=sample_rate,channels:format=duration -of csv record
 CAF inputs on stdin omit file size and report duration only when a packet table precedes audio data; named files retain seekable duration and size.
 
 Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
-`json`, `compact`, `csv`, `default`, `flat`, `ini`, `xml`; `-show_format`, `-show_streams`,
+`json`, `compact`, `csv`, `default`, `flat`, `ini`, `xml` (compact/CSV `s` and `item_sep` separators must be exactly one UTF-8 byte); `-show_format`, `-show_streams`,
 `-show_error` for structured missing-input errors (with a nonzero exit status),
 `-show_entries section=fields` (including format/stream tags, `stream_disposition`, and `stream_side_data=rotation`), `-select_streams a:0` (or MPEG-TS programs such as `p:202`, or MP4 track IDs such as `i:77` and `#0x4d`),
 `-sexagesimal` for `H:MM:SS.ffffff` timestamps and durations, and `-i`. Media inputs also support `-show_packets`, `-show_frames`, `-show_chapters`,

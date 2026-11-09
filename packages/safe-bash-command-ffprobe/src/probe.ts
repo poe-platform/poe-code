@@ -94,7 +94,9 @@ export function parseArguments(args: readonly string[]) {
   for (const [key, value] of settings) {
     if (!writerOptions[format!]!.includes(key))
       throw new Error(`Unsupported writer option ${key}`);
-    if (key !== "s" && key !== "item_sep") parseWriterBoolean(value);
+    if (key !== "s" && key !== "item_sep" && key !== "sep_char") parseWriterBoolean(value);
+    if ((format === "compact" || format === "csv") && (key === "item_sep" || key === "s") && new TextEncoder().encode(value).length !== 1)
+      throw new Error("Item separator must be a single byte");
   }
   return { filename, format: format!, sections, settings, selector, quiet, streamEntries, sexagesimal, showOptionalFields };
 }

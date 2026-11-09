@@ -44,7 +44,7 @@ it("spills long normalized keys, values and many key records", async () => {
 });
 it("preserves tag selection and configured separators", async () => {
   const bytes = fixture([["TITLE=one,two", "ARTIST=artist", "CUSTOM=more"]]);
-  for (const writer of ["json", "csv:s=,", "compact:s=||", "default:nk=1:nw=1", "flat"]) await run(bytes, writer, "retained", ["-show_entries", "format_tags=title,CUSTOM"]);
+  for (const writer of ["json", "csv:s=,", "compact:s=|", "default:nk=1:nw=1", "flat"]) await run(bytes, writer, "retained", ["-show_entries", "format_tags=title,CUSTOM"]);
 });
 
 it("keeps colliding normalized key hashes distinct across replacements", async () => {

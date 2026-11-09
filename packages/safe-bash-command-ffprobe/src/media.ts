@@ -762,7 +762,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       yield* iniSection(fields, parentPath + path);
       if (Array.isArray(members)) for (const [i, member] of members.entries()) yield* render(member, "stream", i, path + ".");
     } else if (fmt === "csv" || fmt === "compact") {
-      const sep = fmt === "csv" ? (paramMap.s ?? ",") : (paramMap.s ?? "|");
+      const sep = paramMap.item_sep ?? paramMap.s ?? (fmt === "csv" ? "," : "|");
       const printSection = parseWriterBoolean(paramMap.p ?? paramMap.print_section ?? "1");
       let first = true;
       if (printSection) { yield name; first = false; }
@@ -1005,10 +1005,12 @@ function parseProbeArguments(args: readonly string[]) {
     const key = parameter.split("=")[0]!;
     if (!writerOptions[writer]!.includes(key))
       throw new Error(`Unsupported writer option ${key}`);
-    if (key !== "s" && key !== "item_sep") {
+    if (key !== "s" && key !== "item_sep" && key !== "sep_char") {
       const equals = parameter.indexOf("=");
       parseWriterBoolean(equals < 0 ? "1" : parameter.slice(equals + 1));
     }
+    if ((writer === "compact" || writer === "csv") && (key === "item_sep" || key === "s") && encodeUtf8(parameter.slice(key.length + 1)).length !== 1)
+      throw new Error("Item separator must be a single byte");
   }
   const entryFilter = parseEntryFilter(showEntries);
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;

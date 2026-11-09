@@ -42,7 +42,7 @@ for(const route of ['retained','stdin','stream'] as const)for(const writer of ['
 });
 it('preserves chained codecs, raw key casing and selected stream fields',async()=>{
   const bytes=join([...stream(7,['title=first','title=second','TITLE=upper']),...stream(2,['ARTIST=last'],false)]);
-  for(const route of ['retained','stdin','stream'] as const){await run(bytes,route);await run(bytes,route,'csv:s=||',['-show_entries','stream=codec_name,duration:stream_tags=title,ARTIST:format=nb_streams,duration']);}
+  for(const route of ['retained','stdin','stream'] as const){await run(bytes,route);await run(bytes,route,'csv:s=|',['-show_entries','stream=codec_name,duration:stream_tags=title,ARTIST:format=nb_streams,duration']);}
 });
 it('keeps global picture replacement semantics and validates decoded picture lengths',async()=>{
   const picture=new Uint8Array(70032);new DataView(picture.buffer).setUint32(28,70000);const text=Buffer.from(picture).toString('base64');

@@ -43,7 +43,7 @@ it("spills MP3 tag records and preserves long canonical keys",async()=>{
 });
 it("preserves configured writers and selected tags; rejects truncated MPEG frames",async()=>{
   const bytes=fixture({title:'one,two',artist:'artist'});
-  for(const writer of ['json','csv:s=,','compact:s=||','default:nk=1:nw=1'])await run(bytes,writer,'retained',['-show_entries','format_tags=title,artist']);
+  for(const writer of ['json','csv:s=,','compact:s=|','default:nk=1:nw=1'])await run(bytes,writer,'retained',['-show_entries','format_tags=title,artist']);
   const broken=bytes.slice(0,-129);
   for(const route of ['retained','stream','stdin'] as const)await expect(run(broken,'json',route,[],true)).rejects.toThrow('Truncated MPEG frame');
 });

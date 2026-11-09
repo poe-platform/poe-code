@@ -39,7 +39,7 @@ for (const [filter, indices, expected] of [
   });
 }
 
-for (const filter of ["compand=points=bad", "compand=points=-70/|-60/-20|1/0", "compand=points=/-70|-60/-20|1/0", "compand=points=-70abc/-70|-60/-20|1/0", "compand=points=0/0|-20/-30", "compand=attacks=-1", "compand=attacks=-1s", "compand=decays=NaN", "compand=decays=seconds", "compand=unknown=1", "compand=soft-knee=0", "compand=soft-knee=1abc", "compand=gain=1abc", "compand=volume=-20abc", "compand=delay=0abc", "compand=delay=1", "compand=points=-80/-80||0/0", "compand=points=-80/-80|0/0|"]) {
+for (const filter of ["compand=points=bad", "compand=points=-70/|-60/-20|1/0", "compand=points=/-70|-60/-20|1/0", "compand=points=-70abc/-70|-60/-20|1/0", "compand=points=0/0|-20/-30", "compand=attacks=-1", "compand=attacks=-1s", "compand=decays=NaN", "compand=decays=seconds", "compand=unknown=1", "compand=soft-knee=0", "compand=soft-knee=1abc", "compand=gain=1abc", "compand=volume=-20abc", "compand=delay=0abc", "compand=delay=-1", "compand=delay=20.1", "compand=delay=NaN", "compand=points=-80/-80||0/0", "compand=points=-80/-80|0/0|"]) {
   it(`${filter} fails without replacing output`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
     fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));

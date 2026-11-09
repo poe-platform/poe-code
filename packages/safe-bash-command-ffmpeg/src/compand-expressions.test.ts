@@ -10,6 +10,9 @@ for (const [expression, literal] of [
   ["soft-knee=3*2", "soft-knee=6"],
   ["volume=-10*2", "volume=-20"],
   ["delay=1-1", "delay=0"],
+  ["attacks=1/2", "attacks=1"],
+  ["decays=1/2", "decays=1"],
+  ["points=-80/-80|0/1+1", "points=-80/-80|0/1"],
   ["0:0:-80/-80|0/0:3*2:2*3:-10*2:1-1", "0:0:-80/-80|0/0:6:6:-20:0"]
 ]) for (const graph of [false, true]) {
   it(`compand=${expression} matches its numeric literal (${graph ? "graph" : "simple"})`, async () => {
@@ -36,8 +39,7 @@ for (const [expression, literal] of [
 
 for (const option of [
   "gain=0b1", "gain=0o1", "gain=", "gain=NaN", "gain=1/0", "gain=901", "gain=-901", "gain=450*3",
-  "soft-knee=0b1", "soft-knee=1-1", "volume=0b0", "volume=1+1", "delay=0b0", "delay=1+1",
-  "attacks=1/2", "decays=1/2", "points=-80/-80|0/1+1"
+  "soft-knee=0b1", "soft-knee=1-1", "volume=0b0", "volume=1+1", "delay=0b0", "delay=1+1"
 ]) for (const graph of [false, true]) {
   it(`compand=${option} preserves existing raw output on failure (${graph ? "graph" : "simple"})`, async () => {
     const fs = Volume.fromJSON({ "/out.pcm": "sentinel" });

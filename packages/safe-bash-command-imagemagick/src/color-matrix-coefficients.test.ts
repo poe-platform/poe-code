@@ -38,7 +38,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
             expect(diagnostic).toContain("Invalid color matrix");
             expect(output).toEqual(keep);
         } else {
-            expect(result.exitCode, diagnostic).toBe(0);
+            expect(result.exitCode).toBe(0);
             expect([...decodeImage(output).data]).toEqual(expected);
         }
     });

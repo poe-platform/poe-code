@@ -8556,11 +8556,14 @@ export class Runtime {
           continue;
         }
         if (printTarget) {
-          const existing = table.get(name)?.path;
+          let existing = table.get(name)?.path;
           if (existing === undefined) {
             await this.diagnostic(context, `hash: ${name}: not found`);
             status = 1;
           } else {
+            if (!existing.startsWith("/") && !existing.startsWith("./")) {
+              existing = (await this.searchPaths(`./${existing}`, state, false, true))[0] ?? existing;
+            }
             await writeText(stdout, hashArgs.length > 1 ? `${name}\t${existing}\n` : `${existing}\n`);
           }
           continue;

@@ -28,6 +28,32 @@ for (const nounset of ['+u', '-u']) for (const selector of ['@', '*']) {
   });
 }
 
+for (const bounded of [false, true]) for (const [operator, values] of [
+  ['#a', ['b', 'cd']],
+  ['##a*', ['', 'cd']],
+  ['%d', ['ab', 'c']],
+  ['%%d*', ['ab', 'c']],
+] as const) for (const selector of ['@', '*']) for (const quoted of [false, true]) {
+  test(`empty IFS array trimming: ${operator}, ${selector}, quoted=${quoted}, bounded=${bounded}`, async t => {
+    const { shell } = setup(bounded ? { limits: { maxExpansionBytes: 1024 * 1024 } } : {});
+    t.after(() => shell.dispose());
+    const expansion = `\${a[${selector}]${operator}}`;
+    const result = await shell.exec(`IFS=""; a=(ab cd); set -- ${quoted ? `"${expansion}"` : expansion}; args "$@"`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, '');
+    assert.deepEqual(JSON.parse(result.stdout), quoted && selector === '@' ? values : [values.join(quoted ? '' : ' ')]);
+  });
+}
+
+for (const quoted of [false, true]) test(`empty IFS positional trimming preserves arguments: quoted=${quoted}`, async t => {
+  const { shell } = setup();
+  t.after(() => shell.dispose());
+  const result = await shell.exec(`IFS=""; set -- ab cd; set -- ${quoted ? '"${@#a}"' : '${@#a}'}; args "$@"`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, '');
+  assert.deepEqual(JSON.parse(result.stdout), ['b', 'cd']);
+});
+
 for (const selector of ['@', '*']) for (const nounset of [true, false]) {
   for (const [initialization, count, assigned] of [
     ['unset a', 0, false],

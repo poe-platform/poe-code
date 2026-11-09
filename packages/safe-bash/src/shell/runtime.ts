@@ -10296,7 +10296,7 @@ export class Runtime {
     }
     const arrayOwned = word.parts.some(part => part.kind === "variable" && !part.prefixNames && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined || (part.indirect || state.variableAttributes?.get(part.name)?.includes("n")) && state.variables[part.name]?.includes("[") === true));
     const prefixOwned = word.parts.some(part => part.kind === "variable" && (part.prefixNames === "@" || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@"));
-    const positionalOwned = split && word.parts.some(part => part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultParameterOperators.includes(part.operator)) && !part.transform);
+    let positionalOwned = split && word.parts.some(part => part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultParameterOperators.includes(part.operator)) && !part.transform);
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();
     const scratch = !owner && split && state.variables.IFS !== "" && word.parts.some(part => !part.quoted && part.kind !== "text")
@@ -10448,6 +10448,7 @@ export class Runtime {
           const operandIO = this.parameterOperandIO(part.alternate!, state, partIO);
           scratch?.reserve(part.alternate!.parts.length * 32, 0);
           const alternate = (part.quoted ? part.alternate!.parts : expandTildes(part.alternate!.parts, state, this.budget)).map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true, io: operandIO }));
+          positionalOwned ||= split && alternate.some(({ part }) => part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultParameterOperators.includes(part.operator)) && !part.transform);
           if (!alternate.length && part.quoted) append("", false, true);
           parts.splice(index + 1, 0, ...alternate);
           continue;
@@ -10495,7 +10496,11 @@ export class Runtime {
         try {
         const applyPattern = !part.transform && memberPatternOperators.includes(part.operator ?? "") && members.length ? await this.prepareParameterPattern(part, state, partIO, hereString, patternScope) : undefined;
         for (let position = 0; position < members.length; position++) {
-          if (position > 0) addField();
+          if (position > 0) {
+            // Bash joins unquoted trimmed array members with spaces even when IFS is empty.
+            if (selector?.kind === "members" && !part.quoted && state.variables.IFS === "" && ["#", "##", "%", "%%"].includes(part.operator ?? "")) append(" ", true, true);
+            else addField();
+          }
           const original = members[position]!;
           const value = part.transform ? await this.transformValue(original, part.transform, state, partIO) : applyPattern ? await applyPattern(original) : original;
           if (part.quoted || state.variables.IFS === "") append(value, !part.quoted, part.quoted || shellValueByteLength(value) > 0);

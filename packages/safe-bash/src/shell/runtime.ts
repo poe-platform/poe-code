@@ -6774,7 +6774,7 @@ export class Runtime {
             const { executeRead } = await import("./read-builtin.js");
             return { exitCode: await executeRead(true, this.extensionContext(state, { ...io, ...context }, context.command, context.args, context.argumentValues.values)) };
           }
-          const builtinWork = this.builtin({ ...context, [declarationArrays]: io[declarationArrays] }, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
+          const builtinWork = this.builtin({ ...io, ...context, [declarationArrays]: io[declarationArrays] }, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
           const builtin = await interruptible(builtinWork, this.signal);
           if (builtin !== undefined) {
             if (special && builtin !== 0 && context.command !== "shift") throw new Flow("exit", builtin);
@@ -8864,6 +8864,8 @@ export class Runtime {
       const value = operand === undefined ? 1n : await signedLong(operand, this.budget, this.signal);
       if (value === undefined || value === "overflow") {
         await writeDiagnostic(stderr, `shift: ${operand}: numeric argument required\n`);
+        if (!suppressSpecial && !context.execution?.ignoreErrexit
+          && (state.profile === "sh" || state.variables.POSIXLY_CORRECT !== undefined)) throw completedExit(2);
         return 2;
       }
       const count = Number(value);

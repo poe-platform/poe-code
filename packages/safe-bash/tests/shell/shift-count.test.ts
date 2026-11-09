@@ -166,3 +166,48 @@ for (const argument of ["-1", "-- -1", "-9223372036854775808"]) {
     } finally { await shell.dispose(); }
   });
 }
+
+for (const operand of ["bad", "9223372036854775808"]) {
+  for (const [name, source, stdout, exitCode] of [
+    ["unguarded", `shift ${operand}; say continued`, "", 2],
+    ["separate lines", `shift ${operand}\nsay continued`, "", 2],
+    ["or list", `shift ${operand} || say recovered; say continued`, "recovered\ncontinued\n", 0],
+    ["condition", `if shift ${operand}; then say unexpected; fi; say continued`, "continued\n", 0],
+    ["negated", `! shift ${operand}; say continued`, "continued\n", 0],
+    ["command wrapper", `command shift ${operand}; say "continued:$?"`, "continued:2\n", 0],
+    ["builtin wrapper", `builtin shift ${operand}; say "continued:$?"`, "continued:2\n", 0],
+    ["subshell", `(shift ${operand}; say unexpected); say "parent:$?"`, "parent:2\n", 0],
+    ["function", `f() { shift ${operand}; say unexpected; }; f; say continued`, "", 2],
+    ["guarded function", `f() { shift ${operand}; say continued; }; f || say recovered`, "continued\n", 0],
+    ["exit trap", `trap 'say "exit:$?:$*"' EXIT; shift ${operand}; say continued`, "exit:2:first second\n", 2],
+  ] as const) {
+    test(`POSIX shift numeric error ${operand}: ${name}`, async context => {
+      const { shell } = setup();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`POSIXLY_CORRECT=1; set -- first second; ${source}`);
+      assert.equal(result.stdout, stdout);
+      assert.equal(result.stderr, `shift: ${operand}: numeric argument required\n`);
+      assert.equal(result.exitCode, exitCode);
+    });
+  }
+}
+
+test("shift numeric errors terminate with inherited POSIXLY_CORRECT", async context => {
+  const { shell } = setup({ env: { POSIXLY_CORRECT: "" } });
+  context.after(() => shell.dispose());
+  const result = await shell.exec('set -- first second; shift bad; say continued');
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "shift: bad: numeric argument required\n");
+  assert.equal(result.exitCode, 2);
+});
+
+for (const operand of ["3", "-1"]) {
+  test(`POSIX shift range error ${operand} remains recoverable`, async context => {
+    const { shell } = setup();
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`POSIXLY_CORRECT=1; set -- first second; shift ${operand}; say "continued:$?:$*"`);
+    assert.equal(result.stdout, "continued:1:first second\n");
+    assert.equal(result.stderr, operand === "-1" ? "shift: -1: shift count out of range\n" : "");
+    assert.equal(result.exitCode, 0);
+  });
+}

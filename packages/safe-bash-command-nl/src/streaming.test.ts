@@ -21,6 +21,18 @@ async function run(stdin: ByteSource, options: NlCommandsOptions = {}, args: str
   return { ...result, stdout, events };
 }
 
+for (const group of ["-1", "1x", "9223372036854775808x"]) test(`nl rejects invalid blank group ${group} before output`, async () => {
+  const result = await run(toByteSource("\n\nX\n"), {}, ["-ba", "-l", group]);
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+});
+
+for (const group of ["0", "1", "2", "9007199254740992", "9223372036854775807", "9223372036854775808", "18446744073709551616"]) test(`nl accepts blank group ${group}`, async () => {
+  const result = await run(toByteSource("\n\nX\n"), {}, ["-ba", "-l", group]);
+  assert.equal(result.exitCode, 0, result.events.join(""));
+  assert.equal(result.stdout, group === "0" || group === "1" ? "1|\n2|\n3|X\n" : group === "2" ? "  \n1|\n2|X\n" : "  \n  \n1|X\n");
+});
+
 test("nl flushes complete records before requesting another input chunk", async () => {
   let output = "";
   const values = createCommandArguments(["-w1", "-s|"]);

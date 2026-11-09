@@ -34,6 +34,16 @@ function signed(text: string): bigint {
   return number;
 }
 
+function blankGroup(text: string): bigint {
+  if (!/^[+-]?\d+$/u.test(numericArgument(text))) throw new UsageError(`invalid line number of blank lines: '${text}'`);
+  const count = BigInt(text);
+  if (count < 0n) throw new UsageError(`invalid line number of blank lines: '${text}'`);
+  // GNU 9.10's XTOINT_MAX_QUIET also clamps nonnegative zero to the minimum.
+  if (count === 0n) return 1n;
+  // GNU nl quietly saturates positive overflow at INTMAX_MAX.
+  return count < 1n << 63n ? count : (1n << 63n) - 1n;
+}
+
 export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinition {
   return command("nl", limits, async session => {
     const arguments_ = getCommandArguments(session.context);
@@ -48,7 +58,7 @@ export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinit
     });
     const header = style(value(parsed, "h") ?? "n"), body = style(value(parsed, "b") ?? "t"), footer = style(value(parsed, "f") ?? "n");
     const start = signed(value(parsed, "v") ?? "1"), increment = signed(value(parsed, "i") ?? "1");
-    const join = Math.max(1, integer(numericArgument(value(parsed, "l") ?? "1"))), width = integer(numericArgument(value(parsed, "w") ?? "6"), 1);
+    const join = blankGroup(value(parsed, "l") ?? "1"), width = integer(numericArgument(value(parsed, "w") ?? "6"), 1);
     const format = value(parsed, "n") ?? "rn";
     if (!["ln", "rn", "rz"].includes(format)) throw new UsageError(`invalid line numbering format: '${format}'`);
     session.check(width + separator.length, limits.maxRecordBytes, "number field");
@@ -88,7 +98,7 @@ export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinit
         await session.buffered.flush();
       }
     };
-    let current: Style = body, number = start, blanks = 0;
+    let current: Style = body, number = start, blanks = 0n;
     await session.files(session.names(parsed.operands), async source => {
       try {
         await forEachRecord(source, session, (record): void | Promise<void> => {
@@ -128,8 +138,8 @@ export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinit
           }
           let numbered: boolean;
           if (current === "a") {
-            numbered = record.length > 0 || ++blanks === join || join === 1;
-            if (numbered) blanks = 0;
+            numbered = record.length > 0 || ++blanks === join;
+            if (numbered) blanks = 0n;
           } else if (current === "t") numbered = record.length > 0;
           else numbered = false;
           if (canBatch) {

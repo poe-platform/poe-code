@@ -9832,10 +9832,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               validateRawAudioCodec(workingDoc, segmentPlugin, audioCodec);
               validateStreamCopy(workingDoc, segmentPlugin.id, { audio: audioCodec, video: videoCodec });
+              // Copied packets retain media timestamps; segment cuts use presentation time.
+              let audioOffset = 0;
+              if (audioSegment && audioCodec === "copy") {
+                for (const edit of track.editList ?? []) {
+                  if (edit.mediaTime < 0) audioOffset -= Math.round(edit.segmentDuration * track.timescale / workingDoc.timescale);
+                  else { audioOffset += edit.mediaTime; break; }
+                }
+              }
               const boundaries = [0];
               for (const [frame, packet] of (segmentAudioPackets ?? track.samples).entries()) {
                 budget.checkCpu();
-                const seconds = packet.pts / track.timescale;
+                const seconds = (packet.pts - audioOffset) / track.timescale;
                 const reached = segmentFrames === undefined
                   ? segmentTimes === undefined
                     ? seconds >= boundaries.length * segmentTime - segmentTimeDelta &&
@@ -9849,7 +9857,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               const lastPacket = track.samples.at(-1);
               boundaries.push(segmentPlugin.id === "wav"
-                ? lastPacket ? (lastPacket.pts + lastPacket.duration) / track.timescale : track.duration / track.timescale
+                ? lastPacket ? (lastPacket.pts + lastPacket.duration - audioOffset) / track.timescale : track.duration / track.timescale
                 : workingDoc.durationSeconds);
               const paths = boundaries.slice(1).map((_, index) =>
                 resolvePath(context.cwd, formatImageSequence(outputTarget,
@@ -9883,15 +9891,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 context.signal.throwIfAborted();
                 const start = boundaries[index]!;
                 const end = boundaries[index + 1]!;
-                const segment = audioSegment
+                const segment = audioSegment && audioCodec !== "copy"
                   ? sliceMp4(workingDoc, { startSeconds: start, endSeconds: end, budget })
                   : { ...workingDoc, tracks: workingDoc.tracks.map(track => ({
                     ...track,
                     duration: Math.round(end * track.timescale),
                     editList: undefined,
                     samples: track.samples.filter(sample =>
-                      (index === 0 || sample.dts >= start * track.timescale) &&
-                      (index === paths.length - 1 || sample.dts < end * track.timescale))
+                      (index === 0 || (sample.dts - audioOffset) / track.timescale >= start) &&
+                      (index === paths.length - 1 || (sample.dts - audioOffset) / track.timescale < end))
                   })) };
                 const bytes = segmentPlugin.serialize(resetTimestamps && !audioSegment
                   ? shiftTimestamps(segment, -start, budget) : segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, reserveIndexSpace, budget, limits: options.limits });

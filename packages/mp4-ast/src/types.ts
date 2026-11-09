@@ -216,6 +216,8 @@ export interface MediaSample {
   readonly blockAdditions?: Uint8Array;
   /** WebVTT packet side data, separate from the caption payload. */
   readonly webvtt?: { readonly identifier: string; readonly settings: string } | undefined;
+  /** SubRip cue positioning, separate from the caption payload. */
+  readonly subtitlePosition?: { readonly x1: number; readonly x2: number; readonly y1: number; readonly y2: number };
   /** Decoder priming and trailing padding, in PCM samples per channel. */
   readonly skipSamples?: number;
   readonly discardPadding?: number;

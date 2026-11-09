@@ -2363,8 +2363,23 @@ export function parseSubtitleDocument(
     const duration = endMs - startMs;
     if (endMs > maxEndMs) maxEndMs = endMs;
 
+    const position = { x1: -1, x2: -1, y1: -1, y2: -1 };
+    if (format === "srt") {
+      let settings = (rightWithSettings ?? "").trim().slice(rightRaw.length);
+      for (const key of ["x1", "x2", "y1", "y2"] as const) {
+        settings = settings.trimStart();
+        const prefix = key.toUpperCase() + ":";
+        if (!settings.startsWith(prefix)) break;
+        const value = settings.slice(prefix.length).trimStart().match(/^[+-]?\d+/)?.[0];
+        if (value === undefined) break;
+        position[key] = Number(value);
+        settings = settings.slice(prefix.length).trimStart().slice(value.length);
+      }
+    }
+
     samples.push({
       data: payload,
+      ...(position.x1 >= 0 ? { subtitlePosition: position } : {}),
       ...(format === "webvtt" ? { webvtt: {
         identifier: arrowLineIdx > 0 ? lines[arrowLineIdx - 1]! : "",
         settings: (rightWithSettings ?? "").trim().slice(rightRaw.length).trimStart()
@@ -2460,7 +2475,12 @@ export function serializeSubtitleDocument(
     }
     const cue = format === "webvtt" ? s.webvtt : undefined;
     if (cue?.identifier) lines.push(cue.identifier);
-    lines.push(`${formatSubtitleTimecode(startMs, sep)} --> ${formatSubtitleTimecode(endMs, sep)}${cue?.settings ? " " + cue.settings : ""}`);
+    const position = format === "srt" ? s.subtitlePosition : undefined;
+    const coordinates = position ? "  " + (["x1", "x2", "y1", "y2"] as const).map(key => {
+      const value = position[key];
+      return `${key.toUpperCase()}:${value < 0 ? "-" + String(-value).padStart(2, "0") : String(value).padStart(3, "0")}`;
+    }).join(" ") : "";
+    lines.push(`${formatSubtitleTimecode(startMs, sep)} --> ${formatSubtitleTimecode(endMs, sep)}${cue?.settings ? " " + cue.settings : ""}${coordinates}`);
     lines.push(cueText, "");
     cueIndex++;
   }

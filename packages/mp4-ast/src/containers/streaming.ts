@@ -382,7 +382,12 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   resources: ReadonlyMap<string, Uint8Array>;
   publications(): Generator<{ manifest: Uint8Array; resources: ReadonlyMap<string, Uint8Array> }>;
 } {
-  const writePrft = (options.writePrft ?? options.lowLatency) && (options.streaming || options.lowLatency) && !!options.utcTimingUrl;
+  const streaming = options.streaming || options.lowLatency;
+  const writePrft = (options.writePrft ?? options.lowLatency) && streaming && !!options.utcTimingUrl;
+  const targetLatency = options.targetLatency ?? 0;
+  if (!Number.isFinite(targetLatency) || targetLatency < 0 || targetLatency > 9_223_372_036_854.775) throw new Error("Invalid DASH target_latency");
+  const producerTimes: string[] = [];
+  const referenceId = doc.tracks.findIndex(track => track.samples.length > 0);
   const profiles = (options.mpdProfile ?? "dash").split("+");
   if (profiles.some(profile => profile !== "dash" && profile !== "dvb_dash")) {
     throw new Error("Invalid DASH mpd_profile");
@@ -439,9 +444,9 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   for (const rate of [minPlaybackRate, maxPlaybackRate]) {
     if (!Number.isFinite(rate) || rate < 0.5 || rate > 1.5) throw new Error("Invalid DASH playback rate");
   }
-  const serviceDescription = minPlaybackRate <= maxPlaybackRate && (minPlaybackRate !== 1 || maxPlaybackRate !== 1)
-    ? [`<ServiceDescription id="0"><PlaybackRate min="${minPlaybackRate.toFixed(2)}" max="${maxPlaybackRate.toFixed(2)}"/></ServiceDescription>`]
-    : [];
+  const playbackRate = minPlaybackRate <= maxPlaybackRate && (minPlaybackRate !== 1 || maxPlaybackRate !== 1)
+    ? `<PlaybackRate min="${minPlaybackRate.toFixed(2)}" max="${maxPlaybackRate.toFixed(2)}"/>`
+    : "";
   const utcTiming = options.utcTimingUrl
     ? `<UTCTiming schemeIdUri="urn:mpeg:dash:utc:http-xsdate:2014" value="${options.utcTimingUrl.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"/>`
     : "";
@@ -562,6 +567,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
           view.setUint32(0, 0x01000018);
           view.setUint32(4, track.id);
           const now = Date.now();
+          producerTimes[index] ??= new Date(now).toISOString();
           view.setUint32(8, Math.floor(now / 1000) + 2_208_988_800);
           view.setUint32(12, Math.floor((now % 1000) * 2 ** 32 / 1000));
           view.setBigUint64(16, BigInt(samples[start]!.pts));
@@ -730,7 +736,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     '<?xml version="1.0" encoding="utf-8"?>',
     `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" maxSegmentDuration="PT${segmentDuration.toFixed(6)}S" mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S" minBufferTime="PT${(maxGopDuration || 2 * bufferDuration).toFixed(6)}S" profiles="${profileUrns}">`,
     ...(doc.metadata.title ? [`<ProgramInformation><Title>${doc.metadata.title.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</Title></ProgramInformation>`] : []),
-    ...serviceDescription,
+    ...(playbackRate ? [`<ServiceDescription id="0">${playbackRate}</ServiceDescription>`] : []),
     '<Period id="0" start="PT0S">'
   ];
   const manifestHeader = lines.slice();
@@ -798,11 +804,18 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
           manifestHeader[0],
           manifestHeader[1]!.replace('type="static"', `type="dynamic" minimumUpdatePeriod="PT${segmentDuration}S" suggestedPresentationDelay="PT${segmentDuration}S" availabilityStartTime="${availabilityStartTime}" publishTime="${new Date().toISOString()}"`)
             .replace(` mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S"`, ""),
-          ...manifestHeader.slice(2)
+          ...manifestHeader.slice(2, -1).filter(line => !line.startsWith("<ServiceDescription")),
+          `<ServiceDescription id="0">${writePrft && targetLatency && referenceId >= 0 ? `<Latency target="${Math.trunc(targetLatency * 1000)}"${doc.tracks.length > 1 ? ` referenceId="${referenceId}"` : ""}/>` : ""}${playbackRate}</ServiceDescription>`,
+          manifestHeader.at(-1)!
         ];
         for (const adaptation of adaptations) {
           live.push(adaptationHeaders.get(adaptation.id)!);
-          for (const index of adaptation.indices) live.push(...publicationTracks[index]!.render(counts[index]!));
+          for (const index of adaptation.indices) {
+            const representation = publicationTracks[index]!.render(counts[index]!);
+            live.push(representation[0]!,
+              ...(producerTimes[index] ? [`<ProducerReferenceTime id="${index}" inband="true" type="captured" wallClockTime="${producerTimes[index]}" presentationTime="${doc.tracks[index]!.samples[0]!.pts}">${utcTiming}</ProducerReferenceTime>`] : []),
+              ...representation.slice(1));
+          }
           live.push('</AdaptationSet>');
         }
         live.push(...lines.slice(periodEnd));

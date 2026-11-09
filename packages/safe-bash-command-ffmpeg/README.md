@@ -546,6 +546,7 @@ preserving surviving packet timestamps; missing initialization files and other r
 `.mpd`) selects WebM for VP9 (`video/webm`, `init-stream*.webm`, and `chunk-stream*.webm`); H.264 retains MP4 with `init-stream*.m4s` and `chunk-stream*.m4s` files
 beside it. It publishes a dynamic manifest after completed segments become available, then finalizes a static manifest at EOF. Use `-init_seg_name 'i-$RepresentationID$.mp4'` and
 `-media_seg_name 'm-$RepresentationID$-$Number$.m4s'` to customize the names; `$ext$` expands to the selected container extension.
+Use `-target_latency 1.5 -ldash 1 -utc_timing_url URL` to advertise a 1500 ms target in the intermediate live MPD. The final static MPD omits latency; streaming producer reference time and a UTC timing URL are required.
 Use `-mpd_profile dvb_dash` to declare the DVB DASH profile, or `-mpd_profile dash+dvb_dash` for both DVB and the default ISO live profile.
 MP4 media chunks include a local `sidx` index covering their fragments. Use `-streaming 1` to omit indexes and write one fragment per frame (`0` is the default).
 Use `-ldash 1` to enable per-frame streaming and low-latency GOP-based buffering without changing segment boundaries; `-ldash 0` is the default. `-streaming 1` alone retains standard buffer timing.

@@ -768,6 +768,8 @@ export interface SerializeMediaOptions {
   readonly writePrft?: boolean | undefined;
   /** DASH presentation profiles: dash (default), dvb_dash, or dash+dvb_dash. */
   readonly mpdProfile?: string | undefined;
+  /** DASH target latency in seconds; only advertised with streaming producer reference time. */
+  readonly targetLatency?: number | undefined;
   /** Use DASH SegmentTemplate (default: true); false emits explicit SegmentList references. */
   readonly useTemplate?: boolean | undefined;
   /** Use DASH SegmentTimeline (default: true); false uses fixed-duration templates. */

@@ -2686,6 +2686,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   const custom = new Map<string, string>();
   const keySpellings: Record<string, string> = {};
   const chapters: Mp4Chapter[] = [];
+  const tracks: MediaTrack[] = [];
 
   let section: "global" | "chapter" | "other" = "global";
   let tbNum = 1;
@@ -2737,6 +2738,17 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     if (line === "[STREAM]") {
       flushChapter();
       section = "other";
+      tracks.push({
+        id: tracks.length,
+        type: "data",
+        handlerType: "meta",
+        timescale: 1_000_000,
+        duration: 0,
+        language: "und",
+        enabled: false,
+        codecDescriptions: [{ formatFourCC: "\0\0\0\0", codecName: "" }],
+        samples: []
+      });
       continue;
     }
     const eq = rawLine.indexOf("=");
@@ -2792,7 +2804,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     timescale: 1000,
     duration: Math.round((chapters[chapters.length - 1]?.endTimeSeconds ?? 0) * 1000),
     durationSeconds: chapters[chapters.length - 1]?.endTimeSeconds ?? 0,
-    tracks: [],
+    tracks,
     metadata: {
       ...(Object.keys(keySpellings).length > 0 ? { keySpellings } : {}),
       title: tags.title,

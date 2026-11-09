@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { parseFfmetadata, serializeFfmetadata } from "./index.js";
+import { ffmetadataAst, parseFfmetadata, serializeFfmetadata } from "./index.js";
 
 it("keeps stream tags out of global FFmetadata on export", () => {
   const document = parseFfmetadata(new TextEncoder().encode(
@@ -23,3 +23,16 @@ it("keeps chapters separate from streams before and after them", () => {
   assert.equal(document.chapters?.[0]?.title, "Chapter");
   assert.equal(document.chapters?.[0]?.endTimeSeconds, 1);
 });
+
+for (const count of [0, 1, 2]) {
+  it(`exposes ${count} empty FFmetadata stream sections as data tracks`, () => {
+    const bytes = new TextEncoder().encode(";FFMETADATA1\n" + "[STREAM]\n".repeat(count));
+    const document = parseFfmetadata(bytes);
+    assert.deepEqual(document.tracks.map(track => track.type), Array(count).fill("data"));
+    const probe = ffmetadataAst().probe!(bytes, {});
+    assert.deepEqual(probe.streams.map(({ index, codec_type }) => ({ index, codec_type })),
+      Array.from({ length: count }, (_, index) => ({ index, codec_type: "data" })));
+    assert.equal(probe.format.nb_streams, count);
+    assert.ok(probe.streams.every(stream => stream.codec_name === undefined));
+  });
+}

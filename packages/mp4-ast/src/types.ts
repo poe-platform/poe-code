@@ -393,7 +393,7 @@ export interface MediaTrack {
   readonly width?: number | undefined;
   readonly height?: number | undefined;
   readonly rotation?: number | undefined; // Clockwise degrees; signed and fractional values are supported
-  readonly matrix?: readonly number[] | undefined; // 9-element 3x3 display matrix
+  readonly matrix?: readonly number[] | undefined; // Effective 3x3 display matrix, including the MP4 movie transform
   readonly volume?: number | undefined; // 0.0 .. 1.0
   readonly codecDescriptions: readonly MediaCodecDescription[];
   readonly editList?: readonly Mp4EditListEntry[] | undefined;

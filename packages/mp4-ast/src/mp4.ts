@@ -1,3 +1,4 @@
+import { composeDisplayMatrices } from "./display-matrix.js";
 import { encodeAlacTrack } from "./alac.js";
 import { decodeAlac } from "./alac-decoder.js";
 import { decodeMovText, encodeMovText } from "./mov-text.js";
@@ -354,6 +355,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
   let movieDuration = 0;
   let creationTime = 0;
   let modificationTime = 0;
+  let movieMatrix = IDENTITY_MATRIX;
 
   if (mvhdBox && mvhdBox.payload.byteLength >= 20) {
     const mReader = new BinaryReader(mvhdBox.payload);
@@ -369,6 +371,10 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       modificationTime = mReader.readU32BE();
       movieTimescale = mReader.readU32BE() || 1000;
       movieDuration = mReader.readU32BE();
+    }
+    if (mReader.remaining >= 52) {
+      mReader.skip(16); // rate, volume and reserved
+      movieMatrix = Array.from({ length: 9 }, () => mReader.readI32BE());
     }
   }
 
@@ -420,7 +426,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
     let volume = 1.0;
     let width: number | undefined;
     let height: number | undefined;
-    const matrix: number[] = [];
+    let matrix = movieMatrix;
 
     if (tkhd && tkhd.payload.byteLength >= 24) {
       const tReader = new BinaryReader(tkhd.payload);
@@ -442,9 +448,8 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       tReader.skip(2 + 2); // layer + alternateGroup
       volume = tReader.readFixed8_8();
       tReader.skip(2); // reserved
-      for (let m = 0; m < 9; m++) {
-        matrix.push(tReader.readI32BE());
-      }
+      const trackMatrix = Array.from({ length: 9 }, () => tReader.readI32BE());
+      matrix = composeDisplayMatrices(trackMatrix, movieMatrix);
       const w = Math.round(tReader.readFixed16_16());
       const h = Math.round(tReader.readFixed16_16());
       if (w > 0) width = w;

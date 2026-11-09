@@ -1,9 +1,10 @@
+import { composeDisplayMatrices } from "./display-matrix.js";
 import { h264FieldOrderSteps } from './h264-field-order.js';
 import { buildProbeStream, type ProbeSampleStats } from './probe-stream.js';
 import { mp4SourceText, probeMp4MetadataSource } from './mp4-metadata-source.js';
 import { scanMp4CodecDescriptions } from './mp4-codec-source.js';
 import { probeSampleFormat, type Mp4CodecMetadata } from './mp4-codec-metadata.js';
-import { BinaryReader, rotationFromMatrix, unpackIsoLanguage } from './binary.js';
+import { BinaryReader, IDENTITY_MATRIX, rotationFromMatrix, unpackIsoLanguage } from './binary.js';
 import { scanMp4Boxes, type Mp4BoxSpan } from './mp4-source.js';
 import { scanMp4Fragment, type Mp4FragmentDefaults } from './mp4-fragment-source.js';
 import { consumeMp4SampleSteps, readMp4SampleRange, scanMp4SampleTable, type Mp4SampleScanOptions, type Mp4SampleSpan, type Mp4SampleSteps, type Mp4SampleTables } from './mp4-sample-source.js';
@@ -70,11 +71,16 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
   let moov: Mp4BoxSpan | undefined, fragmented = false;
   for await (const box of scanMp4Boxes(source, work)) { if (box.type === 'moov' && !moov) moov = box; if (box.type === 'moof') fragmented = true; }
   if (!moov) throw new Error("Invalid MP4/ISOBMFF file: missing 'moov' atom");
-  const mvhd = await first(moov, 'mvhd'), movie = await read(mvhd, 32);
+  const mvhd = await first(moov, 'mvhd'), movie = await read(mvhd, withCodec ? 84 : 32);
   let movieTimescale = 1000, movieDuration = 0;
+  let movieMatrix = IDENTITY_MATRIX;
   if ((mvhd?.payloadSize ?? 0) >= 20) {
     const version = movie.readU8(); movie.skip(3 + (version === 1 ? 16 : 8));
     movieTimescale = movie.readU32BE() || 1000; movieDuration = version === 1 ? movie.readU64BE() : movie.readU32BE();
+    if (withCodec && movie.remaining >= 52) {
+      movie.skip(16);
+      movieMatrix = Array.from({ length: 9 }, () => movie.readI32BE());
+    }
   }
   const mvex = await first(moov, 'mvex');
   let trackIndex = 0, maxDuration = movieDuration / Math.max(1, movieTimescale), formatStart = Infinity, formatEnd = -Infinity;
@@ -82,12 +88,12 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     if (trak.type !== 'trak') continue;
     const index = trackIndex++; budget.checkStreams(trackIndex);
     const tkhd = await first(trak, 'tkhd'), header = await read(tkhd, withCodec ? 96 : 36);
-    let matrix: number[] | undefined;
+    let matrix = movieMatrix;
     let id = index + 1, headerDuration = 0, width: number | undefined, height: number | undefined, enabled = true, rotation = 0;
     if ((tkhd?.payloadSize ?? 0) >= 24) {
       const version = header.readU8(); enabled = (header.readU24BE() & 1) !== 0; header.skip(version === 1 ? 16 : 8);
       id = header.readU32BE(); header.skip(4); headerDuration = version === 1 ? header.readU64BE() : header.readU32BE();
-      if (withCodec) { header.skip(16); matrix = Array.from({ length: 9 }, () => header.readI32BE()); rotation = rotationFromMatrix(matrix); const w = Math.round(header.readFixed16_16()), h = Math.round(header.readFixed16_16()); if (w > 0) width = w; if (h > 0) height = h; }
+      if (withCodec) { header.skip(16); matrix = composeDisplayMatrices(Array.from({ length: 9 }, () => header.readI32BE()), movieMatrix); rotation = rotationFromMatrix(matrix); const w = Math.round(header.readFixed16_16()), h = Math.round(header.readFixed16_16()); if (w > 0) width = w; if (h > 0) height = h; }
     }
     const mdia = await first(trak, 'mdia'), mdhd = await first(mdia, 'mdhd'), media = await read(mdhd, 34);
     let timescale = movieTimescale, declaredDuration = 0, language = 'und';

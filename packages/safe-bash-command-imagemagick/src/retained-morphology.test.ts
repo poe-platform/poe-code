@@ -40,7 +40,7 @@ it("preserves original morphology pixel vectors", async () => {
         "0e4b82f79d07cd3a77e81b38102362519ac905192bf62e78a73d845d13c27498",
         "603a6aa8e4cefa823a0f315557fc47fe0206348e386271a03bf304850def1c35",
         "4f444da8e253d27f00c0b9eecef35b86fc4de2bdc7c21f6c10d4a7c449ad6e1e",
-        "83e7e62459e7f7c8f9e118eebf6f055725a8c69cf5e23ebe03115a83cc569d4e",
+        "efb7ebcc125449f5a57f3e5ade22a07e0859fb58afbfa8654dca9b2b0cd41b28",
         "143c9c20d63f066331cf97b485262f5e59945fda884f9ea5f25e8fa2716bf0b0",
       ]
     `);

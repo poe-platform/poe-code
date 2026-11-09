@@ -780,7 +780,7 @@ function explicitMorphologyRows(spec: string, match?: 0 | 1): number[][] | undef
   return rows;
 }
 
-function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: MorphologyRow[]; backgroundRows?: MorphologyRow[]; dilateRows?: MorphologyRow[]; steps: MorphologyStep[]; iterations: number } {
+function magickMorphologyPlan(methodRaw: string, kernelSpec: string, statistic = false): { rows: MorphologyRow[]; backgroundRows?: MorphologyRow[]; dilateRows?: MorphologyRow[]; steps: MorphologyStep[]; iterations: number } {
   const { method, iterations } = parseMagickMorphologyMethod(methodRaw);
   if (method === "distance") {
     const scale = manhattanDistanceScale(kernelSpec);
@@ -840,7 +840,7 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: Mo
     rx = Math.max(...radii.slice(0, 2));
     ry = Math.floor(rx);
   }
-  const rows: MorphologyRow[] = Array.from({ length: ry * 2 + 1 }, (_, row) => {
+  const rows: MorphologyRow[] = statistic ? magickMedianRows(kernelSpec) : Array.from({ length: ry * 2 + 1 }, (_, row) => {
     const dy = Math.abs(row - ry);
     if (shape === "ring") {
       const outer = Math.floor(Math.sqrt(rx * rx - dy * dy));
@@ -874,6 +874,7 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string): { rows: Mo
     case "dilate": case "maximum": steps = [filter(0, "max")]; break;
     default: throw new Error(`unrecognized function '${methodRaw}'`);
   }
+  if (statistic) return { rows, steps, iterations };
   const explicit = explicitMorphologyRows(kernelSpec);
   if (explicit) return { rows: explicit, dilateRows: explicit.slice().reverse().map(row =>
     row.map(offset => -offset)), steps, iterations };
@@ -890,8 +891,8 @@ function* subtractMagickPixelSteps(a: Uint8Array, b: Uint8Array, hasAlpha: boole
     }
     return result;
 }
-function* applyMagickMorphology4ChSteps(img: RgbaImage, methodRaw: string, kernelSpec: string, signal?: AbortSignal, channels?: readonly boolean[], virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Generator<void, RgbaImage, void> {
-    const plan = magickMorphologyPlan(methodRaw, kernelSpec), images = [img];
+function* applyMagickMorphology4ChSteps(img: RgbaImage, plan: ReturnType<typeof magickMorphologyPlan>, signal?: AbortSignal, channels?: readonly boolean[], virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Generator<void, RgbaImage, void> {
+    const images = [img];
     if (plan.iterations === 0) return img;
     for (const step of plan.steps) {
         if ("kernels" in step) {
@@ -8320,7 +8321,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             else {
                 stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                    return (yield* applyMagickMorphology4ChSteps(im, method, kernelSpec, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined));
+                    return (yield* applyMagickMorphology4ChSteps(im, magickMorphologyPlan(method, kernelSpec), signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined));
                 });
             }
         }
@@ -8329,8 +8330,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             validateMagickStatistic(statType);
             const geom = tokens[++i] ?? "3x3";
             validateMagickStatisticGeometry(geom);
+            const plan = magickMorphologyPlan(statType, geom, true);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickMorphology4ChSteps(im, statType, geom, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background));
+                return (yield* applyMagickMorphology4ChSteps(im, plan, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background));
             });
         }
         else if (t === "-channel-fx") {
@@ -10043,7 +10045,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return image;
                 });
             } else {
-                const plan = magickMorphologyPlan(method, spec);
+                const plan = magickMorphologyPlan(method, spec, token === "-statistic");
                 const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
                 const virtualPixel = token === "-statistic" ? state.virtualPixel : undefined, background = state.background;
                 steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal, channels, virtualPixel, background) : undefined);

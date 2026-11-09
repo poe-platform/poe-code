@@ -1365,8 +1365,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const track = await headphoneAudio(sources.map(source => source.track), filters[0]!, budget, signal);
         return { track, expression: filters.slice(1).join(",") || "anull" };
       }
-      if (filters[0] === "amultiply" || filters[0]?.startsWith("amultiply=")) {
-        if (filters[0] !== "amultiply") throw new Error("amultiply does not accept options");
+      if (filters[0] === "amultiply" || filters[0]?.startsWith("amultiply=") || filters[0]?.startsWith("amultiply@")) {
+        if (filters[0].includes("=")) throw new Error("amultiply does not accept options");
         if (sources.length !== 2) throw new Error("amultiply requires two inputs");
         if (sources.some(source => source.expression && source.expression !== "anull")) {
           throw new Error("amultiply does not support preceding single-input filters");

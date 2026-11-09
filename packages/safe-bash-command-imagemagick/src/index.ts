@@ -6374,8 +6374,26 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else if (token === "-alpha") {
         const mode = (tokens[++i] ?? "on").toLowerCase();
-        highDepth = ["deactivate", "associate", "disassociate", "off", "opaque", "activate", "on", "set", "extract"].includes(mode);
-        if (mode === "remove") {
+        if (mode === "discrete") {
+            highDepth = true;
+            apply = function* (im) {
+                yield;
+                return { ...im, hasAlpha: false };
+            };
+        }
+        else if (mode === "offifopaque") {
+            highDepth = true;
+            apply = function* (im) {
+                if (!im.hasAlpha) return im;
+                const samples = im.data16 ?? im.data, maximum = im.data16 ? 65535 : 255;
+                for (let index = 3; index < samples.length; index += 4) {
+                    if (index % 65536 === 3) { signal?.throwIfAborted(); yield; }
+                    if (samples[index] !== maximum) return im;
+                }
+                return { ...im, hasAlpha: false };
+            };
+        }
+        else if (mode === "remove") {
             highDepth = true;
             apply = function* (im) {
                 const out = new Uint8Array(im.data.length);
@@ -6402,25 +6420,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         else if (mode === "associate" || mode === "disassociate") {
             apply = function* (im) {
                 const out = new Uint8Array(im.data);
-                const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (idx % 65536 === 0) yield;
-                    const alpha = im.hasAlpha ? (data16 ? data16[idx + 3]! / 65535 : out[idx + 3]! / 255) : 1;
+                    const alpha = im.hasAlpha ? out[idx + 3]! / 255 : 1;
                     const scale = mode === "associate" ? alpha : 1 / Math.max(alpha, 1e-12);
-                    for (let channel = 0; channel < 3; channel++) {
-                        if (data16) {
-                            data16[idx + channel] = Math.min(65535, Math.round(data16[idx + channel]! * scale));
-                            out[idx + channel] = clampByteVal(data16[idx + channel]! / 257);
-                        } else out[idx + channel] = clampByteVal(out[idx + channel]! * scale);
-                    }
+                    for (let channel = 0; channel < 3; channel++)
+                        out[idx + channel] = clampByteVal(out[idx + channel]! * scale);
+                    out[idx + 3] = 255;
                 }
-                return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: false };
-            };
-        }
-        else if (mode === "deactivate") {
-            apply = function* (im) {
-                yield;
-                return { ...im, hasAlpha: false };
+                const { data16: ignored, ...metadata } = im;
+                return { ...metadata, data: out, hasAlpha: false };
             };
         }
         else if (mode === "background") {
@@ -6439,16 +6448,17 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 return { ...im, data: out };
             };
         }
-        else if (mode === "off" || mode === "opaque") {
+        else if (mode === "off" || mode === "deactivate" || mode === "opaque") {
+            highDepth = true;
             apply = function* (im) {
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);
-                const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
+                const data16 = im.data16?.slice();
                 for (let idx = 3; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
-                    out[idx] = mode === "off" ? 0 : 255;
-                    if (data16) data16[idx] = mode === "off" ? 0 : 65535;
+                    out[idx] = 255;
+                    if (data16) data16[idx] = 65535;
                 }
                 return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: mode === "opaque" };
             };
@@ -6484,6 +6494,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else if (mode === "activate") {
+            highDepth = true;
             apply = function* (im) {
                 yield;
                 return { ...im, hasAlpha: true, channels: im.channels <= 2 ? 2 : 4 };
@@ -6491,12 +6502,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         else if (mode === "on" || mode === "set") {
             apply = function* (im) {
-                if (im.hasAlpha) return im;
-                const opaque = yield* prepareInactiveAlphaOutput(im);
-                return { ...opaque, hasAlpha: true, channels: im.channels <= 2 ? 2 : 4 };
+                return (yield* ensureAlphaImageSteps(im, 1));
             };
         }
         else if (mode === "extract") {
+            highDepth = true;
             apply = function* (im) {
                 return yield* extractChannelImageSteps({ ...im, hasAlpha: true }, 3);
             };
@@ -9596,6 +9606,25 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 return transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-solarize", expanded], settings, 0, signal)!, signal);
+            });
+            continue;
+        }
+        if (!operandsOnly && token === "-alpha" && tokens[i + 1]?.toLowerCase() === "offifopaque") {
+            i++;
+            steps.push(async (image, backend) => {
+                if (!image?.hasAlpha) return image;
+                const position = image.storedData16?.position ?? image.position;
+                const size = image.width * image.height * (image.storedData16 ? 8 : 4);
+                for (let offset = 0; offset < size; offset += 16384) {
+                    await yieldTurn(signal);
+                    const bytes = await backend.storage.read(position + offset, Math.min(16384, size - offset));
+                    const samples = image.storedData16 ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes;
+                    const maximum = image.storedData16 ? 65535 : 255;
+                    for (let index = 3; index < samples.length; index += 4) {
+                        if (samples[index] !== maximum) return image;
+                    }
+                }
+                return { ...image, hasAlpha: false };
             });
             continue;
         }

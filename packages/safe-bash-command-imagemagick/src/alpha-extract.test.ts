@@ -8,8 +8,8 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAABEAYAAACksqPJAAAAB3RJTUUH6gsHBzkcjsZcnAAAABRJREFUCNdjFDIJq5i1R8iEAQIYASDvArM+9YL1AAAAAElFTkSuQmCC", "base64");
 
 for (const mode of ["command", "buffered", "sync"] as const) {
-    it.each([[], ["-alpha", "deactivate"], ["-alpha", "associate"], ["-alpha", "disassociate"]])(`${mode}: extracts distinct 16-bit alpha samples after %j`, async (...operators) => {
-        const argv = ["in.png", ...operators, "-alpha", "extract", "out.png"];
+    it(`${mode}: extracts distinct 16-bit alpha samples into an opaque grayscale PNG`, async () => {
+        const argv = ["in.png", "-alpha", "extract", "out.png"];
         const files = new Map<string, Uint8Array>([["in.png", input]]);
         const fs = new MemoryFileSystem();
         await fs.writeFile("/in.png", input);

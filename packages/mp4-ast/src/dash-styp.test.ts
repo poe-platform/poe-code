@@ -18,7 +18,7 @@ for (const fragmentType of ["none", "every_frame"] as const) {
       let sequence = 0;
       for (const bytes of segments) {
         const boxes = parseMp4Boxes(bytes);
-        assert.deepEqual(boxes.slice(0, 2).map(box => [box.type, box.offset]), [["styp", 0], ["moof", 24]]);
+        assert.deepEqual(boxes.slice(0, 2).map(box => [box.type, box.offset]), [["styp", 0], ["sidx", 24]]);
         assert.equal(boxes.filter(box => box.type === "styp").length, 1);
         // Native FFmpeg: size 24, major brand msdh, minor version 0, brands msdh/msix.
         assert.equal(Buffer.from(bytes.subarray(0, 24)).toString("hex"), "00000018737479706d736468000000006d7364686d736978");

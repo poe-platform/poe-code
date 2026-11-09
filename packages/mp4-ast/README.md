@@ -62,7 +62,8 @@ relative to the containing playlist.
 Set `useTemplate: false` to emit explicit `SegmentList` resource references instead of the default `SegmentTemplate`.
 Set `useTimeline: false` for fixed-duration `SegmentTemplate` output without a timeline.
 Set `hlsPlaylist: true` to also return `master.m3u8` and per-stream `media_N.m3u8` playlists referencing the same DASH fragments (including single-file byte ranges).
-Separate DASH media files start with an `styp` box carrying the `msdh`/`msix` brands.
+VP9 DASH uses WebM initialization and Cluster segments with `.webm` names; H.264 retains fragmented MP4.
+Separate MP4 DASH media files start with an `styp` box carrying the `msdh`/`msix` brands.
 MP4 media segments contain a local `sidx` index covering their fragments. Set `streaming: true` to omit indexes and write one fragment per frame.
 Use `fragmentType: "every_frame"` to place one fragment per frame inside each segment, independently of `segmentDuration`; the default (`"none"`) writes one fragment per segment.
 Set `mpdProfile: "dvb_dash"` to declare the DVB DASH profile, or `"dash+dvb_dash"` for both DVB and the default ISO live profile.
@@ -74,8 +75,8 @@ Audio timelines exclude encoder priming while retaining every packet and the ini
 Write the manifest and each `resources` entry beside it; the output contains one
 initialization file and media fragments per audio/video track. Set
 `initSegmentName` and `mediaSegmentName` to customize resource names with DASH
-tokens such as `$RepresentationID$` and `$Number%05d$`.
-Set `singleFile: true` to write one indexed MP4 per representation with inclusive initialization, media, and index byte ranges; `singleFileName` customizes its name template.
+tokens such as `$RepresentationID$`, `$Number%05d$`, and `$ext$` (the selected container extension).
+Set `singleFile: true` to write one WebM or indexed MP4 per representation with inclusive initialization and media byte ranges (plus index ranges for MP4); `singleFileName` customizes its name template.
 `adaptationSets: "id=0,streams=a id=1,streams=v"` controls set IDs and membership;
 stream selectors accept audio/video types or comma-separated output stream indices.
 `dashAst().serialize(doc)` returns only the manifest bytes.

@@ -3,6 +3,8 @@ import { vp9CodecString } from "../vp9.js";
 import { parseXml, type XmlElement } from "@poe-code/xml-ast";
 import { concatBytes, decodeUtf8, encodeUtf8, gcd, makeBox } from "../binary.js";
 import { buildProbeResultFromDoc, concatMp4, muxMp4, parseMp4, parseMp4Boxes, serializeMp4 } from "../mp4.js";
+import { isMkvSignature, parseMkv, serializeMkv } from "./mkv.js";
+import { readVint } from "./ebml.js";
 import { parseMpegTs } from "./mpegts.js";
 import { isAdtsSignature, parseAacAdts } from "./adapters.js";
 import { MediaBudgetTracker, type MediaDocument, type ParseMediaOptions, type SerializeMediaOptions } from "../types.js";
@@ -318,7 +320,10 @@ export function parseStreamingDocument(bytes: Uint8Array, format: "hls" | "dash"
     let currentInit: string | undefined;
     let currentInitRange: StreamingByteRange | undefined;
     const flush = () => {
-      if (fragments.length) segments.push(parseMp4(concatBytes(fragments), options));
+      if (fragments.length) {
+        const bytes = concatBytes(fragments);
+        segments.push(isMkvSignature(bytes) ? parseMkv(bytes, options) : parseMp4(bytes, options));
+      }
       fragments = [];
     };
     for (const segment of sequence) {
@@ -419,10 +424,6 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   if (assigned.size !== doc.tracks.length) throw new Error("DASH adaptation_sets must assign every stream");
   const representations: string[][] = [];
   const adaptationAttributes: string[] = [];
-  const initName = options.initSegmentName ?? "init-stream$RepresentationID$.m4s";
-  const mediaName = options.mediaSegmentName ?? "chunk-stream$RepresentationID$-$Number%05d$.m4s";
-  const [initAttribute, mediaAttribute] = [initName, mediaName].map(name =>
-    name.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
   const windowSize = options.windowSize ?? 0;
   if (!Number.isInteger(windowSize) || windowSize < 0 || windowSize > 2_147_483_647) throw new Error("Invalid DASH window size");
   const segmentDuration = options.segmentDuration ?? 5;
@@ -438,6 +439,23 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   for (let index = 0; index < doc.tracks.length; index++) {
     const track = doc.tracks[index]!;
     if (track.type !== "video" && track.type !== "audio") throw new Error("DASH output supports video and audio tracks");
+    const webm = track.codecDescriptions[0]?.codecName === "vp9";
+    const extension = webm ? "webm" : "m4s";
+    const initName = (options.initSegmentName ?? "init-stream$RepresentationID$.$ext$").replaceAll("$ext$", extension);
+    const mediaName = (options.mediaSegmentName ?? "chunk-stream$RepresentationID$-$Number%05d$.$ext$").replaceAll("$ext$", extension);
+    const singleFileName = (options.singleFileName ?? "stream$RepresentationID$.$ext$").replaceAll("$ext$", webm ? "webm" : "mp4");
+    const [initAttribute, mediaAttribute] = [initName, mediaName].map(name =>
+      name.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
+    if (options.lowLatency) {
+      let duration = 0;
+      for (const [sampleIndex, sample] of track.samples.entries()) {
+        if (sampleIndex > 0 && sample.isKeyframe) {
+          maxGopDuration = Math.max(maxGopDuration, duration / track.timescale);
+          break;
+        }
+        duration += sample.duration;
+      }
+    }
     const starts = [0];
     const origin = track.samples[0]?.dts ?? 0;
     // Audio edits skip encoder priming on the presentation timeline, not in the fragments.
@@ -458,7 +476,32 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       const fragments: Uint8Array[] = [];
       const fragmentSize = options.streaming || options.fragmentType === "every_frame" ? 1 : Math.max(1, samples.length);
       let mediaBytes = 0;
-      for (let start = 0; start < Math.max(1, samples.length); start += fragmentSize) {
+      if (webm) {
+        const bytes = serializeMkv({ ...doc, tracks: [{ ...track, samples }] }, { ...options, webm: true });
+        // Keep one EBML header and an open-ended Segment, followed by media-only Clusters.
+        let offset = 0;
+        let segmentSizeOffset = 0;
+        let segmentSizeLength = 0;
+        while (offset < bytes.length) {
+          budget.checkCpu();
+          const id = readVint(bytes, offset, false)!;
+          const size = readVint(bytes, offset + id.length, true)!;
+          if (id.value === 0x1f43b675) break;
+          if (id.value === 0x18538067) {
+            segmentSizeOffset = offset + id.length;
+            segmentSizeLength = size.length;
+            offset += id.length + size.length;
+          } else offset += id.length + size.length + size.value;
+        }
+        if (segment === 0) {
+          initialization = bytes.slice(0, offset);
+          initialization.fill(0xff, segmentSizeOffset, segmentSizeOffset + segmentSizeLength);
+          initialization[segmentSizeOffset] = 2 ** (9 - segmentSizeLength) - 1;
+          trackBytes += initialization.length;
+          totalBytes += initialization.length;
+        }
+        fragments.push(bytes.subarray(offset));
+      } else for (let start = 0; start < Math.max(1, samples.length); start += fragmentSize) {
         const bytes = serializeMp4({ ...doc, tracks: [{ ...track, samples: samples.slice(start, start + fragmentSize) }] }, { ...options, budget, fragmented: true, skipTrailer: true });
         const moof = parseMp4Boxes(bytes, 0, 0, budget).find(b => b.type === "moof");
         if (!moof) throw new Error("DASH output requires fragmented MP4 samples");
@@ -475,7 +518,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         fragments.push(fragment);
       }
       let media = concatBytes(fragments);
-      if (!options.streaming) {
+      if (!options.streaming && !webm) {
         // Version 1 sidx: one reference to all fragments in this media segment.
         const indexBytes = new Uint8Array(52);
         const view = new DataView(indexBytes.buffer);
@@ -492,7 +535,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         view.setUint32(48, samples[0]?.isKeyframe ? 0x90000000 : 0);
         media = concatBytes([indexBytes, media]);
       }
-      if (!options.singleFile) media = concatBytes([makeBox("styp", encodeUtf8("msdh\0\0\0\0msdhmsix")), media]);
+      if (!options.singleFile && !webm) media = concatBytes([makeBox("styp", encodeUtf8("msdh\0\0\0\0msdhmsix")), media]);
       trackBytes += media.length;
       totalBytes += media.length;
       budget.checkOutputBytes(totalBytes);
@@ -521,14 +564,14 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     const segmentTimeline = `<SegmentTimeline>${timeline.map(s => `<S t="${s.time}" d="${s.duration}"${s.repeat ? ` r="${s.repeat}"` : ""}/>`).join("")}</SegmentTimeline>`;
     let singleFileList = "";
     if (options.singleFile) {
-      const uri = templateUri(options.singleFileName ?? "stream$RepresentationID$.mp4", String(index), 0, 0, bandwidth);
+      const uri = templateUri(singleFileName, String(index), 0, 0, bandwidth);
       let offset = initialization.length;
       singleFileList = segments.map((segment, index) => {
         const start = offset;
         offset += segment.bytes.length;
         if (index < firstSegment) return "";
-        const indexSize = new DataView(segment.bytes.buffer, segment.bytes.byteOffset, segment.bytes.byteLength).getUint32(0);
-        return `<SegmentURL mediaRange="${start}-${offset - 1}"${options.streaming ? "" : ` indexRange="${start}-${start + indexSize - 1}"`}/>`;
+        const indexSize = webm || options.streaming ? 0 : new DataView(segment.bytes.buffer, segment.bytes.byteOffset, segment.bytes.byteLength).getUint32(0);
+        return `<SegmentURL mediaRange="${start}-${offset - 1}"${indexSize ? ` indexRange="${start}-${start + indexSize - 1}"` : ""}/>`;
       }).join("");
       resources.set(uri, concatBytes([initialization, ...segments.map(s => s.bytes)]));
       singleFileList = `<BaseURL>${uri.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</BaseURL><SegmentList timescale="${track.timescale}"><Initialization range="0-${initialization.length - 1}"/>${segmentTimeline}${singleFileList}</SegmentList>`;
@@ -548,7 +591,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     hlsStreams.push({ codec, bandwidth: Number(bandwidth) });
     if (options.hlsPlaylist) {
       const uri = options.singleFile
-        ? templateUri(options.singleFileName ?? "stream$RepresentationID$.mp4", String(index), 0, 0, bandwidth)
+        ? templateUri(singleFileName, String(index), 0, 0, bandwidth)
         : initializationUri;
       const playlist = [
         "#EXTM3U",
@@ -597,7 +640,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
       ? ` lang="${track.language.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}"` : "";
     adaptationAttributes[index] = `contentType="${track.type}" segmentAlignment="true"${language}${videoAttributes}`;
     representations[index] = [
-      `<Representation id="${index}" mimeType="${track.type}/mp4" codecs="${codec}" bandwidth="${bandwidth}"${dimensions}>`,
+      `<Representation id="${index}" mimeType="${track.type}/${webm ? "webm" : "mp4"}" codecs="${codec}" bandwidth="${bandwidth}"${dimensions}>`,
       ...(track.type === "audio" && description?.channels ? [
         `<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="${description.channels}"/>`
       ] : []),

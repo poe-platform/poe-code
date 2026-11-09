@@ -543,9 +543,9 @@ Both commands resolve local HLS and static DASH segment files from the virtual
 filesystem, including fMP4 initialization files, and report the actual media
 streams. HLS skips local media segments with disallowed file extensions before reading them; disallowed initialization files fail. Put `-allowed_extensions mp4,m4s,txt` before `-i` to replace the default media extension list for that input, or use `ALL` to allow any extension. Missing DASH media fragments are skipped when initialization is available,
 preserving surviving packet timestamps; missing initialization files and other read errors fail the command. DASH output (`-f dash` or
-`.mpd`) writes the manifest plus `init-stream*.m4s` and `chunk-stream*.m4s` files
+`.mpd`) selects WebM for VP9 (`video/webm`, `init-stream*.webm`, and `chunk-stream*.webm`); H.264 retains MP4 with `init-stream*.m4s` and `chunk-stream*.m4s` files
 beside it. Use `-init_seg_name 'i-$RepresentationID$.mp4'` and
-`-media_seg_name 'm-$RepresentationID$-$Number$.m4s'` to customize the names.
+`-media_seg_name 'm-$RepresentationID$-$Number$.m4s'` to customize the names; `$ext$` expands to the selected container extension.
 Use `-mpd_profile dvb_dash` to declare the DVB DASH profile, or `-mpd_profile dash+dvb_dash` for both DVB and the default ISO live profile.
 MP4 media chunks include a local `sidx` index covering their fragments. Use `-streaming 1` to omit indexes and write one fragment per frame (`0` is the default).
 Use `-frag_type every_frame` for one fragment per frame inside each media segment, keeping `-seg_duration` unchanged; `none` (default) writes one fragment per segment.
@@ -553,7 +553,7 @@ Use `-use_template 0` for explicit `SegmentList` output; the default (`1`) retai
 Use `-use_timeline 0` for fixed-duration templates without a timeline (`-seg_duration` defaults to 5 seconds); `1` retains the default timeline.
 Use `-remove_at_exit 1` to delete the generated manifest and media files when output finishes; the default (`0`) preserves them.
 Use `-window_size N` to retain the last N segments per representation in timelines and lists, with their original segment numbers; `0` (default) retains all. Fixed-duration templates keep their full presentation.
-Use `-single_file 1` to write `<manifest>-stream<N>.mp4` per representation and a `SegmentList` with initialization, media, and index byte ranges.
+Use `-single_file 1` to write `<manifest>-stream<N>.webm` for VP9 or `<manifest>-stream<N>.mp4` for MP4 per representation and a `SegmentList` with initialization, media, and index byte ranges.
 `-adaptation_sets "id=0,streams=a id=1,streams=v"` groups output streams into explicit
 adaptation sets. Select streams by `a`, `v`, or comma-separated output stream indices;
 each stream must belong to exactly one set of the same media type.

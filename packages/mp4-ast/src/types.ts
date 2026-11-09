@@ -752,9 +752,9 @@ export interface SerializeMediaOptions {
   readonly fragmentType?: "none" | "every_frame" | undefined;
   /** DASH: write per-frame fragments without local segment indexes. */
   readonly streaming?: boolean | undefined;
-  /** DASH: combine each representation into one indexed MP4 resource. */
+  /** DASH: combine each representation into one WebM or indexed MP4 resource. */
   readonly singleFile?: boolean | undefined;
-  /** DASH single-file resource template; defaults to stream$RepresentationID$.mp4. */
+  /** DASH single-file resource template; defaults to stream$RepresentationID$.$ext$. */
   readonly singleFileName?: string | undefined;
   /** DASH presentation profiles: dash (default), dvb_dash, or dash+dvb_dash. */
   readonly mpdProfile?: string | undefined;

@@ -21,7 +21,7 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
             stdout: { write: async () => {} }, stderr: { write: async bytes => { stderr += new TextDecoder().decode(bytes); } },
         }) : mode === "sync" ? runConvertCliSync(args, files)
             : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-        expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+        expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(0);
         const path = output.slice(output.indexOf(":") + 1);
         return decodeImage(mode === "retained" || mode === "command" ? await fs.readFile(path) : files.get(path)!);
     }

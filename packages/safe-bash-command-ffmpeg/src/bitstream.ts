@@ -1,3 +1,4 @@
+import { setVp9Metadata } from "./vp9-metadata.js";
 import { setPacketTimestamps } from "./setts.js";
 import { rechunkPcm } from "./pcm-rechunk.js";
 import { parseFilterExpression } from "./filter-expression.js";
@@ -103,6 +104,10 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
       continue;
     }
     if (type !== "video") throw new Error(`Unsupported audio bitstream filter: ${filter}`);
+    if (filter === "vp9_metadata" || filter.startsWith("vp9_metadata=")) {
+      tracks = setVp9Metadata(tracks, filter, budget);
+      continue;
+    }
     if (filter === "h264_mp4toannexb") {
       tracks = tracks.map(track => {
         if (track.type !== "video") return track;

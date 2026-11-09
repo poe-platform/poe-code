@@ -6,6 +6,7 @@ import { Runtime } from "../../src/shell/runtime.js";
 import { stateMonitor } from "../../src/shell/arrays/state.js";
 import { ValueScope } from "../../src/shell/value-state.js";
 import { setup } from "./helpers.js";
+import { runtimeSetup } from "./getopts/runtime/helpers.js";
 
 function options(work: Partial<GetoptsWork> = {}) {
   return { reportErrors: true, work: { maxArguments: 256, maxBytes: 4096, maxSteps: 10000, yieldEvery: 128, checkpoint: () => undefined, ...work } };
@@ -367,6 +368,51 @@ getopts abc: k; say "next:$?:$k:$OPTIND"`);
       } finally { await shell.dispose(); }
     });
   }
+}
+
+for (const bounded of [false, true]) {
+  for (const prefix of ["flag=tmp", "OPTARG=tmp", "flag=tmp OPTARG=tmp"]) {
+    for (const [args, expected] of [
+      ["-b value", "0|b|value|3|keep"],
+      ["-a", "0|a|unset|2|keep"],
+      ["--", "1|?|unset|2|keep"],
+      ["-x", "0|?|x|2|keep"],
+      ["-b", "0|:|b|2|keep"],
+    ]) {
+      test(`getopts publishes ${prefix} results for ${args} (${bounded ? "bounded" : "unlimited"})`, async () => {
+        const { shell } = setup(bounded ? { limits: { maxExpansionBytes: 4096 } } : {});
+        try {
+          const result = await shell.exec(`flag=old; OPTARG=old; other=keep
+${prefix} other=changed getopts :ab: flag ${args}
+say "$?|$flag|\${OPTARG-unset}|$OPTIND|$other"`);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, `${expected}\n`);
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+  test(`getopts publishes previously unset outputs under nounset (${bounded ? "bounded" : "unlimited"})`, async () => {
+    const { shell } = setup(bounded ? { limits: { maxExpansionBytes: 4096 } } : {});
+    try {
+      const result = await shell.exec(`set -u
+OPTIND=9; other=keep
+flag=tmp OPTARG=tmp OPTIND=1 other=changed getopts :ab: flag -b value
+say "$?|$flag|$OPTARG|$OPTIND|$other"`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "0|b|value|3|keep\n");
+    } finally { await shell.dispose(); }
+  });
+  test(`getopts preserves prefixed argument bytes (${bounded ? "bounded" : "unlimited"})`, async () => {
+    const { shell } = runtimeSetup(bounded ? { limits: { maxExpansionBytes: 4096 } } : {});
+    try {
+      const result = await shell.exec("OPTARG=old; OPTARG=tmp getopts b: flag -b $'a\\xffb'; printf '%s' \"$OPTARG\"");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, Uint8Array.from([97, 255, 98]));
+    } finally { await shell.dispose(); }
+  });
 }
 
 for (const malformed of [false, true]) {

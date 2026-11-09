@@ -8043,12 +8043,28 @@ export class Runtime {
       if (!(error instanceof PublicDiagnostic)) throw error;
       await this.diagnostic(context, error.message);
     }
+    const savedArgument = assignments.get("OPTARG");
+    if (savedArgument) {
+      // Preserve both assigned arguments and unsets when the prefix is restored.
+      const current = saveVariable(state, "OPTARG");
+      savedArgument.heldValue?.release();
+      delete savedArgument.heldValue;
+      savedArgument.value = current.value;
+      if (current.heldValue) savedArgument.heldValue = current.heldValue;
+    }
     if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new PublicDiagnostic(`getopts: \`${name}': not a valid identifier`);
     try { await this.assignVariable(state, name, result.option, context, "getopts"); }
     catch (error) {
       this.signal.throwIfAborted();
       if (error instanceof PublicDiagnostic && result.status === 0) throw new CommandFailure(error.message, 2);
       throw error;
+    }
+    const savedResult = assignments.get(name);
+    if (savedResult) {
+      savedResult.heldValue?.release();
+      delete savedResult.heldValue;
+      savedResult.value = state.variables[name];
+      if (name === "OPTIND") savedResult.getopts = cloneGetoptsBinding(state);
     }
     return result.status;
   }

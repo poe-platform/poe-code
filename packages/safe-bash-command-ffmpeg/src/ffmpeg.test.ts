@@ -8080,7 +8080,8 @@ describe("subtitle markup conversion", () => {
           const payload = source === "srt"
             ? '<b>bold</b> <i>ital</i> <u>under</u>\n<font color="red">red</font>'
             : '<v Alex><b>test</b></v><c.red>Hello</c> <i>ital</i> <u>under</u>';
-          const expected = copy || (mode === "same-format" && source === "srt") ? payload : source === "srt"
+          const expected = copy ? payload : mode === "same-format" && source === "srt"
+            ? payload.replace('color="red"', 'color="#ff0000"') : source === "srt"
             ? '<b>bold</b> <i>ital</i> <u>under</u>\nred'
             : '<b>test</b>Hello <i>ital</i> <u>under</u>';
           const destination = mode !== "transcode" ? source : source === "srt" ? "vtt" : "srt";

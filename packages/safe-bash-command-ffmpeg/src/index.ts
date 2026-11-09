@@ -9599,8 +9599,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (filterName === "aphaseshift" || filterName === "afreqshift") {
                         stretched = await shiftAudioPhase(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
                         statsScale = 1;
-                      } else if (trimmed === "tremolo" || trimmed.startsWith("tremolo=")) {
-                        stretched = await tremoloAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "apulsator" || trimmed.startsWith("apulsator=")) {
                         stretched = await pulsateAudio(stretched, origRate, trimmed, budget, context.signal);
                         filteredChannelMask = 3;
@@ -9618,7 +9616,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato") {
+                      } else if (filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -9635,7 +9633,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        if (filterName === "vibrato") {
+                        if (filterName === "tremolo") {
+                          stretched = await tremoloAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                        } else if (filterName === "vibrato") {
                           filteredSampleFormat = "dblp";
                           stretched = await vibratoAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
                         } else if (filterName === "compensationdelay") {

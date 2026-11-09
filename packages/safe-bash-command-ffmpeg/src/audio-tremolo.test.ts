@@ -60,6 +60,36 @@ for (const filter of ["tremolo=d=0b1", "tremolo=d=0o1", "tremolo=d=1/0", "tremol
   }
 }
 
+// Full PCM hashes from native FFmpeg 9.0.1 using the reported 12000-sample ramp.
+for (const [filter, hash] of [
+  ["tremolo=enable=0", "4a4116fd94e0999680bcffd803b7bd9c551a885cfb7c5b2ea3c2509bfad43f91"],
+  ["tremolo=enable=1", "1d7fd07b91e8cd81e28116c5fc43ac4d1b8f8e04e58a73ac424b8f68af087df3"],
+  ["tremolo=enable='gte(t,0.5)'", "d09c09a04a6a3e1d2395d2613aa9f439e3e8a5d1b08fa40e47fb82ec9cf2dae7"],
+  ["tremolo=enable='lt(t,0.2)+gte(t,0.7)'", "cb49eb2cf9a85773bf57d861928db5d92f9179fd3762c4dc72910251523d1fdb"],
+  ["asetnsamples=1024:0,tremolo=enable='gt(n,0)'", "eb9c8df1a45bd9e0940f900cc6ca03d677f9c0db56545b175227786da2d7dd5c"],
+  ["asetpts=PTS+4096,tremolo=enable='gte(t,0.5)'", "1d7fd07b91e8cd81e28116c5fc43ac4d1b8f8e04e58a73ac424b8f68af087df3"]
+] as const) {
+  for (const graph of [false, true]) it(`${filter} matches all native timeline samples (${graph ? "graph" : "simple"})`, async () => {
+    const channels = [Float64Array.from({ length: 12000 }, (_, i) => ((217 + i * 9571) % 65536 - 32768) / 32768)];
+    const { volume, result, stderr } = await run(filter, graph, channels);
+    assert.equal(result.exitCode, 0, stderr);
+    const samples = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+    assert.equal(samples.length, 12000);
+    const pcm = Buffer.alloc(samples.length * 2);
+    for (let i = 0; i < samples.length; i++) pcm.writeInt16LE(Math.round(samples[i]! * 32768), i * 2);
+    assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
+  });
+}
+
+for (const enable of ["", "unknown", "gte(t,)"]) {
+  it(`rejects invalid tremolo enable=${enable} without replacing output`, async () => {
+    const { volume, result, stderr } = await run(`tremolo=enable='${enable}'`);
+    assert.equal(result.exitCode, 1);
+    assert.ok(stderr.includes("tremolo enable"), stderr);
+    assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+  });
+}
+
 for (const filter of ["tremolo=f=0", "tremolo=f=20001", "tremolo=d=-1", "tremolo=d=1.1", "tremolo=f=NaN", "tremolo=d=", "tremolo=unknown=1"]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);
@@ -68,11 +98,10 @@ for (const filter of ["tremolo=f=0", "tremolo=f=20001", "tremolo=d=-1", "tremolo
   });
 }
 
-async function run(filter: string, graph = false) {
-  const channels = [
-    Float64Array.from({ length: 2048 }, (_, i) => ((i * 67) % 14000 - 7000) / 32768),
-    Float64Array.from({ length: 2048 }, (_, i) => (6000 - (i * 53) % 12000) / 32768)
-  ];
+async function run(filter: string, graph = false, channels = [
+  Float64Array.from({ length: 2048 }, (_, i) => ((i * 67) % 14000 - 7000) / 32768),
+  Float64Array.from({ length: 2048 }, (_, i) => (6000 - (i * 53) % 12000) / 32768)
+]) {
   const volume = Volume.fromJSON({ "/out.wav": "keep" });
   volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels }));
   let stderr = "";

@@ -4,14 +4,21 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function tremoloAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
+  frames: readonly { start: number; end: number; pts: number }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   let frequency = 5;
   let depth = 0.5;
+  let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["f", "d"][index] : option.slice(0, separator).trim();
+    if (key === "enable") {
+      enable = option.slice(separator + 1).trim();
+      parseFilterExpression(enable, "tremolo enable", { n: 0, t: 0 });
+      continue;
+    }
     if (key !== "f" && key !== "d") throw new Error(`tremolo: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const number = parseFilterExpression(value, "tremolo", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 });
@@ -30,16 +37,24 @@ export async function tremoloAudio(
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
   let work = 0;
-  for (let frame = 0; frame < length; frame++) {
-    const phase = (frequency * (frame % period) / sampleRate + 0.25) % 1;
-    const gain = Math.sin(2 * Math.PI * phase) * (1 - Math.abs(offset)) + offset;
-    for (let c = 0; c < channels.length; c++) {
-      if (work++ % 4096 === 0) {
-        await yieldTurn(signal);
-        signal?.throwIfAborted();
-        budget.checkCpu();
+  // Native generic timeline bypass freezes the oscillator while disabled.
+  let position = 0;
+  for (const [n, timestamp] of frames.entries()) {
+    const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "tremolo enable", {
+      n, t: timestamp.pts / sampleRate
+    })) >= 0.5;
+    for (let frame = timestamp.start; frame < timestamp.end; frame++) {
+      const phase = (frequency * (position % period) / sampleRate + 0.25) % 1;
+      const gain = enabled ? Math.sin(2 * Math.PI * phase) * (1 - Math.abs(offset)) + offset : 1;
+      for (let c = 0; c < channels.length; c++) {
+        if (work++ % 4096 === 0) {
+          await yieldTurn(signal);
+          signal?.throwIfAborted();
+          budget.checkCpu();
+        }
+        output[c]![frame] = channels[c]![frame]! * gain;
       }
-      output[c]![frame] = channels[c]![frame]! * gain;
+      if (enabled) position++;
     }
   }
   return output;

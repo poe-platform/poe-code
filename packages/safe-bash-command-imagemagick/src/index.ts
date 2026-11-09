@@ -5287,8 +5287,9 @@ function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlph
         virtualCanvas: { width: vertical ? cross : extent, height: vertical ? extent : cross, x: 0, y: 0 }, offsets };
 }
 
-function* smushCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "magickColorspace">, frame: Pick<RgbaImage, "width" | "height">, left: number, top: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const hue = canvas.magickColorspace !== undefined && canvas.magickColorspace !== "RGB";
+function* smushCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "magickColorspace" | "space">, frame: Pick<RgbaImage, "width" | "height">, left: number, top: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const cmyk = canvas.space === "cmyk";
+    const hue = cmyk || canvas.magickColorspace !== undefined && canvas.magickColorspace !== "RGB";
     const quantum = hue ? 1 : 255;
     for (let y = 0; y < canvas.height; y++) {
         for (let x = 0; x < canvas.width; x += 4096) {
@@ -5298,26 +5299,51 @@ function* smushCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | 
             const working = yield { kind: "read", position, length: count * 4, hue, evaluate: !hue };
             const integers = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes.slice();
             const output = working?.length ? new Float64Array(working.slice().buffer) : Float64Array.from(integers, value => value / (highDepth ? 65535 : 255) * quantum);
+            if (cmyk && !working?.length) {
+                // ImageMagick initializes a CMYK canvas from linear RGB background samples.
+                for (let i = 0; i < output.length; i += 4) {
+                    const rgb = output.subarray(i, i + 3).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+                    output.set(rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!), i);
+                }
+            }
+            // CMYK uses the fourth working channel for black; alpha stays in the RGBA backing.
+            const rgba = cmyk ? yield { kind: "read", position, length: count * 4, evaluate: true } : undefined;
+            const backing = cmyk ? rgba?.length ? Float64Array.from(new Float64Array(rgba.slice().buffer), value => value / 255)
+                : Float64Array.from(integers, value => value / (highDepth ? 65535 : 255)) : output;
             const start = Math.max(x, left), end = Math.min(x + count, left + frame.width);
             if (y >= top && y < top + frame.height && start < end) {
                 const input = (yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, highDepth })!;
                 const working = yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, hue, evaluate: !hue };
                 const integers = highDepth ? new Uint16Array(input.slice().buffer) : input;
                 const samples = working?.length ? new Float64Array(working.slice().buffer) : Float64Array.from(integers, value => value / (highDepth ? 65535 : 255) * quantum);
+                if (cmyk && !working?.length) {
+                    for (let i = 0; i < samples.length; i += 4) samples.set(rgbToCmyk(samples[i]!, samples[i + 1]!, samples[i + 2]!), i);
+                }
+                const rgba = cmyk ? yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, evaluate: true } : undefined;
+                const inputBacking = rgba?.length ? new Float64Array(rgba.slice().buffer) : undefined;
                 for (let pixel = start; pixel < end; pixel++) {
                     const src = (pixel - start) * 4, dst = (pixel - x) * 4;
-                    const sa = samples[src + 3]! / quantum, da = output[dst + 3]! / quantum * (1 - sa), alpha = sa + da;
-                    if (sa === 0) continue;
-                    for (let channel = 0; channel < 3; channel++) {
+                    const sa = cmyk ? inputBacking ? inputBacking[src + 3]! / 255 : integers[src + 3]! / (highDepth ? 65535 : 255) : samples[src + 3]! / quantum, da = backing[dst + 3]! / quantum * (1 - sa), alpha = sa + da;
+                    if (sa === 0) {
+                        if (cmyk && alpha === 0) output.fill(0, dst, dst + 4);
+                        continue;
+                    }
+                    for (let channel = 0; channel < (cmyk ? 4 : 3); channel++) {
                         const value = (samples[src + channel]! * sa + output[dst + channel]! * da) / alpha;
                         output[dst + channel] = hue ? Math.max(0, Math.min(1, value)) : value;
                     }
-                    output[dst + 3] = alpha * quantum;
+                    backing[dst + 3] = alpha * quantum;
                 }
             }
             if (hue) {
                 yield { kind: "write", position, data: new Uint8Array(output.buffer, output.byteOffset, output.byteLength), hue: true };
-                yield { kind: "write", position, data: new Uint8Array(Uint16Array.from(output, value => Math.round(Math.max(0, Math.min(1, value)) * 65535)).buffer), highDepth: true };
+                if (cmyk) {
+                    for (let i = 0; i < output.length; i += 4) {
+                        for (let channel = 0; channel < 3; channel++) backing[i + channel] = (1 - output[i + channel]!) * (1 - output[i + 3]!);
+                    }
+                    yield { kind: "write", position, data: new Uint8Array(Float64Array.from(backing, value => value * 255).buffer), evaluate: true };
+                }
+                yield { kind: "write", position, data: new Uint8Array(Uint16Array.from(backing, value => Math.round(Math.max(0, Math.min(1, value)) * 65535)).buffer), highDepth: true };
             } else {
                 yield { kind: "write", position, data: new Uint8Array(output.buffer), evaluate: true };
                 const pixels = highDepth ? Uint16Array.from(output, value => Math.round(value * 257)) : Uint8Array.from(output, Math.round);
@@ -9487,7 +9513,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 next = layout.next((image.data16 ?? image.data).subarray(request.position, request.position + request.length));
             }
             const { width, height, virtualCanvas, offsets } = next.value;
-            let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background), ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}) };
+            let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background), ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}), ...(image.space === "cmyk" ? { space: "cmyk" as const } : {}) };
             for (let n = 0; n < stack.length; n++) {
                 canvas = yield* applyMagickRasterSteps(canvas, smushCompositePixelSteps(canvas, stack[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || stack[n]!.data16)), signal, canvas, [canvas, stack[n]!]);
             }
@@ -10619,7 +10645,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     } else next = layout.next(await backend.storage.read(image.position + request.position, request.length));
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
-                let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal), ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}) };
+                let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal), ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}), ...(image.space === "cmyk" ? { space: "cmyk" as const } : {}) };
                 for (let n = 0; n < images.length; n++) canvas = await transformStoredMagickRaster(canvas, backend, smushCompositePixelSteps(canvas, images[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || images[n]!.storedData16)), signal, canvas, [canvas, images[n]!]);
                 stack.length = 0;
                 await stack.push({ ...canvas, virtualCanvas, density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) });

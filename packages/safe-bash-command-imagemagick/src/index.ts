@@ -1,3 +1,4 @@
+import { gradientRadii } from "./gradient-radii.js";
 import { gradientVector } from "./gradient-vector.js";
 import { gradientProjection } from "./gradient.js";
 import { besselJ } from "./bessel.js";
@@ -532,6 +533,8 @@ interface MagickState {
   gradientDirection?: string;
   gradientAngle?: number;
   gradientVector?: string;
+  gradientRadii?: string;
+  gradientExtent?: string;
   gradientCenter?: { x: number; y: number };
   ftxtFormat?: string;
   comment?: string;
@@ -1598,13 +1601,14 @@ function writeGradientPixel(data: Uint8Array, samples: Uint16Array, offset: numb
     samples[offset + 3] = Math.round(alpha * 257);
     data[offset + 3] = clampByteVal(samples[offset + 3]! / 257);
 }
-function* createGradientImageSteps(width: number, height: number, c1: RgbaColor, c2: RgbaColor, radial: boolean, direction?: string, angle?: number, vector?: string, box?: MagickGeometry, center?: { x: number; y: number }): Generator<void, RgbaImage, void> {
+function* createGradientImageSteps(width: number, height: number, c1: RgbaColor, c2: RgbaColor, radial: boolean, direction?: string, angle?: number, vector?: string, box?: MagickGeometry, center?: { x: number; y: number }, radii?: string, extent?: string): Generator<void, RgbaImage, void> {
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
     const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     const data16 = new Uint16Array(w * h * 4);
-    const vectorFactor = gradientVector(w, h, (radial && center) ? undefined : radial || angle === undefined ? vector : undefined, radial);
+    const axes = gradientRadii(w, h, extent, radii);
+    const vectorFactor = gradientVector(w, h, (radial && center) ? undefined : radial || angle === undefined ? vector : undefined, radial, axes);
     if (!radial && direction === undefined && angle === undefined && !vectorFactor && box === undefined) {
         const u64 = new BigUint64Array(data16.buffer);
         const u32 = new Uint32Array(data.buffer, 0, w * h);
@@ -1623,7 +1627,6 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
     } else {
         const cx = center?.x ?? (w - 1) / 2;
         const cy = center?.y ?? (h - 1) / 2;
-        const maxR = Math.max(1, (w - 1) / 2, (h - 1) / 2);
         const projection = gradientProjection(w, h, direction, angle);
         for (let y = 0; y < h; y++) {
             if (++work % 16384 === 0)
@@ -1632,7 +1635,7 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
                 if (++work % 16384 === 0)
                     yield;
                 const outside = box && (x < box.x || y < box.y || x >= box.x + (box.width ?? w) || y >= box.y + (box.height ?? h));
-                const t = outside ? 0 : vectorFactor ? vectorFactor(x, y) : radial ? Math.min(1, Math.hypot(x - cx, y - cy) / maxR) : Math.max(0, Math.min(1, projection.offset + x * projection.x + y * projection.y));
+                const t = outside ? 0 : vectorFactor ? vectorFactor(x, y) : radial ? Math.min(1, Math.hypot((x - cx) / axes[0], (y - cy) / axes[1])) : Math.max(0, Math.min(1, projection.offset + x * projection.x + y * projection.y));
                 const idx = (y * w + x) * 4;
                 writeGradientPixel(data, data16, idx, c1, c2, t);
             }
@@ -5315,7 +5318,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const [c1Str, c2Str] = spec ? spec.split("-") : [];
         const c1 = parseColor(c1Str || "#ffffff");
         const c2 = parseColor(c2Str || "#000000");
-        return yield* applyMod([(yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientVector, state.gradientBoundingBox, state.gradientCenter))]);
+        return yield* applyMod([(yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientVector, state.gradientBoundingBox, state.gradientCenter, state.gradientRadii, state.gradientExtent))]);
     }
     if (lower.startsWith("pattern:") || lower.startsWith("plasma:")) {
         return yield* applyMod([(yield* createCheckerboardImageSteps(state.sizeWidth, state.sizeHeight))]);
@@ -7154,6 +7157,8 @@ if (t === "-seed") {
             if (key === "gradient:bounding-box") delete state.gradientBoundingBox;
             if (key === "gradient:direction") delete state.gradientDirection;
             if (key === "gradient:angle") delete state.gradientAngle;
+            if (key === "gradient:radii") delete state.gradientRadii;
+            if (key === "gradient:extent") delete state.gradientExtent;
             if (key === "gradient:vector") delete state.gradientVector;
             if (key === "gradient:center") delete state.gradientCenter;
             if (key === "filename:literal") delete state.filenameLiteral;
@@ -7200,6 +7205,8 @@ if (t === "-seed") {
             if (defStr.toLowerCase().startsWith("magnify:method=")) state.magnifyMethod = parseMagnifyMethod(defStr.slice("magnify:method=".length));
             const [filterKey, filterValue] = defStr.toLowerCase().split("=");
             if (filterKey === "gradient:bounding-box") state.gradientBoundingBox = parseMagickGeometry(filterValue ?? "");
+            if (filterKey === "gradient:radii") state.gradientRadii = filterValue ?? "";
+            if (filterKey === "gradient:extent") state.gradientExtent = filterValue ?? "";
             if (filterKey === "gradient:vector") state.gradientVector = filterValue ?? "";
             if (filterKey === "gradient:center") {
               const coordinates = (filterValue ?? "").replaceAll(",", " ").split(" ").filter(Boolean).map(Number);
@@ -10617,16 +10624,16 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const checker=lower.startsWith("pattern:")||lower.startsWith("plasma:"),radial=lower.startsWith("radial-gradient:");
   const storedData16=checker?undefined:{position:backend.storage.allocate(width*height*8),length:width*height*4};
   const [first,last]=baseToken.slice(baseToken.indexOf(":")+1).split("-"),a=parseColor(checker?"white":first||"#ffffff"),b=parseColor(checker?"black":last||"#000000");
-  const cx=state.gradientCenter?.x??(width-1)/2,cy=state.gradientCenter?.y??(height-1)/2,radius=Math.max(1,(width-1)/2,(height-1)/2),box=state.gradientBoundingBox;
+  const cx=state.gradientCenter?.x??(width-1)/2,cy=state.gradientCenter?.y??(height-1)/2,axes=gradientRadii(width,height,state.gradientExtent,state.gradientRadii),box=state.gradientBoundingBox;
   const projection=gradientProjection(width,height,state.gradientDirection,state.gradientAngle);
-  const vectorFactor=gradientVector(width,height,(radial&&state.gradientCenter)?undefined:radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial);
+  const vectorFactor=gradientVector(width,height,(radial&&state.gradientCenter)?undefined:radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial,axes);
   for(let start=0;start<width*height;start+=4096){
    if(start%262144===0)await yieldTurn(signal);
    const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4);
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
     if(checker){const cell=((Math.floor(x/15)+Math.floor(y/15))&1)===0?153:102;bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
-    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot(x-cx,y-cy)/radius):Math.max(0,Math.min(1,projection.offset+x*projection.x+y*projection.y));writeGradientPixel(bytes,samples!,offset,a,b,t);}
+    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot((x-cx)/axes[0],(y-cy)/axes[1])):Math.max(0,Math.min(1,projection.offset+x*projection.x+y*projection.y));writeGradientPixel(bytes,samples!,offset,a,b,t);}
    }
    await backend.storage.write(position+start*4,bytes);
    if(storedData16&&samples)await backend.storage.write(storedData16.position+start*8,new Uint8Array(samples.buffer));

@@ -90,13 +90,13 @@ it.each(operators.flatMap(args => [[53, 37], [1031, 31], [1, 1]].map(([width, he
     expect(await runConvertCli(argv, { filesystem, cwd: "/" })).toEqual(await runConvertCli(argv, files));
     expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
 });
-it("preserves disconnected regions and ignores alpha when matching across cached pages", async () => {
+it("preserves disconnected regions and opacity boundaries across cached pages", async () => {
     const width = 257, height = 129, pixels = new Uint8Array(width * height * 4);
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
         const offset = (y * width + x) * 4;
         const barrier = ((x === 5 || x === width - 6) && y >= 5 && y <= height - 6) || ((y === 5 || y === height - 6) && x >= 5 && x <= width - 6);
         pixels[offset] = pixels[offset + 1] = pixels[offset + 2] = barrier ? 255 : 0;
-        pixels[offset + 3] = (x + y) % 256;
+        pixels[offset + 3] = x < 128 ? 128 : 129;
     }
     const bytes = await sharp(pixels, { raw: { width, height, channels: 4 } }).png().toBuffer();
     const fs = new MemoryFileSystem();
@@ -108,7 +108,7 @@ it("preserves disconnected regions and ignores alpha when matching across cached
     } });
     expect((await runConvertCli(["input", "-fill", "red", "-floodfill", "+6+6", "out.png"], { filesystem, cwd: "/" })).exitCode).toBe(0);
     const actual = decodeImage(await fs.readFile("/out.png"));
-    for (let y = 6; y < height - 6; y++) for (let x = 6; x < width - 6; x++) {
+    for (let y = 6; y < height - 6; y++) for (let x = 6; x < 128; x++) {
         const offset = (y * width + x) * 4;
         pixels[offset] = 255; pixels[offset + 3] = 255;
     }

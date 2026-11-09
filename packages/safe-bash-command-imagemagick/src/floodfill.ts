@@ -12,7 +12,8 @@ export async function floodfillStoredImage(image: StoredRgbaImage, storage: Imag
     const count = image.width * image.height, source = { position: image.position, length: count * 4 }, cache = new RasterBackingCache(storage, signal);
     const start = seedY * image.width + seedX, seed = await cache.uint32(source, start * 4);
     const r = target ? target.r : seed & 255, g = target ? target.g : seed >>> 8 & 255, b = target ? target.b : seed >>> 16 & 255;
-    const matches = (pixel: number) => alphaOnly ? matchesAlphaFloodfill(pixel & 255, pixel >>> 8 & 255, pixel >>> 16 & 255, pixel >>> 24, r, g, b, seed >>> 24, fuzz) : Math.max(Math.abs((pixel & 255) - r), Math.abs((pixel >>> 8 & 255) - g), Math.abs((pixel >>> 16 & 255) - b)) <= fuzz;
+    const a = !alphaOnly && target ? target.a : seed >>> 24;
+    const matches = (pixel: number) => alphaOnly ? matchesAlphaFloodfill(pixel & 255, pixel >>> 8 & 255, pixel >>> 16 & 255, pixel >>> 24, r, g, b, a, fuzz) : Math.max(Math.abs((pixel & 255) - r), Math.abs((pixel >>> 8 & 255) - g), Math.abs((pixel >>> 16 & 255) - b), Math.abs((pixel >>> 24) - a)) <= fuzz;
     if (!matches(seed)) return image;
     const visited = await cache.allocate(count), stack = await cache.allocate(count * 4);
     let tail = 1;

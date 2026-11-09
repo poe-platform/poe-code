@@ -7672,7 +7672,7 @@ const syncExtraRuntimeMethods = {
           const rawSt = stateMonitor(state)?.raw ?? state;
           // Dispatch bypasses functions, but argument substitutions must still
           // see them. Leave overridden commands to the normal prefix dispatcher.
-          if (hasShellFunction(rawSt, subPlain)) return undefined;
+          if (hasShellFunction(rawSt, subPlain) || ["export", "declare", "typeset", "local", "readonly"].includes(subPlain)) return undefined;
           const unwrappedCmd: Extract<Command, { kind: "simple" }> = { ...command, words: command.words.slice(subIdx) };
           const unwrappedPipe: Pipeline = { ...pipeline, commands: [unwrappedCmd] };
           return this.trySyncPipeline(unwrappedPipe, state, io, ignored);
@@ -7750,7 +7750,7 @@ const syncExtraRuntimeMethods = {
           !rawState.extensions?.builtins.has(subPlain) &&
           (w0Plain === "builtin" ? shellBuiltinNames.has(subPlain) : (shellBuiltinNames.has(subPlain) || this.commands.has(subPlain)))
         ) {
-          if (hasShellFunction(rawState, subPlain)) return false;
+          if (hasShellFunction(rawState, subPlain) || ["export", "declare", "typeset", "local", "readonly"].includes(subPlain)) return false;
           return this.canSyncCommandCompound({ ...command, words: command.words.slice(subIdx) }, rawState, depth, loopDepth);
         }
       }

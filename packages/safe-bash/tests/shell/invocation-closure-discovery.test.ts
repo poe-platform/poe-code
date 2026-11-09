@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { after, test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { basicCommands } from "../../src/commands/basic.js";
 import { FsError, writeText } from "../../src/contracts/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
@@ -86,10 +87,46 @@ for (const name of ["command-depth", "command-count", "command-output", "command
   assert.equal(result.stdout.toString(), `PASS ${name}\n`);
 });
 
-test("command declaration arguments preserve assignment expansion", async () => {
-  const result = await setup().shell.exec('VALUE="a b"; command -- export COPY=$VALUE; args "$COPY"');
-  assert.equal(result.stdout, '["a b"]');
+for (const declaration of ["export", "declare", "typeset", "local", "readonly"]) {
+  for (const prefix of ["", "command ", "command -- ", "command -p ", "builtin "]) {
+    for (const quoted of [false, true]) {
+      for (const redirect of ["", " 2>/diagnostics"]) {
+        test(`${prefix}${declaration} ${quoted ? "quoted" : "unquoted"} assignment expansion${redirect}`, async () => {
+          const value = quoted ? '"$v"' : "$v";
+          const result = await setup().shell.exec(`
+            check() {
+              v='first second=OK'
+              ${prefix}${declaration} x=${value}${redirect}
+              args "$x" "\${second-unset}"
+            }
+            check
+          `);
+          assert.equal(result.stdout, prefix && !quoted ? '["first","OK"]' : '["first second=OK","unset"]');
+          assert.equal(result.stderr, "");
+          assert.equal(result.exitCode, 0);
+        });
+      }
+    }
+  }
+}
+
+for (const prefix of ["command", "builtin"]) for (const shadow of [false, true]) test(`${prefix} declarations in synchronous compounds split operands (function override: ${shadow})`, async () => {
+  const { shell } = setup();
+  for (const command of basicCommands()) shell.register(command);
+  const result = await shell.exec(`
+    ${shadow ? "declare() { printf wrong; }" : ""}
+    check() {
+      v='first second=OK'
+      for item in once twice; do
+        ${prefix} declare x=$v
+        printf '<%s><%s>\\n' "$x" "$second"
+      done
+    }
+    check
+  `);
+  assert.equal(result.stdout, "<first><OK>\n<first><OK>\n");
   assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
 });
 
 test("type -ap requires a real file even when a builtin exists", async () => {

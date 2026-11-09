@@ -5967,7 +5967,7 @@ export class Runtime {
       }
       const declarationName = commandWords[declarationIndex]?.plain ?? "";
       const declarationBuiltin = declarationName ? state.extensions?.builtins.get(declarationName) : undefined;
-      const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : ["export", "declare", "typeset", "local", "readonly"].includes(declarationName);
+      const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : declarationIndex === 0 && ["export", "declare", "typeset", "local", "readonly"].includes(declarationName);
       if (!declaration) {
         try {
           const wordValues = commandWords.length > 0
@@ -6039,7 +6039,7 @@ export class Runtime {
     }
     const declarationName = commandWords[declarationIndex]?.plain ?? "";
     const declarationBuiltin = declarationName ? state.extensions?.builtins.get(declarationName) : undefined;
-    const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : ["export", "declare", "typeset", "local", "readonly"].includes(declarationName);
+    const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : declarationIndex === 0 && ["export", "declare", "typeset", "local", "readonly"].includes(declarationName);
     const indexedDeclaration = declaration && ["declare", "typeset", "local", "readonly"].includes(declarationName);
     const compounds = indexedDeclaration && declarationName !== "readonly" ? new Map<number, ArrayAssignment>() : undefined;
     const wordValues = commandWords.length > 0

@@ -1,4 +1,4 @@
-import {transformBytes} from "@poe-code/compression";
+import {ByteCodecError, createByteCodec, transformBytes} from "@poe-code/compression";
 export const PNG_SIGNATURE = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
 
 const CRC_TABLE = (() => {
@@ -64,6 +64,31 @@ export function iccChunk(icc: Uint8Array): Uint8Array {
   payload.set([73, 67, 67, 0, 0]);
   payload.set(compressed, 5);
   return makeChunk("iCCP", payload);
+}
+
+export function decodePngIcc(compressed: Uint8Array): Uint8Array {
+  let format: "zlib" | "raw" = "zlib";
+  while (true) {
+    const codec = createByteCodec({direction:"decode",format});
+    const parts: Uint8Array[] = []; let length = 0;
+    try {
+      for (const part of codec.push(compressed, true)) {
+        length += part.length;
+        if (length > 16 * 1024 * 1024) throw new Error("ICC profile exceeds 16 MiB");
+        parts.push(part);
+      }
+      const icc = new Uint8Array(length); let offset = 0;
+      for (const part of parts) { icc.set(part, offset); offset += part.length; }
+      return icc;
+    } catch (error) {
+      if (format !== "zlib" || !(error instanceof ByteCodecError) || error.message !== "incorrect data check") throw error;
+      // ImageMagick/libpng retains iCCP profiles with a bad Adler checksum.
+      // Reaching this error validates the zlib header and complete DEFLATE stream.
+      // Retry only that stream, with the same output limit; other codecs stay strict.
+      compressed = compressed.subarray(2, codec.consumed - 4);
+      format = "raw";
+    } finally { codec.close(); }
+  }
 }
 
 export function gammaChunk(gamma: number): Uint8Array {

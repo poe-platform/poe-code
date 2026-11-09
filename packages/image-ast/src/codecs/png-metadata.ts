@@ -1,6 +1,6 @@
 import {ByteCodecError, createByteCodec} from "@poe-code/compression";
 import type {ImageMetadata} from "../ast.js";
-import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32} from "./png-chunks.js";
+import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, decodePngIcc} from "./png-chunks.js";
 import {exifMetadataSteps,type MetadataRead} from "./exif-metadata.js";
 
 export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetadata,Uint8Array> {
@@ -138,24 +138,16 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
         pos = dataStart + len + 4;
         continue;
       }
-      const codec = createByteCodec({direction:"decode",format:"zlib"});
-      const parts: Uint8Array[] = []; let length = 0;
       try {
-        for (const part of codec.push(chunk.subarray(end + 2), true)) {
-          length += part.length;
-          if (length > 16 * 1024 * 1024) throw new Error("ICC profile exceeds 16 MiB");
-          parts.push(part);
-        }
+        icc = decodePngIcc(chunk.subarray(end + 2));
       } catch (error) {
         if (!(error instanceof ByteCodecError)) throw error;
         decodeWarnings.push(`PNG iCCP: ${error.message}`);
         pos = dataStart + len + 4;
         continue;
-      } finally { codec.close(); }
-      icc = new Uint8Array(length); let offset = 0;
-      for (const part of parts) { icc.set(part, offset); offset += part.length; }
+      }
       // ICC profiles require a complete header, tag count, and the "acsp" signature.
-      if (length < 132 || icc[36] !== 97 || icc[37] !== 99 || icc[38] !== 115 || icc[39] !== 112) {
+      if (icc.length < 132 || icc[36] !== 97 || icc[37] !== 99 || icc[38] !== 115 || icc[39] !== 112) {
         decodeWarnings.push("PNG iCCP: invalid ICC profile header");
         icc = undefined;
       }

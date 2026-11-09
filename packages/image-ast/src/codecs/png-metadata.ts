@@ -16,6 +16,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   let density = 72;
   let gamma: number | undefined;
   let resolution: ImageMetadata["resolution"];
+  let hasPhys = false;
   let hasTrns = false;
   let virtualCanvas: ImageMetadata["virtualCanvas"];
   let pixelOffset: {x: number; y: number} | undefined;
@@ -171,6 +172,17 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
         }
       }
     } else if (type === "pHYs" && len >= 9) {
+      if (hasIdat) {
+        decodeWarnings.push("pHYs: out of place");
+        pos = dataStart + len + 4;
+        continue;
+      }
+      if (hasPhys) {
+        decodeWarnings.push("PNG pHYs: duplicate");
+        pos = dataStart + len + 4;
+        continue;
+      }
+      hasPhys = true;
       const chunk=yield {position:dataStart,length:9};
       const view = new DataView(chunk.buffer,chunk.byteOffset,chunk.byteLength);
       const ppuX = view.getUint32(0, false);

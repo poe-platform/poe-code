@@ -20,6 +20,37 @@ const tagged = encodePngImage({ width: 2, height: 1, data: Uint8Array.of(255, 0,
   resolution: { x: 5669, y: 2835, unit: "meter" } });
 const untagged = new Uint8Array(Buffer.concat([tagged.subarray(0, 8), ...chunks(tagged).filter(chunk => chunk.name !== "pHYs").map(chunk => chunk.bytes)]));
 
+for (const mode of ["buffered", "command"] as const) {
+  it.each(["control", "duplicate", "bad-crc"])(`keeps the first accepted PNG resolution (%s, ${mode})`, async variant => {
+    const physical = (x: number, y: number) => chunks(encodePngImage({
+      width: 1, height: 1, data: Uint8Array.of(17, 34, 51, 255),
+      format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false,
+      resolution: { x, y, unit: "meter" }
+    })).find(chunk => chunk.name === "pHYs")!;
+    const first = physical(1000, 2000), second = physical(3000, 4000);
+    if (variant === "bad-crc") second.bytes[second.bytes.length - 1]! ^= 1;
+    const additions = variant === "control" ? [first.bytes]
+      : variant === "duplicate" ? [first.bytes, second.bytes] : [second.bytes, first.bytes];
+    const input = new Uint8Array(Buffer.concat([untagged.subarray(0, 33), ...additions, untagged.subarray(33)]));
+    const fs = new MemoryFileSystem(), files = new Map([["/input.png", input]]);
+    await fs.writeFile("/input.png", input);
+    const args = ["/input.png", "/output.png"];
+    let stderr = "";
+    const result = mode === "buffered" ? await runConvertCli(args, files)
+      : await createMagickCommand().execute({ command: "magick", args: createCommandArguments(args).args,
+        cwd: "/", env: {}, fs, stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} },
+        stderr: { write: async bytes => { stderr += new TextDecoder().decode(bytes); } } });
+    const warning = "stderr" in result ? result.stderr : stderr;
+    expect(result.exitCode, String(warning)).toBe(0);
+    const output = mode === "buffered" ? files.get("/output.png")! : await fs.readFile("/output.png");
+    expect(chunks(output).filter(chunk => chunk.name === "pHYs").map(chunk => chunk.data)).toEqual([first.data]);
+    if (variant === "duplicate") expect(warning).toContain("pHYs: duplicate");
+    else if (variant === "bad-crc") expect(warning).toContain("PNG pHYs CRC mismatch");
+    else expect(warning).toBe("");
+  });
+}
+
 for (const mode of ["buffered", "retained", "command"]) {
   for (const present of [false, true]) {
     it.each([[], ["-strip"], ["-define", "png:exclude-chunk=pHYs"], ["-define", "png:exclude-chunk=tEXt,pHYs"]])(

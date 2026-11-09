@@ -7231,7 +7231,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     }
                 }
             }
-            return { ...im, data: out, ...(data16 ? { data16 } : {}) };
+            return { ...im, isPalette: false, data: out, ...(data16 ? { data16 } : {}) };
         };
     }
     else return;

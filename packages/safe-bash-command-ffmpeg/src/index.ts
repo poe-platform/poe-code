@@ -107,6 +107,7 @@ import {
   samiAst,
   realtextAst,
   subviewerAst,
+  aqtitleAst,
   microdvdAst,
   jacosubAst,
   mpl2Ast,
@@ -144,6 +145,7 @@ export {
   samiAst,
   realtextAst,
   subviewerAst,
+  aqtitleAst,
   microdvdAst,
   jacosubAst,
   mpl2Ast,
@@ -3801,6 +3803,7 @@ export function evalSyncFfmpeg(
     let copyPriorStart = true;
     let copyTimestamps = false;
     let startAtZero = false;
+    let pendingSubtitleFrameRate: number | undefined;
     let pendingFixSubDuration = false;
     let pendingSkipInitialBytes = 0;
     let pendingIgnoreLength = false;
@@ -4018,7 +4021,10 @@ export function evalSyncFfmpeg(
         if (args.slice(i + 1).includes("-i")) pendingDuration = val;
         else outputDuration = val;
       } else if (arg === "-stream_loop") pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
-      else if (arg === "-r" || arg === "-framerate") {
+      else if (arg === "-subfps") {
+        pendingSubtitleFrameRate = parseFrameRate(args[++i] ?? "");
+        if (pendingSubtitleFrameRate === undefined || !args.slice(i + 1).includes("-i")) return undefined;
+      } else if (arg === "-r" || arg === "-framerate") {
         const val = parseFrameRate(args[++i] ?? "");
         if (val === undefined) return undefined;
         if (args.slice(i + 1).includes("-i")) pendingFps = val;
@@ -4055,6 +4061,7 @@ export function evalSyncFfmpeg(
           ignoreLength: pendingIgnoreLength,
           maxSize: pendingMaxSize,
           timestampOffset: pendingTimestampOffset,
+          subtitleFrameRate: pendingSubtitleFrameRate,
           fixSubDuration: pendingFixSubDuration,
           syncReference: pendingSyncReference,
           startSeconds: pendingSs,
@@ -4072,6 +4079,7 @@ export function evalSyncFfmpeg(
         pendingDisplayTransforms = [];
         pendingTimestampOffset = 0;
         pendingSyncReference = undefined;
+        pendingSubtitleFrameRate = undefined;
         pendingFixSubDuration = false;
         pendingSkipInitialBytes = 0;
         pendingIgnoreLength = false;
@@ -4372,7 +4380,7 @@ export function evalSyncFfmpeg(
         if (!plugin || !plugin.canDemux) return undefined;
         if (plugin.id === "au" && rawBytes.length >= 12 &&
           new DataView(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).getUint32(8) === 0) return undefined;
-        doc = plugin.parse(rawBytes, { decodeSubtitles: subtitleCodec !== "copy", decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)), filename: inp.path, budget, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
+        doc = plugin.parse(rawBytes, { decodeSubtitles: subtitleCodec !== "copy", decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)), filename: inp.path, budget, subtitleFrameRate: inp.subtitleFrameRate, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
         if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
@@ -4724,6 +4732,7 @@ interface InputSpec {
   readonly autoConvert?: boolean | undefined;
   readonly allowedExtensions?: string | undefined;
   readonly timestampOffset?: number | undefined;
+  readonly subtitleFrameRate?: number | undefined;
   readonly fixSubDuration?: boolean | undefined;
   readonly skipInitialBytes?: number | undefined;
   readonly ignoreLength?: boolean | undefined;
@@ -4806,6 +4815,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let copyInitialNonKeyframes = false;
       let copyTimestamps = false;
       let startAtZero = false;
+      let pendingSubtitleFrameRate: number | undefined;
       let pendingFixSubDuration = false;
       let pendingSkipInitialBytes = 0;
       let pendingIgnoreLength = false;
@@ -5686,6 +5696,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-stream_loop") {
             pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
+          } else if (arg === "-subfps") {
+            pendingSubtitleFrameRate = parseFrameRate(args[++i] ?? "");
+            if (pendingSubtitleFrameRate === undefined || !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -subfps requires a positive frame rate before an input\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-r" || arg === "-framerate") {
             const val = parseFrameRate(args[++i] ?? "");
             if (val === undefined) {
@@ -5755,6 +5771,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               format: pendingFormat,
               sampleRate: audioRate,
               channels: audioChannels,
+              subtitleFrameRate: pendingSubtitleFrameRate,
               fixSubDuration: pendingFixSubDuration,
               safe: pendingSafe,
               autoConvert: pendingAutoConvert,
@@ -5789,6 +5806,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingAllowedExtensions = undefined;
             pendingTimestampOffset = 0;
             pendingSyncReference = undefined;
+            pendingSubtitleFrameRate = undefined;
             pendingFixSubDuration = false;
             pendingSkipInitialBytes = 0;
             pendingIgnoreLength = false;
@@ -6780,6 +6798,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 decodeSubtitles: subtitleCodec !== "copy",
                 decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)),
                 resolveResource,
+                subtitleFrameRate: input?.subtitleFrameRate,
                 sampleRate: input?.sampleRate,
                 channels: input?.channels,
                 ignoreLength: input?.ignoreLength,

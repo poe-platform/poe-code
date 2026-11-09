@@ -43,6 +43,7 @@ export { cafAst } from "./containers/caf.js";
 
 export { pjsAst } from "./containers/pjs.js";
 export { mpl2Ast } from "./containers/mpl2.js";
+export { aqtitleAst } from "./containers/aqtitle.js";
 export { microdvdAst } from "./containers/microdvd.js";
 
 export { samiAst } from "./containers/sami.js";

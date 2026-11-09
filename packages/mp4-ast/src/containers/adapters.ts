@@ -11,6 +11,7 @@ import { lrcAst } from "./lrc.js";
 import { vplayerAst } from "./vplayer.js";
 import { mpl2Ast } from "./mpl2.js";
 import { jacosubAst } from "./jacosub.js";
+import { aqtitleAst } from "./aqtitle.js";
 import { microdvdAst } from "./microdvd.js";
 import { cafAst } from "./caf.js";
 import { ircamAst } from "./ircam.js";
@@ -3001,6 +3002,7 @@ export function allMediaAsts(): MediaAstPlugin[] {
     samiAst(),
     realtextAst(),
     subviewerAst(),
+    aqtitleAst(),
     microdvdAst(),
     jacosubAst(),
     mpl2Ast(),

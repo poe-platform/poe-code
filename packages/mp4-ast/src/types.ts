@@ -680,6 +680,8 @@ export interface ParseMediaOptions {
   readonly decodeAudio?: boolean | undefined;
   /** Keep encoded subtitle packets, including blank timed-text packets, when false. */
   readonly decodeSubtitles?: boolean | undefined;
+  /** Frame rate for frame-based subtitle input (AQTitle defaults to 25). */
+  readonly subtitleFrameRate?: number | undefined;
 }
 
 export interface SerializeMediaOptions {

@@ -1,8 +1,9 @@
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
+import type { Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Separable à trous hat transform with native noise thresholds and reflected edges. */
-export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, geometry: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & { region?: Region | undefined; hasAlpha?: boolean; alphaBlend?: boolean | undefined }, geometry: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const [thresholdText = "", softnessText = "0", ...extra] = geometry.replaceAll("%", "").split("x");
     const scale = geometry.includes("%") ? 65535 / 100 : 1;
     const threshold = Number(thresholdText) * scale;
@@ -21,7 +22,8 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
         if (!bytes || bytes.length !== count * (highDepth ? 8 : 4)) throw new Error("Truncated wavelet pixels");
         output.set(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes, start * 4);
     }
-    if (threshold !== 0 && levels > 0) {
+    const masked = image.region ? Float64Array.from(output) : undefined;
+    if ((threshold !== 0 || masked) && levels > 0) {
         const planes = new Float32Array(size * 3), row = new Float32Array(Math.max(width, height));
         for (let channel = 0; channel < 3; channel++) {
             for (let i = 0; i < size; i++) {
@@ -59,9 +61,26 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
             }
             for (let i = 0; i < size; i++) {
                 if (i % 1024 === 0) yield;
-                output[i * 4 + channel] = Math.max(0, Math.min(highDepth ? 65535 : 255, Math.round(Math.fround(planes[i]! + planes[low + i]!) / quantumScale)));
+                const value = Math.fround(planes[i]! + planes[low + i]!) / quantumScale;
+                if (masked) {
+                    const region = image.region!, x = i % width, y = Math.floor(i / width);
+                    if (x < region.x || x >= region.x + region.width || y < region.y || y >= region.y + region.height) {
+                        // Native synchronizes the write mask after each RGB channel,
+                        // compositing every color against the preceding channel's result.
+                        const alpha = image.hasAlpha || image.alphaBlend !== false ? output[i * 4 + 3]! / (highDepth ? 65535 : 255) : 1;
+                        for (let color = 0; color < 3; color++) {
+                            const original = masked[i * 4 + color]!;
+                            masked[i * 4 + color] = original * alpha + (color === channel ? value : original) * alpha * (1 - alpha);
+                        }
+                    } else masked[i * 4 + channel] = value;
+                } else output[i * 4 + channel] = Math.max(0, Math.min(highDepth ? 65535 : 255, Math.round(value)));
+
             }
         }
+    }
+    if (masked) for (let i = 0; i < output.length; i++) {
+        if (i % 4096 === 0) yield;
+        output[i] = Math.max(0, Math.min(highDepth ? 65535 : 255, Math.round(masked[i]!)));
     }
     for (let position = 0; position < output.length; position += 4096) {
         yield;

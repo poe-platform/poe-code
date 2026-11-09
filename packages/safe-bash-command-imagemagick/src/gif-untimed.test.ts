@@ -24,10 +24,10 @@ for (const retained of [false, true]) {
   }
 }
 
-it("resets an explicit delay before a following frame without a control extension", () => {
+it("inherits an explicit delay for a following frame without a control extension", () => {
   const bytes = Uint8Array.from([
     ...opaque.subarray(0, 25), 33, 249, 4, 0, 24, 0, 0, 0,
     ...opaque.subarray(25, -1), ...opaque.subarray(25)
   ]);
-  expect(decodeImage(bytes, { animated: true }).delay).toEqual([240, 0]);
+  expect(decodeImage(bytes, { animated: true }).delay).toEqual([240, 240]);
 });

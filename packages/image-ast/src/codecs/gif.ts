@@ -166,7 +166,7 @@ export function decodeGifImage(
         pos += subLen;
       }
       if (options?.coalesce === false && currentFrame !== startPage) {
-        currentFrame++; transparentIdx = -1; disposalMethod = 0; continue;
+        currentFrame++; transparentIdx = -1; continue;
       }
       const totalLen = blocks.reduce((s, b) => s + b.length, 0);
       const lzwStream = new Uint8Array(totalLen);
@@ -248,7 +248,7 @@ export function decodeGifImage(
       }
       currentFrame++;
       transparentIdx = -1;
-      disposalMethod = 0;
+      // Delay and disposal persist until another graphic control extension.
     }
     // Ignore stray bytes only between blocks; payloads retain their declared lengths.
   }

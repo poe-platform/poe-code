@@ -259,7 +259,7 @@ export async function decodeGifToStorage(
         data = at;
       at = await skip(at);
       if (options?.coalesce === false) {
-        if (current++ !== page) { transparent = -1; disposal = 0; continue; }
+        if (current++ !== page) { transparent = -1; continue; }
         indexedColors = Array.from({ length: colors.length / 3 }, (_, i) => (i === transparent ? 0 : 255 * 16777216) + colors[i * 3]! * 65536 + colors[i * 3 + 1]! * 256 + colors[i * 3 + 2]!);
         backgroundColor = flags & 128 ? undefined : { r: colors[header[11]! * 3] ?? 0, g: colors[header[11]! * 3 + 1] ?? 0, b: colors[header[11]! * 3 + 2] ?? 0, a: 255 };
         virtualCanvas = { width: canvasWidth, height: canvasHeight, x: left, y: top };
@@ -323,7 +323,7 @@ export async function decodeGifToStorage(
       }
       current++;
       transparent = -1;
-      disposal = 0;
+      // Delay and disposal persist until another graphic control extension.
     }
     // Ignore stray bytes only between blocks; payloads retain their declared lengths.
   }

@@ -297,9 +297,9 @@ function parseColor(raw: string, precise = false): RgbaColor {
     const parseChanByte = (p: string | undefined, def = 0) => {
       if (!p) return def;
       if (p.endsWith("%")) {
-        return Math.max(0, Math.min(255, Math.round((parseFloat(p) / 100) * 255)));
+        return Math.max(0, Math.min(255, round((parseFloat(p) / 100) * 255)));
       }
-      return Math.max(0, Math.min(255, Math.round(parseFloat(p))));
+      return Math.max(0, Math.min(255, round(parseFloat(p))));
     };
     const parseAlphaByte = (p: string | undefined) => {
       if (!p) return 255;
@@ -4006,12 +4006,13 @@ function* createSolidRgbaImageSteps(width: number, height: number, color: RgbaCo
     const h = Math.max(1, Math.round(height));
     const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     const data16 = highDepth ? new Uint16Array(w * h * 4) : undefined;
-    const tmp = new Uint8Array([color.r, color.g, color.b, color.a]);
+    const samples = [color.r, color.g, color.b, color.a].map(value => Math.round(value * 257));
+    const tmp = Uint8Array.from(samples, value => Math.round(value / 257));
     const packed = new Uint32Array(tmp.buffer)[0]!;
     const u32 = new Uint32Array(data.buffer, 0, w * h);
     for (let p = 0; p < u32.length; p += 16384) {
         u32.fill(packed, p, Math.min(u32.length, p + 16384));
-        if (data16) for (let i = p * 4; i < Math.min(data.length, (p + 16384) * 4); i++) data16[i] = data[i]! * 257;
+        if (data16) for (let i = p * 4; i < Math.min(data.length, (p + 16384) * 4); i += 4) data16.set(samples, i);
         yield;
     }
     return {
@@ -4422,10 +4423,11 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
     const image: StoredRgbaImage = { ...await decodeImageToStorage({ size: 0, async read() { return new Uint8Array(); } }, backend.storage, signal, { create: { width, height, channels: 4, background: { r: color.r, g: color.g, b: color.b, alpha: color.a / 255 } } }), format: "png" };
     if (highDepth) {
         const storedData16 = { position: backend.storage.allocate(width * height * 8), length: width * height * 4 };
+        const color16 = [color.r, color.g, color.b, color.a].map(value => Math.round(value * 257));
         for (let offset = 0; offset < width * height * 4; offset += 16384) {
             await yieldTurn(signal);
-            const bytes = await backend.storage.read(image.position + offset, Math.min(16384, width * height * 4 - offset));
-            const samples = Uint16Array.from(bytes, value => value * 257);
+            const samples = new Uint16Array(Math.min(16384, storedData16.length - offset));
+            for (let i = 0; i < samples.length; i += 4) samples.set(color16, i);
             await backend.storage.write(storedData16.position + offset * 2, new Uint8Array(samples.buffer));
         }
         return { ...image, storedData16 };

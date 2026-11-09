@@ -4154,6 +4154,7 @@ export class Runtime {
       } }, scope, this.budget, this.signal);
     }, borrow: (descriptor: number) => {
       checkDescriptor(descriptor);
+      io = this.persistentIO(state, io);
       const entry = io.descriptors?.get(descriptor);
       const source = entry?.closed ? undefined : entry?.input ?? (descriptor === 0 && !io.descriptors ? io.stdin : undefined);
       if (!source) throw new FsError("EBADF", { message: "Unreadable input descriptor" });
@@ -8304,7 +8305,15 @@ export class Runtime {
       pinned = entry.binding.retain();
       const input = source instanceof ShellInput ? source : new ShellInput(source, this.budget, this.signal);
       let pendingFlow: Flow | undefined;
-      await collectMapfile(options, input, {
+      let inputIO: IO = context;
+      await collectMapfile(options, () => {
+        if (options.callback === undefined) return input;
+        inputIO = this.persistentIO(state, inputIO);
+        if (!inputIO.descriptors) return input;
+        const current = inputIO.descriptors.get(options.descriptor);
+        if (current?.closed || !current?.input || current.input === closedSource) return undefined;
+        return current.input instanceof ShellInput ? current.input : input;
+      }, {
         allocation: () => this.budget.values.scope(), loop: () => this.budget.loop(), tryWriteSync: (index, value) => {
           if (pendingFlow) return true;
           if (state.variableAttributes?.get(options.name)) return false;

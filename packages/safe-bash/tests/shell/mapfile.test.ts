@@ -4,9 +4,30 @@ import { setup } from "./helpers.js";
 import { getCommandArguments } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { mapfileExtension } from "../../src/shell/extensions/mapfile/index.js";
+import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 
 for (const extension of [false, true]) {
   for (const command of ["mapfile", "readarray"]) {
+    for (const alias of [false, true]) {
+      for (const redirect of ["exec 3</other", "exec 3<&5", "exec 3<&-"]) {
+        for (const count of [1, 2]) test(`${command} callback redirects input: extension=${extension}, alias=${alias}, ${redirect}, count=${count}`, async () => {
+          const { shell, fs } = setup({ extensions: [arraysExtension(), ...(extension ? [mapfileExtension()] : [])] });
+          try {
+            await fs.writeFile("/record", new TextEncoder().encode("one\ntwo\nthree\n"));
+            await fs.writeFile("/other", new TextEncoder().encode("alpha\nbeta\n"));
+            const closed = redirect === "exec 3<&-";
+            const result = await shell.exec(`exec 3</record; exec 5</other; ${alias ? "exec 4<&3;" : ""}
+              cb() { if [[ $1 == 0 ]]; then ${redirect}; fi; }
+              ${command} -t -u 3 -C cb -c 1 -n ${count} A; code=$?; args "\${A[@]}"; say "rc=$code";
+              ${closed ? "" : 'IFS= read -r -u 3 tail; say "tail=<$tail>:$?";'}
+              ${alias ? 'IFS= read -r -u 4 old; say "old=<$old>:$?";' : ""}`);
+            assert.equal(result.exitCode, 0);
+            assert.equal(result.stderr, "");
+            assert.equal(result.stdout, `${JSON.stringify(count === 1 || closed ? ["one"] : ["one", "alpha"])}rc=0\n${closed ? "" : `tail=<${count === 1 ? "alpha" : "beta"}>:0\n`}${alias ? "old=<two>:0\n" : ""}`);
+          } finally { await shell.dispose(); }
+        });
+      }
+    }
     for (const [attribute, input, expected] of [
       ["i", "2+3\nA[1]+2", ["5", "7"]],
       ["u", "MiXeD\nCaSe", ["MIXED", "CASE"]],

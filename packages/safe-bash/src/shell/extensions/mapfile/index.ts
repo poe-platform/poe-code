@@ -215,7 +215,10 @@ async function execute(context: ShellExtensionContext): Promise<number> {
         if (++reads % 128 === 0) await yieldTurn(context.signal);
         check();
         let incoming: RawRecord;
-        try { incoming = await inputOwner.input!.record({ delimiter: options.delimiter }); }
+        try {
+          inputOwner.input ??= context.input.borrow(options.descriptor);
+          incoming = await inputOwner.input.record({ delimiter: options.delimiter });
+        }
         catch (error) { context.signal.throwIfAborted(); if (error instanceof FsError) return false; throw error; }
         record = incoming;
         check();
@@ -258,6 +261,10 @@ async function execute(context: ShellExtensionContext): Promise<number> {
         await writer.set(index, lineValue);
         check();
         await release();
+        if (options.callback !== undefined && count !== 0 && count % options.quantum === 0) {
+          await inputOwner.input?.release();
+          delete inputOwner.input;
+        }
         count = (count + 1) >>> 0;
         if (options.count && count > options.count) break;
         index = (index + 1) >>> 0;

@@ -90,7 +90,7 @@ export async function mapfileOptions(context: CommandContext, work: StringWork, 
   return options;
 }
 
-export async function collectMapfile(options: MapfileOptions, input: ShellInput, hooks: {
+export async function collectMapfile(options: MapfileOptions, getInput: () => ShellInput | undefined, hooks: {
   allocation(): ValueAllocation & { close(): void };
   loop(): void;
   tryWriteSync?(index: number, value: ShellValue): boolean;
@@ -101,7 +101,8 @@ export async function collectMapfile(options: MapfileOptions, input: ShellInput,
   let written = 0;
   while (!options.count || written < options.count) {
     hooks.loop();
-    if (input._isViewClosed()) break;
+    const input = getInput();
+    if (!input || input._isViewClosed()) break;
     if (options.callback === undefined && hooks.tryWriteSync) {
       const fastRec = input.tryMapfileRecordSync(options.delimiter, options.strip);
       if (fastRec !== undefined) {

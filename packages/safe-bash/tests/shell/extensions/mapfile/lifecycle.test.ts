@@ -26,16 +26,22 @@ function setup(args: readonly ShellValue[] = ["-t"]) {
     async set(index: number, value: ShellValue) { assert.equal(writerClosed, false); cells.set(index, value); },
     async close() { writerClosed = true; },
   };
-  const input = {
-    readiness(): never { throw new Error("mapfile must not use readiness polling"); },
-    async read(): Promise<never> { throw new Error("line-reading API must not be used"); },
-    async record(): Promise<RawRecord> {
-      assert.equal(inputClosed, false);
-      reads++;
-      return records.shift() ?? { shellValue: "", reason: "eof", async release() {} };
-    },
-    async release() { inputClosed = true; },
+  const createInput = () => {
+    let closed = false;
+    inputClosed = false;
+    return {
+      readiness(): never { throw new Error("mapfile must not use readiness polling"); },
+      async read(): Promise<never> { throw new Error("line-reading API must not be used"); },
+      async record(): Promise<RawRecord> {
+        assert.equal(closed, false);
+        reads++;
+        return records.shift() ?? { shellValue: "", reason: "eof", async release() {} };
+      },
+      async release() { closed = true; inputClosed = true; },
+    };
   };
+  const input = createInput();
+  let borrowed = false;
   const context: ShellExtensionContext = {
     command: "mapfile", args: [], argumentValues: args, status: 0, functionDepth: 0, sourceDepth: 0,
     stdin: { async *[Symbol.asyncIterator]() { yield* []; } },
@@ -52,7 +58,12 @@ function setup(args: readonly ShellValue[] = ["-t"]) {
     input: {
       observe() { throw new Error("Mapfile must not acquire a descriptor observer"); },
       validateOpen(descriptor) { assert.equal(cleanups.length, 1); assert.ok(Number.isSafeInteger(descriptor) && descriptor >= 0); },
-      borrow() { assert.equal(cleanups.length, 1); return input; },
+      borrow() {
+        assert.equal(cleanups.length, 1);
+        if (borrowed) return createInput();
+        borrowed = true;
+        return input;
+      },
     },
     async evaluate(source) { callbacks.push(source); return 0; },
     variable: () => undefined,

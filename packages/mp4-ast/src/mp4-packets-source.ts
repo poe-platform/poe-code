@@ -1,4 +1,5 @@
 import { composeDisplayMatrices } from "./display-matrix.js";
+import { decodeMp4Timecode } from "./mp4-timecode-sample.js";
 import { h264FieldOrderSteps } from './h264-field-order.js';
 import { buildProbeStream, type ProbeSampleStats } from './probe-stream.js';
 import { mp4SourceText, probeMp4MetadataSource } from './mp4-metadata-source.js';
@@ -150,8 +151,14 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
     }
     let duration = 0, mediaEnd = 0, allPacked = true, count = 0, firstPts = 0;
     let highestPts = -Infinity, reorderSpan = 0;
+    let timecode: string | undefined;
     for await (const sample of samples()) {
-      if (!count) firstPts = sample.pts;
+      if (!count) {
+        firstPts = sample.pts;
+        if (mode === 'streams' && codec?.formatFourCC === 'tmcd' && sample.size >= 4) {
+          timecode = decodeMp4Timecode(codec.extraData, await readMp4SampleRange(source, sample.offset, 4, work));
+        }
+      }
       count++; mediaEnd = Math.max(mediaEnd, sample.pts + sample.duration);
       duration = type === 'subtitle' ? mediaEnd : duration + sample.duration;
       if (mode === 'frames' && type === 'video') {
@@ -274,7 +281,7 @@ async function* scanProbeRecords(source: MediaProbeSource, options: Mp4PacketSca
       await decodeSamples?.return();
     }
     if (mode === 'streams') yield {
-      ...buildProbeStream({ ...track, duration: probeDuration }, codec, {
+      ...buildProbeStream({ ...track, duration: probeDuration, ...(timecode === undefined ? {} : { metadata: { timecode } }) }, codec, {
         ...stats,
         initialPadding: result.value && count
           ? Math.max(0, Math.round((result.value.mediaStart - firstPts) * (codec?.sampleRate ?? timescale) / timescale)) : 0

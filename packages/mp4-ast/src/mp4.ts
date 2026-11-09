@@ -1,4 +1,5 @@
 import { composeDisplayMatrices } from "./display-matrix.js";
+import { decodeMp4Timecode } from "./mp4-timecode-sample.js";
 import { encodeAlacTrack } from "./alac.js";
 import { decodeAlac } from "./alac-decoder.js";
 import { decodeMovText, encodeMovText } from "./mov-text.js";
@@ -2499,6 +2500,10 @@ export function buildProbeResultFromDoc(
     // Standalone WebVTT learns its start timestamp only when cues are read.
     if (doc.containerFormat === "webvtt" && (!firstSample || !(options.showPackets || options.showFrames))) {
       stream = { ...stream, start_pts: undefined, start_time: undefined };
+    }
+    if (desc?.formatFourCC === "tmcd" && firstSample) {
+      const timecode = decodeMp4Timecode(desc.extraData, firstSample.data);
+      if (timecode !== undefined) stream = { ...stream, tags: { ...stream.tags, timecode } };
     }
     const timestampOffset = aacMediaStart === undefined ? 0 : firstPts - aacMediaStart;
     const primingPackets = aacMediaStart === undefined ? 0 : materialized.samples.reduce(

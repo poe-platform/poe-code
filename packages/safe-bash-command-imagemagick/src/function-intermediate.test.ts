@@ -16,7 +16,7 @@ for (const mode of ["command", "buffered", "sync"] as const) {
         const input = await sharp(pixels, { raw: { width: ramp.length, height: 1, channels: 4 } }).png().toBuffer();
         for (const channel of ["RGB", "R", "A", "RGBA"]) {
             const argv = ["/in.png", "-channel", channel, "-function", "Polynomial", first,
-                "-function", "Polynomial", second, "-depth", "8", "/out.png"];
+                "-function", "Polynomial", second, "-depth", "8", "PNG32:/out.png"];
             const files = new Map([["/in.png", input]]);
             const fs = new MemoryFileSystem();
             await fs.writeFile("/in.png", input);

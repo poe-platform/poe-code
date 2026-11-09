@@ -2160,6 +2160,12 @@ function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSi
     return { ...img, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }
 
+function parseMagickCycleAmount(argument: string): number {
+    validateMagickTransformGeometry(argument, "-cycle");
+    // Native validates geometry, then reads only the leading decimal integer.
+    return Number.parseInt(argument, 10) || 0;
+}
+
 function parseMagickMorphCount(argument: string): number {
     validateMagickTransformGeometry(argument, "-morph");
     const count = Number.parseInt(argument, 10) || 0;
@@ -8284,7 +8290,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-cycle") {
-            const amount = Number(tokens[++i]);
+            const amount = parseMagickCycleAmount(tokens[++i] ?? "");
             stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, cyclePixelSteps(image, amount), signal));
         }
         else if (t === "-unique-colors") {
@@ -10198,7 +10204,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-cycle") {
-            const amount = Number(tokens[++i]);
+            const amount = parseMagickCycleAmount(tokens[++i] ?? "");
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, cyclePixelSteps(image, amount), signal) : undefined);
             continue;
         }

@@ -6296,10 +6296,12 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             const channelCount = image.hasAlpha ? 4 : 3;
             const sums = [0, 0, 0, 0];
             for (let channel = 0; channel < channelCount; channel++) for (let value = 0; value < levels; value++) sums[channel]! += histogram[channel]![value]! * value;
-            const sharedMean = sums.reduce((sum, value) => sum + value, 0) / (count * channelCount * (levels - 1));
-            // Grayscale has one logical color channel (R), replicated in our RGB storage.
-            // Explicit channels use independent means; native leaves alpha unchanged.
+            // Grayscale stores one color sample; its RGB projections must not outweigh alpha.
             const gray = image.space === "b-w" || image.space === "grey16";
+            const sharedMean = gray
+                ? (sums[0]! + sums[3]!) / (count * (image.hasAlpha ? 2 : 1) * (levels - 1))
+                : sums.reduce((sum, value) => sum + value, 0) / (count * channelCount * (levels - 1));
+            // Explicit channels use independent means; native leaves alpha unchanged.
             const active = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, !independent && image.hasAlpha];
             for (let channel = 0; channel < channelCount; channel++) {
                 if (!active[channel]) continue;
@@ -6440,7 +6442,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (space === "lab" || space === "cielab") return yield* convertHuePixels(image, "CIELab");
             if (space === "hsl" || space === "hsb" || space === "hsv" || space === "hwb" || space === "xyz" || space === "ycbcr" || space === "yuv") return yield* convertHuePixels(image, space === "yuv" ? "YUV" : space === "ycbcr" ? "YCbCr" : space === "xyz" ? "XYZ" : space === "hwb" ? "HWB" : space === "hsv" ? "HSV" : space === "hsb" ? "HSB" : "HSL");
             if (token !== "-grayscale" && !["gray", "grey", "rec709luma", "rec601luma"].includes(space)) {
-                if (space === "srgb") return image;
+                if (space === "srgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
                 throw new Error(`unsupported colorspace '${value}'`);
             }
             const out = new Uint8Array(image.data);

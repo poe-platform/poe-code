@@ -755,6 +755,8 @@ export interface SerializeMediaOptions {
   readonly fragmentType?: "none" | "every_frame" | undefined;
   /** DASH: write per-frame fragments without local segment indexes. */
   readonly streaming?: boolean | undefined;
+  /** DASH: enable per-frame streaming and constrain buffer time to GOP timing. */
+  readonly lowLatency?: boolean | undefined;
   /** DASH: combine each representation into one WebM or indexed MP4 resource. */
   readonly singleFile?: boolean | undefined;
   /** DASH single-file resource template; defaults to stream$RepresentationID$.$ext$. */

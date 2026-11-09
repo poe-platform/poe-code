@@ -442,6 +442,8 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   const hlsStreams: { codec: string; bandwidth: number }[] = [];
   let totalBytes = 0;
   const hasVideo = doc.tracks.some(track => track.type === "video");
+  const streaming = options.lowLatency || options.streaming;
+  let maxGopDuration = 0;
   let bufferDuration = 0;
   let lastSegmentEnd = -Infinity;
   for (let index = 0; index < doc.tracks.length; index++) {
@@ -482,7 +484,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     for (let segment = 0; segment < starts.length; segment++) {
       const samples = track.samples.slice(starts[segment], starts[segment + 1]);
       const fragments: Uint8Array[] = [];
-      const fragmentSize = options.streaming || options.fragmentType === "every_frame" ? 1 : Math.max(1, samples.length);
+      const fragmentSize = streaming || options.fragmentType === "every_frame" ? 1 : Math.max(1, samples.length);
       let mediaBytes = 0;
       if (webm) {
         const bytes = serializeMkv({ ...doc, tracks: [{ ...track, samples }] }, { ...options, webm: true });
@@ -526,7 +528,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         fragments.push(fragment);
       }
       let media = concatBytes(fragments);
-      if (!options.streaming && !webm) {
+      if (!streaming && !webm) {
         // Version 1 sidx: one reference to all fragments in this media segment.
         const indexBytes = new Uint8Array(52);
         const view = new DataView(indexBytes.buffer);
@@ -578,7 +580,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         const start = offset;
         offset += segment.bytes.length;
         if (index < firstSegment) return "";
-        const indexSize = webm || options.streaming ? 0 : new DataView(segment.bytes.buffer, segment.bytes.byteOffset, segment.bytes.byteLength).getUint32(0);
+        const indexSize = webm || streaming ? 0 : new DataView(segment.bytes.buffer, segment.bytes.byteOffset, segment.bytes.byteLength).getUint32(0);
         return `<SegmentURL mediaRange="${start}-${offset - 1}"${indexSize ? ` indexRange="${start}-${start + indexSize - 1}"` : ""}/>`;
       }).join("");
       resources.set(uri, concatBytes([initialization, ...segments.map(s => s.bytes)]));
@@ -662,7 +664,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   }
   const lines = [
     '<?xml version="1.0" encoding="utf-8"?>',
-    `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" maxSegmentDuration="PT${segmentDuration.toFixed(6)}S" mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S" minBufferTime="PT${(2 * bufferDuration).toFixed(6)}S" profiles="${profileUrns}">`,
+    `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" maxSegmentDuration="PT${segmentDuration.toFixed(6)}S" mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S" minBufferTime="PT${(maxGopDuration || 2 * bufferDuration).toFixed(6)}S" profiles="${profileUrns}">`,
     ...(doc.metadata.title ? [`<ProgramInformation><Title>${doc.metadata.title.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</Title></ProgramInformation>`] : []),
     ...serviceDescription,
     '<Period id="0" start="PT0S">'

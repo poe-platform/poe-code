@@ -9054,7 +9054,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const spec = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const plan = deskewPlan(image, yield* deskewAngleSteps(image, spec), state.pointFilter);
+                const expanded = yield* formatMagickPropertyStringSteps(spec, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const plan = deskewPlan(image, yield* deskewAngleSteps(image, expanded), state.pointFilter);
                 let background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
                 if (state.deskewAutoCrop === "1") background = deskewBackground(image, background, [0, image.height - 1].map(y => image.data.subarray(y * image.width * 4, (y * image.width + Math.min(2, image.width)) * 4)));
                 const rotated = { ...yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, background, "background"), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
@@ -11229,10 +11230,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const spec = tokens[++i] ?? "", background = state.background, autoCrop = state.deskewAutoCrop, fuzz = state.alphaFuzz, pointFilter = state.pointFilter;
-            const backgroundExplicit = state.backgroundExplicit;
+            const backgroundExplicit = state.backgroundExplicit, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, spec, signal), pointFilter);
+                const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, expanded, signal), pointFilter);
                 let color = backgroundExplicit ? background : image.backgroundColor ?? background;
                 if (autoCrop === "1") color = deskewBackground(image, color, await Promise.all([0, image.height - 1].map(y => backend.storage.read(image.position + y * image.width * 4, Math.min(2, image.width) * 4))));
                 const rotated = { ...await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, color, "background"), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };

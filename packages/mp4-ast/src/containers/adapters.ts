@@ -2306,6 +2306,9 @@ export function parseSubtitleDocument(
     const payload = utf16 ? encodeUtf8(decodeSubRip(bytes))
       : bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf ? bytes.subarray(3) : bytes;
     text = Array.from(payload, byte => String.fromCharCode(byte)).join("").replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+    // SubRip demuxing stops before the entire line containing the first NUL.
+    const nul = text.indexOf("\0");
+    if (nul >= 0) text = text.slice(0, text.lastIndexOf("\n", nul) + 1);
   } else {
     text = decodeUtf8(bytes).replace(/^\uFEFF/, "").replaceAll("\r\n", "\n");
   }

@@ -9425,8 +9425,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             duration = parseHlsDuration(value);
                             if (!value || !Number.isFinite(duration) || duration < 0 || duration > 86400) throw new Error("silencedetect: invalid duration");
                           } else if (key === "mono" || key === "m") {
-                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value)) throw new Error("silencedetect: invalid mono");
-                            mono = ["1", "true", "yes", "on"].includes(value);
+                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value.toLowerCase())) throw new Error("silencedetect: invalid mono");
+                            mono = ["1", "true", "yes", "on"].includes(value.toLowerCase());
                           } else throw new Error(`silencedetect: unsupported option ${key}`);
                         }
                         const channels = stretched.length;

@@ -4491,8 +4491,8 @@ describe("HLS cut schedule", () => {
         [4, 2, 3].map(duration => `#EXTINF:${duration.toFixed(6)},`));
       assert.ok(lines.includes("#EXT-X-TARGETDURATION:4"));
       const tracks = [0, 1, 2].map(index => type === "fmp4"
-        ? parseMp4(concatBytes([vfs.store.get("/init.mp4")!, vfs.store.get(`/out${index}.m4s`)!])).tracks[0]!
-        : parseMpegTs(vfs.store.get(`/out${index}.ts`)!).tracks[0]!);
+        ? parseMp4(concatBytes([vfs.store.get("/init.mp4")!, vfs.store.get(`/out${index}.m4s`)!])).tracks.find(track => track.type === "video")!
+        : parseMpegTs(vfs.store.get(`/out${index}.ts`)!).tracks.find(track => track.type === "video")!);
       assert.deepEqual(tracks.map(track => track.samples.length), [16, 8, 12]);
       assert.deepEqual(tracks.flatMap(track => track.samples.map(sample => [...sample.data])),
         source.tracks[0]!.samples.map(sample => [...sample.data]));

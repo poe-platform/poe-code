@@ -6761,13 +6761,19 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-threshold") {
         highDepth = true;
         const raw = tokens[++i] ?? "";
-        const fields = raw.split("x");
+        const geometry = raw.trim().toLowerCase();
+        const firstDigit = geometry.startsWith("-") || geometry.startsWith("+") ? 1 : 0;
+        const separator = geometry.indexOf("x", geometry.startsWith("0x", firstDigit) ? firstDigit + 2 : 0);
+        const fields = separator < 0 ? [geometry] : [geometry.slice(0, separator), ...geometry.slice(separator + 1).split("x")];
         const thresholds = fields.map(field => {
-            const threshold = field.endsWith("%") ? field.slice(0, -1) : field;
-            if (!Number.isFinite(Number(threshold)) || Number.parseFloat(threshold) !== Number(threshold)) {
+            const threshold = (field.endsWith("%") ? field.slice(0, -1) : field).trim();
+            const unsigned = threshold.startsWith("-") || threshold.startsWith("+") ? threshold.slice(1) : threshold;
+            const hexadecimal = unsigned.startsWith("0x");
+            const scalar = hexadecimal ? Number(unsigned) * (threshold.startsWith("-") ? -1 : 1) : Number(threshold);
+            if (!Number.isFinite(scalar) || (!hexadecimal && Number.parseFloat(threshold) !== scalar)) {
                 throw new Error(`invalid argument '-threshold' '${raw}'`);
             }
-            return field.endsWith("%") ? Number(threshold) / 100 * 65535 : Number(threshold);
+            return field.endsWith("%") ? scalar / 100 * 65535 : scalar;
         });
         const value = thresholds[0]!;
         const channels = state.channelExplicit ? state.channels : undefined;

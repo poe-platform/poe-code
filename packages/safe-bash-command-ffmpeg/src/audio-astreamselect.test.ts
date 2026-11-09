@@ -41,9 +41,10 @@ for (const map of [0, 1]) for (const length of [2048, 1300]) for (const stereo o
     assert.equal(audio.sampleRate, 8000);
     assert.equal(audio.channels, stereo ? 2 : 1);
     for (const [index, channel] of audio.channelData.entries()) {
-      assert.equal(channel.length, length);
+      const expectedLength = map === 0 ? Math.ceil(length / 512) * 512 : length;
+      assert.equal(channel.length, expectedLength);
       assert.deepEqual(Array.from(channel, sample => sample * 32768),
-        Array.from({ length }, (_, i) => Math.floor(i / 512) * (map ? -4000 : 8000) * (index ? -1 : 1) || 0));
+        Array.from({ length: expectedLength }, (_, i) => Math.floor(i / 512) * (map ? -4000 : 8000) * (index ? -1 : 1) || 0));
     }
   });
 }

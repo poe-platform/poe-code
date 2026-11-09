@@ -131,6 +131,8 @@ export interface ShellSessionState {
   readonly positionalParams?: readonly string[] | undefined;
   readonly aliases?: Readonly<Record<string, string>> | undefined;
   readonly cwd: string;
+  /** Resolved directory when cwd retains a logical symlink spelling. */
+  readonly physicalCwd?: string | undefined;
   readonly umask?: number | undefined;
   readonly variables?: Readonly<Record<string, string>> | undefined;
   readonly exported?: readonly string[] | undefined;

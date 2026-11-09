@@ -91,7 +91,8 @@ export function captureShellSessionState(state: State, exitCode: number): ShellS
   const snapshot: ShellSessionState = {
     aliases: Object.fromEntries(state.aliases ?? []),
     positionalParams: [...state.positional],
-    cwd: state.cwd,
+    cwd: state.logicalCwd ?? state.cwd,
+    ...(state.logicalCwd === undefined || state.logicalCwd === state.cwd ? {} : { physicalCwd: state.cwd }),
     umask: state.umask ?? 0o022,
     variables,
     exported: [...state.exported],
@@ -120,7 +121,9 @@ export async function restoreShellSessionState(
   const resolvedCwd = explicitOptions.cwd !== undefined
     ? resolvePath("/", explicitOptions.cwd)
     : resolvePath("/", snapshot.cwd || "/");
-  state.cwd = resolvedCwd;
+  state.cwd = explicitOptions.cwd === undefined && snapshot.physicalCwd !== undefined
+    ? resolvePath("/", snapshot.physicalCwd) : resolvedCwd;
+  state.logicalCwd = resolvedCwd;
   if (snapshot.positionalParams) {
     let bytes = 0;
     for (const value of snapshot.positionalParams) {

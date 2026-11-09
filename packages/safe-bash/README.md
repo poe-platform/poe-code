@@ -272,7 +272,8 @@ and function inspection (`-f`/`-F`). `typeset` is an alias for `declare`.
 add the arithmetic value instead of concatenating text.
 `cd -L` preserves symlinks in `PWD` (the default); `cd -P` resolves symlinks before
 following `..` and records the physical directory. Use `cd -- <path>` for paths
-beginning with a dash.
+beginning with a dash. Relative file access stays in the resolved directory even
+if the symlink used to enter it is removed or retargeted.
 Each invocation starts with `umask 0022`; numeric and symbolic masks affect new
 files and default directory modes through the supplied filesystem. Host umask
 is unchanged and may further restrict real file modes; remote modes can be advisory.

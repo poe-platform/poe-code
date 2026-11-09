@@ -913,7 +913,10 @@ export interface State extends DynamicVariableState {
   namerefVariables?: Set<string> | undefined;
   umask?: number;
   extensions?: ShellExtensionState | undefined;
+  /** Directory used for filesystem operations, resolved when cd succeeds. */
   cwd: string;
+  /** Logical spelling retained independently of PWD assignments. */
+  logicalCwd?: string | undefined;
   variables: Record<string, string>;
   exported: Set<string>;
   functions: Map<string, Command>;
@@ -1972,13 +1975,13 @@ class CdLookup {
     if (search) components.push({ start, end: value.length, bytes: bytes - startBytes });
     return { bytes, components };
   }
-  async find(fs: FileSystem, cwd: string, target: string, cdpath: string | undefined, physical: boolean): Promise<{ path: string; print?: string }> {
+  async find(fs: FileSystem, cwd: string, target: string, cdpath: string | undefined, physical: boolean): Promise<{ path: string; physicalPath: string; print?: string }> {
     const targetBytes = (await this.scan(target)).bytes;
     const absolute = target.startsWith("/");
     const cwdBytes = absolute ? 0 : (await this.scan(cwd)).bytes;
     const eligible = !absolute && target !== "." && target !== ".." && !target.startsWith("./") && !target.startsWith("../");
     const search = eligible && cdpath ? await this.scan(cdpath, true) : undefined;
-    const probe = async (component: string, componentBytes: number): Promise<{ path: string; print?: string }> => {
+    const probe = async (component: string, componentBytes: number): Promise<{ path: string; physicalPath: string; print?: string }> => {
       const rawBytes = absolute ? targetBytes : component.startsWith("/") ? componentBytes + 1 + targetBytes
         : cwdBytes + 1 + (component ? componentBytes + 1 : 0) + targetBytes;
       if (rawBytes > this.limits.maxCdPathBytes) throw new PublicDiagnostic("cd: path byte limit exceeded");
@@ -2012,14 +2015,13 @@ class CdLookup {
       this.signal.throwIfAborted();
       await fs.access(operand, ACCESS_MODES.X_OK, { signal: this.signal });
       this.signal.throwIfAborted();
-      if (physical) {
-        await this.charge(1);
-        path = await fs.realpath(operand, { signal: this.signal });
-        this.signal.throwIfAborted();
-        await this.scan(path);
-      }
+      await this.charge(1);
+      const physicalPath = await fs.realpath(operand, { signal: this.signal });
+      this.signal.throwIfAborted();
+      await this.scan(physicalPath);
+      if (physical) path = physicalPath;
       return {
-        path, ...(component ? { print: physical ? `${component}${component.endsWith("/") ? "" : "/"}${target}` : path } : {}), };};
+        path, physicalPath, ...(component ? { print: physical ? `${component}${component.endsWith("/") ? "" : "/"}${target}` : path } : {}), };};
     for (const component of search?.components ?? []) {
       try {
         return await probe(cdpath!.slice(component.start, component.end), component.bytes);
@@ -3167,7 +3169,7 @@ export class Runtime {
     if (name === "RANDOM" || name === "SECONDS") return readDynamicVariable(stateMonitor(state)?.raw ?? state, name) ?? state.variables[name];
     const binding = arrayStore(state)?.get(name);
     if (binding) return binding.get(binding.associative ? binding.keys.get("30")?.index ?? -1 : 0);
-    if (name === "DIRSTACK") return state.cwd;
+    if (name === "DIRSTACK") return state.logicalCwd ?? state.cwd;
     if (name === "BASH_SUBSHELL") return state.variables.BASH_SUBSHELL ?? "0";
     if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined) return state.functionNames?.[0];
     if (name === "BASH_SOURCE") return state.sourceNames?.[0];
@@ -3202,7 +3204,7 @@ export class Runtime {
     }
   }
   presenceArrayEntries(state: State, name: string): readonly string[] | undefined {
-    if (name === "DIRSTACK") return [state.cwd, ...state.directoryStack?.entries ?? []];
+    if (name === "DIRSTACK") return [state.logicalCwd ?? state.cwd, ...state.directoryStack?.entries ?? []];
     if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined && !arrayStore(state)?.get(name)) return state.functionNames ?? [];
     if (name === "BASH_SOURCE") return state.sourceNames ?? [];
     return undefined;
@@ -6449,6 +6451,7 @@ export class Runtime {
         }};
       const previous = hasMiddleware ? new Map<string, SavedVariable & { overlay: string | undefined }>() : undefined;
       const cwd = state.cwd;
+      const logicalCwd = state.logicalCwd;
       const directoryStackCwdPublication = state.directoryStackCwdPublication;
       let cwdRestoration: Restoration | undefined;
       if (hasMiddleware) {
@@ -6482,7 +6485,10 @@ export class Runtime {
             if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
           }
           this.signal.throwIfAborted();
-          stateMonitor(state)!.publish(cwdPublication, undefined, () => { state.cwd = resolvePath("/", context.cwd); });
+          stateMonitor(state)!.publish(cwdPublication, undefined, () => {
+            state.cwd = resolvePath("/", context.cwd);
+            if (state.cwd !== cwd) state.logicalCwd = undefined;
+          });
           cwdPublication.release();
           for (const [key, saved] of prevMap) {
             const publication = publications.get(key)!;
@@ -6501,6 +6507,7 @@ export class Runtime {
         }
       } else {
       state.cwd = resolvePath("/", context.cwd);
+      if (state.cwd !== cwd) state.logicalCwd = undefined;
       for (const key of environmentKeys) {
         if (Object.hasOwn(context.env, key) && typeof context.env[key] !== "string") throw new TypeError("Invalid middleware environment value");
         if (initialEnv[key] === context.env[key]) continue;
@@ -6805,7 +6812,12 @@ export class Runtime {
         if (hasMiddleware) {
         const prevMap = previous!;
         const restoreCwd = () => {
-          if (context.command !== "cd" && state.cwd === context.cwd && state.directoryStackCwdPublication === directoryStackCwdPublication) state.cwd = cwd;};
+          if (context.command !== "cd" && state.cwd === context.cwd
+            && state.logicalCwd === (context.cwd === cwd ? logicalCwd : undefined)
+            && state.directoryStackCwdPublication === directoryStackCwdPublication) {
+            state.cwd = cwd;
+            state.logicalCwd = logicalCwd;
+          }};
         await scope.cleanup(() => {
           if (cwdRestoration) cwdRestoration.apply(restoreCwd, false);
           else restoreCwd();});
@@ -6942,7 +6954,8 @@ export class Runtime {
           const absolute = command && mode === "describe";
           if ((absolute || state.profile === "sh") && !name.includes("/") && !path.startsWith("/")) {
             const relative = absolute && path.startsWith("./") ? path.slice(2) : path;
-            path = `${state.cwd === "/" ? "" : state.cwd}/${relative}`;
+            const cwd = state.logicalCwd ?? state.cwd;
+            path = `${cwd === "/" ? "" : cwd}/${relative}`;
           }
           return { kind: "file" as const, name: path };
         }));
@@ -7002,12 +7015,12 @@ export class Runtime {
   }
   processState(context: CommandContext, state: State, io: IO, arg0: ShellValue, args: readonly string[]): State {
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
-    const variables = Object.assign(Object.create(null) as Record<string, string>, context.env, { PWD: state.cwd });
+    const variables = Object.assign(Object.create(null) as Record<string, string>, context.env, { PWD: state.logicalCwd ?? state.cwd });
     const exported = new Set(Object.keys(variables));
     variables.OPTIND = "1";
     variables.OPTERR = "1";
     const child = trackState({
-      umask: state.umask ?? 0o022, extensions: forkExtensions(state.extensions, "process"), cwd: state.cwd, variables, exported, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true }, directoryStack: { entries: [], bytes: 0 }, dotglob: false, globstar: false, positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, errexit: false, }, this.budget, io[invocationScope]);
+      umask: state.umask ?? 0o022, extensions: forkExtensions(state.extensions, "process"), cwd: state.cwd, logicalCwd: state.logicalCwd, variables, exported, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true }, directoryStack: { entries: [], bytes: 0 }, dotglob: false, globstar: false, positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, errexit: false, }, this.budget, io[invocationScope]);
     for (const name of state.exportedFunctions ?? []) {
       const body = state.functions.get(name);
       const key = `BASH_FUNC_${name}%%`;
@@ -7081,7 +7094,7 @@ export class Runtime {
     if (source !== undefined) {
       this.budget.source(shellValueByteLength(source));
       const exitCode = await this.finishShell(child, childIO, await this.runCommandString(source, child, childIO));
-      if ((context as { externalInvocation?: boolean }).externalInvocation) state.cwd = child.cwd;
+      if ((context as { externalInvocation?: boolean }).externalInvocation) { state.cwd = child.cwd; state.logicalCwd = child.logicalCwd; }
       return exitCode;
     }
     const input = new ShellInput(context.stdin, this.budget, this.signal);
@@ -7171,6 +7184,7 @@ export class Runtime {
   private async shebangState(context: CommandContext, state: State): Promise<State> {
     const child = await cloneState(state, this.signal);
     child.cwd = resolvePath("/", context.cwd);
+    if (child.cwd !== state.cwd) child.logicalCwd = undefined;
     for (const key of child.exportedFunctions ?? []) {
       const body = child.functions.get(key);
       if (!body || context.env[`BASH_FUNC_${key}%%`] !== functionDisplay(key, body).slice(key.length + 1).trimEnd()) child.exportedFunctions?.delete(key);
@@ -7268,6 +7282,7 @@ export class Runtime {
     const definition = this.commands.get(command);
     const child = await this.shebangState(context, state);
     child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
+    if (child.cwd !== state.cwd) child.logicalCwd = undefined;
     if (!reserved) {
       if (child.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
       child.depth++;
@@ -7279,7 +7294,7 @@ export class Runtime {
     const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : options.stdinIsDefault ?? false;
     const argumentValues = getCommandArguments({ args, ...(options.argumentValues ? { argumentValues: options.argumentValues } : {}) });
     const selected: CommandContext = {
-      ...context, command, args: argumentValues.args, argumentValues, cwd: child.cwd, ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }), ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }), env: options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd }, stdin: options.stdin ?? context.stdin, stdout: options.stdout ?? context.stdout, stderr: options.stderr ?? context.stderr, ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }), };
+      ...context, command, args: argumentValues.args, argumentValues, cwd: child.cwd, ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }), ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }), env: options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.logicalCwd ?? child.cwd }, stdin: options.stdin ?? context.stdin, stdout: options.stdout ?? context.stdout, stderr: options.stderr ?? context.stderr, ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }), };
     const exitCode = await this.shebangStage(selected, child, io, async (runtime, forwarded, state, childIO) => {
       if (reserved) {
         if (definition) {
@@ -7664,7 +7679,8 @@ export class Runtime {
     const child = await cloneState(state, this.signal, scope, false);
     child.extensions = forkExtensions(state.extensions, "invocation");
     child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
-    const env: Record<string, string> = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };
+    if (child.cwd !== state.cwd) child.logicalCwd = undefined;
+    const env: Record<string, string> = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.logicalCwd ?? child.cwd };
     if (guestArrays(child) || Object.keys(env).some(key => arrayStore(child)?.get(key))) await this.indexedEnvironment(child, env);
     else {
     for (const key of child.exported) delete child.variables[key];
@@ -7932,9 +7948,9 @@ export class Runtime {
     const operand = args[offset];
     const target = operand === "-" ? state.variables.OLDPWD : (operand ?? state.variables.HOME);
     if (target === undefined) { await writeDiagnostic(context.stderr, `${name}: ${operand === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
-    let selected: { path: string; print?: string };
+    let selected: { path: string; physicalPath: string; print?: string };
     try {
-      selected = await lookup.find(this.fs, state.cwd, target || ".", state.variables.CDPATH, physical);
+      selected = await lookup.find(this.fs, physical ? state.cwd : state.logicalCwd ?? state.cwd, target || ".", state.variables.CDPATH, physical);
     } catch (error) {
       this.signal.throwIfAborted();
       const description = filesystemDiagnostic(error, "", this.budget.onInternalError);
@@ -7945,8 +7961,9 @@ export class Runtime {
     }
     this.signal.throwIfAborted();
     const { path } = selected;
-    await this.writeVariable(state, "OLDPWD", state.cwd, context);
-    state.cwd = path;
+    await this.writeVariable(state, "OLDPWD", state.logicalCwd ?? state.cwd, context);
+    state.cwd = selected.physicalPath;
+    state.logicalCwd = path;
     stackHooks?.onCwdPublished();
     await this.writeVariable(state, "PWD", path, context);
     const printedPath = selected.print ?? (operand === "-" ? target : undefined);
@@ -7993,7 +8010,7 @@ export class Runtime {
       return this.changeDirectory(context, state, [path], diagnose, {
         name: command, onCwdPublished() { state.directoryStackCwdPublication = Symbol(); }, async emit(text) { await work.emit(text); await work.flushOutput(); }, });};
     const display = async (index?: number): Promise<void> => {
-      await work.display(state.cwd, state.directoryStack?.entries ?? [], { long, lines, verbose, ...(index !== undefined ? { index } : {}) }, state.variables.HOME);};
+      await work.display(state.logicalCwd ?? state.cwd, state.directoryStack?.entries ?? [], { long, lines, verbose, ...(index !== undefined ? { index } : {}) }, state.variables.HOME);};
     try {
       for (let offset = 0; offset < args.length; offset++) {
         const token = args[offset]!;
@@ -8036,7 +8053,7 @@ export class Runtime {
         if (selected !== undefined) {
           const index = boundedIndex(selected);
           if (!(noCd && index === 0)) {
-            const cwd = state.cwd;
+            const cwd = state.logicalCwd ?? state.cwd;
             const at = (fullIndex: number): string => fullIndex === 0 ? cwd : tail.entries[fullIndex - 1]!;
             const next = await plan(count, index === 0 ? undefined : index - 1, index === 0 ? undefined : cwd, undefined, slot => at((index + slot + 1) % (count + 1)));
             await publish(next);
@@ -8047,7 +8064,7 @@ export class Runtime {
             }
           }
         } else if (target !== undefined) {
-          const saved = noCd ? target : state.cwd;
+          const saved = noCd ? target : state.logicalCwd ?? state.cwd;
           const next = await plan(count + 1, undefined, saved, noCd ? targetBytes : undefined, slot => slot === 0 ? saved : tail.entries[slot - 1]!);
           if (!noCd) {
             const status = await cd(target);
@@ -8057,7 +8074,7 @@ export class Runtime {
           await display();
         } else if (!noCd) {
           if (!count) work.fail("no other directory");
-          const cwd = state.cwd;
+          const cwd = state.logicalCwd ?? state.cwd;
           const next = await plan(count, 0, cwd, undefined, slot => slot === 0 ? cwd : tail.entries[slot]!);
           await publish(next);
           const status = await cd(tail.entries[0]!);
@@ -8538,7 +8555,7 @@ export class Runtime {
           physical = flag === "P";
         }
       }
-      const path = physical ? await this.fs.realpath(state.cwd, { signal: this.signal }) : state.cwd;
+      const path = physical ? await this.fs.realpath(state.cwd, { signal: this.signal }) : state.logicalCwd ?? state.cwd;
       await writeText(stdout, `${path}\n`);
       return 0;
     }
@@ -9470,7 +9487,7 @@ export class Runtime {
       part = resolved;
     }
     if (part.kind === "variable" && part.name === "DIRSTACK") {
-      const entries = [state.cwd, ...state.directoryStack?.entries ?? []];
+      const entries = [state.logicalCwd ?? state.cwd, ...state.directoryStack?.entries ?? []];
       const binding = arrayStore(state)?.get(part.name);
       if (!binding || binding.values.size !== entries.length || entries.some((entry, index) => binding.get(index) !== entry)) {
         await this.arrayAssignment({ kind: "compound", name: part.name, append: false, entries: entries.map(value => ({ value: { offset: 0, parts: [{ kind: "text", value, quoted: true }] } })) }, state, io);

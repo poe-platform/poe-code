@@ -7,6 +7,11 @@ import { createFfmpegCommand } from "./index.js";
 
 for (const channels of [1, 2]) {
   for (const [filter, start, end, frames] of [
+    ["asetpts=PTS+8,atrim=start_sample=2:duration=0.0005", 2, 6, [[10, 4]]],
+    ["asetpts=PTS-8,atrim=start=0:durationi=0.0005", 8, 12, [[0, 4]]],
+    ["asetnsamples=4:0,asetpts=2*PTS+8,atrim=start_sample=2:duration=0.00075", 2, 4, [[10, 2]]],
+    ["asetnsamples=4:0,asetpts=2*PTS+8,atrim=start_sample=2:duration=0.001", 2, 6, [[10, 2], [16, 2]]],
+    ["asetnsamples=4:0,asetpts=2*PTS+8,atrim=start_sample=2:duration=0.00075:end_sample=6", 2, 6, [[10, 2], [16, 2]]],
     ["asetpts=PTS+8,atrim=start=0.00125:end=0.002", 2, 8, [[10, 6]]],
     ["asetpts=PTS+8,atrim=start=0.00125:start=0.0015:end=0.002", 4, 8, [[12, 4]]],
     ["asetpts=PTS+8,atrim=start_sample=2:start_sample=4:end_sample=10:end_sample=8", 4, 8, [[12, 4]]],

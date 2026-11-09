@@ -103,6 +103,9 @@ Use `-ar 48000` to resample its 192 kHz output. Supports `I`, `TP`, `LRA`
 options and multichannel layouts are unsupported. Short clips use peak-constrained
 linear gain; longer clips use smoothed loudness gain and a linked lookahead limiter.
 `atrim=start_sample=2025:end_sample=3123` keeps sample frames 2025 through 3122 unchanged.
+`atrim=start_sample=2:duration=0.0005` retains four samples at 8 kHz, starting at sample 2.
+`duration` (alias `durationi`) is relative to the first retained timestamp; zero leaves duration unset.
+When combined with `end` or `end_sample`, the latest end wins.
 Use `atrim=start=0.253:end=0.390` for time bounds in seconds; `starti` and `endi` are aliases for `start` and `end`. End bounds are exclusive.
 Repeated `atrim` options use their last value; distinct time and sample bounds keep the earliest start and latest end.
 Use `atrim=start_pts=2:end_pts=8` for bounds in timestamp ticks (one tick per audio sample). PTS bounds follow shifts from `asetpts`; `start_sample` and `end_sample` count input sample frames regardless of timestamps.

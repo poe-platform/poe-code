@@ -10724,6 +10724,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }));
                         }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {
+                        let duration = 0;
                         const bounds = new Map<string, number>();
                         const length = stretched[0]?.length ?? 0;
                         const argument = trimmed.slice("atrim=".length);
@@ -10733,6 +10734,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (key === "starti" || key === "endi") key = key.slice(0, -1);
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           const samples = key === "start_sample" || key === "end_sample";
+                          if (key === "duration" || key === "durationi") {
+                            const seconds = parseHlsDuration(value);
+                            duration = Math.round(seconds * origRate);
+                            if (!value || seconds < 0 || !Number.isSafeInteger(duration)) {
+                              throw new Error(`atrim: invalid ${key}`);
+                            }
+                            continue;
+                          }
                           const pts = key === "start_pts" || key === "end_pts";
                           if (key === undefined || (!samples && !pts && key !== "start" && key !== "end")) {
                             throw new Error(`atrim: unsupported option ${key}`);
@@ -10759,6 +10768,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let start = Math.min(bounds.get("start") ?? Infinity, bounds.get("start_sample") ?? Infinity, bounds.get("start_pts") ?? Infinity);
                         let end = Math.max(bounds.get("end") ?? -Infinity, bounds.get("end_sample") ?? -Infinity, bounds.get("end_pts") ?? -Infinity);
                         start = start === Infinity ? 0 : Math.max(0, Math.min(length, start));
+                        if (duration > 0) {
+                          let durationEnd = start + duration;
+                          if (audioTimestamps) {
+                            let boundary: number | undefined;
+                            durationEnd = length;
+                            for (const frame of audioTimestamps) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              if (frame.end <= start) continue;
+                              boundary ??= frame.pts + Math.max(0, start - frame.start) + duration;
+                              if (boundary <= frame.pts + frame.end - frame.start) {
+                                durationEnd = frame.start + Math.max(0, boundary - frame.pts);
+                                break;
+                              }
+                            }
+                          }
+                          end = Math.max(end, durationEnd);
+                        }
                         end = end === -Infinity ? length : Math.max(start, Math.min(length, end));
                         stretched = stretched.map(channel => channel.subarray(start, end));
                         if (audioTimestamps) {

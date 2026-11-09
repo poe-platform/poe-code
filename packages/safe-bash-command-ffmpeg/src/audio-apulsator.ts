@@ -9,7 +9,7 @@ export async function pulsateAudio(
   if (channels.length !== 1 && channels.length !== 2) throw new Error("apulsator: stereo input required");
   let mode = "sine";
   let timing = "hz";
-  const options = { hz: 2, bpm: 120, ms: 500, amount: 1, offset_l: 0, offset_r: 0.5, width: 1 };
+  const options = { hz: 2, bpm: 120, ms: 500, amount: 1, offset_l: 0, offset_r: 0.5, width: 1, level_in: 1, level_out: 1 };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
@@ -31,8 +31,9 @@ export async function pulsateAudio(
       continue;
     }
     const number = parseFilterExpression(value, "apulsator", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
-    const min = key === "hz" ? 0.01 : key === "bpm" ? 30 : key === "ms" ? 10 : 0;
-    const max = key === "hz" ? 100 : key === "bpm" ? 300 : key === "ms" ? 2000 : key === "width" ? 2 : 1;
+    const gain = key === "level_in" || key === "level_out";
+    const min = key === "hz" ? 0.01 : gain ? 0.015625 : key === "bpm" ? 30 : key === "ms" ? 10 : 0;
+    const max = key === "hz" ? 100 : gain ? 64 : key === "bpm" ? 300 : key === "ms" ? 2000 : key === "width" ? 2 : 1;
     if (number < min || number > max) {
       throw new Error(`apulsator: invalid ${key}`);
     }
@@ -70,9 +71,9 @@ export async function pulsateAudio(
         default: wave = Math.sin(position * 2 * Math.PI);
       }
       // Native mono-to-stereo mixing uses double precision and -3 dB per channel.
-      const input = channels.length === 1
-        ? channels[0]![frame]! * Math.SQRT1_2 : channels[channel]![frame]!;
-      output[channel]![frame] = input * (wave * options.amount * 0.5 + options.amount / 2) + input * (1 - options.amount);
+      const input = (channels.length === 1
+        ? channels[0]![frame]! * Math.SQRT1_2 : channels[channel]![frame]!) * options.level_in;
+      output[channel]![frame] = (input * (wave * options.amount * 0.5 + options.amount / 2) + input * (1 - options.amount)) * options.level_out;
     }
     // Advance incrementally, preserving native phase across audio packet boundaries.
     phase += frequency / sampleRate;

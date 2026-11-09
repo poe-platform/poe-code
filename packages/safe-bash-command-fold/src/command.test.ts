@@ -572,6 +572,36 @@ test('coalescing charges copy work before delivering output', async () => {
   await Promise.all(f.cleanups.map(cleanup => cleanup()));
 });
 
+test('agent family and standalone fold accept GNU decimal width whitespace', async () => {
+  const { createFoldCommand: familyFold } = await import('./family.js');
+  const { settings } = await import('safe-bash-text-stream-engine/stream-inspection/shared');
+  for (const command of [familyFold(settings({})), createFoldCommand()]) {
+    for (const width of [' 2', '  +2', '\t2', '\r2', '\n2', '\v2', '\f2', ' \t\r\n\v\f+02', '+2', '02']) {
+      for (const args of [['-w', width], ['--width', width], [`-w${width}`], [`--width=${width}`]]) {
+        const f = fixture(args, 'abcde');
+        assert.equal((await command.execute(f.context)).exitCode, 0, JSON.stringify(args));
+        assert.deepEqual(f.stdout, [...encoder.encode('ab\ncd\ne')]);
+        assert.deepEqual(f.stderr, []);
+        await Promise.all(f.cleanups.map(cleanup => cleanup()));
+      }
+    }
+  }
+});
+
+test('agent family and standalone fold reject nondecimal and trailing width whitespace', async () => {
+  const { createFoldCommand: familyFold } = await import('./family.js');
+  const { settings } = await import('safe-bash-text-stream-engine/stream-inspection/shared');
+  for (const command of [familyFold(settings({})), createFoldCommand()]) {
+    for (const width of ['', ' \t', ' +', '2 ', ' 2\t', '+ 2', ' 0', ' -2', ' 2.0', ' 2x', '\u00a02', '\u20032']) {
+      const f = fixture(['-w', width], 'abcde');
+      assert.equal((await command.execute(f.context)).exitCode, 1, JSON.stringify(width));
+      assert.deepEqual(f.stdout, []);
+      assert.ok(f.stderr.length > 0);
+      await Promise.all(f.cleanups.map(cleanup => cleanup()));
+    }
+  }
+});
+
 test('agent family defaults to UTF-8 and respects explicit C locale', async () => {
   const { createFoldCommand: familyFold } = await import('./family.js');
   const { settings } = await import('safe-bash-text-stream-engine/stream-inspection/shared');

@@ -1079,6 +1079,7 @@ function assertSource7Discovery(files) {
   for (const path of [
     "tests/shell/extensions/mapfile/arguments.test.ts",
     "tests/shell/extensions/mapfile/behavior.test.ts",
+    "tests/shell/extensions/mapfile/nameref.test.ts",
     "tests/shell/extensions/mapfile/callback-boundary.test.ts",
     "tests/shell/extensions/mapfile/evaluation-exit-review.test.ts",
     "tests/shell/extensions/mapfile/fixture-revision.test.ts",

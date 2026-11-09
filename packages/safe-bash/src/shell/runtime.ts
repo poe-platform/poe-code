@@ -3794,6 +3794,7 @@ export class Runtime {
     return Object.freeze({
       describe: (name: string) => {
         checkName(name);
+        name = this.referenceName(state, name);
         const kind = arrayStore(state)?.get(name) ? "indexed" : state.variables[name] === undefined ? "unset" : "scalar";
         return Object.freeze({ kind, readonly: state.readonlyVariables?.has(name) ?? false, exported: state.exported.has(name) });
       }, get: (name: string, index = 0) => {
@@ -3875,6 +3876,7 @@ export class Runtime {
         }
       }, openIndexed: async (name: string, options: { readonly clear?: boolean } = {}) => {
         checkName(name);
+        name = this.referenceName(state, name);
         const clear = options.clear;
         if (clear !== undefined && typeof clear !== "boolean") throw new TypeError("Invalid indexed writer options");
         return this.incrementalIndexed(state, io, name, clear === true);

@@ -6,6 +6,37 @@ import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
 import { Budget, Capture, Runtime } from "../../src/shell/runtime.js";
+import { standardCommands } from "../../src/commands/index.js";
+
+for (const [source, stdout, exitCode] of [
+  ["! false; echo rc:$?", "rc:0\n", 0],
+  ["! true; echo rc:$?", "rc:1\n", 0],
+  ["! ! false; echo rc:$?", "rc:1\n", 0],
+  ["! ! true; echo rc:$?", "rc:0\n", 0],
+  ["! ! ! false; echo rc:$?", "rc:0\n", 0],
+  ["! ! ! true; echo rc:$?", "rc:1\n", 0],
+  ["! ! ! ! false", "", 1],
+  ["! ! true | false; echo rc:$?", "rc:1\n", 0],
+  ["! ! ! true | false; echo rc:$?", "rc:0\n", 0],
+  ["! ! false | true; echo rc:$?", "rc:0\n", 0],
+  ["set -o pipefail; ! ! false | true; echo rc:$?", "rc:1\n", 0],
+  ["set -o pipefail; ! ! ! false | true; echo rc:$?", "rc:0\n", 0],
+  ["! ! status 7; echo rc:$?", "rc:7\n", 0],
+  ["! ! ! status 7; echo rc:$?", "rc:0\n", 0],
+  ["set -e; ! ! false; echo unreachable", "", 1],
+  ["set -e; ! ! ! false; echo survived", "survived\n", 0],
+  ["! ! false && echo unreachable || echo fallback", "fallback\n", 0],
+  ["! ! ! false && echo success", "success\n", 0],
+] as const) test(`pipeline negation: ${source}`, async () => {
+  const { shell } = setup();
+  shell.use(standardCommands());
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.exitCode, exitCode);
+  } finally { await shell.dispose(); }
+});
 
 test("pipeline stage admission rejects before any stage starts", async context => {
   const { shell, commands } = setup();

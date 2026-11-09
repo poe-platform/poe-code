@@ -1490,8 +1490,11 @@ class Parser {
 
   pipeline(): Pipeline {
     this.budget.admit();
-    const negate = this.is("!");
-    if (negate) this.advance();
+    let negate = false;
+    while (this.is("!")) {
+      negate = !negate;
+      this.advance();
+    }
     const commands = [this.command()];
     while (this.is("|") || this.is("|&")) {
       const operator = this.advance();

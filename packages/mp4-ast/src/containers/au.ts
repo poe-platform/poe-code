@@ -112,6 +112,15 @@ export function auAst(): MediaAstPlugin {
         codec_tag_string: `[${encoding}][0][0][0]`,
         bits_per_raw_sample: encoding === 4 || encoding === 5 ? String(stream.bits_per_sample) : undefined
       }));
+      if (options.seekable === false) {
+        const unknownLength = header.getUint32(8) === 0xffffffff;
+        result.format = { ...result.format, size: undefined,
+          bit_rate: unknownLength ? result.streams[0]!.bit_rate : undefined };
+        if (unknownLength) {
+          result.format = { ...result.format, duration: undefined };
+          result.streams = result.streams.map(stream => ({ ...stream, duration_ts: undefined, duration: undefined }));
+        }
+      }
       // An unknown length needs payload bytes before a sample count can be inferred.
       if (header.getUint32(8) === 0xffffffff && header.getUint32(4) === bytes.length) {
         return { ...result, streams: result.streams.map(stream => ({ ...stream, duration_ts: undefined })) };

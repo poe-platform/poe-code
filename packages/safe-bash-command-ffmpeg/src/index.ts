@@ -9468,6 +9468,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
+                        let reset = 0;
                         let perChannel = new Set(["Peak_level", "RMS_level"]);
                         let overall = new Set(["Peak_level", "RMS_level", "Number_of_samples"]);
                         const supported = ["DC_offset", "Min_level", "Max_level", "Peak_level", "RMS_level", "Number_of_samples"];
@@ -9481,11 +9482,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               }
                               if (key === "measure_perchannel") perChannel = new Set(metrics);
                               else overall = new Set(metrics);
-                            } else if ((key !== "metadata" && key !== "reset") || value !== "0" || extra !== undefined) {
+                            } else if (key === "reset" && extra === undefined) {
+                              reset = Number(value);
+                              if (!value?.trim() || !Number.isInteger(reset) || reset < 0 || reset > 2147483647) {
+                                throw new Error("astats: invalid reset");
+                              }
+                            } else if (key !== "metadata" || value !== "0" || extra !== undefined) {
                               throw new Error(`astats: unsupported option ${option}`);
                             }
                           }
                         }
+                        // Reset before the next frame, so an exact interval at EOF is retained.
+                        let statsStart = 0;
+                        if (reset > 0) {
+                          const length = stretched[0]?.length ?? 0;
+                          for (let start = 0, n = 0; start < length; n++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            if (n % reset === 0) statsStart = start;
+                            const timestamp = audioTimestamps?.[n];
+                            const packet = t.samples[n];
+                            const count = timestamp ? timestamp.end - timestamp.start
+                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            start += count;
+                          }
+                        }
+                        const statsChannels = statsStart ? stretched.map(channel => channel.subarray(statsStart)) : stretched;
                         let totalSquares = 0;
                         let totalCount = 0;
                         let overallPeak = 0;
@@ -9507,7 +9528,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (mask.has("Number_of_samples")) result += `Number of samples: ${samples}\n`;
                           return result;
                         };
-                        for (const [index, channel] of stretched.entries()) {
+                        for (const [index, channel] of statsChannels.entries()) {
                           let squares = 0;
                           let peak = 0;
                           let sum = 0;

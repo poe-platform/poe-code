@@ -38,7 +38,7 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
       });
       else result = mode === "sync" ? runMagickCliSync(args, files)
         : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
-      if (!valid && mode !== "command") expect(result.stderr).toContain(`Unsupported TIFF compression: ${compression}`);
+      if (!valid && mode !== "command") expect("stderr" in result ? result.stderr : undefined).toContain(`Unsupported TIFF compression: ${compression}`);
       expect(result.exitCode).toBe(valid ? 0 : 1);
       const output = mode === "command" || mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
       if (!valid) expect(output).toEqual(original);

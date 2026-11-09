@@ -1,4 +1,4 @@
-import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
+import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
 import { parseFilterExpression } from "./filter-expression.js";
@@ -67,6 +67,7 @@ export async function mixAudio(
   budget.checkDuration(length / a.sampleRate);
   budget.allocateMemory(length * a.channels * 4);
   const channelData = a.channelData.map(() => new Float32Array(length));
+  const frames: MediaSample[] = [];
   const totalWeight = weights.reduce((sum, weight) => sum + Math.abs(weight), 0);
   const scales = weights.map(weight => totalWeight / Math.abs(weight));
   // Native WAV PCM frames use the largest power of two within 100 ms.
@@ -111,9 +112,13 @@ export async function mixAudio(
         channelData[channel]![sample] = mixed;
       }
     }
+    // Keep the mixer frames for every downstream filter, including partial EOF frames.
+    budget.allocateMemory(96);
+    frames.push({ data: new Uint8Array(0), size: 0, dts: start, pts: start, cts: 0,
+      duration: end - start, isKeyframe: true, sampleDescriptionIndex: 1 });
     start = end;
   }
-  return { ...tracks[0]!, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
+  return { ...tracks[0]!, timescale: a.sampleRate, duration: length, samples: frames, editList: undefined,
     decodedAudio: { ...a, channelData } };
 }
 

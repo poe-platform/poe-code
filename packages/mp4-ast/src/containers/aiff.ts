@@ -21,6 +21,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
   let littleEndian = false;
   let compressedFormat: string | undefined;
   let channelLayout: string | undefined;
+  let channelMask: number | undefined;
   let channels = 0, frames = 0, bits = 0, sampleRate = 0;
   let sound: Uint8Array | undefined;
   const metadata: { title?: string; copyright?: string; comment?: string; custom?: Record<string, string> } = {};
@@ -55,9 +56,10 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       if (exponent & 0x8000 || !Number.isSafeInteger(sampleRate) || sampleRate <= 0) throw new Error("Invalid AIFF sample rate");
     } else if (id === "CHAN" && size >= 12) {
       const tag = view.getUint32(start);
+      // Core Audio's bitmap uses the WAVE speaker positions for its low 18 bits.
       const bitmap = view.getUint32(start + 4);
-      channelLayout = tag === 0x00640001 || (tag === 0x00010000 && bitmap === 4) ? "mono"
-        : tag === 0x00650002 || (tag === 0x00010000 && bitmap === 3) ? "stereo" : undefined;
+      channelMask = tag === 0x10000 && bitmap > 0 && bitmap < 0x40000 ? bitmap : undefined;
+      channelLayout = tag === 0x00640001 ? "mono" : tag === 0x00650002 ? "stereo" : undefined;
     } else if (id === "ID3 ") {
       Object.assign(metadata, parseId3(bytes.subarray(start, start + size)).tags);
     } else if (["NAME", "AUTH", "(c) ", "ANNO"].includes(id)) {
@@ -78,10 +80,21 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
     offset = start + size + size % 2;
   }
   if (!channels || !sound || (!compressedFormat && (bits < 1 || bits > 32))) throw new Error("Missing or unsupported AIFF audio format");
+  const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR", "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"]
+    .filter((_, bit) => ((channelMask ?? 0) & (1 << bit)) !== 0);
+  if (speakers.length !== channels) channelMask = undefined;
+  const layouts: Record<number, string> = {
+    4: "mono", 3: "stereo", 11: "2.1", 7: "3.0", 259: "3.0(back)",
+    15: "3.1", 263: "4.0", 51: "quad", 1539: "quad(side)",
+    271: "4.1", 55: "5.0", 1543: "5.0(side)", 63: "5.1", 1551: "5.1(side)",
+    1799: "6.0", 1807: "6.1", 1591: "7.0", 1599: "7.1", 255: "7.1(wide)"
+  };
+  if (channelMask !== undefined) channelLayout = layouts[channelMask] ?? `${channels} channels (${speakers.join("+")})`;
   if (compressedFormat === "ima4") {
     const doc = parseImaQt(sound, channels, sampleRate, frames, options, budget);
     return { ...doc, metadata, byteLength: bytes.length, tracks: doc.tracks.map(track => ({ ...track, declaredSampleCount: frames,
       codecDescriptions: track.codecDescriptions.map(desc => ({ ...desc, channelLayout })),
+      ...(track.decodedAudio && channelMask ? { decodedAudio: { ...track.decodedAudio, channelMask } } : {}),
       samples: track.samples.map(sample => ({ ...sample, offset: sample.data.byteOffset - bytes.byteOffset }))
     })) };
   }
@@ -107,6 +120,7 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       return { ...track, duration: frames, declaredSampleCount: frames, samples,
         codecDescriptions: track.codecDescriptions.map(desc => ({ ...desc, channelLayout,
           ...(!compressed ? { formatFourCC: "\0\0\0\0" } : {}) })),
+        ...(track.decodedAudio && channelMask ? { decodedAudio: { ...track.decodedAudio, channelMask } } : {}),
         ...(options.decodeAudio !== false && sound.length % bytesPerFrame ? {
           decodeErrors: [`Invalid PCM packet: ${sound.length % bytesPerFrame} trailing bytes cannot form a ${bytesPerFrame}-byte sample frame`]
         } : {})

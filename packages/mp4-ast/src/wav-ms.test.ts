@@ -53,7 +53,8 @@ for (const channels of [1, 2]) {
     const doc = parseWav(input, { decodeAudio: false });
     assert.equal(doc.tracks[0]!.decodedAudio, undefined);
     const copy = Buffer.from(serializeWav(doc, { audioCodec: "copy" }));
-    for (const chunk of ["fmt ", "fact", "data"]) {
+    assert.equal(copy.readUInt32LE(copy.indexOf("fact") + 8), expected.length / (channels * 2));
+    for (const chunk of ["fmt ", "data"]) {
       const offset = input.indexOf(chunk) + 8;
       const size = input.readUInt32LE(offset - 4);
       const start = copy.indexOf(chunk) + 8;

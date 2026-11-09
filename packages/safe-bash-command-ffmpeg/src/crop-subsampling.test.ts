@@ -8,12 +8,13 @@ import { createFfmpegCommand } from "./index.js";
 
 const input = readFileSync(new URL("../../mp4-ast/src/fixtures/h264-b-frames.mp4", import.meta.url));
 
-async function crop(filter: string) {
+async function crop(filter: string, raw = false) {
   const volume = Volume.fromJSON({});
   volume.writeFileSync("/input.mp4", input);
   const errors: Uint8Array[] = [];
   const result = await createFfmpegCommand().execute({
-    args: ["-v", "error", "-i", "/input.mp4", "-vf", filter, "-frames:v", "1", "/output.png"],
+    args: ["-v", "error", "-i", "/input.mp4", "-vf", filter, "-frames:v", "1",
+      ...(raw ? ["-f", "rawvideo", "-pix_fmt", "yuv420p"] : []), "/output.png"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },
@@ -25,13 +26,13 @@ async function crop(filter: string) {
     stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
   } as never);
   assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
-  return decodeImage(volume.readFileSync("/output.png") as Buffer);
+  return volume.readFileSync("/output.png") as Buffer;
 }
 
 it("aligns default YUV420 crop dimensions and offsets to the chroma grid", async () => {
-  const aligned = await crop("crop=32:24:10:6");
+  const aligned = decodeImage(await crop("crop=32:24:10:6"));
   for (const filter of ["crop=32:24:11:7", "crop=33:25:11:7:exact=0", "crop=32:24:11:7:0:0"]) {
-    const output = await crop(filter);
+    const output = decodeImage(await crop(filter));
     assert.equal(output.width, 32);
     assert.equal(output.height, 24);
     assert.deepEqual(output.data, aligned.data, filter);
@@ -39,9 +40,9 @@ it("aligns default YUV420 crop dimensions and offsets to the chroma grid", async
 });
 
 it("preserves exact crop coordinates and dimensions when requested", async () => {
-  const full = await crop("null");
-  for (const filter of ["crop=33:25:11:7:exact=1", "crop=33:25:11:7:0:1", "format=rgba,crop=33:25:11:7"]) {
-    const output = await crop(filter);
+  const full = decodeImage(await crop("null"));
+  for (const filter of ["format=rgba,crop=33:25:11:7", "format=rgba,crop=33:25:11:7:exact=1"]) {
+    const output = decodeImage(await crop(filter));
     assert.equal(output.width, 33);
     assert.equal(output.height, 25);
     for (let y = 0; y < 25; y++) {
@@ -51,17 +52,29 @@ it("preserves exact crop coordinates and dimensions when requested", async () =>
   }
 });
 
+// FFmpeg 7.0.2: -i h264-b-frames.mp4 -vf crop=33:25:11:7:exact=1 -frames:v 1 out.png.
+it("keeps exact YUV crop dimensions and addresses chroma at the containing sample", async () => {
+  const expected = decodeImage(readFileSync(new URL("./fixtures/crop-exact.png", import.meta.url)));
+  for (const filter of ["crop=33:25:11:7:exact=1", "crop=33:25:11:7:0:1"]) {
+    const output = decodeImage(await crop(filter));
+    assert.equal(output.width, 33);
+    assert.equal(output.height, 25);
+    assert.equal(output.data.length, expected.data.length);
+    for (let i = 0; i < output.data.length; i++) {
+      assert.ok(Math.abs(output.data[i]! - expected.data[i]!) <= 1, `channel ${i}`);
+    }
+  }
+});
+
 const nativeAvailable = spawnSync("ffmpeg", ["-version"]).status === 0;
 it("matches native FFmpeg for odd default YUV420 crop offsets", { skip: !nativeAvailable }, async () => {
   const filter = "crop=32:24:11:7";
-  const output = await crop(filter);
+  const output = await crop(filter, true);
   const native = spawnSync("ffmpeg", [
     "-v", "error", "-i", "pipe:0", "-vf", filter,
-    "-frames:v", "1", "-pix_fmt", "rgba", "-f", "rawvideo", "pipe:1"
+    "-frames:v", "1", "-pix_fmt", "yuv420p", "-f", "rawvideo", "pipe:1"
   ], { input });
   assert.equal(native.status, 0, native.stderr.toString());
-  assert.equal(output.data.length, native.stdout.length);
-  for (let i = 0; i < output.data.length; i++) {
-    assert.ok(Math.abs(output.data[i]! - native.stdout[i]!) <= 1, `channel ${i}`);
-  }
+  // Plane bytes are independent of host-specific RGB conversion rounding.
+  assert.deepEqual(output, native.stdout);
 });

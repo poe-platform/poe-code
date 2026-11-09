@@ -2049,9 +2049,43 @@ async function applyVideoFilterChain(
         }
         const cx = Math.max(0, Math.min(iw - cw, roundToEven(variables.x)));
         const cy = Math.max(0, Math.min(ih - ch, roundToEven(variables.y)));
+        const left = Math.floor(cx / hsub) * hsub;
+        const top = Math.floor(cy / vsub) * vsub;
+        const source = f.native;
+        if (source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
+            [0, 4, 5, 12, 13, 14].includes(source.format)) {
+          const chromaWidth = Math.ceil(cw / inputHsub);
+          const chromaHeight = Math.ceil(ch / inputVsub);
+          const pixels = new Uint8Array(cw * ch + 2 * chromaWidth * chromaHeight);
+          let offset = 0;
+          let outputOffset = 0;
+          for (let plane = 0; plane < 3; plane++) {
+            const sx = plane === 0 ? 1 : inputHsub;
+            const sy = plane === 0 ? 1 : inputVsub;
+            const width = Math.ceil(f.width / sx);
+            const height = Math.ceil(f.height / sy);
+            const outputWidth = plane === 0 ? cw : chromaWidth;
+            const outputHeight = plane === 0 ? ch : chromaHeight;
+            // Even exact crops address chroma at the containing subsampled pixel.
+            const x = Math.floor(left / sx);
+            const y = Math.floor(top / sy);
+            for (let row = 0; row < outputHeight; row++) {
+              await yieldTurn(signal);
+              signal?.throwIfAborted();
+              budget.checkCpu();
+              const start = offset + (y + row) * width + x;
+              pixels.set(source.pixels.subarray(start, start + outputWidth), outputOffset + row * outputWidth);
+            }
+            offset += width * height;
+            outputOffset += outputWidth * outputHeight;
+          }
+          const native = { ...source, width: cw, height: ch, pixels };
+          const data = scaleVideoPicture({ ...f, width: cw, height: ch, native }, cw, ch)!;
+          return { ...f, width: cw, height: ch, data, native: { ...native, rgba: data } };
+        }
         const cropped = extractImage(makeRgbaImg(f.width, f.height, f.data), {
-          left: Math.floor(cx / hsub) * hsub,
-          top: Math.floor(cy / vsub) * vsub,
+          left,
+          top,
           width: cw,
           height: ch
         });

@@ -2286,11 +2286,12 @@ function splitAdjacentSrtCues(block: string): string[] {
       // A numeric line is an index only when immediately followed by timing.
       const end = previous.length > 0 && [...previous].every(char => char >= "0" && char <= "9") ? i - 1 : i;
       cues.push(lines.slice(start, end).join("\n"));
-      start = i;
     }
+    // Forced demuxing skips preamble until a complete timestamp pair appears.
+    start = i;
     hasTiming = true;
   }
-  cues.push(lines.slice(start).join("\n"));
+  if (hasTiming) cues.push(lines.slice(start).join("\n"));
   return cues;
 }
 

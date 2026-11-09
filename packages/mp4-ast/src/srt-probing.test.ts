@@ -14,3 +14,13 @@ it("requires numbered SRT for detection while allowing explicit parsing of unnum
     sample.pts, sample.duration, new TextDecoder().decode(sample.data)
   ]), [[1000, 2500, "Café costs €2"], [2250, 2750, "Second line"]]);
 });
+
+it("skips incomplete timestamps and preamble when explicitly parsing SRT", () => {
+  const plugin = srtAst();
+  const invalid = "1\n00:01,000 --> 00:02,000\nalpha\n";
+  assert.equal(plugin.parse(new TextEncoder().encode(invalid)).tracks[0]!.samples.length, 0);
+  const doc = plugin.parse(new TextEncoder().encode(invalid + "\n2\n00:00:03,000 --> 00:00:04,000\nbeta\n"));
+  assert.deepEqual(doc.tracks[0]!.samples.map(sample => [
+    sample.pts, sample.duration, new TextDecoder().decode(sample.data)
+  ]), [[3000, 1000, "beta"]]);
+});

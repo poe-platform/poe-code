@@ -8802,7 +8802,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack.reverse();
         }
         else if (t === "-smush" || t === "+smush") {
-            const gap = smushGap(tokens[++i]);
+            const geometry = tokens[++i] ?? "", image = stack[0];
+            const gap = smushGap(image ? yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : geometry);
             if (stack.length) {
                 const layout = smushLayoutSteps(stack, t === "-smush", gap, state.gravity);
                 let next = layout.next();
@@ -9738,9 +9739,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-smush" || token === "+smush")) {
-            const gap = smushGap(tokens[++i]), settings = { ...state };
+            const geometry = tokens[++i] ?? "", settings = { ...state };
             stackStep(async (stack, backend) => {
-                if (!stack.length) return stack;
+                const image = await stack.get(0);
+                const gap = smushGap(image ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal) : geometry);
+                if (!image) return stack;
                 const images: StoredRgbaImage[] = [];
                 for (let n = 0; n < stack.length; n++) images.push((await stack.get(n))!);
                 const layout = smushLayoutSteps(images, token === "-smush", gap, settings.gravity);

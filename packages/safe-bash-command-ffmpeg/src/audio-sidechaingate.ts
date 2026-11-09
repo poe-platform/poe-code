@@ -6,9 +6,13 @@ export async function gateAudio(
   first: MediaTrack, filter: string, budget: MediaBudgetTracker, sidechain: readonly (Float32Array | Float64Array)[], signal?: AbortSignal
 ): Promise<Float64Array[]> {
   const { channelData: channels, sampleRate } = first.decodedAudio!;
-  const options: Record<string, string> = {
-    level_in: "1", mode: "downward", range: "0.06125", threshold: "0.125", ratio: "2",
-    attack: "20", release: "250", makeup: "1", knee: "2.828427125", detection: "rms", link: "average", level_sc: "1"
+  const options: Record<string, number> = {
+    level_in: 1, mode: 0, range: 0.06125, threshold: 0.125, ratio: 2,
+    attack: 20, release: 250, makeup: 1, knee: 2.828427125, detection: 1, link: 0, level_sc: 1
+  };
+  const bounds: Record<string, readonly [number, number]> = {
+    level_in: [0.015625, 64], range: [0, 1], threshold: [0, 1], ratio: [1, 9000],
+    attack: [0.01, 9000], release: [0.01, 9000], makeup: [1, 64], knee: [1, 8], level_sc: [0.015625, 64]
   };
   const names = Object.keys(options);
   let enable: string | undefined;
@@ -16,43 +20,44 @@ export async function gateAudio(
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
+    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "enable") {
-      enable = option.slice(separator + 1).trim();
+      // This is a native string option; only its final value is interpreted.
+      enable = value;
       continue;
     }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`sidechaingate: unsupported option ${key}`);
-    options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "mode" || key === "detection" || key === "link") {
+      const choices = key === "mode" ? ["downward", "upward"]
+        : key === "detection" ? ["peak", "rms"] : ["average", "maximum"];
+      const choice = value === "0" || value === "1" ? Number(value) : choices.indexOf(value);
+      if (choice < 0) throw new Error(`sidechaingate: invalid ${key}`);
+      options[key] = choice;
+    } else {
+      const numeric = parseFilterExpression(value, "sidechaingate", {});
+      const [min, max] = bounds[key]!;
+      if (!value || !Number.isFinite(numeric) || numeric < min || numeric > max) throw new Error(`sidechaingate: invalid ${key}`);
+      options[key] = numeric;
+    }
   }
-  const number = (key: string, min: number, max: number): number => {
-    const value = parseFilterExpression(options[key]!, "sidechaingate", {});
-    if (!options[key] || !Number.isFinite(value) || value < min || value > max) throw new Error(`sidechaingate: invalid ${key}`);
-    return value;
-  };
-  const choice = (key: string, values: readonly string[]): number => {
-    const value = options[key]!;
-    const index = values.indexOf(value);
-    if (index >= 0) return index;
-    if (value === "0" || value === "1") return Number(value);
-    throw new Error(`sidechaingate: invalid ${key}`);
-  };
-  const level = number("level_in", 0.015625, 64);
-  const upward = choice("mode", ["downward", "upward"]) === 1;
-  const thresholdValue = number("threshold", 0, 1);
-  const range = number("range", 0, 1);
-  const ratio = number("ratio", 1, 9000);
-  const attack = Math.min(1, 1 / (number("attack", 0.01, 9000) * sampleRate / 4000));
-  const release = Math.min(1, 1 / (number("release", 0.01, 9000) * sampleRate / 4000));
-  const makeup = number("makeup", 1, 64);
-  const knee = number("knee", 1, 8);
-  const maximum = choice("link", ["average", "maximum"]) === 1;
-  const rms = choice("detection", ["peak", "rms"]) === 1;
+  const level = options.level_in!;
+  const upward = options.mode === 1;
+  const thresholdValue = options.threshold!;
+  const range = options.range!;
+  const ratio = options.ratio!;
+  const attack = Math.min(1, 1 / (options.attack! * sampleRate / 4000));
+  const release = Math.min(1, 1 / (options.release! * sampleRate / 4000));
+  const makeup = options.makeup!;
+  const knee = options.knee!;
+  const maximum = options.link === 1;
+  const rms = options.detection === 1;
   const linearThreshold = rms ? thresholdValue * thresholdValue : thresholdValue;
   const linearKneeStart = linearThreshold / Math.sqrt(knee);
   const linearKneeStop = linearThreshold * Math.sqrt(knee);
   const threshold = Math.log(linearThreshold);
   const kneeStart = Math.log(linearKneeStart);
   const kneeStop = Math.log(linearKneeStop);
-  const detectorLevel = number("level_sc", 0.015625, 64);
+  const detectorLevel = options.level_sc!;
   const length = Math.min(channels[0]?.length ?? 0, sidechain[0]?.length ?? 0);
   budget.checkSamples(length);
   budget.checkDuration(length / sampleRate);

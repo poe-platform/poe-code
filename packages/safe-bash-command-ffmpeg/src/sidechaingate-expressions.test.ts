@@ -66,3 +66,44 @@ for (const option of ["level_in=0b1", "range=0b1", "level_sc=0o1", "level_sc=1/0
     assert.ok(stderr.includes("sidechaingate:"), stderr);
     assert.equal(output.toString(), "KEEP");
   });
+
+for (const option of [
+  "ratio=bad:ratio=2", "ratio=0:ratio=2", "ratio=9001:ratio=2", "ratio=2:ratio=0",
+  "level_in=0:level_in=1", "range=2:range=0.25", "threshold=-1:threshold=0.125",
+  "attack=0:attack=20", "release=9001:release=250", "makeup=0:makeup=1",
+  "knee=9:knee=2", "level_sc=0:level_sc=1", "threshold=NaN:threshold=0.125",
+  "attack=:attack=20", "mode=no:mode=downward", "detection=bad:detection=rms",
+  "link=2:link=average", "0:level_in=1", "1:no:mode=downward"
+]) {
+  it(`sidechaingate validates overridden options in ${option} without replacing output`, async () => {
+    const { result, stderr, output } = await run(option);
+    assert.equal(result.exitCode, 1, stderr);
+    assert.ok(stderr.includes("sidechaingate:"), stderr);
+    assert.equal(output.toString(), "KEEP");
+  });
+}
+
+for (const [repeated, last] of [
+  ["level_in=2:level_in=1/2", "level_in=0.5"],
+  ["range=0.5:range=1/4", "range=0.25"],
+  ["threshold=0.5:threshold=1/8", "threshold=0.125"],
+  ["ratio=3:ratio=2", "ratio=2"],
+  ["attack=10:attack=2+3", "attack=5"],
+  ["release=100:release=1k/2", "release=500"],
+  ["makeup=3:makeup=sqrt(4)", "makeup=2"],
+  ["knee=1:knee=2^2", "knee=4"],
+  ["level_sc=2:level_sc=1/2", "level_sc=0.5"],
+  ["mode=upward:mode=downward", "mode=downward"],
+  ["detection=rms:detection=0", "detection=peak"],
+  ["link=average:link=1", "link=maximum"],
+  ["2:level_in=1/2", "level_in=0.5"],
+  ["1:upward:mode=downward", "mode=downward"]
+] as const) {
+  it(`sidechaingate uses the last valid value in ${repeated}`, async () => {
+    const expected = await run(last);
+    assert.equal(expected.result.exitCode, 0, expected.stderr);
+    const actual = await run(repeated);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    assert.deepEqual(actual.output, expected.output);
+  });
+}

@@ -1003,6 +1003,11 @@ function parseFilterChain(filterChainStr: string): string[] {
   return filters;
 }
 
+function serializeFilterChain(filters: string[]): string {
+  // Parsed filters have lost their quoting; protect literal separators before reparsing.
+  return filters.map(filter => filter.replaceAll("\\", "\\\\").replaceAll("'", "\\'").replaceAll(",", "\\,")).join(",");
+}
+
 async function renderShowwavespic(
   audio: MediaAudioData, spec: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame> {
@@ -1319,7 +1324,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       // Internal sink nodes run through the same evaluator, but never become output streams.
       const label = `\0sink${sinks.length}`;
       sinks.push(label);
-      nodes.set(label, { inputs, expression: filters.slice(0, -1).join(",") || "anull" });
+      nodes.set(label, { inputs, expression: serializeFilterChain(filters.slice(0, -1)) || "anull" });
     }
     if (last === "asplit" || last.startsWith("asplit=")) {
       const argument = last.slice("asplit=".length);
@@ -1327,7 +1332,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       outputCount = last === "asplit" ? 2 : Number(count);
       if (!Number.isInteger(outputCount) || outputCount < 1) throw new Error("asplit: outputs must be a positive integer");
       // Duplicate the source and preceding filters; each branch applies its own downstream filters.
-      expression = filters.slice(0, -1).join(",") || "anull";
+      expression = serializeFilterChain(filters.slice(0, -1)) || "anull";
     }
     if (!outputs.length) {
       for (let index = 0; index < outputCount; index++) {
@@ -1425,7 +1430,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           }
         }
         return { track: { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
-          decodedAudio: { ...a, channelData } }, expression: filters.slice(1).join(",") || "anull" };
+          decodedAudio: { ...a, channelData } }, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "sidechaingate" || filters[0]?.startsWith("sidechaingate=")) {
         if (sources.length !== 2) throw new Error("sidechaingate requires two inputs");
@@ -1439,7 +1444,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         if (a.sampleRate !== b.sampleRate) throw new Error("sidechaingate requires matching sample rates");
         const channelData = await gateAudio(first, filters[0]!, budget, b.channelData, signal);
         return { track: { ...first, timescale: a.sampleRate, duration: channelData[0]!.length, samples: [], editList: undefined,
-          decodedAudio: { ...a, channelData } }, expression: filters.slice(1).join(",") || "anull" };
+          decodedAudio: { ...a, channelData } }, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "sidechaincompress" || filters[0]?.startsWith("sidechaincompress=")) {
         if (sources.length !== 2) throw new Error("sidechaincompress requires two inputs");
@@ -1453,7 +1458,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         if (a.sampleRate !== b.sampleRate) throw new Error("sidechaincompress requires matching sample rates");
         const channelData = await compressAudio(a.channelData, a.sampleRate, filters[0]!, budget, signal, b.channelData);
         return { track: { ...first, timescale: a.sampleRate, duration: channelData[0]!.length, samples: [], editList: undefined,
-          decodedAudio: { ...a, channelData } }, expression: filters.slice(1).join(",") || "anull" };
+          decodedAudio: { ...a, channelData } }, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "astreamselect" || filters[0]?.startsWith("astreamselect=")) {
         let count = 2;
@@ -1488,7 +1493,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         budget.checkDuration(length / audio.sampleRate);
         return { track: { ...track, timescale: audio.sampleRate, duration: length, samples: [], editList: undefined,
           decodedAudio: { ...audio, channelData: audio.channelData.map(channel => channel.subarray(0, length)) } },
-          expression: filters.slice(1).join(",") || "anull" };
+          expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "axcorrelate" || filters[0]?.startsWith("axcorrelate=")) {
         if (sources.length !== 2) throw new Error("axcorrelate requires two inputs");
@@ -1496,7 +1501,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           throw new Error("axcorrelate does not support preceding single-input filters");
         }
         const track = await correlateAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal);
-        return { track, expression: filters.slice(1).join(",") || "anull" };
+        return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "amix" || filters[0]?.startsWith("amix=")) {
         if (sources.length !== 2) throw new Error("amix requires two inputs");
@@ -1504,7 +1509,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           throw new Error("amix does not support preceding single-input filters");
         }
         const track = await mixAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal);
-        return { track, expression: filters.slice(1).join(",") || "anull" };
+        return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "acrossfade" || filters[0]?.startsWith("acrossfade=")) {
         if (sources.length !== 2) throw new Error("acrossfade requires two inputs");
@@ -1512,7 +1517,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           throw new Error("acrossfade does not support preceding single-input filters");
         }
         const track = await acrossfadeAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal);
-        return { track, expression: filters.slice(1).join(",") || "anull" };
+        return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "amerge" || filters[0]?.startsWith("amerge=")) {
         const argument = filters[0].slice("amerge=".length);
@@ -1558,14 +1563,14 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         }
         return { track: { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
           decodedAudio: { ...a, channels: channelData.length, channelMask, channelData } },
-          expression: filters.slice(1).join(",") || "anull" };
+          expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "join" || filters[0]?.startsWith("join=")) {
         if (sources.some(source => source.expression && source.expression !== "anull")) {
           throw new Error("join does not support preceding single-input filters");
         }
         const track = await joinAudio(sources.map(source => source.track), filters[0]!, budget, signal);
-        return { track, expression: filters.slice(1).join(",") || "anull" };
+        return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (sources.length !== 1) throw new Error("Audio filter requires one input");
       const source = sources[0]!;

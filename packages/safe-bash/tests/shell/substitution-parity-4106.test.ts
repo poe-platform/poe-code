@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { standardCommands } from "../../src/commands/index.js";
+import { setup } from "./helpers.js";
 import { Shell } from "../../src/shell/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { streamCommands } from "../../src/commands/streams.js";
@@ -11,6 +13,28 @@ import { whoamiCommands } from "../../src/commands/whoami/index.js";
 import { fmtCommands } from "../../src/commands/fmt/index.js";
 import { nlCommands } from "../../src/commands/nl/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+
+for (const entry of [
+  { input: "foo/bar\n--bad\n", args: "dirname", status: 123, output: "" },
+  { input: "foo/bar\n-z\n", args: "dirname", status: 0, output: "foo" },
+  { input: "foo/bar\n--\n--bad\n", args: "dirname", status: 0, output: "foo\n." },
+  { input: "foo/bar\n--\n-z\n", args: "dirname --", status: 0, output: "foo\n.\n." },
+  { input: "foo/bar\n--bad\n", args: "-n1 dirname", status: 123, output: "foo" },
+  { input: "foo/bar\n--bad\n", args: "-I{} dirname {}", status: 123, output: "foo" },
+]) test(`xargs dirname substitution preserves options: ${entry.args} ${JSON.stringify(entry.input)}`, async () => {
+  const { shell, fs } = setup();
+  shell.use(standardCommands());
+  try {
+    await fs.writeFile("/names", new TextEncoder().encode(entry.input));
+    const direct = await shell.exec(`xargs ${entry.args} < /names`);
+    assert.equal(direct.exitCode, entry.status);
+    const captured = await shell.exec(`v=$(xargs ${entry.args} < /names); r=$?; printf '%s|%s\\n' "$r" "$v"`);
+    assert.equal(captured.stdout, `${entry.status}|${entry.output}\n`);
+    assert.equal(captured.stderr, direct.stdout.includes("\0")
+      ? "shell: line 1: warning: command substitution: ignored null byte in input\n"
+      : direct.stderr);
+  } finally { await shell.dispose(); }
+});
 
 function shell() {
   return new Shell({ fs: new MemoryFileSystem() }).use({ name: "basic", setup(host) {

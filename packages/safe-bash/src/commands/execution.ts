@@ -735,7 +735,7 @@ export function evalSyncXargs(
       if (cmd === "wc") return syncCommandEvaluators.evalSyncWc?.(undefined, args, true, readFileSync);
       if (cmd === "head" || cmd === "tail") return syncCommandEvaluators.evalSyncHeadTail?.(cmd, undefined, args, readFileSync);
       if (cmd === "dirname") {
-        if (args.length === 0) return undefined;
+        if (args.length === 0 || args.some(arg => arg.startsWith("-"))) return undefined;
         return args.map(p => {
           if (!p) return ".";
           const s = p.replace(/\/+$/, "");

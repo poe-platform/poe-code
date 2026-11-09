@@ -40,6 +40,7 @@ import { decorrelateAudio } from "./audio-adecorrelate.js";
 import { phaseAudio } from "./audio-aphaser.js";
 import { flangeAudio } from "./audio-flanger.js";
 import { echoAudio } from "./audio-aecho.js";
+import { chorusAudio } from "./audio-chorus.js";
 import { shiftAudioPhase } from "./audio-aphaseshift.js";
 import { correlateAudio } from "./audio-axcorrelate.js";
 import { gateAudio } from "./audio-sidechaingate.js";
@@ -9574,9 +9575,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (filterName === "flanger") {
                         stretched = await flangeAudio(stretched, origRate, trimmed, budget, context.signal);
                         filteredSampleFormat = "dblp";
-                      } else if (filterName === "aecho") {
+                      } else if (filterName === "aecho" || filterName === "chorus") {
                         const inputLength = stretched[0]?.length ?? 0;
-                        stretched = await echoAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
+                        if (filterName === "chorus") {
+                          stretched = await chorusAudio(stretched, origRate, trimmed, budget, context.signal);
+                          filteredSampleFormat = "fltp";
+                          statsScale = 1;
+                        } else {
+                          stretched = await echoAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
+                        }
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           for (let start = 0, n = 0; start < inputLength; n++) {

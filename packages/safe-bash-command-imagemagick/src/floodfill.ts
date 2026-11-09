@@ -36,11 +36,11 @@ export async function floodfillStoredImage(image: StoredRgbaImage, storage: Imag
         if (pixels.length !== length * 4 || flags.length !== length) throw new Error("Truncated floodfill pixels");
         for (let i = 0; i < length; i++) if (flags[i]) {
             if (!alphaOnly) {
-                if (!channels || channels[0]) pixels[i * 4] = replacement.r;
-                if (!channels || channels[1]) pixels[i * 4 + 1] = replacement.g;
-                if (!channels || channels[2]) pixels[i * 4 + 2] = replacement.b;
+                if (!channels || channels[0]) pixels[i * 4] = Math.round(replacement.r);
+                if (!channels || channels[1]) pixels[i * 4 + 1] = Math.round(replacement.g);
+                if (!channels || channels[2]) pixels[i * 4 + 2] = Math.round(replacement.b);
             }
-            if (!channels || channels[3]) pixels[i * 4 + 3] = replacement.a;
+            if (!channels || channels[3]) pixels[i * 4 + 3] = Math.round(replacement.a);
         }
         await storage.write(position + start * 4, pixels, { signal });
     }

@@ -1012,11 +1012,11 @@ function* applyMagickFloodfillSteps(
         const cur = queue[head++]!;
     const off = cur * 4;
     if (!alphaOnly) {
-      if (!channels || channels[0]) out[off] = replacement.r;
-      if (!channels || channels[1]) out[off + 1] = replacement.g;
-      if (!channels || channels[2]) out[off + 2] = replacement.b;
+      if (!channels || channels[0]) out[off] = Math.round(replacement.r);
+      if (!channels || channels[1]) out[off + 1] = Math.round(replacement.g);
+      if (!channels || channels[2]) out[off + 2] = Math.round(replacement.b);
     }
-    if (!channels || channels[3]) out[off + 3] = replacement.a;
+    if (!channels || channels[3]) out[off + 3] = Math.round(replacement.a);
 
     const cx = cur % w;
     const cy = Math.floor(cur / w);
@@ -2270,8 +2270,8 @@ function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement:
                 const start = gray && channel < 3 ? 0 : channel;
                 const end = gray && channel < 3 ? 3 : channel + 1;
                 for (let output = start; output < end; output++) {
-                    out[i + output] = paint[channel]!;
-                    if (data16) data16[i + output] = paint[channel]! * 257;
+                    out[i + output] = Math.round(paint[channel]!);
+                    if (data16) data16[i + output] = Math.round(paint[channel]! * 257);
                 }
             }
         }
@@ -7424,7 +7424,7 @@ if (t === "-seed") {
             state.backgroundExplicit = true;
         }
         else if (t === "-fill") {
-            state.fill = parseColor(tokens[++i] ?? "#000000");
+            state.fill = parseColor(tokens[++i] ?? "#000000", true);
             state.tile = undefined;
         }
         else if (t === "-antialias" || t === "+antialias") {

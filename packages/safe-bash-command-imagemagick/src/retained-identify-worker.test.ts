@@ -12,7 +12,8 @@ it.each([{ format: "bmp", streamed: false }, { format: "bmp", streamed: true }, 
         state ^= state << 13;
         state ^= state >>> 17;
         state ^= state << 5;
-        pixels[i] = state & 255;
+        // Keep the uncompressed BMP above the backing threshold without a huge histogram.
+        pixels[i] = format === "bmp" && i >= 256 ? pixels[i % 256]! : state & 255;
     }
     let bytes = await sharp(pixels, { raw: { width: 601, height: 601, channels: 4 } }).toFormat("bmp").toBuffer();
     if (format === "pdf") {

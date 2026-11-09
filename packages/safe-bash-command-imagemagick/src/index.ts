@@ -7478,7 +7478,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const t = tokens[i]!;
         if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
         if (t.slice(0, 4).toLowerCase() === "mpr:") {
-            const saved = registers.get(t.slice(4));
+            const saved = registers.get(t.slice(4).toLowerCase());
             if (!saved) throw new Error(`unable to open image '${t}'`);
             for (const image of saved) {
                 yield;
@@ -7691,7 +7691,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     yield;
                     saved.push({ ...image, data: new Uint8Array(image.data) });
                 }
-                registers.set(writePath.slice(4), saved);
+                registers.set(writePath.slice(4).toLowerCase(), saved);
             }
             else if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
                 const top = stack[stack.length - 1]!;
@@ -8013,7 +8013,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 ? yield* applyMagickRasterSteps(stack[0]!, quantizeImageListSteps(stack.map(image => ({ length: image.data.length, hasAlpha: image.hasAlpha })), state.colors ?? 256, state.quantizeGray, state.treeDepth), signal,
                     { width: stack.reduce((sum, image) => sum + image.width * image.height, 0), height: 1, hasAlpha: stack.some(image => image.hasAlpha) }, stack)
                 : palSpec.slice(0, 4).toLowerCase() === "mpr:"
-                ? registers.get(palSpec.slice(4))?.[0]
+                ? registers.get(palSpec.slice(4).toLowerCase())?.[0]
                 : yield* parseInputOperandSteps(palSpec, files, state, stdinBytes);
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -9924,7 +9924,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         await yieldTurn(signal);
                         await saved.push((await stack.get(index))!);
                     }
-                    registers.set(path.slice(4), saved);
+                    registers.set(path.slice(4).toLowerCase(), saved);
                 }
                 else if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);
@@ -9986,7 +9986,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const colors = palette.slice(0, 4).toLowerCase() === "mpr:"
-                    ? await registers.get(palette.slice(4))?.get(0)
+                    ? await registers.get(palette.slice(4).toLowerCase())?.get(0)
                     : await parseStoredCompareInput(palette, settings, backend, signal);
                 if (!colors) throw new Error(`unable to open image '${palette}'`);
                 return settings.dither === "riemersma"
@@ -10351,7 +10351,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const captured = { ...state }, literal = operandsOnly, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
             stackStep(async (stack, backend) => {
                 if (token.slice(0, 4).toLowerCase() === "mpr:") {
-                    const saved = registers.get(token.slice(4));
+                    const saved = registers.get(token.slice(4).toLowerCase());
                     if (!saved) throw new Error(`unable to open image '${token}'`);
                     for (let index = 0; index < saved.length; index++) {
                         await yieldTurn(signal);

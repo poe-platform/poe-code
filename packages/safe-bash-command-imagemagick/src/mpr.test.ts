@@ -5,6 +5,10 @@ import { runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([
+        { operations: ["xc:lime", "+append", "-write", "mpr:Saved", "+delete", "mpr:sAvEd"], pixels: [255, 0, 0, 255, 0, 255, 0, 255] },
+        { operations: ["-write", "mpr:Saved", "+delete", "xc:blue", "-write", "mpr:SAVED", "+delete", "mpr:Saved"], pixels: [0, 0, 255, 255] },
+        { operations: ["(", "+clone", "+write", "MPR:Saved", "+delete", ")", "mpr:sAvEd", "+append"], pixels: [255, 0, 0, 255, 255, 0, 0, 255] },
+        { operations: ["-write", "mpr:Saved", "+delete", "xc:blue", "+dither", "-remap", "mpr:sAvEd"], pixels: [255, 0, 0, 255] },
         { operations: ["-write", "mpr:orig", "-negate", "mpr:orig", "+append"], pixels: [0, 255, 255, 255, 255, 0, 0, 255] },
         { operations: ["-write", "mpr:orig", "-negate", "+write", "mpr:orig", "+delete", "mpr:orig"], pixels: [0, 255, 255, 255] },
         { operations: ["(", "+clone", "-write", "mpr:orig", "+delete", ")", "mpr:orig", "+append"], pixels: [255, 0, 0, 255, 255, 0, 0, 255] },

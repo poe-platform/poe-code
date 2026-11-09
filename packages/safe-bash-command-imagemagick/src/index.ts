@@ -3261,6 +3261,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     let i = start;
     const distort = token === "-distort" || token === "+distort";
     const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
+    if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(spec, token);
     const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort || token === "-implode" ? "edge" : undefined);
     return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample">) => {
         if (token === "-shear") {

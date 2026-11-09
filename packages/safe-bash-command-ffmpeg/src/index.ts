@@ -8220,7 +8220,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const commands = gainCommands.filter(command => command.target === "volume" || command.target === filterTarget)
                           .sort((a, b) => a.sample - b.sample);
                         let nextCommand = 0;
-                        const output = stretched.map(channel => precision === "double"
+                        const output = stretched.map(channel => precision !== "float"
                           ? new Float64Array(channel.length) : new Float32Array(channel.length));
                         const length = stretched[0]?.length ?? 0;
                         const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_u8" ? 128
@@ -8258,7 +8258,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             Object.assign(variables, { n, t: pts / origRate, pts, startpts, startt: startpts / origRate });
                             factor = evaluateGain();
                           }
-                          // Native fixed precision uses a Q8 gain and rounds integer samples half upward.
+                          // Fixed precision uses a Q8 gain; optimized x86 PCM32 rounds ties to even.
+                          // PCM8 and PCM16 retain half-up rounding.
                           const fixedGain = Math.max(0, Math.floor(factor * 256 + 0.5));
                           const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "volume enable", {
                             n, t: pts / origRate
@@ -8269,7 +8270,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                               output[c]![i] = !enabled ? channel[i]! : precision === "fixed"
                                 ? Math.max(-sampleScale, Math.min(sampleScale - 1,
-                                    Math.floor((channel[i]! * sampleScale * fixedGain + 128) / 256))) / sampleScale
+                                    (sampleScale === 2147483648 ? roundToEven(channel[i]! * sampleScale * fixedGain / 256)
+                                      : Math.floor((channel[i]! * sampleScale * fixedGain + 128) / 256)))) / sampleScale
                                 : channel[i]! * (precision === "float" ? Math.fround(factor) : factor);
                             }
                           }

@@ -6644,20 +6644,23 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else if (token === "-contrast" || token === "+contrast") {
+        highDepth = true;
         const sign = token === "-contrast" ? 1 : -1;
         apply = function* (image) {
             const out = new Uint8Array(image.data);
+            const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+            const samples = data16 ?? out, range = data16 ? 65535 : 255;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 // Native ContrastImage changes HSV brightness, preserving hue, saturation and alpha.
-                const brightness = Math.max(out[idx]!, out[idx + 1]!, out[idx + 2]!) / 255;
+                const brightness = Math.max(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!) / range;
                 const adjusted = brightness + sign * 0.5 * (0.5 * (Math.sin(Math.PI * (brightness - 0.5)) + 1) - brightness);
                 for (let channel = 0; channel < 3; channel++) {
-                    out[idx + channel] = clampByteVal(brightness === 0 ? 0 : out[idx + channel]! * adjusted / brightness);
+                    samples[idx + channel] = Math.max(0, Math.min(range, Math.round(brightness === 0 ? 0 : samples[idx + channel]! * adjusted / brightness)));
+                    if (data16) out[idx + channel] = clampByteVal(data16[idx + channel]! / 257);
                 }
             }
-            const { data16: ignored, ...metadata } = image;
-            return { ...metadata, data: out };
+            return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
     }
     else if (token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") {

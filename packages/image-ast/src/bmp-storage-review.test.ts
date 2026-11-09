@@ -19,8 +19,6 @@ const vectors:{spec:Parameters<typeof fixture>[0];expected:Omit<RgbaImage,"data"
 {"spec":{"bpp":24,"topDown":true,"truncated":0,"density":11811},"expected":{"width":9,"height":3,"format":"bmp","space":"srgb","channels":3,"depth":"uchar","density":300,"hasAlpha":false},"hash":"2120ce3e85bd0b575befa88d76a93c9634efaaccf2cae9259e4afea8f4721738","encoded":"8e6ee853b02ce5791550992189383d128db0f629043d4a0e592229c5c0013611"},
 {"spec":{"bpp":32,"topDown":false,"truncated":0,"density":0},"expected":{"width":9,"height":3,"format":"bmp","space":"srgb","channels":4,"depth":"uchar","density":72,"hasAlpha":true},"hash":"201805b47d567d79941c55a2f01cb1d008ad82cc04172552309771c98dba1c1d","encoded":"a80d3a706f4cb3d49cebc3622d8fe5614025d9b4f041997219d3b055bbec875b"},
 {"spec":{"bpp":32,"topDown":true,"truncated":0,"density":11811},"expected":{"width":9,"height":3,"format":"bmp","space":"srgb","channels":4,"depth":"uchar","density":300,"hasAlpha":true},"hash":"b7330f41ca36242956fc950911760c34701bb47134ee91163b522ba0ba84883d","encoded":"af0bb0b293493a80b182235a5836830be8f4931a81168acffa65fa0ccd9dc660"},
-{"spec":{"bpp":2,"topDown":false,"truncated":0,"density":0},"expected":{"width":9,"height":3,"format":"bmp","space":"srgb","channels":3,"depth":"uchar","density":72,"hasAlpha":false},"hash":"38df44e6ad59f38c5a89fc0f65a3f2a45c84df8579fac1fdc5397f8a7b02b458","encoded":"0298d1952f3d8ba665a45a79e23013f7c0b17db7116757cd77bacd8efaf1d58e"},
-{"spec":{"bpp":2,"topDown":true,"truncated":0,"density":11811},"expected":{"width":9,"height":3,"format":"bmp","space":"srgb","channels":3,"depth":"uchar","density":300,"hasAlpha":false},"hash":"38df44e6ad59f38c5a89fc0f65a3f2a45c84df8579fac1fdc5397f8a7b02b458","encoded":"6e04cc004ea56c26eeb01d37dcb26cf6e7e45452bebd71744254e03ec5c6c902"},
 {"spec":{"bpp":16,"topDown":false,"truncated":0,"density":0},"expected":{"width":9,"height":3,"format":"bmp","space":"srgb","channels":3,"depth":"uchar","density":72,"hasAlpha":false},"hash":"d9ae1cc7ad959f43a074af32c8729d47850c8da758af6b4eafc534d73f76248e","encoded":"a0284cf7c4d2f9808f0d218105ad3b16b87cc51ed45d3580cc398acf607e7915"},
 {"spec":{"bpp":16,"topDown":true,"truncated":0,"density":11811},"expected":{"width":9,"height":3,"format":"bmp","space":"srgb","channels":3,"depth":"uchar","density":300,"hasAlpha":false},"hash":"677f69c58340f5dda5e02032be57e99e27f1c778feeca5ec0c56865ddc84fce7","encoded":"68480d0c90499efc64b3cd55990b8ff54a06e59c71cfe78e82cf2acd1c8c57e4"},
 ];
@@ -44,6 +42,14 @@ for (const bpp of [1, 4, 8, 16, 24, 32]) for (const topDown of [false, true]) {
   const bytes=fixture({bpp,topDown,truncated,density:0}),{storage}=backing();
   expect(()=>decodeBmpImage(bytes)).toThrow("Invalid BMP file size");
   await expect(decodeBmpToStorage(source(bytes),storage,new AbortController().signal)).rejects.toThrow("Invalid BMP file size");
+  expect(storage.allocate).not.toHaveBeenCalled();
+ });
+}
+for (const bpp of [0, 2, 12, 48]) for (const topDown of [false, true]) {
+ it(`rejects unsupported ${bpp}-bit rows (topDown=${topDown}) before allocation`, async () => {
+  const bytes=fixture({bpp,topDown,truncated:0,density:0}),{storage}=backing();
+  expect(()=>decodeBmpImage(bytes)).toThrow("Unsupported BMP bits per pixel");
+  await expect(decodeBmpToStorage(source(bytes),storage,new AbortController().signal)).rejects.toThrow("Unsupported BMP bits per pixel");
   expect(storage.allocate).not.toHaveBeenCalled();
  });
 }

@@ -57,7 +57,7 @@ export async function fadeAudio(
   }
   if (startTime > 0) start = Math.round(startTime * sampleRate);
   if (duration > 0) samples = Math.round(duration * sampleRate);
-  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(samples) || samples < 1) throw new Error("afade: invalid timing");
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(samples) || samples < 0) throw new Error("afade: invalid timing");
   const length = channels[0]?.length ?? 0;
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
@@ -78,7 +78,10 @@ export async function fadeAudio(
     }
     const pts = frame ? frame.pts + i - frame.start : startSample + i;
     const progress = Math.max(0, Math.min(1, (pts - start) / samples));
-    const fraction = type === "out" ? 1 - progress : progress;
+    // A positive duration can round to zero samples; both fades mute the boundary.
+    const fraction = samples === 0
+      ? (type === "out" ? (pts < start ? 1 : 0) : (pts > start ? 1 : 0))
+      : type === "out" ? 1 - progress : progress;
     const gain = enabled ? silence + (unity - silence) * (curve === "qua" ? fraction * fraction : fraction) : 1;
     for (let c = 0; c < channels.length; c++) {
       const sample = channels[c]![i]! * gain;

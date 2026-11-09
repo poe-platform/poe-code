@@ -22,7 +22,8 @@ it(`retains morph quantum precision (${mode}, resized=${resized}, mixed=${mixed}
         await filesystem.writeFile(`/in${index}.png`, bytes);
     }
     for (const keepFirst of [false, true]) {
-        const args = ["/in0.png", "/in1.png", "-morph", "1", "-delete", keepFirst ? "1,2" : "0,2", "/out.png"];
+        // Isolate quantum-depth preservation from floating-point resize filter weights.
+        const args = ["/in0.png", "/in1.png", "-filter", "Point", "-morph", "1", "-delete", keepFirst ? "1,2" : "0,2", "/out.png"];
         const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "map" ? files : { filesystem, cwd: "/" });
         expect(result.exitCode).toBe(0);
         const output = decodeImage(mode === "filesystem" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);

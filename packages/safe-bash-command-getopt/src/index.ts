@@ -173,7 +173,7 @@ export function evalSyncGetopt(
       pIdx++;
       continue;
     }
-    if (param.startsWith("--") || (alternative && param.startsWith("-") && longSpecs.size > 0 && !shortMap.has(param[1]!))) {
+    if (param.startsWith("--") || (alternative && longSpecs.size > 0 && (param.length > 2 || !shortMap.has(param[1]!)))) {
       const rawLong = param.startsWith("--") ? param.slice(2) : param.slice(1);
       const eq = rawLong.indexOf("=");
       const optName = eq < 0 ? rawLong : rawLong.slice(0, eq);

@@ -1,5 +1,5 @@
-import type { CommandDefinition } from "safe-bash-contracts";
-import { argument, command, compare, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
+import { getCommandArguments, type CommandDefinition } from "safe-bash-contracts";
+import { command, compare, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 export function createCommCommand(options: TableTextCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
@@ -16,9 +16,10 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
       if (token === "--total") { total = true; continue; }
       if (token === "--zero-terminated") { separator = 0; continue; }
       if (token === "--output-delimiter" || token.startsWith("--output-delimiter=")) {
-        let value: string;
-        [value, index] = argument(context.args, index, token.includes("=") ? token.slice(19) : undefined, token);
-        const candidate = value ? encode(value) : Uint8Array.of(0);
+        const args = getCommandArguments(context);
+        const value = token.includes("=") ? args.bytes(index)!.subarray(19) : args.bytes(++index);
+        if (value === undefined) fail(`option ${token} requires an argument`);
+        const candidate = value.length ? value : Uint8Array.of(0);
         if (delimiterSet && compare(candidate, delimiter) !== 0) fail("multiple conflicting output delimiters");
         delimiter = candidate; delimiterSet = true; continue;
       }

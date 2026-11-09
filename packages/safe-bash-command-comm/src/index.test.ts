@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createCommandArguments, toByteSource } from "safe-bash-contracts";
+import { createCommandArguments, shellValueFromBytes, toByteSource, type ShellValue } from "safe-bash-contracts";
 import { createCommCommand } from "./index.js";
 
 test("comm help works through the standalone portable factory", async () => {
@@ -18,18 +18,19 @@ test("comm help works through the standalone portable factory", async () => {
  assert.ok(output.length > 0);
 });
 
-async function run(args: string[], files: Record<string, string>) {
+async function run(args: ShellValue[], files: Record<string, string>) {
  const fs = createMemoryFileSystem();
  for (const [path, content] of Object.entries(files)) await fs.writeFile(path, new TextEncoder().encode(content));
  const values = createCommandArguments(args);
  let stdout = "", stderr = "", combined = "";
+ const stdoutBytes: number[] = [];
  const result = await createCommCommand().execute({
   command: "comm", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
   stdin: toByteSource(""), signal: new AbortController().signal,
-  stdout: { async write(bytes) { const text = new TextDecoder().decode(bytes); stdout += text; combined += text; } },
+  stdout: { async write(bytes) { stdoutBytes.push(...bytes); const text = new TextDecoder().decode(bytes); stdout += text; combined += text; } },
   stderr: { async write(bytes) { const text = new TextDecoder().decode(bytes); stderr += text; combined += text; } },
  });
- return { ...result, stdout, stderr, combined };
+ return { ...result, stdout, stdoutBytes, stderr, combined };
 }
 
 for (const reverse of [false, true]) {
@@ -109,4 +110,44 @@ test("comm flushes produced rows before order diagnostics and summary", async ()
  const result = await run(["/a", "/b"], { "/a": "a\nb\nc\nb\ne\n", "/b": "b\nc\nd\ne\n" });
  assert.ok(result.combined.startsWith("a\n\t\tb\n\t\tc\ncomm: file 1 is not in sorted order\n"), result.combined);
  assert.ok(result.combined.endsWith("\t\te\ncomm: input is not in sorted order\n"), result.combined);
+});
+
+for (const attached of [false, true]) {
+ for (const total of [false, true]) {
+  for (const delimiter of [Uint8Array.of(0xff), Uint8Array.of(0xfe, 0xff), new TextEncoder().encode("é"), new Uint8Array()]) {
+   test(`comm preserves delimiter bytes ${[...delimiter]} with attached=${attached}, total=${total}`, async () => {
+    const option = attached
+     ? [shellValueFromBytes(Uint8Array.from([...new TextEncoder().encode("--output-delimiter="), ...delimiter]))]
+     : ["--output-delimiter", shellValueFromBytes(delimiter)];
+    const result = await run([...option, ...option, ...(total ? ["--total"] : []), "/a", "/a"], { "/a": "x\n" });
+    const separator = delimiter.length ? [...delimiter] : [0];
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, [
+     ...separator, ...separator, 120, 10,
+     ...(total ? [48, ...separator, 48, ...separator, 49, ...separator, ...new TextEncoder().encode("total\n")] : []),
+    ]);
+   });
+  }
+ }
+}
+
+for (const second of [Uint8Array.of(0xff), new TextEncoder().encode("�")]) {
+ test(`comm rejects distinct delimiter bytes that decode identically: ${[...second]}`, async () => {
+  const result = await run([
+   "--output-delimiter", shellValueFromBytes(Uint8Array.of(0xfe)),
+   shellValueFromBytes(Uint8Array.from([...new TextEncoder().encode("--output-delimiter="), ...second])),
+   "/a", "/a",
+  ], { "/a": "x\n" });
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /multiple conflicting output delimiters/u);
+  assert.deepEqual(result.stdoutBytes, []);
+ });
+}
+
+test("comm requires an output delimiter argument", async () => {
+ const result = await run(["/a", "/a", "--output-delimiter"], { "/a": "x\n" });
+ assert.equal(result.exitCode, 1);
+ assert.match(result.stderr, /requires an argument/u);
+ assert.deepEqual(result.stdoutBytes, []);
 });

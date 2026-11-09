@@ -350,8 +350,8 @@ The selected speaker is retained in the output channel layout.
 `pan` supports mono, stereo, quad and 5.1 output, numbered channels and named channels from the
 input layout: `-af 'pan=mono|c0=c1'` extracts the right channel and
 `-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. PCM16 mixing uses native Q15
-gains and rounds half steps toward positive infinity; floating-point filter paths
-retain floating-point mixing. Weighted sums use `=`,
+gains and rounds half steps toward positive infinity, including native 32-bit overflow
+for large gains; floating-point filter paths retain floating-point mixing. Weighted sums use `=`,
 and `<` divides gains by the sum of their magnitudes, preserving polarity, for example `pan=mono|c0<2*c0+-1*c1`.
 Terms accept hexadecimal gains (`0x1`, `0x1p-1`), subtraction (`c0-c1`), compact gains (`.5c1`), and signed exponents
 (`1e+0*c1` or `5e-1c1`).

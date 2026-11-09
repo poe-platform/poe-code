@@ -1171,16 +1171,20 @@ async function panAudio(
       }
     }
   }
+  let clipPcm16 = false;
   if (pcm16) {
     for (const row of gains) {
       let remainder = 0;
+      let sum = 0;
       for (let input = 0; input < row.length; input++) {
         // libswresample carries coefficient error across each Q15 matrix row.
         const target = row[input]! * 32768 + remainder;
-        const quantized = roundToEven(Math.fround(target));
+        const quantized = roundToEven(Math.fround(target)) | 0;
         remainder += target - quantized;
+        sum = (sum + Math.abs(quantized)) | 0;
         if (row[input] !== 0) row[input] = quantized;
       }
+      clipPcm16 ||= sum > 32768;
     }
   }
   const output = gains.map(() => new Float32Array(channels[0]?.length ?? 0));
@@ -1192,9 +1196,18 @@ async function panAudio(
     }
     for (let out = 0; out < output.length; out++) {
       let value = 0;
-      for (let input = 0; input < channels.length; input++) value += channels[input]![sample]! * gains[out]![input]!;
-      output[out]![sample] = pcm16
-        ? Math.max(-32768, Math.min(32767, Math.floor(value + 0.5))) / 32768 : value;
+      for (let input = 0; input < channels.length; input++) {
+        value += pcm16
+          ? Math.imul(channels[input]![sample]! * 32768, gains[out]![input]!)
+          : channels[input]![sample]! * gains[out]![input]!;
+      }
+      if (pcm16) {
+        // Native PCM16 products and the rounding bias wrap before shifting.
+        value = (value + 16384) >> 15;
+        value = clipPcm16 ? Math.max(-32768, Math.min(32767, value)) : (value << 16) >> 16;
+        value /= 32768;
+      }
+      output[out]![sample] = value;
     }
   }
   return { channels: output, channelMask: names.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0) };

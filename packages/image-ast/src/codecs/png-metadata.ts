@@ -37,6 +37,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
     const type=String.fromCharCode(header[4]!,header[5]!,header[6]!,header[7]!);
     if (type === "IDAT") {
       if (idatEnded) throw new Error("PNG IDAT chunks must be consecutive");
+      if (colorType === 3 && !palette) throw new Error("Missing PNG PLTE before IDAT");
       hasIdat = true;
     } else if (hasIdat) {
       idatEnded = true;
@@ -122,7 +123,10 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       } finally { codec.close(); }
       icc = new Uint8Array(length); let offset = 0;
       for (const part of parts) { icc.set(part, offset); offset += part.length; }
-    } else if (type === "PLTE" && len <= 768) {
+    } else if (type === "PLTE") {
+      if (palette) throw new Error("Duplicate PNG PLTE");
+      if (hasIdat) throw new Error("PNG PLTE must precede IDAT");
+      if (len === 0 || len > 768 || len % 3 !== 0) throw new Error("Invalid PNG PLTE length");
       palette = yield {position:dataStart,length:len};
     } else if (type === "bKGD") {
       const length = colorType === 3 ? 1 : colorType === 0 || colorType === 4 ? 2 : 6;

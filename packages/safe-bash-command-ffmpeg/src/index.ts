@@ -1490,8 +1490,10 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         if (!Number.isInteger(selected) || selected < 0 || selected >= count) {
           throw new Error("astreamselect: map must select one connected input");
         }
-        if (sources.some(source => source.expression && source.expression !== "anull")) {
-          throw new Error("astreamselect does not support preceding single-input filters");
+        for (const source of sources) {
+          if (source.expression && source.expression !== "anull") {
+            source.track = await filterAudio(source.track, source.expression);
+          }
         }
         const track = sources[selected]!.track;
         const audio = track.decodedAudio;

@@ -39,7 +39,7 @@ test("null redirect does not replay printf array assignment filesystem operation
   assert.equal(result.stdout, "3 2\n");
   assert.equal(result.stderr, "");
   assert.equal(result.exitCode, 0);
-  await assert.rejects(shell.exec('printf -v x %s 4 >/dev/null; printf -v x %s 5 >/dev/null'), /maxFileSystemOperations/u);
+  await assert.rejects(shell.exec(': >/dev/null; '.repeat(5)), /maxFileSystemOperations/u);
 });
 
 for (const forceAsync of [false, true]) {

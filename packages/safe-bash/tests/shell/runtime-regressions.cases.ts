@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
+import { printfCommand } from "../../src/commands/basic.js";
 import { writeText } from "../../src/contracts/index.js";
 import type { ByteSource } from "../../src/contracts/index.js";
 import { setup } from "./helpers.js";
@@ -279,6 +281,57 @@ test("arithmetic supplied trees retain path-specific 64-bit normalization", () =
     { kind: "binary", operator: "=", left: { kind: "name", name: "stored" }, right: literal },
   ] satisfies Arithmetic[]) assert.equal(evaluateArithmetic({ source: "", tree }, variables), 3n);
   assert.equal(variables.stored, "3");
+});
+
+for (const context of ["integer", "OPTIND", "expansion", "let"] as const) {
+  test(`arithmetic numeral diagnostics match Bash in ${context}`, async () => {
+    for (const [numeral, reason] of [
+      ...["09", "2#2", "1z", "3x", "0xG", "1_", "1@"].map(numeral => [numeral, "value too great for base"]),
+      ["2#", "invalid integer constant"],
+      ["1#0", "invalid arithmetic base"],
+      ["65#0", "invalid arithmetic base"],
+      ["2#10#1", "invalid number"],
+    ]) {
+      const source = context === "integer" ? `declare -i n; n=${numeral}`
+        : context === "OPTIND" ? `OPTIND=${numeral}`
+        : context === "expansion" ? `printf '%s\\n' "$(( ${numeral} + 1 ))"`
+        : `let '${numeral}'`;
+      const diagnostic = `${numeral}: ${reason} (error token is "${numeral}")\n`;
+      const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } });
+      assert.equal(native.status, 1, source);
+      assert.equal(native.stdout, "", source);
+      assert.ok(native.stderr.endsWith(diagnostic), native.stderr);
+      const { shell, commands } = setup();
+      commands.register(printfCommand);
+      try {
+        const result = await shell.exec(source);
+        assert.equal(result.exitCode, native.status, source);
+        assert.equal(result.stdout, native.stdout, source);
+        assert.equal(result.stderr, `shell: line 1: ${context === "let" ? "let: " : ""}${diagnostic}`, source);
+      } finally { await shell.dispose(); }
+    }
+  });
+}
+
+test("arithmetic numeral errors retain the complete token and preceding expression", () => {
+  for (let repeat = 0; repeat < 2; repeat++) {
+    assert.throws(() => evaluateArithmetic(prepareArithmetic(" 1 + 09 + 2 "), {}), {
+      message: '1 + 09: value too great for base (error token is "09")',
+    });
+  }
+});
+
+test("valid arithmetic numerals retain their bases and 64-bit values", async () => {
+  const { shell, commands } = setup();
+  commands.register(printfCommand);
+  try {
+    for (const [numeral, value] of [["0", "0"], ["010", "8"], ["0x", "0"], ["0Xff", "255"], ["2#101", "5"], ["16#Ff", "255"], ["36#Z", "35"], ["64#_", "63"], ["64#@", "62"], ["64#A", "36"], ["18446744073709551615", "-1"]]) {
+      const result = await shell.exec(`declare -i n; n=${numeral}; OPTIND=${numeral}; let 'm=${numeral}'; printf '%s:%s:%s:%s\\n' "$n" "$OPTIND" "$m" "$(( ${numeral} ))"`);
+      assert.equal(result.stderr, "", numeral);
+      assert.equal(result.exitCode, 0, numeral);
+      assert.equal(result.stdout, `${value}:${value}:${value}:${value}\n`, numeral);
+    }
+  } finally { await shell.dispose(); }
 });
 
 test("arithmetic preserves diagnostic offsets and falsey host failures", () => {

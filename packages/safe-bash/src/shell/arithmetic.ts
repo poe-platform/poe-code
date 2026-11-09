@@ -22,6 +22,10 @@ class ArithmeticFailure extends Error {
   constructor(message: string, readonly offset: number) { super(message); }
 }
 
+class ArithmeticConstantError extends ShellSyntaxError {
+  constructor(reason: string, offset: number, readonly token: string) { super(reason, offset); }
+}
+
 const preparedArithmeticCache = new Map<string, { program: ArithmeticProgram; units: number }>();
 
 let lastParsedHasSubscript = false;
@@ -113,19 +117,21 @@ function integer(text: string): bigint {
     }
     if (allDec) return text.length <= 4 && val <= 1024 ? PARSE_SMALL_BIGINTS[val]! : BigInt(text);
   }
-  if (text === "0") return 0n;
+  if (text === "0" || text === "0x" || text === "0X") return 0n;
   if (/^0[xX][\da-fA-F]+$/u.test(text)) return BigInt.asIntN(64, BigInt(text));
   if (/^0[0-7]+$/u.test(text)) return BigInt.asIntN(64, BigInt(`0o${text.slice(1)}`));
-  if (/^0\d+$/u.test(text)) throw new PublicDiagnostic("Invalid octal constant");
+  if (/^0\d+$/u.test(text)) throw new PublicDiagnostic("value too great for base");
   if (/^\d+$/u.test(text)) return BigInt.asIntN(64, BigInt(text));
-  const match = /^(\d+)#([\da-zA-Z@_]+)$/u.exec(text);
-  if (!match) throw new PublicDiagnostic("Invalid arithmetic constant");
+  const match = /^(\d+)#([\da-zA-Z@_#]*)$/u.exec(text);
+  if (!match) throw new PublicDiagnostic("value too great for base");
   const base = Number(match[1]);
-  if (base < 2 || base > 64) throw new PublicDiagnostic("Invalid arithmetic base");
+  if (base < 2 || base > 64) throw new PublicDiagnostic("invalid arithmetic base");
+  if (!match[2]) throw new PublicDiagnostic("invalid integer constant");
   let value = 0n;
   for (const character of match[2]!) {
+    if (character === "#") throw new PublicDiagnostic("invalid number");
     const digit = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_".indexOf(base <= 36 ? character.toLowerCase() : character);
-    if (digit >= base || digit < 0) throw new PublicDiagnostic("Digit exceeds arithmetic base");
+    if (digit >= base || digit < 0) throw new PublicDiagnostic("value too great for base");
     value = BigInt.asIntN(64, value * BigInt(base) + BigInt(digit));
   }
   return value;
@@ -201,33 +207,12 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
     const c0 = source.charCodeAt(position);
     if (c0 >= 48 && c0 <= 57) {
       let end = position + 1;
-      if (c0 === 48 && (source.charCodeAt(end) === 120 || source.charCodeAt(end) === 88)) {
-        end++;
-        while (end < source.length) {
-          const ch = source.charCodeAt(end);
-          if ((ch >= 48 && ch <= 57) || (ch >= 65 && ch <= 70) || (ch >= 97 && ch <= 102)) end++;
-          else break;
-        }
-        if (end > position + 2) value = source.slice(position, end);
-      } else {
-        while (end < source.length) {
-          const ch = source.charCodeAt(end);
-          if (ch >= 48 && ch <= 57) end++;
-          else break;
-        }
-        if (source.charCodeAt(end) === 35) {
-          let bEnd = end + 1;
-          while (bEnd < source.length) {
-            const ch = source.charCodeAt(bEnd);
-            if ((ch >= 48 && ch <= 57) || (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) || ch === 64 || ch === 95) bEnd++;
-            else break;
-          }
-          if (bEnd > end + 1) value = source.slice(position, bEnd);
-          else value = source.slice(position, end);
-        } else {
-          value = source.slice(position, end);
-        }
+      while (end < source.length) {
+        const ch = source.charCodeAt(end);
+        if ((ch >= 48 && ch <= 57) || (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) || ch === 35 || ch === 64 || ch === 95) end++;
+        else break;
       }
+      value = source.slice(position, end);
     } else if ((c0 >= 65 && c0 <= 90) || (c0 >= 97 && c0 <= 122) || c0 === 95) {
       let end = position + 1;
       while (end < source.length) {
@@ -287,7 +272,10 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
     else {
       budget.admit();
       try { left = { kind: "literal", value: integer(token) }; }
-      catch { error("Invalid arithmetic operand"); }
+      catch (failure) {
+        if (tc0 >= 48 && tc0 <= 57 && failure instanceof PublicDiagnostic) throw new ArithmeticConstantError(failure.message, start, token);
+        error("Invalid arithmetic operand");
+      }
     }
     left!.start = start;
     while (true) {
@@ -421,6 +409,7 @@ export function binaryArithmeticOp(operator: string, left: bigint, right: bigint
 
 export function formatArithmeticError(program: ArithmeticProgram, error: unknown): never {
   if (error instanceof ArithmeticFailure) throw new PublicDiagnostic(`${program.source.trimStart()}: ${error.message} (error token is "${program.source.slice(error.offset)}")`);
+  if (error instanceof ArithmeticConstantError) throw new PublicDiagnostic(`${program.source.slice(0, error.offset + error.token.length).trimStart()}: ${error.reason} (error token is "${error.token}")`);
   if (error instanceof ShellSyntaxError) {
     const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;
     const reason = error.reason === "Quoted arithmetic operand expected" ? "syntax error: operand expected"

@@ -192,7 +192,7 @@ for (const [source, stdout, exitCode] of [
   const result = await shell.exec(source);
   assert.equal(result.exitCode, exitCode);
   assert.equal(result.stdout, stdout);
-  assert.match(result.stderr, /arithmetic syntax error|division by 0/u);
+  assert.match(result.stderr, /value too great for base|division by 0/u);
 });
 
 test("explicit integer OPTIND after unset retains octal arithmetic", async t => {

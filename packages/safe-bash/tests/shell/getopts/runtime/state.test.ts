@@ -310,7 +310,7 @@ test("invalid octal assignment remains fatal while integer declarations succeed"
   const result = await shell.exec('OPTIND=08; say unreachable');
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
-  assert.equal(result.stderr, 'shell: line 1: 08: arithmetic syntax error: operand expected (error token is "8")\n');
+  assert.equal(result.stderr, 'shell: line 1: 08: value too great for base (error token is "08")\n');
   const declaration = await shell.exec("type -t declare");
   assert.equal(declaration.exitCode, 0);
   assert.equal(declaration.stdout, "builtin\n");
@@ -392,7 +392,7 @@ test("invalid octal global declaration remains fatal", async () => {
   const result = await shell.exec("declare OPTIND=08; say unreachable");
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
-  assert.match(result.stderr, /08: arithmetic syntax error/u);
+  assert.match(result.stderr, /08: value too great for base/u);
 });
 
 test("fresh defaults preserve inherited export bits while clones do not initialize", async () => {

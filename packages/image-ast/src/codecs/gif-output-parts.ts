@@ -171,7 +171,9 @@ export function gifFrameHeader(
   rectangle: { left: number; top: number; width: number; height: number; comment?: string | undefined } = { left: 0, top: 0, width: layout.width, height: layout.frameHeight }
 ) {
   const { frames } = layout,
-    { left, top, width, height } = rectangle,
+    { width, height } = rectangle,
+    left = Math.max(0, rectangle.left),
+    top = Math.max(0, rectangle.top),
     delay = Array.isArray(options.delay)
       ? (options.delay[frame] ?? options.delay[options.delay.length - 1] ?? 100)
       : typeof options.delay === "number"

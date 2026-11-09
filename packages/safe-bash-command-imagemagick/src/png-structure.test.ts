@@ -1,4 +1,3 @@
-import { makeChunk, PNG_SIGNATURE } from "../../image-ast/src/codecs/png-chunks.js";
 import { deflateSync } from "node:zlib";
 import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast/portable";
@@ -7,10 +6,24 @@ import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCliSync } from "./index.js";
 
 function png(problem: string): Uint8Array {
+  const makeChunk = (name: string, data: Uint8Array) => {
+    const bytes = new Uint8Array(data.length + 12);
+    const view = new DataView(bytes.buffer);
+    view.setUint32(0, data.length);
+    bytes.set(new TextEncoder().encode(name), 4);
+    bytes.set(data, 8);
+    let crc = 0xffffffff;
+    for (const byte of bytes.subarray(4, -4)) {
+      crc ^= byte;
+      for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+    }
+    view.setUint32(bytes.length - 4, (crc ^ 0xffffffff) >>> 0);
+    return bytes;
+  };
   const header = makeChunk("IHDR", Uint8Array.of(0, 0, 0, 2, 0, 0, 0, 1, 8, 2, 0, 0, 0));
   const data = makeChunk("IDAT", deflateSync(Uint8Array.of(0, 17, 34, 51, 68, 85, 102)));
   return Buffer.concat([
-    PNG_SIGNATURE,
+    Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10),
     ...(problem === "missing header" ? [] : [header]),
     ...(problem === "duplicate header" ? [header] : []),
     data,

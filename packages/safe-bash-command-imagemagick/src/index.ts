@@ -6730,13 +6730,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const raw = [...(tokens[++i] ?? "")].filter(character => character.trim() !== "").join("")
             .replaceAll(",", "x").replaceAll("/", "x");
         validateMagickTransformGeometry(raw, token);
-        const [cStr, mStr] = raw.split("x");
-        const strength = parseFloat(cStr ?? "");
+        const [cStr, mStr] = raw.replaceAll(":", "x").split("x");
+        const ratio = raw.includes(":");
+        const strength = parseFloat(cStr ?? "") / (ratio ? parseFloat(mStr ?? "1") : 1);
         if (!Number.isFinite(strength)) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
         const beta = Math.max(1e-4, strength);
-        const mRaw = parseFloat(mStr || "50");
+        const mRaw = ratio ? 1 : parseFloat(mStr || "50");
         const alpha = (mStr ?? "50%").endsWith("%") ? mRaw / 100 : mRaw / 65535;
         const sig = (u: number) => Math.tanh(0.5 * beta * (u - alpha));
         const s0 = sig(0);

@@ -478,10 +478,13 @@ export function serializeMpegTs(
     throw new Error("Invalid mpegts_start_pid: expected an integer from 32 through 8186");
   }
   const videoTrack = doc.tracks.find((t) => t.type === "video");
-  const tracks = doc.tracks.filter((t) => t === videoTrack || t.type === "audio"
+  const tracks = doc.tracks.filter((t) => t.type === "video" || t.type === "audio"
     || (t.type === "subtitle" && t.codecDescriptions[0]?.codecName === "subrip"));
   if (tracks.some((_, index) => startPid + index === 0x1000)) {
     throw new Error("MPEG-TS elementary PID conflicts with PMT PID 4096");
+  }
+  if (startPid + tracks.length > 0x1fff) {
+    throw new Error("MPEG-TS elementary PID exceeds 8190");
   }
   const videoPid = startPid + (videoTrack ? tracks.indexOf(videoTrack) : 0);
   const pcrPid = videoTrack ? videoPid : startPid;
@@ -619,7 +622,7 @@ export function serializeMpegTs(
     while (offset < fullPes.byteLength) {
       if (lastPatDts === undefined) {
         lastPatDts = dts90k;
-      } else if ((first && videoTrack && pid === videoPid && options.patPmtAtFrames) || dts90k - lastPatDts >= patPeriod90k) {
+      } else if ((first && streamId === 0xe0 && options.patPmtAtFrames) || dts90k - lastPatDts >= patPeriod90k) {
         emitSectionPacket(0x0000, patSection);
         emitSectionPacket(0x1000, pmtSection);
         lastPatDts = dts90k;
@@ -736,6 +739,9 @@ export function serializeMpegTs(
   });
   const streamsBytes = concatBytes(streamEntries);
   const pmtSecLen = 9 + streamsBytes.byteLength + 4;
+  if (pmtSecLen > 1021) {
+    throw new Error("MPEG-TS program map exceeds 1021 bytes");
+  }
   const pmtHeader = new Uint8Array([
     0x02,
     0xb0 | ((pmtSecLen >>> 8) & 0x0f),
@@ -756,8 +762,10 @@ export function serializeMpegTs(
 
   const streams: Generator<Parameters<typeof emitPesPackets>>[] = [];
 
-  // Prepare one PES at a time per track.
-  if (videoTrack) {
+  // Prepare one PES at a time per mapped video track.
+  for (const [trackIndex, videoTrack] of tracks.entries()) {
+    if (videoTrack.type !== "video") continue;
+    const pid = startPid + trackIndex;
     const ts = videoTrack.timescale || 90000;
     const desc = videoTrack.codecDescriptions[0];
     const width = videoTrack.width ?? desc?.width ?? 320;
@@ -796,12 +804,12 @@ export function serializeMpegTs(
           s.isKeyframe || i === 0 ? { sps: spsList, pps: ppsList } : undefined
         );
         yield [
-          videoPid,
+          pid,
           0xe0,
           pts90k,
           dts90k,
           concatBytes([audNalu, annexB]),
-          s.isKeyframe || i === 0,
+          pid === pcrPid && (s.isKeyframe || i === 0),
           s.isKeyframe
         ];
       }

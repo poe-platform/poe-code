@@ -169,3 +169,32 @@ it("axcorrelate accepts expressions at the maximum window size", async () => {
   assert.equal(expected.result.exitCode, 0, expected.error);
   assert.deepEqual(actual.bytes, expected.bytes);
 });
+
+for (const size of [64, 128, 600]) {
+  it(`axcorrelate preserves downstream frame counts and timestamps (size=${size})`, async () => {
+    const input = encodeWav({ sampleRate: 8000,
+      channels: [Float64Array.from({ length: 4000 }, (_, i) => i % 8 < 4 ? 0.25 : -0.25)] });
+    const execute = (following: string) => run(`[0:a][1:a]axcorrelate=${size}:best,${following}[mix]`,
+      1, 4000, 4000, [input, input]);
+    const lengths = size === 600 ? [424, 512, 512, 512, 512, 512, 416, 600]
+      : [512 - size, 512, 512, 512, 512, 512, 512, 416, size];
+    const baseline = await execute("anull");
+    const numbered = await execute("volume=n:eval=frame");
+    const timed = await execute("volume=t:eval=frame");
+    for (const output of [baseline, numbered, timed]) assert.equal(output.result.exitCode, 0, output.error);
+    assert.equal(baseline.audio!.channelData[0]!.length, 4000);
+    let start = 0;
+    for (const [n, length] of lengths.entries()) {
+      const selected = await execute(`aselect='eq(n,${n})'`);
+      assert.equal(selected.result.exitCode, 0, selected.error);
+      assert.equal(selected.audio!.channelData[0]!.length, length);
+      assert.deepEqual(selected.audio!.channelData[0], baseline.audio!.channelData[0]!.slice(start, start + length));
+      for (let i = start; i < start + length; i++) {
+        assert.equal(numbered.audio!.channelData[0]![i]! * 32768, n === 0 ? 0 : 32767);
+        assert.ok(Math.abs(timed.audio!.channelData[0]![i]! * 32768 - Math.round(start / 8000 * 32768)) <= 1);
+      }
+      start += length;
+    }
+    assert.equal(start, 4000);
+  });
+}

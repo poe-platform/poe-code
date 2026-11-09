@@ -325,7 +325,7 @@ with halfway values rounded to even (`2.5` becomes `2`, `3.5` becomes `4`).
 (default), or numeric expressions in 0–2 rounded to the nearest integer (ties to even).
 If the first input has at most `size` samples, no audio is emitted;
 a short second input still produces audio when the first exceeds `size`. Windows
-look forward and use silence past the packets received when either input ends. Filters can follow axcorrelate;
+look forward and use silence past the packets received when either input ends. Filters can follow axcorrelate and receive its output frame boundaries and timestamps, including the tail;
 preceding single-input filters apply to their respective input branches before correlation.
 
 `sidechaingate` uses the second audio input to gate the first, stopping at the shorter

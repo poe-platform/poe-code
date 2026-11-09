@@ -1,4 +1,4 @@
-import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
+import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
@@ -38,10 +38,20 @@ export async function correlateAudio(
   const lengths = [a.channelData[0]!.length, b.channelData[0]!.length];
   const received = [0, 0];
   const packets = [0, 0];
+  const frames: MediaSample[] = [];
   let drained = 0;
+  const startPts = Math.round((first.samples[0]?.pts ?? 0) * a.sampleRate / first.timescale);
+  function drainTo(end: number): void {
+    if (end <= drained) return;
+    budget.allocateMemory(96);
+    const pts = startPts + drained;
+    frames.push({ data: new Uint8Array(0), size: 0, dts: pts, pts, cts: 0,
+      duration: end - drained, isKeyframe: true, sampleDescriptionIndex: 1 });
+    drained = end;
+  }
   for (let requests = 0; ; requests++) {
     if (requests % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-    drained = Math.max(drained, Math.min(...received) - size);
+    drainTo(Math.min(...received) - size);
     const input = received[0]! - drained <= size ? 0 : 1;
     if (received[input]! >= lengths[input]!) break;
     const track = tracks[input]!;
@@ -52,6 +62,8 @@ export async function correlateAudio(
     received[input] = Math.min(lengths[input]!, received[input]! + Math.max(0, count));
   }
   const length = Math.min(...received);
+  // EOF pads both queues with one window of silence, releasing the tail.
+  drainTo(length);
   budget.checkSamples(length);
   budget.checkDuration(length / a.sampleRate);
   budget.allocateMemory(length * a.channels * 8);
@@ -106,6 +118,6 @@ export async function correlateAudio(
       xy = round(round(xy - oldX * oldY) + newX * newY);
     }
   }
-  return { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
+  return { ...first, timescale: a.sampleRate, duration: length, samples: frames, editList: undefined,
     decodedAudio: { ...a, channelData } };
 }

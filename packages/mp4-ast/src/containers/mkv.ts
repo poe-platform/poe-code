@@ -948,6 +948,12 @@ export function serializeMkv(
       const width = trk.width ?? desc?.width ?? 320;
       const height = trk.height ?? desc?.height ?? 240;
       const videoParts = [makeEbmlUint(0xb0, width), makeEbmlUint(0xba, height)];
+      if (desc?.fieldOrder !== undefined && desc.fieldOrder !== "unknown") {
+        videoParts.push(makeEbmlUint(0x9a, desc.fieldOrder === "progressive" ? 2 : 1));
+        if (desc.fieldOrder !== "progressive") {
+          videoParts.push(makeEbmlUint(0x9d, { tt: 1, bb: 6, tb: 9, bt: 14 }[desc.fieldOrder]));
+        }
+      }
       if (desc?.stereoMode !== undefined) videoParts.push(makeEbmlUint(0x53b8, desc.stereoMode));
       if (desc?.alphaMode !== undefined) videoParts.push(makeEbmlUint(0x53c0, desc.alphaMode));
       if (desc?.rawMkvColourBytes !== undefined) videoParts.push(makeEbmlElement(0x55b0, desc.rawMkvColourBytes));

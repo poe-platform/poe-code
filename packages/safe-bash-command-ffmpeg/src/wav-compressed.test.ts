@@ -58,7 +58,9 @@ for (const codec of ["mp3", "aac"]) {
       const end = start + input.readUInt32LE(start - 4);
       const actual = output.indexOf(chunk) + 8;
       assert.equal(output.readUInt32LE(actual - 4), end - start);
-      assert.deepEqual(output.subarray(actual, actual + end - start), input.subarray(start, end));
+      const expected = Buffer.from(input.subarray(start, end));
+      if (codec === "mp3" && chunk === "fmt ") expected.writeUInt32LE(1000, 8);
+      assert.deepEqual(output.subarray(actual, actual + end - start), expected);
     }
   });
 }

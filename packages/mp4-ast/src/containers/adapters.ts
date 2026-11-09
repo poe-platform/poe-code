@@ -23,7 +23,7 @@ import { decodeMp3Track, encodeMp3 } from "../mp3.js";
 import { decodeVorbisTrack } from "../vorbis.js";
 import { decodeAacTrack } from "../aac.js";
 import { wavInfoTags, isWave64Signature, wave64Guid, readWavHeader, readWavSourceHeader, readWavStreamHeader, type WavHeader } from "./wav-header.js";
-import { parseAudio, flacFormatTags, writeAudioMetadata, encodeId3, type AudioStream } from "@poe-code/audio-ast";
+import { parseAudio, mpegFrame, flacFormatTags, writeAudioMetadata, encodeId3, type AudioStream } from "@poe-code/audio-ast";
 import { decodeH264Samples } from "../h264.js";
 import { decodeFlac, encodeFlacPackets } from "./flac.js";
 import { FlacFrameScanner, flacChapters } from "./flac-probe.js";
@@ -824,6 +824,16 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     new DataView(factBytes.buffer).setUint32(0, Math.max(1, decodedAudio.channelData[0]!.length), true);
   } else if (formatBytes) {
     pcmBytes = concatBytes(audioTrack!.samples.map(s => s.data));
+    const fmt = new DataView(formatBytes.buffer, formatBytes.byteOffset, formatBytes.byteLength);
+    if (fmt.getUint16(0, true) === 85 && fmt.getUint32(8, true) === 0 && pcmBytes.length >= 4) {
+      // WAV demuxing obtains a missing MP3 rate from the MPEG frame header.
+      const header = new DataView(pcmBytes.buffer, pcmBytes.byteOffset, 4).getUint32(0);
+      const { bitrate } = mpegFrame(header, 0, pcmBytes.length).fields;
+      if (typeof bitrate === "number") {
+        formatBytes = new Uint8Array(formatBytes);
+        new DataView(formatBytes.buffer).setUint32(8, bitrate / 8, true);
+      }
+    }
   } else if (decodedAudio) {
     switch (options.audioCodec) {
       case "pcm_u8": bitsPerSample = 8; break;

@@ -2613,22 +2613,7 @@ export const gifInputVectors: GifInputVector[] = [
       loop: 1,
       size: 426
     },
-    expected: {
-      width: 9,
-      height: 44,
-      format: "gif",
-      space: "srgb",
-      channels: 4,
-      depth: "uchar",
-      density: 72,
-      hasAlpha: false,
-      pages: 4,
-      sourcePages: 4,
-      pageHeight: 11,
-      delay: [0, 70, 140, 210],
-      loop: 1
-    },
-    hash: "9d132d1af172bb88c0687a047c3d66f6ccfdd9c71ab2fe4da8d9c191289c22e5"
+    error: "invalid colormap index in GIF"
   },
   {
     spec: { noGce: true, loop: 0 },
@@ -3144,10 +3129,9 @@ it("bounds cyclic malformed LZW dictionary traversal", async () => {
       height: 1,
       frames: 1,
       noGce: true,
-      noGlobal: true,
       mode: "early"
     }),
-    descriptor = 13,
+    descriptor = 13 + 768,
     minimum = descriptor + 10,
     payload = minimum + 2;
   bytes[minimum] = 2;
@@ -3189,10 +3173,9 @@ it.each([0, 1, 9, 12, 31, 32, 255])(
         width: 129,
         height: 2,
         frames: 1,
-        noGce: true,
-        noGlobal: true
+        noGce: true
       }),
-      at = 23;
+      at = 23 + 768;
     bytes[at] = minimum;
     const { storage } = backing(),
       Original = Uint8Array;

@@ -178,6 +178,9 @@ export function decodeGifImage(
         off += b.length;
       }
       const indices = lzwDecode(minCodeSize, lzwStream, imgW * imgH);
+      for (const index of indices) {
+        if (index * 3 + 2 >= palette.length) throw new Error("invalid colormap index in GIF");
+      }
       const isInterlaced = (imgFlags & 0x40) !== 0;
       const rowMap = new Int32Array(imgH);
       if (isInterlaced) {

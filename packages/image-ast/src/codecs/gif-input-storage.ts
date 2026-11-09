@@ -278,6 +278,7 @@ export async function decodeGifToStorage(
       const starts = [0, 4, 2, 1],
         steps = [8, 8, 4, 2];
       for await (const index of indices(reader, data, source.size, minimum, w * h)) {
+        if (index * 3 + 2 >= colors.length) throw new Error("invalid colormap index in GIF");
         signal.throwIfAborted();
         if (++work % 16384 === 0) await defaultRuntime.yieldTurn(signal);
         const dx = left + x,

@@ -92,7 +92,10 @@ it("validates source identity before exposing metadata to the inspection callbac
 
 import {decodeGifToStorage} from "./codecs/gif-input-storage.js";
 for(const decode of [false,true])it(`owns concurrent borrowed GIF delay reads decode=${decode}`,async()=>{
- const bytes=fixture(4),memory=new Uint8Array(65536),borrowed=new Uint8Array(4096);let end=8,reads=0;
+ const original=fixture(4),bytes=new Uint8Array(original.length+6);
+ bytes.set(original.subarray(0,13));bytes[6]=1;bytes[8]=1;bytes[10]=128;bytes.set(original.subarray(13),19);
+ for(let i=0;i<4;i++){bytes[19+32+i*23]=1;bytes[19+34+i*23]=1;}
+ const memory=new Uint8Array(65536),borrowed=new Uint8Array(4096);let end=8,reads=0;
  const storage={allocate(length:number){const at=end;end+=length;return at;},async write(at:number,bytes:Uint8Array){memory.set(bytes,at);},async read(at:number,length:number){reads++;borrowed.fill(91);borrowed.set(memory.subarray(at,at+length));return borrowed.subarray(0,length);}};
  const source={size:bytes.length,async read(at:number,length:number){return bytes.subarray(at,at+length);}},controller=new AbortController();
  const metadata=await (decode?decodeGifToStorage:readGifMetadataFromSource)(source,storage,controller.signal);

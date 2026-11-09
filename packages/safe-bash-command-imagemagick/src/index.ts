@@ -5486,6 +5486,8 @@ function* parseInputOperandSteps(token: string, files: Map<string, Uint8Array>, 
 function* applyInlineReadModifierSteps(img: RgbaImage, inlineGeom: string, kernel: ResizeKernel | undefined, settings?: ResizeFilterSettings, preserveSamples = false): Generator<void, RgbaImage, void> {
     const g = parseMagickGeometry(inlineGeom);
     if (g.hasOffset) {
+        // Read geometry ignores offsets when both dimensions match the raster.
+        if (g.width === img.width && g.height === img.height) return img;
         return (yield* applyMagickCropSteps(img, inlineGeom, "northwest"));
     }
     // Read geometry compares the raw width before applying the area modifier.
@@ -11927,6 +11929,8 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
 async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom: string, state: MagickState, backend: CompareFileSession, signal: AbortSignal, preserveSamples = false): Promise<StoredRgbaImage> {
     const geometry = parseMagickGeometry(inlineGeom);
     if (geometry.hasOffset) {
+        // Read geometry ignores offsets when both dimensions match the raster.
+        if (geometry.width === image.width && geometry.height === image.height) return image;
         const area = magickCropArea(image, inlineGeom, "northwest");
         if (area === null) return {
             ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend, signal),

@@ -6060,6 +6060,32 @@ it("extracts gapped MKV subtitles with their explicit end timestamps", async () 
   assert.ok(text.includes("00:00:03,000 --> 00:00:04,500"), text);
 });
 
+describe("DASH program title", () => {
+  for (const [flags, expected] of [
+    [[], "Trial & test"],
+    [["-metadata", "title=Cut < test & crop"], "Cut < test & crop"],
+    [["-metadata", "title="], undefined],
+    [["-map_metadata", "-1"], undefined]
+  ] as const) {
+    it(`preserves or clears the program title with ${JSON.stringify(flags)}`, async () => {
+      const { parseXml } = await import("@poe-code/xml-ast");
+      const doc = parseMp4(createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 4, includeAudio: false }));
+      const input = serializeMp4({ ...doc, metadata: { title: "Trial & test" } });
+      const vfs = createTestVfs({ "/in.mp4": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-v", "error", "-y", "-i", "/in.mp4", "-map", "0", "-c", "copy", "-f", "dash",
+        "-seg_duration", "1", ...flags, "/out.mpd"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const root = parseXml(new TextDecoder().decode(vfs.store.get("/out.mpd")!));
+      const title = root.children.find(child => child.localName === "ProgramInformation")
+        ?.children.find(child => child.localName === "Title");
+      assert.equal(title?.text, expected);
+      assert.deepEqual(vfs.store.get("/in.mp4"), input);
+    });
+  }
+});
+
 describe("DASH segment duration", () => {
   const input = createSyntheticMp4({ width: 32, height: 24, fps: 4, frameCount: 20, includeAudio: true });
   for (const value of ["oops", "1oops", "", "NaN", "Infinity", "-1", "1e2", "999999999999999999999"]) {

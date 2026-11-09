@@ -602,6 +602,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
   const lines = [
     '<?xml version="1.0" encoding="utf-8"?>',
     `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" maxSegmentDuration="PT${segmentDuration.toFixed(6)}S" mediaPresentationDuration="PT${doc.durationSeconds.toFixed(6)}S" minBufferTime="PT${(2 * bufferDuration).toFixed(6)}S" profiles="urn:mpeg:dash:profile:isoff-live:2011">`,
+    ...(doc.metadata.title ? [`<ProgramInformation><Title>${doc.metadata.title.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</Title></ProgramInformation>`] : []),
     '<Period id="0" start="PT0S">'
   ];
   for (const adaptation of adaptations) {

@@ -5705,6 +5705,8 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     const {baseToken,pageSpec,inlineGeom=extract}=parseInputToken(token);
     function* applyMod(imgs: RgbaImage[]): Generator<void, RgbaImage[], void> {
         return yield* mapSteps(imgs, function* (im) {
+            // ImageMagick activates the decoder's opaque alpha for RGB EXR input.
+            if (im.format === "exr" && !im.hasAlpha) im = { ...im, hasAlpha: true, channels: im.channels === 1 ? 2 : 4 };
             im = { ...im, gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge" };
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.orientation !== undefined) im = { ...im, orientation: state.orientation };
@@ -12494,6 +12496,8 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
+  // Match buffered EXR input: the implicit opaque alpha is an active channel.
+  if (image.format === "exr" && !image.hasAlpha) image = { ...image, hasAlpha: true, channels: image.channels === 1 ? 2 : 4 };
   image = { ...image, gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge" };
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.orientation!==undefined)image={...image,orientation:state.orientation};

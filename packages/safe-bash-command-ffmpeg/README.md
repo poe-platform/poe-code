@@ -339,7 +339,9 @@ preceding single-input filters apply to their respective input branches before c
 input. For example, `[0:a][1:a]sidechaingate=threshold=0.1:ratio=8:attack=1:release=20[mix]`
 attenuates the program when the control signal becomes quiet. Supports `range`,
 `knee`, `detection=peak|rms`, `link=average|maximum`, `mode=downward|upward`,
-`level_in`, `level_sc`, and `makeup`; the control input can have a different channel count.
+`level_in`, `level_sc`, and `makeup`; the control input can have a different channel count
+or sample rate. The control input is resampled to the program rate, which is preserved
+in the output; duration is limited by the shorter input after resampling.
 Timeline `enable` expressions, such as `enable='gte(t,0.064)'`, are evaluated at input
 audio frame boundaries (`t` is time in seconds; `n` is the frame index). Disabled
 frames pass through unchanged while the gate continues tracking the control input.

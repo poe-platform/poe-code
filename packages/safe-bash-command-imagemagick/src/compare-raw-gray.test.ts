@@ -5,12 +5,12 @@ import { createMagickCommand, runCompareCli, runCompareCliSync } from "./index.j
 
 for (const mode of ["sync", "async", "retained", "command"] as const) {
     it.each([
-        ["2x1", [], "/input.gray", [0x34, 0x12, 0xcd, 0xab], "65535", [0x12, 0x34, 0xab, 0xcd], "0 (0)\n", 0],
-        ["2x1", ["-depth", "16"], "gray:/input.gray[0]", [0x12, 0x34, 0xab, 0xcd, 0x34, 0x12, 0xcd, 0xab], "65535", [0x12, 0x34, 0xab, 0xcd], "8670 (0.132296)\n", 1],
-        ["2x1", ["-depth", "16"], "gray:/input.gray[1]", [0x12, 0x34, 0xab, 0xcd, 0x34, 0x12, 0xcd, 0xab], "65535", [0x12, 0x34, 0xab, 0xcd], "0 (0)\n", 0],
-        ["2x1+4", [], "/input.gray", [0x12, 0x34, 0xab, 0xcd, 0x34, 0x12, 0xcd, 0xab], "65535", [0x12, 0x34, 0xab, 0xcd], "0 (0)\n", 0],
-        ["2x1", ["-depth", "8"], "gray:/input.gray", [18, 171], "255", [18, 171], "0 (0)\n", 0],
-        ["2x1", ["-depth", "8"], "/input.gray", [18, 171], "255", [18, 171], "0 (0)\n", 0],
+        ["2x1", [], "/input.gray", [0x34, 0x12, 0xcd, 0xab], "65535", [0x12, 0x34, 0xab, 0xcd], "0 (0)", 0],
+        ["2x1", ["-depth", "16"], "gray:/input.gray[0]", [0x12, 0x34, 0xab, 0xcd, 0x34, 0x12, 0xcd, 0xab], "65535", [0x12, 0x34, 0xab, 0xcd], "8670 (0.132296)", 1],
+        ["2x1", ["-depth", "16"], "gray:/input.gray[1]", [0x12, 0x34, 0xab, 0xcd, 0x34, 0x12, 0xcd, 0xab], "65535", [0x12, 0x34, 0xab, 0xcd], "0 (0)", 0],
+        ["2x1+4", [], "/input.gray", [0x12, 0x34, 0xab, 0xcd, 0x34, 0x12, 0xcd, 0xab], "65535", [0x12, 0x34, 0xab, 0xcd], "0 (0)", 0],
+        ["2x1", ["-depth", "8"], "gray:/input.gray", [18, 171], "255", [18, 171], "0 (0)", 0],
+        ["2x1", ["-depth", "8"], "/input.gray", [18, 171], "255", [18, 171], "0 (0)", 0],
     ] as const)(`reads raw grayscale %s %j %s (${mode})`, async (size, depth, input, samples, max, reference, stderrExpected, exitCode) => {
         const files = new Map([["/input.gray", new Uint8Array(samples)], ["/ref.pgm", new Uint8Array([...new TextEncoder().encode(`P5\n2 1\n${max}\n`), ...reference])]]);
         const fs = new MemoryFileSystem();
@@ -50,7 +50,7 @@ for (const mode of ["sync", "async", "retained"] as const) {
             "diff.pgm"
         ],
         "exitCode": 0,
-        "stderr": "0 (0)\n",
+        "stderr": "0 (0)",
         "output": "50350a3320320a3235350acfdef3f6e1e6"
     },
     {
@@ -62,7 +62,7 @@ for (const mode of ["sync", "async", "retained"] as const) {
             "diff.pgm"
         ],
         "exitCode": 1,
-        "stderr": "16472.4 (0.251353)\n",
+        "stderr": "16472.4 (0.251353)",
         "output": "50350a3320320a3235350acfde3ff6e1e6"
     },
     {
@@ -78,7 +78,7 @@ for (const mode of ["sync", "async", "retained"] as const) {
             "diff.pgm"
         ],
         "exitCode": 0,
-        "stderr": "0 (0)\n",
+        "stderr": "0 (0)",
         "output": "50350a3320320a3235350acfdef3f6e1e6"
     },
     {
@@ -94,7 +94,7 @@ for (const mode of ["sync", "async", "retained"] as const) {
             "diff.pgm"
         ],
         "exitCode": 1,
-        "stderr": "16472.4 (0.251353)\n",
+        "stderr": "16472.4 (0.251353)",
         "output": "50350a3320320a3235350acfde3ff6e1e6"
     },
     {
@@ -110,7 +110,7 @@ for (const mode of ["sync", "async", "retained"] as const) {
             "diff.pgm"
         ],
         "exitCode": 0,
-        "stderr": "0 (0)\n",
+        "stderr": "0 (0)",
         "output": "50350a3320320a3235350acfdef3f6e1e6"
     },
     {
@@ -124,7 +124,7 @@ for (const mode of ["sync", "async", "retained"] as const) {
             "diff.pgm"
         ],
         "exitCode": 1,
-        "stderr": "36085 (0.550621)\n",
+        "stderr": "36085 (0.550621)",
         "output": "50350a3320320a36353533350a467f185221fc47d2437618ae"
     },
     {
@@ -138,7 +138,7 @@ for (const mode of ["sync", "async", "retained"] as const) {
             "diff.pgm"
         ],
         "exitCode": 0,
-        "stderr": "0 (0)\n",
+        "stderr": "0 (0)",
         "output": "50350a3320320a36353533350acd94d333e43cedc8f7c4fccc"
     },
     {
@@ -154,7 +154,7 @@ for (const mode of ["sync", "async", "retained"] as const) {
             "diff.pgm"
         ],
         "exitCode": 1,
-        "stderr": "36085 (0.550621)\n",
+        "stderr": "36085 (0.550621)",
         "output": "50350a3320320a36353533350a467f185221fc47d2437618ae"
     },
     {
@@ -170,7 +170,7 @@ for (const mode of ["sync", "async", "retained"] as const) {
             "diff.pgm"
         ],
         "exitCode": 0,
-        "stderr": "0 (0)\n",
+        "stderr": "0 (0)",
         "output": "50350a3320320a36353533350acd94d333e43cedc8f7c4fccc"
     }
 ])(`matches native raw grayscale metrics (${mode}): $args`, async ({ args, exitCode, stderr, output }) => {
@@ -195,7 +195,7 @@ for (const retained of [false, true]) {
         const filesystem = new MemoryFileSystem();
         for (const [name, bytes] of files) await filesystem.writeFile(name, bytes);
         expect(await runCompareCli(["-size", "1x1", "-depth", "8", "/byte.gray", "-depth", "16", "/word.gray", "null:"], retained ? { filesystem, cwd: "/" } : files))
-            .toMatchObject({ exitCode: 0, stderr: "0 (0)\n" });
+            .toMatchObject({ exitCode: 0, stderr: "0 (0)" });
     });
     it.each([[], ["-size", "2x1"], ["-size", "1x1", "-depth", "32"], ["-size", "1x1+9"]])(`preserves the destination when raw input cannot be decoded (${retained}): %j`, async (...options) => {
         const files = new Map([["/input.gray", new Uint8Array([1, 2])], ["/diff.pgm", new TextEncoder().encode("KEEP")]]);

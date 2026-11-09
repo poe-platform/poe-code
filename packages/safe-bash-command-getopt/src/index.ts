@@ -25,7 +25,15 @@ export function getoptCommands(options: GetoptCommandsOptions = {}): VirtualShel
 function quoteShell(value: string, quote: boolean, tcsh: boolean): string {
   if (!quote) return " " + value;
   if (tcsh) {
-    return " '" + value.replace(/[\x27\n!]/g, ch => ch === "'" ? "'''" : "\\" + ch) + "'";
+    let result = " '";
+    for (const ch of value) {
+      if (ch === "'" || ch === "!" || ch === " " || ch === "\t" || ch === "\v" || ch === "\f" || ch === "\r") {
+        result += "'\\" + ch + "'";
+      } else if (ch === "\\" || ch === "\n") {
+        result += ch === "\n" ? "\\n" : "\\\\";
+      } else result += ch;
+    }
+    return result + "'";
   }
   return " '" + value.replaceAll("'", "'\\''") + "'";
 }

@@ -1618,8 +1618,8 @@ export function flacAst(): MediaAstPlugin {
         const type = bytes[offset]! & 127;
         const size = bytes[offset + 1]! * 65536 + bytes[offset + 2]! * 256 + bytes[offset + 3]!;
         const block = Uint8Array.from(bytes.subarray(offset, offset + 4 + size));
-        // Seek tables and cue sheets refer to the original recording.
-        if (type !== 3 && type !== 5) { block[0] = type; blocks.push(block); }
+        // FFmpeg does not carry application data, seek tables or cue sheets into remuxed FLAC.
+        if (type !== 2 && type !== 3 && type !== 5) { block[0] = type; blocks.push(block); }
         const last = bytes[offset]! & 128;
         offset += 4 + size;
         if (last) break;

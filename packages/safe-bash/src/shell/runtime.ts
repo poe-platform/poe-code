@@ -951,6 +951,7 @@ export interface State extends DynamicVariableState {
   directoryStack?: { readonly entries: readonly string[]; readonly bytes: number } | undefined;
   directoryStackCwdPublication?: symbol;
   checkhash?: boolean;
+  shift_verbose?: boolean;
   dotglob?: boolean;
   globskipdots?: boolean;
   sourcepath?: boolean;
@@ -8874,7 +8875,10 @@ export class Runtime {
         await writeDiagnostic(stderr, `shift: ${operand}: shift count out of range\n`);
         return 1;
       }
-      if (count > state.positional.length) return 1;
+      if (count > state.positional.length) {
+        if (state.shift_verbose) await writeDiagnostic(stderr, `shift: ${operand === undefined ? "" : `${operand}: `}shift count out of range\n`);
+        return 1;
+      }
       this.replacePositionals(state, this.positionalValues(state).slice(count));
       return 0;
     }
@@ -11368,6 +11372,7 @@ Object.assign(Runtime.prototype, {
   outcomeFrame: undefined, _fs: undefined, _contextFsMask: -1, _contextFsSignal: undefined, _contextFs: undefined, _redirectFsMask: -1, _redirectFs: undefined, _fileWrites: undefined, _outputFiles: undefined, _syncArithState: undefined, _canFastMemoryRedirect: undefined, _syncArithRawVars: undefined, _syncArithLine: undefined, _syncArithRawWriteOnly: false, _syncArithTouched: undefined, _syncArithRefs: undefined, });
 export class RootShellState implements State {
   shellStartedAt = Date.now();
+  declare shift_verbose: boolean;
   declare umask: number;
   declare extensions: ShellExtensionState | undefined;
   private _cwd = "/";
@@ -11409,6 +11414,7 @@ export class RootShellState implements State {
     this.cwd = cwd;
     this.logicalCwd = cwd;
     this.variables = variables;
+    this.shift_verbose = variables.POSIXLY_CORRECT !== undefined;
     this._exported = exported;
     this.extensions = extensions;
     this.status = 0;

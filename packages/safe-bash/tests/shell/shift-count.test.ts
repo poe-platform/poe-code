@@ -2,6 +2,54 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
 
+for (const [options, argument, positionals, diagnostic, status] of [
+  ["", "3", "a b", "", 1],
+  ["shopt -s shift_verbose;", "3", "a b", "3: ", 1],
+  ["shopt -s shift_verbose;", "-- +03", "a b", "+03: ", 1],
+  ["shopt -s shift_verbose;", "", "", "", 1],
+  ["shopt -s shift_verbose;", "--", "", "", 1],
+  ["shopt -s shift_verbose; shopt -u shift_verbose;", "3", "a b", "", 1],
+  ["shopt -u shift_verbose;", "-1", "a b", "-1: ", 1],
+  ["shopt -s shift_verbose;", "0", "a b", "", 0],
+] as const) {
+  test(`shift_verbose behavior: ${options} shift ${argument} with (${positionals})`, async context => {
+    const { shell } = setup();
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`set -- ${positionals}; ${options} shift ${argument}; say "$?|$*"`);
+    assert.equal(result.stdout, `${status}|${positionals}\n`);
+    const verbose = options === "shopt -s shift_verbose;" && status === 1;
+    assert.equal(result.stderr, verbose || diagnostic ? `shift: ${diagnostic}shift count out of range\n` : "");
+    assert.equal(result.exitCode, 0);
+  });
+}
+
+for (const posix of [undefined, "", "1"]) {
+  test(`shift_verbose startup and session state with POSIXLY_CORRECT=${JSON.stringify(posix)}`, async context => {
+    const { shell } = setup({ env: posix === undefined ? {} : { POSIXLY_CORRECT: posix } });
+    context.after(() => shell.dispose());
+    const initial = await shell.exec('shopt -p shift_verbose; shopt -q shift_verbose; say "$?"; shift', { onState() {} });
+    const enabled = posix !== undefined;
+    assert.equal(initial.stdout, `shopt -${enabled ? "s" : "u"} shift_verbose\n${enabled ? 0 : 1}\n`);
+    assert.equal(initial.stderr, enabled ? "shift: shift count out of range\n" : "");
+    assert.equal(initial.exitCode, 1);
+    const changed = await shell.exec(`shopt -${enabled ? "u" : "s"} shift_verbose`, { state: initial.state });
+    assert.equal(changed.state?.options?.shift_verbose, !enabled);
+    const restored = await shell.exec(`(shopt -${enabled ? "s" : "u"} shift_verbose); shopt -q shift_verbose; say "$?"; shift`, { state: changed.state });
+    assert.equal(restored.stdout, `${enabled ? 1 : 0}\n`);
+    assert.equal(restored.stderr, enabled ? "" : "shift: shift count out of range\n");
+    assert.equal(restored.exitCode, 1);
+  });
+}
+
+test("nested bash initializes shift_verbose from its exported environment", async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`POSIXLY_CORRECT=1 bash -c 'shopt -p shift_verbose; shift; shopt -u shift_verbose; shift'`);
+  assert.equal(result.stdout, "shopt -s shift_verbose\n");
+  assert.equal(result.stderr, "shift: shift count out of range\n");
+  assert.equal(result.exitCode, 1);
+});
+
 for (const command of ["shift --help", "shift --help ignored", "builtin shift --help", "command shift --help"]) {
   for (const inFunction of [false, true]) {
     test(`${command} prints help without shifting ${inFunction ? "in a function" : "at top level"}`, async context => {

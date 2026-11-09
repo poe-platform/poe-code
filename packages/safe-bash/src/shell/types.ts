@@ -103,6 +103,7 @@ export interface ShellSessionArraySnapshot {
 
 export interface ShellSessionOptionsSnapshot {
   readonly checkhash?: boolean | undefined;
+  readonly shift_verbose?: boolean | undefined;
   readonly dotglob?: boolean | undefined;
   readonly globskipdots?: boolean | undefined;
   readonly sourcepath?: boolean | undefined;

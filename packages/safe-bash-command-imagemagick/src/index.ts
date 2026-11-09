@@ -7939,11 +7939,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         const setting = applyMagickReadSetting(tokens, state, i);
-        if (setting === undefined && t === "-solarize") {
-            const value = tokens[++i] ?? "50%";
+        if (setting === undefined && (t === "-solarize" || t === "-color-matrix" || t === "-recolor")) {
+            const value = tokens[++i] ?? (t === "-solarize" ? "50%" : "1,0,0 0,1,0 0,0,1");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                return yield* parseMagickPixelOperation(["-solarize", expanded], state, 0, signal)!.apply(image);
+                return yield* parseMagickPixelOperation([t, expanded], state, 0, signal)!.apply(image);
             });
             i++;
             continue;
@@ -9653,12 +9653,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, channels, signal), signal) : undefined);
             continue;
         }
-        if (!operandsOnly && token === "-solarize") {
-            const value = tokens[++i] ?? "50%", settings = { ...state };
+        if (!operandsOnly && (token === "-solarize" || token === "-color-matrix" || token === "-recolor")) {
+            const value = tokens[++i] ?? (token === "-solarize" ? "50%" : "1,0,0 0,1,0 0,0,1"), settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                return transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-solarize", expanded], settings, 0, signal)!, signal);
+                return transformStoredMagickPixels(image, backend, parseMagickPixelOperation([token, expanded], settings, 0, signal)!, signal);
             });
             continue;
         }

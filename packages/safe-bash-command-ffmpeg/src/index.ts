@@ -10368,7 +10368,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             stretched, filteredChannelMask, false, budget, context.signal);
                           stretched = stereo.channels;
                         }
-                        const dialogue = await enhanceDialogue(stretched, origRate, values[0]!, values[1]!, values[2]!, budget, context.signal);
+                        const commands = audioCommands.filter(command => command.target === "dialoguenhance" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        const dialogue = await enhanceDialogue(stretched, origRate, values[0]!, values[1]!, values[2]!, budget, context.signal, commands);
                         stretched = dialogue.channels;
                         const length = stretched[0]?.length ?? 0;
                         budget.allocateMemory(Math.ceil(length / dialogue.frameSize) * 24);

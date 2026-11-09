@@ -30,7 +30,7 @@ export async function phaseAudio(
   const output = channels.map(() => new Float64Array(length));
   const history = channels.map(() => new Float64Array(delayLength));
   // Native aphaser negotiates unsigned 8-bit input to signed 16-bit samples.
-  const scale = codec === "pcm_u8" || codec === "pcm_s16le" ? 32768 : codec === "pcm_s32le" ? 2147483648 : 1;
+  const scale = codec === "pcm_u8" || codec === "pcm_s16le" ? 32768 : (codec === "pcm_s24le" || codec === "pcm_s32le") ? 2147483648 : 1;
   let position = 0;
   let work = 0;
   for (let frame = 0; frame < length; frame++) {

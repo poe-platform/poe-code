@@ -1710,7 +1710,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             source.track = await filterAudio(source.track, source.expression);
           }
         }
-        const track = await joinAudio(sources.map(source => source.track), filters[0]!, budget, signal);
+        const track = await joinAudio(sources.map(source => source.track), filters, budget, signal);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (sources.length !== 1) throw new Error("Audio filter requires one input");

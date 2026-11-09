@@ -5,8 +5,9 @@ import { resampleAudio } from "./audio-resample.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function joinAudio(
-  tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  tracks: MediaTrack[], filters: string[], budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaTrack> {
+  const filter = filters[0]!;
   let inputs = 2;
   let layout = "stereo";
   let map = "";
@@ -103,12 +104,38 @@ export async function joinAudio(
   budget.checkDuration(length / sampleRate);
   budget.allocateMemory(length * outputNames.length * 8);
   const channelData = outputNames.map(() => new Float64Array(length));
+  let pcm16 = ["pcm_s16le", "pcm_s16be"].includes(tracks[0]!.codecDescriptions[0]?.codecName ?? "");
+  for (const following of filters.slice(1)) {
+    const separator = following.indexOf("=");
+    const name = (separator < 0 ? following : following.slice(0, separator)).split("@", 1)[0]!.trim();
+    if (name !== "volume") continue;
+    // Floating-point volume constrains join's planar format; fixed volume retains PCM16.
+    let precision = "float";
+    const argument = separator < 0 ? "" : following.slice(separator + 1);
+    for (const [index, option] of argument.split(":").entries()) {
+      const equals = option.indexOf("=");
+      const key = equals < 0 ? ["volume", "precision"][index] : option.slice(0, equals).trim();
+      if (key === "precision") precision = (equals < 0 ? option : option.slice(equals + 1)).trim();
+    }
+    pcm16 &&= precision === "fixed" || precision === "0";
+    break;
+  }
   for (let start = 0; start < length; start += 4096) {
     await yieldTurn(signal);
     signal?.throwIfAborted();
     budget.checkCpu();
     for (const [index, name] of outputNames.entries()) {
-      channelData[index]!.set(selected.get(name)!.subarray(start, Math.min(start + 4096, length)), start);
+      const source = selected.get(name)!;
+      const end = Math.min(start + 4096, length);
+      if (pcm16) {
+        // join negotiates the first connected input's format before downstream filters.
+        for (let i = start; i < end; i++) {
+          const value = source[i]! * 32768;
+          const lower = Math.floor(value);
+          const rounded = value - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(value);
+          channelData[index]![i] = Math.max(-32768, Math.min(32767, rounded)) / 32768;
+        }
+      } else channelData[index]!.set(source.subarray(start, end), start);
     }
   }
   // join consumes the other inputs in frames sized by its first input.

@@ -9748,8 +9748,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (exists) throw new Error(`File '${path}' already exists. Exiting.`);
                 }
               }
-              const listType = segmentListType ?? ([".csv", ".ext"].some(extension =>
-                segmentList?.toLowerCase().endsWith(extension)) ? "csv" : "flat");
+              const listType = segmentListType ?? (segmentList?.toLowerCase().endsWith(".ffconcat")
+                ? "ffconcat" : [".csv", ".ext"].some(extension =>
+                  segmentList?.toLowerCase().endsWith(extension)) ? "csv" : "flat");
               const list: string[] = [];
               for (let index = 0; index < paths.length; index++) {
                 await yieldTurn(context.signal);
@@ -9774,6 +9775,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const name = path.slice(path.lastIndexOf("/") + 1);
                 if (listType === "flat") {
                   list.push(`${name}\n`);
+                } else if (listType === "ffconcat") {
+                  const escapedName = Array.from(name, char => "\\' \t\n\r".includes(char) ? `\\${char}` : char).join("");
+                  list.push(`file ${escapedName}\n`);
                 } else {
                   const csvName = [",", '"', "\n", "\r"].some(char => name.includes(char))
                     ? '"' + name.replaceAll('"', '""') + '"' : name;
@@ -9781,7 +9785,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
               }
               if (listPath !== undefined) {
-                const bytes = encodeUtf8(list.join(""));
+                const bytes = encodeUtf8((listType === "ffconcat" ? "ffconcat version 1.0\n" : "") + list.join(""));
                 budget.checkOutputBytes(bytes.byteLength);
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(listPath, data, { signal: context.signal }));
               }

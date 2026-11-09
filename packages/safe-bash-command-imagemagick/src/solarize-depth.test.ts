@@ -49,6 +49,25 @@ for (const mode of ["command", "buffered", "sync"] as const) {
             expect([...output.data]).toEqual([...control.data]);
         }
     );
+    // ImageMagick 7.1.2-35 Q16-HDRI: explicit clamping must change both endpoints.
+    it.each([
+        { operation: "Add", threshold: "110%", clamp: false, expected: [20000, 39999, 40000, 40001, 0] },
+        { operation: "Add", threshold: "110%", clamp: true, expected: [20000, 39999, 40000, 40001, 65535] },
+        { operation: "Subtract", threshold: "0", clamp: false, expected: [0, 65535, 65535, 65534, 20000] },
+        { operation: "Subtract", threshold: "0", clamp: true, expected: [10000, 65535, 65535, 65534, 20000] },
+    ])(`${mode}: retains out-of-range samples through solarize after $operation with clamp=$clamp`, async ({ operation, threshold, clamp, expected }) => {
+        const samples = [0, 19999, 20000, 20001, 65535].flatMap(value => [value, value, value, 65535]);
+        const output = await convert(samples, 16, ["-evaluate", operation, "10000", ...(clamp ? ["-clamp"] : []),
+            "-solarize", threshold, "-evaluate", "Add", "10000"]);
+        expect([...decodeImage(output).data16!].filter((_, i) => i % 4 !== 3)).toEqual(expected.flatMap(value => [value, value, value]));
+    });
+
+    it(`${mode}: restores out-of-range samples with inverse evaluate operations`, async () => {
+        const samples = [0, 19999, 20000, 20001, 65535].flatMap(value => [value, value, value, 65535]);
+        const output = await convert(samples, 16, ["-evaluate", "Add", "10000", "-evaluate", "Subtract", "10000"]);
+        expect([...decodeImage(output).data16!]).toEqual(samples);
+    });
+
     it(`${mode}: preserves all 16-bit samples at 100%`, async () => {
         const samples = [1, 255, 256, 32767, 32768, 32769, 65534, 65535];
         const output = await convert(samples, 16, ["-solarize", "100%"]);

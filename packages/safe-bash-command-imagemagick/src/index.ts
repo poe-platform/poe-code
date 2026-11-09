@@ -3307,11 +3307,11 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     // Right angles retain the lossless pixel permutation; arbitrary rotations
     // use ImageMagick's best-fit SRT canvas and background virtual pixels.
     if (token === "-rotate") {
-        const { angle, applies } = parseMagickRotation(tokens[start + 1] ?? "0"), background = state.background, kernel = state.kernel, filter = state.resizeFilter;
+        const { angle, applies } = parseMagickRotation(tokens[start + 1] ?? "0"), background = state.background, backgroundExplicit = state.backgroundExplicit, kernel = state.kernel, filter = state.resizeFilter;
         if (state.kernel === "nearest" && state.interpolation === "mesh") throw new Error("Unsupported rotation interpolation: mesh");
         const nearest = state.kernel === "nearest" && state.interpolation === "nearest";
         if (!Number.isFinite(angle) || angle % 90 === 0) return;
-        return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">): (WarpPlan & { space?: RgbaImage["space"]; steps: ReturnType<typeof warpPixelSteps> }) | undefined => {
+        return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "backgroundColor" | "virtualCanvas">): (WarpPlan & { space?: RgbaImage["space"]; steps: ReturnType<typeof warpPixelSteps> }) | undefined => {
             if (!applies(image)) return;
             const plan = { ...magickWarpPlan(image, "+distort", "SRT", String(angle % 360))!, nearest };
             const page = image.virtualCanvas;
@@ -3323,7 +3323,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
                 x: page.x + plan.virtualCanvas.x,
                 y: page.y + plan.virtualCanvas.y
             };
-            return { ...plan, steps: warpPixelSteps(image, plan, background, "background", kernel, filter) };
+            return { ...plan, steps: warpPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background, "background", kernel, filter) };
         } };
     }
     if (!["-shear", "-swirl", "-implode", "-wave", "-distort", "+distort"].includes(token)) return;

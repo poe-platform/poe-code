@@ -833,6 +833,8 @@ export interface SerializeMediaOptions {
   /** Audio codec selection for containers with multiple encoders (e.g. Ogg). */
   readonly audioCodec?: string | undefined;
   readonly videoCodec?: string | undefined;
+  /** Maximum consecutive H.264 B-frames in MP4 output; defaults to 0, capped at 16. */
+  readonly maxBFrames?: number | undefined;
   /** Force H.264 keyframes at these presentation times in seconds when encoding MP4/MOV decoded frames. */
   readonly forceKeyFrames?: readonly number[] | undefined;
   readonly format?: string | undefined;

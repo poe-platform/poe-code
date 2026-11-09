@@ -1017,7 +1017,7 @@ function buildUdtaMetadataBox(
   return makeBox("udta", concatBytes(udtaChildren));
 }
 
-function materializeTrackSamples(track: MediaTrack, forceKeyFrames?: readonly number[]): {
+function materializeTrackSamples(track: MediaTrack, forceKeyFrames?: readonly number[], maxBFrames = 0): {
   samples: readonly MediaSample[];
   codecDescriptions: readonly MediaCodecDescription[];
 } {
@@ -1099,7 +1099,7 @@ function materializeTrackSamples(track: MediaTrack, forceKeyFrames?: readonly nu
     const timescale = track.timescale || 90000;
     const firstFrameDur = track.decodedVideoFrames[0]!.durationSeconds || 1 / 30;
     const fps = Math.max(1, Math.round(1 / firstFrameDur));
-    const { sps, pps } = buildH264SpsPps(width, height, fps);
+    const { sps, pps } = buildH264SpsPps(width, height, fps, maxBFrames);
     const avcCBytes = buildAvcC([sps], [pps]);
     const avcC = parseAvcC(avcCBytes);
     const samples: MediaSample[] = [];
@@ -1141,7 +1141,7 @@ function materializeTrackSamples(track: MediaTrack, forceKeyFrames?: readonly nu
         gopStart = i;
         nextForced++;
       }
-      const picture = encodeH264IdrFrame(frame.data, width, height, i - gopStart, refBuffer);
+      const picture = encodeH264IdrFrame(frame.data, width, height, i - gopStart, refBuffer, maxBFrames);
       const encoded = stereoSei && (picture[4]! & 0x1f) === 5 ? concatBytes([stereoSei, picture]) : picture;
       detachBytesBuffer(frame.data);
       samples.push({
@@ -1165,7 +1165,7 @@ function materializeTrackSamples(track: MediaTrack, forceKeyFrames?: readonly nu
       {
         formatFourCC: "avc1",
         codecName: "h264" as const,
-        profile: "Constrained Baseline",
+        profile: maxBFrames > 0 ? "Main" : "Constrained Baseline",
         level: 31,
         width,
         height,
@@ -1491,6 +1491,9 @@ function buildTrakBox(
 }
 
 export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
+  if (options.maxBFrames !== undefined && (!Number.isInteger(options.maxBFrames) || options.maxBFrames < -1 || options.maxBFrames > 2147483647)) {
+    throw new Error("Invalid B-frame count");
+  }
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   const isMov = (options.format ?? doc.containerFormat) === "mov";
   const is3gp = options.format === "3gp";
@@ -1532,7 +1535,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
         })) } : {})
       };
     }
-    const materialized = materializeTrackSamples(t, options.forceKeyFrames);
+    const materialized = materializeTrackSamples(t, options.forceKeyFrames, options.maxBFrames);
     if (!isMov && t.type === "audio") {
       for (const description of materialized.codecDescriptions) {
         if (description.codecName === "pcm_mulaw" || description.codecName === "pcm_alaw") {

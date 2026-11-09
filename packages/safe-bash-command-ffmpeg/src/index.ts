@@ -4328,6 +4328,7 @@ export function evalSyncFfmpeg(
     let audioBitstreamFilter: string | undefined;
     let subtitleBitstreamFilter: string | undefined;
     let videoCodec: string | undefined;
+    let maxBFrames: number | undefined;
     let audioCodec: string | undefined;
     let audioBitrate: number | undefined;
     let subtitleCodec: string | undefined;
@@ -4453,7 +4454,12 @@ export function evalSyncFfmpeg(
         validateBitstreamFilters(args[++i]);
       }
       else if (arg === "-vsync" || arg === "-fps_mode" || arg.startsWith("-fps_mode:")) return undefined;
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-tag:a") i++;
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-tag:a") i++;
+      else if (arg === "-bf") {
+        const value = args[++i];
+        maxBFrames = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(maxBFrames) || maxBFrames < -1 || maxBFrames > 2147483647) return undefined;
+      }
       else if (arg === "-b:a") {
         audioBitrate = parseAudioBitrate(args[++i]);
         if (audioBitrate === undefined) return undefined;
@@ -4970,6 +4976,9 @@ export function evalSyncFfmpeg(
     if (noOverwrite !== false && !isNullMux && (!readFileSync || readFileSync(outputTarget))) return undefined;
 
     const outPlugin = outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget);
+    // H.264 encoding needs the cooperative async path; image output can ignore -bf 0.
+    if (maxBFrames !== undefined && videoCodec !== "copy" &&
+      (maxBFrames > 0 || outPlugin?.id === "mp4" || outPlugin?.id === "mov")) return undefined;
     const loadedDocs: MediaDocument[] = [];
     const inputStarts: (number | undefined)[] = [];
     for (const inp of inputs) {
@@ -5519,6 +5528,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioBitstreamFilter: string | undefined;
         let subtitleBitstreamFilter: string | undefined;
         let videoCodec: string | undefined;
+        let maxBFrames: number | undefined;
         let forceKeyFrames: number[] | undefined;
         let rawPixelFormat: string | undefined;
         let audioCodec: string | undefined;
@@ -5790,8 +5800,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
             }
-          } else if (arg === "-threads" || arg === "-preset" || arg === "-crf" || arg === "-bf" || arg === "-b:v" || arg === "-tag:a") {
+          } else if (arg === "-threads" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-tag:a") {
             i++;
+          } else if (arg === "-bf") {
+            const value = args[++i];
+            maxBFrames = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(maxBFrames) || maxBFrames < -1 || maxBFrames > 2147483647) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid B-frame count\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-b:a") {
             audioBitrate = parseAudioBitrate(args[++i]);
             if (audioBitrate === undefined) {
@@ -8661,12 +8678,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (outPlugin?.id !== "mp4" && outPlugin?.id !== "mov") throw new Error("Forced keyframes require MP4 or MOV output");
             }
 
+            if (maxBFrames !== undefined && videoCodec !== "copy") {
+              if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
+              if (maxBFrames > 0 && outPlugin?.id !== "mp4" && outPlugin?.id !== "mov") throw new Error("B-frame encoding requires MP4 or MOV output");
+            }
+
             // Output frame counts refer to displayed pictures, never encoded packets.
             if (videoCodec !== "copy") {
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async (track, index) => {
-                  if (track.type !== "video" || (!imageOutput && forceKeyFrames === undefined && maxVideoFrames === undefined && !track.decodedVideoFrames)) return track;
+                  if (track.type !== "video" || (!imageOutput && maxBFrames === undefined && forceKeyFrames === undefined && maxVideoFrames === undefined && !track.decodedVideoFrames)) return track;
                   const limit = vfFilters.length === 0 && outputFps === undefined ? streamFrameLimits[index] : undefined;
                   const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
                   return { ...track, samples: [], decodedVideoFrames: frames };
@@ -10874,7 +10896,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   validateSubtitleEncoder(subtitleCodec, doc, plugin.id);
                   const bytes = serializeLimitedWav(doc, plugin, {
                     format: slave.format, seekable: !isStdout(slave.target),
-                    audioCodec, videoCodec, audioBitrate, blockSize, trellis, sampleFormat, metadata: metaTags, budget
+                    audioCodec, videoCodec, maxBFrames, audioBitrate, blockSize, trellis, sampleFormat, metadata: metaTags, budget
                   }, undefined);
                   totalBytes += bytes.byteLength;
                   budget.checkOutputBytes(totalBytes);
@@ -11688,6 +11710,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               peakPpv,
               audioCodec,
               videoCodec,
+              maxBFrames,
               forceKeyFrames,
               audioBitrate,
               compressionLevel,

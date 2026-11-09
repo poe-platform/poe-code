@@ -766,12 +766,13 @@ export function annexBToAvcc(annexB: Uint8Array): {
 }
 
 /**
- * Build standard-compliant H.264 Baseline SPS and PPS NAL units for the given dimensions and FPS.
+ * Build standard-compliant H.264 Baseline (or Main with B-frames) SPS and PPS NAL units for the given dimensions and FPS.
  */
 export function buildH264SpsPps(
   width: number,
   height: number,
-  fps = 30
+  fps = 30,
+  maxBFrames = 0
 ): { sps: Uint8Array; pps: Uint8Array } {
   const mbWidth = Math.max(1, Math.ceil(width / 16));
   const mbHeight = Math.max(1, Math.ceil(height / 16));
@@ -782,13 +783,13 @@ export function buildH264SpsPps(
 
   // Build SPS RBSP
   const spsBits = new BitWriter();
-  spsBits.writeBits(66, 8); // profile_idc = 66 (Baseline)
-  spsBits.writeBits(0xc0, 8); // constraint_set0=1, constraint_set1=1
+  spsBits.writeBits(maxBFrames > 0 ? 77 : 66, 8); // Main permits B-slices
+  spsBits.writeBits(maxBFrames > 0 ? 0 : 0xc0, 8);
   spsBits.writeBits(width > 1280 || height > 720 ? 40 : 31, 8); // level_idc
   spsBits.writeUE(0); // seq_parameter_set_id
   spsBits.writeUE(0); // log2_max_frame_num_minus4 (4 bits)
   spsBits.writeUE(0); // pic_order_cnt_type = 0
-  spsBits.writeUE(0); // log2_max_pic_order_cnt_lsb_minus4 (4 bits)
+  spsBits.writeUE(maxBFrames > 0 ? 4 : 0); // 8-bit POC spans long non-reference runs
   spsBits.writeUE(4); // max_num_ref_frames = 4
   spsBits.writeBit(0); // gaps_in_frame_num_value_allowed_flag = 0
   spsBits.writeUE(mbWidth - 1);
@@ -857,10 +858,10 @@ export function buildH264SpsPps(
 }
 
 /**
- * Encode an RGBA image frame into a 100% standard-compliant H.264 Baseline IDR slice
- * wrapped as a 4-byte length-prefixed AVCC sample (`nal_unit_type = 5`).
- * Uses H.264 `I_PCM` (`mb_type = 25`) lossless macroblocks so native `ffmpeg`, QuickTime,
- * browsers, and our own pure-TS decoder decode every macroblock bit-accurately.
+ * Encode a picture as a length-prefixed H.264 sample using I_PCM and P-skip blocks.
+ * A reference buffer enables P-pictures between IDRs; maxBFrames inserts non-reference
+ * B-pictures with I_PCM blocks. B-pictures need the matching Main-profile SPS.
+ * Their intra blocks keep decode order equal to presentation order.
  */
 export interface H264ReferenceBuffer {
   y?: Uint8Array;
@@ -873,7 +874,8 @@ export function encodeH264IdrFrame(
   width: number,
   height: number,
   frameIndex = 0,
-  refBuffer?: H264ReferenceBuffer
+  refBuffer?: H264ReferenceBuffer,
+  maxBFrames = 0
 ): Uint8Array {
   const mbWidth = Math.max(1, Math.ceil(width / 16));
   const mbHeight = Math.max(1, Math.ceil(height / 16));
@@ -884,6 +886,10 @@ export function encodeH264IdrFrame(
   const uvWidth = paddedWidth >>> 1;
 
   const gopPos = frameIndex % 24;
+  const bFrames = Math.min(16, Math.max(0, maxBFrames));
+  const isBFrame = bFrames > 0 && gopPos % (bFrames + 1) !== 0;
+  const frameNum = Math.ceil(gopPos / (bFrames + 1));
+  const pocBits = maxBFrames > 0 ? 8 : 4;
   if (
     refBuffer &&
     gopPos !== 0 &&
@@ -896,13 +902,14 @@ export function encodeH264IdrFrame(
     const refV = refBuffer.v;
     const pBits = new BitWriter();
     pBits.writeUE(0); // first_mb_in_slice = 0
-    pBits.writeUE(5); // slice_type = 5 (all-P slice)
+    pBits.writeUE(isBFrame ? 6 : 5); // all-B or all-P slice
     pBits.writeUE(0); // pic_parameter_set_id = 0
-    pBits.writeBits(gopPos & 0x0f, 4); // frame_num
-    pBits.writeBits((gopPos * 2) & 0x0f, 4); // pic_order_cnt_lsb
+    pBits.writeBits(frameNum & 0x0f, 4); // non-reference pictures do not advance frame_num
+    pBits.writeBits((gopPos * 2) & ((1 << pocBits) - 1), pocBits);
+    if (isBFrame) pBits.writeBit(1); // direct_spatial_mv_pred_flag
     pBits.writeBit(0); // num_ref_idx_active_override_flag = 0
     pBits.writeBit(0); // ref_pic_list_modification_flag_l0 = 0
-    pBits.writeBit(0); // adaptive_ref_pic_marking_mode_flag = 0
+    pBits.writeBit(0); // B: list1 modification; P: adaptive reference marking
     pBits.writeSE(0); // slice_qp_delta = 0
     pBits.writeUE(1); // disable_deblocking_filter_idc = 1
 
@@ -913,7 +920,8 @@ export function encodeH264IdrFrame(
         const lumaBaseX = mbX * 16;
         const chromaBaseY = mbY * 8;
         const chromaBaseX = mbX * 8;
-        let unchanged = true;
+        // B-slices use I_PCM blocks, so they need no future reference or timestamp reordering.
+        let unchanged = !isBFrame;
         for (let dy = 0; dy < 16 && unchanged; dy++) {
           const ro = (lumaBaseY + dy) * paddedWidth + lumaBaseX;
           for (let dx = 0; dx < 16; dx++) {
@@ -937,7 +945,7 @@ export function encodeH264IdrFrame(
         } else {
           pBits.writeUE(skipRun);
           skipRun = 0;
-          pBits.writeUE(30); // mb_type = 30 (I_PCM inside P-slice)
+          pBits.writeUE(isBFrame ? 48 : 30); // I_PCM inside B/P-slice
           pBits.alignWithZeroBits();
           for (let dy = 0; dy < 16; dy++) {
             const ro = (lumaBaseY + dy) * paddedWidth + lumaBaseX;
@@ -970,15 +978,21 @@ export function encodeH264IdrFrame(
     const pLen = 1 + pEscaped.byteLength;
     const pAvcc = new Uint8Array(4 + pLen);
     new DataView(pAvcc.buffer).setUint32(0, pLen, false);
-    pAvcc[4] = 0x61; // nal_ref_idc = 3, nal_unit_type = 1 (non-IDR reference P-slice)
+    pAvcc[4] = isBFrame ? 0x01 : 0x61; // B pictures are not references
     pAvcc.set(pEscaped, 5);
     detachBytesBuffer(pEscaped);
-    detachBytesBuffer(refY);
-    detachBytesBuffer(refU);
-    detachBytesBuffer(refV);
-    refBuffer.y = yPlane;
-    refBuffer.u = uPlane;
-    refBuffer.v = vPlane;
+    if (isBFrame) {
+      detachBytesBuffer(yPlane);
+      detachBytesBuffer(uPlane);
+      detachBytesBuffer(vPlane);
+    } else {
+      detachBytesBuffer(refY);
+      detachBytesBuffer(refU);
+      detachBytesBuffer(refV);
+      refBuffer.y = yPlane;
+      refBuffer.u = uPlane;
+      refBuffer.v = vPlane;
+    }
     return pAvcc;
   }
 
@@ -998,7 +1012,7 @@ export function encodeH264IdrFrame(
   bits.writeUE(0); // pic_parameter_set_id = 0
   bits.writeBits(0, 4); // frame_num = 0 (ISO 14496-10 §7.4.3: IDR picture shall have frame_num = 0)
   bits.writeUE(frameIndex & 0x7fff); // idr_pic_id
-  bits.writeBits(0, 4); // pic_order_cnt_lsb = 0
+  bits.writeBits(0, pocBits); // pic_order_cnt_lsb = 0
   bits.writeBit(0); // no_output_of_prior_pics_flag = 0
   bits.writeBit(0); // long_term_reference_flag = 0
   bits.writeSE(0); // slice_qp_delta = 0

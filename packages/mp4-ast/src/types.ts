@@ -331,7 +331,7 @@ export interface MediaCodecDescription {
   /** Matroska video AlphaMode. */
   readonly alphaMode?: number | undefined;
   readonly pixFmt?: string | undefined;
-  readonly fieldOrder?: "progressive" | "unknown" | "tt" | "bb" | undefined;
+  readonly fieldOrder?: "progressive" | "unknown" | "tt" | "bb" | "tb" | "bt" | undefined;
   readonly h264PictureTiming?: { readonly delayBits: number; readonly nalLengthSize: number } | undefined;
   readonly chromaLocation?: string | undefined;
   readonly nalLengthSize?: number | undefined;

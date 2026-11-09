@@ -106,6 +106,10 @@ function readEbmlFloat(payload: Uint8Array): number {
   return 0;
 }
 
+const FIELD_ORDERS: Readonly<Record<number, MediaCodecDescription["fieldOrder"]>> = {
+  0: "progressive", 1: "tt", 6: "bb", 9: "tb", 14: "bt"
+};
+
 const TRACK_DISPOSITIONS: Readonly<Record<number, string>> = {
   0x88: "default",
   0x55aa: "forced",
@@ -127,6 +131,8 @@ interface MkvTrackInfo {
   defaultDurationNs?: number;
   alphaMode?: number;
   stereoMode?: number;
+  flagInterlaced?: number;
+  fieldOrder?: number;
   rawColourBytes?: Uint8Array;
   rawProjectionBytes?: Uint8Array;
   width?: number;
@@ -381,6 +387,8 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                 else if (vid.value === 0x54b0) info.displayWidth = readEbmlUint(vPay);
                 else if (vid.value === 0x54ba) info.displayHeight = readEbmlUint(vPay);
                 else if (vid.value === 0x54b2) info.displayUnit = readEbmlUint(vPay);
+                else if (vid.value === 0x9a) info.flagInterlaced = readEbmlUint(vPay);
+                else if (vid.value === 0x9d) info.fieldOrder = readEbmlUint(vPay);
                 else if (vid.value === 0x53b8) info.stereoMode = readEbmlUint(vPay);
                 else if (vid.value === 0x53c0) info.alphaMode = readEbmlUint(vPay);
                 else if (vid.value === 0x55b0) info.rawColourBytes = vPay;
@@ -672,6 +680,9 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       sarHeight,
       alphaMode: info.alphaMode,
       stereoMode: info.stereoMode,
+      fieldOrder: info.flagInterlaced === 2 ? "progressive"
+        : info.flagInterlaced === 1 ? FIELD_ORDERS[info.fieldOrder ?? 2] ?? "unknown"
+        : undefined,
       rawMkvColourBytes: info.rawColourBytes,
       rawMkvProjectionBytes: info.rawProjectionBytes,
       pixFmt: type === "video" ? "yuv420p" : undefined,

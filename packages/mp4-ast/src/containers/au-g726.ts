@@ -27,18 +27,21 @@
 import { type MediaBudgetTracker } from "../types.js";
 
 const tables = {
-  2: { inverse: [116, 365, 365, 116], scale: [-22, 439, 439, -22], speed: [0, 7, 7, 0] },
+  2: { quantize: [260], inverse: [116, 365, 365, 116], scale: [-22, 439, 439, -22], speed: [0, 7, 7, 0] },
   3: {
+    quantize: [7, 217, 330],
     inverse: [-32768, 135, 273, 373, 373, 273, 135, -32768],
     scale: [-4, 30, 137, 582, 582, 137, 30, -4],
     speed: [0, 1, 2, 7, 7, 2, 1, 0]
   },
   4: {
+    quantize: [-125, 79, 177, 245, 299, 348, 399],
     inverse: [-32768, 4, 135, 213, 273, 323, 373, 425, 425, 373, 323, 273, 213, 135, 4, -32768],
     scale: [-12, 18, 41, 64, 112, 198, 355, 1122, 1122, 355, 198, 112, 64, 41, 18, -12],
     speed: [0, 0, 0, 1, 1, 1, 3, 7, 7, 3, 1, 1, 1, 0, 0, 0]
   },
   5: {
+    quantize: [-122, -16, 67, 138, 197, 249, 297, 338, 377, 412, 444, 474, 501, 527, 552],
     inverse: [-32768, -66, 28, 104, 169, 224, 274, 318, 358, 395, 429, 459, 488, 514, 539, 566,
       566, 539, 514, 488, 459, 429, 395, 358, 318, 274, 224, 169, 104, 28, -66, -32768],
     scale: [14, 14, 24, 39, 40, 41, 58, 100, 141, 179, 219, 280, 358, 440, 529, 696,
@@ -67,6 +70,44 @@ export function decodeG726(data: Uint8Array, bits: 2 | 3 | 4 | 5, budget: MediaB
   const duration = Math.floor(data.length * 8 / bits);
   budget.allocateMemory(duration * 8);
   const output = new Float64Array(duration);
+  processG726(duration, bits, budget, (frame) => {
+    const bit = frame * bits, byte = Math.floor(bit / 8);
+    return (littleEndian
+      ? (data[byte]! | (data[byte + 1] ?? 0) << 8) >> (bit % 8)
+      : (data[byte]! << 8 | (data[byte + 1] ?? 0)) >> (16 - bits - bit % 8)) & ((1 << bits) - 1);
+  }, (frame, signal) => {
+    output[frame] = (Math.max(-65535, Math.min(65535, signal * 4)) << 16 >> 16) / 32768;
+  });
+  return output;
+}
+
+export function encodeG726(samples: Float32Array | Float64Array, bits: 2 | 3 | 4 | 5, budget: MediaBudgetTracker): Uint8Array {
+  const length = Math.ceil(samples.length * bits / 8);
+  budget.allocateMemory(length);
+  const output = new Uint8Array(length);
+  const thresholds = tables[bits].quantize;
+  processG726(samples.length, bits, budget, (frame, estimate, step) => {
+    const pcm = Math.max(-32768, Math.min(32767, Math.round(samples[frame]! * 32768)));
+    const difference = Math.trunc(pcm / 4) - estimate;
+    const magnitude = Math.abs(difference);
+    const exponent = magnitude ? 31 - Math.clz32(magnitude) : 0;
+    const logarithm = (exponent << 7) + (((magnitude << 7) >> exponent) & 127) - (step >> 2);
+    let code = 0;
+    while (code < thresholds.length && logarithm > thresholds[code]!) code++;
+    if (difference < 0) code = (1 << bits) - 1 - code;
+    else if (code === 0 && bits !== 2) code = (1 << bits) - 1;
+    const bit = frame * bits, byte = Math.floor(bit / 8);
+    const packed = code << (16 - bits - bit % 8);
+    output[byte] = output[byte]! | (packed >> 8);
+    if (byte + 1 < output.length) output[byte + 1] = output[byte + 1]! | (packed & 255);
+    return code;
+  });
+  return output;
+}
+
+function processG726(duration: number, bits: 2 | 3 | 4 | 5, budget: MediaBudgetTracker,
+  readCode: (frame: number, estimate: number, step: number) => number,
+  writeSample?: (frame: number, signal: number) => void): void {
   const { inverse, scale, speed } = tables[bits];
   const poles = [0, 0], zeros = [0, 0, 0, 0, 0, 0];
   const signals = [32, 32], differences = [32, 32, 32, 32, 32, 32];
@@ -75,10 +116,7 @@ export function decodeG726(data: Uint8Array, bits: 2 | 3 | 4 | 5, budget: MediaB
   let estimate = 0, zeroEstimate = 0, tone = false;
   for (let frame = 0; frame < duration; frame++) {
     if (frame % 4096 === 0) budget.checkCpu();
-    const bit = frame * bits, byte = Math.floor(bit / 8);
-    const code = (littleEndian
-      ? (data[byte]! | (data[byte + 1] ?? 0) << 8) >> (bit % 8)
-      : (data[byte]! << 8 | (data[byte + 1] ?? 0)) >> (16 - bits - bit % 8)) & ((1 << bits) - 1);
+    const code = readCode(frame, estimate, step);
     const negative = code >> (bits - 1);
     const logarithm = inverse[code]! + (step >> 2);
     const magnitude = logarithm < 0 ? 0 : ((128 + (logarithm & 127)) << ((logarithm >> 7) & 15)) >> 7;
@@ -118,7 +156,6 @@ export function decodeG726(data: Uint8Array, bits: 2 | 3 | 4 | 5, budget: MediaB
     zeroEstimate = estimate >> 1;
     estimate = (estimate + poles.reduce((sum, value, i) => sum + multiply(value >> 2, signals[i]!), 0)) >> 1;
     // Native G.726 returns a signed 16-bit sample after its output limiter.
-    output[frame] = (Math.max(-65535, Math.min(65535, signal * 4)) << 16 >> 16) / 32768;
+    writeSample?.(frame, signal);
   }
-  return output;
 }

@@ -14,7 +14,7 @@ import { aiffAst } from "./aiff.js";
 import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
 import { encodeAudio } from "@poe-code/media-codecs";
 import { decodeCompressedWav } from "./wav-compressed.js";
-import { decodeG726 } from "./au-g726.js";
+import { decodeG726, encodeG726 } from "./au-g726.js";
 import { decodeYamahaWav, encodeYamahaWav } from "./wav-yamaha.js";
 import { decodeMsWav, encodeMsWav, msBlockFrames, msCoefficients } from "./wav-ms.js";
 import { decodeImaWav, encodeImaWav, imaBlockFrames } from "./wav-ima.js";
@@ -762,6 +762,22 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     factBytes = new Uint8Array(4);
     new DataView(factBytes.buffer).setUint32(0, codec === "aac"
       ? decodedAudio.channelData[0]!.length + encoded.delay : packets.length * frameSize, true);
+  } else if (decodedAudio && options.audioCodec === "g726") {
+    if (channels !== 1) throw new Error("G.726 requires mono audio");
+    if (sampleRate !== 8000) throw new Error("G.726 requires an 8000 Hz sample rate");
+    const width = Math.round((options.audioBitrate ?? 32000) / sampleRate);
+    const bits = width <= 2 ? 2 : width === 3 ? 3 : width === 4 ? 4 : 5;
+    pcmBytes = encodeG726(decodedAudio.channelData[0]!, bits, options.budget ?? new MediaBudgetTracker());
+    formatBytes = new Uint8Array(18);
+    const format = new DataView(formatBytes.buffer);
+    format.setUint16(0, 0x45, true);
+    format.setUint16(2, channels, true);
+    format.setUint32(4, sampleRate, true);
+    format.setUint32(8, sampleRate * bits / 8, true);
+    format.setUint16(12, 1, true);
+    format.setUint16(14, bits, true);
+    factBytes = new Uint8Array(4);
+    new DataView(factBytes.buffer).setUint32(0, decodedAudio.channelData[0]!.length, true);
   } else if (decodedAudio && options.audioCodec === "adpcm_yamaha") {
     pcmBytes = encodeYamahaWav(decodedAudio.channelData);
     formatBytes = new Uint8Array(18);
@@ -854,7 +870,7 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
       }
     }
   } else if (
-    options.audioCodec !== "aac" && options.audioCodec !== "mp3" && options.audioCodec !== "adpcm_ima_wav" && options.audioCodec !== "adpcm_ms" && options.audioCodec !== "adpcm_yamaha" &&
+    options.audioCodec !== "aac" && options.audioCodec !== "mp3" && options.audioCodec !== "adpcm_ima_wav" && options.audioCodec !== "adpcm_ms" && options.audioCodec !== "adpcm_yamaha" && options.audioCodec !== "g726" &&
     audioTrack &&
     audioTrack.codecDescriptions[0]?.codecName.startsWith("pcm_")
   ) {
@@ -1142,7 +1158,7 @@ export function wavAst(format: "wav" | "w64" = "wav"): MediaAstPlugin {
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: [],
-    supportedAudioCodecs: ["pcm_s16le", "adpcm_ima_wav", "adpcm_ms", "adpcm_yamaha", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_s64le", "pcm_f64le", "pcm_mulaw", "pcm_alaw"],
+    supportedAudioCodecs: ["g726", "pcm_s16le", "adpcm_ima_wav", "adpcm_ms", "adpcm_yamaha", "pcm_u8", "pcm_s24le", "pcm_s32le", "pcm_f32le", "pcm_s64le", "pcm_f64le", "pcm_mulaw", "pcm_alaw"],
     detect(bytes, filename) {
       if (wave64) return isWave64Signature(bytes);
       if (isWavSignature(bytes)) return true;

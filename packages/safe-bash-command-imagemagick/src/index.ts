@@ -5269,8 +5269,9 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
     const totalH = vertical
         ? stack.reduce((acc, im) => acc + im.height, 0)
         : Math.max(...stack.map((im) => im.height));
-    const canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, state.background, stack.some(im => !!im.data16)));
-    let hasAlpha = state.background.a < 255;
+    const background = state.backgroundExplicit ? state.background : stack[0]!.backgroundColor ?? state.background;
+    const canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, background, stack.some(im => !!im.data16)));
+    let hasAlpha = background.a < 255;
     let cursor = 0;
     for (const im of stack) {
         if (++work % 16384 === 0)
@@ -9853,10 +9854,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     width = first.virtualCanvas?.width || first.width;
                     height = first.virtualCanvas?.height || first.height;
                 }
-                result = await createStoredCanvas(width, height, settings.background, backend, signal, append && highDepth);
+                const background = append && !settings.backgroundExplicit ? (await stack.get(0))!.backgroundColor ?? settings.background : settings.background;
+                result = await createStoredCanvas(width, height, background, backend, signal, append && highDepth);
                 if (append) {
                     const first = (await stack.get(0))!;
-                    result = { ...result, hasAlpha: settings.background.a < 255, virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
+                    result = { ...result, hasAlpha: background.a < 255, virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
                 }
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {

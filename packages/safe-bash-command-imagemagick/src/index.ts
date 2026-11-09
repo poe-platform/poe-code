@@ -10973,7 +10973,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let regardWarnings = false;
     let compose = "over";
     type Rotation = { rotation: string; settings: MagickState };
-    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation;
+    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined };
     const operands: string[] = [];
     const operandOperations: CompareOperation[][] = [];
     let leadingOperations: CompareOperation[] = [];
@@ -11035,6 +11035,11 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         else if (t === "+channel") {
             channels = undefined;
+        }
+        else if (t === "-separate") {
+            const operation = { separate: channels?.slice() };
+            if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push(operation);
+            else leadingOperations.push(operation);
         }
         else if (t === "-precision") {
             const value = argv[++i];
@@ -11212,6 +11217,22 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         if (typeof operation === "object" && "rotation" in operation) {
             yield* acceptImage(yield* rotateImage(image, operation), operations, index + 1);
+            return;
+        }
+        if (typeof operation === "object" && "separate" in operation) {
+            const selected = ([0, 1, 2, 3] as const).filter(channel =>
+                (channel === 3 ? image.hasAlpha : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) &&
+                (!operation.separate || operation.separate.includes(channel)));
+            if (selected.length === 0) selected.push(image.space === "b-w" || image.space === "grey16" ? 1 : 3);
+            for (const channel of selected) {
+                let separated = image;
+                if ("data" in image) separated = yield* separateMagickChannelSteps(image, channel);
+                else yield { async run() {
+                    separated = await transformStoredMagickPixels(image, backend!, { end: 0, highDepth: true, evaluate: true,
+                        apply: image => separateMagickChannelSteps(image, channel) }, signal!);
+                } };
+                yield* acceptImage(separated, operations, index + 1);
+            }
             return;
         }
         if (operation === "auto-orient") {

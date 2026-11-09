@@ -190,7 +190,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Current audio timestamp handling and atrim integer expressions measure 1,413,903 bytes.
   // Current audio graph plus single-precision dialogue FFT (about 2.9 KB) measures 1,441,358 bytes.
   // Current dependency graph and scheduled stereowiden feedback measure about 1.463 MB.
-  assert.ok(otherCodeBytes < 1_465_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Current command graph with scheduled afade unity updates measures about 1.473 MB.
+  assert.ok(otherCodeBytes < 1_480_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

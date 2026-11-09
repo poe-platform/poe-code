@@ -9434,9 +9434,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "feedback" && (target === "stereowiden" || target?.startsWith("stereowiden@"))
                             || action === "dry" && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
                             || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
+                            || action === "unity" && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME alimiter[@NAME] limit LIMIT or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity GAIN or TIME dialoguenhance[@NAME] original GAIN");
                           }
                           return { time, target, expression };
                         });
@@ -9655,7 +9656,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             .sort((a, b) => a.sample - b.sample);
                           stretched = await compensateAudioDelay(stretched, origRate, trimmed, audioTimestamps, commands, budget, context.signal);
                         } else if (filterName === "afade") {
-                          stretched = await fadeAudio(stretched, origRate, trimmed, audioTimestamps, audioStartSample, budget, context.signal, panPcm16);
+                          const commands = audioCommands.filter(command => command.target === "afade" || command.target === filterTarget)
+                            .sort((a, b) => a.sample - b.sample);
+                          audioCommands = audioCommands.filter(command => command.target !== "afade" && command.target !== filterTarget);
+                          stretched = await fadeAudio(stretched, origRate, trimmed, audioTimestamps, audioStartSample, commands, budget, context.signal, panPcm16);
                         } else if (filterName === "alimiter") {
                           filteredSampleFormat = "dbl";
                           const commands = audioCommands.filter(command => command.target === "alimiter" || command.target === filterTarget)

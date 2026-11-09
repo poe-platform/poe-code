@@ -7,6 +7,7 @@ import { audioFadeCurves as curves } from "./audio-fade-curves.js";
 export async function fadeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number }[] | undefined, startSample: number,
+  commands: readonly { sample: number; expression: string }[],
   budget: MediaBudgetTracker, signal?: AbortSignal, pcm16 = false
 ): Promise<Float64Array[]> {
   let type = "in";
@@ -84,12 +85,20 @@ export async function fadeAudio(
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
   let frameIndex = 0;
+  let commandIndex = 0;
   let enabled = true;
   for (let i = 0; i < length; i++) {
     if (i % 4096 === 0) {
       await yieldTurn(signal);
       signal?.throwIfAborted();
       budget.checkCpu();
+    }
+    while (commandIndex < commands.length && commands[commandIndex]!.sample <= i) {
+      const command = commands[commandIndex++]!;
+      try {
+        const value = parseFilterExpression(command.expression, "afade", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+        if (Number.isFinite(value) && value >= 0 && value <= 1) unity = value;
+      } catch { /* Native asendcmd continues after a rejected command. */ }
     }
     while (frames && frameIndex + 1 < frames.length && frames[frameIndex]!.end <= i) frameIndex++;
     const frame = frames?.[frameIndex];

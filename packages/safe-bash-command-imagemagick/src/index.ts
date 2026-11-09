@@ -5994,7 +5994,10 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         } };
     }
     if (token === "-sepia-tone") {
-        const argument = tokens[start + 1] ?? "80%", raw = parseFloat(argument);
+        const argument = tokens[start + 1] ?? "", raw = parseFloat(argument);
+        if (!argument.trim() || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+            throw new Error(`invalid argument '-sepia-tone' '${argument}'`);
+        }
         // Native CLI percentages span QuantumRange + 1 (65536), in Q16 units.
         const threshold = (argument.endsWith("%") ? raw * 65536 / 100 : raw) / 257;
         const independent = state.channelExplicit, channels = [state.channels.r, state.channels.g, state.channels.b, state.channels.a];

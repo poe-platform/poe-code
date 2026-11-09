@@ -9571,8 +9571,33 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             return output;
                           }, context.signal);
                         }
-                      } else if (trimmed.startsWith("aresample=")) {
+                      } else if (trimmed === "aresample" || trimmed.startsWith("aresample=")) {
                         const [key, raw, extra] = trimmed.slice("aresample=".length).split("=");
+                        if (trimmed === "aresample" || raw === undefined ||
+                          key === "osr" || key === "out_sample_rate" || key === "sample_rate") {
+                          const argument = raw ?? key;
+                          const rate = trimmed === "aresample" ? 0 : Math.round(parseFilterExpression(argument!, "aresample", {}));
+                          if (extra !== undefined || rate < 0 || rate > 2147483647) {
+                            throw new Error("aresample: invalid sample rate");
+                          }
+                          const targetRate = rate || audioRate || origRate;
+                          if (targetRate !== origRate) {
+                            const length = Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate);
+                            if (!Number.isSafeInteger(length)) throw new Error("aresample: output sample count is too large");
+                            budget.checkDuration(length / targetRate);
+                            budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
+                            stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal);
+                            audioStartSample = Math.round(audioStartSample * targetRate / origRate);
+                            for (const frame of audioTimestamps ?? []) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              frame.start = Math.round(frame.start * targetRate / origRate);
+                              frame.end = Math.round(frame.end * targetRate / origRate);
+                              frame.pts = Math.round(frame.pts * targetRate / origRate);
+                            }
+                            origRate = targetRate;
+                          }
+                          continue;
+                        }
                         if (key === "lfe_mix_level") {
                           lfeLevel = Number(raw);
                           if (!raw?.trim() || extra !== undefined || !Number.isFinite(lfeLevel) || Math.abs(lfeLevel) > 32) {

@@ -360,7 +360,7 @@ function createStreamSelector(selectStreams: string | undefined, programs: Probe
     spec = spec.slice(2);
   }
   const programIndices = spec.startsWith("p:")
-    ? new Set(programs?.filter(program => program.program_id === Number(spec.slice(2)))
+    ? new Set(programs?.filter(program => program.program_id === parseStreamOrdinal(spec.slice(spec[2] === "+" ? 3 : 2)))
       .flatMap(program => program.streams.map(stream => stream.index)))
     : undefined;
   let typeOrdinal = 0;
@@ -1020,7 +1020,7 @@ function parseProbeArguments(args: readonly string[]) {
       c >= "0" && c <= "9" || hex && c >= "a" && c <= "f") && Number.isSafeInteger(Number(id));
     const valid = selectStreams === "u" || spec === "" || kind === "m" && parts.length > 0
       || ["v", "V", "a", "s", "d", "t"].includes(kind!) && parts.length === 0
-      || kind === "p" && parts.length === 1 && index.length > 0 && [...index].every(c => c >= "0" && c <= "9")
+      || kind === "p" && parts.length === 1 && parseStreamOrdinal(index.startsWith("+") ? index.slice(1) : index) !== undefined
       || parts.length === 0 && numeric || validId;
     if (!valid) throw new Error(`Invalid stream specifier: ${selectStreams}`);
   }

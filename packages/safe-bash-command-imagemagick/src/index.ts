@@ -4338,10 +4338,11 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     if (!options || (options.width === img.width && options.height === img.height)) return img;
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
+    const point = !scale && kernel === "nearest" && (!thumbnail || Math.min(img.width / width, img.height / height) < 3);
     let resized: RgbaImage = !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
-        : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, !!img.writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples), undefined, { ...img, width, height });
-    for (const samples of !scale && kernel === "nearest" ? [img.data16, img.evaluateSamples] : []) {
+        : yield* applyMagickRasterSteps(img, point ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, !!img.writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples), undefined, { ...img, width, height });
+    for (const samples of point ? [img.data16, img.evaluateSamples] : []) {
         if (!samples) continue;
         const source = new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength);
         const output = samples instanceof Uint16Array ? new Uint16Array(width * height * 4) : new Float64Array(width * height * 4);
@@ -4369,10 +4370,11 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     if (!options) return image;
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
+    const point = !scale && options.kernel === "nearest" && (!thumbnail || Math.min(image.width / width, image.height / height) < 3);
     let resized: StoredRgbaImage = !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
-        : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, !!image.storedWriteMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples), signal, { ...image, width, height });
-    for (const [source, pixelBytes] of !scale && options.kernel === "nearest" ? [[image.storedData16?.position, 8], [image.storedEvaluateSamples, 32]] as const : []) {
+        : await transformStoredMagickRaster(image, backend, point ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, !!image.storedWriteMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples), signal, { ...image, width, height });
+    for (const [source, pixelBytes] of point ? [[image.storedData16?.position, 8], [image.storedEvaluateSamples, 32]] as const : []) {
         if (source === undefined) continue;
         const position = backend.storage.allocate(width * height * pixelBytes);
         const steps = pointResizePixelSteps(image, width, height, sample, pixelBytes, sampleOffset, !!image.storedWriteMask);
@@ -4570,6 +4572,8 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     const background = state.backgroundExplicit ? state.background : img.backgroundColor ?? state.background;
     const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, background, true),
         ...(img.magickColorspace ? { magickColorspace: img.magickColorspace } : {}),
+        density: img.density, ...(img.resolution ? { resolution: img.resolution } : {}),
+        ...(img.properties ? { properties: img.properties } : {}),
         ...(img.delay ? { delay: img.delay } : {}), ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (!layout.area) return canvas;
     if (!["over", "srcover"].includes(magickCompositeMode(state.composeRaw).name)) return yield* applyMagickRasterSteps(canvas,
@@ -11059,6 +11063,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;
                 const canvas = { ...await createStoredCanvas(layout.width, layout.height, background, backend, signal, true),
                     ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}),
+                    density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}),
+                    ...(image.properties ? { properties: image.properties } : {}),
                     ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
                     ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
                 if (!layout.area) return canvas;

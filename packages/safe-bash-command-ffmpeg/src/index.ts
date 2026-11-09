@@ -5808,7 +5808,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-ac" || arg.startsWith("-ac:")) {
             try {
-              audioChannelOptions.push(parseAudioChannels(arg, args[++i]));
+              const value = args[++i];
+              if (i < args.length) audioChannelOptions.push(parseAudioChannels(arg, value));
             } catch (error) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };

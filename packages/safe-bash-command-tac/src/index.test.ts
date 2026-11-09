@@ -5,6 +5,21 @@ import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createTacCommand } from "./index.js";
 
 for (const { name, args, input, output = "", exitCode = 0, error = "" } of [
+ ...["s", "se", "sep", "sepa", "separ", "separa", "separat", "separato", "separator"].flatMap(name => [
+  { exitCode: 0, error: "", name: `accepts --${name} with an attached separator`, args: [`--${name}=:`], input: "Xé:Z", output: "ZXé:" },
+  { exitCode: 0, error: "", name: `accepts --${name} with a separate separator`, args: [`--${name}`, "é"], input: "XéZ", output: "ZXé" },
+ ]),
+ ...["b", "be", "bef", "befo", "befor", "before"].map(name => (
+  { exitCode: 0, error: "", name: `accepts --${name}`, args: [`--${name}`, "-s", ":"], input: "Xé:Z", output: ":ZXé" }
+ )),
+ ...["r", "re", "reg", "rege", "regex"].map(name => (
+  { exitCode: 0, error: "", name: `accepts --${name}`, args: [`--${name}`, "-s", "[,:]"], input: "Xé:Z,Q", output: "QZ,Xé:" }
+ )),
+ { name: "rejects unknown long options", args: ["--sepx=:"], input: "Xé:Z", exitCode: 1, error: "unrecognized option" },
+ { name: "rejects an empty long option name", args: ["--=:"], input: "Xé:Z", exitCode: 1, error: "unrecognized option" },
+ { name: "requires an abbreviated separator argument", args: ["--sep"], input: "Xé:Z", exitCode: 1, error: "requires an argument" },
+ { name: "rejects values on abbreviated flags", args: ["--bef=yes"], input: "Xé:Z", exitCode: 1, error: "does not take an argument" },
+ { name: "accepts an attached Unicode abbreviated separator", args: ["--sep=é"], input: "XéZ", output: "ZXé" },
  { name: "rejects an empty regex separator on binary input", args: ["-r", "-s", ""], input: "a\0b", exitCode: 1, error: "separator cannot be empty" },
  { name: "rejects an empty regex separator on text input", args: ["-r", "-s", ""], input: "ab", exitCode: 1, error: "separator cannot be empty" },
  { name: "rejects an empty regex separator on empty input", args: ["-r", "-s", ""], input: "", exitCode: 1, error: "separator cannot be empty" },

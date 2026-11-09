@@ -11,4 +11,4 @@ shell.use(tacCommands());
 const result = await shell.exec("tac --help");
 ```
 
-The module also exports `createTacCommand`, its command-list factory, and typed options and limits. An empty literal separator (`-s ''`) splits on NUL; an empty regex separator (`-r -s ''`) fails with exit status 1.
+The module also exports `createTacCommand`, its command-list factory, and typed options and limits. Long options accept unambiguous abbreviations, such as `--sep=:`, `--bef`, and `--reg`. An empty literal separator (`-s ''`) splits on NUL; an empty regex separator (`-r -s ''`) fails with exit status 1.

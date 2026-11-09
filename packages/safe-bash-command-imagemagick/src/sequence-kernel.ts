@@ -112,6 +112,26 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
     }
 }
 
+export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | "height" | "hasAlpha">[], assignments: readonly { image: number; source: number; target: number }[], highDepth: boolean): Steps {
+    const { width, height } = inputs[0]!;
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 2048) {
+        yield;
+        const position = (y * width + x) * 4, length = Math.min(2048, width - x) * 4;
+        const base = (yield { kind: "read", highDepth, position, length })!;
+        const data = highDepth ? new Uint16Array(base.slice().buffer) : new Uint8Array(base);
+        for (const assignment of assignments) {
+            const image = Math.min(assignment.image, inputs.length - 1), input = inputs[image]!;
+            if (y >= input.height || x >= input.width) continue;
+            const count = Math.min(length, (input.width - x) * 4);
+            const bytes = image === 0 ? base : (yield { kind: "read", highDepth, image, position: (y * input.width + x) * 4, length: count })!;
+            const samples = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+            for (let offset = 0; offset < count; offset += 4)
+                data[offset + assignment.target] = assignment.source === 3 && !input.hasAlpha ? (highDepth ? 65535 : 255) : samples[offset + assignment.source]!;
+        }
+        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+    }
+}
+
 export function* combinePixelSteps(inputs: readonly Pick<RgbaImage, "width" | "height">[], highDepth = false): Steps {
     const { width, height } = inputs[0]!, chunkPixels = highDepth ? 2048 : 4096;
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x += chunkPixels) {

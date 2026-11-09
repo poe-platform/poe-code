@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync, runMogrifyCli } from "./index.js";
+import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync, runMogrifyCli } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync", "mogrify"] as const) {
     it.each([
@@ -80,4 +81,43 @@ for (const retained of [false, true]) {
             expect([...(depth === 16 ? output.data16! : output.data)]).toEqual(depth === 16 ? samples16 : [...Buffer.from(hex8, "hex")]);
         });
     }
+}
+
+for (const mode of ["buffered", "retained", "sync", "public"] as const) {
+    it.each([
+        { expression: undefined, expected: "12345678abcdefee9a76ba3221436587", width: 4 },
+        { expression: "red=>blue", expected: "12341278abcdabee", width: 2 },
+        { expression: "|red=>blue", expected: "12349a78abcd21ee", width: 2 },
+        { expression: "|red<=>blue", expected: "ba349a7865cd21ee", width: 2 },
+        { expression: "|red=>blue,green=>red", expected: "76349a7843cd21ee", width: 2 },
+    ])(`uses the input list as channel sources in ${mode}: $expression`, async ({ expression, expected, width }) => {
+        const filesystem = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+        const args = ["(", "xc:#12345678", "xc:#abcdefee", "+append", ")", "(", "xc:#9a76ba32", "xc:#21436587", "+append", ")", ...(expression ? ["-channel-fx", expression] : []), "+append", "PNG32:/out.png"];
+        const argumentValues = createCommandArguments(args);
+        const context = {
+            command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: filesystem,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write() {} }, registerCleanup() {}
+        } as unknown as CommandContext;
+        const result = mode === "public" ? await createMagickCommand().execute(context)
+            : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        const output = decodeImage(mode === "public" || mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+        expect([output.width, output.height]).toEqual([width, 1]);
+        expect(Buffer.from(output.data).toString("hex")).toBe(expected);
+    });
+}
+
+for (const retained of [false, true]) {
+    it(`copies a 16-bit second source across chunks, retained=${retained}`, async () => {
+        const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABEAIAAADA54+dAAAAD0lEQVQI12MQMgmrmLUHAAYnAmsGA8PKAAAAAElFTkSuQmCC", "base64");
+        const files = new Map([["/input.png", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.png", input);
+        const args = ["-size", "4097x1", "xc:red", "(", "/input.png", "-resize", "4097x1!", ")", "-channel-fx", "|red=>blue", "+append", "-depth", "16", "PNG64:/out.png"];
+        expect(await runConvertCli(args, retained ? { filesystem, cwd: "/" } : files)).toMatchObject({ exitCode: 0, stderr: "" });
+        const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+        expect([output.width, output.height]).toEqual([4097, 1]);
+        expect([...output.data16!]).toEqual(Array.from({ length: 4097 }, () => [65535, 0, 0x1234, 65535]).flat());
+    });
 }

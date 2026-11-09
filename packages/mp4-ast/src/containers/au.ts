@@ -109,7 +109,8 @@ export function auAst(): MediaAstPlugin {
       const encoding = header.getUint32(12);
       result.streams = result.streams.map(stream => ({ ...stream,
         codec_tag: `0x${encoding.toString(16).padStart(4, "0")}`,
-        codec_tag_string: `[${encoding}][0][0][0]`
+        codec_tag_string: `[${encoding}][0][0][0]`,
+        bits_per_raw_sample: encoding === 4 || encoding === 5 ? String(stream.bits_per_sample) : undefined
       }));
       // An unknown length needs payload bytes before a sample count can be inferred.
       if (header.getUint32(8) === 0xffffffff && header.getUint32(4) === bytes.length) {

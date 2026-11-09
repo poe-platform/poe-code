@@ -6763,7 +6763,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
         const black = parsePt(parts[0], 0);
         const white = parsePt(parts[1], 255 - black);
-        const gamma = parts[2] !== undefined ? Math.max(0.01, parseFloat(parts[2])) : 1.0;
+        const gamma = parts[2] !== undefined ? parseFloat(parts[2]) : 1.0;
+        const exponent = 1 / (Math.abs(gamma) >= 1e-12 ? gamma : gamma < 0 ? -1e-12 : 1e-12);
         const inverse = token === "+level";
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = function* (im) {
@@ -6788,8 +6789,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         value = black + gVal * span;
                     }
                     else {
-                        const norm = Math.max(0, Math.min(1, (v - black) / span));
-                        value = Math.pow(norm, 1 / gamma) * 255;
+                        const norm = (v - black) / span;
+                        // Native gamma_pow leaves negative samples unchanged, then -level clamps the curve.
+                        value = Math.max(0, Math.min(1, norm < 0 ? norm : Math.pow(norm, exponent))) * 255;
                     }
                     evaluateSamples[idx + c] = Math.fround(value * 257) / 257;
                     out[idx + c] = clampByteVal(value);

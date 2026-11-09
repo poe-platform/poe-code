@@ -1513,7 +1513,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const parts: string[] = [];
   // Only tokenize the original template. Expanded filenames and literal percent
   // escapes must never become new input, including for computed properties.
-  const tokens = /\\[ntr\\%]|%%|%\[|%[a-z#@]/gi;
+  const tokens = /\\[\s\S]|%%|%\[|%[a-z#@]/gi;
   let previous = 0;
   let match: RegExpExecArray | null;
   while ((match = tokens.exec(fmt)) !== null) {
@@ -1537,7 +1537,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     }
     previous = tokens.lastIndex;
     if (token[0] === "\\") {
-      parts.push(({ n: "\n", t: "\t", r: "\r" } as Record<string, string>)[token[1]!] ?? token[1]!);
+      parts.push(({ n: "\n", r: "\r", "\n": "" } as Record<string, string>)[token[1]!] ?? token[1]!);
     } else if (token === "%%") {
       parts.push("%");
     } else if (token === "%#" || token.toLowerCase() === "%[signature]") {

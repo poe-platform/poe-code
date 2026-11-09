@@ -134,7 +134,7 @@ Async `runIdentifyCli(args, { filesystem, cwd, stdin, stdout, stderr })` uses th
 Unknown bracket properties such as `%[missing_demo_property]` expand to an empty string and report an `unknown image property` warning; identify still exits successfully.
 Empty or unclosed bracket properties fail without emitting the formatted text. Escaped properties such as `%%[width]` remain literal text.
 
-`identify -format` and `magick ... -format FORMAT info:` support literal `%%`,
+`identify -format` and `magick ... -format FORMAT info:` interpret `\n` and `\r` as line endings, remove backslash-newline continuations, and otherwise emit the character after a backslash literally (so `\t` emits `t`). They support literal `%%`,
 original image dimensions (`%G`), page geometry (`%g`, `%P`), signed canvas offsets (`%O`, such as `+3+4` or `-2-1`; `+0+0` when absent), storage class (`%r`), compression (`%C`, `%Q`), and named properties including
 `%[channels]`, `%[width]`, `%[height]`, `%[depth]`, `%[bit-depth]`, `%[opaque]`,
 `%[type]`, `%[size]`, `%[orientation]`, `%[exif:Orientation]`, `%[standard-deviation]`, `%[skewness]`, and `%[kurtosis]`. Skewness and excess kurtosis use sample standard deviation and average the selected channels; constant channels contribute zero.

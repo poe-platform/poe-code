@@ -953,6 +953,7 @@ export interface State extends DynamicVariableState {
   nocaseglob?: boolean;
   nocasematch?: boolean;
   xpg_echo?: boolean;
+  varredir_close?: boolean;
   braceexpand?: boolean;
   noglob?: boolean;
   noclobber?: boolean;
@@ -5560,7 +5561,7 @@ export class Runtime {
     frame.revisions.set(number, ++frame.version);
     await previousRelease?.();
   }
-  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number, descriptorState = state): Promise<IO> {
+  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number, persistNamed = false, descriptorState = state): Promise<IO> {
     this.signal.throwIfAborted();
     if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
     io.descriptors ??= new Map<number, Descriptor>([
@@ -5588,6 +5589,7 @@ export class Runtime {
         if (number > 255) throw new PublicDiagnostic("Too many open file descriptors");
         await this.assignVariable(state, variable, String(number), currentIO());
         await this.persistDescriptor(descriptorState, number, next);
+        if (state.varredir_close && !persistNamed) inputs.add({ close: () => this.persistDescriptor(descriptorState, number) });
       }
       const previous = descriptors.get(number)?.pipe;
       if (previous && references.references.has(previous)) await previous.close();
@@ -5982,6 +5984,7 @@ export class Runtime {
     const special = state.profile === "sh" && (specialBuiltinNames.has(words[0] ?? "") || !!state.extensions?.builtins.get(words[0] ?? "")?.special);
     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
     const functionCommand = words.length > 0 && state.functions.has(words[0]!);
+    const persistentRedirects = words[declarationIndex] === "exec" && !functionCommand && !state.extensions?.builtins.has("exec");
     const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !state.extensions?.builtins.has(words[0]!) && !functionCommand;
     const snapshotScope = isolatedInlineInput ? (() => {
       const s = originalIO[invocationScope].child();
@@ -6083,7 +6086,7 @@ export class Runtime {
         }
         const epoch = stateMonitor(state)?.epoch;
         try {
-          io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, isolatedInlineInput, !isolatedInlineInput, false, command.line ?? 1, state);
+          io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, isolatedInlineInput, !isolatedInlineInput, false, command.line ?? 1, persistentRedirects, state);
           if (parentStore && stateMonitor(state)!.epoch !== epoch) throw new ArrayFailure("stale state snapshot");
         } finally {
           try {
@@ -6120,7 +6123,7 @@ export class Runtime {
           }
           } finally { try { await copyOwner?.close(); } finally { holding?.release(); stateMonitor(redirectState)?.closeValues(); } }
         }
-      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || !!state.extensions?.builtins.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
+      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || !!state.extensions?.builtins.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1, persistentRedirects);
       if (terminal) {
         terminal.io = io;
         await terminal.frame.reconcile(io.descriptors!);
@@ -6142,7 +6145,7 @@ export class Runtime {
         }
       }
       if (!words.length) return state.substitutionStatus;
-      if (words[declarationIndex] === "exec" && !functionCommand && !state.extensions?.builtins.has("exec")) {
+      if (persistentRedirects) {
         snapshotHolder.persistentRedirects = true;
         for (const redirect of command.redirects) {
           const descriptor = typeof redirect.descriptor === "string" ? Number(this.variable(state, redirect.descriptor)) : redirect.descriptor;
@@ -8025,7 +8028,7 @@ export class Runtime {
       return 1;
     }
     const options = new Map<string, { enabled: boolean }>();
-    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["checkhash", "dotglob", "expand_aliases", "extglob", "failglob", "globskipdots", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob", "xpg_echo"] as const) {
+    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["checkhash", "dotglob", "expand_aliases", "extglob", "failglob", "globskipdots", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob", "varredir_close", "xpg_echo"] as const) {
       options.set(name, {
         get enabled() { return name === "braceexpand" || name === "globskipdots" ? state[name] !== false : !!state[name]; }, set enabled(value) { state[name] = value; }, });
     }

@@ -114,6 +114,7 @@ export interface ShellSessionOptionsSnapshot {
   readonly nocaseglob?: boolean | undefined;
   readonly nocasematch?: boolean | undefined;
   readonly xpg_echo?: boolean | undefined;
+  readonly varredir_close?: boolean | undefined;
   readonly extglob?: boolean | undefined;
   readonly braceexpand?: boolean | undefined;
   readonly noglob?: boolean | undefined;

@@ -5,6 +5,18 @@ import { standardCommands } from "../../src/index.js";
 import { MemoryFileSystem, MountFileSystem, ReadOnlyFileSystem } from "@poe-code/safe-fs/core";
 import { Shell } from "../../src/shell/shell.js";
 
+test("varredir_close survives snapshots and subshell option changes stay isolated", async t => {
+  const { shell } = setup();
+  t.after(() => shell.dispose());
+  const enabled = await shell.exec("shopt -s varredir_close", { onState() {} });
+  assert.equal(enabled.exitCode, 0, enabled.stderr);
+  assert.equal(enabled.state?.options?.varredir_close, true);
+  const restored = await shell.exec('shopt -p varredir_close; (shopt -u varredir_close); : {out}>log; (say bad >&"$out") 2>/dev/null; say "$?"', { state: enabled.state });
+  assert.equal(restored.exitCode, 0, restored.stderr);
+  assert.equal(restored.stderr, "");
+  assert.equal(restored.stdout, "shopt -s varredir_close\n1\n");
+});
+
 test("xpg_echo survives session snapshots and respects explicit echo flags", async () => {
   const { shell } = setup();
   shell.use(standardCommands());

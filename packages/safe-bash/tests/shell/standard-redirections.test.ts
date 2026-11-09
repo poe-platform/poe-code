@@ -54,6 +54,15 @@ test("fast redirected commands share effective IO on new and reused contexts", a
 });
 
 for (const [name, source, expected] of [
+  ["named varredir_close enabled", 'shopt -s varredir_close; say "enable=$?"; : {out}>log; say "assigned=${out-unset}"; (printf sample >&"$out") 2>/dev/null; say "write=$?"; pass <log', 'enable=0\nassigned=10\nwrite=1\n'],
+  ["named varredir_close disabled", 'shopt -u varredir_close; say "enable=$?"; : {out}>log; say "assigned=${out-unset}"; (printf sample >&"$out") 2>/dev/null; say "write=$?"; pass <log', 'enable=0\nassigned=10\nwrite=0\nsample'],
+  ["named varredir_close exec persists", 'shopt -s varredir_close; exec {out}>log; printf sample >&"$out"; exec {out}>&-; pass <log', 'sample'],
+  ["named varredir_close command lifetime", 'shopt -s varredir_close; f(){ say inside >&"$out"; }; f {out}>log; (say outside >&"$out") 2>/dev/null; say "$?"; pass <log; : {next}>other; say "$out/$next"', '1\ninside\n10/10\n'],
+  ["named varredir_close input lifetime", 'shopt -s varredir_close; read -r -u 10 value {input}<<<hello; say "$value/$input"; (read -r -u "$input" value) 2>/dev/null; say "$?"', 'hello/10\n1\n'],
+  ["named varredir_close failure cleanup", 'shopt -s varredir_close; status 7 {out}>log; say "$?"; (say bad >&"$out") 2>/dev/null; say "$?"; pass <log', '7\n1\n'],
+  ["named varredir_close compound lifetime", 'shopt -s varredir_close; { say inside >&"$out"; } {out}>log; (say outside >&"$out") 2>/dev/null; say "$?"; pass <log', '1\ninside\n'],
+  ["named varredir_close redirect failure cleanup", 'shopt -s varredir_close; : 2>/dev/null {out}>log </missing; say "$?"; (say bad >&"$out") 2>/dev/null; say "$?"; pass <log', '1\n1\n'],
+  ["named varredir_close keeps duplicate", 'shopt -s varredir_close; { exec 3>&"$out"; } {out}>log; say kept >&3; exec 3>&-; (say bad >&"$out") 2>/dev/null; say "$?"; pass <log', '1\nkept\n'],
   ["named exec input", 'printf "first\\nsecond\\n" > rows; exec {input}<rows; IFS= read -r a <&"$input"; IFS= read -r b <&"$input"; exec {input}<&-; printf "%s/%s\\n" "$a" "$b"', 'first/second\n'],
   ["named output skips occupied descriptors", 'exec 10>occupied; : {out}>log; say "$out"; printf sample >&"$out"; exec {out}>&-; pass <log', '11\nsample'],
   ["named close releases descriptor", ': {out}>log; exec {out}>&-; : {next}>other; say "$out/$next"; say reused >&"$next"; exec {next}>&-; pass <other', '10/10\nreused\n'],

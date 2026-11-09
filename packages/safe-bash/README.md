@@ -194,6 +194,8 @@ Chain `.use(plugin).register(command, { replace: true })` to replace a plugin co
   such as `exec {input}<rows` allocate an available descriptor from 10 through 255;
   use `exec {input}<&-` to close it. Output descriptors also remain open after
   ordinary commands such as `: {output}>log`.
+  `shopt -s varredir_close` closes named redirects such as `{out}>log` when the
+  command finishes; the assigned number remains available. `exec` keeps them open.
 - `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,
   groups `{ …; }`, subshells `( … )` (including adjacent nested subshells and
   `BASH_SUBSHELL` nesting levels),
@@ -910,7 +912,7 @@ and credential protections remain in effect.
   background jobs/job control, `exec`,
   associative arrays, or C-style `for ((…))` loops. `shopt` supports `checkhash`, `dotglob`,
   `globskipdots`, `globstar`, `nullglob`, `nocaseglob`, `nocasematch`, `lastpipe`, `failglob`,
-  `inherit_errexit`, `expand_aliases`, and `xpg_echo`, plus `-o` for supported
+  `inherit_errexit`, `expand_aliases`, `varredir_close`, and `xpg_echo`, plus `-o` for supported
   `set` options. `shopt -s extglob` enables extended patterns, including parameter trimming.
   Enable it on a preceding line before using unquoted extended patterns; syntax on the
   same command line or inside a function body is parsed before that line executes.

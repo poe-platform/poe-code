@@ -352,7 +352,7 @@ must have matching sample rates; preceding filters other than `anull` are unsupp
 
 `tremolo=f=5:d=0.75` modulates PCM volume while preserving sample rate, channels, and frame count. Frequency (`f`, 0.1–20000 Hz) defaults to 5 Hz; depth (`d`, 0–1) defaults to 0.5. Positional `tremolo=5:0.75` is also supported.
 
-`afade=t=in:ss=1000:ns=2000` fades PCM without changing its length. Fade out with `t=out`; use `st`/`d` for timing in seconds or `ss`/`ns` for sample counts. Fade positions follow incoming audio timestamps, including shifts from `asetpts`. Linear (`tri`, default) and quadratic (`qua`) curves support fractional `silence` and `unity` gains. Long option names are also accepted.
+`afade=t=in:ss=1000:ns=2000` fades PCM without changing its length. Fade out with `t=out`; use `st`/`d` for timing in seconds or `ss`/`ns` for sample counts. Fade positions follow incoming audio timestamps, including shifts from `asetpts`. Timeline `enable` expressions use the incoming frame number (`n`) and timestamp in seconds (`t`); disabled frames pass through unchanged. Linear (`tri`, default) and quadratic (`qua`) curves support fractional `silence` and `unity` gains. Long option names are also accepted.
 
 `aselect='not(mod(n,2))'` keeps even-numbered decoded audio frames; `aselect='eq(n,1)'` keeps only the second frame. Frame numbers start at zero. Selected frames retain both channels, partial final frames, and timestamps; WAV output concatenates their samples.
 

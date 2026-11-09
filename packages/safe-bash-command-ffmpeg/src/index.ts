@@ -9393,7 +9393,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (filterName === "alimiter" || filterName === "speechnorm") {
+                      } else if (filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -9410,7 +9410,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        if (filterName === "alimiter") {
+                        if (filterName === "afade") {
+                          stretched = await fadeAudio(stretched, origRate, trimmed, audioTimestamps, audioStartSample, budget, context.signal, panPcm16);
+                        } else if (filterName === "alimiter") {
                           filteredSampleFormat = "dbl";
                           const limited = await limitAudio(stretched, origRate, trimmed, budget, context.signal, audioTimestamps);
                           stretched = limited.channels;
@@ -9419,7 +9421,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
                           stretched = await normalizeSpeech(stretched, origRate, audioTimestamps, trimmed, filteredSampleFormat, budget, context.signal);
                         }
-                        statsScale = 1;
+                        if (filterName !== "afade") statsScale = 1;
                       } else if (trimmed === "agate" || trimmed.startsWith("agate=")) {
                         stretched = await applyAudioGate(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
@@ -9433,8 +9435,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await compandAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
                           if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
                         });
-                      } else if (trimmed === "afade" || trimmed.startsWith("afade=")) {
-                        stretched = await fadeAudio(stretched, origRate, trimmed, audioTimestamps, audioStartSample, budget, context.signal, panPcm16);
                       } else if (trimmed === "dynaudnorm" || trimmed.startsWith("dynaudnorm=")) {
                         filteredSampleFormat = "dblp";
                         const normalized = await normalizeAudio(stretched, origRate, trimmed, budget, context.signal, async message => {

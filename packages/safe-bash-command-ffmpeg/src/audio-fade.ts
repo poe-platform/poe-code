@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function fadeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -14,6 +15,7 @@ export async function fadeAudio(
   let curve = "tri";
   let silence = 0;
   let unity = 1;
+  let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
@@ -25,6 +27,9 @@ export async function fadeAudio(
     } else if (key === "c" || key === "curve") {
       if (!["tri", "qua", "0", "6"].includes(value)) throw new Error("afade: supported curves are tri and qua");
       curve = value === "qua" || value === "6" ? "qua" : "tri";
+    } else if (key === "enable") {
+      enable = value;
+      parseFilterExpression(enable, "afade enable", { n: 0, t: 0 });
     } else {
       const time = key === "st" || key === "start_time" || key === "d" || key === "duration";
       const scale = time && value.endsWith("ms") ? 0.001 : time && value.endsWith("us") ? 0.000001 : 1;
@@ -53,6 +58,7 @@ export async function fadeAudio(
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
   let frameIndex = 0;
+  let enabled = true;
   for (let i = 0; i < length; i++) {
     if (i % 4096 === 0) {
       await yieldTurn(signal);
@@ -61,10 +67,15 @@ export async function fadeAudio(
     }
     while (frames && frameIndex + 1 < frames.length && frames[frameIndex]!.end <= i) frameIndex++;
     const frame = frames?.[frameIndex];
+    if (enable !== undefined && (i === 0 || i === frame?.start)) {
+      enabled = Math.abs(parseFilterExpression(enable, "afade enable", {
+        n: frameIndex, t: (frame?.pts ?? startSample) / sampleRate
+      })) >= 0.5;
+    }
     const pts = frame ? frame.pts + i - frame.start : startSample + i;
     const progress = Math.max(0, Math.min(1, (pts - start) / samples));
     const fraction = type === "out" ? 1 - progress : progress;
-    const gain = silence + (unity - silence) * (curve === "qua" ? fraction * fraction : fraction);
+    const gain = enabled ? silence + (unity - silence) * (curve === "qua" ? fraction * fraction : fraction) : 1;
     for (let c = 0; c < channels.length; c++) {
       const sample = channels[c]![i]! * gain;
       // Native integer fades truncate before the next filter consumes the samples.

@@ -1707,12 +1707,26 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
     const g = parseMagickGeometry(raw.replaceAll("@", ""));
     const hasDimensions = raw.toLowerCase().includes("x");
     return { ...g,
-        width: Math.max(0, Math.round(g.isPercent
+        width: Math.max(0, Math.round(g.aspectRatio !== undefined ? Math.min(width, height * g.aspectRatio) : g.isPercent
             ? (g.width ?? 100) * width / 100
             : g.width ?? (hasDimensions ? 0 : width))),
-        height: Math.max(0, Math.round(g.isPercent
+        height: Math.max(0, Math.round(g.aspectRatio !== undefined ? Math.min(height, width / g.aspectRatio) : g.isPercent
             ? (g.height ?? g.width ?? 100) * height / 100
             : g.height ?? (hasDimensions ? 0 : height)))
+    };
+}
+
+function resolveMagickChopGeometry(g: MagickGeometry, raw: string, width: number, height: number) {
+    if (g.aspectRatio !== undefined) {
+        return {
+            width: Math.max(0, Math.round(Math.min(width, height * g.aspectRatio))),
+            height: Math.max(0, Math.round(Math.min(height, width / g.aspectRatio)))
+        };
+    }
+    const offsetOnly = g.hasOffset && g.width === undefined && g.height === undefined;
+    return {
+        width: offsetOnly ? width : Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? width / 100 : 1))),
+        height: offsetOnly ? height : Math.max(0, Math.round((g.height ?? (g.isPercent || raw.toLowerCase().includes("x") ? 0 : height)) * (g.isPercent ? height / 100 : 1)))
     };
 }
 
@@ -1790,9 +1804,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
 function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = parseMagickGeometry(geomStr);
-    const offsetOnly = g.hasOffset && g.width === undefined && g.height === undefined;
-    const cw = offsetOnly ? img.width : Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? img.width / 100 : 1)));
-    const ch = offsetOnly ? img.height : Math.max(0, Math.round((g.height ?? (g.isPercent || geomStr.toLowerCase().includes("x") ? 0 : img.height)) * (g.isPercent ? img.height / 100 : 1)));
+    const { width: cw, height: ch } = resolveMagickChopGeometry(g, geomStr, img.width, img.height);
     const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height, cw, ch, g.x, g.y, gravity);
     if (x0 + cw < 0 || y0 + ch < 0 || x0 > img.width || y0 > img.height) {
         if (analysis) analysis.warnings += `magick: geometry does not contain image '${geomStr}'\n`;
@@ -8957,9 +8969,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         xs = [{ source: 0, target: 0, length: x }, { source: x, target: x + spliceWidth, length: Math.max(0, width - x - spliceWidth) }];
         ys = [{ source: 0, target: 0, length: y }, { source: y, target: y + sh, length: h - y }];
     } else {
-        const offsetOnly = g.hasOffset && g.width === undefined && g.height === undefined;
-        const cw = offsetOnly ? w : Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? w / 100 : 1)));
-        const ch = offsetOnly ? h : Math.max(0, Math.round((g.height ?? (g.isPercent || geometry.toLowerCase().includes("x") ? 0 : h)) * (g.isPercent ? h / 100 : 1)));
+        const { width: cw, height: ch } = resolveMagickChopGeometry(g, geometry, w, h);
         const { x, y } = gravityAdjustBox(w, h, cw, ch, g.x, g.y, state.gravity);
         if (x + cw < 0 || y + ch < 0 || x > w || y > h) {
             analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;

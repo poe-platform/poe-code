@@ -43,7 +43,7 @@ import { gateAudio } from "./audio-sidechaingate.js";
 import { listenDynamicEqualizer } from "./audio-adynamicequalizer.js";
 import { tiltAudio } from "./audio-atilt.js";
 import { softClipAudio } from "./audio-asoftclip.js";
-import { limitAudio } from "./audio-alimiter.js";
+import { AlimiterError, limitAudio } from "./audio-alimiter.js";
 import { applyAudioGate } from "./audio-agate.js";
 import { compressAudio } from "./audio-acompressor.js";
 import { normalizeSpeech } from "./audio-speechnorm.js";
@@ -12434,6 +12434,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             rethrowRuntimeError(context, err);
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
+            if (err instanceof AlimiterError) {
+              if (err.stage === "configuration" && outputFormat !== "null" &&
+                  !isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
+                await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
+              }
+              return { exitCode: 234 };
+            }
             return { exitCode: 1 };
           } finally {
             const gc = (globalThis as { gc?: () => void }).gc;

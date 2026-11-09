@@ -2,6 +2,12 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
+export class AlimiterError extends Error {
+  constructor(message: string, readonly stage: "options" | "configuration") {
+    super(message);
+  }
+}
+
 export async function limitAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: Float64Array[]; delay: number }> {
@@ -9,24 +15,28 @@ export async function limitAudio(
   const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], limit: [0.0625, 1], attack: [0.1, 80], release: [1, 8000], asc: [0, 0], asc_level: [0, 1], level: [0, 1], latency: [0, 1] };
   const names = Object.keys(options) as (keyof typeof options)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
-    const separator = option.indexOf("=");
-    const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options;
-    if (!key || !Object.hasOwn(options, key)) throw new Error(`alimiter: unsupported option ${key}`);
-    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    const boolean = key === "asc" || key === "level" || key === "latency";
-    const number = !boolean ? parseFilterExpression(value, "alimiter", {})
-      : ["1", "true", "yes", "on"].includes(value.toLowerCase()) ? 1
-      : ["0", "false", "no", "off"].includes(value.toLowerCase()) ? 0 : NaN;
-    const [min, max] = ranges[key];
-    if (!value || !Number.isFinite(number) || number < min! || number > max!) {
-      throw new Error(`alimiter: invalid or unsupported ${key}`);
+  try {
+    for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+      const separator = option.indexOf("=");
+      const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options;
+      if (!key || !Object.hasOwn(options, key)) throw new Error(`alimiter: unsupported option ${key}`);
+      const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+      const boolean = key === "asc" || key === "level" || key === "latency";
+      const number = !boolean ? parseFilterExpression(value, "alimiter", {})
+        : ["1", "true", "yes", "on"].includes(value.toLowerCase()) ? 1
+        : ["0", "false", "no", "off"].includes(value.toLowerCase()) ? 0 : NaN;
+      const [min, max] = ranges[key];
+      if (!value || !Number.isFinite(number) || number < min! || number > max!) {
+        throw new Error(`alimiter: invalid or unsupported ${key}`);
+      }
+      options[key] = number;
     }
-    options[key] = number;
+  } catch (error) {
+    throw new AlimiterError((error as Error).message, "options");
   }
   const { limit, level_in: inputGain, level_out: outputGain } = options;
   const window = Math.floor(sampleRate * (options.attack / 1000));
-  if (window < 1) throw new Error("alimiter: attack is too small for the sample rate");
+  if (window < 1) throw new AlimiterError("alimiter: Attack is too small", "configuration");
   const length = channels[0]?.length ?? 0;
   const delay = options.latency ? window - 1 : 0;
   budget.allocateMemory(length * channels.length * 8 + window * 20);

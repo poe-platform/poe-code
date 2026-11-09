@@ -770,7 +770,7 @@ three quarters of the analysis window (1536 samples at 44100 Hz). It accepts
 
 `apsyclip=clip=0.2` applies psychoacoustic clipping to PCM audio using overlapping windows and iterative spectral masking. Supports `level_in`, `level_out`, `clip`, `diff`, `adaptive`, `iterations`, and automatic output leveling (`level`). Like FFmpeg, it preserves the sample count with a window delay and does not drain the delayed tail.
 
-`alimiter=limit=0.25:level=0:latency=1` limits PCM peaks with linked channels, lookahead attack, and gradual release. `latency=1` preserves sample positions and passes the shortened first frame, shifted timestamps, and drained tail frame to downstream filters; the default retains the lookahead delay. Supports `level_in`, `level_out`, `limit`, `attack`, `release`, and automatic output leveling (`level`). Automatic release (`asc=1`) is unsupported and fails explicitly.
+`alimiter=limit=0.25:level=0:latency=1` limits PCM peaks with linked channels, lookahead attack, and gradual release. `latency=1` preserves sample positions and passes the shortened first frame, shifted timestamps, and drained tail frame to downstream filters; the default retains the lookahead delay. Supports `level_in`, `level_out`, `limit`, `attack`, `release`, and automatic output leveling (`level`). Automatic release (`asc=1`) is unsupported and fails explicitly. Invalid limiter options exit with status 234 without touching the output. A valid attack shorter than one sample also exits 234 with `Attack is too small`, creating or truncating the output file.
 
 `[0:a][1:a]amultiply[out]` (also `amultiply@name`) multiplies corresponding PCM samples from two inputs
 resampling the second input to the first input’s sample rate and ending with the

@@ -59,7 +59,7 @@ for (const graph of [false, true]) {
   ]) {
     it(`alimiter rejects ${option} without replacing output (${graph ? "graph" : "simple"})`, async () => {
       const { result, stderr, output } = await run(option, graph);
-      assert.equal(result.exitCode, 1, stderr);
+      assert.equal(result.exitCode, 234, stderr);
       assert.ok(stderr.includes("alimiter:"), stderr);
       assert.equal(output.toString(), "KEEP");
     });

@@ -2,6 +2,36 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { setup } from "./helpers.js";
 
+for (const [options, first, rest, tail] of [
+  ["-N2", "on", "e two", "three\n"],
+  ["-N2 -n1", "o", "ne two", "three\n"],
+  ["-N0", "", "one two", "three\n"],
+  ["-N20", "one two\nthree\n", "", ""],
+]) {
+  for (const redirected of [false, true]) {
+    test(`read ${options} preserves consumption and assignments before an invalid destination (${redirected ? "file" : "stdin"})`, async context => {
+      const { shell, fs } = setup();
+      context.after(() => shell.dispose());
+      const input = "one two\nthree\n";
+      const source = `later=keep; { read ${options} first bad-name later; code=$?; read rest; args "$code" "\${first-unset}" "$later" "$rest"; pass; }`;
+      if (redirected) await fs.writeFile("/data", Buffer.from(input));
+      const result = await shell.exec(redirected ? `${source} </data` : source, { stdin: redirected ? "" : input });
+      assert.equal(result.stdout, JSON.stringify(["1", first, "keep", rest]) + tail);
+      assert.equal(result.stderr, "shell: line 1: read: `bad-name': not a valid identifier\n");
+      assert.equal(result.exitCode, 0);
+    });
+  }
+}
+
+test("read -N rejects an invalid first destination before consuming input", async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  const result = await shell.exec('value=old; read -N2 bad-name value; args "$?" "$value"; pass', { stdin: "untouched" });
+  assert.equal(result.stdout, '["1","old"]untouched');
+  assert.equal(result.stderr, "shell: line 1: read: `bad-name': not a valid identifier\n");
+  assert.equal(result.exitCode, 0);
+});
+
 for (const flag of ["n", "N"]) {
   for (const value of ["+2", " 2 ", "\t2\t", "2\n", "\n2\n", "02", "-0", "+0"]) {
     test(`default read -${flag} accepts signed and padded count ${JSON.stringify(value)}`, async context => {

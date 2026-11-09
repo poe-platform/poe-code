@@ -52,9 +52,9 @@ test("N reads one raw byte in the C locale and preserves the unread binary tail"
   assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.from([...Buffer.from('["0"]'), 169, 255]));
 });
 
-test("N validates all names before consuming input", async () => {
+test("N keeps consumed input and earlier assignments when a later name is invalid", async () => {
   const result = await setup().shell.exec('bash -c \'value=old; read -N1 value bad-name; args "$?" "$value"; pass\' probe', { stdin: "untouched" });
-  assert.equal(result.stdout, '["1","old"]untouched');
+  assert.equal(result.stdout, '["1","u"]ntouched');
   assert.equal(result.stderr, "probe: line 1: read: `bad-name': not a valid identifier\n");
 });
 

@@ -47,6 +47,20 @@ for (const [options, lengths] of [
   });
 }
 
+it("cuts at every PCM packet for zero duration, preserving samples and CSV times", async () => {
+  const volume = source();
+  const result = await run(volume, ["-segment_time", "0", "-segment_list", "/list.csv"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const parts = volume.readdirSync("/").filter(name => String(name).startsWith("part"));
+  assert.equal(parts.length, 47);
+  const pcm = parts.map(name => parseWav(volume.readFileSync(`/${name}`) as Buffer).tracks[0]!.decodedAudio!.channelData[0]!);
+  assert.deepEqual(pcm.map(channel => channel.length), [...Array<number>(46).fill(512), 448]);
+  assert.deepEqual(pcm.flatMap(channel => Array.from(channel)),
+    Array.from(parseWav(volume.readFileSync("/a.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!));
+  assert.equal(volume.readFileSync("/list.csv", "utf8"), parts.map((name, index) =>
+    `${name},${(index * 512 / 8000).toFixed(6)},${(Math.min((index + 1) * 512, 24000) / 8000).toFixed(6)}\n`).join(""));
+});
+
 for (const wrap of [0, 1, 2, 4]) {
   it(`wraps segment filenames at ${wrap} while retaining chronological CSV rows`, async () => {
     const volume = source();
@@ -149,7 +163,7 @@ for (const type of ["", "invalid"]) {
   });
 }
 
-for (const value of ["0", "-1", "NaN", "Infinity"]) {
+for (const value of ["-1", "NaN", "Infinity", "", "invalid"]) {
   it(`rejects invalid segment duration ${value}`, async () => {
     const volume = source();
     assert.notEqual((await run(volume, ["-segment_time", value])).exitCode, 0);

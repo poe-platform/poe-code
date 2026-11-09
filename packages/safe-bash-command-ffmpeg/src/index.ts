@@ -5308,8 +5308,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-segment_time") {
             const value = args[++i];
-            segmentTime = parseFfmpegTimestamp(value ?? "");
-            if (!Number.isFinite(segmentTime) || segmentTime <= 0) {
+            segmentTime = parseHlsDuration(value ?? "");
+            if (!Number.isFinite(segmentTime) || segmentTime < 0) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_time\n"), context.signal);
               return { exitCode: 1 };
             }

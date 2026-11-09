@@ -1,8 +1,10 @@
-import { MediaBudgetTracker, type MediaSample, type MediaAstPlugin, type ParseMediaOptions } from "../types.js";
+import { MediaBudgetTracker, type MediaSample, type MediaDocument, type MediaAstPlugin, type ParseMediaOptions } from "../types.js";
 import { buildProbeResultFromDoc, concatMp4, parseMp4Boxes, sliceMp4 } from "../mp4.js";
-import { BinaryWriter, concatBytes, makeBox } from "../binary.js";
 import { sampleEntryHeader } from "../mp4-codec-metadata.js";
 import { rawAudioAsts } from "./raw-audio.js";
+
+import { BinaryWriter, BitReader, concatBytes, makeBox } from "../binary.js";
+import { decodeAlac } from "../alac-decoder.js";
 
 const raw = rawAudioAsts();
 const cafAudio = rawAudioAsts().filter(plugin => plugin.id !== "u8");
@@ -20,6 +22,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   let format: string | undefined;
   let channelLayout: string | undefined;
   let data: Uint8Array | undefined;
+  let cookie: Uint8Array | undefined, packetTable: Uint8Array | undefined;
   const metadata: { title?: string; artist?: string } = {};
   for (let offset = 8; offset < bytes.length;) {
     budget.checkCpu();
@@ -40,7 +43,10 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
       channels = view.getUint32(start + 24);
       const bits = view.getUint32(start + 28);
       const encoding = view.getUint32(start + 8);
-      if (encoding === 0x756c6177 || encoding === 0x616c6177) {
+      if (encoding === 0x616c6163) {
+        format = "alac";
+
+      } else if (encoding === 0x756c6177 || encoding === 0x616c6177) {
         if (flags !== 0 || bits !== 8) throw new Error("Unsupported CAF audio encoding");
         format = encoding === 0x756c6177 ? "mulaw" : "alaw";
       } else {
@@ -52,10 +58,14 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
       }
       framesPerPacket = view.getUint32(start + 20);
       bytesPerPacket = view.getUint32(start + 16);
-      if (framesPerPacket === 0 || bytesPerPacket === 0 ||
-          bytesPerPacket !== framesPerPacket * channels * bits / 8) {
+      if (framesPerPacket === 0 || (format !== "alac" && (bytesPerPacket === 0 ||
+          bytesPerPacket !== framesPerPacket * channels * bits / 8))) {
         throw new Error("Unsupported CAF audio encoding");
       }
+    } else if (id === 0x6b756b69) {
+      cookie = bytes.subarray(start, start + size);
+    } else if (id === 0x70616b74) {
+      packetTable = bytes.subarray(start, start + size);
     } else if (id === 0x6368616e) {
       if (size < 12) throw new Error("Invalid CAF channel layout chunk");
       const tag = view.getUint32(start);
@@ -87,6 +97,77 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     offset = start + size;
   }
   if (!format || !data) throw new Error("Missing CAF description or data");
+  if (format === "alac") {
+    // CAF cookies may wrap the ALACSpecificConfig in frma/alac atoms.
+    let config = cookie;
+    if (config?.length !== 24) {
+      config = undefined;
+      for (let offset = 0; cookie && offset + 8 <= cookie.length;) {
+        const cv = new DataView(cookie.buffer, cookie.byteOffset + offset, cookie.length - offset);
+        const size = cv.getUint32(0);
+        if (size < 8 || size > cv.byteLength) throw new Error("Invalid CAF ALAC cookie");
+        if (cv.getUint32(4) === 0x616c6163 && size === 36) config = cookie.subarray(offset + 12, offset + size);
+        offset += size;
+      }
+    }
+    if (!config || config.length !== 24) throw new Error("Missing CAF ALAC configuration");
+    const cv = new DataView(config.buffer, config.byteOffset, config.byteLength);
+    if (cv.getUint32(0) !== framesPerPacket || config[9] !== channels || cv.getUint32(20) !== sampleRate ||
+        !sampleRate || channels < 1 || channels > 2 || ![16, 20, 24, 32].includes(config[5]!)) {
+      throw new Error("Invalid CAF ALAC configuration");
+    }
+    if (!packetTable || packetTable.length < 24) throw new Error("Missing CAF ALAC packet table");
+    const pv = new DataView(packetTable.buffer, packetTable.byteOffset, packetTable.byteLength);
+    const count = Number(pv.getBigInt64(0));
+    if (!Number.isSafeInteger(count) || count < 0) throw new Error("Invalid CAF packet count");
+    budget.checkStreams(1);
+    budget.checkSamples(count);
+    const samples: MediaSample[] = [];
+    let cursor = 24, offset = 0, duration = 0;
+    for (let index = 0; index < count; index++) {
+      budget.checkCpu();
+      let size = bytesPerPacket;
+      if (!size) {
+        for (let octets = 0;; octets++) {
+          if (cursor >= packetTable.length || octets === 8) throw new Error("Invalid CAF packet size");
+          const byte = packetTable[cursor++]!;
+          size = size * 128 + (byte & 127);
+          if (!Number.isSafeInteger(size)) throw new Error("Invalid CAF packet size");
+          if (!(byte & 128)) break;
+        }
+      }
+      if (size < 3 || size > data.length - offset) throw new Error("Invalid CAF packet bounds");
+      const packet = data.subarray(offset, offset + size);
+      const reader = new BitReader(packet, 19);
+      const explicit = reader.readBit();
+      reader.readBits(3);
+      if (explicit && reader.bitsRemaining < 32) throw new Error("Truncated ALAC frame header");
+      const frames = explicit ? reader.readBits(32) : framesPerPacket;
+      if (!frames || frames > framesPerPacket) throw new Error("Invalid ALAC frame length");
+      samples.push({ data: packet, size, offset: data.byteOffset - bytes.byteOffset + offset,
+        dts: duration, pts: duration, cts: 0, duration: frames, isKeyframe: true, sampleDescriptionIndex: 1 });
+      duration += frames;
+      budget.checkDuration(duration / sampleRate);
+      offset += size;
+    }
+    if (offset !== data.length || cursor !== packetTable.length) throw new Error("Invalid CAF packet table length");
+    const entry = new BinaryWriter();
+    entry.writeZeros(6); entry.writeU16BE(1); entry.writeZeros(8);
+    entry.writeU16BE(channels); entry.writeU16BE(config[5]!); entry.writeZeros(4);
+    entry.writeU32BE((Math.min(sampleRate, 65535) * 65536) >>> 0);
+    entry.writeBytes(makeBox("alac", concatBytes([new Uint8Array(4), config])));
+    const doc: MediaDocument = {
+      containerFormat: "caf", timescale: sampleRate, duration, durationSeconds: duration / sampleRate,
+      metadata, byteLength: bytes.length,
+      tracks: [{ id: 1, type: "audio", handlerType: "soun", timescale: sampleRate, duration,
+        language: "und", enabled: true, samples,
+        codecDescriptions: [{ codecName: "alac", formatFourCC: "alac", sampleRate, channels,
+          bitsPerSample: config[5], channelLayout, rawStsdEntryBytes: makeBox("alac", entry.toUint8Array()) }],
+        ...(options.decodeAudio !== false ? { decodedAudio: decodeAlac(samples, config, budget) } : {})
+      }]
+    };
+    return doc;
+  }
   // CAF batches single-frame packets into at most 4096 bytes, aligned to
   // complete frames; multi-frame packets retain their declared boundaries.
   const packetBytes = framesPerPacket === 1
@@ -121,7 +202,7 @@ export function cafAst(): MediaAstPlugin {
     id: "caf", formatName: "caf", formatLongName: "Apple CAF (Core Audio Format)",
     extensions: ["caf"], mimeTypes: ["audio/x-caf"],
     canDemux: true, canMux: true, supportedVideoCodecs: [],
-    supportedAudioCodecs: [...cafAudio.map(plugin => `pcm_${plugin.id}`), "alac"],
+    supportedAudioCodecs: [...cafAudio.map(plugin => `pcm_${plugin.id}`), "alac", "adpcm_ima_qt"],
     detect: bytes => bytes.length >= 4 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0) === 0x63616666,
     parse: parseCaf,
     probe(bytes, options = {}) {

@@ -32,7 +32,8 @@ const CODEC_LONG_NAMES: Record<string, string> = {
 
 /** Shared stream schema for resident samples and bounded source aggregates. */
 export function buildProbeStream<T extends string | MediaProbeText>(track: ProbeStreamTrack<T>, desc: Mp4CodecMetadata | undefined, stats: ProbeSampleStats, idx: number, containerFormat: string): Omit<MediaProbeStream, 'tags'> & { tags: Record<string, string | T> | undefined } {
-  const codecName = desc?.codecName ?? (track.type === "video" ? "h264" : "aac");
+  // QuickTime timecode has a sample-entry tag, but no decoder codec name.
+  const codecName = desc?.formatFourCC === "tmcd" ? "" : desc?.codecName ?? (track.type === "video" ? "h264" : "aac");
   const codecLongName = CODEC_LONG_NAMES[codecName] ?? codecName;
   const matroska = containerFormat === "matroska" || containerFormat === "webm";
   // Internal MP4/QuickTime aliases are not tags in standalone WebVTT or Matroska PCM.

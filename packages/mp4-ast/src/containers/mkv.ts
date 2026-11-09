@@ -1112,6 +1112,25 @@ export function serializeMkv(
   return concatBytes([ebmlHeader, segmentElem]);
 }
 
+// Matroska StereoMode order; anaglyph modes have tags but no Stereo 3D side data.
+const STEREO_MODES: readonly (readonly [string | undefined, string | undefined, number])[] = [
+  [undefined, "2D", 0],
+  ["left_right", "side by side", 0],
+  ["bottom_top", "top and bottom", 1],
+  ["top_bottom", "top and bottom", 0],
+  ["checkerboard_rl", "checkerboard", 1],
+  ["checkerboard_lr", "checkerboard", 0],
+  ["row_interleaved_rl", "interleaved lines", 1],
+  ["row_interleaved_lr", "interleaved lines", 0],
+  ["col_interleaved_rl", "interleaved columns", 1],
+  ["col_interleaved_lr", "interleaved columns", 0],
+  ["anaglyph_cyan_red", undefined, 0],
+  ["right_left", "side by side", 1],
+  ["anaglyph_green_magenta", undefined, 0],
+  ["block_lr", "frame alternate", 0],
+  ["block_rl", "frame alternate", 1]
+];
+
 export function probeMkv(
   bytes: Uint8Array,
   options: ParseMediaOptions & { showPackets?: boolean; showFrames?: boolean } = {}
@@ -1128,7 +1147,19 @@ export function probeMkv(
     const { encoder, ...tags } = probe.format.tags;
     formatTags = { ...tags, ENCODER: encoder };
   }
-  const streams = [...probe.streams, ...doc.attachments.map((attachment, index) => ({
+  const streams = [...probe.streams.map((stream, index) => {
+    const mode = doc.tracks[index]?.codecDescriptions[0]?.stereoMode;
+    const stereo = mode === undefined ? undefined : STEREO_MODES[mode];
+    if (stream.codec_type !== "video" || !stereo) return stream;
+    const [tag, type, inverted] = stereo;
+    return {
+      ...stream,
+      ...(tag ? { tags: { ...stream.tags, stereo_mode: tag } } : {}),
+      ...(type ? { side_data_list: [
+        ...(stream.side_data_list ?? []), { side_data_type: "Stereo 3D", type, inverted }
+      ] } : {})
+    };
+  }), ...doc.attachments.map((attachment, index) => ({
     index: probe.streams.length + index,
     codec_type: "attachment" as const,
     codec_tag_string: "[0][0][0][0]",

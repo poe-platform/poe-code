@@ -1220,7 +1220,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       }
       while (bitDepth < (chunk.data16 ? 16 : 8)) {
         const levels = 2 ** bitDepth - 1;
-        if (Math.round(Math.round(value * levels / range) * range / levels) === value) break;
+        // Effective depth requires exact representation, without rounding samples.
+        if ((value * levels) % range === 0) break;
         bitDepth++;
       }
       const v = chunk.data16 ? value : value * 257;

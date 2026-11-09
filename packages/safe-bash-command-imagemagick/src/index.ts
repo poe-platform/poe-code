@@ -1468,7 +1468,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const dot = baseName.lastIndexOf(".");
   const bitDepth = String(meta.bitsPerSample ?? (meta.depth === "ushort" ? 16 : meta.depth === "bit" ? 1 : 8));
   const space = meta.magickColorspace ?? (meta.space === "b-w" || meta.space === "grey16" ? meta.gamma === 1 ? "LinearGray" : "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB");
-  const compression = ({ png: "Zip", jpeg: "JPEG", gif: "LZW", heic: "HEVC", heif: "HEVC", avif: "AV1" } as Partial<Record<ImageFormat, string>>)[meta.format] ?? "None";
+  const compression = ({ ppm: "Undefined", png: "Zip", jpeg: "JPEG", gif: "LZW", heic: "HEVC", heif: "HEVC", avif: "AV1" } as Partial<Record<ImageFormat, string>>)[meta.format] ?? "None";
   const page = meta.virtualCanvas ?? { width: meta.width, height: meta.height, x: 0, y: 0 };
   const pageX = `${page.x < 0 ? "" : "+"}${page.x}`, pageY = `${page.y < 0 ? "" : "+"}${page.y}`;
   const resolution = meta.resolution;

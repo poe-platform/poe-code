@@ -60,13 +60,24 @@ export async function joinAudio(
     const [source, output, ...extra] = mapping.split("-");
     const indices = source!.split(".");
     if (extra.length || !outputNames.includes(output ?? "") || selected.has(output!) ||
-        indices.length !== 2 || indices.some(value => !value || [...value].some(char => char < "0" || char > "9"))) {
+        indices.length !== 2 || !indices[0] || !indices[1] ||
+        [...indices[0]].some(char => char < "0" || char > "9")) {
       throw new Error("join: invalid channel map");
     }
-    const channel = audio[Number(indices[0])]?.channelData[Number(indices[1])];
+    const input = audio[Number(indices[0])];
+    if (!input) throw new Error("join: invalid input channel");
+    const name = indices[1];
+    let channelIndex: number;
+    if ([...name].every(char => char >= "0" && char <= "9")) {
+      channelIndex = Number(name);
+    } else {
+      const mask = input.channelMask || ([0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][input.channels] ?? 0);
+      channelIndex = speakers.filter((_, bit) => (mask & (1 << bit)) !== 0).indexOf(name);
+    }
+    const channel = input.channelData[channelIndex];
     if (!channel) throw new Error("join: invalid input channel");
     selected.set(output!, channel);
-    used[Number(indices[0])]!.add(Number(indices[1]));
+    used[Number(indices[0])]!.add(channelIndex);
   }
   // Reserve matching speakers before filling any gaps with unused channels.
   for (const matchSpeaker of [true, false]) {

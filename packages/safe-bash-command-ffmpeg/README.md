@@ -308,9 +308,11 @@ to right, resampling inputs to the first input’s sample rate before routing ch
 and stopping at the shortest resampled input. Join accepts the declared `inputs`
 count (default 2) of decoded PCM inputs. Output layouts include
 mono, stereo, `3.0`, quad, `5.1`, explicit speaker lists, and stereo mask `0x3`.
-Numeric input maps to output speakers are
-optional and may assign only one output channel. Unmapped outputs first use unused
-inputs with matching speaker positions, then the first unused input channels.
+Input maps accept numeric indices or speaker names, such as
+`map=0.FR-FL|1.FL-FR`. Names resolve against each input’s layout; missing speakers
+are rejected. Maps are optional and may assign only one output channel. Unmapped
+outputs first use unused inputs with matching speaker positions, then the first
+unused input channels.
 For example, `[0:a][1:a]join[mix]` selects both channels of a stereo second input
 when the first input is mono. Filters after join are supported; filters before
 join are rejected.

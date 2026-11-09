@@ -3185,7 +3185,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
                 ((f * g - d * j) * px + (a * j - c * g) * py + c * d - a * f) / denominator - 0.5];
         });
     }
-    if ((method === "affine" && nums.length >= 12) || (method === "perspective" && [4, 8, 12].includes(nums.length))) {
+    if ((method === "affine" && (nums.length === 4 || nums.length === 8 || nums.length >= 12)) || (method === "perspective" && [4, 8, 12].includes(nums.length))) {
         // Perspective falls back to affine mapping with fewer than four pairs.
         // One pair translates; two pairs fix rotation and uniform scale.
         if (nums.length === 4) nums.push(nums[0]! + 1, nums[1]!, nums[2]! + 1, nums[3]!);

@@ -11107,7 +11107,7 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 interface MontageArguments {
     trim: boolean; shadow: boolean;
     orientations: ("flip" | "flop" | "transpose")[]; rotation: number; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
-    frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined;
+    frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
@@ -11124,6 +11124,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     const orientations: ("flip" | "flop" | "transpose")[] = [];
     let thumbnail: string | undefined;
     let title: string | undefined;
+    let texture: string | undefined;
     let padX = 4;
     let padY = 3;
     let borderW = 0;
@@ -11170,6 +11171,13 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         }
         else if (t === "-background") {
             state.background = parseColor(argv[++i] ?? "#ffffff");
+        }
+        else if (t === "-texture") {
+            texture = argv[++i];
+            if (texture === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -texture\n" };
+        }
+        else if (t === "+texture") {
+            texture = undefined;
         }
         else if (t === "-bordercolor") {
             state.borderColor = parseColor(argv[++i] ?? "#dfdfdf");
@@ -11275,7 +11283,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             labels.push(label);
         }
     }
-    return { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title };
+    return { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title, texture };
 }
 function montageTitleSvg(title: string, width: number, state: MagickState, padY: number): { svg: string; height: number } {
     // Montage doubles the title point size and reserves twice the normal line metrics.
@@ -11290,7 +11298,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let cooperativeWork = 63;
     const parsed = yield* parseMontageArguments(argv);
     if ("exitCode" in parsed) return parsed;
-    const { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title } = parsed;
+    const { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title, texture } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) {
         return {
@@ -11298,6 +11306,14 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             stdout: "",
             stderr: "montage: missing an image filename\n"
         };
+    }
+    let textureImage: RgbaImage | undefined;
+    if (texture !== undefined) {
+        try { textureImage = yield* parseInputOperandSteps(texture, files, state, stdinBytes); }
+        catch (error) {
+            return { exitCode: 1, stdout: "", stderr: `montage: improper image header '${texture}': ${(error as Error).message}\n` };
+        }
+        if (!textureImage) return { exitCode: 1, stdout: "", stderr: `montage: unable to open image '${texture}': No such file or directory\n` };
     }
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
@@ -11379,6 +11395,12 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             let tileX = 0, tileY = 0;
                 if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
             canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
+            if (textureImage) for (let y = 0; y < canvasH; y += textureImage.height) {
+                for (let x = 0; x < canvasW; x += textureImage.width) {
+                    if (++cooperativeWork % 64 === 0) yield;
+                    yield* blitOverRgbaInPlaceSteps(canvas, textureImage, x, y);
+                }
+            }
             for (let idx = pageStart; idx < pageStart + pageSize; idx++) {
                 const col = (idx - pageStart) % cols;
                 const row = Math.floor((idx - pageStart) / cols);
@@ -11526,6 +11548,12 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const canvasH = Math.max(1, variableCells ? rowHeights.reduce((sum, height) => sum + height, 0) : rows * slotH);
             let tileX = 0, tileY = 0;
             canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
+            if (textureImage) for (let y = 0; y < canvasH; y += textureImage.height) {
+                for (let x = 0; x < canvasW; x += textureImage.width) {
+                    if (++cooperativeWork % 64 === 0) yield;
+                    yield* blitOverRgbaInPlaceSteps(canvas, textureImage, x, y);
+                }
+            }
             for (let idx = pageStart; idx < pageStart + pageSize; idx++) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
@@ -11583,11 +11611,20 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     const parsed = await drainSteps(parseMontageArguments(argv), signal);
     if ("exitCode" in parsed) return parsed;
-    const { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title } = parsed;
+    const { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title, texture } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
     return withCompareFiles(input, stdinBytes, signal, async backend => {
+        let textureImage: StoredRgbaImage | undefined;
+        if (texture !== undefined) {
+            try { textureImage = await parseStoredCompareInput(texture, state, backend, signal); }
+            catch (error) {
+                signal.throwIfAborted(); if (error instanceof CompareInputFailure) throw error.reason;
+                return { exitCode: 1, stdout: "", stderr: `montage: improper image header '${texture}': ${(error as Error).message}\n` };
+            }
+            if (!textureImage) return { exitCode: 1, stdout: "", stderr: `montage: unable to open image '${texture}': No such file or directory\n` };
+        }
         let inputErrors = "";
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
         let fast = !shadow && !trim && orientations.length === 0 && rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
@@ -11711,6 +11748,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             }
             let tileX = 0, tileY = 0;
             let canvas = await createStoredCanvas(Math.max(1, canvasWidth), Math.max(1, canvasHeight), state.background, backend, signal);
+            if (textureImage) canvas = await compositeStoredMagick(canvas, textureImage, backend, signal, 0, 0, "over", undefined, false, true, false, true);
             let anyTransparent = state.background.a < 255 || (borderW > 0 && state.borderColor.a < 255);
             for (let index = 0; index < pageSize; index++) {
                 await yieldTurn(signal);

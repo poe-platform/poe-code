@@ -3482,7 +3482,7 @@ function fixSubtitleDurations(doc: MediaDocument): MediaDocument {
   return { ...doc, tracks, durationSeconds, duration: Math.round(durationSeconds * doc.timescale) };
 }
 
-function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined, subtitleCodec: string | undefined): MediaDocument {
+function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined, subtitleCodec: string | undefined, exitOnError: boolean): MediaDocument {
   const containerCodec = outputFormat === "webm" ? "webvtt"
     : outputFormat === "mkv" ? subtitleCodec === "ass" ? "ass" : subtitleCodec === "webvtt" ? "webvtt" : "subrip" : undefined;
   return {
@@ -3491,6 +3491,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
       if (track.type !== "subtitle") return track;
       const decodeErrors = [...(track.decodeErrors ?? [])];
       const samples = track.samples.filter(sample => {
+        if (exitOnError && decodeErrors.length > 0) return false;
         const codec = track.codecDescriptions[sample.sampleDescriptionIndex - 1]?.codecName;
         if (codec !== "subrip" && codec !== "webvtt") return true;
         try { new TextDecoder("utf-8", { fatal: true }).decode(sample.data); return true; }
@@ -4694,7 +4695,7 @@ export function evalSyncFfmpeg(
     if ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") && workingDoc.tracks.some(track =>
       track.type === "audio" && (track.decodedAudio?.channels ?? track.codecDescriptions[0]?.channels ?? 0) > 2)) return undefined;
     if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
-      outPlugin?.id, subtitleCodec);
+      outPlugin?.id, subtitleCodec, false);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
       if (audioCodec === "copy" && outputSs !== undefined) {
         workingDoc = { ...workingDoc, tracks: workingDoc.tracks.map(track =>
@@ -7953,7 +7954,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             validateAudioEncoder(audioCodec, workingDoc, astPlugins);
             if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
-              outPlugin?.id, subtitleCodec);
+              outPlugin?.id, subtitleCodec, exitOnError);
 
             const audioTrackCount = workingDoc.tracks.filter(track => track.type === "audio").length;
             if (audioCodec === "copy" && audioTrackCount > 0 && afFilters.some(filter => filter.ordinal === undefined || filter.ordinal < audioTrackCount)) {

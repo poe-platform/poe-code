@@ -63,7 +63,8 @@ With explicit `-n`, refusing an existing output returns status 0, matching FFmpe
 Use `-max_error_rate N` to set the decoder failure threshold (default `2/3`);
 exceeding it returns status 69 after writing output. Error accounting matches
 FFmpeg 7.0.2: partial decode failures have rate 0, wholly failed decoding has rate 1.
-`-xerror` still fails on individual errors; stream copy does not decode.
+`-xerror` stops subtitle decoding at the first invalid UTF-8 cue and returns status
+183, preserving only earlier cues in the output. Stream copy does not decode.
 For output seeking with `-ss` and `-c:v copy`, `-copyinkf` retains initial non-key
 video packets from the requested start. Their compressed payloads are preserved;
 frames before the next keyframe may not be independently decodable.

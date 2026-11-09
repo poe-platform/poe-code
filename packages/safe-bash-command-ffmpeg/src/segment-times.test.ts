@@ -32,6 +32,8 @@ async function run(volume: Volume, options: string[]) {
 for (const [options, counts, starts] of [
   [[], [8, 8, 4], [0, 2, 4]],
   [["-segment_times", "0.6,2.1"], [4, 8, 8], [0, 1, 3]],
+  [["-segment_times", "1.1,3.1", "-segment_time_delta", "0.1"], [4, 8, 8], [0, 1, 3]],
+  [["-segment_times", "1.1,3.1", "-segment_time_delta", "0.04"], [8, 8, 4], [0, 2, 4]],
   [["-segment_times", "1,3"], [4, 8, 8], [0, 1, 3]],
   [["-segment_times", "00:00:01,3000ms,9"], [4, 8, 8], [0, 1, 3]]
 ] as const) {

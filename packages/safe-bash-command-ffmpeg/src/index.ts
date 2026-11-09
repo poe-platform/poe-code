@@ -5033,6 +5033,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let surroundMixLevel: number | undefined;
         let lfeMixLevel: number | undefined;
         let segmentTime = 2;
+        let segmentTimeDelta = 0;
         let segmentStartNumber = 0;
         let minSegmentDuration = 0;
         let segmentWrap = 0;
@@ -5334,6 +5335,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             segmentWrap = Number(value);
             if (!value.trim() || !Number.isInteger(segmentWrap) || segmentWrap < 0 || segmentWrap > 2147483647) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_wrap\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-segment_time_delta") {
+            segmentTimeDelta = parseHlsDuration(args[++i] ?? "");
+            if (!Number.isFinite(segmentTimeDelta) || segmentTimeDelta < 0) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_time_delta\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-segment_frames") {
@@ -9761,9 +9768,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const seconds = packet.pts / track.timescale;
                 const reached = segmentFrames === undefined
                   ? segmentTimes === undefined
-                    ? seconds >= boundaries.length * segmentTime &&
+                    ? seconds >= boundaries.length * segmentTime - segmentTimeDelta &&
                       Math.round((seconds - boundaries[boundaries.length - 1]!) * 1_000_000) >= Math.round(minSegmentDuration * 1_000_000)
-                    : seconds >= (segmentTimes[boundaries.length - 1] ?? Infinity)
+                    : seconds >= (segmentTimes[boundaries.length - 1] ?? Infinity) - segmentTimeDelta
                   : frame >= (segmentFrames[boundaries.length - 1] ?? Infinity);
                 if (seconds > boundaries[boundaries.length - 1]! && reached &&
                     (track.type !== "video" || packet.isKeyframe)) {

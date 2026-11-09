@@ -7956,7 +7956,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const lut = stack[t === "-clut" ? 1 : stack.length - 1]!;
                 const im = stack[0]!;
                 const hasAlpha = im.hasAlpha || (t === "-hald-clut" && lut.hasAlpha && (state.channels.a || !state.channelExplicit));
-                stack = [yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? im.hasAlpha && (state.channels.a || !state.channelExplicit) : state.channels.a || !state.channelExplicit], !!(im.data16 || lut.data16), state.interpolation), signal, { ...im, hasAlpha }, [im, lut])];
+                let result = yield* applyMagickRasterSteps({ ...im, space: "srgb", channels: hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? im.hasAlpha && (state.channels.a || !state.channelExplicit) : state.channels.a || !state.channelExplicit], !!(im.data16 || lut.data16), state.interpolation), signal, { ...im, hasAlpha }, [im, lut]);
+                if (im.writeMask) result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!result.data16), signal, result, [result, im, im.writeMask]);
+                stack = [result];
             }
         }
         else if (t === "-fx") {
@@ -9075,10 +9077,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (token === "-clut" || token === "-hald-clut") {
                     if (stack.length < 2) return stack;
                     const lut = (await stack.get(token === "-clut" ? 1 : stack.length - 1))!;
-                    const image = (await stack.get(0))!;
+                    const image = (await stack.get(0))! as StoredRgbaImage;
                     const mask = [settings.channels.r, settings.channels.g, settings.channels.b, token === "-clut" ? image.hasAlpha && (settings.channels.a || !settings.channelExplicit) : settings.channels.a || !settings.channelExplicit];
                     const hasAlpha = image.hasAlpha || (token === "-hald-clut" && lut.hasAlpha && mask[3]!);
-                    await stack.set(0, await transformStoredMagickRaster({ ...image, space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16), settings.interpolation), signal, { ...image, hasAlpha }, [image, lut]));
+                    let result = await transformStoredMagickRaster({ ...image, space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16), settings.interpolation), signal, { ...image, hasAlpha }, [image, lut]);
+                    if (image.storedWriteMask) result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!result.storedData16), signal, result, [result, image, { ...image, ...image.storedWriteMask }]);
+                    await stack.set(0, result);
                     stack.length = 1;
                 } else if (token === "-separate") {
                     const result = new StoredImageStack(backend.storage, signal, stack), mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a];
@@ -10212,7 +10216,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const original = (await stack.get(n))! as StoredRgbaImage;
                     let result = await step(original, backend);
                     if (result && original.storedWriteMask && result.position !== original.position && result.width === original.width && result.height === original.height) {
-                        result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask), signal, result, [result, original, { ...original, ...original.storedWriteMask }]);
+                        result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask, !!(result.storedData16 || original.storedData16)), signal, result, [result, original, { ...original, ...original.storedWriteMask }]);
                     }
                     if (result && original.region && result.position !== original.position && result.width === original.width && result.height === original.height) {
                         result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, original.region), signal, result, [result, original]);
@@ -12252,7 +12256,7 @@ function* mapMagickImagesSteps(images: readonly RgbaImage[], transform: (image: 
             result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, original.region), undefined, result, [result, original]);
         }
         if (!original.writeMask || result.data === original.data || result.width !== original.width || result.height !== original.height) return result;
-        return yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask), undefined, result, [result, original, original.writeMask]);
+        return yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask, !!(result.data16 || original.data16)), undefined, result, [result, original, original.writeMask]);
     });
 }
 

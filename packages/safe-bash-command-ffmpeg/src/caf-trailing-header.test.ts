@@ -8,10 +8,10 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 const trailing = Buffer.from("636166660001000064657363000000000000002040bf4000000000006c70636d00000000000000020000000100000001000000106461746100000000000000140000000000650066006700680069006a006b006c616263", "hex");
 const intact = trailing.subarray(0, -3);
 
-for (const [name, input, valid] of [
-  ["incomplete header after data", trailing, true],
-  ["incomplete header before data", Buffer.concat([trailing.subarray(0, 52), Buffer.from("abc")]), false],
-  ["complete free chunk after data", Buffer.concat([intact, Buffer.from("667265650000000000000003616263", "hex")]), true]
+for (const [name, input, valid, probeDuration] of [
+  ["incomplete header after data", trailing, true, 10],
+  ["incomplete header before data", Buffer.concat([trailing.subarray(0, 52), Buffer.from("abc")]), false, 0],
+  ["complete free chunk after data", Buffer.concat([intact, Buffer.from("667265650000000000000003616263", "hex")]), true, 16]
 ] as const) {
   for (const command of ["sync ffmpeg", "ffmpeg", "ffprobe"] as const) {
     it(`${command} validates CAF ${name} before writing output`, async () => {
@@ -43,7 +43,8 @@ for (const [name, input, valid] of [
           if (command === "ffprobe") {
             const stream = JSON.parse(stdout).streams[0];
             assert.equal(stream.codec_name, "pcm_s16be");
-            assert.equal(stream.duration_ts, 8);
+            // Native ffprobe estimates duration through EOF for seekable CAF without a packet table.
+            assert.equal(stream.duration_ts, probeDuration);
           }
         } else {
           assert.notEqual(result.exitCode, 0);

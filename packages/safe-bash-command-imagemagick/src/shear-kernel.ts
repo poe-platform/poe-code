@@ -1,5 +1,6 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { compositePixelsSteps, magickCompositeMode } from "./composite-pixels.js";
 
 /** Native shear uses pixel-edge centers and crops the bordered, sequential X/Y shear. */
 export function shearPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, spec: string) {
@@ -24,9 +25,13 @@ export function shearPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"
         columnOffset: Math.floor((fullWidth - width) / 2) };
 }
 
-export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, plan: ReturnType<typeof shearPlan>, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, plan: ReturnType<typeof shearPlan>, background: RgbaColor, compose: string, composeArgs?: string, fuzz = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     const bg = [background.r, background.g, background.b, background.a].map(value => value * scale);
+    const canvas = { width: 1, height: 1, hasAlpha: plan.hasAlpha, data: Float64Array.from(bg, value => value / scale) };
+    const overlay = { ...canvas, data: new Float64Array(4) }, composite = new Float64Array(4);
+    const { name: composeMode } = magickCompositeMode(compose);
+    const over = composeMode === "over" || composeMode === "srcover";
     for (let start = 0; start < plan.width * plan.height; start += 1024) {
         yield;
         const count = Math.min(1024, plan.width * plan.height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
@@ -56,11 +61,17 @@ export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "d
                     if (px >= 0 && px < source.width && y >= 0 && y < source.height) {
                         const bytes = yield { kind: "read", highDepth, position: (y * source.width + px) * 4, length: 4 };
                         if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated shear pixels");
-                        // Native BorderImage composites the input over its background before shearing.
+                        // Native BorderImage applies the selected compose operator before resampling.
                         const samples = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
-                        const remaining = bg[3]! * (1 - samples[3]! / maximum), alpha = samples[3]! + remaining;
-                        const composite = [0, 0, 0, alpha];
-                        for (let c = 0; c < 3; c++) composite[c] = alpha > 0 ? (samples[c]! * samples[3]! + bg[c]! * remaining) / alpha : 0;
+                        if (over) {
+                            const remaining = bg[3]! * (1 - samples[3]! / maximum), alpha = samples[3]! + remaining;
+                            for (let c = 0; c < 3; c++) composite[c] = alpha > 0 ? (samples[c]! * samples[3]! + bg[c]! * remaining) / alpha : 0;
+                            composite[3] = alpha;
+                        } else {
+                            for (let c = 0; c < 4; c++) overlay.data[c] = samples[c]! / scale;
+                            yield* compositePixelsSteps(canvas, overlay, composite, compose, 0, 0, composeArgs, fuzz, true);
+                            for (let c = 0; c < 4; c++) composite[c]! *= scale;
+                        }
                         pixel = composite;
                     }
                     const alpha = weight * pixel[3]!;

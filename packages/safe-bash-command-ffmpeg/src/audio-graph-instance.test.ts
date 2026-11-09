@@ -13,7 +13,7 @@ async function run(graph: string, values: number[]) {
   }
   let stderr = "";
   const result = await createFfmpegCommand().execute({
-    args: ["-y", "-v", "error", "-i", "/0.wav", "-i", "/1.wav", "-filter_complex", graph,
+    args: ["-y", "-v", "error", ...values.flatMap((_, index) => ["-i", `/${index}.wav`]), "-filter_complex", graph,
       "-map", "[out]", "-c:a", "pcm_s16le", "/out.wav"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
@@ -49,13 +49,13 @@ for (const [filter, values, expected] of [
 }
 
 for (const [graph, error] of [
-  ["[0:a]acrossfade@join=ns=4[out]", "acrossfade requires two inputs"],
+  ["[0:a][1:a][2:a]acrossfade@join=ns=4[out]", "acrossfade requires two inputs"],
   ["[0:a][1:a]acrossfade@join=ns=0[out]", "acrossfade: invalid sample count"],
-  ["[0:a]amerge@pair[out]", "amerge requires two inputs"],
+  ["[0:a][1:a][2:a]amerge@pair[out]", "amerge requires two inputs"],
   ["[0:a][1:a]amerge@pair=inputs=3[out]", "amerge requires two inputs"]
 ]) {
   it(`validates named filter without replacing output: ${graph}`, async () => {
-    const result = await run(graph!, [8000, -4000]);
+    const result = await run(graph!, [8000, -4000, 2000]);
     assert.notEqual(result.exitCode, 0);
     assert.ok(result.stderr.includes(error!), result.stderr);
     assert.equal(result.output.toString(), "keep");

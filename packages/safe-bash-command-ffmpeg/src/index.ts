@@ -3518,11 +3518,16 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           const encodeAss = codec === "subrip" && (outputFormat === "ass" || containerCodec === "ass");
           const encodeSrt = codec === "subrip" && outputFormat === "srt";
           const webvtt = outputFormat === "webvtt" || containerCodec === "webvtt";
+          let alignments = 0;
           let position = 0;
           while (position < text.length) {
-            // SubRip's ASS overrides are control text, not visible WebVTT text.
-            if (codec === "subrip" && webvtt && text.startsWith("{\\", position)) {
+            if (codec === "subrip" && (webvtt || encodeAss) && text.startsWith("{\\", position)) {
               const end = text.indexOf("}", position + 2);
+              if (text.startsWith("{\\an", position) && end === position + 5
+                && "0123456789".includes(text[position + 4]!)) alignments++;
+              // Native SubRip retains overrides after its first alignment until
+              // another alignment appears, and leaves unclosed ASS text literal.
+              if (encodeAss && (alignments === 1 || end < 0)) parts.push(text.slice(position, end < 0 ? undefined : end + 1));
               position = end < 0 ? text.length : end + 1;
             } else if (codec === "subrip" && webvtt
               && (text.startsWith("{y:", position) || text.startsWith("{Y:", position))) {

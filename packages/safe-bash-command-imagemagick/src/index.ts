@@ -4684,6 +4684,11 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (++cooperativeWork % 65536 === 0) yield;
         const char = drawCmd[offset]!;
         if (char === "," || char.trim() === "") { offset++; continue; }
+        if (char === "#") {
+            const end = drawCmd.indexOf("\n", offset + 1);
+            offset = end < 0 ? drawCmd.length : end + 1;
+            continue;
+        }
         if (char === "'" || char === '"') {
             const end = drawCmd.indexOf(char, offset + 1);
             if (end >= 0) { tokens.push(drawCmd.slice(offset + 1, end)); offset = end + 1; continue; }

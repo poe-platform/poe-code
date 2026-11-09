@@ -1,8 +1,10 @@
+import { encodeId3 } from "@poe-code/audio-ast";
 import { MediaBudgetTracker, type MediaAstPlugin, type MediaDocument, type ParseMediaOptions, type SerializeMediaOptions } from "../types.js";
 import { buildProbeResultFromDoc, concatMp4, sliceMp4 } from "../mp4.js";
 import { rawAudioAsts } from "./raw-audio.js";
 import { parseImaQt } from "./aiff-ima.js";
 import { encodeImaQt } from "./aiff-ima-encoder.js";
+import { parseId3 } from "@poe-code/audio-ast";
 
 const pcm = rawAudioAsts();
 const codecs = ["pcm_s16be", "pcm_s8", "pcm_s24be", "pcm_s32be", "pcm_s16le", "pcm_f32be", "pcm_f64be", "pcm_alaw", "pcm_mulaw", "adpcm_ima_qt"];
@@ -50,6 +52,8 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       const mantissa = view.getUint32(start + 10) * 2 ** 32 + view.getUint32(start + 14);
       sampleRate = Math.round(mantissa * 2 ** (exponent - 16383 - 63));
       if (exponent & 0x8000 || !Number.isSafeInteger(sampleRate) || sampleRate <= 0) throw new Error("Invalid AIFF sample rate");
+    } else if (id === "ID3 ") {
+      Object.assign(metadata, parseId3(bytes.subarray(start, start + size)).tags);
     } else if (["NAME", "AUTH", "(c) ", "ANNO"].includes(id)) {
       const value = new TextDecoder().decode(bytes.subarray(start, start + size)).split("\0", 1)[0]!;
       if (id === "NAME") metadata.title = value;
@@ -88,6 +92,11 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
 }
 
 export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
+  const version = options.id3v2Version ?? 4;
+  if (version !== 3 && version !== 4) throw new Error("Invalid AIFF ID3v2 version: expected 3 or 4");
+  const tags = Object.fromEntries(Object.entries(options.metadata ?? doc.metadata)
+    .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== ""));
+  const id3 = options.writeId3v2 ? encodeId3(tags, [], [], version) : undefined;
   const track = doc.tracks.find(item => item.type === "audio");
   if (!track) throw new Error("AIFF output requires an audio stream");
   const desc = track.codecDescriptions[0];
@@ -127,7 +136,8 @@ export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions
   const comm = compression ? 24 : 12;
   const titleOffset = comm + (compression ? 32 : 26);
   const sound = titleOffset + (title.length ? 8 + title.length + title.length % 2 : 0);
-  const size = sound + 16 + data.length + data.length % 2;
+  const id3Offset = sound + 16 + data.length + data.length % 2;
+  const size = id3Offset + (id3 ? 8 + id3.length + id3.length % 2 : 0);
   if (size - 8 > 0xffffffff) throw new Error("AIFF output exceeds FORM size limit");
   options.budget?.checkOutputBytes(size);
   const bytes = new Uint8Array(size), view = new DataView(bytes.buffer);
@@ -148,6 +158,10 @@ export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions
   if (title.length) {
     text(titleOffset, "NAME"); view.setUint32(titleOffset + 4, title.length);
     bytes.set(title, titleOffset + 8);
+  }
+  if (id3) {
+    text(id3Offset, "ID3 "); view.setUint32(id3Offset + 4, id3.length);
+    bytes.set(id3, id3Offset + 8);
   }
   return bytes;
 }

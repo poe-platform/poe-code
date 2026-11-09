@@ -109,6 +109,23 @@ for (const command of ["mapfile", "readarray"]) {
       assert.equal(pulls, 0);
     } finally { await shell.dispose(); }
   });
+        } finally { await shell.dispose(); }
+      });
+    }
+  for (const origin of [3, 2147483647, 4294967295]) {
+    for (const callback of [false, true]) test(`${command} uses unsigned origins and wraps indexes: origin=${origin}, callback=${callback}`, async () => {
+      const { shell } = setup();
+      const next = origin === 4294967295 ? 0 : origin + 1;
+      try {
+        const result = await shell.exec(`A=([0]=old [9]=keep); cb() { args "$1" "$2"; }; ${command} -t -O ${origin} ${callback ? "-C cb -c 1" : ""} A; code=$?; args "\${!A[@]}"; args "\${A[${origin}]}" "\${A[${next}]}" "\${A[9]}" "\${A[0]}"; exit "$code"`, { stdin: "ONE\nTWO\n" });
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        const keys = origin === 3 ? ["0", "3", "4", "9"] : origin === 2147483647 ? ["0", "9", "2147483647", "2147483648"] : ["0", "9", "4294967295"];
+        const callbacks = callback ? JSON.stringify([String(origin), "ONE"]) + JSON.stringify([String(next), "TWO"]) : "";
+        assert.equal(result.stdout, callbacks + JSON.stringify(keys) + JSON.stringify(["ONE", "TWO", "keep", next === 0 ? "TWO" : "old"]));
+      } finally { await shell.dispose(); }
+    });
+  }
 
   test(`${command} succeeds when its callback closes the input descriptor`, async () => {
     const { shell, fs } = setup();

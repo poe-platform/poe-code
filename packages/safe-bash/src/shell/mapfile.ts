@@ -74,7 +74,7 @@ export async function mapfileOptions(context: CommandContext, work: StringWork, 
         options.delimiter = bytes[attached ? index + 1 : 0] ?? 0;
       } else if (flag === "C") options.callback = operand;
       else {
-        const value = await numeric(operand, flag === "O" ? 2147483647 : flag === "u" ? Number.MAX_SAFE_INTEGER : 4294967295);
+        const value = await numeric(operand, flag === "u" ? Number.MAX_SAFE_INTEGER : 4294967295);
         if (flag === "u") {
           options.descriptor = value;
         } else if (flag === "c") { if (!value) throw new MapfileUsageError("0: invalid callback quantum", 1); options.quantum = value; }
@@ -108,8 +108,7 @@ export async function collectMapfile(options: MapfileOptions, getInput: () => Sh
       if (fastRec !== undefined) {
         if (!fastRec.present) break;
         if (skipped < options.skip) { skipped++; continue; }
-        const index = options.origin + written;
-        if (index > 2147483647) throw new MapfileUsageError("array index exceeds 2147483647", 1);
+        const index = (options.origin + written) >>> 0;
         if (!hooks.tryWriteSync(index, fastRec.value)) {
           await hooks.write(index, fastRec.value);
         }
@@ -125,8 +124,7 @@ export async function collectMapfile(options: MapfileOptions, getInput: () => Sh
       const record = syncRec ?? await input.mapfileRecord(options.delimiter, options.strip, allocation);
       if (!record.present) break;
       if (skipped < options.skip) { skipped++; continue; }
-      const index = options.origin + written;
-      if (index > 2147483647) throw new MapfileUsageError("array index exceeds 2147483647", 1);
+      const index = (options.origin + written) >>> 0;
       if (options.callback !== undefined && (written + 1) % options.quantum === 0) await hooks.callback(options.callback, index, record.value);
       if (options.callback !== undefined || !hooks.tryWriteSync?.(index, record.value)) {
         await hooks.write(index, record.value);

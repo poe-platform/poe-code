@@ -583,6 +583,8 @@ three quarters of the analysis window (1536 samples at 44100 Hz). It accepts
 
 `speechnorm=p=0.5` adjusts PCM half-wave gains, limiting loud sections and gradually restoring gain in quiet sections. Supports peak (`p`/`peak`), expansion (`e`/`expansion`), compression (`c`/`compression`), threshold (`t`/`threshold`), and gain adjustment (`r`/`raise`, `f`/`fall`). Channels are processed independently; other options fail explicitly.
 
+`adecorrelate=stages=4:seed=23` decorrelates audio channels with seeded all-pass filters, preserving sample rate and frame count. Stages range from 1 to 16 (default 6); seed ranges from 0 to 4294967295, with -1 (default) choosing a random seed. Positional `adecorrelate=4:23` is also supported.
+
 `aphaser=in_gain=0.5:out_gain=0.8:delay=3:decay=0.4:speed=1` adds a phasing effect while preserving sample rate and frame count. Supports named or positional input/output gain, delay, decay, modulation speed, and triangular (`type=t`, default) or sinusoidal (`type=s`) modulation.
 
 `asoftclip=type=tanh:threshold=0.5` soft-clips signed PCM peaks. Supports `threshold`, `output`, and `param`, with named or positional options. The default type is `tanh`; other types and oversampling beyond `oversample=1` fail explicitly.

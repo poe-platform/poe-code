@@ -57,3 +57,43 @@ for (const size of [0, 4, 30, 0xffffffff]) {
     assert.equal(auAst().parse(bytes, { decodeAudio: false }).tracks[0]!.samples[0]!.size, 15);
   });
 }
+
+it("encodes mono PCM as byte-identical native G.722 AU", () => {
+  const raw = rawAudioAsts().find(ast => ast.id === "s16le")!;
+  const source = Buffer.alloc(1024);
+  for (let i = 0; i < 512; i++) source.writeInt16LE((i * 2003 % 50000) - 25000, i * 2);
+  const doc = raw.parse(source, { sampleRate: 16000, channels: 1 });
+  const encoded = auAst().serialize(doc, { audioCodec: "g722", audioBitrate: 64000 });
+  assert.equal(encoded.length, 288);
+  assert.equal(createHash("sha256").update(encoded).digest("hex"), "b73f7ae64ac0a9d4f67b1ad7a6a01fe7a68ba8e77fb57f24a26947b4fe018102");
+  const decoded = raw.serialize(auAst().parse(encoded));
+  assert.equal(decoded.length, source.length);
+  assert.equal(createHash("sha256").update(decoded).digest("hex"), "40659ba2606a14d4b84ce628c677ba28a505730b909d5acae7a8e26e8879e0fb");
+});
+
+for (const [length, hash] of [
+  [0, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],
+  [1, "bbf3f11cb5b43e700273a78d12de55e4a7eab741ed2abf13787a4d2dc832b8ec"],
+  [3, "fd1cdd193de46baa318bedc9d442cdb0ef1523f5a08b969759e20318e3e45d80"],
+  [513, "a2aa28f854ee0e8c854ca8a076b4432d7b6b286220340b4428d2a86b4239a291"],
+  [16385, "0ab26cbe3ef7b817e590b7cd6e6b2e5776d03d158738f4301d304b2e760e066f"]
+] as const) {
+  it(`matches native G.722 encoding for ${length} samples`, () => {
+    const source = Buffer.alloc(length * 2);
+    for (let i = 0; i < length; i++) source.writeInt16LE((i * 2003 % 50000) - 25000, i * 2);
+    const doc = rawAudioAsts().find(ast => ast.id === "s16le")!.parse(source, { sampleRate: 16000 });
+    const bytes = auAst().serialize(doc, { audioCodec: "g722", seekable: false });
+    assert.equal(new DataView(bytes.buffer).getUint32(8), 0xffffffff);
+    assert.equal(createHash("sha256").update(bytes.subarray(32)).digest("hex"), hash);
+  });
+}
+
+it("enforces G.722 encode budgets and rejects stereo input", () => {
+  const raw = rawAudioAsts().find(ast => ast.id === "s16le")!;
+  const doc = raw.parse(new Uint8Array(1024), { sampleRate: 16000 });
+  for (const limits of [{ maxMemoryBytes: 255 }, { maxOutputBytes: 287 }, { maxDurationSeconds: 0.001 }]) {
+    assert.throws(() => auAst().serialize(doc, { audioCodec: "g722", limits }), /limit/i);
+  }
+  const stereo = raw.parse(new Uint8Array(1024), { sampleRate: 16000, channels: 2 });
+  assert.throws(() => auAst().serialize(stereo, { audioCodec: "g722" }), /mono/);
+});

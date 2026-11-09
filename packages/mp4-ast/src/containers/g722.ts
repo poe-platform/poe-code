@@ -84,3 +84,40 @@ export function decodeG722(data: Uint8Array, budget: MediaBudgetTracker): Float3
   }
   return output;
 }
+
+// ITU-T G.722 low-band decision thresholds (Table 17).
+const lowThresholds = [35, 72, 110, 150, 190, 233, 276, 323, 370, 422,
+  473, 530, 587, 650, 714, 786, 858, 940, 1023, 1121, 1219, 1339,
+  1458, 1612, 1765, 1980, 2195, 2557, 2919];
+
+export function encodeG722(samples: Float32Array | Float64Array, budget: MediaBudgetTracker): Uint8Array {
+  const length = Math.ceil(samples.length / 2);
+  budget.checkOutputBytes(length);
+  budget.allocateMemory(length);
+  const output = new Uint8Array(length);
+  const low = new Band(8), high = new Band(2);
+  const history = new Int16Array(24);
+  for (let i = 0; i < length; i++) {
+    if (i % 4096 === 0) budget.checkCpu();
+    history.copyWithin(0, 2);
+    history[22] = clip(Math.round(samples[i * 2]! * 32768), -32768, 32767);
+    // The last unpaired input sample is repeated, as in native FFmpeg.
+    history[23] = clip(Math.round(samples[Math.min(i * 2 + 1, samples.length - 1)]! * 32768), -32768, 32767);
+    let even = 0, odd = 0;
+    for (let tap = 0; tap < 12; tap++) {
+      even += history[tap * 2 + 1]! * qmf[11 - tap]!;
+      odd += history[tap * 2]! * qmf[tap]!;
+    }
+    const lowDiff = clip(((even + odd) >> 14) - low.prediction, -32768, 32767);
+    const highDiff = clip(((even - odd) >> 14) - high.prediction, -32768, 32767);
+    const magnitude = ((lowDiff ^ (lowDiff >> 31)) + 1) * 1024;
+    let index = 0;
+    while (index < lowThresholds.length && magnitude > lowThresholds[index]! * low.scale) index++;
+    const lowCode = (lowDiff < 0 ? (index < 2 ? 63 : 33) : 61) - index;
+    const highCode = Number((highDiff ^ (highDiff >> 31)) < ((141 * high.scale) >> 8)) + (highDiff >= 0 ? 2 : 0);
+    low.update((low.scale * adaptationQuantizer[lowCode >> 2]!) >> 10, lowSteps[lowCode >> 2]!, false);
+    high.update((high.scale * highQuantizer[highCode]!) >> 10, highCode & 1 ? -214 : 798, true);
+    output[i] = (highCode << 6) | lowCode;
+  }
+  return output;
+}

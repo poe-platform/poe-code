@@ -184,7 +184,7 @@ Read Creative Voice PCM16 and G.711 audio, including continuation blocks, with
 Write VOC with `ffmpeg -i input.wav -c:a pcm_s16le output.voc` or `-f voc`. PCM16 is the default; G.711 encoding and `-c:a copy` are also supported.
 
 Read and write Sun AU audio with `ffmpeg -i input.wav output.au` or
-`ffmpeg -i input.au -c:a pcm_s16le output.wav`. AU defaults to big-endian PCM16. Encode mono 8000 Hz audio as little-endian G.726 with `-c:a g726le -b:a 32000 -f au output.au` (32 kbit/s only).
+`ffmpeg -i input.au -c:a pcm_s16le output.wav`. AU defaults to big-endian PCM16. Encode mono 16000 Hz audio as G.722 with `-c:a g722 -b:a 64000 -f au output.au`; G.722 AU input also decodes to PCM. Encode mono 8000 Hz audio as little-endian G.726 with `-c:a g726le -b:a 32000 -f au output.au` (32 kbit/s only).
 Read native IRCAM PCM16, mu-law, and A-law files by automatic detection or `-f ircam -i input`; stereo channels are preserved.
 
 Encode mono or stereo Yamaha ADPCM WAV with `-c:a adpcm_yamaha output.wav`. Encode mono 8000 Hz PCM to G.726 WAV with `-c:a g726 output.wav` (32 kbit/s by default); `-b:a 16k`, `24k`, `32k`, or `40k` selects the bitrate. Encode mono or stereo Microsoft ADPCM WAV with `-c:a adpcm_ms output.wav`, or decode it to PCM including padded final blocks. Microsoft ADPCM encoding also accepts `-block_size` (32–8192, power of two; default 1024). Encode mono or stereo IMA ADPCM WAV with `-c:a adpcm_ima_wav output.wav`; `-block_size` selects a power-of-two block size from 32 through 8192 bytes (default: 1024). Select `-trellis 1..16` for trellis encoding; `-trellis 0` (the default) uses greedy encoding. Three-channel input defaults to stereo; an explicit output `-ac 3` is rejected.

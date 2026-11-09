@@ -469,14 +469,12 @@ export function serializeMpegTs(
     throw new Error("Invalid mpegts_start_pid: expected an integer from 32 through 8186");
   }
   const videoTrack = doc.tracks.find((t) => t.type === "video");
-  const audioTrack = doc.tracks.find((t) => t.type === "audio");
-  const tracks = doc.tracks.filter((t) => t === videoTrack || t === audioTrack);
+  const tracks = doc.tracks.filter((t) => t === videoTrack || t.type === "audio");
   if (tracks.some((_, index) => startPid + index === 0x1000)) {
     throw new Error("MPEG-TS elementary PID conflicts with PMT PID 4096");
   }
   const videoPid = startPid + (videoTrack ? tracks.indexOf(videoTrack) : 0);
-  const audioPid = startPid + (audioTrack ? tracks.indexOf(audioTrack) : 0);
-  const pcrPid = videoTrack ? videoPid : audioPid;
+  const pcrPid = videoTrack ? videoPid : startPid;
   const patPeriod = options.patPeriod ?? 0.1;
   if (!Number.isFinite(patPeriod) || patPeriod < 0) {
     throw new Error("Invalid pat_period: expected nonnegative seconds");
@@ -723,7 +721,9 @@ export function serializeMpegTs(
   }
 
   // Emit audio packets
-  if (audioTrack) {
+  for (const [trackIndex, audioTrack] of tracks.entries()) {
+    if (audioTrack.type !== "audio") continue;
+    const pid = startPid + trackIndex;
     const ts = audioTrack.timescale || 44100;
     const desc = audioTrack.codecDescriptions[0];
     const sampleRate = desc?.sampleRate ?? ts;
@@ -753,7 +753,7 @@ export function serializeMpegTs(
         s.data.byteLength >= 7 && s.data[0] === 0xff && (s.data[1]! & 0xf0) === 0xf0
           ? s.data
           : wrapAdtsFrame(s.data, sampleRate, channels));
-      emitPesPackets(audioPid, 0xc0, pts90k, pts90k, frame, !videoTrack, s.isKeyframe);
+      emitPesPackets(pid, 0xc0, pts90k, pts90k, frame, pid === pcrPid, s.isKeyframe);
     }
   }
 

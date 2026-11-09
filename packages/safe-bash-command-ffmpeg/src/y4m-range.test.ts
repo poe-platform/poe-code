@@ -28,7 +28,7 @@ for (const range of ["FULL", "LIMITED", undefined]) {
     const png = decodeImage(volume.readFileSync("/out.png") as Buffer);
     assert.equal(png.width, 4);
     assert.equal(png.height, 2);
-    const gray = range === "FULL" ? [16, 64, 128, 235] : [0, 56, 130, 255];
+    const gray = range === "FULL" ? [16, 64, 128, 235] : [0, 55, 130, 255];
     assert.deepEqual([...png.data], [...gray, ...gray].flatMap(value => [value, value, value, 255]));
   });
 }

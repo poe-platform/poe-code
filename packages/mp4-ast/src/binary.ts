@@ -743,11 +743,6 @@ export function yuv420pToRgba(
   const rgba = new Uint8Array(width * height * 4);
   const uvWidth = Math.ceil(width / (1 << horizontalShift));
   const yOffset = fullRange ? 0 : 16;
-  const yScale = fullRange ? 256 : 298;
-  const rv = fullRange ? 359 : 409;
-  const gu = fullRange ? 88 : 100;
-  const gv = fullRange ? 183 : 208;
-  const bu = fullRange ? 454 : 516;
 
   for (let row = 0; row < height; row++) {
     const uRow = row >>> verticalShift;
@@ -756,10 +751,12 @@ export function yuv420pToRgba(
       const y = (yPlane[row * width + col] ?? yOffset) - yOffset;
       const u = (uPlane[uRow * uvWidth + uCol] ?? 128) - 128;
       const v = (vPlane[uRow * uvWidth + uCol] ?? 128) - 128;
-      const c = Math.max(0, y) * yScale;
-      const r = Math.max(0, Math.min(255, (c + rv * v + 128) >> 8));
-      const g = Math.max(0, Math.min(255, (c - gu * u - gv * v + 128) >> 8));
-      const b = Math.max(0, Math.min(255, (c + bu * u + 128) >> 8));
+      // FFmpeg's x86 unscaled limited-range BT.601 conversion truncates each
+      // signed product before summing. Clamp RGB only, retaining sub-black Y.
+      const c = fullRange ? y * 256 : (y * 9539) >> 13;
+      const r = Math.max(0, Math.min(255, fullRange ? (c + 359 * v + 128) >> 8 : c + ((13075 * v) >> 13)));
+      const g = Math.max(0, Math.min(255, fullRange ? (c - 88 * u - 183 * v + 128) >> 8 : c + ((-3209 * u) >> 13) + ((-6660 * v) >> 13)));
+      const b = Math.max(0, Math.min(255, fullRange ? (c + 454 * u + 128) >> 8 : c + ((16525 * u) >> 13)));
       const idx = (row * width + col) * 4;
       rgba[idx] = r;
       rgba[idx + 1] = g;

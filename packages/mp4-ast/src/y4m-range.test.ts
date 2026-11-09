@@ -10,7 +10,7 @@ for (const range of ["FULL", "LIMITED", undefined]) {
     ]);
     const doc = parseY4m(input);
     const frame = doc.tracks[0]!.decodedVideoFrames![0]!;
-    const gray = range === "FULL" ? [16, 64, 128, 235] : [0, 56, 130, 255];
+    const gray = range === "FULL" ? [16, 64, 128, 235] : [0, 55, 130, 255];
     assert.deepEqual([...frame.data], [...gray, ...gray].flatMap(value => [value, value, value, 255]));
     assert.equal(frame.native!.fullRange, range === "FULL" ? 1 : 0);
     assert.deepEqual([...serializeY4m(doc).slice(-12)], [...input.slice(-12)]);

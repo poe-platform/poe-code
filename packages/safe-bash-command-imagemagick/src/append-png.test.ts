@@ -14,7 +14,7 @@ for (const mode of ["sync", "map", "filesystem", "command"] as const) {
       { count: 1, coder: "", alpha: false, depth: 1, colorType: 3 },
       { count: 2, coder: "PNG24:", alpha: false, depth: 8, colorType: 2 },
       { count: 2, coder: "PNG32:", alpha: false, depth: 8, colorType: 6 },
-      { count: 2, coder: "", alpha: true, depth: 8, colorType: 6 },
+      { count: 2, coder: "", alpha: true, depth: 1, colorType: 3 },
     ])(`${mode} ${direction} selects PNG encoding for $count inputs, coder '$coder', alpha $alpha`, async ({ count, coder, alpha, depth, colorType }) => {
       const files = new Map([["/a.png", input]]), fs = new MemoryFileSystem();
       await fs.writeFile("/a.png", input);
@@ -40,10 +40,11 @@ for (const mode of ["sync", "map", "filesystem", "command"] as const) {
         chunks.set(new TextDecoder().decode(bytes.subarray(offset + 4, offset + 8)), bytes.subarray(offset + 8, offset + 8 + length));
         offset += length + 12;
       }
-      expect(chunks.has("tRNS")).toBe(false);
+      expect(chunks.has("tRNS")).toBe(alpha);
+      if (alpha) expect([...chunks.get("tRNS")!]).toEqual([128]);
       if (colorType === 3) expect([...chunks.get("PLTE")!]).toEqual([240, 64, 16]);
       const output = decodeImage(bytes);
-      expect(output.hasAlpha).toBe(colorType === 6);
+      expect(output.hasAlpha).toBe(alpha || colorType === 6);
       expect([output.width, output.height]).toEqual(direction === "+append" ? [3 * count, 2] : [3, 2 * count]);
       expect([...output.data]).toEqual(Array.from({ length: 6 * count }, () => [240, 64, 16, alpha ? 128 : 255]).flat());
     });

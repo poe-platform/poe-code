@@ -8,6 +8,8 @@ import { createFfmpegCommand } from "./index.js";
 // Reference PCM16 values from native FFmpeg; indices include envelope transitions.
 for (const [filter, indices, expected] of [
   ["compand", [0, 4000, 8000, 8010, 12000, 16000, 20000, 24000, 28000, 31999], [482, 726, 8703, -8709, 10793, 24945, 24945, 1559, 2290, -3277]],
+  ["compand=points=-70/-70abc|-60/-20|1/0", [0, 4000, 8000, 8010, 12000, 16000, 20000, 24000, 28000, 31999], [482, 726, 8703, -8709, 10793, 24945, 24945, 1559, 2290, -3277]],
+  ["compand=attacks=0.01s:decays=1e-1seconds:points=-80/-80|-40/-40|-20/-30|0/-20:volume=-20", [0, 4000, 8000, 8010, 12000, 16000, 20000, 24000, 28000, 31999], [158, 397, 3106, -2350, 1145, 4496, 2290, 143, 546, -572]],
   ["compand=attacks=0.01:decays=0.1:points=-80/-80|-40/-40|-20/-30|0/-20:volume=-20", [0, 4000, 8000, 8010, 12000, 16000, 20000, 24000, 28000, 31999], [158, 397, 3106, -2350, 1145, 4496, 2290, 143, 546, -572]],
   ["compand=attacks=0:decays=0:points=-80/-80|-40/-40|-20/-30|0/-20:soft-knee=6", [4000, 12000, 20000, 28000], [395, 1145, 2290, 572]],
   ["compand=attacks=0:decays=0:points=-80/-80|-40/-40|-20/-30|0/-20", [4000, 12000, 20000, 28000, 31999], [405, 1145, 2290, 572, -572]],
@@ -37,7 +39,7 @@ for (const [filter, indices, expected] of [
   });
 }
 
-for (const filter of ["compand=points=bad", "compand=points=0/0|-20/-30", "compand=attacks=-1", "compand=decays=NaN", "compand=unknown=1", "compand=soft-knee=0", "compand=delay=1", "compand=points=-80/-80||0/0", "compand=points=-80/-80|0/0|"]) {
+for (const filter of ["compand=points=bad", "compand=points=-70/|-60/-20|1/0", "compand=points=/-70|-60/-20|1/0", "compand=points=-70abc/-70|-60/-20|1/0", "compand=points=0/0|-20/-30", "compand=attacks=-1", "compand=attacks=-1s", "compand=decays=NaN", "compand=decays=seconds", "compand=unknown=1", "compand=soft-knee=0", "compand=soft-knee=1abc", "compand=gain=1abc", "compand=volume=-20abc", "compand=delay=0abc", "compand=delay=1", "compand=points=-80/-80||0/0", "compand=points=-80/-80|0/0|"]) {
   it(`${filter} fails without replacing output`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
     fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));

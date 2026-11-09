@@ -17,8 +17,8 @@ export async function compandAudio(
     if (!key || !Object.hasOwn(options, key)) throw new Error(`compand: unsupported option ${key}`);
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
   }
-  const number = (value: string, min = -Infinity, max = Infinity): number => {
-    const parsed = Number(value);
+  const number = (value: string, min = -Infinity, max = Infinity, parse: (value: string) => number = Number): number => {
+    const parsed = parse(value);
     if (!value.trim() || !Number.isFinite(parsed) || parsed < min || parsed > max) throw new Error(`compand: invalid value ${value}`);
     return parsed;
   };
@@ -33,20 +33,20 @@ export async function compandAudio(
   if (attackItems.length > channels.length || decayItems.length > channels.length) {
     await warn?.("Number of attacks/decays bigger than number of channels. Ignoring rest of entries.\n");
   }
-  const attacks = attackItems.slice(0, channels.length).map(value => number(value, 0));
-  const decays = decayItems.slice(0, channels.length).map(value => number(value, 0));
+  const attacks = attackItems.slice(0, channels.length).map(value => number(value, 0, Infinity, Number.parseFloat));
+  const decays = decayItems.slice(0, channels.length).map(value => number(value, 0, Infinity, Number.parseFloat));
   if (!attacks.length || !decays.length || attacks.length !== decays.length) {
     throw new Error("compand: attacks and decays must have matching channel counts");
   }
   const knee = numericOption("soft-knee", 0.01, 900);
   const gain = numericOption("gain", -900, 900);
   const initial = 10 ** (numericOption("volume", -900, 0) / 20);
-  if (numericOption("delay", 0, 20) !== 0) throw new Error("compand: nonzero delay is unsupported");
+  const delay = Math.floor(numericOption("delay", 0, 20) * sampleRate);
   const points = options.points!.split("|").flatMap(part => part.split(" ")).map(value => {
     const pair = value.split("/");
     if (pair.length !== 2) throw new Error("compand: expected input/output points");
     const x = number(pair[0]!);
-    return { x, y: number(pair[1]!) - x };
+    return { x, y: number(pair[1]!, -Infinity, Infinity, Number.parseFloat) - x };
   });
   for (let i = 1; i < points.length; i++) {
     if (points[i]!.x < points[i - 1]!.x) throw new Error("compand: points must be increasing");
@@ -96,6 +96,7 @@ export async function compandAudio(
     const attack = coefficient(attacks[Math.min(c, attacks.length - 1)]!);
     const decay = coefficient(decays[Math.min(c, decays.length - 1)]!);
     let envelope = initial;
+    let multiplier = 1;
     for (let i = 0; i < length; i++) {
       if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
       const sample = channels[c]![i]!;
@@ -108,7 +109,14 @@ export async function compandAudio(
       while (index + 1 < segments.length && segments[index + 1]!.x < db) index++;
       const segment = segments[index]!;
       const offset = db - segment.x;
-      output[c]![i] = sample * 10 ** ((gain + segment.y + offset * (segment.a * offset + segment.b)) / 20);
+      multiplier = 10 ** ((gain + segment.y + offset * (segment.a * offset + segment.b)) / 20);
+      if (i >= delay) output[c]![i - delay] = channels[c]![i - delay]! * multiplier;
+    }
+    // The input is already buffered. Drain pending samples with the final
+    // envelope, without feeding silence into the detector or adding padding.
+    for (let i = Math.max(0, length - delay); i < length; i++) {
+      if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      output[c]![i] = channels[c]![i]! * multiplier;
     }
   }
   return output;

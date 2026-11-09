@@ -346,7 +346,7 @@ for example `[0:a][1:a]sidechaincompress=threshold=0.05:ratio=8:attack=1:release
 Output retains the first input’s channels and ends with the shorter input. Inputs
 must have matching sample rates; preceding filters other than `anull` are unsupported.
 
-`dynaudnorm=f=100:g=5:p=0.5` normalizes changing PCM levels with smoothed frame gains and coupled channels. Supports frame length (`f`/`framelen`), Gaussian window (`g`/`gausssize`), peak (`p`/`peak`), and maximum gain (`m`/`maxgain`); other options fail explicitly. Named and positional values accept numeric expressions, such as `dynaudnorm=f=10*2:g=3:p=1/2`; results must satisfy the option ranges.
+`dynaudnorm=f=100:g=5:p=0.5` normalizes changing PCM levels with smoothed frame gains and coupled channels. Supports frame length (`f`/`framelen`), Gaussian window (`g`/`gausssize`), peak (`p`/`peak`), and maximum gain (`m`/`maxgain`); other options fail explicitly. Fractional frame lengths and window sizes round to the nearest integer with ties to even, then window sizes increase to an odd value. Limits are checked before rounding. Named and positional values accept numeric expressions, such as `dynaudnorm=f=10*2:g=3:p=1/2`; results must satisfy the option ranges.
 
 `acontrast=contrast=50` applies a nonlinear audio contrast transfer while preserving sample rate, channels, and frame count. Contrast ranges from 0 to 100 (default 33); positional `acontrast=50` is also supported. Zero contrast still applies the native sine transfer.
 

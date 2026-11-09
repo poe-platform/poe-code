@@ -61,7 +61,7 @@ for (const [expression, literal] of [
   assert.deepEqual(fs.readFileSync("/expression.pcm"), fs.readFileSync("/literal.pcm"));
 });
 
-for (const filter of ["dynaudnorm=f=0", "dynaudnorm=f=8001", "dynaudnorm=f=1.5", "dynaudnorm=g=2", "dynaudnorm=g=302", "dynaudnorm=g=3.5", "dynaudnorm=p=1.1", "dynaudnorm=p=-1", "dynaudnorm=m=0", "dynaudnorm=m=101", "dynaudnorm=p=NaN", "dynaudnorm=f=", "dynaudnorm=r=0.5", "dynaudnorm=p=1/", "dynaudnorm=p=unknown", "dynaudnorm=p=1/0", "dynaudnorm=p=0/0", "dynaudnorm=p=3/2", "dynaudnorm=p=-1/2", "dynaudnorm=f=5*1", "dynaudnorm=f=8000+1", "dynaudnorm=g=1+1", "dynaudnorm=g=300+2", "dynaudnorm=m=1/2", "dynaudnorm=m=100+1"]) {
+for (const filter of ["dynaudnorm=f=0", "dynaudnorm=f=8001", "dynaudnorm=f=1.5", "dynaudnorm=g=2", "dynaudnorm=g=302", "dynaudnorm=p=1.1", "dynaudnorm=p=-1", "dynaudnorm=m=0", "dynaudnorm=m=101", "dynaudnorm=p=NaN", "dynaudnorm=f=", "dynaudnorm=r=0.5", "dynaudnorm=p=1/", "dynaudnorm=p=unknown", "dynaudnorm=p=1/0", "dynaudnorm=p=0/0", "dynaudnorm=p=3/2", "dynaudnorm=p=-1/2", "dynaudnorm=f=5*1", "dynaudnorm=f=8000+1", "dynaudnorm=g=1+1", "dynaudnorm=g=300+2", "dynaudnorm=m=1/2", "dynaudnorm=m=100+1"]) {
   it(`${filter} fails without replacing output`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
     fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));

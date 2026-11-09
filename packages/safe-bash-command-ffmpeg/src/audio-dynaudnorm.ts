@@ -16,12 +16,14 @@ export async function normalizeAudio(
     const key = separator < 0 ? ["f", "g", "p", "m"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const number = parseFilterExpression(value, "dynaudnorm", {});
+    // AVOption integers round to nearest, with halfway values going to even.
+    const rounded = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
     if (key === "f" || key === "framelen") {
-      if (!Number.isInteger(number) || number < 10 || number > 8000) throw new Error("dynaudnorm: invalid framelen");
-      milliseconds = number;
+      if (number < 10 || number > 8000) throw new Error("dynaudnorm: invalid framelen");
+      milliseconds = rounded;
     } else if (key === "g" || key === "gausssize") {
-      if (!Number.isInteger(number) || number < 3 || number > 301) throw new Error("dynaudnorm: invalid gausssize");
-      size = number;
+      if (number < 3 || number > 301) throw new Error("dynaudnorm: invalid gausssize");
+      size = rounded;
     } else if (key === "p" || key === "peak") {
       if (number < 0 || number > 1) throw new Error("dynaudnorm: invalid peak");
       peak = number;

@@ -65,9 +65,9 @@ for (const prefix of ["", "builtin ", "command "]) {
     const { shell } = fixture();
     context.after(() => shell.dispose());
     const output = await shell.exec(`${prefix}printf -x`);
-    assert.notEqual(output.exitCode, 0);
+    assert.equal(output.exitCode, 2);
     assert.equal(output.stdout, "");
-    assert.match(output.stderr, /invalid option/);
+    assert.match(output.stderr, /printf: usage:/);
     const assignment = await shell.exec(`value=old; ${prefix}printf -v value -x; echo "$?:$value"`);
     assert.equal(assignment.stdout, "2:old\n");
     assert.match(assignment.stderr, /printf: usage:/);

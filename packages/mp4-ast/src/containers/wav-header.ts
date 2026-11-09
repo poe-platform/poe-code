@@ -108,6 +108,7 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seek
     header.dataSize = Math.min(header.dataSize, Math.max(0, end - header.dataOffset));
   };
   const labels = new Map<number, string>();
+  const cueIndices = new Map<number, number>();
   const chunkHeader = wave64 ? 24 : 8;
   while (pos + chunkHeader <= Math.min(byteLength, riffEnd)) {
     const read = yield { offset: pos, length: chunkHeader };
@@ -179,7 +180,12 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false, seek
       for (let index = 0; index < count; index++) {
         const read = yield { offset: start + 4 + index * 24, length: 24 };
         const cue = new DataView(read.bytes.buffer, read.bytes.byteOffset, read.bytes.byteLength);
-        (header.cues ??= []).push({ id: cue.getUint32(0, littleEndian), start: cue.getUint32(20, littleEndian) });
+        const id = cue.getUint32(0, littleEndian), cueStart = cue.getUint32(20, littleEndian);
+        const cues = header.cues ??= [], existing = cueIndices.get(id);
+        if (existing === undefined) {
+          cueIndices.set(id, cues.length);
+          cues.push({ id, start: cueStart });
+        } else cues[existing]!.start = cueStart;
       }
     } else if (!wave64 && id === "bext" && size >= 602) {
       const read = yield { offset: start, length: 346 };

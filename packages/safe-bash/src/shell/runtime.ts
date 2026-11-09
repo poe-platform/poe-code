@@ -8302,7 +8302,7 @@ export class Runtime {
         if (!reset && state.hashedCommands?.size) {
           if (!listMode) await writeText(stdout, "hits\tcommand\n");
           for (const [name, target] of state.hashedCommands) {
-            await writeText(stdout, listMode ? `builtin hash -p ${target.path} ${name}\n` : `${String(target.hits).padStart(4)}\t${target.path}\n`);
+            await writeText(stdout, listMode ? `builtin hash -p '${target.path.replaceAll("'", "'\\''")}' '${name.replaceAll("'", "'\\''")}'\n` : `${String(target.hits).padStart(4)}\t${target.path}\n`);
           }
         }
         return 0;

@@ -97,3 +97,18 @@ test("hash reset, PATH assignment and subshells preserve Bash cache ownership", 
   assert.equal(result.stdout, "/bin/tool\nhits\tcommand\n   1\t/bin/tool\n");
   assert.equal(result.exitCode, 1);
 });
+
+for (const [name, target] of [
+  ["saved", "/tool dir/tool"],
+  ["saved tool", "/tool dir/tool's name"],
+  ["saved'tool", "/tool\tdir/tool\nname"],
+  ["saved; :", '/$HOME/$(echo expanded)/`echo expanded`/"tool"\\*?[ab]'],
+]) {
+  test(`hash -l survives a save/source round trip for ${JSON.stringify([name, target])}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), env: { NAME: name!, TARGET: target! } });
+    const result = await shell.exec('hash -p "$TARGET" "$NAME"; hash -l >table; hash -r; . ./table; hash -t "$NAME"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `${target}\n`);
+  });
+}

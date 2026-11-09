@@ -11,6 +11,7 @@ import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
 import { decimate } from "./decimate.js";
+import { boostSubAudio } from "./audio-asubboost.js";
 import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
 import { renderTestsrc } from "./testsrc.js";
@@ -8482,6 +8483,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${pts} pts_time:${Number((pts / origRate).toPrecision(6))} pos:-1 fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${checksum} ]\n`), context.signal);
                           start = end;
                         }
+                      } else if (trimmed === "asubboost" || trimmed.startsWith("asubboost=")) {
+                        stretched = await boostSubAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "aexciter" || trimmed.startsWith("aexciter=")) {
                         stretched = await exciteAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "adecorrelate" || trimmed.startsWith("adecorrelate=")) {

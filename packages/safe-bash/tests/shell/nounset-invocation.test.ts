@@ -99,3 +99,28 @@ for (const mode of ["command", "file", "stdin"] as const) {
     assert.equal(result.stderr, `${mode === "file" ? "/noun.sh" : "bash"}: line 2: MISSING_SAMPLE: unbound variable\n`);
   });
 }
+
+for (const mode of ["command", "file"] as const) {
+  for (const initialize of ["arr=([0]=ok)", "unset arr"]) {
+    for (const [setup, subscript, diagnostic] of [
+      ["i=2", "2", "arr[2]"],
+      ["i=2", "i", "arr[i]"],
+      ["i=2", "1+1", "arr[1+1]"],
+      ["unset i", "i", "i"],
+    ]) {
+      test(`array nounset preserves the written subscript: ${mode}, ${initialize}, ${setup}, ${subscript}`, async t => {
+        const fs = createMemoryFileSystem();
+        const shell = new Shell({ fs }).use(agentCommands());
+        t.after(() => shell.dispose());
+        const source = `${setup}; ${initialize}; set -u; printf "[%s]" "\${arr[${subscript}]}"; echo reached`;
+        await fs.writeFile("/noun.sh", Buffer.from(source));
+        const result = await shell.exec(mode === "command"
+          ? `bash --noprofile --norc -c '${source}' worker`
+          : "bash --noprofile --norc /noun.sh");
+        assert.equal(result.stdout, "");
+        assert.equal(result.stderr, `${mode === "command" ? "worker" : "/noun.sh"}: line 1: ${diagnostic}: unbound variable\n`);
+        assert.equal(result.exitCode, mode === "command" ? 127 : 1);
+      });
+    }
+  }
+}

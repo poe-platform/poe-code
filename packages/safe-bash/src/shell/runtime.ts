@@ -91,6 +91,7 @@ export function hasActiveExtensions(state: State): state is State & { extensions
 }
 const memberPatternOperators = ["#", "##", "%", "%%", "/", "//", "/#", "/%", "^", "^^", ",", ",,"];
 const indirectArrayTarget = Symbol("indirectArrayTarget");
+const writtenArrayParameter = Symbol("writtenArrayParameter");
 export const defaultParameterOperators = ["-", "+", "=", "?", ":-", ":+", ":=", ":?"];
 async function signedLong(argument: string, budget: Budget, signal: AbortSignal): Promise<bigint | "overflow" | undefined> {
   const checkpoint = async (): Promise<void> => {
@@ -9600,20 +9601,21 @@ export class Runtime {
     }
     const selector = getArraySelector(part);
     if (part.kind !== "variable" || selector?.kind !== "element" || selector.index.source === undefined) return part;
+    const parameterName = `${part.name}[${selector.index.source}]`;
     const store = requireArrays(state);
     const binding = store.get(part.name);
     if (binding?.associative) {
       const word = selector.index.word ?? parseArraySubscript(selector.index.source, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
       const fields = await this.valueWord(word, state, io, false);
       const value = concatShellValues(fields, io[valueScope]);
-      const resolved = { ...part };
+      const resolved = { ...part, [writtenArrayParameter]: parameterName };
       copyArraySelector(part, resolved);
       setArraySelector(resolved, { kind: "element", index: { decimal: shellValueText(value), word: { offset: word.offset, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } } });
       return resolved;
     }
     const maximum = binding?.maximum ?? ((this.presenceArrayEntries(state, part.name)?.length ?? (state.variables[part.name] === undefined ? 0 : 1)) - 1);
     const index = await this.arrayIndex(binding, selector.index, state, io, store.owner, false, maximum);
-    const resolved = { ...part };
+    const resolved = { ...part, [writtenArrayParameter]: parameterName };
     copyArraySelector(part, resolved);
     setArraySelector(resolved, { kind: "element", index: { decimal: String(index) } });
     return resolved;
@@ -9672,7 +9674,8 @@ export class Runtime {
         return operator === "+" ? "" : value ?? "";
       }
       if (part.length && !binding && !entries) this.requireParameter(undefined, `${part.name}[${element.index.decimal}]`, state, io, part.line);
-      if (!(part.length && binding?.assigned)) this.requireParameter(value === undefined ? undefined : shellValueText(value), part.name, state, io, part.line);
+      const parameterName = part.length ? part.name : writtenArrayParameter in part ? String(part[writtenArrayParameter]) : `${part.name}[${element.index.decimal}]`;
+      if (!(part.length && binding?.assigned)) this.requireParameter(value === undefined ? undefined : shellValueText(value), parameterName, state, io, part.line);
       if (part.length) return this.valueLength(value ?? "", state, io);
       if (part.substring) return await this.substring(part, value, state, io) ?? "";
       if (part.transform) return part.transform === "a" || part.transform === "A" || part.transform === "K" || part.transform === "k" ? this.variableMetaTransform(part, state, io) : value === undefined ? "" : this.transformValue(value, part.transform, state, io);

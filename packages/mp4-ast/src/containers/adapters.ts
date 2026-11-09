@@ -557,6 +557,11 @@ export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   const header = readWavHeader(bytes, options.ignoreLength);
   if (options.decodeAudio !== false && header.channels === 0) throw new Error("Decoder requires channel layout to be set");
   const { formatTag, channels, sampleRate, bitsPerSample, littleEndian } = header;
+  if (options.decodeAudio !== false && bitsPerSample !== 0 &&
+      (formatTag === 1 && ![8, 16, 24, 32, 64].includes(bitsPerSample) ||
+       formatTag === 3 && ![32, 64].includes(bitsPerSample))) {
+    throw new Error(`No decoder for WAV format tag ${formatTag} with ${bitsPerSample}-bit samples`);
+  }
   const pcmData = bytes.subarray(header.dataOffset, header.dataOffset + header.dataSize);
 
   const compressed = formatTag !== 1 && formatTag !== 3 && formatTag !== 0xfffe;

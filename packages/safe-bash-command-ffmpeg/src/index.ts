@@ -9401,6 +9401,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "alimiter" || trimmed.startsWith("alimiter=")) {
+                        filteredSampleFormat = "dbl";
                         const limited = await limitAudio(stretched, origRate, trimmed, budget, context.signal);
                         stretched = limited.channels;
                         if (limited.delay) {

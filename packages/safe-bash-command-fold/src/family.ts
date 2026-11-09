@@ -1,3 +1,4 @@
+import { foldLineBytes } from "./contracts.js";
 import { decodeFoldUnit, portableWidth, type FoldUnit } from "./index.js";
 import type { CommandDefinition } from "safe-bash-contracts";
 import { parseFoldArguments } from "./arguments.js";
@@ -80,6 +81,11 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
           }
         }
         column = adjust(column, unit.cp, unit.length, unit.valid);
+        if (record.size + unit.length >= foldLineBytes) {
+          await flushOut();
+          await session.output(record.view());
+          record.clear(); lastBlank = -1;
+        }
         for (let i = 0; i < byteLen; i++) record.push(bytes[byteOffset + i]!);
         if (unit.valid && blank(unit.cp)) lastBlank = record.size - 1;
       };
@@ -101,7 +107,7 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
           if (!utf8 || (pending.length === 0 && byte < 128)) {
             if (byte !== 10) {
               const nextCol = adjust(column, byte, 1, true);
-              if (nextCol <= width || !record.size) {
+              if ((nextCol <= width || !record.size) && record.size + 1 < foldLineBytes) {
                 column = nextCol;
                 record.push(byte);
                 if (byte === 32 || byte === 9) lastBlank = record.size - 1;

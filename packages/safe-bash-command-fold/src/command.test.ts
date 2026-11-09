@@ -16,7 +16,7 @@ function fixture(args: readonly string[] = [], input = '', files: Record<string,
     command: 'fold', args: carrier.args, argumentValues: carrier, cwd: '/vfs', env: {},
     signal: new AbortController().signal,
     stdin: (async function* () { yield encoder.encode(input); })(),
-    stdout: { async write(bytes: Uint8Array) { await Promise.resolve(); stdout.push(...bytes); } },
+    stdout: { async write(bytes: Uint8Array) { await Promise.resolve(); for (const byte of bytes) stdout.push(byte); } },
     stderr: { async write(bytes: Uint8Array) { stderr.push(...bytes); } },
     registerCleanup(cleanup: () => void | Promise<void>) { cleanups.push(cleanup); },
     fs: { readStream(path: string, options: { signal: AbortSignal }) {
@@ -308,7 +308,7 @@ test('argument admission and engine work share a single work budget', async () =
 });
 test('command admits output retention before engine output allocation', async () => {
   const f = fixture([], 'a'.repeat(4096));
-  await assert.rejects(fold(f.context, { width: 1, limits: { retainedBytes: 8196 } }), /retention/i);
+  await assert.rejects(fold(f.context, { width: 1, limits: { retainedBytes: 262148 } }), /retention/i);
 });
 test('VFS path NUL is rejected with status one instead of an escaping error', async () => {
   const f = fixture(['a\0b']);
@@ -465,7 +465,7 @@ test('live operand retention and input reservations share the invocation limit',
   for (const sdk of [false, true]) {
     const file = 'x'.repeat(3000);
     const f = fixture(sdk ? [] : [file], '', { [`/vfs/${file}`]: 'a'.repeat(4096) });
-    const limits = { retainedBytes: 20000 };
+    const limits = { retainedBytes: 273952 };
     const running = sdk ? fold(f.context, { files: [file], limits })
       : createFoldCommand({ limits }).execute(f.context);
     await assert.rejects(running as Promise<unknown>, error => error instanceof FoldError && error.code === 'LIMIT');
@@ -482,11 +482,11 @@ test('fallback read admission deducts live operand storage before acquiring VFS 
     maximum = options.maxBytes;
     return encoder.encode('ok');
   }) };
-  const result = await createFoldCommand({ limits: { retainedBytes: 20000 } }).execute(context);
+  const result = await createFoldCommand({ limits: { retainedBytes: 273952 } }).execute(context);
   assert.equal(result.exitCode, 0);
-  assert.equal(maximum, 20000 - 8196 - 3001 * 3);
+  assert.equal(maximum, 273952 - 262148 - 3001 * 3);
   assert.equal(f.text(), 'ok');
-  assert.ok((result as Awaited<ReturnType<typeof fold>>).accounting.peakRetainedBytes >= 8196 + 3001 * 3 + 8);
+  assert.ok((result as Awaited<ReturnType<typeof fold>>).accounting.peakRetainedBytes >= 262148 + 3001 * 3 + 8);
 });
 
 test('an input error flushes only admitted bytes and continues to the next VFS file', async () => {
@@ -552,9 +552,9 @@ for (const option of ['--help', '--version']) {
 test('retained range input avoids the former whole-file retention surcharge', async () => {
   const f = fixture();
   const context = { ...f.context, fs: retainedFixture(async () => encoder.encode('a'.repeat(4096))) };
-  const result = await fold(context, { width: 1, files: ['file'], limits: { retainedBytes: 32768 } });
+  const result = await fold(context, { width: 1, files: ['file'], limits: { retainedBytes: 327680 } });
   assert.equal(result.exitCode, 0);
-  assert.ok(result.accounting.peakRetainedBytes <= 32768);
+  assert.ok(result.accounting.peakRetainedBytes <= 327680);
   assert.equal(f.text(), 'a\n'.repeat(4095) + 'a');
   await Promise.all(f.cleanups.map(cleanup => cleanup()));
 });

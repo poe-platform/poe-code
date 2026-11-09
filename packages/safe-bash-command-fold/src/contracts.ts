@@ -1,3 +1,5 @@
+// Released GNU coreutils 9.10 IO_BUFSIZE; flushing changes -s break candidates.
+export const foldLineBytes = 256 * 1024;
 export type FoldMode = 'columns' | 'characters' | 'bytes';
 export interface FoldOptions { readonly width: number; readonly mode: FoldMode; readonly spaces: boolean; readonly files: readonly string[] }
 export interface FoldLimits {
@@ -17,5 +19,5 @@ export class FoldError extends Error {
 }
 export function validateLimits(limits: FoldLimits): void {
   for (const value of [limits.chunkBytes ?? Infinity, limits.inputBytes, limits.decodedBytes ?? Infinity, limits.outputBytes, limits.retainedBytes, limits.work, limits.argumentBytes]) if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) throw new FoldError('LIMIT', 'Limits must be nonnegative safe integers');
-  if (limits.retainedBytes < 8196) throw new FoldError('LIMIT', 'The release buffer contract requires 8192 line bytes plus 4 decoder bytes');
+  if (limits.retainedBytes < foldLineBytes + 4) throw new FoldError('LIMIT', 'The release buffer contract requires 262144 line bytes plus 4 decoder bytes');
 }

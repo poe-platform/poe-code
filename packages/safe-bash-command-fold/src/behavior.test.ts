@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createFoldEngine, parseFoldArguments, FoldError } from './index.js';
 
-const limits = { inputBytes: 100000, outputBytes: 120000, retainedBytes: 8196, argumentBytes: 1024, work: 1000000 };
+const limits = { inputBytes: 1000000, outputBytes: 1200000, retainedBytes: 262148, argumentBytes: 1024, work: 10000000 };
 const profile = 'UTF-8/Unicode-17.0.0';
 const encode = (text: string) => new TextEncoder().encode(text);
 
@@ -24,7 +24,7 @@ test('space candidates reset at LF, file end and finite buffer flush without syn
     ['ab\bcde', '-scw3', 'ab\bcd\ne'],
     ['a b\tcd', '-sw4', 'a \nb\n\t\ncd'],
     ['界a', '-sbw1', '界\na'],
-    ['a \r' + '\0'.repeat(8188) + 'abcd', '-sw3', 'a \r' + '\0'.repeat(8188) + 'abc\nd'],
+    ['a \r' + '\0'.repeat(262140) + 'abcd', '-sw3', 'a \r' + '\0'.repeat(262140) + 'abc\nd'],
   ];
   for (const [input, flag, expected] of fixtures) {
     for (const chunkSize of [1, 3, 4096]) {
@@ -38,7 +38,7 @@ test('space candidates reset at LF, file end and finite buffer flush without syn
       assert.equal(usage.decodedBytes, bytes.length);
       assert.equal(usage.outputBytes, encode(expected!).length);
       assert.equal(usage.retainedBytes, 0);
-      assert.ok(usage.peakRetainedBytes <= 8196);
+      assert.ok(usage.peakRetainedBytes <= 262148);
       engine.dispose();
     }
   }

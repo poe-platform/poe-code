@@ -1,5 +1,5 @@
 import { createFoldEngine, parseFoldArguments, FoldError, adjustFoldColumn, type FoldEngine, type FoldLocale, type FoldLimits, type FoldOptions, type FoldErrorCode, type FoldColumnState, type FoldGlyph } from '@poe-platform/safe-bash/commands/fold';
-const limits: FoldLimits = { inputBytes: 100, outputBytes: 200, work: 10000, retainedBytes: 8196, argumentBytes: 1000 };
+const limits: FoldLimits = { inputBytes: 100, outputBytes: 200, work: 10000, retainedBytes: 262148, argumentBytes: 1000 };
 const options: FoldOptions = parseFoldArguments(['-c', '-w5'], limits);
 const locale: FoldLocale = 'UTF-8/Unicode-17.0.0';
 const engine: FoldEngine = createFoldEngine(options, locale, limits, new AbortController().signal);

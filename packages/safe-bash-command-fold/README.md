@@ -55,7 +55,8 @@ parsing, so subsequent names such as `--help` are literal files.
 
 Examples: `fold -w40 /notes`, `fold -s -w20 /notes`,
 `printf abcdef | fold -c -w3` (outputs `abc\ndef`). No operands or `-` reads stdin.
-LF and absent final LF are preserved; finite buffer flushes add no line breaks.
+LF and absent final LF are preserved; 256 KiB buffer flushes add no line breaks
+and discard earlier word-break candidates.
 In column/character modes, TAB advances to the next 8-column stop, CR resets the
 column and BS subtracts the previous counted glyph width. Byte mode counts their
 encoded lengths. Previous glyph width survives LF/file boundaries; checked
@@ -75,8 +76,8 @@ All quotas are unlimited by default. Override independent input, decoded-byte,
 output, retained-storage, work, argument-byte and `chunkBytes` quotas via `limits`; explicit
 values must be nonnegative safe integers or `Infinity`. Limits accumulate across files;
 argument admission also consumes work. Retention accounts encoded storage, owned fallback
-file input and output reservations, not total JS heap. At least 8196 bytes are
-required for the 8192-byte line buffer and decoder; operands/output need additional
+file input and output reservations, not total JS heap. At least 262148 bytes are
+required for the 262144-byte line buffer and decoder; operands/output need additional
 headroom. Without VFS `readStream`, bounded `readFile` is used.
 
 Runtime: TypeScript ESM, byte streams, VFS-only I/O, explicit AbortSignal,

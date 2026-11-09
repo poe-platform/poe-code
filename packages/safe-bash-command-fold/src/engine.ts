@@ -1,5 +1,5 @@
 import { ASCII_UNITS, decodeFoldUnit, type FoldUnit } from "./units.js";
-import { FoldError, defaultFoldLimits, validateLimits, type FoldLimits, type FoldOptions } from './contracts.js';
+import { FoldError, foldLineBytes, defaultFoldLimits, validateLimits, type FoldLimits, type FoldOptions } from './contracts.js';
 import { adjustFoldColumn } from './column.js';
 // Inspect intrinsic slots across realms; producer properties must not change
 // byte admission, accounting or iteration (Buffer is also a Uint8Array).
@@ -39,7 +39,7 @@ export function createFoldEngine(options: FoldOptions, locale: string, configura
   const { width, mode, spaces } = options;
   const { inputBytes, outputBytes, work } = limits;
   const decodedLimit = limits.decodedBytes ?? Infinity;
-  const line = new Uint8Array(8192), pending: number[] = [];
+  const line = new Uint8Array(foldLineBytes), pending: number[] = [];
   let used = 0, column = 0, lastWidth = 0, input = 0, decoded = 0, output = 0, steps = 0, closed = false;
   // One byte offset identifies the last candidate; no per-glyph retained objects.
   let lastBlank = 0, peakRetained = 0;

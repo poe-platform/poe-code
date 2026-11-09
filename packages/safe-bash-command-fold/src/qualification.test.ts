@@ -4,7 +4,7 @@ import { createFoldEngine, parseFoldArguments } from './index.js';
 
 const profile = 'UTF-8/Unicode-17.0.0';
 const encode = (text: string) => new TextEncoder().encode(text);
-const limits = { inputBytes: 2000000, outputBytes: 3000000, retainedBytes: 8196, work: 20000000, argumentBytes: 1024 };
+const limits = { inputBytes: 2000000, outputBytes: 3000000, retainedBytes: 262148, work: 20000000, argumentBytes: 1024 };
 
 test('explicit invalid-byte preservation differs from the signed-char native EOF collision', () => {
   // Minimized GNU 9.10/macOS control: FF terminates UTF8 input silently.
@@ -72,7 +72,7 @@ test('streaming zero-width input retains a fixed buffer and delivers owned bytes
         delivered += chunk.length;
         chunk.fill(0); // Delivered storage must not alias retained state.
       }
-      assert.ok(engine.accounting().retainedBytes <= 8196);
+      assert.ok(engine.accounting().retainedBytes <= 262148);
     }
     for (const chunk of engine.endFile()) {
       for (let i = 0; i < chunk.length; i += 2) {
@@ -82,7 +82,7 @@ test('streaming zero-width input retains a fixed buffer and delivers owned bytes
     }
     assert.equal(delivered, 1048576);
     assert.equal(engine.accounting().outputBytes, delivered);
-    assert.ok(engine.accounting().peakRetainedBytes <= 8196);
+    assert.ok(engine.accounting().peakRetainedBytes <= 262148);
     assert.equal(engine.accounting().retainedBytes, 0);
   } finally { engine.dispose(); }
 });

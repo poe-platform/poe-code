@@ -7,7 +7,7 @@ import { createOutputOperation, type OutputOperation } from 'safe-bash-contracts
 import type { VirtualShellPlugin } from 'safe-bash-contracts/plugin';
 import { shellValueByteLength } from 'safe-bash-contracts/value';
 import { parseFoldArguments } from './arguments.js';
-import { FoldError, defaultFoldLimits, type FoldLimits, type FoldOptions } from './contracts.js';
+import { FoldError, foldLineBytes, defaultFoldLimits, type FoldLimits, type FoldOptions } from './contracts.js';
 import { createFoldEngine, type FoldAccounting, type FoldEngine } from './engine.js';
 import type { FoldLocale } from './column.js';
 
@@ -76,11 +76,11 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
         // impossible operands before the byte-length helper scans their text.
         const minimum = sdkExtent + file.length + 1;
         if (minimum > limits.argumentBytes) throw new FoldError('LIMIT', 'Argument byte limit exceeded');
-        if (minimum * 3 > limits.retainedBytes - 8196) throw new FoldError('LIMIT', 'Invocation retention limit exceeded');
+        if (minimum * 3 > limits.retainedBytes - (foldLineBytes + 4)) throw new FoldError('LIMIT', 'Invocation retention limit exceeded');
         if (minimum * 4 > limits.work) throw new FoldError('LIMIT', 'Invocation work limit exceeded');
         sdkExtent += shellValueByteLength(file) + 1;
         if (sdkExtent > limits.argumentBytes) throw new FoldError('LIMIT', 'Argument byte limit exceeded');
-        if (sdkExtent * 3 > limits.retainedBytes - 8196) throw new FoldError('LIMIT', 'Invocation retention limit exceeded');
+        if (sdkExtent * 3 > limits.retainedBytes - (foldLineBytes + 4)) throw new FoldError('LIMIT', 'Invocation retention limit exceeded');
         if (sdkExtent * 4 > limits.work) throw new FoldError('LIMIT', 'Invocation work limit exceeded');
         args.push(file);
       }
@@ -95,14 +95,14 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
     const scope = { signal, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup.bind(context) } : {}) };
     stdout = createOutputOperation(scope, context.stdout);
     stderr = createOutputOperation(scope, context.stderr);
-    let diagnostics = 0, filesRead = 0, filesFailed = 0, overheadWork = 0, peakRetained = 8196, argumentRetention = 0;
+    let diagnostics = 0, filesRead = 0, filesFailed = 0, overheadWork = 0, peakRetained = foldLineBytes + 4, argumentRetention = 0;
     const chargeWork = (amount: number): void => {
       if (amount > limits.work - overheadWork - (engine?.accounting().work ?? 0)) throw new FoldError('LIMIT', 'Invocation work limit exceeded');
       overheadWork += amount;
     };
     const retain = (amount: number): void => {
-      if (amount > limits.retainedBytes - 8196 - argumentRetention) throw new FoldError('LIMIT', 'Invocation retention limit exceeded');
-      peakRetained = Math.max(peakRetained, 8196 + argumentRetention + amount);
+      if (amount > limits.retainedBytes - (foldLineBytes + 4) - argumentRetention) throw new FoldError('LIMIT', 'Invocation retention limit exceeded');
+      peakRetained = Math.max(peakRetained, foldLineBytes + 4 + argumentRetention + amount);
     };
     const accounting = (): Readonly<FoldAccounting> => Object.freeze({
       ...(engine?.accounting() ?? { inputBytes: 0, decodedBytes: 0, retainedBytes: 0, peakRetainedBytes: 0, outputBytes: 0, work: 0 }),
@@ -143,7 +143,7 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
           }
           const length = shellValueByteLength(value);
           extent += length + 1;
-          if (extent > limits.argumentBytes || length > limits.retainedBytes - 8196) throw new FoldError('LIMIT', 'Argument byte limit exceeded');
+          if (extent > limits.argumentBytes || length > limits.retainedBytes - (foldLineBytes + 4)) throw new FoldError('LIMIT', 'Argument byte limit exceeded');
           // VFS paths are Unicode strings: refuse lossy byte argv explicitly.
           retain(length * 3); chargeWork((length + 1) * 4);
           const bytes = carrier.bytes(index)!;
@@ -200,7 +200,7 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
         if (file === '-') source = context.stdin;
         else {
           const path = file.startsWith('/') ? file : `${context.cwd}/${file}`;
-          source = readFileStream(context.fs, path, { signal, chunkSize: Math.max(1, Math.min(65536, limits.inputBytes - engine.accounting().inputBytes, limits.retainedBytes - 8196 - argumentRetention)) });
+          source = readFileStream(context.fs, path, { signal, chunkSize: Math.max(1, Math.min(65536, limits.inputBytes - engine.accounting().inputBytes, limits.retainedBytes - (foldLineBytes + 4) - argumentRetention)) });
         }
       } catch (error) { await fileError(file, error); continue; }
       let producer: AsyncIterator<Uint8Array>;

@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import { createFoldEngine, parseFoldArguments, FoldError, portableWidth, adjustFoldColumn } from './index.js';
 const utf8 = 'UTF-8/Unicode-17.0.0';
-const limits = { inputBytes: 200000, outputBytes: 300000, work: 1000000, retainedBytes: 8196, argumentBytes: 4096 };
+const limits = { inputBytes: 200000, outputBytes: 300000, work: 1000000, retainedBytes: 262148, argumentBytes: 4096 };
 function fold(input: string | Uint8Array, args: string[] = [], locale = utf8, chunks = 1): Uint8Array {
   const engine = createFoldEngine(parseFoldArguments(args, limits), locale, limits);
   const bytes = typeof input === 'string' ? new TextEncoder().encode(input) : input;

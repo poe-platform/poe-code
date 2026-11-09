@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { createFoldEngine, parseFoldArguments, FoldError, adjustFoldColumn, portableWidth } from '@poe-platform/safe-bash/commands/fold';
-const limits = { inputBytes: 1000, outputBytes: 2000, work: 10000, retainedBytes: 8196, argumentBytes: 1000 };
+const limits = { inputBytes: 1000, outputBytes: 2000, work: 10000, retainedBytes: 262148, argumentBytes: 1000 };
 assert.throws(() => parseFoldArguments(['-12b'], limits), error => error instanceof FoldError && error.code === 'WIDTH');
 const engine = createFoldEngine(parseFoldArguments(['-b', '--wid=5'], limits), 'UTF-8/Unicode-17.0.0', limits);
 const output = [...engine.push(new TextEncoder().encode('界界界\n')), ...engine.endFile()];

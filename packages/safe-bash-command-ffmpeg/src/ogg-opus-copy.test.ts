@@ -7,12 +7,12 @@ import { oggAst, parseMkv } from "@poe-code/mp4-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 // Native fixtures: ffmpeg -f lavfi -i sine=f=440:r=48000:d=0.75 -c:a libopus -metadata title=Tone440 tone-opus.ogg
-for (const chained of [false, true]) for (const sync of [false, true]) {
-  it(`${sync ? "sync" : "async"} copies ${chained ? "chained" : "single"} Ogg Opus packets and metadata into Matroska`, async () => {
+for (const chained of [false, true]) for (const sync of [false, true]) for (const limited of [false, true]) {
+  it(`${sync ? "sync" : "async"} ${limited ? "duration-limited" : "full"} copies ${chained ? "chained" : "single"} Ogg Opus packets and metadata into Matroska`, async () => {
     const first = readFileSync(new URL("./fixtures/tone-opus.ogg", import.meta.url));
     const input = chained ? Buffer.concat([first, readFileSync(new URL("./fixtures/tone-opus-880.ogg", import.meta.url))]) : first;
     const volume = Volume.fromJSON({ "/in.ogg": input });
-    const args = ["-y", "-v", "error", "-i", "/in.ogg", "-c", "copy", "/out.mkv"];
+    const args = ["-y", "-v", "error", "-i", "/in.ogg", ...(limited ? ["-t", "0.2"] : []), "-c", "copy", "/out.mkv"];
     if (sync) {
       assert.equal(evalSyncFfmpeg(args, undefined,
         path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
@@ -34,13 +34,14 @@ for (const chained of [false, true]) for (const sync of [false, true]) {
     const copied = parseMkv(new Uint8Array(volume.readFileSync("/out.mkv") as Buffer));
     const track = copied.tracks[0]!;
     const packets = readOgg(input).packets.filter(packet => !["OpusHead", "OpusTags"].includes(new TextDecoder().decode(packet.data.subarray(0, 8))));
-    assert.equal(track.samples.length, chained ? 76 : 38);
-    assert.deepEqual(track.samples.map(sample => sample.data), packets.map(packet => packet.data));
+    assert.equal(track.samples.length, limited ? 11 : chained ? 76 : 38);
+    assert.deepEqual(track.samples.map(sample => sample.data), (limited ? packets.slice(0, 11) : packets).map(packet => packet.data));
     assert.equal(track.codecDelayNs, 6_500_000);
     assert.equal(track.seekPreRollNs, 80_000_000);
-    assert.equal(track.samples[37]!.discardPaddingNs, 3_500_000);
-    assert.ok(Math.abs(track.samples[0]!.pts + 6.5) <= 0.5);
-    if (chained) assert.equal(track.samples[38]!.pts, 750);
+    if (!limited) assert.equal(track.samples[37]!.discardPaddingNs, 3_500_000);
+    if (limited) assert.deepEqual(track.samples.map(sample => sample.pts), [-7, 14, 34, 54, 74, 94, 114, 134, 154, 174, 194]);
+    assert.equal(track.samples[0]!.pts, -7);
+    if (chained && !limited) assert.equal(track.samples[38]!.pts, 750);
     assert.equal(track.metadata?.title, "Tone440");
     assert.equal(copied.metadata.title, undefined);
     assert.equal(copied.metadata.encoder, "@poe-code/mp4-ast");

@@ -2277,6 +2277,10 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
       }
     }
 
+    // Codec delay is already represented in packet timestamps. A duration-only
+    // copy must retain that timeline instead of replacing it with an edit list.
+    const preserveTimeline = options.copyAudio && track.type === "audio" &&
+      !track.decodedAudio && track.codecDelayNs !== undefined && !track.editList && startSec === 0;
     const slicedSamples: MediaSample[] = [];
     let runningDts = 0;
 
@@ -2321,15 +2325,15 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
         data: sampleData,
         size: sampleData.byteLength,
         isKeyframe: isPromotedFirst ? true : s.isKeyframe,
-        dts: runningDts,
-        pts: runningDts + s.cts,
+        dts: preserveTimeline ? s.dts : runningDts,
+        pts: preserveTimeline ? s.pts : runningDts + s.cts,
         duration: clippedDuration
       });
-      runningDts += clippedDuration;
+      runningDts = (preserveTimeline ? s.dts : runningDts) + clippedDuration;
     }
 
     let editList: Mp4EditListEntry[] | undefined;
-    if (useEditList && slicedSamples.length > 0 && materialized.samples[actualStartIdx]!.dts < startTick) {
+    if (useEditList && !preserveTimeline && slicedSamples.length > 0 && materialized.samples[actualStartIdx]!.dts < startTick) {
       const mediaSkipTicks = Math.max(0, startTick - materialized.samples[actualStartIdx]!.dts);
       const segmentDurMovie = Math.round(Math.max(0, Math.min(options.copyAudio && track.type === "audio" ? Infinity : endTick, materialized.samples[actualStartIdx]!.dts + runningDts) - startTick) / ts * movieTimescale);
       editList = [

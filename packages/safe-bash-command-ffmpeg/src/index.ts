@@ -9605,8 +9605,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelMask = 3;
                         filteredSampleFormat = "dbl";
                         statsScale = 1;
-                      } else if (trimmed === "vibrato" || trimmed.startsWith("vibrato=")) {
-                        stretched = await vibratoAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "adynamicequalizer" || trimmed.startsWith("adynamicequalizer=")) {
                         stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
@@ -9619,7 +9617,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay") {
+                      } else if (filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -9636,7 +9634,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        if (filterName === "compensationdelay") {
+                        if (filterName === "vibrato") {
+                          filteredSampleFormat = "dblp";
+                          stretched = await vibratoAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                        } else if (filterName === "compensationdelay") {
                           filteredSampleFormat = "dblp";
                           const commands = audioCommands.filter(command => command.target === "compensationdelay" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);

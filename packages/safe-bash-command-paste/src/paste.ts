@@ -1,4 +1,4 @@
-import type { CommandDefinition } from "safe-bash-contracts";
+import { FsError, type CommandDefinition } from "safe-bash-contracts";
 import { diagnostic } from "safe-bash-io-engine/internal";
 import { argument, command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
@@ -71,12 +71,21 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         return { exitCode: status };
       }
       const readers = [];
-      for (const file of files) readers.push(await inputs.open(file));
+      let status = 0;
+      for (const file of files) {
+        try { readers.push(await inputs.open(file)); }
+        catch (error) {
+          context.signal.throwIfAborted();
+          if (!(error instanceof FsError) || error.code !== "EISDIR") throw error;
+          await diagnostic(context, error); status = 1;
+          readers.push(undefined);
+        }
+      }
       while (true) {
         const row: Uint8Array[] = [];
         let present = false;
         for (let index = 0; index < readers.length; index++) {
-          const record = await readers[index]!.next();
+          const record = await readers[index]?.next();
           present ||= record !== undefined;
           if (index) row.push(list[(index - 1) % list.length]!);
           row.push(record ?? empty);
@@ -84,7 +93,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         if (!present) break;
         row.push(terminator); await budget.output(row);
       }
-      return { exitCode: 0 };
+      return { exitCode: status };
     } finally { await inputs.close(); }
   });
 }

@@ -37,3 +37,42 @@ test("serial paste flushes the record terminator before a missing-file diagnosti
  assert.equal(result.exitCode, 1);
  assert.ok(result.combined.startsWith("a\tb\tc\npaste: "), result.combined);
 });
+
+for (const separator of ["\n", "\0"]) {
+ const options = separator === "\0" ? ["-z"] : [];
+ const rows = `x${separator}y${separator}`;
+ for (const directoryFirst of [true, false]) {
+  const operands = directoryFirst ? ["/", "/rows"] : ["/rows", "/"];
+  const expected = directoryFirst ? `\tx${separator}\ty${separator}` : `x\t${separator}y\t${separator}`;
+  test(`parallel paste preserves columns for a directory ${directoryFirst ? "first" : "last"} with ${JSON.stringify(separator)} records`, async () => {
+   const result = await run([...options, ...operands], { "/rows": rows });
+   assert.equal(result.stdout, expected);
+   assert.equal(result.exitCode, 1);
+   assert.ok(result.stderr.includes("EISDIR"), result.stderr);
+  });
+  test(`parallel paste still aborts for a missing operand ${directoryFirst ? "first" : "last"} with ${JSON.stringify(separator)} records`, async () => {
+   const result = await run([...options, ...operands.map(file => file === "/" ? "/missing" : file)], { "/rows": rows });
+   assert.equal(result.stdout, "");
+   assert.equal(result.exitCode, 1);
+   assert.ok(result.stderr.includes("ENOENT"), result.stderr);
+  });
+  test(`parallel paste pads an empty file ${directoryFirst ? "first" : "last"} with ${JSON.stringify(separator)} records`, async () => {
+   const result = await run([...options, ...operands.map(file => file === "/" ? "/empty" : file)], { "/rows": rows, "/empty": "" });
+   assert.equal(result.stdout, expected);
+   assert.equal(result.exitCode, 0);
+   assert.equal(result.stderr, "");
+  });
+ }
+ test(`parallel paste emits no records for only directories with ${JSON.stringify(separator)} records`, async () => {
+  const result = await run([...options, "/", "/"], {});
+  assert.equal(result.stdout, "");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr.split("EISDIR").length - 1, 2);
+ });
+ test(`serial paste still skips empty files with ${JSON.stringify(separator)} records`, async () => {
+  const result = await run([...options, "-s", "/empty", "/rows", "/empty"], { "/empty": "", "/rows": rows });
+  assert.equal(result.stdout, `x\ty${separator}`);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+ });
+}

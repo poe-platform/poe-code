@@ -6270,8 +6270,9 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     const intensity = magickIntensity(samples[i]!, samples[i + 1]!, samples[i + 2]!, method, 255 * scale, image.magickColorspace === "RGB") / scale;
                     const tone = magickSepiaTone(intensity, threshold, gray);
                     // Sepia tones all RGB channels; only normalization honors the channel mask.
+                    // Grayscale has one color channel, selected by the red/gray mask bit.
                     for (let channel = 0; channel < 4; channel++) {
-                        if (independent && !channels[channel] || channel === 3 && !image.hasAlpha) continue;
+                        if (independent && !channels[gray && channel < 3 ? 0 : channel] || channel === 3 && !image.hasAlpha) continue;
                         const black = blacks[channel]!, white = whites[channel]!;
                         if (white <= black) continue;
                         // Native normalization indexes its Q16 stretch map with rounded tone values.

@@ -247,10 +247,10 @@ for (const [list, expected] of [["│", "a│b│c│d\n"], ["😀│", "a😀b�
   });
 }
 for (const args of [["-s", "-"], ["-sz", "-"], ["-s", "empty", "full", "empty"]]) {
-  test(`paste skips empty serial input ${args.join(" ")}`, async () => {
+  test(`paste emits a record per empty serial input ${args.join(" ")}`, async () => {
     const result = await runTable(fixture("paste", args, { empty: "", full: "x\n" }));
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(result.stdoutHex, args.includes("full") ? "780a" : "");
+    assert.equal(result.stdoutHex, args.includes("full") ? "0a780a0a" : args.includes("-sz") ? "00" : "0a");
   });
 }
 for (const command of ["join", "comm"] as const) {

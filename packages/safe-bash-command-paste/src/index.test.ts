@@ -69,10 +69,24 @@ for (const separator of ["\n", "\0"]) {
   assert.equal(result.exitCode, 1);
   assert.equal(result.stderr.split("EISDIR").length - 1, 2);
  });
- test(`serial paste still skips empty files with ${JSON.stringify(separator)} records`, async () => {
+ test(`serial paste emits a record for empty files with ${JSON.stringify(separator)} records`, async () => {
   const result = await run([...options, "-s", "/empty", "/rows", "/empty"], { "/empty": "", "/rows": rows });
-  assert.equal(result.stdout, `x\ty${separator}`);
+  assert.equal(result.stdout, `${separator}x\ty${separator}${separator}`);
   assert.equal(result.exitCode, 0);
   assert.equal(result.stderr, "");
  });
+ for (const operands of [[], ["-"], ["-", "-"]]) {
+  test(`serial paste emits a record per empty stdin operand ${JSON.stringify([...options, ...operands])}`, async () => {
+   const result = await run([...options, "-s", ...operands], {});
+   assert.equal(result.stdout, separator.repeat(operands.length || 1));
+   assert.equal(result.exitCode, 0);
+   assert.equal(result.stderr, "");
+  });
+  test(`parallel paste emits no records for empty stdin ${JSON.stringify([...options, ...operands])}`, async () => {
+   const result = await run([...options, ...operands], {});
+   assert.equal(result.stdout, "");
+   assert.equal(result.exitCode, 0);
+   assert.equal(result.stderr, "");
+  });
+ }
 }

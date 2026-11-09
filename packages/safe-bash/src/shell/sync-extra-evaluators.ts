@@ -23575,8 +23575,7 @@ const syncExtraRuntimeMethods = {
       if (serial) {
         const out: string[] = [];
         for (const colLines of streams) {
-          if (colLines.length === 0) continue;
-          let joined = colLines[0]!;
+          let joined = colLines[0] ?? "";
           for (let i = 1; i < colLines.length; i++) {
             joined += delims[(i - 1) % delims.length]! + colLines[i]!;
           }
@@ -23597,7 +23596,7 @@ const syncExtraRuntimeMethods = {
     }
     if (serial) {
       if (files.length !== 1) return undefined;
-      if (rawLines.length === 0) return [];
+      if (rawLines.length === 0) return [""];
       let joined = rawLines[0]!;
       for (let i = 1; i < rawLines.length; i++) {
         joined += delims[(i - 1) % delims.length]! + rawLines[i]!;

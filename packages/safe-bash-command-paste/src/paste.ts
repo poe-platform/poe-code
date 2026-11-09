@@ -66,7 +66,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
             else await budget.output([record]);
             count++; record = await reader.next();
           }
-          if (count) await budget.output([terminator]);
+          await budget.output([terminator]);
         }
         return { exitCode: status };
       }

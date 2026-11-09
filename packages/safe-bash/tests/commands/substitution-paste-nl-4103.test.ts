@@ -12,6 +12,25 @@ function shell() {
   } });
 }
 
+for (const [operands, expected] of [
+  ["-", "\n"],
+  ["- -", "\n\n"],
+  ["/empty /f1 /empty", "\nalpha\n\n"],
+] as const) {
+  for (const zero of [false, true]) {
+    for (const pipeline of [false, true]) {
+      test(`serial paste preserves empty records: ${operands}, zero=${zero}, pipeline=${pipeline}`, async () => {
+        const command = `paste -s${zero ? "z" : ""} ${operands}`;
+        const script = `printf '' > /empty; printf 'alpha${zero ? "\\0" : "\\n"}' > /f1; printf '' | ${command}${pipeline ? " | cat" : ""}`;
+        const result = await shell().exec(script);
+        assert.equal(result.stdout, zero ? expected.replaceAll("\n", "\0") : expected);
+        assert.equal(result.stderr, "");
+        assert.equal(result.exitCode, 0);
+      });
+    }
+  }
+}
+
 for (const [command, expected] of [
   ["paste -", "from-stdin\n"],
   ["paste /f1 -", "alpha\tfrom-stdin\n"],

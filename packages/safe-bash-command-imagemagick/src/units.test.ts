@@ -26,7 +26,7 @@ for (const mode of ["buffered", "retained", "command"]) {
         const meta = readImageMetadata(mode === "buffered" ? files.get(path)! : await fs.readFile(path));
         const scale = format === "png" ? unit === "inch" ? 100 / 2.54 : 100 : 1;
         expect(meta).toMatchObject({ width: 2, height: 1, resolution: {
-          x: Math.round(x * scale), y: Math.round(y * scale), unit: format === "png" ? "meter" : unit,
+          x: Math.floor(x * scale), y: Math.floor(y * scale), unit: format === "png" ? "meter" : unit,
         } });
       });
     }
@@ -53,4 +53,43 @@ for (const mode of ["buffered", "retained"] as const) {
     expect(result).toMatchObject({ exitCode: 1 });
     expect(result.stderr).toContain("unrecognized units type");
   });
+}
+
+for (const mode of ["buffered", "retained", "command"]) {
+  for (const [name, options, physical] of [
+    ["density then set", ["-density", "100x100", "-set", "units", "PixelsPerCentimeter"], "000027100000271001"],
+    ["set then density", ["-set", "units", "PixelsPerCentimeter", "-density", "100x100"], "000027100000271001"],
+    ["units control", ["-units", "PixelsPerCentimeter", "-density", "100x100"], "000027100000271001"],
+    ["no density", ["-set", "units", "PixelsPerCentimeter"], undefined],
+  ] as const) {
+    it(`writes physical PNG units without a units text property: ${name} (${mode})`, async () => {
+      const input = encodeImage({ width: 1, height: 1, data: Uint8Array.of(200, 89, 30, 255),
+        format: "png", space: "srgb", channels: 3, depth: "uchar", density: 72, hasAlpha: false,
+        properties: { note: "original", comment: "hello" } }, { format: "png" }).data;
+      const fs = new MemoryFileSystem(), files = new Map([["/input.png", input]]);
+      await fs.writeFile("/input.png", input);
+      await fs.writeFile("/output.png", new TextEncoder().encode("keep"));
+      files.set("/output.png", new TextEncoder().encode("keep"));
+      const args = ["/input.png", ...options, "/output.png"];
+      const result = mode === "command" ? await createMagickCommand().execute({ command: "magick",
+        args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} } })
+        : await runConvertCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = mode === "buffered" ? files.get("/output.png")! : await fs.readFile("/output.png");
+      const chunks = new Map<string, string>(), keys: string[] = [];
+      for (let offset = 8; offset + 12 <= output.length;) {
+        const length = new DataView(output.buffer, output.byteOffset + offset, 4).getUint32(0);
+        const kind = new TextDecoder().decode(output.subarray(offset + 4, offset + 8));
+        const data = output.subarray(offset + 8, offset + 8 + length);
+        chunks.set(kind, Buffer.from(data).toString("hex"));
+        if (["tEXt", "zTXt", "iTXt"].includes(kind)) keys.push(new TextDecoder().decode(data.subarray(0, data.indexOf(0))));
+        offset += length + 12;
+      }
+      expect(chunks.get("pHYs")).toBe(physical);
+      expect(keys).not.toContain("units");
+      expect(readImageMetadata(output).properties).toMatchObject({ note: "original", comment: "hello" });
+    });
+  }
 }

@@ -7102,10 +7102,11 @@ function parseMagickUnits(value: string): NonNullable<MagickState["units"]> {
     }
 }
 
-function applyMagickUnits<T extends ImageMetadata>(image: T, unit: NonNullable<MagickState["units"]>): T {
+function applyMagickUnits<T extends ImageMetadata & { magickUnits?: MagickState["units"] }>(image: T, unit: NonNullable<MagickState["units"]>): T {
+    if (!image.resolution) return { ...image, magickUnits: unit };
     const scale = image.resolution?.unit === "meter" ? 100 : 1;
-    const x = image.resolution ? image.resolution.x / scale : image.density;
-    const y = image.resolution ? image.resolution.y / scale : image.density;
+    const x = image.resolution.x / scale;
+    const y = image.resolution.y / scale;
     return { ...image, density: x * (unit === "cm" ? 2.54 : 1), resolution: { x, y, unit } };
 }
 
@@ -7126,10 +7127,10 @@ function updateMagickProperty(properties: ImageMetadata["properties"], key: stri
     return updated;
 }
 
-function applyMagickDensity<T extends ImageMetadata>(image: T, value: string): T {
+function applyMagickDensity<T extends ImageMetadata & { magickUnits?: MagickState["units"] }>(image: T, value: string): T {
     const geometry = parseMagickGeometry(value);
     const x = geometry.width ?? 72, y = geometry.height ?? x;
-    const unit = image.resolution?.unit ?? "unknown";
+    const unit = image.resolution?.unit ?? image.magickUnits ?? "unknown";
     const scale = unit === "meter" ? 100 : 1;
     return { ...image, density: x * (unit === "cm" || unit === "meter" ? 2.54 : 1),
         resolution: { x: x * scale, y: y * scale, unit } };
@@ -7694,6 +7695,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     analysis.warnings += `magick: attempt to set read-only property '${expandedKey}'\n`;
                     return image;
                 }
+                if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(expanded), forceExact: false }) };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
@@ -9339,6 +9341,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     analysis.warnings += `magick: attempt to set read-only property '${expandedKey}'\n`;
                     return image;
                 }
+                if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(expanded), forceExact: false }) };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };

@@ -2535,8 +2535,8 @@ export function serializeSubtitleDocument(
   let cueIndex = 1;
   for (const s of samples) {
     const codec = subTrack?.codecDescriptions[s.sampleDescriptionIndex - 1]?.codecName;
-    // Stream-copy packets must not pass through UTF-8 decoding and re-encoding.
-    const packet = format === "srt" && codec === "subrip" ? s.data : undefined;
+    // Text muxers preserve packet bytes, including deliberately unchecked UTF-8.
+    const packet = format === "webvtt" || (format === "srt" && codec === "subrip") ? s.data : undefined;
     const text = packet ? "" : decodeUtf8(s.data);
     const cueText = format === "webvtt" || (format === "srt" && codec === "subrip") ? text
       : format === "srt" && codec === "ass" ? text.trimStart().replaceAll("\r\n", "\n").replaceAll("\n", "\r\n") : text.trim();

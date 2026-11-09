@@ -4264,10 +4264,12 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     let resized: RgbaImage = !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
         : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, !!img.writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples), undefined, { ...img, width, height });
-    if (!scale && kernel === "nearest" && img.data16) {
-        const source = new Uint8Array(img.data16.buffer, img.data16.byteOffset, img.data16.byteLength);
-        const data16 = new Uint16Array(width * height * 4), bytes = new Uint8Array(data16.buffer);
-        const steps = pointResizePixelSteps(img, width, height, sample, 8, sampleOffset, !!img.writeMask);
+    for (const samples of !scale && kernel === "nearest" ? [img.data16, img.evaluateSamples] : []) {
+        if (!samples) continue;
+        const source = new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength);
+        const output = samples instanceof Uint16Array ? new Uint16Array(width * height * 4) : new Float64Array(width * height * 4);
+        const bytes = new Uint8Array(output.buffer);
+        const steps = pointResizePixelSteps(img, width, height, sample, 4 * samples.BYTES_PER_ELEMENT, sampleOffset, !!img.writeMask);
         let next = steps.next();
         while (!next.done) {
             const request = next.value;
@@ -4275,7 +4277,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
             else if (request.kind === "read") next = steps.next(source.subarray(request.position, request.position + request.length));
             else { bytes.set(request.data, request.position); next = steps.next(); }
         }
-        resized = { ...resized, data16 };
+        resized = { ...resized, ...(output instanceof Uint16Array ? { data16: output } : { evaluateSamples: output }) };
     }
     if (sample && img.writeMask) resized = { ...resized, writeMask: { ...resized, hasAlpha: false } };
     const virtualCanvas = magickResizeCanvas(img, width, height);
@@ -4293,18 +4295,19 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     let resized: StoredRgbaImage = !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
         : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, !!image.storedWriteMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples), signal, { ...image, width, height });
-    if (!scale && options.kernel === "nearest" && image.storedData16) {
-        const storedData16 = { position: backend.storage.allocate(width * height * 8), length: width * height * 4 };
-        const steps = pointResizePixelSteps(image, width, height, sample, 8, sampleOffset, !!image.storedWriteMask);
+    for (const [source, pixelBytes] of !scale && options.kernel === "nearest" ? [[image.storedData16?.position, 8], [image.storedEvaluateSamples, 32]] as const : []) {
+        if (source === undefined) continue;
+        const position = backend.storage.allocate(width * height * pixelBytes);
+        const steps = pointResizePixelSteps(image, width, height, sample, pixelBytes, sampleOffset, !!image.storedWriteMask);
         let next = steps.next();
         while (!next.done) {
             signal.throwIfAborted();
             const request = next.value;
             if (!request) { await yieldTurn(signal); next = steps.next(); }
-            else if (request.kind === "read") next = steps.next(await backend.storage.read(image.storedData16.position + request.position, request.length));
-            else { await backend.storage.write(storedData16.position + request.position, request.data); next = steps.next(); }
+            else if (request.kind === "read") next = steps.next(await backend.storage.read(source + request.position, request.length));
+            else { await backend.storage.write(position + request.position, request.data); next = steps.next(); }
         }
-        resized = { ...resized, storedData16 };
+        resized = { ...resized, ...(pixelBytes === 8 ? { storedData16: { position, length: width * height * 4 } } : { storedEvaluateSamples: position }) };
     }
     if (sample && image.storedWriteMask) {
         const { storedData16: ignoredData16, ...mask } = image.storedWriteMask;

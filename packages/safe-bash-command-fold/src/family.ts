@@ -68,7 +68,7 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
             if (!utf8 || first < 128) {
               const s = session.step(1);
               if (s) await s;
-              column = mode === "bytes" ? column + 1 : first === 8 ? Math.max(0, column - 1) : first === 13 ? 0 : column + (first === 9 ? 8 - column % 8 : 1);
+              column = mode === "bytes" ? column + 1 : first === 8 ? Math.max(0, column - 1) : first === 13 ? 0 : column + (first === 9 ? 8 - column % 8 : first === 0 && utf8 && mode === "columns" ? 0 : 1);
               offset++;
               if (first === 32 || first === 9) lastBlank = offset - 1;
               continue;
@@ -102,7 +102,7 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
           if (s) await s;
           if (!utf8 || (pending.length === 0 && byte < 128)) {
             if (byte !== 10) {
-              const nextCol = mode === "bytes" ? column + 1 : byte === 8 ? Math.max(0, column - 1) : byte === 13 ? 0 : column + (byte === 9 ? 8 - column % 8 : 1);
+              const nextCol = mode === "bytes" ? column + 1 : byte === 8 ? Math.max(0, column - 1) : byte === 13 ? 0 : column + (byte === 9 ? 8 - column % 8 : byte === 0 && utf8 && mode === "columns" ? 0 : 1);
               if (nextCol <= width || !record.size) {
                 column = nextCol;
                 record.push(byte);

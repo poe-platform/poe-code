@@ -6,6 +6,8 @@ import { FsError } from 'safe-bash-contracts/errors';
 import { createFoldCommand, fold, foldCommands } from './command.js';
 import { FoldError } from './contracts.js';
 import { createFoldEngine } from './engine.js';
+import { createFoldCommand as createFamilyFoldCommand } from './family.js';
+import { settings } from 'safe-bash-text-stream-engine/stream-inspection/shared';
 const encoder = new TextEncoder();
 function fixture(args: readonly string[] = [], input = '', files: Record<string, string> = {}) {
   const stdout: number[] = [], stderr: number[] = [], cleanups: (() => void | Promise<void>)[] = [];
@@ -27,6 +29,38 @@ function fixture(args: readonly string[] = [], input = '', files: Record<string,
   } as unknown as CommandContext;
   return { context, stdout, stderr, cleanups, text: () => new TextDecoder().decode(Uint8Array.from(stdout)) };
 }
+test('aggregate fold preserves NUL width across chunk boundaries and space rescans', async () => {
+  const cases = [
+    ['ab\0cd', '-w4', 'ab\0cd'],
+    ['\0\0\0\0abcdefgh\n', '-w5', '\0\0\0\0abcde\nfgh\n'],
+    ['abcde\0f\n', '-w5', 'abcde\0\nf\n'],
+    ['ab \0cdefgh\n', '-sw5', 'ab \n\0cdefg\nh\n'],
+  ] as const;
+  for (const [input, flag, expected] of cases) {
+    const bytes = encoder.encode(input);
+    for (let split = 0; split <= bytes.length; split++) {
+      const f = fixture([flag]);
+      const result = await createFamilyFoldCommand(settings({})).execute({
+        ...f.context, env: { LC_ALL: 'C.UTF-8' },
+        stdin: (async function* () { yield bytes.subarray(0, split); yield bytes.subarray(split); })(),
+      });
+      assert.equal(result.exitCode, 0);
+      assert.deepEqual(f.stderr, []);
+      assert.deepEqual(Uint8Array.from(f.stdout), encoder.encode(expected), `${flag} split ${split}`);
+    }
+  }
+});
+test('aggregate fold keeps byte, character and C locale NUL counting', async () => {
+  for (const locale of ['C', 'C.UTF-8']) {
+    for (const flag of locale === 'C' ? ['-w4', '-bw4', '-cw4'] : ['-bw4', '-cw4']) {
+      const f = fixture([flag], 'ab\0cd');
+      const result = await createFamilyFoldCommand(settings({})).execute({ ...f.context, env: { LC_ALL: locale } });
+      assert.equal(result.exitCode, 0);
+      assert.deepEqual(f.stderr, []);
+      assert.deepEqual(Uint8Array.from(f.stdout), encoder.encode('ab\0c\nd'));
+    }
+  }
+});
 test('CLI and SDK have equivalent byte-mode wrapping and typed counters', async () => {
   const cli = fixture(['-sb', '--wid=5'], '界界界\n');
   const sdk = fixture([], '界界界\n');

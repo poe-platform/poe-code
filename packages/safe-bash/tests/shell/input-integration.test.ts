@@ -6,6 +6,49 @@ import { Shell } from "../../src/shell/index.js";
 import { Budget, defaultLimits } from "../../src/shell/runtime.js";
 import { CommandRegistry, writeText, toByteSource } from "../../src/contracts/index.js";
 import { shellValueBytes } from "../../src/contracts/value.js";
+import { printfCommand } from "../../src/commands/basic.js";
+import { readExtension } from "../../src/shell/extensions/read/index.js";
+import { setup } from "./helpers.js";
+
+for (const entry of [
+  { name: "incomplete two-byte character", prefix: [0xc3], delimiter: 10 },
+  { name: "incomplete three-byte character", prefix: [0xe2, 0x82], delimiter: 10 },
+  { name: "incomplete four-byte character", prefix: [0xf0, 0x9f, 0x92], delimiter: 10 },
+  { name: "colon after incomplete character", prefix: [0xc3], delimiter: 58 },
+  { name: "colon after partial continuation", prefix: [0xe2, 0x82], delimiter: 58 },
+  { name: "NUL after incomplete character", prefix: [0xc3], delimiter: 0 },
+  { name: "NUL after partial continuation", prefix: [0xe2, 0x82], delimiter: 0 },
+  { name: "valid UTF-8", prefix: [0xc3, 0xa9], delimiter: 10 },
+  { name: "byte locale", prefix: [0xc3], delimiter: 10, locale: "C" },
+  { name: "character count leaves stream delimiter unread", prefix: [0xc3], delimiter: 10, flags: "-n 2", streamNext: [] },
+  { name: "delimiter before character count", prefix: [0xc3], delimiter: 10, flags: "-n 3" },
+  { name: "exact character count", prefix: [0xc3], delimiter: 10, flags: "-N 2", retained: [10] },
+  { name: "exact count ignores colon", prefix: [0xc3], delimiter: 58, flags: "-N 2", retained: [58] },
+  { name: "exact count ignores NUL", prefix: [0xc3], delimiter: 0, flags: "-N 2" },
+]) {
+  for (const extension of [false, true]) {
+    for (const input of ["file", "split stream"]) {
+      test(`Bash 5.3 read delimiter: ${entry.name}, extension=${extension}, ${input}`, async context => {
+        const { shell, fs, commands } = setup({ extensions: extension ? [readExtension()] : [] });
+        context.after(() => shell.dispose());
+        commands.register(printfCommand);
+        const bytes = Uint8Array.from([97, ...entry.prefix, entry.delimiter, 98, entry.delimiter, 90, entry.delimiter]);
+        const delimiter = entry.delimiter === 10 ? "" : entry.delimiter === 0 ? "-d ''" : "-d ':'";
+        const source = `{ IFS= read -r ${entry.flags ?? ""} ${delimiter} a; rc=$?; IFS= read -r ${delimiter} b; printf '%s|%s|%s|%s' "$rc" "$?" "$a" "$b"; }`;
+        if (input === "file") await fs.writeFile("/data", bytes);
+        const result = await shell.exec(source + (input === "file" ? " </data" : ""), {
+          env: { LC_ALL: entry.locale ?? "C.UTF-8" },
+          ...(input === "file" ? {} : { stdin: { async *[Symbol.asyncIterator]() {
+            for (const byte of bytes) yield Uint8Array.of(byte);
+          } } }),
+        });
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.deepEqual(result.stdoutBytes, Uint8Array.from([48, 124, 48, 124, 97, ...entry.prefix, ...(entry.retained ?? []), 124, ...(input === "split stream" ? entry.streamNext ?? [98] : [98])]));
+      });
+    }
+  }
+}
 
 test("bounded reads, byte-valued lines, and raw records share one consumed position", async () => {
   const budget = new Budget(defaultLimits);

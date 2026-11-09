@@ -1675,6 +1675,14 @@ export class ShellInput implements ByteSource, CommandInput {
               ? (this.signal.throwIfAborted(), this._cursor.position++, chunk[offset++]!)
               : await nextByte();
             if (next === undefined) break;
+            if (!exact && next === delimiter && !utf8Continuation(first, position, next)) {
+              // Bash retains lookahead on streams, but drops it at a file's -n boundary.
+              if (units + 1 !== count || this._cursor.stat?.type !== "file") {
+                offset--;
+                this._cursor.position--;
+              }
+              break;
+            }
             account();
             if (next === 0) visible = false;
             else if (visible) buffer.append(next);

@@ -1,0 +1,113 @@
+{
+  "input": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAFCAYAAAB4ka1VAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDhUMDA6MTQ6MDkrMDA6MDDiBiJKAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA4VDAwOjE0OjA5KzAwOjAwk1ua9gAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wOFQwMDoxNDowOSswMDowMMROuykAAACwSURBVAjXAaUAWv8AJXjLHo7hNIf3Sp3wYLMGWckcb8Iyhdgrm+5BlARXqv0AbcATZtYpfM8/kuU4qPtOoRFktwp6zSBz4zaJ3Eyf8kUAtQhbrh5xxBeH2i2A8EOW6Vms/1LCFWi7K37RJJTnOo0A/VCj9ma5DF/PInXIOIveMaH0R5oKXbADc8YZbNwvgtUARZjrPq4BVKcXar0QgNMmeek8j+JSpfhLuw5htCR3yh3ktE+hNafOIwAAAABJRU5ErkJggg==",
+  "cases": [
+    {
+      "args": [
+        "-define",
+        "distort:viewport=3x4+1+2",
+        "-rotate",
+        "30"
+      ],
+      "geometry": "3x4 3x4+1+2",
+      "pixels": "994c3882c14071ade249a0bab163a63c4e9c274492db6275fffffff7daddb3c7df4a8bd6fffffffffffffffffbf7fdf1"
+    },
+    {
+      "args": [
+        "-define",
+        "distort:viewport=2x3-1-1",
+        "-rotate",
+        "30"
+      ],
+      "geometry": "2x3 2x3-1-1",
+      "pixels": "fffffffffffffeffffffffffe4a0c1dffff5fbfcf5509dec"
+    },
+    {
+      "args": [
+        "-rotate",
+        "30"
+      ],
+      "geometry": "12x11 12x11-2-3",
+      "pixels": "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8faffc0f5fafbc2fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeff86d6615a7faf2869e9a7abe1fdf0f6f9ffffffffffffffffffffffffffffffffffffffffffffffffffffffffe4a0c1df9820397cca3283a8cc50a18b8b9a2b73e39ab9defffffff8fffffffffffffffffffffffffffffffffff5fbfcf5509dec6d804b3a74d83c59b1b96f959fef4760aa015c6282d6b349e4ffcfd8fdfdffffffffffffffffffffd7f7ff978e126171994c3882c14071ade249a0ba7a88f14d8c923671ce6b67b12f6e7bbd7aa6d5ffffffffffffffffffffffffffe9b7d0e1b163a63c4e9c274492db627598b96964b6116e81b95298666ea3c75af6f9fff3fffffffffffffffffffffffffffffffffffffff7daddb3c7df4a8bd62c95d72171bb1854a77e4a8ddcf8beccfffffffffffffffffffffffffffffffffffffffffffffffffffffffffbf7fdf1c59acba4a4074b83da4f9da1fff9fefffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff5f6fbc2f7ffffbcffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    {
+      "args": [
+        "-define",
+        "distort:viewport=3x4+1+2",
+        "-rotate",
+        "90"
+      ],
+      "geometry": "5x8 5x8+0+0",
+      "pixels": "4598eb3efd50a3f6b5085bae6dc013662578cb1eae0154a766b90c5f1e71c417d6297ccf8ee13487176abd10cf2275c887da2d803f92e538f74a9df080d32679388bde31f04396e9a8fb4ea160b30659e93c8fe2a1f4479a59acff521164b70ac91c6fc252a5f84b0a5db003c21568bb7acd20733285d82bbb0e61b473c6196c2b7ed124e33689dc9bee41942477ca1ddc2f82d594e73a8d4c9ff2450457aafd"
+    },
+    {
+      "args": [
+        "-define",
+        "distort:viewport=3x4",
+        "-rotate",
+        "30"
+      ],
+      "geometry": "3x4 3x4-2-3",
+      "pixels": "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeffffffffffffffffffe4a0c1df"
+    },
+    {
+      "args": [
+        "-define",
+        "distort:viewport=nonsense",
+        "-rotate",
+        "30"
+      ],
+      "geometry": "12x11 12x11-2-3",
+      "pixels": "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8faffc0f5fafbc2fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeff86d6615a7faf2869e9a7abe1fdf0f6f9ffffffffffffffffffffffffffffffffffffffffffffffffffffffffe4a0c1df9820397cca3283a8cc50a18b8b9a2b73e39ab9defffffff8fffffffffffffffffffffffffffffffffff5fbfcf5509dec6d804b3a74d83c59b1b96f959fef4760aa015c6282d6b349e4ffcfd8fdfdffffffffffffffffffffd7f7ff978e126171994c3882c14071ade249a0ba7a88f14d8c923671ce6b67b12f6e7bbd7aa6d5ffffffffffffffffffffffffffe9b7d0e1b163a63c4e9c274492db627598b96964b6116e81b95298666ea3c75af6f9fff3fffffffffffffffffffffffffffffffffffffff7daddb3c7df4a8bd62c95d72171bb1854a77e4a8ddcf8beccfffffffffffffffffffffffffffffffffffffffffffffffffffffffffbf7fdf1c59acba4a4074b83da4f9da1fff9fefffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff5f6fbc2f7ffffbcffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    {
+      "args": [
+        "-define",
+        "distort:viewport=3x4+1+2",
+        "+define",
+        "distort:viewport",
+        "-rotate",
+        "30"
+      ],
+      "geometry": "12x11 12x11-2-3",
+      "pixels": "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8faffc0f5fafbc2fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeff86d6615a7faf2869e9a7abe1fdf0f6f9ffffffffffffffffffffffffffffffffffffffffffffffffffffffffe4a0c1df9820397cca3283a8cc50a18b8b9a2b73e39ab9defffffff8fffffffffffffffffffffffffffffffffff5fbfcf5509dec6d804b3a74d83c59b1b96f959fef4760aa015c6282d6b349e4ffcfd8fdfdffffffffffffffffffffd7f7ff978e126171994c3882c14071ade249a0ba7a88f14d8c923671ce6b67b12f6e7bbd7aa6d5ffffffffffffffffffffffffffe9b7d0e1b163a63c4e9c274492db627598b96964b6116e81b95298666ea3c75af6f9fff3fffffffffffffffffffffffffffffffffffffff7daddb3c7df4a8bd62c95d72171bb1854a77e4a8ddcf8beccfffffffffffffffffffffffffffffffffffffffffffffffffffffffffbf7fdf1c59acba4a4074b83da4f9da1fff9fefffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff5f6fbc2f7ffffbcffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    {
+      "args": [
+        "-define",
+        "distort:viewport=3x4+1+2",
+        "-rotate",
+        "30",
+        "-define",
+        "distort:viewport=1x1+0+0"
+      ],
+      "geometry": "3x4 3x4+1+2",
+      "pixels": "994c3882c14071ade249a0bab163a63c4e9c274492db6275fffffff7daddb3c7df4a8bd6fffffffffffffffffbf7fdf1"
+    },
+    {
+      "args": [
+        "-repage",
+        "16x10+4+3",
+        "-define",
+        "distort:viewport=3x4+1+2",
+        "-rotate",
+        "30"
+      ],
+      "geometry": "3x4 6x8+1+2",
+      "pixels": "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff5fbfcffffffffffffffffd7f7ff97"
+    },
+    {
+      "args": [
+        "-filter",
+        "point",
+        "-interpolate",
+        "nearest",
+        "-define",
+        "distort:viewport=3x4+1+2",
+        "-rotate",
+        "30"
+      ],
+      "geometry": "3x4 3x4+1+2",
+      "pixels": "66b90c5fcf2275c8f04396e9176abd1080d32679a1f4479affffffff80d32679e93c8fe2ffffffffffffffffffffffff"
+    }
+  ]
+}

@@ -3483,6 +3483,29 @@ function parseMagickRotation(spec: string) {
         applies: (image: Pick<RgbaImage, "width" | "height">) => condition === ">" ? image.width > image.height : condition === "<" ? image.width < image.height : true
     };
 }
+function applyMagickDistortViewport(plan: WarpPlan, image: Pick<RgbaImage, "width" | "height">, viewport: string | undefined, samplingOrigin: RgbaImage["virtualCanvas"], analysis: { warnings: string }): WarpPlan {
+    if (viewport === undefined) return plan;
+    const geometry = parseMagickGeometry(viewport);
+    if ((!geometry.hasOffset && geometry.width === undefined && geometry.height === undefined) ||
+        ![...viewport].every(char => char.trim() === "" || "0123456789.eExX+-!<>^%@".includes(char)) ||
+        ![geometry.width ?? 1, geometry.height ?? 1, geometry.x, geometry.y].every(Number.isFinite)) {
+        analysis.warnings += `magick: invalid setting 'distort:viewport' '${viewport}'\n`;
+    } else {
+        const original = plan, origin = plan.virtualCanvas;
+        let width = Math.round(geometry.width ?? (geometry.height === undefined ? plan.width : 0)), height = Math.round(geometry.height ?? plan.height);
+        // Native cloning restores the source size if either dimension is zero.
+        if (width === 0 || height === 0) { width = image.width; height = image.height; }
+        const x = geometry.hasOffset ? Math.trunc(geometry.x) : origin?.x ?? 0, y = geometry.hasYOffset ? Math.trunc(geometry.y) : origin?.y ?? 0;
+        const dx = x - (samplingOrigin?.x ?? 0), dy = y - (samplingOrigin?.y ?? 0);
+        // Best-fit maps already include their page origin. Replace that
+        // origin for both sampling and filter derivatives.
+        plan = { ...plan, width, height, virtualCanvas: { width, height, x, y },
+            map: (px, py) => original.map(px + dx, py + dy),
+            ...(original.derivatives ? { derivatives: (px: number, py: number) => original.derivatives!(px + dx, py + dy) } : {}) };
+    }
+    return plan;
+}
+
 function parseMagickWarpOperation(tokens: readonly string[], state: MagickState, start: number, analysis: { warnings: string }) {
     const token = tokens[start]!;
     if (token === "-interpolative-resize") {
@@ -3507,22 +3530,28 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (token === "-rotate") {
         const { angle, applies } = parseMagickRotation(tokens[start + 1] ?? "0"), background = state.background, backgroundExplicit = state.backgroundExplicit, kernel = state.kernel, filter = state.resizeFilter;
         if (state.kernel === "nearest" && state.interpolation === "mesh") throw new Error("Unsupported rotation interpolation: mesh");
-        const nearest = state.kernel === "nearest" && state.interpolation === "nearest";
+        const nearest = state.kernel === "nearest" && state.interpolation === "nearest", viewport = state.distortViewport;
         if (!Number.isFinite(angle) || angle % 90 === 0) return;
         const scale = state.distortScale === undefined ? undefined : Math.abs(Number.parseFloat(state.distortScale));
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "backgroundColor" | "virtualCanvas">): (WarpPlan & { space?: RgbaImage["space"]; steps: ReturnType<typeof warpPixelSteps> }) | undefined => {
             if (!applies(image)) return;
             if (scale !== undefined && (!Number.isFinite(scale) || scale < 0.1)) throw new Error("invalid argument for option distort:scale");
-            const plan = { ...magickWarpPlan(image, "+distort", "SRT", String(angle % 360))!, nearest };
+            let plan = magickWarpPlan(image, "+distort", "SRT", String(angle % 360))!;
             const page = image.virtualCanvas;
             // RotateImage scales the page dimensions to the best-fit raster, but
             // adds its origin to the original page offsets without scaling them.
-            if (page && plan.virtualCanvas) plan.virtualCanvas = {
+            if (page && plan.virtualCanvas) plan = { ...plan, virtualCanvas: {
                 width: Math.floor(page.width * plan.width / image.width + 0.5),
                 height: Math.floor(page.height * plan.height / image.height + 0.5),
                 x: page.x + plan.virtualCanvas.x,
                 y: page.y + plan.virtualCanvas.y
-            };
+            } };
+            plan = { ...applyMagickDistortViewport(plan, image, viewport, plan.virtualCanvas, analysis), nearest };
+            if (page && viewport !== undefined && plan.virtualCanvas) plan = { ...plan, virtualCanvas: {
+                ...plan.virtualCanvas,
+                width: Math.floor(page.width * plan.width / image.width + 0.5),
+                height: Math.floor(page.height * plan.height / image.height + 0.5)
+            } };
             return { ...plan, steps: warpPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background, "background", kernel, filter) };
         } };
     }
@@ -3565,26 +3594,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
                 y: origin ? page.y + origin.y : 0
             } };
         }
-        if (plan && viewport !== undefined) {
-            const geometry = parseMagickGeometry(viewport);
-            if ((!geometry.hasOffset && geometry.width === undefined && geometry.height === undefined) ||
-                ![...viewport].every(char => char.trim() === "" || "0123456789.eExX+-!<>^%@".includes(char)) ||
-                ![geometry.width ?? 1, geometry.height ?? 1, geometry.x, geometry.y].every(Number.isFinite)) {
-                analysis.warnings += `magick: invalid setting 'distort:viewport' '${viewport}'\n`;
-            } else {
-                const original = plan, origin = plan.virtualCanvas;
-                let width = Math.round(geometry.width ?? (geometry.height === undefined ? plan.width : 0)), height = Math.round(geometry.height ?? plan.height);
-                // Native cloning restores the source size if either dimension is zero.
-                if (width === 0 || height === 0) { width = image.width; height = image.height; }
-                const x = geometry.hasOffset ? Math.trunc(geometry.x) : origin?.x ?? 0, y = geometry.hasYOffset ? Math.trunc(geometry.y) : origin?.y ?? 0;
-                const dx = x - (samplingOrigin?.x ?? 0), dy = y - (samplingOrigin?.y ?? 0);
-                // Best-fit maps already include their page origin. Replace that
-                // origin for both sampling and filter derivatives.
-                plan = { ...plan, width, height, virtualCanvas: { width, height, x, y },
-                    map: (px, py) => original.map(px + dx, py + dy),
-                    ...(original.derivatives ? { derivatives: (px: number, py: number) => original.derivatives!(px + dx, py + dy) } : {}) };
-            }
-        }
+        if (plan) plan = applyMagickDistortViewport(plan, image, viewport, samplingOrigin, analysis);
         if (plan && token === "-wave") {
             plan = { ...plan, virtualCanvas: magickResizeCanvas(image, plan.width, plan.height) };
             let color = backgroundExplicit ? background : image.backgroundColor ?? background;

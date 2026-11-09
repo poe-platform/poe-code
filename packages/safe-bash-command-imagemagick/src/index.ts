@@ -10972,16 +10972,16 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let verbose = false;
     let regardWarnings = false;
     let compose = "over";
-    type Crop = { geometry: string; gravity: GravityPosition };
+    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient";
     const operands: string[] = [];
-    const operandCrops: Crop[][] = [];
-    let leadingCrops: Crop[] = [];
+    const operandOperations: CompareOperation[][] = [];
+    let leadingOperations: CompareOperation[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
         // An option after an input ends the leading operator group.
-        if (operands.length && (t.startsWith("-") || t.startsWith("+"))) leadingCrops = [];
+        if (operands.length && (t.startsWith("-") || t.startsWith("+"))) leadingOperations = [];
         if (t === "--help" || t === "-help" || t === "-h") {
             return {
                 exitCode: 0,
@@ -11117,10 +11117,14 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             try { validateMagickTransformGeometry(geometry, t); }
             catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
             const crop = { geometry, gravity: state.gravity };
-            if (operands.length) for (const crops of operandCrops) crops.push(crop);
-            else leadingCrops.push(crop);
+            if (operands.length) for (const crops of operandOperations) crops.push(crop);
+            else leadingOperations.push(crop);
         }
-        else if (t === "+crop") leadingCrops = [];
+        else if (t === "+crop") leadingOperations = [];
+        else if (t === "-auto-orient") {
+            if (operands.length) for (const operations of operandOperations) operations.push("auto-orient");
+            else leadingOperations.push("auto-orient");
+        }
         else if (t === "-quality") {
             state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
         }
@@ -11129,7 +11133,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         else {
             operands.push(t);
-            operandCrops.push(leadingCrops.map(crop => ({ ...crop, gravity: state.gravity })));
+            operandOperations.push(leadingOperations.map(operation => operation === "auto-orient" ? operation : { ...operation, gravity: state.gravity }));
         }
     }
     if (operands.length < 2) {
@@ -11145,18 +11149,28 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let imgB: RgbaImage | StoredRgbaImage | undefined;
     let inputErrors = "";
     let imageDetails = "";
-    function* acceptImage(image: RgbaImage | StoredRgbaImage, crops: readonly Crop[], index = 0): Generator<IdentifyStep, void, void> {
-        const crop = crops[index];
-        if (!crop) {
+    function* acceptImage(image: RgbaImage | StoredRgbaImage, operations: readonly CompareOperation[], index = 0): Generator<IdentifyStep, void, void> {
+        const operation = operations[index];
+        if (!operation) {
             if (!imgA) imgA = image;
             else if (!imgB) imgB = image;
             return;
         }
+        if (operation === "auto-orient") {
+            const virtualCanvas = magickAutoOrientCanvas(image);
+            let oriented = image;
+            if ("data" in image) oriented = yield* applyExifOrientationSteps(image);
+            else yield { async run() {
+                oriented = await transformStoredImage(image, backend!.storage, { kind: "autoOrient" }, signal!);
+            } };
+            yield* acceptImage(virtualCanvas ? { ...oriented, virtualCanvas } : oriented, operations, index + 1);
+            return;
+        }
         if ("data" in image) {
-            for (const tile of yield* applyMagickCropToStackSteps(image, crop.geometry, crop.gravity))
-                yield* acceptImage(tile, crops, index + 1);
+            for (const tile of yield* applyMagickCropToStackSteps(image, operation.geometry, operation.gravity))
+                yield* acceptImage(tile, operations, index + 1);
         } else {
-            for (const area of magickCropAreas(image, crop.geometry, crop.gravity)) {
+            for (const area of magickCropAreas(image, operation.geometry, operation.gravity)) {
                 let tile = image;
                 if (area !== undefined) yield { async run() {
                     tile = area === null ? {
@@ -11167,20 +11181,20 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                         virtualCanvas: magickCropCanvas(image, area.left, area.top)
                     };
                 } };
-                yield* acceptImage(tile, crops, index + 1);
+                yield* acceptImage(tile, operations, index + 1);
             }
         }
     }
     // Compare consumes the first two images in the combined input sequence.
     for (const [operandIndex, operand] of operands.slice(0, -1).entries()) {
-        const crops = operandCrops[operandIndex]!;
+        const operations = operandOperations[operandIndex]!;
         try {
             let found = false;
             if (backend) yield { async run() {
                 await parseStoredCompareInput(operand, state, backend, signal!, { visit: async image => {
                     found = true;
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
-                    await drainIdentifySteps(acceptImage(image, crops), signal);
+                    await drainIdentifySteps(acceptImage(image, operations), signal);
                 } });
             } };
             else {
@@ -11188,7 +11202,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 found = Boolean(images?.length);
                 for (const image of images ?? []) {
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
-                    yield* acceptImage(image, crops);
+                    yield* acceptImage(image, operations);
                 }
             }
             if (!found) inputErrors += `compare: unable to open image '${operand}': No such file or directory\n`;

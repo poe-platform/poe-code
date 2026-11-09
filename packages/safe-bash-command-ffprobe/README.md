@@ -18,6 +18,7 @@ Supports `-v quiet|error|warning|info`, `-of` / `-print_format` with
 JSON chapter reports honor `-show_entries chapter=id` and other selected chapter fields; use `chapter_tags=title` to select a tag alongside them. `-show_chapters` without a selection reports complete chapters. WAV cues without labels omit title tags; explicitly empty labels retain an empty title.
 ADTS packet `pos`/`size` and frame `pkt_pos`/`pkt_size` describe physical frames, including their headers.
 Y4M packet positions, `-show_data` dumps and `-show_data_hash` hashes cover the original YUV payloads, excluding stream headers and frame tags.
+Y4M file duration is estimated from file size; frame tags can increase it without adding frames. `nb_frames` is omitted; `-count_frames` and `-count_packets` report actual counts.
 `concatf:parts.txt` probes newline-listed local files as one seekable byte stream; relative entries resolve from the working directory. Concat manifests support `-f concat` (or the `ffconcat version 1.0` header), with per-file `duration` and packet tags. Add `-segment_time_metadata 1` to expose `lavf.concatdec.start_time` and known `lavf.concatdec.duration` in microseconds on each packet, with Strings Metadata side data. The default (`0`) omits these generated tags.
 MP4 `nclx` color tags report stream color range, matrix, transfer and primaries; full-range H.264 reports the corresponding `yuvj` pixel format.
 3GP AMR-NB/WB reports `amr_nb`/`amr_wb`, native long names, 8/16 kHz mono audio, mono frames, and `bits_per_sample=0`, preserving the `samr`/`sawb` codec tags.

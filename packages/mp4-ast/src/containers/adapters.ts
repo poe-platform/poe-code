@@ -381,7 +381,20 @@ export function y4mAst(): MediaAstPlugin {
         formatName: "yuv4mpegpipe",
         formatLongName: "YUV4MPEG pipe"
       });
-      return { ...probe, packetData: probe.packets && new Map(probe.packets.map((packet, index) =>
+      const track = doc.tracks[0]!;
+      const sample = track.samples[0];
+      // Seekable duration assumes a bare "FRAME\n" header, even when frame
+      // tags make the actual records larger. Counts still come from samples.
+      const ticks = options?.seekable !== false && sample
+        ? Math.floor((bytes.byteLength - bytes.indexOf(0x0a) - 1) / (sample.size + 6)) * sample.duration
+        : track.duration;
+      const duration = (ticks / track.timescale).toFixed(6);
+      return { ...probe,
+        streams: probe.streams.map(stream => ({ ...stream, nb_frames: undefined, duration_ts: ticks, duration,
+          nb_read_packets: String(track.samples.length), nb_read_frames: String(track.samples.length) })),
+        format: { ...probe.format, duration,
+          bit_rate: ticks > 0 ? String(Math.round(bytes.byteLength * 8 * track.timescale / ticks)) : undefined },
+        packetData: probe.packets && new Map(probe.packets.map((packet, index) =>
         [`${packet.pos}:${packet.size}`, doc.tracks[0]!.decodedVideoFrames![index]!.native!.pixels])) };
     },
     concat(docs, options) {

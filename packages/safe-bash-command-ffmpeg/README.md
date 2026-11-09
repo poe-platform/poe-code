@@ -320,7 +320,8 @@ average/maximum channel linking, upward/downward modes, input gain, makeup and w
 sample rates and channel layouts, stopping at the shorter input. For example,
 `[0:a][1:a]axcorrelate=size=128:algo=slow[mix]`. `size` accepts 2–131072 samples
 (default 256); `algo` accepts `slow`, `fast` (assumes zero means), or `best`
-(default). If the first input has at most `size` samples, no audio is emitted;
+(default), or numeric expressions in 0–2 rounded to the nearest integer (ties to even).
+If the first input has at most `size` samples, no audio is emitted;
 a short second input still produces audio when the first exceeds `size`. Windows
 look forward and use silence past the packets received when either input ends. Filters can follow axcorrelate;
 preceding single-input filters are rejected.

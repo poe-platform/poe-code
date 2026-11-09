@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function correlateAudio(
   first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -21,8 +22,11 @@ export async function correlateAudio(
       size = Number(value);
       if (!Number.isInteger(size) || size < 2 || size > 131072) throw new Error("axcorrelate: invalid size");
     } else if (key === "algo") {
-      algo = ["slow", "fast", "best"][Number(value)] ?? value;
-      if (!value || !["slow", "fast", "best"].includes(algo)) throw new Error("axcorrelate: invalid algo");
+      const numeric = parseFilterExpression(value, "axcorrelate", { slow: 0, fast: 1, best: 2 });
+      if (numeric < 0 || numeric > 2) throw new Error("axcorrelate: invalid algo");
+      // Native integer options round ties to even after validating the range.
+      const rounded = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
+      algo = ["slow", "fast", "best"][rounded]!;
     } else throw new Error(`axcorrelate: unsupported option ${key}`);
   }
   // Native requests the first input whose FIFO has at most one window left.

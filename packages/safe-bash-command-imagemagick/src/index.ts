@@ -6223,13 +6223,13 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     }
     if (token === "-sepia-tone") {
         const argument = tokens[start + 1] ?? "", raw = parseFloat(argument);
-        if (!argument.trim() || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
-            throw new Error(`invalid argument '-sepia-tone' '${argument}'`);
-        }
         // Native CLI percentages span QuantumRange + 1 (65536), in Q16 units.
         const threshold = (argument.endsWith("%") ? raw * 65536 / 100 : raw) / 257;
         const independent = state.channelExplicit, channels = [state.channels.r, state.channels.g, state.channels.b, state.channels.a];
         return { end: start + 1, luminance: true, highDepth: true, transform(histogram, image) {
+            if (!argument.trim() || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+                throw new Error(`invalid argument '-sepia-tone' '${argument}'`);
+            }
             const gray = image.space === "b-w" || image.space === "grey16";
             const bins = histogram[4]!, count = image.width * image.height;
             let low = 0, high = bins.length - 1, sum = 0;

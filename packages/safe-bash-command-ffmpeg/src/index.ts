@@ -3295,7 +3295,7 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
         const remove = token.startsWith("-");
         const flag = remove ? token.slice(1) : token;
         const name = flag === "1" ? "default" : flag;
-        if (!["0", "default", "comment", "attached_pic"].includes(name)) throw new Error(`Unsupported disposition: ${value}`);
+        if (!["0", "default", "comment", "attached_pic", "forced", "hearing_impaired", "visual_impaired"].includes(name)) throw new Error(`Unsupported disposition: ${value}`);
         return { name, remove };
       });
       if (!operations.length) throw new Error(`Unsupported disposition: ${value}`);

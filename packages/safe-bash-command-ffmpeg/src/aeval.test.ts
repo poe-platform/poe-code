@@ -28,6 +28,14 @@ for (const [expression, expected] of [
   ["val(-1)|val(4)", [left, right]],
   ["val(1):c=stereo", [right, right]],
   ["val(ch):c=same", [left, right]],
+  ...["0x3", "3", "FL+FR", "2c"].map(layout => [`val(ch):c=${layout}`, [left, right]] as const),
+  ...["quad", "0x33", "FL+FR+BL+BR"].map(layout => [`val(ch):c=${layout}`, [left, right, right, right]] as const),
+  ["val(ch):c=5.1", [left, right, right, right, right, right]],
+  ["val(ch):c=quad,aeval=val(ch):c=same", [left, right, right, right]],
+  ["val(0)|val(1):c=mono", undefined],
+  ["val(ch):c=FL+FL", undefined],
+  ["val(ch):c=0x0", undefined],
+  ["val(ch):c=0x40000", undefined],
   ["tanh(val(ch)):c=same", [[1000, 1998, 2992, 3980], [-3980, -2992, -1998, -1000]]],
   ["val(0)*0|val(1)", [[0, 0, 0, 0], right]],
   ["n/32768|t*s/32768", [[0, 1, 2, 3], [0, 1, 2, 3]]],
@@ -73,6 +81,11 @@ for (const [expression, expected] of [
       assert.equal(result.exitCode, 0, stderr);
       const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
       assert.equal(audio.channels, expected.length);
+      if (["val(ch):c=quad", "val(ch):c=0x33", "val(ch):c=FL+FR+BL+BR",
+        "val(ch):c=quad,aeval=val(ch):c=same"].includes(expression)) {
+        assert.equal(audio.channelMask, 0x33);
+      }
+      if (expression === "val(ch):c=5.1") assert.equal(audio.channelMask, 0x3f);
       assert.equal(audio.sampleRate, 8000);
       assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)), expected);
     });

@@ -8776,9 +8776,32 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else throw new Error(`aeval: unsupported option ${key}`);
                         }
                         const exprs = expressions.split("|").filter(Boolean);
-                        const count = layout === "same" ? stretched.length : layout === "mono" ? 1
-                          : layout === "stereo" ? 2 : layout === "" ? exprs.length : 0;
-                        if (!count || count > 2 || !exprs.length || exprs.length > count || exprs.some(expr => !expr.trim())) {
+                        const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR",
+                          "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"];
+                        let outputMask = filteredChannelMask;
+                        let count = stretched.length;
+                        if (layout !== "same") {
+                          if (layout) {
+                            const digits = layout.startsWith("0x") ? layout.slice(2) : layout;
+                            const alphabet = layout.startsWith("0x") ? "0123456789abcdefABCDEF" : "0123456789";
+                            if (digits.length && [...digits].every(digit => alphabet.includes(digit))) {
+                              outputMask = Number(layout);
+                              if (!Number.isSafeInteger(outputMask) || outputMask <= 0 || outputMask >= 1 << speakers.length) {
+                                throw new Error("aeval: unsupported channel layout");
+                              }
+                            } else {
+                              const names = parseAudioChannelLayout(layout);
+                              if (names.some(name => !speakers.includes(name)) || new Set(names).size !== names.length) {
+                                throw new Error("aeval: unsupported channel layout");
+                              }
+                              outputMask = names.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0);
+                            }
+                          } else {
+                            outputMask = [0, 0x4, 0x3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][exprs.length] ?? 0;
+                          }
+                          count = layout ? speakers.filter((_, index) => (outputMask! & (1 << index)) !== 0).length : exprs.length;
+                        }
+                        if (!count || count > 64 || !exprs.length || exprs.length > count || exprs.some(expr => !expr.trim())) {
                           throw new Error("aeval: unsupported channel layout or invalid expressions");
                         }
                         const output = Array.from({ length: count }, () => new Float64Array(stretched[0]!.length));
@@ -8799,7 +8822,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         stretched = output;
-                        if (layout !== "same") filteredChannelMask = count === 1 ? 4 : 3;
+                        filteredChannelMask = outputMask;
                       } else if (trimmed === "aformat" || trimmed.startsWith("aformat=")) {
                         const argument = trimmed.slice("aformat=".length);
                         for (const option of argument ? argument.split(":") : []) {

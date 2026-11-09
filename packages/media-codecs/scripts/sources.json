@@ -111,13 +111,13 @@
     },
     {
       "path": "vendor/LICENSE.ffmpeg-v3",
-      "bytes": 7651,
-      "sha256": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768"
+      "bytes": 42798,
+      "sha256": "4a77b14304e9e7faebcebc8988f04958c85fe7cfcf3ca5aa158bba609ce327e2"
     }
   ],
   "artifact": {
     "path": "vendor/runtime.js",
-    "bytes": 8020097,
-    "sha256": "1a6a7da12aa5d00c6d4bf5f98ddb8e067ff69c109c28aa4f59936aa121569ad0"
+    "bytes": 8036369,
+    "sha256": "226b8ee12e0dc6c3025cbf11edc85cae06397165c146d92e5f2a667bbe0c860f"
   }
 }

@@ -3015,7 +3015,7 @@ function outputChapters(
   endSeconds = Infinity
 ): MediaDocument["chapters"] {
   const end = durationSeconds === undefined ? endSeconds : startSeconds + durationSeconds;
-  return chapters?.filter(chapter => chapter.endTimeSeconds > startSeconds && chapter.startTimeSeconds < end)
+  return chapters?.filter(chapter => chapter.endTimeSeconds >= startSeconds && chapter.startTimeSeconds < end)
     .map(chapter => ({
       ...chapter,
       startTimeSeconds: Math.max(0, chapter.startTimeSeconds - startSeconds),

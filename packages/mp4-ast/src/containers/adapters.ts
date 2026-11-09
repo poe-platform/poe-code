@@ -2590,6 +2590,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   let curEnd = 0;
   let chapterTags = new Map<string, string>();
   let curTitle = "";
+  let chapterHeader: "timebase" | "start" | "end" | "tags" = "timebase";
 
   const flushChapter = () => {
     if (section !== "chapter") return;
@@ -2617,6 +2618,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       curEnd = 0;
       chapterTags = new Map();
       curTitle = "";
+      chapterHeader = "timebase";
       continue;
     }
     if (line.startsWith("[")) {
@@ -2633,19 +2635,29 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       val += rawLine[i];
     }
     if (section === "chapter") {
-      const kUp = key.toUpperCase();
-      if (kUp === "TIMEBASE") {
-        const [n, d] = val.split("/");
-        tbNum = parseInt(n ?? "1", 10) || 1;
-        tbDen = parseInt(d ?? "1000", 10) || 1000;
-      } else if (kUp === "START") {
-        curStart = parseInt(val, 10) || 0;
-      } else if (kUp === "END") {
-        curEnd = parseInt(val, 10) || 0;
-      } else {
-        chapterTags.set(key, val);
-        if (kUp === "TITLE") curTitle = val;
+      if (chapterHeader === "timebase") {
+        chapterHeader = "start";
+        if (key === "TIMEBASE") {
+          const [n, d] = val.split("/");
+          tbNum = parseInt(n ?? "1", 10) || 1;
+          tbDen = parseInt(d ?? "1000", 10) || 1000;
+          continue;
+        }
       }
+      if (chapterHeader === "start") {
+        chapterHeader = "end";
+        if (key === "START") {
+          curStart = parseInt(val, 10) || 0;
+          continue;
+        }
+      }
+      if (chapterHeader === "end") {
+        chapterHeader = "tags";
+        if (key === "END") curEnd = parseInt(val, 10) || 0;
+        continue;
+      }
+      chapterTags.set(key, val);
+      if (key.toUpperCase() === "TITLE") curTitle = val;
     } else if (section === "global") {
       const normalizedKey = key.toLowerCase();
       if (["title", "artist", "album", "date", "year", "comment", "genre", "encoder"].includes(normalizedKey)) {

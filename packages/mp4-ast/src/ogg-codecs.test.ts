@@ -19,7 +19,11 @@ for (const codec of ["vorbis", "opus"] as const) {
     const rewritten = readOgg(updated).packets;
     assert.equal(rewritten.length, packets.length);
     for (const [index, packet] of packets.entries()) {
-      if (index !== 1) assert.deepEqual(rewritten[index], packet);
+      if (index === 1) continue;
+      // Changing comment lengths shifts subsequent packet byte offsets.
+      const { offset: ignoredOriginalOffset, ...originalPacket } = packet;
+      const { offset: ignoredUpdatedOffset, ...updatedPacket } = rewritten[index]!;
+      assert.deepEqual(updatedPacket, originalPacket);
     }
   });
   for (const channels of [1, 2]) {

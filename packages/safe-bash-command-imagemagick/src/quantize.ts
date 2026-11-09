@@ -128,6 +128,32 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             if (++work % 1024 === 0) yield;
             let node = bin.node!;
             while (node.removed) node = node.parent!;
+            if (channels === 3) {
+                const pixel = bin.sums.map(value => value / bin.count);
+                // Native assignment searches the deepest surviving cube's
+                // siblings and descendants, comparing unrounded palette means.
+                let cube = root;
+                for (let bit = 7; bit > 0; bit--) {
+                    let id = 0;
+                    for (let c = 0; c < channels; c++) id |= ((Math.round(pixel[c]!) >>> bit) & 1) << c;
+                    const child = cube.children.get(id);
+                    if (!child || child.removed) break;
+                    cube = child;
+                }
+                let closest = Infinity;
+                function* search(candidate: ColorNode): Generator<undefined> {
+                    if (++work % 1024 === 0) yield;
+                    for (let id = 0; id < 8; id++) {
+                        const child = candidate.children.get(id);
+                        if (child && !child.removed) yield* search(child);
+                    }
+                    if (!candidate.count) return;
+                    let distance = 0;
+                    for (let c = 0; c < 3; c++) distance += (candidate.sums[c]! / candidate.count - pixel[c]!) ** 2;
+                    if (distance <= closest) { closest = distance; node = candidate; }
+                }
+                yield* search(cube.parent ?? root);
+            }
             bin.color = node.sums.map(value => Math.round(value / node.count));
         }
     }

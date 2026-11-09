@@ -5203,7 +5203,19 @@ function* selectedInputPages(pageSpec: string | undefined, totalPages: number): 
     }
 }
 
-function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number, extract?: string): Generator<void, RgbaImage[] | undefined, void> {
+function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number, extract?: string, registers?: ReadonlyMap<string, RgbaImage[]>): Generator<void, RgbaImage[] | undefined, void> {
+    if (token.slice(0, 4).toLowerCase() === "mpr:") {
+        const { baseToken, pageSpec, inlineGeom } = parseInputToken(token);
+        const saved = registers?.get(baseToken.slice(4).toLowerCase());
+        if (!saved) throw new Error(`unable to open image '${token}'`);
+        const images: RgbaImage[] = [];
+        for (const index of selectedInputPages(pageSpec, saved.length)) {
+            yield;
+            const image = { ...saved[index]!, data: new Uint8Array(saved[index]!.data) };
+            images.push(inlineGeom ? yield* applyInlineReadModifierSteps(image, inlineGeom, state.kernel, state.resizeFilter) : image);
+        }
+        return images;
+    }
     let work = 0;
     const {baseToken,pageSpec,inlineGeom=extract}=parseInputToken(token);
     function* applyMod(imgs: RgbaImage[]): Generator<void, RgbaImage[], void> {
@@ -5229,7 +5241,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     const lower = baseToken.toLowerCase();
     if (lower.startsWith("tile:")) {
         if (!state.hasSize) throw new Error("must specify image size for TILE input");
-        const patterns = (yield* parseInputOperandsSteps(baseToken.slice(5), files, state, stdinBytes));
+        const patterns = (yield* parseInputOperandsSteps(baseToken.slice(5), files, state, stdinBytes, undefined, undefined, registers));
         if (!patterns)
             return undefined;
         return yield* applyMod((yield* mapSteps(patterns, function* (pattern) {
@@ -7488,20 +7500,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         yield;
         const t = tokens[i]!;
         if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
-        if (t.slice(0, 4).toLowerCase() === "mpr:") {
-            const { baseToken, pageSpec, inlineGeom } = parseInputToken(t);
-            const saved = registers.get(baseToken.slice(4).toLowerCase());
-            if (!saved) throw new Error(`unable to open image '${t}'`);
-            for (const index of selectedInputPages(pageSpec, saved.length)) {
-                yield;
-                const image = { ...saved[index]!, data: new Uint8Array(saved[index]!.data) };
-                stack.push(inlineGeom ? yield* applyInlineReadModifierSteps(image, inlineGeom, state.kernel, state.resizeFilter) : image);
-            }
-            i++;
-            continue;
-        }
         if (operandsOnly) {
-            const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes);
+            const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes, undefined, undefined, registers);
             if (!loaded) throw new Error(`unable to open image '${t}'`);
             for (const warning of loaded[0]?.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
             stack.push(...loaded);
@@ -8674,7 +8674,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 state.background = { r: 0, g: 0, b: 0, a: 0 };
             }
             const maxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
-            const loaded = (yield* parseInputOperandsSteps(t, files, state, stdinBytes, maxDecodeDim));
+            const loaded = (yield* parseInputOperandsSteps(t, files, state, stdinBytes, maxDecodeDim, undefined, registers));
             if (mergeOntoCanvas) {
                 state.background = prevBg;
             }
@@ -10363,21 +10363,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (!operandsOnly && (token === "(" || token === ")")) continue;
             const captured = { ...state }, literal = operandsOnly, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
             stackStep(async (stack, backend) => {
-                if (token.slice(0, 4).toLowerCase() === "mpr:") {
-                    const { baseToken, pageSpec, inlineGeom } = parseInputToken(token);
-                    const saved = registers.get(baseToken.slice(4).toLowerCase());
-                    if (!saved) throw new Error(`unable to open image '${token}'`);
-                    for (const index of selectedInputPages(pageSpec, saved.length)) {
-                        await yieldTurn(signal);
-                        const image = (await saved.get(index))!;
-                        await stack.push(inlineGeom ? await applyStoredInlineReadModifier(image, inlineGeom, captured, backend, signal) : image);
-                    }
-                    return stack;
-                }
                 const base = stack.length === 1 ? await stack.get(0) : undefined, lower = token.toLowerCase();
                 const merge = !literal && (lower.startsWith("label:") || lower.startsWith("caption:")) && base && captured.hasSize && base.width === captured.sizeWidth && base.height === captured.sizeHeight && Object.values(captured.background).every(value => value === 255);
                 const settings = merge ? { ...captured, background: { r: 0, g: 0, b: 0, a: 0 } } : captured;
-                const loaded = await parseStoredCompareInput(token, settings, backend, signal, { visit: async image => {
+                const loaded = await parseStoredCompareInput(token, settings, backend, signal, { registers, visit: async image => {
                     for (const warning of image.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
                     if (merge) {
                         const composed = await compositeStoredMagick(base, image, backend, signal, 0, 0, "over");
@@ -10913,15 +10902,28 @@ async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom:
     return image;
 }
 
-async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;extract?:string;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
+async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{registers?:ReadonlyMap<string, StoredImageStack>|undefined;source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;extract?:string;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
  const {baseToken,pageSpec,inlineGeom=readOptions.extract}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
+ if (token.slice(0, 4).toLowerCase() === "mpr:") {
+     const { baseToken, pageSpec, inlineGeom } = parseInputToken(token);
+     const saved = readOptions.registers?.get(baseToken.slice(4).toLowerCase());
+     if (!saved) throw new Error(`unable to open image '${token}'`);
+     for (const index of selectedInputPages(pageSpec, saved.length)) {
+         await yieldTurn(signal);
+         const savedImage = (await saved.get(index))!;
+         image = inlineGeom ? await applyStoredInlineReadModifier(savedImage, inlineGeom, state, backend, signal) : savedImage;
+         await readOptions.visit?.(image);
+         if (!readOptions.visit && !readOptions.lastPage) break;
+     }
+     return image;
+ }
  if(lower.startsWith("tile:")){
   if(!state.hasSize)throw new Error("must specify image size for TILE input");
   if(readOptions.visit){
-   await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{source:readOptions.source,visit:async pattern=>{image=await finish(await tile(pattern));await readOptions.visit!(image);}});
+   await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{registers:readOptions.registers,source:readOptions.source,visit:async pattern=>{image=await finish(await tile(pattern));await readOptions.visit!(image);}});
    return image;
   }
-  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{source:readOptions.source,lastPage:readOptions.lastPage===true});if(!pattern)return;
+  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{registers:readOptions.registers,source:readOptions.source,lastPage:readOptions.lastPage===true});if(!pattern)return;
   image=await tile(pattern);
  }else if(lower.startsWith("ftxt:")){
   if(!state.hasSize)throw new Error("must specify image size for FTXT input");

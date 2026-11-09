@@ -6,26 +6,35 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function joinAudio(
   tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaTrack> {
-  const options: Record<string, string> = { inputs: "2", channel_layout: "stereo" };
+  let inputs = 2;
+  let layout = "stereo";
+  let map = "";
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["inputs", "channel_layout", "map"][index] : option.slice(0, separator);
-    if (!key || !["inputs", "channel_layout", "map"].includes(key)) throw new Error(`join: unsupported option ${key}`);
-    options[key] = separator < 0 ? option : option.slice(separator + 1);
+    const value = separator < 0 ? option : option.slice(separator + 1);
+    if (key === "inputs") {
+      const numeric = parseFilterExpression(value, "join", {});
+      if (numeric < 1 || numeric > 2147483647) throw new Error("join: invalid input count");
+      // Native integer options round halfway values to even after range validation.
+      inputs = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
+    } else if (key === "channel_layout") {
+      if (!validChannelLayout(value)) throw new Error("join: invalid channel layout");
+      layout = value;
+    } else if (key === "map") {
+      // This is a native string option; only its final value is interpreted.
+      map = value;
+    } else throw new Error(`join: unsupported option ${key}`);
   }
-  const numeric = parseFilterExpression(options.inputs!, "join", {});
-  if (!Number.isFinite(numeric) || numeric < 1 || numeric > 32767) throw new Error("join: invalid inputs");
-  // Native integer options validate bounds before rounding ties to even.
-  const count = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
-  if (count !== tracks.length) {
+  if (inputs !== tracks.length) {
     throw new Error("join: inputs must match the number of connected inputs");
   }
   const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR",
     "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"];
-  const outputNames = parseAudioChannelLayout(options.channel_layout!);
+  const outputNames = parseAudioChannelLayout(layout);
   if (outputNames.some(name => !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length) {
-    throw new Error(`join: unsupported channel layout ${options.channel_layout}`);
+    throw new Error(`join: unsupported channel layout ${layout}`);
   }
   outputNames.sort((a, b) => speakers.indexOf(a) - speakers.indexOf(b));
   const outputMask = outputNames.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0);
@@ -36,7 +45,7 @@ export async function joinAudio(
   if (audio.some(input => input.sampleRate !== audio[0]!.sampleRate)) throw new Error("join requires matching sample rates");
   const used = audio.map(() => new Set<number>());
   const selected = new Map<string, Float32Array | Float64Array>();
-  for (const mapping of options.map ? options.map.split("|") : []) {
+  for (const mapping of map ? map.split("|") : []) {
     const [source, output, ...extra] = mapping.split("-");
     const indices = source!.split(".");
     if (extra.length || !outputNames.includes(output ?? "") || selected.has(output!) ||
@@ -98,4 +107,46 @@ export async function joinAudio(
   }
   return { ...first, timescale: sampleRate, duration: length, samples: frames, editList: undefined,
     decodedAudio: { ...audio[0]!, channels: outputNames.length, channelMask: outputMask, channelData } };
+}
+
+function validChannelLayout(layout: string): boolean {
+  if (["mono", "stereo", "2.1", "3.0", "3.0(back)", "4.0", "quad", "quad(side)", "3.1",
+    "5.0", "5.0(side)", "4.1", "5.1", "5.1(side)", "6.0", "6.0(front)", "3.1.2", "hexagonal",
+    "6.1", "6.1(back)", "6.1(front)", "7.0", "7.0(front)", "7.1", "7.1(wide)", "7.1(wide-side)",
+    "5.1.2", "octagonal", "cube", "5.1.4", "7.1.2", "7.1.4", "7.2.3", "9.1.4", "hexadecagonal",
+    "downmix", "22.2"].includes(layout)) return true;
+  if (layout.startsWith("ambisonic ")) {
+    const separator = layout.indexOf("+", 10);
+    const order = layout.slice(10, separator < 0 ? undefined : separator);
+    if (!order || [...order].some(char => char < "0" || char > "9") || Number(order) > 46339) return false;
+    const extra = separator < 0 ? "" : layout.slice(separator + 1);
+    return separator < 0 || (!extra.startsWith("ambisonic ") && validChannelLayout(extra));
+  }
+  const unsigned = layout.trimStart().startsWith("+") ? layout.trimStart().slice(1) : layout.trimStart();
+  const hex = unsigned.toLowerCase().startsWith("0x");
+  const octal = !hex && unsigned.startsWith("0") && unsigned.length > 1;
+  const digits = hex ? unsigned.slice(2) : unsigned;
+  const alphabet = hex ? "0123456789abcdefABCDEF" : octal ? "01234567" : "0123456789";
+  if (digits && [...digits].every(char => alphabet.includes(char))) {
+    const mask = BigInt(octal ? `0o${digits}` : unsigned);
+    return mask > 0n && mask <= 0xffffffffffffffffn;
+  }
+  const suffix = layout.endsWith(" channels") ? " channels" : layout.slice(-1);
+  if (["c", "C", " channels"].includes(suffix)) {
+    const count = layout.slice(0, -suffix.length);
+    if (!count || [...count].some(char => char < "0" || char > "9")) return false;
+    const channels = Number(count);
+    return suffix === "c" ? [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 24].includes(channels)
+      : channels > 0 && channels <= 2147483647;
+  }
+  const start = layout.indexOf(" channels (");
+  if (start >= 0) {
+    const count = layout.slice(0, start);
+    if (!count || [...count].some(char => char < "0" || char > "9") || !layout.endsWith(")")) return false;
+    layout = layout.slice(start + " channels (".length, -1);
+    if (layout.split("+").length !== Number(count)) return false;
+  }
+  return layout.split("+").every(channel => ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC",
+    "BC", "SL", "SR", "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR", "DL", "DR", "WL", "WR",
+    "SDL", "SDR", "LFE2", "TSL", "TSR", "BFC", "BFL", "BFR", "UNK", "UNSD"].includes(channel.split("@")[0]!.trim()));
 }

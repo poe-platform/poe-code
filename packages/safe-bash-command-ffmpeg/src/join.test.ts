@@ -115,3 +115,46 @@ for (const [filter, sampleRate, length, lengths, gains] of [
     }
   });
 }
+
+for (const options of [
+  "inputs=bad:inputs=2", "inputs=0:inputs=2", "inputs=-1:inputs=2",
+  "inputs=2147483648:inputs=2", "inputs=:inputs=2", "inputs=NaN:inputs=2",
+  "channel_layout=nope:channel_layout=stereo", "channel_layout=:channel_layout=stereo",
+  "channel_layout=0:channel_layout=stereo", "channel_layout=08:channel_layout=stereo",
+  "channel_layout=0x10000000000000000:channel_layout=stereo", "channel_layout=FL+nope:channel_layout=stereo",
+  "channel_layout=3 channels (FL+FR):channel_layout=stereo", "channel_layout=9c:channel_layout=stereo",
+  "channel_layout=ambisonic -1:channel_layout=stereo", "bad:inputs=2", "2:nope:channel_layout=stereo"
+]) {
+  it(`validates overridden join options without replacing output: ${options}`, async () => {
+    const { result, stderr, bytes } = await run(["-filter_complex",
+      `[0:a][1:a]join=${options}:map=1.0-FL|0.0-FR[mix]`, "-map", "[mix]"]);
+    assert.notEqual(result.exitCode, 0);
+    assert.match(stderr, /join/);
+    assert.equal(bytes.toString(), "preserve");
+  });
+}
+
+for (const options of [
+  "inputs=2:inputs=2", "inputs=1:inputs=2", "inputs=3:inputs=2",
+  "inputs=1+2:inputs=2", "inputs=2:inputs=1+1", "inputs=2:inputs=2.5",
+  "channel_layout=stereo:channel_layout=stereo", "channel_layout=mono:channel_layout=stereo",
+  "channel_layout=5.1:channel_layout=stereo", "channel_layout=FL+FR:channel_layout=stereo",
+  "channel_layout=0x3:channel_layout=stereo", "channel_layout=2c:channel_layout=stereo",
+  "channel_layout=0X3:channel_layout=stereo", "channel_layout=03:channel_layout=stereo",
+  "channel_layout=2C:channel_layout=stereo", "channel_layout=2 channels:channel_layout=stereo",
+  "channel_layout=FL@left+FR@right:channel_layout=stereo",
+  "channel_layout=2 channels (FL+FR):channel_layout=stereo",
+  "channel_layout=ambisonic 1:channel_layout=stereo", "channel_layout=ambisonic 1+stereo:channel_layout=stereo",
+  "map=bad", "map="
+]) {
+  it(`uses the last valid join option value: ${options}`, async () => {
+    const { result, stderr, bytes } = await run(["-filter_complex",
+      `[0:a][1:a]join=${options}:map=1.0-FL|0.0-FR[mix]`, "-map", "[mix]"]);
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(bytes).tracks[0]!.decodedAudio!;
+    assert.equal(audio.channels, 2);
+    assert.equal(audio.sampleRate, 8000);
+    assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)),
+      [b, a.slice(0, b.length)]);
+  });
+}

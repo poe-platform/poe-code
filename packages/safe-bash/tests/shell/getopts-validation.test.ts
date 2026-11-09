@@ -307,6 +307,26 @@ for (const [name, source, expected] of [
   });
 }
 
+for (const bounded of [false, true]) {
+  for (const [explicit, expected] of [
+    ["-- -x", "first:a:1\nexplicit:1:?:2\nnext:0:b:3\n"],
+    ["-ab -x", "first:a:1\nexplicit:0:b:2\nnext:0:c:4\n"],
+  ] as const) {
+    test(`getopts resumes a positional cluster after explicit ${explicit} (${bounded ? "bounded" : "unlimited"})`, async () => {
+      const { shell } = setup(bounded ? { limits: { maxExpansionBytes: 4096 } } : {});
+      try {
+        const result = await shell.exec(`set -- -ab -c val
+getopts abc: k; say "first:$k:$OPTIND"
+getopts abc: k ${explicit}; say "explicit:$?:$k:$OPTIND"
+getopts abc: k; say "next:$?:$k:$OPTIND"`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, expected);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
 for (const malformed of [false, true]) {
   test(`tracked same-array positional ${malformed ? "malformation" : "replacement"} invalidates validation`, async context => {
     const { shell } = setup({ limits: { maxExpansionBytes: 4096 } });

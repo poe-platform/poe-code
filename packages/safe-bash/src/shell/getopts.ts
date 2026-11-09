@@ -246,7 +246,9 @@ export async function scanGetopts(state: GetoptsState, optstring: string, input:
     if (token.length < 2 || token[0] !== "-") return end();
     if (token === "--") {
       index++;
-      return end();
+      // Bash retains the prior cluster cursor across an explicit end marker.
+      active = original.index === 0 ? undefined : original.active;
+      return finish("end", "?", { kind: "unset" }, null);
     }
     active = { argument: index - 1, offset: 1 };
   }
@@ -309,7 +311,9 @@ export function scanGetoptsSync(state: GetoptsState, optstring: string, args: re
     }
     if (token === "--") {
       index++;
-      return { state: { index }, kind: "end", status: 1, option: "?", optind: index, argument: { kind: "unset" }, diagnostic: null };
+      // Bash retains the prior cluster cursor across an explicit end marker.
+      active = state.index === 0 ? undefined : state.active;
+      return { state: active === undefined ? { index } : { index, active: { ...active } }, kind: "end", status: 1, option: "?", optind: index, argument: { kind: "unset" }, diagnostic: null };
     }
     active = { argument: index - 1, offset: 1 };
   }

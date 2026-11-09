@@ -1804,7 +1804,7 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
     // Splice treats @ dimensions literally, unlike resize's area geometry.
     const g = parseMagickGeometry(raw.replaceAll("@", ""));
     const hasDimensions = raw.toLowerCase().includes("x");
-    return { ...g,
+    const geometry = { ...g,
         width: Math.max(0, Math.round(g.aspectRatio !== undefined ? Math.min(width, height * g.aspectRatio) : g.isPercent
             ? (g.width ?? 100) * width / 100
             : g.width ?? (hasDimensions ? 0 : width))),
@@ -1812,6 +1812,12 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
             ? (g.height ?? g.width ?? 100) * height / 100
             : g.height ?? (hasDimensions ? 0 : height)))
     };
+    // Native conditions compare both nonzero axes and reset the entire region.
+    if ((g.enlargeOnly && geometry.width > 0 && geometry.height > 0 && geometry.width < width && geometry.height < height)
+        || (g.shrinkOnly && geometry.width > width && geometry.height > height)) {
+        return { ...geometry, width, height, x: 0, y: 0 };
+    }
+    return geometry;
 }
 
 function resolveMagickChopGeometry(g: MagickGeometry, raw: string, width: number, height: number) {
@@ -9141,8 +9147,9 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         xs = [{ source: w - dx, target: 0, length: dx }, { source: 0, target: dx, length: w - dx }];
         ys = [{ source: h - dy, target: 0, length: dy }, { source: 0, target: dy, length: h - dy }];
     } else if (token === "-splice") {
-        const { width: sw, height: sh } = resolveMagickSpliceGeometry(geometry, w, h);
-        const box = gravityAdjustBox(w, h, sw, sh, Math.trunc(g.x), Math.trunc(g.y), state.gravity);
+        const splice = resolveMagickSpliceGeometry(geometry, w, h);
+        const sw = splice.width, sh = splice.height;
+        const box = gravityAdjustBox(w, h, sw, sh, Math.trunc(splice.x), Math.trunc(splice.y), state.gravity);
         // Native West splice uses the width for its vertical anchor.
         const anchor = resolveGravityOffset(sw, state.gravity === "west" ? sw : sh, state.gravity);
         width += sw; height += sh;

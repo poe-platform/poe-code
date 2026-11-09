@@ -9429,6 +9429,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "mcompand" || trimmed.startsWith("mcompand=")) {
                         stretched = await multibandCompandAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "compand" || trimmed.startsWith("compand=")) {
+                        filteredSampleFormat = "dblp";
                         stretched = await compandAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
                           if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
                         });

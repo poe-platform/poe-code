@@ -4154,7 +4154,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     if (!options || (options.width === img.width && options.height === img.height)) return img;
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
-    let resized = !settings && !img.data16 && !scale && (kernel === "linear")
+    let resized: RgbaImage = !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
         : yield* applyMagickRasterSteps(img, !scale && kernel === "nearest" ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, !!img.writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples), undefined, { ...img, width, height });
     if (!scale && kernel === "nearest" && img.data16) {
@@ -4170,7 +4170,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
         }
         resized = { ...resized, data16 };
     }
-    if (sample && img.writeMask) resized = { ...resized, writeMask: { width, height, hasAlpha: false, data: resized.data } };
+    if (sample && img.writeMask) resized = { ...resized, writeMask: { ...resized, hasAlpha: false } };
     const virtualCanvas = magickResizeCanvas(img, width, height);
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
@@ -4183,7 +4183,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     if (!options) return image;
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
-    let resized = !settings && !image.storedData16 && !scale && (options.kernel === "linear")
+    let resized: StoredRgbaImage = !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
         : await transformStoredMagickRaster(image, backend, !scale && options.kernel === "nearest" ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, !!image.storedWriteMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples), signal, { ...image, width, height });
     if (!scale && options.kernel === "nearest" && image.storedData16) {

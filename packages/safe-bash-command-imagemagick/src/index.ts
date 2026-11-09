@@ -6985,6 +6985,40 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             return { ...image, data: out, ...(data16 ? { data16 } : {}) };
         };
+    } else if (token === "-random-threshold") {
+        highDepth = true;
+        evaluate = true;
+        const raw = tokens[++i] ?? "";
+        const parts = raw.toLowerCase().split("x").map(part => (part.trim().endsWith("%") ? part.trim().slice(0, -1) : part).trim());
+        if (parts.length > 2 || parts.some(part => !part || !Number.isFinite(Number(part)) || Number.parseFloat(part) !== Number(part))) {
+            throw new Error(`invalid argument '-random-threshold' '${raw}'`);
+        }
+        const scale = raw.includes("%") ? 65535 / 100 : 1;
+        const minimum = Number(parts[0]) * scale, maximum = Number(parts[1] ?? parts[0]) * scale;
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        let random = createMagickRandom(state.seed ?? 0);
+        apply = function* (image, pixelOffset = 0) {
+            if (pixelOffset === 0) random = createMagickRandom(state.seed ?? 0);
+            const out = new Uint8Array(image.data);
+            const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+            const evaluateSamples = image.evaluateSamples?.slice();
+            const samples = evaluateSamples ?? data16 ?? out, quantumScale = evaluateSamples || !data16 ? 257 : 1;
+            const mask = [channels.r, channels.g, channels.b, channels.a && image.hasAlpha];
+            for (let idx = 0; idx < out.length; idx += 4) {
+                if (idx % 65536 === 0) yield;
+                for (let channel = 0; channel < 4; channel++) {
+                    if (!mask[channel]) continue;
+                    const value = samples[idx + channel]! * quantumScale;
+                    // Only samples inside the range consume the seeded random stream.
+                    const threshold = value < minimum ? minimum : value > maximum ? maximum : 65535 * random();
+                    const white = value > threshold;
+                    out[idx + channel] = white ? 255 : 0;
+                    if (data16) data16[idx + channel] = white ? 65535 : 0;
+                    if (evaluateSamples) evaluateSamples[idx + channel] = white ? 255 : 0;
+                }
+            }
+            return { ...image, isPalette: false, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
+        };
     } else if (token === "-range-threshold") {
         highDepth = true;
         const raw = tokens[++i] ?? "";
@@ -11822,6 +11856,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "+level",
         "-threshold",
         "-range-threshold",
+        "-random-threshold",
         "-black-threshold",
         "-white-threshold",
         "-sigmoidal-contrast",

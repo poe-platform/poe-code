@@ -1,0 +1,208 @@
+[
+  {
+    "name": "seed17",
+    "depth": 8,
+    "values": [
+      0,
+      8,
+      8,
+      16,
+      24,
+      48,
+      64,
+      96,
+      96,
+      120,
+      160,
+      176,
+      208,
+      224,
+      232,
+      255
+    ],
+    "alpha": false,
+    "options": [
+      "-seed",
+      "17",
+      "-random-threshold",
+      "25x75%"
+    ],
+    "expected": "000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff00ffffffff0000ffff00ffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  {
+    "name": "seed22",
+    "depth": 8,
+    "values": [
+      0,
+      8,
+      8,
+      16,
+      24,
+      48,
+      64,
+      96,
+      96,
+      120,
+      160,
+      176,
+      208,
+      224,
+      232,
+      255
+    ],
+    "alpha": false,
+    "options": [
+      "-seed",
+      "22",
+      "-random-threshold",
+      "25x75%"
+    ],
+    "expected": "000000ff000000ff000000ff000000ff000000ff000000ffff0000ff0000ffff000000ffffff00ff0000ffffff00ffffffffffffffffffffffffffffffffffff"
+  },
+  {
+    "name": "equal",
+    "depth": 8,
+    "values": [
+      0,
+      8,
+      8,
+      16,
+      24,
+      48,
+      64,
+      96,
+      96,
+      120,
+      160,
+      176,
+      208,
+      224,
+      232,
+      255
+    ],
+    "alpha": false,
+    "options": [
+      "-random-threshold",
+      "50x50%"
+    ],
+    "expected": "000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ff000000ffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  {
+    "name": "quantum",
+    "depth": 16,
+    "values": [
+      0,
+      16383,
+      16384,
+      20000,
+      32767,
+      32768,
+      40000,
+      49151,
+      49152,
+      65535
+    ],
+    "alpha": false,
+    "options": [
+      "-seed",
+      "17",
+      "-random-threshold",
+      "16383.75x49151.25"
+    ],
+    "expected": "000000000000ffff000000000000ffff000000000000ffff000000000000ffff0000ffffffffffffffff00000000ffffffff0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  {
+    "name": "red",
+    "depth": 8,
+    "values": [
+      0,
+      8,
+      8,
+      16,
+      24,
+      48,
+      64,
+      96,
+      96,
+      120,
+      160,
+      176,
+      208,
+      224,
+      232,
+      255
+    ],
+    "alpha": false,
+    "options": [
+      "-channel",
+      "R",
+      "-seed",
+      "17",
+      "-random-threshold",
+      "25x75%"
+    ],
+    "expected": "000000ff000808ff000808ff001010ff001818ff003030ff004040ff006060ff006060ff007878ff00a0a0ff00b0b0ffffd0d0ffffe0e0ffffe8e8ffffffffff"
+  },
+  {
+    "name": "alpha",
+    "depth": 8,
+    "values": [
+      0,
+      8,
+      8,
+      16,
+      24,
+      48,
+      64,
+      96,
+      96,
+      120,
+      160,
+      176,
+      208,
+      224,
+      232,
+      255
+    ],
+    "alpha": true,
+    "options": [
+      "-channel",
+      "A",
+      "-seed",
+      "17",
+      "-random-threshold",
+      "25x75%"
+    ],
+    "expected": "00000000080808000808080010101000181818003030300040404000606060006060600078787800a0a0a000b0b0b000d0d0d0ffe0e0e0ffe8e8e8ffffffffff"
+  },
+  {
+    "name": "default-alpha",
+    "depth": 8,
+    "values": [
+      0,
+      8,
+      8,
+      16,
+      24,
+      48,
+      64,
+      96,
+      96,
+      120,
+      160,
+      176,
+      208,
+      224,
+      232,
+      255
+    ],
+    "alpha": true,
+    "options": [
+      "-seed",
+      "17",
+      "-random-threshold",
+      "25x75%"
+    ],
+    "expected": "00000000000000000000000000000000000000000000000000000000000000ffffff0000ff0000ffffff00ffffffff00ffffffffffffffffffffffffffffffff"
+  }
+]

@@ -10058,6 +10058,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 ? "m3u8" : segmentList?.toLowerCase().endsWith(".ffconcat")
                 ? "ffconcat" : [".csv", ".ext"].some(extension =>
                   segmentList?.toLowerCase().endsWith(extension)) ? "csv" : "flat");
+              if (listPath !== undefined && listType === "csv") {
+                await context.fs.writeFile(listPath, new Uint8Array(0), { signal: context.signal });
+              }
               const list: string[] = [];
               for (let index = 0; index < paths.length; index++) {
                 await yieldTurn(context.signal);

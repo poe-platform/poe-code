@@ -1108,9 +1108,10 @@ async function panAudio(
   }
   const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR",
     "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"];
-  const inputNames = channelMask
-    ? speakers.filter((_, index) => (channelMask & (1 << index)) !== 0)
-    : channels.length === 1 ? ["FC"] : channels.length === 2 ? ["FL", "FR"] : [];
+  // Default layouts are mono, stereo, 2.1, 4.0, 5.0, 5.1, 6.1 and 7.1.
+  // An explicit mask takes precedence; four unmasked channels are not quad.
+  const inputMask = channelMask || ([0, 0x4, 0x3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels.length] ?? 0);
+  const inputNames = speakers.filter((_, index) => (inputMask & (1 << index)) !== 0);
   const channelIndex = (name: string, labels: string[], count: number) => {
     const index = name.startsWith("c") && name.length > 1 &&
       [...name.slice(1)].every(char => char >= "0" && char <= "9")

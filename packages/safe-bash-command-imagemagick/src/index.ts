@@ -109,8 +109,8 @@ import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16">> & { position?: number };
-type RgbaImage = BaseRgbaImage & HueMetadata & { alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & { virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -583,6 +583,7 @@ function parseDelayOption(value: string, current: number): number {
 }
 
 interface MagickState {
+  respectParentheses?: boolean;
   distortScale?: string;
   gradientBoundingBox?: MagickGeometry;
   gradientDirection?: string;
@@ -1048,9 +1049,9 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
     const w = stack.reduce((width, image) => Math.max(width, image.width), 0);
     const h = stack.reduce((height, image) => Math.max(height, image.height), 0);
     const normalized = (yield* mapSteps(stack, function* (im) {
-        if (state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) im = { ...im, hasAlpha: true };
+        if (im.virtualPixel === "transparent" || (im.virtualPixel === "background" || im.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) im = { ...im, hasAlpha: true };
         if (im.width === w && im.height === h) return im;
-        return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, state.virtualPixel, state.background), signal, { ...im, width: w, height: h });
+        return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, im.virtualPixel, state.background), signal, { ...im, width: w, height: h });
     }));
     const virtualCanvas = magickResizeCanvas(base, w, h);
     return { ...yield* applyMagickRasterSteps(base, evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0, w), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), ...(virtualCanvas ? { virtualCanvas } : {}) };
@@ -5512,6 +5513,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     const {baseToken,pageSpec,inlineGeom=extract}=parseInputToken(token);
     function* applyMod(imgs: RgbaImage[]): Generator<void, RgbaImage[], void> {
         return yield* mapSteps(imgs, function* (im) {
+            im = { ...im, virtualPixel: state.virtualPixel ?? "edge" };
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.orientation !== undefined) im = { ...im, orientation: state.orientation };
             if (state.units !== undefined) im = applyMagickUnits(im, state.units);
@@ -7464,6 +7466,9 @@ if (t === "-seed") {
         else if (t === "+size") {
             state.hasSize = false;
         }
+        else if (t === "-respect-parentheses" || t === "+respect-parentheses") {
+            state.respectParentheses = t === "-respect-parentheses";
+        }
         else if (t === "-virtual-pixel") {
             const method = (tokens[++i] ?? "").toLowerCase();
             if (method !== "edge" && method !== "background" && method !== "transparent" && method !== "black" && method !== "white" && method !== "gray" && method !== "tile" && method !== "mirror" && method !== "horizontal-tile" && method !== "vertical-tile" && method !== "checker-tile" && method !== "horizontal-tile-edge" && method !== "vertical-tile-edge") throw new Error(`Unsupported virtual-pixel method: ${method}`);
@@ -7893,7 +7898,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             const endIdx = depth === 0 ? j - 1 : j;
             const subTokens = tokens.slice(i + 1, endIdx);
-            const subState: MagickState = { ...state };
+            const subState: MagickState = state.respectParentheses ? { ...state } : state;
             const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal, analysis, registers));
             stack.push(...subResult);
             i = j;
@@ -8013,6 +8018,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, false, channels, signal), signal));
             }
             if (t === "-page") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualCanvas: state.page! }; });
+            if (t === "-virtual-pixel" || t === "+virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualPixel: state.virtualPixel ?? "edge" }; });
         }
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, i++);
@@ -9648,7 +9654,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "(") {
             let depth = 1, end = i + 1;
             for (; end < tokens.length; end++) { if (tokens[end] === "(") depth++; else if (tokens[end] === ")" && --depth === 0) break; }
-            scopes.push({ state, end }); state = { ...state };
+            scopes.push({ state, end });
+            if (state.respectParentheses) state = { ...state };
             stackStep(async (stack, backend, parents) => { parents.push(stack); return new StoredImageStack(backend.storage, signal, stack); });
             continue;
         }
@@ -9769,16 +9776,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const frames: StoredRgbaImage[] = [];
                     let highDepth = false;
                     for (let index = 0; index < stack.length; index++) {
-                        const image = (await stack.get(index))!;
+                        const image: StoredRgbaImage = (await stack.get(index))!;
                         width = Math.max(width, image.width); height = Math.max(height, image.height);
-                        frames.push({ ...image, hasAlpha: image.hasAlpha || settings.virtualPixel === "transparent" || (settings.virtualPixel === "background" || settings.virtualPixel?.endsWith("-tile") === true) && settings.background.a < 255 });
+                        frames.push({ ...image, hasAlpha: image.hasAlpha || image.virtualPixel === "transparent" || (image.virtualPixel === "background" || image.virtualPixel?.endsWith("-tile") === true) && settings.background.a < 255 });
                         highDepth ||= !!image.storedData16;
                     }
                     for (let index = 0; index < stack.length; index++) {
-                        const image = (await stack.get(index))!;
+                        const image: StoredRgbaImage = (await stack.get(index))!;
                         if (image.width !== width || image.height !== height) {
                             const virtualCanvas = magickResizeCanvas(image, width, height);
-                            await stack.set(index, { ...await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height, !!image.storedData16, settings.virtualPixel, settings.background), signal, { ...image, width, height }), ...(virtualCanvas ? { virtualCanvas } : {}) });
+                            await stack.set(index, { ...await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height, !!image.storedData16, image.virtualPixel, settings.background), signal, { ...image, width, height }), ...(virtualCanvas ? { virtualCanvas } : {}) });
                         }
                     }
                     const first = (await stack.get(0))!;
@@ -9896,6 +9903,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-depth" && state.inputDepth! < 16) {
                 const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
                 steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, false, channels, signal), signal) : undefined);
+            }
+            if (token === "-virtual-pixel" || token === "+virtual-pixel") {
+                const virtualPixel = state.virtualPixel ?? "edge";
+                steps.push(async image => image ? { ...image, virtualPixel } : undefined);
             }
             if (token === "-page") {
                 const page = state.page!;
@@ -11719,6 +11730,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
+  image = { ...image, virtualPixel: state.virtualPixel ?? "edge" };
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.orientation!==undefined)image={...image,orientation:state.orientation};
   if(state.units!==undefined)image=applyMagickUnits(image,state.units);

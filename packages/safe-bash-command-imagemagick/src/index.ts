@@ -4018,6 +4018,8 @@ function createLabelSvg(text: string, state: MagickState): string {
 
 function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geomStr:string,kernel:ResizeKernel | undefined): (Omit<Parameters<typeof resizeImageSteps>[1], "kernel"> & { kernel: ResizeKernel }) | undefined {
     const g = parseMagickGeometry(geomStr);
+    // Resize uses the first @ component as area; crop uses both as subdivisions.
+    const areaLimit = g.isSubdivide ? g.width : g.areaLimit;
     const srcW = img.width;
     const srcH = img.height;
     let targetW: number;
@@ -4026,9 +4028,9 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
         targetW = Math.max(1, Math.round(Math.min(srcW, srcH * g.aspectRatio)));
         targetH = Math.max(1, Math.round(Math.min(srcH, srcW / g.aspectRatio)));
     }
-    else if (g.areaLimit !== undefined) {
+    else if (areaLimit !== undefined) {
         const currentArea = srcW * srcH;
-        const scale = Math.sqrt(g.areaLimit / Math.max(1, currentArea));
+        const scale = Math.sqrt(areaLimit / Math.max(1, currentArea));
         if (g.shrinkOnly && scale >= 1)
             return undefined;
         if (g.enlargeOnly && scale <= 1)

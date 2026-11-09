@@ -396,7 +396,9 @@ Both filters accept case-insensitive Boolean
 words (`true`/`false`, `yes`/`no`, `on`/`off`, `y`/`n`, `enable`/`disable`,
 `enabled`/`disabled`) and decimal 0/1 values, such as `phasel=True` or `c=OFF`.
 Both `extrastereo` and `stereotools` convert mono input to stereo before processing,
-with each channel receiving the mono samples at √½ gain.
+with each channel receiving the mono samples at √½ gain. They also downmix explicitly
+labeled 5.1 and 5.1(side) input: front channels retain their gain, center and
+surround channels contribute at √½ gain, and LFE is omitted.
 `crossfeed=strength=0.5` applies frequency-dependent headphone crossfeed to stereo audio.
 Strength and range default to 0.2 and 0.5 (0–1); slope defaults to 0.5 (0.01–1).
 `level_in` and `level_out` default to 0.9 and 1 (0–1).

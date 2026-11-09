@@ -1,3 +1,4 @@
+import { complexPixelSteps, parseComplexOperator } from "./complex.js";
 import { parseCdlSteps, cdlImageSteps } from "./cdl.js";
 import { localContrastPixelSteps, parseLocalContrastGeometry } from "./local-contrast-kernel.js";
 import { liquidRescalePixelSteps } from "./liquid-rescale.js";
@@ -8914,6 +8915,19 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return (yield* applyMagickFloodfillSteps(im, expanded, targetColor, state.fill, state.alphaFuzz, signal, false, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, t === "+floodfill"));
             });
         }
+        else if (t === "-complex") {
+            const operation = parseComplexOperator(tokens[++i]);
+            if (stack.length < 2) throw new Error("image sequence is required '-complex'");
+            const result: RgbaImage[] = [];
+            for (let part = 0; part < 2; part++) {
+                const base = stack[part]!;
+                let other = stack[stack.length >= 4 ? part + 2 : part]!;
+                if (other.width !== base.width || other.height !== base.height)
+                    other = yield* applyMagickRasterSteps(other, extendEdgePixelSteps(other, base.width, base.height, true, other.virtualPixel, state.background), signal, { ...other, width: base.width, height: base.height });
+                result.push(yield* applyMagickRasterSteps(base, complexPixelSteps(base.width * base.height * 4, operation, base.hasAlpha), signal, base, [base, other]));
+            }
+            stack = result;
+        }
         else if (t === "-evaluate-sequence" || t === "-average" || t === "-poly") {
             const op = t === "-poly" ? parseMagickPoly(tokens[++i] ?? "") : t === "-average" ? "Mean" : tokens[++i] ?? "Mean";
             if (t === "-poly" && !stack.length) throw new Error("no images found for operation '-poly'");
@@ -10303,6 +10317,22 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     await result.push(await transformStoredMagickRaster({ ...image, space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16)), signal, { ...image, hasAlpha }, sources));
                 } else if (image) for (const channels of selections) {
                     await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: image => selectMagickChannels(image, channels) }, signal));
+                }
+                return result;
+            });
+            continue;
+        }
+        if (!operandsOnly && token === "-complex") {
+            const operation = parseComplexOperator(tokens[++i]), background = state.background;
+            stackStep(async (stack, backend) => {
+                if (stack.length < 2) throw new Error("image sequence is required '-complex'");
+                const result = new StoredImageStack(backend.storage, signal, stack);
+                for (let part = 0; part < 2; part++) {
+                    const base = (await stack.get(part))!;
+                    let other: StoredRgbaImage = (await stack.get(stack.length >= 4 ? part + 2 : part))!;
+                    if (other.width !== base.width || other.height !== base.height)
+                        other = await transformStoredMagickRaster(other, backend, extendEdgePixelSteps(other, base.width, base.height, true, other.virtualPixel, background), signal, { ...other, width: base.width, height: base.height });
+                    await result.push(await transformStoredMagickRaster(base, backend, complexPixelSteps(base.width * base.height * 4, operation, base.hasAlpha), signal, base, [base, other]));
                 }
                 return result;
             });
@@ -11965,7 +11995,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-convolve",
         "-color-matrix", "-cdl",
         "-channel-fx",
-        "-evaluate-sequence", "-poly",
+        "-evaluate-sequence", "-poly", "-complex",
         "-remap",
         "-read-mask",
         "-encipher", "-decipher",

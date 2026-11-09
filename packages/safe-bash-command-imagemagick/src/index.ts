@@ -6732,8 +6732,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const r = evaluateSamples[idx]! / 255, g = evaluateSamples[idx + 1]! / 255, b = evaluateSamples[idx + 2]! / 255;
                 const rgb = modulateRgb(r, g, b, brightness, saturation, hueShift % 6, colorspace);
                 for (let channel = 0; channel < 3; channel++) {
-                    evaluateSamples[idx + channel] = rgb[channel]! * 255;
-                    const sample = Math.max(0, Math.min(quantum, Math.round(rgb[channel]! * quantum)));
+                    // Q16-HDRI stores float samples before rounding to output depth.
+                    const value = Math.fround(rgb[channel]! * 65535);
+                    evaluateSamples[idx + channel] = value / 257;
+                    const sample = Math.max(0, Math.min(quantum, Math.round(data16 ? value : Math.fround(value / 257))));
                     if (data16) data16[idx + channel] = sample;
                     out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
                 }

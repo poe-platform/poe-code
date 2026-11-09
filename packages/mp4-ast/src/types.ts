@@ -830,6 +830,8 @@ export interface SerializeMediaOptions {
   readonly fragmentIndex?: number | undefined;
   /** Write an MP4 color information box even when color metadata is unspecified. */
   readonly writeColr?: boolean | undefined;
+  /** Append APEv2 metadata to ADTS output (disabled by default). */
+  readonly writeApetag?: boolean | undefined;
   /** Write an ID3v2 chunk in AIFF output (disabled by default). */
   readonly writeId3v2?: boolean | undefined;
   readonly id3v2Version?: 0 | 3 | 4 | undefined;

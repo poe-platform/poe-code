@@ -4309,6 +4309,7 @@ export function evalSyncFfmpeg(
     let fragmentDuration: number | undefined;
     let fragmentIndex: number | undefined;
     let emptyMoov = false;
+    let writeApetag: boolean | undefined;
     let writeId3v2: boolean | undefined;
     let id3v2Version: 0 | 3 | 4 | undefined;
     let writeId3v1: boolean | undefined;
@@ -4561,6 +4562,10 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (value !== "0" && value !== "3" && value !== "4") throw new Error("Invalid ID3v2 version: expected 0, 3 or 4");
         id3v2Version = Number(value) as 0 | 3 | 4;
+      } else if (arg === "-write_apetag") {
+        const value = args[++i];
+        if (value !== "0" && value !== "1") throw new Error("Invalid write_apetag: expected 0 or 1");
+        writeApetag = value === "1";
       } else if (arg === "-write_id3v2") {
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("Invalid write_id3v2: expected 0 or 1");
@@ -5054,7 +5059,7 @@ export function evalSyncFfmpeg(
     if (videoTrackTimescale && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
       workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
     }
-    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { live, writeHeader, writeBext, writeCrc32, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeId3v2, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
+    const serializedBytes = serializeLimitedWav(workingDoc, outPlugin, { live, writeHeader, writeBext, writeCrc32, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, videoCodec, audioBitrate, format: outputFormat ?? outExt, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, writeXing, faststart, useMetadataTags, disableChpl, writeColr, majorBrand, skipTrailer, defaultBaseMoof, segmentIndex, fragmented, fragmentKeyframes: fragmentKeyframes || (fragmented && !fragmentEveryFrame && !fragmentDuration && segmentIndex !== undefined), fragmentEveryFrame, fragmentDuration, fragmentIndex, emptyMoov, id3v2Version, writeApetag, writeId3v2, writeId3v1, metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit, finalDelay, globalPalette, rle, metadata: metaTags, budget }, fileSize);
     if (outputTarget === "/dev/null") return "";
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
@@ -5523,6 +5528,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let fragmentDurationArg: string | undefined;
         let fragmentIndex: number | undefined;
         let emptyMoov = false;
+        let writeApetag: boolean | undefined;
         let writeId3v2: boolean | undefined;
         let id3v2Version: 0 | 3 | 4 | undefined;
         let writeId3v1: boolean | undefined;
@@ -6547,6 +6553,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             id3v2Version = Number(value) as 0 | 3 | 4;
+          } else if (arg === "-write_apetag") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid write_apetag: expected 0 or 1\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            writeApetag = value === "1";
           } else if (arg === "-write_id3v2") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {
@@ -11365,6 +11378,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               fragmentIndex,
               emptyMoov,
               id3v2Version,
+              writeApetag,
               writeId3v2,
               writeId3v1,
               metadataHeaderPadding, reserveIndexSpace, cuesToFront, clusterTimeLimit,

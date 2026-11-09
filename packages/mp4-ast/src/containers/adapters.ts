@@ -454,7 +454,7 @@ export function parseAacAdts(bytes: Uint8Array): MediaDocument {
   };
 }
 
-export function serializeAacAdts(doc: MediaDocument): Uint8Array {
+export function serializeAacAdts(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
   const audioTrack = doc.tracks.find((t) => t.type === "audio");
   const sampleRate = audioTrack?.codecDescriptions[0]?.sampleRate ?? 44100;
   const channels = audioTrack?.codecDescriptions[0]?.channels ?? 2;
@@ -479,6 +479,37 @@ export function serializeAacAdts(doc: MediaDocument): Uint8Array {
       ? s.data
       : wrapAdtsFrame(s.data, sampleRate, channels)
   );
+  if (options.writeApetag) {
+    const metadata = options.metadata ?? doc.metadata;
+    const items = new BinaryWriter();
+    let count = 0;
+    for (const [key, value] of Object.entries({ ...metadata.custom, ...metadata })) {
+      if (typeof value !== "string" || !value) continue;
+      // APE keys must be printable ASCII, 2–255 bytes, excluding '='.
+      if (key.length < 2 || key.length > 255 || Array.from(key).some(char =>
+        char.charCodeAt(0) < 32 || char.charCodeAt(0) > 126 || char === "=")) continue;
+      const bytes = encodeUtf8(value);
+      items.writeU32LE(bytes.length);
+      items.writeU32LE(0); // UTF-8 text item.
+      items.writeNullTerminatedString(key);
+      items.writeBytes(bytes);
+      count++;
+    }
+    if (count) {
+      const payload = items.toUint8Array();
+      const tag = new BinaryWriter();
+      for (const flags of [0xa0000000, 0x80000000]) {
+        tag.writeBytes(encodeUtf8("APETAGEX"));
+        tag.writeU32LE(2000);
+        tag.writeU32LE(payload.length + 32); // Includes footer, excludes header.
+        tag.writeU32LE(count);
+        tag.writeU32LE(flags);
+        tag.writeZeros(8);
+        if (flags === 0xa0000000) tag.writeBytes(payload);
+      }
+      adtsFrames.push(tag.toUint8Array());
+    }
+  }
   return concatBytes(adtsFrames);
 }
 
@@ -501,8 +532,8 @@ export function aacAst(): MediaAstPlugin {
     parse(bytes) {
       return parseAacAdts(bytes);
     },
-    serialize(doc) {
-      return serializeAacAdts(doc);
+    serialize(doc, options) {
+      return serializeAacAdts(doc, options);
     },
     probe(bytes, options) {
       const doc = parseAacAdts(bytes);

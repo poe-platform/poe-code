@@ -6282,7 +6282,8 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             throw new Error(`invalid argument for option '${token}': ${argument}`);
         }
     }
-    const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
+    const independent = token === "-auto-gamma" ? !state.channelDefault : state.channelExplicit;
+    const channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
     return { end, highDepth: true, luminance: token === "-linear-stretch" || token === "-equalize" && state.channelSync || (token === "-normalize" || token === "-contrast-stretch") && !independent, transform(histogram, image) {
         const levels = histogram[0]!.length;
         const lookup = Array.from({ length: 4 }, () => levels === 65536

@@ -9309,7 +9309,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const sample = new DataView(new ArrayBuffer(bytesPerSample));
                         const length = stretched[0]?.length ?? 0;
                         const channels = stretched.length;
-                        const layout = channels === 1 ? "mono" : channels === 2 ? "stereo" : `${channels} channels`;
+                        const layout = channels === 1 ? "mono" : channels === 2 ? "stereo"
+                          : channels === 3 && filteredChannelMask === 7 ? "3.0" : `${channels} channels`;
                         for (let start = 0, n = 0; start < length; n++) {
                           budget.checkCpu();
                           await yieldTurn(context.signal);
@@ -10139,6 +10140,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           audioTimestamps.push({ start, end, pts });
                         }
                         filteredChannelMask = 7;
+                        filteredSampleFormat = "fltp";
                       } else if (trimmed === "crystalizer" || trimmed.startsWith("crystalizer=")) {
                         let intensity = 2;
                         let clip = true;

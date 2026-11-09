@@ -9563,7 +9563,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (normalized.report && logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(normalized.report), context.signal);
                       } else if (trimmed === "ebur128" || trimmed.startsWith("ebur128=")) {
                         for await (const report of measureEbur128(stretched, origRate, filteredChannelMask,
-                          trimmed === "ebur128" ? "" : trimmed.slice("ebur128=".length), budget, context.signal)) {
+                          trimmed === "ebur128" ? "" : trimmed.slice("ebur128=".length), budget, logLevel, context.signal)) {
                           await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                         }
                       } else if (trimmed === "replaygain" || trimmed === "replaygain=") {

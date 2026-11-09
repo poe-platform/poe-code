@@ -3208,7 +3208,7 @@ function validateMetadataStreamSpecifier(specifier: string): void {
   }
 }
 
-function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [string, "language" | "handlerName" | "timecode" | "title" | "comment", string][], metadataSource: number | undefined): readonly MediaTrack[] {
+function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][], metadataSource: number | undefined): readonly MediaTrack[] {
   if (metadataSource !== undefined && metadataSource < 0) {
     tracks = tracks.map(track => ({ ...track, language: "und" }));
   }
@@ -3226,6 +3226,13 @@ function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [
         if (metadataKey !== "language" || track.language === undefined ||
             (metadataValue !== undefined && track.language !== metadataValue)) return track;
       } else if (index && current !== Number(index)) return track;
+      if (key === "stereo_mode") {
+        const stereoMode = ["mono", "left_right", "bottom_top", "top_bottom", "checkerboard_rl", "checkerboard_lr",
+          "row_interleaved_rl", "row_interleaved_lr", "col_interleaved_rl", "col_interleaved_lr", "anaglyph_cyan_red",
+          "right_left", "anaglyph_green_magenta", "block_lr", "block_rl"].indexOf(value);
+        if (track.type !== "video" || stereoMode < 0) return track;
+        return { ...track, codecDescriptions: track.codecDescriptions.map(codec => ({ ...codec, stereoMode })) };
+      }
       return key === "timecode" || key === "title" || key === "comment" ? { ...track, metadata: { ...track.metadata, [key]: value } } : { ...track, [key]: value };
     });
   }
@@ -4229,7 +4236,7 @@ export function evalSyncFfmpeg(
     let chapterSource: number | undefined;
     const metadataSources: number[] = [];
     const metadata: Record<string, string> = {};
-    const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment", string][] = [];
+    const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][] = [];
     const streamDispositions: [string, string][] = [];
     const displayAspects: [string, number][] = [];
     const outputColors: OutputColorOption[] = [];
@@ -4667,7 +4674,7 @@ export function evalSyncFfmpeg(
         if (eq >= 0) {
           const k = kv.slice(0, eq).trim().toLowerCase();
           const v = kv.slice(eq + 1);
-          if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title" || k === "comment") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
+          if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title" || k === "comment" || k === "stereo_mode") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
             streamMetadata.push([arg.slice("-metadata:s:".length), k === "handler_name" ? "handlerName" : k, v]);
           } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
         }
@@ -5402,7 +5409,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let chapterSource: number | undefined;
         const metadataSources: number[] = [];
         const metadata: Record<string, string> = {};
-        const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment", string][] = [];
+        const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][] = [];
         const attachmentFiles: string[] = [];
         const attachmentMetadata: [string, string, string][] = [];
         const streamDispositions: [string, string][] = [];
@@ -6693,7 +6700,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (arg === "-metadata:s" || arg.startsWith("-metadata:s:")) {
                 attachmentMetadata.push([arg.slice("-metadata:s:".length), k, v]);
               }
-              if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title" || k === "comment") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
+              if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title" || k === "comment" || k === "stereo_mode") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
                 streamMetadata.push([arg.slice("-metadata:s:".length), k === "handler_name" ? "handlerName" : k, v]);
               } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
             }

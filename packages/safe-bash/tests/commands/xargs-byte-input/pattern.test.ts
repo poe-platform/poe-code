@@ -7,6 +7,45 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/shell.js";
 import { agentCommands } from "../../../src/plugins/index.js";
 
+for (const option of ["", "-L1", "-I{}"]) {
+  for (const fixture of [
+    { stdin: "a\\", stdout: "[a]" },
+    { stdin: "a\\\\", stdout: "[a\\]" },
+    { stdin: "a\\ b\\", stdout: "[a b]" },
+    { stdin: "\\", stdout: option === "-I{}" ? "" : "[]" },
+    { stdin: "'a'\\", stdout: "[a]" },
+    { stdin: "a \\", stdout: option === "-I{}" ? "[a ]" : "[a]" },
+  ]) test(`xargs EOF escapes ${option}: ${JSON.stringify(fixture.stdin)}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+    try {
+      const result = await shell.exec(`xargs ${option} printf '[%s]' ${option === "-I{}" ? "'{}'" : ""}`, { stdin: fixture.stdin });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, fixture.stdout);
+      assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+
+  for (const quote of ["'", '"']) test(`xargs retains unmatched quote errors ${option}: ${quote}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+    try {
+      const result = await shell.exec(`xargs ${option} printf '[%s]' '{}'`, { stdin: `${quote}a\\` });
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(result.stdout, "");
+      assert.ok(result.stderr.includes("unmatched quote in input"));
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("xargs -0 preserves a final backslash literally", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  try {
+    const result = await shell.exec("xargs -0 printf '[%s]'", { stdin: "a\\" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "[a\\]");
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
 for (const form of ["separate", "attached", "cluster", "long-default", "long-equals", "last"]) {
   for (const template of [[128], [239, 191, 189], [255]]) {
     test(`GNU raw replacement pattern ${form}, template=${template.join(",")}`, async () => {

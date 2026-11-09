@@ -21,8 +21,14 @@ function style(text: string): Style {
   throw new UsageError(`invalid numbering style: '${text}'`);
 }
 
+function numericArgument(text: string): string {
+  let start = 0;
+  while (start < text.length && " \t\n\r\v\f".includes(text[start]!)) start++;
+  return text.slice(start);
+}
+
 function signed(text: string): bigint {
-  if (!/^[+-]?\d+$/u.test(text.trim())) throw new UsageError(`invalid line number: '${text}'`);
+  if (!/^[+-]?\d+$/u.test(numericArgument(text))) throw new UsageError(`invalid line number: '${text}'`);
   const number = BigInt(text);
   if (number < -(1n << 63n) || number >= 1n << 63n) throw new UsageError(`line number out of range: '${text}'`);
   return number;
@@ -42,7 +48,7 @@ export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinit
     });
     const header = style(value(parsed, "h") ?? "n"), body = style(value(parsed, "b") ?? "t"), footer = style(value(parsed, "f") ?? "n");
     const start = signed(value(parsed, "v") ?? "1"), increment = signed(value(parsed, "i") ?? "1");
-    const join = Math.max(1, integer(value(parsed, "l") ?? "1")), width = integer(value(parsed, "w") ?? "6", 1);
+    const join = Math.max(1, integer(numericArgument(value(parsed, "l") ?? "1"))), width = integer(numericArgument(value(parsed, "w") ?? "6"), 1);
     const format = value(parsed, "n") ?? "rn";
     if (!["ln", "rn", "rz"].includes(format)) throw new UsageError(`invalid line numbering format: '${format}'`);
     session.check(width + separator.length, limits.maxRecordBytes, "number field");

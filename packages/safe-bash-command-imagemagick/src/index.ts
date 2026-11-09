@@ -4807,7 +4807,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         else if (cmd === "color" || cmd === "alpha") {
             const px = num(), py = num(), method = tokens[i++]?.toLowerCase();
             const x = affine[0] * px + affine[2] * py + affine[4], y = affine[1] * px + affine[3] * py + affine[5];
-            if ((method !== "floodfill" && method !== "filltoborder" && method !== "replace" && method !== "point" && method !== "reset") || !Number.isFinite(x) || !Number.isFinite(y)) throw new Error(`${cmd} drawing requires finite coordinates and the floodfill, filltoborder, replace point or reset method`);
+            if ((method !== "floodfill" && method !== "filltoborder" && method !== "replace" && method !== "point" && method !== "reset") || !Number.isFinite(x) || !Number.isFinite(y)) throw new Error(`${cmd} drawing requires finite coordinates and the floodfill, filltoborder, replace, point or reset method`);
             if (svgElements.length > 0) {
                 yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
                 svgElements.length = 0;

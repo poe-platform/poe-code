@@ -8,12 +8,13 @@ export async function pulsateAudio(
 ): Promise<Float64Array[]> {
   if (channels.length !== 1 && channels.length !== 2) throw new Error("apulsator: stereo input required");
   let mode = "sine";
-  const options = { hz: 2, amount: 1, offset_l: 0, offset_r: 0.5, width: 1 };
+  let timing = "hz";
+  const options = { hz: 2, bpm: 120, ms: 500, amount: 1, offset_l: 0, offset_r: 0.5, width: 1 };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
-    const key = option.slice(0, separator).trim() as keyof typeof options | "mode";
-    if (separator < 0 || (key !== "mode" && !Object.hasOwn(options, key))) throw new Error(`apulsator: unsupported option ${option}`);
+    const key = option.slice(0, separator).trim() as keyof typeof options | "mode" | "timing";
+    if (separator < 0 || (key !== "mode" && key !== "timing" && !Object.hasOwn(options, key))) throw new Error(`apulsator: unsupported option ${option}`);
     const value = option.slice(separator + 1).trim();
     if (key === "mode") {
       if (!["sine", "triangle", "square", "sawup", "sawdown"].includes(value)) {
@@ -22,14 +23,27 @@ export async function pulsateAudio(
       mode = value;
       continue;
     }
+    if (key === "timing") {
+      if (!["bpm", "ms", "hz", "0", "1", "2"].includes(value)) {
+        throw new Error("apulsator: invalid timing");
+      }
+      timing = value;
+      continue;
+    }
     const number = parseFilterExpression(value, "apulsator", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
-    const min = key === "hz" ? 0.01 : 0;
-    const max = key === "hz" ? 100 : key === "width" ? 2 : 1;
+    const min = key === "hz" ? 0.01 : key === "bpm" ? 30 : key === "ms" ? 10 : 0;
+    const max = key === "hz" ? 100 : key === "bpm" ? 300 : key === "ms" ? 2000 : key === "width" ? 2 : 1;
     if (number < min || number > max) {
       throw new Error(`apulsator: invalid ${key}`);
     }
-    options[key] = number;
+    // Native integer options validate bounds before rounding ties to even.
+    const rounded = Math.round(number);
+    options[key] = key === "ms"
+      ? number % 1 === 0.5 && rounded % 2 !== 0 ? rounded - 1 : rounded
+      : number;
   }
+  const frequency = timing === "bpm" || timing === "0" ? options.bpm / 60
+    : timing === "ms" || timing === "1" ? 1000 / options.ms : options.hz;
   const length = channels[0]!.length;
   budget.allocateMemory(length * 2 * 8);
   const output = [new Float64Array(length), new Float64Array(length)];
@@ -61,7 +75,7 @@ export async function pulsateAudio(
       output[channel]![frame] = input * (wave * options.amount * 0.5 + options.amount / 2) + input * (1 - options.amount);
     }
     // Advance incrementally, preserving native phase across audio packet boundaries.
-    phase += options.hz / sampleRate;
+    phase += frequency / sampleRate;
     if (phase >= 1) phase %= 1;
   }
   return output;

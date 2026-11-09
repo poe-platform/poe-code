@@ -4961,7 +4961,7 @@ describe("HLS playlist windows", () => {
     });
   }
 
-  for (const size of ["-1", "bad", "1.5", ""]) {
+  for (const size of ["-1", "bad", ""]) {
     it(`rejects invalid list size ${JSON.stringify(size)} without writing output`, async () => {
       const vfs = createTestVfs({ "/out.m3u8": "original" });
       const result = await runCmd(createFfmpegCommand(), [

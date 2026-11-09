@@ -3057,7 +3057,7 @@ export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
 
   if (doc.chapters && doc.chapters.length > 0) {
     for (const ch of doc.chapters) {
-      const { numerator, denominator } = ch.timeBase ?? { numerator: 1, denominator: 1000 };
+      const { numerator, denominator } = ch.timeBase ?? { numerator: 1, denominator: ch.timescale ?? 1000 };
       const factor = numerator / denominator;
       lines.push("", "[CHAPTER]", `TIMEBASE=${numerator}/${denominator}`);
       lines.push(`START=${Math.round(ch.startTimeSeconds / factor)}`);

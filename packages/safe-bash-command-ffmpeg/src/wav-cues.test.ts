@@ -63,10 +63,9 @@ for (const titles of [["Intro", "Demo"], [], ["", "ok"]]) {
         if (output === "wav") {
           assert.equal(parseWav(bytes).chapters?.length ?? 0, 0);
         } else {
-          // Native FFmpeg's 1/8000 sample intervals, expressed by our FFmetadata
-          // serializer in its established 1/1000 time base.
+          // Preserve native FFmpeg's 1/8000 sample intervals.
           assert.equal(bytes.toString(), output === "disabled" ? ";FFMETADATA1\n" :
-            `;FFMETADATA1\n\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=0\nEND=250\n${titles[0] === undefined ? "" : `title=${titles[0]}\n`}\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=250\nEND=1000\n${titles[1] === undefined ? "" : `title=${titles[1]}\n`}`);
+            `;FFMETADATA1\n\n[CHAPTER]\nTIMEBASE=1/8000\nSTART=0\nEND=2000\n${titles[0] === undefined ? "" : `title=${titles[0]}\n`}\n[CHAPTER]\nTIMEBASE=1/8000\nSTART=2000\nEND=8000\n${titles[1] === undefined ? "" : `title=${titles[1]}\n`}`);
         }
       });
     }

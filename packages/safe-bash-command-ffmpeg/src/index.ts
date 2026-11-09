@@ -1637,8 +1637,6 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         if ((masks[0]! & masks[1]!) === 0) {
           inputs.sort((left, right) => left.speaker - right.speaker);
           channelMask = (masks[0]! | masks[1]!) >>> 0;
-        } else if (a.channels !== 1 || b.channels !== 1) {
-          throw new Error("amerge requires disjoint layouts or two mono inputs");
         }
         const length = Math.min(a.channelData[0]!.length, b.channelData[0]!.length);
         budget.checkSamples(length);

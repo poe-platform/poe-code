@@ -1017,7 +1017,7 @@ function buildUdtaMetadataBox(
   return makeBox("udta", concatBytes(udtaChildren));
 }
 
-function materializeTrackSamples(track: MediaTrack): {
+function materializeTrackSamples(track: MediaTrack, forceKeyFrames?: readonly number[]): {
   samples: readonly MediaSample[];
   codecDescriptions: readonly MediaCodecDescription[];
 } {
@@ -1105,6 +1105,10 @@ function materializeTrackSamples(track: MediaTrack): {
     const samples: MediaSample[] = [];
     let dts = 0;
     const refBuffer: { y?: Uint8Array; u?: Uint8Array; v?: Uint8Array } = {};
+    // FFmpeg rounds forced timestamps to the encoder time base before comparing PTS.
+    const forcedTicks = forceKeyFrames?.map(time => Math.round(time / firstFrameDur)).sort((a, b) => a - b) ?? [];
+    let nextForced = 0;
+    let gopStart = 0;
     const stereoMode = track.codecDescriptions[0]?.stereoMode;
     let stereoSei: Uint8Array | undefined;
     if (stereoMode === 1 || stereoMode === 3) {
@@ -1134,7 +1138,11 @@ function materializeTrackSamples(track: MediaTrack): {
       const frame = track.decodedVideoFrames[i]!;
       const duration = Math.max(1, Math.round(frame.durationSeconds * timescale));
       const pts = Math.round(frame.ptsSeconds * timescale);
-      const picture = encodeH264IdrFrame(frame.data, width, height, i, refBuffer);
+      if (nextForced < forcedTicks.length && Math.round(frame.ptsSeconds / firstFrameDur) >= forcedTicks[nextForced]!) {
+        gopStart = i;
+        nextForced++;
+      }
+      const picture = encodeH264IdrFrame(frame.data, width, height, i - gopStart, refBuffer);
       const encoded = stereoSei && (picture[4]! & 0x1f) === 5 ? concatBytes([stereoSei, picture]) : picture;
       detachBytesBuffer(frame.data);
       samples.push({
@@ -1525,7 +1533,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
         })) } : {})
       };
     }
-    const materialized = materializeTrackSamples(t);
+    const materialized = materializeTrackSamples(t, options.forceKeyFrames);
     if (!isMov && t.type === "audio") {
       for (const description of materialized.codecDescriptions) {
         if (description.codecName === "pcm_mulaw" || description.codecName === "pcm_alaw") {

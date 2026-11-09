@@ -4629,7 +4629,8 @@ export function evalSyncFfmpeg(
         pendingFormat = undefined; pendingSs = undefined; pendingSseof = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
       } else if (arg === "-c" || arg === "-codec") {
         const val = args[++i]; videoCodec = val; audioCodec = val; subtitleCodec = val;
-      } else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") videoCodec = args[++i];
+      } else if (arg === "-force_key_frames") return undefined;
+      else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") videoCodec = args[++i];
       else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") {
         const value = args[++i];
         if (args.slice(i + 1).includes("-i")) pendingAudioDecoder = value;
@@ -5518,6 +5519,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioBitstreamFilter: string | undefined;
         let subtitleBitstreamFilter: string | undefined;
         let videoCodec: string | undefined;
+        let forceKeyFrames: number[] | undefined;
         let rawPixelFormat: string | undefined;
         let audioCodec: string | undefined;
         let audioBitrate: number | undefined;
@@ -6651,6 +6653,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             videoCodec = val;
             audioCodec = val;
             subtitleCodec = val;
+          } else if (arg === "-force_key_frames") {
+            forceKeyFrames = (args[++i] ?? "").split(",").map(parseHlsDuration);
+            if (forceKeyFrames.some(value => !Number.isFinite(value))) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid -force_key_frames timestamp list\n"), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") {
             videoCodec = args[++i];
           } else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") {
@@ -8648,12 +8656,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               vfFilters.push(`format=${rawPixelFormat}`);
             }
 
+            if (forceKeyFrames !== undefined && videoCodec !== "copy") {
+              if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
+              if (outPlugin?.id !== "mp4" && outPlugin?.id !== "mov") throw new Error("Forced keyframes require MP4 or MOV output");
+            }
+
             // Output frame counts refer to displayed pictures, never encoded packets.
             if (videoCodec !== "copy") {
               workingDoc = {
                 ...workingDoc,
                 tracks: await mapWork(workingDoc.tracks, async (track, index) => {
-                  if (track.type !== "video" || (!imageOutput && maxVideoFrames === undefined && !track.decodedVideoFrames)) return track;
+                  if (track.type !== "video" || (!imageOutput && forceKeyFrames === undefined && maxVideoFrames === undefined && !track.decodedVideoFrames)) return track;
                   const limit = vfFilters.length === 0 && outputFps === undefined ? streamFrameLimits[index] : undefined;
                   const frames = await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, limit);
                   return { ...track, samples: [], decodedVideoFrames: frames };
@@ -11675,6 +11688,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               peakPpv,
               audioCodec,
               videoCodec,
+              forceKeyFrames,
               audioBitrate,
               compressionLevel,
               lpcType,

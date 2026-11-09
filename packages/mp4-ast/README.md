@@ -5,6 +5,8 @@ FFmetadata exposes each `[STREAM]` section as a data track, including empty sect
 Decoded H.264 frames retain native pixels for `scaleVideoPicture(frame, width, height)`
 to resize before RGB conversion. Treat frame buffers as immutable; replaced RGBA
 buffers or dimensions make native scaling unavailable.
+When encoding decoded frames with `serializeMp4`, use `{ forceKeyFrames: [0.5, 1.25] }`
+to force H.264 keyframes at presentation times in seconds, rounded to the encoder time base.
 
 TTML subtitle export preserves cue timing, line breaks, and XML-escaped text. SubRip serialization preserves the original packet bytes, including non-UTF-8 text.
 MOV QuickTime IMA4 ADPCM input decodes to PCM, retaining the final block’s padded samples; `decodeAudio: false` preserves compressed packets for stream copy.

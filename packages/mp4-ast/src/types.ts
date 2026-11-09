@@ -833,6 +833,8 @@ export interface SerializeMediaOptions {
   /** Audio codec selection for containers with multiple encoders (e.g. Ogg). */
   readonly audioCodec?: string | undefined;
   readonly videoCodec?: string | undefined;
+  /** Force H.264 keyframes at these presentation times in seconds when encoding MP4/MOV decoded frames. */
+  readonly forceKeyFrames?: readonly number[] | undefined;
   readonly format?: string | undefined;
   /** Write named MP4 metadata using the mdta keys table. */
   readonly useMetadataTags?: boolean | undefined;

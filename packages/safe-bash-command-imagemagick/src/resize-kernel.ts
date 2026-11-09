@@ -271,10 +271,10 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
             const values = request.data.map(sample => Math.fround(sample * (highDepth ? 1 : 257)) / 257);
             yield { kind: "write", evaluate: true, position: request.position, data: new Uint8Array(values.buffer) };
         }
-        const rounded = request.data.map((sample, index) => {
+        const rounded = request.data.map(sample => {
             const value = Math.max(0, Math.min(range, highDepth ? Math.fround(sample) : sample));
             // Match the Q16-HDRI float quantum conversion at half-byte ties.
-            return !highDepth && index % 4 !== 3 ? Math.floor(Math.fround(Math.fround(Math.fround(value * 257) / 257) + 0.5)) : Math.round(value);
+            return !highDepth ? Math.floor(Math.fround(Math.fround(Math.fround(value * 257) / 257) + 0.5)) : Math.round(value);
         });
         const data = highDepth ? Uint16Array.from(rounded) : Uint8Array.from(rounded);
         yield { kind: "write", highDepth, position: request.position, data: new Uint8Array(data.buffer) };

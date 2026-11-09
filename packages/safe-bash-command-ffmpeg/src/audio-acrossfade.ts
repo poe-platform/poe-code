@@ -20,7 +20,7 @@ export async function acrossfadeAudio(
     const value = separator < 0 ? option : option.slice(separator + 1);
     if (key === "ns" || key === "nb_samples") {
       samples = Number(value);
-      if (!Number.isSafeInteger(samples) || samples < 1 || samples > 2147483647) throw new Error("acrossfade: invalid sample count");
+      if (!Number.isSafeInteger(samples) || samples < 1 || samples > 214748364) throw new Error("acrossfade: invalid sample count");
     } else if (key === "d" || key === "duration") {
       duration = Number(value);
       if (!value || !Number.isFinite(duration) || duration < 0) throw new Error("acrossfade: invalid duration");

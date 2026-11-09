@@ -11,20 +11,28 @@ for (const [options, length, fade, expected] of [
   ["ns=4:o=0", 8, 4, [9000, 3000, 0]],
   ["d=0.0005", 8, 4, [9000, 1000, -3000]],
   ["nb_samples=4:overlap=true:curve1=tri:curve2=tri", 8, 4, [9000, 1000, -3000]],
+  ["ns=214748364:d=0.0005", 8, 4, [9000, 1000, -3000]],
+  ["nb_samples=214748364:duration=0.0005", 8, 4, [9000, 1000, -3000]],
+  ["d=0.0005:ns=214748364", 8, 4, [9000, 1000, -3000]],
+  ["214748364:0.0005", 8, 4, [9000, 1000, -3000]],
+  ["ns=214748365:d=0.0005", 8, 0, []],
+  ["nb_samples=214748365:duration=0.0005", 8, 0, []],
+  ["d=0.0005:ns=214748365", 8, 0, []],
+  ["214748365:0.0005", 8, 0, []],
   ["ns=0", 8, 0, []],
   ["ns=9", 8, 0, []],
   ["ns=4:c1=unknown", 8, 0, []],
   ["ns=4:o=2", 8, 0, []]
 ] as const) {
   it(`acrossfade preserves both inputs and the transition (${options})`, async () => {
-    const volume = Volume.fromJSON({});
+    const volume = Volume.fromJSON({ "/out.wav": "sentinel" });
     for (const [name, value] of [["a", 12000], ["b", -4000]] as const) {
       volume.writeFileSync(`/${name}.wav`, encodeWav({ sampleRate: 8000,
         channels: [new Float64Array(length).fill(value / 32768)] }));
     }
     let stderr = "";
     const result = await createFfmpegCommand().execute({
-      args: ["-i", "/a.wav", "-i", "/b.wav", "-filter_complex", `[0:a][1:a]acrossfade=${options}[mix]`, "-map", "[mix]", "-c:a", "pcm_s16le", "/out.wav"],
+      args: ["-y", "-i", "/a.wav", "-i", "/b.wav", "-filter_complex", `[0:a][1:a]acrossfade=${options}[mix]`, "-map", "[mix]", "-c:a", "pcm_s16le", "/out.wav"],
       cwd: "/", env: {}, signal: new AbortController().signal,
       fs: {
         async readFile(path: string) { return volume.readFileSync(path); },
@@ -37,7 +45,7 @@ for (const [options, length, fade, expected] of [
     if (!expected.length) {
       assert.equal(result.exitCode, 1);
       assert.ok(stderr.includes("acrossfade:"), stderr);
-      assert.equal(volume.existsSync("/out.wav"), false);
+      assert.equal(volume.readFileSync("/out.wav", "utf8"), "sentinel");
       return;
     }
     assert.equal(result.exitCode, 0, stderr);

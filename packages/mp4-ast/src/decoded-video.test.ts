@@ -16,7 +16,7 @@ it("marks only encoded IDR pictures as sync samples", () => {
   for (const sample of samples) assert.equal(sample.isKeyframe, (sample.data[4]! & 0x1f) === 5);
 });
 
-it("normalizes decoded picture timestamps without retaining source decode delay", () => {
+it("preserves decoded picture presentation times before a source edit offset", () => {
   const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, frameCount: 8, fps: 10, includeAudio: false }));
   const track = source.tracks[0]!;
   const origin = Math.round(.2 * track.timescale);
@@ -28,6 +28,6 @@ it("normalizes decoded picture timestamps without retaining source decode delay"
     editList: [{ segmentDuration: source.duration, mediaTime: origin, mediaRateInteger: 1, mediaRateFraction: 0 }]
   }] });
   const output = parseMp4(encoded).tracks[0]!;
-  assert.equal(output.editList?.[0]?.mediaTime, 0);
-  assert.deepEqual(output.samples.map(sample => sample.pts), Array.from({ length: 8 }, (_, index) => Math.round(index / 10 * track.timescale)));
+  assert.equal(output.editList?.[0]?.mediaTime, origin);
+  assert.deepEqual(output.samples.map(sample => sample.pts - origin), Array.from({ length: 8 }, (_, index) => Math.round(index / 10 * track.timescale)));
 });

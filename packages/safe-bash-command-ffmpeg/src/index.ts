@@ -9694,7 +9694,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             all = ["1", "true", "yes", "on"].includes(value);
                           } else throw new Error(`adelay: unsupported option ${key}`);
                         }
-                        const values = delays.split("|");
+                        const values = delays.split("|").filter(value => value !== "");
+                        if (values.length === 0) continue;
                         const offsets = stretched.map((_, channel) => {
                           const value = values[channel] ?? (all ? values.at(-1)! : "0");
                           const samples = value.endsWith("S");

@@ -65,7 +65,7 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
         pos++;
         while (pos < size && (yield pos) !== 0x0a && (yield pos) !== 0x0d) comment += String.fromCharCode((yield pos++)!);
         comment += "\n";
-      } else if (c === 0x20 || c === 0x09 || c === 0x0a || c === 0x0d) {
+      } else if (c === 0x20 || (c >= 0x09 && c <= 0x0d)) {
         pos++;
       } else {
         break;

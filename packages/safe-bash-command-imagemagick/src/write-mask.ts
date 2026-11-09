@@ -45,13 +45,14 @@ export function* writeMaskExtentSteps(image: { width: number; height: number }, 
 }
 
 /** Native clip-cache compositing uses premultiplied colors and restores source alpha. */
-export function blendMaskedPixel(output: Uint8Array | Uint16Array, original: Uint8Array | Uint16Array, edited: Uint8Array | Uint16Array, offset: number, protection: number, maximum: number, channels?: MaskChannels): void {
+export function blendMaskedPixel(output: Uint8Array | Uint16Array, original: Uint8Array | Uint16Array, edited: Uint8Array | Uint16Array, offset: number, protection: number, maximum: number, channels?: MaskChannels, alphaActive = true): void {
     if (protection === 0) {
         for (let channel = 0; channel < 4; channel++) output[offset + channel] = edited[offset + channel]!;
         return;
     }
-    const sourceAlpha = protection * original[offset + 3]! / maximum;
-    const editedAlpha = edited[offset + 3]! / maximum;
+    // Disabled alpha is opaque even when its stored sample is zero.
+    const sourceAlpha = protection * (alphaActive ? original[offset + 3]! / maximum : 1);
+    const editedAlpha = alphaActive ? edited[offset + 3]! / maximum : 1;
     for (let channel = 0; channel < 3; channel++) {
         if (channels && !(channel === 0 ? channels.r : channel === 1 ? channels.g : channels.b)) {
             output[offset + channel] = edited[offset + channel]!;

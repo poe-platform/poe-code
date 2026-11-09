@@ -4,7 +4,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 export interface Region { x: number; y: number; width: number; height: number }
 
 /** Apply a white write mask outside the selected rectangle in bounded chunks. */
-export function* regionPixelSteps(image: { width: number; height: number }, region: Region, highDepth = false, channels?: MaskChannels): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* regionPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined }, region: Region, highDepth = false, channels?: MaskChannels): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const left = Math.max(0, Math.min(image.width, region.x));
     const right = Math.max(left, Math.min(image.width, region.x + region.width));
     for (let y = 0; y < image.height; y++) {
@@ -19,7 +19,7 @@ export function* regionPixelSteps(image: { width: number; height: number }, regi
                     const original = highDepth ? new Uint16Array(data.slice().buffer) : data;
                     const edited = highDepth ? new Uint16Array(editedBytes.slice().buffer) : editedBytes;
                     const output = original.slice();
-                    for (let offset = 0; offset < output.length; offset += 4) blendMaskedPixel(output, original, edited, offset, 1, highDepth ? 65535 : 255, channels);
+                    for (let offset = 0; offset < output.length; offset += 4) blendMaskedPixel(output, original, edited, offset, 1, highDepth ? 65535 : 255, channels, image.hasAlpha || image.alphaBlend !== false);
                     yield { kind: "write", highDepth, position, data: new Uint8Array(output.buffer) };
                 } else yield { kind: "write", highDepth, position, data };
             }

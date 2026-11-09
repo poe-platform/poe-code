@@ -6334,6 +6334,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     const state = { ...settings }, token = tokens[start];
     let i = start, apply: MagickPixelOperation["apply"], highDepth = false, warning: string | undefined;
     let maskAlpha: MagickPixelOperation["maskAlpha"];
+    let evaluate = false;
     if (token === "-colorspace" || token === "-grayscale" || token === "-type") {
         const value = tokens[++i];
         const imageType = token === "-type" ? (value ?? "").toLowerCase() : undefined;
@@ -6345,6 +6346,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (token === "-grayscale" && !["average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(space)) {
             throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
         }
+        evaluate = token !== "-type" && (token === "-grayscale" || ["rgb", "srgb", "gray", "grey", "rec709luma", "rec601luma"].includes(space));
         apply = function* (image) {
             if (image.magickColorspace === "RGB" && space === "rgb") return image;
             if ((image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "YUV" || image.magickColorspace === "CIELab") && (space === image.magickColorspace.toLowerCase() || (space === "lab" && image.magickColorspace === "CIELab"))) return image;
@@ -6356,19 +6358,25 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (space === "rgb" || image.magickColorspace === "RGB") {
                 const linearize = space === "rgb";
                 const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
-                const input = image.data16 ?? image.data, range = image.data16 ? 65535 : 255;
+                const input = image.evaluateSamples ?? image.data16 ?? image.data, range = image.evaluateSamples ? 255 : image.data16 ? 65535 : 255;
+                const evaluateSamples = new Float64Array(data.length);
                 for (let idx = 0; idx < data.length; idx++) {
                     if (idx % 65536 === 0) yield;
                     let value = input[idx]! / range;
                     if (idx % 4 !== 3) value = linearize
                         ? value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
                         : value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
+                    evaluateSamples[idx] = value * 255;
                     data[idx] = clampByteVal(value * 255);
                     data16[idx] = Math.round(value * 65535);
                 }
                 const { magickColorspace: ignored, ...metadata } = image;
-                image = { ...metadata, data, data16, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: "RGB" as const } : {}) };
+                image = { ...metadata, data, data16, evaluateSamples, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: "RGB" as const } : {}) };
                 if (linearize) return image;
+            }
+            if (!evaluate) {
+                const { evaluateSamples: ignoredEvaluate, ...bounded } = image;
+                image = bounded;
             }
             if (imageType === "truecoloralpha" || imageType === "palette") {
                 const hasAlpha = imageType === "truecoloralpha";
@@ -6381,9 +6389,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (space === "hsl" || space === "hsb" || space === "hwb" || space === "xyz" || space === "ycbcr" || space === "yuv") return yield* convertHuePixels(image, space === "yuv" ? "YUV" : space === "ycbcr" ? "YCbCr" : space === "xyz" ? "XYZ" : space === "hwb" ? "HWB" : space === "hsb" ? "HSB" : "HSL");
             if (token !== "-grayscale" && !space.includes("gray") && !space.includes("grey") && space !== "rec709luma" && space !== "rec601luma") return image;
             const out = new Uint8Array(image.data);
+            const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
-                let r = out[idx]!, g = out[idx + 1]!, b = out[idx + 2]!;
+                let r = evaluateSamples[idx]!, g = evaluateSamples[idx + 1]!, b = evaluateSamples[idx + 2]!;
                 // Luminance uses linear light; luma uses encoded sRGB samples.
                 if (space === "rec601luminance" || space === "rec709luminance") {
                     r = 255 * (r / 255 <= 0.04045 ? r / 255 / 12.92 : ((r / 255 + 0.055) / 1.055) ** 2.4);
@@ -6403,11 +6412,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 }
                 const gray = imageType === "bilevel" ? (intensity > 127.5 ? 255 : 0) : clampByteVal(intensity);
                 out[idx] = out[idx + 1] = out[idx + 2] = gray;
-                if (imageType !== undefined && (imageType !== "grayscalealpha" || !image.hasAlpha)) out[idx + 3] = 255;
+                evaluateSamples[idx] = evaluateSamples[idx + 1] = evaluateSamples[idx + 2] = imageType === "bilevel" ? gray : intensity;
+                if (imageType !== undefined && (imageType !== "grayscalealpha" || !image.hasAlpha)) out[idx + 3] = evaluateSamples[idx + 3] = 255;
             }
             const { data16: ignored, ...metadata } = image;
             const hasAlpha = imageType === undefined ? image.hasAlpha : imageType === "grayscalealpha";
-            return { ...metadata, data: out, space: "b-w", hasAlpha, channels: hasAlpha ? 2 : 1 };
+            return { ...metadata, data: out, evaluateSamples, space: "b-w", hasAlpha, channels: hasAlpha ? 2 : 1 };
         };
     }
     else if (token === "-gamma" || token === "+gamma") {
@@ -7116,7 +7126,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelSelections(expression: string): number[][] {

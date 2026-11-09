@@ -1018,6 +1018,7 @@ export interface IO {
     readonly frame: PreparedDescriptorFrame;
     io?: IO;
     publicationNegate?: boolean | undefined;
+    pipelineStage?: boolean;
     published?: number;
     completed?: boolean;
   } | undefined;
@@ -4631,7 +4632,7 @@ export class Runtime {
                 } else {
                   const inherited = isolateIO(io, references!);
                   childIO = {
-                    ...inherited, stdin: input, ...(incoming ? { asyncDefaultInput: undefined } : {}), ...(incoming ? { stdinIsDefault: false } : {}), stdout: outgoing ? new BudgetedPipeStageSink(this.budget, writable!, signal, written, index, controllers[index]!) : signalSink(io.stdout, signal), stderr: signalSink(io.stderr, signal), terminal: { target: command, frame: descriptorFrame! }, };
+                    ...inherited, stdin: input, ...(incoming ? { asyncDefaultInput: undefined } : {}), ...(incoming ? { stdinIsDefault: false } : {}), stdout: outgoing ? new BudgetedPipeStageSink(this.budget, writable!, signal, written, index, controllers[index]!) : signalSink(io.stdout, signal), stderr: signalSink(io.stderr, signal), terminal: { target: command, frame: descriptorFrame!, pipelineStage: command.kind === "simple" }, };
                   const descriptors = inherited.descriptors as Map<number, Descriptor>;
                   descriptors.set(0, incoming ? { input, stdinIsDefault: false, ...(readReference ? { pipe: readReference } : {}) } : { ...descriptors.get(0), input });
                   descriptors.set(1, outgoing ? { output: childIO.stdout, ...(writeReference ? { pipe: writeReference } : {}) } : { ...descriptors.get(1), output: childIO.stdout });
@@ -4830,7 +4831,7 @@ export class Runtime {
     const reported = terminal.publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
     const statuses = reported === 0 ? singleStatusZero : reported === 1 ? singleStatusOne : [reported];
     const publishing = this.publishStatus(state, statuses, completionIO, terminal);
-    if (!publishing && (status === 0 || (!state.errexit && !hasActiveExtensions(state)) || completionIO.execution?.ignoreErrexit)) {
+    if (!publishing && (terminal.pipelineStage || status === 0 || (!state.errexit && !hasActiveExtensions(state)) || completionIO.execution?.ignoreErrexit)) {
       this.signal.throwIfAborted();
       terminal.published = status;
       return;
@@ -4838,7 +4839,9 @@ export class Runtime {
     return (async () => {
       if (publishing) await publishing;
       terminal.published = status;
-      await this.errexit(status, state, completionIO);
+      // Simple pipeline children defer ERR/errexit to the aggregate pipeline status.
+      // Commands inside compound stages still perform their own error handling.
+      if (!terminal.pipelineStage) await this.errexit(status, state, completionIO);
     })();
   }
   async command(command: Command, state: State, io: IO, fileShortcut = false, publicationNegate = false): Promise<number> {
@@ -4880,7 +4883,7 @@ export class Runtime {
         const publishing = this.publishStatus(state, statuses, io, terminal);
         if (publishing) await publishing;
       }
-      if (!terminal?.completed && status !== 0) await this.errexit(status, state, io);
+      if (!terminal?.completed && !terminal?.pipelineStage && status !== 0) await this.errexit(status, state, io);
     }
     return status;
   }

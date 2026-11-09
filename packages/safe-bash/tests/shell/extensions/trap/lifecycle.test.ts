@@ -3,6 +3,7 @@ import test from "node:test";
 import { Shell } from "../../../../src/shell/shell.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { basicCommands } from "../../../../src/commands/basic.js";
+import { streamCommands } from "../../../../src/commands/streams.js";
 import { trapExtension } from "../../../../src/shell/extensions/trap/index.js";
 import { nativeOptions, runNative } from "./oracle.js";
 
@@ -118,6 +119,45 @@ for (const [name, source, input, nativeBindingOverride] of cases) test(`native E
   assert.equal(result.stdout, native.stdout, result.stderr);
   assert.equal(result.exitCode, native.status, result.stderr);
   assert.equal(result.stderr, native.stderr);
+});
+
+for (const [name, options, pipeline, stdout, stderr, exitCode, actions] of [
+  ["successful pipeline", "-E", "false | true", "pipeline=0\n", "", 0, ""],
+  ["without errtrace", "", "false | true", "pipeline=0\n", "", 0, ""],
+  ["failed final stage", "-Ee -o pipefail", "true | false", "", "err\n", 1, "recovered\n"],
+  ["failed first stage", "-Ee -o pipefail", "false | true", "", "err\n", 1, "recovered\n"],
+  ["compound stage", "-eE", "{ false; echo ok; } | cat", "pipeline=0\n", "err\n", 0, "recovered\n"],
+  ["pipefail without errexit", "-E -o pipefail", "false | true", "pipeline=1\n", "err\n", 0, "recovered\n"],
+  ["function stage retains inherited trap", "-E", "f() { false; echo ok; }; f | cat", "ok\npipeline=0\n", "err\n", 0, "recovered\n"],
+  ["lastpipe runs final stage in parent", "-E", "shopt -s lastpipe; true | false", "pipeline=1\n", "err\nerr\n", 0, "recovered\nrecovered\n"],
+] as const) {
+  test(`ERR pipeline side effects: ${name}`, async context => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs, extensions: [trapExtension()] });
+    context.after(() => shell.dispose());
+    for (const command of [...basicCommands(), ...streamCommands()]) shell.register(command);
+    const result = await shell.exec(`
+      ${options ? `set ${options}` : ":"}
+      trap 'echo err >&2; echo recovered >> /actions' ERR
+      : > /actions
+      ${pipeline}
+      echo "pipeline=$?"
+    `);
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.stderr, stderr);
+    assert.equal(result.exitCode, exitCode);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/actions")), actions);
+  });
+}
+
+test("ERR pipeline handler output does not cause SIGPIPE", async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), extensions: [trapExtension()] });
+  context.after(() => shell.dispose());
+  for (const command of basicCommands()) shell.register(command);
+  const result = await shell.exec(`set -Ee -o pipefail; trap 'echo err >&2; echo trap' ERR; false | true`);
+  assert.equal(result.stdout, "trap\n");
+  assert.equal(result.stderr, "err\n");
+  assert.equal(result.exitCode, 1);
 });
 
 test("default shell supports trap builtin", async context => {

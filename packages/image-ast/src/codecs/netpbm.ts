@@ -245,7 +245,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   const meta = readBmpMetadata(bytes);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (view.getUint32(2, true) !== bytes.byteLength) throw new Error("Invalid BMP file size");
-  const dataOffset = view.getUint32(10, true);
+  let dataOffset = view.getUint32(10, true);
   const dibHeaderSize = view.getUint32(14, true);
   const compression = dibHeaderSize >= 40 ? view.getUint32(30, true) : 0;
   if (compression === 4 || compression === 5) {
@@ -253,6 +253,9 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
     const image = (compression === 4 ? decodeJpegImage : decodePngImage)(bytes.subarray(dataOffset));
     return { ...image, format: "bmp", density: meta.density, ...(meta.resolution ? { resolution: meta.resolution } : {}) };
   }
+  if (dataOffset < dibHeaderSize || dataOffset >= bytes.length) throw new Error("Invalid BMP pixel offset");
+  // ImageMagick tolerates offsets into the DIB, but never seeks back into it.
+  dataOffset = Math.max(dataOffset, 14 + dibHeaderSize);
   const topDown = dibHeaderSize !== 12 && view.getInt32(22, true) < 0;
   const bpp = view.getUint16(dibHeaderSize === 12 ? 24 : 28, true);
   const rowStride = Math.floor((meta.width * bpp + 31) / 32) * 4;

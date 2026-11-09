@@ -21,7 +21,8 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
  if(view.getUint32(2,true)!==source.size) throw new Error("Invalid BMP file size");
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)) throw new RangeError("Invalid BMP dimensions");
  checkLimitInputPixels(width,height,options);
- const dataOffset=view.getUint32(10,true),dibHeaderSize=view.getUint32(14,true),topDown=dibHeaderSize!==12&&view.getInt32(22,true)<0,bpp=view.getUint16(dibHeaderSize===12?24:28,true),rowStride=Math.floor((width*bpp+31)/32)*4;
+ let dataOffset=view.getUint32(10,true);
+ const dibHeaderSize=view.getUint32(14,true),topDown=dibHeaderSize!==12&&view.getInt32(22,true)<0,bpp=view.getUint16(dibHeaderSize===12?24:28,true),rowStride=Math.floor((width*bpp+31)/32)*4;
  const compression=dibHeaderSize>=40?view.getUint32(30,true):0;
  if(compression===4||compression===5) {
   if(dataOffset<14+dibHeaderSize||dataOffset>=source.size) throw new Error("Invalid BMP payload offset");
@@ -33,6 +34,9 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
   const image=await (compression===4?decodeJpegToStorage:decodePngToStorage)(payload,storage,signal,options);
   return {...image,format:"bmp",density:metadata.density,...(metadata.resolution?{resolution:metadata.resolution}:{})};
  }
+ if(dataOffset<dibHeaderSize||dataOffset>=source.size) throw new Error("Invalid BMP pixel offset");
+ // ImageMagick tolerates offsets into the DIB, but never seeks back into it.
+ dataOffset=Math.max(dataOffset,14+dibHeaderSize);
  if(compression!==1&&compression!==2&&rowStride*height>source.size-dataOffset) throw new Error("Truncated BMP rows");
  const bitfieldMasks=readBmpMasks(view);
  const paletteSize=bpp<=8?Math.min(1<<bpp,(dibHeaderSize>=40?view.getUint32(46,true):0)||1<<bpp):0;

@@ -7,6 +7,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([
         { gamma: "1", channel: "RGB", pixel: [0x4321, 0x8765, 0xabcd, 65535], expected: [0x4321, 0x8765, 0xabcd, 65535], output: "/out.png" },
         { gamma: "2", channel: "RGB", pixel: [0x4321, 0x8765, 0xabcd, 65535], expected: [0x8317, 0xba2c, 0xd1b7, 65535], output: "/out.png" },
+        { gamma: "2", channel: "Default", pixel: [16385, 16385, 16385, 16385], expected: [32769, 32769, 32769, 32769], output: "PNG64:/out.png" },
         { gamma: "2", channel: "R", pixel: [16385, 24001, 40961, 32769], expected: [32769, 24001, 40961, 32769], output: "PNG64:/out.png" },
         { gamma: "2", channel: "A", pixel: [24001, 40961, 32769, 16385], expected: [24001, 40961, 32769, 32769], output: "/out.png" }
     ])("preserves native 16-bit gamma $gamma channel $channel via " + mode, async ({ gamma, channel, pixel, expected, output }) => {

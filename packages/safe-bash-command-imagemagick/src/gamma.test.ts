@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each(["bogus", "2junk", "2,1junk,0.5"])("rejects malformed gamma %s without overwriting output via " + mode, async gamma => {
@@ -66,6 +67,8 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         { options: ["-channel", "RGB", "-gamma", "1.5"], expected: [161, 101, 64, 128] },
         { options: ["-channel", "RGBA", "-gamma", "1.5", "+channel"], expected: [161, 101, 64, 161] },
         { options: ["-gamma", "1.5"], expected: [161, 101, 64, 161] },
+        { options: ["-channel", "Default", "-gamma", "1.5", "+channel"], expected: [161, 101, 64, 161] },
+        { options: ["-channel", "Default", "+gamma", "2", "+channel"], expected: [64, 16, 4, 64] },
         { options: ["-channel", "R", "+channel", "-gamma", "1.5"], expected: [161, 101, 64, 161] },
         { options: ["-channel", "R", "-gamma", "1.5", "-channel", "A", "-gamma", "0.5", "+channel"], expected: [161, 64, 32, 64] }
     ])("matches native channel-scoped gamma $options via " + mode, async ({ options, expected }) => {
@@ -109,3 +112,24 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         });
     }
 }
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI, PNG32 output decoded to 8-bit RGBA.
+it("includes alpha in explicit Default gamma through the public command", async () => {
+    const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDhUMDA6MTE6NTgrMDA6MDDquOzeAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA4VDAwOjExOjU4KzAwOjAwm+VUYgAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wOFQwMDoxMTo1OCswMDowMMzwdb0AAAETSURBVBjTAQgB9/4AJXjLHo7hNIf3Sp3wYLMGWckcb8Iyhdgrm+5BlARXqv0AbcATZtYpfM8/kuU4qPtOoRFktwp6zSBz4zaJ3Eyf8kUAtQhbrh5xxBeH2i2A8EOW6Vms/1LCFWi7K37RJJTnOo0A/VCj9ma5DF/PInXIOIveMaH0R5oKXbADc8YZbNwvgtUARZjrPq4BVKcXar0QgNMmeek8j+JSpfhLuw5htCR3yh0AjeAzhvZJnO9fsgVYyBtuwTGE1yqa7UCTA1ap/Gy/EmUA1Sh7zj6R5Den+k2gEGO2CXnMH3LiNYjbS57xRLQHWq0AHXDDFobZLH/vQpXoWKv+UcEUZ7oqfdAjk+Y5jPxPovUcJoEBTbp3hAAAAABJRU5ErkJggg==", "base64");
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", input);
+    const args = createCommandArguments(["/input.png", "-channel", "Default", "-gamma", "2", "+channel", "PNG32:/out.png"]);
+    let stderr = "";
+    const result = await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    });
+    expect(result.exitCode).toBe(0);
+    expect(stderr).toBe("");
+    const output = decodeImage(await fs.readFile("/out.png"));
+    expect([...output.data.slice(0, 4)]).toEqual([97, 175, 228, 87]);
+    const files = new Map([["/input.png", input]]);
+    expect(runConvertCliSync(["/input.png", "-gamma", "2", "PNG32:/implicit.png"], files).exitCode).toBe(0);
+    expect(output.data).toEqual(decodeImage(files.get("/implicit.png")!).data);
+});

@@ -143,6 +143,11 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       } finally { codec.close(); }
       icc = new Uint8Array(length); let offset = 0;
       for (const part of parts) { icc.set(part, offset); offset += part.length; }
+      // ICC profiles require a complete header, tag count, and the "acsp" signature.
+      if (length < 132 || icc[36] !== 97 || icc[37] !== 99 || icc[38] !== 115 || icc[39] !== 112) {
+        decodeWarnings.push("PNG iCCP: invalid ICC profile header");
+        icc = undefined;
+      }
     } else if (type === "PLTE") {
       if (palette) throw new Error("Duplicate PNG PLTE");
       if (hasIdat) throw new Error("PNG PLTE must precede IDAT");

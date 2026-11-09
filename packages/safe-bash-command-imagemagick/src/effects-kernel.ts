@@ -7,30 +7,75 @@ export interface ShadowLayout {
     readonly offsetX: number;
     readonly offsetY: number;
     readonly opacity: number;
+    readonly sigma: number;
 }
 export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, layout: ShadowLayout, color: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
-    for (let y = 0; y < layout.height; y++) for (let left = 0; left < layout.width; left += 1024) {
-        yield;
-        const count = Math.min(1024, layout.width - left), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4), sy = y - layout.offsetY;
-        for (let offset = 0; offset < data.length; offset += 4) {
-            data[offset] = Math.round(color.r * scale); data[offset + 1] = Math.round(color.g * scale); data[offset + 2] = Math.round(color.b * scale);
+    const sigma = layout.sigma;
+    let half = 0;
+    if (sigma > 0) {
+        let sum = 1 + 2 * Math.exp(-1 / (2 * sigma * sigma));
+        for (half = 2; half < 5000; half++) {
+            yield;
+            const edge = Math.exp(-half * half / (2 * sigma * sigma));
+            sum += 2 * edge;
+            if (edge / sum < 1 / 65535) { half--; break; }
         }
-        const first = Math.max(left, layout.offsetX), end = Math.min(left + count, layout.offsetX + source.width);
-        if (sy >= 0 && sy < source.height && end > first) {
-            const length = (end - first) * 4;
-            const bytes = yield { kind: "read", highDepth, position: (sy * source.width + first - layout.offsetX) * 4, length };
-            if (!bytes || bytes.length !== length * (highDepth ? 2 : 1)) throw new Error("Truncated shadow pixels");
-            const samples = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
-            for (let x = first; x < end; x++) {
-                const offset = (x - left) * 4;
-                const value = samples[(x - first) * 4 + 3]! * layout.opacity;
+    }
+    if (!Number.isFinite(half) || half >= 5000) throw new Error("Blur radius exceeds 5000");
+    // Native's separable blur averages three Gaussian samples per tap.
+    const weights = new Float64Array(half * 2 + 1);
+    let total = 0;
+    for (let k = -half; k <= half; k++) {
+        let weight = sigma === 0 ? 1 : 0;
+        if (sigma > 0) for (let sub = -1; sub <= 1; sub++) weight += Math.exp(-((k + sub / 3) ** 2) / (2 * sigma * sigma));
+        weights[k + half] = weight; total += weight;
+    }
+    for (let k = 0; k < weights.length; k++) weights[k]! /= total;
+    // Keep fractional alpha through both passes; opacity is linear, so it can be
+    // applied at the end without an intermediate rounded or clamped raster.
+    for (let left = 0; left < layout.width; left += 1024) {
+        const count = Math.min(1024, layout.width - left), rows = new Map<number, Float64Array>();
+        for (let y = 0; y < layout.height; y++) {
+            yield;
+            const sums = new Float64Array(count);
+            for (let ky = -half; ky <= half; ky++) {
+                yield;
+                const sy = Math.max(0, Math.min(layout.height - 1, y + ky)) - layout.offsetY;
+                if (sy < 0 || sy >= source.height) continue;
+                let row = rows.get(sy);
+                if (!row) {
+                    row = new Float64Array(count);
+                    const first = Math.max(0, left - half - layout.offsetX), last = Math.min(source.width - 1, left + count - 1 + half - layout.offsetX);
+                    if (last >= first) {
+                        const length = (last - first + 1) * 4;
+                        const bytes = yield { kind: "read", highDepth, position: (sy * source.width + first) * 4, length };
+                        if (!bytes || bytes.length !== length * (highDepth ? 2 : 1)) throw new Error("Truncated shadow pixels");
+                        const samples = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+                        for (let x = 0; x < count; x++) {
+                            if (x % 32 === 0) yield;
+                            for (let k = -half; k <= half; k++) {
+                                const sx = Math.max(0, Math.min(layout.width - 1, left + x + k)) - layout.offsetX;
+                                if (sx >= first && sx <= last) row[x]! += samples[(sx - first) * 4 + 3]! * weights[k + half]!;
+                            }
+                        }
+                    }
+                    if (rows.size >= 32) rows.delete(rows.keys().next().value!);
+                    rows.set(sy, row);
+                }
+                for (let x = 0; x < count; x++) sums[x]! += row[x]! * weights[ky + half]!;
+            }
+            const data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
+            for (let x = 0; x < count; x++) {
+                const offset = x * 4, value = sums[x]! * layout.opacity;
+                data[offset] = Math.round(color.r * scale); data[offset + 1] = Math.round(color.g * scale); data[offset + 2] = Math.round(color.b * scale);
                 data[offset + 3] = Number.isFinite(value) ? Math.max(0, Math.min(maximum, Math.round(value))) : 0;
             }
+            yield { kind: "write", highDepth, position: (y * layout.width + left) * 4, data: new Uint8Array(data.buffer) };
         }
-        yield { kind: "write", highDepth, position: (y * layout.width + left) * 4, data: new Uint8Array(data.buffer) };
     }
 }
+
 export function vignetteLayout(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas">) {
     const width = source.virtualCanvas?.width || source.width, height = source.virtualCanvas?.height || source.height;
     return { width, height, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };

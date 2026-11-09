@@ -10007,8 +10007,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               const track = workingDoc.tracks.find(track => track.type === "video") ?? workingDoc.tracks[0];
               if (!track || !segmentPlugin?.canMux || !(segmentPlugin.id === "mp4" ||
-                  (audioSegment && workingDoc.tracks.length === 1 && track.type === "audio"))) {
-                throw new Error("segment output requires MP4 format or a single audio track with WAV or raw audio format");
+                  ((audioSegment || (segmentPlugin.id === "mkv" && audioCodec === "copy")) &&
+                    workingDoc.tracks.length === 1 && track.type === "audio"))) {
+                throw new Error("segment output requires MP4 format or a single audio track with WAV/raw audio format or Matroska stream copy");
               }
               if (formatImageSequence(outputTarget, 0) === undefined) {
                 throw new Error("segment output requires a numbered filename pattern");

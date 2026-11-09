@@ -11032,7 +11032,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const operandLevels: MagickPixelOperation[][] = [];
     let readMask: RgbaImage | StoredRgbaImage | undefined;
     type Rotation = { rotation: string; settings: MagickState };
-    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number };
+    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number } | { profile: Uint8Array; name: string };
     const pixelOperations: MagickPixelOperation[] = [];
     const operationFlushes = new Map<number, readonly MagickPixelOperation[]>();
     let pending = false;
@@ -11080,6 +11080,32 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 signal?.throwIfAborted();
                 if (err instanceof CompareInputFailure) throw err.reason;
                 return { exitCode: 2, stdout: "", stderr: `compare: ${(err as Error).message}\n` };
+            }
+        }
+        else if (t === "-profile") {
+            const name = argv[++i];
+            if (!name) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-profile'\n" };
+            try {
+                let profile = files.get(name);
+                if (backend) yield { async run() {
+                    profile = await backend.read(name, async source => {
+                        const bytes = new Uint8Array(source.size);
+                        for (let offset = 0; offset < source.size; offset += 16384) {
+                            await yieldTurn(signal);
+                            bytes.set(await source.read(offset, Math.min(16384, source.size - offset), { signal: signal! }), offset);
+                        }
+                        return bytes;
+                    });
+                } };
+                if (!profile) throw new Error(`unable to open profile '${name}'`);
+                applyMagickProfile({}, name, profile);
+                const operation = { profile, name };
+                if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push(operation);
+                else leadingOperations.push(operation);
+            } catch (error) {
+                signal?.throwIfAborted();
+                if (error instanceof CompareInputFailure) throw error.reason;
+                return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` };
             }
         }
         else if (t === "-quiet" || t === "+quiet") quiet = t === "-quiet";
@@ -11463,6 +11489,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (!operation) {
             if ("data" in image) images.push(image);
             else yield { async run() { await storedImages!.push(image); } };
+            return;
+        }
+        if (typeof operation === "object" && "profile" in operation) {
+            yield* acceptImage(applyMagickProfile(image, operation.name, operation.profile), operations, index + 1);
             return;
         }
         if (typeof operation === "object" && "trim" in operation) {

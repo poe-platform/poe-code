@@ -3231,6 +3231,47 @@ function validateMetadataStreamSpecifier(specifier: string): void {
   }
 }
 
+function metadataMapTracks(tracks: readonly MediaTrack[], specifier: string): readonly MediaTrack[] {
+  if (!specifier) return tracks;
+  const parts = specifier.split(":");
+  const type = ({ a: "audio", v: "video", s: "subtitle", d: "data" } as Record<string, string>)[parts[0]!];
+  if (type) parts.shift();
+  const index = parts[0];
+  if (parts.length > 1 || (index !== undefined && (!index.length ||
+      !Array.from(index).every(char => char >= "0" && char <= "9")))) {
+    throw new Error(`Invalid stream specifier: ${specifier}`);
+  }
+  const candidates = type ? tracks.filter(track => track.type === type) : tracks;
+  return index === undefined ? candidates : candidates.filter((_, ordinal) => ordinal === Number(index));
+}
+
+function mapStreamMetadata(tracks: readonly MediaTrack[], documents: readonly MediaDocument[], maps: readonly [string, string][]): readonly MediaTrack[] {
+  if (!maps.length) return tracks;
+  // Any explicit stream map disables automatic metadata copying for all streams.
+  const tags = tracks.map(() => ({} as Record<string, string>));
+  for (const [destination, source] of maps) {
+    const selected = metadataMapTracks(tracks, destination);
+    const [input, scope, ...specifier] = source.split(":");
+    const inputIndex = input?.trim() ? Number(input) : NaN;
+    if (!Number.isSafeInteger(inputIndex) || inputIndex >= documents.length) {
+      throw new Error(`Invalid metadata input index: ${input}`);
+    }
+    if (inputIndex < 0) continue;
+    if (scope !== "s") throw new Error(`Unsupported metadata source: ${source}`);
+    const track = metadataMapTracks(documents[inputIndex]!.tracks, specifier.join(":"))[0];
+    if (!track) throw new Error(`Metadata source '${source}' matches no streams`);
+    const sourceTags = { ...track.metadata, language: track.language,
+      ...(track.handlerName !== undefined ? { handler_name: track.handlerName } : {}) };
+    for (const [index, output] of tracks.entries()) {
+      if (selected.includes(output)) tags[index] = { ...sourceTags, ...tags[index] };
+    }
+  }
+  return tracks.map((track, index) => {
+    const { language, handler_name: handlerName, ...metadata } = tags[index]!;
+    return { ...track, language: language ?? "und", handlerName, metadata };
+  });
+}
+
 function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][], metadataSource: number | undefined): readonly MediaTrack[] {
   if (metadataSource !== undefined && metadataSource < 0) {
     tracks = tracks.map(track => ({ ...track, language: "und" }));
@@ -4286,6 +4327,7 @@ export function evalSyncFfmpeg(
     const vfFilters: string[] = [];
     let chapterSource: number | undefined;
     const metadataSources: number[] = [];
+    const streamMetadataMaps: [string, string][] = [];
     const metadata: Record<string, string> = {};
     const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][] = [];
     const streamDispositions: [string, string][] = [];
@@ -4329,6 +4371,8 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         chapterSource = value?.trim() ? Number(value) : NaN;
         if (!Number.isSafeInteger(chapterSource)) return undefined;
+      } else if (arg === "-map_metadata:s" || arg.startsWith("-map_metadata:s:")) {
+        streamMetadataMaps.push([arg.slice("-map_metadata:s:".length), args[++i] ?? ""]);
       } else if (arg === "-map_metadata" || arg === "-map_metadata:g") {
         const source = args[++i];
         const value = source?.endsWith(":g") ? source.slice(0, -2) : source;
@@ -4915,7 +4959,7 @@ export function evalSyncFfmpeg(
       discNumber: metadata.disc ?? sourceMetadata.discNumber,
       encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
-    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id, defaultMode) };
+    workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(mapStreamMetadata(workingDoc.tracks, loadedDocs, streamMetadataMaps), streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id, defaultMode) };
     if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {
       workingDoc = { ...workingDoc, tracks: writeTmcd ? authorTimecode(workingDoc.tracks, metadata.timecode) : removeTimecode(workingDoc.tracks) };
     }
@@ -5482,6 +5526,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const afFilters: { ordinal: number | undefined; expression: string }[] = [];
         let chapterSource: number | undefined;
         const metadataSources: number[] = [];
+        const streamMetadataMaps: [string, string][] = [];
         const metadata: Record<string, string> = {};
         const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][] = [];
         const attachmentFiles: string[] = [];
@@ -5921,6 +5966,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid chapter input index\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-map_metadata:s" || arg.startsWith("-map_metadata:s:")) {
+            streamMetadataMaps.push([arg.slice("-map_metadata:s:".length), args[++i] ?? ""]);
           } else if (arg === "-map_metadata" || arg === "-map_metadata:g") {
             const source = args[++i];
             const value = source?.endsWith(":g") ? source.slice(0, -2) : source;
@@ -10319,7 +10366,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ...workingDoc,
               faststart,
               metadata: metaTags,
-              tracks: applyStreamDispositions(applyStreamMetadata(workingDoc.tracks, streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id, defaultMode)
+              tracks: applyStreamDispositions(applyStreamMetadata(mapStreamMetadata(workingDoc.tracks, loadedDocs, streamMetadataMaps), streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id, defaultMode)
             };
 
             if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {

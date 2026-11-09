@@ -331,6 +331,9 @@ clipping the intermediate signal. Signed `delay` accepts -20 to 20 (default 0):
 positive values delay the right channel, negative values delay the left, with
 silence at the start and no change in output length. Native FFmpeg's rounding
 applies: `delay=1` shifts four stereo frames at 8 kHz.
+Use `mlev` and `slev` to adjust the mid and side levels (0.015625–64, default 1),
+`mpan` to pan the mid signal, and `sbal` to balance the side signal
+(-1–1, default 0). For example, `stereotools=slev=0.5` narrows the stereo image.
 Other stereotools options are rejected.
 Both filters accept case-insensitive Boolean
 words (`true`/`false`, `yes`/`no`, `on`/`off`, `y`/`n`, `enable`/`disable`,

@@ -9489,18 +9489,25 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let mode = 0;
                         let delay = 0;
                         const flags = { mutel: false, muter: false, phasel: false, phaser: false };
-                        const levels = { level_in: 1, level_out: 1 };
+                        const levels = { level_in: 1, level_out: 1, mlev: 1, slev: 1 };
+                        const balance = { mpan: 0, sbal: 0 };
                         const argument = trimmed.slice("stereotools=".length);
                         for (const option of argument ? argument.split(":") : []) {
                           const separator = option.indexOf("=");
                           const key = option.slice(0, separator).trim();
                           const value = option.slice(separator + 1).trim();
-                          if (key === "level_in" || key === "level_out") {
+                          if (key === "level_in" || key === "level_out" || key === "mlev" || key === "slev") {
                             const level = parseFilterExpression(value, "stereotools", {});
                             if (!Number.isFinite(level) || level < 0.015625 || level > 64) {
                               throw new Error(`stereotools: ${key} must be in the range [0.015625, 64]`);
                             }
                             levels[key] = level;
+                          } else if (key === "mpan" || key === "sbal") {
+                            const valueNumber = parseFilterExpression(value, "stereotools", {});
+                            if (!Number.isFinite(valueNumber) || valueNumber < -1 || valueNumber > 1) {
+                              throw new Error(`stereotools: ${key} must be in the range [-1, 1]`);
+                            }
+                            balance[key] = valueNumber;
                           } else if (key === "delay") {
                             delay = parseFilterExpression(value, "stereotools", {});
                             if (!Number.isFinite(delay) || delay < -20 || delay > 20) {
@@ -9522,6 +9529,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const right = new Float32Array(left.length);
                         // Native FFmpeg rounds the interleaved delay down to an even sample count.
                         const delayFrames = Math.floor(origRate * (Math.abs(delay) / 1000) / 2);
+                        const midLeft = 1 - Math.max(0, balance.mpan);
+                        const midRight = 1 + Math.min(0, balance.mpan);
+                        const sideLeft = 1 - Math.max(0, balance.sbal);
+                        const sideRight = 1 + Math.min(0, balance.sbal);
                         const leftDelay = delay < 0 ? delayFrames : 0;
                         const rightDelay = delay > 0 ? delayFrames : 0;
                         for (let i = 0; i < left.length; i++) {
@@ -9531,15 +9542,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           let outputLeft = l;
                           let outputRight = r;
                           switch (mode) {
-                            case 1: outputLeft = (l + r) / 2; outputRight = (l - r) / 2; break;
-                            case 2: outputLeft = l + r; outputRight = l - r; break;
+                            case 0:
+                            case 6: {
+                              const mid = (l + r) / 2 * levels.mlev;
+                              const side = (mode === 6 ? r - l : l - r) / 2 * levels.slev;
+                              outputLeft = mid * midLeft + side * sideLeft;
+                              outputRight = mid * midRight - side * sideRight;
+                              break;
+                            }
+                            case 1:
+                              outputLeft = (l * sideLeft + r * sideRight) / 2 * levels.mlev;
+                              outputRight = (l * sideLeft - r * sideRight) / 2 * levels.slev;
+                              break;
+                            case 2:
+                            case 7:
+                            case 8:
+                            case 9:
+                              outputLeft = l * levels.mlev * midLeft + r * levels.slev * sideLeft;
+                              outputRight = l * levels.mlev * midRight - r * levels.slev * sideRight;
+                              if (mode === 7) outputRight = outputLeft;
+                              if (mode === 8) outputLeft = outputRight;
+                              if (mode === 9) [outputLeft, outputRight] = [outputRight, outputLeft];
+                              break;
                             case 3: outputRight = l; break;
                             case 4: outputLeft = r; break;
                             case 5: outputLeft = outputRight = (l + r) / 2; break;
-                            case 6: outputLeft = r; outputRight = l; break;
-                            case 7: outputLeft = outputRight = l + r; break;
-                            case 8: outputLeft = outputRight = l - r; break;
-                            case 9: outputLeft = l - r; outputRight = l + r; break;
                             case 10: outputLeft = outputRight = (l - r) / 2; break;
                           }
                           if (i + leftDelay < left.length) {

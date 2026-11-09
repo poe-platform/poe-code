@@ -4781,7 +4781,7 @@ function formatImageSequence(pattern: string, number: number, allowMultiple = tr
       i++;
     }
     if (pattern[i] !== "d") return undefined;
-    if (numbered && !allowMultiple) throw new Error("Numbered filename pattern requires a single numeric field");
+    if (numbered && !allowMultiple) throw new Error("Numbered image2 input requires a single numeric field");
     filename += (number < 0 ? "-" : "") + String(Math.abs(number)).padStart(width, "0");
     numbered = true;
   }
@@ -5101,6 +5101,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let surroundMixLevel: number | undefined;
         let lfeMixLevel: number | undefined;
         let segmentTime = 2;
+        let writeEmptySegments = false;
         let segmentTimeDelta = 0;
         let segmentStartNumber = 0;
         let minSegmentDuration = 0;
@@ -5329,7 +5330,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-hash") {
             hashAlgorithm = args[++i] ?? "";
-          } else if (arg === "-update" || arg === "-atomic_writing" || arg === "-strftime" || arg === "-reset_timestamps") {
+          } else if (arg === "-update" || arg === "-atomic_writing" || arg === "-strftime" || arg === "-reset_timestamps" || arg === "-write_empty_segments") {
             let enabled: boolean;
             const value = args[++i]?.toLowerCase();
             if (value !== undefined && ["yes", "true", "on", "y", "enable", "enabled"].includes(value)) {
@@ -5349,6 +5350,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (arg === "-update") updateImage = enabled;
             else if (arg === "-strftime") strftime = enabled;
             else if (arg === "-reset_timestamps") resetTimestamps = enabled;
+            else if (arg === "-write_empty_segments") writeEmptySegments = enabled;
             else atomicWriting = enabled;
           } else if (["-enc_time_base", "-enc_time_base:v", "-enc_time_base:v:0", "-enc_time_base:V", "-enc_time_base:V:0", "-enc_time_base:0"].includes(arg)) {
             const value = args[++i] ?? "";
@@ -5438,10 +5440,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
           } else if (arg === "-segment_list_type") {
-            const type = args[++i];
-            const value = type === "ext" || type === "1" || type === "3" ? "csv" : type;
+            const value = args[++i];
             if (value !== "flat" && value !== "csv") {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_list_type (expected flat, csv, ext, 1 or 3)\n"), context.signal);
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_list_type (expected flat or csv)\n"), context.signal);
               return { exitCode: 1 };
             }
             segmentListType = value;
@@ -10001,7 +10002,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   (audioSegment && workingDoc.tracks.length === 1 && track.type === "audio"))) {
                 throw new Error("segment output requires MP4 format or a single audio track with WAV or raw audio format");
               }
-              if (formatImageSequence(outputTarget, 0, false) === undefined) {
+              if (formatImageSequence(outputTarget, 0) === undefined) {
                 throw new Error("segment output requires a numbered filename pattern");
               }
               validateRawAudioCodec(workingDoc, segmentPlugin, audioCodec);
@@ -10018,15 +10019,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               for (const [frame, packet] of (segmentAudioPackets ?? track.samples).entries()) {
                 budget.checkCpu();
                 const seconds = (packet.pts - audioOffset) / track.timescale;
-                const reached = segmentFrames === undefined
-                  ? segmentTimes === undefined
-                    ? seconds >= boundaries.length * segmentTime - segmentTimeDelta &&
-                      Math.round((seconds - boundaries[boundaries.length - 1]!) * 1_000_000) >= Math.round(minSegmentDuration * 1_000_000)
-                    : seconds >= (segmentTimes[boundaries.length - 1] ?? Infinity) - segmentTimeDelta
-                  : frame >= (segmentFrames[boundaries.length - 1] ?? Infinity);
-                if (seconds > boundaries[boundaries.length - 1]! && reached &&
-                    (track.type !== "video" || packet.isKeyframe)) {
+                while (true) {
+                  budget.checkCpu();
+                  const reached = segmentFrames === undefined
+                    ? segmentTimes === undefined
+                      ? seconds >= boundaries.length * segmentTime - segmentTimeDelta &&
+                        Math.round((seconds - boundaries[boundaries.length - 1]!) * 1_000_000) >= Math.round(minSegmentDuration * 1_000_000)
+                      : seconds >= (segmentTimes[boundaries.length - 1] ?? Infinity) - segmentTimeDelta
+                    : frame >= (segmentFrames[boundaries.length - 1] ?? Infinity);
+                  if (!reached || (!writeEmptySegments && seconds <= boundaries[boundaries.length - 1]!) ||
+                      (track.type === "video" && !packet.isKeyframe)) break;
                   boundaries.push(seconds);
+                  if (!writeEmptySegments || (segmentTime === 0 && segmentTimes === undefined && segmentFrames === undefined)) break;
                 }
               }
               const lastPacket = track.samples.at(-1);

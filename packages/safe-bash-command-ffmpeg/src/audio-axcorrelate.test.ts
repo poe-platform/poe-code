@@ -198,3 +198,29 @@ for (const size of [64, 128, 600]) {
     assert.equal(start, 4000);
   });
 }
+
+// FFmpeg 7.0.2 negotiates the first input's layout before correlating a
+// 250 Hz mono tone with stereo [tone, -tone]. Drain length can vary at EOF.
+for (const algo of ["slow", "fast", "best"]) {
+  for (const [firstChannels, secondChannels] of [[2, 1], [1, 2], [2, 2], [1, 1]]) {
+    it(`axcorrelate ${algo} negotiates ${firstChannels}/${secondChannels} channels`, async () => {
+      const tone = Float64Array.from({ length: 4000 }, (_, i) =>
+        Math.round(12000 * Math.sin(2 * Math.PI * 250 * i / 8000)) / 32768);
+      const mono = encodeWav({ sampleRate: 8000, channels: [tone] });
+      const stereo = encodeWav({ sampleRate: 8000, channels: [tone, tone.map(sample => -sample)] });
+      const { result, error, audio } = await run(`[0:a][1:a]axcorrelate=128:${algo}[mix]`, 1, 4000, 4000,
+        [firstChannels === 1 ? mono : stereo, secondChannels === 1 ? mono : stereo]);
+      assert.equal(result.exitCode, 0, error);
+      assert.equal(audio!.sampleRate, 8000);
+      assert.equal(audio!.channels, firstChannels);
+      for (const [channel, samples] of audio!.channelData.entries()) {
+        assert.ok(samples.length > 0);
+        const expected = firstChannels === 1 && secondChannels === 2 ? 0
+          : firstChannels === 2 && secondChannels === 1 && channel === 1 ? -32768 : 32767;
+        for (const [index, sample] of samples.entries()) {
+          assert.equal(sample * 32768, expected, `channel ${channel}, sample ${index}`);
+        }
+      }
+    });
+  }
+}

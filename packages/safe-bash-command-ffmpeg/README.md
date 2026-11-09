@@ -318,7 +318,8 @@ average/maximum channel linking, upward/downward modes, input gain, makeup and w
 
 `axcorrelate` computes per-channel cross-correlation from two PCM inputs with matching
 sample rates and channel layouts, stopping at the shorter input. For example,
-`[0:a][1:a]axcorrelate=size=128:algo=slow[mix]`. `size` accepts numeric expressions
+`[0:a][1:a]axcorrelate=size=128:algo=slow[mix]`. Mono/stereo pairs are remixed
+to the first input’s layout before correlation. `size` accepts numeric expressions
 such as `2*4` in the range 2–131072 (default 256), rounded to the nearest sample
 with halfway values rounded to even (`2.5` becomes `2`, `3.5` becomes `4`).
 `algo` accepts `slow`, `fast` (assumes zero means), or `best`

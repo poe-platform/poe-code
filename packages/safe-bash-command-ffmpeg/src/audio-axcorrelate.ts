@@ -8,8 +8,13 @@ export async function correlateAudio(
   const a = first.decodedAudio;
   const b = second.decodedAudio;
   if (!a || !b) throw new Error("axcorrelate requires decoded PCM audio");
-  if (a.sampleRate !== b.sampleRate || a.channels !== b.channels || a.channelMask !== b.channelMask) {
-    throw new Error("axcorrelate requires matching sample rates and channel layouts");
+  if (a.sampleRate !== b.sampleRate) throw new Error("axcorrelate requires matching sample rates");
+  const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : undefined);
+  const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : undefined);
+  const remix = a.channels !== b.channels &&
+    (layoutA === 4 && layoutB === 3 || layoutA === 3 && layoutB === 4);
+  if (!remix && (a.channels !== b.channels || layoutA !== layoutB)) {
+    throw new Error("axcorrelate requires matching layouts or mono/stereo inputs");
   }
   let size = 256;
   let algo = "best";
@@ -71,10 +76,24 @@ export async function correlateAudio(
   const double = first.codecDescriptions[0]?.codecName === "pcm_f64le";
   const round = double ? (value: number) => value : Math.fround;
   const small = double ? 1e-9 : round(1e-6);
+  let remixed: Float32Array | Float64Array | undefined;
+  if (remix && length > 0) {
+    const Samples = double ? Float64Array : Float32Array;
+    budget.allocateMemory(received[1]! * Samples.BYTES_PER_ELEMENT);
+    remixed = new Samples(received[1]!);
+    const gain = round(Math.SQRT1_2);
+    for (let i = 0; i < remixed.length; i++) {
+      if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      // Floating PCM uses equal-power mixing without PCM16 normalization.
+      const left = round(b.channelData[0]![i]!);
+      remixed[i] = b.channels === 1 ? left * gain
+        : round(left * gain) + round(round(b.channelData[1]![i]!) * gain);
+    }
+  }
   const channelData = a.channelData.map(() => new Float64Array(length));
   for (let c = 0; c < a.channels && length > 0; c++) {
     const x = a.channelData[c]!.subarray(0, received[0]);
-    const y = b.channelData[c]!.subarray(0, received[1]);
+    const y = remixed ?? b.channelData[c]!.subarray(0, received[1]);
     let sx = 0, sy = 0, xx = 0, yy = 0, xy = 0;
     // Pad past the last packet received, even if the source has more samples.
     for (let i = 0; i < size; i++) {

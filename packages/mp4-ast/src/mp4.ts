@@ -2594,6 +2594,7 @@ export function buildProbeResultFromDoc(
 
   const startTime = Number.isFinite(formatStart) ? formatStart : 0;
   const duration = Number.isFinite(formatEnd) ? Math.max(0, formatEnd - startTime) : doc.durationSeconds;
+  const unknownDuration = doc.containerFormat === "ffmetadata" && !doc.chapters?.length;
   const overallBitRate =
     duration > 0
       ? String((doc.containerFormat === 'mp4' || doc.containerFormat === 'mov' ? Math.trunc : Math.round)((byteLength * 8) / duration))
@@ -2609,9 +2610,9 @@ export function buildProbeResultFromDoc(
       format_name: options.formatName ?? "mov,mp4,m4a,3gp,3g2,mj2",
       format_long_name: options.formatLongName ?? "QuickTime / MOV",
       start_time: startTime.toFixed(6),
-      duration: duration.toFixed(6),
+      ...(unknownDuration ? {} : { duration: duration.toFixed(6) }),
       size: String(byteLength),
-      bit_rate: overallBitRate,
+      ...(unknownDuration ? {} : { bit_rate: overallBitRate }),
       probe_score: 100,
       tags: formatTags
     },

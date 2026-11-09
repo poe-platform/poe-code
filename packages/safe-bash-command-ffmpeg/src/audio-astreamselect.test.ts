@@ -51,6 +51,8 @@ for (const map of [0, 1]) for (const length of [2048, 1300]) for (const stereo o
 for (const [filter, expected] of [
   ["astreamselect=inputs=2:map=0", a.slice(0, b.length)],
   ["astreamselect=inputs=2:map=1", b],
+  ["astreamselect=inputs=3:inputs=2:map=1", b],
+  ["astreamselect=3:inputs=2:map=1", b],
   ["astreamselect=map=0b1", a.slice(0, b.length)],
   ["astreamselect=map=0.5", a.slice(0, b.length)],
   ["astreamselect=map=1foo", b],
@@ -113,6 +115,8 @@ for (const filter of ["astreamselect", "astreamselect=inputs=3:map=1", "astreams
   "astreamselect=inputs=0b10:map=1", "astreamselect=inputs=1.5:map=1",
   "astreamselect=inputs=2.51:map=1", "astreamselect=inputs=2147483648:map=1",
   "astreamselect=inputs=1/0:map=1", "astreamselect=inputs=:map=1",
+  "astreamselect=inputs=0:inputs=2:map=1", "astreamselect=inputs=bad:inputs=2:map=1",
+  "astreamselect=0:inputs=2:map=1", "astreamselect=bad:inputs=2:map=1",
   "astreamselect=map=08", "astreamselect=map=0+1", "astreamselect=inputs=2foo:map=1",
   "astreamselect=map=0 1", "astreamselect=map=1:unknown=0"]) {
   it(`rejects ${filter} without replacing output`, async () => {

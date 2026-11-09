@@ -9561,7 +9561,7 @@ export class Runtime {
           for (let index = 0; index < fields.length; index++) await writer.set(index, fields[index]!.value);
         } finally { await writer.close(); }
       } else if (!names.length) {
-        if (state.readonlyVariables?.has("REPLY")) { await this.diagnostic(context, "REPLY: readonly variable"); return 1; }
+        if (state.readonlyVariables?.has("REPLY")) { await this.diagnostic(context, "REPLY: readonly variable"); return 2; }
         await this.writeVariable(state, "REPLY", line?.shellValue ?? "", context);
       } else {
         const separators = exact ? "" : stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";

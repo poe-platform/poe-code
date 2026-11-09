@@ -39,6 +39,21 @@ for (const option of ["-u0", "-t1"]) {
   }
 }
 
+for (const [options, status] of [["", 2], ["-r", 2], ["-u0", 2], ["-t1", 2], ["REPLY", 1], ["-a REPLY", 1]] as const) {
+  for (const input of ["one two\nthree\n", "one two", ""]) {
+    test(`read ${options} preserves readonly REPLY and consumes input with Bash 5.3 status: ${JSON.stringify(input)}`, async t => {
+      const { shell, fs, commands } = setup();
+      t.after(() => shell.dispose());
+      for (const command of basicCommands()) commands.register(command);
+      await fs.writeFile("/data", new TextEncoder().encode(input));
+      const result = await shell.exec(`readonly REPLY=old; { read ${options}; rc=$?; read rest; printf '%s|%s|%s' "$rc" "$REPLY" "$rest"; exit "$rc"; } </data`);
+      assert.equal(result.stdout, `${status}|old|${input.includes("\n") ? "three" : ""}`);
+      assert.equal(result.stderr, "shell: line 1: REPLY: readonly variable\n");
+      assert.equal(result.exitCode, status);
+    });
+  }
+}
+
 for (const [label, source] of [
   ["readonly indexed condition", 'a=(old); readonly -a a; if read "a[0]" <<< new; then echo success; else echo recovered; fi; echo "first=${a[0]}"'],
   ["readonly indexed subscript side effect", 'a=(old); readonly -a a; i=0; if read "a[i++]" <<< new; then echo success; else echo "recovered:$?"; fi; echo "first=${a[0]} i=$i"'],

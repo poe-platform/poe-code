@@ -31,7 +31,7 @@ const CODEC_LONG_NAMES: Record<string, string> = {
 };
 
 /** Shared stream schema for resident samples and bounded source aggregates. */
-export function buildProbeStream<T extends string | MediaProbeText>(track: ProbeStreamTrack<T>, desc: Mp4CodecMetadata | undefined, stats: ProbeSampleStats, idx: number, containerFormat: string): Omit<MediaProbeStream, 'tags'> & { tags: Record<string, string | T> } {
+export function buildProbeStream<T extends string | MediaProbeText>(track: ProbeStreamTrack<T>, desc: Mp4CodecMetadata | undefined, stats: ProbeSampleStats, idx: number, containerFormat: string): Omit<MediaProbeStream, 'tags'> & { tags: Record<string, string | T> | undefined } {
   const codecName = desc?.codecName ?? (track.type === "video" ? "h264" : "aac");
   const codecLongName = CODEC_LONG_NAMES[codecName] ?? codecName;
   const matroska = containerFormat === "matroska" || containerFormat === "webm";
@@ -71,7 +71,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
 
   const streamTags: Record<string, string | T> = {
     ...track.metadata,
-    ...((matroska || containerFormat === "avi") && track.language === "und" ||
+    ...(containerFormat === "webvtt" || (matroska || containerFormat === "avi") && track.language === "und" ||
       containerFormat === "wav" && track.disposition?.attached_pic === 1
       ? {} : { language: track.language || "und" })
   };
@@ -161,7 +161,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
       multilayer: 0,
       ...track.disposition
     },
-    tags: streamTags,
+    tags: containerFormat === "webvtt" && Object.keys(streamTags).length === 0 ? undefined : streamTags,
     side_data_list: track.rotation
       ? [{ side_data_type: "Display Matrix", rotation: -track.rotation }]
       : undefined

@@ -636,7 +636,7 @@ interface MagickState {
   pngPreserveColormap?: boolean;
   pngColorType?: string;
   omitPngResolution?: boolean;
-  delay?: string;
+  delay?: { value: string };
   disposal?: number;
   transparentColor?: ReturnType<typeof parseColor>;
   loop?: number;
@@ -1506,7 +1506,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
         img ??= getImage();
         const fn = compileFxExpression(property.slice(property.indexOf(":") + 1));
         if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
-        const ctx: FxEvalContext = { statistics, stack: [img], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
+        const ctx: FxEvalContext = { statistics, frameIndex: context.sceneIdx, stack: [img], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
         if (key.startsWith("fx:")) {
           parts.push(formatSignificantMetric(fn(ctx), context.precision));
         } else {
@@ -1549,10 +1549,10 @@ function* formatMagickPropertyStringSteps<Step=never>(
 }
 
 class FxPixelDemand { constructor(readonly position:number, readonly image = 0){} }
-function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,getStatistics:()=>Generator<IdentifyStep,Record<string,number>,void>,signal?:AbortSignal,precision = 6):Generator<IdentifyStep,string,void>{
+function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,getStatistics:()=>Generator<IdentifyStep,Record<string,number>,void>,signal?:AbortSignal,precision = 6,frameIndex = 0):Generator<IdentifyStep,string,void>{
  const fn=compileFxExpression(property.slice(property.indexOf(":")+1)),key=property.toLowerCase(),samples=new Map<number,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array}>();
  const statistics=fn.needsStatistics?yield*getStatistics():undefined;
- const context:FxEvalContext={statistics,stack:[image],x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
+ const context:FxEvalContext={statistics,frameIndex,stack:[image],x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
   if(!target)return 0;
   const px=Math.max(0,Math.min(target.width-1,Math.round(x))),py=Math.max(0,Math.min(target.height-1,Math.round(y))),position=(py*target.width+px)*4;
   if(!Number.isFinite(position))return NaN;
@@ -1597,7 +1597,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    yield { async run() { const scene = (metadata as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0; delay = await raster!.image.storedDelay?.at(scene, signal ? { signal } : undefined) ?? raster!.image.delay?.[scene] ?? 0; } };
    return String(delay);
   }
-  if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal,context.precision);
+  if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal,context.precision,context.sceneIdx);
   function* load(position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array},void>{
    let chunk!: {data:Uint8Array;data16?:Uint16Array};
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
@@ -2404,6 +2404,7 @@ type FxImage = Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"
 interface FxStack { readonly length: number; get(index: number): FxImage | undefined; indexOf(image: FxImage): number; reset?(): void }
 class FxFrameDemand {}
 interface FxEvalContext {
+  readonly frameIndex?: number | undefined;
   readonly statistics?: Readonly<Record<string, number>> | undefined;
   readonly stack: FxStack | readonly FxImage[];
   readonly sample?: typeof sampleFxImage;
@@ -2961,6 +2962,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (name === "w") return ctx.w;
         if (name === "h") return ctx.h;
         if (name === "n") return ctx.stack.length;
+        if (name === "t") return ctx.frameIndex ?? 0;
         if (name === "quantumrange" || name === "maxrgb") return 65535;
         if (name === "quantumscale") return 1 / 65535;
         if (name === "epsilon") return 1e-12;
@@ -5168,7 +5170,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             }
             if (state.disposal !== undefined) im = { ...im, disposal: state.disposal };
             if (state.delay !== undefined) {
-                const delay = state.delay;
+                const delay = state.delay.value;
                 im = { ...im, delay: (im.delay ?? [0]).map(current => parseDelayOption(delay, current)) };
             }
             return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, state.kernel, state.resizeFilter) : im;
@@ -7502,9 +7504,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         if (t === "-set" && tokens[i + 1]?.toLowerCase() === "delay") {
-            const delay = parseDelay(tokens[i + 2] ?? "0");
+            const value = tokens[i + 2] ?? "0";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                yield;
+                const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
+                const delay = parseDelay(expanded);
                 return { ...image, delay: Array(image.delay?.length ?? 1).fill(delay) };
             });
             i += 3;
@@ -7710,11 +7714,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!Number.isSafeInteger(state.scene) || state.scene < 0) throw new Error("invalid scene number");
         }
         else if (t === "+delay") {
-            state.delay = "0";
+            state.delay = { value: "0" };
         }
         else if (t === "-delay") {
-            state.delay = tokens[++i] ?? "0";
-            parseDelayOption(state.delay, 0);
+            const value = tokens[++i] ?? "0";
+            const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
+            state.delay = { value: yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], sceneIdx: 0, optionProperties: state.optionProperties }) };
+            parseDelayOption(state.delay.value, 0);
         }
         else if (t === "-transparent-color") {
             state.transparentColor = parseColor(tokens[++i] ?? "");
@@ -9206,11 +9212,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-set" && tokens[i + 1]?.toLowerCase() === "delay") {
-            const delay = parseDelay(tokens[i + 2] ?? "0");
-            steps.push(async image => image ? {
-                ...image,
-                storedDelay: { length: image.storedDelay?.length ?? image.delay?.length ?? 1, async at() { return delay; } },
-            } : undefined);
+            const value = tokens[i + 2] ?? "0", optionProperties = state.optionProperties;
+            stackStep(async (stack, backend) => {
+                for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
+                    const image = (await stack.get(sceneIdx))!;
+                    const expanded = await formatRetainedIdentify(value, image, { ...image[magickInput], sceneIdx, optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                    const delay = parseDelay(expanded);
+                    await stack.set(sceneIdx, {
+                        ...image,
+                        storedDelay: { length: image.storedDelay?.length ?? image.delay?.length ?? 1, async at() { return delay; } },
+                    });
+                }
+                return stack;
+            });
             i += 2;
             continue;
         }
@@ -9541,9 +9555,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }); continue;
         }
         if (!operandsOnly && token === "-format") { state.formatStr = tokens[++i] ?? ""; continue; }
-        if (!operandsOnly && token === "+delay") { state.delay = "0"; continue; }
-        if (!operandsOnly && token === "-delay") { state.delay = tokens[++i] ?? "0";
-            parseDelayOption(state.delay, 0); continue; }
+        if (!operandsOnly && token === "+delay") { state.delay = { value: "0" }; continue; }
+        if (!operandsOnly && token === "-delay") {
+            const delay = state.delay = { value: tokens[++i] ?? "0" }, settings = { ...state };
+            stackStep(async (stack, backend) => {
+                const image = await stack.get(0) ?? await createStoredCanvas(1, 1, settings.background, backend, signal);
+                delay.value = await formatRetainedIdentify(delay.value, image, { ...(image as StoredMagickImage)[magickInput], sceneIdx: 0, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                parseDelayOption(delay.value, 0);
+                return stack;
+            });
+            continue;
+        }
         if (!operandsOnly && token === "-transparent-color") { state.transparentColor = parseColor(tokens[++i] ?? ""); continue; }
         if (!operandsOnly && token === "-loop") { state.loop = Number(tokens[++i] ?? 0); continue; }
         if (!operandsOnly && token === "-dispose") { state.disposal = parseMagickDisposal(tokens[++i] ?? ""); continue; }
@@ -10899,7 +10921,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }
  if(state.disposal!==undefined)image={...image,disposal:state.disposal};
  if (state.delay !== undefined) {
-  const delay = state.delay, original = image;
+  const delay = state.delay.value, original = image;
   image = { ...image, storedDelay: {
    length: original.storedDelay?.length ?? original.delay?.length ?? 1,
    async at(scene, options) {

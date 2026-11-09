@@ -3604,6 +3604,19 @@ function* applyMagickSolarizeSteps(img: RgbaImage, thresh: number, channels: Mag
     return { ...img, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
+function parsePosterizeLevels(value: string): number {
+    const geometry = [...value].filter(character => character.trim() !== "").join("");
+    if ([...geometry].some(character => !"0123456789eExX+-,./%!<>^@".includes(character))) {
+        throw new Error(`invalid argument '-posterize' '${value}'`);
+    }
+    // Posterize reads the first geometry component; x is not a hexadecimal prefix.
+    const end = [...geometry].findIndex(character => "xX,/%!<>^@".includes(character));
+    const first = end < 0 ? geometry : geometry.slice(0, end);
+    const levels = Number(first);
+    if (!first || !Number.isFinite(levels)) throw new Error(`invalid argument '-posterize' '${value}'`);
+    return levels;
+}
+
 function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, levelsRaw: number, dither: boolean, channels: MagickState["channels"], signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     let cooperativeWork = 0;
     const levels = Math.max(2, Math.trunc(levelsRaw));
@@ -6475,8 +6488,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = image => applyMagickRasterSteps(image, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a]), signal);
     } else if (token === "-posterize") {
         highDepth = true;
-        const value = tokens[++i] ?? "", levels = Number(value);
-        if (!value.trim() || !Number.isFinite(levels)) throw new Error(`invalid argument '-posterize' '${value}'`);
+        const levels = parsePosterizeLevels(tokens[++i] ?? "");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, state.dither !== false, channels, signal), signal);
     } else if (token === "-monochrome") {
@@ -9673,8 +9685,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-posterize") {
-            const value = tokens[++i] ?? "", levels = Number(value);
-            if (!value.trim() || !Number.isFinite(levels)) throw new Error(`invalid argument '-posterize' '${value}'`);
+            const levels = parsePosterizeLevels(tokens[++i] ?? "");
             const dither = state.dither !== false, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, dither, channels, signal), signal) : undefined);
             continue;

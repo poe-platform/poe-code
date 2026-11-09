@@ -13,12 +13,12 @@ const keep = new TextEncoder().encode("KEEP");
 
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     for (const operation of ["-linear-stretch", "-contrast-stretch"]) {
-        async function convert(argument: string) {
+        async function convert(argument: string, settings: string[] = []) {
             const files = new Map([["in.png", input], ["out.png", keep]]);
             const fs = new MemoryFileSystem();
             await fs.writeFile("/in.png", input);
             await fs.writeFile("/out.png", keep);
-            const argv = ["in.png", operation, argument, "out.png"];
+            const argv = ["in.png", ...settings, operation, argument, "out.png"];
             const args = createCommandArguments(argv);
             let stderr = "";
             const result = mode === "command" ? await createMagickCommand().execute({
@@ -36,6 +36,25 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
             expect(result.exitCode).toBe(1);
             expect(stderr).toContain("invalid argument");
             expect(stderr).toContain(operation);
+            expect(output).toEqual(keep);
+        });
+
+        it.each([
+            ["%[fx:w]x10%", "7x10%", []],
+            ["1x%[fx:h+1]", "1x2", []],
+            ["%[clip]x%[option:white]", "1x2", ["-set", "clip", "1", "-set", "option:white", "2"]],
+        ] as const)(`${mode}: expands ${operation} %s before parsing clipping points`, async (argument, literal, settings) => {
+            const expected = await convert(literal);
+            const actual = await convert(argument, [...settings]);
+            expect(expected.result.exitCode).toBe(0);
+            expect(actual.result.exitCode).toBe(0);
+            expect(decodeImage(actual.output).data).toEqual(decodeImage(expected.output).data);
+        });
+
+        it(`${mode}: rejects invalid expanded ${operation} and preserves destination`, async () => {
+            const { result, output, stderr } = await convert("%[clip]", ["-set", "clip", "bogus"]);
+            expect(result.exitCode).toBe(1);
+            expect(stderr).toContain("invalid argument");
             expect(output).toEqual(keep);
         });
 

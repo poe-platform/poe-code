@@ -6297,13 +6297,15 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     let argument = "";
     if (token === "-contrast-stretch" || token === "-linear-stretch") {
         argument = tokens[++end] ?? "";
-        if (!Number.isFinite(Number.parseFloat(argument)) || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
-            throw new Error(`invalid argument for option '${token}': ${argument}`);
-        }
     }
     const independent = token === "-auto-gamma" ? !state.channelDefault : state.channelExplicit;
     const channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
     return { end, highDepth: true, luminance: token === "-linear-stretch" || token === "-equalize" && state.channelSync || (token === "-normalize" || token === "-contrast-stretch") && !independent, transform(histogram, image) {
+        if (token === "-contrast-stretch" || token === "-linear-stretch") {
+            if (!Number.isFinite(Number.parseFloat(argument)) || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+                throw new Error(`invalid argument for option '${token}': ${argument}`);
+            }
+        }
         const levels = histogram[0]!.length;
         const lookup = Array.from({ length: 4 }, () => levels === 65536
             ? Uint16Array.from({ length: levels }, (_, value) => value)
@@ -6516,8 +6518,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const gamma = Number(parts[0]);
         const exponent = token === "+gamma" ? gamma : gamma === 0 ? Number.MAX_VALUE : 1 / gamma;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        const mask = [channels.r, channels.g, channels.b, channels.a];
         apply = function* (image) {
+            const gray = image.space === "b-w" || image.space === "grey16";
+            const mask = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a];
             // Native PNG readback treats the rounded sRGB gAMA value as 1/2.2.
             const inputGamma = image.gamma === undefined || image.gamma === 0.45455 ? 1 / 2.2 : image.gamma;
             const data = new Uint8Array(image.data);
@@ -8204,7 +8207,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i = analysisOperation.end;
             const argument = tokens[i] ?? "80%";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const operation = t === "-sepia-tone" ? parseMagickAnalysisOperation([t,
+                const operation = t === "-sepia-tone" || t === "-contrast-stretch" || t === "-linear-stretch" ? parseMagickAnalysisOperation([t,
                     yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties })
                 ], state, 0)! : analysisOperation;
                 const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.data16 ? 65536 : 256));
@@ -10244,7 +10247,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const intensity = state.intensity, argument = tokens[i] ?? "80%", settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const operation = token === "-sepia-tone" ? parseMagickAnalysisOperation([token,
+                const operation = token === "-sepia-tone" || token === "-contrast-stretch" || token === "-linear-stretch" ? parseMagickAnalysisOperation([token,
                     await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal)
                 ], settings, 0)! : analysisOperation;
                 const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.storedData16 ? 65536 : 256)), size = image.width * image.height * 4;

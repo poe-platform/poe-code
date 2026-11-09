@@ -181,11 +181,13 @@ export function gifFrameHeader(
         ? options.delay
         : (frameDelay ?? (frames > 1 ? 100 : 0)),
     centiseconds = Math.max(0, Math.round(delay / 10));
-  const comment = new TextEncoder().encode(options.gifVersion === "87a" ? "" : rectangle.comment ?? (frame === 0 ? image.properties?.comment ?? "" : ""));
-  const commentSize = comment.length ? 3 + comment.length + Math.ceil(comment.length / 255) : 0;
+  const bytes = new TextEncoder().encode(options.gifVersion === "87a" ? "" : rectangle.comment ?? (frame === 0 ? image.properties?.comment ?? "" : ""));
+  const nul = bytes.indexOf(0);
+  const comment = nul < 0 ? bytes : bytes.subarray(0, nul);
+  const commentSize = bytes.length ? 3 + comment.length + Math.ceil(comment.length / 255) : 0;
   const gce = options.gifVersion !== "87a" && (frames > 1 || transparent || options.delay !== undefined || frameDisposal !== undefined),
     out = new Uint8Array(commentSize + (gce ? 19 : 11) + (options.globalPalette === false ? 768 : 0));
-  if (comment.length) {
+  if (commentSize) {
     let at = 0;
     out.set([33,254], at); at += 2;
     for (let offset = 0; offset < comment.length; offset += 255) {

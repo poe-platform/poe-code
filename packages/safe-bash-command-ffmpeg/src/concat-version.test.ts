@@ -10,7 +10,7 @@ for (const format of [undefined, "concat", "wav"]) {
     for (const existingOutput of [false, true]) {
       it(`concat validates ${JSON.stringify(header)} with format ${format} and existing output ${existingOutput}`, async () => {
         const valid = format === "concat"
-          ? ["", "ffconcat version 1.0", " ffconcat version 1.0", "\ufeffffconcat version 1.0", "ffconcat\tversion\t1.0"].includes(header)
+          ? ["", "ffconcat version 1.0", " ffconcat version 1.0", "ffconcat\tversion\t1.0"].includes(header)
           : format === undefined && header === "ffconcat version 1.0";
         const volume = Volume.fromJSON({ "/list.ffconcat": `${header}\nfile a.wav\nfile b.wav\n` });
         for (const [name, base] of [["a", 1000], ["b", -9000]] as const) {
@@ -40,7 +40,11 @@ for (const format of [undefined, "concat", "wav"]) {
           ]);
         } else {
           assert.notEqual(result.exitCode, 0);
-          if (format === "concat") assert.ok(stderr.includes("Line 1: invalid version"), stderr);
+          if (format === "concat") {
+            const message = header.startsWith("\ufeff")
+              ? "Line 1: unknown keyword '\ufeffffconcat'" : "Line 1: invalid version";
+            assert.ok(stderr.includes(message), stderr);
+          }
           else if (format === undefined) assert.ok(stderr.includes("Unsupported input format"), stderr);
           if (existingOutput) assert.equal(volume.readFileSync("/out.wav", "utf8"), "existing output");
           else assert.equal(volume.existsSync("/out.wav"), false);

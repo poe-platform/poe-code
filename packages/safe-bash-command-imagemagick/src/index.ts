@@ -28,7 +28,7 @@ import { ftxtPixels, storedFtxt } from "./ftxt.js";
 import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
-import { chopRegion, regionPixelSteps, type Region } from "./region.js";
+import { chopRegion, orientRegion, regionPixelSteps, type Region } from "./region.js";
 import { writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
 import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
@@ -8250,7 +8250,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
     function* mapMagickImagesSteps(images: readonly RgbaImage[], transform: (image: RgbaImage) => Generator<void, RgbaImage, void>, maskAlpha?: MagickPixelOperation["maskAlpha"], handlesRegion = false): Generator<void, RgbaImage[], void> {
         return yield* mapSteps(images, function* (original) {
             let result = yield* transform(original);
-            if (!handlesRegion && original.region && result.data !== original.data && result.width === original.width && result.height === original.height) {
+            if (!handlesRegion && original.region && result.region === original.region && result.data !== original.data && result.width === original.width && result.height === original.height) {
                 result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, original.region, !!(result.data16 || original.data16), state.channels), undefined, result, [result, original]);
             }
             if (maskAlpha === "transparent" || !original.writeMask || (result.writeMask && result.writeMask !== original.writeMask) || result.data === original.data || result.width !== original.width || result.height !== original.height) return result;
@@ -9116,7 +9116,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-auto-orient") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                let output = yield* applyExifOrientationSteps(im);
+                let output: RgbaImage = yield* applyExifOrientationSteps(im);
+                if (im.region) output = { ...output, region: orientRegion(im.region, im) };
                 const virtualCanvas = magickAutoOrientCanvas(im);
                 if (state.orientation !== undefined) output = { ...output, orientation: state.orientation };
                 return virtualCanvas ? { ...output, virtualCanvas } : output;
@@ -11358,6 +11359,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 let output: StoredRgbaImage = await transformStoredImage(image, backend.storage, { kind }, signal);
                 if (kind === "flop" && image.storedWriteMask) output.storedWriteMask = await transformStoredImage(image.storedWriteMask, backend.storage, { kind }, signal);
+                if (kind === "autoOrient" && image.region) output.region = orientRegion(image.region, image);
                 if (kind === "autoOrient" && orientation !== undefined) output = { ...output, orientation };
                 const virtualCanvas = kind === "autoOrient" ? magickAutoOrientCanvas(image) : magickMirrorCanvas(image, kind);
                 return virtualCanvas ? { ...output, virtualCanvas } : output;
@@ -11634,7 +11636,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (result && step.maskAlpha !== "transparent" && original.storedWriteMask && (!result.storedWriteMask || result.storedWriteMask === original.storedWriteMask) && result.position !== original.position && result.width === original.width && result.height === original.height) {
                         result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask, !!(result.storedData16 || original.storedData16), step.maskAlpha === "opaque", maskChannels), signal, result, [result, original, { ...original, ...original.storedWriteMask }]);
                     }
-                    if (result && !step.handlesRegion && original.region && result.position !== original.position && result.width === original.width && result.height === original.height) {
+                    if (result && !step.handlesRegion && original.region && result.region === original.region && result.position !== original.position && result.width === original.width && result.height === original.height) {
                         result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, original.region, !!(result.storedData16 || original.storedData16), maskChannels), signal, result, [result, original]);
                     }
                     if (result) await stack.set(n, result);

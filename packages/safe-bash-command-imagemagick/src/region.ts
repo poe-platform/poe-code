@@ -16,6 +16,21 @@ export function chopRegion(region: Region, x0: number, y0: number, x1: number, y
     };
 }
 
+/** Move the selection with EXIF pixel coordinates, including mirrored orientations. */
+export function orientRegion(region: Region, image: { width: number; height: number; orientation?: number | undefined }): Region {
+    const { x, y, width, height } = region;
+    switch (image.orientation) {
+        case 2: return { ...region, x: image.width - x - width };
+        case 3: return { ...region, x: image.width - x - width, y: image.height - y - height };
+        case 4: return { ...region, y: image.height - y - height };
+        case 5: return { x: y, y: x, width: height, height: width };
+        case 6: return { x: image.height - y - height, y: x, width: height, height: width };
+        case 7: return { x: image.height - y - height, y: image.width - x - width, width: height, height: width };
+        case 8: return { x: y, y: image.width - x - width, width: height, height: width };
+        default: return region;
+    }
+}
+
 /** Apply a white write mask outside the selected rectangle in bounded chunks. */
 export function* regionPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined }, region: Region, highDepth = false, channels?: MaskChannels): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const left = Math.max(0, Math.min(image.width, region.x));

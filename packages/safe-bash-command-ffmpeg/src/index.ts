@@ -1,3 +1,4 @@
+import { applyOutputColors, parseOutputColorOption, type OutputColorOption } from "./color-options.js";
 import { denoiseWavelets } from "./audio-afwtdn.js";
 import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { parseTee, selectTeeTracks } from "./tee.js";
@@ -4226,6 +4227,7 @@ export function evalSyncFfmpeg(
     const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title", string][] = [];
     const streamDispositions: [string, string][] = [];
     const displayAspects: [string, number][] = [];
+    const outputColors: OutputColorOption[] = [];
     let outputTarget: string | undefined;
 
     for (let i = 0; i < args.length; i++) {
@@ -4664,6 +4666,8 @@ export function evalSyncFfmpeg(
             streamMetadata.push([arg.slice("-metadata:s:".length), k === "handler_name" ? "handlerName" : k, v]);
           } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
         }
+      } else if (["-color_primaries", "-color_trc", "-colorspace", "-color_range"].includes(arg.split(":")[0]!)) {
+        outputColors.push(parseOutputColorOption(arg, args[++i]));
       } else if (arg === "-aspect" || arg.startsWith("-aspect:")) {
         displayAspects.push(parseDisplayAspect(arg, args[++i]));
       } else if (["-display_rotation", "-display_hflip", "-display_vflip"].some(option => arg === option || arg.startsWith(`${option}:`))) {
@@ -4836,6 +4840,7 @@ export function evalSyncFfmpeg(
       workingDoc = { ...workingDoc, tracks: writeTmcd ? authorTimecode(workingDoc.tracks, metadata.timecode) : removeTimecode(workingDoc.tracks) };
     }
     workingDoc = applyDisplayAspects(workingDoc, displayAspects);
+    workingDoc = applyOutputColors(workingDoc, outputColors);
     workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
     workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs === "auto" && outPlugin?.id === "srt" ? "make_non_negative" : avoidNegativeTs, budget);
     if (isNullMux) return "";
@@ -5397,6 +5402,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const attachmentMetadata: [string, string, string][] = [];
         const streamDispositions: [string, string][] = [];
         const displayAspects: [string, number][] = [];
+        const outputColors: OutputColorOption[] = [];
         let outputTarget: string | undefined;
 
         for (; i < args.length; i++) {
@@ -6685,6 +6691,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
                 streamMetadata.push([arg.slice("-metadata:s:".length), k === "handler_name" ? "handlerName" : k, v]);
               } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
+            }
+          } else if (["-color_primaries", "-color_trc", "-colorspace", "-color_range"].includes(arg.split(":")[0]!)) {
+            try {
+              outputColors.push(parseOutputColorOption(arg, args[++i]));
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
+              return { exitCode: 234 };
             }
           } else if (arg === "-aspect" || arg.startsWith("-aspect:")) {
             try {
@@ -10160,6 +10173,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             // Count processed media, not container headers or checksum text.
             workingDoc = applyDisplayAspects(workingDoc, displayAspects);
+            workingDoc = applyOutputColors(workingDoc, outputColors);
             workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
             workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs === "auto" && outPlugin?.id === "srt" ? "make_non_negative" : avoidNegativeTs, budget);
             let outputHasFrames = false;

@@ -741,8 +741,26 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
 }
 
 function buildVisualStsdEntry(desc: MediaCodecDescription, width: number, height: number, writeColr: boolean): Uint8Array {
-  // nclx: unspecified primaries, transfer and matrix; limited range.
-  const colr = writeColr ? makeBox("colr", concatBytes([encodeUtf8("nclx"), new Uint8Array([0, 2, 0, 2, 0, 2, 0])])) : new Uint8Array();
+  const entry = desc.rawStsdEntryBytes;
+  const children = entry && entry.byteLength >= 86 ? parseMp4Boxes(entry.subarray(86)) : [];
+  const existingColor = children.find(box => box.type === "colr");
+  const payload = existingColor?.payload;
+  const colorType = payload && payload.length >= 10 ? decodeFourCC(payload, 0) : undefined;
+  const colorView = payload && (colorType === "nclx" || colorType === "nclc")
+    ? new DataView(payload.buffer, payload.byteOffset, payload.byteLength) : undefined;
+  const primaries = desc.colorMetadata?.primaries ?? colorView?.getUint16(4) ?? 2;
+  const transfer = desc.colorMetadata?.transfer ?? colorView?.getUint16(6) ?? 2;
+  const matrix = desc.colorMetadata?.matrix ?? colorView?.getUint16(8) ?? 2;
+  const fullRange = desc.colorMetadata?.range !== undefined ? desc.colorMetadata.range === 2
+    : colorType === "nclx" ? Boolean((payload?.[10] ?? 0) & 128) : desc.colorRange === "pc";
+  const emitColor = writeColr || (primaries !== 2 && transfer !== 2 && matrix !== 2);
+  const color = new BinaryWriter(11);
+  color.writeBytes(encodeUtf8("nclx"));
+  color.writeU16BE(primaries);
+  color.writeU16BE(transfer);
+  color.writeU16BE(matrix);
+  color.writeU8(fullRange ? 128 : 0);
+  const colr = emitColor ? makeBox("colr", color.toUint8Array()) : new Uint8Array();
   const aspect = new BinaryWriter(8);
   if (desc.sarWidth && desc.sarHeight) {
     aspect.writeU32BE(desc.sarWidth);
@@ -750,15 +768,14 @@ function buildVisualStsdEntry(desc: MediaCodecDescription, width: number, height
   }
   const pasp = aspect.toUint8Array().length ? makeBox("pasp", aspect.toUint8Array()) : new Uint8Array();
   if (desc.rawStsdEntryBytes && desc.rawStsdEntryBytes.byteLength >= 86) {
-    if (!pasp.length && !writeColr) return desc.rawStsdEntryBytes;
+    if (!pasp.length && !writeColr && !desc.colorMetadata) return desc.rawStsdEntryBytes;
     const entry = desc.rawStsdEntryBytes;
-    const children = parseMp4Boxes(entry.subarray(86));
     return makeBox(decodeFourCC(entry, 4), concatBytes([
       entry.subarray(8, 86),
-      ...children.filter(box => box.type !== "pasp")
+      ...children.filter(box => box.type !== "pasp" && !(desc.colorMetadata && box.type === "colr"))
         .map(box => entry.subarray(86 + box.offset, 86 + box.offset + box.size)),
       pasp,
-      ...(children.some(box => box.type === "colr") ? [] : [colr])
+      ...(existingColor && !desc.colorMetadata ? [] : [colr])
     ]));
   }
   const writer = new BinaryWriter(256);

@@ -340,6 +340,14 @@ export interface MediaCodecDescription {
   readonly colorTransfer?: string | undefined;
   readonly colorPrimaries?: string | undefined;
   readonly colorRange?: string | undefined;
+  /** Output container color tags; omitted fields retain existing sample-entry tags. */
+  readonly colorMetadata?: {
+    primaries?: number;
+    transfer?: number;
+    matrix?: number;
+    /** FFmpeg range: 0 unspecified, 1 limited, 2 full. */
+    range?: number;
+  } | undefined;
   readonly sarWidth?: number | undefined;
   readonly sarHeight?: number | undefined;
   readonly sampleRate?: number | undefined;

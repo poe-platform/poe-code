@@ -135,6 +135,7 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
   }
   let newlineIdx = 0;
   while (newlineIdx < bytes.byteLength && bytes[newlineIdx] !== 0x0a) {
+    if (newlineIdx === 127) throw new Error("Header too large.");
     newlineIdx++;
   }
   const headerLine = decodeUtf8(bytes.subarray(0, newlineIdx));

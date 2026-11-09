@@ -140,7 +140,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
       nb_read_frames: String(stats.count)
     }),
     disposition: {
-      default: track.enabled ? 1 : 0,
+      default: containerFormat !== "webvtt" && track.enabled ? 1 : 0,
       dub: 0,
       original: 0,
       comment: 0,

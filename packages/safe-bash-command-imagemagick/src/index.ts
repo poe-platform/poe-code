@@ -8743,9 +8743,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 : yield* parseInputOperandSteps(palSpec, files, state, stdinBytes);
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return state.dither === "riemersma"
-                    ? yield* applyMagickRasterSteps(im, riemersmaRemapSteps(im, palImg, !!(im.data16 || palImg.data16), state.diffusionAmount ?? 1), signal, im, [im, palImg])
-                    : yield* applyMagickRemapSteps(im, palImg, state.dither !== false, state.diffusionAmount ?? 1, signal);
+                const hueSpace = t === "-remap" && (im.magickColorspace === "HSL" || im.magickColorspace === "HSB" || im.magickColorspace === "HSV") ? im.magickColorspace : undefined;
+                // Remap RGB palette colors, then restore the source colorspace with fresh samples.
+                if (hueSpace) im = yield* convertHuePixels(im, "sRGB");
+                const palette = hueSpace && (palImg.magickColorspace === "HSL" || palImg.magickColorspace === "HSB" || palImg.magickColorspace === "HSV") ? yield* convertHuePixels(palImg, "sRGB") : palImg;
+                const result = state.dither === "riemersma"
+                    ? yield* applyMagickRasterSteps(im, riemersmaRemapSteps(im, palette, !!(im.data16 || palette.data16), state.diffusionAmount ?? 1), signal, im, [im, palette])
+                    : yield* applyMagickRemapSteps(im, palette, state.dither !== false, state.diffusionAmount ?? 1, signal);
+                return hueSpace ? yield* convertHuePixels(result, hueSpace) : result;
             });
         }
         else if (t === "-clut" || t === "-hald-clut") {
@@ -10956,13 +10961,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const colors = palette.slice(0, 4).toLowerCase() === "mpr:"
+                let colors: StoredRgbaImage | undefined = palette.slice(0, 4).toLowerCase() === "mpr:"
                     ? await registers.get(palette.slice(4).toLowerCase())?.get(0)
                     : await parseStoredCompareInput(palette, settings, backend, signal);
                 if (!colors) throw new Error(`unable to open image '${palette}'`);
-                return settings.dither === "riemersma"
-                    ? transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!(image.storedData16 || colors.storedData16), settings.diffusionAmount ?? 1), signal, image, [image, colors])
-                    : remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal);
+                const hueSpace = image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" ? image.magickColorspace : undefined;
+                if (hueSpace) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
+                if (hueSpace && (colors.magickColorspace === "HSL" || colors.magickColorspace === "HSB" || colors.magickColorspace === "HSV")) colors = await transformStoredMagickPixels(colors, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
+                const result = settings.dither === "riemersma"
+                    ? await transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!(image.storedData16 || colors.storedData16), settings.diffusionAmount ?? 1), signal, image, [image, colors])
+                    : await remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal);
+                return hueSpace ? transformStoredMagickPixels(result, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, hueSpace) }, signal) : result;
             });
         } else if (!operandsOnly && (token === "-floodfill" || token === "+floodfill")) {
             if (i + 2 >= tokens.length) throw new Error(`missing argument '${token}'`);

@@ -30,6 +30,7 @@ import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
 import { regionPixelSteps, type Region } from "./region.js";
 import { writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
+import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { rawNetpbmInput } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
@@ -7408,8 +7409,9 @@ function* prepareInactiveAlphaOutput(image: RgbaImage): Generator<void, RgbaImag
 }
 
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Generator<void, RgbaImage, void> {
-    // Forced RGBA PNG coders enable blending, resetting copy-only alpha to opaque.
-    if ((pngCoder === "png32" || pngCoder === "png64") && image.alphaBlend === false) image = { ...yield* prepareInactiveAlphaOutput({ ...image, hasAlpha: false }), hasAlpha: true, channels: 4 };
+    if ((pngCoder === "png32" || pngCoder === "png64") && (image.alphaBlend === false || !image.hasAlpha && (image.writeMask || image.region))) {
+        image = { ...yield* applyMagickRasterSteps(image, pngAlphaPixelSteps(image, image.writeMask, !!image.data16), undefined, { ...image, hasAlpha: true }, image.writeMask ? [image, image.writeMask] : [image]), channels: 4 };
+    }
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
     if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
@@ -7425,8 +7427,8 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
 }
 
 async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Promise<StoredRgbaImage> {
-    if ((pngCoder === "png32" || pngCoder === "png64") && image.alphaBlend === false) {
-        image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: function* (frame) { return { ...yield* prepareInactiveAlphaOutput({ ...frame, hasAlpha: false }), hasAlpha: true, channels: 4 }; } }, signal);
+    if ((pngCoder === "png32" || pngCoder === "png64") && (image.alphaBlend === false || !image.hasAlpha && (image.storedWriteMask || image.region))) {
+        image = { ...await transformStoredMagickRaster(image, backend, pngAlphaPixelSteps(image, image.storedWriteMask, !!image.storedData16), signal, { ...image, hasAlpha: true }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]), channels: 4 };
     }
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
     if (format === "gif" && !image.isPalette && dither) image = { ...(await transformStoredMagickRaster(image, backend, gifDitherSteps(image, dither, diffusionAmount), signal)), isPalette: true };

@@ -127,7 +127,7 @@ export function* combinePixelSteps(inputs: readonly Pick<RgbaImage, "width" | "h
     }
 }
 
-/** Median ranks RGBA sums, retaining stable input order for equal sums. */
+/** Median ranks selected channel sums, retaining stable input order for equal sums. */
 export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth">[], raw: string, channels?: readonly boolean[], highDepth = false): Steps {
     const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
@@ -139,10 +139,13 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
         // Native Mean visits the input's channel slots using the output channel map.
         // An opaque 8-bit gray PNG has a palette-index slot in addition to gray.
         const colorSlots = gray ? 1 + Number(inputImage.hasAlpha || (inputImage.format === "png" && inputImage.depth === "uchar")) : 3;
-        if ((!hasAlpha || inputImage.hasAlpha) && (!gray || operation !== "mean")) return bytes;
+        const maskedMedian = operation === "median" && channels?.some(selected => !selected);
+        if ((!hasAlpha || inputImage.hasAlpha) && (!gray || operation !== "mean") && !maskedMedian) return bytes;
         const data = bytes.slice();
         for (let offset = 0; offset < length; offset++) {
             const channel = offset % 4;
+            // Mask candidates before ranking so unused samples cannot choose the median.
+            if (maskedMedian && !channels![channel] && (channel !== 3 || hasAlpha)) data[offset] = 0;
             if (channel === 3 ? hasAlpha && (!inputImage.hasAlpha || (gray && operation === "mean")) : operation === "mean" && channel >= colorSlots) data[offset] = 0;
         }
         return data;

@@ -105,3 +105,26 @@ it.each([
     const frames = pixels.map(value => Uint8Array.of(value, value, value, value));
     expect(run(evaluateSequencePixelSteps(4, frames.map(() => ({ hasAlpha: true, space: "srgb" as const, format: "png" as const, depth: "uchar" as const })), "Divide"), frames, 4)).toEqual(Uint8Array.of(expected, expected, expected, expected));
 });
+
+for (const hasAlpha of [false, true])
+for (const count of [1, 4, 75])
+it.each([
+    [true, false, false, false],
+    [true, true, false, false],
+    [true, true, true, false],
+    [false, false, false, true],
+])(`ranks masked Median across chunks with stable ties (alpha=${hasAlpha}, frames=${count}), mask=%j`, (...mask) => {
+    const size = 131 * 4;
+    const frames = Array.from({ length: count }, (_, frame) => Uint8Array.from({ length: size }, (_, index) =>
+        index % 4 === 3 && !hasAlpha ? 255 : index < 8 ? [frame, 255 - frame, frame * 3 % 256, 255 - frame * 2][index % 4]! : (index * 73 + frame * 31) % 256));
+    const expected = new Uint8Array(size);
+    for (let offset = 0; offset < size; offset += 4) {
+        const ranked = frames.map(frame => frame.slice(offset, offset + 4)).sort((a, b) =>
+            a.reduce((sum, value, channel) => sum + (mask[channel] ? value : 0), 0) -
+            b.reduce((sum, value, channel) => sum + (mask[channel] ? value : 0), 0));
+        const selected = ranked[Math.floor(count / 2)]!;
+        for (let channel = 0; channel < 4; channel++) expected[offset + channel] = channel === 3 && !hasAlpha ? 255 : mask[channel] ? selected[channel]! : 0;
+    }
+    const inputs = frames.map(() => ({ hasAlpha, space: "srgb" as const, format: "png" as const, depth: "uchar" as const }));
+    expect(run(evaluateSequencePixelSteps(size, inputs, "Median", mask), frames, size)).toEqual(expected);
+});

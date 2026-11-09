@@ -3,6 +3,7 @@ import { resampleAudio } from "./audio-resample.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterBoolean } from "./filter-boolean.js";
 import { parseFilterExpression } from "./filter-expression.js";
+import { audioFadeCurves } from "./audio-fade-curves.js";
 import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 
 export async function acrossfadeAudio(
@@ -21,6 +22,10 @@ export async function acrossfadeAudio(
   let samples = 44100;
   let duration = 0;
   let overlap = true;
+  let curve1 = audioFadeCurves.tri!;
+  let curve2 = audioFadeCurves.tri!;
+  const curves = Object.entries(audioFadeCurves);
+  const curveNames = Object.fromEntries(curves.map(([name], index) => [name, index - 1]));
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   let position = 0;
   for (const option of argument ? argument.split(":") : []) {
@@ -43,7 +48,14 @@ export async function acrossfadeAudio(
     } else if (key === "o" || key === "overlap") {
       overlap = parseFilterBoolean(value, "acrossfade: invalid overlap");
     } else if (key === "c1" || key === "curve1" || key === "c2" || key === "curve2") {
-      if (parseFilterExpression(value, "acrossfade", { tri: 0 }) !== 0) throw new Error("acrossfade: only the triangular curve is supported");
+      const number = parseFilterExpression(value, "acrossfade", curveNames);
+      if (number < -1 || number > curves.length - 2) throw new Error("acrossfade: invalid curve");
+      // Curve options use FFmpeg's integer rounding, including ties to even.
+      const floor = Math.floor(number);
+      const index = number - floor === 0.5 ? floor + Math.abs(floor % 2) : Math.round(number);
+      const curve = curves[index + 1]![1];
+      if (key === "c1" || key === "curve1") curve1 = curve;
+      else curve2 = curve;
     } else throw new Error(`acrossfade: unsupported option ${key}`);
   }
   if (duration > 0) samples = Math.round(duration * a.sampleRate);
@@ -77,22 +89,22 @@ export async function acrossfadeAudio(
       signal?.throwIfAborted();
       budget.checkCpu();
     }
+    const transition = i - (aLength - samples);
+    const secondIndex = i - (overlap ? aLength - samples : aLength);
+    const firstGain = i >= aLength ? 0 : transition < 0 ? 1 : curve1((samples - 1 - transition) / samples);
+    const secondGain = secondIndex < 0 ? 0 : secondIndex >= samples ? 1 : curve2(secondIndex / samples);
     for (let channel = 0; channel < a.channels; channel++) {
-      const transition = i - (aLength - samples);
-      const secondIndex = i - (overlap ? aLength - samples : aLength);
-      const firstValue = i >= aLength ? 0 : a.channelData[channel]![i]! *
-        (transition < 0 ? 1 : (samples - 1 - transition) / samples);
+      const firstValue = i >= aLength ? 0 : a.channelData[channel]![i]! * firstGain;
       const secondSample = secondIndex < 0 ? 0 : !remix ? secondChannels[channel]![secondIndex]!
         : b.channels === 1 ? secondChannels[0]![secondIndex]! * (pcm16 ? 23170 / 32768 : Math.SQRT1_2)
           : (secondChannels[0]![secondIndex]! + secondChannels[1]![secondIndex]!) / 2;
       // Automatic rate/layout conversion negotiates S16 before the fade's truncating cast.
       const secondValue = (pcm16 && (ratio !== 1 || remix)
         ? Math.max(-32768, Math.min(32767, Math.round(secondSample * 32768))) / 32768
-        : secondSample) *
-        (secondIndex >= samples ? 1 : secondIndex / samples);
+        : secondSample) * secondGain;
       // Native S16 fades cast the mixed sample to int16 before encoding.
       const value = firstValue + secondValue;
-      channelData[channel]![i] = pcm16 ? Math.trunc(value * 32768) / 32768 : value;
+      channelData[channel]![i] = pcm16 ? (Math.trunc(value * 32768) << 16 >> 16) / 32768 : value;
     }
   }
   const frames: MediaSample[] = [];

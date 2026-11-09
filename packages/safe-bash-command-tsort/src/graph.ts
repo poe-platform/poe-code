@@ -62,7 +62,7 @@ export async function sort(reader: Reader, lifecycle: Lifecycle): Promise<number
   }
   budget.retain(-token.length);
   token = new Uint8Array();
-  if (predecessor) throw new TsortError(`${fileQuote(reader.name)}: input contains an odd number of tokens`);
+  if (predecessor) throw new TsortError(`${fileQuote(reader.name, budget.context.env)}: input contains an odd number of tokens`);
   // Observe cancellation queued by EOF before ordering or publishing the graph.
   await yieldTurn(budget.signal);
   budget.retain(nodes.size * 16);
@@ -117,7 +117,7 @@ export async function sort(reader: Reader, lifecycle: Lifecycle): Promise<number
     }
     if (!remaining) break;
     status = 1;
-    await lifecycle.write(`tsort: ${fileQuote(reader.name)}: input contains a loop:\n`, true);
+    await lifecycle.write(`tsort: ${fileQuote(reader.name, budget.context.env)}: input contains a loop:\n`, true);
     let loop: Node | undefined;
     do {
       let found = false;

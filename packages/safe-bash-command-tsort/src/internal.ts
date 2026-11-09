@@ -71,13 +71,16 @@ export function quote(value: string, env: CommandContext["env"]): string {
   return result + (utf8 ? "\xe2\x80\x99" : "'");
 }
 
-export function fileQuote(value: string): string {
-  let safe = value.length > 0;
+export function fileQuote(value: string, env: CommandContext["env"]): string {
+  const locale = (env.LC_ALL || env.LC_CTYPE || env.LANG || "C").toUpperCase().split("@")[0]!;
+  const utf8 = locale.endsWith("UTF-8") || locale.endsWith("UTF8");
+  const text = utf8 ? pathText(value) : value;
+  const nonprinting = utf8 ? /[\p{Cc}\p{Cs}\p{Cn}\p{Zl}\p{Zp}]/u : /[^\x20-\x7e]/;
+  let safe = value.length > 0 && !"#~".includes(value[0]!) && value !== "{" && value !== "}";
   let escaped = false;
-  for (const character of value) {
-    const code = character.charCodeAt(0);
-    if (!(character >= "a" && character <= "z" || character >= "A" && character <= "Z" || character >= "0" && character <= "9" || "_./-".includes(character))) safe = false;
-    if (code < 32 || code >= 127) escaped = true;
+  for (const character of text) {
+    if (" !\"$&'()*:;<=>?[\\^`|".includes(character)) safe = false;
+    if (nonprinting.test(character)) { safe = false; escaped = true; }
   }
   if (safe) return value;
   if (!escaped) {
@@ -85,15 +88,16 @@ export function fileQuote(value: string): string {
     return `'${value.split("'").join("'\\''")}'`;
   }
   const escapes: Readonly<Record<string, string>> = { "\x07": "\\a", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t", "\v": "\\v" };
+  const encoder = new TextEncoder();
   let result = "'", inEscape = false;
-  for (const character of value) {
-    const code = character.charCodeAt(0);
-    if (code < 32 || code >= 127) {
+  for (const character of text) {
+    const octets = utf8 ? raw(encoder.encode(character)) : character;
+    if (nonprinting.test(character)) {
       if (!inEscape) { result += "'$'"; inEscape = true; }
-      result += escapes[character] ?? `\\${code.toString(8).padStart(3, "0")}`;
+      for (const octet of octets) result += escapes[octet] ?? `\\${octet.charCodeAt(0).toString(8).padStart(3, "0")}`;
     } else {
-      if (inEscape) { result += "''"; inEscape = false; }
-      result += character === "'" ? "'\\''" : character;
+      if (inEscape) { if (character !== "'") result += "''"; inEscape = false; }
+      result += character === "'" ? "'\\''" : octets;
     }
   }
   return `${result}'`;

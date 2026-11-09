@@ -114,7 +114,7 @@ export class Reader {
           this.lifecycle.assertOpen();
           const stat = await Reflect.apply(statMethod, fs, [path, { signal: budget.signal }]);
           this.lifecycle.assertOpen();
-          if (stat.type === "directory") throw new TsortError(`${fileQuote(this.name)}: read error: Is a directory`);
+          if (stat.type === "directory") throw new TsortError(`${fileQuote(this.name, budget.context.env)}: read error: Is a directory`);
           if (stat.type !== "file" && stat.type !== "character") throw new FsError("ENOTSUP", { path });
           const capabilitiesFor = fs.capabilitiesFor;
           this.lifecycle.assertOpen();
@@ -153,7 +153,7 @@ export class Reader {
         this.iterator = Reflect.apply(factory, source, []);
       });
     } catch (error) {
-      if (error instanceof FsError) throw new TsortError(`${fileQuote(this.name)}: ${fsDetail(error)}`);
+      if (error instanceof FsError) throw new TsortError(`${fileQuote(this.name, budget.context.env)}: ${fsDetail(error)}`);
       throw error;
     }
   }
@@ -179,7 +179,7 @@ export class Reader {
         });
       }
       catch (error) {
-        if (error instanceof FsError) throw new TsortError(`${fileQuote(this.name)}: ${fsDetail(error)}`);
+        if (error instanceof FsError) throw new TsortError(`${fileQuote(this.name, budget.context.env)}: ${fsDetail(error)}`);
         throw error;
       }
       budget.retain(-this.chunk.length);

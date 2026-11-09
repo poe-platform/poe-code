@@ -1,4 +1,4 @@
-import { bytesToHex } from "../byte-encoding.js";
+import { bytesToHex, compareUtf8 } from "../byte-encoding.js";
 import type { ConditionalExpression } from "./conditional.js";
 import { publicDiagnosticMessage } from "../diagnostics.js";
 import { escapeText, writeDiagnostic } from "../escaping.js";
@@ -25350,6 +25350,7 @@ const syncExtraRuntimeMethods = {
         u.edges.unshift(v);
       }
     }
+    ordered.sort((left, right) => compareUtf8(left.name, right.name));
     let remaining = ordered.length;
     const out: string[] = [];
     while (remaining > 0) {

@@ -3,7 +3,6 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 import { createMagickRandom } from "./random.js";
 import { evaluateNoiseSteps } from "./noise.js";
 type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>;
-const byte = (value: number) => Math.max(0, Math.min(255, Math.round(value)));
 
 export type LookupInterpolation = "bilinear" | "nearest" | "integer" | "average" | "mesh";
 
@@ -158,7 +157,8 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
     }
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
     const noise = operation.endsWith("noise");
-    highDepth &&= operation === "mean" || operation === "median" || noise;
+    const range = highDepth ? 65535 : 255, scale = highDepth ? 1 : 257;
+    const clamp = (value: number) => Math.max(0, Math.min(range, Math.round(value)));
     if (!["abs", "add", "addmodulus", "and", "cos", "cosine", "divide", "exp", "exponential",
         "gaussiannoise", "impulsenoise", "inverselog", "laplaciannoise", "leftshift", "log", "max", "mean",
         "median", "min", "multiplicativenoise", "multiply", "or", "poissonnoise", "pow", "rightshift",
@@ -167,7 +167,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
         throw new Error(`unrecognized evaluate operator '-evaluate-sequence' '${raw}'`);
     }
     if (noise) {
-        const random = createMagickRandom(seed), scale = highDepth ? 1 : 257;
+        const random = createMagickRandom(seed);
         const outputChannels = colorOutput ? [0, 1, 2] : [0];
         if (hasAlpha) outputChannels.push(3);
         // Native visits input slots through the output channel map. Unmapped
@@ -205,7 +205,6 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                 yield;
                 const count = Math.min(1024, width - left);
                 const data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
-                const range = highDepth ? 65535 : 255;
                 for (let pixel = 0; pixel < count; pixel++) for (let channel = 0; channel < 4; channel++) {
                     const slot = colorOutput ? channel : channel === 3 ? 1 : 0;
                     data[pixel * 4 + channel] = channel === 3 && !hasAlpha ? range
@@ -232,7 +231,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                 }
             }
         } else if (operation === "leftshift" || operation === "rightshift") {
-            const values = Float64Array.from(data, value => value * 257);
+            const values = Float64Array.from(data, value => value * scale);
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
@@ -240,12 +239,12 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                     // Native Q16 shifts the incoming sample by the accumulated quantum.
                     // The reference's signed 64-bit conversion skips overflowing counts.
                     const count = values[offset]! < 2 ** 63 ? Math.trunc(values[offset]!) : 0;
-                    const sample = bytes[offset]! * 257;
+                    const sample = bytes[offset]! * scale;
                     values[offset] = sample === 0 ? 0 : sample * 2 ** (operation === "leftshift" ? count : -count);
                 }
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(values[offset]! / 257);
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
             }
         } else if (["threshold", "thresholdblack", "thresholdwhite"].includes(operation)) {
             for (let image = 1; image < frames; image++) {
@@ -255,9 +254,9 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                     if (offset % 4 === 3 && !hasAlpha) continue;
                     // Each incoming sample uses the accumulated result as its threshold.
                     const sample = bytes[offset]!, threshold = data[offset]!;
-                    if (operation === "threshold") data[offset] = sample <= threshold ? 0 : 255;
+                    if (operation === "threshold") data[offset] = sample <= threshold ? 0 : range;
                     else if (operation === "thresholdblack") data[offset] = sample <= threshold ? 0 : sample;
-                    else data[offset] = sample > threshold ? 255 : sample;
+                    else data[offset] = sample > threshold ? range : sample;
                 }
             }
         } else if (median) {
@@ -289,54 +288,54 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                 }
             }
         } else if (["sin", "sine", "cos", "cosine"].includes(operation)) {
-            const values = Float64Array.from(data, value => value * 257);
+            const values = Float64Array.from(data, value => value * scale);
             const wave = operation === "sin" || operation === "sine" ? Math.sin : Math.cos;
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
                 // Native uses the accumulated Q16 quantum as the incoming sample's frequency.
-                for (let offset = 0; offset < length; offset++) values[offset] = 65535 * (0.5 + 0.5 * wave(2 * Math.PI * (1 / 65535) * (bytes[offset]! * 257) * values[offset]!));
+                for (let offset = 0; offset < length; offset++) values[offset] = 65535 * (0.5 + 0.5 * wave(2 * Math.PI * (1 / 65535) * (bytes[offset]! * scale) * values[offset]!));
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(values[offset]! / 257);
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
             }
         } else if (operation === "exp" || operation === "exponential") {
-            const values = Float64Array.from(data, value => value * 257);
+            const values = Float64Array.from(data, value => value * scale);
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
                 // Native Exp uses the accumulated Q16 quantum as the exponent factor.
-                for (let offset = 0; offset < length; offset++) values[offset] = 65535 * Math.exp(values[offset]! * (bytes[offset]! / 255));
+                for (let offset = 0; offset < length; offset++) values[offset] = 65535 * Math.exp(values[offset]! * (bytes[offset]! / range));
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(values[offset]! / 257);
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
             }
         } else if (operation === "log" || operation === "inverselog") {
-            const values = Float64Array.from(data, value => value * 257);
+            const values = Float64Array.from(data, value => value * scale);
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
                 // The accumulated Q16 quantum is the next sample's logarithm parameter.
                 for (let offset = 0; offset < length; offset++) {
-                    const value = values[offset]!, sample = bytes[offset]! / 255;
+                    const value = values[offset]!, sample = bytes[offset]! / range;
                     values[offset] = operation === "log"
                         ? value <= 1e-12 ? 0 : 65535 * Math.log(1 + value * sample) / Math.log(1 + value)
                         : 65535 * Math.pow(value + 1, sample - 1) / Math.max(value, 1e-12);
                 }
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(values[offset]! / 257);
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
             }
         } else if (operation === "rootmeansquare" || operation === "rms") {
             // Native Q16 seeds the accumulator with the first unsquared quantum.
-            const values = Float64Array.from(data, value => value * 257);
+            const values = Float64Array.from(data, value => value * scale);
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
-                for (let offset = 0; offset < length; offset++) values[offset]! += (bytes[offset]! * 257) ** 2;
+                for (let offset = 0; offset < length; offset++) values[offset]! += (bytes[offset]! * scale) ** 2;
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(Math.sqrt(values[offset]! / frames) / 257);
+                if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(Math.sqrt(values[offset]! / frames) / scale);
             }
         } else if (["mean", "min", "max", "add", "addmodulus", "sum", "abs", "subtract", "divide", "multiply", "pow"].includes(operation)) {
             const values = new Float64Array(length), multiplication = operation === "multiply", addition = ["mean", "add", "addmodulus", "sum", "abs"].includes(operation);
@@ -344,31 +343,30 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
             const ordered = operation === "subtract" || quantum;
             if (multiplication) values.fill(1);
             else if (!addition) values.set(data);
-            if (quantum) for (let offset = 0; offset < length; offset++) values[offset]! *= 257;
+            if (quantum) for (let offset = 0; offset < length; offset++) values[offset]! *= scale;
             for (let image = ordered ? 1 : 0; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
                     if (operation === "addmodulus") {
                         // Wrap at QuantumRange + 1 in native Q16 units, not at 256 bytes.
-                        values[offset] = (values[offset]! + bytes[offset]! * 257) % 65536;
+                        values[offset] = (values[offset]! + bytes[offset]! * scale) % 65536;
                     } else if (addition) values[offset]! += bytes[offset]!;
-                    else if (multiplication) values[offset]! *= bytes[offset]! / 255;
+                    else if (multiplication) values[offset]! *= bytes[offset]! / range;
                     // Native sequence evaluation applies each incoming sample to the accumulator.
                     else if (operation === "subtract") values[offset] = bytes[offset]! - values[offset]!;
-                    else if (operation === "divide") values[offset] = bytes[offset]! * 257 / (values[offset]! || 1);
+                    else if (operation === "divide") values[offset] = bytes[offset]! * scale / (values[offset]! || 1);
                     // Native Pow treats a near-zero quantum exponent as zero output.
-                    else if (operation === "pow") values[offset] = values[offset]! <= 1e-12 ? 0 : 65535 * (bytes[offset]! / 255) ** values[offset]!;
+                    else if (operation === "pow") values[offset] = values[offset]! <= 1e-12 ? 0 : 65535 * (bytes[offset]! / range) ** values[offset]!;
                     else if (operation === "min") values[offset] = Math.min(values[offset]!, bytes[offset]!);
                     else values[offset] = Math.max(values[offset]!, bytes[offset]!);
                 }
             }
-            if (operation === "addmodulus") for (let offset = 0; offset < length; offset++) values[offset]! /= 257;
+            if (operation === "addmodulus") for (let offset = 0; offset < length; offset++) values[offset]! /= scale;
             const average = operation === "mean";
             for (let offset = 0; offset < length; offset++) {
                 if (average && channels && !channels[offset % 4] && (offset % 4 !== 3 || hasAlpha)) data[offset] = 0;
-                else if (highDepth && average && (offset % 4 !== 3 || hasAlpha)) data[offset] = Math.round(values[offset]! / frames);
-                else if (offset % 4 !== 3 || hasAlpha) data[offset] = byte(average ? values[offset]! / frames : multiplication ? values[offset]! * 255 : quantum ? values[offset]! / 257 : values[offset]!);
+                else if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(average ? values[offset]! / frames : multiplication ? values[offset]! * range : quantum ? values[offset]! / scale : values[offset]!);
             }
         }
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };

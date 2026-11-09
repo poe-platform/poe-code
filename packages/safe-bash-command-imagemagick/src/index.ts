@@ -10972,6 +10972,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let verbose = false;
     let regardWarnings = false;
     let compose = "over";
+    let readMask: RgbaImage | StoredRgbaImage | undefined;
     type Rotation = { rotation: string; settings: MagickState };
     type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number };
     const pixelOperations: MagickPixelOperation[] = [];
@@ -10997,6 +10998,23 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 stdout: "Usage: compare [-metric AE|MAE|MEPP|MSE|RMSE|Fuzz|PSNR|SSIM|PAE|NCC|DPC|PHASH] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n",
                 stderr: ""
             };
+        }
+        else if (t === "-read-mask" || t === "+read-mask") {
+            readMask = undefined;
+            if (t === "+read-mask") continue;
+            const spec = argv[++i];
+            if (spec === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-read-mask'\n" };
+            try {
+                if (backend) yield { async run() {
+                    readMask = await parseStoredCompareInput(spec, state, backend, signal!);
+                } };
+                else readMask = yield* parseInputOperandSteps(spec, files, state, stdinBytes);
+                if (!readMask) throw new Error(`unable to read mask '${spec}'`);
+            } catch (err) {
+                signal?.throwIfAborted();
+                if (err instanceof CompareInputFailure) throw err.reason;
+                return { exitCode: 2, stdout: "", stderr: `compare: ${(err as Error).message}\n` };
+            }
         }
         else if (t === "-quiet" || t === "+quiet") quiet = t === "-quiet";
         else if (t === "-verbose" || t === "+verbose") verbose = t === "-verbose";
@@ -11343,6 +11361,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             stderr: inputErrors || "compare: missing an image filename\n"
         };
     }
+    if (readMask) {
+        imgA = { ...imgA, readMask };
+        imgB = { ...imgB, readMask };
+    }
     if (subimageSearch && (imgB.width > imgA.width || imgB.height > imgA.height))
         return { exitCode: 2, stdout: "", stderr: `compare: geometry does not contain image '${refSpec}'\n` };
     const width=Math.max(imgA.width,imgB.width),height=Math.max(imgA.height,imgB.height);
@@ -11365,7 +11387,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     try{while(!compared.done){const request=compared.value;
       if(!request){yield;compared=comparison.next();}
       else if (request.kind === "read") {
-          const image = request.image === 0 ? imgA : imgB;
+          const image = request.mask ? readMask! : request.image === 0 ? imgA : imgB;
           let samples!: Uint8Array | Float64Array;
           if ("data" in image) {
               samples = image.data16

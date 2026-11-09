@@ -6,6 +6,7 @@ export interface CompareImage {
     readonly width: number;
     readonly height: number;
     readonly hasAlpha: boolean;
+    readonly readMask?: { readonly width: number; readonly height: number } | undefined;
     readonly space?: string;
 }
 export interface CompareOptions {
@@ -28,6 +29,7 @@ export interface CompareOptions {
 }
 export type CompareRequest = {
     readonly kind: "read";
+    readonly mask?: boolean;
     readonly image: 0 | 1;
     readonly position: number;
     readonly length: number;
@@ -43,6 +45,22 @@ export interface CompareResult {
     readonly exitCode: number;
     readonly distortion: number;
 }
+function* readCompareMaskSteps(info: CompareImage, image: 0 | 1, left: number, y: number, count: number): Generator<CompareRequest | undefined, Uint8Array | undefined, CompareSamples | undefined> {
+    const mask = info.readMask;
+    if (!mask) return;
+    const x = Math.max(0, Math.min(left, info.width - 1, mask.width - 1));
+    const row = Math.max(0, Math.min(y, info.height - 1, mask.height - 1));
+    const length = Math.min(count, mask.width - x, info.width - x) * 4;
+    const samples = yield { kind: "read", image, mask: true, position: (row * mask.width + x) * 4, length };
+    if (!samples || samples.length !== length) throw new Error("Truncated comparison mask");
+    const selected = new Uint8Array(count);
+    for (let i = 0; i < count; i++) {
+        const offset = Math.max(0, Math.min(Math.max(0, left + i) - x, length / 4 - 1)) * 4;
+        selected[i] = Number(0.212656 * samples[offset]! + 0.715158 * samples[offset + 1]! + 0.072186 * samples[offset + 2]! > 127.5);
+    }
+    return selected;
+}
+
 /** Borrow input ranges until the next request; output chunks are owned by the receiver. */
 export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, options: CompareOptions): Generator<CompareRequest | undefined, CompareResult, CompareSamples | undefined> {
     if (options.subimageSearch) return yield* searchSubimageSteps(imgA, imgB, options);
@@ -52,6 +70,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     const width = Math.max(imgA.width, imgB.width);
     const height = Math.max(imgA.height, imgB.height);
     const totalPixels = Math.max(1, width * height);
+    let selectedPixels = 0;
     let pdcCount = 0;
     let aeMagnitude = 0;
     let sumAbs = 0;
@@ -76,6 +95,8 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         for (let left = 0; left < width; left += 1024) {
             yield;
             const count = Math.min(1024, width - left);
+            const maskA = yield* readCompareMaskSteps(imgA, 0, left, y, count);
+            const maskB = yield* readCompareMaskSteps(imgB, 1, left - (options.offset?.x ?? 0), y - (options.offset?.y ?? 0), count);
             // ImageMagick extends the nearest edge across the larger canvas.
             const leftA = Math.min(left, imgA.width - 1);
             const leftB = Math.min(left, imgB.width - 1);
@@ -116,6 +137,32 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 const gB = dataB[offB + 1]!;
                 const bB = dataB[offB + 2]!;
                 const aB = dataB[offB + 3]!;
+                const dr = red ? Math.abs(rA - rB) : 0;
+                const dg = green ? Math.abs(gA - gB) : 0;
+                const db = blue ? Math.abs(bA - bB) : 0;
+                const da = opacity ? Math.abs(aA - aB) : 0;
+                const alphaA = aA / 255;
+                const alphaB = aB / 255;
+                const pdr = red ? Math.abs(rA * alphaA - rB * alphaB) : 0;
+                const pdg = green ? Math.abs(gA * alphaA - gB * alphaB) : 0;
+                const pdb = blue ? Math.abs(bA * alphaA - bB * alphaB) : 0;
+                const included = (maskA?.[x - left] ?? 1) !== 0 && (maskB?.[x - left] ?? 1) !== 0;
+                const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
+                if (diffData) {
+                    const color = included ? (maxDelta > fuzz ? highlightColor : lowlightColor) : { r: 136, g: 136, b: 136, a: 204 };
+                    // ImageMagick makes the reference opaque before compositing
+                    // the highlight/lowlight overlay (80% opaque by default).
+                    if (reference) {
+                        reference.set([rA, gA, bA, 255], outOff);
+                    }
+                    const alpha = composeSrc || options.compose ? 1 : color.a / 255;
+                    diffData[outOff] = red ? Math.round(color.r * alpha + rA * (1 - alpha)) : color.r;
+                    diffData[outOff + 1] = green ? Math.round(color.g * alpha + gA * (1 - alpha)) : color.g;
+                    diffData[outOff + 2] = blue ? Math.round(color.b * alpha + bA * (1 - alpha)) : color.b;
+                    diffData[outOff + 3] = composeSrc || options.compose ? color.a : 255;
+                }
+                if (!included) continue;
+                selectedPixels++;
                 // NCC and DPC center each channel on its unassociated mean, then
                 // combine covariance and variance across all active channels.
                 for (const stats of correlationChannels) {
@@ -131,15 +178,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                     stats.squareB += b * b;
                     stats.product += a * b;
                 }
-                const dr = red ? Math.abs(rA - rB) : 0;
-                const dg = green ? Math.abs(gA - gB) : 0;
-                const db = blue ? Math.abs(bA - bB) : 0;
-                const da = opacity ? Math.abs(aA - aB) : 0;
-                const alphaA = aA / 255;
-                const alphaB = aB / 255;
-                const pdr = red ? Math.abs(rA * alphaA - rB * alphaB) : 0;
-                const pdg = green ? Math.abs(gA * alphaA - gB * alphaB) : 0;
-                const pdb = blue ? Math.abs(bA * alphaA - bB * alphaB) : 0;
+
                 if (metric === "fuzz") {
                     // Fuzz averages squared error over only channels above tolerance.
                     // Alpha participates only when both images have an alpha channel.
@@ -163,20 +202,6 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                 // AE sums channel magnitudes above fuzz, then averages over channels.
                 const aeR = hasAlpha ? pdr : dr, aeG = hasAlpha ? pdg : dg, aeB = hasAlpha ? pdb : db;
                 aeMagnitude += (aeR * aeR > channelFuzzSquared ? aeR : 0) + (aeG * aeG > channelFuzzSquared ? aeG : 0) + (aeB * aeB > channelFuzzSquared ? aeB : 0) + (hasAlpha && da * da > channelFuzzSquared ? da : 0);
-                const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
-                if (diffData) {
-                    const color = maxDelta > fuzz ? highlightColor : lowlightColor;
-                    // ImageMagick makes the reference opaque before compositing
-                    // the highlight/lowlight overlay (80% opaque by default).
-                    if (reference) {
-                        reference.set([rA, gA, bA, 255], outOff);
-                    }
-                    const alpha = composeSrc || options.compose ? 1 : color.a / 255;
-                    diffData[outOff] = red ? Math.round(color.r * alpha + rA * (1 - alpha)) : color.r;
-                    diffData[outOff + 1] = green ? Math.round(color.g * alpha + gA * (1 - alpha)) : color.g;
-                    diffData[outOff + 2] = blue ? Math.round(color.b * alpha + bA * (1 - alpha)) : color.b;
-                    diffData[outOff + 3] = composeSrc || options.compose ? color.a : 255;
-                }
                 if (hasAlpha) {
                     sumAbs += pdr + pdg + pdb + da;
                     sumSq += pdr * pdr + pdg * pdg + pdb * pdb + da * da;
@@ -208,8 +233,9 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             }
         }
     }
-    const maeNorm = sumAbs / (totalPixels * numCh * 255);
-    const mseNorm = sumSq / (totalPixels * numCh * 255 * 255);
+    const measuredPixels = Math.max(1, selectedPixels);
+    const maeNorm = sumAbs / (measuredPixels * numCh * 255);
+    const mseNorm = sumSq / (measuredPixels * numCh * 255 * 255);
     const rmseNorm = Math.sqrt(mseNorm);
     const paeNorm = maxAbs / 255;
     let metricStr: string;
@@ -245,7 +271,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             exitCode = distortion > 1e-6 ? 1 : 0;
             break;
         case "mepp":
-            distortion = meppSum / (totalPixels * Math.max(1, sharedChannels.length) * 255);
+            distortion = meppSum / (measuredPixels * Math.max(1, sharedChannels.length) * 255);
             metricStr = `${formatSignificantMetric(distortion * 65535, options.precision)} (${formatSignificantMetric(distortion, options.precision)}, ${formatSignificantMetric(meppPeak / 255, options.precision)})`;
             exitCode = distortion > 1e-6 ? 1 : 0;
             break;
@@ -287,11 +313,11 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
         case "ncc": {
             let varianceA = 0, varianceB = 0, covariance = 0;
             for (const stats of correlationChannels) {
-                const meanA = stats.rawA / (imgA.width * imgA.height);
-                const meanB = stats.rawB / (imgB.width * imgB.height);
-                varianceA += Math.max(0, stats.squareA - 2 * meanA * stats.sumA + totalPixels * meanA * meanA);
-                varianceB += Math.max(0, stats.squareB - 2 * meanB * stats.sumB + totalPixels * meanB * meanB);
-                covariance += stats.product - meanA * stats.sumB - meanB * stats.sumA + totalPixels * meanA * meanB;
+                const meanA = stats.rawA / (imgA.readMask ? measuredPixels : imgA.width * imgA.height);
+                const meanB = stats.rawB / (imgB.readMask ? measuredPixels : imgB.width * imgB.height);
+                varianceA += Math.max(0, stats.squareA - 2 * meanA * stats.sumA + measuredPixels * meanA * meanA);
+                varianceB += Math.max(0, stats.squareB - 2 * meanB * stats.sumB + measuredPixels * meanB * meanB);
+                covariance += stats.product - meanA * stats.sumB - meanB * stats.sumA + measuredPixels * meanA * meanB;
             }
             const denominator = Math.sqrt(varianceA) * Math.sqrt(varianceB);
             const similarity = denominator === 0 ? 0 : covariance / denominator;
@@ -315,17 +341,18 @@ function* searchSubimageSteps(imgA: CompareImage, imgB: CompareImage, options: C
     search: for (let y = 0; y < (options.diff ? imgA.height : imgA.height - imgB.height + 1); y++) {
         for (let x = 0; x < (options.diff ? imgA.width : imgA.width - imgB.width + 1); x++) {
             yield;
-            const comparison = compareImageSteps({ ...imgA, width: imgB.width, height: imgB.height }, imgB, { ...options, subimageSearch: false, diff: false });
+            const comparison = compareImageSteps({ ...imgA, width: imgB.width, height: imgB.height, ...(imgA.readMask ? { readMask: { width: imgB.width, height: imgB.height } } : {}) }, imgB, { ...options, subimageSearch: false, diff: false });
             let next = comparison.next();
             try {
                 while (!next.done) {
                     const request = next.value;
                     if (request?.kind === "read" && request.image === 0) {
                         const pixel = request.position / 4;
-                        const row = Math.min(y + Math.floor(pixel / imgB.width), imgA.height - 1);
-                        const left = Math.min(x + pixel % imgB.width, imgA.width - 1);
-                        const length = Math.min(request.length, (imgA.width - left) * 4);
-                        const bytes = yield { ...request, position: (row * imgA.width + left) * 4, length };
+                        const source = request.mask ? imgA.readMask! : imgA;
+                        const row = Math.min(y + Math.floor(pixel / imgB.width), source.height - 1);
+                        const left = Math.min(x + pixel % imgB.width, source.width - 1);
+                        const length = Math.min(request.length, (source.width - left) * 4);
+                        const bytes = yield { ...request, position: (row * source.width + left) * 4, length };
                         if (!bytes || bytes.length !== length) throw new Error("Truncated comparison pixels");
                         if (length === request.length) next = comparison.next(bytes);
                         else {
@@ -434,13 +461,15 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: rea
     const weightSum = weights.reduce((sum, value) => sum + value, 0);
     for (let i = 0; i < weights.length; i++)
         weights[i] = weights[i]! / weightSum;
-    let similarity = 0;
+    let similarity = 0, area = 0;
     for (let y = 0; y < height; y++) {
         // Include the halo in the 1024-pixel read limit. Copy borrowed reads
         // because all window rows must remain available across requests.
         for (let left = 0; left < width; left += chunk) {
             yield;
             const count = Math.min(chunk, width - left);
+            const maskA = yield* readCompareMaskSteps(imgA, 0, left - half, y - half, count);
+            const maskB = yield* readCompareMaskSteps(imgB, 1, left - half, y - half, count);
             const rows: CompareSamples[][] = [[], []];
             const starts: number[] = [];
             for (const image of [0, 1] as const) {
@@ -459,6 +488,8 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: rea
             }
             for (let x = left; x < left + count; x++) {
                 yield;
+                if (maskA?.[x - left] === 0 || maskB?.[x - left] === 0) continue;
+                area++;
                 for (const channel of selected) {
                     let muA = 0, muB = 0, squareA = 0, squareB = 0, product = 0;
                     for (let v = 0; v < size; v++) {
@@ -480,7 +511,7 @@ function* compareSsimSteps(imgA: CompareImage, imgB: CompareImage, selected: rea
             }
         }
     }
-    const distortion = (1 - similarity / (width * height * selected.length)) / 2;
+    const distortion = (1 - similarity / (Math.max(1, area) * selected.length)) / 2;
     return Math.abs(distortion) < 1e-12 ? 0 : distortion;
 }
 
@@ -498,9 +529,12 @@ function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage, selected: re
     const negative = kernel.reduce((sum, weight) => sum - Math.min(0, weight), 0);
     for (let i = 0; i < kernel.length; i++) kernel[i]! /= kernel[i]! >= 0 ? positive : negative;
     const stats = Array.from({ length: channels }, () => ({ a: 0, b: 0, aa: 0, bb: 0, ab: 0 }));
+    let area = 0;
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1016) {
         yield;
         const count = Math.min(1016, width - left);
+        const maskA = yield* readCompareMaskSteps(imgA, 0, left, y, count);
+        const maskB = yield* readCompareMaskSteps(imgB, 1, left, y, count);
         const surfaces: Float64Array[] = [];
         for (const image of [0, 1] as const) {
             const info = image === 0 ? imgA : imgB;
@@ -532,13 +566,17 @@ function* comparePhaseSteps(imgA: CompareImage, imgB: CompareImage, selected: re
             for (let i = 0; i < surface.length; i++) surface[i] = Math.fround(surface[i]! * 65535) / 65535;
             surfaces.push(surface);
         }
-        for (let x = 0; x < count; x++) for (let channel = 0; channel < channels; channel++) {
-            const a = surfaces[0]![x * channels + channel]!, b = surfaces[1]![x * channels + channel]!;
-            const stat = stats[channel]!;
-            stat.a += a; stat.b += b; stat.aa += a * a; stat.bb += b * b; stat.ab += a * b;
+        for (let x = 0; x < count; x++) {
+            if (maskA?.[x] === 0 || maskB?.[x] === 0) continue;
+            area++;
+            for (let channel = 0; channel < channels; channel++) {
+                const a = surfaces[0]![x * channels + channel]!, b = surfaces[1]![x * channels + channel]!;
+                const stat = stats[channel]!;
+                stat.a += a; stat.b += b; stat.aa += a * a; stat.bb += b * b; stat.ab += a * b;
+            }
         }
     }
-    const area = width * height;
+    area = Math.max(1, area);
     let similarity = 0;
     for (const channel of selected) {
         const stat = stats[channel]!;

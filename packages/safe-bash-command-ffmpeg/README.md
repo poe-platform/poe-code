@@ -116,6 +116,8 @@ Use `atrim=start_pts=2:end_pts=8` for bounds in timestamp ticks (one tick per au
 Both forms apply to every channel and may omit either bound.
 `compensationdelay=cm=34:mm=3:dry=0:wet=1` delays every channel by the sound travel time for the supplied distance, preserving sample rate and frame count. Supports `mm`, `cm`, `m`, `dry`, `wet`, and `temp` (Celsius), including positional options. Numeric options accept expressions such as `m=1/2+1` and `dry=1/2`; distance and temperature round to the nearest integer, with exact halves rounded to even. Invalid or out-of-range values fail before replacing existing output. Delayed samples start with silence and the tail is trimmed to the original length. The `enable` expression selects whole input frames using `t` (seconds) or `n` (frame index); bypassed frames pass through unchanged while delay history continues.
 
+`aecho=0.5:1:1|2:0.5|0.25` mixes delayed copies independently into each audio channel and drains the full longest-delay tail. Supports positional or named `in_gain`, `out_gain`, `delays` (milliseconds), and `decays`; delay and decay lists must have matching lengths. Invalid options preserve existing output.
+
 `adelay=0S|1S` delays each audio channel independently and pads with silence.
 Use uppercase `S` after an integer for sample frames, lowercase `s` after an integer
 for seconds, or a numeric prefix (optionally followed by `ms`) for milliseconds.

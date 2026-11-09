@@ -1,9 +1,11 @@
-import { FsError, type CommandDefinition } from "safe-bash-contracts";
+import { FsError, getCommandArguments, type CommandDefinition } from "safe-bash-contracts";
 import { diagnostic } from "safe-bash-io-engine/internal";
 import { argument, command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
-function delimiters(text: string, locale: string): readonly Uint8Array[] {
-  const characters = Array.from(text), result: Uint8Array[] = [];
+function delimiters(bytes: Uint8Array, locale: string): readonly Uint8Array[] {
+  const byteLocale = locale === "C" || locale === "POSIX";
+  const characters = byteLocale ? Array.from(bytes, byte => String.fromCharCode(byte)) : Array.from(new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes));
+  const result: Uint8Array[] = [];
   const escapes: Record<string, string> = { b: "\b", f: "\f", n: "\n", r: "\r", t: "\t", v: "\v" };
   for (let offset = 0; offset < characters.length; offset++) {
     let character = characters[offset]!;
@@ -13,10 +15,7 @@ function delimiters(text: string, locale: string): readonly Uint8Array[] {
       if (escaped === "0") { result.push(empty); continue; }
       character = escapes[escaped] ?? escaped;
     }
-    const bytes = encode(character);
-    if (locale === "C" || locale === "POSIX") {
-      for (const byte of bytes) result.push(Uint8Array.of(byte));
-    } else result.push(bytes);
+    result.push(byteLocale ? Uint8Array.of(character.charCodeAt(0)) : encode(character));
   }
   return result.length ? result : [empty];
 }
@@ -40,9 +39,8 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         if ("--zero-terminated".startsWith(token)) { separator = 0; continue; }
         const equal = token.indexOf("="), name = equal < 0 ? token : token.slice(0, equal);
         if (name.length > 2 && "--delimiters".startsWith(name)) {
-          let value: string;
-          [value, index] = argument(context.args, index, equal < 0 ? undefined : token.slice(equal + 1), token);
-          list = delimiters(value, locale); continue;
+          [, index] = argument(context.args, index, equal < 0 ? undefined : token.slice(equal + 1), token);
+          list = delimiters(getCommandArguments(context).bytes(index)!.subarray(equal < 0 ? 0 : equal + 1), locale); continue;
         }
         fail(`unsupported option ${token}`);
       }
@@ -51,9 +49,8 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         if (flag === "s") serial = true;
         else if (flag === "z") separator = 0;
         else if (flag === "d") {
-          let value: string;
-          [value, index] = argument(context.args, index, token.slice(offset + 1) || undefined, "-d");
-          list = delimiters(value, locale); break;
+          [, index] = argument(context.args, index, token.slice(offset + 1) || undefined, "-d");
+          list = delimiters(getCommandArguments(context).bytes(index)!.subarray(token.length > offset + 1 ? offset + 1 : 0), locale); break;
         } else fail(`unsupported option -${flag}`);
       }
     }

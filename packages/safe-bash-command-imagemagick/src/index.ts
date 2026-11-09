@@ -3265,12 +3265,23 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(spec, token);
     const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort || token === "-implode" ? "edge" : undefined);
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
-    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample">) => {
+    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">) => {
         if (token === "-shear") {
             const plan = shearPlan(image, spec);
             return { ...plan, virtualCanvas: undefined, steps: shearPixelSteps(image, plan, background) };
         }
-        const plan = magickWarpPlan(image, token, spec, args);
+        let plan = magickWarpPlan(image, token, spec, args);
+        if (plan && distort && image.virtualCanvas) {
+            const page = image.virtualCanvas, origin = plan.virtualCanvas;
+            // Scale the input page to the output raster; only best-fit retains
+            // the input offsets in addition to the computed viewport origin.
+            plan = { ...plan, virtualCanvas: {
+                width: Math.floor(page.width * plan.width / image.width + 0.5),
+                height: Math.floor(page.height * plan.height / image.height + 0.5),
+                x: origin ? page.x + origin.x : 0,
+                y: origin ? page.y + origin.y : 0
+            } };
+        }
         if (plan && token === "-wave") {
             let color = backgroundExplicit ? background : image.backgroundColor ?? background;
             const gray = image.space === "b-w" || image.space === "grey16";

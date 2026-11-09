@@ -3,6 +3,28 @@ import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runMagickCli } from "./index.js";
 
+it.each([
+    ["12x9+2+3", "-distort", false, "6x4 12x9+0+0"],
+    ["12x9+2+3", "+distort", false, "8x6 16x14+1+2"],
+    ["13x11-2-3", "-distort", false, "6x4 13x11+0+0"],
+    ["13x11-2-3", "+distort", false, "8x6 17x17-3-4"],
+    ["12x9+2+3", "-distort", true, "6x4 6x4+0+0"],
+    ["12x9+2+3", "+distort", true, "8x6 8x6-1-1"],
+] as const)("uses the input canvas for %s %s, reset=%s", async (page, operator, reset, geometry) => {
+    for (const retained of [false, true]) {
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        const backend = retained ? { filesystem, cwd: "/" } : files;
+        const input = ["-size", "6x4", "gradient:red-blue", "-filter", "point"];
+        const distortion = [operator, "PerspectiveProjection", "1,0,0,0,1,0,0,0"];
+        expect((await runMagickCli([...input, ...distortion, "/baseline.png"], backend)).exitCode).toBe(0);
+        expect((await runMagickCli([...input, "-repage", page, ...(reset ? ["+repage"] : []), ...distortion, "/out.png"], backend)).exitCode).toBe(0);
+        expect((await runMagickCli(["identify", "-format", "%wx%h %g", "/out.png"], backend)).stdout).toBe(geometry);
+        const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
+        const baseline = decodeImage(retained ? await filesystem.readFile("/baseline.png") : files.get("/baseline.png")!);
+        expect(output.data).toEqual(baseline.data);
+    }
+});
+
 it.each([false, true])("samples the top-left pixel for an all-zero PerspectiveProjection, retained=%s", async retained => {
     // Native ImageMagick 7 fills this 10x8 grid with opaque RGB(13,44,75).
     const input = Uint8Array.from(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAICAIAAABPmPnhAAAANUlEQVR4nGPk1fGOxQ0Y1597i086sKAfn/RnIUN80lO3XMYnbR5Wik/65g9xfNLVs3bikQYAyL1ayQ0vjokAAAAASUVORK5CYII=", "base64"));

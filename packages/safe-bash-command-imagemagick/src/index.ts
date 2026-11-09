@@ -1496,6 +1496,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const properties: Record<string, string> = {
     ...meta.properties,
     directory: short.d!, basename: short.t!, extension: short.e!,
+    scene: short.s!, scenes: short.n!,
     profiles: [...(meta.icc ? ["icc"] : []), ...(meta.xmp ? ["xmp"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
     gamma: String(Number((meta.gamma ?? 1 / 2.2).toPrecision(6))),
     orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",

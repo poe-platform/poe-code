@@ -77,8 +77,8 @@ for (const [interval, times] of [
   expect(JSON.parse(result.output).packets.map((row: { pts_time: string }) => row.pts_time)).toEqual(times);
 });
 
-it("uses the selected audio stream for seeking and interval duration", async () => {
-  const result = await probe("0%+0.4", "interleaved", ["-select_streams", "a:0"]);
+it.each(["a:0", "a:00", "a:0x0", "a:0X0", "0x1", "01"])("uses selected audio %s for seeking and interval duration", async selector => {
+  const result = await probe("0%+0.4", "interleaved", ["-select_streams", selector]);
   expect(result.exitCode, result.diagnostic).toBe(0);
   expect(JSON.parse(result.output).packets).toEqual(["0.000000", "0.128000", "0.256000", "0.384000"]
     .map(pts_time => ({ stream_index: 1, pts_time })));

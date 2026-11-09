@@ -15,7 +15,7 @@ for (const [index, track] of tracks.entries()) {
 it.each([
   ['i:77', [1]], ['#0x4d', [1]], ['i:0x4D', [1]], ['#77', [1]],
   ['i:42', [0]], ['i:99', []], ['#0x63', []], ['i:1', []],
-  ['a:0', [1]], ['1', [1]],
+  ['a:0', [1]], ['1', [1]], ['0x1', [1]], ['a:0X0', [1]], ['#1', []],
 ] as const)('selects MP4 track IDs for %s in sync and streaming commands', async (selector, indices) => {
   const fs = new MemoryFileSystem();
   await fs.writeFile('/input.mp4', bytes);

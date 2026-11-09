@@ -1,3 +1,4 @@
+import { parseStreamOrdinal } from "./stream-ordinal.js";
 import { parseWriterBoolean } from "./writer-boolean.js";
 import { probeConcat } from "./concat.js";
 export { parseConcatManifest, parseHlsDuration } from "./concat.js";
@@ -384,9 +385,10 @@ function createStreamSelector(selectStreams: string | undefined, programs: Probe
         const tag = Object.entries(stream.tags ?? {}).find(([name]) => name.toLowerCase() === key!.toLowerCase());
         if (!tag || (value.length > 0 && tag[1] !== value.join(":"))) return false;
       }
-      if ([...spec].every(c => c >= "0" && c <= "9")) {
+      const ordinal = parseStreamOrdinal(spec);
+      if (ordinal !== undefined) {
         const index = types.length > 0 ? typeOrdinal++ : stream.index;
-        if (index !== Number(spec)) return false;
+        if (index !== ordinal) return false;
       }
     }
     return true;
@@ -1009,7 +1011,7 @@ function parseProbeArguments(args: readonly string[]) {
     }
     const [kind, ...parts] = spec.split(":");
     const index = parts.length === 0 ? kind! : parts[0]!;
-    const numeric = index.length > 0 && [...index].every(c => c >= "0" && c <= "9");
+    const numeric = parseStreamOrdinal(index) !== undefined;
     const id = spec.startsWith("i:") ? spec.slice(2)
       : spec.startsWith("#") ? spec.slice(1) : "";
     const hex = id.toLowerCase().startsWith("0x");
@@ -1018,7 +1020,7 @@ function parseProbeArguments(args: readonly string[]) {
       c >= "0" && c <= "9" || hex && c >= "a" && c <= "f") && Number.isSafeInteger(Number(id));
     const valid = selectStreams === "u" || spec === "" || kind === "m" && parts.length > 0
       || ["v", "V", "a", "s", "d", "t"].includes(kind!) && parts.length === 0
-      || kind === "p" && parts.length === 1 && numeric
+      || kind === "p" && parts.length === 1 && index.length > 0 && [...index].every(c => c >= "0" && c <= "9")
       || parts.length === 0 && numeric || validId;
     if (!valid) throw new Error(`Invalid stream specifier: ${selectStreams}`);
   }

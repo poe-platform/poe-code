@@ -119,7 +119,7 @@ Async `runIdentifyCli(args, { filesystem, cwd, stdin, stdout, stderr })` uses th
 `identify -format '%@' image.png` reports trim bounds without changing the image or its canvas dimensions; a uniform image reports `0x0+width+height` with a geometry warning.
 
 `identify -format` and `magick ... -format FORMAT info:` support literal `%%`,
-geometry (`%g`, `%P`), compression (`%C`, `%Q`), and named properties including
+geometry (`%g`, `%P`), storage class (`%r`), compression (`%C`, `%Q`), and named properties including
 `%[channels]`, `%[width]`, `%[height]`, `%[depth]`, `%[bit-depth]`, `%[opaque]`,
 `%[type]`, `%[size]`, `%[orientation]`, `%[exif:Orientation]`, `%[standard-deviation]`, `%[skewness]`, and `%[kurtosis]`. Skewness and excess kurtosis use sample standard deviation and average the selected channels; constant channels contribute zero.
 Use `-read-mask mask.png` after an input to measure mean and standard deviation only where the mask is brighter than 50%; `+read-mask` restores measurement of all pixels. Read masks do not protect pixels from edits. `%[channels]` counts each attached read or write mask as an extra channel; clearing a mask removes that channel. Masks do not change the distinct color count reported by `%k`.
@@ -129,7 +129,7 @@ respectively; absent orientation yields `Undefined` and an empty EXIF value. Use
 uppercase RGB or RGBA hex value (four digits per channel for 16-bit images, two for 8-bit), or `%[fx:EXPRESSION]` and `%[pixel:EXPRESSION]`
 for calculated values. Named properties are case insensitive. Missing `%[comment]` expands to empty text; INFO output warns unless `-quiet` is set. Filenames and
 escaped percent signs are inserted literally; pixel statistics are calculated
-only when requested. `%q` reports the compatible ImageMagick quantum depth (`16`),
+only when requested. Indexed PNGs and `-colors` results report `PseudoClass`; `%[channels]` counts their palette index channel separately from alpha, while `%k` remains the unique color count. `%q` reports the compatible ImageMagick quantum depth (`16`),
 while `%z` reports source bit depth and `%[bit-depth]` reports effective pixel depth.
 `%[median]` reports the average of channel medians in Q16 quantum units (0–65535), honoring `-channel` selections in `info:` output; `%[fx:median.r]` reports the normalized red-channel median.
 

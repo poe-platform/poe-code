@@ -1349,7 +1349,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const resolutionScale = resolution?.unit === "meter" ? 100 : 1;
   const short: Record<string, string> = {
     w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
-    z: bitDepth, q: "16", r: `DirectClass ${space} ${meta.hasAlpha ? "Alpha" : ""}`,
+    z: bitDepth, q: "16", r: `${meta.isPalette ? "PseudoClass" : "DirectClass"} ${space} ${meta.hasAlpha ? "Alpha" : ""}`,
     f: baseName, t: dot < 0 ? baseName : baseName.slice(0, dot), e: dot < 0 ? "" : baseName.slice(dot + 1), i: filePath,
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
     x: String(resolution ? Number((resolution.x / resolutionScale).toPrecision(6)) : meta.density ?? 72),
@@ -1365,7 +1365,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
     "exif:orientation": meta.orientation === undefined ? "" : String(meta.orientation),
-    colorspace: space, channels: `${space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.writeMask || meta.storedWriteMask ? 1 : 0)}.0`,
+    colorspace: space, channels: `${space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.writeMask || meta.storedWriteMask ? 1 : 0)}.0`,
     width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
     depth: bitDepth, size: short.b!, compression, quality: short.Q!, page: short.P!,
     "resolution.x": short.x!, "resolution.y": short.y!,
@@ -7897,7 +7897,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const colors = Number(tokens[++i]);
             stack = yield* mapMagickImagesSteps(stack, image => {
                 const { data16: ignored, hueSamples: ignoredHue, ...pixels } = image;
-                return applyMagickRasterSteps(pixels, quantizePixelSteps(image.data.length, colors, state.quantizeGray), signal);
+                return applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, colors, state.quantizeGray), signal);
             });
         }
         else if (pixelOperation) {
@@ -9547,7 +9547,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-colors") {
             const colors = Number(tokens[++i]), grayscale = state.quantizeGray;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, colors, grayscale), signal) : undefined);
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, colors, grayscale), signal) : undefined);
             continue;
         }
         if (!operandsOnly && token === "-ordered-dither") {

@@ -4626,12 +4626,13 @@ export class Runtime {
         let preparedStages = 0;
         let acceptPreparation: (() => void) | undefined;
         let rejectPreparation: ((reason: unknown) => void) | undefined;
-        const installation = state.extensions?.checkpoints.length ? new Promise<void>((resolve, reject) => {
+        // lastpipe may mutate the caller only after every other stage has copied it.
+        const installation = state.lastpipe || state.extensions?.checkpoints.length ? new Promise<void>((resolve, reject) => {
           acceptPreparation = () => { if (++preparedStages === pipeline.commands.length) resolve(); };
           rejectPreparation = reject;
         }).then(async () => {
           if (retireBaseline) await retireBaseline;
-          await this.extensionCheckpoint("child-job-install", state, io);
+          if (state.extensions?.checkpoints.length) await this.extensionCheckpoint("child-job-install", state, io);
         }) : undefined;
         if (installation) {
           retain(installation);

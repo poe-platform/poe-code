@@ -27,7 +27,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
             stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
         }) : mode === "sync" ? runConvertCliSync(argv, files)
             : await runConvertCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
-        expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+        expect(result, stderr).toMatchObject({ exitCode: 0 });
         const image = decodeImage(mode === "command" || mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
         expect([image.width, image.height]).toEqual([2 + left * 2, 1 + top * 2]);
         // ImageMagick 7.1.2-35 Q16-HDRI preserves both source samples and exact border color.

@@ -54,7 +54,7 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
         if (byte === 10) throw new UsageError("unmatched quote in input");
         if (byte === quote) quote = 0;
         else current.push(byte);
-      } else if (byte === 92) { escaped = true; active = true; }
+      } else if (byte === 92) { escaped = true; }
       else if (byte === 39 || byte === 34) { quote = byte; active = true; }
       else if (!replacement && blank) {
         if (active) { yield Uint8Array.from(current); current.length = 0; active = false; }
@@ -62,7 +62,7 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
       else { current.push(byte); active = true; }
     }
   }
-  if (quote || escaped) throw new UsageError(quote ? "unmatched quote in input" : "trailing backslash in input");
+  if (quote) throw new UsageError("unmatched quote in input");
   if (active) yield Uint8Array.from(current);
 }
 

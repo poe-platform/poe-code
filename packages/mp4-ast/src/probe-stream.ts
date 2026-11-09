@@ -71,7 +71,8 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
 
   const streamTags: Record<string, string | T> = {
     ...track.metadata,
-    ...((matroska || containerFormat === "avi") && track.language === "und"
+    ...((matroska || containerFormat === "avi") && track.language === "und" ||
+      containerFormat === "wav" && track.disposition?.attached_pic === 1
       ? {} : { language: track.language || "und" })
   };
   if (track.handlerName) streamTags.handler_name = track.handlerName;

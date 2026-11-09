@@ -725,7 +725,13 @@ function wavDocument(header: WavHeader, samples: MediaSample[], decodedAudio?: M
         ],
         samples,
         ...(decodedAudio ? { decodedAudio } : {})
-      }
+      },
+      ...(header.pictures ?? []).map((picture, index) => ({
+        ...image2Ast().parse(picture.data).tracks[0]!,
+        id: index + 2,
+        disposition: { attached_pic: 1 },
+        metadata: { title: picture.description, comment: id3PictureTypes[picture.type] ?? "Other" }
+      }))
     ],
     metadata: header.metadata ?? {},
     byteLength
@@ -1125,7 +1131,7 @@ function wavMetadata(header: WavHeader, filename = "input.wav"): MediaProbeResul
   return { ...result, streams: [{ ...result.streams[0]!,
     bit_rate: doc.durationSeconds > 0
       ? String(Math.round(header.dataSize * 8 / doc.durationSeconds)) : "0"
-  }] };
+  }, ...result.streams.slice(1)] };
 }
 
 function wavRecords(header: WavHeader, options: MediaSourceProbeOptions): MediaProbeRecords {

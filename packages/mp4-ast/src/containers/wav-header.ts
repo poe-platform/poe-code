@@ -1,5 +1,6 @@
 import type { MediaProbeSource, Mp4MetadataTags } from "../types.js";
-import { decodeFourCC } from "../binary.js";
+import { concatBytes, decodeFourCC } from "../binary.js";
+import { parseId3, type AudioPicture } from "@poe-code/audio-ast";
 
 export const wavInfoTags = {
   INAM: "title", IART: "artist", IPRD: "album", ICRD: "date", ICMT: "comment",
@@ -8,6 +9,7 @@ export const wavInfoTags = {
 
 export interface WavHeader {
   metadata?: Mp4MetadataTags;
+  pictures?: AudioPicture[];
 
   byteLength: number;
   littleEndian: boolean;
@@ -198,6 +200,16 @@ export function* scanWavHeader(byteLength = Infinity, ignoreLength = false): Gen
         ...(text(320, 10) ? { date: text(320, 10) } : {}),
         custom
       };
+    } else if (!wave64 && (id === "id3 " || id === "ID3 ")) {
+      const parts: Uint8Array[] = [];
+      for (let offset = start; offset < end; offset += 16384) {
+        const length = Math.min(16384, end - offset);
+        const read = yield { offset, length };
+        if (read.bytes.length !== length) throw new Error("Truncated WAV ID3 chunk");
+        parts.push(read.bytes);
+      }
+      const id3 = parseId3(concatBytes(parts));
+      (header.pictures ??= []).push(...id3.pictures);
     } else if (!wave64 && id === "LIST" && size >= 4) {
       const list = yield { offset: start, length: 4 };
       if (decodeFourCC(list.bytes, 0) === "INFO") {

@@ -324,8 +324,11 @@ Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.
 `extrastereo=m=0` averages left and right while retaining stereo; `m=-1` swaps them.
 The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
 `stereotools` supports stereo channel mute (`mutel`, `muter`), phase inversion
-(`phasel`, `phaser`), and all `mode` channel conversions, including `lr>ms` and
+(`phasel`, `phaser`), stereo pair rotation (`phase=0`–`360` degrees), and all `mode`
+channel conversions, including `lr>ms` and
 `ms>lr`. For example, `-af stereotools=mutel=1` silences only the left channel.
+`stereotools=phase=90` maps `(L, R)` to `(-R, L)`. Rotation follows mute,
+polarity, delay, and width, and precedes output balance and gain.
 Input and output gains (`level_in`, `level_out`) default to 1, range from 0.015625
 to 64, and apply before and after channel processing. For example,
 `stereotools=level_in=2:level_out=0.5` preserves the original levels without

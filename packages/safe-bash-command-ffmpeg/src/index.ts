@@ -9518,6 +9518,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const modes = ["lr>lr", "lr>ms", "ms>lr", "lr>ll", "lr>rr", "lr>l+r", "lr>rl", "ms>ll", "ms>rr", "ms>rl", "lr>l-r"];
                         let mode = 0;
                         let delay = 0;
+                        let phase = 0;
                         let base = 0;
                         const flags = { mutel: false, muter: false, phasel: false, phaser: false };
                         const levels = { level_in: 1, level_out: 1, mlev: 1, slev: 1 };
@@ -9551,6 +9552,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             base = parseFilterExpression(value, "stereotools", {});
                             if (!Number.isFinite(base) || base < -1 || base > 1) {
                               throw new Error("stereotools: base must be in the range [-1, 1]");
+                            }
+                          } else if (key === "phase") {
+                            phase = parseFilterExpression(value, "stereotools", {});
+                            if (!Number.isFinite(phase) || phase < 0 || phase > 360) {
+                              throw new Error("stereotools: phase must be in the range [0, 360]");
                             }
                           } else if (key === "delay") {
                             delay = parseFilterExpression(value, "stereotools", {});
@@ -9593,6 +9599,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const right = new Float32Array(left.length);
                         // Native FFmpeg rounds the interleaved delay down to an even sample count.
                         const delayFrames = Math.floor(origRate * (Math.abs(delay) / 1000) / 2);
+                        budget.allocateMemory(delayFrames * 8);
+                        const phaseCos = Math.cos(phase / 180 * Math.PI);
+                        const phaseSin = Math.sin(phase / 180 * Math.PI);
                         const midLeft = 1 - Math.max(0, balance.mpan);
                         const midRight = 1 + Math.min(0, balance.mpan);
                         const sideLeft = 1 - Math.max(0, balance.sbal);
@@ -9645,8 +9654,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const wideLeft = outputLeft + width * outputLeft - width * outputRight;
                           outputRight = outputRight + width * outputRight - width * outputLeft;
                           outputLeft = wideLeft;
-                          left[i] = outputLeft * outputLeftGain * levels.level_out;
-                          right[i] = outputRight * outputRightGain * levels.level_out;
+                          left[i] = (outputLeft * phaseCos - outputRight * phaseSin) * outputLeftGain * levels.level_out;
+                          right[i] = (outputLeft * phaseSin + outputRight * phaseCos) * outputRightGain * levels.level_out;
                         }
                         stretched = [left, right];
                       } else if (trimmed.startsWith("channelmap=")) {

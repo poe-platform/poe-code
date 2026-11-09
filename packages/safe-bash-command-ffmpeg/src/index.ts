@@ -8562,6 +8562,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (outputFps && videoCodec !== "copy" && !numberedImageOutput) {
               vfFilters.push(`fps=${outputFps}`);
             }
+            if (videoCodec !== "copy" && (rawPixelFormat === "gray" || rawPixelFormat === "gray8")) {
+              vfFilters.push(`format=${rawPixelFormat}`);
+            }
 
             // Output frame counts refer to displayed pictures, never encoded packets.
             if (videoCodec !== "copy") {

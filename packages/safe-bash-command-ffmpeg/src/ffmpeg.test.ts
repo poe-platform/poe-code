@@ -4513,7 +4513,7 @@ describe("HLS discont_start", () => {
           assert.equal(lines.filter(line => line === "#EXT-X-DISCONTINUITY").length, marked ? 1 : 0);
           if (marked) assert.equal(lines[lines.findIndex(line => line.startsWith("#EXTINF:")) - 1], "#EXT-X-DISCONTINUITY");
           assert.equal(lines.filter(line => line === "#EXTINF:1.000000,").length, listSize === 0 ? 2 : 1);
-          assert.ok(lines.includes(`#EXT-X-MEDIA-SEQUENCE:${listSize === 0 ? 5 : 6}`));
+          assert.ok(lines.includes(`#EXT-X-MEDIA-SEQUENCE:${flags.some(flag => flag.includes("single_file")) ? 0 : listSize === 0 ? 5 : 6}`));
         });
       }
     }

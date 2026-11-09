@@ -2593,6 +2593,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
 
   const flushChapter = () => {
     if (section !== "chapter") return;
+    if (curEnd !== undefined && curEnd < curStart) throw new Error(`Chapter end time ${curEnd} before start ${curStart}`);
     const factor = tbNum / Math.max(1, tbDen);
     chapters.push({
       id: chapters.length,

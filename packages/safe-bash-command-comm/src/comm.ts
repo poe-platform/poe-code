@@ -9,7 +9,11 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
     let delimiterSet = false;
     for (let index = 0; index < context.args.length; index++) {
       const token = context.args[index]!;
-      if (literal || token === "-" || !token.startsWith("-")) { files.push(token); continue; }
+      if (literal || token === "-" || !token.startsWith("-")) {
+        files.push(token);
+        literal ||= context.env.POSIXLY_CORRECT !== undefined;
+        continue;
+      }
       if (token === "--") { literal = true; continue; }
       if ("--check-order".startsWith(token)) { mode = "check"; continue; }
       if ("--nocheck-order".startsWith(token)) { mode = "none"; continue; }

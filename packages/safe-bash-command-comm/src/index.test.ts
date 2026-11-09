@@ -18,19 +18,43 @@ test("comm help works through the standalone portable factory", async () => {
  assert.ok(output.length > 0);
 });
 
-async function run(args: ShellValue[], files: Record<string, string>) {
+async function run(args: ShellValue[], files: Record<string, string>, env: Record<string, string> = {}) {
  const fs = createMemoryFileSystem();
  for (const [path, content] of Object.entries(files)) await fs.writeFile(path, new TextEncoder().encode(content));
  const values = createCommandArguments(args);
  let stdout = "", stderr = "", combined = "";
  const stdoutBytes: number[] = [];
  const result = await createCommCommand().execute({
-  command: "comm", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+  command: "comm", args: values.args, argumentValues: values, cwd: "/", env, fs,
   stdin: toByteSource(""), signal: new AbortController().signal,
   stdout: { async write(bytes) { stdoutBytes.push(...bytes); const text = new TextDecoder().decode(bytes); stdout += text; combined += text; } },
   stderr: { async write(bytes) { const text = new TextDecoder().decode(bytes); stderr += text; combined += text; } },
  });
  return { ...result, stdout, stdoutBytes, stderr, combined };
+}
+
+for (const value of [undefined, "", "1"]) {
+ test(`comm operand ordering with POSIXLY_CORRECT=${JSON.stringify(value)}`, async () => {
+  const env = value === undefined ? {} : { POSIXLY_CORRECT: value };
+  const files = { "/one": "a\n", "/two": "x\n", "/-1": "x\n" };
+  for (const args of [["one", "-1"], ["one", "two", "-1"]]) {
+   const success = value !== undefined ? args.length === 2 : args.length === 3;
+   const result = await run(args, files, env);
+   assert.equal(result.exitCode, success ? 0 : 1, result.stderr);
+   assert.equal(result.stdout, success ? value === undefined ? "x\n" : "a\n\tx\n" : "");
+   assert.equal(result.stderr, success ? "" : "comm: EINVAL: comm requires exactly two files\n");
+  }
+  for (const [args, expected] of [
+   [["--", "one", "-1"], "a\n\tx\n"],
+   [["-1", "one", "two"], "x\n"],
+   [["--output-delimiter", ":", "one", "two"], "a\n:x\n"],
+  ] as const) {
+   const result = await run([...args], files, env);
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stdout, expected);
+   assert.equal(result.stderr, "");
+  }
+ });
 }
 
 for (const reverse of [false, true]) {
@@ -151,7 +175,6 @@ test("comm requires an output delimiter argument", async () => {
  assert.match(result.stderr, /requires an argument/u);
  assert.deepEqual(result.stdoutBytes, []);
 });
-
 
 for (const option of ["output-delimiter", "total", "check-order", "nocheck-order", "zero-terminated"]) {
  for (let length = 1; length <= option.length; length++) {

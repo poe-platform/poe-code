@@ -13,4 +13,6 @@ const result = await shell.exec("comm --help");
 
 The module also exports `createCommCommand`, its command-list factory, and typed options and limits.
 
+With `POSIXLY_CORRECT` set (including an empty value), options must precede the first file operand. Otherwise, options may follow operands. Use `--` to end option parsing explicitly.
+
 Default order checking includes the transition into the first unpaired row, even after matching rows. This detects some unsorted inputs that GNU coreutils accepts silently. Descending rows already matched in both files do not cause an error when one file ends first. The `--output-delimiter`, `--total`, `--zero-terminated`, `--check-order`, and `--nocheck-order` options accept unique prefixes, such as `--out=:` and `--tot`. Use `--check-order` to check fully paired inputs too, or `--nocheck-order` to disable checking.

@@ -5,7 +5,7 @@ import { setPacketTimestamps } from "./setts.js";
 import { rechunkPcm } from "./pcm-rechunk.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { rewriteH264Sps } from "./h264-metadata.js";
-import { setAv1Timing } from "./av1-metadata.js";
+import { setAv1Metadata } from "./av1-metadata.js";
 import { parseAdtsStream, parseMp4Boxes, makeBox, decodeFourCC, parseAvcC, concatBytes, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 /** Apply packet filters in command-line order, preserving packet payloads unless explicitly changed. */
@@ -112,7 +112,7 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
       continue;
     }
     if (filter === "av1_metadata" || filter.startsWith("av1_metadata=")) {
-      tracks = setAv1Timing(tracks, filter, budget);
+      tracks = setAv1Metadata(tracks, filter, budget);
       continue;
     }
     if (filter === "hevc_metadata" || filter.startsWith("hevc_metadata=")) {

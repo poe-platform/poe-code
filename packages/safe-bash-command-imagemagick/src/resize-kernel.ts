@@ -7,41 +7,6 @@ export type MagickResizeKernel = ResizeKernel | "gaussian" | "jinc" | "lagrange"
 
 export type ResizeFilterSettings = { blur?: number; support?: number; lobes?: number; b?: number; c?: number; sigma?: number; window?: MagickResizeKernel };
 
-export function* adaptiveResizePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, width: number, height: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const maximum = highDepth ? 65535 : 255;
-    for (let start = 0; start < width * height; start += 256) {
-        yield;
-        const count = Math.min(256, width * height - start);
-        const data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
-        for (let offset = 0; offset < count; offset++) {
-            const x = ((start + offset) % width + 0.5) * image.width / width - 0.5;
-            const y = (Math.floor((start + offset) / width) + 0.5) * image.height / height - 0.5;
-            const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
-            const pixels: (Uint8Array | Uint16Array)[] = [];
-            for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) {
-                const sx = Math.max(0, Math.min(image.width - 1, left + column));
-                const sy = Math.max(0, Math.min(image.height - 1, top + row));
-                const bytes = (yield { kind: "read", highDepth, position: (sy * image.width + sx) * 4, length: 4 })!;
-                pixels.push(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
-            }
-            const luma = pixels.map(p => 0.212656 * p[0]! + 0.715158 * p[1]! + 0.072186 * p[2]!);
-            // Choose the diagonal with the smaller luma difference, then its enclosing triangle.
-            const weights = Math.abs(luma[0]! - luma[3]!) < Math.abs(luma[1]! - luma[2]!)
-                ? dx <= dy ? [1 - dy, 0, dy - dx, dx] : [1 - dx, dx - dy, 0, dy]
-                : dx <= 1 - dy ? [1 - dx - dy, dx, dy, 0] : [0, 1 - dy, 1 - dx, dx + dy - 1];
-            const alpha = pixels.reduce((sum, p, i) => sum + p[3]! * weights[i]!, 0);
-            for (let channel = 0; channel < 4; channel++) {
-                // Native mesh divides unassociated colors by interpolated alpha.
-                const value = channel === 3 ? alpha : pixels.reduce((sum, p, i) => sum + p[channel]! * weights[i]!, 0)
-                    / (image.hasAlpha ? Math.max(1e-12, alpha / maximum) : 1);
-                const scale = highDepth ? 1 : 257;
-                data[offset * 4 + channel] = Math.max(0, Math.min(maximum, Math.round(Math.fround(value * scale) / scale)));
-            }
-        }
-        yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
-    }
-}
-
 function sinc(x: number): number {
     return Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
 }
@@ -342,7 +307,7 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
 }
 
 /** Point filtering selects the source pixel containing the destination pixel center. */
-export function* pointResizePixelSteps(image: { width: number; height: number }, width: number, height: number, sample = false, pixelBytes = 4, sampleOffset?: { x: number; y: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* pointResizePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, width: number, height: number, sample = false, pixelBytes = 4, sampleOffset?: { x: number; y: number }, writeMask = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // SampleImage uses 0.5 - MagickEpsilon to select the preceding pixel at ties.
     const offsetX = sample ? (sampleOffset?.x ?? 0.5) - 1e-12 : 0.5;
     const offsetY = sample ? (sampleOffset?.y ?? 0.5) - 1e-12 : 0.5;
@@ -353,6 +318,13 @@ export function* pointResizePixelSteps(image: { width: number; height: number },
         for (let left = 0; left < width; left += 1024) {
             yield;
             const count = Math.min(1024, width - left), data = new Uint8Array(count * pixelBytes);
+            // SampleImage checks the resized clone's initially zero write-mask
+            // channel before copying pixels. Its color and alpha channels stay zero.
+            if (sample && writeMask) {
+                if (!image.hasAlpha) for (let x = 0; x < count; x++) data.fill(255, x * pixelBytes + pixelBytes * 3 / 4, (x + 1) * pixelBytes);
+                yield { kind: "write", position: (y * width + left) * pixelBytes, data };
+                continue;
+            }
             for (let x = 0; x < count; x++) {
                 const sx = Math.min(image.width - 1, Math.max(0, Math.trunc((left + x + offsetX) * image.width / width)));
                 const position = (sy * image.width + sx) * pixelBytes;

@@ -7,7 +7,7 @@ for (const [name, size, skip, truncate, succeeds, expected] of [
   ["complete sound", 16, 0, 0, true, "1234fedc7fff8000"],
   ["oversized final SSND", 4096, 0, 0, true, "1234fedc7fff8000"],
   ["oversized SSND with offset", 4096, 2, 0, true, "fedc7fff8000"],
-  ["offset beyond available sound", 4096, 9, 0, false, ""],
+  ["offset beyond available sound", 4096, 9, 0, true, ""],
   ["incomplete SSND prefix", 4096, 0, 9, false, ""],
   ["undersized SSND prefix", 7, 0, 0, false, ""]
 ] as const) {

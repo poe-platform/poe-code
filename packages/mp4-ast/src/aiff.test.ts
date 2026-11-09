@@ -37,7 +37,7 @@ it("accepts unknown padded chunks and SSND offsets", () => {
 
 for (const [name, offset, value] of [
   ["FORM length", 4, 3], ["COMM length", 16, 1000],
-  ["sound offset", 46, 1000], ["sample rate", 28, 0]
+  ["sample rate", 28, 0]
 ] as const) {
   it(`rejects invalid ${name}`, () => {
     const bytes = Buffer.from(native); bytes.writeUInt32BE(value, offset);

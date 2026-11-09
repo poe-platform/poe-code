@@ -60,7 +60,6 @@ export function parseAiff(bytes: Uint8Array, options: ParseMediaOptions = {}): M
       const available = Math.min(size, bytes.length - start);
       if (available < 8) throw new Error("Invalid AIFF SSND chunk");
       const skip = view.getUint32(start);
-      if (skip > available - 8) throw new Error("Invalid AIFF sound offset");
       sound = bytes.subarray(start + 8 + skip, start + available);
       // Pipes cannot seek back after scanning later sound chunks.
       if (channels && ["-", "pipe:", "pipe:0"].includes(options.filename ?? "")) break;

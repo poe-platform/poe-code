@@ -21,5 +21,5 @@ it("decodes the final full-length SSND chunk by default", () => {
   const bytes = Buffer.from("464f524d0000004e41494646434f4d4d000000120001000000040010400bfa0000000000000053534e440000001000000000000000000064ff38012cfe7053534e44000000100000000000000000fffffffefffdfffc", "hex");
   assert.deepEqual(Array.from(parseAiff(bytes).tracks[0]!.decodedAudio!.channelData[0]!, value => value * 32768), [-1, -2, -3, -4]);
   bytes.writeUInt32BE(9, 70);
-  assert.throws(() => parseAiff(bytes), /Invalid AIFF sound offset/);
+  assert.equal(parseAiff(bytes).tracks[0]!.decodedAudio!.channelData[0]!.length, 0);
 });

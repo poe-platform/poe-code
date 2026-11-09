@@ -550,6 +550,7 @@ function parseDelay(value: string): number {
 }
 
 interface MagickState {
+  distortScale?: string;
   gradientBoundingBox?: MagickGeometry;
   gradientDirection?: string;
   gradientAngle?: number;
@@ -3284,6 +3285,10 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (!["-shear", "-swirl", "-implode", "-wave", "-distort", "+distort"].includes(token)) return;
     let i = start;
     const distort = token === "-distort" || token === "+distort";
+    if (distort && state.distortScale !== undefined) {
+        const scale = Number.parseFloat(state.distortScale);
+        if (!Number.isFinite(scale) || scale === 0) throw new Error("invalid argument for option distort:scale");
+    }
     const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
     if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(spec, token);
     const interpolation = state.interpolation ?? "bilinear";
@@ -7380,6 +7385,7 @@ if (t === "-seed") {
                 state.resizeFilter = { ...state.resizeFilter };
                 delete state.resizeFilter[key.slice(7) as keyof ResizeFilterSettings];
             }
+            if (key === "distort:scale") delete state.distortScale;
             if (key === "sample:offset") delete state.sampleOffset;
             if (key === "jpeg:arithmetic-coding") delete state.jpegArithmeticCoding;
             if (key === "jpeg:restart-interval") delete state.jpegRestartInterval;
@@ -7445,6 +7451,7 @@ if (t === "-seed") {
             const defStr = tokens[++i] ?? "";
             if (defStr.toLowerCase().startsWith("magnify:method=")) state.magnifyMethod = parseMagnifyMethod(defStr.slice("magnify:method=".length));
             const [filterKey, filterValue] = defStr.toLowerCase().split("=");
+            if (filterKey === "distort:scale") state.distortScale = filterValue ?? "";
             if (filterKey === "gradient:bounding-box") state.gradientBoundingBox = parseMagickGeometry(filterValue ?? "");
             if (filterKey === "gradient:radii") state.gradientRadii = filterValue ?? "";
             if (filterKey === "gradient:extent") state.gradientExtent = filterValue ?? "";

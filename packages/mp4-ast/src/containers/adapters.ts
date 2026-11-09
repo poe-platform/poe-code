@@ -294,7 +294,7 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
         height,
         codecDescriptions: [
           {
-            formatFourCC: "raw ",
+            formatFourCC: pixFmt === "yuv420p" ? "I420" : "raw ",
             codecName: "rawvideo",
             width,
             height,

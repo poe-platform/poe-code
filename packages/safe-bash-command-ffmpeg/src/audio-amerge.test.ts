@@ -97,7 +97,7 @@ for (const [mask, samples] of [[1, left], [2, right]] as const) {
   });
 }
 
-for (const graph of ["[0:a]amerge=inputs=2[out]", "[0:a][1:a]amerge=inputs=3[out]",
+for (const graph of ["[0:a][1:a]amerge=inputs=3[out]",
   "[0:a][1:a]amerge=inputs=0[out]", "[0:a][1:a]amerge=unknown=2[out]",
   "[0:a]volume=0.5[a];[a][1:a]amerge[out]"]) {
   it(`rejects unsupported merge without overwriting output: ${graph}`, async () => {

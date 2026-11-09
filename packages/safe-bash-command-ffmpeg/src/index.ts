@@ -1342,20 +1342,23 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     }
   }
   const usedInputs = new Set<MediaTrack>();
-  for (const { inputs } of nodes.values()) {
-    if (inputs.length) {
-      for (const input of inputs) if (!nodes.has(input)) usedInputs.add(inputTrack(input));
-      continue;
-    }
+  for (const { inputs, expression } of nodes.values()) {
+    for (const input of inputs) if (!nodes.has(input)) usedInputs.add(inputTrack(input));
+    const first = parseFilterChain(expression)[0]?.split("=", 1)[0]?.split("@", 1)[0];
+    const inputCount = first === "acrossfade" || first === "amerge" ? 2 : 1;
     // Split outputs share this input list; bind it once, before output mapping order matters.
-    for (const [input, doc] of docs.entries()) {
-      const ordinal = doc.tracks.findIndex(track => track.type === "audio" && !usedInputs.has(track));
-      if (ordinal < 0) continue;
-      inputs.push(`${input}:${ordinal}`);
-      usedInputs.add(doc.tracks[ordinal]!);
-      break;
+    while (inputs.length < inputCount) {
+      let connected = false;
+      for (const [input, doc] of docs.entries()) {
+        const ordinal = doc.tracks.findIndex(track => track.type === "audio" && !usedInputs.has(track));
+        if (ordinal < 0) continue;
+        inputs.push(`${input}:${ordinal}`);
+        usedInputs.add(doc.tracks[ordinal]!);
+        connected = true;
+        break;
+      }
+      if (!connected) throw new Error("No available stream for unlabeled audio filter input");
     }
-    if (!inputs.length) throw new Error("No available stream for unlabeled audio filter input");
   }
   const resolve = async (label: string, visiting = new Set<string>()): Promise<{ track: MediaTrack; expression: string }> => {
     if (visiting.has(label)) throw new Error("Audio filter graph contains a cycle");

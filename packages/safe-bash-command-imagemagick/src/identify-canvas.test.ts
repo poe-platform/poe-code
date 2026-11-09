@@ -5,9 +5,12 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createIdentifyCommand, createMagickCommand, runIdentifyCli, runIdentifyCliSync } from "./index.js";
 
 it.each([
-  { canvas: { width: 12, height: 9, x: 2, y: 1 }, expected: "3,2|12,9|12x9+2+1" },
-  { canvas: { width: 12, height: 9, x: -2, y: -1 }, expected: "3,2|12,9|12x9-2-1" },
-  { canvas: undefined, expected: "3,2|3,2|3x2+0+0" }
+  { canvas: { width: 12, height: 10, x: 3, y: 4 }, expected: "3,2|12,10|12x10+3+4|+3+4" },
+  { canvas: { width: 12, height: 9, x: -2, y: -1 }, expected: "3,2|12,9|12x9-2-1|-2-1" },
+  { canvas: { width: 12, height: 9, x: -2, y: 1 }, expected: "3,2|12,9|12x9-2+1|-2+1" },
+  { canvas: { width: 12, height: 9, x: 2, y: -1 }, expected: "3,2|12,9|12x9+2-1|+2-1" },
+  { canvas: { width: 12, height: 9, x: 0, y: 0 }, expected: "3,2|12,9|12x9+0+0|+0+0" },
+  { canvas: undefined, expected: "3,2|3,2|3x2+0+0|+0+0" }
 ])("reports virtual canvas dimensions independently of raster dimensions ($expected)", async ({ canvas, expected }) => {
   const bytes = encodeImage({
     width: 3, height: 2, data: new Uint8Array(3 * 2 * 4).fill(255),
@@ -16,8 +19,8 @@ it.each([
   }, { format: "png" }).data;
   const fs = new MemoryFileSystem();
   await fs.writeFile("/page.png", bytes);
-  const args = ["-format", "%w,%h|%W,%H|%g|%%W,%%H", "/page.png"];
-  const output = { exitCode: 0, stdout: `${expected}|%W,%H`, stderr: "" };
+  const args = ["-format", "%w,%h|%W,%H|%g|%O|%%W,%%H,%%O", "/page.png"];
+  const output = { exitCode: 0, stdout: `${expected}|%W,%H,%O`, stderr: "" };
   const files = new Map([["/page.png", bytes]]);
   expect(runIdentifyCliSync(args, files)).toEqual(output);
   for (const input of [files, { filesystem: fs, cwd: "/" }]) {

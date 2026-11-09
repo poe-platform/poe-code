@@ -135,7 +135,7 @@ Unknown bracket properties such as `%[missing_demo_property]` expand to an empty
 Empty or unclosed bracket properties fail without emitting the formatted text. Escaped properties such as `%%[width]` remain literal text.
 
 `identify -format` and `magick ... -format FORMAT info:` support literal `%%`,
-original image dimensions (`%G`), page geometry (`%g`, `%P`), storage class (`%r`), compression (`%C`, `%Q`), and named properties including
+original image dimensions (`%G`), page geometry (`%g`, `%P`), signed canvas offsets (`%O`, such as `+3+4` or `-2-1`; `+0+0` when absent), storage class (`%r`), compression (`%C`, `%Q`), and named properties including
 `%[channels]`, `%[width]`, `%[height]`, `%[depth]`, `%[bit-depth]`, `%[opaque]`,
 `%[type]`, `%[size]`, `%[orientation]`, `%[exif:Orientation]`, `%[standard-deviation]`, `%[skewness]`, and `%[kurtosis]`. Skewness and excess kurtosis use sample standard deviation and average the selected channels; constant channels contribute zero.
 Use `-read-mask mask.png` after an input to measure mean and standard deviation only where the mask is brighter than 50%; `+read-mask` restores measurement of all pixels. Read masks do not protect pixels from edits. `%[channels]` counts each attached read or write mask as an extra channel; clearing a mask removes that channel. Masks do not change the distinct color count reported by `%k`.

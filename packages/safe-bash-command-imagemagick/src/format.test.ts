@@ -23,6 +23,11 @@ describe("ImageMagick property formatting", () => {
     }
     const newline = mode === "info" ? "\n" : "";
 
+    it(`${mode}: reports a zero canvas offset for plain PPM input`, async () => {
+      const bytes = new TextEncoder().encode("P3\n3 2\n255\n255 0 0 0 255 0 0 0 255\n255 0 0 0 255 0 0 0 255\n");
+      expect(await format(bytes, "%g|%O|%P|%%O")).toBe(`3x2+0+0|+0+0|3x2|%O${newline}`);
+    });
+
     it(`${mode}: reports Q16 independently of source and effective pixel depth`, async () => {
       const bytes = await sharp({ create: { width: 1, height: 1, channels: 3, background: "red" } }).png().toBuffer();
       expect(await format(bytes, "%q|%z|%[bit-depth]")).toBe(`16|8|1${newline}`);

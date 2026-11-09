@@ -85,7 +85,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     } else if (type === "PLTE") {
       palette = chunk;
     } else if (type === "tRNS") {
-      trns = chunk;
+      trns ??= chunk;
     } else if (type === "IDAT") {
       idatChunks.push(chunk);
     } else if (type === "IEND") {

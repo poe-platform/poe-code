@@ -2769,7 +2769,7 @@ export class Runtime {
       this.signal.throwIfAborted();
       scope.assertOpen();
       if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }
-      if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+      if (state.exported.has(name) && store.get(name)?.associative !== false) throw new ArrayFailure("exported binding cannot be indexed");
       if (!watch.valid()) throw new ArrayFailure("stale binding");
       const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
       const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
@@ -2786,7 +2786,7 @@ export class Runtime {
       this.signal.throwIfAborted();
       scope.assertOpen();
       if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }
-      if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+      if (state.exported.has(name) && store.get(name)?.associative !== false) throw new ArrayFailure("exported binding cannot be indexed");
       if (!watch.valid()) throw new ArrayFailure("stale binding");
       let released: Promise<void> | undefined;
       stateMonitor(state)!.publish(tickets, name, () => {

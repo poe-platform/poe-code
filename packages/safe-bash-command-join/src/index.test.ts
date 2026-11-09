@@ -32,26 +32,27 @@ async function run(args: string[], files: Record<string, string>) {
  return { ...result, stdout, stderr, combined };
 }
 
+// Verified against GNU coreutils 9.12 with LC_ALL=C.
 for (const reverse of [false, true]) {
- test("join detects disorder case 0 in either operand " + reverse, async () => {
-  const files = { "/a": "b 1\na 2\nc 3\n", "/b": "c 3\n" };
-  const args = reverse ? ["/b", "/a"] : ["/a", "/b"];
-  const result = await run(args, files);
-  assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /not in sorted order/u);
-  assert.equal((await run(["--nocheck-order", ...args], files)).exitCode, 0);
- });
-}
-
-for (const reverse of [false, true]) {
- test("join detects disorder case 1 in either operand " + reverse, async () => {
-  const files = { "/a": "b 1\nc 2\na 3\ne 4\n", "/b": "b 1\nc 2\nd 3\ne 4\n" };
-  const args = reverse ? ["/b", "/a"] : ["/a", "/b"];
-  const result = await run(args, files);
-  assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /not in sorted order/u);
-  assert.equal((await run(["--nocheck-order", ...args], files)).exitCode, 0);
- });
+ for (const [left, right, stdout] of [
+  ["b\na\nc\n", "b\nc\n", "b\nc\n"],
+  ["b 1\na 2\nc 3\n", "c 3\n", "c 3 3\n"],
+  ["b 1\nc 2\na 3\ne 4\n", "b 1\nc 2\nd 3\ne 4\n", "b 1 1\nc 2 2\ne 4 4\n"],
+ ]) {
+  test(`join ignores disorder read before checking starts: reverse=${reverse}, left=${JSON.stringify(left)}`, async () => {
+   const files = { "/a": left!, "/b": right! };
+   const args = reverse ? ["/b", "/a"] : ["/a", "/b"];
+   for (const flags of [[], ["--nocheck-order"]]) {
+    const result = await run([...flags, ...args], files);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.stderr, "");
+   }
+   const strict = await run(["--check-order", ...args], files);
+   assert.equal(strict.exitCode, 1);
+   assert.ok(strict.stderr.includes(`file ${reverse ? 2 : 1} is not in sorted order`));
+  });
+ }
 }
 
 test("fully paired disorder remains allowed by default", async () => {

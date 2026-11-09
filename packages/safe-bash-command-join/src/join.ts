@@ -164,10 +164,11 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
     try {
       const readers = [await inputs.open(options.files[0]!), await inputs.open(options.files[1]!)];
       const previous: (Uint8Array | undefined)[] = [undefined, undefined];
+      let seenUnpaired = false;
       const finishRow = (bytes: Uint8Array | undefined, file: number, reset: boolean): Row | undefined | Promise<Row | undefined> => {
         if (bytes === undefined) return undefined;
         const fields = split(bytes, options, budget), key = fields[options.fields[file]!] ?? empty;
-        if (!reset) {
+        if (!reset && (options.order !== "default" || seenUnpaired)) {
           const oc = order.check(previous[file], key, file + 1, options.fold);
           if (oc) return oc.then(() => { previous[file] = key; return { bytes, fields, key }; });
         }
@@ -257,10 +258,12 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
         { const step = budget.step(); if (step) await step; }
         const comparison = compare(rows[0].key, rows[1].key, options.fold);
         if (comparison !== 0) {
-          await order.markUnpaired();
           const file = comparison < 0 ? 0 : 1;
           if (options.unpaired.has(file)) await emit(file === 0 ? rows[file] : undefined, file === 1 ? rows[file] : undefined);
           { const nr = next(file); rows[file] = nr instanceof Promise ? await nr : nr; }
+          // GNU starts default checking after reading past the first unpaired row.
+          seenUnpaired = true;
+          await order.markUnpaired();
           continue;
         }
         const key = rows[0].key, groups: Row[][] = [[], []];

@@ -13,4 +13,4 @@ const result = await shell.exec("join --help");
 
 The module also exports `createJoinCommand`, its command-list factory, and typed options and limits.
 
-Default order checking starts when keys differ while both files still have rows, including the transition into the first unpaired row. This detects some unsorted inputs that GNU coreutils accepts silently. Rows remaining after the other file ends do not start default checking. Use `--check-order` to check all input rows, or `--nocheck-order` to disable checking.
+Default order checking starts after reading past the first unpaired row while both files still have rows, matching GNU coreutils. Earlier descending keys are not reported retroactively. Rows remaining after the other file ends do not start default checking. Use `--check-order` to check all input rows, or `--nocheck-order` to disable checking.

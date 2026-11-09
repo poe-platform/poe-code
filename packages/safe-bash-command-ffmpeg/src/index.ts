@@ -1947,6 +1947,32 @@ async function applyVideoFilterChain(
         const { native: ignoredNative, ...frame } = f;
         return { ...frame, width, height, data };
       }, signal);
+    } else if (name === "stereo3d") {
+      const options: Record<string, string> = { in: "sbsl" };
+      let namedOption = false;
+      for (const [index, part] of (argStr ? positional : []).entries()) {
+        const separator = part.indexOf("=");
+        const key = separator < 0 ? ["in", "out"][index] : part.slice(0, separator).trim();
+        if (!key || !["in", "out"].includes(key) || (separator < 0 && namedOption)) {
+          throw new Error(`stereo3d: unknown or misplaced option ${part}`);
+        }
+        namedOption ||= separator >= 0;
+        options[key] = (separator < 0 ? part : part.slice(separator + 1)).trim();
+      }
+      if (options.in !== "sbsl" || !["ml", "mr"].includes(options.out ?? "")) {
+        throw new Error("stereo3d: supported conversion is sbsl to ml or mr");
+      }
+      current = await mapWork(current, f => {
+        if (f.width % 2 !== 0) throw new Error("stereo3d: side-by-side input width must be even");
+        const width = f.width / 2;
+        budget.recordFrame(width, f.height);
+        budget.allocateMemory(width * f.height * 4);
+        const cropped = extractImage(makeRgbaImg(f.width, f.height, f.data), {
+          left: options.out === "ml" ? 0 : width, top: 0, width, height: f.height
+        });
+        const { native: ignoredNative, ...frame } = f;
+        return { ...frame, width, data: cropped.data };
+      }, signal);
     } else if (name === "crop") {
       const crop: Record<string, string> = {};
       const keys = ["w", "h", "x", "y", "keep_aspect", "exact"];

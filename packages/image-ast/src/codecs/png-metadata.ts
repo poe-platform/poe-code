@@ -131,7 +131,11 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       if (len > 16 * 1024 * 1024) throw new Error("ICC profile exceeds 16 MiB");
       const chunk = yield {position:dataStart,length:len};
       const end = chunk.indexOf(0);
-      if (end < 1 || end > 79 || chunk[end + 1] !== 0) throw new Error("Invalid PNG ICC profile");
+      if (end < 1 || end > 79 || chunk[end + 1] !== 0) {
+        decodeWarnings.push("PNG iCCP: invalid profile header or compression method");
+        pos = dataStart + len + 4;
+        continue;
+      }
       const codec = createByteCodec({direction:"decode",format:"zlib"});
       const parts: Uint8Array[] = []; let length = 0;
       try {
@@ -140,6 +144,11 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
           if (length > 16 * 1024 * 1024) throw new Error("ICC profile exceeds 16 MiB");
           parts.push(part);
         }
+      } catch (error) {
+        if (!(error instanceof ByteCodecError)) throw error;
+        decodeWarnings.push(`PNG iCCP: ${error.message}`);
+        pos = dataStart + len + 4;
+        continue;
       } finally { codec.close(); }
       icc = new Uint8Array(length); let offset = 0;
       for (const part of parts) { icc.set(part, offset); offset += part.length; }

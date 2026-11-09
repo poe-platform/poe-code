@@ -474,7 +474,8 @@ export function serializeMpegTs(
     throw new Error("Invalid mpegts_start_pid: expected an integer from 32 through 8186");
   }
   const videoTrack = doc.tracks.find((t) => t.type === "video");
-  const tracks = doc.tracks.filter((t) => t === videoTrack || t.type === "audio");
+  const tracks = doc.tracks.filter((t) => t === videoTrack || t.type === "audio"
+    || (t.type === "subtitle" && t.codecDescriptions[0]?.codecName === "subrip"));
   if (tracks.some((_, index) => startPid + index === 0x1000)) {
     throw new Error("MPEG-TS elementary PID conflicts with PMT PID 4096");
   }
@@ -719,7 +720,7 @@ export function serializeMpegTs(
       : new Uint8Array(0);
     return concatBytes([
       new Uint8Array([
-        track.type === "video" ? 0x1b : options.mpegtsLatm ? 0x11 : 0x0f,
+        track.type === "video" ? 0x1b : track.type === "subtitle" ? 0x06 : options.mpegtsLatm ? 0x11 : 0x0f,
         0xe0 | ((pid >>> 8) & 0x1f), pid & 0xff, 0xf0, languageDescriptor.length
       ]), languageDescriptor
     ]);
@@ -833,6 +834,21 @@ export function serializeMpegTs(
             ? s.data
             : wrapAdtsFrame(s.data, sampleRate, channels));
         yield [pid, 0xc0, pts90k, pts90k, frame, pid === pcrPid, s.isKeyframe];
+      }
+    })());
+  }
+
+  // SubRip is private data in MPEG-TS: preserve cue bytes, without subtitle framing.
+  for (const [index, track] of tracks.entries()) {
+    if (track.type !== "subtitle") continue;
+    const pid = startPid + index;
+    const timescale = track.timescale || 1000;
+    streams.push((function* (): Generator<Parameters<typeof emitPesPackets>> {
+      for (const sample of track.samples) {
+        yield [pid, 0xbd,
+          Math.round(sample.pts * 90000 / timescale),
+          Math.round(sample.dts * 90000 / timescale),
+          sample.data, pid === pcrPid, sample.isKeyframe];
       }
     })());
   }

@@ -8844,7 +8844,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-emboss") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
+            const raw = tokens[++i] ?? "";
+            validateMagickTransformGeometry(raw, t);
+            const geometry = parseMagickGeometry(raw);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* applyMagickRasterSteps(im, embossPixelSteps(im, geometry), signal));
             }, undefined, true);
@@ -11137,7 +11139,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
+            const raw = tokens[++i] ?? "";
+            validateMagickTransformGeometry(raw, token);
+            const geometry = parseMagickGeometry(raw);
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => image ? transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry), signal) : undefined, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-canny") {
             const spec = tokens[++i] ?? "0x1+10%+30%", channels = state.channelExplicit ? { ...state.channels } : undefined, virtualPixel = state.virtualPixel, background = state.background;

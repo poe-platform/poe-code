@@ -9412,7 +9412,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (filterName === "compensationdelay") {
                           filteredSampleFormat = "dblp";
-                          const commands = gainCommands.filter(command => command.target === "compensationdelay" || command.target === filterTarget)
+                          const commands = audioCommands.filter(command => command.target === "compensationdelay" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);
                           stretched = await compensateAudioDelay(stretched, origRate, trimmed, audioTimestamps, commands, budget, context.signal);
                         } else if (filterName === "afade") {
@@ -9442,8 +9442,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await compandAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
                           if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
                         });
-                      } else if (trimmed === "afade" || trimmed.startsWith("afade=")) {
-                        stretched = await fadeAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal);
                       } else if (trimmed === "dynaudnorm" || trimmed.startsWith("dynaudnorm=")) {
                         filteredSampleFormat = "dblp";
                         const normalized = await normalizeAudio(stretched, origRate, trimmed, budget, context.signal, async message => {

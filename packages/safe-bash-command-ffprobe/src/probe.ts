@@ -257,7 +257,7 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
         : 100,
       ...(retainedTags || Object.keys(formatTags).length ? { tags: formatTags } : {})
     });
-    if (sections.has("format_tags") && sections.get("format_tags")?.length !== 0) row.tags = tags;
+    if ((retainedTags || Object.keys(formatTags).length) && sections.has("format_tags") && sections.get("format_tags")?.length !== 0) row.tags = tags;
     if (sections.get("format_tags")?.length === 0) delete row.tags;
     rows.push({ section: "format", row });
   }

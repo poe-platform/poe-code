@@ -1,0 +1,71 @@
+import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
+import { yieldTurn } from "safe-bash-contracts/yield";
+
+export async function headphoneAudio(
+  tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+): Promise<MediaTrack> {
+  const options: Record<string, string> = { gain: "0", lfe: "0", type: "freq", size: "1024", hrir: "stereo" };
+  const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+    const separator = option.indexOf("=");
+    const key = separator < 0 ? ["map", "gain", "lfe", "type", "size", "hrir"][index] : option.slice(0, separator);
+    if (!key || !["map", "gain", "lfe", "type", "size", "hrir"].includes(key)) {
+      throw new Error(`headphone: unsupported option ${key}`);
+    }
+    options[key] = separator < 0 ? option : option.slice(separator + 1);
+  }
+  const mapping = options.map?.split("|");
+  if (!mapping || mapping.length !== 2 || new Set(mapping).size !== 2 || mapping.some(name => !["FL", "FR"].includes(name))) {
+    throw new Error("headphone: map must assign FL and FR");
+  }
+  for (const key of ["gain", "lfe"]) {
+    const value = Number(options[key]);
+    if (!options[key]?.trim() || !Number.isFinite(value) || value < -20 || value > 40) {
+      throw new Error(`headphone: ${key} must be between -20 and 40 dB`);
+    }
+  }
+  if (!["time", "freq", "0", "1"].includes(options.type!)) throw new Error("headphone: invalid processing type");
+  const size = Number(options.size);
+  if (!Number.isInteger(size) || size < 1024 || size > 96000) throw new Error("headphone: invalid frame size");
+  if (!["stereo", "0"].includes(options.hrir!)) throw new Error("headphone: only separate stereo impulse responses are supported");
+  if (tracks.length !== 3) throw new Error("headphone requires a source and two stereo impulse responses");
+  const audio = tracks.map(track => {
+    const decoded = track.decodedAudio;
+    if (!decoded || decoded.channels !== 2 || (decoded.channelMask !== undefined && decoded.channelMask !== 3)) {
+      throw new Error("headphone requires decoded stereo PCM inputs");
+    }
+    return decoded;
+  });
+  const source = audio[0]!;
+  if (audio.some(input => input.sampleRate !== source.sampleRate)) throw new Error("headphone requires matching sample rates");
+  if (audio.slice(1).some(input => !input.channelData[0]!.length)) throw new Error("headphone requires nonempty impulse responses");
+  const length = source.channelData[0]!.length;
+  budget.checkSamples(length);
+  budget.checkDuration(length / source.sampleRate);
+  budget.allocateMemory(length * 2 * 4);
+  const channelData = [new Float32Array(length), new Float32Array(length)];
+  // FFmpeg attenuates by 3 dB per source channel before applying the HRIR.
+  const gain = Math.fround(Math.exp((Number(options.gain) - 3 * source.channels) / 20 * Math.LN10));
+  // Both processing modes implement the same causal convolution; keep only the source duration.
+  let work = 0;
+  for (const [response, name] of mapping.entries()) {
+    const input = source.channelData[name === "FL" ? 0 : 1]!;
+    for (let ear = 0; ear < 2; ear++) {
+      const impulse = audio[response + 1]!.channelData[ear]!;
+      const output = channelData[ear]!;
+      for (let tap = 0; tap < Math.min(impulse.length, length); tap++) {
+        const coefficient = Math.fround(impulse[tap]! * gain);
+        for (let sample = 0; sample < length - tap; sample++) {
+          if (work++ % 4096 === 0) {
+            await yieldTurn(signal);
+            signal?.throwIfAborted();
+            budget.checkCpu();
+          }
+          output[sample + tap] = output[sample + tap]! + Math.fround(input[sample]! * coefficient);
+        }
+      }
+    }
+  }
+  return { ...tracks[0]!, timescale: source.sampleRate, duration: length, samples: [], editList: undefined,
+    decodedAudio: { ...source, channels: 2, channelMask: 3, channelData } };
+}

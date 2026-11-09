@@ -49,6 +49,7 @@ import { multibandCompandAudio } from "./audio-mcompand.js";
 import { removeSilence } from "./audio-silenceremove.js";
 import { fadeAudio } from "./audio-fade.js";
 import { acrossfadeAudio } from "./audio-acrossfade.js";
+import { headphoneAudio } from "./audio-headphone.js";
 import { mixAudio } from "./audio-amix.js";
 import { joinAudio } from "./audio-join.js";
 import { enhanceDialogue } from "./audio-dialogue.js";
@@ -1346,6 +1347,13 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       const sources = [];
       for (const input of node.inputs) sources.push(await resolve(input, new Set(visiting)));
       const filters = parseFilterChain(node.expression);
+      if (filters[0] === "headphone" || filters[0]?.startsWith("headphone=")) {
+        if (sources.some(source => source.expression && source.expression !== "anull")) {
+          throw new Error("headphone does not support preceding single-input filters");
+        }
+        const track = await headphoneAudio(sources.map(source => source.track), filters[0]!, budget, signal);
+        return { track, expression: filters.slice(1).join(",") || "anull" };
+      }
       if (filters[0] === "amultiply" || filters[0]?.startsWith("amultiply=")) {
         if (filters[0] !== "amultiply") throw new Error("amultiply does not accept options");
         if (sources.length !== 2) throw new Error("amultiply requires two inputs");

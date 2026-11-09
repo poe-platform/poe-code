@@ -393,6 +393,12 @@ Setting `feedback=0:crossfeed=0:drymix=1` preserves the input samples.
 `haas` applies the default stereo enhancer: the channel average plus a 2.05 ms
 delayed tap on the right and minus a 2.12 ms delayed tap on the left. It preserves
 the sample rate and frame count. Custom Haas options are not supported.
+`[0:a][1:a][2:a]headphone=map=FL|FR:type=time[h]` renders a stereo source
+through separate stereo impulse responses for its left and right channels.
+Both `type=time` and `type=freq` use bounded direct convolution, preserve the source
+frame count and sample rate, and apply native gain (−6 dB for stereo plus `gain`).
+Use `map=FR|FL` to reverse the response assignments. All three inputs must be stereo
+PCM at the same sample rate; multichannel HRIR files and preceding filters are unsupported.
 `earwax` applies the headphone stereo filter to 44100 Hz stereo input, preserving
 the frame count with native signed 16-bit filtering and clipping. Other input
 rates and channel counts are rejected.

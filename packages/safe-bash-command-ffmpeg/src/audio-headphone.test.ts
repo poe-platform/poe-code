@@ -1,0 +1,70 @@
+import assert from "node:assert/strict";
+import { it } from "node:test";
+import { Volume } from "memfs";
+import { encodeWav } from "@poe-code/audio-ast";
+import { parseWav } from "@poe-code/mp4-ast";
+import { createFfmpegCommand } from "./index.js";
+
+async function render(filter: string) {
+  const volume = Volume.fromJSON({ "/out.wav": "keep" });
+  const source = [new Float64Array(128), new Float64Array(128)];
+  source[0]![0] = source[0]![64] = source[1]![32] = source[1]![64] = 0.25;
+  const left = [new Float64Array(16), new Float64Array(16)];
+  left[0]![0] = 0.5;
+  left[1]![2] = 0.25;
+  for (const [name, channels] of [["source", source], ["left", left], ["right", [...left].reverse()]] as const) {
+    volume.writeFileSync(`/${name}.wav`, encodeWav({ sampleRate: 8000, channels }));
+  }
+  const errors: Uint8Array[] = [];
+  const result = await createFfmpegCommand().execute({
+    args: ["-y", "-i", "/source.wav", "-i", "/left.wav", "-i", "/right.wav",
+      "-filter_complex", `[0:a][1:a][2:a]${filter}[h]`, "-map", "[h]", "-c:a", "pcm_s16le", "/out.wav"],
+    cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: {
+      async readFile(path: string) { return volume.readFileSync(path); },
+      async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+      async stat(path: string) { return volume.statSync(path); }
+    },
+    stdin: (async function* () {})(), stdout: { async write() {} },
+    stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+  } as never);
+  return { result, volume, error: Buffer.concat(errors).toString() };
+}
+
+for (const type of ["time", "freq"]) {
+  it(`headphone ${type} matches native separate stereo impulse responses`, async () => {
+    const { result, volume, error } = await render(`headphone=map=FL|FR:type=${type}`);
+    assert.equal(result.exitCode, 0, error);
+    const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 8000);
+    assert.equal(audio.channels, 2);
+    const expected = [Array<number>(128).fill(0), Array<number>(128).fill(0)];
+    expected[0]![0] = expected[0]![64] = expected[1]![32] = expected[1]![64] = 2053;
+    expected[0]![34] = expected[0]![66] = expected[1]![2] = expected[1]![66] = 1026;
+    assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)), expected);
+  });
+}
+
+for (const [options, direct, delayed] of [
+  ["map=FL|FR:gain=6", 4096, 2048],
+  ["map=FR|FL", 2053, 1026],
+  ["map=FL|FR,volume=0.5", 1026, 513]
+] as const) {
+  it(`headphone applies ${options}`, async () => {
+    const { result, volume, error } = await render(`headphone=${options}`);
+    assert.equal(result.exitCode, 0, error);
+    const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    const reversed = options.startsWith("map=FR");
+    assert.equal(audio.channelData[reversed ? 1 : 0]![0]! * 32768, direct);
+    assert.equal(audio.channelData[reversed ? 0 : 1]![2]! * 32768, delayed);
+  });
+}
+
+for (const options of ["map=FL|FL", "map=FL", "map=FC|FR", "map=FL|FR:type=bad",
+  "map=FL|FR:gain=NaN", "map=FL|FR:gain=41", "map=FL|FR:size=1", "map=FL|FR:hrir=multich", "map=FL|FR:unknown=1"]) {
+  it(`headphone rejects ${options} without replacing output`, async () => {
+    const { result, volume } = await render(`headphone=${options}`);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+  });
+}

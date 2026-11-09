@@ -40,7 +40,7 @@ for (const [destinations, first, last] of [
   ["x z bad-name", "one", "two"],
   ["x second z", "one", ""],
 ] as const) {
-  test(`ordinary read consumes the record and assigns in order: ${destinations}`, async () => {
+  test(`ordinary read validates destinations and assigns in order: ${destinations}`, async () => {
     const { shell, commands } = setup();
     for (const command of basicCommands()) commands.register(command);
     const source = `printf 'one two\\nnext\\n' | { x=old; z=old; read ${destinations}; rc=$?; read y; printf '%s|%s|%s|%s\\n' "$rc" "$x" "$y" "$z"; }`;
@@ -48,7 +48,7 @@ for (const [destinations, first, last] of [
       const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
       assert.equal(native.error, undefined);
       assert.equal(native.status, 0);
-      const expected = `${destinations.includes("bad-name") ? 1 : 0}|${first}|next|${last}\n`;
+      const expected = `${destinations.includes("bad-name") ? 1 : 0}|${first}|${destinations.startsWith("bad-name") ? "one two" : "next"}|${last}\n`;
       assert.equal(native.stdout, expected);
       const result = await shell.exec(source);
       assert.equal(result.exitCode, native.status);

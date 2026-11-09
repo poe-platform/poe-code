@@ -9226,7 +9226,7 @@ export class Runtime {
       if (names[0] === "--") names.shift();
       if (array !== undefined) names.splice(0, names.length, array);
       const invalidName = names.find(name => !this.variableTarget(name));
-      if (exact && !invalid && invalidName !== undefined) {
+      if (!invalid && invalidName !== undefined && (exact || array === undefined && invalidName === names[0])) {
         const diagnosticIO: IO = context;
         await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${invalidName}': not a valid identifier\n`);
         return 1;

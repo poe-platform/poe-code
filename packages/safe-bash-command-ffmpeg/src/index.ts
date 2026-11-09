@@ -9237,7 +9237,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         "aloop", "aresample", "apad", "adelay", "atempo", "aformat", "pan",
                         "channelmap", "channelsplit", "asetpts", "aselect", "atrim", "areverse"
                       ].includes(filterName)) panPcm16 = false;
-                      if (["extrastereo", "stereotools"].includes(filterName) &&
+                      if (["extrastereo", "stereotools", "stereowiden"].includes(filterName) &&
                         (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ||
                           stretched.length === 6 && (filteredChannelMask === 0x3f || filteredChannelMask === 0x60f))) {
                         // Floating-point stereo negotiation keeps front gain and omits LFE.
@@ -10491,6 +10491,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = output;
                         filteredChannelMask = 3;
+                        filteredSampleFormat = "flt";
                       } else if (trimmed === "aeval" || trimmed.startsWith("aeval=")) {
                         let expressions = "";
                         let layout = "";

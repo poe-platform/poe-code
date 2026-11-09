@@ -479,7 +479,9 @@ Strength and range default to 0.2 and 0.5 (0–1); slope defaults to 0.5 (0.01�
 `crossfeed=strength=0:level_in=1:level_out=1` preserves every sample.
 Block processing (`block_size`) is unsupported.
 `stereowiden=delay=5:feedback=0.3:crossfeed=0.3:drymix=0.8` widens stereo
-with delayed cross-channel subtraction. Delay is in milliseconds (1–100, default 20),
+with delayed cross-channel subtraction. Mono input is automatically converted to stereo
+at √½ gain per channel; labeled 5.1 input uses the same downmix as `stereotools`.
+Delay is in milliseconds (1–100, default 20),
 rounded to the nearest sample with exact halves rounding to even;
 feedback (0–0.9), crossfeed (0–0.8), and drymix (0–1) default to 0.3, 0.3, and 0.8.
 Setting `feedback=0:crossfeed=0:drymix=1` preserves the input samples.

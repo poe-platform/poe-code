@@ -17,6 +17,7 @@ for (const mask of [0x3f, 0x60f]) for (const complex of [false, true]) {
     ["anull", surround],
     ["extrastereo=m=1", stereo],
     ["stereotools", stereo],
+    ["stereowiden=feedback=0:crossfeed=0:drymix=1", stereo],
     ["extrastereo=m=-1", [stereo[1]!, stereo[0]!]],
     ["stereotools=muter=1", [stereo[0]!, [0, 0, 0, 0, 0, 0]]],
     ["extrastereo=m=1,stereotools", stereo],

@@ -67,3 +67,39 @@ for (const complex of [false, true]) {
     });
   }
 }
+
+for (const complex of [false, true]) {
+  for (const filter of ["stereowiden",
+    "stereowiden=feedback=0:crossfeed=0:drymix=1"]) {
+    it(`negotiates mono for ${filter} (${complex ? "graph" : "simple"})`, async () => {
+      const mono = new Float64Array(1536);
+      mono[0] = 16000 / 32768;
+      const volume = Volume.fromJSON({});
+      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [mono] }));
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-y", "-i", "/in.wav", ...(complex
+          ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"] : ["-af", filter]),
+          "-c:a", "pcm_s16le", "/out.wav"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      assert.equal(audio.channels, 2);
+      assert.equal(audio.sampleRate, 8000);
+      // Native FFmpeg: equal-power upmix followed by direct and delayed subtraction.
+      const expected = new Array<number>(1536).fill(0);
+      expected[0] = filter.includes("feedback=0") ? 11314 : 5657;
+      if (!filter.includes("feedback=0")) expected[160] = -3394;
+      assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)),
+        [expected, expected]);
+    });
+  }
+}

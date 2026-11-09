@@ -10121,8 +10121,10 @@ const syncExtraRuntimeMethods = {
             optstring = command.words[1]!.plain ?? this.fastValueWord(command.words[1]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
             if (typeof optstring === "string") {
               if (command.words.length === 3) {
+                if (!this._fastSubPositional && monitor.positionals.hasObjectValues()) return undefined;
                 scanArgs = this._fastSubPositional ?? rawState.positional;
               } else if (command.words.length === 4 && (() => { const ne = command.words[3]!.parts.filter(p => !(p.kind === "text" && p.value === "")); return ne.length === 1 && ne[0]!.kind === "variable" && ne[0]!.name === "@" && ne[0]!.quoted && !ne[0]!.length && !ne[0]!.substring && !ne[0]!.operator && !ne[0]!.transform && !ne[0]!.indirect && !ne[0]!.prefixNames && getArraySelector(ne[0]!) === undefined; })()) {
+                if (!this._fastSubPositional && monitor.positionals.hasObjectValues()) return undefined;
                 scanArgs = this._fastSubPositional ?? rawState.positional;
                 if (scanArgs.length > 0) lastArg = scanArgs[scanArgs.length - 1]!;
               } else {
@@ -15428,8 +15430,10 @@ const syncExtraRuntimeMethods = {
           let scanArgs: readonly string[] | undefined;
           let cmdLastArg = optVar;
           if (condCmd.words.length === 3) {
+            if (!this._fastSubPositional && monitor.positionals.hasObjectValues()) return undefined;
             scanArgs = this._fastSubPositional ?? rawState.positional;
           } else if (condCmd.words.length === 4 && this.isQuotedAtWord(condCmd.words[3]!)) {
+            if (!this._fastSubPositional && monitor.positionals.hasObjectValues()) return undefined;
             scanArgs = this._fastSubPositional ?? rawState.positional;
             if (scanArgs.length > 0) cmdLastArg = scanArgs[scanArgs.length - 1]!;
           } else {

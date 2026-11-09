@@ -68,6 +68,8 @@ export interface GetoptsScanResult {
   readonly option: string;
   readonly optind: number;
   readonly argument: { readonly kind: "set"; readonly value: string } | { readonly kind: "unset" };
+  /** Original operand and ASCII prefix length for a required option argument. */
+  readonly argumentSource?: { readonly index: number; readonly offset: number };
   readonly diagnostic: GetoptsDiagnostic | null;
 }
 
@@ -225,12 +227,12 @@ export async function scanGetopts(state: GetoptsState, optstring: string, input:
   }
   let index = original.index || 1;
   let active = original.index === 0 ? undefined : original.active;
-  const finish = async (kind: GetoptsScanResult["kind"], option: string, argument: GetoptsScanResult["argument"], diagnostic: GetoptsDiagnostic | null): Promise<GetoptsScanResult> => {
+  const finish = async (kind: GetoptsScanResult["kind"], option: string, argument: GetoptsScanResult["argument"], diagnostic: GetoptsDiagnostic | null, argumentSource?: GetoptsScanResult["argumentSource"]): Promise<GetoptsScanResult> => {
     const waiting = work.step();
     if (waiting) await waiting;
     await work.flush();
     if (owned) owned.bytes = work.inputBytes - specificationBytes;
-    return { state: active === undefined ? { index } : { index, active: { ...active } }, kind, status: kind === "end" ? 1 : 0, option, optind: index, argument, diagnostic };
+    return { state: active === undefined ? { index } : { index, active: { ...active } }, kind, status: kind === "end" ? 1 : 0, option, optind: index, argument, diagnostic, ...(argumentSource ? { argumentSource } : {}) };
   };
   const end = (): Promise<GetoptsScanResult> => {
     active = undefined;
@@ -266,14 +268,15 @@ export async function scanGetopts(state: GetoptsState, optstring: string, input:
   }
   if (specification[code] === 1) {
     if (attached) {
+      const source = { index: active!.argument, offset };
       active = undefined;
       index++;
-      return finish("option", option, { kind: "set", value: token.slice(offset) }, null);
+      return finish("option", option, { kind: "set", value: token.slice(offset) }, null, source);
     }
     if (index <= args.length) {
       const value = args[index - 1]!;
       index++;
-      return finish("option", option, { kind: "set", value }, null);
+      return finish("option", option, { kind: "set", value }, null, { index: index - 2, offset: 0 });
     }
     return finish("missing-argument", silent ? ":" : "?", silent ? { kind: "set", value: option } : { kind: "unset" }, !silent && options.reportErrors ? { kind: "missing-argument", option } : null);
   }
@@ -334,12 +337,12 @@ export function scanGetoptsSync(state: GetoptsState, optstring: string, args: re
   if (syncSpecScratch[code] === 1) {
     if (attached) {
       index++;
-      return { state: { index }, kind: "option", status: 0, option, optind: index, argument: { kind: "set", value: token.slice(offset) }, diagnostic: null };
+      return { state: { index }, kind: "option", status: 0, option, optind: index, argument: { kind: "set", value: token.slice(offset) }, argumentSource: { index: active!.argument, offset }, diagnostic: null };
     }
     if (index <= args.length) {
       const value = args[index - 1]!;
       index++;
-      return { state: active === undefined ? { index } : { index, active }, kind: "option", status: 0, option, optind: index, argument: { kind: "set", value }, diagnostic: null };
+      return { state: active === undefined ? { index } : { index, active }, kind: "option", status: 0, option, optind: index, argument: { kind: "set", value }, argumentSource: { index: index - 2, offset: 0 }, diagnostic: null };
     }
     if (!silent) return undefined;
     return { state: active === undefined ? { index } : { index, active }, kind: "missing-argument", status: 0, option: ":", optind: index, argument: { kind: "set", value: option }, diagnostic: null };

@@ -8002,6 +8002,17 @@ export class Runtime {
       if (allocation && monitor!.retainGetoptsInput(revision!, input!, allocation)) allocation = undefined;
     } finally { allocation?.close(); }
     this.signal.throwIfAborted();
+    let argument: ShellValue | undefined;
+    if (result.argument.kind === "set") {
+      argument = result.argument.value;
+      if (result.argumentSource) {
+        const { index, offset: start } = result.argumentSource;
+        const original = explicit ? getCommandArguments(context).values[offset + 2 + index]!
+          : stateMonitor(state)?.positionals.get(String(index), supplied[index]!) ?? supplied[index]!;
+        argument = start === 0 ? original : typeof original === "string" ? original.slice(start)
+          : shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(start), context[valueScope]);
+      }
+    }
     state.getopts.cursor = result.state;
     if (result.diagnostic) {
       const explanation = result.diagnostic.kind === "unknown-option" ? "illegal option" : "option requires an argument";
@@ -8022,7 +8033,7 @@ export class Runtime {
       savedIndex.getopts = cloneGetoptsBinding(state);
     }
     try {
-      if (result.argument.kind === "set") await this.writeVariable(state, "OPTARG", result.argument.value, context, "getopts");
+      if (argument !== undefined) await this.writeVariable(state, "OPTARG", argument, context, "getopts");
       else {
         // EOF and verbose option errors remove even a readonly OPTARG binding.
         if (result.kind !== "option") state.readonlyVariables?.delete("OPTARG");

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { cloneGetoptsState, createGetoptsState, GetoptsError, scanGetopts, withGetoptsIndex } from "../../../src/shell/getopts.js";
+import { cloneGetoptsState, createGetoptsState, GetoptsError, scanGetopts, scanGetoptsSync, withGetoptsIndex } from "../../../src/shell/getopts.js";
 import type { GetoptsState } from "../../../src/shell/getopts.js";
 import { options } from "./helpers.js";
 
@@ -60,9 +60,13 @@ for (const value of ["", "é", "🦊 snow 雪", "-é", "--", "\ud800", "\udc00"]
   test(`ordinary Unicode and dash argument values: ${JSON.stringify(value)}`, async () => {
     const separate = await scanGetopts(createGetoptsState(), "a:", ["-a", value], options());
     assert.deepEqual(separate.argument, { kind: "set", value });
+    assert.deepEqual(separate.argumentSource, { index: 1, offset: 0 });
+    assert.deepEqual(scanGetoptsSync(createGetoptsState(), "a:", ["-a", value]), separate);
     if (value) {
       const attached = await scanGetopts(createGetoptsState(), "a:", [`-a${value}`], options());
       assert.deepEqual(attached.argument, { kind: "set", value });
+      assert.deepEqual(attached.argumentSource, { index: 0, offset: 2 });
+      assert.deepEqual(scanGetoptsSync(createGetoptsState(), "a:", [`-a${value}`]), attached);
       assert.equal(attached.optind, 2);
     }
   });
@@ -112,7 +116,7 @@ test("oversized safe indices normalize without index-sized loops or allocations"
   const state = withGetoptsIndex({ index: 1, active: { argument: 0, offset: 2 } }, Number.MAX_SAFE_INTEGER);
   const result = await scanGetopts(state, "a", ["-a"], options({ maxSteps: 10 }));
   assert.equal(result.kind, "end");
-  assert.deepEqual(result.state, { index: 2 });
+  assert.deepEqual(result.state, { index: 2, active: state.active });
 });
 
 test("stale active slots and offsets are checked against the current argument vector", async () => {

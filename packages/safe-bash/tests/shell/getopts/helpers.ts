@@ -4,7 +4,7 @@ export function options(work: Partial<GetoptsWork> = {}, reportErrors = true): G
   return { reportErrors, work: { maxArguments: 100, maxBytes: 100_000, maxSteps: 200_000, yieldEvery: 256, checkpoint: () => undefined, ...work } };
 }
 
-export function view(result: GetoptsScanResult): Omit<GetoptsScanResult, "state"> {
-  const { state: ignoredState, ...rest } = result;
+export function view(result: GetoptsScanResult): Omit<GetoptsScanResult, "state" | "argumentSource"> {
+  const { state: ignoredState, argumentSource: ignoredSource, ...rest } = result;
   return rest;
 }

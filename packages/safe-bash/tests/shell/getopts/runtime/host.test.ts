@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { Runtime } from "../../../../src/shell/runtime.js";
 import { ShellLimitError } from "../../../../src/shell/types.js";
@@ -146,6 +147,46 @@ test("caller timeout signal is observed at real helper checkpoints, no new deadl
   try { await assert.rejects(shell.exec('getopts a opt -a', { signal: controller.signal }), error => error === reason); }
   finally { clearTimeout(timer); await shell.dispose(); }
 });
+
+for (const value of ["a\\xffb", "a\\x80b", "ASCII", "雪🙂"]) {
+  for (const attached of [false, true]) {
+    for (const route of ["explicit", "positional", "function", "forwarded", "loop"]) {
+      for (const bounded of [false, true]) test(`getopts preserves argument bytes: ${route}, attached=${attached}, bounded=${bounded}, ${value}`, async () => {
+        const { shell } = runtimeSetup();
+        const args = attached ? `-b$'${value}'` : `-b $'${value}'`;
+        const report = 'printf "%s:%s:%s:" "$?" "$flag" "$OPTIND"; printf "%s" "$OPTARG"';
+        const source = route === "explicit" ? `getopts b: flag ${args}; ${report}`
+          : route === "function" ? `f() { getopts b: flag; ${report}; }; f ${args}`
+          : route === "forwarded" ? `set -- ${args}; getopts b: flag "$@"; ${report}`
+          : route === "loop" ? `set -- ${args}; while getopts b: flag; do ${report}; done`
+          : `set -- ${args}; getopts b: flag; ${report}`;
+        try {
+          const result = await shell.exec(source, bounded ? { limits: { maxExpansionBytes: 65536 } } : {});
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stderr, "");
+          const bytes = value === "a\\xffb" ? [97, 255, 98] : value === "a\\x80b" ? [97, 128, 98] : new TextEncoder().encode(value);
+          assert.deepEqual(result.stdoutBytes, Uint8Array.from([...new TextEncoder().encode(`0:b:${attached ? 2 : 3}:`), ...bytes]));
+          const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { env: { ...process.env, LC_ALL: "C" } });
+          assert.equal(native.status, result.exitCode, native.stderr?.toString());
+          assert.deepEqual(new Uint8Array(native.stdout), result.stdoutBytes);
+          assert.equal(native.stderr.length, 0);
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
+
+for (const args of ["-ab$'\\xff' -b $'\\x80'", "-ab $'\\xff' -b$'\\x80'"]) {
+  test(`getopts preserves distinct bytes across cached clustered scans: ${args}`, async () => {
+    const { shell } = runtimeSetup();
+    try {
+      const result = await shell.exec(`set -- ${args}; while getopts ab: flag; do if [ "$flag" = b ]; then printf '%s' "$OPTARG"; fi; done`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 128));
+    } finally { await shell.dispose(); }
+  });
+}
 
 test("ASCII refusal leaves state intact and Unicode required values remain strings", async () => {
   const { shell } = runtimeSetup();

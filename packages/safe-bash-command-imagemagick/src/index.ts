@@ -8190,7 +8190,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-shadow") {
             const geom = tokens[++i] ?? "80x3+5+5";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickShadowSteps(im, geom, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, signal));
+                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                return (yield* applyMagickShadowSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, signal));
             });
         }
         else if (t === "-vignette") {
@@ -10312,10 +10313,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return { ...await transformStoredMagickRaster(image, backend, vignettePixelSteps(image, backgroundExplicit ? background : image.backgroundColor ?? background, geometry, channels, compose), signal, layout), virtualCanvas: layout.virtualCanvas };
             });
         } else if (!operandsOnly && token === "-shadow") {
-            const geometry = tokens[++i] ?? "80x3+5+5", background = state.background, backgroundExplicit = state.backgroundExplicit;
+            const geometry = tokens[++i] ?? "80x3+5+5", background = state.background, backgroundExplicit = state.backgroundExplicit, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const layout = magickShadowLayout(image, geometry);
+                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image: image!, storage: backend.storage }), signal);
+                const layout = magickShadowLayout(image, expanded);
                 if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
                     image = { ...image, space: "srgb", channels: 4 };
                 const base = { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, backgroundExplicit ? background : image.backgroundColor ?? background), signal, layout), virtualCanvas: layout.virtualCanvas };

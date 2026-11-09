@@ -1,4 +1,4 @@
-import { type MediaAstPlugin, type MediaDocument, type ParseMediaOptions, MediaBudgetTracker } from "../types.js";
+import { type MediaAstPlugin, type MediaDocument, type MediaSample, type ParseMediaOptions, MediaBudgetTracker } from "../types.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
 import { decodeG722 } from "./g722.js";
 import { decodeG726 } from "./au-g726.js";
@@ -51,6 +51,20 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
     doc = raw.find(plugin => plugin.id === format)!.parse(
       bytes.subarray(offset, size === 0 && options.decodeAudio !== false ? offset : bytes.length),
       { ...options, budget, sampleRate, channels });
+    const track = doc.tracks[0]!;
+    const frameBytes = channels * track.codecDescriptions[0]!.bitsPerSample! / 8;
+    // AU's reference demuxer targets 25 packets/second, capped at 1024 frames.
+    const packetFrames = Math.max(1, Math.min(1024, Math.floor(sampleRate / 25)));
+    const data = bytes.subarray(offset, size === 0 && options.decodeAudio !== false ? offset : bytes.length);
+    budget.checkSamples(Math.ceil(data.length / (packetFrames * frameBytes)));
+    const samples: MediaSample[] = [];
+    for (let start = 0; start * frameBytes < data.length; start += packetFrames) {
+      budget.checkCpu();
+      const packet = data.subarray(start * frameBytes, (start + packetFrames) * frameBytes);
+      samples.push({ data: packet, size: packet.length, dts: start, pts: start, cts: 0,
+        duration: Math.floor(packet.length / frameBytes), isKeyframe: true, sampleDescriptionIndex: 1 });
+    }
+    doc = { ...doc, tracks: [{ ...track, samples }] };
   }
   doc = { ...doc, tracks: doc.tracks.map(track => ({ ...track,
     samples: track.samples.map(sample => ({ ...sample, offset: sample.data.byteOffset - bytes.byteOffset }))
@@ -112,7 +126,7 @@ export function auAst(): MediaAstPlugin {
       options.budget?.checkOutputBytes(offset + data.length);
       const bytes = new Uint8Array(offset + data.length);
       const view = new DataView(bytes.buffer);
-      [0x2e736e64, offset, data.length, encoding[0], sampleRate, channels].forEach((value, i) => view.setUint32(i * 4, value));
+      [0x2e736e64, offset, options.seekable === false ? 0xffffffff : data.length, encoding[0], sampleRate, channels].forEach((value, i) => view.setUint32(i * 4, value));
       bytes.set(annotation, 24);
       bytes.set(data, offset);
       return bytes;

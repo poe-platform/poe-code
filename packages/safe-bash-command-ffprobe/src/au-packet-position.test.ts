@@ -33,7 +33,7 @@ it("keeps successive AU packet positions relative to a sliced input file", () =>
   const bytes = Buffer.alloc(16 + 32 + 1032).subarray(16);
   [0x2e736e64, 32, 1032, 3, 8000, 1].forEach((value, index) => bytes.writeUInt32BE(value, index * 4));
   expect(auAst().probe(bytes, { showPackets: true }).packets).toMatchObject([
-    { pos: "32", size: "1024", duration: 512 },
-    { pos: "1056", size: "8", duration: 4 }
+    { pos: "32", size: "640", duration: 320 },
+    { pos: "672", size: "392", duration: 196 }
   ]);
 });

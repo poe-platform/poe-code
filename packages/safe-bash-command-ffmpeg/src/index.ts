@@ -9958,32 +9958,69 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioTimestamps = undefined;
                       } else if (trimmed === "apad" || trimmed.startsWith("apad=")) {
                         const options: Record<string, number | undefined> = {};
+                        let packetSize = 4096;
+                        const names = ["packet_size", "pad_len", "whole_len", "pad_dur", "whole_dur"];
                         const argument = trimmed.slice("apad=".length);
-                        for (const option of argument ? argument.split(":") : []) {
-                          const [key, value, extra] = option.split("=");
-                          if (!["pad_len", "whole_len", "pad_dur", "whole_dur"].includes(key!)) {
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? names[index] : option.slice(0, separator);
+                          const value = separator < 0 ? option : option.slice(separator + 1);
+                          if (key === "packet_size") {
+                            packetSize = Number(value);
+                            if (!value.trim() || !Number.isInteger(packetSize) || packetSize < 1 || packetSize > 2147483647) {
+                              throw new Error("apad: invalid packet_size");
+                            }
+                            continue;
+                          }
+                          if (!names.includes(key!)) {
                             throw new Error(`apad: unsupported option ${key}`);
                           }
                           const duration = key!.endsWith("_dur");
                           const number = duration ? parseHlsDuration(value ?? "") : parseFilterExpression(value ?? "", "apad", {});
                           const samples = duration ? Math.round(number * origRate) : roundToEven(number);
-                          if (!value?.trim() || extra !== undefined || number < (duration ? 0 : -1) || !Number.isSafeInteger(samples)) {
+                          if (!value?.trim() || number < (duration ? 0 : -1) || !Number.isSafeInteger(samples)) {
                             throw new Error(`apad: invalid ${key}`);
                           }
                           options[key!] = samples === -1 ? undefined : samples;
                         }
                         const padding = options.pad_dur ?? options.pad_len;
-                        const minimum = options.whole_dur ?? options.whole_len;
+                        let minimum = options.whole_dur ?? options.whole_len;
                         // FFmpeg rejects only explicit sample-count conflicts, before duration overrides.
                         if (options.pad_len !== undefined && options.whole_len !== undefined) {
                           throw new Error("apad: pad_len and whole_len are mutually exclusive");
                         }
                         if (padding === undefined && minimum === undefined) {
-                          throw new Error("apad: a finite padding or minimum length is required");
+                          const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
+                          if (endSeconds === undefined) {
+                            throw new Error("apad: a finite padding or minimum length is required");
+                          }
+                          minimum = Math.max(0, Math.round(endSeconds * origRate) - audioStartSample);
                         }
                         const inputLength = stretched[0]?.length ?? 0;
                         const length = padding !== undefined ? inputLength + padding : Math.max(inputLength, minimum!);
                         budget.checkDuration(length / origRate);
+                        if (!audioTimestamps) {
+                          audioTimestamps = [];
+                          for (let start = 0, n = 0; start < inputLength; n++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const packet = t.samples[n];
+                            const count = packet ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
+                              - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+                            if (count === 0) continue;
+                            const end = Math.min(inputLength, start + count);
+                            budget.allocateMemory(24);
+                            audioTimestamps.push({ start, end, pts: audioStartSample + start });
+                            start = end;
+                          }
+                        }
+                        const lastFrame = audioTimestamps.at(-1);
+                        const paddingPts = lastFrame ? lastFrame.pts + lastFrame.end - lastFrame.start : audioStartSample;
+                        budget.allocateMemory(Math.ceil((length - inputLength) / packetSize) * 24);
+                        for (let start = inputLength; start < length; start += packetSize) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          audioTimestamps.push({ start, end: Math.min(length, start + packetSize),
+                            pts: paddingPts + start - inputLength });
+                        }
                         budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
                         stretched = await mapWork(stretched, async channel => {
                           const output = new Float32Array(length);
@@ -10904,7 +10941,45 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const start = outputSs === undefined ? 0 : Math.max(0, Math.round(outputSs * origRate) - audioStartSample);
                     const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
                     const end = endSeconds === undefined ? undefined : Math.max(start, Math.round(endSeconds * origRate) - audioStartSample);
-                    stretched = stretched.map(channel => channel.subarray(start, end));
+                    if (audioTimestamps) {
+                      const seek = Math.round((outputSs ?? 0) * origRate);
+                      const duration = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));
+                      const firstPts = Math.max(audioTimestamps[0]?.pts ?? 0, outputSs === undefined ? -Infinity : seek);
+                      const endPts = duration === undefined ? Infinity : firstPts + Math.round(duration * origRate);
+                      const ranges: { start: number; end: number }[] = [];
+                      const frames: typeof audioTimestamps = [];
+                      let length = 0;
+                      for (const frame of audioTimestamps) {
+                        if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                        // Duration trims each frame on its own timeline; overlapping frames can both survive.
+                        if (frame.pts >= endPts) break;
+                        const from = frame.start + (outputSs === undefined ? 0 : Math.max(0, seek - frame.pts));
+                        const to = Math.min(frame.end, frame.start + endPts - frame.pts);
+                        if (to <= from) continue;
+                        ranges.push({ start: from, end: to });
+                        frames.push({ start: length, end: length + to - from, pts: frame.pts + from - frame.start - seek });
+                        length += to - from;
+                      }
+                      budget.allocateMemory(length * stretched.length * 8);
+                      const output = stretched.map(() => new Float64Array(length));
+                      let offset = 0;
+                      for (const range of ranges) {
+                        for (let start = range.start; start < range.end; start += 4096) {
+                          budget.checkCpu();
+                          await yieldTurn(context.signal);
+                          context.signal?.throwIfAborted();
+                          const end = Math.min(range.end, start + 4096);
+                          for (const [channel, samples] of stretched.entries()) {
+                            output[channel]!.set(samples.subarray(start, end), offset + start - range.start);
+                          }
+                        }
+                        offset += range.end - range.start;
+                      }
+                      stretched = output;
+                      audioTimestamps = frames;
+                    } else {
+                      stretched = stretched.map(channel => channel.subarray(start, end));
+                    }
                   }
 
                   if (maxAudioFrames !== undefined) {

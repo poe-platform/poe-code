@@ -11,6 +11,7 @@ import { gradientRadii } from "./gradient-radii.js";
 import { gradientVector } from "./gradient-vector.js";
 import { gradientProjection } from "./gradient.js";
 import { besselJ } from "./bessel.js";
+import { clahePixelSteps, parseClaheGeometry } from "./clahe-kernel.js";
 import { localThresholdPixelSteps, parseLocalThresholdGeometry } from "./local-threshold-kernel.js";
 import { automaticThreshold } from "./auto-threshold.js";
 import { identifyStatisticsSteps } from "./identify-statistics.js";
@@ -8409,6 +8410,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* applyMagickRasterSteps(im, waveletDenoisePixelSteps(im, geometry), signal);
             });
         }
+        else if (t === "-clahe") {
+            const geometry = parseClaheGeometry(tokens[++i] ?? "");
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                return yield* applyMagickRasterSteps(im, clahePixelSteps(im, geometry, state.background, state.virtualPixel), signal);
+            });
+        }
         else if (t === "-lat") {
             const geometry = parseLocalThresholdGeometry(tokens[++i] ?? "");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -10404,6 +10411,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-wavelet-denoise") {
             const geometry = tokens[++i] ?? "";
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, waveletDenoisePixelSteps(image, geometry), signal) : undefined);
+        } else if (!operandsOnly && token === "-clahe") {
+            const geometry = parseClaheGeometry(tokens[++i] ?? ""), { background, virtualPixel } = state;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, clahePixelSteps(image, geometry, background, virtualPixel), signal) : undefined);
         } else if (!operandsOnly && token === "-lat") {
             const geometry = parseLocalThresholdGeometry(tokens[++i] ?? ""), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, localThresholdPixelSteps(image, geometry, background, virtualPixel, channels), signal) : undefined);
@@ -10807,6 +10817,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-bilateral-blur",
         "-motion-blur",
         "-rotational-blur",
+        "-clahe",
         "-lat",
         "-mean-shift",
         "-kmeans",

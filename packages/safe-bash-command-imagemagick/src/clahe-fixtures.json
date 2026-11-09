@@ -1,0 +1,337 @@
+[
+  {
+    "width": 13,
+    "height": 9,
+    "depth": 8,
+    "input": "iVBORw0KGgoAAAANSUhEUgAAAA0AAAAJCAYAAADpeqZqAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDlUMTE6MDY6NTErMDA6MDCyg8TWAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA5VDExOjA2OjUxKzAwOjAww958agAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wOVQxMTowNjo1MSswMDowMJTLXbUAAAFxSURBVBjTYxa2iG2at+Hw1Re/eOdvOnL95R++hZuP3Xj9V2DR1uO33vwXXLLt5O13DMJLd5y6+55pyvKdZ+59ZGaYvuchm3ZA6az9Tzj1givmHnrOYxhWveDoK36TyLrFJ94Kmcc0Ljv9QdQqvmXluc8Stkntay5+Y5B2SO1af+WnnHNG76brfxTdsidsvfVfxTNv8o67TOo+hdN2P2DV8i+Zue8xh25Q+ZyDz7gNQqsY5h95yWccUbvo+BtBs+iGpafei1jGNa84+0ncJrFt9YWvUvYpnesu/5B1Su/ZeO23gmtW/5ab/xiUPXInbb/DqOZdMHXXfRZNv+IZex+x6wSWzT7wlEs/pHLe4Re8RuE1C4+9FjCNql9y8p2wRWwTw/IzH8WsE1pXnf8iaZfcsfbSdxnHtO4NV3/Ju2T2bb7xV8k9Z+K22wyqXvlTdt5j1vAtmr7nIRsDqYEg7ZDaxUBqIMw/8pKPgdRAUPbInQQAb2LxltrMsGgAAAAASUVORK5CYII=",
+    "cases": [
+      {
+        "options": [
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "b0f4ee1bd0c6c81093d3e96718f0ac28db3734a06b8dcc971e9fceecf9acaf59"
+      },
+      {
+        "options": [
+          "-clahe",
+          "8x8+32+3"
+        ],
+        "hash": "6e150a1edb027fbf4dbe4692b68c28a363ff2b4759ae86dca7965a46f2445cca"
+      },
+      {
+        "options": [
+          "-clahe",
+          "0x0+0+3"
+        ],
+        "hash": "afb94838d1cf7b71ca3da15bb828f50e262e1c8280f7fa69941eef55e6750c74"
+      },
+      {
+        "options": [
+          "-clahe",
+          "50%+32+2"
+        ],
+        "hash": "314c4099b0bd4343090907a8f7e6dc9388b429e0b85071af57925786d3693dac"
+      },
+      {
+        "options": [
+          "-clahe",
+          "+32+3"
+        ],
+        "hash": "c9756bef303ec8b47e7ca35f02f0feac17675bfe88c851a130d0df707f740b99"
+      },
+      {
+        "options": [
+          "-clahe",
+          "5x3!+32+1"
+        ],
+        "hash": "4dd92d52cd698d9a67af1e78d9bb89e38b2650f5530ef173fb905ea5b647e09a"
+      },
+      {
+        "options": [
+          "-clahe",
+          "5x3!+32+0"
+        ],
+        "hash": "b0f4ee1bd0c6c81093d3e96718f0ac28db3734a06b8dcc971e9fceecf9acaf59"
+      },
+      {
+        "options": [
+          "-clahe",
+          "5x3!+500+2.5"
+        ],
+        "hash": "7a1f4adea4d24ceb7eae04b6b852180ef4535f1e5ba6f6cef8de1f4f08b73a1b"
+      },
+      {
+        "options": [
+          "-clahe",
+          "5"
+        ],
+        "hash": "878872445dca7ec73d89928120f71f5842d6d6cdf4002752391a1756af1ca822"
+      },
+      {
+        "options": [
+          "-clahe",
+          "x3"
+        ],
+        "hash": "75fe0964df0128e69e0d52cdfa75edf43c79f263345dc10f2570ab429cf5bd0c"
+      },
+      {
+        "options": [
+          "-clahe",
+          "5x3!"
+        ],
+        "hash": "878872445dca7ec73d89928120f71f5842d6d6cdf4002752391a1756af1ca822"
+      },
+      {
+        "options": [
+          "-background",
+          "#204060",
+          "-virtual-pixel",
+          "mirror",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "b0f4ee1bd0c6c81093d3e96718f0ac28db3734a06b8dcc971e9fceecf9acaf59"
+      },
+      {
+        "options": [
+          "-background",
+          "#204060",
+          "-virtual-pixel",
+          "tile",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "a76ba0f56f5d878ba074d0be87d699570d3ed383cba3790ae83c363c60bb7a8f"
+      },
+      {
+        "options": [
+          "-background",
+          "#204060",
+          "-virtual-pixel",
+          "background",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "d93897eaf387622a895a74b519c0e68bf476664c11bd83a7469271401cdff1fb"
+      },
+      {
+        "options": [
+          "-background",
+          "#204060",
+          "-virtual-pixel",
+          "black",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "56881c035cea8b43292c96660e03b7d429480ce20db244c505e4a6037f3e8c13"
+      },
+      {
+        "options": [
+          "-background",
+          "#204060",
+          "-virtual-pixel",
+          "white",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "56881c035cea8b43292c96660e03b7d429480ce20db244c505e4a6037f3e8c13"
+      },
+      {
+        "options": [
+          "-background",
+          "#204060",
+          "-virtual-pixel",
+          "gray",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "b8311c7d22db300829944c06cdfec912cf9c43b71e79b9c715ee7b9aa81f6b27"
+      },
+      {
+        "options": [
+          "-channel",
+          "R",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "b0f4ee1bd0c6c81093d3e96718f0ac28db3734a06b8dcc971e9fceecf9acaf59"
+      }
+    ]
+  },
+  {
+    "width": 13,
+    "height": 9,
+    "depth": 16,
+    "input": "iVBORw0KGgoAAAANSUhEUgAAAA0AAAAJEAYAAAC56nopAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRP///////wlY99wAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDlUMTE6MDY6NTErMDA6MDCyg8TWAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA5VDExOjA2OjUxKzAwOjAww958agAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wOVQxMTowNjo1MSswMDowMJTLXbUAAAEnSURBVCjPtZKxSsRAFEWd9xKyuNlkko3ZTcBqLljYyeIniJ8g+gt+g98gfoJYW80WgqBgJ1gIUwhbCILCdgsWphKLJCaRcW3cKnDJuffdN4+FvJRH0Wxtut7vv/hnIvRfB9f+Bc+Dm0Ea7PJdkIULuc+b8j26l4fOR/wQIT52HuOt4Wdy4m4nYuMpOXXddJbupOfe82g68scT72ocZm/ZnjfM5/ltftBzoKCgTAgCgwsBBoOMAIPAoI5efTUVAqwJXAhNbf0XjgphD+qAmsAg/QMsDQsBq24qn4ZzoAAoE9om7IBUKi29+s/WrNYbrmlkm9AC6lag/rNZ7WOq1cEEJQha3qw2rFZD+F7R8mbtN1rREdQDdoP+8wgUFNAM6ABl0KqOoOa+AAIPu21IJ8wWAAAAAElFTkSuQmCC",
+    "cases": [
+      {
+        "options": [
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "7cc668b1aeb56e434d5496027bbb56ee71cce9553b685a8f277bd0b9334cdd0f"
+      },
+      {
+        "options": [
+          "-clahe",
+          "8x8+32+3"
+        ],
+        "hash": "4a3786a38950fcaada33e475253b022a44696f16bb73b6fbd62a64d6d95323b1"
+      },
+      {
+        "options": [
+          "-clahe",
+          "0x0+0+3"
+        ],
+        "hash": "1df09f753ced8e576effb44813f41f6c83af0728d9de8faa2bf0c5590739a59d"
+      },
+      {
+        "options": [
+          "-clahe",
+          "50%+32+2"
+        ],
+        "hash": "320f91416d22a80d0dd65cc1d2d82830be377815e21a60425cebebeb8aac6882"
+      },
+      {
+        "options": [
+          "-clahe",
+          "+32+3"
+        ],
+        "hash": "99e9da16654bbc2560442d40bf3cda04b9f13b4f0ede7f4310a31fcfbb47d815"
+      },
+      {
+        "options": [
+          "-clahe",
+          "5x3!+32+1"
+        ],
+        "hash": "23297637f75d777488b01bd88a04e87293b97c995046f22b50203cc21a1f2683"
+      },
+      {
+        "options": [
+          "-clahe",
+          "5x3!+32+0"
+        ],
+        "hash": "7cc668b1aeb56e434d5496027bbb56ee71cce9553b685a8f277bd0b9334cdd0f"
+      },
+      {
+        "options": [
+          "-clahe",
+          "5x3!+500+2.5"
+        ],
+        "hash": "7703e3d5f04a329ff01be14d2ffe752e57788d2bfb6c4cad91fc028207f84c1a"
+      },
+      {
+        "options": [
+          "-clahe",
+          "5"
+        ],
+        "hash": "f1ce2f406bed3a6b993771dab5325bb109198a178e83bf4a7d8348ce88915a84"
+      },
+      {
+        "options": [
+          "-clahe",
+          "x3"
+        ],
+        "hash": "b8e4df30f3b838f4b3b298eae7d05bc3498929d03ef2e67b193c39c0473dd9d3"
+      },
+      {
+        "options": [
+          "-clahe",
+          "5x3!"
+        ],
+        "hash": "f1ce2f406bed3a6b993771dab5325bb109198a178e83bf4a7d8348ce88915a84"
+      },
+      {
+        "options": [
+          "-background",
+          "#204060",
+          "-virtual-pixel",
+          "mirror",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "7cc668b1aeb56e434d5496027bbb56ee71cce9553b685a8f277bd0b9334cdd0f"
+      },
+      {
+        "options": [
+          "-background",
+          "#204060",
+          "-virtual-pixel",
+          "tile",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "60b7cd828331692b702ca69b435a919466250acf17078e64c125e099e68d50c7"
+      },
+      {
+        "options": [
+          "-background",
+          "#204060",
+          "-virtual-pixel",
+          "background",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "a4a72302ecfbe854d5d0b65518592e4c10b26401e80edee9334bdb42d97547ad"
+      },
+      {
+        "options": [
+          "-background",
+          "#204060",
+          "-virtual-pixel",
+          "black",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "08c14ce783a9fbf84a67060a15e89c079619353873bbd99aabafb4e7bc11474d"
+      },
+      {
+        "options": [
+          "-background",
+          "#204060",
+          "-virtual-pixel",
+          "white",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "66e7dacf8784a36735030e1ce1ae659c44cfc62240422e1ea28bd8cf03fd8da8"
+      },
+      {
+        "options": [
+          "-background",
+          "#204060",
+          "-virtual-pixel",
+          "gray",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "3f835f2873ab05c764c07925a1b94e0af7dde12cd0543b6b0ca18122035d4e83"
+      },
+      {
+        "options": [
+          "-channel",
+          "R",
+          "-clahe",
+          "5x3!+32+3"
+        ],
+        "hash": "7cc668b1aeb56e434d5496027bbb56ee71cce9553b685a8f277bd0b9334cdd0f"
+      }
+    ]
+  },
+  {
+    "width": 1031,
+    "height": 3,
+    "depth": 8,
+    "input": "iVBORw0KGgoAAAANSUhEUgAABAcAAAADCAYAAADvGmZHAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDlUMTE6MDY6NTIrMDA6MDCDa95LAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA5VDExOjA2OjUyKzAwOjAw8jZm9wAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wOVQxMTowNjo1MiswMDowMKUjRygAAAFMSURBVGje7dhnIgIAAIbhBqUtOYzLuIwzkEqljUjaiyjagwolo9KOEu3tIH3PDd6/L5m3tb0jvbh9qo1Zh8a7dH3Klpv8ma/ZusISyH4vuCpr6LVF4Knt4fcf0u6RI/rxS+Yfu2L5v9V97eV9oUsRnrofir01ke46WRrQxOeeVGXIkFx4n6pj5qHh7rk+YctMvkxjxlGYAy/fc67SGnxtEjbUtvDbD3FT44h8tMl7x85Y7m9l/+QyXuhQBKdXD589qujsOlHq0w7Ob1LlIV2i9z5WR0yp4fa5NmHJjL50Y8qRm/0vX/N1pSWYbS42VLbQW4vI09gj723S3pEzmvtd4Z+44vnOqkB7df/ZpQrP3Ilif+1Ad5MsD+hiveexMmKgH/3oRz/60Y9+9KMf/ehHP/rRv8z9JCYAAAAAAAAALDXMAQAAAAAAAIAl9w8zcUVCZrK10AAAAABJRU5ErkJggg==",
+    "cases": [
+      {
+        "options": [
+          "-clahe",
+          "8x3!+32+3"
+        ],
+        "hash": "ba8332aba7f2d33b35779f2dd64561cf8d2113690f4628594c8fedca33c2e50b"
+      }
+    ]
+  }
+]

@@ -2604,7 +2604,8 @@ export function buildProbeResultFromDoc(
 
   const startTime = Number.isFinite(formatStart) ? formatStart : 0;
   const duration = Number.isFinite(formatEnd) ? Math.max(0, formatEnd - startTime) : doc.durationSeconds;
-  const unknownDuration = doc.containerFormat === "ffmetadata" && !doc.chapters?.length;
+  const unknownDuration = (doc.containerFormat === "ffmetadata" && !doc.chapters?.length) ||
+    (doc.containerFormat === "aiff" && duration === 0);
   const overallBitRate =
     duration > 0
       ? String((doc.containerFormat === 'mp4' || doc.containerFormat === 'mov' ? Math.trunc : Math.round)((byteLength * 8) / duration))

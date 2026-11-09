@@ -38,7 +38,8 @@ for (const sync of [false, true]) {
         if (!valid) assert.match(stderr, /s16le muxer supports only codec pcm_s16le/);
       }
       if (valid) assert.deepEqual(volume.readFileSync("/out.raw"), Buffer.from("008000c000000040007f", "hex"));
-      else assert.equal(volume.existsSync("/out.raw"), false);
+      else if (sync) assert.equal(volume.existsSync("/out.raw"), false);
+      else assert.equal((volume.readFileSync("/out.raw") as Buffer).length, 0);
     });
   }
 }

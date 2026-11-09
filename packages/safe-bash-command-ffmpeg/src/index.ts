@@ -10950,7 +10950,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 183 };
             }
-            if (!checksumOutput) validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
+            try {
+              if (!checksumOutput) validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
+            } catch (error) {
+              if (!isStdout(outputTarget) && outputTarget !== "/dev/null") {
+                await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
+              }
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
+              return { exitCode: 234 };
+            }
             validateStreamCopy(workingDoc, outPlugin?.id ?? outputFormat!, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
             validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin?.id ?? outputFormat!);
             if (movieTimescale !== undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) {

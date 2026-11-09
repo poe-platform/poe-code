@@ -6374,14 +6374,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else if (token === "-alpha") {
         const mode = (tokens[++i] ?? "on").toLowerCase();
-        if (mode === "discrete") {
-            highDepth = true;
-            apply = function* (im) {
-                yield;
-                return { ...im, hasAlpha: false };
-            };
-        }
-        else if (mode === "offifopaque") {
+        highDepth = ["deactivate", "associate", "disassociate", "off", "opaque", "activate", "on", "set", "extract"].includes(mode);
+        if (mode === "offifopaque") {
             highDepth = true;
             apply = function* (im) {
                 if (!im.hasAlpha) return im;
@@ -6420,16 +6414,25 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         else if (mode === "associate" || mode === "disassociate") {
             apply = function* (im) {
                 const out = new Uint8Array(im.data);
+                const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (idx % 65536 === 0) yield;
-                    const alpha = im.hasAlpha ? out[idx + 3]! / 255 : 1;
+                    const alpha = im.hasAlpha ? (data16 ? data16[idx + 3]! / 65535 : out[idx + 3]! / 255) : 1;
                     const scale = mode === "associate" ? alpha : 1 / Math.max(alpha, 1e-12);
-                    for (let channel = 0; channel < 3; channel++)
-                        out[idx + channel] = clampByteVal(out[idx + channel]! * scale);
-                    out[idx + 3] = 255;
+                    for (let channel = 0; channel < 3; channel++) {
+                        if (data16) {
+                            data16[idx + channel] = Math.min(65535, Math.round(data16[idx + channel]! * scale));
+                            out[idx + channel] = clampByteVal(data16[idx + channel]! / 257);
+                        } else out[idx + channel] = clampByteVal(out[idx + channel]! * scale);
+                    }
                 }
-                const { data16: ignored, ...metadata } = im;
-                return { ...metadata, data: out, hasAlpha: false };
+                return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: false };
+            };
+        }
+        else if (mode === "deactivate") {
+            apply = function* (im) {
+                yield;
+                return { ...im, hasAlpha: false };
             };
         }
         else if (mode === "background") {
@@ -6448,17 +6451,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 return { ...im, data: out };
             };
         }
-        else if (mode === "off" || mode === "deactivate" || mode === "opaque") {
-            highDepth = true;
+        else if (mode === "off" || mode === "opaque") {
             apply = function* (im) {
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);
-                const data16 = im.data16?.slice();
+                const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
                 for (let idx = 3; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
-                    out[idx] = 255;
-                    if (data16) data16[idx] = 65535;
+                    out[idx] = mode === "off" ? 0 : 255;
+                    if (data16) data16[idx] = mode === "off" ? 0 : 65535;
                 }
                 return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: mode === "opaque" };
             };
@@ -6494,7 +6496,6 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else if (mode === "activate") {
-            highDepth = true;
             apply = function* (im) {
                 yield;
                 return { ...im, hasAlpha: true, channels: im.channels <= 2 ? 2 : 4 };
@@ -6502,11 +6503,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         else if (mode === "on" || mode === "set") {
             apply = function* (im) {
-                return (yield* ensureAlphaImageSteps(im, 1));
+                if (im.hasAlpha) return im;
+                const opaque = yield* prepareInactiveAlphaOutput(im);
+                return { ...opaque, hasAlpha: true, channels: im.channels <= 2 ? 2 : 4 };
             };
         }
         else if (mode === "extract") {
-            highDepth = true;
             apply = function* (im) {
                 return yield* extractChannelImageSteps({ ...im, hasAlpha: true }, 3);
             };

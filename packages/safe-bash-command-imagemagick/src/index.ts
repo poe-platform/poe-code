@@ -7044,6 +7044,10 @@ if (t === "-seed") {
             const g = parseMagickGeometry(tokens[++i] ?? "72");
             state.density = Math.max(1, Math.round(g.width ?? 72));
         }
+        else if (t === "+fuzz") {
+            state.alphaFuzz = 0;
+            state.fuzz = 0;
+        }
         else if (t === "-fuzz") {
             const rawFuzz = tokens[++i] ?? "";
             const value = rawFuzz.endsWith("%") ? rawFuzz.slice(0, -1) : rawFuzz;

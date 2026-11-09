@@ -454,6 +454,19 @@ export function serializeMpegTs(
     throw new Error("Invalid muxdelay: expected seconds from 0 to 2147.483647");
   }
   const delay90k = Math.round(Math.trunc(muxDelay * 1_000_000) * 90000 / 1_000_000);
+  const startPid = options.mpegtsStartPid ?? 0x0100;
+  if (!Number.isInteger(startPid) || startPid < 0x0020 || startPid > 0x1ffa) {
+    throw new Error("Invalid mpegts_start_pid: expected an integer from 32 through 8186");
+  }
+  const videoTrack = doc.tracks.find((t) => t.type === "video");
+  const audioTrack = doc.tracks.find((t) => t.type === "audio");
+  const tracks = doc.tracks.filter((t) => t === videoTrack || t === audioTrack);
+  if (tracks.some((_, index) => startPid + index === 0x1000)) {
+    throw new Error("MPEG-TS elementary PID conflicts with PMT PID 4096");
+  }
+  const videoPid = startPid + (videoTrack ? tracks.indexOf(videoTrack) : 0);
+  const audioPid = startPid + (audioTrack ? tracks.indexOf(audioTrack) : 0);
+  const pcrPid = videoTrack ? videoPid : audioPid;
   const tsPackets: Uint8Array[] = [];
   const ccByPid = new Map<number, number>();
 
@@ -595,23 +608,13 @@ export function serializeMpegTs(
   emitSectionPacket(0x0000, patSection);
 
   // Build PMT (PID 0x1000)
-  const videoTrack = doc.tracks.find((t) => t.type === "video");
-  const audioTrack = doc.tracks.find((t) => t.type === "audio");
-  const videoPid = 0x0100;
-  const audioPid = 0x0101;
-  const pcrPid = videoTrack ? videoPid : audioPid;
-
-  const streamEntries: Uint8Array[] = [];
-  if (videoTrack) {
-    streamEntries.push(
-      new Uint8Array([0x1b, 0xe0 | ((videoPid >>> 8) & 0x1f), videoPid & 0xff, 0xf0, 0x00])
-    );
-  }
-  if (audioTrack) {
-    streamEntries.push(
-      new Uint8Array([options.mpegtsLatm ? 0x11 : 0x0f, 0xe0 | ((audioPid >>> 8) & 0x1f), audioPid & 0xff, 0xf0, 0x00])
-    );
-  }
+  const streamEntries = tracks.map((track, index) => {
+    const pid = startPid + index;
+    return new Uint8Array([
+      track.type === "video" ? 0x1b : options.mpegtsLatm ? 0x11 : 0x0f,
+      0xe0 | ((pid >>> 8) & 0x1f), pid & 0xff, 0xf0, 0x00
+    ]);
+  });
   const streamsBytes = concatBytes(streamEntries);
   const pmtSecLen = 9 + streamsBytes.byteLength + 4;
   const pmtHeader = new Uint8Array([

@@ -704,6 +704,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** First MPEG-TS elementary PID (32–8186, default: 256); must not collide with PMT PID 4096. */
+  readonly mpegtsStartPid?: number | undefined;
   /** MPEG-TS mux delay in seconds (default: 0.7); PTS/DTS gain twice this delay. */
   readonly muxDelay?: number | undefined;
   /** Five-bit PAT, PMT and SDT version (0–31, default 0). */

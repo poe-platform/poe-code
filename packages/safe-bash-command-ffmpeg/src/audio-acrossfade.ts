@@ -22,9 +22,14 @@ export async function acrossfadeAudio(
   let duration = 0;
   let overlap = true;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  let position = 0;
+  for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["ns", "d", "o", "c1", "c2"][index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? ["ns", "d", "o", "c1", "c2"][position] : option.slice(0, separator).trim();
+    // FFmpeg restarts shorthand after a named option, skipping the slot just
+    // visited if it was first. The named key itself does not select that slot.
+    if (separator < 0) position++;
+    else position = position === 0 ? 1 : 0;
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "ns" || key === "nb_samples") {
       samples = parseFilterExpression(value, "acrossfade", {});

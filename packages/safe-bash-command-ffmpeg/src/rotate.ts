@@ -2,7 +2,7 @@ import { scaleVideoPicture, type MediaVideoFrame, type MediaBudgetTracker } from
 import { yieldTurn } from "safe-bash-contracts/yield";
 
 // FFmpeg's rotate filter computes its sampling grid with 16-bit fixed point.
-function fixedSin(angle: number): number {
+export function fixedSin(angle: number): number {
   const pi = 3294199;
   if (angle < 0) angle = pi - angle;
   angle %= 2 * pi;

@@ -80,7 +80,7 @@ import { super2xsaiFrame } from "./super2xsai.js";
 import { epxFrame } from "./epx.js";
 import { hqxFrame } from "./hqx.js";
 import { signalstats } from "./signalstats.js";
-import { rotateYuvFrame } from "./rotate.js";
+import { fixedSin, rotateYuvFrame } from "./rotate.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
@@ -2249,8 +2249,9 @@ async function applyVideoFilterChain(
         const angle = parseFilterExpression(angleExpression, "rotate", {
           PI: Math.PI, n, t: f.ptsSeconds, iw: f.width, in_w: f.width, ih: f.height, in_h: f.height
         });
-        const cos = Math.abs(Math.cos(angle)) < 1e-15 ? 0 : Math.cos(angle);
-        const sin = Math.abs(Math.sin(angle)) < 1e-15 ? 0 : Math.sin(angle);
+        const fixedAngle = Math.trunc(angle * 1048576);
+        const sin = fixedSin(fixedAngle);
+        const cos = fixedSin(fixedAngle + Math.trunc(3294199 / 2));
         const dimensions = { PI: Math.PI, iw: f.width, ih: f.height, in_w: f.width, in_h: f.height,
           ow: f.width, oh: f.height, out_w: f.width, out_h: f.height };
         const widthExpression = named.ow ?? named.out_w ?? (rotatePositional[1] || "iw");
@@ -2265,14 +2266,16 @@ async function applyVideoFilterChain(
           ? await rotateYuvFrame(f, angle, width, height, bilinear, budget, signal) : undefined;
         if (yuv) return yuv;
         const data = new Uint8Array(width * height * 4);
-        const cx = (f.width - 1) / 2;
-        const cy = (f.height - 1) / 2;
+        const xi = Math.trunc(-(width - 1) * cos / 2);
+        const yi = Math.trunc((width - 1) * sin / 2);
+        const xprime = Math.trunc(-(height - 1) * sin / 2);
+        const yprime = Math.trunc(-(height - 1) * cos / 2);
         for (let y = 0; y < height; y++) {
           await yieldTurn(signal);
           budget.checkCpu();
           for (let x = 0; x < width; x++) {
-            const sx = cos * (x - (width - 1) / 2) + sin * (y - (height - 1) / 2) + cx;
-            const sy = -sin * (x - (width - 1) / 2) + cos * (y - (height - 1) / 2) + cy;
+            const sx = (xprime + y * sin + xi + 65536 * (f.width - 1) / 2 + x * cos) / 65536;
+            const sy = (yprime + y * cos + yi + 65536 * (f.height - 1) / 2 - x * sin) / 65536;
             const dest = (y * width + x) * 4;
             data.set(fill, dest);
             const ix = Math.floor(sx);
@@ -2294,7 +2297,7 @@ async function applyVideoFilterChain(
             for (let c = 0; c < 4; c++) {
               const top = f.data[(y0 * f.width + x0) * 4 + c]! * (1 - dx) + f.data[(y0 * f.width + x1) * 4 + c]! * dx;
               const bottom = f.data[(y1 * f.width + x0) * 4 + c]! * (1 - dx) + f.data[(y1 * f.width + x1) * 4 + c]! * dx;
-              data[dest + c] = Math.floor(top * (1 - dy) + bottom * dy + 1e-8);
+              data[dest + c] = Math.floor(top * (1 - dy) + bottom * dy);
             }
           }
         }

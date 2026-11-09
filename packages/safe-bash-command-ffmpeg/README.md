@@ -741,7 +741,8 @@ resampling the second input to the first input’s sample rate and ending with t
 shorter resampled input. Mono/stereo inputs are
 remixed to the first input’s layout with equal-power gains before multiplication;
 other layouts must match.
-Single-input filters before `amultiply` are not supported.
+Single-input filters on either branch run before multiplication, for example
+`[0:a]volume=0.5[x];[x][1:a]amultiply[out]`.
 
 `[0:a][1:a]amerge=inputs=2[out]` merges two inputs at the same sample rate,
 ending with the shorter input. Disjoint speaker layouts are combined in speaker

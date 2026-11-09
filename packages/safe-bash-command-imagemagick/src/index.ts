@@ -4618,18 +4618,33 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
         for (let i = 0; i < count; i++) {
             const x = (start + i) % image.width, y = Math.floor((start + i) / image.width);
             if (x < x0 || x >= x1 || y < y0 || y >= y1) continue;
-            let coverage = shape.shape === "circle" ? Math.max(0, Math.min(1, shape.radius + 0.5 - Math.hypot(x - shape.x, y - shape.y))) : 1;
-            // Native circle coverage outside the radius is (1 - distance)^2;
-            // disabling antialiasing thresholds it at one half.
-            if (shape.shape === "circle" && shape.antialias === false)
-                coverage = Math.hypot(x - shape.x, y - shape.y) <= shape.radius + 1 - Math.SQRT1_2 ? 1 : 0;
+            let coverage = 1;
+            if (shape.shape === "circle") {
+                // ImageMagick traces circles with angular steps of 1/(8r), then
+                // fills boundary pixels and squares the exterior distance fade.
+                const px = x - shape.x, py = y - shape.y, step = 1 / (8 * shape.radius);
+                const angle = (Math.atan2(py, px) + 2 * Math.PI) % (2 * Math.PI);
+                const start = Math.floor(angle / step) * step, end = Math.min(start + step, 2 * Math.PI);
+                const ax = shape.radius * Math.cos(start), ay = shape.radius * Math.sin(start);
+                const dx = shape.radius * Math.cos(end) - ax, dy = shape.radius * Math.sin(end) - ay;
+                const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)));
+                const distance = Math.hypot(px - ax - t * dx, py - ay - t * dy);
+                coverage = dx * (py - ay) - dy * (px - ax) >= 0 ? 1 : Math.max(0, 1 - distance) ** 2;
+                if (shape.antialias === false) coverage = coverage >= 0.5 ? 1 : 0;
+            }
             let color = shape.color;
             if (shape.shape === "line") {
                 const dx = shape.x1 - shape.x, dy = shape.y1 - shape.y;
                 const lengthSquared = dx * dx + dy * dy;
                 const t = lengthSquared === 0 ? 0 : Math.max(0, Math.min(1, ((x - shape.x) * dx + (y - shape.y) * dy) / lengthSquared));
                 const distance = Math.hypot(x - shape.x - t * dx, y - shape.y - t * dy);
-                if (distance > shape.width / 2) continue;
+                // Native edge bounds exclude the leading edge and include the
+                // trailing edge. Stroke coverage extends 3/4 pixel past midwidth.
+                const mid = shape.width / 2;
+                if (x <= Math.min(shape.x, shape.x1) - mid - 0.5 || x > Math.max(shape.x, shape.x1) + mid + 0.5 ||
+                    y <= Math.min(shape.y, shape.y1) - mid - 0.5 || y > Math.max(shape.y, shape.y1) + mid + 0.5) continue;
+                coverage = distance <= Math.abs(mid - 0.25) ? 1 : Math.max(0, mid + 0.75 - distance) ** 2;
+                if (shape.antialias === false) coverage = coverage >= 0.5 ? 1 : 0;
                 if (distance <= 0.5 && shape.fill.a > 0) {
                     const alpha = shape.fill.a / 255, offset = i * 4, da = data[offset + 3]! / quantum;
                     const outA = alpha + da * (1 - alpha);
@@ -4728,7 +4743,8 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (fillOpacity !== undefined && fill !== "none") fillColor.a = fillOpacity * 255;
         if (strokeOpacity !== undefined && stroke !== "none") strokeColor.a = strokeOpacity * 255;
         const paintFill = rgbaToCss(fillColor), paintStroke = rgbaToCss(strokeColor);
-        if ((fillOpacity !== undefined || strokeOpacity !== undefined) && svgElements.length > 0 && ["point", "line", "rectangle", "circle"].includes(cmd)) {
+        if (svgElements.length > 0 && (["line", "circle"].includes(cmd) ||
+            ((fillOpacity !== undefined || strokeOpacity !== undefined) && ["point", "rectangle"].includes(cmd)))) {
             yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
             svgElements.length = 0;
         }
@@ -4849,8 +4865,8 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const x1 = num();
             const y1 = num();
             const lineStroke = stroke === "none" ? paintFill : paintStroke;
-            if ((fillOpacity !== undefined || strokeOpacity !== undefined) && !transformed && svgElements.length === 0) {
-                yield { kind: "shape", shape: "line", tile: false, color: stroke === "none" ? fillColor : strokeColor, fill: stroke === "none" ? { ...fillColor, a: 0 } : fillColor, x: x0, y: y0, x1, y1, width: Math.max(1, strokeWidth) };
+            if (!transformed && svgElements.length === 0) {
+                yield { kind: "shape", shape: "line", tile: false, color: stroke === "none" ? fillColor : strokeColor, fill: stroke === "none" ? { ...fillColor, a: 0 } : fillColor, x: x0, y: y0, x1, y1, width: Math.max(1, strokeWidth), antialias: state.antialias !== false };
             } else {
                 svgElements.push(`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
             }

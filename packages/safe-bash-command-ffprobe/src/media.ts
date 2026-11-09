@@ -543,6 +543,13 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     if (types.some(type => stream.codec_type !== type)) return;
     if (programIndices && !programIndices.has(stream.index)) return;
     if (spec) {
+      if (spec === "u") {
+        if (!stream.codec_name || stream.codec_name === "unknown") return;
+        if (stream.codec_type === "audio" && (!(Number(stream.sample_rate) > 0) || !stream.channels
+          || !stream.sample_fmt || stream.sample_fmt === "unknown")) return;
+        if (stream.codec_type === "video" && (!stream.width || !stream.height
+          || !stream.pix_fmt || stream.pix_fmt === "unknown")) return;
+      }
       if (spec.startsWith("i:") || spec.startsWith("#")) {
         const id = Number(spec.slice(spec[0] === "#" ? 1 : 2));
         if (stream.id === undefined || Number(stream.id) !== id) return;
@@ -998,7 +1005,7 @@ function parseProbeArguments(args: readonly string[]) {
     const digits = hex ? id.slice(2).toLowerCase() : id;
     const validId = digits.length > 0 && [...digits].every(c =>
       c >= "0" && c <= "9" || hex && c >= "a" && c <= "f") && Number.isSafeInteger(Number(id));
-    const valid = spec === "" || kind === "m" && parts.length > 0
+    const valid = selectStreams === "u" || spec === "" || kind === "m" && parts.length > 0
       || ["v", "a", "s", "d", "t"].includes(kind!) && parts.length === 0
       || kind === "p" && parts.length === 1 && numeric
       || parts.length === 0 && numeric || validId;

@@ -5111,6 +5111,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let segmentTimes: number[] | undefined;
         let segmentFormat: string | undefined;
         let resetTimestamps = false;
+        let initialOffset = 0;
         let segmentFrames: number[] | undefined;
         let segmentList: string | undefined;
         let segmentListEntryPrefix = "";
@@ -5430,6 +5431,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             segmentWrap = Number(value);
             if (!value.trim() || !Number.isInteger(segmentWrap) || segmentWrap < 0 || segmentWrap > 2147483647) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid segment_wrap\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-initial_offset") {
+            initialOffset = parseHlsDuration(args[++i] ?? "");
+            if (!Number.isFinite(initialOffset)) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid initial_offset\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-segment_time_delta") {
@@ -10102,8 +10109,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       (index === 0 || (sample.dts - audioOffset) / track.timescale >= start) &&
                       (index === paths.length - 1 || (sample.dts - audioOffset) / track.timescale < end))
                   })) };
-                const bytes = segmentPlugin.serialize(resetTimestamps && !audioSegment
-                  ? shiftTimestamps(segment, -start, budget) : segment, { writeHeader: writeHeader && (segmentPlugin.id !== "wav" || writeHeaderTrailer && (individualHeaderTrailer || index === 0)), writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, reserveIndexSpace, budget, limits: options.limits });
+                const bytes = segmentPlugin.serialize(!audioSegment
+                  ? shiftTimestamps(segment, initialOffset - (resetTimestamps ? start : 0), budget) : segment, { writeHeader: writeHeader && (segmentPlugin.id !== "wav" || writeHeaderTrailer && (individualHeaderTrailer || index === 0)), writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, reserveIndexSpace, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));

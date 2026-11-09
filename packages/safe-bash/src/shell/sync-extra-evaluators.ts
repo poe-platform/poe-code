@@ -18145,7 +18145,7 @@ const syncExtraRuntimeMethods = {
         } else if (sName === "factor") {
           if (this.evalSyncFactor(["2"], sArgs) === undefined) return undefined;
         } else if (sName === "tsort") {
-          if (this.evalSyncTsort(["a b"], sArgs, rawState.cwd) === undefined) return undefined;
+          if (this.evalSyncTsort(["a b"], sArgs, rawState) === undefined) return undefined;
         } else if (sName === "envsubst") {
           if (this.evalSyncEnvsubst("", sArgs, rawState) === undefined) return undefined;
         } else if (sName === "hexdump" || sName === "hd") {
@@ -18687,7 +18687,7 @@ const syncExtraRuntimeMethods = {
               outLines = fRes;
             } else if (firstName === "tsort") {
               if (sIdx === 0 && cmd0FileStage && !stageArgs.some(a => a !== "-" && !a.startsWith("-"))) return undefined;
-              const tsRes = this.evalSyncTsort(rawLines, stageArgs, rawState.cwd);
+              const tsRes = this.evalSyncTsort(rawLines, stageArgs, rawState);
               if (tsRes === undefined) return undefined;
               outLines = tsRes;
             } else if (firstName === "base32" || firstName === "dos2unix" || firstName === "unix2dos" || firstName === "iconv" || firstName === "gzip" || firstName === "gunzip" || firstName === "zcat" || firstName === "unzstd" || firstName === "zstdcat" || firstName === "zstd" || firstName === "bzip2" || firstName === "bunzip2" || firstName === "bzcat" || firstName === "xz" || firstName === "unxz" || firstName === "xzcat" || firstName === "lzma" || firstName === "unlzma" || firstName === "lzcat") {
@@ -19492,7 +19492,7 @@ const syncExtraRuntimeMethods = {
         else if (w0Plain === "join") cjLines = this.evalSyncJoin(stdinLines, allArgs, rawState.cwd);
         else if (w0Plain === "paste") cjLines = this.evalSyncPaste(stdinLines, allArgs, rawState.cwd, false, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined);
         else if (w0Plain === "factor") cjLines = this.evalSyncFactor(stdinLines, allArgs);
-        else if (w0Plain === "tsort") cjLines = this.evalSyncTsort(stdinLines, allArgs, rawState.cwd);
+        else if (w0Plain === "tsort") cjLines = this.evalSyncTsort(stdinLines, allArgs, rawState);
         else if (w0Plain === "jq") cjLines = this.evalSyncJq(undefined, allArgs, rawState.cwd);
         else if (w0Plain === "envsubst") {
           const esOut = this.evalSyncEnvsubst(undefined, allArgs, rawState);
@@ -19966,7 +19966,7 @@ const syncExtraRuntimeMethods = {
               const facRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncFactor(rawLines, opArgs) : this.evalSyncFactor(undefined, allArgs);
               if (facRes !== undefined) fileRes = renderLines(facRes);
             } else if (w0Plain === "tsort") {
-              const tsRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncTsort(rawLines, opArgs, rawState.cwd) : this.evalSyncTsort(undefined, allArgs, rawState.cwd);
+              const tsRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncTsort(rawLines, opArgs, rawState) : this.evalSyncTsort(undefined, allArgs, rawState);
               if (tsRes !== undefined) fileRes = renderLines(tsRes);
             } else if (w0Plain === "strings") {
               const strRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncStrings(rawLines, opArgs) : this.evalSyncMultiFileText("strings", allArgs, rawState.cwd, false);
@@ -25313,7 +25313,7 @@ const syncExtraRuntimeMethods = {
     return out;
   }
 ,
-  evalSyncTsort(this: any, rawLines: readonly string[] | undefined, opArgs: readonly string[], cwd: string): string[] | undefined {
+  evalSyncTsort(this: any, rawLines: readonly string[] | undefined, opArgs: readonly string[], rawState: State): string[] | undefined {
     let optionsEnded = false;
     const files: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
@@ -25321,12 +25321,13 @@ const syncExtraRuntimeMethods = {
       if (!optionsEnded && a === "--") { optionsEnded = true; continue; }
       if (!optionsEnded && a.startsWith("-") && a !== "-") return undefined;
       files.push(a);
+      if (rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined) optionsEnded = true;
     }
     if (files.length > 1) return undefined;
     let linesToRead = rawLines;
     if (files.length === 1 && files[0] !== "-") {
       const operand = files[0]!;
-      const memLines = this.readSyncMemoryLines(operand.startsWith("/") ? operand : `${cwd}/${operand}`);
+      const memLines = this.readSyncMemoryLines(operand.startsWith("/") ? operand : `${rawState.cwd}/${operand}`);
       if (memLines === undefined) return undefined;
       linesToRead = memLines;
     }

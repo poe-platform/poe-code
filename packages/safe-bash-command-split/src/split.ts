@@ -1,6 +1,6 @@
 import { bytesFrom } from "safe-bash-byte-engine";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
-import { writeDiagnostic } from "safe-bash-contracts/escaping";
+import { quoteShellOperand, writeDiagnostic } from "safe-bash-contracts/escaping";
 import { FsError, isFsError, collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { Budget, Cursor, interruptible } from "./io.js";
 import { Names } from "./names.js";
@@ -153,7 +153,7 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       if (files === 1 && initialDirectoryError) throw initialDirectoryError;
       const destination = files === 1 && initial ? initial : await outputs.prepare(name);
       if (args.verbose) {
-        const line = bytesFrom(`creating file '${name}'\n`);
+        const line = bytesFrom(`creating file ${quoteShellOperand(name)}\n`);
         budget.output(line.length);
         await context.stdout.write(line);
       }
@@ -343,7 +343,7 @@ export function evalSyncSplit(
       if (!writeFileSync(fileName, chunk)) return undefined;
       created.push(fileName);
     }
-    return args.verbose ? created.map(n => `creating file '${n}'\n`).join("") : "";
+    return args.verbose ? created.map(n => `creating file ${quoteShellOperand(n)}\n`).join("") : "";
   } catch {
     return undefined;
   }

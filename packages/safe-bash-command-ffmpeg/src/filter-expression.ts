@@ -130,11 +130,12 @@ export function parseFilterExpression(expression: string, filter: string, variab
     for (;;) {
       while (source[offset] === " ") offset++;
       const operator = source[offset];
-      const precedence = operator === "+" || operator === "-" ? 1 : operator === "*" || operator === "/" ? 2 : 0;
-      if (precedence === 0 || precedence < minPrecedence) break;
+      const precedence = operator === ";" ? 0 : operator === "+" || operator === "-" ? 1 : operator === "*" || operator === "/" ? 2 : -1;
+      if (precedence < minPrecedence) break;
       offset++;
       const right = parse(precedence + 1, depth + 1, evaluate);
-      if (operator === "+") value += right;
+      if (operator === ";") value = right;
+      else if (operator === "+") value += right;
       else if (operator === "-") value -= right;
       else if (operator === "*") value *= right;
       else value /= right;

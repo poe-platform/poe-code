@@ -1512,8 +1512,10 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       }
       if (filters[0] === "acrossfade" || filters[0]?.startsWith("acrossfade=")) {
         if (sources.length !== 2) throw new Error("acrossfade requires two inputs");
-        if (sources.some(source => source.expression && source.expression !== "anull")) {
-          throw new Error("acrossfade does not support preceding single-input filters");
+        for (const source of sources) {
+          if (source.expression && source.expression !== "anull") {
+            source.track = await filterAudio(source.track, source.expression);
+          }
         }
         const track = await acrossfadeAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };

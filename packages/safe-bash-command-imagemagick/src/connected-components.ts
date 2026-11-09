@@ -218,6 +218,7 @@ export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connec
   if (!request) { yield; next = steps.next(0); continue; }
   const { region, index, value } = request;
   if (region === "black") next = steps.next(image.hueSamples ? image.hueSamples[index * 4 + 3]! * 255 : rgbToCmyk(image.data[index * 4]! / 255, image.data[index * 4 + 1]! / 255, image.data[index * 4 + 2]! / 255)[3]! * 255);
+  else if (region === "pixels" && index % 4 === 3 && !image.hasAlpha) next = steps.next(255);
   else if (region === "pixels" && image.space === "cmyk" && index % 4 === 3) next = steps.next(image.data16 ? image.data16[index]! / 257 : image.data[index]!);
   else if (region === "pixels") next = steps.next(image.hueSamples ? image.hueSamples[index]! * 255 : image.data16 ? image.data16[index]! / 257 : image.data[index]!);
   else { const data = region === "labels" ? labels : queue; if (value !== undefined) data[index] = value; next = steps.next(data[index]!); }
@@ -252,7 +253,8 @@ export async function connectedComponentsStored(image: StoredRgbaImage & HueMeta
   const region = regions[request.region], offset = request.index * 4;
   if (request.region === "pixels") {
    const index = request.index;
-   if (image.space === "cmyk" && index % 4 === 3) next = steps.next(await cache.byte({ position: image.position, length: size }, index));
+   if (index % 4 === 3 && !image.hasAlpha) next = steps.next(255);
+   else if (image.space === "cmyk" && index % 4 === 3) next = steps.next(await cache.byte({ position: image.position, length: size }, index));
    else if (image.storedHueSamples !== undefined) next = steps.next(await cache.float64(region, index * 8) * 255);
    else if (image.storedData16) {
     const pair = await cache.uint32(region, Math.floor(index / 2) * 4);

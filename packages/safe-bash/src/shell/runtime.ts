@@ -8611,7 +8611,12 @@ export class Runtime {
         return 2;
       }
       const count = Number(value);
-      if (args.length - offset > 1 || count < 0 || count > state.positional.length) return 1;
+      if (args.length - offset > 1) return 1;
+      if (count < 0) {
+        await writeDiagnostic(stderr, `shift: ${operand}: shift count out of range\n`);
+        return 1;
+      }
+      if (count > state.positional.length) return 1;
       this.replacePositionals(state, this.positionalValues(state).slice(count));
       return 0;
     }

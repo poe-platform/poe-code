@@ -26,13 +26,25 @@ for (const argument of [undefined, "1", "+01", " \t1\n", "0".repeat(4096) + "1"]
   });
 }
 
-for (const [argument, status, count] of [["0", 0, 2], ["-0", 0, 2], ["2", 0, 0], ["3", 1, 2], ["-1", 1, 2], ["9223372036854775807", 1, 2], ["-9223372036854775808", 1, 2], ["1 2", 1, 2]] as const) {
+for (const [argument, status, count] of [["0", 0, 2], ["-0", 0, 2], ["2", 0, 0], ["3", 1, 2], ["-- 3", 1, 2], ["9223372036854775807", 1, 2], ["1 2", 1, 2]] as const) {
   test(`shift preserves range and argument-count validation for ${argument}`, async () => {
     const { shell } = setup();
     try {
       const result = await shell.exec(`set -- first second; shift ${argument}; say "AFTER:$?:COUNT:$#"`);
       assert.equal(result.stdout, `AFTER:${status}:COUNT:${count}\n`);
       assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const argument of ["-1", "-- -1", "-9223372036854775808"]) {
+  test(`shift diagnoses negative count ${argument} without changing positionals`, async () => {
+    const { shell } = setup();
+    try {
+      const result = await shell.exec(`set -- first second; shift ${argument}; say "AFTER:$?:COUNT:$#:$1:$2"`);
+      assert.equal(result.stdout, "AFTER:1:COUNT:2:first:second\n");
+      assert.equal(result.stderr, `shift: ${argument === "-- -1" ? "-1" : argument}: shift count out of range\n`);
       assert.equal(result.exitCode, 0);
     } finally { await shell.dispose(); }
   });

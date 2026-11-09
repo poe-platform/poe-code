@@ -5975,10 +5975,11 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     } };
 }
 
-type MagickPixelOperation = { warning?: string; evaluate?: boolean; highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number): Generator<void, RgbaImage, void> };
+type MagickPixelOperation = { maskAlpha?: "transparent" | "opaque" | undefined; warning?: string; evaluate?: boolean; highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number): Generator<void, RgbaImage, void> };
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
     let i = start, apply: MagickPixelOperation["apply"], highDepth = false, warning: string | undefined;
+    let maskAlpha: MagickPixelOperation["maskAlpha"];
     if (token === "-colorspace" || token === "-grayscale" || token === "-type") {
         const value = tokens[++i];
         const imageType = token === "-type" ? (value ?? "").toLowerCase() : undefined;
@@ -6077,6 +6078,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else if (token === "-alpha") {
         const mode = (tokens[++i] ?? "on").toLowerCase();
+        if (mode === "transparent" || mode === "opaque") maskAlpha = mode;
         highDepth = ["discrete", "deactivate", "associate", "disassociate", "off", "opaque", "activate", "on", "set", "extract"].includes(mode);
         if (mode === "offifopaque") {
             highDepth = true;
@@ -6699,7 +6701,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, ...(warning ? { warning } : {}), evaluate: token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelSelections(expression: string): number[][] {
@@ -7678,7 +7680,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const input = pixelOperation.evaluate ? image : bounded;
                 const { data16: ignored, ...pixels } = input;
                 return pixelOperation.apply(pixelOperation.highDepth ? input : pixels);
-            });
+            }, pixelOperation.maskAlpha);
         }
         else if (warpOperation) {
             i = warpOperation.end;
@@ -9112,7 +9114,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
     let state = createDefaultState();
     const tokens = argv.slice(0, -1), scopes: { state: MagickState; end: number }[] = [];
     type StackStep = (stack: StoredImageStack, backend: CompareFileSession, parents: StoredImageStack[]) => Promise<StoredImageStack>;
-    type Step = ((image: StoredRgbaImage | undefined, backend: CompareFileSession) => Promise<StoredRgbaImage | undefined>) | { runStack: StackStep };
+    type Step = (((image: StoredRgbaImage | undefined, backend: CompareFileSession) => Promise<StoredRgbaImage | undefined>) & Pick<MagickPixelOperation, "maskAlpha">) | { runStack: StackStep };
     const steps: Step[] = [];
     const registers = new Map<string, StoredImageStack>();
     const stackStep = (runStack: StackStep) => { steps.push({ runStack }); };
@@ -9456,7 +9458,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             i = pixelOperation.end;
-            steps.push(async (image, backend) => image ? transformStoredMagickPixels(image, backend, pixelOperation, signal) : undefined);
+            steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => image ? transformStoredMagickPixels(image, backend, pixelOperation, signal) : undefined, { maskAlpha: pixelOperation.maskAlpha }));
             continue;
         }
         if (!operandsOnly && token === "-hough-lines") {
@@ -10403,8 +10405,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 else for (let n = 0; n < stack.length; n++) {
                     const original = (await stack.get(n))! as StoredRgbaImage;
                     let result = await step(original, backend);
-                    if (result && original.storedWriteMask && result.position !== original.position && result.width === original.width && result.height === original.height) {
-                        result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask, !!(result.storedData16 || original.storedData16)), signal, result, [result, original, { ...original, ...original.storedWriteMask }]);
+                    if (result && step.maskAlpha !== "transparent" && original.storedWriteMask && result.position !== original.position && result.width === original.width && result.height === original.height) {
+                        result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask, !!(result.storedData16 || original.storedData16), step.maskAlpha === "opaque"), signal, result, [result, original, { ...original, ...original.storedWriteMask }]);
                     }
                     if (result && original.region && result.position !== original.position && result.width === original.width && result.height === original.height) {
                         result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, original.region), signal, result, [result, original]);
@@ -13001,14 +13003,14 @@ export function createImagemagickCommands(options: ImagemagickCommandsOptions = 
 
 
 
-function* mapMagickImagesSteps(images: readonly RgbaImage[], transform: (image: RgbaImage) => Generator<void, RgbaImage, void>): Generator<void, RgbaImage[], void> {
+function* mapMagickImagesSteps(images: readonly RgbaImage[], transform: (image: RgbaImage) => Generator<void, RgbaImage, void>, maskAlpha?: MagickPixelOperation["maskAlpha"]): Generator<void, RgbaImage[], void> {
     return yield* mapSteps(images, function* (original) {
         let result = yield* transform(original);
         if (original.region && result.data !== original.data && result.width === original.width && result.height === original.height) {
             result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, original.region), undefined, result, [result, original]);
         }
-        if (!original.writeMask || result.data === original.data || result.width !== original.width || result.height !== original.height) return result;
-        return yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask, !!(result.data16 || original.data16)), undefined, result, [result, original, original.writeMask]);
+        if (maskAlpha === "transparent" || !original.writeMask || result.data === original.data || result.width !== original.width || result.height !== original.height) return result;
+        return yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask, !!(result.data16 || original.data16), maskAlpha === "opaque"), undefined, result, [result, original, original.writeMask]);
     });
 }
 

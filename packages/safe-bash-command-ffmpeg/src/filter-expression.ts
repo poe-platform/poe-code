@@ -57,7 +57,8 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else if (name === "gte" && args.length === 2) value = Number(args[0]! >= args[1]!);
         else if (name === "lte" && args.length === 2) value = Number(args[0]! <= args[1]!);
         else if (name === "lt" && args.length === 2) value = Number(args[0]! < args[1]!);
-        else if (name === "if" && args.length === 3) value = args[0] !== 0 ? args[1]! : args[2]!;
+        else if (name === "if" && (args.length === 2 || args.length === 3)) value = args[0] !== 0 ? args[1]! : (args[2] ?? 0);
+        else if (name === "ifnot" && (args.length === 2 || args.length === 3)) value = args[0] === 0 ? args[1]! : (args[2] ?? 0);
         else if (name === "gt" && args.length === 2) value = Number(args[0]! > args[1]!);
         else if (name === "pow" && args.length === 2) value = Math.pow(args[0]!, args[1]!);
         else if (name === "mod" && args.length === 2) value = args[0]! - Math.floor(args[0]! / args[1]!) * args[1]!;

@@ -6986,7 +6986,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
                 }
             }
-            return { ...image, data: out, ...(data16 ? { data16 } : {}) };
+            return { ...image, isPalette: false, data: out, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-tint") {
         highDepth = true;

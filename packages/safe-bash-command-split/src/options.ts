@@ -88,7 +88,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
     if (option === "d" || option === "x") {
       alphabet = option === "d" ? "0123456789" : "0123456789abcdef";
       if (value !== undefined) {
-        if ([...value.toLowerCase()].some(digit => !alphabet.includes(digit))) throw new PublicDiagnostic(`invalid start value for numerical suffix: '${value}'`);
+        if ([...value].some(digit => !alphabet.includes(digit))) throw new PublicDiagnostic(`invalid start value for numerical suffix: '${value}'`);
         numericStartValue = BigInt(option === "x" ? `0x${value || "0"}` : value || "0");
       }
     } else if (option === "a") suffixLength = number(value!, "suffix length", false, true);

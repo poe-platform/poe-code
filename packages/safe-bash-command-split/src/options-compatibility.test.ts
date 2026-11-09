@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { evalSyncSplit } from "./index.js";
 import { files, run } from "./test-helpers.js";
 
 const hex = (text: string) => Buffer.from(text).toString("hex");
@@ -34,10 +35,30 @@ test("identical separators remain valid across short and long options", async ()
 });
 
 test("hexadecimal suffix starts use hexadecimal digits and radix", async () => {
-  for (const [start, first, second] of [["10", "10", "11"], ["1A", "1a", "1b"], ["000f", "0f", "10"]]) {
+  for (const [start, first, second] of [["10", "10", "11"], ["a", "0a", "0b"], ["1a", "1a", "1b"], ["000f", "0f", "10"]]) {
     const result = await run(["-l1", `--hex-suffixes=${start}`], "a\nb\n");
     assert.equal(result.exitCode, 0, result.stderr);
     assert.deepEqual(await files(result.fs), { [`x${first}`]: hex("a\n"), [`x${second}`]: hex("b\n") });
+  }
+});
+
+test("uppercase hexadecimal suffix starts fail before creating or overwriting files", async () => {
+  for (const start of ["A", "B", "C", "D", "E", "F", "1A", "aF"]) {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/in", Buffer.from("abc"));
+    await fs.writeFile("/x0a", Buffer.from("keep"));
+    const result = await run([`--hex-suffixes=${start}`, "-b1", "in"], "", {}, { fs });
+    assert.equal(result.exitCode, 1, start);
+    assert.ok(result.stderr.includes("invalid start value"), result.stderr);
+    assert.equal(result.stdout, "");
+    assert.deepEqual(await files(result.fs), { in: hex("abc"), x0a: hex("keep") });
+
+    const writes: string[] = [];
+    assert.equal(evalSyncSplit(Buffer.from("abc"), [`--hex-suffixes=${start}`, "-b1"], undefined, path => {
+      writes.push(path);
+      return true;
+    }), undefined);
+    assert.deepEqual(writes, []);
   }
 });
 

@@ -46,7 +46,8 @@ credentials are used.
   accepted only with the long `=FROM` spelling. A start disables automatic
   widening; select a sufficient `-a` width. Leading zeroes are ignored.
 - `--additional-suffix=TEXT`: append TEXT after the counter; no `/` or NUL.
-- `-x`, `--hex-suffixes[=FROM]`: lowercase hexadecimal counters; FROM is decimal.
+- `-x`, `--hex-suffixes[=FROM]`: lowercase hexadecimal counters; FROM accepts
+  only digits `0`–`9` and lowercase `a`–`f`.
 - `-t BYTE`, `--separator=BYTE`: use a single byte instead of LF for `-l`/`-C`;
   `\\0` selects NUL.
 - `-n COUNT`, `--number=COUNT`: divide input into COUNT byte chunks, assigning

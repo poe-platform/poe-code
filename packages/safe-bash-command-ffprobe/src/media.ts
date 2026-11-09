@@ -527,13 +527,20 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   const includeChapters = opts.showChapters || includesEntries("chapter");
   const includePrograms = opts.showPrograms || includesEntries("program") || includesEntries("program_tags") || includesEntries("stream");
 
-  const programIndices = opts.selectStreams?.startsWith("p:")
-    ? new Set(probe.programs?.filter(program => program.program_id === Number(opts.selectStreams!.slice(2)))
+  let spec = opts.selectStreams ?? "";
+  const types: string[] = [];
+  while (["v", "a", "s", "d", "t"].includes(spec.split(":")[0]!)) {
+    types.push(spec[0] === "v" ? "video" : spec[0] === "a" ? "audio" : spec[0] === "s" ? "subtitle" : spec[0] === "d" ? "data" : "attachment");
+    spec = spec.slice(2);
+  }
+  const programIndices = spec.startsWith("p:")
+    ? new Set(probe.programs?.filter(program => program.program_id === Number(spec.slice(2)))
       .flatMap(program => program.streams.map(stream => stream.index)))
     : undefined;
   let typeOrdinal = 0;
   const prepareStream = (row: unknown): Record<string, unknown> | undefined => {
-    const stream = row as MediaProbeStream, spec = opts.selectStreams?.toLowerCase();
+    const stream = row as MediaProbeStream;
+    if (types.some(type => stream.codec_type !== type)) return;
     if (programIndices && !programIndices.has(stream.index)) return;
     if (spec) {
       if (spec.startsWith("i:") || spec.startsWith("#")) {
@@ -541,16 +548,14 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
         if (stream.id === undefined || Number(stream.id) !== id) return;
       }
       if (spec.startsWith("m:")) {
-        const [key, ...value] = opts.selectStreams!.slice(2).split(":");
+        const [key, ...value] = spec.slice(2).split(":");
         const tag = Object.entries(stream.tags ?? {}).find(([name]) => name.toLowerCase() === key!.toLowerCase());
         if (!tag || (value.length > 0 && tag[1] !== value.join(":"))) return;
       }
-      const type = spec[0] === "v" ? "video" : spec[0] === "a" ? "audio" : spec[0] === "s" ? "subtitle" : spec[0] === "d" ? "data" : spec[0] === "t" ? "attachment" : undefined;
-      if ((spec === "v" || spec === "a" || spec === "s" || spec === "d" || spec === "t") && stream.codec_type !== type) return;
-      if (spec.startsWith("v:") || spec.startsWith("a:") || spec.startsWith("s:") || spec.startsWith("d:") || spec.startsWith("t:")) {
-        if (stream.codec_type !== type) return;
-        if (typeOrdinal++ !== (parseInt(spec.slice(2), 10) || 0)) return;
-      } else if ([...spec].every(c => c >= "0" && c <= "9") && stream.index !== parseInt(spec, 10)) return;
+      if ([...spec].every(c => c >= "0" && c <= "9")) {
+        const index = types.length > 0 ? typeOrdinal++ : stream.index;
+        if (index !== Number(spec)) return;
+      }
     }
     const recordCount = probe.format?.format_name === "wav" && stream.duration_ts !== undefined
       ? String(Math.ceil(stream.duration_ts / wavPacketFrames(Number(stream.sample_rate),
@@ -980,17 +985,21 @@ function parseProbeArguments(args: readonly string[]) {
   }
   if (!inputTarget) throw new Error("must specify an input file");
   if (selectStreams) {
-    const [kind, ...parts] = selectStreams.split(":");
+    let spec = selectStreams;
+    while (["v", "a", "s", "d", "t"].includes(spec.split(":")[0]!) && spec.includes(":")) {
+      spec = spec.slice(2);
+    }
+    const [kind, ...parts] = spec.split(":");
     const index = parts.length === 0 ? kind! : parts[0]!;
     const numeric = index.length > 0 && [...index].every(c => c >= "0" && c <= "9");
-    const id = selectStreams.startsWith("i:") ? selectStreams.slice(2)
-      : selectStreams.startsWith("#") ? selectStreams.slice(1) : "";
+    const id = spec.startsWith("i:") ? spec.slice(2)
+      : spec.startsWith("#") ? spec.slice(1) : "";
     const hex = id.toLowerCase().startsWith("0x");
     const digits = hex ? id.slice(2).toLowerCase() : id;
     const validId = digits.length > 0 && [...digits].every(c =>
       c >= "0" && c <= "9" || hex && c >= "a" && c <= "f") && Number.isSafeInteger(Number(id));
     const valid = kind === "m" && parts.length > 0
-      || ["v", "a", "s", "d", "t"].includes(kind!) && (parts.length === 0 || parts.length === 1 && numeric)
+      || ["v", "a", "s", "d", "t"].includes(kind!) && parts.length === 0
       || kind === "p" && parts.length === 1 && numeric
       || parts.length === 0 && numeric || validId;
     if (!valid) throw new Error(`Invalid stream specifier: ${selectStreams}`);

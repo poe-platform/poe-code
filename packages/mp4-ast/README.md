@@ -63,6 +63,7 @@ Set `useTemplate: false` to emit explicit `SegmentList` resource references inst
 Set `useTimeline: false` for fixed-duration `SegmentTemplate` output without a timeline.
 Set `hlsPlaylist: true` to also return `master.m3u8` and per-stream `media_N.m3u8` playlists referencing the same DASH fragments (including single-file byte ranges).
 Separate DASH media files start with an `styp` box carrying the `msdh`/`msix` brands.
+MP4 media segments contain a local `sidx` index covering their fragments. Set `streaming: true` to omit indexes and write one fragment per frame.
 Use `fragmentType: "every_frame"` to place one fragment per frame inside each segment, independently of `segmentDuration`; the default (`"none"`) writes one fragment per segment.
 Set `mpdProfile: "dvb_dash"` to declare the DVB DASH profile, or `"dash+dvb_dash"` for both DVB and the default ISO live profile.
 Set `windowSize` to bound each DASH timeline or segment list to its last N segments (`0` retains all), preserving segment numbers and resource references.

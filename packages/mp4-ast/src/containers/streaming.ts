@@ -454,10 +454,9 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
     let sequence = 0;
     for (let segment = 0; segment < starts.length; segment++) {
       const samples = track.samples.slice(starts[segment], starts[segment + 1]);
-      // Separate DASH files carry segment brands; byte-range segments use sidx instead.
-      const fragments: Uint8Array[] = options.singleFile ? [] : [makeBox("styp", encodeUtf8("msdh\0\0\0\0msdhmsix"))];
-      const fragmentSize = options.fragmentType === "every_frame" ? 1 : Math.max(1, samples.length);
-      let mediaBytes = fragments[0]?.length ?? 0;
+      const fragments: Uint8Array[] = [];
+      const fragmentSize = options.streaming || options.fragmentType === "every_frame" ? 1 : Math.max(1, samples.length);
+      let mediaBytes = 0;
       for (let start = 0; start < Math.max(1, samples.length); start += fragmentSize) {
         const bytes = serializeMp4({ ...doc, tracks: [{ ...track, samples: samples.slice(start, start + fragmentSize) }] }, { ...options, budget, fragmented: true, skipTrailer: true });
         const moof = parseMp4Boxes(bytes, 0, 0, budget).find(b => b.type === "moof");
@@ -475,7 +474,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         fragments.push(fragment);
       }
       let media = concatBytes(fragments);
-      if (options.singleFile) {
+      if (!options.streaming) {
         // Version 1 sidx: one reference to all fragments in this media segment.
         const indexBytes = new Uint8Array(52);
         const view = new DataView(indexBytes.buffer);
@@ -492,6 +491,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         view.setUint32(48, samples[0]?.isKeyframe ? 0x90000000 : 0);
         media = concatBytes([indexBytes, media]);
       }
+      if (!options.singleFile) media = concatBytes([makeBox("styp", encodeUtf8("msdh\0\0\0\0msdhmsix")), media]);
       trackBytes += media.length;
       totalBytes += media.length;
       budget.checkOutputBytes(totalBytes);
@@ -527,7 +527,7 @@ export function serializeDashDocument(doc: MediaDocument, options: SerializeMedi
         offset += segment.bytes.length;
         if (index < firstSegment) return "";
         const indexSize = new DataView(segment.bytes.buffer, segment.bytes.byteOffset, segment.bytes.byteLength).getUint32(0);
-        return `<SegmentURL mediaRange="${start}-${offset - 1}" indexRange="${start}-${start + indexSize - 1}"/>`;
+        return `<SegmentURL mediaRange="${start}-${offset - 1}"${options.streaming ? "" : ` indexRange="${start}-${start + indexSize - 1}"`}/>`;
       }).join("");
       resources.set(uri, concatBytes([initialization, ...segments.map(s => s.bytes)]));
       singleFileList = `<BaseURL>${uri.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</BaseURL><SegmentList timescale="${track.timescale}"><Initialization range="0-${initialization.length - 1}"/>${segmentTimeline}${singleFileList}</SegmentList>`;

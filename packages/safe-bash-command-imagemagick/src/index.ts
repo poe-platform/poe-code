@@ -361,7 +361,7 @@ export interface MagickGeometry {
 }
 
 export function parseMagickGeometry(raw: string): MagickGeometry {
-  let s = raw.trim();
+  let s = [...raw].filter(character => character.trim() !== "").join("");
   let forceExact = false;
   let shrinkOnly = false;
   let enlargeOnly = false;

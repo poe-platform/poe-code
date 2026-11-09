@@ -9,7 +9,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         { initial: 45455, options: ["-gamma", "2"], gamma: 90909, pixels: [226, 247, 252, 255] },
         { initial: 45455, options: ["-gamma", "0.1"], gamma: 4545, pixels: [22, 139, 209, 255] },
         { initial: 60000, options: ["-gamma", "2"], gamma: 120000, pixels: [226, 247, 252, 255] },
-        { initial: 60000, options: ["-gamma", "2", "-gamma", "0.5"], gamma: 60000, pixels: [200, 239, 249, 255] }
+        { initial: 60000, options: ["-gamma", "2", "-gamma", "0.5"], gamma: 60000, pixels: [200, 240, 250, 255] }
     ])("preserves native PNG gamma and pixels $options via " + mode, async ({ initial, options, gamma, pixels }) => {
         const png = await sharp(Uint8Array.of(200, 240, 250), { raw: { width: 1, height: 1, channels: 3 } }).png().toBuffer();
         const chunk = Buffer.from(initial === 45455 ? "0000000467414d410000b18f0bfc6105" : "0000000467414d410000ea6062061a73", "hex");

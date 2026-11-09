@@ -6367,22 +6367,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const exponent = token === "+gamma" ? gamma : gamma === 0 ? Number.MAX_VALUE : 1 / gamma;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         const mask = [channels.r, channels.g, channels.b, channels.a];
-        const lookup = mask.map(active =>
-            Uint8Array.from({ length: 256 }, (_, value) => active ? clampByteVal(255 * Math.min(1, Math.pow(value / 255, exponent))) : value));
         apply = function* (image) {
             // Native PNG readback treats the rounded sRGB gAMA value as 1/2.2.
             const inputGamma = image.gamma === undefined || image.gamma === 0.45455 ? 1 / 2.2 : image.gamma;
-            if (image.data16) {
-                const data16 = new Uint16Array(image.data16), data = new Uint8Array(image.data);
-                for (let idx = 0; idx < data.length; idx++) {
-                    if (idx % 65536 === 0) yield;
-                    if (!mask[idx % 4] || idx % 4 === 3 && !image.hasAlpha) continue;
-                    data16[idx] = Math.round(65535 * Math.min(1, Math.pow(data16[idx]! / 65535, exponent)));
-                    data[idx] = clampByteVal(data16[idx]! / 257);
-                }
-                return { ...image, data, data16, gamma: inputGamma * gamma };
+            const data = new Uint8Array(image.data);
+            const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+            const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
+            for (let idx = 0; idx < data.length; idx++) {
+                if (idx % 65536 === 0) yield;
+                if (!mask[idx % 4] || idx % 4 === 3 && !image.hasAlpha) continue;
+                const value = 255 * Math.min(1, Math.pow(evaluateSamples[idx]! / 255, exponent));
+                // Keep HDRI quantum precision until output, including samples below one byte.
+                evaluateSamples[idx] = Math.fround(value * 257) / 257;
+                if (data16) data16[idx] = Math.round(value * 257);
+                data[idx] = clampByteVal(data16 ? data16[idx]! / 257 : value);
             }
-            return { ...yield* applyMagickLookup(image, lookup), gamma: inputGamma * gamma };
+            return { ...image, data, evaluateSamples, ...(data16 ? { data16 } : {}), gamma: inputGamma * gamma };
         };
     }
     else if (token === "-alpha") {
@@ -7044,7 +7044,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelSelections(expression: string): number[][] {

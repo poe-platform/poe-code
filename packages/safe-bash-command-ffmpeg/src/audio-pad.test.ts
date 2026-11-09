@@ -12,6 +12,16 @@ for (const [filter, frames, padding] of [
   ["apad=whole_len=4", 8, 0],
   ["apad=pad_len=0", 8, 0],
   ["apad=pad_dur=0.001", 8, 8],
+  ["apad=pad_dur=0.001:pad_len=4", 4, 8],
+  ["apad=pad_len=4:pad_dur=0.001", 4, 8],
+  ["apad=whole_dur=0.002:whole_len=8", 4, 12],
+  ["apad=whole_len=8:whole_dur=0.002", 4, 12],
+  ["apad=pad_dur=0:pad_len=4", 4, 0],
+  ["apad=pad_len=4:pad_dur=0", 4, 0],
+  ["apad=whole_dur=0:whole_len=8", 4, 0],
+  ["apad=whole_len=8:whole_dur=0", 4, 0],
+  ["apad=pad_dur=0.002:pad_len=4:pad_dur=0.001", 4, 8],
+  ["apad=whole_dur=0.001:whole_len=8:whole_dur=0.002", 4, 12],
   ["apad=whole_dur=0.0015", 8, 4],
   ["apad=whole_dur=0.0005", 8, 0],
   ["apad=pad_len=4,apad=whole_len=16", 8, 8]
@@ -49,7 +59,9 @@ for (const [filter, frames, padding] of [
 
 for (const filter of ["apad", "apad=pad_len=-2", "apad=pad_len=1.5", "apad=pad_dur=bad",
   "apad=whole_len=", "apad=pad_len=2:whole_len=10", "apad=unknown=1",
-  "apad=pad_len=9007199254740992", "apad=pad_len=80000"]) {
+  "apad=pad_len=9007199254740992", "apad=pad_len=80000",
+  "apad=pad_dur=0.001:pad_len=-2", "apad=whole_dur=0.002:whole_len=1.5",
+  "apad=pad_dur=2:pad_len=0", "apad=whole_dur=2:whole_len=0"]) {
   it(`${filter} fails safely without replacing the destination`, async () => {
     const volume = Volume.fromJSON({ "/out.wav": "keep" });
     volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));

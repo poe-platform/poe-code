@@ -9728,8 +9728,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioStartSample = firstPts;
                         audioTimestamps = undefined;
                       } else if (trimmed === "apad" || trimmed.startsWith("apad=")) {
-                        let padding: number | undefined;
-                        let minimum: number | undefined;
+                        const options: Record<string, number> = {};
                         const argument = trimmed.slice("apad=".length);
                         for (const option of argument ? argument.split(":") : []) {
                           const [key, value, extra] = option.split("=");
@@ -9742,9 +9741,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (!value?.trim() || extra !== undefined || number < 0 || !Number.isSafeInteger(samples)) {
                             throw new Error(`apad: invalid ${key}`);
                           }
-                          if (key!.startsWith("pad_")) padding = samples;
-                          else minimum = samples;
+                          options[key!] = samples;
                         }
+                        const padding = options.pad_dur ?? options.pad_len;
+                        const minimum = options.whole_dur ?? options.whole_len;
                         if (padding !== undefined && minimum !== undefined) {
                           throw new Error("apad: padding and minimum length are mutually exclusive");
                         }

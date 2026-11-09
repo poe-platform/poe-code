@@ -137,3 +137,42 @@ for (const prefix of ["normalize=", "2:longest:2:1 1:"]) {
     }
   });
 }
+
+// FFmpeg 7.0.2 results for mono PCM16 at 8 kHz.
+for (const [options, secondLength, length, points] of [
+  ["inputs=2", 2048, 2048, [[0, 2000], [2047, 2000]]],
+  ["inputs=1+1", 2048, 2048, [[0, 2000], [2047, 2000]]],
+  ["inputs=1.5", 2048, 2048, [[0, 2000], [2047, 2000]]],
+  ["inputs=2.5", 2048, 2048, [[0, 2000], [2047, 2000]]],
+  ["duration=shortest", 750, 750, [[0, 2000], [749, 2000]]],
+  ["duration=shortest+0", 750, 750, [[0, 2000], [749, 2000]]],
+  ["duration=0.6", 750, 750, [[0, 2000], [749, 2000]]],
+  ["duration=0.5:dropout_transition=0", 750, 2048, [[749, 2000], [750, 8000]]],
+  ["duration=1.5:dropout_transition=0", 750, 2048, [[749, 2000], [750, 8000]]],
+  ["dropout_transition=0.5", 750, 2048, [[749, 2000], [750, 4142], [1024, 4436], [1536, 4775]]],
+  ["dropout_transition=1/2", 750, 2048, [[749, 2000], [750, 4142], [1024, 4436], [1536, 4775]]],
+  ["1+1:shortest+0:1/2", 750, 750, [[0, 2000], [749, 2000]]]
+] as const) {
+  it(`matches native numeric amix options ${options}`, async () => {
+    const { result, volume, error } = await mix(`amix=${options}`, Array(2048).fill(8000), Array(secondLength).fill(-4000));
+    assert.equal(result.exitCode, 0, error);
+    const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 8000);
+    assert.equal(audio.channels, 1);
+    assert.equal(audio.channelData[0]!.length, length);
+    for (const [index, expected] of points) assert.equal(audio.channelData[0]![index]! * 32768, expected, `sample ${index}`);
+  });
+}
+
+for (const options of [
+  "inputs=0b10", "inputs=0o2", "inputs=1+", "inputs=0/0", "inputs=1/0", "inputs=2.6",
+  "duration=0b1", "duration=shortest+", "duration=first+0.1", "duration=-0.1",
+  "dropout_transition=0b1", "dropout_transition=1/", "dropout_transition=1/0",
+  "dropout_transition=0/0", "dropout_transition=1-2", "dropout_transition=2147483648"
+]) {
+  it(`rejects amix ${options} without replacing output`, async () => {
+    const { result, volume, error } = await mix(`amix=${options}`, Array(2048).fill(8000), Array(2048).fill(-4000));
+    assert.equal(result.exitCode, 1, error);
+    assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+  });
+}

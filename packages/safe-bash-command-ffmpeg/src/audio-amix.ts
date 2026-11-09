@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
 
 export async function mixAudio(
@@ -21,13 +22,19 @@ export async function mixAudio(
     const key = separator < 0 ? ["inputs", "duration", "dropout_transition", "weights", "normalize"][index] : option.slice(0, separator);
     const value = separator < 0 ? option : option.slice(separator + 1);
     if (key === "inputs") {
-      if (Number(value) !== 2) throw new Error("amix requires two inputs");
+      const inputs = parseFilterExpression(value, "amix", {});
+      // Native integer options round to nearest, with halfway values going to even.
+      const rounded = inputs % 1 === 0.5 ? 2 * Math.round(inputs / 2) : Math.round(inputs);
+      if (rounded !== 2) throw new Error("amix requires two inputs");
     } else if (key === "duration") {
-      duration = ["longest", "shortest", "first"][Number(value)] ?? value;
-      if (!value || !["longest", "shortest", "first"].includes(duration)) throw new Error("amix: invalid duration");
+      const numeric = parseFilterExpression(value, "amix", { longest: 0, shortest: 1, first: 2 });
+      if (numeric < 0 || numeric > 2) throw new Error("amix: invalid duration");
+      const rounded = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
+      duration = ["longest", "shortest", "first"][rounded]!;
     } else if (key === "dropout_transition") {
-      transition = Number(value);
-      if (!value || !Number.isFinite(transition) || transition < 0) throw new Error("amix: invalid dropout transition");
+      transition = parseFilterExpression(value, "amix", {});
+      if (transition < 0 || transition > 2147483647) throw new Error("amix: invalid dropout transition");
+      transition = Math.fround(transition);
     } else if (key === "normalize") {
       normalize = parseFilterBoolean(value, "amix: invalid normalize");
     } else if (key === "weights") {

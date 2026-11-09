@@ -752,12 +752,13 @@ export function evalSyncXargs(
         const ops: string[] = [];
         for (let k = 0; k < args.length; k++) {
           const a = args[k]!;
+          if (a === "--") { ops.push(...args.slice(k + 1)); break; }
           if (a === "-a" || a === "--multiple") multi = true;
           else if ((a === "-s" || a === "--suffix") && k + 1 < args.length) { multi = true; suffix = args[++k]!; }
           else if (a.startsWith("-s") && a.length > 2) { multi = true; suffix = a.slice(2); }
           else if (a.startsWith("--suffix=")) { multi = true; suffix = a.slice(9); }
-          else if (a.startsWith("-")) return undefined;
-          else ops.push(a);
+          else if (a.startsWith("-") && a !== "-") return undefined;
+          else { ops.push(...args.slice(k)); break; }
         }
         if (ops.length === 0 || (!multi && ops.length > 2)) return undefined;
         if (!multi && ops.length === 2) suffix = ops.pop();

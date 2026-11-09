@@ -678,6 +678,36 @@ for (const [args, expected] of [
   });
 }
 
+for (const [input, args, expected] of [
+  ["x/y.gz\n-s.gz\n", "", "y.gz"],
+  ["x/y-s.gz\n-s.gz\n", "", "y"],
+  ["x/y.gz\n", "-s.gz", "y"],
+  ["-s.gz\n", "--", "-s.gz"],
+  ["x/y.gz\n-s.gz\n", "--", "y.gz"],
+] as const) {
+  test(`xargs basename preserves operand boundaries: ${args} ${JSON.stringify(input)}`, async context => {
+    const { createStandardCommands } = await import("../../src/commands/index.js");
+    const { evalSyncXargs } = await import("../../src/commands/execution.js");
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs, commands: new CommandRegistry(createStandardCommands()) });
+    context.after(() => shell.dispose());
+    await fs.writeFile("/names", new TextEncoder().encode(input));
+    const command = `xargs basename ${args} < /names`;
+    const capture = `v=$(${command}); r=$?; printf '%s|%s\\n' "$r" "$v"`;
+    for (const [source, stdout] of [
+      [command, `${expected}\n`],
+      [capture, `0|${expected}\n`],
+      [`for i in 1 2; do ${capture}; done`, `0|${expected}\n`.repeat(2)],
+    ] as const) {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, source);
+      assert.equal(result.stderr, "", source);
+      assert.equal(result.stdout, stdout, source);
+    }
+    assert.equal(evalSyncXargs(new TextEncoder().encode(input), ["basename", ...(args ? [args] : [])]), `${expected}\n`);
+  });
+}
+
 test("wave 101 sync loop: basename --/-a/-s, dirname --/multi-arg, and wc -m/-L", async () => {
   const { createStandardCommands } = await import("../../src/commands/index.js");
   const commands = new CommandRegistry(createStandardCommands());

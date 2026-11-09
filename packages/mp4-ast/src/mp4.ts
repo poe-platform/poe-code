@@ -2516,6 +2516,12 @@ export function buildProbeResultFromDoc(
             size: String(s.size),
             pos: String(s.offset ?? (doc.containerFormat === "mp4" || doc.containerFormat === "mov" ? -1 : bytePos)),
             flags: `${s.isKeyframe ? "K" : "_"}${aacMediaStart !== undefined && rawSample.pts + rawSample.duration <= aacMediaStart ? "D" : "_"}_`,
+            ...(s.webvtt?.identifier || s.webvtt?.settings ? {
+              side_data_list: [
+                ...(s.webvtt.identifier ? [{ side_data_type: "WebVTT ID" }] : []),
+                ...(s.webvtt.settings ? [{ side_data_type: "WebVTT Settings" }] : [])
+              ]
+            } : {}),
             ...(firstPacket && aacMediaStart !== undefined && aacMediaStart > rawSample.pts ? {
               side_data_list: [{ side_data_type: "Skip Samples",
                 skip_samples: Math.round((aacMediaStart - rawSample.pts) * (desc?.sampleRate ?? track.timescale) / track.timescale),

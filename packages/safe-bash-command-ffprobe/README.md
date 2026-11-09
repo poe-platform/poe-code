@@ -35,6 +35,7 @@ Numbered image inputs (`in%d.png`, `in%03d.png`) expand consecutive files with `
 `-export_path_metadata 1` adds `lavf.image2dec.source_path` and `lavf.image2dec.source_basename` tags plus Strings Metadata side data to each image2 packet, using its actual input filename. Omit the option or pass `0` to leave path metadata disabled.
 
 Packet scans support `-read_intervals START%END` (comma-separated intervals), relative `+` times, omitted endpoints, and `+#N` packet limits. For example, `-read_intervals '0%+0.4' -show_packets` reads 0.4 seconds from the seek point. Seeking starts at a preceding keyframe; durations start at the packet actually reached. Packet descriptors replay through caller-backed storage with a bounded cache, preserving interleaving and backward seeks. Decoded-frame intervals are not supported.
+WebVTT packets expose nonempty cue identifiers and settings as `WebVTT ID` and `WebVTT Settings` side data, separate from caption payloads.
 Selecting `packet` or `frame` with `-show_entries` also requests those records without a separate show flag. Selecting both in JSON emits a single `packets_and_frames` array with a `type` field on each record; selecting only one retains the `packets` or `frames` array.
 Local HLS input skips media segments with disallowed file extensions before reading them; disallowed initialization files fail. Use `-allowed_extensions mp4,m4s,txt` to replace the default media extension list, or `ALL` to allow any extension.
 

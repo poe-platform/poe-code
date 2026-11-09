@@ -3646,11 +3646,14 @@ function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: Rgba
 
 function magickSepiaTone(intensity: number, threshold: number, gray: boolean): [number, number, number] {
     const blue = Math.max(threshold / 7, intensity - threshold / 6, 0);
-    return gray ? [blue, blue, blue] : [
+    const tone: [number, number, number] = gray ? [blue, blue, blue] : [
         Math.max(0, Math.min(255, intensity + 255 - threshold)),
         Math.max(threshold / 7, Math.min(255, intensity + 255 - 7 * threshold / 6), 0),
         blue
     ];
+    // Q16-HDRI stores each intermediate channel as a float before normalization.
+    for (let channel = 0; channel < 3; channel++) tone[channel] = Math.fround(tone[channel]! * 257) / 257;
+    return tone;
 }
 
 function* applyMagickSolarizeSteps(img: RgbaImage, thresh: number, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -6173,11 +6176,21 @@ function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" 
 }
 
 type MagickHistogram = Float64Array[];
-type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "magickColorspace">): MagickPixelOperation["apply"] };
-function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram, method: string, linear: boolean, selection?: Uint8Array): Generator<void, void, void> {
+type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; sepiaThreshold?: number; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">): MagickPixelOperation["apply"] };
+function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram, method: string, linear: boolean, selection?: Uint8Array, sepiaThreshold?: number, gray = false): Generator<void, void, void> {
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
         if (selection && !selection[i / 4]) continue;
+        if (sepiaThreshold !== undefined) {
+            const scale = data instanceof Uint16Array ? 1 : 257;
+            // Normalize the toned pixels, before rounding their intensity into Q16 bins.
+            const intensity = (0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!) * scale / 257;
+            const tone = magickSepiaTone(intensity, sepiaThreshold, gray);
+            for (let channel = 0; channel < 3; channel++) histogram[channel]![Math.round(tone[channel]! * 257)]!++;
+            histogram[3]![data[i + 3]! * scale]!++;
+            histogram[4]![Math.round(257 * (0.212656 * tone[0] + 0.715158 * tone[1] + 0.072186 * tone[2]))]!++;
+            continue;
+        }
         for (let channel = 0; channel < 4; channel++) histogram[channel]![data[i + channel]!]!++;
         // Keep ImageMagick's 16-bit histogram precision for fractional luma.
         if (histogram[4]) histogram[4][Math.round((data instanceof Uint16Array ? 1 : 257) * magickIntensity(data[i]!, data[i + 1]!, data[i + 2]!, method, data instanceof Uint16Array ? 65535 : 255, linear))]!++;
@@ -6230,45 +6243,28 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         const percentage = percent > 0 && prefix.trimEnd() === prefix && Number(prefix) === raw;
         const threshold = (percentage ? raw * 65536 / 100 : raw) / 257;
         const independent = !state.channelDefault, channels = [state.channels.r, state.channels.g, state.channels.b, state.channels.a], method = state.intensity;
-        return { end: start + 1, luminance: true, highDepth: true, transform(histogram, image) {
+        return { end: start + 1, luminance: true, highDepth: true, sepiaThreshold: threshold, transform(histogram, image) {
             if (!argument.trim() || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
                 throw new Error(`invalid argument '-sepia-tone' '${argument}'`);
             }
             const gray = image.space === "b-w" || image.space === "grey16";
-            const linear = image.magickColorspace === "RGB";
-            const bins = histogram[4]!, count = image.width * image.height;
-            let low = 0, high = bins.length - 1, sum = 0;
-            for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum > 0.02 * count) break; }
-            sum = 0;
-            for (; high > 0; high--) { sum += bins[high]!; if (sum > 0.01 * count) break; }
-            // Native SepiaToneImage normalizes the transformed luma, then increases HSV contrast.
-            // Tone is monotonic, so input luma percentiles also locate the toned percentiles.
-            const luma = (value: number) => {
-                const [r, g, b] = magickSepiaTone(value / 257, threshold, gray);
-                return Math.round(257 * magickIntensity(r, g, b, method, 255, image.magickColorspace === "RGB")) / 257;
-            };
-            const black = luma(low), white = luma(high);
-            const blacks = [black, black, black, black], whites = [white, white, white, white];
-            if (independent) {
-                for (let channel = 0; channel < 3; channel++) {
-                    blacks[channel] = Math.round(magickSepiaTone(low / 257, threshold, gray)[channel]! * 257) / 257;
-                    whites[channel] = Math.round(magickSepiaTone(high / 257, threshold, gray)[channel]! * 257) / 257;
-                }
-                const alpha = histogram[3]!;
-                let lowAlpha = 0, highAlpha = alpha.length - 1, sum = 0;
-                for (; lowAlpha < alpha.length - 1; lowAlpha++) { sum += alpha[lowAlpha]!; if (sum > 0.02 * count) break; }
+            const count = image.width * image.height;
+            const blacks: number[] = [], whites: number[] = [];
+            for (let channel = 0; channel < 4; channel++) {
+                const bins = histogram[independent ? channel : 4]!;
+                let low = 0, high = bins.length - 1, sum = 0;
+                for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum > 0.02 * count) break; }
                 sum = 0;
-                for (; highAlpha > 0; highAlpha--) { sum += alpha[highAlpha]!; if (sum > 0.01 * count) break; }
-                blacks[3] = lowAlpha * 255 / (alpha.length - 1); whites[3] = highAlpha * 255 / (alpha.length - 1);
+                for (; high > 0; high--) { sum += bins[high]!; if (sum > 0.01 * count) break; }
+                blacks.push(low / 257); whites.push(high / 257);
             }
             return function* (pixels) {
-                const { data16: ignored, evaluateSamples: ignoredEvaluate, ...metadata } = pixels;
                 const data = new Uint8Array(pixels.data);
-                const data16 = linear ? new Uint16Array(data.length) : undefined;
+                const data16 = pixels.data16?.slice();
                 const samples = pixels.data16 ?? pixels.data, scale = pixels.data16 ? 257 : 1;
                 for (let i = 0; i < data.length; i += 4) {
                     if (i % 65536 === 0) yield;
-                    const intensity = magickIntensity(samples[i]!, samples[i + 1]!, samples[i + 2]!, method, 255 * scale, image.magickColorspace === "RGB") / scale;
+                    const intensity = (0.212656 * samples[i]! + 0.715158 * samples[i + 1]! + 0.072186 * samples[i + 2]!) / scale;
                     const tone = magickSepiaTone(intensity, threshold, gray);
                     // Sepia tones all RGB channels; only normalization honors the channel mask.
                     // Grayscale has one color channel, selected by the red/gray mask bit.
@@ -6277,19 +6273,22 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                         const black = blacks[channel]!, white = whites[channel]!;
                         if (white <= black) continue;
                         // Native normalization indexes its Q16 stretch map with rounded tone values.
-                        if (channel < 3) tone[channel] = Math.max(0, Math.min(255, (Math.round(tone[channel]! * 257) / 257 - black) / (white - black) * 255));
-                        else data[i + 3] = clampByteVal((samples[i + 3]! / scale - black) / (white - black) * 255);
+                        if (channel < 3) tone[channel] = Math.fround(Math.max(0, Math.min(65535, (Math.round(tone[channel]! * 257) / 257 - black) / (white - black) * 65535))) / 257;
+                        else {
+                            const alpha = Math.max(0, Math.min(255, (samples[i + 3]! / scale - black) / (white - black) * 255));
+                            if (data16) data16[i + 3] = Math.round(Math.fround(alpha * 257));
+                            data[i + 3] = clampByteVal(alpha);
+                        }
                     }
                     const brightness = Math.max(...tone) / 255;
                     const contrast = 0.5 * brightness + 0.25 * (Math.sin(Math.PI * (brightness - 0.5)) + 1);
                     for (let channel = 0; channel < 3; channel++) {
                         const value = brightness === 0 ? 0 : tone[channel]! * contrast / brightness;
+                        if (data16) data16[i + channel] = Math.round(Math.fround(Math.max(0, Math.min(65535, value * 257))));
                         data[i + channel] = clampByteVal(value);
-                        if (data16) data16[i + channel] = Math.round(value * 257);
                     }
-                    if (data16) data16[i + 3] = data[i + 3]! * 257;
                 }
-                return { ...metadata, data, ...(data16 ? { data16 } : {}) };
+                return { ...pixels, data, ...(data16 ? { data16 } : {}) };
             };
         } };
     }
@@ -8208,9 +8207,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const operation = t === "-sepia-tone" ? parseMagickAnalysisOperation([t,
                     yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties })
                 ], state, 0)! : analysisOperation;
-                const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || analysisOperation.highDepth && image.data16 ? 65536 : 256));
+                const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.data16 ? 65536 : 256));
                 const selection = t === "-auto-gamma" ? yield* readMaskSelectionSteps(image, 0, image.data.length) : undefined;
-                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB", selection);
+                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16");
                 return yield* operation.transform(histogram, image)(image);
             });
         }
@@ -10248,17 +10247,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const operation = token === "-sepia-tone" ? parseMagickAnalysisOperation([token,
                     await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal)
                 ], settings, 0)! : analysisOperation;
-                const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || analysisOperation.highDepth && image.storedData16 ? 65536 : 256)), size = image.width * image.height * 4;
-                for (let offset = 0; offset < size; offset += 16384) {
+                const histogram = Array.from({ length: analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.storedData16 ? 65536 : 256)), size = image.width * image.height * 4;
+                const original = analysisOperation.highDepth ? image.storedData16 : undefined;
+                const chunkSize = original ? 8192 : 16384;
+                for (let offset = 0; offset < size; offset += chunkSize) {
                     if (offset % 1048576 === 0) await yieldTurn(signal);
-                    const original = analysisOperation.highDepth ? image.storedData16 : undefined;
-                    const bytes = await backend.storage.read((original?.position ?? image.position) + offset * (original ? 2 : 1), Math.min(16384, size - offset) * (original ? 2 : 1));
-                    const selection = token === "-auto-gamma" ? await drainIdentifySteps(readMaskSelectionSteps(image as StoredRgbaImage, offset, Math.min(16384, size - offset), function* (position, length): Generator<IdentifyStep, Uint8Array, void> {
+                    const bytes = await backend.storage.read((original?.position ?? image.position) + offset * (original ? 2 : 1), Math.min(chunkSize, size - offset) * (original ? 2 : 1));
+                    const selection = token === "-auto-gamma" ? await drainIdentifySteps(readMaskSelectionSteps(image as StoredRgbaImage, offset, Math.min(chunkSize, size - offset), function* (position, length): Generator<IdentifyStep, Uint8Array, void> {
                         let data!: Uint8Array;
                         yield { async run() { data = await backend.storage.read((image as StoredRgbaImage).readMask!.position! + position, length); } };
                         return data;
                     }), signal) : undefined;
-                    await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB", selection), signal);
+                    await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16"), signal);
                 }
                 return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, apply: operation.transform(histogram, image) }, signal, analysisOperation.highDepth);
             });

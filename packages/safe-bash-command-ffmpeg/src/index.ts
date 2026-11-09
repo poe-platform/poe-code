@@ -9410,7 +9410,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const surroundStereo = origCh === 6 && targetCh === 2;
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
                   const pcm16Output = audioCodec === "pcm_s16le" || audioCodec === undefined &&
-                    (outputFormat ?? outputTarget.split(".").pop()?.toLowerCase()) === "wav";
+                    (outputFormat === "segment" ? registry.findByFilename(outputTarget)?.id : outPlugin?.id) === "wav";
                   const pcm16MonoStereo = monoStereo && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const pcm16CenterDownmix = centerDownmix && !filter && targetRate === origRate &&

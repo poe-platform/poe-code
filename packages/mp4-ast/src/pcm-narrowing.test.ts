@@ -77,8 +77,12 @@ for (const format of ["f32le", "f64le"]) {
         else bytes.writeDoubleLE(value, i * width);
       });
       const doc = raw.find(plugin => plugin.id === format)!.parse(bytes);
-      const encoded = Buffer.from(raw.find(plugin => plugin.id === `s${bits}le`)!.serialize(doc));
-      assert.deepEqual(values.map((_, i) => encoded.readIntLE(i * bits / 8, bits / 8)), expected);
+      for (const output of [raw.find(plugin => plugin.id === `s${bits}le`)!,
+        ...(bits === 16 ? [wavAst(), wavAst("w64")] : [])]) {
+        const encoded = output.serialize(doc, { audioCodec: `pcm_s${bits}le` });
+        const pcm = Buffer.concat(output.parse(encoded).tracks[0]!.samples.map(packet => packet.data));
+        assert.deepEqual(values.map((_, i) => pcm.readIntLE(i * bits / 8, bits / 8)), expected, output.id);
+      }
     });
   }
   it(`keeps nearest-even rounding for ${format} sources`, () => {

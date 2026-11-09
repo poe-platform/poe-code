@@ -1084,12 +1084,18 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
           else pView.setFloat32(offset, chData[c]?.[i] ?? 0, true);
           continue;
         }
-        const val = Math.max(-1, Math.min(1, chData[c]?.[i] ?? 0));
-        const scaled = val * scale;
+        const value = chData[c]?.[i] ?? 0;
+        const val = Math.max(-1, Math.min(1, value));
+        const scaled = (bitsPerSample === 16 ? Number.isFinite(value) ? value : 0 : val) * scale;
         const lower = Math.floor(scaled);
         // FFmpeg rounds halfway PCM values to the nearest even integer.
-        const rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
-        const sample = Math.min(scale - 1, truncate ? lower : rounded);
+        let rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
+        if (bitsPerSample === 16) {
+          // FFmpeg x86_64 lrint returns INT64_MIN on overflow, then narrows
+          // to int32 before clipping to PCM16, just like the raw PCM encoder.
+          rounded = rounded >= 2 ** 63 || rounded < -(2 ** 63) ? 0 : rounded | 0;
+        }
+        const sample = Math.max(-scale, Math.min(scale - 1, truncate ? lower : rounded));
         if (formatTag === 6 || formatTag === 7) pcmBytes[offset] = (formatTag === 7 ? mulawTable : alawTable)[(sample & 65535) >> 2]!;
         else if (bitsPerSample === 64) pView.setBigInt64(offset, val >= 1 ? (1n << 63n) - 1n : BigInt(sample), true);
         else if (bitsPerSample === 8) pView.setUint8(offset, (sample | 0) + 128);

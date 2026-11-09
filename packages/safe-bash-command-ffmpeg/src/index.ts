@@ -5100,6 +5100,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let centerMixLevel: number | undefined;
         let surroundMixLevel: number | undefined;
         let lfeMixLevel: number | undefined;
+        let individualHeaderTrailer = true;
         let segmentTime = 2;
         let writeEmptySegments = false;
         let segmentTimeDelta = 0;
@@ -5383,6 +5384,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -fps_mode: ${videoSync}\n`), context.signal);
               return { exitCode: 234 };
             }
+          } else if (arg === "-individual_header_trailer") {
+            const value = args[++i];
+            if (value !== "0" && value !== "1") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid individual_header_trailer value: expected 0 or 1\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            individualHeaderTrailer = value === "1";
           } else if (arg === "-segment_start_number") {
             const value = args[++i];
             segmentStartNumber = value?.trim() ? Number(value) : NaN;
@@ -10083,7 +10091,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       (index === paths.length - 1 || (sample.dts - audioOffset) / track.timescale < end))
                   })) };
                 const bytes = segmentPlugin.serialize(resetTimestamps && !audioSegment
-                  ? shiftTimestamps(segment, -start, budget) : segment, { writeHeader, writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, reserveIndexSpace, budget, limits: options.limits });
+                  ? shiftTimestamps(segment, -start, budget) : segment, { writeHeader: writeHeader && (segmentPlugin.id !== "wav" || individualHeaderTrailer || index === 0), writeBext, rf64, writePeak, peakBlockSize, peakFormat, peakPpv, audioCodec, audioBitrate, compressionLevel, blockSize, trellis, frameSize, channelMode, lpcType, lpcPasses, lpcCoeffPrecision, minPartitionOrder, maxPartitionOrder, exactRiceParameters, minPredictionOrder, maxPredictionOrder, predictionOrderMethod, multiDimQuant, sampleFormat, pageDuration, serialOffset, metadataHeaderPadding, reserveIndexSpace, budget, limits: options.limits });
                 budget.checkOutputBytes(bytes.byteLength);
                 const path = paths[index]!;
                 await writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, { signal: context.signal }));

@@ -916,6 +916,8 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     throw new Error("WAV encoding requires decoded PCM audio");
   }
 
+  if (options.writeHeader === false) return pcmBytes;
+
   // Count the packets actually written, including any encoded block padding.
   // Raw AAC WAV has no per-packet timing; Wave64 data sizes include alignment padding.
   if (options.audioCodec === "copy" && format === "wav" && doc.containerFormat !== "w64" &&

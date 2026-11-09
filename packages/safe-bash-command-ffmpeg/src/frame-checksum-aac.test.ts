@@ -38,7 +38,7 @@ for (const priming of [true, false]) {
       if (priming && format === "framecrc") {
         // Native FFmpeg 7.0.2 reference; only the software version is omitted.
         const expected = readFileSync(new URL("./fixtures/frame-checksum-aac.txt", import.meta.url), "utf8");
-        assert.equal(output, expected.split("\n").filter(line => !line.startsWith("#software:")).join("\n"));
+        assert.equal(output.split("\n").filter(line => !line.startsWith("#software:")).join("\n"), expected.split("\n").filter(line => !line.startsWith("#software:")).join("\n"));
       }
     });
   }

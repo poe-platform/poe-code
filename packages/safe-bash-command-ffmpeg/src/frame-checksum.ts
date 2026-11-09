@@ -57,7 +57,8 @@ export function serializeFrameChecksum(
   formatVersion = 2,
   videoCodec?: string,
   subtitleCodec?: string,
-  bitexact = false
+  bitexact = false,
+  copyTimestamps = false
 ): Uint8Array {
   const name = algorithm.toLowerCase();
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512, "sha512/224": sha512_224, "sha512/256": sha512_256 };
@@ -116,6 +117,25 @@ export function serializeFrameChecksum(
   for (const [index, track] of doc.tracks.entries()) {
     const video = track.type === "video";
     const copy = (video ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) === "copy";
+    const copiedAudio = copy && track.type === "audio";
+    const codec = track.codecDescriptions[0];
+    let timestampOffset = 0, mediaStart = 0, skipSamples = 0;
+    if (copiedAudio) {
+      for (const edit of track.editList ?? []) {
+        if (edit.mediaTime < 0) timestampOffset += edit.segmentDuration * track.timescale / doc.timescale;
+        else { mediaStart = edit.mediaTime; timestampOffset -= mediaStart; break; }
+      }
+      if (codec?.codecName === "mp3") {
+        for (const sample of track.samples) {
+          budget.checkCpu();
+          skipSamples += sample.skipSamples ?? 0;
+        }
+        if (!track.editList?.length && !copyTimestamps) {
+          // FFmpeg rebases the demuxer start time through AV_TIME_BASE (microseconds).
+          timestampOffset -= Math.round(Math.round(skipSamples * 1e6 / (codec.sampleRate ?? track.timescale)) * track.timescale / 1e6);
+        }
+      }
+    }
     if (track.type === "audio" && !rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
     const decodedAac: Pick<MediaTrack["samples"][number], "dts" | "pts" | "duration" | "data">[] | undefined =
       track.type === "audio" && !copy && !track.decodedAudio && track.codecDescriptions[0]?.codecName === "aac" ? [] : undefined;
@@ -205,9 +225,19 @@ export function serializeFrameChecksum(
         }
         digest = bytesToHex(hash.digest());
       }
-      const dts = Math.round(packet.dts * rate / track.timescale);
+      let annotations = "";
+      if (format === "framecrc" && copiedAudio && "data" in packet) {
+        const discard = codec?.codecName === "aac" && packet.pts + packet.duration <= mediaStart;
+        if (discard) annotations += ", F=0x5";
+        const skip = codec?.codecName === "mp3"
+          ? packet === track.samples[0] && skipSamples > 0
+          : ("skipSamples" in packet && packet.skipSamples) ||
+            (codec?.codecName === "aac" && packet === track.samples[0] && packet.pts < mediaStart);
+        if (skip || ("discardPadding" in packet && packet.discardPadding)) annotations += ", S=1,       10";
+      }
+      const dts = Math.round((packet.dts + timestampOffset) * rate / track.timescale);
       rows.push({ dts, rate,
-        line: `${index}, ${String(dts).padStart(10)}, ${String(Math.round(packet.pts * rate / track.timescale)).padStart(10)}, ${String(duration).padStart(8)}, ${String(size).padStart(8)}, ${digest}` });
+        line: `${index}, ${String(dts).padStart(10)}, ${String(Math.round((packet.pts + timestampOffset) * rate / track.timescale)).padStart(10)}, ${String(duration).padStart(8)}, ${String(size).padStart(8)}, ${digest}${annotations}` });
     }
   }
   // Stable sorting preserves output stream order at equal packet timestamps.

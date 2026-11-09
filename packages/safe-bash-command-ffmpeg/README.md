@@ -132,7 +132,8 @@ filtering, preserving encoder-delay and end-padding trimming in the checksum pac
 For AAC decoded to PCM, audio rows follow decoder frames, skipping priming and
 retaining the complete final frame even when the container duration ends earlier.
 With `-map 0:s -c:s copy`, they checksum original subtitle packets, retaining style
-bytes, blank gap packets, and the source time base.
+bytes, blank gap packets, and the source time base. Copied audio checksums retain priming timestamps;
+`framecrc` also reports AAC discard flags and skip-sample or trailing-padding side data.
 
 Verify audio streams with `-f hash -` (SHA256), `-f md5 -`, or
 `-f crc -` (Adler-32). These hash decoded PCM16 samples, without container

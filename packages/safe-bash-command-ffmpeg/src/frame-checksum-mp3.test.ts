@@ -39,7 +39,7 @@ for (const format of ["framecrc", "framemd5", "framehash"]) {
         // Native FFmpeg 7.0.2 reference for headers, packet durations, sizes and CRCs.
         // Encoder-delay timestamps and skip-sample side data are outside this header regression.
         const expected = readFileSync(new URL(codec === "copy" ? "./fixtures/frame-checksum-tone.txt" : "./fixtures/frame-checksum-tone-pcm.txt", import.meta.url), "utf8");
-        assert.deepEqual(output.split("\n").filter(line => line.startsWith("#")),
+        assert.deepEqual(output.split("\n").filter(line => line.startsWith("#") && !line.startsWith("#software:")),
           expected.split("\n").filter(line => line.startsWith("#") && !line.startsWith("#software:")));
         const packets = (text: string) => text.split("\n").filter(line => line && !line.startsWith("#"))
           .map(line => line.split(",").slice(3, 6).map(field => field.trim()));

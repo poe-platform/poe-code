@@ -21,7 +21,7 @@ export interface MapfileOptions {
   quantum: number;
 }
 
-export async function mapfileOptions(context: CommandContext, work: StringWork, allocation: ValueAllocation, selectDescriptor: (descriptor: number) => void): Promise<MapfileOptions> {
+export async function mapfileOptions(context: CommandContext, work: StringWork, allocation: ValueAllocation, selectDescriptor: (descriptor: number) => void): Promise<MapfileOptions | "help"> {
   const options: MapfileOptions = { descriptor: 0, name: "MAPFILE", strip: false, delimiter: 10, count: 0, skip: 0, origin: 0, preserve: false, callback: undefined, quantum: 5000 };
   const args = getCommandArguments(context);
   let cursor = 0;
@@ -60,6 +60,7 @@ export async function mapfileOptions(context: CommandContext, work: StringWork, 
   };
   while (cursor < context.args.length) {
     const option = context.args[cursor]!;
+    if (option === "--help") return "help";
     if (option === "--") { cursor++; break; }
     if (!option.startsWith("-") || option === "-") break;
     cursor++;

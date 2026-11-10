@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 import { setup } from "./helpers.js";
 import { getCommandArguments } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/types.js";
@@ -49,6 +50,47 @@ for (const extension of [false, true]) {
         assert.equal(result.stderr, "");
       } finally { await shell.dispose(); }
     });
+    for (const options of ["--help", "-t --help", "-d : --help", "--help -Q"]) {
+      test(`${command} prints help without reading or clearing arrays: ${options}, extension=${extension}`, async () => {
+        const expected = spawnSync("bash", ["--noprofile", "--norc", "-c", `${command} ${options}`], { encoding: "utf8", env: { LC_ALL: "C" } });
+        assert.equal(expected.status, 2);
+        assert.equal(expected.stderr, "");
+        assert.ok(expected.stdout.startsWith(`${command}: ${command} `));
+        const { shell } = setup({ extensions: extension ? [mapfileExtension()] : [] });
+        let pulls = 0;
+        try {
+          const result = await shell.exec(`MAPFILE=(old); ${command} ${options}; code=$?; args "\${MAPFILE[@]}"; exit "$code"`, {
+            stdin: { async *[Symbol.asyncIterator]() { pulls++; yield new TextEncoder().encode("one\ntwo\n"); } },
+          });
+          assert.equal(result.exitCode, 2);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, expected.stdout + '["old"]');
+          assert.equal(pulls, 0);
+        } finally { await shell.dispose(); }
+      });
+    }
+    for (const options of ["-Q --help", "-- --help"]) {
+      test(`${command} does not treat ${options} as help, extension=${extension}`, async () => {
+        const { shell } = setup({ extensions: extension ? [mapfileExtension()] : [] });
+        try {
+          const result = await shell.exec(`${command} ${options}`);
+          assert.notEqual(result.exitCode, 0);
+          assert.equal(result.stdout, "");
+          assert.notEqual(result.stderr, "");
+        } finally { await shell.dispose(); }
+      });
+    }
+    for (const options of ["-d --help -t A", "-t A --help", "-t -- A --help"]) {
+      test(`${command} preserves operand parsing for ${options}, extension=${extension}`, async () => {
+        const { shell } = setup({ extensions: extension ? [mapfileExtension()] : [] });
+        try {
+          const result = await shell.exec(`${command} ${options}; code=$?; args "\${A[@]}"; exit "$code"`, { stdin: options.startsWith("-d") ? "one-two-" : "one\ntwo\n" });
+          assert.equal(result.exitCode, 0);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, '["one","two"]');
+        } finally { await shell.dispose(); }
+      });
+    }
     for (const declaration of ["export A=old", "declare -ax A=(old tail stale)"]) {
       for (const preserve of [false, true]) test(`${command} populates ${declaration}, preserve=${preserve}, extension=${extension}`, async () => {
         const { shell, fs } = setup({ extensions: extension ? [mapfileExtension()] : [] });

@@ -73,6 +73,7 @@ import { controlNames, IndexedBinding, textToken, valueToken } from "./arrays/bi
 import { readDynamicVariable, writeDynamicVariable, type DynamicVariableState } from "./dynamic-variables.js";
 import { shellOptions } from "./options.js";
 import { collectMapfile, mapfileOptions, MapfileUsageError } from "./mapfile.js";
+import { mapfileHelp } from "./mapfile-help.js";
 import { arrayStore, ensureStateMonitor, guestArrays, monitorSymbol, requireArrays, snapshotState, stateMonitor, trackState, trySnapshotStateSync } from "./arrays/state.js";
 import { publishPipelineStatus } from "./pipestatus.js";
 import type { Restoration } from "./arrays/state.js";
@@ -8542,6 +8543,10 @@ export class Runtime {
         return source;
       };
       const options = await mapfileOptions(context, work, allocation, selectDescriptor);
+      if (options === "help") {
+        await writeText(context.stdout, mapfileHelp(context.command));
+        return 2;
+      }
       const source = selectDescriptor(options.descriptor);
       options.name = this.referenceName(state, options.name);
       if (arrayStore(state)?.get(options.name)?.associative) throw new MapfileUsageError(`${options.name}: not an indexed array`, 1);

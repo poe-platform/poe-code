@@ -11,7 +11,7 @@ export interface ShadowLayout {
     readonly opacity: number;
     readonly sigma: number;
 }
-export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, layout: ShadowLayout, color: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, layout: ShadowLayout, color: RgbaColor, alpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     const sigma = layout.sigma;
     let half = 0;
@@ -41,7 +41,8 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
         for (let y = 0; y < layout.height; y++) {
             yield;
             const sums = new Float64Array(count);
-            for (let ky = -half; ky <= half; ky++) {
+            // Native leaves the shadow transparent when alpha is not selected.
+            for (let ky = -half; alpha && ky <= half; ky++) {
                 yield;
                 const sy = Math.max(0, Math.min(layout.height - 1, y + ky)) - layout.offsetY;
                 if (sy < 0 || sy >= source.height) continue;

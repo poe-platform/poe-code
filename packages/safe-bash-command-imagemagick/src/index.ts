@@ -3966,11 +3966,11 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
     return { width: image.width + pad * 2, height: image.height + pad * 2, hasAlpha: true, offsetX: pad, offsetY: pad, opacity, sigma,
         virtualCanvas: { width: ((page.width + pad + x) >>> 0) || image.width + pad * 2, height: ((page.height + pad + y) >>> 0) || image.height + pad * 2, x: page.x + x - pad, y: page.y + y - pad } };
 }
-function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: RgbaColor, alpha: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const layout = magickShadowLayout(image, geometry);
     if ((image.space === "b-w" || image.space === "grey16") && (color.r !== color.g || color.g !== color.b))
         image = { ...image, space: "srgb", channels: 4 };
-    return { ...yield* applyMagickRasterSteps(image, shadowPixelSteps(image, layout, color), signal, layout), virtualCanvas: layout.virtualCanvas };
+    return { ...yield* applyMagickRasterSteps(image, shadowPixelSteps(image, layout, color, alpha), signal, layout), virtualCanvas: layout.virtualCanvas };
 }
 
 function magickSepiaTone(intensity: number, threshold: number, gray: boolean): [number, number, number] {
@@ -10434,7 +10434,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "80x3+5+5";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                return (yield* applyMagickShadowSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, signal));
+                return (yield* applyMagickShadowSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, !state.channelExplicit || state.channels.a, signal));
             });
         }
         else if (t === "-vignette") {
@@ -13147,13 +13147,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-shadow") {
             const geometry = tokens[++i] ?? "80x3+5+5", background = state.background, backgroundExplicit = state.backgroundExplicit, optionProperties = state.optionProperties;
+            const alpha = !state.channelExplicit || state.channels.a;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image: image!, storage: backend.storage }), signal);
                 const layout = magickShadowLayout(image, expanded);
                 if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
                     image = { ...image, space: "srgb", channels: 4 };
-                return { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, backgroundExplicit ? background : image.backgroundColor ?? background), signal, layout), virtualCanvas: layout.virtualCanvas };
+                return { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, backgroundExplicit ? background : image.backgroundColor ?? background, alpha), signal, layout), virtualCanvas: layout.virtualCanvas };
             });
         } else if (!operandsOnly && token === "-statistic") {
             stackStep(async stack => {

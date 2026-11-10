@@ -229,6 +229,8 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
         const baseInks = inputs[0]!.space === "cmyk" ? hue?.length ? new Float64Array(hue.slice().buffer) : new Float64Array(length) : undefined;
         if (baseInks && !hue?.length) for (let offset = 0; offset < length; offset += 4)
             baseInks.set(rgbToCmyk(base[offset]! / 255, base[offset + 1]! / 255, base[offset + 2]! / 255), offset);
+        const colorSamples = inputs[0]!.space !== "cmyk" ? yield { kind: "read", hue: true, position, length } : undefined;
+        if (colorSamples?.length) base.set(new Float64Array(colorSamples.slice().buffer).map(value => value * 255));
         const data = base.slice(), inks = baseInks?.slice();
         for (const assignment of assignments) {
             const target = inks && assignment.target < 3 ? inks : data;
@@ -248,6 +250,10 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
                 samples = working?.length ? new Float64Array(bytes.slice().buffer)
                     : Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes, value => highDepth ? value / 257 : value);
             }
+            if (image !== 0 && input.space !== "cmyk") {
+                const colors = yield { kind: "read", hue: true, image, position: (y * input.width + x) * 4, length: count };
+                if (colors?.length) samples.set(new Float64Array(colors.slice().buffer).map(value => value * 255));
+            }
             const sourceHue = image !== 0 && input.space === "cmyk" ? yield { kind: "read", hue: true, image, position: (y * input.width + x) * 4, length: count } : undefined;
             const sourceInks = image === 0 ? baseInks : sourceHue?.length ? new Float64Array(sourceHue.slice().buffer) : undefined;
             for (let offset = 0; offset < count; offset += 4) {
@@ -263,6 +269,8 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
                 data[offset + channel] = (1 - inks[offset + channel]!) * (1 - inks[offset + 3]!) * 255;
             yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
         }
+        // Conversion back to sRGB reads the working colorspace plane.
+        if (colorSamples?.length) yield { kind: "write", hue: true, position, data: new Uint8Array(data.map(value => value / 255).buffer) };
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
         const bounded = highDepth ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(65535, value * 257))))
             : Uint8Array.from(data, value => Math.round(Math.max(0, Math.min(255, value))));

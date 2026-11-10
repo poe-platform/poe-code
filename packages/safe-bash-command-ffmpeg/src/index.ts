@@ -3452,8 +3452,23 @@ async function applyVideoFilterChain(
           durationSeconds: f.durationSeconds, keyframe: true };
       }, signal);
     } else if (name === "negate") {
-      if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key => key !== "components" && key !== "negate_alpha" && key !== "enable")) {
+      if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key =>
+        !["components", "negate_alpha", "enable", "threads", "thread_type", "extra_hw_frames"].includes(key))) {
         throw new Error("negate: unknown option");
+      }
+      for (const part of positional) {
+        const separator = part.indexOf("=");
+        if (separator < 0) continue;
+        const key = part.slice(0, separator).trim().toLowerCase();
+        if (key !== "threads" && key !== "thread_type" && key !== "extra_hw_frames") continue;
+        const value = parseFilterExpression(part.slice(separator + 1).trim(), "negate: generic option",
+          key === "thread_type" ? { slice: 1 } : {});
+        if (key === "thread_type"
+          ? !Number.isInteger(value) || value < -2147483648 || value > 4294967295
+          : value < (key === "extra_hw_frames" ? -1 : 0) || value > 2147483647) {
+          throw new RangeError(`negate: generic option ${key} is out of range`);
+        }
+        // Scheduling and hardware frame reservations do not change software pixels.
       }
       const components = positional.flatMap((part, index) => {
         const equals = part.indexOf("=");
@@ -16291,6 +16306,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "tinterlace: invalid expression" || msg === "tinterlace: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("shuffleframes: unsupported option ")) return { exitCode: 8 };
             if (msg === "shuffleframes: mapping must contain frame indices from -1 to the group size minus one") return { exitCode: 234 };
+            if (msg.startsWith("negate: generic option")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
             if ((overwrite && msg === "aecho: delay is too small") ||
                 msg === "aphaser: delay is too small" ||

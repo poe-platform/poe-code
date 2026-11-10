@@ -7907,6 +7907,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const raw = [...(tokens[++i] ?? "")].filter(c => c.trim() !== "").join("").replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x");
         validateMagickTransformGeometry(raw, token);
         const parts = raw.replaceAll(":", "x").split("x");
+        for (const [index, part] of parts.entries()) {
+            const field = [...part].filter(c => !"!#%()<>@\\^".includes(c)).join("");
+            // Only a complete brightness/contrast pair may have trailing offsets.
+            const offset = index === 0 ? -1 : [...field].findIndex((c, position) =>
+                position > 0 && "+-".includes(c) && !"eE".includes(field[position - 1]!));
+            const number = offset < 0 ? field : field.slice(0, offset);
+            if ((!number && index === 0) || (number && (!Number.isFinite(Number(number)) || Number.parseFloat(number) !== Number(number)))) {
+                throw new Error(`invalid argument for option '${token}': ${raw}`);
+            }
+        }
         let [brightness = 0, contrast = 0] = parts.map(value => parseFloat(value) || 0);
         const denominator = parts[1]?.trimStart() ?? "";
         // Native colon geometry divides rho by sigma, then sets sigma to one.

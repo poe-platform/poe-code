@@ -2169,7 +2169,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
-    const value = (["-wave", "-swirl", "-implode", "-spread"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
+    const value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     let dimensions = false;
     for (const char of value) {
         if (char === "x" || char === "X" || char === ":") dimensions = true;
@@ -9572,6 +9572,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const raw = tokens[++i] ?? "0x1";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                validateMagickTransformGeometry(expanded, t);
                 const geometry = parseMagickGeometry(expanded.replace(",", "x").replace("/", "x"));
                 const edges = yield* applyMagickRasterSteps(im, edgePixelSteps(im, geometry.width ?? 0), signal, { ...im, hasAlpha: false });
                 return yield* applyMagickRasterSteps(edges, charcoalPixelSteps(edges, geometry), signal);
@@ -11984,6 +11985,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickTransformGeometry(expanded, token);
                 const geometry = parseMagickGeometry(expanded.replace(",", "x").replace("/", "x"));
                 const edges = await transformStoredMagickRaster(image, backend, edgePixelSteps(image, geometry.width ?? 0), signal, { ...image, hasAlpha: false });
                 return transformStoredMagickRaster(edges, backend, charcoalPixelSteps(edges, geometry), signal);

@@ -10492,7 +10492,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     output.writeMask = yield* applyMagickRasterSteps(mask, warpPixelSteps(mask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background"), signal, { width: plan.width, height: plan.height, hasAlpha: false });
                     output.region = undefined;
                 }
-                if (image.writeMask && (t === "-swirl" || t === "-implode")) {
+                if (image.writeMask && (t === "-swirl" || t === "-implode" || t === "-spread")) {
                     // Clip against the original mask, then retain its warped channel.
                     output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, image.writeMask, !!(output.data16 || image.data16), false, state.channels), signal, output, [output, image, image.writeMask]);
                     const maskPlan = warpOperation.plan(image.writeMask, expanded)!;
@@ -13064,7 +13064,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     output.storedWriteMask = await transformStoredMagickRaster(mask, backend, warpPixelSteps(mask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background"), signal, { width: plan.width, height: plan.height, hasAlpha: false });
                     output.region = undefined;
                 }
-                if (image.storedWriteMask && (token === "-swirl" || token === "-implode")) {
+                if (image.storedWriteMask && (token === "-swirl" || token === "-implode" || token === "-spread")) {
                     const mask = image.storedWriteMask;
                     output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, mask, !!(output.storedData16 || image.storedData16), false, maskChannels), signal, output, [output, image, mask]);
                     const maskPlan = warpOperation.plan(mask, expanded)!;

@@ -11,6 +11,30 @@ const input = new Uint8Array([
 // Native ImageMagick 7.1.2-35 Q16-HDRI results, including inactive-alpha controls.
 for (const mode of ["sync", "buffered", "retained", "command"] as const) {
     it.each([
+        { alpha: "deactivate", restore: ["-alpha", "activate"], hex: "1020c0802070b0ff" },
+        { alpha: "discrete", restore: [], hex: "1020c0ff2070b0ff" },
+        { alpha: "off", restore: [], hex: "2070b0ff1020c0ff" },
+        { alpha: "on", restore: ["-alpha", "activate"], hex: "1020c0802070b0ff" },
+    ])(`orders palettes by retained alpha (${mode}): $alpha`, async ({ alpha, restore, hex }) => {
+        const files = new Map([["/out", new TextEncoder().encode("KEEP")]]);
+        const fs = new MemoryFileSystem();
+        await fs.writeFile("/out", files.get("/out")!);
+        const args = ["xc:#1020c080", "xc:#2070b0ff", "+append", "-alpha", alpha, "-unique-colors", ...restore, "-depth", "8", "rgba:/out"];
+        let stdout = "", stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write(data) { stdout += new TextDecoder().decode(data); } },
+            stderr: { async write(data) { stderr += new TextDecoder().decode(data); } },
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stdout" in result ? result.stdout : stdout).toBe("");
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const output = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
+        expect(Buffer.from(output).toString("hex")).toBe(hex);
+    });
+    it.each([
         { operations: ["-alpha", "deactivate", "-unique-colors", "-alpha", "activate"], bytes: [128, 128, 128, 32, 128, 128, 128, 224] },
         { operations: ["-alpha", "discrete", "-unique-colors", "-alpha", "activate"], bytes: [128, 128, 128, 32, 128, 128, 128, 224] },
         ...["deactivate", "discrete"].flatMap(alpha => [

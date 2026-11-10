@@ -28,12 +28,13 @@ function colorOrder(samples: Uint8Array | Uint16Array, offset: number, hasAlpha:
     let order = 0;
     // Native classification visits bits 7 through 1; exact colors sharing a
     // leaf retain their first occurrence, including hidden RGB at zero alpha.
+    // Retained inactive alpha still splits the tree.
     // CMYK uses cyan, magenta and yellow here; black does not split the tree.
     for (let bit = 7; bit >= 1; bit--) order = order * 16 + ((r >> bit & 1) | (g >> bit & 1) << 1 | (b >> bit & 1) << 2 | (a >> bit & 1) << 3);
     return order;
 }
 
-export function* uniqueColorsSteps(image: RgbaImage & HueMetadata): Generator<void, RgbaImage & HueMetadata, void> {
+export function* uniqueColorsSteps(image: RgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined }): Generator<void, RgbaImage & HueMetadata, void> {
     const samples = image.data16 ?? image.data, seen = new Set<bigint>();
     const inks = image.space === "cmyk" ? image.hueSamples : undefined;
     let pixels: { offset: number; order: number }[] = [];
@@ -42,7 +43,7 @@ export function* uniqueColorsSteps(image: RgbaImage & HueMetadata): Generator<vo
         const key = colorKey(inks ?? image.evaluateSamples ?? samples, offset, inks ? samples[offset + 3]! : undefined);
         if (seen.has(key)) continue;
         seen.add(key);
-        pixels.push({ offset, order: colorOrder(samples, offset, image.hasAlpha, inks) });
+        pixels.push({ offset, order: colorOrder(samples, offset, image.hasAlpha || image.inactiveAlpha === true, inks) });
     }
     // Stable radix sorting stays cooperative even for an all-unique raster.
     for (let shift = 0; shift < 28; shift += 4) {
@@ -73,7 +74,7 @@ export function* uniqueColorsSteps(image: RgbaImage & HueMetadata): Generator<vo
     return { ...image, isPalette: false, width: pixels.length, height: 1, ...(virtualCanvas ? { virtualCanvas } : {}), data, ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
-export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): Promise<StoredRgbaImage & HueMetadata> {
+export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined }, storage: PagedStorage, signal: AbortSignal): Promise<StoredRgbaImage & HueMetadata> {
     const seen = new IntegerTable(storage, 512), order = new IntegerTable(storage, 512), size = image.width * image.height * 4;
     const workingPosition = image.space === "cmyk" ? image.storedHueSamples : image.storedEvaluateSamples;
     let count = 0;
@@ -117,7 +118,7 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata, s
             await seen.set(slot, BigInt(start + offset));
             // 36 low bits retain source order within a leaf. The source offset
             // also lets white RGBA16 use the table's full 64-bit key range.
-            await order.set(BigInt(colorOrder(samples, offset, image.hasAlpha, inks)) << 36n | BigInt((start + offset) / 4), BigInt(start + offset));
+            await order.set(BigInt(colorOrder(samples, offset, image.hasAlpha || image.inactiveAlpha === true, inks)) << 36n | BigInt((start + offset) / 4), BigInt(start + offset));
             count++;
         }
     }

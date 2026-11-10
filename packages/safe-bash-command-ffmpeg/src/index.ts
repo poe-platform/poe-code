@@ -10641,7 +10641,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const duration = key!.endsWith("_dur");
                           const number = duration ? parseHlsDuration(value ?? "") : parseFilterExpression(value ?? "", "apad", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
                           const samples = duration ? Math.round(number * origRate) : roundToEven(number);
-                          if (!value?.trim() || number < (duration ? -0.000001 : -1) || !Number.isSafeInteger(samples)) {
+                          if (number < (duration ? -0.000001 : -1)) {
+                            throw new RangeError(`apad: invalid ${key}`);
+                          }
+                          if (!value?.trim() || !Number.isSafeInteger(samples)) {
                             throw new Error(`apad: invalid ${key}`);
                           }
                           options[key!] = (duration ? number === -0.000001 : samples === -1) ? undefined : samples;
@@ -13563,6 +13566,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "acontrast: unknown option") return { exitCode: 8 };
             if (msg === "acontrast: invalid expression" || msg === "acontrast: invalid or unsupported expression") return { exitCode: 234 };
             if (err instanceof RangeError && msg.startsWith("acontrast:")) return { exitCode: 222 };
+            if (msg.startsWith("apad: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("apad:")) return { exitCode: 222 };
+            if (msg.startsWith("apad: invalid ") || msg === "apad: pad_len and whole_len are mutually exclusive") return { exitCode: 234 };
             if (msg.startsWith("apad packet_size:") || msg === "aloop: invalid expression" || msg === "aloop: invalid or unsupported expression" ||
                 msg === "dcshift: invalid expression" || msg === "dcshift: invalid or unsupported expression" ||
                 msg === "aeval: invalid expression" || msg === "aeval: invalid or unsupported expression") {

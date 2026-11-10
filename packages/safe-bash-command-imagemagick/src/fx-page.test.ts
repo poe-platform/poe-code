@@ -31,6 +31,36 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
     expect("stdout" in result ? result : { ...result, stdout, stderr }).toEqual({ exitCode: 0, stdout: expected, stderr: "" });
   });
 
+  it.each([
+    { template: "begin:%[fx:page.z]:end", expected: "begin::endbegin::end", exitCode: 1 },
+    { template: "%[fx:page.z]", expected: "", exitCode: 1 },
+    { template: "begin:%[fx:badprop]:end", expected: "begin::endbegin::end", exitCode: 1 },
+    { template: "begin:%[fx:page.width]:end", expected: "begin:8:endbegin:11:end", exitCode: 0 }
+  ])(`${mode}: writes every image's info format even with invalid FX ($template)`, async ({ template, expected, exitCode }) => {
+    // Expected status and bytes from ImageMagick 7.1.2-35 Q16-HDRI.
+    const original = new TextEncoder().encode("KEEP");
+    const files = new Map([["/out", original]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/out", original);
+    const args = ["-size", "3x2", "xc:red", "-repage", "8x6+1+2",
+      "(", "-size", "1x2", "xc:white", "-repage", "11x12-3+4", ")", "-format", template, "info:/out"];
+    const argumentValues = createCommandArguments(args);
+    let stdout = "", stderr = "";
+    const result = mode === "command" ? await createMagickCommand().execute({
+      command: "magick", args: argumentValues.args, argumentValues, fs, cwd: "/", env: {},
+      signal: new AbortController().signal, stdin: (async function* () {})(),
+      stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    }) : mode === "sync" ? runMagickCliSync(args, files)
+      : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(exitCode);
+    expect("stdout" in result ? result.stdout : stdout).toBe("");
+    const output = mode === "retained" || mode === "command" ? await fs.readFile("/out") : files.get("/out");
+    expect(output).toEqual(new TextEncoder().encode(expected));
+    expect("stderr" in result ? result.stderr : stderr).toBe(exitCode === 0 ? ""
+      : template.includes("page.z") ? "magick: Bad channel qualifier: z\nmagick: Bad channel qualifier: z\n"
+      : "magick: Expected operand at 'badprop'\nmagick: Expected operand at 'badprop'\n");
+  });
+
   it(`${mode}: -fx reads the current page after -repage without changing raster geometry`, async () => {
     const files = new Map([["/tile.ppm", tile]]), fs = new MemoryFileSystem();
     await fs.writeFile("/tile.ppm", tile);

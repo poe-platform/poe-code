@@ -3109,7 +3109,7 @@ function propToChannel(prop: string): number {
   if (p === "saturation") return 6;
   if (p === "lightness") return 7;
   if (p === "k") return 8;
-  throw new Error(`Bad channel qualifier: ${prop}`);
+  throw new FxExpressionError(`Bad channel qualifier: ${prop}`);
 }
 
 class FxExpressionError extends Error {}

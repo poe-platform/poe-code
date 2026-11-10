@@ -8,11 +8,11 @@ const rgb = "113a638cb5de07305982abd4fd264f78a1caf31c456e97c0";
 // Native FFmpeg 7.0.2: RGB24, 2x2 at 1 fps, -vf null -pix_fmt gray16be.
 const converted = "326aad652869a3686af5996760f48f6a";
 
-async function run(input: string, format: string, args: string[], options: Parameters<typeof createFfmpegCommand>[0] = {}) {
+async function run(input: string, format: string, args: string[], options: Parameters<typeof createFfmpegCommand>[0] = {}, size = "2x2", framerate = "1") {
   const volume = Volume.fromJSON({ "/in.raw": Buffer.from(input, "hex"), "/out.raw": "keep" });
   let stderr = "";
   const result = await createFfmpegCommand(options).execute({
-    args: ["-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", format, "-s", "2x2", "-r", "1",
+    args: ["-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", format, "-s", size, "-r", framerate,
       "-i", "/in.raw", ...args, "-f", "rawvideo", "/out.raw"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
@@ -58,5 +58,24 @@ for (const [input, format, args] of [[gray, "gray16be", ["-c:v", "copy"]], [rgb,
     assert.notEqual(result.exitCode, 0);
     assert.match(result.stderr, /maxOutputBytes/);
     assert.equal(result.output.toString(), "keep");
+  });
+}
+
+const spatialInput = "112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794";
+// Native FFmpeg 7.0.2, two 4x2 gray16be frames at 2 fps.
+for (const [filter, expected] of [
+  ["hflip", "bfdc85a24b68112ea7c46d8a3350f9168fac55721b38e1fe77943d5a0320c9e6"],
+  ["vflip", "f91633506d8aa7c4112e4b6885a2bfdcc9e603203d5a7794e1fe1b3855728fac"],
+  ["hflip,hflip", spatialInput],
+  ["vflip,vflip", spatialInput],
+  ["transpose=clock", "f916112e33504b686d8a85a2a7c4bfdcc9e6e1fe03201b383d5a557277948fac"],
+  ["transpose=clock,transpose=cclock", spatialInput],
+  ["transpose=clock:landscape", spatialInput],
+  ["null", spatialInput]
+] as const) {
+  it(`preserves full gray16be samples through ${filter}`, async () => {
+    const result = await run(spatialInput, "gray16be", ["-vf", filter, "-pix_fmt", "gray16be"], {}, "4x2", "2");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.output.toString("hex"), expected);
   });
 }

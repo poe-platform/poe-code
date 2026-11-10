@@ -7376,9 +7376,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const scale = raw.includes("%") ? 65535 / 100 : 1;
         const minimum = Number(parts[0]) * scale, maximum = Number(parts[1] ?? parts[0]) * scale;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        let random = createMagickRandom(state.seed ?? 0);
+        let random = createMagickRandom(state.seed);
         apply = function* (image, pixelOffset = 0) {
-            if (pixelOffset === 0) random = createMagickRandom(state.seed ?? 0);
+            if (pixelOffset === 0) random = createMagickRandom(state.seed);
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const evaluateSamples = image.evaluateSamples?.slice();
@@ -8287,7 +8287,7 @@ if (t === "-seed") {
             validateMagickTransformGeometry(value, t);
             // Native validates geometry, then reads only the leading decimal integer.
             state.seed = Number.parseInt(value, 10);
-            if (!Number.isSafeInteger(state.seed) || state.seed < 0) throw new Error("Invalid random seed");
+            if (!Number.isSafeInteger(state.seed)) throw new Error("Invalid random seed");
         }
         else if (t === "-precision") {
             const value = tokens[++i], requested = Number(value);

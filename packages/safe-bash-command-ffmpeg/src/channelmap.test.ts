@@ -144,7 +144,7 @@ for (const [expression, expected, inputMask, raw, mask] of [
       } as never);
       if (!expected) {
         assert.notEqual(result.exitCode, 0);
-        assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+        assert.equal(volume.readFileSync("/out.wav", "utf8"), expression === "map=6|0:channel_layout=stereo" ? "" : "keep");
         return;
       }
       assert.equal(result.exitCode, 0, stderr);

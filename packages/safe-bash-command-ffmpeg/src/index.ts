@@ -14726,7 +14726,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const output = !paired ? index : numericOutput ? Number(entry[1]) : outputNames.indexOf(channelName(entry[1]!));
                           if (!Number.isSafeInteger(input) || input < 0 || input >= stretched.length) {
                             const unnamed = filteredChannelNames?.every(name => name === "") && speakers.includes(channelName(entry[0]));
-                            throw new Error(`channelmap: unavailable input channel ${entry[0]}${unnamed ? " (unnamed layout)" : ""}`);
+                            throw new (numericInput ? RangeError : Error)(`channelmap: unavailable input channel ${entry[0]}${unnamed ? " (unnamed layout)" : ""}`);
                           }
                           if (!Number.isSafeInteger(output) || output < 0 || output >= selected.length || selected[output]) {
                             throw new Error("channelmap: invalid or duplicate output channel");
@@ -16510,10 +16510,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (err instanceof AgateError) return { exitCode: err.exitCode };
             if (msg === "channelmap: invalid or duplicate output channel") return { exitCode: 234 };
-            const unnamedChannel = msg.startsWith("channelmap: unavailable input channel") && msg.endsWith(" (unnamed layout)");
+            const unavailableChannel = msg.startsWith("channelmap: unavailable input channel") &&
+              (err instanceof RangeError || msg.endsWith(" (unnamed layout)"));
             const unsupportedPanOrder = msg.startsWith("pan: unsupported output channel order ");
-            if (err instanceof AlimiterError || err instanceof CompandError || unnamedChannel || unsupportedPanOrder) {
-              if ((unnamedChannel || unsupportedPanOrder || ((err instanceof AlimiterError || err instanceof CompandError) && err.stage === "configuration")) && outputFormat !== "null" &&
+            if (err instanceof AlimiterError || err instanceof CompandError || unavailableChannel || unsupportedPanOrder) {
+              if ((unavailableChannel || unsupportedPanOrder || ((err instanceof AlimiterError || err instanceof CompandError) && err.stage === "configuration")) && outputFormat !== "null" &&
                   !isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
                 await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
               }

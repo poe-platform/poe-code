@@ -6291,7 +6291,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const px = num(), py = num();
             const x = affine[0] * px + affine[2] * py + affine[4], y = affine[1] * px + affine[3] * py + affine[5];
             if (!Number.isFinite(x) || !Number.isFinite(y)) throw new Error("Drawing requires finite point coordinates");
-            if (fillOpacity !== undefined && !transformed && svgElements.length === 0) yield { kind: "shape", shape: "rectangle", tile: false, color: fillColor, x, y, width: 1, height: 1 };
+            if (!transformed && svgElements.length === 0) yield { kind: "shape", shape: "rectangle", tile: false, color: fillColor, x, y, width: 1, height: 1 };
             else svgElements.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${paintFill}"/>`);
         }
         else if (cmd === "text") {

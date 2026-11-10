@@ -156,6 +156,25 @@ for (const bits of [16, 32] as const) {
   }
 }
 
+// Native FFmpeg 7.0.2 x86, signed 16-bit WAV input and raw PCM output.
+for (const [filter, expected] of [
+  ["aphaser=out_gain=500000:decay=0", "00000000400dc0f20000000000000087"],
+  ["aphaser=out_gain=1000000:decay=0", "00000000801a80e5000000000000000e"],
+  ["aphaser=out_gain=1000:decay=0", "90c2703d900170fe70fe00000000c0d4"],
+  ["anull", "91ce6f310100ffffff7f008000002c01"]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${filter} matches native s16 conversion at large gains (${graph ? "graph" : "simple"})`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from([-12655, 12655, 1, -1, 32767, -32768, 0, 300], value => value / 32768)
+      ] }, { bitsPerSample: 16 });
+      const { volume, result, stderr } = await run(filter, graph, 8, input);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"), expected);
+    });
+  }
+}
+
 async function run(filter: string, graph = false, frames = 2048, input?: Uint8Array) {
   const channels = [
     Float64Array.from({ length: frames }, (_, i) => ((i * 67) % 14000 - 7000) / 32768),

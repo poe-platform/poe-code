@@ -61,10 +61,14 @@ export async function phaseAudio(
       history[channel]![position] = value;
       const sample = value * options.out_gain;
       // Native integer phasers truncate and retain the sample format between filters.
-      // x86 int32 conversion produces INT32_MIN on overflow rather than wrapping.
-      output[channel]![frame] = scale === 32768 ? ((Math.trunc(sample) << 16) >> 16) / scale
-        : scale === 2147483648 ? (Math.trunc(sample) < -2147483648 || Math.trunc(sample) > 2147483647 ? -2147483648 : Math.trunc(sample)) / scale
-        : sampleFormat === "flt" || sampleFormat === "fltp" ? Math.fround(sample) : sample;
+      // x86 converts through int32 (INT32_MIN on overflow), then narrows s16.
+      if (scale !== 1) {
+        const integer = Math.trunc(sample);
+        const converted = integer < -2147483648 || integer > 2147483647 ? -2147483648 : integer;
+        output[channel]![frame] = (scale === 32768 ? (converted << 16) >> 16 : converted) / scale;
+      } else {
+        output[channel]![frame] = sampleFormat === "flt" || sampleFormat === "fltp" ? Math.fround(sample) : sample;
+      }
     }
   }
   return output;

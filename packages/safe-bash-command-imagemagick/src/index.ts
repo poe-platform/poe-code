@@ -7990,24 +7990,41 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     else if (token === "-negate" || token === "+negate") {
         highDepth = true;
         const onlyGray = token === "+negate";
-        const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = function* (im) {
+            const cmyk = im.space === "cmyk";
+            if (cmyk) im = yield* convertCmykPixels(im);
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
+            const hueSamples = im.hueSamples?.slice();
             const evaluateSamples = im.evaluateSamples?.slice();
-            const samples = evaluateSamples ?? data16 ?? out, range = evaluateSamples || !data16 ? 255 : 65535;
-            const mask = [ch.r, ch.g, ch.b, ch.a && im.hasAlpha];
+            const samples = hueSamples ?? evaluateSamples ?? data16 ?? out, range = hueSamples ? 1 : evaluateSamples || !data16 ? 255 : 65535;
+            const mask = [ch.r, ch.g, ch.b, cmyk ? ch.k : ch.a && im.hasAlpha];
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
                 const gray = samples[idx] === samples[idx + 1] && samples[idx + 1] === samples[idx + 2];
+                if (cmyk && (!onlyGray || gray) && ch.a && im.hasAlpha) {
+                    const alpha = 255 - (evaluateSamples?.[idx + 3] ?? (data16 ? data16[idx + 3]! / 257 : out[idx + 3]!));
+                    out[idx + 3] = clampByteVal(alpha);
+                    if (data16) data16[idx + 3] = Math.round(Math.max(0, Math.min(65535, alpha * 257)));
+                    if (evaluateSamples) evaluateSamples[idx + 3] = alpha;
+                }
                 for (let c = 0; c < 4; c++) {
                     if ((!onlyGray || gray) && mask[c]) samples[idx + c] = range - samples[idx + c]!;
-                    if (evaluateSamples) {
-                        const value = evaluateSamples[idx + c]!;
-                        out[idx + c] = clampByteVal(value);
-                        if (data16) data16[idx + c] = Math.round(Math.max(0, Math.min(65535, value * 257)));
+                    if (cmyk) continue;
+                    if (hueSamples || evaluateSamples) {
+                        const value = samples[idx + c]!;
+                        out[idx + c] = clampByteVal(value * (255 / range));
+                        if (data16) data16[idx + c] = Math.round(Math.max(0, Math.min(65535, value * (65535 / range))));
                     }
                     else if (data16) out[idx + c] = clampByteVal(data16[idx + c]! / 257);
+                }
+                // CMYK has four ink samples; its RGBA backing stores alpha separately.
+                if (cmyk) for (let c = 0; c < 3; c++) {
+                    const value = (1 - samples[idx + c]!) * (1 - samples[idx + 3]!) * 255;
+                    out[idx + c] = clampByteVal(value);
+                    if (data16) data16[idx + c] = Math.round(Math.max(0, Math.min(65535, value * 257)));
+                    if (evaluateSamples) evaluateSamples[idx + c] = value;
                 }
             }
             // Negation retains the colormap and its entry order, including unused colors.
@@ -8032,7 +8049,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 }
                 pngPalette = { ...pngPalette, bytes, ...(transparency ? { transparency } : {}) };
             }
-            return { ...im, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
+            return { ...im, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
         };
     }
     else if (token === "-contrast" || token === "+contrast") {
@@ -13792,7 +13809,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "-negate" || t === "+negate") {
             pixelOperations.push(parseMagickPixelOperation(argv, { ...state, channelExplicit: channels !== undefined,
                 channels: { r: channels?.includes(0) ?? true, g: channels?.includes(1) ?? true,
-                    b: channels?.includes(2) ?? true, a: channels?.includes(3) ?? true }
+                    b: channels?.includes(2) ?? true, a: channels?.includes(3) ?? true, k: channels?.includes(4) ?? true }
             }, i, signal)!);
         }
         else if (t === "-level" || t === "+level" || t === "-alpha") {

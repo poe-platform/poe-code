@@ -649,7 +649,6 @@ interface MagickState {
   label?: string;
   filenameLiteral?: boolean;
   optionProperties?: Record<string, string>;
-  distortViewport?: string;
   sizeWidth: number;
   sizeHeight: number;
   hasSize: boolean;
@@ -4119,10 +4118,11 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (token === "-rotate") {
         const { angle, applies } = parseMagickRotation(tokens[start + 1] ?? "0"), background = state.background, backgroundExplicit = state.backgroundExplicit, kernel = state.kernel, filter = state.resizeFilter;
         if (!Number.isFinite(angle) || angle % 90 === 0) return;
-        const interpolation = state.interpolation ?? "bilinear", viewport = state.distortViewport;
+        const interpolation = state.interpolation ?? "bilinear", optionViewport = state.optionProperties?.["distort:viewport"];
         const scale = state.distortScale === undefined ? undefined : Math.abs(Number.parseFloat(state.distortScale));
-        return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "backgroundColor" | "virtualCanvas">): (WarpPlan & { space?: RgbaImage["space"]; steps: ReturnType<typeof warpPixelSteps> }) | undefined => {
+        return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "backgroundColor" | "virtualCanvas" | "properties">): (WarpPlan & { space?: RgbaImage["space"]; steps: ReturnType<typeof warpPixelSteps> }) | undefined => {
             if (!applies(image)) return;
+            const viewport = image.properties?.["artifact:distort:viewport"] ?? optionViewport;
             if (scale !== undefined && (!Number.isFinite(scale) || scale < 0.1)) throw new Error("invalid argument for option distort:scale");
             let plan = magickWarpPlan(image, "+distort", "SRT", String(angle % 360))!;
             const page = image.virtualCanvas;
@@ -4149,7 +4149,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (!["-shear", "-swirl", "-implode", "-wave", "-spread", "-distort", "+distort"].includes(token)) return;
     let i = start;
     const distort = token === "-distort" || token === "+distort";
-    const viewport = distort ? state.distortViewport : undefined;
+    const optionViewport = state.optionProperties?.["distort:viewport"];
     const scale = distort && state.distortScale !== undefined ? Math.abs(Number.parseFloat(state.distortScale)) : undefined;
     if (scale !== undefined && (!Number.isFinite(scale) || scale < 0.1)) throw new Error("invalid argument for option distort:scale");
     const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
@@ -4159,7 +4159,8 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
     const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined;
     const compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, seed = state.seed ?? 0n;
-    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">, geometry = distort ? args : spec) => {
+    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas" | "properties">, geometry = distort ? args : spec) => {
+        const viewport = distort ? image.properties?.["artifact:distort:viewport"] ?? optionViewport : undefined;
         if (token === "-shear") {
             const plan = shearPlan(image, geometry);
             // Identity shear must retain fractional and over-range working samples.
@@ -10139,7 +10140,6 @@ if (t === "-intent" || t === "+intent") {
             }
             if (key === "distort:scale") delete state.distortScale;
             if (key === "sample:offset") delete state.sampleOffset;
-            if (key === "distort:viewport") delete state.distortViewport;
             if (key === "jpeg:arithmetic-coding") delete state.jpegArithmeticCoding;
             if (key === "jpeg:restart-interval") delete state.jpegRestartInterval;
             if (key === "jpeg:dct-method") delete state.jpegDctMethod;
@@ -10209,7 +10209,6 @@ if (t === "-intent" || t === "+intent") {
             const separator = defStr.indexOf("=");
             const key = (separator < 0 ? defStr : defStr.slice(0, separator)).toLowerCase();
             state.optionProperties = { ...state.optionProperties, [key]: separator < 0 ? "" : defStr.slice(separator + 1) };
-            if (defStr.toLowerCase().startsWith("distort:viewport=")) state.distortViewport = defStr.slice("distort:viewport=".length);
             if (defStr.toLowerCase().startsWith("magnify:method=")) state.magnifyMethod = parseMagnifyMethod(defStr.slice("magnify:method=".length));
             const [filterKey, filterValue] = defStr.toLowerCase().split("=");
             if (filterKey === "distort:scale") state.distortScale = filterValue ?? "";

@@ -40,6 +40,12 @@ for (const mode of ["public", "sync"] as const) {
 
     for (const operator of ["-distort", "+distort"]) {
         const bestFit = operator === "+distort", w = bestFit ? 8 : 6, h = bestFit ? 6 : 4, origin = bestFit ? -1 : 0;
+        it.each(["option", "artifact"])(`reads %s viewport pixels with ${operator} (${mode})`, async namespace => {
+            const { image, stderr } = await run(["-set", `${namespace}:distort:viewport`, "3x2+1+1", operator, "PerspectiveProjection", "1,0,0,0,1,0,0,0", "-set", `${namespace}:distort:viewport`, "1x1+0+0"]);
+            expect(stderr).toBe("");
+            expectViewport(image, 3, 2, 1, 1);
+        });
+
         it.each([
             { viewport: "3x2+1+1", width: 3, height: 2, x: 1, y: 1 },
             { viewport: "+1+1", width: w, height: h, x: 1, y: 1 },

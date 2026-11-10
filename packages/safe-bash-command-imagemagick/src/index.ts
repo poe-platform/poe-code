@@ -5123,7 +5123,7 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
     };
 }
 
-function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickFormatContext }): ImageMetadata["properties"] {
+function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickFormatContext }, pages = image[magickInput]?.sceneCount ?? 1): ImageMetadata["properties"] {
     const source = image[magickInput];
     if (!source?.filePath) return image.properties;
     const path = source.filePath;
@@ -5131,17 +5131,17 @@ function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickForm
         ...image.properties,
         "Thumb::Image::Width": String(source.originalWidth ?? image.width),
         "Thumb::Image::Height": String(source.originalHeight ?? image.height),
-        "Thumb::Document::Pages": String(source.sceneCount ?? 1),
+        "Thumb::Document::Pages": String(pages),
         "Thumb::URI": path.startsWith("/") ? `file://${path}` : path.includes(":") || path.startsWith(".") ? path : `./${path}`,
         ...(source.byteLen === undefined ? {} : { "Thumb::Size": String(source.byteLen) }),
         ...(source.mtimeMs === undefined ? {} : { "Thumb::MTime": String(Math.floor(source.mtimeMs / 1000)) })
     };
 }
 
-function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Generator<void, RgbaImage, void> {
+function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false, thumbnailPages?: number): Generator<void, RgbaImage, void> {
     if (thumbnail) {
         const { virtualCanvas: ignoredCanvas, xmp: ignoredXmp, ...reset } = img;
-        img = { ...reset, bitsPerSample: 8, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset), "comment") };
+        img = { ...reset, bitsPerSample: 8, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset, thumbnailPages), "comment") };
     }
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczossharp" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
@@ -5201,10 +5201,10 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
 
-async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: ReturnType<typeof magickResizeOptions>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Promise<StoredRgbaImage> {
+async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: ReturnType<typeof magickResizeOptions>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false, thumbnailPages?: number): Promise<StoredRgbaImage> {
     if (thumbnail) {
         const { virtualCanvas: ignoredCanvas, xmp: ignoredXmp, ...reset } = image;
-        image = { ...reset, bitsPerSample: 8, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset), "comment") };
+        image = { ...reset, bitsPerSample: 8, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset, thumbnailPages), "comment") };
     }
     if (!options) return image;
     const width = options.width!, height = options.height!;
@@ -12020,7 +12020,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
-                return (yield* applyMagickResizeSteps(im, expanded, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter, state.sampleOffset));
+                return (yield* applyMagickResizeSteps(im, expanded, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter, state.sampleOffset, false, stack.length));
             }));
         }
         else if (t === "-crop") {
@@ -15468,8 +15468,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return { ...result, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) };
             });
         } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
+            let thumbnailPages: number;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                thumbnailPages = stack.length;
                 return stack;
             });
             const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter, sampleOffset = state.sampleOffset;
@@ -15479,7 +15481,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, token);
                 const options = magickResizeOptions(image, expanded, kernel ?? (thumbnail ? "lanczossharp" : undefined));
-                return resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, sampleOffset);
+                return resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, sampleOffset, false, thumbnailPages);
             });
         } else if (!operandsOnly && token === "-sort-pixels") {
             stackStep(async stack => {

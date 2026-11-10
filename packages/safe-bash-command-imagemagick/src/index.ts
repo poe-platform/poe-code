@@ -11164,6 +11164,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps({ ...image, isPalette: true }, kmeansPixelSteps(image, geometry), signal));
         }
         else if (t === "-mean-shift") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = parseMeanShiftGeometry(tokens[++i] ?? "");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, meanShiftPixelSteps(im, geometry, state.background, state.virtualPixel), signal);
@@ -14025,6 +14026,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseKmeansGeometry(tokens[++i] ?? "");
             steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, kmeansPixelSteps(image, geometry), signal) : undefined);
         } else if (!operandsOnly && token === "-mean-shift") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const geometry = parseMeanShiftGeometry(tokens[++i] ?? ""), background = state.background, virtualPixel = state.virtualPixel;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, meanShiftPixelSteps(image, geometry, background, virtualPixel), signal) : undefined);
         } else if (!operandsOnly && token === "-bilateral-blur") {

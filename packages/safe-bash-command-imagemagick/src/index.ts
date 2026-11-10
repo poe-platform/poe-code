@@ -1112,7 +1112,7 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
     const virtualCanvas = magickResizeCanvas(base, w, h);
     // Native sequence output retains the mask channel, with zero protection.
     const writeMask = (typeof opRaw === "string" ? base.writeMask : normalized.some(image => image.writeMask)) ? yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
-    const readMask = typeof opRaw === "string" && normalized.some(image => image.readMask)
+    const readMask = normalized.some(image => image.readMask)
         ? yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) : base.readMask;
     const result = { ...yield* applyMagickRasterSteps(base, (typeof opRaw === "string" ? evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0n, w) : polyPixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16))), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), isPalette: false, inactiveAlpha: false, region: typeof opRaw === "string" ? undefined : base.region, writeMask, readMask, ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (base.metaChannels?.length) {
@@ -12753,7 +12753,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     if (!terms) result.region = undefined;
                     result.storedWriteMask = storedWriteMask;
-                    if (!terms && frames.some(image => image.readMask))
+                    if (frames.some(image => image.readMask))
                         result.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                     stack.length = 0; await stack.push(result);
                 }

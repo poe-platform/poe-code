@@ -10323,6 +10323,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
+                if (t === "-swirl" || t === "-implode") output = { ...output, isPalette: false };
                 if (image.metaChannels?.length && (t === "-swirl" || t === "-implode")) {
                     output.metaChannels = [];
                     for (const plane of image.metaChannels) {
@@ -12822,6 +12823,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
+                if (token === "-swirl" || token === "-implode") output = { ...output, isPalette: false };
                 if (image.storedMetaChannels?.length && (token === "-swirl" || token === "-implode")) {
                     output.storedMetaChannels = [];
                     for (const plane of image.storedMetaChannels) {

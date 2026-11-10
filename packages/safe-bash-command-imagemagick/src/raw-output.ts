@@ -1,7 +1,8 @@
 import { encodeImage as encodeRaster, encodeStoredImage as encodeStoredRaster, type ImageFormat as RasterFormat, type OutputEncodeOptions as RasterOptions, type RgbaImage, type StoredRgbaImage, type ImageByteStorage } from "@poe-code/image-ast/portable";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 
-export type RawCoder = "rgb" | "rgba" | "bgr" | "bgra" | "gray";
+export type RawCoder = "rgb" | "rgba" | "bgr" | "bgra" | "gray" | "cmyk" | "cmyka";
 export type ImageFormat = RasterFormat | RawCoder;
 export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; endian?: string | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
@@ -22,7 +23,7 @@ function* webpTargetQualities(options: OutputEncodeOptions): Generator<number, n
     return best;
 }
 export function isRawCoder(format: string | undefined): format is RawCoder {
-    return format === "rgb" || format === "rgba" || format === "bgr" || format === "bgra" || format === "gray";
+    return format === "rgb" || format === "rgba" || format === "bgr" || format === "bgra" || format === "gray" || format === "cmyk" || format === "cmyka";
 }
 
 export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
@@ -54,7 +55,7 @@ export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): Ret
         }
         return encoded;
     }
-    const channels = format === "gray" ? 1 : format.endsWith("a") ? 4 : 3;
+    const channels = format === "gray" ? 1 : (format.startsWith("cmyk") ? 4 : 3) + (format.endsWith("a") ? 1 : 0);
     const data = encodeRawPixels(image, options, Array.from({ length: channels }, (_, channel) => channel));
     return { data, format: "raw", channels };
 }
@@ -67,10 +68,15 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
     const view = new DataView(data.buffer), samples = image.data16 ?? image.data;
     const scale = image.data16 ? 65535 : 255, maximum = depth === 16 ? 65535 : 255;
     for (let pixel = 0; pixel < pixels; pixel++) {
+        const inks = format.startsWith("cmyk") ? image.space === "cmyk" && image.hueSamples
+            ? image.hueSamples.subarray(pixel * 4, pixel * 4 + 4)
+            : rgbToCmyk(samples[pixel * 4]! / scale, samples[pixel * 4 + 1]! / scale, samples[pixel * 4 + 2]! / scale) : undefined;
         for (let c = 0; c < channels.length; c++) {
             const channel = channels[c]!;
             const index = format.startsWith("bgr") && channel < 3 ? 2 - channel : channel;
-            const value = format === "gray"
+            const value = inks
+                ? channel < 4 ? Math.max(0, Math.min(1, inks[channel]!)) * scale : image.hasAlpha ? samples[pixel * 4 + 3]! : scale
+                : format === "gray"
                 ? 0.212656 * samples[pixel * 4]! + 0.715158 * samples[pixel * 4 + 1]! + 0.072186 * samples[pixel * 4 + 2]!
                 : channel === 3 && !image.hasAlpha ? scale : samples[pixel * 4 + index]!;
             const quantum = Math.round(value * maximum / scale);
@@ -114,9 +120,10 @@ export async function* encodeStoredImage(image: StoredRgbaImage, storage: ImageB
         return yield* encodeStoredRaster(image, storage, signal, { ...options, format: options.format, ...(options.format === "jpeg" && options.jpegExtent !== undefined ? { quality, chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4" } : {}), synthesizeExif: false });
     }
     let size = 0;
-    const channels = options.format === "gray" ? 1 : options.format.endsWith("a") ? 4 : 3;
+    const channels = options.format === "gray" ? 1 : (options.format.startsWith("cmyk") ? 4 : 3) + (options.format.endsWith("a") ? 1 : 0);
     const packedChannels = Array.from({ length: channels }, (_, channel) => channel);
-    const chunkPixels = image.storedData16 ? 2048 : 4096;
+    const cmyk = options.format.startsWith("cmyk") && image.space === "cmyk";
+    const chunkPixels = cmyk ? 512 : image.storedData16 ? 2048 : 4096;
     const pixels = image.width * image.height;
     const spanPixels = options.rawInterlace === "line" ? image.width : pixels;
     // Finish each row/channel run before advancing, even when it spans several reads.
@@ -133,7 +140,13 @@ export async function* encodeStoredImage(image: StoredRgbaImage, storage: ImageB
                     if (bytes.length !== count * 8) throw new Error("Truncated raw sample storage");
                     data16 = new Uint16Array(new Uint8Array(bytes).buffer);
                 }
-                const encoded = encodeRawPixels({ ...image, width: count, height: 1, data, ...(data16 ? { data16 } : {}) }, options, options.rawInterlace ? [channel] : packedChannels);
+                let hueSamples: Float64Array | undefined;
+                if (cmyk && image.storedHueSamples !== undefined) {
+                    const bytes = await storage.read(image.storedHueSamples + pixel * 32, count * 32, { signal });
+                    if (bytes.length !== count * 32) throw new Error("Truncated raw ink storage");
+                    hueSamples = new Float64Array(new Uint8Array(bytes).buffer);
+                }
+                const encoded = encodeRawPixels({ ...image, width: count, height: 1, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) }, options, options.rawInterlace ? [channel] : packedChannels);
                 size += encoded.length;
                 yield encoded;
             }

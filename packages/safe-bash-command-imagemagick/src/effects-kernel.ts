@@ -233,12 +233,7 @@ export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "da
                 if (x >= borderWidth && x < image.width - borderWidth) continue;
                 foreground = x < borderWidth;
             }
-<<<<<<< Updated upstream
             const target = foreground === raised ? maximum : 0;
-            for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) if (channels[channel])
-                data[offset + channel] = Math.fround((data[offset + channel]! * factor + target * (255 - factor)) / 255 * quantum) / quantum;
-=======
-            const target = foreground === raised ? 255 : 0;
             if (inks) {
                 for (let channel = 0; channel < 4; channel++) if (channels[channel === 3 ? 4 : channel])
                     inks[offset + channel] = (inks[offset + channel]! * factor + (foreground === raised ? 255 - factor : 0)) / 255;
@@ -246,8 +241,7 @@ export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "da
                     data[offset + channel] = (1 - inks[offset + channel]!) * (1 - inks[offset + 3]!) * 255;
             }
             for (let channel = inks ? 3 : 0; channel < (image.hasAlpha ? 4 : 3); channel++) if (channels[channel])
-                data[offset + channel] = Math.fround((data[offset + channel]! * factor + target * (255 - factor)) / 255 * 257) / 257;
->>>>>>> Stashed changes
+                data[offset + channel] = Math.fround((data[offset + channel]! * factor + target * (255 - factor)) / 255 * quantum) / quantum;
         }
         if (inks) yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
         // Keep working values for later arithmetic; only the encoded backing is bounded.

@@ -6348,7 +6348,14 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const images: RgbaImage[] = [];
         for (const index of selectedInputPages(pageSpec, saved.length)) {
             yield;
-            let image = { ...saved[index]!, data: new Uint8Array(saved[index]!.data) };
+            let image: MagickImage = { ...saved[index]!, data: new Uint8Array(saved[index]!.data) };
+            if (state.delay !== undefined) {
+                const delay = state.delay.value;
+                const source = image[magickInput];
+                const timing = parseDelayOption(delay, image.delay?.[source?.sceneIdx ?? 0] ?? 0);
+                image = { ...image, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks, [magickInput]: { ...source, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks },
+                    delay: (image.delay ?? [0]).map(current => parseDelayOption(delay, current).milliseconds) };
+            }
             if (state.label !== undefined) {
                 const label = yield* formatMagickPropertyStringSteps(state.label, image, () => image, { filePath: baseToken });
                 image = { ...image, properties: { ...image.properties, label } };
@@ -14368,6 +14375,19 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
          if (state.label !== undefined) {
              const label = await formatRetainedIdentify(state.label, savedImage, { filePath: baseToken }, async () => ({ image: savedImage, storage: backend.storage }), signal);
              savedImage = { ...savedImage, properties: { ...savedImage.properties, label } };
+         }
+         if (state.delay !== undefined) {
+             const delay = state.delay.value, original = savedImage;
+             const source = (savedImage as StoredMagickImage)[magickInput], scene = source?.sceneIdx ?? 0;
+             const current = await savedImage.storedDelay?.at(scene, { signal }) ?? savedImage.delay?.[scene] ?? 0;
+             const timing = parseDelayOption(delay, current);
+             savedImage = { ...savedImage, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks, [magickInput]: { ...source, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks }, storedDelay: {
+                 length: original.storedDelay?.length ?? original.delay?.length ?? 1,
+                 async at(scene, options) {
+                     const current = await original.storedDelay?.at(scene, options) ?? original.delay?.[scene] ?? 0;
+                     return parseDelayOption(delay, current).milliseconds;
+                 },
+             } } as StoredMagickImage;
          }
          image = inlineGeom ? await applyStoredInlineReadModifier(savedImage, inlineGeom, baseToken, state, backend, signal, false, readOptions.analysis) : savedImage;
          await readOptions.visit?.(image);

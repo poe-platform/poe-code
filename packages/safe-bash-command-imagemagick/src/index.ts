@@ -6457,6 +6457,11 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
     canvas.writeMask = first.writeMask;
     canvas[magickInput] = { imageType: first[magickInput]?.imageType };
     canvas.gravity = first.gravity;
+    if (first.metaChannels?.length) {
+        canvas.metaChannels = [];
+        for (let channel = 0; channel < first.metaChannels.length; channel++)
+            canvas.metaChannels.push(yield* createSolidRgbaImageSteps(totalW, totalH, { r: 0, g: 0, b: 0, a: 255 }));
+    }
     const gray = stack.every(image => image.space === "b-w" || image.space === "grey16") && background.r === background.g && background.g === background.b;
     return { ...canvas, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(gray ? { space: first.space, gamma: first.gamma } : {}), ...(first.magickColorspace !== undefined && stack.every(image => image.magickColorspace === first.magickColorspace) ? { magickColorspace: first.magickColorspace } : {}), channels: cmyk ? 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
 }
@@ -14327,6 +14332,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     result = { ...result, readMask: first.readMask, storedWriteMask: first.storedWriteMask } as StoredRgbaImage;
                     result[magickInput] = { imageType: first[magickInput]?.imageType };
                     result.gravity = first.gravity;
+                    if (first.storedMetaChannels?.length) {
+                        result.storedMetaChannels = [];
+                        for (let channel = 0; channel < first.storedMetaChannels.length; channel++)
+                            result.storedMetaChannels.push(await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal));
+                    }
                     result = { ...result, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(sameColorspace && first.magickColorspace !== undefined ? { magickColorspace: first.magickColorspace } : {}), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha: background.a < 255, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
                     if (evaluate) {
                         result.storedEvaluateSamples = backend.storage.allocate(width * height * 32);

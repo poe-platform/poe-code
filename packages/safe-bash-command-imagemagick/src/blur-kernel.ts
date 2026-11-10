@@ -1,4 +1,4 @@
-import type { Region } from "./region.js";
+import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 export function parseUnsharpGeometry(raw: string): { width: number; height: number; amount: number; threshold: number } {
@@ -66,7 +66,7 @@ export function* blurPixelSteps(image: { width: number; height: number; region?:
                             for (let c = 0; c < 3; c++) row[x * 4 + c]! += bytes[offset + c]! * alpha * weight;
                             row[x * 4 + 3]! += alpha * weight;
                         }
-                        if (region && (left + x < region.x || left + x >= region.x + region.width || sy < region.y || sy >= region.y + region.height)) {
+                        if (region && !regionContains(region, left + x, sy)) {
                             const offset = (left + x - first) * 4, alpha = bytes[offset + 3]! / 255;
                             // Native clips each separable pass before the next one reads it.
                             for (let c = 0; c < 3; c++) row[x * 4 + c] = (bytes[offset + c]! * alpha + row[x * 4 + c]! * (1 - alpha)) * alpha;
@@ -88,7 +88,7 @@ export function* blurPixelSteps(image: { width: number; height: number; region?:
                 for (let c = 0; c < 4; c++) {
                     const index = x * 4 + c;
                     let value = c === 3 ? alpha * 255 : alpha > 0 ? sums[index]! / alpha : 0;
-                    if (region && (left + x < region.x || left + x >= region.x + region.width || y < region.y || y >= region.y + region.height)) {
+                    if (region && !regionContains(region, left + x, y)) {
                         const sourceAlpha = original![x * 4 + 3]! / 255;
                         value = c === 3 ? original![index]! : original![index]! * sourceAlpha + sums[index]! * (1 - sourceAlpha);
                     }

@@ -30,7 +30,7 @@ import { ftxtPixels, storedFtxt } from "./ftxt.js";
 import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
-import { chopRegion, orientRegion, rotateRegion, regionPixelSteps, type Region } from "./region.js";
+import { chopRegion, orientRegion, rotateRegion, rollRegion, regionContains, regionPixelSteps, type Region } from "./region.js";
 import { writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
 import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
@@ -6604,7 +6604,7 @@ function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: M
             const intensity = magickIntensity(Math.fround(samples[i]! * scale), Math.fround(samples[i + 1]! * scale), Math.fround(samples[i + 2]! * scale), method, 65535, linear) / 257;
             const tone = magickSepiaTone(intensity, sepiaThreshold, gray);
             const region = image?.region, pixel = pixelOffset + i / 4;
-            if (image && region && (pixel % image.width < region.x || pixel % image.width >= region.x + region.width || Math.floor(pixel / image.width) < region.y || Math.floor(pixel / image.width) >= region.y + region.height)) {
+            if (image && region && !regionContains(region, pixel % image.width, Math.floor(pixel / image.width))) {
                 const alpha = image.hasAlpha && image.alphaBlend !== false ? (cmyk ? data[i + 3]! * (data instanceof Uint16Array ? 1 : 257) : samples[i + 3]! * scale) / 65535 : 1;
                 blendSepiaRegion(tone, [samples[i]! * scale / 257, samples[i + 1]! * scale / 257, samples[i + 2]! * scale / 257], alpha, alpha, channels);
             }
@@ -6694,7 +6694,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     const intensity = magickIntensity(Math.fround(samples[i]! * scale), Math.fround(samples[i + 1]! * scale), Math.fround(samples[i + 2]! * scale), method, 65535, pixels.magickColorspace === "RGB") / 257;
                     const tone = magickSepiaTone(intensity, threshold, gray);
                     const region = image.region, pixel = pixelOffset + i / 4;
-                    const protectedPixel = region && (pixel % image.width < region.x || pixel % image.width >= region.x + region.width || Math.floor(pixel / image.width) < region.y || Math.floor(pixel / image.width) >= region.y + region.height);
+                    const protectedPixel = region && !regionContains(region, pixel % image.width, Math.floor(pixel / image.width));
                     const alpha = image.hasAlpha && image.alphaBlend !== false ? (rgb ? rgb[i + 3]! / 255 : samples[i + 3]! * scale / 65535) : 1;
                     if (protectedPixel) blendSepiaRegion(tone, [samples[i]! * scale / 257, samples[i + 1]! * scale / 257, samples[i + 2]! * scale / 257], alpha, alpha, maskChannels);
                     const toned = protectedPixel ? [...tone] : undefined;
@@ -7750,7 +7750,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const writeMask = im.writeMask;
                 const maskOffset = writeMask ? (Math.min(Math.floor(idx / 4 / im.width), writeMask.height - 1) * writeMask.width + Math.min(idx / 4 % im.width, writeMask.width - 1)) * 4 : 0;
                 const x = (pixelOffset + idx / 4) % imageWidth, y = Math.floor((pixelOffset + idx / 4) / imageWidth);
-                const outsideRegion = im.region && (x < im.region.x || x >= im.region.x + im.region.width || y < im.region.y || y >= im.region.y + im.region.height);
+                const outsideRegion = im.region && !regionContains(im.region, x, y);
                 const protection = outsideRegion ? 1 : writeMask ? (0.212656 * writeMask.data[maskOffset]! + 0.715158 * writeMask.data[maskOffset + 1]! + 0.072186 * writeMask.data[maskOffset + 2]!) / 255 : 0;
                 const alpha = im.hasAlpha ? evaluateSamples[idx + 3]! / 255 : 1;
                 let editedAlpha = alpha;
@@ -9262,6 +9262,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
                 validateMagickTransformGeometry(expanded, t);
                 let result = yield* applyMagickRollSteps(im, expanded, signal);
+                if (im.region) {
+                    result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!(result.data16 || im.data16), state.channels), signal, result, [result, im]);
+                    const offsets = parseMagickRollGeometry(expanded);
+                    result.region = rollRegion(im.region, im, offsets.x, offsets.y);
+                }
                 if (im.writeMask) {
                     // Roll honors the destination mask before moving it with the pixels.
                     result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!(result.data16 || im.data16), false, state.channels), signal, result, [result, im, im.writeMask]);
@@ -11873,6 +11878,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (token === "-splice") validateMagickSpliceGeometry(expanded);
                 else validateMagickTransformGeometry(expanded, token);
                 let result = await transformStoredMagickCoordinates(image, backend, token, expanded, captured, signal, analysis);
+                if (token === "-roll" && image.region) {
+                    result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!(result.storedData16 || image.storedData16), captured.channels), signal, result, [result, image]);
+                    const offsets = parseMagickRollGeometry(expanded);
+                    result.region = rollRegion(image.region, image, offsets.x, offsets.y);
+                }
                 if (token === "-roll" && image.storedWriteMask) {
                     // Roll honors the destination mask before moving it with the pixels.
                     result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!(result.storedData16 || image.storedData16), false, captured.channels), signal, result, [result, image, image.storedWriteMask]);

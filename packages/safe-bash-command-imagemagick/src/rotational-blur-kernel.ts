@@ -1,4 +1,4 @@
-import type { Region } from "./region.js";
+import { regionContains, type Region } from "./region.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -69,7 +69,7 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
                 total++;
             }
             const x = (start + i) % width, y = Math.floor((start + i) / width), region = image.region;
-            const protectedPixel = region && (x < region.x || x >= region.x + region.width || y < region.y || y >= region.y + region.height);
+            const protectedPixel = region && !regionContains(region, x, y);
             const sourceAlpha = alphaActive ? values[i * 4 + 3]! / 65535 : 1;
             const editedAlpha = alphaActive ? (mask && !mask[3] ? values[i * 4 + 3]! : sums[3]! / total) / 65535 : 1;
             for (let c = 0; c < 4; c++) if (!mask || mask[c]) {

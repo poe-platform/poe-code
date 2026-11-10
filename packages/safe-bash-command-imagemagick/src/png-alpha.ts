@@ -1,5 +1,5 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
-import type { Region } from "./region.js";
+import { regionContains, type Region } from "./region.js";
 
 /** PNG32/64 enable inactive alpha, setting opacity only where the write mask permits it. */
 export function* pngAlphaPixelSteps(image: { width: number; height: number; hasAlpha: boolean; region?: Region | undefined }, mask: { width: number; height: number } | undefined, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
@@ -19,7 +19,7 @@ export function* pngAlphaPixelSteps(image: { width: number; height: number; hasA
                 const m = Math.min(i, maskCount - 1) * 4;
                 const region = image.region;
                 const opaque = samples ? 0.212656 * samples[m]! + 0.715158 * samples[m + 1]! + 0.072186 * samples[m + 2]! > 65535 / 2
-                    : !region || x + i < region.x || x + i >= region.x + region.width || y < region.y || y >= region.y + region.height;
+                    : !region || !regionContains(region, x + i, y);
                 pixels[offset] = opaque ? maximum : image.hasAlpha ? pixels[offset]! : 0;
             }
             yield { kind: "write", highDepth, position, data: new Uint8Array(pixels.buffer) };

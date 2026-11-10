@@ -1,5 +1,5 @@
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
-import type { Region } from "./region.js";
+import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Separable à trous hat transform with native noise thresholds and reflected edges. */
@@ -64,7 +64,7 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
                 const value = Math.fround(planes[i]! + planes[low + i]!) / quantumScale;
                 if (masked) {
                     const region = image.region!, x = i % width, y = Math.floor(i / width);
-                    if (x < region.x || x >= region.x + region.width || y < region.y || y >= region.y + region.height) {
+                    if (!regionContains(region, x, y)) {
                         // Native synchronizes the write mask after each RGB channel,
                         // compositing every color against the preceding channel's result.
                         const alpha = image.hasAlpha || image.alphaBlend !== false ? output[i * 4 + 3]! / (highDepth ? 65535 : 255) : 1;

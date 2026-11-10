@@ -2,7 +2,7 @@ import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
-import type { Region } from "./region.js";
+import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Native emboss diagonal Gaussian convolution followed by channel-aware equalization. */
@@ -94,7 +94,7 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
             // The native cache composites the region mask after convolution, before
             // building the histogram. Keep HDRI values through both mask applications.
             if (region) for (let x = 0; x < count; x++) {
-                if (left + x >= region.x && left + x < region.x + region.width && y >= region.y && y < region.y + region.height) continue;
+                if (regionContains(region, left + x, y)) continue;
                 const sourceAlpha = image.hasAlpha ? samples![x * 4 + 3]! / 255 : 1;
                 const editedAlpha = image.hasAlpha ? sums[x * 4 + 3]! / 255 : 1;
                 for (let channel = 0; channel < 3; channel++) sums[x * 4 + channel] = samples![x * 4 + channel]! * sourceAlpha + sums[x * 4 + channel]! * editedAlpha * (1 - sourceAlpha);
@@ -114,7 +114,7 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
                     const value = sums[x * 4 + channel]!;
                     let equalized = black === width * height ? value : lookup[bin(value)]!;
                     // Equalization writes through the same mask using the convolved source.
-                    if (region && (left + x < region.x || left + x >= region.x + region.width || y < region.y || y >= region.y + region.height)) {
+                    if (region && !regionContains(region, left + x, y)) {
                         const sourceAlpha = image.hasAlpha ? sums[x * 4 + 3]! / 255 : 1;
                         const editedAlpha = image.hasAlpha ? (black === width * height ? sums[x * 4 + 3]! : lookup[bin(sums[x * 4 + 3]!)]!) / 255 : 1;
                         equalized = channel === 3 ? value : value * sourceAlpha + equalized * editedAlpha * (1 - sourceAlpha);

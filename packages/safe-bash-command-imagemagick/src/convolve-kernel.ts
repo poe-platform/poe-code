@@ -1,4 +1,4 @@
-import type { Region } from "./region.js";
+import { regionContains, type Region } from "./region.js";
 
 export interface ConvolveKernel {
     weights: number[];
@@ -41,7 +41,7 @@ export function* convolvePixelSteps(image: { width: number; height: number; hasA
         for (let x = 0; x < count; x++) for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) {
             const alpha = sums[x * 4 + 3]!;
             let value = channel === 3 ? alpha * 255 : sums[x * 4 + channel]! / (image.hasAlpha ? (Math.abs(alpha) < 1e-12 ? 1e-12 : alpha) : 1);
-            if (region && (left + x < region.x || left + x >= region.x + region.width || y < region.y || y >= region.y + region.height)) {
+            if (region && !regionContains(region, left + x, y)) {
                 // Native Q16-HDRI composites the region mask before clipping the
                 // convolution, including negative colors and alpha above one.
                 const sourceAlpha = image.hasAlpha ? center[x * 4 + 3]! / 255 : 1;

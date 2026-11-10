@@ -1,13 +1,36 @@
 import { blendMaskedPixel, type MaskChannels } from "./write-mask.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-export interface Region { x: number; y: number; width: number; height: number }
+export interface Region { x: number; y: number; width: number; height: number; wrap?: { width: number; height: number } }
 
 /** Right-angle rotations move the selection with the entire raster. */
 export function rotateRegion(region: Region, image: { width: number; height: number }, angle: number): Region {
     const turn = ((angle % 360) + 360) % 360;
     // A fresh region also prevents the pipeline from masking the rotated raster.
     return orientRegion({ ...region }, { ...image, orientation: turn === 90 ? 6 : turn === 180 ? 3 : turn === 270 ? 8 : 1 });
+}
+
+export function regionContains(region: Region, x: number, y: number): boolean {
+    x -= region.x;
+    y -= region.y;
+    if (region.wrap) {
+        x = ((x % region.wrap.width) + region.wrap.width) % region.wrap.width;
+        y = ((y % region.wrap.height) + region.wrap.height) % region.wrap.height;
+    }
+    return x >= 0 && x < region.width && y >= 0 && y < region.height;
+}
+
+/** Roll the clipped selection on the same torus as the image pixels. */
+export function rollRegion(region: Region, image: { width: number; height: number }, dx: number, dy: number): Region {
+    const x = region.wrap ? region.x : Math.max(0, Math.min(image.width, region.x));
+    const y = region.wrap ? region.y : Math.max(0, Math.min(image.height, region.y));
+    return {
+        x: ((x + dx) % image.width + image.width) % image.width,
+        y: ((y + dy) % image.height + image.height) % image.height,
+        width: region.wrap ? region.width : Math.max(0, Math.min(image.width, region.x + region.width) - x),
+        height: region.wrap ? region.height : Math.max(0, Math.min(image.height, region.y + region.height) - y),
+        wrap: { width: image.width, height: image.height },
+    };
 }
 
 /** Removing rows and columns keeps a rectangular region rectangular. */
@@ -42,9 +65,14 @@ export function orientRegion(region: Region, image: { width: number; height: num
 export function* regionPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined }, region: Region, highDepth = false, channels?: MaskChannels): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const left = Math.max(0, Math.min(image.width, region.x));
     const right = Math.max(left, Math.min(image.width, region.x + region.width));
+    const wrappedRight = region.wrap ? Math.max(0, region.x + region.width - image.width) : 0;
+    const selectedSpans = wrappedRight > 0
+        ? [[0, wrappedRight, 0], [wrappedRight, left, 1], [left, right, 0]]
+        : [[0, left, 1], [left, right, 0], [right, image.width, 1]];
     for (let y = 0; y < image.height; y++) {
         yield;
-        const spans = y < region.y || y >= region.y + region.height ? [[0, image.width, 1]] : [[0, left, 1], [left, right, 0], [right, image.width, 1]];
+        const relativeY = region.wrap ? (y - region.y + image.height) % image.height : y - region.y;
+        const spans = relativeY < 0 || relativeY >= region.height ? [[0, image.width, 1]] : selectedSpans;
         for (const [start, end, source] of spans) {
             for (let x = start!; x < end!; x += 4096) {
                 const position = (y * image.width + x) * 4, length = Math.min(4096, end! - x) * 4;

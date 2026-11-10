@@ -4081,10 +4081,10 @@ async function applyVideoFilterChain(
       commands.sort((a, b) => a.time - b.time);
       current = await tmix(current, argStr, budget, signal, commands);
     } else if (name === "tblend") {
-      const modeValue = parseFilterExpression(named.all_mode ?? "normal", "tblend", { normal: 0, difference: 6 });
+      const modeValue = parseFilterExpression(named.all_mode ?? "normal", "tblend", { normal: 0, average: 3, difference: 6 });
       const mode = roundToEven(modeValue);
-      if (modeValue < 0 || modeValue > 39 || ![0, 6].includes(mode) || (argStr !== "" && (positional.length !== 1 || Object.keys(named).length !== 1 || named.all_mode === undefined))) {
-        throw new Error("tblend: only all_mode=normal or difference is supported");
+      if (modeValue < 0 || modeValue > 39 || ![0, 3, 6].includes(mode) || (argStr !== "" && (positional.length !== 1 || Object.keys(named).length !== 1 || named.all_mode === undefined))) {
+        throw new Error("tblend: only all_mode=normal, difference or average is supported");
       }
       const blended: typeof current = [];
       for (let index = 1; index < current.length; index++) {
@@ -4111,7 +4111,7 @@ async function applyVideoFilterChain(
           if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
           const first = a[offset]! + (sampleBytes === 2 ? a[offset + 1]! * 256 : 0);
           const second = b[offset]! + (sampleBytes === 2 ? b[offset + 1]! * 256 : 0);
-          const value = Math.abs(first - second);
+          const value = mode === 3 ? Math.floor((first + second) / 2) : Math.abs(first - second);
           data[offset] = value & 255;
           if (sampleBytes === 2) data[offset + 1] = value >> 8;
         }

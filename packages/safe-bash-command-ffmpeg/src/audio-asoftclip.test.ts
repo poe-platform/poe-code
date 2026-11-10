@@ -114,8 +114,8 @@ async function run(filter: string, graph = false) {
 
 it("bounds clipping memory and honors cancellation", async () => {
   const channels = [new Float32Array(32)];
-  await assert.rejects(softClipAudio(channels, "asoftclip",
+  await assert.rejects(softClipAudio(channels, 8000, "asoftclip", [{ start: 0, end: 32, pts: 0 }],
     new MediaBudgetTracker({ maxMemoryBytes: 128 })), /maxMemoryBytes/);
-  await assert.rejects(softClipAudio(channels, "asoftclip",
+  await assert.rejects(softClipAudio(channels, 8000, "asoftclip", [{ start: 0, end: 32, pts: 0 }],
     new MediaBudgetTracker(), AbortSignal.abort()));
 });

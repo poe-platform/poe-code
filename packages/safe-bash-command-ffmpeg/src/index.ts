@@ -10157,13 +10157,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "atilt" || trimmed.startsWith("atilt=")) {
                         stretched = await tiltAudio(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (trimmed === "asoftclip" || trimmed.startsWith("asoftclip=")) {
-                        stretched = await softClipAudio(stretched, trimmed, budget, context.signal);
-                        statsScale = 1;
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo") {
+                      } else if (filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -10184,6 +10181,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const removed = await removeSilence(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
                           stretched = removed.channels;
                           audioTimestamps = removed.frames;
+                        } else if (filterName === "asoftclip") {
+                          stretched = await softClipAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
                         } else if (filterName === "tremolo") {
                           stretched = await tremoloAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
                         } else if (filterName === "vibrato") {

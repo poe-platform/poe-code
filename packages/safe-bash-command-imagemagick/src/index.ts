@@ -10322,6 +10322,14 @@ function applyMagickReadSetting(tokens: readonly string[], state: MagickState, s
     const t = tokens[i];
     // The plus form does not undo monochrome conversion on loaded images.
     if (t === "+monochrome") return i;
+    if (t === "-limit") {
+        const resource = tokens[++i], value = tokens[++i], threads = Number(value);
+        if (resource?.toLowerCase() !== "thread") throw new Error(`unsupported resource type '-limit' '${resource ?? ""}'`);
+        if (!Number.isSafeInteger(threads) || threads < 1) throw new Error(`invalid argument for option '-limit' '${value ?? ""}'`);
+        // Rendering is serial, so every positive thread cap is already satisfied.
+        // Leave host resource limits unchanged.
+        return i;
+    }
 if (t === "-intent" || t === "+intent") {
             const value = t === "+intent" ? "undefined" : tokens[++i] ?? "";
             if (!["undefined", "saturation", "perceptual", "relative", "absolute"].includes(value.toLowerCase())) throw new Error(`unrecognized intent type '-intent' '${value}'`);

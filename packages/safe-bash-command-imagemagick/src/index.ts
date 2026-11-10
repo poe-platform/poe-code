@@ -10030,8 +10030,9 @@ if (t === "-intent" || t === "+intent") {
             const endian = (tokens[++i] ?? "").toLowerCase();
             if (!["msb", "lsb", "undefined"].includes(endian)) throw new Error(`unrecognized endian type '${endian}'`);
             state.inputEndian = endian;
+            state.optionProperties = { ...state.optionProperties, endian: tokens[i]! };
         }
-        else if (t === "+endian") { state.inputEndian = "undefined"; }
+        else if (t === "+endian") { state.optionProperties = { ...state.optionProperties, endian: "undefined" }; state.inputEndian = "undefined"; }
         else if (t === "-extract") {
             const value = tokens[++i];
             if (value === undefined) throw new Error("missing an argument for option '-extract'");

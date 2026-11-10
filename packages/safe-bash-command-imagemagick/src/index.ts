@@ -2191,7 +2191,8 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
             : g.width ?? (hasDimensions ? 0 : width))),
         height: Math.max(0, Math.round(g.aspectRatio !== undefined ? Math.min(height, width / g.aspectRatio) : g.isPercent
             ? (g.height ?? g.width ?? 100) * height / 100
-            : g.height ?? (hasDimensions ? 0 : height)))
+            // An omitted height followed by offsets retains the input height; bare 2x inserts no rows.
+            : g.height ?? (hasDimensions && !g.hasOffset ? 0 : height)))
     };
     // Native conditions compare both nonzero axes and reset the entire region.
     if ((g.enlargeOnly && geometry.width > 0 && geometry.height > 0 && geometry.width < width && geometry.height < height)

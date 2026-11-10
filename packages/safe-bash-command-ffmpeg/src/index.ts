@@ -9703,7 +9703,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredSampleFormat = "fltp";
                           statsScale = 1;
                         } else {
-                          stretched = await echoAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
+                          // Echo shares its input/output format; a downstream volume can
+                          // require floating point before the echo runs.
+                          const next = audioFilters[filterIndex + 1]?.trim();
+                          if (next?.split("=", 1)[0]!.split("@", 1)[0] === "volume") {
+                            let precision = "float";
+                            const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
+                            for (const [index, option] of argument.split(":").entries()) {
+                              const separator = option.indexOf("=");
+                              const key = separator < 0 ? ["volume", "precision"][index] : option.slice(0, separator).trim();
+                              if (key === "precision") precision = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                            }
+                            if (precision === "float" || precision === "1") filteredSampleFormat = "flt";
+                            else if (precision === "double" || precision === "2") filteredSampleFormat = "dbl";
+                          }
+                          if (filteredSampleFormat === "u8") filteredSampleFormat = "s16";
+                          stretched = await echoAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal);
+                          if (["flt", "fltp", "dbl", "dblp"].includes(filteredSampleFormat)) statsScale = 1;
                         }
                         if (!audioTimestamps) {
                           audioTimestamps = [];

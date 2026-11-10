@@ -5,7 +5,7 @@ import { parseFilterFloat } from "./filter-float.js";
 
 export async function echoAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  codec: string | undefined, budget: MediaBudgetTracker, signal?: AbortSignal
+  sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   const options = { in_gain: "0.6", out_gain: "0.3", delays: "1000", decays: "0.5" };
   const names = Object.keys(options) as (keyof typeof options)[];
@@ -45,7 +45,7 @@ export async function echoAudio(
   budget.checkDuration(length / sampleRate);
   budget.allocateMemory(length * channels.length * Float64Array.BYTES_PER_ELEMENT);
   const output = channels.map(() => new Float64Array(length));
-  const scale = codec === "pcm_s16le" ? 32768 : codec === "pcm_s32le" ? 2147483648 : 1;
+  const scale = sampleFormat === "s16" || sampleFormat === "s16p" ? 32768 : sampleFormat === "s32" || sampleFormat === "s32p" ? 2147483648 : 1;
   let work = 0;
   for (const [channel, input] of channels.entries()) {
     for (let frame = 0; frame < length; frame++) {
@@ -58,11 +58,11 @@ export async function echoAudio(
         }
         // A sub-sample tap reads the oldest entry in native's delay ring.
         const delayed = (input[frame - (offset || tail)] ?? 0) * scale * decays![tap]!;
-        sample += codec === "pcm_f64le" ? delayed : Math.fround(delayed);
+        sample += (sampleFormat === "dbl" || sampleFormat === "dblp") ? delayed : Math.fround(delayed);
       }
       sample = Math.max(-scale, Math.min(scale === 1 ? 1 : scale - 1, sample * gains[1]!));
       output[channel]![frame] = scale !== 1 ? Math.trunc(sample) / scale
-        : codec === "pcm_f64le" ? sample : Math.fround(sample);
+        : (sampleFormat === "dbl" || sampleFormat === "dblp") ? sample : Math.fround(sample);
     }
   }
   return output;

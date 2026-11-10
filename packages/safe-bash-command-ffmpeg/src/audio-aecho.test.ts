@@ -83,6 +83,44 @@ for (const delay of ["16", "0x10", "0X10", "+0x10", "0x1p4", "0x0.8p5", "0x10ms"
   });
 }
 
+// Native FFmpeg 7.0.2 PCM16 output for a low-gain echo and format negotiation.
+for (const [filter, hash] of [
+  ["aecho=0.02:0.1:20:0.02,volume=32", "0404dc78d101b86bd28ebea2e68a374244ddf45674b5aaeb55f092e22d0a4f0e"],
+  ["aecho=0.02:0.1:20:0.02,volume=32:precision=double", "0404dc78d101b86bd28ebea2e68a374244ddf45674b5aaeb55f092e22d0a4f0e"],
+  ["aecho=0.02:0.1:20:0.02,volume=32:precision=fixed", "13d194d1413746aa5d70f6d6415d764a53665c55b3be89e8cac56ebba9e91186"],
+  ["aecho=0.02:0.1:20:0.02,volume=32:2", "0404dc78d101b86bd28ebea2e68a374244ddf45674b5aaeb55f092e22d0a4f0e"],
+  ["aformat=sample_fmts=flt,aecho=0.02:0.1:20:0.02", "2e99453fba21b41a7fbd9057193f0d135671398dc85afb5293c4bf0525dcbb87"],
+  ["aformat=sample_fmts=dbl,aecho=0.02:0.1:20:0.02", "ba2325539140841f16b466a9b227dad47af2f0a4e760065073406ccefc219b10"],
+  ["aecho=0.02:0.1:20:0.02", "9c63d94ac2a56b1d7d8c61f1fe810f5309310fbd239cd5ff7900644d08ba4e6a"]
+]) {
+  for (const graph of [false, true]) {
+    it(`${filter} preserves negotiated precision (${graph ? "graph" : "simple"})`, async () => {
+      const volume = Volume.fromJSON({ "/out.raw": "KEEP" });
+      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 4096 }, (_, i) => ((i * 179) % 50001 - 25000) / 32768)
+      ] }));
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-y", "-v", "error", "-i", "/in.wav", ...(graph
+          ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          "-f", "s16le", "/out.raw"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      const pcm = volume.readFileSync("/out.raw") as Buffer;
+      assert.equal(pcm.length, 8512);
+      assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
+    });
+  }
+}
+
 it("aecho makes the complete tail available to downstream frame filters", async () => {
   const { volume, result, stderr } = await run("aecho,aselect='gte(n,1)'");
   assert.equal(result.exitCode, 0, stderr);

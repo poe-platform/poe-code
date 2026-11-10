@@ -19,6 +19,11 @@ import * as typecheckInputs from "./typecheck-inputs.mjs";
 
 const owner = "fixture producer";
 
+test("uniq plus-skip regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/uniq-plus-skip.test.ts"));
+});
+
 test("uniq grouping-prefix regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/uniq-group-prefixes.test.ts"));

@@ -588,6 +588,11 @@ function uniqFieldBlankWidth(bytes: Uint8Array, offset: number, byteLocale: bool
 async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteSource): Promise<{ exitCode: number }> {
   const longOptions = { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" };
   let ended = false;
+  let optionValue = false;
+  const versionText = context.env._POSIX2_VERSION?.trimStart() ?? "";
+  const versionDigits = versionText.startsWith("+") || versionText.startsWith("-") ? versionText.slice(1) : versionText;
+  const posixVersion = versionDigits.length > 0 && [...versionDigits].every(character => character >= "0" && character <= "9") ? Number(versionText) : 200809;
+  const obsoleteSkip = posixVersion < 200112 || posixVersion >= 200809;
   let skipFields = 0;
   let skipCharacters = 0;
   let width = Infinity;
@@ -595,12 +600,22 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
   let groupMethod: string | undefined;
   const args = context.args.map(argument => {
     if (ended) return argument;
+    if (optionValue) { optionValue = false; return argument; }
     if (argument === "--") ended = true;
     else if (argument.startsWith("--")) {
       const equals = argument.indexOf("=");
       const name = argument.slice(2, equals < 0 ? undefined : equals);
       const matches = Object.keys(longOptions).filter(option => option.startsWith(name));
       if (matches.length === 1) argument = `--${matches[0]}${equals < 0 ? "" : argument.slice(equals)}`;
+    }
+    if (obsoleteSkip && argument.startsWith("+") && argument.length > 1 && [...argument.slice(1)].every(character => character >= "0" && character <= "9")) return `-s${argument.slice(1)}`;
+    if (["--skip-fields", "--skip-chars", "--check-chars"].includes(argument)) optionValue = true;
+    else if (argument.startsWith("-") && !argument.startsWith("--")) {
+      for (let offset = 1; offset < argument.length; offset++) {
+        if (!"fsw".includes(argument[offset]!)) continue;
+        optionValue = offset === argument.length - 1;
+        break;
+      }
     }
     if (argument === "--all-repeated") return "--all-repeated=none";
     if (argument === "--group") return "--group=separate";

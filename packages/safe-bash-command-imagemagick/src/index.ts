@@ -4132,12 +4132,18 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
                 yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
                 yield { kind: "write", evaluate: true, position, data: new Uint8Array(backing.buffer) };
             } else {
-                const backing = !reducePalette ? new Float64Array(samples.length) : undefined;
+                const hueBytes = !reducePalette ? (yield { kind: "read", hue: true, position, length })! : undefined;
+                const hue = hueBytes?.length ? new Float64Array(hueBytes.slice().buffer) : undefined;
+                const backing = !reducePalette && !hue ? new Float64Array(samples.length) : undefined;
                 for (let i = 0; i < samples.length; i++) {
-                    const value = mask[i % 4] ? Math.round(samples[i]! / 65535 * (levels - 1)) / (levels - 1) : samples[i]! / 65535;
+                    const sample = hue ? hue[i]! : samples[i]! / 65535;
+                    const value = mask[i % 4] ? Math.round(Math.max(0, Math.min(1, sample)) * (levels - 1)) / (levels - 1) : sample;
+                    if (hue) hue[i] = value;
                     if (backing) backing[i] = value * 255;
-                    samples[i] = Math.round(value * 65535);
+                    samples[i] = Math.round(Math.max(0, Math.min(1, value)) * 65535);
                 }
+                // Subsequent colorspace conversions must see the quantized working samples.
+                if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(hue.buffer) };
                 // Keep fractional depth levels for later grayscale conversion.
                 if (backing) yield { kind: "write", evaluate: true, position, data: new Uint8Array(backing.buffer) };
             }

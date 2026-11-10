@@ -51,3 +51,31 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
         expect(decoded.data).toEqual(expected);
     });
 }
+
+for (const mode of ["command", "buffered", "retained", "sync"] as const) {
+    it.each([
+        ["background option", ["-define", "trim:percent-background=50%", "-set", "option:trim:background-color", "red"], "6x5 6x5+0+0;"],
+        ["percentage option", ["-set", "option:trim:percent-background", "50%", "-define", "trim:edges=none"], "2x2 6x5+2+1;"],
+        ["background define", ["-define", "trim:percent-background=50%", "-define", "trim:background-color=red"], "6x5 6x5+0+0;"],
+        ["percentage define", ["-define", "trim:percent-background=50%", "-define", "trim:edges=none"], "2x2 6x5+2+1;"],
+    ] as const)(`honors percentage trim settings: %s (${mode})`, async (_name, settings, geometry) => {
+        const keep = new TextEncoder().encode("KEEP");
+        const files = new Map([["/out", keep]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/out", keep);
+        const args = ["-size", "6x5", "xc:white", "-fill", "red", "-draw", "rectangle 2,1 3,2",
+            ...settings, "-trim", "-format", "%wx%h %g;", "info:/out"];
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runMagickCliSync(args, files)
+            : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const output = mode === "command" || mode === "retained" ? await filesystem.readFile("/out") : files.get("/out")!;
+        // Native ImageMagick 7.1.2-35 Q16-HDRI crop dimensions and page offsets.
+        expect(new TextDecoder().decode(output)).toBe(geometry);
+    });
+}

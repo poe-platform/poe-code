@@ -5709,6 +5709,66 @@ async function decodeStoredMagickSvg(svg: string, density: number, backend: Comp
     }
     return decodeImageToStorage({ size, async read(position, length) { return backend.storage.read(base + position, length); } }, backend.storage, signal, { density });
 }
+async function applyStoredMagickExtent(image: StoredRgbaImage, geometry: string, captured: MagickState, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
+    const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: captured.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+    const layout = magickExtentLayout(image, expanded, captured);
+    const readMask = image.readMask ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
+    const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
+    const source = (image as StoredMagickImage)[magickInput];
+    let background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;
+    if (image.space === "cmyk" && ["src", "source"].includes(magickCompositeMode(captured.composeRaw).name)) {
+        // Native CMYK canvas fills convert linear RGB background values to inks.
+        const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+        background = { ...background, r: rgb[0]! * 255, g: rgb[1]! * 255, b: rgb[2]! * 255 };
+    }
+    const canvas: StoredRgbaImage = { ...await createStoredCanvas(layout.width, layout.height, background, backend, signal, true),
+        hasAlpha: image.hasAlpha || background.a < 255,
+        inactiveAlpha: image.alphaBlend !== false && image.inactiveAlpha === true, alphaBlend: background.a < 255 ? true : image.alphaBlend,
+        alphaSeparate: image.alphaBlend === false ? false : image.alphaSeparate,
+        ...(image.orientation !== undefined ? { orientation: image.orientation } : {}),
+        ...(readMask ? { readMask } : {}),
+        ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}),
+        ...(image.gamma !== undefined ? { gamma: image.gamma } : {}),
+        density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}),
+        ...(image.properties ? { properties: image.properties } : {}),
+        ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
+        ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
+    if (image.storedMetaChannels?.length) {
+        canvas.storedMetaChannels = [];
+        for (const [index, plane] of image.storedMetaChannels.entries()) {
+            const selected = !captured.channelExplicit || captured.channelDefault || !!captured.channels.meta?.includes(index);
+            const settings = { ...captured, channelExplicit: true, channels: { ...captured.channels, r: selected, g: selected, b: selected, a: false } };
+            canvas.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
+                extentCompositeSteps(plane, layout, { r: 0, g: 0, b: 0, a: background.a }, settings, image), signal,
+                { ...layout, hasAlpha: false }, [plane, image]));
+        }
+    }
+    if (image.space === "cmyk" && ["over", "srcover"].includes(magickCompositeMode(captured.composeRaw).name)) return transformStoredMagickRaster({ ...canvas, space: "cmyk", channels: 4 }, backend,
+        extentEvaluateSamples(image, layout, background, captured), signal, canvas, [image]);
+    if (image.space === "cmyk" && ["src", "source"].includes(magickCompositeMode(captured.composeRaw).name)) return transformStoredMagickRaster({ ...canvas, space: "cmyk", channels: 4 }, backend,
+        extentCompositeSteps(image, layout, background, captured), signal, canvas, [image]);
+    if (!layout.area) return canvas;
+    if (!["over", "srcover"].includes(magickCompositeMode(captured.composeRaw).name)) return transformStoredMagickRaster(canvas, backend,
+        extentCompositeSteps(image, layout, background, captured), signal, canvas, [image]);
+    if (image.storedEvaluateSamples !== undefined) return transformStoredMagickRaster(canvas, backend,
+        extentEvaluateSamples(image, layout, background, captured), signal, canvas, [image]);
+    if (canvas.storedData16) {
+        for (let y = 0; y < layout.area.height; y++) for (let x = 0; x < layout.area.width; x += 4096) {
+            await yieldTurn(signal);
+            const start = ((layout.area.top + y) * image.width + layout.area.left + x) * 4;
+            const count = Math.min(4096, layout.area.width - x) * 4;
+            const samples = image.storedData16
+                ? new Uint16Array((await backend.storage.read(image.storedData16.position + start * 2, count * 2)).slice().buffer)
+                : Uint16Array.from(await backend.storage.read(image.position + start, count), value => value * 257);
+            extentSamplesOverBackground(samples, background, captured, image);
+            const target = ((layout.top + y) * layout.width + layout.left + x) * 4;
+            await backend.storage.write(canvas.storedData16.position + target * 2, new Uint8Array(samples.buffer));
+            await backend.storage.write(canvas.position + target, Uint8Array.from(samples, value => Math.round(value / 257)));
+        }
+        return canvas;
+    }
+    return canvas;
+}
 function* extentEvaluateSamples(image: Pick<RgbaImage, "width" | "space" | "hasAlpha" | "inactiveAlpha" | "alphaBlend">, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk";
     // Native CMYK canvas backgrounds are converted from linear RGB.
@@ -15972,64 +16032,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = tokens[++i] ?? "100%", captured = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: captured.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                const layout = magickExtentLayout(image, expanded, captured);
-                const readMask = image.readMask ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
-                const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
-                const source = (image as StoredMagickImage)[magickInput];
-                let background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;
-                if (image.space === "cmyk" && ["src", "source"].includes(magickCompositeMode(captured.composeRaw).name)) {
-                    // Native CMYK canvas fills convert linear RGB background values to inks.
-                    const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
-                    background = { ...background, r: rgb[0]! * 255, g: rgb[1]! * 255, b: rgb[2]! * 255 };
-                }
-                const canvas: StoredRgbaImage = { ...await createStoredCanvas(layout.width, layout.height, background, backend, signal, true),
-                    hasAlpha: image.hasAlpha || background.a < 255,
-                    inactiveAlpha: image.alphaBlend !== false && image.inactiveAlpha === true, alphaBlend: background.a < 255 ? true : image.alphaBlend,
-                    alphaSeparate: image.alphaBlend === false ? false : image.alphaSeparate,
-                    ...(image.orientation !== undefined ? { orientation: image.orientation } : {}),
-                    ...(readMask ? { readMask } : {}),
-                    ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}),
-                    ...(image.gamma !== undefined ? { gamma: image.gamma } : {}),
-                    density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}),
-                    ...(image.properties ? { properties: image.properties } : {}),
-                    ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
-                    ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
-                if (image.storedMetaChannels?.length) {
-                    canvas.storedMetaChannels = [];
-                    for (const [index, plane] of image.storedMetaChannels.entries()) {
-                        const selected = !captured.channelExplicit || captured.channelDefault || !!captured.channels.meta?.includes(index);
-                        const settings = { ...captured, channelExplicit: true, channels: { ...captured.channels, r: selected, g: selected, b: selected, a: false } };
-                        canvas.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
-                            extentCompositeSteps(plane, layout, { r: 0, g: 0, b: 0, a: background.a }, settings, image), signal,
-                            { ...layout, hasAlpha: false }, [plane, image]));
-                    }
-                }
-                if (image.space === "cmyk" && ["over", "srcover"].includes(magickCompositeMode(captured.composeRaw).name)) return transformStoredMagickRaster({ ...canvas, space: "cmyk", channels: 4 }, backend,
-                    extentEvaluateSamples(image, layout, background, captured), signal, canvas, [image]);
-                if (image.space === "cmyk" && ["src", "source"].includes(magickCompositeMode(captured.composeRaw).name)) return transformStoredMagickRaster({ ...canvas, space: "cmyk", channels: 4 }, backend,
-                    extentCompositeSteps(image, layout, background, captured), signal, canvas, [image]);
-                if (!layout.area) return canvas;
-                if (!["over", "srcover"].includes(magickCompositeMode(captured.composeRaw).name)) return transformStoredMagickRaster(canvas, backend,
-                    extentCompositeSteps(image, layout, background, captured), signal, canvas, [image]);
-                if (image.storedEvaluateSamples !== undefined) return transformStoredMagickRaster(canvas, backend,
-                    extentEvaluateSamples(image, layout, background, captured), signal, canvas, [image]);
-                if (canvas.storedData16) {
-                    for (let y = 0; y < layout.area.height; y++) for (let x = 0; x < layout.area.width; x += 4096) {
-                        await yieldTurn(signal);
-                        const start = ((layout.area.top + y) * image.width + layout.area.left + x) * 4;
-                        const count = Math.min(4096, layout.area.width - x) * 4;
-                        const samples = image.storedData16
-                            ? new Uint16Array((await backend.storage.read(image.storedData16.position + start * 2, count * 2)).slice().buffer)
-                            : Uint16Array.from(await backend.storage.read(image.position + start, count), value => value * 257);
-                        extentSamplesOverBackground(samples, background, captured, image);
-                        const target = ((layout.top + y) * layout.width + layout.left + x) * 4;
-                        await backend.storage.write(canvas.storedData16.position + target * 2, new Uint8Array(samples.buffer));
-                        await backend.storage.write(canvas.position + target, Uint8Array.from(samples, value => Math.round(value / 257)));
-                    }
-                    return canvas;
-                }
-                return canvas;
+                return applyStoredMagickExtent(image, geometry, captured, backend, signal);
             });
         } else if (!operandsOnly && token === "-frame") {
             const raw = tokens[++i] ?? "";
@@ -17788,7 +17791,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     trim: boolean; shadow: boolean;
-    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -17796,6 +17799,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
     let warnings = "";
     const state = createDefaultState();
     state.gravity = "center";
+    let inputGravity: MagickState["gravity"];
     let tileCols: number | undefined;
     let tileRows: number | undefined;
     let cellW: number | undefined = 120;
@@ -17884,6 +17888,13 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-flip" || t === "-flop" || t === "-transpose") {
             queuedTransforms.push({ kind: t === "-flop" ? "flop" : "flip" });
             if (t === "-transpose") queuedTransforms.push({ kind: "rotate", angle: 90 });
+        }
+        else if (t === "-extent") {
+            const geometry = argv[++i];
+            if (geometry === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -extent\n" };
+            try { validateMagickTransformGeometry(geometry, t); }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+            queuedTransforms.push({ kind: "extent", geometry, state: { ...state, gravity: inputGravity, backgroundExplicit: true } });
         }
         else if (t === "-rotate") {
             const angle = parseMagickRotation(argv[++i] ?? "0").angle;
@@ -18006,10 +18017,10 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -gravity\n" };
             if (!["undefined", "none", "forget", "northwest", "north", "northeast", "west", "center", "east", "southwest", "south", "southeast"].includes(value.toLowerCase()))
                 return { exitCode: 1, stdout: "", stderr: `montage: unrecognized gravity type '${value}'\n` };
-            state.gravity = value.toLowerCase() === "forget" ? undefined : parseGravity(value);
+            inputGravity = state.gravity = value.toLowerCase() === "forget" ? undefined : parseGravity(value);
         }
         else if (t === "+gravity") {
-            state.gravity = undefined;
+            inputGravity = state.gravity = undefined;
         }
         else if (t === "-depth") {
             const value = argv[++i];
@@ -18480,6 +18491,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     const previous = thumb;
                     thumb = yield* ("operation" in transform ? transform.operation.apply(thumb)
                         : transform.kind === "resize" ? applyMagickResizeSteps(thumb, transform.geometry, state.kernel, false, false, false, state.resizeFilter)
+                        : transform.kind === "extent" ? applyMagickExtentSteps(thumb, transform.geometry, transform.state, signal)
                         : transform.kind === "rotate" ? rotateImageSteps(thumb, transform.angle, state.background)
                         : transform.kind === "flop" ? flopImageSteps(thumb) : flipImageSteps(thumb));
                     if (transform.kind === "bilevel") {
@@ -18762,6 +18774,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             }
                             image = "operation" in transform
                                 ? await transformStoredMagickPixels(image, backend, transform.operation, signal)
+                                : transform.kind === "extent" ? await applyStoredMagickExtent(image, transform.geometry, transform.state, backend, signal)
                                 : await transformStoredImage(image, backend.storage, transform.kind === "rotate"
                                     ? { ...transform, background: state.background } : transform, signal);
                             if (transform.kind === "bilevel") {

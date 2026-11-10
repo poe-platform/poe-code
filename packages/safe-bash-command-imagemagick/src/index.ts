@@ -8222,11 +8222,25 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         const text = value.trimStart();
         const unsigned = text.startsWith("-") || text.startsWith("+") ? text.slice(1) : text;
-        const raw = (unsigned.toLowerCase().startsWith("0x") ? Number.parseInt(text, 16) : Number.parseFloat(text)) || 0;
+        let raw = (unsigned.toLowerCase().startsWith("0x") ? Number.parseInt(text, 16) : Number.parseFloat(text)) || 0;
+        let hexFractionEnd = -1;
+        // Native consumes a hexadecimal fraction only when its scalar has a sign.
+        if (unsigned !== text && unsigned.toLowerCase().startsWith("0x")) {
+            let end = 2;
+            while (end < unsigned.length && "0123456789abcdef".includes(unsigned[end]!.toLowerCase())) end++;
+            if (unsigned[end] === ".") {
+                let scale = text.startsWith("-") ? -1 : 1;
+                while (++end < unsigned.length && "0123456789abcdef".includes(unsigned[end]!.toLowerCase())) {
+                    scale /= 16;
+                    raw += Number.parseInt(unsigned[end]!, 16) * scale;
+                }
+                hexFractionEnd = end + 1;
+            }
+        }
         const percent = text.indexOf("%"), prefix = text.slice(0, percent);
         const magnitude = prefix.startsWith("-") || prefix.startsWith("+") ? prefix.slice(1) : prefix;
         // Only a percent sign immediately after the original number scales it.
-        const isPercent = percent > 0 && prefix.trimEnd() === prefix && Number(magnitude) * (prefix.startsWith("-") ? -1 : 1) === raw;
+        const isPercent = percent > 0 && (percent === hexFractionEnd || (prefix.trimEnd() === prefix && Number(magnitude) * (prefix.startsWith("-") ? -1 : 1) === raw));
         // Native solarize scales percentages by QuantumRange + 1.
         const threshold = isPercent ? (raw / 100) * 65536 : raw;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };

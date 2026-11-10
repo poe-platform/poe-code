@@ -82,7 +82,7 @@ import { createHoughTransform } from "./hough-kernel.js";
 import { cannyPixelSteps } from "./canny-kernel.js";
 import { shadowPixelSteps, vignetteLayout, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { shearPlan, shearPixelSteps } from "./shear-kernel.js";
-import { compositePixelsSteps, magickCompositeMode } from "./composite-pixels.js";
+import { compositePixelsSteps, magickCompositeMode, magickComposeNames } from "./composite-pixels.js";
 import { composite16PixelSteps } from "./composite16.js";
 import { warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
 import { distancePixelSteps, manhattanDistanceScale } from "./distance-kernel.js";
@@ -9178,6 +9178,14 @@ function magickResampleGeometry(image: ImageMetadata, value: string): string {
 
 function updateMagickProperty(properties: ImageMetadata["properties"], key: string, value?: string): Record<string, string> {
     const normalized = key.toLowerCase();
+    if (normalized === "compose") {
+        const mode = value === undefined ? undefined : magickCompositeMode(value).name;
+        const compose = magickComposeNames.find(name => name.toLowerCase() === mode);
+        // Compose is image state: removing its property or assigning an unknown name leaves it intact.
+        if (compose === undefined) return { ...properties };
+        key = normalized;
+        value = compose;
+    }
     const updated = Object.fromEntries(Object.entries(properties ?? {}).filter(([name]) => name.toLowerCase() !== normalized));
     if (value !== undefined) updated[key] = value;
     return updated;
@@ -11264,18 +11272,19 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const maxW = flatten ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : Math.max(mosaic ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : -Infinity, ...oldStack.map(im => im.width + (im.virtualCanvas?.x ?? 0))) - originX;
                 const maxH = flatten ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : Math.max(mosaic ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : -Infinity, ...oldStack.map(im => im.height + (im.virtualCanvas?.y ?? 0))) - originY;
                 const highDepth = oldStack.some(image => !!image.data16);
-                const over = ["over", "srcover"].includes(magickCompositeMode(state.composeRaw).name);
                 const background = state.backgroundExplicit ? state.background : oldStack[0]!.backgroundColor ?? state.background;
                 const colorspace = oldStack[0]!;
                 let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(maxW, maxH, background, highDepth),
                     space: colorspace.space, ...(colorspace.magickColorspace === undefined ? {} : { magickColorspace: colorspace.magickColorspace }) };
                 for (const im of oldStack) {
+                    const compose = im.properties?.compose ?? "Over";
+                    const over = ["over", "srcover"].includes(magickCompositeMode(compose).name);
                     const x = (im.virtualCanvas?.x ?? 0) - originX, y = (im.virtualCanvas?.y ?? 0) - originY;
                     if (over) {
                         canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, im, x, y, highDepth), signal, canvas, [canvas, im]);
                         continue;
                     }
-                    canvas = yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, x, y, state.composeArgs, signal, state.alphaFuzz, true);
+                    canvas = yield* applyMagickCompositeLayerSteps(canvas, im, compose, x, y, state.composeArgs, signal, state.alphaFuzz, true);
                 }
                 for (const im of oldStack) {
                     if (im.data.buffer !== canvas.data.buffer) detachRgbaBuffer(im.data);
@@ -12709,6 +12718,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {
                     let frame: StoredRgbaImage = (await stack.get(n))!;
+                    const compose = frame.properties?.compose ?? "Over";
                     if (append && cmyk && !nonCmyk && frame.storedHueSamples === undefined) frame = await transformStoredMagickPixels(frame, backend, { end: 0, highDepth: true, apply: convertCmykPixels }, signal);
                     if (append && cmyk && nonCmyk && frame.space === "cmyk") frame = await transformStoredMagickPixels(frame, backend, { end: 0, highDepth: true, apply: copyCmykChannelsToRgb }, signal);
                     const offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, frame.gravity ?? settings.gravity);
@@ -12748,9 +12758,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                         result = { ...result, hasAlpha: result.hasAlpha || frame.hasAlpha };
                     }
-                    else if (["over", "srcover"].includes(magickCompositeMode(settings.composeRaw).name)) result = await transformStoredMagickRaster(result, backend,
+                    else if (["over", "srcover"].includes(magickCompositeMode(compose).name)) result = await transformStoredMagickRaster(result, backend,
                         overCompositePixelSteps(result, frame, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, highDepth), signal, result, [result, frame]);
-                    else result = await compositeStoredMagick(result, frame, backend, signal, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, settings.composeRaw, settings.composeArgs, false, true, false, false, settings.alphaFuzz, true);
+                    else result = await compositeStoredMagick(result, frame, backend, signal, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, compose, settings.composeArgs, false, true, false, false, settings.alphaFuzz, true);
                     cursor += vertical ? frame.height : frame.width;
                 }
                 if (append) {
@@ -14873,18 +14883,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "-compose") {
             const rawCompose = argv[++i] ?? "";
             const cm = rawCompose.trim().toLowerCase().split("-").join("").split("_").join("");
-            // ImageMagick compose names, including legacy aliases and our Source alias.
-            if (![
-                "atop", "blend", "blur", "bumpmap", "changemask", "clear", "colorburn", "colordodge", "colorize",
-                "copyalpha", "copyblack", "copyblue", "copy", "copycyan", "copygreen", "copymagenta", "copyred", "copyyellow",
-                "darken", "darkenintensity", "difference", "displace", "dissolve", "distort", "dividedst", "dividesrc",
-                "dstatop", "dst", "dstin", "dstout", "dstover", "exclusion", "freeze", "hardlight", "hardmix", "hue", "in",
-                "intensity", "interpolate", "lightenintensity", "lighten", "linearburn", "lineardodge", "linearlight", "luminize",
-                "mathematics", "minusdst", "minussrc", "modulate", "modulusadd", "modulussubtract", "multiply", "negate", "none",
-                "out", "overlay", "over", "pegtoplight", "pinlight", "plus", "reflect", "replace", "rmse", "saturate", "screen",
-                "saliencyblend", "seamlessblend", "softburn", "softdodge", "softlight", "srcatop", "srcin", "srcout", "srcover",
-                "src", "stamp", "stereo", "vividlight", "xor", "copyopacity", "add", "subtract", "minus", "divide", "undefined", "source"
-            ].includes(cm)) {
+            if (!magickComposeNames.some(name => name.toLowerCase() === cm)) {
                 return { exitCode: 2, stdout: "", stderr: `compare: unrecognized compose operator '${rawCompose}'\n` };
             }
             compose = cm;

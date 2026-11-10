@@ -1,5 +1,18 @@
 import type { RgbaImage } from "@poe-code/image-ast/portable";
 
+// ImageMagick compose names, including legacy aliases and our Source alias.
+export const magickComposeNames = [
+    "Atop", "Blend", "Blur", "Bumpmap", "ChangeMask", "Clear", "ColorBurn", "ColorDodge", "Colorize",
+    "CopyAlpha", "CopyBlack", "CopyBlue", "Copy", "CopyCyan", "CopyGreen", "CopyMagenta", "CopyRed", "CopyYellow",
+    "Darken", "DarkenIntensity", "Difference", "Displace", "Dissolve", "Distort", "DivideDst", "DivideSrc",
+    "DstAtop", "Dst", "DstIn", "DstOut", "DstOver", "Exclusion", "Freeze", "HardLight", "HardMix", "Hue", "In",
+    "Intensity", "Interpolate", "LightenIntensity", "Lighten", "LinearBurn", "LinearDodge", "LinearLight", "Luminize",
+    "Mathematics", "MinusDst", "MinusSrc", "Modulate", "ModulusAdd", "ModulusSubtract", "Multiply", "Negate", "None",
+    "Out", "Overlay", "Over", "PegtopLight", "PinLight", "Plus", "Reflect", "Replace", "RMSE", "Saturate", "Screen",
+    "SaliencyBlend", "SeamlessBlend", "SoftBurn", "SoftDodge", "SoftLight", "SrcAtop", "SrcIn", "SrcOut", "SrcOver",
+    "Src", "Stamp", "Stereo", "VividLight", "Xor", "CopyOpacity", "Add", "Subtract", "Minus", "Divide", "Undefined", "Source"
+];
+
 type CompositeRaster = Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { data: Uint8Array | Float64Array };
 
 export function magickCompositeMode(mode: string): { name: string; delegated: boolean; preservesAlpha: boolean } {

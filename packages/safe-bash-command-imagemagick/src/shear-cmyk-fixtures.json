@@ -1,0 +1,67 @@
+[
+  {
+    "options": [
+      "-shear",
+      "20x0"
+    ],
+    "hex": "e9d3ae44ff64adb444ff3ec2a956ffbfefd720ff9ff7e718ffa3d86f26ff3f3fcf60ffffffff00ff"
+  },
+  {
+    "options": [
+      "-shear",
+      "-20x0"
+    ],
+    "hex": "97b29d38ff30b6ba55ff8fe3b955ffffffff00ff9ff7e718ffa3d86f26ff3f3fcf60ffffffff00ff"
+  },
+  {
+    "options": [
+      "-shear",
+      "0x20"
+    ],
+    "hex": "ecd9b916ffd6eff70fffffffff00ffbbdbb81fff37afc04bff6fdba55effd3fbf41fffb4df894bff425ac45eff"
+  },
+  {
+    "options": [
+      "-shear",
+      "20x10"
+    ],
+    "hex": "dcd9b83cff64adb444ff60cdb85effbfefd720ffb0f8eb3cffa3d86f26ff3f56c85effffffff00ff"
+  },
+  {
+    "options": [
+      "-background",
+      "#12345680",
+      "-shear",
+      "20x10"
+    ],
+    "hex": "525f3f46aa2a82904dde0493806bcf0b6c5a33a0098a8846a748941831c80322a96be01234560080"
+  },
+  {
+    "options": [
+      "-compose",
+      "Copy",
+      "-shear",
+      "20x0"
+    ],
+    "hex": "dfbe885bae2e909a5bbd00af8d72c1b7edd224e200eabf3f605db90044900000bf7fc0ffffff00ff"
+  },
+  {
+    "options": [
+      "-alpha",
+      "off",
+      "-shear",
+      "20x0"
+    ],
+    "hex": "d3a75d59ff438c8259ff00b18773ffa2e8c52eff00eabf3fff5db90044ff0000bf7fffffffff00ff"
+  },
+  {
+    "options": [
+      "-channel",
+      "K",
+      "-shear",
+      "20x0",
+      "+channel"
+    ],
+    "hex": "ffffff44ffffffff44ffffffff56ffffffff20ffffffff18ffffffff26ffffffff60ffffffff00ff"
+  }
+]

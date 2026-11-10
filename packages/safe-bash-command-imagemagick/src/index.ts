@@ -3852,7 +3852,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const interpolation = state.interpolation ?? "bilinear";
     const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort || token === "-implode" || token === "-swirl" || token === "-spread" ? "edge" : undefined);
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
-    const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+    const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined;
     const compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, seed = state.seed ?? 0n;
     return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">, geometry = spec) => {
         if (token === "-shear") {

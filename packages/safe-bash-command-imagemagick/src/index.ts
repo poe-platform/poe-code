@@ -8405,8 +8405,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     separator = index;
                 }
             }
-            endpointColors = separator < 0 ? [parseColor(raw || "black", true), parseColor(raw || "black", true)]
-                : [parseColor(raw.slice(0, separator) || "black", true), parseColor(raw.slice(separator + 1, end) || "white", true)];
+            const endpoints = separator < 0 ? [raw || "black", raw || "black"]
+                : [raw.slice(0, separator) || "black", raw.slice(separator + 1, end) || "white"];
+            endpointColors = endpoints.map(value => {
+                try {
+                    return parseColor(value, true);
+                } catch {
+                    warning = (warning ?? "") + `magick: unrecognized color \`${value}'\n`;
+                    return { r: 0, g: 0, b: 0, a: 255 };
+                }
+            });
         }
         else if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
@@ -9722,7 +9730,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                return yield* parseMagickPixelOperation([t, expanded], state, 0, signal)!.apply(image);
+                const operation = parseMagickPixelOperation([t, expanded], state, 0, signal)!;
+                if (operation.warning) analysis.warnings += operation.warning;
+                return yield* operation.apply(image);
             });
             i++;
             continue;
@@ -12187,7 +12197,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                return transformStoredMagickPixels(image, backend, parseMagickPixelOperation([token, expanded], settings, 0, signal)!, signal);
+                const operation = parseMagickPixelOperation([token, expanded], settings, 0, signal)!;
+                if (operation.warning) analysis.warnings += operation.warning;
+                return transformStoredMagickPixels(image, backend, operation, signal);
             });
             continue;
         }

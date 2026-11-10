@@ -10225,13 +10225,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const bw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
                 const bh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
                 const width = im.width + bw * 2, height = im.height + bh * 2;
+                // Native decoration creates a zero-valued write-mask channel.
+                const writeMask = im.writeMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
                 if (state.composeRaw.toLowerCase() === "over") {
                     return { ...yield* applyMagickRasterSteps(im, borderPixels(im, bw, bh, state.borderColor, !!im.data16), signal,
-                        { width, height, hasAlpha: true }), region: undefined, virtualCanvas: magickBorderCanvas(im, bw, bh) };
+                        { width, height, hasAlpha: true }), region: undefined, writeMask, virtualCanvas: magickBorderCanvas(im, bw, bh) };
                 }
                 const canvas = yield* createSolidRgbaImageSteps(width, height, state.borderColor);
                 const composed = yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, bw, bh, state.composeArgs, signal, state.alphaFuzz, true);
-                return { ...composed, virtualCanvas: magickBorderCanvas(im, bw, bh) };
+                return { ...composed, writeMask, virtualCanvas: magickBorderCanvas(im, bw, bh) };
             }));
         }
         else if (t === "-shave") {
@@ -10349,8 +10351,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const g = resolveMagickFrameGeometry(expanded, im);
                 const fw = g.width, fh = g.height;
                 const width = im.width + 2 * fw, height = im.height + 2 * fh;
+                // Native decoration creates a zero-valued write-mask channel.
+                const writeMask = im.writeMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
                 const canvas = { ...yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, state.matteColor, fw, fh, g.x, g.y, state.composeRaw.toLowerCase() === "over"), signal,
-                    { width, height, hasAlpha: im.hasAlpha || state.matteColor.a < 255 || state.borderColor.a < 255 }), region: undefined, virtualCanvas: magickBorderCanvas(im, fw, fh) };
+                    { width, height, hasAlpha: im.hasAlpha || state.matteColor.a < 255 || state.borderColor.a < 255 }), region: undefined, writeMask, virtualCanvas: magickBorderCanvas(im, fw, fh) };
                 if (state.composeRaw.toLowerCase() === "over") return canvas;
                 return yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
             });
@@ -13026,8 +13030,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const geometry = resolveMagickFrameGeometry(expanded, image);
                 const left = geometry.width, top = geometry.height;
                 const width = image.width + 2 * left, height = image.height + 2 * top;
+                // Native decoration creates a zero-valued write-mask channel.
+                const storedWriteMask = image.storedWriteMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 const canvas = { ...await transformStoredMagickRaster(image, backend, magickFramePixels(image, width, height, borderColor, matteColor, left, top, geometry.x, geometry.y, composeRaw.toLowerCase() === "over"), signal,
-                    { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 || borderColor.a < 255 }), region: undefined, virtualCanvas: magickBorderCanvas(image, left, top) };
+                    { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 || borderColor.a < 255 }), region: undefined, storedWriteMask, virtualCanvas: magickBorderCanvas(image, left, top) };
                 if (composeRaw.toLowerCase() === "over") return canvas;
                 return compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
             });
@@ -13038,13 +13044,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const left = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? 0));
                 const top = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? left));
                 const width = image.width + left * 2, height = image.height + top * 2;
+                // Native decoration creates a zero-valued write-mask channel.
+                const storedWriteMask = image.storedWriteMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 if (compose.toLowerCase() === "over") {
                     return { ...await transformStoredMagickRaster(image, backend, borderPixels(image, left, top, background, !!image.storedData16), signal,
-                        { width, height, hasAlpha: true }), region: undefined, virtualCanvas: magickBorderCanvas(image, left, top) };
+                        { width, height, hasAlpha: true }), region: undefined, storedWriteMask, virtualCanvas: magickBorderCanvas(image, left, top) };
                 }
                 const canvas = await createStoredCanvas(width, height, background, backend, signal);
                 return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, compose, composeArgs, false, true, false, false, fuzz, true),
-                    virtualCanvas: magickBorderCanvas(image, left, top) };
+                    storedWriteMask, virtualCanvas: magickBorderCanvas(image, left, top) };
             });
         } else {
             if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+"))) {

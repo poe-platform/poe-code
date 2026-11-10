@@ -13,8 +13,8 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
     const toHue = target !== "sRGB", hsb = toHue ? target === "HSB" || target === "HSV" : image.magickColorspace === "HSB" || image.magickColorspace === "HSV";
     const hwb = toHue ? target === "HWB" : image.magickColorspace === "HWB";
     const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
-    // Lab must see HDRI working samples before the integer backing clamps them.
-    const inputEvaluateSamples = target === "CIELab" ? image.evaluateSamples : undefined;
+    // Lab and YUV must see HDRI working samples before the integer backing rounds or clamps them.
+    const inputEvaluateSamples = target === "CIELab" || target === "YUV" ? image.evaluateSamples : undefined;
     const input = image.hueSamples ?? inputEvaluateSamples ?? image.data16 ?? image.data, range = image.hueSamples ? 1 : inputEvaluateSamples ? 255 : image.data16 ? 65535 : 255;
     const hueSamples = toHue ? new Float64Array(data.length) : undefined;
     const evaluateSamples = toHue ? undefined : new Float64Array(data.length);
@@ -26,9 +26,10 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
                 0.5 - 0.147 * r - 0.289 * g + 0.436 * b,
                 0.5 + 0.615 * r - 0.515 * g - 0.1 * b];
         } else if (image.magickColorspace === "YUV") {
-            [r, g, b] = [r + 1.1398 * (b - 0.5),
-                r - 0.3938 * (g - 0.5) - 0.5805 * (b - 0.5),
-                r + 2.0279 * (g - 0.5)];
+            // ImageMagick's inverse includes cross-channel terms even near zero.
+            [r, g, b] = [r - 3.945707070708279e-05 * (g - 0.5) + 1.1398279671717170825 * (b - 0.5),
+                r - 0.3946101641414141437 * (g - 0.5) - 0.5805003156565656797 * (b - 0.5),
+                r + 2.0319996843434342537 * (g - 0.5) - 4.813762626262513e-04 * (b - 0.5)];
         } else if (target === "YCbCr") {
             [r, g, b] = [0.298839 * r + 0.586811 * g + 0.11435 * b,
                 0.5 - 0.1687367 * r - 0.331264 * g + 0.5 * b,

@@ -6942,7 +6942,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (token === "-grayscale" && !["average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(space)) {
             throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
         }
-        evaluate = token !== "-type" && (token === "-grayscale" || ["rgb", "srgb", "gray", "grey", "rec709luma", "rec601luma", "lab", "cielab"].includes(space));
+        evaluate = token !== "-type" && (token === "-grayscale" || ["rgb", "srgb", "gray", "grey", "rec709luma", "rec601luma", "lab", "cielab", "yuv"].includes(space));
         const luminance = space === "rec601luminance" || space === "rec709luminance";
         apply = function* (image) {
             const linearGray = (image.space === "b-w" || image.space === "grey16") && image.gamma === 1;

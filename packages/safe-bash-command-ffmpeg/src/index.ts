@@ -2023,7 +2023,8 @@ async function applyVideoFilterChain(
   readSubtitle: (filename: string) => Promise<Uint8Array>,
   registry: ReturnType<typeof createMediaAstRegistry>,
   signal?: AbortSignal,
-  cleanFrames?: MediaVideoFrame[]
+  cleanFrames?: MediaVideoFrame[],
+  output?: { frames: number | undefined; start: number | undefined; end: number | undefined }
 ): Promise<(MediaVideoFrame & { interlaced?: boolean; topFieldFirst?: boolean })[]> {
   let work = 0;
 
@@ -2032,6 +2033,8 @@ async function applyVideoFilterChain(
   let endTimeSeconds: number | undefined;
   let current: (MediaVideoFrame & { filterMetadata?: Record<string, string>; interlaced?: boolean; topFieldFirst?: boolean })[] = frames;
   if (current.length === 0) return current;
+  let pending: AsyncIterable<typeof current[number]> | undefined;
+  let pendingBounded = false;
   let frameRateKnown = true;
   let videoCommands: { time: number; target: string; expression: string }[] = [];
 
@@ -2039,9 +2042,16 @@ async function applyVideoFilterChain(
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
     budget.checkCpu();
-    const lastInputFrame = current.at(-1);
     const eqIdx = filterSpec.indexOf("=");
     const name = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).split("@", 1)[0]!.trim().toLowerCase();
+    // Keep replay lazy through filters that can discard frames or stop the source.
+    if (pending && !["select", "trim", "null"].includes(name)) {
+      if (!pendingBounded) throw new Error("loop: infinite replay requires a downstream trim before buffered filters");
+      current = [];
+      for await (const frame of pending) current.push(frame);
+      pending = undefined;
+    }
+    const lastInputFrame = pending ? undefined : current.at(-1);
     const argStr = eqIdx >= 0 ? filterSpec.slice(eqIdx + 1).trim() : "";
     const positional = argStr.split(":");
     const named: Record<string, string> = {};
@@ -3329,20 +3339,33 @@ async function applyVideoFilterChain(
       }
       let firstPts: number | undefined;
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
-      current = current
-        .filter((f, index) => {
+      const input = pending ?? current;
+      const trimmed = (async function* () {
+        let index = 0;
+        for await (const f of input) {
           const afterStart = startFrame === undefined
             ? st === Infinity || f.ptsSeconds >= st
             : index >= startFrame || f.ptsSeconds >= st;
-          if (!afterStart) return false;
-          firstPts ??= f.ptsSeconds;
-          const finalEnd = dur !== undefined && duration !== 0 ? Math.max(end, firstPts + dur) : end;
+          if (afterStart) firstPts ??= f.ptsSeconds;
+          const finalEnd = dur !== undefined && duration !== 0 && firstPts !== undefined ? Math.max(end, firstPts + dur) : end;
           const beforeEnd = endFrame === undefined
             ? finalEnd === -Infinity || f.ptsSeconds < finalEnd
             : index < endFrame || (Number.isFinite(finalEnd) && f.ptsSeconds < finalEnd);
-          if (!beforeEnd) endTimeSeconds = Math.min(endTimeSeconds!, f.ptsSeconds);
-          return afterStart && beforeEnd;
-        });
+          index++;
+          if (!beforeEnd) {
+            endTimeSeconds = Math.min(endTimeSeconds ?? Infinity, f.ptsSeconds);
+            return;
+          }
+          if (afterStart) yield f;
+        }
+      })();
+      if (pending) {
+        pending = trimmed;
+        pendingBounded ||= endFrame !== undefined || Number.isFinite(end) || (dur !== undefined && dur > 0);
+      } else {
+        current = [];
+        for await (const frame of trimmed) current.push(frame);
+      }
     } else if (name === "drawtext") {
       const rawText = (named.text ?? positional[0] ?? "").replace(/^['"]|['"]$/g, "");
       const fontSize = parseInt(named.fontsize ?? "12", 10) || 12;
@@ -3638,42 +3661,52 @@ async function applyVideoFilterChain(
         n: 0, t: NaN, pts: NaN, TB: 1 / timescale, start_pts: NaN, key: 0, selected_n: 0, scene: NaN,
         prev_selected_n: NaN, prev_selected_pts: NaN, prev_selected_t: NaN,
         prev_pts: NaN, prev_t: NaN,
-        start_t: current[0]?.ptsSeconds ?? NaN
+        start_t: NaN
       };
-      if (current.length === 0) parseFilterExpression(expr, "select", variables);
+      if (!pending && current.length === 0) parseFilterExpression(expr, "select", variables);
       const detectScene = expr.includes("scene");
       let previousDifference = 0;
-      const selectedFrames: MediaVideoFrame[] = [];
-      for (const [n, f] of current.entries()) {
-        if (n % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-        if (detectScene) {
-          variables.scene = 0;
-          const previous = current[n - 1];
-          if (previous && previous.width === f.width && previous.height === f.height) {
-            const difference = await meanFrameDifference(f, previous, pixelFormat, budget, signal);
-            variables.scene = Math.fround(Math.min(1, Math.min(difference, Math.abs(difference - previousDifference)) / 100));
-            previousDifference = difference;
+      const input = pending ?? current;
+      const selectedFrames = (async function* () {
+        let previous: typeof current[number] | undefined;
+        let n = 0;
+        for await (const f of input) {
+          if (n === 0) variables.start_t = f.ptsSeconds;
+          if (n % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          if (detectScene) {
+            variables.scene = 0;
+            if (previous && previous.width === f.width && previous.height === f.height) {
+              const difference = await meanFrameDifference(f, previous, pixelFormat, budget, signal);
+              variables.scene = Math.fround(Math.min(1, Math.min(difference, Math.abs(difference - previousDifference)) / 100));
+              previousDifference = difference;
+            }
           }
+          variables.n = n;
+          variables.t = f.ptsSeconds;
+          variables.pts = Math.round(f.ptsSeconds * timescale);
+          if (Number.isNaN(variables.start_pts)) variables.start_pts = variables.pts;
+          variables.key = Number(f.keyframe);
+          variables.pict_type = f.pictureType ?? 0;
+          variables.interlace_type = f.interlaced ? (f.topFieldFirst ? 1 : 2) : 0;
+          const selected = parseFilterExpression(expr, "select", variables) !== 0;
+          variables.prev_pts = variables.pts;
+          variables.prev_t = f.ptsSeconds;
+          if (selected) {
+            variables.selected_n++;
+            variables.prev_selected_n = n;
+            variables.prev_selected_pts = variables.pts;
+            variables.prev_selected_t = f.ptsSeconds;
+          }
+          previous = f;
+          n++;
+          if (selected) yield f;
         }
-        variables.n = n;
-        variables.t = f.ptsSeconds;
-        variables.pts = Math.round(f.ptsSeconds * timescale);
-        if (Number.isNaN(variables.start_pts)) variables.start_pts = variables.pts;
-        variables.key = Number(f.keyframe);
-        variables.pict_type = f.pictureType ?? 0;
-        variables.interlace_type = f.interlaced ? (f.topFieldFirst ? 1 : 2) : 0;
-        const selected = parseFilterExpression(expr, "select", variables) !== 0;
-        variables.prev_pts = variables.pts;
-        variables.prev_t = f.ptsSeconds;
-        if (selected) {
-          selectedFrames.push(f);
-          variables.selected_n++;
-          variables.prev_selected_n = n;
-          variables.prev_selected_pts = variables.pts;
-          variables.prev_selected_t = f.ptsSeconds;
-        }
+      })();
+      if (pending) pending = selectedFrames;
+      else {
+        current = [];
+        for await (const frame of selectedFrames) current.push(frame);
       }
-      current = selectedFrames;
     } else if (name === "decimate") {
       if (named.enable !== undefined) throw new Error("decimate: timeline is unsupported");
       const cycle = parseFilterExpression(
@@ -4269,14 +4302,31 @@ async function applyVideoFilterChain(
         : Math.max(0, values.start - 1);
       if (start < 0) continue;
       const size = Math.min(values.size, Math.max(0, current.length - start));
-      if (values.loop === -1 && size > 0) throw new Error("loop: infinite replay is not supported");
-      if (values.loop > 0 && size > 0) {
+      if (values.loop !== 0 && size > 0) {
         const end = start + size;
         // FFmpeg sums buffered frame durations, not the span between their PTS.
         // After setpts, FFmpeg 7 clears durations and advertises an unknown rate.
         let duration = 0;
         if (frameRateKnown) {
           for (let index = start; index < end; index++) duration += current[index]!.durationSeconds;
+        }
+        if (values.loop === -1) {
+          const source = current;
+          pendingBounded = false;
+          pending = (async function* () {
+            for (const frame of source.slice(0, end)) yield frame;
+            for (let index = 0; ; index++) {
+              if (index % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              const frame = source[start + index % size]!;
+              const ptsSeconds = frame.ptsSeconds + (Math.floor(index / size) + 1) * duration;
+              budget.checkSamples(end + index + 1);
+              budget.checkDuration(ptsSeconds + frame.durationSeconds);
+              budget.recordFrame(frame.width, frame.height);
+              budget.allocateMemory(128);
+              yield { ...frame, ptsSeconds };
+            }
+          })();
+          continue;
         }
         const added = values.loop * size;
         const count = current.length + added;
@@ -4465,6 +4515,21 @@ async function applyVideoFilterChain(
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;
+    }
+  }
+
+  if (pending) {
+    if (!pendingBounded && !Number.isFinite(output?.frames) && !Number.isFinite(output?.end)) {
+      throw new Error("loop: infinite replay requires a finite output frame/time limit or downstream trim");
+    }
+    current = [];
+    if (output?.frames !== 0 && (output?.end === undefined || output.end > (output.start ?? 0))) {
+      let emitted = 0;
+      for await (const frame of pending) {
+        if (output?.end !== undefined && frame.ptsSeconds >= output.end) break;
+        current.push(frame);
+        if (frame.ptsSeconds >= (output?.start ?? -Infinity) && ++emitted === output?.frames) break;
+      }
     }
   }
 
@@ -10105,7 +10170,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const combinedChain = vfFilters.join(",");
               workingDoc = {
                 ...workingDoc,
-                tracks: await mapWork(workingDoc.tracks, async (t) => {
+                tracks: await mapWork(workingDoc.tracks, async (t, index) => {
 
 
                   if (t.type !== "video") return t;
@@ -10135,7 +10200,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     : displayed;
                   const cleanFrames = decimateSource
                     ? await ensureDecodedFrames(decimateSource.track, decimateSource.doc.timescale, budget, context.signal) : undefined;
-                  let filtered = await applyVideoFilterChain(inputFrames, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal, cleanFrames);
+                  let filtered = await applyVideoFilterChain(inputFrames, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal, cleanFrames, {
+                    frames: streamFrameLimits[index], start: outputSs,
+                    end: outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration
+                  });
                   if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
                     const start = outputSs ?? 0;
                     const end = outputDuration === undefined ? outputTo ?? Infinity : start + outputDuration;

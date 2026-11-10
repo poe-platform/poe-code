@@ -17893,6 +17893,10 @@ function* parseMontageArguments<Step>(argv: readonly string[], fileTargets: (pat
             padX = Math.max(0, Math.round(g.x));
             padY = Math.max(0, Math.round(g.y));
         }
+        else if (t === "+background") {
+            // Montage preserves its sheet color when the image background setting is cleared.
+            continue;
+        }
         else if (t === "-background") {
             state.background = parseColor(argv[++i] ?? "#ffffff");
         }

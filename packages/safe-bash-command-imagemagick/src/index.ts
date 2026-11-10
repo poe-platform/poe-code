@@ -2099,6 +2099,14 @@ function parseMagickVignetteGeometry(raw: string): MagickGeometry {
     if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '-vignette': ${raw}`);
     }
+    const value = [...raw].filter(c => c.trim() !== "" && !"!#%()<>@\\^".includes(c)).join("");
+    const separator = [...value].findIndex(c => "xX,:/".includes(c));
+    const magnitude = separator < 0 ? value : value.slice(0, separator);
+    // Native validates the complete scalar before a geometry separator, while
+    // allowing an omitted radius in xSIGMA and signed offsets after dimensions.
+    if ((separator < 0 || magnitude) && (!magnitude || !Number.isFinite(Number(magnitude)))) {
+        throw new Error(`invalid argument for option '-vignette': ${raw}`);
+    }
     return parseMagickGeometry(raw);
 }
 

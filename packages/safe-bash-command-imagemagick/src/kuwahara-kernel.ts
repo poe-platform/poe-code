@@ -1,3 +1,4 @@
+import { regionContains, type Region } from "./region.js";
 import type { LookupInterpolation } from "./sequence-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor } from "@poe-code/image-ast/portable";
@@ -5,7 +6,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 /** Native Kuwahara: rank-three blur, minimum luma variance, quadrant-center interpolation. */
-export function* kuwaharaPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, interpolation: LookupInterpolation = "bilinear"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* kuwaharaPixelSteps(image: { width: number; height: number; region?: Region | undefined }, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, interpolation: LookupInterpolation = "bilinear", writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported Kuwahara interpolation: ${interpolation}`);
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
     if (!Number.isFinite(radius) || radius < 0 || radius >= 5000 || !Number.isFinite(sigma)) throw new Error("Kuwahara radius or sigma exceeds limit");
@@ -32,6 +33,7 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number }, ge
     for (let k = 0; k < weights.length; k++) weights[k]! /= total;
     const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
     const fill = (method === "background" || method?.endsWith("-tile")) ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255];
+    const maskBlocks = new Map<number, Uint16Array>();
     const blocks = new Map<number, Uint8Array>(), horizontal = new Map<number, number[]>(), blurred = new Map<number, number[]>();
     function* sample(x: number, y: number, stage: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
         if (x < 0 || y < 0 || x >= width || y >= height) {
@@ -67,6 +69,30 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number }, ge
         const original = mask ? yield* sample(x, y, 0) : undefined;
         // Q16-HDRI stores each blur pass as float samples before comparing variance.
         const pixel = sums.map((sum, c) => mask && !mask[c] ? original![c]! : Math.fround(c === 3 ? sum * 65535 : sums[3]! > 0 ? sum / sums[3]! : 0));
+        // The native cache applies protection after each blur pass, so the
+        // next pass and quadrant variance see the protected pixels.
+        let protection = image.region && !regionContains(image.region, x, y) ? 1 : 0;
+        if (writeMask) {
+            const maskPosition = Math.min(y, writeMask.height - 1) * writeMask.width + Math.min(x, writeMask.width - 1);
+            const start = Math.floor(maskPosition / 1024) * 1024;
+            let samples = maskBlocks.get(start);
+            if (!samples) {
+                const length = Math.min(1024, writeMask.width * writeMask.height - start) * 4;
+                const bytes = yield { kind: "read", image: 1, highDepth: true, position: start * 4, length };
+                if (!bytes || bytes.length !== length * 2) throw new Error("Truncated Kuwahara mask");
+                samples = new Uint16Array(bytes.slice().buffer);
+                if (maskBlocks.size >= 64) maskBlocks.delete(maskBlocks.keys().next().value!);
+                maskBlocks.set(start, samples);
+            }
+            const offset = (maskPosition - start) * 4;
+            protection = Math.max(protection, (0.212656 * samples[offset]! + 0.715158 * samples[offset + 1]! + 0.072186 * samples[offset + 2]!) / 65535);
+        }
+        if (protection > 0) {
+            const source = yield* sample(x, y, stage - 1);
+            const sourceAlpha = protection * source[3]! / 65535, editedAlpha = pixel[3]! / 65535;
+            for (let c = 0; c < 3; c++) if (!mask || mask[c]) pixel[c] = Math.fround(source[c]! * sourceAlpha + pixel[c]! * editedAlpha * (1 - sourceAlpha));
+            pixel[3] = source[3]!;
+        }
         if (cache.size >= 4096) cache.delete(cache.keys().next().value!);
         cache.set(position, pixel);
         return pixel;

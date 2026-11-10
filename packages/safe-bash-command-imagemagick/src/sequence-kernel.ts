@@ -1,4 +1,4 @@
-import type { RgbaImage } from "@poe-code/image-ast";
+import type { RgbaColor, RgbaImage } from "@poe-code/image-ast";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { magickIntensity } from "./intensity.js";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
@@ -8,7 +8,8 @@ type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined
 
 export type LookupInterpolation = "background" | "blend" | "bilinear" | "nearest" | "integer" | "average" | "average9" | "average16" | "mesh" | "catrom" | "spline";
 
-function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
+function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
+    if (interpolation === "background") return [background.r, background.g, background.b, background.a].map(value => value * (highDepth ? 257 : 1));
     if (interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported lookup interpolation: ${interpolation}`);
     const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
     const averageSize = interpolation === "average" ? 2 : interpolation === "average9" ? 3 : interpolation === "average16" ? 4 : 0;
@@ -49,15 +50,15 @@ function* sampleLookup(lut: { width: number; height: number }, x: number, y: num
         for (let channel = 0; channel < 3; channel++) values[channel]! += pixel[channel]! * weight * (single ? 1 : averageSize ? Number(pixel[3]! > 0) : pixel[3]!);
         values[3]! += pixel[3]! * weight;
     }
-    if (interpolation === "bilinear" || interpolation === "background" || interpolation === "blend" || interpolation === "mesh") for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
+    if (interpolation === "bilinear" || interpolation === "blend" || interpolation === "mesh") for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
     return values;
 }
 
-export function* clutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear"): Steps {
+export function* clutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor): Steps {
     // Integer lookup partitions the full dimensions; other methods sample the diagonal endpoints.
     function* sample(value: number): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
         const adjust = interpolation === "integer" ? 0 : 1;
-        return yield* sampleLookup(lut, value * (lut.width - adjust), value * (lut.height - adjust), highDepth, interpolation);
+        return yield* sampleLookup(lut, value * (lut.width - adjust), value * (lut.height - adjust), highDepth, interpolation, background);
     }
     const table = highDepth ? undefined : new Float64Array(1024);
     if (table) for (let value = 0; value < 256; value++) {
@@ -82,7 +83,7 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
 }
 
 /** Hald pixels store red fastest, then green, then blue in a flattened RGB cube. */
-export function* haldClutPixelSteps(size: number, lut: { width: number; height: number; space?: string }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear"): Steps {
+export function* haldClutPixelSteps(size: number, lut: { width: number; height: number; space?: string }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor): Steps {
     const range = highDepth ? 65535 : 255;
     const gray = lut.space === "b-w" || lut.space === "grey16";
     // Native rounds incomplete tables up to the next level, with a minimum of 2.

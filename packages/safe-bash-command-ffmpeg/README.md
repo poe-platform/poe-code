@@ -728,6 +728,8 @@ channel (`FL` selects the left). Stereo layouts also accept `0x3`, `FL+FR`, and
 `stereo` or `0x3` for both outputs. Matching mono and 5.1 inputs also support
 named speaker extraction: `-af channelsplit=mono:FC`,
 `-af channelsplit=5.1:FC`, or `-af channelsplit=5.1:LFE`.
+Matching quad and side-surround inputs support `channelsplit=quad:BL` and
+`channelsplit=0x60f:SL`; equivalent masks and speaker lists are accepted.
 The selected speaker is retained in the output channel layout.
 `channelsplit` accepts `threads`, `thread_type`, and `extra_hw_frames`, for example
 `channelsplit=stereo:FL:threads=1`; these settings leave PCM samples unchanged.

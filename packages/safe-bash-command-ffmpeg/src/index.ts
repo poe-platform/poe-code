@@ -1363,7 +1363,7 @@ function parseChannelSplit(spec: string): { input: string[]; selected: string[] 
     else throw new Error(`channelsplit: unsupported option ${key}`);
   }
   const input = parseAudioChannelLayout(layout);
-  if (!["FC", "FL+FR", "FL+FR+FC+LFE+BL+BR"].includes(input.join("+"))) {
+  if (!["FC", "FL+FR", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR", "FL+FR+FC+LFE+SL+SR"].includes(input.join("+"))) {
     throw new Error(`channelsplit: unsupported channel layout ${layout}`);
   }
   const selected = channels === "all" ? input : parseAudioChannelLayout(channels);
@@ -14769,8 +14769,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (!filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
                           throw new Error(`channelsplit: unsupported input channel order ${filteredChannelNames.join("+")}`);
                         }
-                        const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR"];
-                        const mask = input.reduce((value, speaker) => value | (1 << speakers.indexOf(speaker)), 0);
+                        const mask = input.reduce((value, speaker) => value + audioSpeakerMasks[speaker]!, 0);
                         const quad = stretched.length === 4 && filteredChannelMask === 0x33;
                         if (mask === 3 && (stretched.length === 1 || quad || stretched.length === 6)) {
                           const mono = stretched.length === 1;
@@ -14826,7 +14825,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           throw new Error("channelsplit: matching input channel layout required");
                         }
                         stretched = [stretched[input.indexOf(selected[0]!)]!];
-                        filteredChannelMask = 1 << speakers.indexOf(selected[0]!);
+                        filteredChannelMask = audioSpeakerMasks[selected[0]!]!;
                         filteredChannelNames = undefined;
                       } else if (["asettb", "asetpts", "aselect"].includes(filterName)) {
                         const timeBase = audioTimeBase ?? 1 / origRate;

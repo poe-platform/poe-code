@@ -9,7 +9,7 @@ export function parseComplexOperator(value: string | undefined): "add" | "subtra
     return operation;
 }
 
-export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, operation: "add" | "subtract" | "multiply" | "conjugate" | "divide" | "magnitude" | "phase" | "real" | "imaginary", images: readonly Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">[], gray: boolean, grayOnly: boolean, part: number, snr: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, operation: "add" | "subtract" | "multiply" | "conjugate" | "divide" | "magnitude" | "phase" | "real" | "imaginary", images: readonly Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">[], gray: boolean, grayOnly: boolean, part: number, alpha: boolean, snr: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const base = images[0]!;
     const divide = (a: number, b: number, c: number, d: number) => {
         // Components are normalized; b and d belong to the denominator pair.
@@ -42,7 +42,7 @@ export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, 
         const samples = !active ? inputs[0]! : Float64Array.from(inputs[0]!, (value, offset) => {
             const channel = offset % 4;
             if (channel === 3 && !images[0]!.hasAlpha) return 255;
-            if (operation !== "conjugate" && channel === 3 && !images[1]!.hasAlpha) return value;
+            if (channel === 3 && !alpha) return value;
             // Native complex arithmetic requires the channel in every component.
             // Gray outputs store only red; mirror that result in our RGBA raster.
             if (channel === 1 || channel === 2) {

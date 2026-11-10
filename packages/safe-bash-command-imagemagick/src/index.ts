@@ -10571,7 +10571,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length < 2) throw new Error("image sequence is required '-complex'");
             const extent = { width: Math.min(stack[0]!.width, stack[1]!.width), height: Math.min(stack[0]!.height, stack[1]!.height) };
             const result: RgbaImage[] = [];
-            const grayOnly = stack.slice(0, !polar && stack.length >= 4 ? 4 : 2).some(image => image.space === "b-w" || image.space === "grey16");
+            const operands = stack.slice(0, !polar && stack.length >= 4 ? 4 : 2);
+            const grayOnly = operands.some(image => image.space === "b-w" || image.space === "grey16");
+            const alpha = operands.every(image => image.hasAlpha);
             for (let part = 0; part < 2; part++) {
                 const base = stack[part]!;
                 const inputs: RgbaImage[] = [];
@@ -10581,7 +10583,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         input = yield* applyMagickRasterSteps(input, extendEdgePixelSteps(input, base.width, base.height, true, input.virtualPixel, state.background), signal, { ...input, width: base.width, height: base.height });
                     inputs.push(input);
                 }
-                let output = yield* applyMagickRasterSteps(base, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part, state.complexSnr ?? 0), signal, base, inputs);
+                let output = yield* applyMagickRasterSteps(base, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part, alpha, state.complexSnr ?? 0), signal, base, inputs);
                 if (base.writeMask) output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, base.writeMask, true), signal, output, [output, base, base.writeMask]);
                 result.push({ ...output, isPalette: false, inactiveAlpha: false });
             }
@@ -12233,9 +12235,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const first = (await stack.get(0))!, imaginary = (await stack.get(1))!;
                 const extent = { width: Math.min(first.width, imaginary.width), height: Math.min(first.height, imaginary.height) };
                 const result = new StoredImageStack(backend.storage, signal, stack);
-                let grayOnly = false;
+                let grayOnly = false, alpha = true;
                 for (let index = 0; index < (!polar && stack.length >= 4 ? 4 : 2); index++) {
                     const image = (await stack.get(index))!;
+                    alpha &&= !!image.hasAlpha;
                     grayOnly ||= image.space === "b-w" || image.space === "grey16";
                 }
                 for (let part = 0; part < 2; part++) {
@@ -12247,7 +12250,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             input = await transformStoredMagickRaster(input, backend, extendEdgePixelSteps(input, base.width, base.height, true, input.virtualPixel, background), signal, { ...input, width: base.width, height: base.height });
                         inputs.push(input);
                     }
-                    let output = await transformStoredMagickRaster(base, backend, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part, complexSnr ?? 0), signal, base, inputs);
+                    let output = await transformStoredMagickRaster(base, backend, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part, alpha, complexSnr ?? 0), signal, base, inputs);
                     if (base.storedWriteMask) output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, base.storedWriteMask, true), signal, output, [output, base, base.storedWriteMask]);
                     output = { ...output, isPalette: false, inactiveAlpha: false };
                     await result.push(output);

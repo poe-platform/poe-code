@@ -10202,10 +10202,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "dcshift" || trimmed.startsWith("dcshift=")) {
                         const argument = trimmed === "dcshift" ? "0" : trimmed.slice("dcshift=".length).trim();
                         let shift = 0;
+                        let limitergain = 0;
                         let enable: string | undefined;
                         for (const [index, option] of argument.split(":").entries()) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? (index === 0 ? "shift" : "") : option.slice(0, separator).trim();
+                          const key = separator < 0 ? ["shift", "limitergain"][index] : option.slice(0, separator).trim();
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (key === "enable") {
                             enable = value;
@@ -10215,8 +10216,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (!value || !Number.isFinite(shift) || shift < -1 || shift > 1) {
                               throw new Error("dcshift: expected shift between -1 and 1");
                             }
-                          } else throw new Error(`dcshift: unsupported option ${key}; limiter options are unsupported`);
+                          } else if (key === "limitergain") {
+                            limitergain = Number(value);
+                            if (!value || !Number.isFinite(limitergain) || limitergain < 0 || limitergain > 1) {
+                              throw new Error("dcshift: expected limitergain between 0 and 1");
+                            }
+                          } else throw new Error(`dcshift: unsupported option ${key}`);
                         }
+                        const threshold = 2147483647 * (1 - (Math.abs(shift) - limitergain));
                         // Native dcshift negotiates signed PCM32 and truncates the shifted sum.
                         // Keep all 32 bits so integer encoders can discard low bits when narrowing.
                         budget.allocateMemory((stretched[0]?.length ?? 0) * stretched.length * Float64Array.BYTES_PER_ELEMENT);
@@ -10236,8 +10243,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             for (let i = start; i < end; i++) {
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                               const sample = Math.max(-2147483648, Math.min(2147483647, roundToEven(channel[i]! * 2147483648)));
-                              output[c]![i] = enabled ? Math.max(-2147483648, Math.min(2147483647,
-                                Math.trunc(sample + shift * 2147483648))) / 2147483648 : sample / 2147483648;
+                              let shifted = sample + shift * (limitergain > 0 ? 2147483647 : 2147483648);
+                              // Native limiting uses PCM32 units, including the unscaled peak offset.
+                              if (limitergain > 0 && shift > 0 && sample > threshold) {
+                                shifted = (sample - threshold) * limitergain / (2147483647 - threshold) + threshold + shift;
+                              } else if (limitergain > 0 && shift < 0 && sample < -threshold) {
+                                shifted = (sample + threshold) * limitergain / (2147483647 - threshold) - threshold + shift;
+                              }
+                              output[c]![i] = enabled
+                                ? Math.max(-2147483648, Math.min(2147483647, Math.trunc(shifted))) / 2147483648 : sample / 2147483648;
                             }
                           }
                           start = end;

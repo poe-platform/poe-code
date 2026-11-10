@@ -5920,8 +5920,12 @@ function smushGap(value: string | undefined): number {
 
 function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: MagickState): Generator<void, RgbaImage, void> {
     let work = 0;
-    if (stack.length === 1)
-        return stack[0]!;
+    if (stack.length === 1) {
+        const image = stack[0]!;
+        return { ...image,
+            ...(image.writeMask ? { writeMask: yield* createSolidRgbaImageSteps(image.width, image.height, { r: 0, g: 0, b: 0, a: 255 }) } : {}),
+            ...(image.readMask ? { readMask: yield* createSolidRgbaImageSteps(image.width, image.height, { r: 0, g: 0, b: 0, a: 255 }) } : {}) };
+    }
     const totalW = vertical
         ? Math.max(...stack.map((im) => im.width))
         : stack.reduce((acc, im) => acc + im.width, 0);
@@ -12087,7 +12091,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     await stack.remove(mask ? [1, 2] : [1]); await stack.set(0, result); return stack;
                 }
                 const append = token.endsWith("append"), vertical = token === "-append";
-                if (append && stack.length === 1) return stack;
+                if (append && stack.length === 1) {
+                    const image = (await stack.get(0))! as StoredRgbaImage;
+                    await stack.set(0, { ...image,
+                        ...(image.storedWriteMask ? { storedWriteMask: await createStoredCanvas(image.width, image.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) } : {}),
+                        ...(image.readMask ? { readMask: await createStoredCanvas(image.width, image.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) } : {}) } as StoredRgbaImage);
+                    return stack;
+                }
                 let width = 0, height = 0, highDepth = false, cmyk = false, nonCmyk = false, gray = true, evaluate = false;
                 if (mosaic) {
                     const first = (await stack.get(0))!;

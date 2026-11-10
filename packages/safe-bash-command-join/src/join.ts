@@ -91,7 +91,17 @@ function parse(context: CommandContext, budget: Budget): Options {
         options.format ??= "auto";
         return;
       }
-      const values = value.split(/[, \t]/u);
+      // UTF-8 locale blanks exclude non-breaking spaces and vertical whitespace.
+      const separators = utf8 ? ", \t\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2008\u2009\u200a\u205f\u3000" : ", \t";
+      const values: string[] = [];
+      let start = 0;
+      for (let offset = 0; offset < value.length; offset++) {
+        if (separators.includes(value[offset]!)) {
+          values.push(value.slice(start, offset));
+          start = offset + 1;
+        }
+      }
+      values.push(value.slice(start));
       // GNU 9.10 permits one final separator, but no empty field before it.
       if (values.length > 1 && values.at(-1) === "") values.pop();
       budget.check(values.length, budget.limits.maxFields, "field");

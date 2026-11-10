@@ -17,7 +17,7 @@ Field numbers for `-1`, `-2`, `-j`, and `-o` accept positive decimals above Java
 
 With `-z`, trailing spaces, tabs and newlines do not create extra fields, matching GNU coreutils 9.10. An explicit `-t` delimiter still preserves empty fields.
 
-`-t` accepts a single UTF-8 character when the locale selected by `LC_ALL`, `LC_CTYPE`, or `LANG` uses UTF-8. For example, `LC_ALL=C.UTF-8 join -t é left right` splits and joins fields with `é`. Without `-t`, UTF-8 locales also split on GNU locale blanks such as em spaces and ideographic spaces; nonbreaking spaces remain part of fields. C/POSIX locales and an unset locale retain single-byte delimiters and ASCII blank splitting.
+`-t` accepts a single UTF-8 character when the locale selected by `LC_ALL`, `LC_CTYPE`, or `LANG` uses UTF-8. For example, `LC_ALL=C.UTF-8 join -t é left right` splits and joins fields with `é`. Without `-t`, UTF-8 locales also split on GNU locale blanks such as em spaces and ideographic spaces; nonbreaking spaces remain part of fields. C/POSIX locales and an unset locale retain single-byte delimiters and ASCII blank splitting. The same locale selection lets `-o` field lists use Unicode blanks such as EM SPACE (U+2003) and IDEOGRAPHIC SPACE (U+3000), matching GNU coreutils 9.10. Commas, ASCII spaces, and tabs work in every locale; C/POSIX and an unset locale reject Unicode blanks. A list may end with one separator, but leading or repeated separators are invalid.
 
 Merging, matching key groups, and order checks use `LC_ALL`, then `LC_COLLATE`, then `LANG` (ignoring empty values). C/POSIX locales retain byte order; supported language locales use runtime Unicode collation. `--ignore-case` retains folded byte comparison.
 

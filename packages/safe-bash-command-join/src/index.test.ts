@@ -18,14 +18,14 @@ test("join help works through the standalone portable factory", async () => {
  assert.ok(output.length > 0);
 });
 
-async function run(args: ShellValue[], files: Record<string, string | Uint8Array>) {
+async function run(args: ShellValue[], files: Record<string, string | Uint8Array>, env: Record<string, string> = {}) {
  const fs = createMemoryFileSystem();
  for (const [path, content] of Object.entries(files)) await fs.writeFile(path, typeof content === "string" ? new TextEncoder().encode(content) : content);
  const values = createCommandArguments(args);
  let stdout = "", stderr = "", combined = "";
  const stdoutBytes: number[] = [];
  const result = await createJoinCommand().execute({
-  command: "join", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+  command: "join", args: values.args, argumentValues: values, cwd: "/", env, fs,
   stdin: toByteSource(""), signal: new AbortController().signal,
   stdout: { async write(bytes) { stdoutBytes.push(...bytes); const text = new TextDecoder().decode(bytes); stdout += text; combined += text; } },
   stderr: { async write(bytes) { const text = new TextDecoder().decode(bytes); stderr += text; combined += text; } },
@@ -428,5 +428,66 @@ for (const format of ["1. 2", "1.\t2", "1.\n2", "1.\v2", "1.\f2", "1.\r2"]) {
   const result = await run(["-o", format, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
+ });
+}
+
+// GNU coreutils 9.10 recognizes locale blanks in -o lists, including U+2003/U+3000.
+for (const separator of [",", " ", "\t", "\u1680", "\u2000", "\u2001", "\u2002", "\u2003", "\u2004", "\u2005", "\u2006", "\u2008", "\u2009", "\u200a", "\u205f", "\u3000"]) {
+ for (const locale of ["C.UTF-8", "C", "POSIX"]) {
+  test(`join output list separator ${JSON.stringify(separator)} in ${locale}`, async () => {
+   const result = await run(["-o", `0${separator}1.2${separator}2.2`, "/left", "/right"],
+    { "/left": "a red\n", "/right": "a blue\n" }, { LC_ALL: locale });
+   const accepted = locale === "C.UTF-8" || [",", " ", "\t"].includes(separator);
+   assert.equal(result.exitCode, accepted ? 0 : 1, result.stderr);
+   assert.equal(result.stdout, accepted ? "a red blue\n" : "");
+   if (accepted) assert.equal(result.stderr, "");
+   else assert.ok(result.stderr.includes("invalid output field"), result.stderr);
+  });
+ }
+}
+
+test("join output lists use LC_ALL, LC_CTYPE, then LANG for locale blanks", async () => {
+ for (const [env, accepted] of [
+  [{ LANG: "C.UTF-8" }, true],
+  [{ LC_CTYPE: "C.utf8", LANG: "C" }, true],
+  [{ LC_ALL: "C.UTF-8", LC_CTYPE: "C" }, true],
+  [{ LC_ALL: "", LC_CTYPE: "C.UTF-8" }, true],
+  [{ LC_ALL: "C", LC_CTYPE: "C.UTF-8" }, false],
+  [{ LC_CTYPE: "POSIX", LANG: "C.UTF-8" }, false],
+  [{}, false],
+ ] as const) {
+  const result = await run(["-o", "0\u20031.2\u30002.2", "/left", "/right"],
+   { "/left": "a red\n", "/right": "a blue\n" }, env);
+  assert.equal(result.exitCode, accepted ? 0 : 1, JSON.stringify(env) + result.stderr);
+  assert.equal(result.stdout, accepted ? "a red blue\n" : "");
+ }
+});
+
+test("join locale blanks preserve trailing separators and reject empty fields", async () => {
+ for (const separator of ["\u2003", "\u3000"]) {
+  for (const [format, accepted] of [
+   [`0${separator}1.2${separator}2.2${separator}`, true],
+   [`${separator}0`, false],
+   [`0${separator}${separator}1.2`, false],
+   [`0,${separator}1.2`, false],
+   [`0${separator}${separator}`, false],
+  ] as const) {
+   const result = await run(["-o", format, "/left", "/right"],
+    { "/left": "a red\n", "/right": "a blue\n" }, { LC_ALL: "C.UTF-8" });
+   assert.equal(result.exitCode, accepted ? 0 : 1, JSON.stringify(format) + result.stderr);
+   assert.equal(result.stdout, accepted ? "a red blue\n" : "");
+   if (accepted) assert.equal(result.stderr, "");
+   else assert.ok(result.stderr.includes("invalid output field"), result.stderr);
+  }
+ }
+});
+
+for (const separator of ["\n", "\r", "\v", "\f", "\u0085", "\u00a0", "\u2007", "\u2028", "\u2029", "\u202f", "\ufeff"]) {
+ test(`join output lists reject non-blank whitespace ${JSON.stringify(separator)}`, async () => {
+  const result = await run(["-o", `0${separator}1.2${separator}2.2`, "/left", "/right"],
+   { "/left": "a red\n", "/right": "a blue\n" }, { LC_ALL: "C.UTF-8" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.ok(result.stderr.includes("invalid output field"), result.stderr);
  });
 }

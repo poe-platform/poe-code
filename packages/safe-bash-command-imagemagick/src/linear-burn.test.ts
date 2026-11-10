@@ -6,14 +6,14 @@ import { runCompositeCli, runMagickCli } from "./index.js";
 
 const nativeAvailable = spawnSync("magick", ["-version"]).status === 0;
 
-// ImageMagick 7.1.2-32 RGBA references, including transparent alpha boundaries.
+// ImageMagick 7.1.2-35 Q16-HDRI RGBA references, including transparent alpha boundaries.
 for (const retained of [false, true]) {
   for (const composite of [false, true]) {
     it.each([
-      { sourceAlpha: 128, destinationAlpha: 102, expected: [66, 26, 62, 179] },
+      { sourceAlpha: 128, destinationAlpha: 102, expected: [94, 37, 88, 179] },
       { sourceAlpha: 255, destinationAlpha: 255, expected: [0, 0, 15, 255] },
-      { sourceAlpha: 0, destinationAlpha: 102, expected: [12, 40, 88, 102] },
-      { sourceAlpha: 128, destinationAlpha: 0, expected: [100, 10, 25, 128] },
+      { sourceAlpha: 0, destinationAlpha: 102, expected: [30, 100, 220, 102] },
+      { sourceAlpha: 128, destinationAlpha: 0, expected: [200, 20, 50, 128] },
       { sourceAlpha: 0, destinationAlpha: 0, expected: [0, 0, 0, 0] },
       { sourceAlpha: 255, destinationAlpha: 255, source: [0, 0, 0], destination: [255, 100, 0], expected: [0, 0, 0, 255] },
     ])(`LinearBurn retained=${retained} composite=${composite} alpha=$sourceAlpha/$destinationAlpha matches native`, async ({ sourceAlpha, destinationAlpha, source = [200, 20, 50], destination = [30, 100, 220], expected }) => {

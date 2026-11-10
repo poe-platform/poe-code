@@ -481,7 +481,7 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                         else
                             f = dc <= 0.5 ? 2 * sc * dc : 1 - 2 * (1 - sc) * (1 - dc);
                         const comp = f * sa * da + sc * sa * (1 - da) + dc * da * (1 - sa);
-                        const unpremul = gamma > 1e-6 && (norm === "lineardodge" || norm === "colorburn" || norm === "colordodge" || norm === "multiply" || norm === "screen" || norm === "overlay" || norm === "hardlight" || norm === "pinlight" || norm === "vividlight" || norm === "hardmix") ? comp / gamma : comp;
+                        const unpremul = gamma > 1e-6 && (norm === "lineardodge" || norm === "linearburn" || norm === "colorburn" || norm === "colordodge" || norm === "multiply" || norm === "screen" || norm === "overlay" || norm === "hardlight" || norm === "pinlight" || norm === "vividlight" || norm === "hardmix") ? comp / gamma : comp;
                         out[dIdx + c] = clampByteVal(unpremul * 255);
                     }
                 }

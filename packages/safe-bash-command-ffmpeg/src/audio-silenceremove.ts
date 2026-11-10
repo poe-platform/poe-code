@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function removeSilence(
@@ -14,7 +15,21 @@ export async function removeSilence(
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const positional = ["start_periods", "start_duration", "start_threshold", "start_silence", "start_mode",
     "stop_periods", "stop_duration", "stop_threshold", "stop_silence", "stop_mode", "detection", "window", "timestamp"];
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const tokens: string[] = [];
+  let token = "";
+  let quoted = false;
+  // The filter chain has already removed one quoting/escaping layer.
+  for (let i = 0; i < argument.length; i++) {
+    const char = argument[i]!;
+    if (char === "'") quoted = !quoted;
+    else if (!quoted && char === "\\" && i + 1 < argument.length) token += argument[++i]!;
+    else if (!quoted && char === ":") {
+      tokens.push(token);
+      token = "";
+    } else token += char;
+  }
+  if (argument) tokens.push(token);
+  for (const [index, option] of tokens.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? positional[index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
@@ -33,10 +48,8 @@ export async function removeSilence(
       key === "stop_silence" || key === "window") {
       const threshold = key.endsWith("threshold");
       const periods = key.endsWith("periods");
-      const scale = !threshold && !periods && value.endsWith("ms") ? 0.001
-        : !threshold && !periods && value.endsWith("us") ? 0.000001 : 1;
       const number = threshold ? parseFilterExpression(value, "silenceremove", {})
-        : Number(!threshold && !periods && value.endsWith("s") ? value.slice(0, scale === 1 ? -1 : -2) : value) * scale;
+        : periods ? Number(value) : parseHlsDuration(value);
       const min = key === "stop_periods" ? -9000 : 0;
       const max = periods ? 9000 : key === "window" ? 100 : threshold ? Number.MAX_VALUE : 2147.483647;
       if (!value || !Number.isFinite(number) || number < min || number > max) {

@@ -1177,18 +1177,18 @@ describe("aloop", () => {
       });
     }
   }
-  it("preserves incoming frame splits and chunks replayed regions into 1024 samples", async () => {
+  it("groups input and replay into 1024 samples before resuming incoming frames", async () => {
     const channels = [1, -1].map(sign => Float64Array.from({ length: 2300 }, (_, i) => sign * (i + 1) / 32768));
     const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels }) });
     const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af",
       "asetnsamples=512:0,aloop=2:1100:0,volume='if(eq(n,4),0,1)':eval=frame", "-frames:a", "8", "/out.wav"], vfs);
     assert.equal(result.exitCode, 0, result.stderr);
     const output = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData;
-    // Frames: 512, 512, 76, 1024, 76, 1024, 76, 436, 512, 252.
+    // Native FFmpeg 7.0.2 frames: 1024, 76, 1024, 76, 1024, 76, 436, 512, 252.
     for (let c = 0; c < channels.length; c++) {
       const input = Array.from(channels[c]!);
-      const expected = [...input.slice(0, 1100), ...input.slice(0, 1100), ...input].slice(0, 3736);
-      expected.fill(0, 2124, 2200);
+      const expected = [...input.slice(0, 1100), ...input.slice(0, 1100), ...input].slice(0, 4248);
+      expected.fill(0, 2200, 3224);
       assert.deepEqual(Array.from(output[c]!), expected);
     }
   });

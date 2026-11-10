@@ -9,10 +9,10 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   }
   const gray = pixelFormat === "gray" || pixelFormat === "gray8";
   const yuv = pixelFormat === "yuv420p" || pixelFormat === "yuv444p";
-  if (!gray && pixelFormat !== "rgb24" && pixelFormat !== "gray16be" && !yuv) throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
+  if (!gray && pixelFormat !== "rgb24" && pixelFormat !== "gray16be" && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
   const ySize = width * height;
   const chromaSize = pixelFormat === "yuv444p" ? ySize : Math.ceil(width / 2) * Math.ceil(height / 2);
-  const frameBytes = pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" ? 2 : 3);
+  const frameBytes = pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" || pixelFormat === "ya8" ? 2 : 3);
   if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
   const count = Math.ceil(bytes.length / frameBytes);
   budget.checkSamples(count);
@@ -38,9 +38,9 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
       if (pixelFormat === "gray16be") {
         const value = Math.min(255, (data[pixel * 2]! * 256 + data[pixel * 2 + 1]! + 128) >> 8);
         rgba.fill(value, pixel * 4, pixel * 4 + 3);
-      } else if (gray) rgba.fill(data[pixel]!, pixel * 4, pixel * 4 + 3);
+      } else if (gray || pixelFormat === "ya8") rgba.fill(data[pixel * (gray ? 1 : 2)]!, pixel * 4, pixel * 4 + 3);
       else rgba.set(data.subarray(pixel * 3, pixel * 3 + 3), pixel * 4);
-      rgba[pixel * 4 + 3] = 255;
+      rgba[pixel * 4 + 3] = pixelFormat === "ya8" ? data[pixel * 2 + 1]! : 255;
     }
     frames.push({ width, height, data: rgba, offset: index * frameBytes,
       ...(yuv || pixelFormat === "gray16be" ? { native: { rgba, pixels: data, width, height,

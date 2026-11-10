@@ -10,10 +10,10 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   const gray = pixelFormat === "gray" || pixelFormat === "gray8";
   const yuv = pixelFormat === "yuv420p" || pixelFormat === "yuv422p" || pixelFormat === "yuv444p";
   const rgb16 = pixelFormat === "rgb48be" || pixelFormat === "rgba64be";
-  if (!rgb16 && !gray && pixelFormat !== "bgra" && pixelFormat !== "rgb24" && pixelFormat !== "rgba" && pixelFormat !== "gray16be" && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
+  if (!rgb16 && !gray && pixelFormat !== "gbrap" && pixelFormat !== "bgra" && pixelFormat !== "rgb24" && pixelFormat !== "rgba" && pixelFormat !== "gray16be" && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
   const ySize = width * height;
   const chromaSize = pixelFormat === "yuv444p" ? ySize : Math.ceil(width / 2) * (pixelFormat === "yuv422p" ? height : Math.ceil(height / 2));
-  const frameBytes = rgb16 ? ySize * (pixelFormat === "rgba64be" ? 8 : 6) : pixelFormat === "bgra" || pixelFormat === "rgba" ? ySize * 4 : yuv ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" || pixelFormat === "ya8" ? 2 : 3);
+  const frameBytes = rgb16 ? ySize * (pixelFormat === "rgba64be" ? 8 : 6) : pixelFormat === "bgra" || pixelFormat === "rgba" || pixelFormat === "gbrap" ? ySize * 4 : yuv ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" || pixelFormat === "ya8" ? 2 : 3);
   if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
   const count = Math.ceil(bytes.length / frameBytes);
   budget.checkSamples(count);
@@ -38,6 +38,13 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
       : pixelFormat === "rgba" ? new Uint8Array(data) : new Uint8Array(width * height * 4);
     for (let pixel = 0; !rgb16 && !yuv && pixelFormat !== "rgba" && pixel < width * height; pixel++) {
       if (pixel % 4096 === 0) budget.checkCpu();
+      if (pixelFormat === "gbrap") {
+        rgba[pixel * 4] = data[ySize * 2 + pixel]!;
+        rgba[pixel * 4 + 1] = data[pixel]!;
+        rgba[pixel * 4 + 2] = data[ySize + pixel]!;
+        rgba[pixel * 4 + 3] = data[ySize * 3 + pixel]!;
+        continue;
+      }
       if (pixelFormat === "bgra") {
         rgba[pixel * 4] = data[pixel * 4 + 2]!;
         rgba[pixel * 4 + 1] = data[pixel * 4 + 1]!;

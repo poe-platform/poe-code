@@ -2477,6 +2477,31 @@ async function applyVideoFilterChain(
       const angle = dir === 0 || dir === 2 ? 270 : 90;
       current = await mapWork(current, async (f) => {
         if ((pass === 1 && f.width >= f.height) || (pass === 2 && f.width <= f.height)) return f;
+        const source = f.native;
+        // Transpose preserves planar formats with equal horizontal/vertical subsampling.
+        if (source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
+            [0, 5, 12, 14].includes(source.format)) {
+          budget.allocateMemory(source.pixels.length + f.data.byteLength);
+          const pixels = new Uint8Array(source.pixels.length);
+          const subsampling = source.format === 0 || source.format === 12 ? 2 : 1;
+          let offset = 0;
+          for (let plane = 0; plane < 3; plane++) {
+            const width = Math.ceil(f.width / (plane === 0 ? 1 : subsampling));
+            const height = Math.ceil(f.height / (plane === 0 ? 1 : subsampling));
+            for (let y = 0; y < height; y++) {
+              if (y % 32 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              for (let x = 0; x < width; x++) {
+                const outputX = dir === 1 || dir === 3 ? height - 1 - y : y;
+                const outputY = dir === 2 || dir === 3 ? width - 1 - x : x;
+                pixels[offset + outputY * height + outputX] = source.pixels[offset + y * width + x]!;
+              }
+            }
+            offset += width * height;
+          }
+          const native = { ...source, width: f.height, height: f.width, pixels };
+          const data = scaleVideoPicture({ ...f, width: f.height, height: f.width, native }, f.height, f.width)!;
+          return { ...f, width: f.height, height: f.width, data, native: { ...native, rgba: data } };
+        }
         const rotated = rotateImage(makeRgbaImg(f.width, f.height, f.data), angle);
         const out = dir === 0 || dir === 3 ? flipImage(rotated) : rotated;
         return {

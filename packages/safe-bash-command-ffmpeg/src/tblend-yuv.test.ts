@@ -30,6 +30,12 @@ const input = Buffer.concat([Buffer.from("YUV4MPEG2 W2 H2 F4:1 Ip A1:1 C444\n"),
 // Linux FFmpeg 7.0.2 reference output, including the repeated pair at t=0.5.
 for (const [filter, expected] of [
   ["null", planes(samples)],
+  ["tblend=c0_mode=difference", planes([[70, 180, 60], [0, 180, 60], [40, 140, 190]])],
+  ["tblend=c1_mode=difference", planes([[120, 150, 60], [120, 0, 60], [80, 40, 190]])],
+  ["tblend=difference", planes([[70, 180, 60], [0, 180, 60], [40, 140, 190]])],
+  ["tblend=c2_mode=difference", planes([[120, 180, 152], [120, 180, 0], [80, 140, 130]])],
+  ["tblend=c0_mode=6:c1_mode=average:c2_mode=addition", planes([[70, 105, 255], [0, 180, 120], [40, 160, 250]])],
+  ["tblend=c0_mode=difference:all_mode=normal", planes(samples.slice(1))],
   ["tblend=all_mode=difference", Buffer.from("464646469696969698989898000000000000000000000000282828282828282882828282", "hex")],
   ["tblend=all_mode=difference,select='eq(t,0.5)'", Buffer.alloc(12)],
   ["trim=end_frame=1,tblend=all_mode=difference", Buffer.alloc(0)],
@@ -61,6 +67,9 @@ for (const [chroma, format, sx, sy, depth] of [
       encode(first), Buffer.from("FRAME\n"), encode(second)]);
     assert.deepEqual(await run(source, "tblend=all_mode=difference", format),
       encode(first.map((value, i) => Math.abs(value - second[i]!))));
+    const chromaSize = Math.ceil(3 / sx) * Math.ceil(3 / sy);
+    assert.deepEqual(await run(source, "tblend=c1_mode=difference", format),
+      encode(second.map((value, i) => i >= 9 && i < 9 + chromaSize ? Math.abs(value - first[i]!) : value)));
   });
 }
 

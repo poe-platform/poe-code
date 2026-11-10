@@ -1023,7 +1023,7 @@ Audio `aac_adtstoasc` removes ADTS headers from AAC checksum packets and rejects
 
 Output `-avoid_negative_ts make_non_negative` shifts leading negative decode timestamps to zero; `make_zero` shifts the first decode timestamp to zero even when positive. All streams receive the same shift and stream-copy packet bytes are preserved, including AAC priming. `disabled` and the default `auto` retain existing MP4/MOV timestamp behavior. Numeric values `1`, `2`, `0`, and `-1` are also accepted, respectively. The option resets for each output.
 
-VPlayer input uses the next timestamp to close each subtitle cue, including empty closing lines, and converts `|` to line breaks. FFmpeg accepts `-f vplayer` or detects the content in generic `.txt` files.
+VPlayer input accepts a colon, space, or equals sign between the timestamp and dialogue, uses the next timestamp to close each subtitle cue, including empty closing lines, and converts `|` to line breaks. FFmpeg accepts `-f vplayer` or detects the content in generic `.txt` files.
 
 AQTitle input (`-f aqtitle` or automatic detection) converts frame markers at 25 fps by default; `-subfps 50` before the input overrides the rate. Multiline captions are preserved and empty closing markers end the preceding cue. The media parser accepts the same override as `subtitleFrameRate`.
 

@@ -6,11 +6,12 @@ function readLine(line: string): { start: number; text: string } | undefined {
   let offset = 0;
   let seconds = 0;
   for (let field = 0; field < 3; field++) {
-    const end = line.indexOf(":", offset);
-    if (end <= offset) return undefined;
-    const value = line.slice(offset, end);
-    if (![...value].every(char => char >= "0" && char <= "9")) return undefined;
-    seconds = seconds * 60 + Number(value);
+    let end = offset;
+    while (end < line.length && line[end]! >= "0" && line[end]! <= "9") end++;
+    if (end === offset) return undefined;
+    const separator = line[end];
+    if (separator !== ":" && !(field === 2 && (separator === " " || separator === "="))) return undefined;
+    seconds = seconds * 60 + Number(line.slice(offset, end));
     offset = end + 1;
   }
   const start = seconds * 1000;

@@ -7,9 +7,19 @@ const vplayer = "0:00:01:First|line\n0:00:03:Second\n0:00:06:\n";
 const expected = "1\n00:00:01,000 --> 00:00:03,000\nFirst\nline\n\n2\n00:00:03,000 --> 00:00:06,000\nSecond\n\n";
 for (const sync of [false, true]) {
   for (const forced of [false, true]) {
-    for (const format of ["vplayer", "srt"]) {
-      it(`${sync ? "sync" : "async"} ${forced ? "forced" : "detected"} ${format} preserves timing and lines`, async () => {
-        const volume = Volume.fromJSON({ "/end.txt": format === "vplayer" ? vplayer : expected, "/out.srt": "keep" });
+    for (const { name, format, input, output } of [
+      { name: "vplayer", format: "vplayer", input: vplayer, output: expected },
+      { name: "srt", format: "srt", input: expected, output: expected },
+      ...[":", " ", "="].map(separator => ({
+        name: `vplayer with ${JSON.stringify(separator)} separator`,
+        format: "vplayer",
+        input: `0:00:01${separator}First|Second\n0:00:04:\n`,
+        // Native FFmpeg 7.0.2 output, with CRLF normalized to LF.
+        output: "1\n00:00:01,000 --> 00:00:04,000\nFirst\nSecond\n\n"
+      }))
+    ]) {
+      it(`${sync ? "sync" : "async"} ${forced ? "forced" : "detected"} ${name} preserves timing and lines`, async () => {
+        const volume = Volume.fromJSON({ "/end.txt": input, "/out.srt": "KEEP" });
         const args = ["-v", "error", "-y", ...(forced ? ["-f", format] : []), "-i", "/end.txt", "-c:s", "srt", "/out.srt"];
         if (sync) {
           assert.equal(evalSyncFfmpeg(args, undefined,
@@ -29,7 +39,7 @@ for (const sync of [false, true]) {
           } as never);
           assert.equal(result.exitCode, 0, stderr);
         }
-        assert.equal(String(volume.readFileSync("/out.srt")).replaceAll("\r\n", "\n"), expected);
+        assert.equal(String(volume.readFileSync("/out.srt")).replaceAll("\r\n", "\n"), output);
       });
     }
   }

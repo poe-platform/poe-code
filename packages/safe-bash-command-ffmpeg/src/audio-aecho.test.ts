@@ -112,7 +112,7 @@ for (const [filter, expected] of [
   ["aecho=in_gain=default/2:out_gain=default*2", "aecho=0.3:0.6"],
   ["aecho=(min+max)/2:max/2", "aecho=0.5:0.5"],
   ["aecho=in_gain=1/2", "aecho=0.5"]
-]) {
+] as const) {
   for (const graph of [false, true]) {
     it(`${filter} evaluates gain constants (${graph ? "graph" : "simple"})`, async () => {
       const literal = await run(expected, graph);

@@ -1,6 +1,9 @@
-import { encodeImage as encodeRaster, encodeStoredImage as encodeStoredRaster, type ImageFormat as RasterFormat, type OutputEncodeOptions as RasterOptions, type RgbaImage, type StoredRgbaImage, type ImageByteStorage } from "@poe-code/image-ast/portable";
+import { encodeImage as encodeRaster, encodeStoredImage as encodeStoredRaster, type ImageFormat as RasterFormat, type OutputEncodeOptions as RasterOptions, type RgbaImage, type StoredRgbaImage, type ImageByteStorage, type OutputInfo } from "@poe-code/image-ast/portable";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
+
+export type RawImage = RgbaImage & { rawFrames?: readonly RgbaImage[] };
+export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; at(index: number): Promise<StoredRgbaImage> } };
 
 export type RawCoder = "rgb" | "rgba" | "bgr" | "bgra" | "gray" | "cmyk" | "cmyka";
 export type ImageFormat = RasterFormat | RawCoder;
@@ -26,7 +29,7 @@ export function isRawCoder(format: string | undefined): format is RawCoder {
     return format === "rgb" || format === "rgba" || format === "bgr" || format === "bgra" || format === "gray" || format === "cmyk" || format === "cmyka";
 }
 
-export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
+export function encodeImage(image: RawImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
     const format = options.format;
     if (!isRawCoder(format)) {
@@ -56,7 +59,12 @@ export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): Ret
         return encoded;
     }
     const channels = format === "gray" ? 1 : (format.startsWith("cmyk") ? 4 : 3) + (format.endsWith("a") ? 1 : 0);
-    const data = encodeRawPixels(image, options, Array.from({ length: channels }, (_, channel) => channel));
+    const selectedChannels = Array.from({ length: channels }, (_, channel) => channel);
+    if (!image.rawFrames) return { data: encodeRawPixels(image, options, selectedChannels), format: "raw", channels };
+    const frames = image.rawFrames.map(frame => encodeRawPixels(frame, options, selectedChannels));
+    const data = new Uint8Array(frames.reduce((size, frame) => size + frame.length, 0));
+    let offset = 0;
+    for (const frame of frames) { data.set(frame, offset); offset += frame.length; }
     return { data, format: "raw", channels };
 }
 
@@ -91,7 +99,7 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
     return data;
 }
 
-export async function* encodeStoredImage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
+export async function* encodeStoredImage(image: StoredRawImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
     if (!isRawCoder(options.format)) {
         let quality = options.quality ?? 92;
@@ -118,6 +126,16 @@ export async function* encodeStoredImage(image: StoredRgbaImage, storage: ImageB
             quality = best;
         }
         return yield* encodeStoredRaster(image, storage, signal, { ...options, format: options.format, ...(options.format === "jpeg" && options.jpegExtent !== undefined ? { quality, chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4" } : {}), synthesizeExif: false });
+    }
+    if (image.rawFrames) {
+        let size = 0;
+        let info: OutputInfo | undefined;
+        for (let index = 0; index < image.rawFrames.length; index++) {
+            await yieldTurn(signal);
+            info = yield* encodeStoredImage(await image.rawFrames.at(index), storage, signal, options);
+            size += info!.size;
+        }
+        return { ...info!, size };
     }
     let size = 0;
     const channels = options.format === "gray" ? 1 : (options.format.startsWith("cmyk") ? 4 : 3) + (options.format.endsWith("a") ? 1 : 0);

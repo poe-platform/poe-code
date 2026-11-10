@@ -9271,6 +9271,60 @@ function parseChannelAssignments(expression: string): ChannelAssignment[] {
     });
 }
 
+function parseChannelSourceGroups(expression: string): { image: number; assignments: ChannelAssignment[] }[] {
+    const tokens: string[] = [];
+    let word = "";
+    for (const character of expression) {
+        if (",;|<=>".includes(character) || character.trim() === "") {
+            if (word) tokens.push(word);
+            word = "";
+            if (character.trim()) tokens.push(character);
+        } else word += character;
+    }
+    if (word) tokens.push(word);
+    const groups: { image: number; assignments: ChannelAssignment[] }[] = [];
+    let image = 0, target = 0, count = 0, extract = false;
+    let group = { image: 0, assignments: [] as ChannelAssignment[] };
+    const finish = () => {
+        // A single extraction becomes gray, retaining the destination's alpha.
+        if (extract && count === 1) {
+            const assignment = group.assignments[0]!;
+            group.assignments.push({ ...assignment, target: 1 }, { ...assignment, target: 2 });
+        }
+        groups.push(group);
+    };
+    for (let index = 0; index < tokens.length;) {
+        let token = tokens[index++]!;
+        // Native consumes only one separator before parsing a source channel.
+        if (token === "," || token === "|" || token === ";") {
+            if (token === "|") image++;
+            if (token === ";") {
+                finish();
+                group = { image, assignments: [] };
+                target = 0;
+                count = 0;
+            }
+            token = tokens[index++] ?? "";
+        }
+        // A pipe in channel position is native's channel-zero fallback.
+        const source = token === "|" ? "r" : token;
+        let operator = "";
+        if (tokens[index] === "<") operator += tokens[index++];
+        if (tokens[index] === "=") operator += tokens[index++];
+        if (tokens[index] === ">") operator += tokens[index++];
+        extract = operator === "";
+        const assignments = parseChannelAssignments(extract
+            ? `${source}=>${target === 3 ? 4 : target}`
+            : `${source}${operator}${tokens[index++] ?? ""}`);
+        for (const assignment of assignments)
+            group.assignments.push("image" in assignment ? { ...assignment, image } : assignment);
+        count += assignments.length;
+        target = extract ? target + 1 : assignments[0]!.target;
+    }
+    finish();
+    return groups;
+}
+
 function parseChannelSelections(expression: string): number[][] {
     if (expression === "") return [[0, 1, 2]];
     const names = [["0", "r", "red", "c", "cyan", "gray"], ["1", "g", "green", "m", "magenta"], ["2", "b", "blue", "y", "yellow"], ["4", "a", "alpha", "o"]];
@@ -11926,11 +11980,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const argument = tokens[++i] ?? "", image = stack[0];
             const expression = image ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }) : argument;
             const result: RgbaImage[] = [];
-            if (expression.includes("=")) {
-                const groups = expression.split(";").map(parseChannelAssignments);
-                if (image) for (const assignments of groups) {
-                    const hasAlpha = image.hasAlpha || assignments.some(({ target }) => target === 3);
-                    result.push(yield* applyMagickRasterSteps({ ...image, space: "srgb", channels: hasAlpha ? 4 : 3 }, channelFxPixelSteps(stack, assignments, stack.some(source => !!source.data16) || assignments.some(assignment => "value" in assignment)), signal, { ...image, hasAlpha }, stack));
+            if (expression.includes("=") || expression.includes("|")) {
+                const groups = expression.includes("|") ? parseChannelSourceGroups(expression)
+                    : expression.split(";").map(group => ({ image: 0, assignments: parseChannelAssignments(group) }));
+                if (image) for (const group of groups) {
+                    const { assignments } = group, base = stack[Math.min(group.image, stack.length - 1)]!;
+                    const sources = [base, ...stack.slice(1)];
+                    const hasAlpha = base.hasAlpha || assignments.some(({ target }) => target === 3);
+                    result.push(yield* applyMagickRasterSteps({ ...base, space: "srgb", channels: hasAlpha ? 4 : 3 }, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.data16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources));
                 }
             } else {
                 const selections = parseChannelSelections(expression);
@@ -12941,13 +12998,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 const result = new StoredImageStack(backend.storage, signal, stack), image = await stack.get(0);
                 const expression = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack) : argument;
-                const groups = expression.includes("=") ? expression.split(";").map(parseChannelAssignments) : undefined;
+                const groups = expression.includes("|") ? parseChannelSourceGroups(expression)
+                    : expression.includes("=") ? expression.split(";").map(group => ({ image: 0, assignments: parseChannelAssignments(group) })) : undefined;
                 const selections = groups ? [] : parseChannelSelections(expression);
-                if (image && groups) for (const assignments of groups) {
-                    const sources = [image];
-                    if (assignments.some(assignment => "image" in assignment && assignment.image === 1) && stack.length > 1) sources.push((await stack.get(1))!);
-                    const hasAlpha = image.hasAlpha || assignments.some(({ target }) => target === 3);
-                    await result.push(await transformStoredMagickRaster({ ...image, space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16) || assignments.some(assignment => "value" in assignment)), signal, { ...image, hasAlpha }, sources));
+                if (image && groups) for (const group of groups) {
+                    const { assignments } = group, base = (await stack.get(Math.min(group.image, stack.length - 1)))!;
+                    const sources = [base];
+                    const lastSource = assignments.reduce((last, assignment) => "image" in assignment ? Math.max(last, assignment.image) : last, 0);
+                    for (let source = 1; source <= Math.min(lastSource, stack.length - 1); source++) sources.push((await stack.get(source))!);
+                    const hasAlpha = base.hasAlpha || assignments.some(({ target }) => target === 3);
+                    await result.push(await transformStoredMagickRaster({ ...base, space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources));
                 } else if (image) for (const channels of selections) {
                     await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: image => selectMagickChannels(image, channels) }, signal));
                 }

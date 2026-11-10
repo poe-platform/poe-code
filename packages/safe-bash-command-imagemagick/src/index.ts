@@ -1,4 +1,6 @@
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
+import { renderFontCaption } from "./font/caption.js";
+import { polaroidPixels } from "./polaroid-caption.js";
 import { complexPixelSteps, parseComplexOperator } from "./complex.js";
 import { parseCdlSteps, cdlImageSteps } from "./cdl.js";
 import { localContrastPixelSteps, parseLocalContrastGeometry } from "./local-contrast-kernel.js";
@@ -677,6 +679,7 @@ interface MagickState {
   borderColor: RgbaColor;
   matteColor: RgbaColor;
   pointsize: number;
+  font?: string;
   gravity: GravityPosition | undefined;
   jpegProgressive?: boolean;
   jpegArithmeticCoding?: boolean;
@@ -9430,6 +9433,14 @@ if (t === "-intent" || t === "+intent") {
         else if (t === "-pointsize") {
             state.pointsize = Math.max(1, Number(tokens[++i] ?? 12));
         }
+        else if (t === "-font") {
+            const font = tokens[++i];
+            if (font === undefined) throw new Error("missing argument for -font");
+            state.font = font;
+        }
+        else if (t === "+font") {
+            delete state.font;
+        }
         else if (t === "-gravity") {
             state.gravity = parseGravity(tokens[++i] ?? "center");
         }
@@ -10611,8 +10622,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const angle = parseMagickPolaroidAngle(expanded);
                 const border = Math.trunc(Math.max(image.width / 25, image.height / 25, 10));
                 const transparent = { r: 0, g: 0, b: 0, a: 0 };
-                let picture = yield* applyMagickRasterSteps(image, borderPixels(image, border, border, state.borderColor, true), signal,
-                    { width: image.width + 2 * border, height: image.height + 2 * border, hasAlpha: true });
+                const text = image.properties?.caption;
+                const font = state.font === undefined ? undefined : files.get(state.font);
+                if (text !== undefined && state.font !== undefined && !font) throw new Error(`unable to read font '${state.font}'`);
+                const caption = text !== undefined && font ? renderFontCaption(font, text, image.width, state.pointsize, state.density, state.fill, state.borderColor, state.strokeWidth, signal) : undefined;
+                let picture = yield* applyMagickRasterSteps(image, polaroidPixels(image, border, state.borderColor, caption), signal,
+                    { width: image.width + 2 * border, height: image.height + 2 * border + (caption?.height ?? 0), hasAlpha: true });
                 // Native PolaroidImage clones the larger raster, scaling its page too.
                 const virtualCanvas = magickResizeCanvas(image, picture.width, picture.height);
                 if (virtualCanvas) picture = { ...picture, virtualCanvas };
@@ -13467,8 +13482,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const angle = parseMagickPolaroidAngle(expanded);
                 const border = Math.trunc(Math.max(image.width / 25, image.height / 25, 10));
                 const transparent = { r: 0, g: 0, b: 0, a: 0 };
-                let picture = await transformStoredMagickRaster(image, backend, borderPixels(image, border, border, settings.borderColor, true), signal,
-                    { width: image.width + 2 * border, height: image.height + 2 * border, hasAlpha: true });
+                const text = image.properties?.caption;
+                const font = text !== undefined && settings.font !== undefined ? await backend.read(settings.font, async source => {
+                    if (source.size > 16 * 1024 * 1024) throw new Error("font exceeds memory limit");
+                    return source.read(0, source.size, { signal });
+                }) : undefined;
+                if (text !== undefined && settings.font !== undefined && !font) throw new Error(`unable to read font '${settings.font}'`);
+                const caption = text !== undefined && font ? renderFontCaption(font, text, image.width, settings.pointsize, settings.density, settings.fill, settings.borderColor, settings.strokeWidth, signal) : undefined;
+                let picture = await transformStoredMagickRaster(image, backend, polaroidPixels(image, border, settings.borderColor, caption), signal,
+                    { width: image.width + 2 * border, height: image.height + 2 * border + (caption?.height ?? 0), hasAlpha: true });
                 // Native PolaroidImage clones the larger raster, scaling its page too.
                 const virtualCanvas = magickResizeCanvas(image, picture.width, picture.height);
                 if (virtualCanvas) picture = { ...picture, virtualCanvas };

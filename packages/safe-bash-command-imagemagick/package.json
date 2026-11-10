@@ -16,7 +16,13 @@
   },
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "scripts/font",
+    "src/font/LICENSE.FreeType",
+    "src/font/LICENSE.Emscripten",
+    "src/font/LICENSE.zlib",
+    "src/font/LICENSE.musl",
+    "src/font/LICENSE.compiler-rt"
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --external:safe-bash-contracts --external:safe-bash-contracts/* --outfile=dist/index.js --external:@poe-code/image-ast --external:@poe-code/safe-fs --external:@poe-code/safe-fs/*",
@@ -32,7 +38,8 @@
   "devDependencies": {
     "@poe-code/image-ast": "*",
     "safe-bash-contracts": "*",
-    "@poe-code/safe-fs": "*"
+    "@poe-code/safe-fs": "*",
+    "acorn": "8.17.0"
   },
   "sideEffects": false
 }

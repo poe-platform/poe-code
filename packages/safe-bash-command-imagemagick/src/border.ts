@@ -1,8 +1,8 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">>, left: number, top: number, color: RgbaColor, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const width = image.width + left * 2, height = image.height + top * 2;
+export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">>, left: number, top: number, color: RgbaColor, highDepth: boolean, bottom = top): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const width = image.width + left * 2, height = image.height + top + bottom;
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
     const maximum = highDepth ? 65535 : 255;
     const background = [color.r, color.g, color.b, color.a].map(value => Math.round(value * maximum / 255));

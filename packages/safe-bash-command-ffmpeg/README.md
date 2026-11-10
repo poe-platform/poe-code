@@ -924,7 +924,7 @@ addresses an unnamed instance; invalid runtime gains leave the current gain unch
 
 `adynamicequalizer=mode=listen:dfrequency=1000` outputs the detector’s band-pass signal for each audio channel. Named `dfrequency` (Hz) and `dqfactor` options control the detection band; `mode=-1` also selects listen mode. Other modes and options are rejected. Works in `-af` chains and mapped audio filter graphs.
 
-`asoftclip=type=tanh:threshold=0.5` soft-clips signed PCM peaks. Supports `threshold`, `output`, and `param`, with named or positional options. The default type is `tanh`; other types and oversampling beyond `oversample=1` fail explicitly.
+`asoftclip=type=tanh:threshold=0.5` soft-clips signed PCM peaks. Supports `threshold`, `output`, and `param`, with named or positional options. Supported types are `hard`, `tanh` (default), `atan`, `cubic`, `exp`, `alg`, `quintic`, `sin`, and `erf`, with numeric aliases `-1` through `7`, respectively. `param` controls `tanh`, `atan`, and `alg`; the other curves ignore it, matching FFmpeg. Oversampling beyond `oversample=1` fails explicitly.
 
 `apsyclip=clip=0.2` applies psychoacoustic clipping to PCM audio using overlapping windows and iterative spectral masking. Supports `level_in`, `level_out`, `clip`, `diff`, `adaptive`, `iterations`, and automatic output leveling (`level`). Like FFmpeg, it preserves the sample count with a window delay and does not drain the delayed tail.
 

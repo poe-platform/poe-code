@@ -62,7 +62,7 @@ export function orientRegion(region: Region, image: { width: number; height: num
 }
 
 /** Apply a white write mask outside the selected rectangle in bounded chunks. */
-export function* regionPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined; space?: string }, region: Region, highDepth = false, channels?: MaskChannels & { k?: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* regionPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined; space?: string }, region: Region, highDepth = false, channels?: MaskChannels & { k?: boolean }, replaceAlpha = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const left = Math.max(0, Math.min(image.width, region.x));
     const right = Math.max(left, Math.min(image.width, region.x + region.width));
     const wrappedRight = region.wrap ? Math.max(0, region.x + region.width - image.width) : 0;
@@ -73,7 +73,9 @@ export function* regionPixelSteps(image: { width: number; height: number; hasAlp
         yield;
         const relativeY = region.wrap ? (y - region.y + image.height) % image.height : y - region.y;
         const spans = relativeY < 0 || relativeY >= region.height ? [[0, image.width, 1]] : selectedSpans;
-        for (const [start, end, source] of spans) {
+        for (const [start, end, selection] of spans) {
+            // Alpha replacement preserves the rectangle and writes outside it.
+            const source = replaceAlpha ? 1 - selection! : selection!;
             for (let x = start!; x < end!; x += 512) {
                 const position = (y * image.width + x) * 4, length = Math.min(512, end! - x) * 4;
                 // Gamma and other HDRI operations must not round before mask compositing.
@@ -83,7 +85,7 @@ export function* regionPixelSteps(image: { width: number; height: number; hasAlp
                         : (yield { kind: "read", image: source!, position, length })!, value => highDepth ? value / 257 : value);
                 const output = original.slice();
                 const inks = image.space === "cmyk" ? new Float64Array((yield { kind: "read", hue: true, image: source!, position, length })!.slice().buffer) : undefined;
-                if (source === 1) {
+                if (source === 1 && !replaceAlpha) {
                     const editedWorking = yield { kind: "read", evaluate: true, position, length };
                     const edited = editedWorking?.length ? new Float64Array(editedWorking.slice().buffer)
                         : Float64Array.from(highDepth ? new Uint16Array((yield { kind: "read", highDepth, position, length })!.slice().buffer)

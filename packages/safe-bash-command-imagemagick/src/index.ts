@@ -7454,12 +7454,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     const working = hueSamples && channel < 4;
                     const offset = idx + (cmyk && channel === 4 ? 3 : channel);
                     const sample = working ? hueSamples[offset]! : evaluateSamples[offset]! / 255;
-                    const value = Math.min(1, Math.pow(sample, exponent)) * 65535;
+                    const value = (sample === 0 && exponent < 0 ? 1 : Math.pow(sample, exponent)) * 65535;
                     // Keep HDRI quantum precision until output, including samples below one byte.
                     if (working) hueSamples[offset] = Math.fround(value) / 65535;
                     if (!cmyk || !working) {
                         evaluateSamples[offset] = Math.fround(value) / 257;
-                        if (data16) data16[offset] = Math.round(value);
+                        if (data16) data16[offset] = Math.max(0, Math.min(65535, Math.round(value)));
                         data[offset] = clampByteVal(data16 ? data16[offset]! / 257 : value / 257);
                     }
                 }

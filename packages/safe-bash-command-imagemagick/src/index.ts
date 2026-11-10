@@ -6924,7 +6924,8 @@ function parseMagickSwapPositions(spec: string): number[] {
     const second = fields[1] && !(separator?.toLowerCase() === "x" && "+-".includes(fields[1][0]!))
         ? Number.parseFloat(fields[1]) : -1;
     if (!Number.isFinite(second)) throw new Error(`invalid argument ${spec}`);
-    const positions = separator === ":" && fields[1]
+    // The ratio flag applies even when a comma precedes the colon.
+    const positions = geometry.includes(":") && fields[1]
         ? [Math.trunc(first / Math.max(1e-12, second)), 1]
         : [Math.trunc(first), Math.trunc(second)];
     if (!positions.every(Number.isSafeInteger)) throw new Error(`invalid argument ${spec}`);

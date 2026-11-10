@@ -2,7 +2,8 @@ import type { MediaVideoFrame, MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
 export async function decimate(
-  frames: MediaVideoFrame[], cycle: number, mixed: boolean, dupthresh: number, sceneThreshold: number, chroma: boolean, budget: MediaBudgetTracker, signal?: AbortSignal
+  frames: MediaVideoFrame[], cycle: number, mixed: boolean, dupthresh: number, sceneThreshold: number, chroma: boolean,
+  blockx: number, blocky: number, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
   const output: MediaVideoFrame[] = [];
   const duration = (frames[0]?.durationSeconds ?? 0) * cycle / (cycle - 1);
@@ -33,7 +34,8 @@ export async function decimate(
       }
       let total = Infinity, maximum = Infinity;
       if (previous && previous.width === frame.width && previous.height === frame.height && previous.format === native.format) {
-        const columns = Math.ceil(frame.width / 16), rows = Math.ceil(frame.height / 16);
+        const halfWidth = blockx / 2, halfHeight = blocky / 2;
+        const columns = Math.ceil(frame.width / halfWidth), rows = Math.ceil(frame.height / halfHeight);
         budget.allocateMemory(columns * rows * 8);
         const blocks = new Float64Array(columns * rows);
         const hs = [0, 4, 12, 13].includes(native.format) ? 2 : 1;
@@ -48,7 +50,7 @@ export async function decimate(
               const p = offset + y * width + x;
               if (p % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
               const difference = Math.abs(native.pixels[p]! - previous.pixels[p]!);
-              blocks[Math.floor(y * sy / 16) * columns + Math.floor(x * sx / 16)]! += difference;
+              blocks[Math.floor(y * sy / halfHeight) * columns + Math.floor(x * sx / halfWidth)]! += difference;
               total += difference;
             }
           }
@@ -58,6 +60,7 @@ export async function decimate(
         for (let y = 0; y < rows - 1; y++) {
           for (let x = 0; x < columns - 1; x++) {
             const p = y * columns + x;
+            if (p % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
             maximum = Math.max(maximum, blocks[p]! + blocks[p+1]! + blocks[p+columns]! + blocks[p+columns+1]!);
           }
         }
@@ -67,8 +70,8 @@ export async function decimate(
       previous = native;
     }
     // Prefer a duplicate; otherwise drop the last scene change or the least changed frame.
-    const drop = end - base < cycle || mixed && lowestDifference >= Math.floor(255 * 32 * 32 * dupthresh / 100) ? -1 :
-      scene >= 0 && lowestDifference >= Math.floor(255 * 32 * 32 * dupthresh / 100) ? scene : lowest;
+    const drop = end - base < cycle || mixed && lowestDifference >= Math.floor(255 * blockx * blocky * dupthresh / 100) ? -1 :
+      scene >= 0 && lowestDifference >= Math.floor(255 * blockx * blocky * dupthresh / 100) ? scene : lowest;
     const outputDuration = mixed && drop < 0 ? frames[0]!.durationSeconds : duration;
     for (let i = base; i < end; i++) {
       if (i === drop) continue;

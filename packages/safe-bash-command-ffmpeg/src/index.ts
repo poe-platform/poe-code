@@ -3527,7 +3527,7 @@ async function applyVideoFilterChain(
       const dupthresh = Number(named.dupthresh ?? "1.1");
       const sceneThreshold = Number(named.scthresh ?? "15");
       if (named.mixed === "" || positional.slice(1, argStr.endsWith(":") ? -1 : undefined).some(part => !part.includes("=")) ||
-          Object.keys(named).some(key => key !== "cycle" && key !== "mixed" && key !== "dupthresh" && key !== "scthresh" && key !== "chroma") ||
+          Object.keys(named).some(key => key !== "cycle" && key !== "mixed" && key !== "dupthresh" && key !== "scthresh" && key !== "chroma" && key !== "blockx" && key !== "blocky") ||
           cycle < 2 || cycle > 25) {
         throw new Error("decimate: expected cycle from 2 to 25 and optional mixed/chroma Booleans");
       }
@@ -3543,7 +3543,13 @@ async function applyVideoFilterChain(
       // Decimate retimes frames but forwards the input EOF to downstream filters.
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       const chroma = parseFilterBoolean(named.chroma ?? "1", "decimate: chroma must be a boolean");
-      current = await decimate(current, roundToEven(cycle), mixed, dupthresh, sceneThreshold, chroma, budget, signal);
+      const blockx = Number(named.blockx ?? 32), blocky = Number(named.blocky ?? 32);
+      for (const size of [blockx, blocky]) {
+        if (!Number.isInteger(size) || size < 4 || size > 512 || (size & (size - 1)) !== 0) {
+          throw new Error("decimate: blockx and blocky must be powers of two from 4 to 512");
+        }
+      }
+      current = await decimate(current, roundToEven(cycle), mixed, dupthresh, sceneThreshold, chroma, blockx, blocky, budget, signal);
     } else if (name === "mpdecimate") {
       if (argStr) throw new Error("mpdecimate: custom options are unsupported");
       const retained: typeof current = [];

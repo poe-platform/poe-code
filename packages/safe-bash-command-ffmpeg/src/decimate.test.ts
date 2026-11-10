@@ -35,7 +35,14 @@ for (const [values, filter, expected] of [
   [duplicates, "decimate=cycle=oops", null],
   [duplicates, "decimate=cycle=", null],
   [duplicates, "decimate=unknown=4", null],
-  [duplicates, "decimate=4:1", null]
+  [duplicates, "decimate=4:1", null],
+  ...["blockx", "blocky"].flatMap(axis => [
+    ...[4, 8, 16, 32, 64, 128, 256, 512].map(size =>
+      [duplicates.slice(0, 3), `decimate=${axis}=${size}`, duplicates.slice(0, 3)] as const),
+    ...["", "0", "2", "6", "513", "1024", "10.5", "NaN", "Infinity", "oops"].map(size =>
+      [duplicates, `decimate=cycle=4:${axis}=${size}`, null] as const)
+  ]),
+  [[90, 95, 100, 200], "decimate=cycle=4:blockx=8:blocky=8", [90, 95, 100]]
 ] as const) {
   it(`decimate: ${filter} on ${values}`, async () => {
     const volume = Volume.fromJSON({ "/o01.png": "existing output" });

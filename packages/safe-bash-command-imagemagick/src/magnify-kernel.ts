@@ -3,13 +3,13 @@ import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
-export type MagnifyMethod = "scale2x" | "eagle2x" | "scale3x";
+export type MagnifyMethod = "epbx2x" | "scale2x" | "eagle2x" | "scale3x";
 
 export function parseMagnifyMethod(value: string): MagnifyMethod {
     const method = value.toLowerCase();
-    if (method === "scale2x" || method === "eagle2x" || method === "scale3x") return method;
+    if (method === "epbx2x" || method === "scale2x" || method === "eagle2x" || method === "scale3x") return method;
     // Native defaults unknown names to Scale2x, but these names select distinct algorithms.
-    if (["eagle3x", "eagle3xb", "epbx2x", "fish2x", "hq2x", "xbr2x"].includes(method)) {
+    if (["eagle3x", "eagle3xb", "fish2x", "hq2x", "xbr2x"].includes(method)) {
         throw new Error(`Unsupported magnify method: ${value}`);
     }
     return "scale2x";
@@ -58,6 +58,17 @@ export function* magnifyPixelSteps(image: { width: number; height: number; hasAl
                 if (eq(1, 2) && eq(2, 5)) selected[1] = 2;
                 if (eq(3, 6) && eq(6, 7)) selected[2] = 6;
                 if (eq(5, 8) && eq(8, 7)) selected[3] = 8;
+            } else if (method === "epbx2x") {
+                if (!eq(3, 5) && !eq(1, 7) && (
+                    eq(4, 3) || eq(4, 7) || eq(4, 5) || eq(4, 1) ||
+                    ((!eq(0, 8) || eq(4, 6) || eq(3, 2)) && (!eq(6, 2) || eq(4, 0) || eq(4, 8)))
+                )) {
+                    // Native averages equal neighbors; copying preserves the same Q16 samples.
+                    if (eq(1, 3) && (eq(4, 0) || eq(4, 8) || eq(1, 2) || eq(3, 6))) selected[0] = 1;
+                    if (eq(5, 1) && (eq(4, 2) || eq(4, 6) || eq(5, 8) || eq(1, 0))) selected[1] = 5;
+                    if (eq(3, 7) && (eq(4, 6) || eq(4, 2) || eq(3, 0) || eq(7, 8))) selected[2] = 3;
+                    if (eq(7, 5) && (eq(4, 8) || eq(4, 0) || eq(7, 6) || eq(5, 2))) selected[3] = 7;
+                }
             } else if (!eq(1, 7) && !eq(3, 5)) {
                 selected[0] = eq(3, 1) ? 3 : 4;
                 selected[factor - 1] = eq(5, 1) ? 5 : 4;

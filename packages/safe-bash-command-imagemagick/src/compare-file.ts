@@ -1,3 +1,4 @@
+import { rgbPartitionPaths } from "./raw-rgb.js";
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
 import { magickInput } from "./stored-stack.js";
 import { encodeStoredImage, isRawCoder, type OutputEncodeOptions } from "./raw-output.js";
@@ -105,6 +106,26 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                     throw error;
                 }
             };
+        const stage = async (image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions) => {
+            if (encoding.format !== "rgb" || encoding.rawInterlace !== "partition") return snapshots.stage(image, path, encoding);
+            const size = image.width * image.height * ((image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? 2 : 1);
+            const encoder = encodeStoredImage(image, storage, signal, encoding);
+            try {
+                for (const target of rgbPartitionPaths(path)) {
+                    const source = (async function* () {
+                        let written = 0;
+                        while (written < size) {
+                            const next = await encoder.next();
+                            if (next.done || written + next.value.length > size) throw new Error("Invalid RGB partition size");
+                            written += next.value.length;
+                            yield next.value;
+                        }
+                        return { format: "raw", width: image.width, height: image.height, channels: 1, premultiplied: false, size };
+                    })();
+                    await snapshots.stage(image, target, encoding, source);
+                }
+            } finally { await encoder.return(undefined); }
+        };
         const publishPending = async () => {
             let index = 0;
             for await (const [path, snapshot] of snapshots) await publishImage(snapshot.image, path, snapshot.encoding, snapshot.encoded, ++index === snapshots.size);
@@ -192,7 +213,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
             },
             async stage(image, path, encoding) {
                 if (path === "-") return publishImage(image, path, encoding, undefined, false);
-                await snapshots.stage(image, path, encoding);
+                await stage(image, path, encoding);
             },
             publishPending,
             async publishText(image, path, chunks) {
@@ -209,7 +230,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                 if (!snapshots.size && !targetWebp && (!isRawCoder(encoding.format) || path === "-")) return publishImage(image, path, encoding);
                 let bytes: Uint8Array | undefined;
                 if (path === "-") bytes = await publishImage(image, path, encoding);
-                else await snapshots.stage(image, path, encoding);
+                else await stage(image, path, encoding);
                 await publishPending();
                 return bytes;
             }

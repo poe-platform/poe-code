@@ -3,7 +3,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 
 export type RawCoder = "rgb" | "rgba" | "bgr" | "bgra" | "gray";
 export type ImageFormat = RasterFormat | RawCoder;
-export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | undefined; endian?: string | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
+export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; endian?: string | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
 /** Search complete output sizes, including alpha and container overhead. */
 function* webpTargetQualities(options: OutputEncodeOptions): Generator<number, number, number> {
@@ -74,7 +74,7 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
                 ? 0.212656 * samples[pixel * 4]! + 0.715158 * samples[pixel * 4 + 1]! + 0.072186 * samples[pixel * 4 + 2]!
                 : channel === 3 && !image.hasAlpha ? scale : samples[pixel * 4 + index]!;
             const quantum = Math.round(value * maximum / scale);
-            const sample = options.rawInterlace === "plane" ? c * pixels + pixel
+            const sample = (options.rawInterlace === "plane" || options.rawInterlace === "partition") ? c * pixels + pixel
                 : options.rawInterlace === "line" ? Math.floor(pixel / image.width) * image.width * channels.length + c * image.width + pixel % image.width
                 : pixel * channels.length + c;
             const offset = sample * depth / 8;

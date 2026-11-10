@@ -1,5 +1,5 @@
 // Present headerless RGB/GRAY as Netpbm so both decoding paths retain 16-bit samples.
-export function rawNetpbmInput(width: number, height: number, depth: number, endian: string, byteLength: number, channels: 1 | 3, offset = 0, interlace: "none" | "plane" | "line" = "none") {
+export function rawNetpbmInput(width: number, height: number, depth: number, endian: string, byteLength: number, channels: 1 | 3, offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none") {
     const coder = channels === 1 ? "GRAY" : "RGB";
     if (depth !== 8 && depth !== 16) throw new Error(`unsupported ${coder} input depth '${depth}'`);
     const frameLength = width * height * channels * (depth / 8);
@@ -9,7 +9,7 @@ export function rawNetpbmInput(width: number, height: number, depth: number, end
     return {
         size: header.length + frameLength,
         pages: Math.floor((byteLength - offset) / frameLength),
-        *read(position: number, size: number, page = 0): Generator<{ position: number; length: number }, Uint8Array, Uint8Array> {
+        *read(position: number, size: number, page = 0): Generator<{ position: number; length: number; channel: number }, Uint8Array, Uint8Array> {
             const bytes = new Uint8Array(size);
             const headerLength = Math.max(0, Math.min(size, header.length - position));
             bytes.set(header.subarray(position, position + headerLength));
@@ -23,8 +23,8 @@ export function rawNetpbmInput(width: number, height: number, depth: number, end
                         const limit = Math.min(lastPixel, pixel + 8192 / sampleBytes, interlace === "line" ? (row + 1) * width : lastPixel);
                         const length = (limit - pixel) * sampleBytes;
                         for (let channel = 0; channel < channels; channel++) {
-                            const source = interlace === "plane" ? channel * width * height + pixel : (row * channels + channel) * width + pixel % width;
-                            const input = yield { position: offset + page * frameLength + source * sampleBytes, length };
+                            const source = interlace === "partition" ? pixel : interlace === "plane" ? channel * width * height + pixel : (row * channels + channel) * width + pixel % width;
+                            const input = yield { channel: interlace === "partition" ? channel : 0, position: offset + page * frameLength / (interlace === "partition" ? channels : 1) + source * sampleBytes, length };
                             if (input.length !== length) throw new Error(`unexpected end-of-file in ${coder} input`);
                             for (let i = 0; i < length; i++) {
                                 const output = (pixel + Math.floor(i / sampleBytes)) * pixelBytes + channel * sampleBytes + i % sampleBytes;
@@ -39,7 +39,7 @@ export function rawNetpbmInput(width: number, height: number, depth: number, end
                 const alignedEnd = swap ? end + end % 2 : end;
                 for (let cursor = alignedStart; cursor < alignedEnd; cursor += 8192) {
                     const length = Math.min(8192, alignedEnd - cursor);
-                    const input = yield { position: offset + page * frameLength + cursor, length };
+                    const input = yield { channel: 0, position: offset + page * frameLength + cursor, length };
                     if (input.length !== length) throw new Error(`unexpected end-of-file in ${coder} input`);
                     for (let i = Math.max(start, cursor); i < Math.min(end, cursor + length); i++) {
                         bytes[headerLength + i - start] = input[(swap ? i ^ 1 : i) - cursor]!;
@@ -49,4 +49,10 @@ export function rawNetpbmInput(width: number, height: number, depth: number, end
             return bytes;
         }
     };
+}
+
+export function rgbPartitionPaths(path: string): string[] {
+    const dot = path.lastIndexOf("."), slash = path.lastIndexOf("/");
+    const stem = dot > slash ? path.slice(0, dot) : path;
+    return [..."RGB"].map(channel => `${stem}.${channel}`);
 }

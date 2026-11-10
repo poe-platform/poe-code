@@ -34,7 +34,7 @@ import { chopRegion, orientRegion, rotateRegion, rollRegion, regionContains, reg
 import { writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
 import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
-import { rawNetpbmInput } from "./raw-rgb.js";
+import { rawNetpbmInput, rgbPartitionPaths } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewBackground } from "./deskew.js";
 import { compareLayerBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
@@ -645,7 +645,7 @@ interface MagickState {
   tiffEndian?: "msb" | "lsb";
   tiffRowsPerStrip?: number;
   inputEndian?: string;
-  rawInterlace?: "line" | "plane" | undefined;
+  rawInterlace?: "line" | "plane" | "partition" | undefined;
   background: RgbaColor;
   backgroundExplicit?: boolean;
   tileOffset?: { x: number; y: number };
@@ -6193,7 +6193,9 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     if (prefixMatch && extToImageFormat(prefixMatch[1]!)) {
         cleanToken = prefixMatch[2]!;
     }
-    let rawBytes = cleanToken === "-" ? stdinBytes : files.get(cleanToken) ?? files.get(token);
+    const partitions = rgb && state.rawInterlace === "partition" && cleanToken !== "-" ? rgbPartitionPaths(cleanToken).map(path => files.get(path)) : undefined;
+    if (partitions?.some(bytes => !bytes)) return undefined;
+    let rawBytes = partitions ? partitions[0] : cleanToken === "-" ? stdinBytes : files.get(cleanToken) ?? files.get(token);
     if (!rawBytes)
         return undefined;
     if (ftxt) {
@@ -6213,13 +6215,13 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (rgb) {
         if (!state.hasSize) throw new Error("must specify image size for RGB input");
-        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", rawBytes.length, 3, 0, state.rawInterlace);
+        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", partitions ? Math.min(...partitions.map(bytes => bytes!.length)) * 3 : rawBytes.length, 3, 0, state.rawInterlace);
         const bytes = new Uint8Array(raw.size);
         for (let position = 0; position < raw.size; position += 8192) {
             yield;
             const steps = raw.read(position, Math.min(8192, raw.size - position));
             let next = steps.next();
-            while (!next.done) next = steps.next(rawBytes.subarray(next.value.position, next.value.position + next.value.length));
+            while (!next.done) next = steps.next((partitions?.[next.value.channel] ?? rawBytes).subarray(next.value.position, next.value.position + next.value.length));
             bytes.set(next.value, position);
         }
         rawBytes = bytes;
@@ -8572,7 +8574,7 @@ if (t === "-seed") {
             state.interlace = interlace === "png" || interlace === "gif" || interlace === "jpeg" ? interlace.toUpperCase() : interlace[0]!.toUpperCase() + interlace.slice(1);
             state.jpegProgressive = interlace !== "none";
             state.tiffPlanar = interlace === "plane" || interlace === "partition";
-            state.rawInterlace = interlace === "plane" || interlace === "line" ? interlace : undefined;
+            state.rawInterlace = interlace === "plane" || interlace === "line" || interlace === "partition" ? interlace : undefined;
             state.pngInterlace = interlace !== "none";
             state.gifInterlace = interlace !== "none";
         }
@@ -9298,14 +9300,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                             yield;
                         const framePath = formatSceneOutputPath(inferOutputFormat(writeTemplate, top.format).path, (state.scene ?? (stack[0] as MagickImage)[magickInput]?.sceneIdx ?? 0) + idx, state.filenameLiteral, stack[idx]!.properties);
                         const { data: frameBytes } = encodeImage({ ...(yield* prepareMagickOutput(stack[idx]!, format, state.dither, state.diffusionAmount, pngCoder)), ...(format === "gif" && state.backgroundExplicit ? { backgroundColor: state.background } : {}) }, { format, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(state.pngColorType, format, analysis), ...(state.miffCompression === undefined ? {} : { miffCompression: state.miffCompression }), ...(state.tgaCompression === undefined ? {} : { tgaCompression: state.tgaCompression }), ...(state.bmpCompression === undefined ? {} : { bmpCompression: state.bmpCompression }), ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), ...(state.bmp3Alpha === undefined ? {} : { bmp3Alpha: state.bmp3Alpha }), ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(state.tiffSigned === undefined ? {} : { tiffSigned: state.tiffSigned }), ...(state.tiffFloatingPoint ? { tiffFloatDepth: (state.inputDepth ?? 32) <= 16 ? 16 : (state.inputDepth ?? 32) <= 32 ? 32 : 64 } : {}), ...(state.tiffPlanar === undefined ? {} : { tiffPlanar: state.tiffPlanar }), ...(state.tiffAlpha === undefined ? {} : { tiffAlpha: state.tiffAlpha }), ...(state.tiffEndian === undefined ? {} : { tiffEndian: state.tiffEndian }), ...(state.tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip: state.tiffRowsPerStrip }), ...(state.tiffTile === undefined ? {} : { tiffTile: state.tiffTile }), ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth), miffDepth: state.inputDepth <= 8 ? 8 : 16 }), endian: state.inputEndian, pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth, ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), rawInterlace: state.rawInterlace, pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, synthesizeExif: !state.strip, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, webpTargetSize: state.webpTargetSize, webpPass: state.webpPass, jpegExtent: state.jpegExtent, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
-                        files.set(framePath, frameBytes);
+                        storeMagickOutput(files, framePath, frameBytes, format, state);
                     }
                 }
                 else {
                     const image = stack.length > 1 && format === "miff" ? yield* prepareMiffPages(stack) : format === "ico" ? yield* prepareIcoPages(stack, state.iconAutoResize, state.kernel, state.resizeFilter) : stack.length > 1 && format === "tiff" ? yield* prepareTiffPages(stack) : stack.length > 1 && (format === "gif" || format === "apng" || format === "mng" || format === "webp") ? yield* prepareGifFrames(stack, format === "gif" ? state.dither : false, state.diffusionAmount, format) : yield* prepareMagickOutput(top, format, state.dither, state.diffusionAmount, pngCoder);
                     const { data: encoded } = encodeImage({ ...(image), ...(format === "gif" && state.backgroundExplicit ? { backgroundColor: state.background } : {}) }, { format, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(state.pngColorType, format, analysis), ...(stack.length > 1 && (format === "gif" || format === "apng" || format === "mng" || format === "webp") ? { pageHeight: image.pageHeight } : {}), ...(format === "gif" && stack.length === 1 ? { loop: 1, delay: image.delay?.[(top as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0 } : state.loop === undefined ? {} : { loop: state.loop }), ...(state.optimizeLayers ? { optimizeFrames: true, gifTransdiff: true } : {}), ...(state.miffCompression === undefined ? {} : { miffCompression: state.miffCompression }), ...(state.tgaCompression === undefined ? {} : { tgaCompression: state.tgaCompression }), ...(state.bmpCompression === undefined ? {} : { bmpCompression: state.bmpCompression }), ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), ...(state.bmp3Alpha === undefined ? {} : { bmp3Alpha: state.bmp3Alpha }), ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(state.tiffSigned === undefined ? {} : { tiffSigned: state.tiffSigned }), ...(state.tiffFloatingPoint ? { tiffFloatDepth: (state.inputDepth ?? 32) <= 16 ? 16 : (state.inputDepth ?? 32) <= 32 ? 32 : 64 } : {}), ...(state.tiffPlanar === undefined ? {} : { tiffPlanar: state.tiffPlanar }), ...(state.tiffAlpha === undefined ? {} : { tiffAlpha: state.tiffAlpha }), ...(state.tiffEndian === undefined ? {} : { tiffEndian: state.tiffEndian }), ...(state.tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip: state.tiffRowsPerStrip }), ...(state.tiffTile === undefined ? {} : { tiffTile: state.tiffTile }), ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth), miffDepth: state.inputDepth <= 8 ? 8 : 16 }), endian: state.inputEndian, pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth, ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), rawInterlace: state.rawInterlace, pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, synthesizeExif: !state.strip, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, webpTargetSize: state.webpTargetSize, webpPass: state.webpPass, jpegExtent: state.jpegExtent, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
                     if (path === "-") analysis.bytes.push(encoded);
-                    else files.set(formatAdjoinedOutputPath(path, stack.length, state.scene ?? 0, state.filenameLiteral), encoded);
+                    else storeMagickOutput(files, formatAdjoinedOutputPath(path, stack.length, state.scene ?? 0, state.filenameLiteral), encoded, format, state);
                 }
             }
         }
@@ -10481,6 +10483,13 @@ function combineConvertOutput(result: ImageMagickCliResult, analysis: { text: st
     return { ...result, stdout: "", stderr, stdoutBytes };
 }
 
+function storeMagickOutput(files: Map<string, Uint8Array>, path: string, bytes: Uint8Array, format: ImageFormat, state: MagickState): void {
+    if (format === "rgb" && state.rawInterlace === "partition") {
+        const size = bytes.length / 3;
+        for (const [channel, target] of rgbPartitionPaths(path).entries()) files.set(target, bytes.slice(channel * size, (channel + 1) * size));
+    } else files.set(path, bytes);
+}
+
 function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     const analysis = createConvertAnalysis();
     const result = yield* runConvertCliResultSteps(argv, files, stdinBytes, signal, analysis);
@@ -10592,7 +10601,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                     yield;
                 const framePath = formatSceneOutputPath(inferOutputFormat(outputTemplate).path, (state.scene ?? (stack[0] as MagickImage)[magickInput]?.sceneIdx ?? 0) + idx, state.filenameLiteral, stack[idx]!.properties);
                 const { data: frameBytes } = encodeImage({ ...(yield* prepareMagickOutput(stack[idx]!, format, state.dither, state.diffusionAmount, pngCoder)), ...(format === "gif" && state.backgroundExplicit ? { backgroundColor: state.background } : {}) }, { format, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(state.pngColorType, format, analysis), ...(state.miffCompression === undefined ? {} : { miffCompression: state.miffCompression }), ...(state.tgaCompression === undefined ? {} : { tgaCompression: state.tgaCompression }), ...(state.bmpCompression === undefined ? {} : { bmpCompression: state.bmpCompression }), ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), ...(state.bmp3Alpha === undefined ? {} : { bmp3Alpha: state.bmp3Alpha }), ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(state.tiffSigned === undefined ? {} : { tiffSigned: state.tiffSigned }), ...(state.tiffFloatingPoint ? { tiffFloatDepth: (state.inputDepth ?? 32) <= 16 ? 16 : (state.inputDepth ?? 32) <= 32 ? 32 : 64 } : {}), ...(state.tiffPlanar === undefined ? {} : { tiffPlanar: state.tiffPlanar }), ...(state.tiffAlpha === undefined ? {} : { tiffAlpha: state.tiffAlpha }), ...(state.tiffEndian === undefined ? {} : { tiffEndian: state.tiffEndian }), ...(state.tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip: state.tiffRowsPerStrip }), ...(state.tiffTile === undefined ? {} : { tiffTile: state.tiffTile }), ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth), miffDepth: state.inputDepth <= 8 ? 8 : 16 }), endian: state.inputEndian, pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth, ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), rawInterlace: state.rawInterlace, pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, synthesizeExif: !state.strip, omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, webpTargetSize: state.webpTargetSize, webpPass: state.webpPass, jpegExtent: state.jpegExtent, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
-                files.set(framePath, frameBytes);
+                storeMagickOutput(files, framePath, frameBytes, format, state);
             }
             return { exitCode: 0, stdout: "", stderr: "" };
         }
@@ -10620,7 +10629,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                 stdoutBytes: encoded
             };
         }
-        files.set(formatAdjoinedOutputPath(outPath, stack.length, state.scene ?? 0, state.filenameLiteral), encoded);
+        storeMagickOutput(files, formatAdjoinedOutputPath(outPath, stack.length, state.scene ?? 0, state.filenameLiteral), encoded, format, state);
         return { exitCode: 0, stdout: "", stderr: "" };
     }
     catch (err) {
@@ -13174,15 +13183,19 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(lower.startsWith("rgb:")){
   if(!state.hasSize)throw new Error("must specify image size for RGB input");
   const path=baseToken.slice(4);
-  const consume=async(source:ImageByteSource)=>{
-   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size,3,0,state.rawInterlace);
+  const consume=async(sources:ImageByteSource[])=>{
+   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,3,0,state.rawInterlace);
    return parseStoredCompareInput(`ppm:${token.slice(4)}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
     const steps=raw.read(position,length);let next=steps.next();
-    while(!next.done)next=steps.next(await source.read(next.value.position,next.value.length,{signal}));
+    while(!next.done)next=steps.next(await sources[next.value.channel]!.read(next.value.position,next.value.length,{signal}));
     return next.value;
    }}});
   };
-  return readOptions.source===null?undefined:readOptions.source?consume(readOptions.source):backend.read(path,consume);
+  if(state.rawInterlace==="partition"&&path!=="-"){
+   const paths=rgbPartitionPaths(path);
+   return backend.read(paths[0]!,red=>backend.read(paths[1]!,green=>backend.read(paths[2]!,blue=>consume([red,green,blue]))));
+  }
+  return readOptions.source===null?undefined:readOptions.source?consume([readOptions.source]):backend.read(path,source=>consume([source]));
  }else if(lower.startsWith("hald:")){
   const metadata=haldInputMetadata(baseToken);
   image=await transformStoredMagickRaster({...metadata,position:0},backend,haldInputPixelSteps(metadata.width),signal);

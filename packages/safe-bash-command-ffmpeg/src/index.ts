@@ -3490,6 +3490,7 @@ async function applyVideoFilterChain(
       videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
       commands.sort((a, b) => a.time - b.time);
       let nextCommand = 0;
+      const registers = new Float64Array(10);
       current = await mapWork(current, async (f, n) => {
         const source = f.native;
         const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
@@ -3516,9 +3517,12 @@ async function applyVideoFilterChain(
         const selected = (mask === 0x77 ? available & 0x77 : mask) |
           (pixelFormat === "ya8" && negateAlpha ? 0x08 : 0);
         if (selected & ~available) throw new Error("negate: Requested components not available");
-        if (named.enable !== undefined && !(Math.abs(parseFilterExpression(named.enable, "negate enable", {
-          n, t: f.ptsSeconds, w: f.width, h: f.height, pos: f.offset ?? NaN, NAN: NaN, INF: Infinity
-        })) >= 0.5)) return f;
+        if (named.enable !== undefined) {
+          const variables = { n, t: f.ptsSeconds, w: f.width, h: f.height, pos: f.offset ?? NaN, NAN: NaN, INF: Infinity };
+          // FFmpeg evaluates the generic timeline both before and during frame dispatch.
+          parseFilterExpression(named.enable, "negate enable", variables, undefined, registers);
+          if (!(Math.abs(parseFilterExpression(named.enable, "negate enable", variables, undefined, registers)) >= 0.5)) return f;
+        }
         if (selected === 0) return f;
         // Invert retained grayscale or YUV bytes before RGB conversion. Complementing
         // both bytes of a gray16 sample is exactly 65535 minus the original value.

@@ -12524,9 +12524,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const argument = trimmed.slice("haas=".length);
                         const entries = argument ? argument.split(":") : [];
                         if (argument.endsWith(":")) entries.pop();
-                        for (const [index, option] of entries.entries()) {
+                        const names = Object.keys(options);
+                        let optionPosition = 0;
+                        for (const option of entries) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? Object.keys(options)[index] : option.slice(0, separator).trim();
+                          const key = separator < 0 ? names[optionPosition] : option.slice(0, separator).trim();
+                          // Named options restart shorthand, skipping the first slot only
+                          // when it was just visited, regardless of the named key.
+                          if (separator < 0) optionPosition++;
+                          else optionPosition = optionPosition === 0 ? 1 : 0;
                           if (!key || !Object.hasOwn(options, key)) throw new Error(`haas: unsupported option ${key}`);
                           const name = key as keyof typeof options;
                           const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();

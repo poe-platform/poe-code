@@ -1474,7 +1474,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       statistics.median += median / 65535 / channels;
       statistics[`mean.${c}`] = selectedChannels[c] ? means[c]! : 0;
       statistics[`standard_deviation.${c}`] = deviation;
-      statistics.mean += means[c]! / channels;
+      if (selectedChannels[c]) statistics.mean += means[c]! / selectedCount;
       statistics.standard_deviation += deviation / channels;
     }
     if (!img.hasAlpha) {

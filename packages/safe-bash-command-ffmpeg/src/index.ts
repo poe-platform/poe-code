@@ -11774,7 +11774,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             selected_n: 0, prev_pts: NaN, prev_t: NaN,
                             prev_selected_n: NaN, prev_selected_pts: NaN, prev_selected_t: NaN
                           };
-                          if (audioTimestamps.length === 0) parseFilterExpression(expression, "aselect", variables);
+                          const registers = new Float64Array(10);
+                          if (audioTimestamps.length === 0) parseFilterExpression(expression, "aselect", variables, undefined, registers);
                           const selected: typeof audioTimestamps = [];
                           const ranges: { start: number; end: number }[] = [];
                           let length = 0;
@@ -11791,7 +11792,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               variables.start_pts = frame.pts;
                               variables.start_t = variables.t;
                             }
-                            const keep = parseFilterExpression(expression, "aselect", variables) !== 0;
+                            const keep = parseFilterExpression(expression, "aselect", variables, undefined, registers) !== 0;
                             variables.prev_pts = frame.pts;
                             variables.prev_t = variables.t;
                             if (!keep) continue;

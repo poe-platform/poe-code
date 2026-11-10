@@ -11863,7 +11863,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (im.region) edges = yield* applyMagickRasterSteps(edges, regionPixelSteps(edges, im.region), signal, edges, [edges, im]);
                 if (im.writeMask) edges = yield* applyMagickRasterSteps(edges, writeMaskPixelSteps(edges, im.writeMask), signal, edges, [edges, im, im.writeMask]);
                 const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, ...metadata } = edges;
-                const result = yield* applyMagickRasterSteps({ ...metadata, space: "b-w", channels: 1, gamma: 1 / 2.2, isPalette: false }, charcoalPixelSteps(edges, geometry, im.writeMask, channels, virtualPixel, background, intensity), signal, edges, im.writeMask ? [edges, im.writeMask] : [edges]);
+                const result = yield* applyMagickRasterSteps({ ...metadata, space: "b-w", channels: 1, gamma: 1 / 2.2, isPalette: false, hasAlpha: false, inactiveAlpha: false, alphaBlend: false, alphaSeparate: false }, charcoalPixelSteps(edges, geometry, im.writeMask, channels, virtualPixel, background, intensity), signal, edges, im.writeMask ? [edges, im.writeMask] : [edges]);
                 return { ...result, ...(im.region ? { region: { ...im.region } } : {}), ...(im.writeMask ? { writeMask: { ...im.writeMask } } : {}) };
             });
         }
@@ -15197,7 +15197,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (image.region) edges = await transformStoredMagickRaster(edges, backend, regionPixelSteps(edges, image.region), signal, edges, [edges, image]);
                 if (image.storedWriteMask) edges = await transformStoredMagickRaster(edges, backend, writeMaskPixelSteps(edges, image.storedWriteMask), signal, edges, [edges, image, image.storedWriteMask]);
                 const { magickColorspace: ignoredSpace, storedHueSamples: ignoredHue, ...metadata } = edges;
-                const result = await transformStoredMagickRaster({ ...metadata, space: "b-w", channels: 1, gamma: 1 / 2.2, isPalette: false }, backend, charcoalPixelSteps(edges, geometry, image.storedWriteMask, channels, virtualPixel, background, intensity), signal, edges, image.storedWriteMask ? [edges, image.storedWriteMask] : [edges]);
+                const result = await transformStoredMagickRaster({ ...metadata, space: "b-w", channels: 1, gamma: 1 / 2.2, isPalette: false, hasAlpha: false, inactiveAlpha: false, alphaBlend: false, alphaSeparate: false }, backend, charcoalPixelSteps(edges, geometry, image.storedWriteMask, channels, virtualPixel, background, intensity), signal, edges, image.storedWriteMask ? [edges, image.storedWriteMask] : [edges]);
                 return { ...result, ...(image.region ? { region: { ...image.region } } : {}), ...(image.storedWriteMask ? { storedWriteMask: { ...image.storedWriteMask } } : {}) };
             });
         } else if (!operandsOnly && token === "-sketch") {

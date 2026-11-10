@@ -7919,6 +7919,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const slope = contrast < 0 ? 1 + contrast / 100 : 100 / (contrast === 100 ? 1e-12 : 100 - contrast);
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = function* (image) {
+            const hueSamples = image.space === "cmyk" ? undefined : image.hueSamples?.slice();
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
@@ -7930,14 +7931,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 for (let channel = 0; channel < 4; channel++) {
                     if (!mask[channel]) continue;
                     // Keep Q16-HDRI working samples unclipped until encoding or -clamp.
-                    const value = Math.fround(evaluateSamples[idx + channel]! * 257 * slope + offset);
+                    const source = hueSamples ? hueSamples[idx + channel]! * 65535 : evaluateSamples[idx + channel]! * 257;
+                    const value = Math.fround(source * slope + offset);
+                    if (hueSamples) hueSamples[idx + channel] = value / 65535;
                     evaluateSamples[idx + channel] = value / 257;
                     const sample = Math.max(0, Math.min(quantum, Math.round(data16 ? value : Math.fround(value / 257))));
                     if (data16) data16[idx + channel] = sample;
                     out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
                 }
             }
-            return { ...image, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
+            return { ...image, data: out, evaluateSamples, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
         };
     } else if (token === "-random-threshold") {
         highDepth = true;

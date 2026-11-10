@@ -12435,6 +12435,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = output;
                       } else if (trimmed === "earwax") {
+                        if (stretched.length > 2) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          const inputMask = filteredChannelMask || ({ 3: 0xb, 4: 0x107, 6: 0x3f }[stretched.length]);
+                          // Earwax negotiates PCM16 stereo: normalize the speaker mix and omit LFE.
+                          // Native's 4.0 mixer rounds each Q15 coefficient independently.
+                          const gains = inputMask === 0x107 && panSampleFormat === "s16"
+                            ? [1, Math.SQRT1_2, 0.5].map(gain => Math.round(gain / (1.5 + Math.SQRT1_2) * 32768) / 32768)
+                            : undefined;
+                          const stereo = await panAudio(gains
+                            ? `stereo|FL=${gains[0]}*FL+${gains[1]}*FC+${gains[2]}*BC|FR=${gains[0]}*FR+${gains[1]}*FC+${gains[2]}*BC`
+                            : `stereo|FL<FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR<FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`,
+                          stretched, inputMask, panSampleFormat, budget, context.signal);
+                          stretched = stereo.channels;
+                          filteredChannelMask = stereo.channelMask;
+                          filteredChannelNames = undefined;
+                        }
                         if (origRate !== 44100) {
                           const length = Math.ceil((stretched[0]?.length ?? 0) * 44100 / origRate);
                           if (!Number.isSafeInteger(length)) throw new Error("earwax: output sample count is too large");

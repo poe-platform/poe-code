@@ -11818,7 +11818,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (stack.length < 2 || count === 0) return stack;
                     const result = new StoredImageStack(backend.storage, signal, stack);
                     for (let index = 0; index < stack.length - 1; index++) {
-                        const a = (await stack.get(index))!, b = (await stack.get(index + 1))!; await result.push(a);
+                        const a: StoredRgbaImage = (await stack.get(index))!, b = (await stack.get(index + 1))!; await result.push(a);
                         for (let step = 1; step <= count; step++) {
                             await yieldTurn(signal);
                             const fraction = step / (count + 1), width = Math.max(1, Math.round(a.width * (1 - fraction) + b.width * fraction)), height = Math.max(1, Math.round(a.height * (1 - fraction) + b.height * fraction));

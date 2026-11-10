@@ -100,7 +100,7 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
         const length = Math.min(16384, size - position);
         const bytes = (yield { kind: "read", highDepth, position, length })!;
         const otherBytes = (yield { kind: "read", highDepth, image: 1, position, length })!;
-        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
+        const data = Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
         const other = highDepth ? new Uint16Array(otherBytes.slice().buffer) : otherBytes;
         for (let offset = 0; offset < length; offset++) {
             if (offset % 4 === 3 && !blendAlpha) continue;
@@ -108,9 +108,14 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
                 data[offset] = data[offset - offset % 4]!;
                 continue;
             }
-            data[offset] = channels && !channels[offset % 4] ? other[offset]! : Math.max(0, Math.min(range, Math.round(data[offset]! * (1 - fraction) + other[offset]! * fraction)));
+            data[offset] = channels && !channels[offset % 4] ? other[offset]! : data[offset]! * (1 - fraction) + other[offset]! * fraction;
         }
-        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+        // Morphing byte inputs still produces fractional Q16-HDRI samples.
+        const working = data.map(value => Math.fround(value * (highDepth ? 1 : 257)) / 257);
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
+        const rounded = data.map(value => Math.max(0, Math.min(range, Math.round(value))));
+        const pixels = highDepth ? Uint16Array.from(rounded) : Uint8Array.from(rounded);
+        yield { kind: "write", highDepth, position, data: new Uint8Array(pixels.buffer) };
     }
 }
 

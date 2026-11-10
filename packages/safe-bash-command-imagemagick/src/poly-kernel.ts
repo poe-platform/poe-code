@@ -77,7 +77,9 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
             for (let offset = 0; offset < length; offset++) {
                 const channel = offset % 4;
                 if (channels && !channels[channel] || (channel === 3 ? !input.hasAlpha || gray : channel >= colorSlots)) continue;
-                values[offset]! += terms[image * 2]! * (samples[offset]! / range) ** terms[image * 2 + 1]!;
+                // Native GrayAlpha stores alpha in slot 1; our samples are expanded RGBA.
+                const source = gray && input.hasAlpha && channel === 1 ? offset + 2 : offset;
+                values[offset]! += terms[image * 2]! * (samples[source]! / range) ** terms[image * 2 + 1]!;
             }
         }
         for (let offset = 0; offset < length; offset++) values[offset] = offset % 4 === 3 && !hasAlpha ? 255 : values[offset]! * 255;

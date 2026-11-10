@@ -11641,7 +11641,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 for (let n = 0; n < stack.length; n++) {
                     const current = stack[n]!, previous = canvas;
                     const x = current.virtualCanvas?.x ?? 0, y = current.virtualCanvas?.y ?? 0;
-                    if (n > 0) stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(canvas, current, state.fuzz), signal, { ...current, hasAlpha: true }, [current, canvas]);
+                    if (n > 0) stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(canvas, current, state.fuzz, current.writeMask), signal, { ...current, hasAlpha: true }, current.writeMask ? [current, canvas, current.writeMask] : [current, canvas]);
                     // Compare later frames against the canvas left by the optimized frame.
                     canvas = yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(stack[n]!, x, y, "over")]);
                     if (current.disposal === 3) canvas = previous;
@@ -14953,9 +14953,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 let canvas = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
                 for (let n = 0; n < stack.length; n++) {
-                    const current = (await stack.get(n))!, previous = canvas;
+                    const current: StoredRgbaImage = (await stack.get(n))!, previous = canvas;
                     const x = current.virtualCanvas?.x ?? 0, y = current.virtualCanvas?.y ?? 0;
-                    const optimized = n > 0 ? await transformStoredMagickRaster(current, backend, optimizeTransparencyPixels(canvas, current, fuzz), signal, { ...current, hasAlpha: true }, [current, canvas]) : current;
+                    const optimized = n > 0 ? await transformStoredMagickRaster(current, backend, optimizeTransparencyPixels(canvas, current, fuzz, current.storedWriteMask), signal, { ...current, hasAlpha: true }, current.storedWriteMask ? [current, canvas, current.storedWriteMask] : [current, canvas]) : current;
                     if (n > 0) await stack.set(n, optimized);
                     canvas = await compositeStoredMagick(canvas, optimized, backend, signal, x, y, "over", undefined, true);
                     if (current.disposal === 3) canvas = previous;

@@ -71,3 +71,27 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     expect([...decodeImage(bytes, { page: 2, coalesce: false }).data].filter((_, i) => i % 4 === 3)).toEqual(alpha);
   });
 }
+
+// Native ImageMagick 7.1.2-35: clearing protection exposes the resulting alpha.
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+  it.each([
+    { name: "white write mask", size: "1x1", protection: ["-write-mask", "xc:white"], clear: "+write-mask", optimize: true, expected: "ff0000ffff0000ff" },
+    { name: "black write mask", size: "1x1", protection: ["-write-mask", "xc:black"], clear: "+write-mask", optimize: true, expected: "ff0000ffff000000" },
+    { name: "active region", size: "2x1", protection: ["-region", "1x1+0+0"], clear: "+region", optimize: true, expected: "ff0000ffff0000ffff000000ff0000ff" },
+    { name: "region without optimization", size: "2x1", protection: ["-region", "1x1+0+0"], clear: "+region", optimize: false, expected: "ff0000ffff0000ffff0000ffff0000ff" },
+  ])(`${mode} respects $name`, async ({ size, protection, clear, optimize, expected }) => {
+    const files = new Map<string, Uint8Array>();
+    const filesystem = new MemoryFileSystem();
+    const chunks: Uint8Array[] = [];
+    const args = ["-size", size, "xc:red", "(", "xc:red", ...protection, ")", ...(optimize ? ["-layers", "OptimizeTransparency"] : []), clear, "-depth", "8", mode === "command" ? "rgba:-" : "rgba:/out"];
+    const result = mode === "command" ? await createMagickCommand().execute({
+      command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+      stdin: (async function* () {})(), signal: new AbortController().signal,
+      stdout: { write: async chunk => { chunks.push(chunk); } }, stderr: { write: async () => {} },
+    }) : mode === "sync" ? runConvertCliSync(args, files)
+      : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    expect(result.exitCode).toBe(0);
+    const output = mode === "command" ? Buffer.concat(chunks) : Buffer.from(mode === "retained" ? await filesystem.readFile("/out") : files.get("/out")!);
+    expect(output.toString("hex")).toBe(expected);
+  });
+}

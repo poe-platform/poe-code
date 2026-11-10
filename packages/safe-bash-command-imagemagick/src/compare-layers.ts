@@ -1,5 +1,6 @@
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { regionContains, type Region } from "./region.js";
 import { matchesAlphaFloodfill } from "./floodfill.js";
 
 type Frame = Pick<RgbaImage | StoredRgbaImage, "width" | "height" | "virtualCanvas">;
@@ -38,7 +39,7 @@ export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: numbe
     if (right >= left) return { left, top, width: right - left + 1, height: bottom - top + 1 };
 }
 
-export function* optimizeTransparencyPixels(previous: Frame, current: Frame, fuzz: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* optimizeTransparencyPixels(previous: Frame, current: Frame & { region?: Region | undefined }, fuzz: number, mask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const dx = (current.virtualCanvas?.x ?? 0) - (previous.virtualCanvas?.x ?? 0);
     const dy = (current.virtualCanvas?.y ?? 0) - (previous.virtualCanvas?.y ?? 0);
     for (let y = 0; y < current.height; y++) {
@@ -49,7 +50,13 @@ export function* optimizeTransparencyPixels(previous: Frame, current: Frame, fuz
             const start = Math.max(0, x + dx), end = Math.min(previous.width, x + dx + count), py = y + dy;
             const prior = py >= 0 && py < previous.height && end > start
                 ? (yield { kind: "read", image: 1, position: (py * previous.width + start) * 4, length: (end - start) * 4 })! : undefined;
+            const maskX = mask ? Math.min(x, mask.width - 1) : 0;
+            const maskCount = mask ? Math.min(count, mask.width - maskX) : 0;
+            const protection = mask ? (yield { kind: "read", image: 2, position: (Math.min(y, mask.height - 1) * mask.width + maskX) * 4, length: maskCount * 4 })! : undefined;
             for (let pixel = 0; pixel < count; pixel++) {
+                if (current.region && !regionContains(current.region, x + pixel, y)) continue;
+                const m = Math.min(pixel, maskCount - 1) * 4;
+                if (protection && 0.212656 * protection[m]! + 0.715158 * protection[m + 1]! + 0.072186 * protection[m + 2]! > 127.5) continue;
                 const i = pixel * 4, px = x + pixel + dx, j = (px - start) * 4;
                 if (prior && px >= start && px < end && matchesAlphaFloodfill(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!, prior[j]!, prior[j + 1]!, prior[j + 2]!, prior[j + 3]!, fuzz)) data[i + 3] = 0;
             }

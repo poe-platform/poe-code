@@ -13075,6 +13075,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           } else if (key === "enable") {
                             enable = value;
                             parseFilterExpression(enable, "adelay enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity });
+                          } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+                            const number = parseFilterExpression(value, "adelay", key === "thread_type" ? { slice: 1 } : {});
+                            if (!Number.isFinite(number) || number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
+                              throw new RangeError(`adelay: invalid ${key}`);
+                            }
+                            // Scheduling and hardware options do not change the rendered PCM.
                           } else throw new Error(`adelay: unsupported option ${key}`);
                         }
                         const commands = audioCommands.filter(command => command.target === "adelay" || command.target === filterTarget)

@@ -9244,8 +9244,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
 }
 
 function parseChannelAssignments(expression: string): ChannelAssignment[] {
-    // ImageMagick's channel ID 3 is black; alpha is 4, stored at RGBA offset 3.
-    const names = [["0", "r", "red", "c", "cyan", "gray"], ["1", "g", "green", "m", "magenta"], ["2", "b", "blue", "y", "yellow"], ["4", "a", "alpha", "o"]];
+    // Internal slots are RGBA plus black; ImageMagick IDs put black before alpha.
+    const names = [["0", "r", "red", "c", "cyan", "gray"], ["1", "g", "green", "m", "magenta"], ["2", "b", "blue", "y", "yellow"], ["4", "a", "alpha", "o"], ["3", "k", "black"]];
     expression = expression.trim();
     const image = expression.startsWith("|") ? 1 : 0;
     if (image) expression = expression.slice(1);
@@ -9336,7 +9336,7 @@ function parseChannelSourceGroups(expression: string): { image: number; assignme
 
 function parseChannelSelections(expression: string): number[][] {
     if (expression === "") return [[0, 1, 2]];
-    const names = [["0", "r", "red", "c", "cyan", "gray"], ["1", "g", "green", "m", "magenta"], ["2", "b", "blue", "y", "yellow"], ["4", "a", "alpha", "o"]];
+    const names = [["0", "r", "red", "c", "cyan", "gray"], ["1", "g", "green", "m", "magenta"], ["2", "b", "blue", "y", "yellow"], ["4", "a", "alpha", "o"], ["3", "k", "black"]];
     return expression.split(";").map(group => group.split(",").map(name => {
         const channel = names.findIndex(aliases => aliases.includes(name.trim().toLowerCase()));
         if (channel < 0) throw new Error(`unsupported channel-fx selection '${name}'`);
@@ -9345,6 +9345,7 @@ function parseChannelSelections(expression: string): number[][] {
 }
 
 function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<void, RgbaImage> {
+    if (channels.includes(4) && image.space !== "cmyk") throw new Error("missing image channel 'black' in channel-fx");
     if (channels.includes(3) && !image.hasAlpha && !image.inactiveAlpha) throw new Error("missing image channel 'a'");
     const single = channels.length === 1;
     const data = new Uint8Array(image.data), data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
@@ -9358,7 +9359,7 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
             if (data16) data16[offset + target] = source === 3 && !image.hasAlpha && !image.inactiveAlpha ? 65535 : image.data16![offset + source]!;
             if (evaluateSamples) {
                 const value = source === 3 && !image.hasAlpha && !image.inactiveAlpha ? 255
-                    : source !== 3 && image.hueSamples ? Math.fround(image.hueSamples[offset + source]! * 65535) / 257
+                    : source !== 3 && image.hueSamples ? Math.fround(image.hueSamples[offset + (source === 4 ? 3 : source)]! * 65535) / 257
                     : image.evaluateSamples?.[offset + source] ?? (image.data16 ? image.data16[offset + source]! / 257 : image.data[offset + source]!);
                 evaluateSamples[offset + target] = value;
                 data[offset + target] = clampByteVal(value);

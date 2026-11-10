@@ -222,6 +222,7 @@ export function* channelFxPixelSteps(inputs: readonly (Pick<RgbaImage, "width" |
     for (const assignment of assignments) {
         const input = inputs[Math.min(assignment.image, inputs.length - 1)]!;
         const source = "source" in assignment ? assignment.source : assignment.target;
+        if (source === 4 && input.space !== "cmyk") throw new Error("missing image channel 'black' in channel-fx");
         if (source === 3 && !input.hasAlpha && !input.inactiveAlpha && !("reverse" in assignment && assignment.reverse))
             throw new Error("missing image channel 'a'");
     }
@@ -243,10 +244,12 @@ export function* channelFxPixelSteps(inputs: readonly (Pick<RgbaImage, "width" |
             const input = inputs[Math.min(assignment.image, inputs.length - 1)]!;
             // Missing destinations and the reverse half of an exchange are no-ops.
             if (assignment.target === 3 && !targetAlpha || "source" in assignment && assignment.source === 3 && !input.hasAlpha && !input.inactiveAlpha) continue;
-            const target = inks && assignment.target < 3 ? inks : data;
+            if (assignment.target === 4 && !inks) continue;
+            const target = inks && assignment.target !== 3 ? inks : data;
+            const targetChannel = assignment.target === 4 ? 3 : assignment.target;
             const scale = target === inks ? 255 : 1;
             if ("value" in assignment) {
-                for (let offset = assignment.target; offset < length; offset += 4) target[offset] = assignment.value / scale;
+                for (let offset = targetChannel; offset < length; offset += 4) target[offset] = assignment.value / scale;
                 continue;
             }
             const image = Math.min(assignment.image, inputs.length - 1);
@@ -267,10 +270,11 @@ export function* channelFxPixelSteps(inputs: readonly (Pick<RgbaImage, "width" |
             const sourceHue = image !== 0 && input.space === "cmyk" ? yield { kind: "read", hue: true, image, position: (y * input.width + x) * 4, length: count } : undefined;
             const sourceInks = image === 0 ? baseInks : sourceHue?.length ? new Float64Array(sourceHue.slice().buffer) : undefined;
             for (let offset = 0; offset < count; offset += 4) {
-                const value = input.space === "cmyk" && assignment.source < 3
-                    ? (sourceInks?.[offset + assignment.source] ?? rgbToCmyk(samples[offset]! / 255, samples[offset + 1]! / 255, samples[offset + 2]! / 255)[assignment.source]!) * 255
+                const sourceChannel = assignment.source === 4 ? 3 : assignment.source;
+                const value = input.space === "cmyk" && assignment.source !== 3
+                    ? (sourceInks?.[offset + sourceChannel] ?? rgbToCmyk(samples[offset]! / 255, samples[offset + 1]! / 255, samples[offset + 2]! / 255)[sourceChannel]!) * 255
                     : samples[offset + assignment.source]!;
-                target[offset + assignment.target] = value / scale;
+                target[offset + targetChannel] = value / scale;
             }
         }
         if (inks) {

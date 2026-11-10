@@ -10627,7 +10627,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             length = Math.min(length, Math.floor(maxAudioFrames / framesPerLoop) * regionLength
                               + (maxAudioFrames % framesPerLoop) * 1024);
                           }
-                          const next = audioFilters[filterIndex + 1];
+                          let nextIndex = filterIndex + 1;
+                          for (; nextIndex < audioFilters.length; nextIndex++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const name = audioFilters[nextIndex]!.split("=", 1)[0]!.split("@", 1)[0];
+                            // These filters preserve sample counts and timestamps, so the
+                            // downstream trim still bounds the loop's required input.
+                            if (!["anull", "acopy", "volume"].includes(name!)) break;
+                          }
+                          const next = audioFilters[nextIndex];
                           if (next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim") {
                             const { duration, startPts, endPts, startSample, endSample } = parseAtrim(
                               next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate);

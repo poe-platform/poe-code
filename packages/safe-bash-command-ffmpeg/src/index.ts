@@ -14743,9 +14743,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (selected.length !== 1) throw new Error("channelsplit: simple audio filters require exactly one output");
                         const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR"];
                         const mask = input.reduce((value, speaker) => value | (1 << speakers.indexOf(speaker)), 0);
-                        if (mask === 3 && (stretched.length === 1 || stretched.length === 6)) {
+                        const quad = stretched.length === 4 && filteredChannelMask === 0x33;
+                        if (mask === 3 && (stretched.length === 1 || quad || stretched.length === 6)) {
                           const mono = stretched.length === 1;
-                          if (!mono && filteredChannelMask && filteredChannelMask !== 0x3f && filteredChannelMask !== 0x60f) {
+                          if (!mono && !quad && filteredChannelMask && filteredChannelMask !== 0x3f && filteredChannelMask !== 0x60f) {
                             throw new Error(`channelsplit: unsupported input channel layout (mask ${filteredChannelMask})`);
                           }
                           const pcm16 = t.codecDescriptions[0]?.codecName === "pcm_s16le";
@@ -14755,6 +14756,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             for (let i = 0; i < output.length; i++) {
                               if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                               const front = stretched[mono ? 0 : channel]![i]!;
+                              if (quad) {
+                                const back = stretched[channel + 2]![i]!;
+                                output[i] = pcm16
+                                  ? Math.floor(front * 19195 + back * 13573 + 0.5) / 32768
+                                  : (front + back * Math.SQRT1_2) / (1 + Math.SQRT1_2);
+                                continue;
+                              }
                               const surround = mono ? 0 : stretched[2]![i]! + stretched[channel + 4]![i]!;
                               // Negotiate stereo before splitting, including the s16 mixer's Q15 rounding.
                               output[i] = pcm16

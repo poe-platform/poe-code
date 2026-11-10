@@ -4081,6 +4081,7 @@ async function applyVideoFilterChain(
       commands.sort((a, b) => a.time - b.time);
       current = await tmix(current, argStr, budget, signal, commands);
     } else if (name === "tblend") {
+      if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       const modeValue = parseFilterExpression(named.all_mode ?? "normal", "tblend", { normal: 0, average: 3, difference: 6 });
       const mode = roundToEven(modeValue);
       if (modeValue < 0 || modeValue > 39 || ![0, 3, 6].includes(mode) || (argStr !== "" && (positional.length !== 1 || Object.keys(named).length !== 1 || named.all_mode === undefined))) {

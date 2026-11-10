@@ -4,7 +4,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function compensateAudioDelay(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  frames: readonly { start: number; end: number; pts: number }[],
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
   commands: readonly { sample: number; expression: string }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
@@ -23,7 +23,7 @@ export async function compensateAudioDelay(
     const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (name === "enable") {
       enable = raw;
-      parseFilterExpression(enable, "compensationdelay enable", { n: 0, t: 0 });
+      parseFilterExpression(enable, "compensationdelay enable", { n: 0, t: 0, pos: NaN, w: 0 });
       continue;
     }
     const key = names.indexOf(name!);
@@ -52,7 +52,7 @@ export async function compensateAudioDelay(
       if (Number.isFinite(gain) && gain >= 0 && gain <= 1) values[3] = gain;
     }
     const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "compensationdelay enable", {
-      n, t: frame.pts / sampleRate
+      n, t: frame.pts / sampleRate, pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0
     })) >= 0.5;
     for (let i = frame.start; i < frame.end; i++) {
       if (i % 1024 === 0) { budget.checkCpu(); await yieldTurn(signal); signal?.throwIfAborted(); }

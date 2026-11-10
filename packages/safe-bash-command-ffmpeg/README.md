@@ -552,6 +552,9 @@ such as `0x3` or `0X3`; binary prefixes are rejected. Explicit layouts must matc
 speaker metadata, including `1:FR` and `0|1|1|0:quad`. Speaker lists preserve
 their explicit order when resolving named destinations and subsequent channel maps;
 `channelmap=0|1:FR+FL,channelmap=FL` selects the second input channel.
+Count-only layouts such as `2C` and `2 channels` keep channels unnamed:
+`channelmap=FR|FL:2C` swaps stereo samples, but a subsequent `channelmap=FL`
+fails because the output has no speaker assignments. Lowercase `2c` assigns stereo speakers.
 Numbered user channels retain their identities and order across filters;
 for example, `0|1:USR17+USR18,channelmap=USR18` selects the second input channel.
 Omitted layouts use native defaults for one through eight channels, including
@@ -636,6 +639,8 @@ and `<` divides gains by the sum of their magnitudes, preserving polarity, for e
 Terms accept hexadecimal gains (`0x1`, `0x1p-1`), subtraction (`c0-c1`), compact gains (`.5c1`), and signed exponents
 (`1e+0*c1` or `5e-1c1`). Nonfinite gains such as `nan`, `inf`, and `1e999` are accepted;
 `pan=mono|c0=nan*c0` produces silence on PCM16 input/output. Floating-point paths retain nonfinite samples.
+Count-only outputs also accept `2C` and `2 channels`, for example
+`pan=2C|c0=c1|c1=c0`; use numbered output channels because these layouts have no speaker assignments.
 Stereo layouts also accept `0x3` and `FL+FR`. `pan=5.1|FC=c1|LFE=c0` routes
 stereo into center and LFE; unassigned speakers stay silent. Empty equation fields
 between or after assignments are ignored, so `pan=stereo|c0=c0||c1=c1` preserves

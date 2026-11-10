@@ -7,6 +7,16 @@ export const audioSpeakerMasks: Record<string, number> = Object.fromEntries([
     .map((name, bit) => [name, 2 ** (bit + 29)])
 ]);
 
+export function parseAudioChannelCount(layout: string): number | undefined {
+  const countText = layout.endsWith("C") ? layout.slice(0, -1)
+    : layout.endsWith(" channels") ? layout.slice(0, -" channels".length) : "";
+  if (countText.length && [...countText].every(digit => digit >= "0" && digit <= "9")) {
+    const count = Number(countText);
+    if (count > 0 && count <= 64) return count;
+  }
+  return undefined;
+}
+
 export function parseAudioChannelLayout(layout: string): string[] {
   if (layout === "mono" || layout === "1c") return ["FC"];
   if (layout === "stereo" || layout === "2c") return ["FL", "FR"];

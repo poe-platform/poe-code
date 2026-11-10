@@ -1,4 +1,4 @@
-import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layout.js";
+import { audioSpeakerMasks, parseAudioChannelCount, parseAudioChannelLayout } from "./audio-channel-layout.js";
 import { ffmpegColors } from "./ffmpeg-colors.js";
 import { encodeH264PresetTrack, h264Presets } from "@poe-code/mp4-ast";
 import { parseFeedbackGraph, applyFeedback } from "./feedback.js";
@@ -1099,10 +1099,12 @@ function parseChannelSplit(spec: string): { input: string[]; selected: string[] 
 async function panAudio(
   spec: string, channels: MediaAudioData["channelData"], channelMask: number | undefined, pcm16: boolean,
   budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<{ channels: Float32Array[]; channelMask: number }> {
+): Promise<{ channels: Float32Array[]; channelMask: number; channelNames: string[] }> {
   const [layout, ...assignments] = spec.split("|").map(value => value.trim());
-  const names = parseAudioChannelLayout(layout ?? "");
-  if (names.some(name => audioSpeakerMasks[name] === undefined) || new Set(names).size !== names.length) {
+  const count = parseAudioChannelCount(layout ?? "");
+  const names = count === undefined ? parseAudioChannelLayout(layout ?? "") : Array<string>(count).fill("");
+  if (count === undefined &&
+      (names.some(name => audioSpeakerMasks[name] === undefined) || new Set(names).size !== names.length)) {
     throw new Error(`pan: unsupported output layout ${layout}`);
   }
   const speakers = Object.keys(audioSpeakerMasks);
@@ -1114,7 +1116,7 @@ async function panAudio(
     const index = name.startsWith("c") && name.length > 1 &&
       [...name.slice(1)].every(char => char >= "0" && char <= "9")
       ? Number(name.slice(1)) : labels.indexOf(name);
-    if (!Number.isInteger(index) || index < 0 || index >= count) throw new Error(`pan: invalid channel ${name}`);
+    if (!name || !Number.isInteger(index) || index < 0 || index >= count) throw new Error(`pan: invalid channel ${name}`);
     return index;
   };
   const gains = names.map(() => new Float64Array(channels.length));
@@ -1234,7 +1236,8 @@ async function panAudio(
       output[out]![sample] = value;
     }
   }
-  return { channels: output, channelMask: names.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0) };
+  return { channels: output, channelNames: names,
+    channelMask: names.reduce((mask, name) => mask + (audioSpeakerMasks[name] ?? 0), 0) };
 }
 
 function parseAmergeInputs(filter: string): number {
@@ -10786,7 +10789,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, panPcm16, budget, context.signal);
                         stretched = panned.channels;
                         filteredChannelMask = panned.channelMask;
-                        filteredChannelNames = undefined;
+                        filteredChannelNames = panned.channelNames;
                       } else if (trimmed === "crossfeed" || trimmed.startsWith("crossfeed=")) {
                         filteredSampleFormat = "dbl";
                         if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
@@ -11353,8 +11356,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           : stretched.length === 1 ? ["FC"] : stretched.length === 2 ? ["FL", "FR"] : []);
                         let outputNames: string[] | undefined;
                         if (layout) {
-                          outputNames = parseAudioChannelLayout(layout).map(channelName);
-                          if (outputNames.some(name => !speakers.includes(name) &&
+                          const count = parseAudioChannelCount(layout);
+                          outputNames = count === undefined ? parseAudioChannelLayout(layout).map(channelName) : Array<string>(count).fill("");
+                          if (count === undefined && outputNames.some(name => !speakers.includes(name) &&
                             !(name.startsWith("USR") && name.length > 3 &&
                               [...name.slice(3)].every(char => char >= "0" && char <= "9") && Number(name.slice(3)) <= 2147483647))) {
                             throw new Error("channelmap: unsupported channel layout");
@@ -11390,11 +11394,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         const selected = new Array<(typeof stretched)[number]>(outputNames.length);
                         for (const [index, entry] of entries.entries()) {
-                          const input = numericInput ? Number(entry[0])
-                            : entry[0] ? inputNames.indexOf(channelName(entry[0])) : -1;
+                          if (!entry[0] || (paired && !entry[1])) throw new Error("channelmap: invalid channel name");
+                          const input = numericInput ? Number(entry[0]) : inputNames.indexOf(channelName(entry[0]));
                           const output = !paired ? index : numericOutput ? Number(entry[1]) : outputNames.indexOf(channelName(entry[1]!));
                           if (!Number.isSafeInteger(input) || input < 0 || input >= stretched.length) {
-                            throw new Error(`channelmap: unavailable input channel ${entry[0]}`);
+                            const unnamed = filteredChannelNames?.every(name => name === "") && speakers.includes(channelName(entry[0]));
+                            throw new Error(`channelmap: unavailable input channel ${entry[0]}${unnamed ? " (unnamed layout)" : ""}`);
                           }
                           if (!Number.isSafeInteger(output) || output < 0 || output >= selected.length || selected[output]) {
                             throw new Error("channelmap: invalid or duplicate output channel");
@@ -13049,8 +13054,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             rethrowRuntimeError(context, err);
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
-            if (err instanceof AlimiterError || err instanceof CompandError) {
-              if (err.stage === "configuration" && outputFormat !== "null" &&
+            const unnamedChannel = msg.startsWith("channelmap: unavailable input channel") && msg.endsWith(" (unnamed layout)");
+            if (err instanceof AlimiterError || err instanceof CompandError || unnamedChannel) {
+              if ((unnamedChannel || ((err instanceof AlimiterError || err instanceof CompandError) && err.stage === "configuration")) && outputFormat !== "null" &&
                   !isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
                 await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
               }

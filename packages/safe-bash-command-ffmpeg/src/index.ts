@@ -15269,6 +15269,37 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     channels: targetCh
                   }));
 
+                  // Identity and reverse filters must not round signed PCM64 through
+                  // JavaScript numbers. Keep the original interleaved sample bytes when
+                  // the output requires no resampling, mixing, trimming or conversion.
+                  const losslessFilters = filter ? parseFilterChain(filter.expression)
+                    .map(item => item.trim().split("=", 1)[0]!.split("@", 1)[0]!) : [];
+                  if (inputCodec === "pcm_s64le" && audioCodec === inputCodec && outPlugin?.id === "wav" &&
+                      (sampleFormat === undefined || sampleFormat === "s64") &&
+                      targetRate === audio.sampleRate && audioChannels === undefined &&
+                      rematrixVolume === 1 && volFactor === 1 && maxAudioFrames === undefined &&
+                      outputSs === undefined && outputDuration === undefined && outputTo === undefined &&
+                      losslessFilters.every(name => ["anull", "acopy", "areverse"].includes(name)) &&
+                      t.samples.reduce((size, sample) => size + sample.data.length, 0) === targetSamples * targetCh * 8) {
+                    const reverse = losslessFilters.filter(name => name === "areverse").length % 2 === 1;
+                    let exactSamples = t.samples;
+                    if (reverse) {
+                      const frameBytes = targetCh * 8;
+                      budget.allocateMemory(targetSamples * frameBytes * 2);
+                      const input = concatBytes(t.samples.map(sample => sample.data));
+                      const data = new Uint8Array(input.length);
+                      for (let frame = 0; frame < targetSamples; frame++) {
+                        if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                        const offset = (targetSamples - frame - 1) * frameBytes;
+                        data.set(input.subarray(offset, offset + frameBytes), frame * frameBytes);
+                      }
+                      exactSamples = [{ data, size: data.length, dts: 0, pts: 0, cts: 0,
+                        duration: targetSamples, isKeyframe: true, sampleDescriptionIndex: 1 }];
+                    }
+                    return { ...t, timescale: targetRate, duration: targetSamples,
+                      samples: exactSamples, decodedAudio: undefined };
+                  }
+
                   return {
                     ...t,
                     timescale: targetRate,

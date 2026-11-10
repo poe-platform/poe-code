@@ -3,7 +3,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 import { regionContains, type Region } from "./region.js";
 import { matchesAlphaFloodfill } from "./floodfill.js";
 
-type Frame = Pick<RgbaImage | StoredRgbaImage, "width" | "height" | "virtualCanvas">;
+type Frame = Pick<RgbaImage | StoredRgbaImage, "width" | "height" | "virtualCanvas" | "hasAlpha">;
 
 // Compare the original frames, never the cropped output of the previous step.
 export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: number, method: string, canvas?: Frame): Generator<
@@ -32,11 +32,13 @@ export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: numbe
             for (let pixel = 0; pixel < count; pixel++) {
                 const i = pixel * 4, px = x + pixel + dx, j = (px - start) * 4;
                 const inside = prior && px >= start && px < end;
+                const alpha = current.hasAlpha ? data[i + 3]! / scale : 255;
+                const priorAlpha = inside ? previous.hasAlpha ? prior[j + 3]! / priorScale : 255 : 0;
                 if (method === "compareclear") {
-                    if (!inside || prior[j + 3]! / priorScale < 127.5 || data[i + 3]! / scale >= 127.5) continue;
+                    if (!inside || priorAlpha < 127.5 || alpha >= 127.5) continue;
                 } else {
-                    if (method === "compareoverlay" && data[i + 3]! / scale < 127.5) continue;
-                    if (matchesAlphaFloodfill(data[i]! / scale, data[i + 1]! / scale, data[i + 2]! / scale, data[i + 3]! / scale, inside ? prior[j]! / priorScale : 0, inside ? prior[j + 1]! / priorScale : 0, inside ? prior[j + 2]! / priorScale : 0, inside ? prior[j + 3]! / priorScale : 0, fuzz)) continue;
+                    if (method === "compareoverlay" && alpha < 127.5) continue;
+                    if (matchesAlphaFloodfill(data[i]! / scale, data[i + 1]! / scale, data[i + 2]! / scale, alpha, inside ? prior[j]! / priorScale : 0, inside ? prior[j + 1]! / priorScale : 0, inside ? prior[j + 2]! / priorScale : 0, priorAlpha, fuzz)) continue;
                 }
                 left = Math.min(left, x + pixel); right = Math.max(right, x + pixel);
                 top = Math.min(top, y); bottom = y;

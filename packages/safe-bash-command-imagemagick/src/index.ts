@@ -9095,7 +9095,7 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
 
 function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 4 | null, clipRed: boolean, pixelOffset = 0, imageWidth = image.width): Generator<void, RgbaImage> {
     const missingChannel = channel === null || (channel === 4 ? image.space !== "cmyk" : channel === 3 ? !(image.hasAlpha || image.alphaSeparate === true) : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
-    // The source selection clips extraction, but does not belong to the generated planes.
+    // Extraction clips against the source selection, then retains a fully editable mask.
     const { writeMask: ignoredMask, region: ignoredRegion, magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, metaChannels: ignoredMeta, storedMetaChannels: ignoredStoredMeta, ...components } = image;
     const separated = { ...yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : { ...components, hasAlpha: image.hasAlpha || image.alphaSeparate === true }, missingChannel ? 3 : channel === 4 ? 0 : channel), isPalette: false, alphaBlend: false, inactiveAlpha: false };
     // CMYK stores K at working offset 3; alpha remains in the RGBA backing.
@@ -9128,7 +9128,8 @@ function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 
             if (separated.data16) separated.data16[offset] = separated.data16[offset + 1] = separated.data16[offset + 2] = Math.round(bounded * 257);
         }
     }
-    return { ...separated, evaluateSamples };
+    const writeMask = image.writeMask || image.region ? yield* createSolidRgbaImageSteps(image.width, image.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
+    return { ...separated, evaluateSamples, writeMask };
 }
 
 async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {
@@ -9136,6 +9137,7 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
     let result = image;
     let storedData16: StoredRgbaImage["storedData16"];
     let storedDataFloat: StoredRgbaImage["storedDataFloat"];
+    let storedWriteMask: StoredRgbaImage["storedWriteMask"];
     let storedHueSamples: number | undefined;
     let storedEvaluateSamples: number | undefined;
     const chunkSize = operation.evaluate || highDepth || operation.highDepth ? 2048 : 16384;
@@ -9152,7 +9154,12 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
         const writeMask = operation.handlesWriteMask && image.storedWriteMask
             ? { ...image.storedWriteMask, width: data.length / 4, height: 1, data: await backend.storage.read(image.storedWriteMask.position + offset, data.length) } : undefined;
         const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(writeMask ? { writeMask } : {}), ...(evaluateSamples ? {evaluateSamples} : {}), ...(data16 ? {data16} : {}), ...(hueSamples ? {hueSamples} : {}) }, offset / 4, image.width), signal);
-        const { data: pixels, writeMask: ignoredMask, evaluateSamples: outputEvaluate, data16: output16, dataFloat: outputFloat, hueSamples: outputHue, ...metadata } = transformed;
+        const { data: pixels, writeMask: outputMask, evaluateSamples: outputEvaluate, data16: output16, dataFloat: outputFloat, hueSamples: outputHue, ...metadata } = transformed;
+        if (outputMask) {
+            const { data: maskPixels, ...maskMetadata } = outputMask;
+            storedWriteMask ??= { ...maskMetadata, width: image.width, height: image.height, position: backend.storage.allocate(size) };
+            await backend.storage.write(storedWriteMask.position + offset, maskPixels);
+        }
         if (outputFloat) {
             storedDataFloat ??= { position: backend.storage.allocate(size * 4), length: size };
             await backend.storage.write(storedDataFloat.position + offset * 4, new Uint8Array(outputFloat.buffer, outputFloat.byteOffset, outputFloat.byteLength));
@@ -9170,7 +9177,7 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
             await backend.storage.write(storedData16.position + offset * 2, new Uint8Array(output16.buffer, output16.byteOffset, output16.byteLength));
         }
         await backend.storage.write(position + offset, pixels);
-        result = { ...metadata, ...(writeMask ? { storedWriteMask: transformed.writeMask ? { ...image.storedWriteMask! } : undefined } : {}), width: image.width, height: image.height, position, ...(storedEvaluateSamples === undefined ? {} : {storedEvaluateSamples}), ...(storedData16 ? {storedData16} : {}), ...(storedDataFloat ? {storedDataFloat} : {}), ...(storedHueSamples === undefined ? {} : {storedHueSamples}) };
+        result = { ...metadata, ...(operation.handlesWriteMask ? { storedWriteMask } : {}), width: image.width, height: image.height, position, ...(storedEvaluateSamples === undefined ? {} : {storedEvaluateSamples}), ...(storedData16 ? {storedData16} : {}), ...(storedDataFloat ? {storedDataFloat} : {}), ...(storedHueSamples === undefined ? {} : {storedHueSamples}) };
     }
     return result;
 }

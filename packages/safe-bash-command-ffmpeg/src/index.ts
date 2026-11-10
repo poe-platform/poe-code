@@ -2631,7 +2631,8 @@ async function applyVideoFilterChain(
         const source = f.native;
         const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
           [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;
-        const available = planar ? 0b0000111 :
+        const gray = pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "ya8";
+        const available = planar ? 0b0000111 : gray ? (pixelFormat === "ya8" ? 0b1000001 : 0b0000001) :
           pixelFormat === "rgb24" || pixelFormat === "bgr24" ? 0b0111000 : 0b1111000;
         const selected = (components === undefined ? available & 0b0111111 : mask) | (negateAlpha ? available & 0b1000000 : 0);
         if (selected & ~available) throw new Error("negate: Requested components not available");
@@ -2668,7 +2669,8 @@ async function applyVideoFilterChain(
             signal?.throwIfAborted();
             budget.checkCpu();
           }
-          if (selected & (1 << (3 + i % 4))) data[i] = 255 - data[i]!;
+          const component = gray && i % 4 !== 3 ? 0 : 3 + i % 4;
+          if (selected & (1 << component)) data[i] = 255 - data[i]!;
         }
         return { ...f, data };
       }, signal);

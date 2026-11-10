@@ -9,6 +9,12 @@ const input = ["-size", "3x1", "xc:#505050", "-duplicate", "3", "(",
 
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     it.each([
+        { name: "Meta0 rectangular region", extra: false, operations: ["-region", "1x1+0+1", "-channel", "Meta0", "-negate", "+region"], channel: "Meta0", expected: "3d717f7f4a16",
+            sources: ["-size", "1x3", "xc:#505050", "-duplicate", "3", "gradient:#404040-#c0c0c0"] },
+        { name: "Meta0 gradient write mask", extra: false, operations: ["-write-mask", "gradient:black-white", "-channel", "Meta0", "+negate", "+write-mask"], channel: "Meta0", expected: "bfbf35e24a16",
+            sources: ["-size", "1x3", "xc:#505050", "-duplicate", "3", "gradient:#404040-#c0c0c0"] },
+        { name: "unmasked gradient control", extra: false, operations: ["-channel", "Meta0", "-negate"], channel: "Meta0", expected: "bfbf7f7f3f3f",
+            sources: ["-size", "1x3", "xc:#505050", "-duplicate", "3", "gradient:#404040-#c0c0c0"] },
         { name: "selected Meta0", extra: false, operations: ["-channel", "Meta0", "-negate"], channel: "Meta0", expected: "bfbf7f7f3f3f" },
         { name: "gray-only Meta0", extra: false, operations: ["-channel", "Meta0", "+negate"], channel: "Meta0", expected: "bfbf7f7f3f3f" },
         { name: "default channels", extra: false, operations: ["-negate"], channel: "Meta0", expected: "bfbf7f7f3f3f" },

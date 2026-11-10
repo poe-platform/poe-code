@@ -9156,7 +9156,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (metaChannels) for (const [index, plane] of metaChannels.entries()) {
                 if (meta && !meta.includes(index)) continue;
                 metaChannels[index] = yield* applyMagickRasterSteps(plane,
-                    negateMetaPixelSteps(im.data.length, onlyGray), signal, plane, [plane, im]);
+                    negateMetaPixelSteps(im, onlyGray, im.writeMask), signal, plane, im.writeMask ? [plane, im, im.writeMask] : [plane, im]);
             }
             return { ...im, data: out, ...(metaChannels ? { metaChannels } : {}), ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
         };
@@ -14288,7 +14288,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     for (const [index, plane] of image.storedMetaChannels.entries()) {
                         if (meta && !meta.includes(index)) continue;
                         converted.storedMetaChannels[index] = await transformStoredMagickRaster(plane, backend,
-                            negateMetaPixelSteps(image.width * image.height * 4, token === "+negate"), signal, plane, [plane, image]);
+                            negateMetaPixelSteps(image, token === "+negate", image.storedWriteMask), signal, plane, image.storedWriteMask ? [plane, image, image.storedWriteMask] : [plane, image]);
                     }
                 }
                 if (metaOperation && image.storedMetaChannels?.length) {

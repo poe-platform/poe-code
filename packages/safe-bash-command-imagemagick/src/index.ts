@@ -8404,7 +8404,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         else if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
-        const parts = raw.replaceAll("!", "").replaceAll("x", ",").replaceAll("/", ",").replaceAll(":", ",").split(",");
+        // Only the first x/X separates endpoints; a trailing x field is not gamma.
+        const parts = raw.toLowerCase().replaceAll("!", "").replace("x", ",").replaceAll("/", ",").replaceAll(":", ",").split(",");
         // Colon geometry expresses a ratio with a unit white point.
         if (!colorEndpoints && raw.includes(":")) {
             parts[0] = String(parseFloat(parts[0]!) / parseFloat(parts[1]!));

@@ -1390,12 +1390,15 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   channelSelection?: MagickFormatContext["channelSelection"],
   precision = 6
 ): Generator<undefined|Step, Record<string, string>, Resume> {
-  const channels = img.hasAlpha ? 4 : 3;
-  const selectedChannels = channelSelection ? [channelSelection.r, channelSelection.g, channelSelection.b, channelSelection.a].slice(0, channels) : new Array<boolean>(channels).fill(true);
+  const channelIds = img.hasAlpha ? [0, 1, 2, 3] : [0, 1, 2];
+  if (img.space === "cmyk") channelIds.push(8);
+  const channels = channelIds.length;
+  const selectedChannels = channelIds.map(channel => !channelSelection || (channel === 8
+    ? channelSelection.k : [channelSelection.r, channelSelection.g, channelSelection.b, channelSelection.a][channel]));
   const selectedCount = Math.max(1, selectedChannels.filter(Boolean).length);
   const sums = new Array<number>(channels).fill(0);
   const squares = new Array<number>(channels).fill(0);
-  const means = [0, 0, 0, 0], moments = [0, 0, 0, 0];
+  const means = new Array<number>(channels).fill(0), moments = new Array<number>(channels).fill(0);
   const histograms = statistics ? Array.from({ length: channels }, () => new Float64Array(65536)) : undefined;
   let min = 65535;
   let max = 0;
@@ -1442,8 +1445,12 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       colors.add(`${r},${g},${b},${a}`);
     }
     for (let c = 0; c < channels; c++) {
-      const value = chunk.hueSamples && img.space !== "cmyk" ? chunk.hueSamples[i + c]! * range
-        : chunk.evaluateSamples ? chunk.evaluateSamples[i + c]! * range / 255 : samples[i + c]!;
+      const channel = channelIds[c]!;
+      const inkChannel = channel === 8 ? 3 : channel;
+      const value = img.space === "cmyk" && channel !== 3
+        ? (inks ? inks[i + inkChannel]! : rgbToCmyk(r / range, g / range, b / range)[inkChannel]!) * range
+        : chunk.hueSamples && img.space !== "cmyk" ? chunk.hueSamples[i + channel]! * range
+        : chunk.evaluateSamples ? chunk.evaluateSamples[i + channel]! * range / 255 : samples[i + channel]!;
       if (statistics && selected) {
         const n = count, delta = value / range - means[c]!;
         means[c]! += delta / n;
@@ -1481,6 +1488,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     statistics.skewness = 0;
     statistics.kurtosis = 0;
     for (let c = 0; c < channels; c++) {
+      const channel = channelIds[c]!;
       const deviation = Math.sqrt(Math.max(0, moments[c]! / Math.max(1, count - 1)));
       const histogram = histograms![c]!;
       if (selectedChannels[c]) {
@@ -1498,8 +1506,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       let minimum = 0, maximum = 65535, median = 0, cumulative = 0;
       while (minimum < 65535 && histogram[minimum] === 0) minimum++;
       while (maximum > 0 && histogram[maximum] === 0) maximum--;
-      statistics[`skewness.${c}`] = 0;
-      statistics[`kurtosis.${c}`] = 0;
+      statistics[`skewness.${channel}`] = 0;
+      statistics[`kurtosis.${channel}`] = 0;
       if (deviation > 0) {
         let third = 0, fourth = 0;
         const mean = sums[c]! / count;
@@ -1513,8 +1521,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
         }
         // Native uses sample deviation, population moments and excess kurtosis.
         // Constant channels contribute zero to both channel averages.
-        statistics[`skewness.${c}`] = third;
-        statistics[`kurtosis.${c}`] = fourth - 3;
+        statistics[`skewness.${channel}`] = third;
+        statistics[`kurtosis.${channel}`] = fourth - 3;
         statistics.skewness += third / channels;
         statistics.kurtosis += (fourth - 3) / channels;
         if (selectedChannels[c]) {
@@ -1527,9 +1535,9 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
         cumulative += histogram[median]!;
         if (cumulative >= Math.ceil(count / 2)) break;
       }
-      statistics[`minima.${c}`] = minimum / 65535;
-      statistics[`maxima.${c}`] = maximum / 65535;
-      statistics[`median.${c}`] = median / 65535;
+      statistics[`minima.${channel}`] = minimum / 65535;
+      statistics[`maxima.${channel}`] = maximum / 65535;
+      statistics[`median.${channel}`] = median / 65535;
       if (selectedChannels[c]) selectedMedian += median / selectedCount;
       if (selectedChannels[c]) {
         statistics.minima = Math.min(statistics.minima, minimum / 65535);
@@ -1537,8 +1545,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
         statistics.standard_deviation += deviation / selectedCount;
       }
       statistics.median += median / 65535 / channels;
-      statistics[`mean.${c}`] = selectedChannels[c] ? means[c]! : 0;
-      statistics[`standard_deviation.${c}`] = deviation;
+      statistics[`mean.${channel}`] = selectedChannels[c] ? means[c]! : 0;
+      statistics[`standard_deviation.${channel}`] = deviation;
       if (selectedChannels[c]) statistics.mean += means[c]! / selectedCount;
     }
     if (!img.hasAlpha) {
@@ -1902,7 +1910,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
     const original=image.storedData16;
     const bytes=original?await storage.read(original.position+position*2,Math.max(0,Math.min(length,original.length-position))*2,signal?{signal}:undefined):undefined;
-    const inks=(image.space !== "cmyk" || property === "colors" || property === "trim-geometry" || property === "bounding-box") && image.storedHueSamples !== undefined
+    const inks=image.storedHueSamples !== undefined
       ? await storage.read(image.storedHueSamples+position*8,length*8,signal?{signal}:undefined) : undefined;
     const evaluated=image.storedEvaluateSamples === undefined ? undefined : await storage.read(image.storedEvaluateSamples+position*8,length*8,signal?{signal}:undefined);
     chunk={data,...(evaluated?{evaluateSamples:new Float64Array(evaluated.slice().buffer)}:{}),...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{}),...(inks?{hueSamples:new Float64Array(inks.slice().buffer)}:{})};

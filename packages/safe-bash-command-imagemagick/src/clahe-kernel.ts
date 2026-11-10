@@ -54,7 +54,9 @@ export function* clahePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
         const count = Math.min(512, size - start);
         const bytes = yield { kind: "read", highDepth: true, position: start * 4, length: count * 4 };
         if (!bytes || bytes.length !== count * 8) throw new Error("Truncated CLAHE pixels");
-        const chunk = { ...image, width: count, height: 1, data: new Uint8Array(count * 4), data16: new Uint16Array(bytes.slice().buffer) };
+        const working = yield { kind: "read", evaluate: true, position: start * 4, length: count * 4 };
+        const chunk = { ...image, width: count, height: 1, data: new Uint8Array(count * 4), data16: new Uint16Array(bytes.slice().buffer),
+            evaluateSamples: working?.length ? new Float64Array(working.slice().buffer) : undefined };
         const conversion = convertHuePixels(chunk, "CIELab");
         let next = conversion.next();
         while (!next.done) { yield; next = conversion.next(); }
@@ -105,7 +107,9 @@ export function* clahePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
         const hueSamples = image.magickColorspace === "CIELab"
             ? hueBytes?.length ? new Float64Array(hueBytes.slice().buffer) : Float64Array.from(data16, value => value / 65535)
             : undefined;
-        const conversion = convertHuePixels({ ...image, width: count, height: 1, data: new Uint8Array(count * 4), data16, ...(hueSamples ? { hueSamples } : {}) }, "CIELab");
+        const working = yield { kind: "read", evaluate: true, position: start * 4, length: count * 4 };
+        const conversion = convertHuePixels({ ...image, width: count, height: 1, data: new Uint8Array(count * 4), data16, ...(hueSamples ? { hueSamples } : {}),
+            evaluateSamples: working?.length ? new Float64Array(working.slice().buffer) : undefined }, "CIELab");
         let next = conversion.next();
         while (!next.done) { yield; next = conversion.next(); }
         const lab = next.value;
@@ -130,7 +134,7 @@ export function* clahePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
             continue;
         }
         // Match native float Quantum storage before rounding the final Q16 samples.
-        const output = new Uint16Array(count * 4);
+        const output = new Uint16Array(count * 4), extended = new Float64Array(count * 4);
         for (let i = 0; i < count; i++) {
             const l = lab.hueSamples![i * 4]!, a = lab.hueSamples![i * 4 + 1]!, b = lab.hueSamples![i * 4 + 2]!;
             const fy = (l * 100 + 16) / 116, fx = (a - 0.5) * 255 / 500 + fy, fz = fy - (b - 0.5) * 255 / 200;
@@ -143,10 +147,13 @@ export function* clahePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
             for (let channel = 0; channel < 3; channel++) {
                 const value = linear[channel]! - minimum;
                 const encoded = value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
+                extended[i * 4 + channel] = Math.fround(encoded * 65535) / 257;
                 output[i * 4 + channel] = Math.max(0, Math.min(65535, Math.round(Math.fround(encoded * 65535))));
             }
-            output[i * 4 + 3] = Math.round(lab.hueSamples![i * 4 + 3]! * 65535);
+            extended[i * 4 + 3] = lab.hueSamples![i * 4 + 3]! * 255;
+            output[i * 4 + 3] = Math.max(0, Math.min(65535, Math.round(lab.hueSamples![i * 4 + 3]! * 65535)));
         }
         yield { kind: "write", highDepth: true, position: start * 4, data: new Uint8Array(output.buffer) };
+        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(extended.buffer) };
     }
 }

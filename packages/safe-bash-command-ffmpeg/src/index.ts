@@ -11877,7 +11877,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const count = frame.end - frame.start;
                             frame.start = start;
                             frame.end = start + count;
-                            frame.pts = firstPts + start;
+                            // Native areverse advances AV_NOPTS_VALUE (INT64_MIN) after the first frame.
+                            frame.pts = start === 0 ? firstPts : (Number.isNaN(firstPts) ? -(2 ** 63) : firstPts) + start;
                             start += count;
                           }
                         }

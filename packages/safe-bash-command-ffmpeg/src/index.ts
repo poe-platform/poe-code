@@ -2441,7 +2441,7 @@ async function applyVideoFilterChain(
         const native = f.native;
         if (native?.rgba === f.data && native.width === f.width && native.height === f.height &&
             [0, 4, 5, 12, 13, 14].includes(native.format)) {
-          const pixels = native.pixels.slice();
+          const pixels = new Uint8Array(native.pixels);
           const chromaWidth = Math.ceil(f.width / ([5, 14].includes(native.format) ? 1 : 2));
           const chromaHeight = Math.ceil(f.height / ([0, 12].includes(native.format) ? 2 : 1));
           let offset = 0;

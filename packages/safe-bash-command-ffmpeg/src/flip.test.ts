@@ -60,3 +60,44 @@ for (const direction of ["hflip", "vflip"]) {
     });
   }
 }
+
+for (const [size, input, horizontal, vertical] of [
+  ["2x2", "204060808080305070908080", "402080608080503090708080", "608020408080709030508080"],
+  ["4x4", "0102030405060708090a0b0c0d0e0f101112131415161718",
+    "04030201080706050c0b0a09100f0e0d1211141316151817",
+    "0d0e0f10090a0b0c05060708010203041314111217181516"]
+] as const) {
+  for (const type of ["Buffer", "Uint8Array"]) {
+    for (const [filter, expected] of [
+      ["null", input], ["hflip", horizontal], ["vflip", vertical],
+      ["hflip,hflip", input], ["vflip,vflip", input]
+    ] as const) {
+      it(`${filter} preserves planar ${size} samples with ${type} input`, async () => {
+        const volume = Volume.fromJSON({ "/in.raw": Buffer.from(input, "hex") });
+        const reads: Uint8Array[] = [];
+        const errors: Uint8Array[] = [];
+        const result = await createFfmpegCommand().execute({
+          args: ["-v", "error", "-f", "rawvideo", "-pix_fmt", "yuv420p", "-s", size, "-r", "1",
+            "-i", "/in.raw", "-vf", filter, "-pix_fmt", "yuv420p", "-f", "rawvideo", "/out.raw"],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) {
+              const bytes = volume.readFileSync(path) as Buffer;
+              const data = type === "Buffer" ? bytes : Uint8Array.from(bytes);
+              reads.push(data);
+              return data;
+            },
+            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(), stdout: { async write() {} },
+          stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+        } as never);
+        assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+        assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"), expected);
+        assert.ok(reads.length > 0);
+        for (const bytes of reads) assert.equal(Buffer.from(bytes).toString("hex"), input, "input remains unchanged");
+      });
+    }
+  }
+}

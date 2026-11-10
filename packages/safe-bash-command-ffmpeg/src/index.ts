@@ -4236,8 +4236,8 @@ async function applyVideoFilterChain(
         const text = (separator < 0 ? option : option.slice(separator + 1)).trim();
         const value = key === "time" ? parseHlsDuration(text) : Number(text);
         const max = key === "time" ? (2 ** 63 - 1) / 1_000_000
-          : key === "loop" ? 2147483647 : key === "size" ? 32767 : Number.MAX_SAFE_INTEGER;
-        if (!text || !Number.isFinite(value) || (key !== "time" && !Number.isSafeInteger(value)) ||
+          : key === "loop" ? 2147483647 : key === "size" ? 32767 : 2 ** 63;
+        if (!text || !Number.isFinite(value) || (key !== "time" && !Number.isInteger(value)) ||
           value < (key === "start" || key === "loop" ? -1 : 0) || value > max) {
           throw new Error(`loop: invalid ${key}`);
         }

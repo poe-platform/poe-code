@@ -18175,6 +18175,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
 
     const output = inferOutputFormat(outSpec, "png");
     const adjoin = (output.format === "ppm" || output.format === "rgb") && !hasSceneOutputPattern(output.path);
+    const gifPages: MagickImage[] = [];
     const stdoutChunks: Uint8Array[] = [];
     let stdout = "";
     function* writePage(canvas: RgbaImage, page: number, multiple: boolean): Generator<void, void, void> {
@@ -18199,6 +18200,10 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return;
         }
         const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
+        if (format === "gif" && multiple && !hasSceneOutputPattern(path)) {
+            gifPages.push(canvas);
+            return;
+        }
         const outPath = path === "-" ? path : (multiple && !adjoin) || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, page) : path.replaceAll("%%", "%");
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
         const { data: encoded } = encodeImage(canvas, { format, netpbmDepth: state.inputDepth ?? 16, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth, ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}), consumeInput: true } as any);
@@ -18444,6 +18449,15 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         images.length = 0;
     }
+    if (gifPages.length) {
+        const { path, gifVersion } = inferOutputFormat(outSpec, "png");
+        const image = yield* prepareGifFrames(gifPages);
+        const { data } = encodeImage(image, { format: "gif", gifVersion, pageHeight: image.pageHeight!, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor });
+        for (const page of gifPages) detachRgbaBuffer(page.data);
+        detachRgbaBuffer(image.data);
+        if (path === "-") stdoutChunks.push(data);
+        else files.set(path.replaceAll("%%", "%"), data);
+    }
     const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
     let offset = 0;
     for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
@@ -18578,6 +18592,9 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         const output = inferOutputFormat(outSpec, "png");
         const adjoin = n > cols * rows && output.path !== "-" && (output.format === "ppm" || output.format === "rgb") && !hasSceneOutputPattern(output.path);
         const pages = new StoredImageStack(backend.storage, signal);
+        const output = inferOutputFormat(outSpec, "png");
+        const gifPages = output.format === "gif" && n > cols * rows && !hasSceneOutputPattern(output.path)
+            ? new StoredImageStack(backend.storage, signal) : undefined;
         const stdoutChunks: Uint8Array[] = [];
         let stdout = "";
         for (let pageStart = 0; pageStart < n; pageStart += cols * rows) {
@@ -18678,6 +18695,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 }
                 continue;
             }
+            if (gifPages) { await gifPages.push(canvas); continue; }
             if (adjoin) { await pages.push(canvas); continue; }
             const { format, path } = output;
             const outputPath = path === "-" ? path : n > cols * rows || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, pageStart / (cols * rows)) : path.replaceAll("%%", "%");
@@ -18690,6 +18708,11 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     yield* encodeStoredImage((await pages.get(page))!, backend.storage, signal, { format: output.format, netpbmDepth: state.inputDepth ?? 16 });
                 }
             })());
+        }
+        if (gifPages) {
+            const image = await prepareStoredGifFrames(gifPages, backend, signal);
+            const bytes = await backend.publish(image, output.path.replaceAll("%%", "%"), { format: "gif", gifVersion: output.gifVersion, pageHeight: image.pageHeight!, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor });
+            if (bytes) stdoutChunks.push(bytes);
         }
         if (n > cols * rows) await backend.publishPending();
         const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));

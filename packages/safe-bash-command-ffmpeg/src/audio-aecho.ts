@@ -57,8 +57,10 @@ export async function echoAudio(
           budget.checkCpu();
         }
         // A sub-sample tap reads the oldest entry in native's delay ring.
-        const delayed = (input[frame - (offset || tail)] ?? 0) * scale * decays![tap]!;
-        sample += (sampleFormat === "dbl" || sampleFormat === "dblp") ? delayed : Math.fround(delayed);
+        const delayed = (input[frame - (offset || tail)] ?? 0) * scale;
+        // C converts integer samples to float before multiplying by the decay.
+        sample += (sampleFormat === "dbl" || sampleFormat === "dblp") ? delayed * decays![tap]!
+          : Math.fround(Math.fround(delayed) * decays![tap]!);
       }
       sample = Math.max(-scale, Math.min(scale === 1 ? 1 : scale - 1, sample * gains[1]!));
       output[channel]![frame] = scale !== 1 ? Math.trunc(sample) / scale

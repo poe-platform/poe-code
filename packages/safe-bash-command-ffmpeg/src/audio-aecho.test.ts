@@ -6,6 +6,34 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
+// Native FFmpeg 7.0.2 PCM32 impulse and controls, including float operand rounding.
+for (const [filter, hex] of [
+  ["aecho=0:1:0.125:0.7", "000000006062e80d"],
+  ["aecho=0:1:0.125:1", "000000006043de13"],
+  ["anull", "5543de13"]
+]) {
+  it(`${filter} matches native PCM32 delayed impulse`, async () => {
+    const volume = Volume.fromJSON({ "/out.pcm": "KEEP" });
+    volume.writeFileSync("/deep.wav", encodeWav({ sampleRate: 8000,
+      channels: [Float64Array.of(333333333 / 2147483648)]
+    }, { bitsPerSample: 32 }));
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-y", "-v", "error", "-i", "/deep.wav", "-af", filter, "-f", "s32le", "/out.pcm"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(), stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal((volume.readFileSync("/out.pcm") as Buffer).toString("hex"), hex);
+  });
+}
+
 // Native FFmpeg 7.0.2: 16 stereo frames at 8 kHz, with independent impulses.
 for (const [filter, frames, left, right] of [
   ["anull", 16, [[0, 12000]], [[2, -8000]]],

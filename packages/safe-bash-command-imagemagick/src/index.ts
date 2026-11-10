@@ -8390,7 +8390,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const raw = [...(tokens[++i] ?? "")].filter(character => character.trim() !== "" && !"()#".includes(character)).join("")
             .replaceAll(",", "x").replaceAll("/", "x");
         validateMagickTransformGeometry(raw, token);
-        const geometry = parseMagickGeometry(raw);
+        const geometry = parseMagickGeometry(raw.replaceAll(":", "x"));
         // Two offsets supply no contrast magnitude; numeric prefixes are not complete dimensions.
         const magnitude = geometry.aspectRatio ?? geometry.width ?? (geometry.hasOffset && !geometry.hasYOffset ? geometry.x : undefined);
         const fields = raw.replaceAll("X", "x").replaceAll(":", "x");
@@ -8399,12 +8399,17 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const cStr = separator < 0 ? fields : fields.slice(0, separator);
         const mStr = separator < 0 ? undefined : fields.slice(separator + 1);
         const ratio = raw.includes(":");
-        const strength = parseFloat(cStr ?? "") / (ratio ? parseFloat(mStr ?? "1") : 1);
+        const signedRatio = ratio && (mStr?.startsWith("+") || mStr?.startsWith("-"));
+        // Native geometry treats signed ratio fields as offsets, not divisors.
+        // Its safe reciprocal also accepts zero and very small denominators.
+        const strength = parseFloat(cStr ?? "") * (ratio && !signedRatio ? 1 / Math.max(1e-12, parseFloat(mStr ?? "1")) : 1);
         if (!Number.isFinite(magnitude) || !Number.isFinite(strength)) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
         const beta = Math.max(1e-4, strength);
-        const mRaw = ratio ? 1 : mStr && mStr !== "%" ? (mStr.startsWith("0x") ? parseInt(mStr, 16) : parseFloat(mStr)) : 65535 / 2;
+        // A negative offset supplies the midpoint; a positive one leaves the default.
+        const mRaw = signedRatio ? mStr!.startsWith("-") ? parseFloat(mStr!) : 65535 / 2
+            : ratio ? 1 : mStr && mStr !== "%" ? (mStr.startsWith("0x") ? parseInt(mStr, 16) : parseFloat(mStr)) : 65535 / 2;
         const alpha = raw.includes("%") ? mRaw / 100 : mRaw / 65535;
         const sig = (u: number) => Math.tanh(0.5 * beta * (u - alpha));
         const s0 = sig(0);

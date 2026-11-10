@@ -7,29 +7,43 @@ export type MagickResizeKernel = ResizeKernel | "gaussian" | "jinc" | "lagrange"
 
 export type ResizeFilterSettings = { blur?: number; support?: number; lobes?: number; b?: number; c?: number; sigma?: number; window?: MagickResizeKernel };
 
-export function* adaptiveResizePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, width: number, height: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* adaptiveResizePixelSteps(image: { width: number; height: number; hasAlpha: boolean; space?: string; hueSamples?: Float64Array; storedHueSamples?: number }, width: number, height: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const maximum = highDepth ? 65535 : 255;
+    const cmyk = image.space === "cmyk";
+    const hue = !cmyk && (!!image.hueSamples || image.storedHueSamples !== undefined);
     for (let start = 0; start < width * height; start += 256) {
         yield;
         const count = Math.min(256, width * height - start);
         const data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
-        const evaluated = new Float64Array(count * 4);
+        const samples = new Float64Array(count * 4);
+        const inks = cmyk ? new Float64Array(count * 4) : undefined;
+        const hueSamples = hue ? new Float64Array(count * 4) : undefined;
         for (let offset = 0; offset < count; offset++) {
             const x = ((start + offset) % width + 0.5) * image.width / width - 0.5;
             const y = (Math.floor((start + offset) / width) + 0.5) * image.height / height - 0.5;
             const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
-            const pixels: (Uint8Array | Uint16Array | Float64Array)[] = [];
+            const pixels: ArrayLike<number>[] = [];
             for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) {
                 const sx = Math.max(0, Math.min(image.width - 1, left + column));
                 const sy = Math.max(0, Math.min(image.height - 1, top + row));
                 const position = (sy * image.width + sx) * 4;
-                // Quantized palette colors retain fractional HDRI samples.
-                const samples = yield { kind: "read", evaluate: true, position, length: 4 };
-                if (samples?.length) pixels.push(Float64Array.from(new Float64Array(samples.slice().buffer), value => highDepth ? value * 257 : value));
-                else {
+                const retained = yield { kind: "read", evaluate: true, position, length: 4 };
+                let pixel: Uint8Array | Uint16Array | Float64Array;
+                if (retained?.length) {
+                    const values = new Float64Array(retained.slice().buffer);
+                    pixel = highDepth ? values.map(value => value * 257) : values;
+                } else {
                     const bytes = (yield { kind: "read", highDepth, position, length: 4 })!;
-                    pixels.push(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
+                    pixel = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
                 }
+                if (cmyk) {
+                    const hue = yield { kind: "read", hue: true, position: (sy * image.width + sx) * 4, length: 4 };
+                    const ink = hue?.length ? new Float64Array(hue.slice().buffer) : rgbToCmyk(pixel[0]! / maximum, pixel[1]! / maximum, pixel[2]! / maximum);
+                    pixels.push([ink[0]! * maximum, ink[1]! * maximum, ink[2]! * maximum, pixel[3]!, ink[3]! * maximum]);
+                } else if (hue) {
+                    const bytes = (yield { kind: "read", hue: true, position: (sy * image.width + sx) * 4, length: 4 })!;
+                    pixels.push(new Float64Array(bytes.slice().buffer).map(value => value * maximum));
+                } else pixels.push(pixel);
             }
             const luma = pixels.map(p => 0.212656 * p[0]! + 0.715158 * p[1]! + 0.072186 * p[2]!);
             // Choose the diagonal with the smaller luma difference, then its enclosing triangle.
@@ -37,17 +51,27 @@ export function* adaptiveResizePixelSteps(image: { width: number; height: number
                 ? dx <= dy ? [1 - dy, 0, dy - dx, dx] : [1 - dx, dx - dy, 0, dy]
                 : dx <= 1 - dy ? [1 - dx - dy, dx, dy, 0] : [0, 1 - dy, 1 - dx, dx + dy - 1];
             const alpha = pixels.reduce((sum, p, i) => sum + p[3]! * weights[i]!, 0);
-            for (let channel = 0; channel < 4; channel++) {
+            for (let channel = 0; channel < (cmyk ? 5 : 4); channel++) {
                 // Native mesh divides unassociated colors by interpolated alpha.
                 const value = channel === 3 ? alpha : pixels.reduce((sum, p, i) => sum + p[channel]! * weights[i]!, 0)
                     / (image.hasAlpha ? Math.max(1e-12, alpha / maximum) : 1);
                 const scale = highDepth ? 1 : 257;
-                evaluated[offset * 4 + channel] = Math.fround(value * scale) / 257;
-                data[offset * 4 + channel] = Math.max(0, Math.min(maximum, Math.round(Math.fround(value * scale) / scale)));
+                if (hueSamples) hueSamples[offset * 4 + channel] = Math.fround(value * scale) / 65535;
+                if (!cmyk || channel === 3) samples[offset * 4 + channel] = Math.fround(value * scale) / 257;
+                if (inks && channel !== 3) inks[offset * 4 + (channel === 4 ? 3 : channel)] = Math.fround(value * scale) / (maximum * scale);
+                else data[offset * 4 + channel] = Math.max(0, Math.min(maximum, Math.round(Math.fround(value * scale) / scale)));
             }
         }
+        if (inks) {
+            for (let offset = 0; offset < count * 4; offset += 4) for (let channel = 0; channel < 3; channel++) {
+                samples[offset + channel] = (1 - inks[offset + channel]!) * (1 - inks[offset + 3]!) * 255;
+                data[offset + channel] = Math.round(samples[offset + channel]! * maximum / 255);
+            }
+            yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(inks.buffer) };
+        }
+        if (hueSamples) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(hueSamples.buffer) };
+        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(samples.buffer) };
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
-        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(evaluated.buffer) };
     }
 }
 

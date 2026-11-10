@@ -74,3 +74,11 @@ it.each([
     }
     expect(files.get("/background")).toEqual(files.get("/bilinear"));
 });
+
+it("uses the background color for clut background interpolation", () => {
+    const files = new Map([["/in.ppm", input]]);
+    const result = runConvertCliSync(["/in.ppm", "-alpha", "set", "-channel", "A", "-evaluate", "set", "50%", "+channel", "-interpolate", "background", "/in.ppm", "-clut", "-depth", "8", "rgba:/out"], files);
+    expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+    // Native ImageMagick 7.1.2-31 Q16-HDRI uses the default white background.
+    expect(files.get("/out")).toEqual(new Uint8Array(3 * 2 * 4).fill(255));
+});

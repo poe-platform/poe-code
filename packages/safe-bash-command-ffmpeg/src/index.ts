@@ -3515,6 +3515,7 @@ async function applyVideoFilterChain(
       }
       const step = perTile - Math.min(overlap, perTile - 1);
       const tiledFrames: MediaVideoFrame[] = [];
+      let consumed = 0;
       for (let base = initPadding < perTile ? -initPadding : 0; base < current.length; base += step) {
         if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
@@ -3541,12 +3542,15 @@ async function applyVideoFilterChain(
             canvas.set(srcRow.subarray(0, fw * 4), ((oy + y) * outW + ox) * 4);
           }
         }
+        // Reused overlap cells do not contribute to the new sheet's timeline.
+        const newFrames = current.slice(consumed, base + perTile);
+        consumed += newFrames.length;
         let tiled: MediaVideoFrame = {
           width: outW,
           height: outH,
           data: canvas,
-          ptsSeconds: batch[0]?.ptsSeconds ?? 0,
-          durationSeconds: batch.reduce((s, x) => s + x.durationSeconds, 0),
+          ptsSeconds: newFrames[0]?.ptsSeconds ?? 0,
+          durationSeconds: newFrames.reduce((s, x) => s + x.durationSeconds, 0),
           keyframe: true
         };
         const source = batch[0]?.native;

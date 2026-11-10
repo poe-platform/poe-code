@@ -7904,6 +7904,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const data16 = im.data16 ? new Uint16Array(im.data16) : Uint16Array.from(im.data, value => value * 257);
                 const evaluateSamples = im.evaluateSamples?.slice() ?? Float64Array.from(data16, value => value / 257);
                 const background = [state.background.r, state.background.g, state.background.b];
+                const hueSamples = mode === "shape" && im.hueSamples ? new Float64Array(im.hueSamples.length) : im.hueSamples;
+                const workingBackground = im.space === "cmyk"
+                    ? rgbToCmyk(state.background.r / 255, state.background.g / 255, state.background.b / 255)
+                    : background.map(value => value / 255);
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
@@ -7918,8 +7922,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     evaluateSamples[idx + 3] = Math.fround(intensity) / 257;
                     data16[idx + 3] = Math.round(intensity);
                     out[idx + 3] = clampByteVal(intensity / 257);
+                    if (mode === "shape" && hueSamples) {
+                        hueSamples.set(workingBackground, idx);
+                        if (im.space !== "cmyk") hueSamples[idx + 3] = evaluateSamples[idx + 3]! / 255;
+                    }
                 }
-                return { ...im, data: out, data16, evaluateSamples, hasAlpha: true, inactiveAlpha: false, alphaBlend: mode === "shape" };
+                return { ...im, data: out, data16, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), hasAlpha: true, inactiveAlpha: false, alphaBlend: mode === "shape" };
             };
         }
         else if (mode === "activate") {

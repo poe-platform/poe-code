@@ -4,11 +4,13 @@ import { magickIntensity } from "./intensity.js";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { createMagickRandom } from "./random.js";
 import { evaluateNoiseSteps } from "./noise.js";
+import { virtualPixelIndex } from "./virtual-pixel.js";
+import type { VirtualPixelMethod } from "./warp-kernel.js";
 type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>;
 
 export type LookupInterpolation = "background" | "blend" | "bilinear" | "nearest" | "integer" | "average" | "average9" | "average16" | "mesh" | "catrom" | "spline";
 
-function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
+function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }, virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
     if (interpolation === "background") return [background.r, background.g, background.b, background.a].map(value => value * (highDepth ? 257 : 1));
     if (interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported lookup interpolation: ${interpolation}`);
     const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
@@ -41,9 +43,15 @@ function* sampleLookup(lut: { width: number; height: number }, x: number, y: num
     for (let row = 0; row < size; row++) for (let column = 0; column < size; column++) {
         const weight = meshWeights?.[row * 2 + column] ?? (single ? 1 : averageSize ? 1 / (size * size) : (column ? dx : 1 - dx) * (row ? dy : 1 - dy));
         if (!weight) continue;
-        const position = (Math.max(0, Math.min(lut.height - 1, top + row)) * lut.width + Math.max(0, Math.min(lut.width - 1, left + column))) * 4;
-        let pixel = meshPixels[row * 2 + column];
-        if (!pixel) {
+        const position = virtualPixelIndex(left + column, top + row, lut.width, lut.height, virtualPixel) * 4;
+        let pixel: ArrayLike<number> | undefined = meshPixels[row * 2 + column];
+        if (!pixel && position < 0) {
+            const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
+            const color = virtualPixel === "background" || virtualPixel.endsWith("-tile")
+                ? [background.r, background.g, background.b, background.a]
+                : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
+            pixel = highDepth ? color.map(value => value * 257) : color;
+        } else if (!pixel) {
             const bytes = (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
             pixel = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
         }
@@ -54,11 +62,11 @@ function* sampleLookup(lut: { width: number; height: number }, x: number, y: num
     return values;
 }
 
-export function* clutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor): Steps {
+export function* clutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod): Steps {
     // Integer lookup partitions the full dimensions; other methods sample the diagonal endpoints.
     function* sample(value: number): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
         const adjust = interpolation === "integer" ? 0 : 1;
-        return yield* sampleLookup(lut, value * (lut.width - adjust), value * (lut.height - adjust), highDepth, interpolation, background);
+        return yield* sampleLookup(lut, value * (lut.width - adjust), value * (lut.height - adjust), highDepth, interpolation, background, virtualPixel);
     }
     const table = highDepth ? undefined : new Float64Array(1024);
     if (table) for (let value = 0; value < 256; value++) {
@@ -83,7 +91,7 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
 }
 
 /** Hald pixels store red fastest, then green, then blue in a flattened RGB cube. */
-export function* haldClutPixelSteps(size: number, lut: { width: number; height: number; space?: string }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor): Steps {
+export function* haldClutPixelSteps(size: number, lut: { width: number; height: number; space?: string }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod): Steps {
     const range = highDepth ? 65535 : 255;
     const gray = lut.space === "b-w" || lut.space === "grey16";
     // Native rounds incomplete tables up to the next level, with a minimum of 2.
@@ -106,7 +114,7 @@ export function* haldClutPixelSteps(size: number, lut: { width: number; height: 
                 const weight = (y ? dy : 1 - dy) * (z ? dz : 1 - dz);
                 if (!weight) continue;
                 const index = red + edge * (g + y + edge * (b + z));
-                const sample = yield* sampleLookup(lut, index % lut.width, Math.floor(index / lut.width), highDepth, interpolation);
+                const sample = yield* sampleLookup(lut, index % lut.width, Math.floor(index / lut.width), highDepth, interpolation, background, virtualPixel);
                 for (let channel = 0; channel < 3; channel++) values[channel]! += sample[channel]! * sample[3]! * weight;
                 values[3]! += sample[3]! * weight;
             }

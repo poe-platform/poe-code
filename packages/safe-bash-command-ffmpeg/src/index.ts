@@ -13544,6 +13544,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               return { exitCode: err instanceof CompandError ? err.exitCode : 234 };
             }
+            if (msg.startsWith("pan:") && !msg.startsWith("pan: unsupported output layout ")) return { exitCode: 234 };
             if ((msg.startsWith("atrim:") && !msg.startsWith("atrim: unsupported option")) ||
                 (msg.startsWith("asetnsamples:") && !msg.startsWith("asetnsamples: unsupported option")) ||
                 (err instanceof RangeError && msg.startsWith("dcshift:"))) {

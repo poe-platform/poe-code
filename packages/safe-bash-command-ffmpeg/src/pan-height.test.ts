@@ -34,7 +34,7 @@ for (const [channel, firstSample] of [
       } as never);
       assert.deepEqual(volume.readFileSync("/height.wav"), input);
       if (firstSample === null) {
-        assert.equal(result.exitCode, 1);
+        assert.equal(result.exitCode, 234);
         assert.ok(stderr.includes("pan: invalid channel Bogus"), stderr);
         assert.equal(volume.readFileSync("/out.wav", "utf8"), "KEEP");
         return;

@@ -56,7 +56,7 @@ for (const [expression, expected] of [
       } as never);
       assert.deepEqual(volume.readFileSync("/lr.raw"), input);
       if (expected === null) {
-        assert.equal(result.exitCode, 1);
+        assert.equal(result.exitCode, 234);
         assert.ok(stderr.includes("pan:"), stderr);
         assert.equal(volume.readFileSync("/out.raw", "utf8"), "keep");
         return;

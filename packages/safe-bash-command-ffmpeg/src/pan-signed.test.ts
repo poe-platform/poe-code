@@ -49,7 +49,7 @@ for (const [expression, expected] of [
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
       if (expected === null) {
-        assert.equal(result.exitCode, 1);
+        assert.equal(result.exitCode, 234);
         assert.ok(stderr.includes("pan:"), stderr);
         assert.equal(volume.readFileSync("/out.raw", "utf8"), "keep");
         return;

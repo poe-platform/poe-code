@@ -32,7 +32,7 @@ for (const expression of ["mono|c0=FL+c1", "stereo|FL=FL|FR=c1"]) {
           stdin: (async function* () {})(), stdout: { async write() {} },
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
-        assert.equal(result.exitCode, 1);
+        assert.equal(result.exitCode, 234);
         assert.ok(stderr.includes("cannot mix named and numbered input channels"), stderr);
         if (existing) assert.equal(volume.readFileSync("/out.raw", "utf8"), "keep");
         else assert.equal(volume.existsSync("/out.raw"), false);

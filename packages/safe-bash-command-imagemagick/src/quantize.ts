@@ -188,8 +188,10 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         }
         const remaining = ordered.filter(node => !node.removed).sort((a, b) => a.error - b.error);
         // Native starts at a threshold that leaves roughly 110% of the requested
-        // palette in tree nodes, then prunes complete equal-error groups.
-        const threshold = colors > requested ? remaining[Math.max(0, nodes - Math.floor(1.1 * (requested + 1)))]?.error ?? 0 : -1;
+        // palette in tree nodes, then prunes complete equal-error groups. The first
+        // pass uses the color count before depth pruning, even if pruning has
+        // already brought the palette within the requested limit.
+        const threshold = bins.size > requested ? remaining[Math.max(0, nodes - Math.floor(1.1 * (requested + 1)))]?.error ?? 0 : -1;
         // The initial pass includes different errors. Preserve tree order so the
         // node-count floor retains the same colors as native reduction.
         for (const node of ordered) {

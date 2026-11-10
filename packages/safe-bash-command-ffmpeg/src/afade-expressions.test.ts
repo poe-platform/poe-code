@@ -56,7 +56,7 @@ for (const graph of [false, true]) {
 
   for (const option of [
     "unity=2", "unity=3/2", "silence=-1/4", "silence=2/1", "ns=0", "ns=1-1",
-    "ns=0.9", "ss=-1/4", "ns=9007199254740992", "ss=9007199254740992",
+    "ns=0.9", "ss=-1/4", "ns=18446744073709551616", "ss=18446744073709551616",
     "unity=1/0", "silence=0/0", "ns=1/0", "ss=0/0", "ns=2+", "unity=",
     "ns=unknown", "st=1/2", "start_time=PI", "d=1/2", "duration=PI"
   ]) {

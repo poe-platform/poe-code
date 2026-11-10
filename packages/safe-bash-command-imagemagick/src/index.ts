@@ -7264,14 +7264,15 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const separator = geometry.indexOf("x", geometry.startsWith("0x", firstDigit) ? firstDigit + 2 : 0);
         const fields = (separator < 0 ? [geometry] : [geometry.slice(0, separator), geometry.slice(separator + 1)]).map(field => field.trim());
         const thresholds = fields.map(field => {
-            const threshold = (field.endsWith("%") ? field.slice(0, -1) : field).trim();
+            const threshold = field.endsWith("%") ? field.slice(0, -1) : field;
             const unsigned = threshold.startsWith("-") || threshold.startsWith("+") ? threshold.slice(1) : threshold;
             const hexadecimal = unsigned.startsWith("0x");
             const raw = hexadecimal ? Number(unsigned) * (threshold.startsWith("-") ? -1 : 1) : Number(threshold);
             if (!Number.isFinite(raw) || (!hexadecimal && Number.parseFloat(threshold) !== raw)) {
                 throw new Error(`invalid argument '-solarize' '${value}'`);
             }
-            return field.endsWith("%") ? (raw / 100) * 65535 : raw;
+            // A percent sign scales only when it immediately follows the number.
+            return field.endsWith("%") && threshold === threshold.trimEnd() ? (raw / 100) * 65535 : raw;
         });
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = image => applyMagickSolarizeSteps(image, thresholds[0]!, channels, signal);

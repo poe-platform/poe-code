@@ -2022,7 +2022,7 @@ async function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
   budget: MediaBudgetTracker,
-  diagnostics: { sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void> },
+  diagnostics: { sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void>; writeReport: (file: string, text: string) => Promise<void> },
   readSubtitle: (filename: string) => Promise<Uint8Array>,
   registry: ReturnType<typeof createMediaAstRegistry>,
   signal?: AbortSignal,
@@ -2266,7 +2266,7 @@ async function applyVideoFilterChain(
     } else if (name === "metadata") {
       const mode = named.mode ?? positional[0];
       if (positional[1] !== undefined && !positional[1].includes("=")) named.key ??= positional[1];
-      if ((mode !== "modify" && mode !== "add" && mode !== "select" && mode !== "print" && mode !== "delete" && mode !== "4") || Object.keys(named).some(key => key !== "mode" && key !== "key" && !((mode === "add" || mode === "modify") && key === "value")) ||
+      if ((mode !== "modify" && mode !== "add" && mode !== "select" && mode !== "print" && mode !== "delete" && mode !== "4") || Object.keys(named).some(key => key !== "mode" && key !== "key" && !((mode === "add" || mode === "modify" || mode === "select") && key === "value") && !(mode === "select" && key === "function")) ||
           positional.some((part, index) => !part.includes("=") &&
             (index > 1 || index === 1 && positional[0]!.includes("=")))) {
         throw new Error("metadata: unsupported mode or option");
@@ -2295,17 +2295,38 @@ async function applyVideoFilterChain(
         continue;
       }
       if (mode === "select") {
-        if (!named.key) throw new Error("metadata: select requires a key");
-        current = current.filter(frame => Object.hasOwn(frame.filterMetadata ?? {}, named.key!));
+        if (!named.key) throw new Error("metadata: mode=select requires key");
+        const comparison = named.function ?? "same_str";
+        if (comparison !== "same_str" && comparison !== "greater") throw new Error(`metadata: unsupported function ${comparison}`);
+        const lookupKey = named.key.toLowerCase();
+        const selected: typeof current = [];
+        for (const frame of current) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const tag = Object.entries(frame.filterMetadata ?? {}).find(([key]) => key.toLowerCase() === lookupKey);
+          if (tag && (named.value === undefined || (comparison === "greater"
+            ? Number.parseFloat(tag[1]) > Number.parseFloat(named.value) : tag[1] === named.value))) {
+            selected.push(frame);
+          }
+        }
+        current = selected;
         continue;
       }
-      if (diagnostics.logLevel < 32) continue;
+      if (named.direct !== undefined) parseFilterBoolean(named.direct, "metadata: invalid direct");
+      const file = named.file;
+      if (!file && diagnostics.logLevel < 32) continue;
+      let report = "";
       for (const [index, frame] of current.entries()) {
         const entries = Object.entries(frame.filterMetadata ?? {}).filter(([key]) => !named.key || key === named.key);
         if (!entries.length) continue;
-        await diagnostics.write(`frame:${index} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} pts_time:${frame.ptsSeconds}\n` +
-          entries.map(([key, value]) => `${key}=${value}\n`).join(""));
+        const pts = Math.round(frame.ptsSeconds * diagnostics.timescale);
+        const header = `frame:${String(index).padEnd(4)} pts:${String(pts).padEnd(7)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))}\n`;
+        const record = header + entries.map(([key, value]) => `${key}=${value}\n`).join("");
+        if (file) {
+          budget.allocateMemory(record.length * 2);
+          report += record;
+        } else await diagnostics.write(record);
       }
+      if (file) await diagnostics.writeReport(file, report);
     } else if (name === "setdar" || name === "setsar") {
       let expression = "0";
       let maximum = "100";
@@ -10666,7 +10687,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     sar: (t.codecDescriptions[0]?.sarWidth || 1) / (t.codecDescriptions[0]?.sarHeight || 1),
                     pixelFormat: t.codecDescriptions[0]?.pixFmt,
                     logLevel,
-                    write: (text: string) => writeBytes(context.stderr, encodeUtf8(text), context.signal)
+                    write: (text: string) => writeBytes(context.stderr, encodeUtf8(text), context.signal),
+                    writeReport: async (file: string, text: string) => {
+                      if (file === "-") await writeBytes(context.stdout, encodeUtf8(text), context.signal);
+                      else await writeFileOutput(context, encodeUtf8(text), data => context.fs.writeFile(resolvePath(context.cwd, file), data, { signal: context.signal }));
+                    }
                   };
                   // Filters use the displayed timeline; retain media coordinates for the existing edit list.
                   const displayed = decoded.map(frame => ({ ...frame, interlaced: ["tt", "bb", "tb", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), topFieldFirst: ["tt", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), ptsSeconds: Math.round(frame.ptsSeconds * diagnostics.timescale) / diagnostics.timescale - offsetTicks / t.timescale }));

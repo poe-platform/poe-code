@@ -41,15 +41,24 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         expect([...output.data]).toEqual([3, 0, 1, 2].flatMap(index => pixels[index]!));
     });
 
-    it(`${mode}: sorts across I/O chunks without mixing scanlines`, async () => {
+    it.each(["sRGB", "HSL"])(`${mode}: sorts across I/O chunks without mixing scanlines (%s)`, async space => {
         const width = 1025;
         const samples = Array.from({ length: width * 2 }, (_, i) => i < width ? width - i : 5000 - i);
         const input = encodeImage({ width, height: 2, data: Uint8Array.from(samples.flatMap(v => [v, v, v, 65535]), v => Math.round(v / 257)),
             data16: Uint16Array.from(samples.flatMap(v => [v, v, v, 65535])), format: "png", space: "srgb", channels: 4, depth: "ushort", density: 72, hasAlpha: false
         }, { format: "png" }).data;
-        const output = await convert(input);
+        const output = await convert(input, ["-colorspace", space, "-sort-pixels", "-colorspace", "sRGB"]);
         const expected = [...samples.slice(0, width).reverse(), ...samples.slice(width).reverse()];
         expect([...output.data16!]).toEqual(expected.flatMap(v => [v, v, v, 65535]));
+    });
+
+    it(`${mode}: carries fractional working samples with sorted pixels`, async () => {
+        const pixels = [[9, 9, 9, 10], [3, 3, 3, 20], [7, 7, 7, 30]];
+        const input = encodeImage({ width: 3, height: 1, data: Uint8Array.from(pixels.flat()),
+            format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true
+        }, { format: "png" }).data;
+        const output = await convert(input, ["-channel", "RGB", "-evaluate", "Divide", "2", "-sort-pixels", "-evaluate", "Multiply", "2"]);
+        expect([...output.data]).toEqual([1, 2, 0].flatMap(index => pixels[index]!));
     });
 
     it(`${mode}: preserves alpha and distinct 16-bit pixels while sorting`, async () => {

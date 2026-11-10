@@ -11436,13 +11436,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "adynamicequalizer" || trimmed.startsWith("adynamicequalizer=")) {
                         stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (trimmed === "atilt" || trimmed.startsWith("atilt=")) {
-                        stretched = await tiltAudio(stretched, origRate, trimmed, budget, context.signal);
-                        statsScale = 1;
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
+                      } else if (filterName === "atilt" || filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -11459,7 +11456,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        if (filterName === "aphaseshift" || filterName === "afreqshift") {
+                        if (filterName === "atilt") {
+                          stretched = await tiltAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                        } else if (filterName === "aphaseshift" || filterName === "afreqshift") {
                           filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
                           const commands = audioCommands.filter(command => command.target === filterName || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);

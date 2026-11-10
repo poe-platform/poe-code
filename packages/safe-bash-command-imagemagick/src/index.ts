@@ -407,15 +407,16 @@ function normalizeMagickOffsets(raw: string): string {
     let normalized = "";
     for (let i = 0; i < raw.length; i++) {
         let sign = raw[i]!;
+        const previous = normalized.at(-1)?.toLowerCase();
         if ((sign === "+" || sign === "-") && (raw[i + 1] === "+" || raw[i + 1] === "-")
-            && raw[i + 2]! >= "0" && raw[i + 2]! <= "9" && raw[i - 1]?.toLowerCase() !== "e") {
+            && raw[i + 2]! >= "0" && raw[i + 2]! <= "9" && previous !== "e") {
             sign = sign === raw[++i] ? "+" : "-";
         }
         normalized += sign;
-        if ((sign === "+" || sign === "-") && raw[i - 1]?.toLowerCase() !== "e"
+        if ((sign === "+" || sign === "-") && previous !== "e"
             && raw[i + 1] === "0" && raw[i + 2]?.toLowerCase() === "x") {
             let end = i + 3;
-            while (end < raw.length && raw[end]! >= "0" && raw[end]! <= "9") end++;
+            while (end < raw.length && "0123456789abcdef".includes(raw[end]!.toLowerCase())) end++;
             if (end > i + 3) {
                 normalized += Number.parseInt(raw.slice(i + 3, end), 16);
                 i = end - 1;
@@ -2565,7 +2566,7 @@ function parseMagickRollGeometry(raw: string): MagickGeometry {
         if ((normalized[i] !== "+" && normalized[i] !== "-")
             || normalized[i + 1] !== "0" || normalized[i + 2]?.toLowerCase() !== "x") continue;
         let end = i + 3;
-        while (normalized[end]! >= "0" && normalized[end]! <= "9") end++;
+        while (end < normalized.length && "0123456789abcdef".includes(normalized[end]!.toLowerCase())) end++;
         if (end > i + 3 && normalized[end] === ".") {
             normalized = normalized.slice(0, end);
             break;

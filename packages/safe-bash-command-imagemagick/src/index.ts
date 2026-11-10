@@ -9945,11 +9945,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (t === "+mattecolor") {
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, matteColor: image.matteColor ?? state.matteColor }; });
         }
+        const previousBorderColor = state.borderColor;
         const setting = applyMagickReadSetting(tokens, state, i);
         if (setting === undefined && (t === "-solarize" || ((t === "-colorize" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-random-threshold" || t === "-range-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((t === "-level-colors" || t === "+level-colors") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
             let sceneIdx = 0;
-        const previousBorderColor = state.borderColor;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" ? value.trimEnd() : value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
                 const operation = parseMagickPixelOperation([t, expanded], state, 0, signal)!;
@@ -9964,10 +9964,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
         if (setting !== undefined) {
             i = setting;
-            if (t === "-depth" || t === "+depth") {
-                const depth = state.inputDepth ?? 16, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
-                stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                    if (depth < 16) image = yield* applyMagickRasterSteps(image, posterizePixelSteps(image, 2 ** depth, false, 1, channels, signal, false), signal);
             if (t === "-bordercolor" || t === "+bordercolor") {
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
                     yield;
@@ -9975,6 +9971,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return { ...image, [magickInput]: { ...source, borderColor: t === "-bordercolor" ? state.borderColor : source?.borderColor ?? previousBorderColor } };
                 });
             }
+            if (t === "-depth" || t === "+depth") {
+                const depth = state.inputDepth ?? 16, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
+                stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                    if (depth < 16) image = yield* applyMagickRasterSteps(image, posterizePixelSteps(image, 2 ** depth, false, 1, channels, signal, false), signal);
                     return { ...image, bitsPerSample: depth };
                 });
             }
@@ -12343,15 +12343,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const matteColor = state.matteColor;
             steps.push(async image => image ? { ...image, matteColor: image.matteColor ?? matteColor } : undefined);
         }
+        const previousBorderColor = state.borderColor;
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) {
             i = setting;
             if (token === "-channel" || token === "+channel") {
                 const channels = state.channels;
-        const previousBorderColor = state.borderColor;
                 stackStep(async stack => { maskChannels = channels; return stack; });
             }
-            if (token === "-depth" || token === "+depth") {
             if (token === "-bordercolor" || token === "+bordercolor") {
                 const borderColor = state.borderColor;
                 steps.push(async image => {
@@ -12360,6 +12359,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return { ...image, [magickInput]: { ...source, borderColor: token === "-bordercolor" ? borderColor : source?.borderColor ?? previousBorderColor } };
                 });
             }
+            if (token === "-depth" || token === "+depth") {
                 const depth = state.inputDepth ?? 16, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
                 steps.push(async (image, backend) => {
                     if (!image) return;
@@ -13926,10 +13926,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const readMask = image.readMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 // Native decoration creates a zero-valued write-mask channel.
                 const storedWriteMask = image.storedWriteMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
+                const background = (image as StoredMagickImage)[magickInput]?.borderColor ?? defaultBorderColor;
                 if (compose.toLowerCase() === "over") {
                     return { ...await transformStoredMagickRaster(image, backend, borderPixels(image, left, top, background, !!image.storedData16), signal,
                         { width, height, hasAlpha: true }), region: undefined, storedWriteMask, readMask, virtualCanvas: magickBorderCanvas(image, left, top) };
-                const background = (image as StoredMagickImage)[magickInput]?.borderColor ?? defaultBorderColor;
                 }
                 const canvas = await createStoredCanvas(width, height, background, backend, signal);
                 return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, compose, composeArgs, false, true, false, false, fuzz, true),

@@ -1111,10 +1111,10 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
     }));
     const virtualCanvas = magickResizeCanvas(base, w, h);
     // Native sequence output retains the mask channel, with zero protection.
-    const writeMask = (typeof opRaw === "string" ? base.writeMask : normalized.some(image => image.writeMask)) ? yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
+    const writeMask = (typeof opRaw === "string" ? base.writeMask : normalized.some(image => image.writeMask || image.region)) ? yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
     const readMask = normalized.some(image => image.readMask)
         ? yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) : base.readMask;
-    const result = { ...yield* applyMagickRasterSteps(base, (typeof opRaw === "string" ? evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0n, w) : polyPixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16))), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), isPalette: false, inactiveAlpha: false, region: typeof opRaw === "string" ? undefined : base.region, writeMask, readMask, ...(virtualCanvas ? { virtualCanvas } : {}) };
+    const result = { ...yield* applyMagickRasterSteps(base, (typeof opRaw === "string" ? evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0n, w) : polyPixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16))), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), isPalette: false, inactiveAlpha: false, region: undefined, writeMask, readMask, ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (base.metaChannels?.length) {
         result.metaChannels = [];
         for (let channel = 0; channel < base.metaChannels.length; channel++) {
@@ -12733,7 +12733,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const first = (await stack.get(terms ? 0 : frames.indexOf(sequenceCanvas(frames))))!;
                     const base: StoredRgbaImage = first.space !== "cmyk" && frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
                     // Keep the native mask channel while resetting its protection.
-                    const storedWriteMask = (terms ? frames.some(image => image.storedWriteMask) : base.storedWriteMask) ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
+                    const storedWriteMask = (terms ? frames.some(image => image.storedWriteMask || image.region) : base.storedWriteMask) ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                     const result = await transformStoredMagickRaster({ ...base, isPalette: false, inactiveAlpha: false }, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, operation, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, highDepth, settings.seed ?? 0n, base.width)), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
                     if (base.storedMetaChannels?.length) {
                         result.storedMetaChannels = [];
@@ -12751,7 +12751,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                 (terms ? polyPixelSteps(width * height * 4, planes, terms, [selected, selected, selected, false], planes.some(plane => !!plane.storedData16)) : evaluateSequencePixelSteps(width * height * 4, planes, operation, [selected, selected, selected, false], planes.some(plane => !!plane.storedData16), settings.seed ?? 0n, width)), signal, planes[0]!, planes));
                         }
                     }
-                    if (!terms) result.region = undefined;
+                    result.region = undefined;
                     result.storedWriteMask = storedWriteMask;
                     if (frames.some(image => image.readMask))
                         result.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);

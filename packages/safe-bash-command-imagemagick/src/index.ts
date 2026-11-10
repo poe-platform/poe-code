@@ -10779,7 +10779,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const width = options.width!, height = options.height!;
                 if (width <= 2 || height <= 2) return yield* applyMagickResizeSteps(image, expanded, state.kernel, false, false, false, state.resizeFilter);
                 if (width === image.width && height === image.height) return image;
-                const result = yield* applyMagickRasterSteps(image, liquidRescalePixelSteps(image, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0), signal, { ...image, width, height });
+                const result = yield* applyMagickRasterSteps(image, liquidRescalePixelSteps(image, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0), signal, { ...image, width, height }, [image, ...(image.readMask ? [image.readMask as RgbaImage] : []), ...(image.writeMask ? [image.writeMask] : [])]);
                 const virtualCanvas = magickResizeCanvas(image, width, height);
                 return { ...result, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) };
             });
@@ -13683,7 +13683,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const width = options.width!, height = options.height!;
                 if (width <= 2 || height <= 2) return resizeStoredMagickImage(image, backend, options, signal, false, false, false, settings);
                 if (width === image.width && height === image.height) return image;
-                const result = await transformStoredMagickRaster(image, backend, liquidRescalePixelSteps(image, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0), signal, { ...image, width, height });
+                const result = await transformStoredMagickRaster(image, backend, liquidRescalePixelSteps({ ...image, writeMask: image.storedWriteMask }, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0), signal, { ...image, width, height }, [image, ...(image.readMask ? [image.readMask as StoredRgbaImage] : []), ...(image.storedWriteMask ? [image.storedWriteMask] : [])]);
                 const virtualCanvas = magickResizeCanvas(image, width, height);
                 return { ...result, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) };
             });

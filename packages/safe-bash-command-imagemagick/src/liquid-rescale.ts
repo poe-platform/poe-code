@@ -1,11 +1,11 @@
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { regionContains, type Region } from "./region.js";
 
 /** Width-first seam carving with liblqr's brightness gradient and leftmost ties. */
-export function* liquidRescalePixelSteps(image: { width: number; height: number; hasAlpha: boolean; depth: string; space?: string; hueSamples?: Float64Array; storedHueSamples?: number; isPalette?: boolean; pngPalette?: { readonly bytes: Uint8Array }; indexedColors?: readonly number[] }, width: number, height: number, delta = 1, rigidity = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* liquidRescalePixelSteps(image: { width: number; height: number; hasAlpha: boolean; region?: Region | undefined; readMask?: { width: number; height: number } | undefined; writeMask?: { width: number; height: number } | undefined; depth: string; space?: string; hueSamples?: Float64Array; storedHueSamples?: number; isPalette?: boolean; pngPalette?: { readonly bytes: Uint8Array }; indexedColors?: readonly number[] }, width: number, height: number, delta = 1, rigidity = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // Account for source/output samples, seam indices, brightness and path maps.
     const pixels = Math.max(image.width, width) * Math.max(image.height, height);
-    if (!Number.isSafeInteger(pixels) || pixels * 64 > 0x7fffffff) throw new Error("Liquid rescale dimensions exceed resource limits");
     // Carve the working colorspace plane used by the later sRGB conversion.
     const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
     const palette = new Map<number, number>();
@@ -16,7 +16,14 @@ export function* liquidRescalePixelSteps(image: { width: number; height: number;
         image.indexedColors.forEach((color, index) => palette.set(color % 16777216, index));
     }
     const cmyk = image.space === "cmyk";
-    const stride = cmyk || palette.size ? 5 : 4;
+    const masks = [image.readMask, image.writeMask].filter(mask => mask !== undefined);
+    const baseStride = cmyk || palette.size ? 5 : 4;
+    const stride = baseStride + masks.length + (image.region ? 1 : 0);
+    if (!Number.isSafeInteger(pixels) || pixels * (stride * 8 + 32) > 0x7fffffff) throw new Error("Liquid rescale dimensions exceed resource limits");
+    // ImageMagick passes all cache channels to liblqr, including masks. liblqr
+    // infers RGB, RGBA, CMYKA, or custom brightness from that channel count.
+    const channels = [0, 1, 2, ...(cmyk ? [3] : []), ...(image.hasAlpha ? [cmyk ? 4 : 3] : []),
+        ...(!cmyk && palette.size ? [4] : []), ...Array.from({ length: stride - baseStride }, (_, i) => baseStride + i)];
     let data = new Float32Array(image.width * image.height * stride);
     for (let offset = 0; offset < image.width * image.height * 4; offset += 4096) {
         yield;
@@ -35,6 +42,21 @@ export function* liquidRescalePixelSteps(image: { width: number; height: number;
             } else if (palette.size) {
                 const color = Math.round(samples[i]! / 257) * 65536 + Math.round(samples[i + 1]! / 257) * 256 + Math.round(samples[i + 2]! / 257);
                 data[p + 4] = (palette.get(color) ?? 0) / 65535;
+            }
+        }
+    }
+    for (let channel = 0; channel < stride - baseStride; channel++) {
+        const mask = masks[channel];
+        for (let y = 0; y < image.height; y++) for (let x = 0; x < image.width; x += 1024) {
+            yield;
+            const count = Math.min(1024, image.width - x);
+            const available = mask && y < mask.height ? Math.max(0, Math.min(count, mask.width - x)) : 0;
+            const samples = available ? new Uint16Array((yield { kind: "read", highDepth: true, image: channel + 1,
+                position: (y * mask!.width + x) * 4, length: available * 4 })!.slice().buffer) : undefined;
+            for (let i = 0; i < count; i++) {
+                data[((y * image.width + x + i) * stride) + baseStride + channel] = mask
+                    ? i < available ? (0.212656 * samples![i * 4]! + 0.715158 * samples![i * 4 + 1]! + 0.072186 * samples![i * 4 + 2]!) / 65535 : 0
+                    : Number(!regionContains(image.region!, x + i, y));
             }
         }
     }
@@ -58,13 +80,10 @@ export function* liquidRescalePixelSteps(image: { width: number; height: number;
                 const p = at(x, y) * stride, index = y * size + x;
                 order[index] = x;
                 const average = (data[p]! + data[p + 1]! + data[p + 2]!) / 3;
-                // liblqr infers RGBA from four channels and CMYKA from five.
-                // Opaque CMYK therefore uses black as RGBA's alpha multiplier.
-                brightness[index] = cmyk
-                    ? image.hasAlpha ? (1 - average) * (1 - data[p + 3]!) * data[p + 4]! : average * data[p + 3]!
-                    : palette.size
-                    ? (image.hasAlpha ? (1 - average) * (1 - data[p + 3]!) : average) * data[p + 4]!
-                    : average * (image.hasAlpha ? data[p + 3]! : 1);
+                brightness[index] = channels.length === 3 ? average
+                    : channels.length === 4 ? average * data[p + channels[3]!]!
+                    : channels.length === 5 ? (1 - average) * (1 - data[p + channels[3]!]!) * data[p + channels[4]!]!
+                    : channels.reduce((sum, channel) => sum + data[p + channel]!, 0) / channels.length;
             }
             for (let seam = 0; seam < count; seam++) {
                 const active = size - seam;

@@ -80,7 +80,7 @@ export function rawNetpbmInput(width: number, height: number, depth: number, end
 export function rgbPartitionPaths(path: string, format = "rgb"): string[] {
     const dot = path.lastIndexOf("."), slash = path.lastIndexOf("/");
     const stem = dot > slash ? path.slice(0, dot) : path;
-    return [...format.toUpperCase()].map(channel => `${stem}.${channel}`);
+    return [...(format.endsWith("o") ? format.slice(0, -1) : format).toUpperCase()].map(channel => `${stem}.${channel}`);
 }
 
 function unsigned32To16(input: Uint8Array, endian: string): Uint8Array {

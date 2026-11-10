@@ -107,7 +107,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                 }
             };
         const stage = async (image: StoredRawImage, path: string, encoding: OutputEncodeOptions) => {
-            if (!["rgb", "rgba", "bgr", "bgra"].includes(encoding.format) || encoding.rawInterlace !== "partition") return snapshots.stage(image, path, encoding);
+            if (!["rgb", "rgba", "rgbo", "bgr", "bgra", "bgro"].includes(encoding.format) || encoding.rawInterlace !== "partition") return snapshots.stage(image, path, encoding);
             let size = 0;
             for (let index = 0; index < (image.rawFrames?.length ?? 1); index++) {
                 const frame = image.rawFrames ? await image.rawFrames.at(index) : image;

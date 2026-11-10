@@ -3233,7 +3233,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
           const dimension = propName === "x" ? targetImg?.width ?? ctx.w : targetImg?.height ?? ctx.h;
           return dimension / Math.max(density, 1e-12);
         }
-        if (name === "depth") return targetImg?.bitsPerSample ?? (targetImg?.depth === "ushort" ? 16 : targetImg?.depth === "bit" ? 1 : 8);
+        if (name === "depth" || name === "z") return targetImg?.bitsPerSample ?? (targetImg?.depth === "ushort" ? 16 : targetImg?.depth === "bit" ? 1 : 8);
         if (propName === "w") return targetImg?.width ?? ctx.w;
         if (propName === "h") return targetImg?.height ?? ctx.h;
 

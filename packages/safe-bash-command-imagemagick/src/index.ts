@@ -2060,7 +2060,7 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
         height: h,
         format: "png",
         channels: 4,
-        depth: "uchar",
+        depth: "ushort",
         density: 72,
         space: "srgb",
         hasAlpha: c1.a < 255 || c2.a < 255,
@@ -15974,7 +15974,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    await backend.storage.write(position+start*4,bytes);
    if(storedData16&&samples)await backend.storage.write(storedData16.position+start*8,new Uint8Array(samples.buffer));
   }
-  image={position,width,height,...(storedData16?{storedData16}:{}),format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
+  image={position,width,height,...(storedData16?{storedData16}:{}),format:"png",channels:4,depth:checker?"uchar":"ushort",space:"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   image=await decodeStoredMagickSvg(createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),state.density,backend,signal);
  }else{

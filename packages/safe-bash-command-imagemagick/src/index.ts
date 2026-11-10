@@ -7050,12 +7050,16 @@ function parseMagickIndices(spec: string, operation: "clone" | "delete" = "clone
 }
 
 function parseMagickDuplicateCount(spec: string): number {
-  // Validate the numeric geometry before reading its leading decimal integer.
-  const dimensions = spec.toLowerCase().split("x");
-  if (dimensions.length > 2 || dimensions.some(value => !Number.isFinite(Number(value)))) {
+  if ([...spec].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@^".includes(c))) {
     throw new Error(`invalid argument ${spec}`);
   }
-  return spec.trim() === "" ? 0 : Number.parseInt(spec, 10);
+  const geometry = [...spec].filter(c => c.trim() !== "" && c !== "(" && c !== ")").join("");
+  const hasGeometryFlag = geometry.startsWith("-") || [...geometry].some(c => "xX.!#%:<>@^".includes(c));
+  if (!hasGeometryFlag && !Number.isFinite(Number(geometry.split("/")[0]))) {
+    throw new Error(`invalid argument ${spec}`);
+  }
+  // Geometry validates the operand; the original leading decimal integer is the count.
+  return Number.parseInt(spec, 10) || 0;
 }
 
 function parseMagickDuplicateScenes(spec: string): string {

@@ -1643,7 +1643,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     magick: short.m!,
     version: MAGICK_VERSION,
     directory: short.d!, basename: short.t!, extension: short.e!,
-    interlace: context.interlace ?? (meta.isProgressive ? meta.format.toUpperCase() : "None"),
+    interlace: Object.entries(meta.properties ?? {}).find(([key]) => key.toLowerCase() === "interlace")?.[1] ?? context.interlace ?? (meta.isProgressive ? meta.format.toUpperCase() : "None"),
     ...(meta.gravity === undefined ? {} : { gravity: ({
       northwest: "NorthWest", north: "North", northeast: "NorthEast",
       west: "West", center: "Center", east: "East",

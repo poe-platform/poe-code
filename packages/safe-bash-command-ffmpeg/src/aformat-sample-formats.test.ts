@@ -5,7 +5,7 @@ import { createFfmpegCommand } from "./index.js";
 
 const samples = [-32670, -31718, -32677, -30955, 30955, 32677, 31718, 32670];
 
-for (const format of ["flt", "fltp", "dbl", "dblp", "s32", "s32p", "s16", "s16p", "u8", "u8p"]) {
+for (const format of ["flt", "fltp", "dbl", "dblp", "s32", "s32p", "s64", "s64p", "s16", "s16p", "u8", "u8p"]) {
   for (const key of ["f", "sample_fmts"]) {
     for (const graph of [false, true]) {
       it(`converts aformat ${key}=${format} through ${graph ? "filter_complex" : "af"}`, async () => {
@@ -13,10 +13,10 @@ for (const format of ["flt", "fltp", "dbl", "dblp", "s32", "s32p", "s16", "s16p"
         samples.forEach((sample, index) => input.writeInt16LE(sample, index * 2));
         const volume = Volume.fromJSON({ "/out.raw": "KEEP" });
         volume.writeFileSync("/in.raw", input);
-        const filter = `aformat=${key}=${format}`;
+        const filter = `aformat=${key}=${format},ashowinfo`;
         let stderr = "";
         const result = await createFfmpegCommand().execute({
-          args: ["-v", "error", "-y", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
+          args: ["-v", "info", "-y", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
             ...(graph ? ["-filter_complex", `[0:a]${filter}[o]`, "-map", "[o]"] : ["-af", filter]),
             "-f", "s16le", "/out.raw"],
           cwd: "/", env: {}, signal: new AbortController().signal,
@@ -29,6 +29,10 @@ for (const format of ["flt", "fltp", "dbl", "dblp", "s32", "s32p", "s16", "s16p"
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         assert.equal(result.exitCode, 0, stderr);
+        assert.ok(stderr.includes(`fmt:${format} channels:1`), stderr);
+        if (format === "s64" || format === "s64p") {
+          assert.ok(stderr.includes("checksum:CF5407FC plane_checksums: [ CF5407FC ]"), stderr);
+        }
         const expected = Buffer.alloc(input.length);
         // Native FFmpeg 7.0.2: u8 discards the low eight bits of PCM16 input.
         const levels = (format === "u8" || format === "u8p")

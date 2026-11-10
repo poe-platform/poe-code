@@ -691,7 +691,7 @@ stereo input or converts mono with equal-power gains. Lists such as `mono|stereo
 and `stereo|mono` preserve either input layout regardless of list order.
 Every entry must be `mono` or `stereo`; invalid lists fail without replacing output.
 `aformat=sample_fmts` (alias `f`) accepts `u8`, `u8p`, `s16`, `s16p`, `s32`,
-`s32p`, `flt`, `fltp`, `dbl`, and `dblp`. Samples pass through the selected intermediate
+`s32p`, `s64`, `s64p`, `flt`, `fltp`, `dbl`, and `dblp`. Samples pass through the selected intermediate
 precision, even when the output codec has higher precision. Planar formats preserve
 the same samples as their packed equivalents.
 Pipe-separated lists preserve an allowed input format regardless of list order:

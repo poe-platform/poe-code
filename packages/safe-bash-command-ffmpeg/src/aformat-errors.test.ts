@@ -8,6 +8,7 @@ const samples = [-30000, -12345, -401, -1, 0, 1, 401, 12345, 30000];
 // Native FFmpeg 7.0.2 statuses and PCM16 bytes, including preserved output on failure.
 for (const [setting, exitCode] of [
   ["f=garbage", 234], ["sample_fmts=garbage", 234],
+  ["f=s64|invalid", 234], ["sample_fmts=invalid|s64p", 234],
   ["r=bad", 234], ["sample_rates=bad", 234],
   ["cl=bogus", 234], ["channel_layouts=bogus", 234],
   ["no_such_opt=1", 8], ["f=u8", 0]

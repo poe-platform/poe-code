@@ -8,6 +8,10 @@ const input = [-32670, -31718, -32677, -30955, 30955, 32677, 31718, 32670];
 const quantized = [-32768, -31744, -32768, -30976, 30720, 32512, 31488, 32512];
 const cases: [string, number[] | null][] = [
   ["u8|s16", input],
+  ["s64|s16", input],
+  ["s16|s64p", input],
+  ["u8|s64", input],
+  ["s64p|u8", input],
   ["s16|u8", input],
   ["flt|s16", input],
   ["s16|flt", input],

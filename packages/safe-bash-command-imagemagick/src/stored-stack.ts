@@ -15,6 +15,7 @@ export interface MagickFormatContext {
     listIndex?: number;
     sceneCount?: number;
     quality?: number;
+    fuzz?: number;
     precision?: number;
     ticksPerSecond?: number;
     delayTicks?: number;

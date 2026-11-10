@@ -100,10 +100,11 @@ export function* formatTrimBoundsSteps<Step = never>(
     image: Pick<RgbaImage, "width" | "height">,
     load: (position: number, length: number) => Generator<Step, { data: Uint8Array; data16?: Uint16Array }, void>,
     format: "trim-geometry" | "bounding-box",
+    fuzz: number,
     analysis?: { warnings: string }
 ): Generator<Step | void, string, void> {
     const first = yield* load(0, 4);
-    const steps = trimBounds(image.width, image.height, 0, first.data16 ? 257 : 1);
+    const steps = trimBounds(image.width, image.height, fuzz, first.data16 ? 257 : 1);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }

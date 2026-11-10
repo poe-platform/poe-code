@@ -3957,8 +3957,10 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
     if (geometry.endsWith("+") || geometry.endsWith("-")) geometry = geometry.slice(0, -1);
     // Shadow accepts alternate separators and ignores fields after sigma and offsets.
     const normalized = normalizeMagickOffsets(geometry).replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x").split("x", 2).join("x");
-    const g = parseMagickGeometry(normalized), opacity = Math.max(0, g.aspectRatio ?? g.width ?? 0) / 100, sigma = Math.max(0, g.height ?? 1);
-    if (![...geometry].every(char => "0123456789.eExX+- %!<>^@,/:".includes(char)) ||
+    // Shadow ignores these geometry modifiers, including resize area semantics.
+    const g = parseMagickGeometry(normalized.replaceAll("(", "").replaceAll(")", "").replaceAll("#", "").replaceAll("@", ""));
+    const opacity = Math.max(0, g.aspectRatio ?? g.width ?? 0) / 100, sigma = Math.max(0, g.height ?? 1);
+    if (![...geometry].every(char => "0123456789.eExX+- %!<>^@,/:()#".includes(char)) ||
         (!Number.isFinite(g.aspectRatio) && !Number.isFinite(g.width) && !Number.isFinite(g.height))) {
         throw new Error(`invalid argument for option '-shadow': ${geometry}`);
     }

@@ -1,3 +1,4 @@
+import { cropReadMaskSteps, cropStoredReadMask } from "./crop-read-mask.js";
 import { extractImageSteps, transformStoredImage, type ImageByteStorage, type RgbaColor, type RgbaImage as BaseRgbaImage, type StoredRgbaImage as BaseStoredRgbaImage } from "@poe-code/image-ast/portable";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
@@ -217,7 +218,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
             cropped = { ...cropped, data16 };
         }
         return { ...cropped,
-            ...("readMask" in image && image.readMask ? { readMask: yield* extractImageSteps(image.readMask as RgbaImage, area) } : {}),
+            ...("readMask" in image && image.readMask ? { readMask: yield* cropReadMaskSteps(image.readMask as RgbaImage, area) } : {}),
             ...(image.writeMask ? { writeMask: yield* extractImageSteps(image.writeMask, area) } : {}),
             virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + area.left, y: (image.virtualCanvas?.y ?? 0) + area.top },
         };
@@ -255,7 +256,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
         const area = cropTrimBounds(next.value, image.width, image.height, minSize);
         return {
             ...await transformStoredImage(image, storage, { kind: "extract", ...area }, signal),
-            ...("readMask" in image && image.readMask ? { readMask: await transformStoredImage(image.readMask as StoredRgbaImage, storage, { kind: "extract", ...area }, signal) } : {}),
+            ...("readMask" in image && image.readMask ? { readMask: await cropStoredReadMask(image.readMask as StoredRgbaImage, area, storage, signal) } : {}),
             ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, storage, { kind: "extract", ...area }, signal) } : {}),
             virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + area.left, y: (image.virtualCanvas?.y ?? 0) + area.top },
         };

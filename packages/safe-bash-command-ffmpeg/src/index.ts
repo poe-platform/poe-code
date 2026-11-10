@@ -13141,8 +13141,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const lastFrame = audioTimestamps.at(-1);
                         const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
                         // apad rescales each frame's duration to input ticks before advancing PTS.
-                        let paddingPts = lastFrame ? lastFrame.pts
-                          + Math.round((lastFrame.end - lastFrame.start) / samplesPerTick) * samplesPerTick : 0;
+                        let paddingExactPts = lastFrame && Number.isNaN(lastFrame.pts)
+                          ? -(2n ** 63n) + BigInt(Math.round((lastFrame.end - lastFrame.start) / samplesPerTick)) : undefined;
+                        let paddingPts = paddingExactPts !== undefined
+                          ? paddingExactPts === -(2n ** 63n) ? NaN : Number(paddingExactPts) * samplesPerTick
+                          : lastFrame ? lastFrame.pts
+                            + Math.round((lastFrame.end - lastFrame.start) / samplesPerTick) * samplesPerTick : 0;
                         if (padding === undefined && minimum === undefined) {
                           let nextIndex = filterIndex + 1;
                           let reframe: string | undefined;
@@ -13447,12 +13451,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         if (!enabled || length === inputLength) continue;
-                        budget.allocateMemory(Math.ceil((length - inputLength) / packetSize) * 24);
+                        budget.allocateMemory(Math.ceil((length - inputLength) / packetSize) * (paddingExactPts === undefined ? 24 : 48));
                         for (let start = inputLength; start < length; start += packetSize) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           const end = Math.min(length, start + packetSize);
-                          audioTimestamps.push({ start, end, pts: paddingPts });
-                          paddingPts += Math.round((end - start) / samplesPerTick) * samplesPerTick;
+                          // Native apad advances the integer NOPTS sentinel, producing finite
+                          // negative timestamps that downstream filters must not synthesize.
+                          audioTimestamps.push({ start, end, pts: paddingPts,
+                            exactPts: samplesPerTick === 1 ? paddingExactPts : undefined });
+                          const ticks = Math.round((end - start) / samplesPerTick);
+                          if (paddingExactPts !== undefined) {
+                            paddingExactPts += BigInt(ticks);
+                            paddingPts = paddingExactPts === -(2n ** 63n) ? NaN : Number(paddingExactPts) * samplesPerTick;
+                          } else paddingPts += ticks * samplesPerTick;
                         }
                         stretched = await mapWork(stretched, async channel => {
                           budget.allocateMemory(length * channel.BYTES_PER_ELEMENT);

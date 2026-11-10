@@ -9459,12 +9459,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-crop") {
             const geom = tokens[++i] ?? "100%";
-            validateMagickTransformGeometry(geom, t);
             const nextStack: RgbaImage[] = [];
             for (const im of stack) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
-                nextStack.push(...(yield* applyMagickCropToStackSteps(im, geom, state.gravity, analysis)));
+                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                validateMagickTransformGeometry(expanded, t);
+                nextStack.push(...(yield* applyMagickCropToStackSteps(im, expanded, state.gravity, analysis)));
             }
             stack = nextStack;
         }
@@ -11968,15 +11969,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseUnsharpGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, false, channels, geometry), signal) : undefined);
         } else if (!operandsOnly && token === "-crop") {
-            const geometry = tokens[++i] ?? "100%", gravity = state.gravity;
-            validateMagickTransformGeometry(geometry, token);
+            const geometry = tokens[++i] ?? "100%", gravity = state.gravity, optionProperties = state.optionProperties;
             stackStep(async (stack, backend) => {
                 const frames = new StoredImageStack(backend.storage, signal);
                 for (let n = 0; n < stack.length; n++) {
                     const image = (await stack.get(n))! as StoredRgbaImage & StoredMagickImage;
-                    for (const area of magickCropAreas(image, geometry, gravity)) {
+                    const expanded = await formatRetainedIdentify(geometry, image, { ...image[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                    validateMagickTransformGeometry(expanded, token);
+                    for (const area of magickCropAreas(image, expanded, gravity)) {
                         await yieldTurn(signal);
-                        if (!area) analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
+                        if (!area) analysis.warnings += `magick: geometry does not contain image '${expanded}'\n`;
                         if (area === null) {
                             await frames.push({ ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend, signal),
                                 ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),

@@ -111,7 +111,12 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             if (!Number.isFinite(sx) || !Number.isFinite(sy)) continue;
             const x0 = virtualPixel ? Math.floor(sx) : Math.max(0, Math.min(width - 1, Math.floor(sx))), y0 = virtualPixel ? Math.floor(sy) : Math.max(0, Math.min(height - 1, Math.floor(sy)));
             const x1 = virtualPixel ? x0 + 1 : Math.max(0, Math.min(width - 1, x0 + 1)), y1 = virtualPixel ? y0 + 1 : Math.max(0, Math.min(height - 1, y0 + 1));
-            const fx = Math.max(0, Math.min(1, sx - x0)), fy = Math.max(0, Math.min(1, sy - y0));
+            let fx = Math.max(0, Math.min(1, sx - x0)), fy = Math.max(0, Math.min(1, sy - y0));
+            // Blend selects one neighbor at the edges and averages the middle half.
+            if (plan.interpolation === "blend") {
+                fx = fx >= 0.75 ? 1 : fx > 0.25 ? 0.5 : 0;
+                fy = fy >= 0.75 ? 1 : fy > 0.25 ? 0.5 : 0;
+            }
             const derivatives = plan.derivatives?.(px, py);
             // Native resampling uses an integer lookup when the entire filter
             // footprint lies beyond the raster's pixel centers.
@@ -151,7 +156,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     if (interpolation === "mesh") colorTotal += weight * opacity / maximum;
                     else if (interpolation === "average" || interpolation === "catrom") colorTotal += weight;
                     // Native Catrom keeps the interpolated premultiplied colors.
-                    if (derivatives || interpolation === "bilinear" || interpolation === "catrom") weight *= opacity / maximum;
+                    if (derivatives || interpolation === "blend" || interpolation === "bilinear" || interpolation === "catrom") weight *= opacity / maximum;
                     else if (interpolation === "average") weight *= Number(opacity > 0);
                     red += pixel[0]! * (plan.channels?.[0] === false ? unassociatedWeight : weight);
                     green += pixel[1]! * (plan.channels?.[1] === false ? unassociatedWeight : weight);

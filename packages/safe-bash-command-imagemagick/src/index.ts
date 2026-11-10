@@ -10489,6 +10489,11 @@ if (t === "-intent" || t === "+intent") {
             if (k === "option:compose:args")
                 state.composeArgs = v;
         } else return undefined;
+    if ((t === "-define" || t === "-set") && state.optionProperties?.interlace !== undefined) {
+        const interlace = state.optionProperties.interlace.toLowerCase();
+        state.interlace = ["Undefined", "None", "Line", "Plane", "Partition", "GIF", "JPEG", "PNG"]
+            .find(method => method.toLowerCase() === interlace) ?? "Unrecognized";
+    }
     const property = t?.slice(1);
     if (property && ["compose", "gravity", "filter", "background", "interpolate", "interlace", "virtual-pixel"].includes(property)) {
         state.optionProperties = { ...state.optionProperties };
@@ -10696,6 +10701,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, matteColor: image.matteColor ?? state.matteColor }; });
         }
         const previousBorderColor = state.borderColor;
+        const previousInterlace = state.interlace;
         let setting: number | undefined;
         if (t === "-interlace" && tokens[i + 1]?.includes("%")) {
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
@@ -10759,7 +10765,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             if (t === "-mattecolor") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, matteColor: state.matteColor }; });
             if (t === "-background") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, backgroundColor: state.background }; });
-            if (t === "-interlace" || t === "+interlace") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
+            if (t === "-interlace" || t === "+interlace" || state.interlace !== previousInterlace) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
             if (t === "-quality") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, quality: state.quality }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
@@ -13517,6 +13523,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async image => image ? { ...image, matteColor: image.matteColor ?? matteColor } : undefined);
         }
         const previousBorderColor = state.borderColor;
+        const previousInterlace = state.interlace;
         // Resolve property-dependent settings sequentially before capturing later settings.
         if (!operandsOnly && token === "-interlace" && tokens[i + 1]?.includes("%")) return;
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
@@ -13550,7 +13557,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const backgroundColor = state.background;
                 steps.push(async image => image ? { ...image, backgroundColor } : undefined);
             }
-            if (token === "-interlace" || token === "+interlace") {
+            if (token === "-interlace" || token === "+interlace" || state.interlace !== previousInterlace) {
                 const interlace = state.interlace!;
                 steps.push(async image => image ? { ...image, [magickInput]: { ...(image as StoredMagickImage)[magickInput], interlace } } : undefined);
             }

@@ -35,7 +35,7 @@ import { chopRegion, orientRegion, rotateRegion, rollRegion, regionContains, reg
 import { clearWriteMaskPixelSteps, statisticWriteMaskPixelSteps, writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
 import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
-import { rawNetpbmInput, rgbPartitionPaths } from "./raw-rgb.js";
+import { rawRasterInput, rgbPartitionPaths } from "./raw-rgb.js";
 import { encodeImage, isRawCoder, type ImageFormat, type RawImage, type StoredRawImage } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewBackground } from "./deskew.js";
 import { compareLayerBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
@@ -4039,13 +4039,38 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
         }
         // Quantize Q16 samples directly; an eight-bit palette loses both input
         // precision and output levels. Transfers stay bounded in caller storage.
-        for (let position = 0; position < img.width * img.height * 4; position += 4096) {
+        const chunkSamples = !reducePalette && img.space === "cmyk" ? 2048 : 4096;
+        for (let position = 0; position < img.width * img.height * 4; position += chunkSamples) {
             signal?.throwIfAborted();
-            const length = Math.min(4096, img.width * img.height * 4 - position);
+            const length = Math.min(chunkSamples, img.width * img.height * 4 - position);
             const bytes = (yield { kind: "read", highDepth: true, position, length })!;
             const samples = new Uint16Array(bytes.slice().buffer);
-            for (let i = 0; i < samples.length; i++) {
-                if (mask[i % 4]) samples[i] = Math.round(Math.round(samples[i]! / 65535 * (levels - 1)) / (levels - 1) * 65535);
+            if (!reducePalette && img.space === "cmyk") {
+                const inkBytes = (yield { kind: "read", hue: true, position, length })!;
+                const inks = new Float64Array(inkBytes.slice().buffer);
+                const inkMask = [channels.r, channels.g, channels.b, channels.k];
+                const backing = new Float64Array(samples.length);
+                for (let i = 0; i < inks.length; i++) {
+                    if (inkMask[i % 4]) inks[i] = Math.round(inks[i]! * (levels - 1)) / (levels - 1);
+                }
+                for (let i = 0; i < samples.length; i++) {
+                    const channel = i % 4;
+                    const value = channel === 3 ? (channels.a ? Math.round(samples[i]! / 65535 * (levels - 1)) / (levels - 1) : samples[i]! / 65535)
+                        : (1 - inks[i]!) * (1 - inks[i - channel + 3]!);
+                    backing[i] = value * 255;
+                    samples[i] = Math.round(value * 65535);
+                }
+                yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
+                yield { kind: "write", evaluate: true, position, data: new Uint8Array(backing.buffer) };
+            } else {
+                const backing = !reducePalette ? new Float64Array(samples.length) : undefined;
+                for (let i = 0; i < samples.length; i++) {
+                    const value = mask[i % 4] ? Math.round(samples[i]! / 65535 * (levels - 1)) / (levels - 1) : samples[i]! / 65535;
+                    if (backing) backing[i] = value * 255;
+                    samples[i] = Math.round(value * 65535);
+                }
+                // Keep fractional depth levels for later grayscale conversion.
+                if (backing) yield { kind: "write", evaluate: true, position, data: new Uint8Array(backing.buffer) };
             }
             yield { kind: "write", highDepth: true, position, data: new Uint8Array(samples.buffer) };
         }
@@ -6297,13 +6322,13 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         }
         return yield* applyMod(selected);
     }
-    if (lower.startsWith("graya:") || lower.startsWith("gray:") || (!lower.includes(":") && lower.endsWith(".gray"))) {
-        const alpha = lower.startsWith("graya:");
-        if (!state.hasSize) throw new Error(`must specify image size for ${alpha ? "GRAYA" : "GRAY"} input`);
-        const path = alpha ? baseToken.slice(6) : lower.startsWith("gray:") ? baseToken.slice(5) : baseToken;
+    const packedCoder = ["gray", "graya", "cmyk", "cmyka"].find(coder => lower.startsWith(`${coder}:`) || (!lower.includes(":") && lower.endsWith(`.${coder}`)));
+    if (packedCoder) {
+        if (!state.hasSize) throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
+        const path = lower.startsWith(`${packedCoder}:`) ? baseToken.slice(packedCoder.length + 1) : baseToken;
         const source = path === "-" ? stdinBytes : files.get(path);
         if (!source) return undefined;
-        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", source.length, alpha ? 2 : 1, state.inputOffset);
+        const raw = rawRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", source.length, packedCoder === "gray" ? 1 : packedCoder === "graya" ? 2 : packedCoder === "cmyk" ? 4 : 5, state.inputOffset);
         const frames: RgbaImage[] = [];
         for (const page of selectedInputPages(pageSpec, raw.pages)) {
             const bytes = new Uint8Array(raw.size);
@@ -6346,7 +6371,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (rgb) {
         if (!state.hasSize) throw new Error("must specify image size for RGB input");
-        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", partitions ? Math.min(...partitions.map(bytes => bytes!.length)) * 3 : rawBytes.length, 3, state.inputOffset, state.rawInterlace);
+        const raw = rawRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", partitions ? Math.min(...partitions.map(bytes => bytes!.length)) * 3 : rawBytes.length, 3, state.inputOffset, state.rawInterlace);
         const frames: RgbaImage[] = [];
         for (const page of selectedInputPages(pageSpec, raw.pages)) {
             const bytes = new Uint8Array(raw.size);
@@ -9463,7 +9488,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (setting !== undefined) {
             i = setting;
             if (t === "-depth" && state.inputDepth! < 16) {
-                const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+                const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
                 stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, false, 1, channels, signal, false), signal));
             }
             if (t === "-interlace" || t === "+interlace") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
@@ -11633,7 +11658,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 stackStep(async stack => { maskChannels = channels; return stack; });
             }
             if (token === "-depth" && state.inputDepth! < 16) {
-                const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+                const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
                 steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, false, 1, channels, signal, false), signal) : undefined);
             }
             if (token === "-interlace" || token === "+interlace") {
@@ -13546,6 +13571,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
      }
      return image;
  }
+ const packedCoder=["gray","graya","cmyk","cmyka"].find(coder=>lower.startsWith(`${coder}:`)||(!lower.includes(":")&&lower.endsWith(`.${coder}`)));
  if(lower.startsWith("tile:")){
   if(!state.hasSize)throw new Error("must specify image size for TILE input");
   if(readOptions.visit){
@@ -13570,14 +13596,13 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    return parseStoredCompareInput(`ppm:${token.slice(5)}`,state,backend,signal,{...readOptions,source:{size,async read(offset,length){return backend.storage.read(position+offset,length);}}});
   };
   return readOptions.source===null?undefined:readOptions.source?consume(readOptions.source):backend.read(baseToken.slice(5),consume);
- }else if(lower.startsWith("graya:")||lower.startsWith("gray:")||(!lower.includes(":")&&lower.endsWith(".gray"))){
-  const alpha=lower.startsWith("graya:");
-  if(!state.hasSize)throw new Error(`must specify image size for ${alpha ? "GRAYA" : "GRAY"} input`);
-  const path=alpha?baseToken.slice(6):lower.startsWith("gray:")?baseToken.slice(5):baseToken;
+ }else if(packedCoder){
+  if(!state.hasSize)throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
+  const path=lower.startsWith(`${packedCoder}:`)?baseToken.slice(packedCoder.length+1):baseToken;
   const consume=async(source:ImageByteSource)=>{
-   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size,alpha?2:1,state.inputOffset);
+   const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size,packedCoder==="gray"?1:packedCoder==="graya"?2:packedCoder==="cmyk"?4:5,state.inputOffset);
    for(const page of selectedInputPages(pageSpec,raw.pages)){
-    image=await parseStoredCompareInput(`${alpha?"pam":"pgm"}:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
+    image=await parseStoredCompareInput(`${packedCoder==="gray"?"pgm":packedCoder==="graya"?"pam":"miff"}:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();
      while(!next.done)next=steps.next(await source.read(next.value.position,next.value.length,{signal}));
      return next.value;
@@ -13591,7 +13616,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if(!state.hasSize)throw new Error("must specify image size for RGB input");
   const path=lower.startsWith("rgb:")?baseToken.slice(4):baseToken;
   const consume=async(sources:ImageByteSource[])=>{
-   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,3,state.inputOffset,state.rawInterlace);
+   const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,3,state.inputOffset,state.rawInterlace);
    for(const page of selectedInputPages(pageSpec,raw.pages)){
     image=await parseStoredCompareInput(`ppm:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();

@@ -14,10 +14,20 @@ export async function resampleAudio(
   // reflected tail added on flush. Short clips may never initialize at all.
   const filterLength = filterSize <= cutoff ? 1
     : 2 * Math.ceil(filterSize / 2 / cutoff);
+  const center = Math.floor((filterLength - 1) / 2);
   if (length <= filterLength) {
     const flushedLength = length + Math.ceil(length / 2);
     outputLength = flushedLength <= filterLength ? 0
       : Math.ceil((flushedLength - filterLength / 2) / rateRatio);
+  } else {
+    // Flush reflects half the remaining input buffer, capped at the filter size.
+    // A rounded-up duration can need more support than that tail provides.
+    const rightSupport = filterLength - center - 1;
+    const emitted = Math.ceil((length - rightSupport) * outputRate / inputRate);
+    const remaining = Math.max(0, length - Math.floor(emitted * inputRate / outputRate) + center);
+    const reflection = Math.ceil(Math.min(remaining, filterLength) / 2);
+    outputLength = Math.min(outputLength,
+      Math.ceil((length + reflection - rightSupport) * outputRate / inputRate));
   }
   if (frameLimit) {
     let frames = 0;
@@ -41,7 +51,6 @@ export async function resampleAudio(
   }
   const output = channels.map(() => new Float32Array(outputLength));
   if (length === 0 || outputLength === 0) return output;
-  const center = Math.floor((filterLength - 1) / 2);
   // Startup reflects around the first sample; flushing repeats the last sample.
   const period = Math.max(1, 2 * length - 1);
   const sums = new Float64Array(channels.length);

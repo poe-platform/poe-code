@@ -2020,13 +2020,13 @@ async function applyVideoFilterChain(
   registry: ReturnType<typeof createMediaAstRegistry>,
   signal?: AbortSignal,
   cleanFrames?: MediaVideoFrame[]
-): Promise<MediaVideoFrame[]> {
+): Promise<(MediaVideoFrame & { interlaced?: boolean; topFieldFirst?: boolean })[]> {
   let work = 0;
 
   let pixelFormat = diagnostics.pixelFormat;
   let timescale = diagnostics.timescale;
   let endTimeSeconds: number | undefined;
-  let current: (MediaVideoFrame & { filterMetadata?: Record<string, string>; interlaced?: boolean })[] = frames;
+  let current: (MediaVideoFrame & { filterMetadata?: Record<string, string>; interlaced?: boolean; topFieldFirst?: boolean })[] = frames;
   if (current.length === 0) return current;
   let frameRateKnown = true;
   let videoCommands: { time: number; target: string; expression: string }[] = [];
@@ -3772,7 +3772,7 @@ async function applyVideoFilterChain(
           const source = row % 2 === 0 ? first : second;
           data.set(source.data.subarray(row * stride, (row + 1) * stride), row * stride);
         }
-        const combined = { ...first, data, durationSeconds: first.durationSeconds + second.durationSeconds, interlaced: true };
+        const combined = { ...first, data, durationSeconds: first.durationSeconds + second.durationSeconds, interlaced: true, topFieldFirst: true };
         delete combined.native;
         output.push(combined);
       }
@@ -3824,7 +3824,7 @@ async function applyVideoFilterChain(
           // Native telecine retains interlace flags on its reused output slots.
           const interlaced = interlacedSlots[outputIndex] = Boolean(interlacedSlots[outputIndex] || pending !== frame || frame.interlaced);
           outputIndex++;
-          const combined = { ...frame, data, ptsSeconds: start + output.length * durationSeconds, durationSeconds, interlaced };
+          const combined = { ...frame, data, ptsSeconds: start + output.length * durationSeconds, durationSeconds, interlaced, topFieldFirst: fieldOrder === 0 };
           if (pending !== frame) delete combined.native;
           output.push(combined);
           pending = undefined;
@@ -3862,6 +3862,9 @@ async function applyVideoFilterChain(
       }
       current = blended;
     } else if (name === "shuffleframes") {
+      for (const key of Object.keys(named)) {
+        if (key !== "mapping" && key !== "enable") throw new Error(`shuffleframes: unsupported option ${key}`);
+      }
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       const mapping = (named.mapping ?? (positional[0]?.includes("=") ? "0" : positional[0] || "0")).split("|").join(" ").split(" ").filter(Boolean).map(value => Number.parseInt(value, 10));
       if (positional.filter(part => !part.includes("=")).length > 1 ||
@@ -9751,7 +9754,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const offsetTicks = Math.round(presentationOffset * t.timescale);
                   const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
                   // Filters use the displayed timeline; retain media coordinates for the existing edit list.
-                  const displayed = decoded.map(frame => ({ ...frame, interlaced: ["tt", "bb", "tb", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), ptsSeconds: frame.ptsSeconds - offsetTicks / t.timescale }));
+                  const displayed = decoded.map(frame => ({ ...frame, topFieldFirst: ["tt", "tb"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), interlaced: ["tt", "bb", "tb", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), ptsSeconds: frame.ptsSeconds - offsetTicks / t.timescale }));
                   const diagnostics = {
                     timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds
                       ? 1 / decoded[0].durationSeconds : t.timescale,
@@ -9775,7 +9778,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ...t,
                     width: first?.width ?? t.width,
                     height: first?.height ?? t.height,
-                    codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, pixFmt: diagnostics.pixelFormat, sarWidth: diagnostics.sarWidth, sarHeight: diagnostics.sarHeight })),
+                    codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, fieldOrder: first?.interlaced === undefined ? codec.fieldOrder : first.interlaced ? first.topFieldFirst ? "tt" : "bb" : "progressive", pixFmt: diagnostics.pixelFormat, sarWidth: diagnostics.sarWidth, sarHeight: diagnostics.sarHeight })),
                     samples: [],
                     decodedVideoFrames: filtered.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) + offsetTicks) / t.timescale }))
                   };
@@ -14903,6 +14906,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
             if (msg === audioConversionDisabled) return { exitCode: 234 };
+            if (msg.startsWith("shuffleframes: unsupported option ")) return { exitCode: 8 };
+            if (msg === "shuffleframes: mapping must contain frame indices from -1 to the group size minus one") return { exitCode: 234 };
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
             if ((overwrite && msg === "aecho: delay is too small") ||
                 msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:") ||

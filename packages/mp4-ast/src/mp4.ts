@@ -2267,8 +2267,9 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
     if (track.type === "video" && track.decodedVideoFrames) {
       // Video trim boundaries use the nearest stream timebase tick, including half ticks.
       const start = Math.round(startSec * track.timescale) / track.timescale;
+      const end = Math.round(endSec * track.timescale) / track.timescale;
       const frames = track.decodedVideoFrames
-        .filter((frame) => frame.ptsSeconds >= start && frame.ptsSeconds < endSec)
+        .filter((frame) => frame.ptsSeconds >= start && frame.ptsSeconds < end)
         .map((frame) => ({ ...frame, ptsSeconds: frame.ptsSeconds - start }));
       slicedTracks.push({
         ...track,

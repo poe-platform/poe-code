@@ -4823,6 +4823,7 @@ async function applyVideoFilterChain(
     }
   }
 
+  diagnostics.timescale = timescale;
   return current;
 }
 
@@ -10471,8 +10472,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   const offsetTicks = Math.round(presentationOffset * t.timescale);
                   const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
-                  // Filters use the displayed timeline; retain media coordinates for the existing edit list.
-                  const displayed = decoded.map(frame => ({ ...frame, interlaced: ["tt", "bb", "tb", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), topFieldFirst: ["tt", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) - offsetTicks) / t.timescale }));
                   const diagnostics = {
                     timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds
                       ? 1 / decoded[0].durationSeconds : t.timescale,
@@ -10483,6 +10482,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     logLevel,
                     write: (text: string) => writeBytes(context.stderr, encodeUtf8(text), context.signal)
                   };
+                  // Filters use the displayed timeline; retain media coordinates for the existing edit list.
+                  const displayed = decoded.map(frame => ({ ...frame, interlaced: ["tt", "bb", "tb", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), topFieldFirst: ["tt", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), ptsSeconds: Math.round(frame.ptsSeconds * diagnostics.timescale) / diagnostics.timescale - offsetTicks / t.timescale }));
                   const inputFrames = feedback
                     ? await applyFeedback(displayed, feedback.rectangle, tiles => applyVideoFilterChain(
                       tiles, feedback.filter, budget, { ...diagnostics }, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal
@@ -10496,7 +10497,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   });
                   if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
                     const start = Math.round((outputSs ?? 0) * diagnostics.timescale) / diagnostics.timescale;
-                    const end = outputDuration === undefined ? outputTo ?? Infinity : start + outputDuration;
+                    const end = Math.round((outputDuration === undefined ? outputTo ?? Infinity : (outputSs ?? 0) + outputDuration) * diagnostics.timescale) / diagnostics.timescale;
                     filtered = filtered.filter(frame => frame.ptsSeconds >= start && frame.ptsSeconds < end)
                       .map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds - start }));
                   }

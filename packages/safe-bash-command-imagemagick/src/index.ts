@@ -9108,6 +9108,8 @@ if (t === "-seed") {
                 if (!["true", "false", "1", "0", "yes", "no", "on", "off"].includes(value)) throw new Error(`Unsupported connected-components setting: ${k}=${v}`);
                 state.connectedVerbose = ["true", "1", "yes", "on"].includes(value);
             } else if (k.startsWith("option:connected-components:") || k.startsWith("connected-components:")) throw new Error(`Unsupported connected-components setting: ${k}`);
+            if (k === "option:trim:edges" || k === "option:trim:minsize")
+                applyMagickReadSetting(["-define", `${k.slice("option:".length)}=${v}`], state, 0);
             if (k === "option:compose:args")
                 state.composeArgs = v;
         } else return undefined;

@@ -7,6 +7,31 @@ import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { Shell } from "../../src/shell/shell.js";
 
+for (const command of ["declare", "typeset", "local"]) {
+  for (const [source, expected] of [
+    ['declare -A v; v[cat]=dog', 'declare -A v=([cat]="dog" )\n'],
+    ["declare -A v; v['two words']='many words'", 'declare -A v=(["two words"]="many words" )\n'],
+    ['declare -a v; v[0]=dog', 'declare -a v=([0]="dog")\n'],
+    ['declare -A v=()', 'declare -A v=()\n'],
+    ["declare -A v; v['a-b./:@%+=,~#']=dog", 'declare -A v=([a-b./:@%+=,~#]="dog" )\n'],
+    ["declare -A v; v['~cat']=dog", 'declare -A v=(["~cat"]="dog" )\n'],
+    ["declare -A v; v['#cat']=dog", 'declare -A v=(["#cat"]="dog" )\n'],
+    ["declare -A v; v['@']=dog", 'declare -A v=(["@"]="dog" )\n'],
+    ["declare -A v; v['a=~:~']=dog", 'declare -A v=(["a=~:~"]="dog" )\n'],
+    ["declare -A v; v['a!^{}[]*?']=dog", 'declare -A v=(["a!^{}[]*?"]="dog" )\n'],
+    [String.raw`declare -A v; v['$(echo injected)']=$'a\tb'`, 'declare -A v=(["\\$(echo injected)"]=$\'a\\tb\' )\n'],
+    [String.raw`declare -A v; v[$'a\n\377']=dog`, "declare -A v=([$'a\\n\\377']=\"dog\" )\n"],
+  ]) test(`array declaration output (${command}): ${source}`, async t => {
+    const { shell } = setup({ env: { LC_ALL: "C" } });
+    t.after(() => shell.dispose());
+    const body = `${source}; ${command} -p v`;
+    const result = await shell.exec(command === "local" ? `f() { ${body}; }; f` : body);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+  });
+}
+
 for (const extensions of [[], [arraysExtension()]]) for (const flags of ["a", "A", "ai"]) {
   for (const [assignment, suffix] of [["", ""], ["=()", "=()"]]) {
     test(`declare -p preserves array initialization (${extensions.length}, ${flags}, ${assignment})`, async t => {
@@ -260,7 +285,7 @@ for (const [source, expected] of [
   ['declare -ai x=(10); declare x+=5; printf %s "${x[0]}"', '15'],
   ['typeset -a x=(hello); typeset -a x+=world; printf %s "${x[0]}"', 'helloworld'],
   ['x=outer; f(){ local -urx x=inner; }; f; x=next; printf %s "$x"; envget x', 'next<unset>'],
-  ['f(){ local -A x=([key]=value); local -p x; }; f', 'declare -A x=(["key"]="value")\n'],
+  ['f(){ local -A x=([key]=value); local -p x; }; f', 'declare -A x=([key]="value" )\n'],
   ['f(){ local -a x; local -p; }; f', 'declare -a x\n'],
   ['declare -i ZZ=2; declare -p', 'declare -r BASHOPTS="globskipdots:patsub_replacement:sourcepath"\ndeclare -- BASH_ARGV0="virtual-bash"\ndeclare -- BASH_COMMAND="declare -p"\n' + "declare -- IFS=$' \\t\\n'\n" + 'declare -- OPTERR="1"\ndeclare -- OPTIND="1"\ndeclare -a PIPESTATUS=([0]="0")\ndeclare -x PWD="/"\ndeclare -r SHELLOPTS="braceexpand:hashall"\ndeclare -i ZZ="2"\n'],
   ['declare x; declare -p x', 'declare -- x\n'],

@@ -61,7 +61,7 @@ for (const [source, expected] of [
   ['arr=(x y); f() { local -u arr+=new; declare -p arr; }; f', 'declare -u arr="NEW"\n'],
   ['arr=(0 keep); set -a; for n in 1 2; do (( arr+=1 )); done; declare -p arr', 'declare -ax arr=([0]="2" [1]="keep")\n'],
   ['arr=(0 keep); set -a; (( arr[0]=9 )); declare -p arr', 'declare -a arr=([0]="9" [1]="keep")\n'],
-  ['declare -A arr=([0]=0 [other]=keep); set -a; (( arr=9 )); declare -p arr', 'declare -Ax arr=(["0"]="9" ["other"]="keep")\n'],
+  ['declare -A arr=([0]=0 [other]=keep); set -a; (( arr=9 )); declare -p arr', 'declare -Ax arr=([0]="9" [other]="keep" )\n'],
 ] as const) {
   test(source, async () => {
     const { shell } = setup();

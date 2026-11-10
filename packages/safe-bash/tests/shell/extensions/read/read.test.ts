@@ -28,7 +28,7 @@ for (const command of ["read", "read_probe"]) {
       await fs.writeFile("/input", Buffer.from("one two\nthree\n"));
       const actual = await shell.exec(`declare -A a=([k]=old); { ${command} ${options} -a a; rc=$?; read rest; printf '%s|%s|' "$rc" "$rest"; declare -p a; } </input`);
       assert.equal(actual.exitCode, 0, actual.stderr);
-      assert.equal(actual.stdout, '1|three|declare -A a=(["k"]="old")\n');
+      assert.equal(actual.stdout, '1|three|declare -A a=([k]="old" )\n');
       assert.equal(actual.stderr, "shell: line 1: read: a: not an indexed array\n");
     });
 

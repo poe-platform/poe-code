@@ -8435,7 +8435,7 @@ export class Runtime {
     }
     return status;
   }
-  private async printDeclarationValue(value: ShellValue, state: State, io: IO): Promise<void> {
+  private async printDeclarationValue(value: ShellValue, state: State, io: IO, associativeKey = false): Promise<void> {
     const allocation = this.budget.values.scope();
     try {
       allocation.hold(value);
@@ -8448,6 +8448,15 @@ export class Runtime {
         catch { text = undefined; }
       }
       const ansi = text === undefined ? bytes.some(byte => byte < 32 || byte >= 127) : /[\p{C}\p{Zl}\p{Zp}]/u.test(text);
+      if (associativeKey && !ansi && !bytes.some((byte, index) =>
+        " \t\n\"'`$\\;|&()<>*?[]!^{}".includes(String.fromCharCode(byte)) ||
+        byte === 64 && bytes.length === 1 ||
+        byte === 35 && index === 0 ||
+        byte === 126 && (index === 0 || bytes[index - 1] === 61 || bytes[index - 1] === 58)
+      )) {
+        await io.stdout.write(bytes);
+        return;
+      }
       let quoted = ansi ? "$'" : '"';
       const controls = ["", "", "", "", "", "", "", "\\a", "\\b", "\\t", "\\n", "\\v", "\\f", "\\r"];
       let visited = 0;
@@ -9175,13 +9184,13 @@ export class Runtime {
               let first = true;
               for (const index of [...binding.values.keys()].sort((left, right) => left - right)) {
                 await writeText(stdout, first ? "[" : " [");
-                if (binding.associative) await this.printDeclarationValue(binding.keys.get(binding.keyByIndex.get(index)!)!.text.shellValue, state, context);
+                if (binding.associative) await this.printDeclarationValue(binding.keys.get(binding.keyByIndex.get(index)!)!.text.shellValue, state, context, true);
                 else await writeText(stdout, String(index));
                 await writeText(stdout, "]=");
                 await this.printDeclarationValue(binding.getValue(index)!, state, context);
                 first = false;
               }
-              await writeText(stdout, ")");
+              await writeText(stdout, binding.associative && !first ? " )" : ")");
             } finally { await binding.release(); }
           } else if (!binding && Object.hasOwn(state.variables, name)) {
             await writeText(stdout, "=");

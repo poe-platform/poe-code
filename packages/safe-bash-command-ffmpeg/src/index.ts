@@ -1278,13 +1278,15 @@ async function renderShowwavespic(
   budget.recordFrame(width, height);
   budget.allocateMemory(width * height * 4);
   const data = new Uint8Array(width * height * 4);
+  const samplesPerColumn = Math.floor(count / width);
   let work = 0;
   for (const [channel, samples] of channels.entries()) {
     const color = parseColorRgba(colors[Math.min(channel, colors.length - 1)]!);
     if (!split) for (let c = 0; c < 4; c++) color[c] = Math.floor(color[c]! / channels.length);
     for (let x = 0; x < width; x++) {
-      const start = Math.floor(x * count / width);
-      const end = Math.floor((x + 1) * count / width);
+      // FFmpeg puts all remaining samples in the final column.
+      const start = x * samplesPerColumn;
+      const end = x === width - 1 ? count : start + samplesPerColumn;
       let magnitude = 0;
       for (let i = start; i < end; i++) {
         if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }

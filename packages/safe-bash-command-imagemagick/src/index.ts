@@ -10433,6 +10433,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-shadow") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geom = tokens[++i] ?? "80x3+5+5";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
@@ -13148,6 +13149,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return trimStoredMagick(result, backend.storage, settings.alphaFuzz, signal);
             });
         } else if (!operandsOnly && token === "-shadow") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const geometry = tokens[++i] ?? "80x3+5+5", background = state.background, backgroundExplicit = state.backgroundExplicit, optionProperties = state.optionProperties;
             const alpha = !state.channelExplicit || state.channels.a;
             steps.push(async (image, backend) => {

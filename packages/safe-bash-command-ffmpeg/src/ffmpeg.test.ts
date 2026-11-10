@@ -8935,6 +8935,29 @@ it("probes DASH manifest language and preserves it when copying to MP4", async (
 
 
 describe("volumedetect", () => {
+  for (const filter of ["volumedetect", "volumedetect=", "volumedetect@meter", "volumedetect@meter="]) {
+    it(`accepts an empty option list and preserves native f32le output for ${filter}`, async () => {
+      const samples = Float64Array.from({ length: 2400 }, (_, i) => [0, 512, 256, 16384][i % 4]! / 32768);
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [samples] }) });
+      const result = await runCmd(createFfmpegCommand(), ["-hide_banner", "-nostats", "-v", "info",
+        "-i", "/in.wav", "-af", filter, "-f", "f32le", "-"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "n_samples: 2400\nmean_volume: -12.0 dB\nmax_volume: -6.0 dB\nhistogram_6db: 600\n");
+      const expected = new Uint8Array(9600);
+      const view = new DataView(expected.buffer);
+      samples.forEach((sample, i) => view.setFloat32(i * 4, sample, true));
+      assert.deepEqual(result.stdoutBytes, expected);
+    });
+  }
+  for (const filter of ["volumedetect=unknown=1", "volumedetect@meter=unknown=1"]) {
+    it(`rejects nonempty options for ${filter}`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }) });
+      const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", filter, "-f", "f32le", "-"], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.ok(result.stderr.includes("Unsupported audio filter:"), result.stderr);
+      assert.equal(result.stdoutBytes.length, 0);
+    });
+  }
   for (const [name, samples, expected] of [
     ["sparse peaks", [32767, 16384, 16384, ...Array(4).fill(8192), ...Array(3993).fill(1024)],
       Array.from({ length: 13 }, (_, db) => `histogram_${db}db: ${db === 0 ? 1 : db === 6 ? 2 : db === 12 ? 4 : 0}`)],

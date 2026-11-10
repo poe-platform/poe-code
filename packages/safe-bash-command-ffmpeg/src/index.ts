@@ -10108,7 +10108,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "replaygain" || trimmed === "replaygain=") {
                         const report = await measureReplayGain(stretched, origRate, budget, context.signal);
                         if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
-                      } else if (trimmed === "volumedetect") {
+                      } else if (trimmed === "volumedetect" || trimmed === "volumedetect=") {
                         let count = 0;
                         let sumSquares = 0;
                         let peak = 0;

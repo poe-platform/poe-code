@@ -9196,6 +9196,7 @@ function applyMagickUnits<T extends ImageMetadata & { magickUnits?: MagickState[
 }
 
 function magickResampleGeometry(image: ImageMetadata, value: string): string {
+    value = value.replaceAll(",", "x").replaceAll("/", "x");
     validateMagickTransformGeometry(value, "-resample");
     const geometry = parseMagickGeometry(value);
     if (geometry.aspectRatio !== undefined) throw new Error("negative or zero image size");
@@ -9233,7 +9234,7 @@ function setMagickType<T extends { [magickInput]?: MagickFormatContext }>(image:
 }
 
 function applyMagickDensity<T extends ImageMetadata & { magickUnits?: MagickState["units"] }>(image: T, value: string): T {
-    const geometry = parseMagickGeometry(value);
+    const geometry = parseMagickGeometry(value.replaceAll(",", "x").replaceAll("/", "x"));
     const x = geometry.width ?? 72, y = geometry.height ?? x;
     const unit = image.resolution?.unit ?? image.magickUnits ?? "unknown";
     const scale = unit === "meter" ? 100 : 1;

@@ -10025,7 +10025,7 @@ if (t === "-intent" || t === "+intent") {
             if (!["msb", "lsb", "undefined"].includes(endian)) throw new Error(`unrecognized endian type '${endian}'`);
             state.inputEndian = endian;
         }
-        else if (t === "+endian") { delete state.inputEndian; }
+        else if (t === "+endian") { state.inputEndian = "undefined"; }
         else if (t === "-extract") {
             const value = tokens[++i];
             if (value === undefined) throw new Error("missing an argument for option '-extract'");

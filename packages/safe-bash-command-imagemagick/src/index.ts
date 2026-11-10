@@ -11635,7 +11635,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-layers" && layerMethod === "optimizetransparency") {
             i++;
-            if (stack.length > 1) {
+            if (stack.length > 1 && (!state.channelExplicit || state.channels.a)) {
                 const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 0 }), virtualCanvas: { width, height, x: 0, y: 0 } };
                 for (let n = 0; n < stack.length; n++) {
@@ -14946,6 +14946,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-layers" && layerMethod === "optimizetransparency") {
             i++;
+            if (state.channelExplicit && !state.channels.a) continue;
             const fuzz = state.fuzz;
             stackStep(async (stack, backend) => {
                 if (stack.length < 2) return stack;

@@ -7383,7 +7383,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const evaluateSamples = image.evaluateSamples?.slice();
             const samples = evaluateSamples ?? data16 ?? out, quantumScale = evaluateSamples || !data16 ? 257 : 1;
-            const mask = [channels.r, channels.g, channels.b, channels.a && image.hasAlpha];
+            const gray = image.space === "b-w" || image.space === "grey16";
+            const mask = [channels.r, !gray && channels.g, !gray && channels.b, channels.a && image.hasAlpha];
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 for (let channel = 0; channel < 4; channel++) {
@@ -7395,6 +7396,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     out[idx + channel] = white ? 255 : 0;
                     if (data16) data16[idx + channel] = white ? 65535 : 0;
                     if (evaluateSamples) evaluateSamples[idx + channel] = white ? 255 : 0;
+                }
+                // Gray is one native channel; RGB projections must not consume random draws.
+                if (gray && channels.r) {
+                    out[idx + 1] = out[idx + 2] = out[idx]!;
+                    if (data16) data16[idx + 1] = data16[idx + 2] = data16[idx]!;
+                    if (evaluateSamples) evaluateSamples[idx + 1] = evaluateSamples[idx + 2] = evaluateSamples[idx]!;
                 }
             }
             return { ...image, isPalette: false, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };

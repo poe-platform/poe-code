@@ -83,7 +83,7 @@ PNG and JPEG preserve embedded ICC profiles. `+append` and `-append` retain only
 
 `-colors` weights reduced palette RGB by alpha while averaging opacity by pixel count. Fully transparent source colors are grouped as transparent black before palette reduction, even when the palette has spare slots. `-remap` uses alpha-weighted color comparisons for palettes with transparency. Remapped images keep the full reference palette, including unused colors, for subsequent `-cycle N` operations. `-remap` honors `-define dither:diffusion-amount=50%` (or `0.5`) for Floyd–Steinberg and Riemersma dithering. Use `0%` to disable error diffusion; `+define dither:diffusion-amount` restores full diffusion.
 
-`-random-threshold 25x75%` thresholds each selected channel independently, using `-seed` for repeatable results. Bounds accept percentages or Q16 values; a single bound uses the same minimum and maximum.
+`-random-threshold 25x75%` thresholds each selected channel independently, using `-seed` for repeatable results. Grayscale images use one gray channel and stay monochrome, with alpha thresholded separately. Bounds accept percentages or Q16 values; a single bound uses the same minimum and maximum.
 
 `-color-threshold '#800000-#ff2020'` creates an opaque black-and-white mask for an inclusive color range, including alpha by default. Use `-channel RGB` to ignore alpha when selecting pixels. `-auto-threshold OTSU|Kapur|Triangle` computes a histogram-based black-and-white mask. Read the computed percentage with `-format '%[auto-threshold:threshold]' info:`. `-black-threshold` and `-white-threshold` promote indexed inputs to direct color, including neutral cutoffs (`0%` and `100%`, respectively), so later channel selections apply to individual pixels.
 

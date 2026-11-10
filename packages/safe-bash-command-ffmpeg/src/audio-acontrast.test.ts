@@ -3,7 +3,44 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createFfmpegCommand } from "./index.js";
+
+for (const filter of ["acontrast=50:", "acontrast=contrast=50:", "acontrast=50", "acontrast=contrast=50", "acontrast=", "acontrast=50::", "acontrast=contrast=50::", "acontrast=:"]) {
+  for (const graph of [false, true]) {
+    it(`${filter} matches native raw PCM and output preservation (${graph ? "graph" : "simple"})`, async () => {
+      const fs = createMemoryFileSystem();
+      const samples = [-30000, -12345, -401, -1, 0, 1, 401, 12345, 30000];
+      const bytes = Buffer.alloc(samples.length * 2);
+      samples.forEach((sample, index) => bytes.writeInt16LE(sample, index * 2));
+      await fs.writeFile("/in.raw", bytes);
+      await fs.writeFile("/out.raw", Buffer.from("KEEP"));
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-y", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
+          ...(graph ? ["-filter_complex", `[0:a]${filter}[o]`, "-map", "[o]"] : ["-af", filter]),
+          "-f", "s16le", "/out.raw"],
+        command: "ffmpeg", cwd: "/", env: {}, fs, signal: new AbortController().signal,
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } }
+      });
+      const output = Buffer.from(await fs.readFile("/out.raw"));
+      if (filter.endsWith("::") || filter === "acontrast=:") {
+        assert.notEqual(result.exitCode, 0);
+        assert.equal(output.toString(), "KEEP");
+      } else {
+        assert.equal(result.exitCode, 0, stderr);
+        // Native FFmpeg 7.0.2 PCM16LE reference samples.
+        const expected = filter === "acontrast="
+          ? [-32375, -19107, -741, -2, 0, 2, 741, 19107, 32375]
+          : [-32315, -19527, -798, -2, 0, 2, 798, 19527, 32315];
+        const expectedBytes = Buffer.alloc(expected.length * 2);
+        expected.forEach((sample, index) => expectedBytes.writeInt16LE(sample, index * 2));
+        assert.deepEqual(output, expectedBytes);
+      }
+    });
+  }
+}
 
 // Native FFmpeg 9.0.1 decoded PCM16 samples, 8 kHz stereo.
 const input = [-32768, -30000, -24000, -16000, -12000, -8000, -4000, -400, -1, 0, 1, 400, 4000, 8000, 12000, 16000, 24000, 30000, 32767];

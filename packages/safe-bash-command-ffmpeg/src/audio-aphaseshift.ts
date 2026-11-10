@@ -27,6 +27,7 @@ export async function shiftAudioPhase(
     const number = parseFilterExpression(value, name, { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
     const min = key === "shift" ? (frequencyShift ? -2147483647 : -1) : key === "order" ? 1 : 0;
     const max = key === "shift" && frequencyShift ? 2147483647 : key === "order" ? 16 : 1;
+    if (frequencyShift && (number < min || number > max)) throw new RangeError(`${name}: invalid ${key}`);
     if (!value || !Number.isFinite(number) || number < min || number > max) {
       throw new Error(`${name}: invalid ${key}`);
     }

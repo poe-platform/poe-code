@@ -101,13 +101,28 @@ for (const option of ["shift=pi", "shift=PI*1e9", "level=PI", "order=PI*10"]) {
   });
 }
 
-for (const options of ["shift=NaN", "shift=2147483648", "shift=-2147483648", "shift=", "level=-0.1", "level=1.1", "order=0", "order=17", "unknown=1", "1:1:8:1"]) {
-  it(`rejects invalid afreqshift options without replacing output: ${options}`, async () => {
-    const { result, output } = await shift(`afreqshift=${options}`);
-    assert.equal(result.exitCode, 1);
-    assert.equal(output.toString(), "KEEP");
-  });
+// Native FFmpeg 7.0.2 Linux process statuses; validation must preserve output.
+for (const [options, exitCode] of [
+  ["shift=NaN", 234], ["shift=2147483648", 222], ["shift=-2147483648", 222],
+  ["shift=", 234], ["level=-0.1", 222], ["level=-1", 222], ["level=1.1", 222],
+  ["order=0", 222], ["order=17", 222], ["by", 234], ["unknown=1", 8], ["1:1:8:1", 8]
+] as const) {
+  for (const complex of [false, true]) {
+    it(`rejects invalid afreqshift options (${complex ? "graph" : "simple"}): ${options}`, async () => {
+      const { result, stderr, output } = await shift(`afreqshift=${options}`, complex, [500], 8192);
+      assert.equal(output.toString(), "KEEP");
+      assert.equal(result.exitCode, exitCode, stderr);
+    });
+  }
 }
+
+it("matches native afreqshift order=1 output for 8192 mono PCM16 samples", async () => {
+  const { result, stderr, output } = await shift("afreqshift=order=1", false, [500], 8192);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal(output.length, 16384);
+  assert.equal(createHash("sha256").update(output).digest("hex"),
+    "f75489f10b48e82cd02ec185aa02136b74450d4f3aba99fb404ee6f520c07d8b");
+});
 
 // Native FFmpeg 7.0.2 startup and steady-state samples for nondefault orders.
 for (const [order, startup, steady] of [[1, [0, 2908, 3378, -792, -5269, -9564, -10458, -8087, -2294, 4796, 11223, 14735, 14253, 9860, 2941, -4254], [9820, 11248, 8739, 3252, -3254, -8474, -10548, -8685, -3437, 3486, 9789, 13366, 13007, 8805, 2131, -4833]], [4, [0, 209, -29, -2680, -2048, 1946, 4875, 6614, 4387, 295, -5476, -9526, -11217, -8694, -3418, 3847], [-7668, -11500, -11452, -7544, -1091, 5729, 10619, 11928, 9215, 3393, -3575, -9341, -11962, -10555, -5594, 1249]], [16, [0, 0, 0, -1, 2, 20, -51, -179, 388, 726, -1202, -1578, 1052, 1939, 1687, -353], [10380, 5284, -1594, -7936, -11604, -11362, -7294, -769, 6012, 10765, 11886, 8998, 3075, -3886, -9539, -11978]]] as const) {

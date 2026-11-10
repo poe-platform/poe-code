@@ -14535,6 +14535,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("aphaser: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("aphaser:")) return { exitCode: 222 };
             if (msg === "aphaser: invalid expression" || msg === "aphaser: invalid or unsupported expression") return { exitCode: 234 };
+            if (msg.startsWith("afreqshift: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("afreqshift:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("tremolo: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("tremolo:")) return { exitCode: 222 };
             if (msg === "tremolo: invalid expression" || msg === "tremolo: invalid or unsupported expression") return { exitCode: 234 };

@@ -2644,6 +2644,7 @@ async function applyVideoFilterChain(
       const negateAlpha = ["1", "true", "yes", "on"].includes(alpha);
       let mask = 0;
       for (const component of (components ?? "0").split("+")) {
+        if (component === "none") continue;
         if (!component.trim()) throw new Error("negate: invalid empty component");
         const index = ["r", "g", "b", "y", "u", "v", "a"].indexOf(component);
         const value = index < 0 ? Number(component) : 1 << index;

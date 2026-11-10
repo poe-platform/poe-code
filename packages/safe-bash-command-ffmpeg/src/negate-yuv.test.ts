@@ -46,6 +46,10 @@ for (const [filter, expected] of [
   });
 }
 
+it("treats the none component mask like numeric zero on YUV planes", async () => {
+  assert.deepEqual(await negate("negate=components=none", true), await negate("negate=components=0", true));
+});
+
 const nativeAvailable = spawnSync("ffmpeg", ["-version"]).status === 0;
 for (const filter of [
   "negate=components=y", "negate=components=u", "negate=components=v",

@@ -17788,7 +17788,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset">[];
     trim: boolean; shadow: boolean;
-    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -17924,6 +17924,15 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             queuedTransforms.push({ kind: type, operation });
             i = operation.end;
         }
+        else if (t === "-alpha") {
+            const value = argv[i + 1];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -alpha\n" };
+            if (!["off", "remove"].includes(value.toLowerCase()))
+                return { exitCode: 1, stdout: "", stderr: `montage: unsupported alpha mode '${value}'\n` };
+            const operation = parseMagickPixelOperation(argv, state, i)!;
+            queuedTransforms.push({ kind: "alpha", operation });
+            i = operation.end;
+        }
         else if (t === "-trim") {
             trim = true;
         }
@@ -17948,6 +17957,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         }
         else if (t === "-background") {
             state.background = parseColor(argv[++i] ?? "#ffffff");
+            state.backgroundExplicit = true;
         }
         else if (t === "-compose") {
             const value = argv[++i];
@@ -18469,6 +18479,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                         const source = thumb.data16 ? { ...thumb, data: new Uint8Array(thumb.data16.buffer, thumb.data16.byteOffset, thumb.data16.byteLength) } : thumb;
                         thumb = yield* applyMagickRasterSteps(thumb, bilevelPixelSteps(thumb.width * thumb.height, !!thumb.data16), signal, thumb, [source]);
                     }
+                    if (transform.kind === "alpha") thumb = yield* prepareInactiveAlphaOutput(thumb);
                     if (thumb.data.buffer !== previous.data.buffer) detachRgbaBuffer(previous.data);
                 }
                 if (thumbnail !== undefined) {
@@ -18744,6 +18755,8 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                                 const source = image.storedData16 ? { ...image, position: image.storedData16.position } : image;
                                 image = await transformStoredMagickRaster(image, backend, bilevelPixelSteps(image.width * image.height, !!image.storedData16), signal, image, [source]);
                             }
+                            if (transform.kind === "alpha") image = await transformStoredMagickPixels(image, backend,
+                                { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
                         }
                         if (thumbnail !== undefined) {
                             const resize = magickResizeOptions(image, thumbnail, state.kernel ?? "lanczossharp");

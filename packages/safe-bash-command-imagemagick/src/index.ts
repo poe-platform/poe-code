@@ -12273,8 +12273,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-border") {
-            const g = parseMagickBorderGeometry(tokens[++i] ?? "");
+            const raw = tokens[++i] ?? "";
+            const geometry = raw.includes("%") ? undefined : parseMagickBorderGeometry(raw);
+            let sceneIdx = 0;
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
+                const g = geometry ?? parseMagickBorderGeometry(yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties }));
                 const bw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
                 const bh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
                 const width = im.width + bw * 2, height = im.height + bh * 2;
@@ -16186,9 +16189,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
             });
         } else if (!operandsOnly && token === "-border") {
-            const geometry = parseMagickBorderGeometry(tokens[++i] ?? ""), defaultBorderColor = state.borderColor, compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz;
+            const raw = tokens[++i] ?? "", defaultBorderColor = state.borderColor, compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, optionProperties = state.optionProperties;
+            const parsed = raw.includes("%") ? undefined : parseMagickBorderGeometry(raw);
+            let images: StoredImageStack, sceneIdx = 0;
+            if (parsed === undefined) stackStep(async stack => { images = stack; return stack; });
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const source = image;
+                const geometry = parsed ?? parseMagickBorderGeometry(await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image: source, storage: backend.storage }), signal, images));
                 const left = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? 0));
                 const top = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? left));
                 const width = image.width + left * 2, height = image.height + top * 2;

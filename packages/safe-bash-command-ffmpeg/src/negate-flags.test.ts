@@ -57,7 +57,7 @@ for (const components of ["+", "-", "r+", "r-", "r++g", "r--g", "r+-g", "r-bogus
     const { result, errors, output } = await render(components);
     assert.notEqual(result.exitCode, 0);
     assert.ok(errors.includes("negate:"), errors);
-    const unavailable = components === "-r" || components === "+a";
+    const unavailable = components === "-r" || components === "+a" || components === "r+128";
     if (unavailable) assert.equal(result.exitCode, 234);
     assert.equal(output.toString(), unavailable ? "" : "previous output");
   });

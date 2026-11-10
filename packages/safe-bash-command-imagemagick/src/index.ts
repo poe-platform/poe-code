@@ -6812,14 +6812,18 @@ function* haldInputPixelSteps(width: number): Generator<ConvolveRequest | undefi
     }
 }
 
-function* selectedInputPages(pageSpec: string | undefined, totalPages: number): Generator<number> {
+function* selectedInputPages(pageSpec: string | undefined, totalPages: number, onInvalidIndex?: (index: number) => void): Generator<number> {
     if (pageSpec === undefined) {
         for (let page = 0; page < totalPages; page++) yield page;
         return;
     }
     for (const [first, last] of parseMagickIndices(pageSpec)) {
         const start = first! < 0 ? totalPages + first! : first!;
-        if (start < 0 || start >= totalPages) throw new Error(`invalid image index ${first}`);
+        if (start < 0 || start >= totalPages) {
+            if (!onInvalidIndex) throw new Error(`invalid image index ${first}`);
+            onInvalidIndex(first!);
+            continue;
+        }
         const end = last === undefined ? start : Math.max(0, Math.min(totalPages - 1, last < 0 ? totalPages + last : last));
         const step = start <= end ? 1 : -1;
         for (let page = start;; page += step) {
@@ -6829,13 +6833,13 @@ function* selectedInputPages(pageSpec: string | undefined, totalPages: number): 
     }
 }
 
-function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number, extract?: string, registers?: ReadonlyMap<string, RgbaImage[]>, analysis?: { warnings: string }): Generator<void, RgbaImage[] | undefined, void> {
+function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number, extract?: string, registers?: ReadonlyMap<string, RgbaImage[]>, analysis?: { warnings: string }, onInvalidIndex?: (index: number) => void): Generator<void, RgbaImage[] | undefined, void> {
     if (token.slice(0, 4).toLowerCase() === "mpr:") {
         const { baseToken, pageSpec, inlineGeom } = parseInputToken(token);
         const saved = registers?.get(baseToken.slice(4).toLowerCase());
         if (!saved) throw new Error(`unable to open image '${token}'`);
         const images: RgbaImage[] = [];
-        for (const index of selectedInputPages(pageSpec, saved.length)) {
+        for (const index of selectedInputPages(pageSpec, saved.length, onInvalidIndex)) {
             yield;
             let image: MagickImage = { ...saved[index]!, data: new Uint8Array(saved[index]!.data) };
             if (state.page !== undefined) image = { ...image, virtualCanvas: state.page };
@@ -6899,7 +6903,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     const lower = baseToken.toLowerCase();
     if (lower.startsWith("tile:")) {
         if (!state.hasSize) throw new Error("must specify image size for TILE input");
-        const patterns = (yield* parseInputOperandsSteps(baseToken.slice(5), files, state, stdinBytes, undefined, undefined, registers, analysis));
+        const patterns = (yield* parseInputOperandsSteps(baseToken.slice(5), files, state, stdinBytes, undefined, undefined, registers, analysis, onInvalidIndex));
         if (!patterns)
             return undefined;
         return yield* applyMod((yield* mapSteps(patterns, function* (pattern) {
@@ -6964,7 +6968,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const path = baseToken.slice(5), bytes = path === "-" ? stdinBytes : files.get(path);
         if (!bytes) return undefined;
         const frames = yield* decodeApngSteps(bytes), selected: RgbaImage[] = [];
-        for (const page of selectedInputPages(pageSpec, frames.length)) {
+        for (const page of selectedInputPages(pageSpec, frames.length, onInvalidIndex)) {
             const frame = frames[page]!;
             selected.push(Object.assign(frame, { [magickInput]: { filePath: path, byteLen: bytes.length, originalWidth: frame.width, originalHeight: frame.height, sceneIdx: page } }));
         }
@@ -6981,7 +6985,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         if (sources.some(source => !source)) return undefined;
         const raw = rawRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", Math.min(...sources.map(source => source!.length)) * sources.length, packedCoder === "gray" ? 1 : packedCoder === "graya" ? 2 : packedCoder === "cmyk" ? 4 : packedCoder === "cmyka" ? 5 : packedCoder, state.inputOffset, partition ? "partition" : (packedCoder === "gray" || packedCoder === "graya") && state.rawInterlace === "line" ? "line" : (packedCoder.startsWith("cmyk") || packedCoder.startsWith("rgb") || packedCoder.startsWith("bgr")) && (state.rawInterlace === "line" || state.rawInterlace === "plane") ? state.rawInterlace : packedCoder === "graya" && state.rawInterlace === "plane" ? "plane" : undefined, packedCoder === "gray" && state.tiffFloatingPoint);
         const frames: RgbaImage[] = [];
-        for (const page of selectedInputPages(pageSpec, raw.pages)) {
+        for (const page of selectedInputPages(pageSpec, raw.pages, onInvalidIndex)) {
             const bytes = new Uint8Array(raw.size);
             for (let position = 0; position < raw.size; position += 8192) {
                 yield;
@@ -7024,7 +7028,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         if (!state.hasSize) throw new Error("must specify image size for RGB input");
         const raw = rawRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", partitions ? Math.min(...partitions.map(bytes => bytes!.length)) * 3 : rawBytes.length, 3, state.inputOffset, state.rawInterlace, state.tiffFloatingPoint);
         const frames: RgbaImage[] = [];
-        for (const page of selectedInputPages(pageSpec, raw.pages)) {
+        for (const page of selectedInputPages(pageSpec, raw.pages, onInvalidIndex)) {
             const bytes = new Uint8Array(raw.size);
             for (let position = 0; position < raw.size; position += 8192) {
                 yield;
@@ -7047,7 +7051,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     catch {
         totalPages = 1;
     }
-    const pageIndices:number[]=[];for(const page of selectedInputPages(pageSpec,totalPages)){if(++work%16384===0)yield;pageIndices.push(page);}
+    const pageIndices:number[]=[];for(const page of selectedInputPages(pageSpec,totalPages,onInvalidIndex)){if(++work%16384===0)yield;pageIndices.push(page);}
     const effectiveMaxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens([], 0, inlineGeom) ?? maxDecodeDimension;
     const results: RgbaImage[] = [];
     for (const pageIdx of pageIndices) {
@@ -16658,13 +16662,13 @@ async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom:
     return image;
 }
 
-async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{analysis?:{warnings:string}|undefined;registers?:ReadonlyMap<string, StoredImageStack>|undefined;source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;extract?:string;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
+async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{onInvalidIndex?:((index:number)=>void)|undefined;analysis?:{warnings:string}|undefined;registers?:ReadonlyMap<string, StoredImageStack>|undefined;source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;extract?:string;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
  const {baseToken,pageSpec,inlineGeom=readOptions.extract}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
  if (token.slice(0, 4).toLowerCase() === "mpr:") {
      const { baseToken, pageSpec, inlineGeom } = parseInputToken(token);
      const saved = readOptions.registers?.get(baseToken.slice(4).toLowerCase());
      if (!saved) throw new Error(`unable to open image '${token}'`);
-     for (const index of selectedInputPages(pageSpec, saved.length)) {
+     for (const index of selectedInputPages(pageSpec, saved.length, readOptions.onInvalidIndex)) {
          await yieldTurn(signal);
          let savedImage = (await saved.get(index))!;
          if (state.page !== undefined) savedImage = { ...savedImage, virtualCanvas: state.page };
@@ -16696,10 +16700,10 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  if(lower.startsWith("tile:")){
   if(!state.hasSize)throw new Error("must specify image size for TILE input");
   if(readOptions.visit){
-   await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{analysis:readOptions.analysis,registers:readOptions.registers,source:readOptions.source,visit:async pattern=>{image=await finish(await tile(pattern));await readOptions.visit!(image);}});
+   await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{onInvalidIndex:readOptions.onInvalidIndex,analysis:readOptions.analysis,registers:readOptions.registers,source:readOptions.source,visit:async pattern=>{image=await finish(await tile(pattern));await readOptions.visit!(image);}});
    return image;
   }
-  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{analysis:readOptions.analysis,registers:readOptions.registers,source:readOptions.source,lastPage:readOptions.lastPage===true});if(!pattern)return;
+  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{onInvalidIndex:readOptions.onInvalidIndex,analysis:readOptions.analysis,registers:readOptions.registers,source:readOptions.source,lastPage:readOptions.lastPage===true});if(!pattern)return;
   image=await tile(pattern);
  }else if(lower.startsWith("ftxt:")){
   if(!state.hasSize)throw new Error("must specify image size for FTXT input");
@@ -16723,7 +16727,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const partition=state.rawInterlace==="partition"&&path!=="-";
   const consume=async(sources:ImageByteSource[])=>{
    const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,packedCoder==="gray"?1:packedCoder==="graya"?2:packedCoder==="cmyk"?4:packedCoder==="cmyka"?5:packedCoder,state.inputOffset, partition ? "partition" : (packedCoder === "gray" || packedCoder === "graya") && state.rawInterlace === "line" ? "line" : (packedCoder.startsWith("cmyk") || packedCoder.startsWith("rgb") || packedCoder.startsWith("bgr")) && (state.rawInterlace === "line" || state.rawInterlace === "plane") ? state.rawInterlace : packedCoder === "graya" && state.rawInterlace === "plane" ? "plane" : undefined, packedCoder === "gray" && state.tiffFloatingPoint);
-   for(const page of selectedInputPages(pageSpec,raw.pages)){
+   for(const page of selectedInputPages(pageSpec,raw.pages,readOptions.onInvalidIndex)){
     image=await parseStoredCompareInput(`${packedCoder==="gray"?"pgm":packedCoder==="graya"?"pam":"miff"}:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();
      while(!next.done)next=steps.next(await sources[next.value.channel]!.read(next.value.position,next.value.length,{signal}));
@@ -16744,7 +16748,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const path=lower.startsWith("rgb:")?baseToken.slice(4):baseToken;
   const consume=async(sources:ImageByteSource[])=>{
    const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,3,state.inputOffset,state.rawInterlace, state.tiffFloatingPoint);
-   for(const page of selectedInputPages(pageSpec,raw.pages)){
+   for(const page of selectedInputPages(pageSpec,raw.pages,readOptions.onInvalidIndex)){
     image=await parseStoredCompareInput(`ppm:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();
      while(!next.done)next=steps.next(await sources[next.value.channel]!.read(next.value.position,next.value.length,{signal}));
@@ -16813,7 +16817,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
      await readApng(source, backend.storage, signal, async (frame, index) => {
       frames.push(Object.assign(frame, { [magickInput]: { filePath: path, byteLen: source.size, originalWidth: frame.width, originalHeight: frame.height, sceneIdx: index } }));
      });
-     for (const page of selectedInputPages(pageSpec, frames.length)) {
+     for (const page of selectedInputPages(pageSpec, frames.length, readOptions.onInvalidIndex)) {
       image = await finish(frames[page]!);
       await readOptions.visit?.(image);
       if (!readOptions.visit && !readOptions.lastPage) break;
@@ -16825,10 +16829,10 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    let path=baseToken;const colon=path.indexOf(":");if(colon>0&&extToImageFormat(path.slice(0,colon)))path=path.slice(colon+1);
    if(readOptions.visit){
-    await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total))yield {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame)=>{image=await finish(frame);await readOptions.visit!(image);},readOptions.source);
+    await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total,readOptions.onInvalidIndex))yield {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame)=>{image=await finish(frame);await readOptions.visit!(image);},readOptions.source);
     return image;
    }
-   image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},undefined,readOptions.source);
+   image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total,readOptions.onInvalidIndex);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},undefined,readOptions.source);
   }
  }
  if(image){image=await finish(image);await readOptions.visit?.(image);}
@@ -18320,7 +18324,9 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             yield;
             let loadedList: RgbaImage[] | undefined;
             try {
-                loadedList = (yield* parseInputOperandsSteps(p, files, { ...state, ...sizes[inputIndex] }, stdinBytes));
+                loadedList = (yield* parseInputOperandsSteps(p, files, { ...state, ...sizes[inputIndex] }, stdinBytes, undefined, undefined, undefined, undefined, index => {
+                    inputErrors += `montage: invalid image index ${index} '${parseInputToken(p).baseToken}'\n`;
+                }));
             }
             catch (err) {
                 return {
@@ -18329,7 +18335,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     stderr: warnings + `montage: improper image header '${p}': ${(err as Error).message}\n`
                 };
             }
-            if (!loadedList || loadedList.length === 0) {
+            if (!loadedList) {
                 inputErrors += `montage: unable to open image '${p}': No such file or directory\n`;
                 continue;
             }
@@ -18562,8 +18568,11 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             maxThumbW = (cellW ?? 0) + (frame ? 0 : borderW * 2); maxThumbH = cellH ?? 0;
             for (let index = 0; index < paths.length; index++) {
                 const path = paths[index]!;
+                const errorsBefore = inputErrors;
                 try {
-                    const loaded = await parseStoredCompareInput(path, { ...state, ...sizes[index] }, backend, signal, { source: await sourceAt(index), visit: async image => {
+                    const loaded = await parseStoredCompareInput(path, { ...state, ...sizes[index] }, backend, signal, { source: await sourceAt(index), onInvalidIndex: invalidIndex => {
+                        inputErrors += `montage: invalid image index ${invalidIndex} '${parseInputToken(path).baseToken}'\n`;
+                    }, visit: async image => {
                         const isNull = (image as StoredMagickImage)[magickInput]?.filePath === "null:";
                         if (trim) image = await trimStoredMagick(image, backend.storage, state.alphaFuzz, signal);
                         for (const transform of transforms[index]!) {
@@ -18596,7 +18605,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         if (isNull) (image as StoredMagickImage)[magickInput] = { filePath: "null:" };
                         maxThumbW = Math.max(maxThumbW, image.width); maxThumbH = Math.max(maxThumbH, image.height); await images.push(image);
                     } });
-                    if (!loaded) inputErrors += `montage: unable to open image '${path}': No such file or directory\n`;
+                    if (!loaded && inputErrors === errorsBefore) inputErrors += `montage: unable to open image '${path}': No such file or directory\n`;
                 } catch (error) {
                     signal.throwIfAborted(); if (error instanceof CompareInputFailure) throw error.reason;
                     return { exitCode: 1, stdout: "", stderr: warnings + `montage: improper image header '${path}': ${(error as Error).message}\n` };

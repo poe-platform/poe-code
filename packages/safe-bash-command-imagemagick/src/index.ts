@@ -12277,7 +12277,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const missed = bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1;
                 const left = missed ? 0 : bounds.virtualCanvas!.x - plan.virtualCanvas.x, top = missed ? 0 : bounds.virtualCanvas!.y - plan.virtualCanvas.y;
                 const area = { left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) };
-                const cropped = missed ? bounds : { ...yield* extractImageSteps(rotated, area), virtualCanvas: bounds.virtualCanvas! };
+                const cropped: MagickImage = missed ? bounds : { ...yield* extractImageSteps(rotated, area), virtualCanvas: bounds.virtualCanvas! };
                 if (rotated.metaChannels) cropped.metaChannels = yield* mapSteps(rotated.metaChannels, function* (plane) { return yield* extractImageSteps(plane, area); });
                 return cropped;
             });
@@ -15548,8 +15548,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             const spec = tokens[++i] ?? "", background = state.background, autoCrop = state.deskewAutoCrop, fuzz = state.alphaFuzz, pointFilter = state.pointFilter, interpolation = state.interpolation, kernel = state.kernel, filter = state.resizeFilter;
             const backgroundExplicit = state.backgroundExplicit, optionProperties = state.optionProperties;
-            steps.push(async (image, backend) => {
-                if (!image) return;
+            steps.push(async (input, backend) => {
+                if (!input) return;
+                let image = input;
                 const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 let color = backgroundExplicit ? background : image.backgroundColor ?? background;
                 if (autoCrop === "1") color = deskewBackground(image, color, await Promise.all([0, image.height - 1].map(y => backend.storage.read(image.position + y * image.width * 4, Math.min(2, image.width) * 4))));
@@ -15569,7 +15570,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const missed = bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1;
                 const left = missed ? 0 : bounds.virtualCanvas!.x - plan.virtualCanvas.x, top = missed ? 0 : bounds.virtualCanvas!.y - plan.virtualCanvas.y;
                 const area = { kind: "extract" as const, left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) };
-                const cropped = missed ? bounds : { ...await transformStoredImage(rotated, backend.storage, area, signal), virtualCanvas: bounds.virtualCanvas! };
+                const cropped: StoredMagickImage = missed ? bounds : { ...await transformStoredImage(rotated, backend.storage, area, signal), virtualCanvas: bounds.virtualCanvas! };
                 if (rotated.storedMetaChannels) {
                     cropped.storedMetaChannels = [];
                     for (const plane of rotated.storedMetaChannels) cropped.storedMetaChannels.push(await transformStoredImage(plane, backend.storage, area, signal));

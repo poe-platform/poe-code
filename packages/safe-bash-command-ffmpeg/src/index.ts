@@ -2036,7 +2036,7 @@ async function applyVideoFilterChain(
   let pending: AsyncIterable<typeof current[number]> | undefined;
   let pendingBounded = false;
   let frameRateKnown = true;
-  let videoCommands: { time: number; target: string; expression: string }[] = [];
+  let videoCommands: { time: number; target: string; action: string; expression: string }[] = [];
 
   for (const filterSpec of parseFilterChain(filterChainStr)) {
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
@@ -2079,13 +2079,14 @@ async function applyVideoFilterChain(
         if (words[0] === "[enter]") words.shift();
         const [target, action, expression] = words;
         const filter = target?.split("@", 1)[0];
-        if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !expression ||
+        if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !action || !expression ||
             !(filter === "negate" && action === "components" || filter === "tmix" && action === "scale" ||
-              filter === "tblend" && action === "all_mode")) {
-          throw new Error("sendcmd: expected TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] scale VALUE or TIME tblend[@NAME] all_mode MODE");
+              filter === "tblend" && action === "all_mode" ||
+              filter === "crop" && ["w", "out_w", "h", "out_h", "x", "y"].includes(action))) {
+          throw new Error("sendcmd: expected TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] scale VALUE or TIME tblend[@NAME] all_mode MODE or TIME crop[@NAME] w|out_w|h|out_h|x|y EXPR");
         }
         budget.allocateMemory(64);
-        scheduled.push({ time, target, expression });
+        scheduled.push({ time, target, action, expression });
       }
       if (!scheduled.length) throw new Error("sendcmd: commands are required");
       scheduled.sort((a, b) => a.time - b.time);
@@ -2602,40 +2603,71 @@ async function applyVideoFilterChain(
       const inputVsub = format === 0 || format === 12 ? 2 : 1;
       const hsub = exact ? 1 : inputHsub;
       const vsub = exact ? 1 : inputVsub;
-      const dimensions = {
-        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
-        iw, ih, in_w: iw, in_h: ih, ow: NaN, oh: NaN, out_w: NaN, out_h: NaN,
-        a: iw / ih, sar: diagnostics.sar, dar: iw / ih * diagnostics.sar,
-        hsub: inputHsub, vsub: inputVsub
-      };
-      // Resolve width again after height so either dimension can depend on the other.
-      dimensions.ow = dimensions.out_w = parseFilterExpression(crop.w ?? String(iw), "crop", dimensions);
-      dimensions.oh = dimensions.out_h = parseFilterExpression(crop.h ?? String(ih), "crop", dimensions);
-      dimensions.ow = dimensions.out_w = parseFilterExpression(crop.w ?? String(iw), "crop", dimensions);
-      const cw = Math.floor(roundToEven(dimensions.ow) / hsub) * hsub;
-      const ch = Math.floor(roundToEven(dimensions.oh) / vsub) * vsub;
-      if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0 || cw > iw || ch > ih) {
-        throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
-      }
-      if (["1", "true", "yes", "y", "on"].includes((crop.keep_aspect ?? "0").toLowerCase())) {
-        let numerator = diagnostics.sarWidth * iw * ch;
-        let denominator = diagnostics.sarHeight * ih * cw;
-        while (denominator !== 0) {
-          const remainder = numerator % denominator;
-          numerator = denominator;
-          denominator = remainder;
+      const inputSar = { sar: diagnostics.sar, width: diagnostics.sarWidth, height: diagnostics.sarHeight };
+      let cw = 0;
+      let ch = 0;
+      let left = 0;
+      let top = 0;
+      let variables: Record<string, number> = {};
+      let xExpression = crop.x ?? "(iw-ow)/2";
+      let yExpression = crop.y ?? "(ih-oh)/2";
+      const configureCrop = () => {
+        const dimensions = {
+          PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+          iw, ih, in_w: iw, in_h: ih, ow: NaN, oh: NaN, out_w: NaN, out_h: NaN,
+          a: iw / ih, sar: inputSar.sar, dar: iw / ih * inputSar.sar,
+          hsub: inputHsub, vsub: inputVsub, n: 0, t: NaN, pos: NaN, x: NaN, y: NaN
+        };
+        // Runtime commands reconfigure dimensions and reset coordinate expression state.
+        dimensions.ow = dimensions.out_w = parseFilterExpression(crop.w ?? String(iw), "crop", dimensions);
+        dimensions.oh = dimensions.out_h = parseFilterExpression(crop.h ?? String(ih), "crop", dimensions);
+        dimensions.ow = dimensions.out_w = parseFilterExpression(crop.w ?? String(iw), "crop", dimensions);
+        const width = Math.floor(roundToEven(dimensions.ow) / hsub) * hsub;
+        const height = Math.floor(roundToEven(dimensions.oh) / vsub) * vsub;
+        if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0 || width > iw || height > ih) {
+          throw new Error(`Invalid too big or non positive size for width '${width}' or height '${height}'`);
         }
-        diagnostics.sarWidth = diagnostics.sarWidth * iw * ch / numerator;
-        diagnostics.sarHeight = diagnostics.sarHeight * ih * cw / numerator;
-        diagnostics.sar = diagnostics.sarWidth / diagnostics.sarHeight || 1;
-      }
-      const variables = { ...dimensions, ow: cw, oh: ch, out_w: cw, out_h: ch, n: 0, t: 0, pos: NaN, x: NaN, y: NaN };
-      const xExpression = crop.x ?? String((iw - cw) / 2);
-      const yExpression = crop.y ?? String((ih - ch) / 2);
-      // Pixel positions survive NaN results; expression variables retain their evaluated values.
-      let left = Math.floor((iw - cw) / 2 / hsub) * hsub;
-      let top = Math.floor((ih - ch) / 2 / vsub) * vsub;
+        const x = crop.x ?? "(iw-ow)/2";
+        const y = crop.y ?? "(ih-oh)/2";
+        parseFilterExpression(x, "crop", dimensions);
+        parseFilterExpression(y, "crop", dimensions);
+        cw = width;
+        ch = height;
+        variables = { ...dimensions, ow: cw, oh: ch, out_w: cw, out_h: ch };
+        xExpression = x;
+        yExpression = y;
+        // Pixel positions survive NaN results; variables retain evaluated values.
+        left = Math.floor((iw - cw) / 2 / hsub) * hsub;
+        top = Math.floor((ih - ch) / 2 / vsub) * vsub;
+        if (["1", "true", "yes", "y", "on"].includes((crop.keep_aspect ?? "0").toLowerCase())) {
+          let numerator = inputSar.width * iw * ch;
+          let denominator = inputSar.height * ih * cw;
+          while (denominator !== 0) {
+            const remainder = numerator % denominator;
+            numerator = denominator;
+            denominator = remainder;
+          }
+          diagnostics.sarWidth = inputSar.width * iw * ch / numerator;
+          diagnostics.sarHeight = inputSar.height * ih * cw / numerator;
+          diagnostics.sar = diagnostics.sarWidth / diagnostics.sarHeight || 1;
+        }
+      };
+      configureCrop();
+      const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
+      const commands = videoCommands.filter(command => command.target === name || command.target === instance);
+      videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
+      commands.sort((a, b) => a.time - b.time);
+      let nextCommand = 0;
       current = await mapWork(current, async (f, n) => {
+        while (nextCommand < commands.length && commands[nextCommand]!.time <= f.ptsSeconds) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const command = commands[nextCommand++]!;
+          const key = command.action === "out_w" ? "w" : command.action === "out_h" ? "h" : command.action;
+          crop[key] = command.expression;
+          try { configureCrop(); } catch {
+            // Rejected commands retain the active dimensions and coordinate expressions.
+          }
+        }
         variables.n = n;
         variables.t = f.ptsSeconds;
         variables.pos = f.offset ?? NaN;
@@ -2651,8 +2683,8 @@ async function applyVideoFilterChain(
         }
         const source = f.native;
         if (source?.rgba === f.data && source.width === f.width && source.height === f.height &&
-            (source.format === 34 || source.format === 104)) {
-          const stride = source.format === 34 ? 6 : 8;
+            (source.format === 29 || source.format === 34 || source.format === 104)) {
+          const stride = source.format === 29 ? 2 : source.format === 34 ? 6 : 8;
           budget.recordFrame(cw, ch);
           budget.allocateMemory(cw * ch * (stride + 4) + 128);
           const pixels = new Uint8Array(cw * ch * stride);

@@ -9242,7 +9242,13 @@ function parseChannelAssignments(expression: string): ChannelAssignment[] {
     expression = expression.trim();
     const image = expression.startsWith("|") ? 1 : 0;
     if (image) expression = expression.slice(1);
+    let selectionTarget = 0;
     return expression.split(",").flatMap<ChannelAssignment>(assignment => {
+        if (!assignment.includes("=")) {
+            const source = names.findIndex(aliases => aliases.includes(assignment.trim().toLowerCase()));
+            if (source < 0 || selectionTarget > 3) throw new Error(`unsupported channel-fx selection '${assignment}'`);
+            return [{ image, source, target: selectionTarget++ }];
+        }
         if (!assignment.includes("=>")) {
             const parts = assignment.split("="), target = names.findIndex(aliases => aliases.includes(parts[0]!.trim().toLowerCase()));
             const literal = parts[1]?.trim() ?? "", percent = literal.endsWith("%");
@@ -9250,6 +9256,7 @@ function parseChannelAssignments(expression: string): ChannelAssignment[] {
             const value = Number(number);
             if (parts.length !== 2 || target < 0 || !Number.isFinite(value) || Number.parseFloat(number) !== value)
                 throw new Error(`unsupported channel-fx assignment '${assignment}'`);
+            selectionTarget = target;
             return [{ target, value: Math.fround(percent ? value * 65535 / 100 : value) / 257 }];
         }
         const exchange = assignment.includes("<=>");
@@ -9258,6 +9265,8 @@ function parseChannelAssignments(expression: string): ChannelAssignment[] {
         if (parts.length !== 2 || channels.some(channel => channel < 0))
             throw new Error(`unsupported channel-fx assignment '${assignment}'`);
         const source = channels[0]!, target = channels[1]!;
+        // Explicit destinations reset the cursor used by subsequent bare selectors.
+        selectionTarget = target;
         return exchange ? [{ image, source, target }, { image, source: target, target: source }] : [{ image, source, target }];
     });
 }

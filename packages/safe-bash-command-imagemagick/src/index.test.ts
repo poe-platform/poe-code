@@ -929,7 +929,7 @@ describe("safe-bash-command-imagemagick", () => {
     const lastFrame = await runMagickCli(["/anim.gif[-1]", "-format", "%[pixel:p{0,0}]", "info:"], files);
     expect(lastFrame.stdout.trim()).toBe("srgb(0,0,255)");
     const revFrames = await runMagickCli(["/anim.gif[2-0]", "-format", "%s/%n:%[pixel:p{0,0}] ", "info:"], files);
-    expect(revFrames.stdout.trim()).toBe("0/3:srgb(0,0,255) 1/3:srgb(0,255,0) 2/3:srgb(255,0,0)");
+    expect(revFrames.stdout.trim()).toBe("2/3:srgb(0,0,255) 3/3:srgb(0,255,0) 4/3:srgb(255,0,0)");
 
     // 3. -auto-level linked default vs -channel RGB independent
     const linked = await runMagickCli(

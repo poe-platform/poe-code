@@ -96,6 +96,8 @@ export class TimeZone {
             era: "short", hourCycle: "h23", timeZoneName: "short" });
           const canonicalName = this.formatter.resolvedOptions().timeZone;
           if (canonicalName === "Asia/Calcutta" || canonicalName === "Asia/Kolkata") this.label = "IST";
+          else if (canonicalName === "Europe/Berlin") this.label = "CET";
+          else if (canonicalName === "Asia/Tokyo") this.label = "JST";
         } catch { throw new CommandFailure(`unsupported virtual TZ: ${input}`); }
       }
     }
@@ -120,8 +122,13 @@ export class TimeZone {
       fields = { year: parts.era === "BC" ? 1 - year : year, month: Number(parts.month), day: Number(parts.day),
         hour: Number(parts.hour), minute: Number(parts.minute), second: Number(parts.second) };
       offset = (utcMilliseconds(fields) - milliseconds) / 1000;
-      // ICU's English label is GMT+5:30; native strftime uses IST for Indian standard time.
-      zone = this.label === "IST" && offset === 19800 ? this.label : parts.timeZoneName!;
+      // ICU's English GMT offsets differ from native strftime abbreviations.
+      // Match the observed offset so historical offsets retain their own labels.
+      zone = this.label === "IST" && offset === 19800 ? "IST"
+        : this.label === "JST" && offset === 32400 ? "JST"
+        : this.label === "CET" && offset === 3600 ? "CET"
+        : this.label === "CET" && offset === 7200 ? "CEST"
+        : parts.timeZoneName!;
     }
     checkCalendar(fields, restrictYear);
     return { ...fields, offset, zone };

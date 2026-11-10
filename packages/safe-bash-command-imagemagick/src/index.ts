@@ -10771,7 +10771,8 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
                 const bytes = await drainSteps(subtractMagickPixelSteps(left, await backend.storage.read(b.position + offset, length), image.hasAlpha, channels), signal);
                 await backend.storage.write(position + offset, bytes);
             }
-            images.push({ ...image, position });
+            const { storedData16: ignoredData16, storedEvaluateSamples: ignoredEvaluateSamples, ...metadata } = image;
+            images.push({ ...metadata, position });
         } else {
             let source = images[step.source]!;
             for (let pass = 0; pass < plan.iterations; pass++)

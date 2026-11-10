@@ -17791,7 +17791,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     trim: boolean; shadow: boolean;
-    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -17900,14 +17900,12 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             const angle = parseMagickRotation(argv[++i] ?? "0").angle;
             if (angle !== 0) queuedTransforms.push({ kind: "rotate", angle });
         }
-        else if (t === "-compress") {
-            const value = argv[++i];
-            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -compress\n" };
-            if (value.toLowerCase() !== "none") return { exitCode: 1, stdout: "", stderr: `montage: unsupported compression '${value}'\n` };
-            state.netpbmAscii = true;
-        }
-        else if (t === "+compress") {
-            delete state.netpbmAscii;
+        else if (t === "-crop") {
+            const geometry = argv[++i];
+            if (geometry === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -crop\n" };
+            try { validateMagickTransformGeometry(geometry, t); }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+            queuedTransforms.push({ kind: "crop", geometry, gravity: inputGravity });
         }
         else if (t === "-transparent") {
             if (argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -transparent\n" };
@@ -18479,58 +18477,65 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 inputErrors += `montage: unable to open image '${p}': No such file or directory\n`;
                 continue;
             }
+            function* transformTiles(image: RgbaImage, offset = 0): Generator<void, RgbaImage[], void> {
+                const transform = transforms[inputIndex]![offset];
+                if (!transform) return [image];
+                const tiles = transform.kind === "crop"
+                    ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity)
+                    : [yield* ("operation" in transform ? transform.operation.apply(image)
+                        : transform.kind === "resize" ? applyMagickResizeSteps(image, transform.geometry, state.kernel, false, false, false, state.resizeFilter)
+                        : transform.kind === "extent" ? applyMagickExtentSteps(image, transform.geometry, transform.state, signal)
+                        : transform.kind === "rotate" ? rotateImageSteps(image, transform.angle, state.background)
+                        : transform.kind === "flop" ? flopImageSteps(image) : flipImageSteps(image))];
+                if (transform.kind === "alpha") for (let index = 0; index < tiles.length; index++)
+                    tiles[index] = yield* prepareInactiveAlphaOutput(tiles[index]!);
+                if (transform.kind === "bilevel") for (let index = 0; index < tiles.length; index++) {
+                    const tile = tiles[index]!;
+                    const source = tile.data16 ? { ...tile, data: new Uint8Array(tile.data16.buffer, tile.data16.byteOffset, tile.data16.byteLength) } : tile;
+                    tiles[index] = yield* applyMagickRasterSteps(tile, bilevelPixelSteps(tile.width * tile.height, !!tile.data16), signal, tile, [source]);
+                }
+                if (!tiles.some(tile => tile.data.buffer === image.data.buffer)) detachRgbaBuffer(image.data);
+                const result: RgbaImage[] = [];
+                for (const tile of tiles) result.push(...yield* transformTiles(tile, offset + 1));
+                return result;
+            }
             for (const loaded of loadedList) {
-                if (++cooperativeWork % 64 === 0)
-                    yield;
-                let thumb = loaded;
-                if (trim) {
-                    thumb = yield* trimMagickSteps(loaded, state.alphaFuzz);
-                    if (thumb !== loaded) detachRgbaBuffer(loaded.data);
-                }
-                for (const transform of transforms[inputIndex]!) {
-                    const previous = thumb;
-                    thumb = yield* ("operation" in transform ? transform.operation.apply(thumb)
-                        : transform.kind === "resize" ? applyMagickResizeSteps(thumb, transform.geometry, state.kernel, false, false, false, state.resizeFilter)
-                        : transform.kind === "extent" ? applyMagickExtentSteps(thumb, transform.geometry, transform.state, signal)
-                        : transform.kind === "rotate" ? rotateImageSteps(thumb, transform.angle, state.background)
-                        : transform.kind === "flop" ? flopImageSteps(thumb) : flipImageSteps(thumb));
-                    if (transform.kind === "bilevel") {
-                        const source = thumb.data16 ? { ...thumb, data: new Uint8Array(thumb.data16.buffer, thumb.data16.byteOffset, thumb.data16.byteLength) } : thumb;
-                        thumb = yield* applyMagickRasterSteps(thumb, bilevelPixelSteps(thumb.width * thumb.height, !!thumb.data16), signal, thumb, [source]);
+                if (++cooperativeWork % 64 === 0) yield;
+                const trimmed = trim ? yield* trimMagickSteps(loaded, state.alphaFuzz) : loaded;
+                if (trimmed !== loaded) detachRgbaBuffer(loaded.data);
+                const isNull = (loaded as MagickImage)[magickInput]?.filePath === "null:";
+                for (let thumb of yield* transformTiles(trimmed)) {
+                    if (thumbnail !== undefined) {
+                        const previous = thumb;
+                        thumb = yield* applyMagickResizeSteps(thumb, thumbnail, state.kernel, true, false, false, state.resizeFilter);
+                        if (thumb.data.buffer !== previous.data.buffer) detachRgbaBuffer(previous.data);
                     }
-                    if (transform.kind === "alpha") thumb = yield* prepareInactiveAlphaOutput(thumb);
-                    if (thumb.data.buffer !== previous.data.buffer) detachRgbaBuffer(previous.data);
+                    if (cellW !== undefined || cellH !== undefined) {
+                        const previous = thumb;
+                        thumb = (yield* applyMagickResizeSteps(thumb, geometry, state.kernel, true, false, false, state.resizeFilter));
+                        if (thumb.data.buffer !== previous.data.buffer) detachRgbaBuffer(previous.data);
+                    }
+                    if (!frame && borderW > 0) {
+                        const prev = thumb;
+                        thumb = yield* createSolidRgbaImageSteps(prev.width + borderW * 2, prev.height + borderW * 2, state.borderColor);
+                        yield* blitOverRgbaInPlaceSteps(thumb, prev, borderW, borderW);
+                        if (thumb !== prev) detachRgbaBuffer(prev.data);
+                    }
+                    if (labels[inputIndex]) {
+                        const text = yield* formatMagickPropertyStringSteps(labels[inputIndex]!, thumb, () => thumb, { filePath: parseInputToken(p).baseToken });
+                        const height = Math.ceil(Math.max(8, state.pointsize) * 1.4);
+                        const caption = decodeImage(new TextEncoder().encode(createLabelSvg(text, { ...state, hasSize: true, sizeWidth: thumb.width, sizeHeight: height, gravity: "center" })));
+                        const previous = thumb;
+                        thumb = yield* extendImageSteps(thumb, { top: 0, bottom: height, left: 0, right: 0, background: state.background, extendWith: "background" });
+                        if (thumb !== previous) detachRgbaBuffer(previous.data);
+                        yield* blitOverRgbaInPlaceSteps(thumb, caption, 0, thumb.height - height);
+                        detachRgbaBuffer(caption.data);
+                    }
+                    if (isNull) {
+                        (thumb as MagickImage)[magickInput] = { filePath: "null:" };
+                    }
+                    images.push(thumb);
                 }
-                if (thumbnail !== undefined) {
-                    const previous = thumb;
-                    thumb = yield* applyMagickResizeSteps(thumb, thumbnail, state.kernel, true, false, false, state.resizeFilter);
-                    if (thumb.data.buffer !== previous.data.buffer) detachRgbaBuffer(previous.data);
-                }
-                if (cellW !== undefined || cellH !== undefined) {
-                    const previous = thumb;
-                    thumb = (yield* applyMagickResizeSteps(thumb, geometry, state.kernel, true, false, false, state.resizeFilter));
-                    if (thumb.data.buffer !== previous.data.buffer) detachRgbaBuffer(previous.data);
-                }
-                if (!frame && borderW > 0) {
-                    const prev = thumb;
-                    thumb = yield* createSolidRgbaImageSteps(prev.width + borderW * 2, prev.height + borderW * 2, state.borderColor);
-                    yield* blitOverRgbaInPlaceSteps(thumb, prev, borderW, borderW);
-                    if (thumb !== prev) detachRgbaBuffer(prev.data);
-                }
-                if (labels[inputIndex]) {
-                    const text = yield* formatMagickPropertyStringSteps(labels[inputIndex]!, thumb, () => thumb, { filePath: parseInputToken(p).baseToken });
-                    const height = Math.ceil(Math.max(8, state.pointsize) * 1.4);
-                    const caption = decodeImage(new TextEncoder().encode(createLabelSvg(text, { ...state, hasSize: true, sizeWidth: thumb.width, sizeHeight: height, gravity: "center" })));
-                    const previous = thumb;
-                    thumb = yield* extendImageSteps(thumb, { top: 0, bottom: height, left: 0, right: 0, background: state.background, extendWith: "background" });
-                    if (thumb !== previous) detachRgbaBuffer(previous.data);
-                    yield* blitOverRgbaInPlaceSteps(thumb, caption, 0, thumb.height - height);
-                    detachRgbaBuffer(caption.data);
-                }
-                if ((loaded as MagickImage)[magickInput]?.filePath === "null:") {
-                    (thumb as MagickImage)[magickInput] = { filePath: "null:" };
-                }
-                images.push(thumb);
             }
         }
         const n = images.length;
@@ -18766,49 +18771,67 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     }, visit: async image => {
                         const isNull = (image as StoredMagickImage)[magickInput]?.filePath === "null:";
                         if (trim) image = await trimStoredMagick(image, backend.storage, state.alphaFuzz, signal);
-                        for (const transform of transforms[index]!) {
+                        async function* transformTiles(tile: StoredRgbaImage, offset = 0): AsyncGenerator<StoredRgbaImage> {
+                            const transform = transforms[index]![offset];
+                            if (!transform) { yield tile; return; }
                             if (transform.kind === "resize") {
-                                const resize = magickResizeOptions(image, transform.geometry, state.kernel);
-                                if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, false, false, false, state.resizeFilter);
-                                continue;
+                                const resize = magickResizeOptions(tile, transform.geometry, state.kernel);
+                                if (resize) tile = await resizeStoredMagickImage(tile, backend, resize, signal, false, false, false, state.resizeFilter);
+                                yield* transformTiles(tile, offset + 1);
+                                return;
                             }
-                            image = "operation" in transform
-                                ? await transformStoredMagickPixels(image, backend, transform.operation, signal)
-                                : transform.kind === "extent" ? await applyStoredMagickExtent(image, transform.geometry, transform.state, backend, signal)
-                                : await transformStoredImage(image, backend.storage, transform.kind === "rotate"
-                                    ? { ...transform, background: state.background } : transform, signal);
-                            if (transform.kind === "bilevel") {
-                                const source = image.storedData16 ? { ...image, position: image.storedData16.position } : image;
-                                image = await transformStoredMagickRaster(image, backend, bilevelPixelSteps(image.width * image.height, !!image.storedData16), signal, image, [source]);
+                            if (transform.kind === "crop") {
+                                for (const area of magickCropAreas(tile, transform.geometry, transform.gravity)) {
+                                    await yieldTurn(signal);
+                                    if (area === false) break;
+                                    const cropped = area === null
+                                        ? await createStoredCanvas(1, 1, { ...state.background, a: 0 }, backend, signal)
+                                        : area ? { ...await transformStoredImage(tile, backend.storage, { kind: "extract", ...area }, signal),
+                                            virtualCanvas: magickCropCanvas(tile, area.left, area.top) } : tile;
+                                    yield* transformTiles(cropped, offset + 1);
+                                }
+                            } else {
+                                let transformed = "operation" in transform
+                                    ? await transformStoredMagickPixels(tile, backend, transform.operation, signal)
+                                    : transform.kind === "extent" ? await applyStoredMagickExtent(tile, transform.geometry, transform.state, backend, signal)
+                                    : await transformStoredImage(tile, backend.storage, transform.kind === "rotate"
+                                        ? { ...transform, background: state.background } : transform, signal);
+                                if (transform.kind === "bilevel") {
+                                    const source = transformed.storedData16 ? { ...transformed, position: transformed.storedData16.position } : transformed;
+                                    transformed = await transformStoredMagickRaster(transformed, backend, bilevelPixelSteps(transformed.width * transformed.height, !!transformed.storedData16), signal, transformed, [source]);
+                                }
+                                if (transform.kind === "alpha") transformed = await transformStoredMagickPixels(transformed, backend,
+                                    { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
+                                yield* transformTiles(transformed, offset + 1);
                             }
-                            if (transform.kind === "alpha") image = await transformStoredMagickPixels(image, backend,
-                                { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
                         }
-                        if (thumbnail !== undefined) {
-                            const resize = magickResizeOptions(image, thumbnail, state.kernel ?? "lanczossharp");
-                            if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true, false, false, state.resizeFilter);
+                        for await (image of transformTiles(image)) {
+                            if (thumbnail !== undefined) {
+                                const resize = magickResizeOptions(image, thumbnail, state.kernel ?? "lanczossharp");
+                                if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true, false, false, state.resizeFilter);
+                            }
+                            if (cellW !== undefined || cellH !== undefined) {
+                                const resize = magickResizeOptions(image, geometry, state.kernel ?? "lanczossharp");
+                                if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true, false, false, state.resizeFilter);
+                            }
+                            // Match buffered montage rounding without discarding 16-bit samples.
+                            const { storedEvaluateSamples: ignoredEvaluateSamples, ...tile } = image;
+                            image = tile;
+                            if (!frame && borderW > 0) {
+                                const border = await createStoredCanvas(image.width + borderW * 2, image.height + borderW * 2, state.borderColor, backend, signal);
+                                image = await compositeStoredMagick(border, image, backend, signal, borderW, borderW, "over", undefined, false, true);
+                            }
+                            if (labels[index]) {
+                                const labeled = image;
+                                const text = await formatRetainedIdentify(labels[index]!, image, { filePath: parseInputToken(path).baseToken }, async () => ({ image: labeled, storage: backend.storage }), signal);
+                                const height = Math.ceil(Math.max(8, state.pointsize) * 1.4);
+                                const caption = await decodeStoredMagickSvg(createLabelSvg(text, { ...state, hasSize: true, sizeWidth: image.width, sizeHeight: height, gravity: "center" }), 72, backend, signal);
+                                image = await transformStoredImage(image, backend.storage, { kind: "extend", top: 0, bottom: height, left: 0, right: 0, background: state.background, extendWith: "background" }, signal);
+                                image = await compositeStoredMagick(image, caption, backend, signal, 0, image.height - height, "over", undefined, false, true);
+                            }
+                            if (isNull) (image as StoredMagickImage)[magickInput] = { filePath: "null:" };
+                            maxThumbW = Math.max(maxThumbW, image.width); maxThumbH = Math.max(maxThumbH, image.height); await images.push(image);
                         }
-                        if (cellW !== undefined || cellH !== undefined) {
-                            const resize = magickResizeOptions(image, geometry, state.kernel ?? "lanczossharp");
-                            if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true, false, false, state.resizeFilter);
-                        }
-                        // Match buffered montage rounding without discarding 16-bit samples.
-                        const { storedEvaluateSamples: ignoredEvaluateSamples, ...tile } = image;
-                        image = tile;
-                        if (!frame && borderW > 0) {
-                            const border = await createStoredCanvas(image.width + borderW * 2, image.height + borderW * 2, state.borderColor, backend, signal);
-                            image = await compositeStoredMagick(border, image, backend, signal, borderW, borderW, "over", undefined, false, true);
-                        }
-                        if (labels[index]) {
-                            const labeled = image;
-                            const text = await formatRetainedIdentify(labels[index]!, image, { filePath: parseInputToken(path).baseToken }, async () => ({ image: labeled, storage: backend.storage }), signal);
-                            const height = Math.ceil(Math.max(8, state.pointsize) * 1.4);
-                            const caption = await decodeStoredMagickSvg(createLabelSvg(text, { ...state, hasSize: true, sizeWidth: image.width, sizeHeight: height, gravity: "center" }), 72, backend, signal);
-                            image = await transformStoredImage(image, backend.storage, { kind: "extend", top: 0, bottom: height, left: 0, right: 0, background: state.background, extendWith: "background" }, signal);
-                            image = await compositeStoredMagick(image, caption, backend, signal, 0, image.height - height, "over", undefined, false, true);
-                        }
-                        if (isNull) (image as StoredMagickImage)[magickInput] = { filePath: "null:" };
-                        maxThumbW = Math.max(maxThumbW, image.width); maxThumbH = Math.max(maxThumbH, image.height); await images.push(image);
                     } });
                     if (!loaded && inputErrors === errorsBefore) inputErrors += `montage: unable to open image '${path}': No such file or directory\n`;
                 } catch (error) {

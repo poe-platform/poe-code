@@ -9948,6 +9948,8 @@ function magickTrimSettings(state: MagickState, properties: ImageMetadata["prope
 function applyMagickReadSetting(tokens: readonly string[], state: MagickState, start: number): number | undefined {
     let i = start;
     const t = tokens[i];
+    // The plus form does not undo monochrome conversion on loaded images.
+    if (t === "+monochrome") return i;
 if (t === "-intent" || t === "+intent") {
             const value = t === "+intent" ? "undefined" : tokens[++i] ?? "";
             if (!["undefined", "saturation", "perceptual", "relative", "absolute"].includes(value.toLowerCase())) throw new Error(`unrecognized intent type '-intent' '${value}'`);
@@ -15882,7 +15884,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-enhance", "-antialias", "+antialias", "+stroke",
         "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
-        "-auto-level", "-auto-gamma", "-white-balance", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors", "-sort-pixels",
+        "-auto-level", "-auto-gamma", "-white-balance", "-normalize", "-equalize", "-monochrome", "+monochrome", "-strip", "-unique-colors", "-sort-pixels",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin", "+remap",
         "+seed", "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+treedepth", "+compress", "+depth", "+endian", "+size",

@@ -3808,7 +3808,8 @@ async function applyVideoFilterChain(
       }
       current = blended;
     } else if (name === "shuffleframes") {
-      const mapping = (named.mapping ?? (argStr || "0")).split("|").join(" ").split(" ").filter(Boolean).map(Number);
+      if (positional.length > 1 && positional.at(-1) === "") positional.pop();
+      const mapping = (named.mapping ?? (positional[0] || "0")).split("|").join(" ").split(" ").filter(Boolean).map(Number);
       if (positional.length > 1 || Object.keys(named).some(key => key !== "mapping") ||
           mapping.length === 0 || mapping.some(index => !Number.isInteger(index) || index < -1 || index >= mapping.length)) {
         throw new Error("shuffleframes: mapping must contain frame indices from -1 to the group size minus one");

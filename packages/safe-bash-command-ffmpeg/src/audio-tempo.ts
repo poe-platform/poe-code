@@ -1,10 +1,10 @@
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
-// Even at unity tempo, FFmpeg aligns overlapping windows and feathers them
+// FFmpeg aligns overlapping windows and feathers them
 // with a Hann window. Alignment can change the number of emitted samples.
-export async function filterUnityTempo(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, pcm16: boolean,
+export async function filterTempo(
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, tempo: number, pcm16: boolean,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<readonly Float32Array[]> {
   const length = channels[0]?.length ?? 0;
@@ -24,9 +24,9 @@ export async function filterUnityTempo(
   let position = -hop;
   let work = 0;
   while (true) {
-    let current = previous + hop;
+    let current = previous + Math.trunc(hop * tempo);
     position += hop;
-    const drift = position - hop - previous;
+    const drift = Math.trunc(position * tempo - (previous + hop));
     const start = Math.min(window, Math.max(0, -drift));
     const end = Math.max(0, Math.min(window - drift, window - window / 16));
     let correction = -drift;

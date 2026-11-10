@@ -83,7 +83,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
 import { resampleStreamselectInput } from "./audio-astreamselect-resample.js";
 import { resampleSoxr } from "./audio-soxr.js";
-import { filterUnityTempo, stretchAudio } from "./audio-tempo.js";
+import { filterTempo, stretchAudio } from "./audio-tempo.js";
 import { datascopeFrame } from "./datascope.js";
 import { scaleFrame } from "./scale.js";
 import { xbrFrame } from "./xbr.js";
@@ -11652,8 +11652,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (tempo < 0.5 || tempo > 100) {
                           throw new Error("atempo must be in the range [0.5, 100]");
                         }
-                        stretched = tempo === 1
-                          ? await filterUnityTempo(stretched, origRate, t.codecDescriptions[0]?.codecName === "pcm_s16le", budget, context.signal)
+                        stretched = tempo === 1 || tempo === 2
+                          ? await filterTempo(stretched, origRate, tempo, t.codecDescriptions[0]?.codecName === "pcm_s16le", budget, context.signal)
                           : await stretchAudio(stretched, origRate, tempo, budget, context.signal);
                       } else if (trimmed === "dialoguenhance" || trimmed.startsWith("dialoguenhance=")) {
                         const values = [1, 1, 2];

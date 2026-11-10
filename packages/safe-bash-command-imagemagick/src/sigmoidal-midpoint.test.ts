@@ -7,6 +7,8 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     for (const option of ["-sigmoidal-contrast", "+sigmoidal-contrast"]) {
         it.each([
+            ["6X25%", "6x25%"],
+            ["6X16384", "6x16384"],
             ["6,25%", "6x25%"],
             ["6/25%", "6x25%"],
             ["6x2 5%", "6x25%"],

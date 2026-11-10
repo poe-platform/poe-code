@@ -8393,7 +8393,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const geometry = parseMagickGeometry(raw);
         // Two offsets supply no contrast magnitude; numeric prefixes are not complete dimensions.
         const magnitude = geometry.aspectRatio ?? geometry.width ?? (geometry.hasOffset && !geometry.hasYOffset ? geometry.x : undefined);
-        const [cStr, mStr] = raw.replaceAll(":", "x").split("x");
+        const [cStr, mStr] = raw.replaceAll("X", "x").replaceAll(":", "x").split("x");
         const ratio = raw.includes(":");
         const strength = parseFloat(cStr ?? "") / (ratio ? parseFloat(mStr ?? "1") : 1);
         if (!Number.isFinite(magnitude) || !Number.isFinite(strength)) {

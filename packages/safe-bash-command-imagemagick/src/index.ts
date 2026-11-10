@@ -7601,7 +7601,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         const bilevelAlpha = imageType === "palettebilevelalpha" || imageType === "palettebilevelmatte";
         const paletteType = imageType !== undefined && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(imageType);
-        const space = imageType === undefined ? (value ?? "gray").toLowerCase()
+        let space = imageType === undefined ? (value ?? "gray").toLowerCase()
             : imageType === "truecolor" || imageType === "truecoloralpha" || paletteType ? "srgb" : "gray";
         // ImageMagick 7.1.2 ColorspaceOptions, plus our existing grey and luma aliases.
         if (token === "-colorspace" && !["undefined", "adobe98", "cat02lms", "cielab", "cmy", "cmyk", "displayp3", "gray", "grey", "hcl", "hclp", "hsb", "hsi", "hsl", "hsv", "hwb", "jzazbz", "lab", "lch", "lchab", "lchuv", "lineargray", "lms", "log", "luv", "ohta", "oklab", "oklch", "prophoto", "rec601luma", "rec601ycbcr", "rec709luma", "rec709ycbcr", "rgb", "scrgb", "srgb", "transparent", "xyy", "xyz", "ycbcr", "ydbdr", "ycc", "yiq", "ypbpr", "yuv"].includes(space)) {
@@ -7610,6 +7610,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (token === "-grayscale" && !["average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(space)) {
             throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
         }
+        if (space === "transparent") space = "srgb";
         evaluate = token !== "-type" && (token === "-grayscale" || ["rgb", "srgb", "gray", "grey", "lineargray", "rec709luma", "rec601luma", "lab", "cielab", "luv", "oklch", "oklab", "ohta", "yuv", "ycbcr"].includes(space));
         const luminance = space === "lineargray" || space === "rec601luminance" || space === "rec709luminance";
         apply = function* (image) {

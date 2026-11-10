@@ -5,7 +5,8 @@ import { parseFilterFloat } from "./filter-float.js";
 
 export async function chorusAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal: AbortSignal | undefined,
+  warn: (message: string) => Promise<void>
 ): Promise<Float64Array[]> {
   const options = { in_gain: "0.4", out_gain: "0.4", delays: "", decays: "", speeds: "", depths: "" };
   const names = Object.keys(options) as (keyof typeof options)[];
@@ -46,6 +47,10 @@ export async function chorusAudio(
     tail = Math.max(tail, samples);
     return { decay, depthSamples, period };
   });
+  const volume = decays!.reduce((sum, decay) => Math.fround(sum + decay), 1);
+  if (Math.fround(gains[0]! * volume) > 1 / gains[1]!) {
+    await warn("output gain can cause saturation or clipping of output\n");
+  }
   const length = (channels[0]?.length ?? 0) + tail;
   budget.checkSamples(length);
   budget.checkDuration(length / sampleRate);

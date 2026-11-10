@@ -11357,7 +11357,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (filterName === "aecho" || filterName === "chorus") {
                         const inputLength = stretched[0]?.length ?? 0;
                         if (filterName === "chorus") {
-                          stretched = await chorusAudio(stretched, origRate, trimmed, budget, context.signal);
+                          stretched = await chorusAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
+                            if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
+                          });
                           filteredSampleFormat = "fltp";
                           statsScale = 1;
                         } else {

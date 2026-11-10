@@ -10723,6 +10723,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-resample") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const value = tokens[++i] ?? "72";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const resized = yield* applyMagickResizeSteps(image, magickResampleGeometry(image, value), state.kernel, false, false, false, state.resizeFilter);
@@ -13601,6 +13602,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return result;
             });
         } else if (!operandsOnly && token === "-resample") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const value = tokens[++i] ?? "72", kernel = state.kernel, settings = state.resizeFilter;
             steps.push(async (image, backend) => {
                 if (!image) return;

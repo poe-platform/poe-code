@@ -5,27 +5,28 @@ import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 export function parseClaheGeometry(raw: string) {
-    const value = raw.trim(), parts: string[] = [];
+    const value = raw.trim().replaceAll("%", "").replaceAll("!", "").replaceAll(">", ""), parts: string[] = [];
     let start = 0;
     for (let i = 0; i < value.length; i++) {
         const c = value[i]!;
-        if (!"0123456789.xX+-%!eE".includes(c)) throw new Error("Invalid CLAHE geometry");
+        if (!"0123456789.xX+-eE".includes(c)) throw new Error("Invalid CLAHE geometry");
         if ((c === "+" || c === "-") && value[i - 1]?.toLowerCase() !== "e") {
             parts.push(value.slice(start, i)); start = i;
         }
     }
     parts.push(value.slice(start));
-    const dimensions = parts[0]!.replaceAll("%", "").replaceAll("!", "").toLowerCase().split("x");
+    const dimensions = parts[0]!.toLowerCase().split("x");
     const width = dimensions[0] ? Number(dimensions[0]) : undefined;
     const height = dimensions[1] ? Number(dimensions[1]) : undefined;
     const bins = parts[1] === undefined ? 128 : Number(parts[1]);
-    const clip = parts[2] === undefined ? 0 : Number(parts[2]);
-    if (!value || dimensions.length > 2 || parts.length > 3 || ![width ?? 0, height ?? 0, bins, clip].every(n => Number.isFinite(n) && n >= 0)
-        || parts.slice(1).some(part => part.length < 2)) throw new Error("Invalid CLAHE geometry");
+    // A final offset sign leaves the clip limit at zero; negative limits are valid.
+    const clip = parts[2] === undefined || parts[2] === "+" || parts[2] === "-" ? 0 : Number(parts[2]);
+    if (!value || dimensions.length > 2 || parts.length > 3 || ![width ?? 0, height ?? 0, bins].every(n => Number.isFinite(n) && n >= 0)
+        || !Number.isFinite(clip) || parts[1]?.length === 1) throw new Error("Invalid CLAHE geometry");
     // Native geometry parsing leaves defaults intact for a width followed directly by offsets.
     if (dimensions.length === 1 && width !== undefined && parts.length > 1)
         return { width: undefined, height: undefined, bins: 128, clip: 0, percent: false, exact: false };
-    return { width, height, bins: bins === 0 ? 128 : Math.min(256, Math.trunc(bins)), clip, percent: value.includes("%"), exact: value.includes("!") };
+    return { width, height, bins: bins === 0 ? 128 : Math.min(256, Math.trunc(bins)), clip, percent: raw.includes("%"), exact: raw.includes("!") };
 }
 
 /** ImageMagick CLAHE: clipped tile histograms of Q16 Lab lightness, interpolated at tile centers. */

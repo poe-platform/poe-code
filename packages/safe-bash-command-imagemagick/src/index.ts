@@ -7246,7 +7246,21 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     const settings = { ...state, channels: { ...state.channels } };
     return { end, highDepth: true, luminance: token === "-linear-stretch" || token === "-equalize" && state.channelSync || (token === "-normalize" || token === "-contrast-stretch") && !independent, transform(histogram, image, channelSums) {
         if (token === "-contrast-stretch" || token === "-linear-stretch") {
-            if (!Number.isFinite(Number.parseFloat(argument.replaceAll("(", "").replaceAll(")", ""))) || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+            let valid = true;
+            for (let fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+                const field = fields[fieldIndex]!;
+                let start = 0;
+                for (let i = 1; i < field.length; i++) {
+                    if (!"+-".includes(field[i]!) || "eE".includes(field[i - 1]!)) continue;
+                    // A signed scalar is a cutoff, but a pair of leading offsets supplies no cutoff.
+                    if (fieldIndex === 0 && start === 0 && "+-".includes(field[0]!)) valid = false;
+                    valid &&= Number.isFinite(Number(field.slice(start, i)));
+                    start = i;
+                }
+                // Number validates the whole field, including decimals and exponent digits.
+                valid &&= Number.isFinite(Number(field.slice(start)));
+            }
+            if (!valid || !Number.isFinite(Number.parseFloat(argument.replaceAll("(", "").replaceAll(")", ""))) || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
                 throw new Error(`invalid argument for option '${token}': ${argument}`);
             }
         }
@@ -7309,11 +7323,6 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 return pixels;
             };
         }
-        // Keep Q16 stretch values until after region compositing, even for 8-bit input.
-        const stretch = !!image.region && (token === "-normalize" || token === "-contrast-stretch");
-        const lookup = Array.from({ length: 4 }, () => levels === 65536 || stretch
-            ? Uint16Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1))
-            : Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
         if (token === "-linear-stretch") {
             const lowTarget = blackPoint * (percentage ? count / 100 : 1);
             // An omitted white point is the remaining pixel count, not the black point.
@@ -7323,14 +7332,18 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum >= lowTarget) break; }
             sum = 0;
             for (; high > 0; high--) { sum += bins[high]!; if (sum >= highTarget) break; }
-            const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];
-            for (let channel = 0; channel < 4; channel++) {
-                if (!active[channel]) continue;
-                for (let value = 0; value < levels; value++) lookup[channel]![value] = high === low
-                    ? (value * 65535 / (levels - 1) > low ? levels - 1 : 0)
-                    : Math.round(Math.max(0, Math.min(levels - 1, (value * 65535 / (levels - 1) - low) / (high - low) * (levels - 1))));
-            }
-        } else if (token === "-normalize" || token === "-contrast-stretch") {
+            // Linear stretch applies levels to the original samples, retaining HDRI fractions.
+            return parseMagickPixelOperation(["-level", `${low},${high}`], {
+                ...settings, channelExplicit: true,
+                channels: { ...channels, a: !independent || channels.a, k: !independent || settings.channels.k },
+            }, 0)!.apply;
+        }
+        // Keep Q16 stretch values until after region compositing, even for 8-bit input.
+        const stretch = !!image.region && (token === "-normalize" || token === "-contrast-stretch");
+        const lookup = Array.from({ length: 4 }, () => levels === 65536 || stretch
+            ? Uint16Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1))
+            : Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
+        if (token === "-normalize" || token === "-contrast-stretch") {
             const maximum = lookup[0] instanceof Uint16Array ? 65535 : 255;
             const whiteValue = Number.isFinite(whitePoint) ? whitePoint : blackPoint;
             const lowTarget = token === "-normalize" ? 0.02 * count : percentage ? blackPoint / 100 * count : blackPoint;
@@ -12253,7 +12266,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const workingSamples = workingBytes ? new Float64Array(workingBytes.buffer.slice(workingBytes.byteOffset, workingBytes.byteOffset + workingBytes.byteLength)) : undefined;
                     await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, offset / 4, settings.channels, workingSamples, image.storedHueSamples !== undefined, image.space === "cmyk", sums, token === "-auto-level"), signal);
                 }
-                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, evaluate: operation.sepiaThreshold !== undefined || token === "-auto-gamma" || token === "-auto-level", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level", apply: operation.transform(histogram, image, sums) }, signal, analysisOperation.highDepth);
+                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, evaluate: operation.sepiaThreshold !== undefined || token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch", apply: operation.transform(histogram, image, sums) }, signal, analysisOperation.highDepth);
             }, { handlesRegion: token === "-sepia-tone" }));
             continue;
         }

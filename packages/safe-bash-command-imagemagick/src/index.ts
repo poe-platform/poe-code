@@ -10113,6 +10113,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-morph") {
+            if (!stack.length) throw new Error("no images found for operation '-morph'");
             const argument = tokens[++i] ?? "1", image = stack[0];
             const expanded = image ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : argument;
             const count = parseMagickMorphCount(expanded);
@@ -11746,7 +11747,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && ["-clut", "-hald-clut", "-separate", "-combine", "-morph", "-evaluate-sequence", "-average", "-poly"].includes(token)) {
             const argument = token === "-morph" || token === "-evaluate-sequence" || token === "-poly" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : token === "-average" ? "Mean" : "", settings = { ...state, channels: { ...state.channels } };
             stackStep(async (stack, backend) => {
-                if ((token === "-evaluate-sequence" || token === "-average" || token === "-separate" || token === "-combine") && !stack.length) throw new Error(`no images found for operation '${token}'`);
+                if ((token === "-evaluate-sequence" || token === "-average" || token === "-separate" || token === "-combine" || token === "-morph") && !stack.length) throw new Error(`no images found for operation '${token}'`);
                 let terms: number[] | undefined;
                 let operation = argument;
                 if (token === "-poly" || token === "-evaluate-sequence") {

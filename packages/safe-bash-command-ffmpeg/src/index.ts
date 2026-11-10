@@ -1178,7 +1178,7 @@ function parseChannelSplit(spec: string): { input: string[]; selected: string[] 
 async function panAudio(
   spec: string, channels: MediaAudioData["channelData"], channelMask: number | undefined, pcm16: boolean,
   budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<{ channels: Float32Array[]; channelMask: number; channelNames: string[] }> {
+): Promise<{ channels: (Float32Array | Float64Array)[]; channelMask: number; channelNames: string[] }> {
   const [layout, ...assignments] = spec.split("|").map(value => value.trim());
   const count = parseAudioChannelCount(layout ?? "");
   const names = count === undefined ? parseAudioChannelLayout(layout ?? "") : Array<string>(count).fill("");
@@ -1275,6 +1275,22 @@ async function panAudio(
         for (let input = 0; input < channels.length; input++) gains[output]![input] = gains[output]![input]! / total;
       }
     }
+  }
+  // Pure channel selection must retain the source sample precision.
+  if (gains.every(row => row.every(gain => gain === 0 || gain === 1) &&
+      row.filter(gain => gain === 1).length <= 1)) {
+    await yieldTurn(signal);
+    signal?.throwIfAborted();
+    budget.checkCpu();
+    return {
+      channels: gains.map(row => {
+        const source = channels[row.indexOf(1)];
+        budget.allocateMemory(source?.byteLength ?? (channels[0]?.length ?? 0) * Float32Array.BYTES_PER_ELEMENT);
+        return source ? source.slice() : new Float32Array(channels[0]?.length ?? 0);
+      }),
+      channelNames: names,
+      channelMask: names.reduce((mask, name) => mask + (audioSpeakerMasks[name] ?? 0), 0)
+    };
   }
   let clipPcm16 = false;
   if (pcm16) {

@@ -1442,7 +1442,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       colors.add(`${r},${g},${b},${a}`);
     }
     for (let c = 0; c < channels; c++) {
-      const value = chunk.evaluateSamples ? chunk.evaluateSamples[i + c]! * range / 255 : samples[i + c]!;
+      const value = chunk.hueSamples && img.space !== "cmyk" ? chunk.hueSamples[i + c]! * range
+        : chunk.evaluateSamples ? chunk.evaluateSamples[i + c]! * range / 255 : samples[i + c]!;
       if (statistics && selected) {
         const n = count, delta = value / range - means[c]!;
         means[c]! += delta / n;
@@ -1901,7 +1902,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
     const original=image.storedData16;
     const bytes=original?await storage.read(original.position+position*2,Math.max(0,Math.min(length,original.length-position))*2,signal?{signal}:undefined):undefined;
-    const inks=(property === "colors" || property === "trim-geometry" || property === "bounding-box") && image.space === "cmyk" && image.storedHueSamples !== undefined
+    const inks=(image.space !== "cmyk" || property === "colors" || property === "trim-geometry" || property === "bounding-box") && image.storedHueSamples !== undefined
       ? await storage.read(image.storedHueSamples+position*8,length*8,signal?{signal}:undefined) : undefined;
     const evaluated=image.storedEvaluateSamples === undefined ? undefined : await storage.read(image.storedEvaluateSamples+position*8,length*8,signal?{signal}:undefined);
     chunk={data,...(evaluated?{evaluateSamples:new Float64Array(evaluated.slice().buffer)}:{}),...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{}),...(inks?{hueSamples:new Float64Array(inks.slice().buffer)}:{})};

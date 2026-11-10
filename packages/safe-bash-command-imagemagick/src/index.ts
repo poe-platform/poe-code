@@ -10524,6 +10524,11 @@ if (t === "-intent" || t === "+intent") {
         state.interlace = ["Undefined", "None", "Line", "Plane", "Partition", "GIF", "JPEG", "PNG"]
             .find(method => method.toLowerCase() === interlace) ?? "Unrecognized";
     }
+    if ((t === "-define" && tokens[start + 1]?.toLowerCase().startsWith("density=")) ||
+        (t === "-set" && tokens[start + 1]?.toLowerCase() === "option:density")) {
+        state.densityGeometry = state.optionProperties!.density!;
+        state.density = Math.max(1, Math.round(parseMagickDensity(state.densityGeometry).width));
+    }
     const property = t?.slice(1);
     if (property && ["compose", "gravity", "filter", "background", "interpolate", "interlace", "virtual-pixel"].includes(property)) {
         state.optionProperties = { ...state.optionProperties };
@@ -10630,11 +10635,18 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if (t === "-density") {
-            const argument = tokens[++i] ?? "72", image = stack[0];
-            const value = state.densityGeometry = image ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }) : argument;
-            validateMagickTransformGeometry(value, "-density");
-            state.density = Math.max(1, Math.round(parseMagickDensity(value).width));
+        if (t === "-density" || (t === "-define" && tokens[i + 1]?.toLowerCase().startsWith("density=")) ||
+            (t === "-set" && tokens[i + 1]?.toLowerCase() === "option:density")) {
+            let value: string;
+            if (t === "-density") {
+                const argument = tokens[++i] ?? "72", image = stack[0];
+                value = state.densityGeometry = image ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }) : argument;
+                validateMagickTransformGeometry(value, "-density");
+                state.density = Math.max(1, Math.round(parseMagickDensity(value).width));
+            } else {
+                i = applyMagickReadSetting(tokens, state, i)!;
+                value = state.densityGeometry!;
+            }
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return applyMagickDensity(image, value); });
             i++;
             continue;
@@ -13450,12 +13462,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async image => image ? applyMagickUnits(image, units) : undefined);
             continue;
         }
-        if (!operandsOnly && token === "-density") {
-            // Resolve expressions before subsequent inputs capture the density setting.
-            if (tokens[i + 1]?.includes("%")) return;
-            const value = state.densityGeometry = tokens[++i] ?? "72";
-            validateMagickTransformGeometry(value, "-density");
-            state.density = Math.max(1, Math.round(parseMagickDensity(value).width));
+        if (!operandsOnly && (token === "-density" || (token === "-define" && tokens[i + 1]?.toLowerCase().startsWith("density=")) ||
+            (token === "-set" && tokens[i + 1]?.toLowerCase() === "option:density"))) {
+            let value: string;
+            if (token === "-density") {
+                // Resolve expressions before subsequent inputs capture the density setting.
+                if (tokens[i + 1]?.includes("%")) return;
+                value = state.densityGeometry = tokens[++i] ?? "72";
+                validateMagickTransformGeometry(value, "-density");
+                state.density = Math.max(1, Math.round(parseMagickDensity(value).width));
+            } else {
+                i = applyMagickReadSetting(tokens, state, i)!;
+                value = state.densityGeometry!;
+            }
             steps.push(async image => image ? applyMagickDensity(image, value) : undefined);
             continue;
         }

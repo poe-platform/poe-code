@@ -45,7 +45,7 @@ import { clearWriteMaskPixelSteps, statisticWriteMaskPixelSteps, writeMaskExtent
 import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { rawRasterInput, rawPartitionPaths } from "./raw-rgb.js";
-import { encodeImage, isRawCoder, type ImageFormat, type RawImage, type StoredRawImage } from "./raw-output.js";
+import { encodeImage, encodeStoredImage, isRawCoder, type ImageFormat, type RawImage, type StoredRawImage } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewBackground } from "./deskew.js";
 import { compareLayerBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
 import { plasmaPixelSteps } from "./plasma.js";
@@ -18173,6 +18173,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
     }
 
+    const output = inferOutputFormat(outSpec, "png");
+    const adjoin = (output.format === "ppm" || output.format === "rgb") && !hasSceneOutputPattern(output.path);
     const stdoutChunks: Uint8Array[] = [];
     let stdout = "";
     function* writePage(canvas: RgbaImage, page: number, multiple: boolean): Generator<void, void, void> {
@@ -18197,11 +18199,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return;
         }
         const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
-        const outPath = path === "-" ? path : multiple || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, page) : path.replaceAll("%%", "%");
+        const outPath = path === "-" ? path : (multiple && !adjoin) || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, page) : path.replaceAll("%%", "%");
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
         const { data: encoded } = encodeImage(canvas, { format, netpbmDepth: state.inputDepth ?? 16, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth, ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}), consumeInput: true } as any);
         detachRgbaBuffer(canvas.data);
-        if (outPath === "-" || outSpec.endsWith(":-")) {
+        if (adjoin || outPath === "-" || outSpec.endsWith(":-")) {
             stdoutChunks.push(encoded);
             return;
         }
@@ -18445,6 +18447,10 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
     let offset = 0;
     for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
+    if (adjoin && output.path !== "-") {
+        files.set(output.path.replaceAll("%%", "%"), stdoutBytes);
+        stdoutChunks.length = 0;
+    }
     if (outSpec.toLowerCase().startsWith("info:") && outSpec.slice(5) && outSpec.slice(5) !== "-") {
         files.set(outSpec.slice(5), new TextEncoder().encode(stdout));
         stdout = "";
@@ -18569,6 +18575,9 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         if (!n) return { exitCode: 1, stdout: "", stderr: warnings + inputErrors };
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n))))), rows = tileRows ?? Math.ceil(n / cols);
         const slotW = maxThumbW + padX * 2 + (frame ? frame.size * 2 : 0), slotH = maxThumbH + padY * 2 + (frame ? frame.size * 2 : 0) + (shadow ? 4 : 0);
+        const output = inferOutputFormat(outSpec, "png");
+        const adjoin = n > cols * rows && output.path !== "-" && (output.format === "ppm" || output.format === "rgb") && !hasSceneOutputPattern(output.path);
+        const pages = new StoredImageStack(backend.storage, signal);
         const stdoutChunks: Uint8Array[] = [];
         let stdout = "";
         for (let pageStart = 0; pageStart < n; pageStart += cols * rows) {
@@ -18669,10 +18678,18 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 }
                 continue;
             }
-            const { format, path } = inferOutputFormat(outSpec, "png");
+            if (adjoin) { await pages.push(canvas); continue; }
+            const { format, path } = output;
             const outputPath = path === "-" ? path : n > cols * rows || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, pageStart / (cols * rows)) : path.replaceAll("%%", "%");
             const stdoutBytes = await (n > cols * rows ? backend.stage : backend.publish)(canvas, outputPath, { format, netpbmDepth: state.inputDepth ?? 16, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
             if (stdoutBytes) stdoutChunks.push(stdoutBytes);
+        }
+        if (adjoin) {
+            await backend.publishText((await pages.get(0))!, output.path.replaceAll("%%", "%"), (async function* () {
+                for (let page = 0; page < pages.length; page++) {
+                    yield* encodeStoredImage((await pages.get(page))!, backend.storage, signal, { format: output.format, netpbmDepth: state.inputDepth ?? 16 });
+                }
+            })());
         }
         if (n > cols * rows) await backend.publishPending();
         const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));

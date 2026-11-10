@@ -148,12 +148,17 @@ export function escapeXml(text: string): string {
 
 export function* xmlSection(row: Record<string, unknown>, name: string, depth: number): Generator<ProbeOutputPart> {
   const indent = "    ".repeat(depth);
-  yield `${indent}<${name}`;
+  yield `${indent}<${name} `;
+  let firstAttribute = true;
   const children: [string, unknown][] = [];
   for (const [key, value] of Object.entries(row)) {
     if (value === undefined) continue;
-    if (value !== null && typeof value === "object" && !isProbeText(value)) { children.push([key, value]); continue; }
-    yield ` ${key}="`;
+    if (value !== null && typeof value === "object" && !isProbeText(value)) {
+      if (key !== "tags" || Object.keys(value).length) children.push([key, value]);
+      continue;
+    }
+    yield `${firstAttribute ? "" : " "}${key}="`;
+    firstAttribute = false;
     yield isProbeText(value) ? { text: value, mode: "xml" } : escapeXml(String(value));
     yield '"';
   }
@@ -161,8 +166,10 @@ export function* xmlSection(row: Record<string, unknown>, name: string, depth: n
   yield ">\n";
   for (const [key, value] of children) {
     if (key === "tags") {
+      yield `${indent}    <tags>\n`;
       for (const [tag, text] of Object.entries(value as Record<string, unknown>))
-        yield* xmlSection({ key: tag, value: text }, "tag", depth + 1);
+        yield* xmlSection({ key: tag, value: text }, "tag", depth + 2);
+      yield `${indent}    </tags>\n`;
     } else if (Array.isArray(value)) {
       yield `${indent}    <${key}>\n`;
       for (const item of value) yield* xmlSection(item as Record<string, unknown>, key === "streams" ? "stream" : key.endsWith("_list") ? key.slice(0, -5) : key, depth + 2);

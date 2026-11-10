@@ -5947,7 +5947,8 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         cursor += vertical ? im.height : im.width;
     }
     const first = stack[0]! as MagickImage;
-    return { ...canvas, ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }), channels: hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
+    const gray = stack.every(image => image.space === "b-w" || image.space === "grey16") && background.r === background.g && background.g === background.b;
+    return { ...canvas, ...(gray ? { space: first.space, gamma: first.gamma } : {}), ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }), channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
 }
 
 function expandFilenameProperties(spec: string, properties: ImageMetadata["properties"]): string {
@@ -12035,7 +12036,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const append = token.endsWith("append"), vertical = token === "-append";
                 if (append && stack.length === 1) return stack;
-                let width = 0, height = 0, highDepth = false, cmyk = false, nonCmyk = false;
+                let width = 0, height = 0, highDepth = false, cmyk = false, nonCmyk = false, gray = true;
                 if (mosaic) {
                     const first = (await stack.get(0))!;
                     width = first.virtualCanvas?.width || first.width;
@@ -12045,6 +12046,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let n = 0; n < stack.length; n++) {
                     await yieldTurn(signal);
                     const frame = (await stack.get(n))!;
+                    gray &&= frame.space === "b-w" || frame.space === "grey16";
                     cmyk ||= frame.space === "cmyk"; nonCmyk ||= frame.space !== "cmyk"; highDepth ||= !!frame.storedData16;
                     if (merge) {
                         const x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
@@ -12099,7 +12101,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     else result = await compositeStoredMagick(result, frame, backend, signal, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, settings.composeRaw, settings.composeArgs, false, true, false, false, settings.alphaFuzz, true);
                     cursor += vertical ? frame.height : frame.width;
                 }
-                if (append) result = { ...result, channels: result.hasAlpha ? 4 : 3 };
+                if (append) {
+                    const first = (await stack.get(0))!;
+                    gray &&= background.r === background.g && background.g === background.b;
+                    result = { ...result, ...(gray ? { space: first.space, gamma: first.gamma } : {}), channels: gray ? result.hasAlpha ? 2 : 1 : result.hasAlpha ? 4 : 3 };
+                }
                 if (!append) {
                     const first = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;
                     result = { ...result, ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };

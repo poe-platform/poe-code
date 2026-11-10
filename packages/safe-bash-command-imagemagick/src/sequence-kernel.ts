@@ -121,7 +121,7 @@ export function* clutPixelSteps(size: number, lut: Pick<RgbaImage, "width" | "he
 }
 
 /** Hald pixels store red fastest, then green, then blue in a flattened RGB cube. */
-export function* haldClutPixelSteps(size: number, lut: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { space?: string; inactiveAlpha?: boolean | undefined }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod, sourceCmyk = false): Steps {
+export function* haldClutPixelSteps(size: number, lut: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { space?: string; inactiveAlpha?: boolean | undefined }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod, sourceCmyk = false, sourceHasAlpha = true): Steps {
     const cmyk = lut.space === "cmyk";
     const range = highDepth ? 65535 : 255;
     const gray = lut.space === "b-w" || lut.space === "grey16";
@@ -160,6 +160,8 @@ export function* haldClutPixelSteps(size: number, lut: Pick<RgbaImage, "width" |
                 values[3]! += sample[3]! * weight;
             }
             for (let channel = 0; channel < values.length; channel++) if (channel !== 3) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
+            // Hald activates alpha, initializing inactive source alpha even when unselected.
+            if (!sourceHasAlpha) samples[offset + 3] = range;
             for (let channel = 0; channel < 4; channel++) if (mask[channel]) samples[offset + channel] = values[channel]!;
             if (cmyk) {
                 for (let channel = 0; channel < 3; channel++) inks![offset + channel] = samples[offset + channel]! / range;

@@ -2142,6 +2142,10 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
     // Splice treats @ dimensions literally and ignores # without dropping dimensions or offsets.
     let g = parseMagickGeometry(raw.replaceAll("@", "").replaceAll("#", ""));
     const dimensionSeparator = raw.toLowerCase().indexOf("x");
+    // Native scalar percentages with offsets leave the input-sized rectangle untouched.
+    if (dimensionSeparator < 0 && g.isPercent && g.width !== undefined && g.hasOffset) {
+        return { ...g, width, height, x: 0, y: 0 };
+    }
     // A second decimal point in the width leaves the entire native rectangle untouched.
     if (dimensionSeparator >= 0 && !raw.trimStart().startsWith("+") && !raw.trimStart().startsWith("-")
         && raw.slice(0, dimensionSeparator).split(".").length > 2) {
@@ -2301,7 +2305,7 @@ function validateMagickSpliceGeometry(raw: string): void {
     }
     if (!raw.toLowerCase().includes("x") && !raw.includes(":")) {
         const geometry = parseMagickGeometry(raw.replaceAll("#", ""));
-        if (geometry.width !== undefined && geometry.hasOffset) {
+        if (geometry.width !== undefined && geometry.hasOffset && !geometry.isPercent) {
             throw new Error(`invalid argument for option '-splice': ${raw}`);
         }
     }

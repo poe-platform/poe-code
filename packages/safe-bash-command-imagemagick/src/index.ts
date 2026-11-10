@@ -5157,7 +5157,15 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
             ? resizePixelSteps(mask, width, height, false, true, kernel, !!mask.data16, settings, true)
             : point ? pointResizePixelSteps(mask, width, height, sample, 4, sampleOffset) : resizeMaskPixelSteps(mask, width, height), undefined, { ...mask, width, height }) };
     }
-    if ((img.writeMask || channels?.some(selected => !selected)) && !sample && !scale && !point) {
+    if ((img.writeMask || img.region || channels?.some(selected => !selected)) && !sample && !scale && !point) {
+        if (img.region) {
+            const writeMask = yield* applyMagickRasterSteps({ width: img.width, height: img.height, data: img.data,
+                format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, regionMaskPixelSteps(img, img.region));
+            img = { ...img, region: undefined, writeMask };
+        }
+        const factor = thumbnail && img.writeMask ? Math.floor(Math.min(img.width / width, img.height / height)) : 0;
+        if (factor >= 5) img = yield* applyMagickResizeSteps(img, `${4 * width}x${4 * height}!`, "nearest", false, true);
+        if (factor >= 3) img = yield* applyMagickResizeSteps(img, `${2 * width}x${2 * height}!`, "box", false, false, false, settings, undefined, true, undefined, channels);
         const horizontalFirst = width / img.width > height / img.height;
         let resized = img;
         for (const horizontal of [horizontalFirst, !horizontalFirst]) {
@@ -5218,7 +5226,15 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
             ? resizePixelSteps(mask, width, height, false, true, options.kernel, !!mask.storedData16, settings, true)
             : point ? pointResizePixelSteps(mask, width, height, sample, 4, sampleOffset) : resizeMaskPixelSteps(mask, width, height), signal, { ...mask, width, height }) };
     }
-    if ((image.storedWriteMask || channels?.some(selected => !selected)) && !sample && !scale && !point) {
+    if ((image.storedWriteMask || image.region || channels?.some(selected => !selected)) && !sample && !scale && !point) {
+        if (image.region) {
+            const storedWriteMask = await transformStoredMagickRaster({ width: image.width, height: image.height, position: image.position,
+                format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, backend, regionMaskPixelSteps(image, image.region), signal);
+            image = { ...image, region: undefined, storedWriteMask };
+        }
+        const factor = thumbnail && image.storedWriteMask ? Math.floor(Math.min(image.width / width, image.height / height)) : 0;
+        if (factor >= 5) image = await resizeStoredMagickImage(image, backend, magickResizeOptions(image, `${4 * width}x${4 * height}!`, "nearest"), signal, false, true);
+        if (factor >= 3) image = await resizeStoredMagickImage(image, backend, magickResizeOptions(image, `${2 * width}x${2 * height}!`, "box"), signal, false, false, false, settings, undefined, true, undefined, channels);
         const horizontalFirst = width / image.width > height / image.height;
         let resized = image;
         for (const horizontal of [horizontalFirst, !horizontalFirst]) {

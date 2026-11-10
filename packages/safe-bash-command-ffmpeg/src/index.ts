@@ -3686,7 +3686,8 @@ async function applyVideoFilterChain(
       }
       current = retained;
     } else if (name === "framestep") {
-      const value = parseFilterExpression(named.step ?? (argStr || "1"), "framestep", {
+      if (positional.at(-1) === "") positional.pop();
+      const value = parseFilterExpression(named.step ?? (positional[0] || "1"), "framestep", {
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
       });
       if (positional.length > 1 || Object.keys(named).some(key => key !== "step") ||

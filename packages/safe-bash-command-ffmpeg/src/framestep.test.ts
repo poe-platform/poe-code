@@ -9,6 +9,8 @@ for (const [filter, expected] of [
   ["null", values],
   ["framestep=3", [12, 112, 176]],
   ["framestep=step=3", [12, 112, 176]],
+  ["framestep=2:", [12, 40, 144, 176]],
+  ["framestep=step=2:", [12, 40, 144, 176]],
   ["framestep=step=1+1", [12, 40, 144, 176]],
   ["framestep=2.5", [12, 40, 144, 176]],
   ["framestep=3.5", [12, 144]],

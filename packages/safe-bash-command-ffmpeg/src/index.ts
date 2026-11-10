@@ -9930,32 +9930,42 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const starts = new Array<number | undefined>(counts.length).fill(undefined);
                         const minimum = Math.round(duration * origRate) * (mono ? 1 : channels);
                         const length = stretched[0]?.length ?? 0;
-                        for (let frame = 0; frame < length; frame++) {
-                          for (let channel = 0; channel < channels; channel++) {
-                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            const slot = mono ? channel : 0;
-                            const prefix = mono ? `channel: ${channel} | ` : "";
-                            if (Math.abs(stretched[channel]![frame]!) < noise) {
-                              counts[slot]!++;
-                              if (starts[slot] === undefined && counts[slot]! >= minimum) {
-                                const start = frame / origRate - (minimum / (mono ? 1 : channels) - 1) / origRate;
-                                starts[slot] = start;
-                                await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_start: ${Number(start.toPrecision(6))}\n`), context.signal);
+                        for (let frameStart = 0, n = 0; frameStart < length; n++) {
+                          const timestamp = audioTimestamps?.[n];
+                          const packet = t.samples[n];
+                          const count = timestamp ? timestamp.end - timestamp.start
+                            : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                          const frameEnd = Math.min(length, frameStart + count);
+                          for (let frame = frameStart; frame < frameEnd; frame++) {
+                            const pts = (timestamp?.pts ?? audioStartSample + frameStart) + frame - frameStart;
+                            for (let channel = 0; channel < channels; channel++) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              const slot = mono ? channel : 0;
+                              const prefix = mono ? `channel: ${channel} | ` : "";
+                              if (Math.abs(stretched[channel]![frame]!) < noise) {
+                                counts[slot]!++;
+                                if (starts[slot] === undefined && counts[slot]! >= minimum) {
+                                  const start = pts / origRate - (minimum / (mono ? 1 : channels) - 1) / origRate;
+                                  starts[slot] = start;
+                                  await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_start: ${Number(start.toPrecision(6))}\n`), context.signal);
+                                }
+                              } else {
+                                const start = starts[slot];
+                                if (start !== undefined) {
+                                  const end = pts / origRate;
+                                  await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
+                                }
+                                counts[slot] = 0;
+                                starts[slot] = undefined;
                               }
-                            } else {
-                              const start = starts[slot];
-                              if (start !== undefined) {
-                                const end = frame / origRate;
-                                await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
-                              }
-                              counts[slot] = 0;
-                              starts[slot] = undefined;
                             }
                           }
+                          frameStart = frameEnd;
                         }
                         for (const [slot, start] of starts.entries()) {
                           if (start === undefined) continue;
-                          const end = length / origRate;
+                          const last = audioTimestamps?.at(-1);
+                          const end = (last ? last.pts + last.end - last.start : audioStartSample + length) / origRate;
                           const prefix = mono ? `channel: ${slot} | ` : "";
                           await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
                         }

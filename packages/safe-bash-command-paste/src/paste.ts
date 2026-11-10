@@ -3,7 +3,11 @@ import { diagnostic } from "safe-bash-io-engine/internal";
 import { argument, command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 function delimiters(bytes: Uint8Array, locale: string): readonly Uint8Array[] {
-  const byteLocale = locale === "C" || locale === "POSIX";
+  const name = locale.split("@")[0]!;
+  const codeset = name.slice(name.indexOf(".") + 1).toLowerCase();
+  let decoder: TextDecoder | undefined;
+  try { decoder = new TextDecoder(codeset === "eucjp" ? "euc-jp" : codeset, { fatal: true, ignoreBOM: true }); }
+  catch { /* C/POSIX and unknown encodings cycle original bytes. */ }
   const result: Uint8Array[] = [];
   const escapes: Record<number, number> = { 98: 8, 102: 12, 110: 10, 114: 13, 116: 9, 118: 11 };
   for (let offset = 0; offset < bytes.length;) {
@@ -15,15 +19,16 @@ function delimiters(bytes: Uint8Array, locale: string): readonly Uint8Array[] {
     }
     const first = bytes[offset]!;
     let length = 1;
-    if (!byteLocale && first >= 0xc2 && first <= 0xf4) {
-      const width = first < 0xe0 ? 2 : first < 0xf0 ? 3 : 4;
-      const second = bytes[offset + 1] ?? 0;
-      const minimum = first === 0xe0 ? 0xa0 : first === 0xf0 ? 0x90 : 0x80;
-      const maximum = first === 0xed ? 0x9f : first === 0xf4 ? 0x8f : 0xbf;
-      if (offset + width <= bytes.length && second >= minimum && second <= maximum
-        && bytes.subarray(offset + 2, offset + width).every(byte => byte >= 0x80 && byte <= 0xbf)) length = width;
+    if (decoder && first >= 0x80) {
+      // Supported locale encodings need at most four bytes per character.
+      for (let width = 1; width <= 4 && offset + width <= bytes.length; width++) {
+        try {
+          decoder.decode(bytes.subarray(offset, offset + width));
+          length = width;
+          break;
+        } catch { /* Try a longer character; invalid input retains one byte. */ }
+      }
     }
-    // Invalid or incomplete UTF-8 consumes one original byte, never a replacement character.
     result.push(bytes.subarray(offset, offset + length));
     offset += length;
   }

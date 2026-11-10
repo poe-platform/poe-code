@@ -11729,6 +11729,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const plan = magickMorphologyPlan(method, geometry, true);
                 if (state.virtualPixel === "transparent" && (!state.channelExplicit || state.channels.a)) im = { ...im, hasAlpha: true };
                 const result = yield* applyMagickMorphology4ChSteps({ ...im, isPalette: false }, plan, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background);
+                if (im.alphaBlend === false) result.alphaSeparate = false;
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
@@ -14296,6 +14297,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (virtualPixel === "transparent" && (!channels || channels[3])) image = { ...image, hasAlpha: true };
                 const plan = magickMorphologyPlan(method, geometry, true);
                 const result = await morphStoredMagickImage({ ...image, isPalette: false }, backend, plan, signal, channels, virtualPixel, background);
+                if (image.alphaBlend === false) result.alphaSeparate = false;
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries())

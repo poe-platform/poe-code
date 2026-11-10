@@ -4,13 +4,30 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 export function parseMeanShiftGeometry(raw: string): { width: number; height: number; distance: number } {
-    const percent = raw.endsWith("%"), value = percent ? raw.slice(0, -1) : raw;
-    const offset = value.indexOf("+"), dimensions = (offset < 0 ? value : value.slice(0, offset)).split("x");
-    const width = Number(dimensions[0]), height = dimensions[1] === undefined ? 1 : Number(dimensions[1]);
-    const distance = offset < 0 ? 6553.5 : Number(value.slice(offset + 1));
-    if (dimensions.length > 2 || !dimensions.some(part => part.length > 0) || ![width, height, distance].every(Number.isFinite)
-        || width < 0 || height < 0 || distance < 0 || (offset >= 0 && offset === value.length - 1)) throw new Error("Invalid mean-shift geometry");
-    if (width > 1000 || height > 1000) throw new Error("Mean-shift window exceeds limit");
+    const percent = raw.includes("%");
+    const value = [...raw].filter(character => character.trim() !== "" && !"%!<>^@#()".includes(character)).join("");
+    const parts: string[] = [];
+    let start = 0;
+    for (let i = 0; i < value.length; i++) {
+        if ((value[i] === "+" || value[i] === "-") && value[i - 1]?.toLowerCase() !== "e") {
+            parts.push(value.slice(start, i));
+            start = i;
+        }
+    }
+    parts.push(value.slice(start));
+    const dimensions = parts[0]!.replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x").split("x");
+    let width = Number(dimensions[0]), height = dimensions[1] === undefined ? 1 : Number(dimensions[1]);
+    const offsets = parts.slice(1).map(Number);
+    if (dimensions.length > 2 || !dimensions.some(part => part.length > 0) || offsets.length > 2
+        || ![width, height, ...offsets].every(Number.isFinite) || width < 0 || height < 0) throw new Error("Invalid mean-shift geometry");
+    // Native colon geometry is a ratio with unit height, not a window separator.
+    if (value.includes(":")) {
+        width /= height;
+        height = 1;
+    }
+    if (!Number.isFinite(width) || width > 1000 || height > 1000) throw new Error("Mean-shift window exceeds limit");
+    // The kernel squares the signed color distance; the second offset is unused.
+    const distance = offsets[0] ?? 6553.5;
     return { width: Math.trunc(width), height: Math.trunc(height), distance: percent ? distance / 100 : distance / 65535 };
 }
 

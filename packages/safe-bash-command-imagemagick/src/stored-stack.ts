@@ -23,6 +23,7 @@ export interface MagickFormatContext {
     ticksPerSecond?: number;
     delayTicks?: number;
     interlace?: string;
+    virtualPixel?: string | undefined;
     channelSelection?: { r: boolean; g: boolean; b: boolean; a: boolean } | undefined;
 }
 export type StoredMagickImage = StoredRgbaImage & MetaChannels & { [magickInput]?: MagickFormatContext };

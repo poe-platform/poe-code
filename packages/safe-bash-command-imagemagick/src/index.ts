@@ -11153,7 +11153,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 const geometry = parseClaheGeometry(expanded);
-                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, clahePixelSteps(im, geometry, state.background, state.virtualPixel), signal);
+                const hsl = im.magickColorspace === "HSL";
+                const rgb = hsl ? yield* convertHuePixels(im, "sRGB") : im;
+                const result = yield* applyMagickRasterSteps({ ...rgb, isPalette: false }, clahePixelSteps(rgb, geometry, state.background, state.virtualPixel), signal);
+                return hsl ? yield* convertHuePixels(result, "HSL") : result;
             });
         }
         else if (t === "-lat") {
@@ -14030,7 +14033,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const geometry = parseClaheGeometry(expanded);
-                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, clahePixelSteps(image, geometry, background, virtualPixel), signal);
+                const hsl = image.magickColorspace === "HSL";
+                const rgb = hsl ? await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal) : image;
+                const result = await transformStoredMagickRaster({ ...rgb, isPalette: false }, backend, clahePixelSteps(rgb, geometry, background, virtualPixel), signal);
+                return hsl ? transformStoredMagickPixels(result, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "HSL") }, signal) : result;
             });
         } else if (!operandsOnly && token === "-lat") {
             stackStep(async stack => {

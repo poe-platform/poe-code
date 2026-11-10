@@ -10745,7 +10745,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const highDepth = oldStack.some(image => !!image.data16);
                 const over = state.compose === "over";
                 const background = state.backgroundExplicit ? state.background : oldStack[0]!.backgroundColor ?? state.background;
-                let canvas = (yield* createSolidRgbaImageSteps(maxW, maxH, background, highDepth));
+                const colorspace = oldStack[0]!;
+                let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(maxW, maxH, background, highDepth),
+                    space: colorspace.space, ...(colorspace.magickColorspace === undefined ? {} : { magickColorspace: colorspace.magickColorspace }) };
                 for (const im of oldStack) {
                     const x = (im.virtualCanvas?.x ?? 0) - originX, y = (im.virtualCanvas?.y ?? 0) - originY;
                     if (over) {
@@ -12061,6 +12063,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const background = settings.backgroundExplicit ? settings.background : (await stack.get(0))!.backgroundColor ?? settings.background;
                 result = await createStoredCanvas(width, height, background, backend, signal, highDepth);
+                if (!append) {
+                    const first = (await stack.get(0))! as StoredRgbaImage;
+                    result = { ...result, space: first.space, ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }) };
+                }
                 if (append) {
                     const first = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;
                     result = { ...result, delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), hasAlpha: background.a < 255, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };

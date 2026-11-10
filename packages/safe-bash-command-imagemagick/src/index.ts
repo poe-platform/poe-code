@@ -10295,6 +10295,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* rotateImageSteps((yield* flipImageSteps(im)), 90, state.background),
+                    ...(im.writeMask ? { writeMask: yield* rotateImageSteps((yield* flipImageSteps(im.writeMask)), 90, state.background) } : {}),
                     ...(im.region ? { region: orientRegion(im.region, { ...im, orientation: 5 }) } : {}),
                     virtualCanvas: magickTransposeCanvas(im, false) };
             }));
@@ -10303,6 +10304,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* rotateImageSteps((yield* flopImageSteps(im)), 90, state.background),
+                    ...(im.writeMask ? { writeMask: yield* rotateImageSteps((yield* flopImageSteps(im.writeMask)), 90, state.background) } : {}),
                     ...(im.region ? { region: orientRegion(im.region, { ...im, orientation: 7 }) } : {}),
                     virtualCanvas: magickTransposeCanvas(im, true) };
             }));
@@ -12528,6 +12530,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const background = state.background, kind = token === "-transpose" ? "flip" : "flop";
             steps.push(async (image, backend) => image ? {
                 ...await transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal),
+                ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(await transformStoredImage(image.storedWriteMask, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal) } : {}),
                 ...(image.region ? { region: orientRegion(image.region, { ...image, orientation: kind === "flip" ? 5 : 7 }) } : {}),
                 virtualCanvas: magickTransposeCanvas(image, kind === "flop")
             } : undefined);

@@ -9051,6 +9051,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const span = s1 - s0;
         const inverse = token === "+sigmoidal-contrast";
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
+        const adjustQuantum = (u: number): number => {
+            // Match ImageMagick's epsilon clamp so saturated endpoints stay finite.
+            const value = inverse
+                ? alpha + (2 / beta) * Math.atanh(Math.max(-1 + 1e-12, Math.min(1 - 1e-12, span * u + s0)))
+                : (sig(u) - s0) / span;
+            // Preserve native Q16-HDRI float samples for subsequent operations.
+            return Math.fround(Math.max(0, Math.min(1, value)) * 65535);
+        };
         const adjust = function* (im: RgbaImage, channels: MagickState["channels"]): Generator<void, RgbaImage> {
             const cmyk = im.space === "cmyk";
             if (cmyk) im = yield* convertCmykPixels(im);
@@ -9072,12 +9080,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     const ink = inkSamples && c !== 3;
                     const offset = idx + (c === 4 ? 3 : c);
                     const u = ink ? inkSamples[offset]! : evaluateSamples[offset]! / 255;
-                    // Match ImageMagick's epsilon clamp so saturated endpoints stay finite.
-                    const value = inverse
-                        ? alpha + (2 / beta) * Math.atanh(Math.max(-1 + 1e-12, Math.min(1 - 1e-12, span * u + s0)))
-                        : (sig(u) - s0) / span;
-                    // Preserve native Q16-HDRI float samples for subsequent operations.
-                    const quantum = Math.fround(Math.max(0, Math.min(1, value)) * 65535);
+                    const quantum = adjustQuantum(u);
                     if (ink) inkSamples[offset] = quantum / 65535;
                     else {
                         evaluateSamples[offset] = quantum / 257;
@@ -9094,7 +9097,23 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     if (data16) data16[idx + c] = Math.max(0, Math.min(65535, Math.round(value)));
                 }
             }
-            return { ...im, data: out, evaluateSamples, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(inkSamples ? { hueSamples: inkSamples } : {}) };
+            // Update the complete colormap, including entries not used by any pixel.
+            const adjustColor = (r: number, g: number, b: number, a: number): number =>
+                (mask[3] ? clampByteVal(adjustQuantum(a / 255) / 257) : a) * 16777216 + (channels.r ? clampByteVal(adjustQuantum(r / 255) / 257) : r) * 65536
+                + (channels.g ? clampByteVal(adjustQuantum(g / 255) / 257) : g) * 256
+                + (channels.b ? clampByteVal(adjustQuantum(b / 255) / 257) : b);
+            const indexedColors = im.indexedColors?.map(color => adjustColor((color >>> 16) & 255, (color >>> 8) & 255, color & 255, color >>> 24));
+            let pngPalette = im.pngPalette;
+            if (pngPalette) {
+                const bytes = new Uint8Array(pngPalette.bytes);
+                for (let i = 0; i < bytes.length; i += 3) {
+                    const color = adjustColor(bytes[i]!, bytes[i + 1]!, bytes[i + 2]!, 255);
+                    bytes[i] = color >>> 16; bytes[i + 1] = color >>> 8; bytes[i + 2] = color;
+                }
+                const transparency = pngPalette.transparency?.map(value => mask[3] ? clampByteVal(adjustQuantum(value / 255) / 257) : value);
+                pngPalette = { ...pngPalette, bytes, ...(transparency ? { transparency } : {}) };
+            }
+            return { ...im, data: out, evaluateSamples, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(inkSamples ? { hueSamples: inkSamples } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
         };
         meta = {
             channels: !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [],

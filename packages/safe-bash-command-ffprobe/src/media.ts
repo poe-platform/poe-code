@@ -826,8 +826,9 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     } else if (fmt === "flat") {
       const sep = paramMap.sep_char ?? ".";
       const hierarchical = parseWriterBoolean(paramMap.hierarchical ?? "1");
+      const parent = includePackets && includeFrames && (name === "packet" || name === "frame") ? "packets_and_frames" : name + "s";
       const prefix = parentPath + (["program", "stream", "packet", "frame"].includes(name)
-        ? `${hierarchical ? name + "s" + sep : ""}${name}${sep}${index}${sep}`
+        ? `${hierarchical ? parent + sep : ""}${name}${sep}${index}${sep}`
         : `${name}${sep}`);
       for (const [key, value] of probeEntries(section, `tags${sep}`, `disposition${sep}`)) {
         if (value === undefined || typeof value === "object" && !isProbeText(value)) continue;
@@ -851,18 +852,26 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     }
   }
   let packetIndex = 0, frameIndex = 0;
-  if (fmt === "xml" && includePackets) yield "    <packets>\n";
-  if (includePackets && probe.packets) yield { rows: probe.packets, *render(row) {
-    const packet = prepareRecord(row, "packet");
-    if (packet !== undefined) yield* render(packet, "packet", packetIndex++);
-  } };
-  if (fmt === "xml" && includePackets) yield "    </packets>\n";
-  if (fmt === "xml" && includeFrames) yield "    <frames>\n";
-  if (includeFrames && probe.frames) yield { rows: probe.frames, *render(row) {
-    const frame = prepareRecord(row, "frame");
-    if (frame !== undefined) yield* render(frame, "frame", frameIndex++);
-  } };
-  if (fmt === "xml" && includeFrames) yield "    </frames>\n";
+  if (fmt === "flat" && includePackets && includeFrames) {
+    yield { rows: interleaveProbeRecords(probe.packets ?? [], probe.frames ?? []), *render(row) {
+      const { type, record } = row as { type: string; record: unknown };
+      const prepared = prepareRecord(record, type);
+      if (prepared !== undefined) yield* render(prepared, type, type === "packet" ? packetIndex++ : frameIndex++);
+    } };
+  } else {
+    if (fmt === "xml" && includePackets) yield "    <packets>\n";
+    if (includePackets && probe.packets) yield { rows: probe.packets, *render(row) {
+      const packet = prepareRecord(row, "packet");
+      if (packet !== undefined) yield* render(packet, "packet", packetIndex++);
+    } };
+    if (fmt === "xml" && includePackets) yield "    </packets>\n";
+    if (fmt === "xml" && includeFrames) yield "    <frames>\n";
+    if (includeFrames && probe.frames) yield { rows: probe.frames, *render(row) {
+      const frame = prepareRecord(row, "frame");
+      if (frame !== undefined) yield* render(frame, "frame", frameIndex++);
+    } };
+    if (fmt === "xml" && includeFrames) yield "    </frames>\n";
+  }
   if (fmt === "xml" && includePrograms) yield "    <programs>\n";
   for (const [index, program] of programs.entries()) yield* render(program, "program", index);
   if (fmt === "xml" && includePrograms) yield "    </programs>\n";

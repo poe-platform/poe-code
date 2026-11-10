@@ -94,8 +94,8 @@ for (const [filter, hash] of [
 });
 
 it("bounds memory and honors cancellation", async () => {
-  await assert.rejects(boostSubAudio([mono], 16000, "asubboost", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
-  await assert.rejects(boostSubAudio([mono], 16000, "asubboost", new MediaBudgetTracker(), AbortSignal.abort()));
+  await assert.rejects(boostSubAudio([mono], 16000, "asubboost", [{ start: 0, end: mono.length, pts: 0 }], new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
+  await assert.rejects(boostSubAudio([mono], 16000, "asubboost", [{ start: 0, end: mono.length, pts: 0 }], new MediaBudgetTracker(), AbortSignal.abort()));
 });
 
 it("selects speakers from the current channel layout", async () => {
@@ -109,7 +109,7 @@ it("selects speakers from the current channel layout", async () => {
 
 it("supports positional selection and explicit speaker names", async () => {
   const output = await boostSubAudio([mono, mono], 16000,
-    "asubboost=1:0:2:0:0.9:100:0.5:20:LFE", new MediaBudgetTracker(), undefined, ["FC", "LFE"]);
+    "asubboost=1:0:2:0:0.9:100:0.5:20:LFE", [{ start: 0, end: mono.length, pts: 0 }], new MediaBudgetTracker(), undefined, ["FC", "LFE"]);
   assert.deepEqual(output[0], mono);
   assert.ok(output[1]!.every(sample => sample === 0));
 });

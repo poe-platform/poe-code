@@ -1,11 +1,15 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layout.js";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function boostSubAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  budget: MediaBudgetTracker, signal?: AbortSignal, channelNames?: readonly string[]
+  frames: readonly { start: number; end: number; pts: number }[],
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  channelNames?: readonly string[]
 ): Promise<Float64Array[]> {
+  let enable: string | undefined;
   const options = { dry: 1, wet: 1, boost: 2, decay: 0, feedback: 0.9, cutoff: 100, slope: 0.5, delay: 20 };
   const ranges = { dry: [0, 1], wet: [0, 1], boost: [1, 12], decay: [0, 1], feedback: [0, 1], cutoff: [50, 900], slope: [0.0001, 1], delay: [1, 100] };
   const names = Object.keys(options) as (keyof typeof options)[];
@@ -19,6 +23,11 @@ export async function boostSubAudio(
     // when it was just visited. The named key does not select the next slot.
     if (separator < 0) optionPosition++;
     else optionPosition = optionPosition === 0 ? 1 : 0;
+    if (key === "enable") {
+      enable = option.slice(separator + 1).trim();
+      parseFilterExpression(enable, "asubboost enable", { n: 0, t: 0 });
+      continue;
+    }
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "channels") {
       selected = value === "all" ? undefined : parseAudioChannelLayout(value);
@@ -29,8 +38,7 @@ export async function boostSubAudio(
     const numericKey = key as keyof typeof options;
     const number = Number(value);
     const [min, max] = ranges[numericKey];
-    if (!value || !Number.isFinite(number)) throw new Error(`asubboost: invalid ${key}`);
-    if (number < min! || number > max!) throw new RangeError(`asubboost: invalid ${key}`);
+    if (!value || !Number.isFinite(number) || number < min! || number > max!) throw new Error(`asubboost: invalid ${key}`);
     options[numericKey] = number;
   }
   signal?.throwIfAborted();
@@ -49,37 +57,43 @@ export async function boostSubAudio(
   let work = 0;
   channelNames ??= channels.length === 1 ? ["FC"] : channels.length === 2 ? ["FL", "FR"] : [];
   for (const [channelIndex, channel] of channels.entries()) {
-    const enabled = !selected || selected.includes(channelNames[channelIndex] ?? "");
+    const channelEnabled = !selected || selected.includes(channelNames[channelIndex] ?? "");
     buffer.fill(0);
     const samples = new Float64Array(channel.length);
     let position = 0;
     let state0 = 0;
     let state1 = 0;
     let gain = 0;
-    for (let i = 0; i < channel.length; i++) {
-      if (++work % 1024 === 0) {
-        await yieldTurn(signal);
-        signal?.throwIfAborted();
-        budget.checkCpu();
+    for (const [n, frame] of frames.entries()) {
+      const enabled = channelEnabled && (enable === undefined || Math.abs(parseFilterExpression(enable, "asubboost enable", {
+        n, t: frame.pts / sampleRate
+      })) >= 0.5);
+      for (let i = frame.start; i < frame.end; i++) {
+        if (++work % 1024 === 0) {
+          await yieldTurn(signal);
+          signal?.throwIfAborted();
+          budget.checkCpu();
+        }
+        const input = channel[i]!;
+        // Generic timeline bypass leaves the filter and delay history untouched.
+        if (!enabled) {
+          samples[i] = input;
+          continue;
+        }
+        const low = input * b0 + state0;
+        state0 = b1 * input + state1 + a1 * low;
+        state1 = b0 * input + a2 * low;
+        const delayed = buffer[position]! * options.decay + low * options.feedback;
+        buffer[position] = delayed;
+        // Native asubboost smooths available headroom, with a slow rise and fast fall.
+        const headroom = (1 - Math.abs(input * options.dry)) / Math.abs(delayed);
+        // Zero headroom and a zero delayed signal must not poison subsequent gain values.
+        const boost = Math.min(options.boost, Math.max(0, Number.isNaN(headroom) ? 0 : headroom));
+        gain = boost > gain ? gain * 0.99999 + 0.00001 * boost : gain * 0.00001 + 0.99999 * boost;
+        gain = Math.min(options.boost, Math.max(0, gain));
+        samples[i] = (input * options.dry + gain * delayed) * options.wet;
+        if (++position >= delaySamples) position = 0;
       }
-      const input = channel[i]!;
-      if (!enabled) {
-        samples[i] = input;
-        continue;
-      }
-      const low = input * b0 + state0;
-      state0 = b1 * input + state1 + a1 * low;
-      state1 = b0 * input + a2 * low;
-      const delayed = buffer[position]! * options.decay + low * options.feedback;
-      buffer[position] = delayed;
-      // Native asubboost smooths available headroom, with a slow rise and fast fall.
-      const headroom = (1 - Math.abs(input * options.dry)) / Math.abs(delayed);
-      // Zero headroom and a zero delayed signal must not poison subsequent gain values.
-      const boost = Math.min(options.boost, Math.max(0, Number.isNaN(headroom) ? 0 : headroom));
-      gain = boost > gain ? gain * 0.99999 + 0.00001 * boost : gain * 0.00001 + 0.99999 * boost;
-      gain = Math.min(options.boost, Math.max(0, gain));
-      samples[i] = (input * options.dry + gain * delayed) * options.wet;
-      if (++position >= delaySamples) position = 0;
     }
     output.push(samples);
   }

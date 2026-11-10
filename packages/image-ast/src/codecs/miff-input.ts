@@ -50,7 +50,7 @@ function* miffFrameHeader(size: number): Generator<number, MiffHeader, number | 
     const indexed = fields.get("class") === "PseudoClass", colors = Number(fields.get("colors") ?? 0);
     const sampleBytes = depth / 8, indexBytes = Math.max(sampleBytes, colors > 256 ? 2 : 1);
     const pixelBytes = indexed ? indexBytes + (hasAlpha ? sampleBytes : 0) : channels * sampleBytes;
-    if ((!indexed && fields.get("class") !== "DirectClass") || (fields.get("compression") ?? "None") !== "None" || !(indexed ? [8, 16] : [8, 16, 32]).includes(depth) || !["sRGB", "RGB", "Gray"].includes(colorspace)
+    if ((!indexed && fields.get("class") !== "DirectClass") || (fields.get("compression") ?? "None") !== "None" || !(indexed ? [8, 16] : [8, 16, 32]).includes(depth) || !["sRGB", "RGB", "Gray"].includes(colorspace) && (fields.get("class") !== "DirectClass" || !["CIELab", "XYZ", "HSL", "YCbCr"].includes(colorspace))
         || indexed && (!Number.isSafeInteger(colors) || colors < 1 || colors > 65536)
         || Number(fields.get("number-meta-channels") ?? 0) !== 0
         || Number(fields.get("number-channels") ?? channels + Number(indexed)) !== channels + Number(indexed) || fields.has("quantum:format") && fields.get("quantum:format") !== "unsigned"

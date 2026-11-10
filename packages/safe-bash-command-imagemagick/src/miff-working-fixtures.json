@@ -1,0 +1,191 @@
+[
+  {
+    "space": "CIELab",
+    "depth": 8,
+    "alpha": true,
+    "raster": "48a43dcd8cd484ff48a43dcd676cae8048a43dcd8cd484ff48a43dcd676cae80",
+    "info": "CIELab|cielaba 4.0",
+    "rgba8": "1234accdff007fff1234accd556600801234accdff007fff1234accd55660080",
+    "rgba16": "12563400ac9fcdcdffff00317fd0ffff12563400ac9fcdcd54e666c7003c808012563400ac9fcdcdffff00317fd0ffff12563400ac9fcdcd54e666c7003c8080"
+  },
+  {
+    "space": "CIELab",
+    "depth": 16,
+    "alpha": true,
+    "raster": "3482392133b73a6e38643aa738213c003482392133b73a6e367336cd397638043482392133b73a6e38643aa738213c003482392133b73a6e367336cd39763804",
+    "info": "CIELab|cielaba 4.0",
+    "rgba8": "0092cb3a0091c73c0092cb3a008fc3380092cb3a0091c73c0092cb3a008fc338",
+    "rgba16": "00009212cb8b3a6e0000919dc8163c0000009212cb8b3a6e00008f21c3a6380400009212cb8b3a6e0000919dc8163c0000009212cb8b3a6e00008f21c3a63804"
+  },
+  {
+    "space": "CIELab",
+    "depth": 8,
+    "alpha": false,
+    "raster": "48a43d8cd48448a43d676cae48a43d8cd48448a43d676cae",
+    "info": "CIELab|cielab  3.0",
+    "rgba8": "1234acffff007fff1234acff556600ff1234acffff007fff1234acff556600ff",
+    "rgba16": "12563400ac9fffffffff00317fd0ffff12563400ac9fffff54e666c7003cffff12563400ac9fffffffff00317fd0ffff12563400ac9fffff54e666c7003cffff"
+  },
+  {
+    "space": "XYZ",
+    "depth": 8,
+    "alpha": true,
+    "raster": "170e64cd733a39ff170e64cd161d0480170e64cd733a39ff170e64cd161d0480",
+    "info": "XYZ|xyza 4.0",
+    "rgba8": "1d32abcdff0080ff1d32abcd596600801d32abcdff0080ff1d32abcd59660080",
+    "rgba16": "1d41322cabdfcdcdffff00008090ffff1d41322cabdfcdcd58dc6627000080801d41322cabdfcdcdffff00008090ffff1d41322cabdfcdcd58dc662700008080"
+  },
+  {
+    "space": "XYZ",
+    "depth": 16,
+    "alpha": true,
+    "raster": "2da62b1236433a6e3739334d332f3c002da62b1236433a6e2d702f51248138042da62b1236433a6e3739334d332f3c002da62b1236433a6e2d702f5124813804",
+    "info": "XYZ|xyza 4.0",
+    "rgba8": "7f6d7b3a9374763c7f6d7b3a817662387f6d7b3a9374763c7f6d7b3a81766238",
+    "rgba16": "7fde6cfa7bef3a6e937a749d76da3c007fde6cfa7bef3a6e81a1764c62ac38047fde6cfa7bef3a6e937a749d76da3c007fde6cfa7bef3a6e81a1764c62ac3804"
+  },
+  {
+    "space": "XYZ",
+    "depth": 8,
+    "alpha": false,
+    "raster": "170e64733a39170e64161d04170e64733a39170e64161d04",
+    "info": "XYZ|xyz  3.0",
+    "rgba8": "1d32abffff0080ff1d32abff596600ff1d32abffff0080ff1d32abff596600ff",
+    "rgba16": "1d41322cabdfffffffff00008090ffff1d41322cabdfffff58dc66270000ffff1d41322cabdfffffffff00008090ffff1d41322cabdfffff58dc66270000ffff"
+  },
+  {
+    "space": "HSL",
+    "depth": 8,
+    "alpha": true,
+    "raster": "a1ce5fcdeaff80ffa1ce5fcd32ff3380a1ce5fcdeaff80ffa1ce5fcd32ff3380",
+    "info": "HSL|hsla 4.0",
+    "rgba8": "1233accdff017fff1233accd546600801233accdff017fff1233accd54660080",
+    "rgba16": "125432f5ac6acdcdffff01017f00ffff125432f5ac6acdcd5454666600008080125432f5ac6acdcdffff01017f00ffff125432f5ac6acdcd5454666600008080"
+  },
+  {
+    "space": "HSL",
+    "depth": 16,
+    "alpha": true,
+    "raster": "39093a7a35ee3a6e3b553c0038003c0039093a7a35ee3a6e32393c003266380439093a7a35ee3a6e3b553c0038003c0039093a7a35ee3a6e32393c0032663804",
+    "info": "HSL|hsla 4.0",
+    "rgba8": "3a42293a3b452b3c3a42293a3a3e26383a42293a3b452b3c3a42293a3a3e2638",
+    "rgba16": "39f34240299c3a6e3adf45202ae03c0039f34240299c3a6e3a073e362696380439f34240299c3a6e3adf45202ae03c0039f34240299c3a6e3a073e3626963804"
+  },
+  {
+    "space": "HSL",
+    "depth": 8,
+    "alpha": false,
+    "raster": "a1ce5feaff80a1ce5f32ff33a1ce5feaff80a1ce5f32ff33",
+    "info": "HSL|hsl  3.0",
+    "rgba8": "1233acffff017fff1233acff546600ff1233acffff017fff1233acff546600ff",
+    "rgba16": "125432f5ac6affffffff01017f00ffff125432f5ac6affff545466660000ffff125432f5ac6affffffff01017f00ffff125432f5ac6affff545466660000ffff"
+  },
+  {
+    "space": "YCbCr",
+    "depth": 8,
+    "alpha": true,
+    "raster": "37c165cd5b94f5ff37c165cd554f7f8037c165cd5b94f5ff37c165cd554f7f80",
+    "info": "YCbCr|ycbcra 4.0",
+    "rgba8": "1233abcdff007fff1233abcd546600801233abcdff007fff1233abcd54660080",
+    "rgba16": "11eb3396abbccdcdffff00097fd3ffff11eb3396abbccdcd54a166720000808011eb3396abbccdcdffff00097fd3ffff11eb3396abbccdcd54a1667200008080"
+  },
+  {
+    "space": "YCbCr",
+    "depth": 16,
+    "alpha": true,
+    "raster": "32f53a0c36543a6e35b338a83bac3c0032f53a0c36543a6e355934fb37fd380432f53a0c36543a6e35b338a83bac3c0032f53a0c36543a6e355934fb37fd3804",
+    "info": "YCbCr|ycbcra 4.0",
+    "rgba8": "007f003a007f003c007f003a00820038007f003a007f003c007f003a00820038",
+    "rgba16": "00007fa400003a6e00007f0b00003c0000007fa400003a6e000082970000380400007fa400003a6e00007f0b00003c0000007fa400003a6e0000829700003804"
+  },
+  {
+    "space": "YCbCr",
+    "depth": 8,
+    "alpha": false,
+    "raster": "37c1655b94f537c165554f7f37c1655b94f537c165554f7f",
+    "info": "YCbCr|ycbcr  3.0",
+    "rgba8": "1233abffff007fff1233abff546600ff1233abffff007fff1233abff546600ff",
+    "rgba16": "11eb3396abbcffffffff00097fd3ffff11eb3396abbcffff54a166720000ffff11eb3396abbcffffffff00097fd3ffff11eb3396abbcffff54a166720000ffff"
+  },
+  {
+    "space": "RGB",
+    "depth": 8,
+    "alpha": true,
+    "raster": "020968cdff0037ff020968cd17220080020968cdff0037ff020968cd17220080",
+    "info": "RGB|rgba 4.0",
+    "rgba8": "1635abcdff0080ff1635abcd556600801635abcdff0080ff1635abcd55660080",
+    "rgba16": "15bf34f7abc8cdcdffff00008074ffff15bf34f7abc8cdcd550966910000808015bf34f7abc8cdcdffff00008074ffff15bf34f7abc8cdcd5509669100008080"
+  },
+  {
+    "space": "RGB",
+    "depth": 16,
+    "alpha": true,
+    "raster": "1e32286536843a6e3c00000032e83c001e32286536843a6e2dd03040000038041e32286536843a6e3c00000032e83c001e32286536843a6e2dd0304000003804",
+    "info": "RGB|rgba 4.0",
+    "rgba8": "606f7f3a85007b3c606f7f3a75780038606f7f3a85007b3c606f7f3a75780038",
+    "rgba16": "60c36f0c7fb23a6e857900007bb53c0060c36f0c7fb23a6e75c978aa0000380460c36f0c7fb23a6e857900007bb53c0060c36f0c7fb23a6e75c978aa00003804"
+  },
+  {
+    "space": "RGB",
+    "depth": 8,
+    "alpha": false,
+    "raster": "020968ff0037020968172200020968ff0037020968172200",
+    "info": "RGB|rgb  3.0",
+    "rgba8": "1635abffff0080ff1635abff556600ff1635abffff0080ff1635abff556600ff",
+    "rgba16": "15bf34f7abc8ffffffff00008074ffff15bf34f7abc8ffff550966910000ffff15bf34f7abc8ffffffff00008074ffff15bf34f7abc8ffff550966910000ffff"
+  },
+  {
+    "space": "sRGB",
+    "depth": 8,
+    "alpha": true,
+    "raster": "1234abcdff0080ff1234abcd556600801234abcdff0080ff1234abcd55660080",
+    "info": "sRGB|srgba 4.0",
+    "rgba8": "1234abcdff0080ff1234abcd556600801234abcdff0080ff1234abcd55660080",
+    "rgba16": "12123434ababcdcdffff00008080ffff12123434ababcdcd555566660000808012123434ababcdcdffff00008080ffff12123434ababcdcd5555666600008080"
+  },
+  {
+    "space": "sRGB",
+    "depth": 16,
+    "alpha": true,
+    "raster": "12123434ababcdcdffff00008080ffff12123434ababcdcd555566660000808012123434ababcdcdffff00008080ffff12123434ababcdcd5555666600008080",
+    "info": "sRGB|srgba 4.0",
+    "rgba8": "1234abcdff0080ff1234abcd556600801234abcdff0080ff1234abcd55660080",
+    "rgba16": "12123434ababcdcdffff00008080ffff12123434ababcdcd555566660000808012123434ababcdcdffff00008080ffff12123434ababcdcd5555666600008080"
+  },
+  {
+    "space": "sRGB",
+    "depth": 8,
+    "alpha": false,
+    "raster": "1234abff00801234ab5566001234abff00801234ab556600",
+    "info": "sRGB|srgb  3.0",
+    "rgba8": "1234abffff0080ff1234abff556600ff1234abffff0080ff1234abff556600ff",
+    "rgba16": "12123434ababffffffff00008080ffff12123434ababffff555566660000ffff12123434ababffffffff00008080ffff12123434ababffff555566660000ffff"
+  },
+  {
+    "space": "Gray",
+    "depth": 8,
+    "alpha": true,
+    "raster": "35cd3fff35cd5b8035cd3fff35cd5b80",
+    "info": "Gray|graya 2.0",
+    "rgba8": "353535cd3f3f3fff353535cd5b5b5b80353535cd3f3f3fff353535cd5b5b5b80",
+    "rgba16": "353535353535cdcd3f3f3f3f3f3fffff353535353535cdcd5b5b5b5b5b5b8080353535353535cdcd3f3f3f3f3f3fffff353535353535cdcd5b5b5b5b5b5b8080"
+  },
+  {
+    "space": "Gray",
+    "depth": 16,
+    "alpha": true,
+    "raster": "32b23a6e33f73c0032b23a6e35b6380432b23a6e33f73c0032b23a6e35b63804",
+    "info": "Gray|graya 2.0",
+    "rgba8": "3232323a3434343c3232323a363636383232323a3434343c3232323a36363638",
+    "rgba16": "32b232b232b23a6e33f733f733f73c0032b232b232b23a6e35b635b635b6380432b232b232b23a6e33f733f733f73c0032b232b232b23a6e35b635b635b63804"
+  },
+  {
+    "space": "Gray",
+    "depth": 8,
+    "alpha": false,
+    "raster": "353f355b353f355b",
+    "info": "Gray|gray  1.0",
+    "rgba8": "353535ff3f3f3fff353535ff5b5b5bff353535ff3f3f3fff353535ff5b5b5bff",
+    "rgba16": "353535353535ffff3f3f3f3f3f3fffff353535353535ffff5b5b5b5b5b5bffff353535353535ffff3f3f3f3f3f3fffff353535353535ffff5b5b5b5b5b5bffff"
+  }
+]

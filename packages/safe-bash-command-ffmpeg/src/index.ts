@@ -1025,6 +1025,9 @@ function parseFilterChain(filterChainStr: string): string[] {
 function parseAsetnsamples(argument: string) {
   let size = 1024;
   let pad = true;
+  let enable: string | undefined;
+  const registers = new Float64Array(10);
+  const variables = { n: 0, t: 0, pos: NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 };
   const options = argument.split(":");
   if (options.at(-1) === "") options.pop();
   for (const [index, option] of options.entries()) {
@@ -1037,6 +1040,9 @@ function parseAsetnsamples(argument: string) {
       size = roundToEven(number);
     } else if (key === "p" || key === "pad") {
       pad = parseFilterBoolean(value, "asetnsamples: invalid pad");
+    } else if (key === "enable") {
+      enable = value;
+      parseFilterExpression(enable, "asetnsamples enable", variables, undefined, new Float64Array(10));
     } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
       const number = parseFilterExpression(value, "asetnsamples", key === "thread_type" ? { slice: 1 } : {});
       if (key === "thread_type"
@@ -1047,7 +1053,11 @@ function parseAsetnsamples(argument: string) {
       // Scheduling and hardware frame reservations do not change PCM samples.
     } else throw new Error(`asetnsamples: unsupported option ${key}`);
   }
-  return { size, pad };
+  return { size, pad, enable, enabled(frame: AudioFilterFrame, n: number, rate: number) {
+    return enable === undefined || Math.abs(parseFilterExpression(enable, "asetnsamples enable", {
+      ...variables, n, t: frame.pts / rate, pos: frame.pos ?? NaN
+    }, undefined, registers)) >= 0.5;
+  } };
 }
 
 function parseAtrim(argument: string, origRate: number) {
@@ -11424,47 +11434,63 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // Reinterpret the same PCM at the new rate, including subsequent filters.
                         origRate = rate;
                       } else if (trimmed === "asetnsamples" || trimmed.startsWith("asetnsamples=")) {
-                        const { size, pad } = parseAsetnsamples(trimmed === "asetnsamples" ? "" : trimmed.slice("asetnsamples=".length));
-                        // A command arrives before this input frame is consumed. Any
-                        // incomplete output frame is still buffered at that point.
-                        for (const command of audioCommands) command.sample = Math.floor(command.sample / size) * size;
+                        const reframe = parseAsetnsamples(trimmed === "asetnsamples" ? "" : trimmed.slice("asetnsamples=".length));
                         const length = stretched[0]?.length ?? 0;
-                        const padded = pad ? Math.ceil(length / size) * size : length;
-                        budget.checkSamples(padded);
-                        budget.checkDuration(padded / origRate);
-                        budget.allocateMemory(Math.ceil(padded / size) * 24);
-                        if (padded !== length) {
-                          stretched = stretched.map(channel => {
-                            budget.allocateMemory(padded * channel.BYTES_PER_ELEMENT);
-                            const output = channel instanceof Float64Array ? new Float64Array(padded) : new Float32Array(padded);
-                            output.set(channel);
-                            return output;
-                          });
-                        }
                         const previous = audioTimestamps;
                         const previousMetadata = audioMetadata;
                         audioTimestamps = [];
                         audioMetadata = [];
+                        const copies: { start: number; end: number; output: number }[] = [];
                         let frameIndex = 0;
-                        let packetEnd = t.samples[0] ? Math.round(t.samples[0].duration * origRate / t.timescale) : 0;
-                        for (let start = 0; start < padded; start += size) {
+                        let packetEnd = t.samples[0] ? Math.round(t.samples[0].duration * origRate / t.timescale) : 1024;
+                        let enabled = true;
+                        let padded = 0;
+                        for (let start = 0; start < length;) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           while (previous && frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
-                          while (!previous && frameIndex + 1 < t.samples.length && packetEnd <= start) {
+                          while (!previous && packetEnd <= start) {
                             frameIndex++;
-                            packetEnd += Math.round(t.samples[frameIndex]!.duration * origRate / t.timescale);
+                            const packet = t.samples[frameIndex];
+                            packetEnd += packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           }
                           const frame = previous?.[frameIndex];
-                          const pts = frame ? frame.pts + start - frame.start : audioStartSample + start;
-                          audioTimestamps.push({ start, end: Math.min(padded, start + size),
+                          // Consumption uses the preceding enable result. The first frame is
+                          // always grouped; bypass then consumes the remaining input packet.
+                          const end = Math.min(length, enabled ? start + reframe.size : frame?.end ?? packetEnd);
+                          const output = { start: padded, end: padded + end - start,
                             pos: previous ? frame?.pos : t.samples[frameIndex]?.offset,
-                            pts });
+                            pts: frame ? frame.pts + start - frame.start : audioStartSample + start };
+                          enabled = reframe.enabled(output, audioTimestamps.length, origRate);
+                          if (enabled && reframe.pad) output.end = Math.max(output.end, padded + reframe.size);
+                          budget.checkSamples(output.end);
+                          budget.checkDuration(output.end / origRate);
+                          budget.allocateMemory(56);
+                          copies.push({ start, end, output: padded });
+                          audioTimestamps.push(output);
                           if (previousMetadata.length) {
                             // Output frames inherit tags from the frame containing their first sample.
                             const tags = new Map(previousMetadata[frameIndex]?.tags);
                             budget.allocateMemory(64 + tags.size * 64);
-                            audioMetadata.push({ pts, tags });
+                            audioMetadata.push({ pts: output.pts, tags });
                           }
+                          padded = output.end;
+                          start = end;
+                        }
+                        // Commands arrive before their input frame is consumed, including
+                        // when a bypassed frame is larger than the requested group size.
+                        let commandFrame = 0;
+                        for (const command of audioCommands) {
+                          if (command.sample < (copies[commandFrame]?.start ?? 0)) commandFrame = 0;
+                          while (commandFrame + 1 < copies.length && copies[commandFrame]!.end <= command.sample) commandFrame++;
+                          command.sample = copies[commandFrame]?.output ?? 0;
+                        }
+                        if (padded !== length) {
+                          stretched = stretched.map(channel => {
+                            budget.allocateMemory(padded * channel.BYTES_PER_ELEMENT);
+                            const output = channel instanceof Float64Array ? new Float64Array(padded) : new Float32Array(padded);
+                            for (const copy of copies) output.set(channel.subarray(copy.start, copy.end), copy.output);
+                            return output;
+                          });
                         }
                       } else if (trimmed === "ashowinfo") {
                         if (logLevel < 32) continue;
@@ -12451,6 +12477,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                   let emitted = 0;
                                   let pending = 0;
                                   let pendingPts = 0;
+                                  let enabled = true;
+                                  let n = 0;
                                   for await (const frame of input) {
                                     const count = frame.end - frame.start;
                                     const current = { ...frame, start: consumed, end: consumed + count };
@@ -12469,12 +12497,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                       while (offset < count) {
                                         if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                                         if (pending === 0) pendingPts = frame.pts + offset;
-                                        const taken = Math.min(count - offset, reframe.size - pending);
+                                        const taken = enabled ? Math.min(count - offset, reframe.size - pending) : count - offset;
                                         pending += taken;
                                         offset += taken;
-                                        if (pending < reframe.size) continue;
-                                        yield { start: emitted, end: emitted + pending, pts: pendingPts };
-                                        emitted += pending;
+                                        if (enabled && pending < reframe.size) continue;
+                                        const output = { start: emitted, end: emitted + pending, pts: pendingPts, pos: frame.pos };
+                                        enabled = reframe.enabled(output, n++, origRate);
+                                        if (enabled && reframe.pad) output.end = Math.max(output.end, emitted + reframe.size);
+                                        yield output;
+                                        emitted = output.end;
                                         pending = 0;
                                       }
                                     } else {
@@ -12482,8 +12513,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                       emitted += count;
                                     }
                                   }
-                                  if (pending > 0) yield { start: emitted,
-                                    end: emitted + (reframe!.pad ? reframe!.size : pending), pts: pendingPts };
+                                  if (pending > 0) {
+                                    const output = { start: emitted, end: emitted + pending, pts: pendingPts };
+                                    if (reframe!.enabled(output, n, origRate) && reframe!.pad) output.end = emitted + reframe!.size;
+                                    yield output;
+                                  }
                                 })();
                               }
                               if (maxAudioFrames > 0) {
@@ -13137,15 +13171,41 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             if (maxAudioFrames !== undefined && !boundedDownstream) {
                               // The output cap counts regrouped frames, not apad's packets.
-                              const frameSamples = reframe !== undefined
-                                ? parseAsetnsamples(reframe.includes("=") ? reframe.slice(reframe.indexOf("=") + 1) : "").size
+                              const regroup = reframe !== undefined
+                                ? parseAsetnsamples(reframe.includes("=") ? reframe.slice(reframe.indexOf("=") + 1) : "")
                                 : undefined;
+                              const frameSamples = regroup?.size;
                               const downstream = audioFilters.slice(filterIndex + 1).map(filter => {
                                 const separator = filter.indexOf("=");
                                 return { name: (separator < 0 ? filter : filter.slice(0, separator)).split("@", 1)[0],
                                   argument: separator < 0 ? "" : filter.slice(separator + 1) };
                               });
-                              if (downstream.some(filter => filter.name === "aselect" || filter.name === "atrim") &&
+                              if (regroup?.enable !== undefined) {
+                                let consumed = 0;
+                                let inputFrame = 0;
+                                let enabled = true;
+                                let emitted = 0;
+                                for (let n = 0; emitted < maxAudioFrames; n++) {
+                                  if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                  while (inputFrame < audioTimestamps.length && audioTimestamps[inputFrame]!.end <= consumed) inputFrame++;
+                                  let source = audioTimestamps[inputFrame];
+                                  if (!source) {
+                                    if (packetSize === 0) throw new Error("apad: packet_size must be positive when padding is required");
+                                    const packet = Math.floor((consumed - inputLength) / packetSize);
+                                    source = { start: inputLength + packet * packetSize, end: inputLength + (packet + 1) * packetSize,
+                                      pts: paddingPts + packet * Math.round(packetSize / samplesPerTick) * samplesPerTick };
+                                  }
+                                  const end = enabled ? consumed + regroup.size : source.end;
+                                  const frame = { start: consumed, end, pts: source.pts + consumed - source.start, pos: source.pos };
+                                  enabled = regroup.enabled(frame, n, origRate);
+                                  const count = enabled && regroup.pad ? Math.max(end - consumed, regroup.size) : end - consumed;
+                                  consumed = end;
+                                  budget.checkSamples(consumed);
+                                  budget.checkDuration(consumed / origRate);
+                                  if (outputSs === undefined || frame.pts + count > seek) emitted++;
+                                }
+                                minimum = Math.min(minimum, consumed);
+                              } else if (downstream.some(filter => filter.name === "aselect" || filter.name === "atrim") &&
                                   downstream.every(filter => ["aselect", "atrim", "anull", "acopy", "volume"].includes(filter.name!))) {
                                 const filters = downstream.filter(filter => filter.name === "aselect" || filter.name === "atrim")
                                   .map(filter => ({

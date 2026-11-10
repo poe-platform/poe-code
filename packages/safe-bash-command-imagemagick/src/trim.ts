@@ -64,7 +64,10 @@ function* trimBounds(width: number, height: number, hasAlpha: boolean, fuzz: num
         if (!bytes || bytes.length !== 4) throw new Error("Truncated trim pixels");
         corners.push(bytes.slice());
     }
-    let left = width, top = height, right = 0, bottom = 0;
+    // Native bounds start one pixel past a sole row or column. Cropping clamps them later.
+    let left = width, top = height;
+    let right = edges === undefined && width === 1 ? 1 : 0;
+    let bottom = edges === undefined && height === 1 ? 1 : 0;
     for (let y = 0; y < height; y++) {
         let rowRight = right, rowBottom = bottom;
         for (let start = 0; start < width; start += 1024) {
@@ -129,7 +132,11 @@ export function* formatTrimBoundsSteps<Step = never>(
         analysis.warnings += "magick: geometry does not contain image\n";
         analysis.boundsWarning = true;
     }
-    const area = next.value ?? { left: image.width, top: image.height, width: 0, height: 0 };
+    const area = next.value ?? {
+        left: image.width, top: image.height,
+        width: edges === undefined && percentBackground === undefined && image.width === 1 ? 1 : 0,
+        height: edges === undefined && percentBackground === undefined && image.height === 1 ? 1 : 0
+    };
     return format === "bounding-box"
         ? `${area.left},${area.top} ${area.left + area.width},${area.top + area.height}`
         : `${area.width}x${area.height}+${area.left}+${area.top}`;

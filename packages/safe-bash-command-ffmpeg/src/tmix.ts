@@ -11,7 +11,7 @@ export async function tmix(
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["frames", "weights"][index] : option.slice(0, separator).trim();
-    if (key !== "frames" && key !== "weights" && key !== "planes") throw new Error(`tmix: unsupported option ${key}`);
+    if (key !== "frames" && key !== "weights" && key !== "enable" && key !== "planes") throw new Error(`tmix: unsupported option ${key}`);
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
   }
   const value = parseFilterExpression(options.frames!, "tmix", {
@@ -37,12 +37,26 @@ export async function tmix(
   const sum = weights.reduce((total, weight) => total + weight, 0);
   if (!Number.isFinite(sum)) throw new Error("tmix: weights must have a finite sum");
   const output: MediaVideoFrame[] = [];
+  const average = weights.every(weight => weight === weights[0]);
+  const registers = new Float64Array(10);
+  const randomStates: BigUint64Array[] = [];
+  let runningSum: Uint16Array | undefined;
   let work = 0;
   for (const [index, frame] of frames.entries()) {
+    if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
     // Pad the initial history with the first frame; weights run oldest to newest.
     const history = weights.map((_, slot) => frames[Math.max(0, index - count + 1 + slot)]!);
     if (history.some(previous => previous.width !== frame.width || previous.height !== frame.height)) {
       throw new Error("tmix: frames must have matching dimensions");
+    }
+    const enabled = options.enable === undefined || Math.abs(parseFilterExpression(options.enable, "tmix enable", {
+      n: index, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN,
+      NAN: NaN, INF: Infinity, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+    }, undefined, registers, randomStates)) >= 0.5;
+    if (count === 1 || !enabled) {
+      // Native bypass advances history and emits its oldest frame, including its PTS.
+      output.push(count === 1 ? frame : history[0]!);
+      continue;
     }
     const native = frame.native;
     const useNative = native && [0, 4, 5, 12, 13, 14].includes(native.format) && history.every(previous =>
@@ -55,6 +69,10 @@ export async function tmix(
     const data = new Uint8Array(sources[0]!.length);
     const lumaSize = frame.width * frame.height;
     const chromaSize = useNative ? (native.pixels.length - lumaSize) / 2 : 0;
+    if (average && !runningSum) {
+      budget.allocateMemory(data.length * 2);
+      runningSum = new Uint16Array(data.length);
+    }
     for (let offset = 0; offset < data.length; offset++) {
       const plane = useNative && offset >= lumaSize ? (offset < lumaSize + chromaSize ? 1 : 2) : 0;
       if ((planes & (1 << plane)) === 0) {
@@ -63,6 +81,15 @@ export async function tmix(
         data[offset] = sources[0]![offset]!;
         continue;
       }
+      if (average) {
+        if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        // The native uint16 accumulator freezes during bypass, even at startup.
+        runningSum![offset]! += sources[count - 1]![offset]! * (index === 0 ? count : 1);
+        data[offset] = Math.floor((runningSum![offset]! + (count >> 1)) / count);
+        runningSum![offset]! -= sources[Math.max(0, count - index - 1)]![offset]!;
+        continue;
+      }
+
       let value = 0;
       for (let slot = 0; slot < count; slot++) {
         if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
@@ -81,5 +108,6 @@ export async function tmix(
       output.push(mixed);
     }
   }
+  if (runningSum) budget.releaseMemory(runningSum.byteLength);
   return output;
 }

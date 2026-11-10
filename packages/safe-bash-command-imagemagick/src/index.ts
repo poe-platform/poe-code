@@ -1087,9 +1087,13 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
         throw new Error("evaluate-sequence requires at least one image");
     }
     const first = stack[0]!;
-    const base = stack.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
+    let base = stack.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
     const w = stack.reduce((width, image) => Math.max(width, image.width), 0);
     const h = stack.reduce((height, image) => Math.max(height, image.height), 0);
+    // Poly adds channels from the whole list; a mask absent on the first image starts at zero.
+    if (typeof opRaw !== "string" && !base.writeMask && stack.some(image => image.writeMask)) {
+        base = { ...base, writeMask: yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) };
+    }
     const normalized = (yield* mapSteps(stack, function* (im) {
         if (im.virtualPixel === "transparent" || (im.virtualPixel === "background" || im.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) im = { ...im, hasAlpha: true };
         if (im.width === w && im.height === h) return im;
@@ -11202,7 +11206,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                     }
                     const first = (await stack.get(0))!;
-                    const base: StoredRgbaImage = frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
+                    let base: StoredRgbaImage = frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
+                    if (terms && !base.storedWriteMask && frames.some(image => image.storedWriteMask)) {
+                        base = { ...base, storedWriteMask: await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) };
+                    }
                     // Keep the native mask channel while resetting its protection.
                     const storedWriteMask = base.storedWriteMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                     const result = await transformStoredMagickRaster(base, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth, settings.seed ?? 0n, base.width)), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);

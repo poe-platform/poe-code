@@ -228,6 +228,9 @@ for (const [options, expected] of [
   ["", "/work/link"], ["-L", "/work/link"], ["-P", "/work/dir/child"],
   ["-L -P", "/work/dir/child"], ["-P -L", "/work/link"],
   ["-LP", "/work/dir/child"], ["-PL", "/work/link"],
+  ["-e", "/work/link"], ["-Pe", "/work/dir/child"],
+  ["-eP", "/work/dir/child"], ["-P -e", "/work/dir/child"],
+  ["-PeL", "/work/link"], ["-LeP", "/work/dir/child"],
 ] as const) {
   test(`cd ${options} publishes the selected path and preserves OLDPWD`, async context => {
     const { shell } = await fixture();
@@ -242,6 +245,8 @@ for (const [options, expected] of [
 for (const [script, expected] of [
   ["cd -L link/..", "/work"],
   ["cd -P link/..", "/work/dir"],
+  ["cd -e dir", "/work/dir"],
+  ["cd -Pe link/..", "/work/dir"],
   ["cd link; cd -L ..", "/work"],
   ["cd link; cd -P ..", "/work/dir"],
   ["cd -L link/../-P", "/work/-P"],
@@ -307,6 +312,7 @@ for (const [script, status, diagnostic] of [
   ["cd -P link dir", 1, "cd: too many arguments\n"],
   ["cd link -P", 1, "cd: too many arguments\n"],
   ["cd -Z link", 2, "shell: line 1: cd: -Z: invalid option\ncd: usage: cd [-L|[-P [-e]]] [-@] [dir]\n"],
+  ["cd -eZ link", 2, "shell: line 1: cd: -Z: invalid option\ncd: usage: cd [-L|[-P [-e]]] [-@] [dir]\n"],
   ["unset HOME; cd -P", 1, "cd: HOME not set\n"],
   ["unset OLDPWD; cd -L -", 1, "cd: OLDPWD not set\n"],
 ] as const) {
@@ -378,15 +384,17 @@ test("cd -P publishes prefix bindings and keeps subshell cwd isolated", async co
   assert.equal(result.stdout, "/work/dir/child|temporary|/work/dir/child\n/search/link\n/work/dir/child\n");
 });
 
-test("cd -P realpath failure leaves cwd, PWD and OLDPWD unchanged", async context => {
-  const { fs, shell } = await fixture();
-  context.after(() => shell.dispose());
-  fs.realpath = async path => { throw new FsError("EACCES", { path }); };
-  const result = await shell.exec('cd -P link; printf "%s|%s|%s|" "$?" "$PWD" "$OLDPWD"; pwd');
-  assert.equal(result.exitCode, 0);
-  assert.equal(result.stderr, "shell: line 1: cd: link: Permission denied\n");
-  assert.equal(result.stdout, "1|/work|/search/link|/work\n");
-});
+for (const option of ["-P", "-Pe"]) {
+  test(`cd ${option} realpath failure leaves cwd, PWD and OLDPWD unchanged`, async context => {
+    const { fs, shell } = await fixture();
+    context.after(() => shell.dispose());
+    fs.realpath = async path => { throw new FsError("EACCES", { path }); };
+    const result = await shell.exec(`cd ${option} link; printf "%s|%s|%s|" "$?" "$PWD" "$OLDPWD"; pwd`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "shell: line 1: cd: link: Permission denied\n");
+    assert.equal(result.stdout, "1|/work|/search/link|/work\n");
+  });
+}
 
 test("cd -P forwards cancellation through physical resolution", async context => {
   const { fs, shell } = await fixture();

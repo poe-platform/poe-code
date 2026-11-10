@@ -8143,7 +8143,8 @@ export class Runtime {
         await lookup.charge(1);
         const flag = option[index]!;
         if (flag === "L" || flag === "P") physical = flag === "P";
-        else {
+        // CdLookup already requires physical path resolution to succeed (-e).
+        else if (flag !== "e") {
           await this.diagnostic(context, `cd: -${flag}: invalid option`);
           await writeDiagnostic(context.stderr, "cd: usage: cd [-L|[-P [-e]]] [-@] [dir]\n");
           return 2;

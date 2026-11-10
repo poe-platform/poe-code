@@ -2068,7 +2068,8 @@ function parseMagickRaiseGeometry(raw: string, option: string): MagickGeometry {
 }
 
 function validateMagickStatisticGeometry(raw: string): void {
-    if (!Number.isFinite(Number.parseFloat(raw)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+    const value = raw.trimStart();
+    if (value.startsWith("+") || value.startsWith("-") || !Number.isFinite(Number.parseFloat(raw)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '-statistic': ${raw}`);
     }
 }

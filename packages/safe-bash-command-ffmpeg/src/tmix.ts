@@ -9,9 +9,14 @@ export async function tmix(
 ): Promise<MediaVideoFrame[]> {
   const options: Record<string, string> = { frames: "3", weights: "1", scale: "0", planes: "15" };
   if (argument.endsWith(":")) argument = argument.slice(0, -1);
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  let position = 0;
+  for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["frames", "weights", "scale", "planes"][index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? ["frames", "weights", "scale", "planes"][position] : option.slice(0, separator).trim();
+    // Native restarts shorthand after named options, skipping the first slot
+    // only when it was just visited, regardless of the named key.
+    if (separator < 0) position++;
+    else position = position === 0 ? 1 : 0;
     if (key !== "frames" && key !== "weights" && key !== "enable" && key !== "planes" && key !== "scale") throw new Error(`tmix: unsupported option ${key}`);
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
   }

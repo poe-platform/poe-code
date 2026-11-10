@@ -72,7 +72,7 @@ export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "widt
     const fill = ((virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
         ? [background.r, background.g, background.b, background.a]
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255]).map(value => Math.round(value * scale));
-    if (cmyk) fill.push(0);
+    if (cmyk) fill.push(Math.round(gray * scale));
     const ry = Math.floor(rows.length / 2);
     const samples = rows.reduce<number>((total, radius) => total + (typeof radius === "number" ? radius * 2 + 1 : radius.length), 0);
     const inkPages = new Map<number, Float64Array>();

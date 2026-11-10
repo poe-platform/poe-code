@@ -31,7 +31,7 @@ function* percentTrimBounds(width: number, height: number, hasAlpha: boolean, fu
             const bytes = yield { position: (y * width + x) * 4, length: length * 4 };
             if (!bytes || bytes.length !== length * 4) throw new Error("Truncated trim pixels");
             for (let i = 0; i < bytes.length; i += 4) {
-                if (!matchesAlphaFloodfill(bytes[i]! / scale, bytes[i + 1]! / scale, bytes[i + 2]! / scale, hasAlpha ? bytes[i + 3]! / scale : 255, ref.r, ref.g, ref.b, hasAlpha ? ref.a : 255, fuzz)) foreground++;
+                if (!matchesAlphaFloodfill(bytes[i]! / scale, bytes[i + 1]! / scale, bytes[i + 2]! / scale, hasAlpha ? bytes[i + 3]! / scale : 255, ref.r, ref.g, ref.b, hasAlpha ? ref.a : 255, fuzz, background ? 0 : fuzz)) foreground++;
             }
             start += length;
         }

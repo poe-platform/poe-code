@@ -5476,9 +5476,11 @@ describe("decoded audio editing", () => {
     });
   }
 
-  for (const filter of ["volume=volume=invalid", "volume=wrong=0.5", "atempo=tempo=0.25", "atempo=wrong=1",
-    "volume@quiet=invalid", "atempo@fast=0.25", "unsupported@label", "volume=0.5@quiet",
-    "anull,unsupported", "unsupported,anull", "anull=invalid"]) {
+  for (const [filter, status] of [
+    ["volume=volume=invalid", 1], ["volume=wrong=0.5", 1], ["atempo=tempo=0.25", 222], ["atempo=wrong=1", 8],
+    ["volume@quiet=invalid", 1], ["atempo@fast=0.25", 222], ["unsupported@label", 1], ["volume=0.5@quiet", 1],
+    ["anull,unsupported", 1], ["unsupported,anull", 1], ["anull=invalid", 1]
+  ] as const) {
     it(`rejects ${filter} without replacing output`, async () => {
       const vfs = createTestVfs({
         "/input.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(800).fill(0.25)] }),
@@ -5488,7 +5490,7 @@ describe("decoded audio editing", () => {
       const result = await runCmd(createFfmpegCommand(), [
         "-y", "-i", "/input.wav", "-af", filter, "/output.wav"
       ], vfs);
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, status);
       assert.deepEqual(vfs.store.get("/output.wav"), before);
     });
   }

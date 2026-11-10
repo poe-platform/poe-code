@@ -11648,9 +11648,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioInitialFrameDropped = false;
                       } else if (trimmed === "atempo" || trimmed.startsWith("atempo=")) {
                         const argument = trimmed === "atempo" ? "1" : trimmed.slice("atempo=".length).trim();
-                        const tempo = parseFilterExpression(argument.startsWith("tempo=") ? argument.slice("tempo=".length) : argument, "atempo", {});
-                        if (tempo < 0.5 || tempo > 100) {
-                          throw new Error("atempo must be in the range [0.5, 100]");
+                        let tempo = 1;
+                        for (const [index, option] of argument.split(":").entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? (index === 0 ? "tempo" : "") : option.slice(0, separator).trim();
+                          if (key === "enable") throw new Error("atempo: timeline is unsupported");
+                          if (key !== "tempo") throw new Error("atempo: unknown option");
+                          tempo = parseFilterExpression(separator < 0 ? option : option.slice(separator + 1), "atempo", {});
+                          if (tempo < 0.5 || tempo > 100) {
+                            throw new RangeError("atempo: must be in the range [0.5, 100]");
+                          }
                         }
                         const inputFrame = audioTimestamps?.[0];
                         const packet = t.samples[0];
@@ -14294,6 +14301,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("aformat: unsupported option ")) return { exitCode: 8 };
             if (msg === "aformat: invalid sample rate" || msg.startsWith("aformat: unsupported sample format ") ||
                 msg.startsWith("aformat: unsupported channel layout ")) return { exitCode: 234 };
+            if (msg === "atempo: timeline is unsupported") return { exitCode: 176 };
+            if (msg === "atempo: unknown option") return { exitCode: 8 };
+            if (msg.startsWith("atempo:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "acontrast: timeline is unsupported") return { exitCode: 176 };
             if (msg === "acontrast: unknown option") return { exitCode: 8 };
             if (msg === "acontrast: invalid expression" || msg === "acontrast: invalid or unsupported expression") return { exitCode: 234 };

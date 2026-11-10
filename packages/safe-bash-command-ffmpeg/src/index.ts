@@ -21,6 +21,7 @@ import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
 import { decimate } from "./decimate.js";
+import { meanFrameDifference } from "./select.js";
 import { parseDecimateGraph } from "./decimate-graph.js";
 import { cutSubAudio } from "./audio-asubcut.js";
 import { boostSubAudio } from "./audio-asubboost.js";
@@ -3625,13 +3626,26 @@ async function applyVideoFilterChain(
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       const expr = named.e ?? named.expr ?? positional[0] ?? "1";
       const variables = {
-        n: 0, t: NaN, pts: NaN, TB: 1 / timescale, start_pts: NaN, key: 0, selected_n: 0,
+        n: 0, t: NaN, pts: NaN, TB: 1 / timescale, start_pts: NaN, key: 0, selected_n: 0, scene: NaN,
         prev_selected_n: NaN, prev_selected_pts: NaN, prev_selected_t: NaN,
         prev_pts: NaN, prev_t: NaN,
         start_t: current[0]?.ptsSeconds ?? NaN
       };
       if (current.length === 0) parseFilterExpression(expr, "select", variables);
-      current = current.filter((f, n) => {
+      const detectScene = expr.includes("scene");
+      let previousDifference = 0;
+      const selectedFrames: MediaVideoFrame[] = [];
+      for (const [n, f] of current.entries()) {
+        if (n % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        if (detectScene) {
+          variables.scene = 0;
+          const previous = current[n - 1];
+          if (previous && previous.width === f.width && previous.height === f.height) {
+            const difference = await meanFrameDifference(f, previous, pixelFormat, budget, signal);
+            variables.scene = Math.fround(Math.min(1, Math.min(difference, Math.abs(difference - previousDifference)) / 100));
+            previousDifference = difference;
+          }
+        }
         variables.n = n;
         variables.t = f.ptsSeconds;
         variables.pts = Math.round(f.ptsSeconds * timescale);
@@ -3641,13 +3655,14 @@ async function applyVideoFilterChain(
         variables.prev_pts = variables.pts;
         variables.prev_t = f.ptsSeconds;
         if (selected) {
+          selectedFrames.push(f);
           variables.selected_n++;
           variables.prev_selected_n = n;
           variables.prev_selected_pts = variables.pts;
           variables.prev_selected_t = f.ptsSeconds;
         }
-        return selected;
-      });
+      }
+      current = selectedFrames;
     } else if (name === "decimate") {
       if (named.enable !== undefined) throw new Error("decimate: timeline is unsupported");
       const cycle = parseFilterExpression(

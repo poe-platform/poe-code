@@ -14,7 +14,7 @@ for (const [expression, count] of [
   ["isnan(prev_t)", 1], ["prev_selected_n", 1],
   ["unknown(n)", null], ["eq(n,1)+unknown(n)", null],
   ["eq(n,1)junk", null], ["between(n,1)", null], ["not(n,1)", null],
-  ["eq(n,1", null], ["scene", null]
+  ["eq(n,1", null], ["scene", 0]
 ] as const) {
   it(`select evaluates or rejects the entire expression ${expression}`, async () => {
     const volume = Volume.fromJSON({ "/out_1.png": "existing output" });

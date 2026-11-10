@@ -3952,6 +3952,9 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
 }
 
 function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: string) {
+    // A bare trailing offset sign leaves that offset at its shadow default.
+    geometry = geometry.trimEnd();
+    if (geometry.endsWith("+") || geometry.endsWith("-")) geometry = geometry.slice(0, -1);
     // Shadow accepts alternate separators and ignores fields after sigma and offsets.
     const normalized = normalizeMagickOffsets(geometry).replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x").split("x", 2).join("x");
     const g = parseMagickGeometry(normalized), opacity = Math.max(0, g.aspectRatio ?? g.width ?? 0) / 100, sigma = Math.max(0, g.height ?? 1);
@@ -3960,9 +3963,7 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
         throw new Error(`invalid argument for option '-shadow': ${geometry}`);
     }
     // The general geometry parser supplies zero for missing offsets; shadow defaults each to four.
-    let offsets = 0;
-    for (const char of geometry) if (char === "+" || char === "-") offsets++;
-    const pad = Math.floor(sigma * 2 + 0.5), x = g.hasOffset ? Math.round(g.x) : 4, y = g.hasOffset && offsets > 1 ? Math.round(g.y) : 4;
+    const pad = Math.floor(sigma * 2 + 0.5), x = g.hasOffset ? Math.round(g.x) : 4, y = g.hasYOffset ? Math.round(g.y) : 4;
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     // Match PNG unsigned page dimensions, including underflow; never use them as raster dimensions.
     return { width: image.width + pad * 2, height: image.height + pad * 2, hasAlpha: true, offsetX: pad, offsetY: pad, opacity, sigma,

@@ -3738,10 +3738,11 @@ async function applyVideoFilterChain(
       current = retained;
     } else if (name === "framestep") {
       if (positional.at(-1) === "") positional.pop();
-      const value = parseFilterExpression(named.step ?? (positional[0] || "1"), "framestep", {
+      const value = parseFilterExpression(named.step ?? (positional[0]?.includes("=") ? "1" : positional[0] || "1"), "framestep", {
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
       });
-      if (positional.length > 1 || Object.keys(named).some(key => key !== "step") ||
+      if (positional.slice(1).some(part => !part.includes("=")) ||
+          Object.keys(named).some(key => key !== "step" && key !== "enable") ||
           !Number.isFinite(value)) {
         throw new Error("framestep: step must be an integer from 1 to 2147483647");
       }
@@ -3749,7 +3750,21 @@ async function applyVideoFilterChain(
         throw new RangeError("framestep: step must be an integer from 1 to 2147483647");
       }
       const step = roundToEven(value);
-      current = current.filter((_, index) => index % step === 0)
+      const variables = { n: 0, t: NaN, w: NaN, h: NaN, pos: NaN, NAN: NaN, INF: Infinity };
+      if (named.enable !== undefined && current.length === 0) {
+        parseFilterExpression(named.enable, "framestep enable", variables);
+      }
+      current = current.filter((frame, n) => {
+        variables.n = n;
+        variables.t = frame.ptsSeconds;
+        variables.w = frame.width;
+        variables.h = frame.height;
+        variables.pos = frame.offset ?? NaN;
+        if (named.enable !== undefined && !(Math.abs(parseFilterExpression(
+          named.enable, "framestep enable", variables
+        )) >= 0.5)) return true;
+        return n % step === 0;
+      })
         .map(frame => ({ ...frame, durationSeconds: frame.durationSeconds * step }));
     } else if (name === "tinterlace") {
       const mode = named.mode ?? argStr;

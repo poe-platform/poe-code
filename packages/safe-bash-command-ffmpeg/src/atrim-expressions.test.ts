@@ -26,7 +26,13 @@ for (const complex of [false, true]) {
       ["PI+unknown", -1],
       [String.raw`pow(2\,3)`, 8],
       [String.raw`clip(2\,1\,3)`, 2],
-      ["2+3", 5]
+      ["2+3", 5],
+      ["'st(0,3)+ld(0)'", 6],
+      ["3+ld(0)", 3],
+      ["3+3", 6],
+      ["'st(0,3)+ld(0)+unknown'", -1],
+      ["'st(0)'", -1],
+      ["'ld(0,3)'", -1]
     ] as const) {
       for (const existing of [false, true]) {
         it(`atrim ${option}=${expression} (${complex ? "graph" : "simple"}, existing=${existing})`, async () => {

@@ -9647,6 +9647,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
+                // Nonzero shear creates a fresh canvas without the original region.
+                if ("tx" in plan && (plan.tx !== 0 || plan.ty !== 0)) output.region = undefined;
                 if (t === "-wave" && image.writeMask && "map" in plan) {
                     output.writeMask = yield* applyMagickRasterSteps(image.writeMask, warpPixelSteps(image.writeMask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background"), signal, { width: plan.width, height: plan.height, hasAlpha: false });
                 }
@@ -11828,6 +11830,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
+                // Nonzero shear creates a fresh canvas without the original region.
+                if ("tx" in plan && (plan.tx !== 0 || plan.ty !== 0)) output.region = undefined;
                 if (token === "-wave" && image.storedWriteMask && "map" in plan) {
                     const mask = image.storedWriteMask;
                     output.storedWriteMask = await transformStoredMagickRaster(mask, backend, warpPixelSteps(mask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background"), signal, { width: plan.width, height: plan.height, hasAlpha: false });

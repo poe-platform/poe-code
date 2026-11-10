@@ -7692,7 +7692,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     // Sepia tones all RGB channels; only normalization honors the channel mask.
                     // Grayscale has one color channel, selected by the red/gray mask bit.
                     for (let channel = 0; channel < (cmyk ? 5 : 4); channel++) {
-                        if (independent && !channels[gray && channel < 3 ? 0 : channel] || channel === 3 && !image.hasAlpha) continue;
+                        if (independent && !channels[gray && channel < 3 ? 0 : channel] || channel === 3 && !image.hasAlpha && !image.alphaSeparate) continue;
                         const black = blacks[channel]!, white = whites[channel]!;
                         if (white <= black) continue;
                         // Native normalization indexes its Q16 stretch map with rounded tone values.

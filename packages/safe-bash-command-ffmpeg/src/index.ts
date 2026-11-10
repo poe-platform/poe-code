@@ -10672,6 +10672,51 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           let length = endSeconds === undefined ? Infinity
                             : consumed + Math.max(0, Math.round(endSeconds * origRate)
                               + Math.max(0, firstPts - Math.round((outputSs ?? 0) * origRate)) - replayPts);
+                          const duration = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));
+                          if (duration !== undefined) {
+                            let rate = origRate;
+                            const clocks: ReturnType<typeof createAudioTimestampTransform>[] = [];
+                            let changedClock = false;
+                            let supported = true;
+                            for (const item of audioFilters.slice(filterIndex + 1)) {
+                              const separator = item.indexOf("=");
+                              const name = (separator < 0 ? item : item.slice(0, separator)).split("@", 1)[0];
+                              const argument = separator < 0 ? "" : item.slice(separator + 1);
+                              if (name === "asetrate") {
+                                rate = parseAsetrate(argument);
+                                changedClock = true;
+                              } else if (name === "asetpts") {
+                                clocks.push(createAudioTimestampTransform(
+                                  separator < 0 ? "PTS" : argument.startsWith("expr=") ? argument.slice(5) : argument,
+                                  rate, audioTimeBase ?? 1 / rate));
+                                changedClock = true;
+                              } else if (!["anull", "acopy", "volume"].includes(name!)) {
+                                supported = false;
+                                break;
+                              }
+                            }
+                            if (changedClock && supported) {
+                              // Follow the output clock before allocating repeated PCM. Keep whole
+                              // frames here; output trimming handles their overlapping timestamps.
+                              let endPts: number | undefined;
+                              length = 0;
+                              for (let n = 0; maxAudioFrames === undefined || n < maxAudioFrames; n++) {
+                                if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                const source = prefix[n];
+                                const frame = source ? { ...source } : { start: length,
+                                  end: length + Math.min(1024, regionLength - (length - consumed) % regionLength),
+                                  pts: replayPts + length - consumed };
+                                for (const clock of clocks) frame.pts = clock(frame);
+                                if (!Number.isFinite(frame.pts)) throw new Error("aloop: cannot bound a non-finite output timestamp");
+                                endPts ??= Math.max(frame.pts, outputSs === undefined ? -Infinity : Math.round(outputSs * rate))
+                                  + Math.round(duration * rate);
+                                if (frame.pts >= endPts) break;
+                                length = frame.end;
+                                budget.checkDuration(length / origRate);
+                                budget.checkSamples(length);
+                              }
+                            }
+                          }
                           let nextIndex = filterIndex + 1;
                           for (; nextIndex < audioFilters.length; nextIndex++) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }

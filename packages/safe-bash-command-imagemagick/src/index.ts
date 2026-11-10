@@ -9595,7 +9595,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }, pixelOperation.maskAlpha);
         }
         else if (warpOperation) {
-            if (["-swirl", "-implode", "-wave", "-spread"].includes(t) && !stack.length) throw new Error(`no images found for operation '${t}'`);
+            if (["-shear", "-swirl", "-implode", "-wave", "-spread"].includes(t) && !stack.length) throw new Error(`no images found for operation '${t}'`);
             i = warpOperation.end;
             const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread"].includes(t) ? tokens[i] : undefined;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -11762,7 +11762,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const warpOperation = operandsOnly || token === "-rotate" ? undefined : parseMagickWarpOperation(tokens, state, i, analysis);
         if (warpOperation) {
-            if (["-swirl", "-implode", "-wave", "-spread"].includes(token)) stackStep(async stack => {
+            if (["-shear", "-swirl", "-implode", "-wave", "-spread"].includes(token)) stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });

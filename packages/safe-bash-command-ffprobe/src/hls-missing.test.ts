@@ -5,7 +5,7 @@ import { parseMp4 } from "@poe-code/mp4-ast";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createFfmpegCommand } from "safe-bash-command-ffmpeg";
 import { createFfprobeCommand } from "./index.js";
-import native from "./fixtures/hls-missing.json" with { type: "json" };
+import native from "../../../tests/fixtures/media/hls-missing.json" with { type: "json" };
 
 // Native FFmpeg 9.0.1: sine=f=440:r=48000:d=3 -> AAC -> fMP4 HLS, hls_time=1.
 // Packet timestamps and SHA-256 hashes come from native ffprobe of copied MP4s.

@@ -3,7 +3,7 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { mkvAst } from "@poe-code/mp4-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
-import fixtures from "../../audio-ast/src/fixtures/wav-id3.json" with { type: "json" };
+import fixtures from "../../../tests/fixtures/media/wav-id3.json" with { type: "json" };
 
 for (const [name, hex] of Object.entries(fixtures)) {
   for (const sync of [false, true]) for (const copy of [false, true]) {

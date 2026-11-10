@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createCipheriv } from "node:crypto";
 import { it } from "node:test";
 import { hlsAst, parseStreamingManifest } from "./index.js";
-import native from "../../safe-bash-command-ffprobe/src/fixtures/hls-missing.json" with { type: "json" };
+import native from "../../../tests/fixtures/media/hls-missing.json" with { type: "json" };
 
 for (const explicit of [true, false]) {
   it(`decrypts HLS fragments with ${explicit ? "explicit" : "sequence"} IVs and key rotation`, () => {

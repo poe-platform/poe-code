@@ -4,7 +4,7 @@ import { createCipheriv, createHash } from "node:crypto";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { parseMp4 } from "@poe-code/mp4-ast";
 import { createFfmpegCommand, createFfprobeCommand } from "./index.js";
-import native from "../../safe-bash-command-ffprobe/src/fixtures/hls-missing.json" with { type: "json" };
+import native from "../../../tests/fixtures/media/hls-missing.json" with { type: "json" };
 
 for (const probe of [false, true]) {
   for (const extensions of [undefined, "mp4,m4s,key", "ALL", ""]) {

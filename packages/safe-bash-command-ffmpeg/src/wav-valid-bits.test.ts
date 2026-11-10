@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
-import fixtures from "../../mp4-ast/src/fixtures/wav-valid-bits.json" with { type: "json" };
+import fixtures from "../../../tests/fixtures/media/wav-valid-bits.json" with { type: "json" };
 
 for (const fixture of fixtures) {
   for (const sync of [false, true]) {

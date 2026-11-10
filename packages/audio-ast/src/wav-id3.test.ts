@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { parseAudio, probeWavSource, readId3Text } from "./index.js";
-import fixtures from "./fixtures/wav-id3.json" with { type: "json" };
+import fixtures from "../../../tests/fixtures/media/wav-id3.json" with { type: "json" };
 
 // Native FFmpeg fixtures, with only the PCM payload shortened to four samples.
 for (const [name, hex] of Object.entries(fixtures)) {

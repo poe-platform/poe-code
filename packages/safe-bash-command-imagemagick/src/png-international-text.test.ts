@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast/portable";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
-import { makeChunk, PNG_SIGNATURE } from "../../image-ast/src/codecs/png-chunks.js";
+import { makeChunk, PNG_SIGNATURE } from "../tests/png-chunk.js";
 import { createMagickCommand, runConvertCliSync } from "./index.js";
 
 const text = new TextEncoder();

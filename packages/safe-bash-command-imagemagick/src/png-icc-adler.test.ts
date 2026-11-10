@@ -5,7 +5,7 @@ import { decodeImage } from "@poe-code/image-ast/portable";
 import { transformBytes } from "@poe-code/compression";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
-import { makeChunk } from "../../image-ast/src/codecs/png-chunks.js";
+import { makeChunk } from "../tests/png-chunk.js";
 import { createMagickCommand, runConvertCliSync } from "./index.js";
 
 const control = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAABbmlDQ1Bwcm9mAAB4nHWRvUtCURjGf1phpOFQQ0SDQ0WDQiREbWWDi4SYQVaLXq8aqF3uVUJag5YGoSFq6WvoP6g1aC0IgiKIaG7sawm5vUcFJeoczn1/PPc8L+99Ljgjea1gdc5AoVgyY+GQbymx7HO94sYle5pgUrOM2Wg0wr/r6x6HqncB1ev/e38ud1q3NHB0C09qhlkSlmmIbJQMxTvC/VoumRY+EvabMqDwtdJTDX5RnG3wh2IzHpsDp+rpy7Zxqo21nFkQHhMeLuTLWnMe9SUevbi4IHVQzhAWMcKE8JGizBp5SgSkFiWzv33jdd886+LR5GlQwRRHlpx4/aKWpasuNSO6LjtPReX+O08rE5xodPeEoOvZtt9HwLULtaptfx/bdu0EOp7gstjyr0tOU5+iV1va8CF4t+D8qqWl9uBiGwYejaSZrEsdcpyZDLydQW8C+m6hZ6WRVfM9pw8Q35RfdAP7BzAq972rP1o3aDPL8cLqAAAADElEQVR4nGMQVDIGAACuAGcVHqFfAAAAAElFTkSuQmCC", "base64");

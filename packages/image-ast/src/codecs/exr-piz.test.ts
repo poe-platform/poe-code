@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { unpackExrPiz } from "./exr-piz.js";
 import { decodeExrImage, readExrHeader } from "./exr.js";
-import fixtures from "./exr-piz-fixtures.json" with { type: "json" };
+import fixtures from "../../../../tests/fixtures/media/exr-piz-fixtures.json" with { type: "json" };
 
 // Native OpenEXR 3.5.3 PIZ/ZIP pairs. ramp is the original 64x64 ImageMagick
 // red-blue gradient. Other cases exercise mixed sample types, partial blocks,

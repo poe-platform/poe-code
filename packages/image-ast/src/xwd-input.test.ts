@@ -2,7 +2,7 @@ import { expect, it, vi } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { decodeImage, readImageMetadata, decodeImageToStorage, readImageMetadataFromSource } from "./index.js";
-import fixtures from "./xwd-fixtures.json" with { type: "json" };
+import fixtures from "../../../tests/fixtures/media/xwd-fixtures.json" with { type: "json" };
 
 const input = () => new Uint8Array(Buffer.from(fixtures.true, "base64"));
 const source = (bytes: Uint8Array) => ({ size: bytes.length, read: vi.fn(async (position: number, length: number) => bytes.subarray(position, position + length)) });

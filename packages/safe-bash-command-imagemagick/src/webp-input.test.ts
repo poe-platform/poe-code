@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import fixtures from "../../image-ast/src/webp-fixtures.json" with { type: "json" };
+import fixtures from "../../../tests/fixtures/media/webp-fixtures.json" with { type: "json" };
 import { runConvertCli } from "./index.js";
 
 for (const fixture of fixtures) {

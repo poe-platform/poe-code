@@ -3,7 +3,7 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { decodeImage } from "@poe-code/image-ast/portable";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
-import fixtures from "../../image-ast/src/codecs/exr-piz-fixtures.json" with { type: "json" };
+import fixtures from "../../../tests/fixtures/media/exr-piz-fixtures.json" with { type: "json" };
 
 for (const mode of ["sync", "buffered", "retained", "command"] as const) {
     it(`converts every PIZ gradient pixel like ZIP (${mode})`, async () => {

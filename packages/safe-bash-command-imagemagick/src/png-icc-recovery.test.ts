@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast/portable";
 import { deflateSync } from "node:zlib";
-import { makeChunk } from "../../image-ast/src/codecs/png-chunks.js";
+import { makeChunk } from "../tests/png-chunk.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCliSync } from "./index.js";

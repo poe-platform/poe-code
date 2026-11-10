@@ -3,7 +3,7 @@ import sharp from "./index.js";
 import { decodeWebpToStorage } from "./codecs/webp-input-storage.js";
 import { decodeWebpImage } from "./codecs/webp.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import webpFixtures from "./webp-fixtures.json";
+import webpFixtures from "../../../tests/fixtures/media/webp-fixtures.json";
 
 // Fixtures: native magick encodes a 64x48 grid with RGB =
 // ((17*x+7*y)%256, (13*x+23*y)%256, (9*x+11*y)%256),

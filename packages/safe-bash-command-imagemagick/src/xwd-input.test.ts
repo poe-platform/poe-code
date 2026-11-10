@@ -4,7 +4,7 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { decodeImage } from "@poe-code/image-ast";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
-import fixtures from "../../image-ast/src/xwd-fixtures.json" with { type: "json" };
+import fixtures from "../../../tests/fixtures/media/xwd-fixtures.json" with { type: "json" };
 
 for (const [layout, encoded] of Object.entries(fixtures)) {
   for (const mode of ["sync", "buffered", "retained", "command"] as const) {

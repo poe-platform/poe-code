@@ -4,7 +4,7 @@ import { probeWavSource, probeWavStream, wavAst } from "@poe-code/mp4-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createFfprobeCommand, evalSyncFfprobe } from "./media.js";
-import fixtures from "../../audio-ast/src/fixtures/wav-id3.json" with { type: "json" };
+import fixtures from "../../../tests/fixtures/media/wav-id3.json" with { type: "json" };
 
 for (const [name, hex] of Object.entries(fixtures)) {
   it(`probes WAV ID3 text and chunk precedence through every input path: ${name}`, async () => {

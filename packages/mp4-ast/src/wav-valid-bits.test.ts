@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { parseWav, probeWavSource, probeWavStream, serializeWav, wavAst } from "./index.js";
-import fixtures from "./fixtures/wav-valid-bits.json" with { type: "json" };
+import fixtures from "../../../tests/fixtures/media/wav-valid-bits.json" with { type: "json" };
 
 // Complete s32le outputs captured with FFmpeg 7.0.2, including wider storage slots.
 for (const fixture of fixtures) {

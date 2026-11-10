@@ -1635,6 +1635,25 @@ function parseAstreamselectOptions(filter: string): { count: number; selected: n
   return { count, selected };
 }
 
+function audioConcatInputs(filter: string): number | undefined {
+  const [name, ...arguments_] = filter.split("=");
+  if (name?.split("@", 1)[0] !== "concat") return undefined;
+  const values: Record<string, number> = { n: 2, v: 1, a: 0, unsafe: 0 };
+  for (const [index, option] of arguments_.join("=").split(":").entries()) {
+    if (!option) continue;
+    const equal = option.indexOf("=");
+    const key = equal < 0 ? ["n", "v", "a", "unsafe"][index] : option.slice(0, equal);
+    const value = Number(equal < 0 ? option : option.slice(equal + 1));
+    if (!key || !(key in values) || !Number.isSafeInteger(value) || value < 0) {
+      throw new Error("concat: invalid option");
+    }
+    values[key] = value;
+  }
+  if (values.v !== 0 || values.a !== 1) return undefined;
+  if (!values.n) throw new Error("concat: n must be positive");
+  return values.n;
+}
+
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
 async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, mixCommands: { target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal) {
   const nodes = new Map<string, { inputs: string[]; expression: string }>();
@@ -1733,7 +1752,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     const filter = parseFilterChain(expression)[0]!;
     const first = filter.split("=", 1)[0]?.split("@", 1)[0];
     const inputCount = first === "amerge" ? parseAmergeInputs(filter)
-      : first === "astreamselect" ? parseAstreamselectOptions(filter).count : first === "acrossfade" ? 2 : 1;
+      : first === "astreamselect" ? parseAstreamselectOptions(filter).count : first === "acrossfade" ? 2 : audioConcatInputs(filter) ?? 1;
     if (first === "amerge" && inputs.length > inputCount) {
       throw new Error(`amerge requires ${inputCount} inputs (inputs=${inputCount})`);
     }
@@ -1764,6 +1783,19 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       const instance = first.indexOf("@");
       if (instance >= 0 && (equals < 0 || instance < equals)) {
         filters[0] = first.slice(0, instance) + (equals < 0 ? "" : first.slice(equals));
+      }
+      const concatInputs = audioConcatInputs(filters[0]!);
+      if (concatInputs !== undefined) {
+        if (sources.length !== concatInputs) throw new Error(`concat requires ${concatInputs} inputs`);
+        const segments: MediaDocument[] = [];
+        for (const source of sources) {
+          const track = source.expression && source.expression !== "anull"
+            ? await filterAudio(source.track, source.expression) : source.track;
+          segments.push({ ...docs[0]!, tracks: [track], duration: track.duration,
+            timescale: track.timescale, durationSeconds: track.duration / track.timescale });
+        }
+        const joined = concatMp4(segments, { budget });
+        return { track: joined.tracks[0]!, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "headphone" || filters[0]?.startsWith("headphone=")) {
         if (sources.some(source => source.expression && source.expression !== "anull")) {
@@ -10240,7 +10272,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   language: "und", enabled: true, width: frame.width, height: frame.height,
                   codecDescriptions: [], samples: [], decodedVideoFrames: [frame]
                 }] };
-              } else if (filterComplex.includes("concat=")) {
+              } else if (filterComplex.includes("concat=") && audioConcatInputs(
+                parseFilterChain(filterComplex.slice(filterComplex.indexOf("concat=")).split("[", 1)[0]!.split(";", 1)[0]!)[0]!
+              ) === undefined) {
                 workingDoc = concatMp4(loadedDocs, { limits: options.limits, budget });
                 if (/concat=[^;[]*\ba=0\b/.test(filterComplex)) {
                   workingDoc = {

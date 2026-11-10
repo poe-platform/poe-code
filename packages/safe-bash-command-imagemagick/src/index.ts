@@ -2589,7 +2589,7 @@ function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a
     a: 16, alpha: 16, o: 16,
     all: 31, default: 0x7ffffff, sync: 0x20000, k: 8, black: 8,
     "0": 1, "1": 2, "2": 4, "3": 8, "4": 16,
-    readmask: 64, writemask: 128
+    readmask: 64, writemask: 128, meta: 256
   };
   let selected = 0;
   const meta = new Set<number>();

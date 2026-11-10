@@ -3639,13 +3639,14 @@ async function applyVideoFilterChain(
       }), signal);
     } else if (name === "setpts") {
       const expr = named.expr ?? positional[0] ?? "PTS";
-      const startPts = (current[0]?.ptsSeconds ?? 0) * timescale;
+      const startPts = Math.round((current[0]?.ptsSeconds ?? 0) * timescale);
       let previousInput = NaN;
       let previousOutput = NaN;
-      current = await mapWork(current, (f) => {
-        const input = f.ptsSeconds * timescale;
+      current = await mapWork(current, (f, index) => {
+        const input = Math.round(f.ptsSeconds * timescale);
         const output = parseFilterExpression(expr, "setpts", {
           PTS: input, STARTPTS: startPts, TB: 1 / timescale,
+          N: index, T: input * (1 / timescale), STARTT: startPts * (1 / timescale),
           PREV_INPTS: previousInput, PREV_INT: previousInput / timescale,
           PREV_OUTPTS: previousOutput, PREV_OUTT: previousOutput / timescale
         });

@@ -1339,6 +1339,27 @@ function parseChannelSplit(spec: string): { input: string[]; selected: string[] 
     const value = separator < 0 ? option : option.slice(separator + 1);
     if (key === "channel_layout") layout = value;
     else if (key === "channels") channels = value;
+    else if (key === "thread_type") {
+      const flags = value.trim();
+      let position = 0;
+      do {
+        if (flags[position] === "+" || flags[position] === "-") position++;
+        const start = position;
+        if (flags[position] === "+" || flags[position] === "-") position++;
+        while (position < flags.length && flags[position] !== "+" && flags[position] !== "-") position++;
+        const bits = parseFilterExpression(flags.slice(start, position), "channelsplit", { slice: 1, none: 0, all: -1 });
+        if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+          throw new RangeError("channelsplit: invalid thread_type");
+        }
+      } while (position < flags.length);
+    } else if (key === "threads" || key === "extra_hw_frames") {
+      const number = parseFilterExpression(value, "channelsplit",
+        key === "threads" ? { min: 0, default: 0 } : { min: -1, default: -1 });
+      if (number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
+        throw new RangeError(`channelsplit: invalid ${key}`);
+      }
+      // Scheduling and hardware frame reservations do not change PCM samples.
+    }
     else throw new Error(`channelsplit: unsupported option ${key}`);
   }
   const input = parseAudioChannelLayout(layout);

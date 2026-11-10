@@ -729,6 +729,8 @@ channel (`FL` selects the left). Stereo layouts also accept `0x3`, `FL+FR`, and
 named speaker extraction: `-af channelsplit=mono:FC`,
 `-af channelsplit=5.1:FC`, or `-af channelsplit=5.1:LFE`.
 The selected speaker is retained in the output channel layout.
+`channelsplit` accepts `threads`, `thread_type`, and `extra_hw_frames`, for example
+`channelsplit=stereo:FL:threads=1`; these settings leave PCM samples unchanged.
 `pan` supports mono, stereo, quad and 5.1 output, numbered channels and named channels from the
 input layout. Numbered input and output channels accept signed and spaced decimal indices
 (`c+1`, `c-0`, `c 1`); negative indices remain invalid. Unmasked PCM WAV uses FFmpeg’s default speaker order: mono, stereo,

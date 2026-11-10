@@ -6317,8 +6317,8 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         }
         return yield* applyMod(frames);
     }
-    const rgb = lower.startsWith("rgb:"), ftxt = lower.startsWith("ftxt:");
-    let cleanToken = ftxt ? baseToken.slice(5) : rgb ? baseToken.slice(4) : baseToken;
+    const rgb = lower.startsWith("rgb:") || (!lower.includes(":") && lower.endsWith(".rgb")), ftxt = lower.startsWith("ftxt:");
+    let cleanToken = ftxt ? baseToken.slice(5) : lower.startsWith("rgb:") ? baseToken.slice(4) : baseToken;
     const prefixMatch = /^([a-zA-Z0-9]+):(.*)$/.exec(cleanToken);
     if (prefixMatch && extToImageFormat(prefixMatch[1]!)) {
         cleanToken = prefixMatch[2]!;
@@ -13573,9 +13573,9 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    return image;
   };
   return readOptions.source===null?undefined:readOptions.source?consume(readOptions.source):backend.read(path,consume);
- }else if(lower.startsWith("rgb:")){
+ }else if(lower.startsWith("rgb:")||(!lower.includes(":")&&lower.endsWith(".rgb"))){
   if(!state.hasSize)throw new Error("must specify image size for RGB input");
-  const path=baseToken.slice(4);
+  const path=lower.startsWith("rgb:")?baseToken.slice(4):baseToken;
   const consume=async(sources:ImageByteSource[])=>{
    const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,3,state.inputOffset,state.rawInterlace);
    for(const page of selectedInputPages(pageSpec,raw.pages)){

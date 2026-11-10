@@ -8690,6 +8690,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
+        let frameListOperand: string | undefined;
+        if (["-clone", "-duplicate", "-delete", "-insert", "-swap"].includes(t)) {
+            frameListOperand = tokens[++i] ?? (t === "-swap" ? "-2,-1" : t === "-insert" ? "0" : t === "-duplicate" ? "" : "-1");
+            const source = t === "-clone" ? parentStack ?? stack : stack;
+            const image = source[0];
+            if (image && frameListOperand.includes("%")) frameListOperand = yield* formatMagickPropertyStringSteps(frameListOperand, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: source, sceneCount: source.length, optionProperties: state.optionProperties });
+        }
         if (t === "-quiet" || t === "+quiet") { analysis.quiet = t === "-quiet"; i++; continue; }
         // Conversion warnings remain nonfatal, including with -regard-warnings.
         if (t === "-regard-warnings" || t === "+regard-warnings") { i++; continue; }
@@ -9803,7 +9810,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "+clone" || t === "-clone") {
             const sourcePool = parentStack ?? stack;
             if (sourcePool.length === 0) throw new Error(`UnableToCloneImage ${t}`);
-            const spec = t === "+clone" ? "-1" : (tokens[++i] ?? "-1");
+            const spec = t === "+clone" ? "-1" : frameListOperand!;
             for (const idx of parseMagickIndexSpec(spec, sourcePool.length, "clone")) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
@@ -9817,7 +9824,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let count = 1;
             let idxSpec = "-1";
             if (t === "-duplicate") {
-                const value = tokens[++i] ?? "", comma = value.startsWith("x") ? 0 : value.indexOf(",");
+                const value = frameListOperand!, comma = value.startsWith("x") ? 0 : value.indexOf(",");
                 const countSpec = comma < 0 ? value : value.slice(0, comma);
                 count = Number(countSpec);
                 if ((!countSpec.trim() && comma !== 0) || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
@@ -9839,7 +9846,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else if (t === "+insert" || t === "-insert") {
-            const rawIdx = t === "+insert" ? 0 : parseMagickInsertPosition(tokens[++i] ?? "0");
+            const rawIdx = t === "+insert" ? 0 : parseMagickInsertPosition(frameListOperand!);
             const target = rawIdx < 0 ? stack.length - 1 + rawIdx : rawIdx;
             if (!Number.isInteger(target) || target < 0 || target >= stack.length || (rawIdx < 0 && target === 0)) throw new Error(`invalid image index ${t}`);
             if (stack.length > 1) {
@@ -9851,7 +9858,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let i1 = stack.length - 2;
             let i2 = stack.length - 1;
             if (t === "-swap") {
-                const [s1, s2] = parseMagickSwapPositions(tokens[++i] ?? "-2,-1");
+                const [s1, s2] = parseMagickSwapPositions(frameListOperand!);
                 i1 = (s1 ?? -2) < 0 ? stack.length + (s1 ?? -2) : (s1 ?? 0);
                 i2 = (s2 ?? -1) < 0 ? stack.length + (s2 ?? -1) : (s2 ?? 0);
             }
@@ -9866,7 +9873,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (popped) detachRgbaBuffer(popped.data);
             }
             else {
-                const toDelete = new Set(parseMagickIndexSpec(tokens[++i] ?? "-1", stack.length, "delete"));
+                const toDelete = new Set(parseMagickIndexSpec(frameListOperand!, stack.length, "delete"));
                 stack = stack.filter((im, idx) => {
                     if (toDelete.has(idx)) {
                         detachRgbaBuffer(im.data);
@@ -10578,17 +10585,21 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && ["+clone", "-clone", "+duplicate", "-duplicate", "+delete", "-delete", "+swap", "-swap", "-reverse", "+insert", "-insert"].includes(token)) {
-            let spec = "-1", count = 1;
-            if (["-clone", "-delete", "-swap", "-insert"].includes(token)) spec = tokens[++i] ?? (token === "-swap" ? "-2,-1" : token === "-insert" ? "0" : "-1");
-            if (token === "-duplicate") {
-                const value = tokens[++i] ?? "", comma = value.startsWith("x") ? 0 : value.indexOf(",");
-                const countSpec = comma < 0 ? value : value.slice(0, comma);
-                count = Number(countSpec);
-                if ((!countSpec.trim() && comma !== 0) || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
-                spec = parseMagickDuplicateScenes(comma < 0 ? "-1" : value.slice(comma + 1));
-                if (spec === "") count = 0;
-            }
-            stackStep(async (stack, _backend, parents) => {
+            const operand = token.startsWith("-") && token !== "-reverse" ? tokens[++i] ?? (token === "-swap" ? "-2,-1" : token === "-insert" ? "0" : token === "-duplicate" ? "" : "-1") : "-1";
+            const optionProperties = state.optionProperties;
+            stackStep(async (stack, backend, parents) => {
+                const source = token === "-clone" ? parents.at(-1) ?? stack : stack;
+                const image = operand.includes("%") ? await source.get(0) : undefined;
+                let spec = image ? await formatRetainedIdentify(operand, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: source.length, optionProperties }, async () => ({ image, storage: backend.storage }), signal, source) : operand;
+                let count = 1;
+                if (token === "-duplicate") {
+                    const value = spec, comma = value.startsWith("x") ? 0 : value.indexOf(",");
+                    const countSpec = comma < 0 ? value : value.slice(0, comma);
+                    count = Number(countSpec);
+                    if ((!countSpec.trim() && comma !== 0) || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
+                    spec = parseMagickDuplicateScenes(comma < 0 ? "-1" : value.slice(comma + 1));
+                    if (spec === "") count = 0;
+                }
                 if (token.endsWith("duplicate") && stack.length === 0) throw new Error(`no images found for operation ${token}`);
                 if (token.endsWith("clone") || token.endsWith("duplicate")) {
                     const source = token.endsWith("clone") ? parents.at(-1) ?? stack : stack;

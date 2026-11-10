@@ -122,6 +122,7 @@ options and multichannel layouts are unsupported. Short clips use peak-constrain
 linear gain; longer clips use smoothed loudness gain and a linked lookahead limiter.
 `atrim=start_sample=2025:end_sample=3123` keeps sample frames 2025 through 3122 unchanged. Sample and PTS bounds accept expressions with `PI`, `E`, and `PHI`; results round to the nearest integer, with exact halves rounded to even (`atrim=end_sample=PI` keeps three samples). Retained samples keep their source timestamps for downstream filters such as `afade`; add `asetpts=PTS-STARTPTS` after trimming to start the timeline at zero.
 `atrim=start_sample=2:duration=0.0005` retains four samples at 8 kHz, starting at sample 2.
+`atrim` also accepts `threads`, `thread_type=slice`, and `extra_hw_frames` without changing the retained PCM samples.
 `duration` (alias `durationi`) is relative to the first retained timestamp; zero leaves duration unset.
 When combined with `end` or `end_sample`, the latest end wins.
 Sample and PTS bounds accept native 64-bit values and expressions and round to the nearest integer, with ties to even; `start_sample=-1` leaves the sample start unset, and PTS bounds of `-9223372036854775808` leave that timestamp bound unset.

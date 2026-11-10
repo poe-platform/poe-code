@@ -1066,6 +1066,15 @@ function parseAtrim(argument: string, origRate: number) {
     let key = separator < 0 ? ["start", "end", "start_pts", "end_pts", "duration", "start_sample", "end_sample"][index] : option.slice(0, separator).trim();
     if (key === "starti" || key === "endi") key = key.slice(0, -1);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      const number = parseFilterExpression(value, "atrim", key === "thread_type" ? { slice: 1 } : {});
+      if (!value || Number.isNaN(number)) throw new Error(`atrim: invalid ${key}`);
+      if (number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
+        throw new RangeError(`atrim: invalid ${key}`);
+      }
+      // Scheduling and hardware options do not change the rendered PCM.
+      continue;
+    }
     const samples = key === "start_sample" || key === "end_sample";
     if (key === "duration" || key === "durationi") {
       const seconds = parseHlsDuration(value);

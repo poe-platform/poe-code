@@ -2122,11 +2122,17 @@ function parseMagickShaveGeometry(raw: string, image: Pick<RgbaImage, "width" | 
     return { ...geometry, isPercent: false, width, height: hasDimensions ? height : width };
 }
 
-function resolveMagickChopGeometry(raw: string, width: number, height: number) {
+function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">) {
+    const { width, height } = image;
     // Rectangle geometry ends at the first comma-separated field.
     raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
     // Chop ignores the # geometry modifier without dropping dimensions or offsets.
     const g = parseMagickGeometry(raw.replaceAll("#", ""));
+    // Native GetGeometry leaves the page rectangle untouched when a scalar @
+    // width is followed by an offset sign, rather than a dimension separator.
+    if (g.areaLimit !== undefined && g.hasOffset && !g.isPercent) {
+        return { ...g, width: image.virtualCanvas?.width || width, height: image.virtualCanvas?.height || height, x: 0, y: 0 };
+    }
     if (g.aspectRatio !== undefined) {
         return {
             ...g,
@@ -2295,7 +2301,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
 
 function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
-    const g = resolveMagickChopGeometry(geomStr, img.width, img.height);
+    const g = resolveMagickChopGeometry(geomStr, img);
     const { width: cw, height: ch } = g;
     // Native chop truncates geometry offsets before applying gravity.
     // Zero axes use the native page/image bitwise union only for gravity placement.
@@ -11940,7 +11946,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         xs = [{ source: 0, target: 0, length: x }, { source: x, target: x + spliceWidth, length: Math.max(0, width - x - spliceWidth) }];
         ys = [{ source: 0, target: 0, length: Math.max(0, y) }, { source: rowStart - sh, target: rowStart, length: Math.max(0, height - rowStart) }];
     } else {
-        const g = resolveMagickChopGeometry(geometry, w, h);
+        const g = resolveMagickChopGeometry(geometry, image);
         const { width: cw, height: ch } = g;
         // Zero axes use the native page/image bitwise union only for gravity placement.
         const { x, y } = gravityAdjustBox(w, h,

@@ -48,6 +48,27 @@ for (const copy of [false, true]) {
   });
 }
 
+for (const copy of [false, true]) {
+  for (const partial of [false, true]) {
+    it(`preserves RGBA input bytes and alpha (copy=${copy}, partial=${partial})`, async () => {
+      const frames = Buffer.from("113a638cb5de07305982abd4fd264f78a1caf31c456e97c0e9123b648db6df08", "hex");
+      const bytes = partial ? Buffer.concat([frames, Buffer.from([90, 91])]) : frames;
+      const result = await run(["-f", "rawvideo", "-pix_fmt", "rgba", "-s", "2x2", "-r", "1",
+        "-i", "/in.raw", "-c:v", copy ? "copy" : "rawvideo", "-f", "rawvideo", "/out.raw"], bytes);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.volume.readFileSync("/out.raw"), copy ? bytes : frames);
+    });
+  }
+}
+
+it("packetizes RGBA input at four bytes per pixel", async () => {
+  const bytes = Buffer.from("113a638cb5de07305982abd4fd264f78a1caf31c456e97c0e9123b648db6df08", "hex");
+  const result = await run(["-f", "rawvideo", "-pixel_format", "rgba", "-video_size", "2x2",
+    "-framerate", "1", "-i", "/in.raw", "-c:v", "copy", "-frames:v", "1", "-f", "rawvideo", "/out.raw"], bytes);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.volume.readFileSync("/out.raw"), bytes.subarray(0, 16));
+});
+
 for (const size of [undefined, "0x2", "3x-2", "3x2x1", "3.5x2"]) {
   it(`rejects invalid or missing rawvideo dimensions: ${size}`, async () => {
     const result = await run(["-f", "rawvideo", "-pixel_format", "rgb24",

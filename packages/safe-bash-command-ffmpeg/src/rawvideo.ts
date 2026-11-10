@@ -9,10 +9,10 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   }
   const gray = pixelFormat === "gray" || pixelFormat === "gray8";
   const yuv = pixelFormat === "yuv420p" || pixelFormat === "yuv444p";
-  if (!gray && pixelFormat !== "bgra" && pixelFormat !== "rgb24" && pixelFormat !== "gray16be" && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
+  if (!gray && pixelFormat !== "bgra" && pixelFormat !== "rgb24" && pixelFormat !== "rgba" && pixelFormat !== "gray16be" && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
   const ySize = width * height;
   const chromaSize = pixelFormat === "yuv444p" ? ySize : Math.ceil(width / 2) * Math.ceil(height / 2);
-  const frameBytes = pixelFormat === "bgra" ? ySize * 4 : pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" || pixelFormat === "ya8" ? 2 : 3);
+  const frameBytes = pixelFormat === "bgra" || pixelFormat === "rgba" ? ySize * 4 : pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" || pixelFormat === "ya8" ? 2 : 3);
   if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
   const count = Math.ceil(bytes.length / frameBytes);
   budget.checkSamples(count);
@@ -32,8 +32,8 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     const rgba = yuv
       ? yuv420pToRgba(data.subarray(0, ySize), data.subarray(ySize, ySize + chromaSize), data.subarray(ySize + chromaSize), width, height,
         pixelFormat === "yuv444p" ? 0 : 1, pixelFormat === "yuv444p" ? 0 : 1)
-      : new Uint8Array(width * height * 4);
-    for (let pixel = 0; !yuv && pixel < width * height; pixel++) {
+      : pixelFormat === "rgba" ? new Uint8Array(data) : new Uint8Array(width * height * 4);
+    for (let pixel = 0; !yuv && pixelFormat !== "rgba" && pixel < width * height; pixel++) {
       if (pixel % 4096 === 0) budget.checkCpu();
       if (pixelFormat === "bgra") {
         rgba[pixel * 4] = data[pixel * 4 + 2]!;

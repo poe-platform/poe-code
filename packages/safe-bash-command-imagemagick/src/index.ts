@@ -9565,8 +9565,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const lab = yield* toLab.apply(image);
                 const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, ...metadata } = lab;
-                return yield* applyMagickRasterSteps({ ...metadata, isPalette: false }, whiteBalancePixelSteps(lab, state.whiteBalanceVibrance), signal, lab, [lab]);
-            });
+                return yield* applyMagickRasterSteps({ ...metadata, isPalette: false }, whiteBalancePixelSteps(lab, state.whiteBalanceVibrance, !!image.writeMask), signal, lab, image.writeMask ? [lab, image, image.writeMask] : [lab, image]);
+            }, "transparent", true);
         }
         else if (t === "-charcoal") {
             const raw = tokens[++i] ?? "0x1";
@@ -11975,12 +11975,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-white-balance") {
             const toLab = parseMagickPixelOperation(["-colorspace", "Lab"], state, 0, signal)!;
             const vibrance = state.whiteBalanceVibrance;
-            steps.push(async (image, backend) => {
+            steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const lab = await transformStoredMagickPixels(image, backend, toLab, signal);
                 const { magickColorspace: ignoredSpace, storedHueSamples: ignoredHue, ...metadata } = lab;
-                return transformStoredMagickRaster({ ...metadata, isPalette: false }, backend, whiteBalancePixelSteps(lab, vibrance), signal, lab, [lab]);
-            });
+                return transformStoredMagickRaster({ ...metadata, isPalette: false }, backend, whiteBalancePixelSteps(lab, vibrance, !!image.storedWriteMask), signal, lab, image.storedWriteMask ? [lab, image, image.storedWriteMask] : [lab, image]);
+            }, { maskAlpha: "transparent" as const, handlesRegion: true }));
         } else if (!operandsOnly && token === "-charcoal") {
             const raw = tokens[++i] ?? "0x1", optionProperties = state.optionProperties;
             const { virtualPixel, background } = state;

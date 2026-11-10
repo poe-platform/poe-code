@@ -7683,7 +7683,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
 // ImageMagick 7.1.2 ColorspaceOptions, including existing aliases.
 const magickColorspaces = ["undefined", "adobe98", "cat02lms", "cielab", "cmy", "cmyk", "displayp3", "gray", "grey", "hcl", "hclp", "hsb", "hsi", "hsl", "hsv", "hwb", "jzazbz", "lab", "lch", "lchab", "lchuv", "lineargray", "lms", "log", "luv", "ohta", "oklab", "oklch", "prophoto", "rec601luma", "rec601ycbcr", "rec709luma", "rec709ycbcr", "rgb", "scrgb", "srgb", "transparent", "xyy", "xyz", "ycbcr", "ydbdr", "ycc", "yiq", "ypbpr", "yuv"];
 
-type MagickPixelOperation = { handlesWriteMask?: boolean; maskAlpha?: "transparent" | "opaque" | undefined; warning?: string; evaluate?: boolean; highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number, imageWidth?: number): Generator<void, RgbaImage, void> };
+type MagickPixelOperation = { handlesWriteMask?: boolean; maskAlpha?: "transparent" | "opaque" | "extract" | undefined; warning?: string; evaluate?: boolean; highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number, imageWidth?: number): Generator<void, RgbaImage, void> };
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
     let i = start, apply: MagickPixelOperation["apply"], highDepth = false, warning: string | undefined;
@@ -7883,7 +7883,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else if (token === "-alpha") {
         const mode = (tokens[++i] ?? "on").toLowerCase();
-        if (mode === "transparent" || mode === "opaque") maskAlpha = mode;
+        if (mode === "transparent" || mode === "opaque" || mode === "extract") maskAlpha = mode;
         highDepth = ["discrete", "deactivate", "associate", "disassociate", "off", "opaque", "transparent", "activate", "on", "set", "extract"].includes(mode);
         if (mode === "undefined") {
             highDepth = evaluate = true;
@@ -8056,6 +8056,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             apply = function* (im) {
                 if (im.alphaBlend !== true) im = yield* prepareInactiveAlphaOutput(im);
                 const extracted = yield* extractChannelImageSteps({ ...im, hasAlpha: true }, 3);
+                // Clip-cache blending still uses source opacity before Extract disables alpha.
+                for (let offset = 3; offset < extracted.data.length; offset += 4) {
+                    if (offset % 65536 === 3) yield;
+                    extracted.data[offset] = im.data[offset]!;
+                    if (extracted.data16) extracted.data16[offset] = im.data16![offset]!;
+                }
                 const hueSamples = im.hueSamples ? new Float64Array(im.hueSamples.length) : undefined;
                 if (hueSamples) for (let offset = 0; offset < extracted.data.length; offset += 4) {
                     if (offset % 65536 === 0) yield;
@@ -10051,8 +10057,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!handlesRegion && original.region && result.region === original.region && result.data !== original.data && result.width === original.width && result.height === original.height) {
                 result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, original.region, !!(result.data16 || original.data16), state.channels), undefined, result, [result, original]);
             }
-            if (maskAlpha === "transparent" || !original.writeMask || (result.writeMask && result.writeMask !== original.writeMask) || result.data === original.data || result.width !== original.width || result.height !== original.height) return result;
-            return yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask, !!(result.data16 || original.data16), maskAlpha === "opaque", state.channels, original.hasAlpha && original.alphaBlend !== false), undefined, result, [result, original, original.writeMask]);
+            if (maskAlpha !== "transparent" && original.writeMask && (!result.writeMask || result.writeMask === original.writeMask) && result.data !== original.data && result.width === original.width && result.height === original.height) {
+                result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask, !!(result.data16 || original.data16), maskAlpha === "opaque", state.channels, original.hasAlpha && original.alphaBlend !== false), undefined, result, [result, original, original.writeMask]);
+            }
+            return maskAlpha === "extract" ? { ...result, alphaBlend: false } : result;
         });
     }
 
@@ -14642,7 +14650,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (result && !step.handlesRegion && original.region && result.region === original.region && result.position !== original.position && result.width === original.width && result.height === original.height) {
                         result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, original.region, !!(result.storedData16 || original.storedData16), maskChannels), signal, result, [result, original]);
                     }
-                    if (result) await stack.set(n, result);
+                    if (result) await stack.set(n, step.maskAlpha === "extract" ? { ...result, alphaBlend: false } : result);
                 }
             }
             while (parents.length) { const parent = parents.pop()!; for (let n = 0; n < stack.length; n++) await parent.push((await stack.get(n))!); stack = parent; }

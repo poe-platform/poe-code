@@ -8628,9 +8628,12 @@ export class Runtime {
           const callbackAllocation = this.budget.values.scope();
           const nested = mapfileCallbackStates.has(state);
           try {
-            const quoted = shellValueText(await transformParameter(value, "Q", { maximumBytes: this.budget.limits.maxExpansionBytes, byteLocale: byteLocale(state.variables), work, allocation: callbackAllocation }));
-            if (shellValueByteLength(source) + shellValueByteLength(quoted) + String(index).length + 2 > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
-            const argumentValues = createCommandArguments([source, String(index), quoted], callbackAllocation);
+            let quoted = shellValueText(await transformParameter(value, "Q", { maximumBytes: this.budget.limits.maxExpansionBytes, byteLocale: byteLocale(state.variables), work, allocation: callbackAllocation }));
+            const callbackIndex = String(index | 0);
+            // Bash reserves ten index characters, truncating the closing quote for longer signed indexes.
+            if (callbackIndex.length > 10) quoted = quoted.slice(0, -1);
+            if (shellValueByteLength(source) + shellValueByteLength(quoted) + callbackIndex.length + 2 > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+            const argumentValues = createCommandArguments([source, callbackIndex, quoted], callbackAllocation);
             mapfileCallbackStates.add(state);
             await this.evalBuiltin({ ...context, args: argumentValues.args, argumentValues }, state, context, false);
             // Local scope restoration can replace the entry while preserving the

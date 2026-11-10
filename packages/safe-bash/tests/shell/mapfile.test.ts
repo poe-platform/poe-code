@@ -8,6 +8,25 @@ import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 
 for (const extension of [false, true]) {
   for (const command of ["mapfile", "readarray"]) {
+    for (const [origin, next, callbacks, errors] of [
+      [3, 4, [["3", "ONE"], ["4", "TWO"]], 0],
+      [2147483647, 2147483648, [["2147483647", "ONE"]], 1],
+      [2147483648, 2147483649, [], 2],
+      [3294967296, 3294967297, [["-999999999", "TWO"]], 1],
+      [3294967297, 3294967298, [["-999999999", "ONE"], ["-999999998", "TWO"]], 0],
+      [4294967294, 4294967295, [["-2", "ONE"], ["-1", "TWO"]], 0],
+      [4294967295, 0, [["-1", "ONE"], ["0", "TWO"]], 0],
+    ] as const) test(`${command} renders signed callback indexes: origin=${origin}, extension=${extension}`, async () => {
+      const { shell, fs } = setup({ extensions: [arraysExtension(), ...(extension ? [mapfileExtension()] : [])] });
+      try {
+        await fs.writeFile("/records", new TextEncoder().encode("ONE\nTWO\nTHREE\n"));
+        const result = await shell.exec(`cb() { args "$1" "$2"; }; ${command} -O${origin} -n2 -tc1 -C cb A </records; code=$?; args "$code" "\${A[${origin}]}" "\${A[${next}]}" "\${!A[@]}"`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, callbacks.map(args => JSON.stringify(args)).join("") + JSON.stringify(["0", "ONE", "TWO", ...(next === 0 ? ["0", String(origin)] : [String(origin), String(next)])]));
+        assert.equal(result.stderr.split("unexpected EOF while looking for matching `''").length - 1, errors, result.stderr);
+        if (!errors) assert.equal(result.stderr, "");
+      } finally { await shell.dispose(); }
+    });
     for (const flags of ["-u9 -u0", "-u 9 -u 0", "-u0 -u9 -u0", "-u9 -x", "-u 9 -x"]) {
       test(`${command} validates each descriptor before later options: ${flags}, extension=${extension}`, async () => {
         const { shell, fs } = setup({ extensions: extension ? [mapfileExtension()] : [] });
@@ -167,7 +186,8 @@ for (const command of ["mapfile", "readarray"]) {
       try {
         const result = await shell.exec(`A=([0]=old [9]=keep); cb() { :; }; ${command} -t -O ${origin} ${callback ? "-C cb -c 1" : ""} A; code=$?; args "\${!A[@]}"; args "\${A[${origin}]}" "\${A[${next}]}" "\${A[9]}" "\${A[0]}"; exit "$code"`, { stdin: "ONE\nTWO\n" });
         assert.equal(result.exitCode, 0, result.stderr);
-        assert.equal(result.stderr, "");
+        if (callback && origin === 2147483647) assert.ok(result.stderr.includes("unexpected EOF while looking for matching `''"), result.stderr);
+        else assert.equal(result.stderr, "");
         const keys = origin === 3 ? ["0", "3", "4", "9"] : origin === 2147483647 ? ["0", "9", "2147483647", "2147483648"] : ["0", "9", "4294967295"];
         assert.equal(result.stdout, JSON.stringify(keys) + JSON.stringify(["ONE", "TWO", "keep", next === 0 ? "TWO" : "old"]));
       } finally { await shell.dispose(); }

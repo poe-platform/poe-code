@@ -202,7 +202,7 @@ export function gifFrameHeader(
       : typeof options.delay === "number"
         ? options.delay
         : (frameDelay ?? (frames > 1 ? 100 : 0)),
-    centiseconds = Math.max(0, Math.round(delay / 10));
+    centiseconds = Math.max(0, Math.floor(delay / 10));
   const text = options.gifVersion === "87a" ? undefined : rectangle.comment ?? (frame === 0 ? image.properties?.comment : undefined);
   const original = rectangle.gifCommentBytes ?? (frame === 0 ? image.gifCommentBytes : undefined);
   const bytes = original && text === new TextDecoder().decode(original) ? original : new TextEncoder().encode(text);

@@ -113,52 +113,52 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 2, height: 4, colors: 1, mode: "grid" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "b0fb4724342115bc3c8d1725958e803f44a535b50b22ebb06910b0b76812dc5b"
+    hash: "81c543ef2a5f3cde2658e7fd812f95d0fdfd077e68e1c19571cacdea57271209"
   },
   {
     spec: { width: 2, height: 4, colors: 1, mode: "white" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "d14aa8fc36ab3490bcf2b00101824c9a5d12f718e5d35572d6f3a689ca801910"
+    hash: "bc13d46ce45ccd35edea2cd3d249fcf58ad7b7eca1c048fc9d35f97c3678815d"
   },
   {
     spec: { width: 2, height: 4, colors: 1, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "372f8ab68fa886f19ecbb09b791a6de1b63dde7730248293f1104bbba869aa5f"
+    hash: "8819b30b36bf59a1a1f3808c0e66f35b6dc781215a6b0323d620ef4e882bece8"
   },
   {
     spec: { width: 253, height: 4, colors: 252, mode: "grid" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "1f8fd69653022a1072ef1ed7e70c17a26d3841c233e773bada4ebe4e578a560c"
+    hash: "806a05acfec36470f432da362a0b08f396da02fb7b2da3a7832341c3f5e59e2d"
   },
   {
     spec: { width: 253, height: 4, colors: 252, mode: "white" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "5f9d4c22f8b6d40998ab9fe89cbb0f86cfc5d3ec7ec73e1c8573de4feab93152"
+    hash: "ccb5bb6b1993495fa0cb0231072b3bb0c2fc1e52590c9690ff2c74de093346da"
   },
   {
     spec: { width: 253, height: 4, colors: 252, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "a8abe628845c22ab702e1e714de49d45019ca3d83387dc5d34dcf6fdbdeff09d"
+    hash: "909007c0219ee7560446c48305bbbc9756b57e6a2f2d556b696380d32ad879aa"
   },
   {
     spec: { width: 254, height: 4, colors: 253, mode: "grid" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "b60753548cb1f23b6e646652e1cbe2d928e402994746b3763e6e2ab5a0e8ca45"
+    hash: "29d969cda79aec3d8ef55d9c597186e1e0274146f0846ce2c90fb2e2de6acad4"
   },
   {
     spec: { width: 254, height: 4, colors: 253, mode: "white" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "dadf0a317ef2f2c2b732c87fb025fe2bbb0698980b2de85084ccc875f652cc93"
+    hash: "adb269679e55e578cb84c993e7f30c31bd4165dfdbb3c0f784fdb1daa866c762"
   },
   {
     spec: { width: 254, height: 4, colors: 253, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "920831aa646f1464ba06da668369b17e48c9b5daa5d3bd854eca9dcb46e7047c"
+    hash: "2cab43e0888eff5e74a616d44ee68bbd4553c9a8946d63f38714126bd02e24d5"
   },
   {
     spec: { width: 255, height: 4, colors: 254, mode: "grid" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "196870a3da729ffa43bae302aa0b8955cdcff02a1dbaacac8ba9c12b0c5babd5"
+    hash: "1fbedd8e4104e0da2117a06b3082117d5e257b0318748a3ec2f74b3d7bc773c8"
   },
   {
     spec: { width: 255, height: 4, colors: 254, mode: "white" },
@@ -167,7 +167,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 255, height: 4, colors: 254, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "ddc43aa203c20b423b04e6de45fe7c2c21d9423b40a9b026032ca40f5fe98273"
+    hash: "053a693b4f88544f176f5ae43af3b7033ae92bb0d1879948232df26ad06242b0"
   },
   {
     spec: { width: 256, height: 4, colors: 255, mode: "grid" },
@@ -176,7 +176,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 256, height: 4, colors: 255, mode: "white" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "2a4f2b9cd50af8bfef03a12c5319a6d82e1242419b6b81716ea7424110e8d330"
+    hash: "0c756722047fa36d36264d3d078ccd804886a004ae24cdf4832cbe8585f89658"
   },
   {
     spec: { width: 256, height: 4, colors: 255, mode: "alpha" },
@@ -201,7 +201,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 301, height: 4, colors: 300, mode: "white" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "a90625d97c235c5ae2257bda0d781788d4db63bf54286846f2c6f474fb6d8718"
+    hash: "835cd969966cbd1de10be18c3778b5de1fb1408cff36bba7e7136420b984016d"
   },
   {
     spec: { width: 301, height: 4, colors: 300, mode: "alpha" },
@@ -218,7 +218,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: {},
-    hash: "c110997f4eaab7cb6f0eaa36bbb0d3438f76b321a642afabb21b74dc8a9f762b"
+    hash: "9ebe9026bbaf27656bf90670debb181f8a9ab60ba31721a5f3cedae0eaaf6ac1"
   },
   {
     spec: {
@@ -244,7 +244,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { delay: 15 },
-    hash: "edc86e885f4118aa22f415c5e2d4b9af27121ef0035ac76e09145c7286111a24"
+    hash: "16d47a4c34290ea83ed8a80b6b4a32d9da5a01104e974c0b105874063bb25e43"
   },
   {
     spec: {
@@ -296,7 +296,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { pageHeight: 2 },
-    hash: "c110997f4eaab7cb6f0eaa36bbb0d3438f76b321a642afabb21b74dc8a9f762b"
+    hash: "9ebe9026bbaf27656bf90670debb181f8a9ab60ba31721a5f3cedae0eaaf6ac1"
   },
   {
     spec: {
@@ -309,7 +309,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { pageHeight: 3 },
-    hash: "3875e834e5f25f395a478d6a200f183b50dc7995ef272ec193d041de3c0bc451"
+    hash: "a8f92dca892cb3a667890810d880dc5c7a4a3be8ccfe7cd8179002452e6d7e65"
   },
   {
     spec: {
@@ -322,7 +322,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { pageHeight: 7 },
-    hash: "39a47c094a47f1dc1dc7ea108a4dc7b2d4c19edee588b128fdd6cc8c4cd4480f"
+    hash: "f17aedd88d0866ae5eed917cc0c3a821427e56936f50f25888188c337a79678f"
   },
   {
     spec: {
@@ -335,7 +335,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { pageHeight: 0 },
-    hash: "39a47c094a47f1dc1dc7ea108a4dc7b2d4c19edee588b128fdd6cc8c4cd4480f"
+    hash: "f17aedd88d0866ae5eed917cc0c3a821427e56936f50f25888188c337a79678f"
   },
   {
     spec: {
@@ -348,7 +348,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { loop: 0 },
-    hash: "4ff39d9f4589cc8b6f8a47364d4886d443af122125070ed8736dd20706a7ebf3"
+    hash: "2dd86bd1c687b3457ff9ba128839c0b8abe018ba06a380e9d981b7ba5b357931"
   },
   {
     spec: {
@@ -361,7 +361,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { loop: 1 },
-    hash: "43a5e2c03a1e5dc4d2432d20de14297352707f8517b626bb9c7b2897604b4088"
+    hash: "919324c063759c4b86b3718986994a80163fdc064c25c9c0eb77bca6746a5575"
   },
   {
     spec: {
@@ -374,7 +374,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
       loop: 3
     },
     options: { loop: 65537 },
-    hash: "4ff39d9f4589cc8b6f8a47364d4886d443af122125070ed8736dd20706a7ebf3"
+    hash: "2dd86bd1c687b3457ff9ba128839c0b8abe018ba06a380e9d981b7ba5b357931"
   }
 ];
 function backing(spec: Spec = vectors[0]!.spec) {
@@ -543,4 +543,17 @@ it("rejects fractional frame heights before reading backing", async () => {
     });
   await expect(stream.next()).rejects.toThrow();
   expect(storage.read).not.toHaveBeenCalled();
+});
+
+it("truncates millisecond delays to GIF centiseconds in buffered and stored output", async () => {
+  const { image, stored, storage } = backing({
+    width: 2, height: 5, colors: 2, pageHeight: 1, delay: [5, 15, 19, 41, 291], loop: 0,
+  });
+  const chunks: Uint8Array[] = [];
+  for await (const chunk of encodeGifFromStorage(stored, storage, new AbortController().signal)) {
+    chunks.push(chunk.slice());
+  }
+  for (const bytes of [encodeGifImage(image), Buffer.concat(chunks)]) {
+    expect(decodeGifImage(bytes, { animated: true }).delay).toEqual([0, 10, 10, 40, 290]);
+  }
 });

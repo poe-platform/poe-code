@@ -5665,6 +5665,8 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
                 { ...layout, hasAlpha: false }, [plane, img]));
         }
     }
+    if (img.space === "cmyk" && ["over", "srcover"].includes(magickCompositeMode(state.composeRaw).name)) return yield* applyMagickRasterSteps({ ...canvas, space: "cmyk", channels: 4 },
+        extentEvaluateSamples(img, layout, background, state), signal, canvas, [img]);
     if (img.space === "cmyk" && ["src", "source"].includes(magickCompositeMode(state.composeRaw).name)) return yield* applyMagickRasterSteps({ ...canvas, space: "cmyk", channels: 4 },
         extentCompositeSteps(img, layout, background, state), signal, canvas, [img]);
     if (!layout.area) return canvas;
@@ -5698,27 +5700,49 @@ async function decodeStoredMagickSvg(svg: string, density: number, backend: Comp
     }
     return decodeImageToStorage({ size, async read(position, length) { return backend.storage.read(base + position, length); } }, backend.storage, signal, { density });
 }
-function* extentEvaluateSamples(image: Pick<RgbaImage, "width" | "hasAlpha" | "inactiveAlpha" | "alphaBlend">, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* extentEvaluateSamples(image: Pick<RgbaImage, "width" | "space" | "hasAlpha" | "inactiveAlpha" | "alphaBlend">, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const cmyk = image.space === "cmyk";
+    // Native CMYK canvas backgrounds are converted from linear RGB.
+    const linear = [background.r, background.g, background.b].map(value => value / 255 <= 0.04045 ? value / 255 / 12.92 : ((value / 255 + 0.055) / 1.055) ** 2.4);
+    const backgroundInks = cmyk ? rgbToCmyk(linear[0]!, linear[1]!, linear[2]!) : undefined;
     const color = [background.r, background.g, background.b, background.a];
     const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
     for (let y = 0; y < layout.height; y++) for (let x = 0; x < layout.width; x += 512) {
         yield;
         const count = Math.min(512, layout.width - x), samples = new Float64Array(count * 4);
         for (let i = 0; i < samples.length; i += 4) samples.set(color, i);
+        const inks = cmyk ? new Float64Array(count * 4) : undefined;
+        if (inks) for (let i = 0; i < inks.length; i += 4) inks.set(backgroundInks!, i);
         const area = layout.area, left = Math.max(x, layout.left), right = Math.min(x + count, layout.left + (area?.width ?? 0));
         if (area && y >= layout.top && y < layout.top + area.height && right > left) {
             const position = ((area.top + y - layout.top) * image.width + area.left + left - layout.left) * 4;
             const bytes = (yield { kind: "read", evaluate: true, position, length: (right - left) * 4 })!;
-            const source = new Float64Array(bytes.slice().buffer);
+            const source = bytes.length ? new Float64Array(bytes.slice().buffer)
+                : Float64Array.from(new Uint16Array((yield { kind: "read", highDepth: true, position, length: (right - left) * 4 })!.slice().buffer), value => value / 257);
+            const inkBytes = cmyk ? yield { kind: "read", hue: true, position, length: source.length } : undefined;
+            const sourceInks = inkBytes?.length ? new Float64Array(inkBytes.slice().buffer) : undefined;
             for (let i = 0; i < source.length; i += 4) {
                 const alpha = (image.hasAlpha || image.inactiveAlpha) ? source[i + 3]! / 255 : 1;
                 const behind = background.a / 255 * (1 - alpha), combined = alpha + behind;
+                if (inks) {
+                    const input = sourceInks?.subarray(i, i + 4) ?? rgbToCmyk(source[i]! / 255, source[i + 1]! / 255, source[i + 2]! / 255);
+                    for (let c = 0; c < 4; c++) {
+                        const selected = !state.channelExplicit || (c === 3 ? state.channels.k ?? true : channels![c]);
+                        inks[(left - x) * 4 + i + c] = !selected ? backgroundInks![c]!
+                            : combined ? (input[c]! * alpha + backgroundInks![c]! * behind) / combined : 0;
+                    }
+                }
                 for (let c = 0; c < 3; c++) source[i + c] = channels?.[c] === false ? color[c]! : combined ? (source[i + c]! * alpha + color[c]! * behind) / combined : 0;
                 source[i + 3] = channels?.[3] === false ? background.a : combined * 255;
             }
             samples.set(source, (left - x) * 4);
         }
         const position = (y * layout.width + x) * 4;
+        if (inks) {
+            yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
+            for (let i = 0; i < samples.length; i += 4)
+                for (let c = 0; c < 3; c++) samples[i + c] = (1 - inks[i + c]!) * (1 - inks[i + 3]!) * 255;
+        }
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
         yield { kind: "write", highDepth: true, position,
             data: new Uint8Array(Uint16Array.from(samples, value => Math.max(0, Math.min(65535, Math.round(value * 257)))).buffer) };
@@ -15913,6 +15937,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             { ...layout, hasAlpha: false }, [plane, image]));
                     }
                 }
+                if (image.space === "cmyk" && ["over", "srcover"].includes(magickCompositeMode(captured.composeRaw).name)) return transformStoredMagickRaster({ ...canvas, space: "cmyk", channels: 4 }, backend,
+                    extentEvaluateSamples(image, layout, background, captured), signal, canvas, [image]);
                 if (image.space === "cmyk" && ["src", "source"].includes(magickCompositeMode(captured.composeRaw).name)) return transformStoredMagickRaster({ ...canvas, space: "cmyk", channels: 4 }, backend,
                     extentCompositeSteps(image, layout, background, captured), signal, canvas, [image]);
                 if (!layout.area) return canvas;

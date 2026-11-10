@@ -8,6 +8,8 @@ const pixels = Uint8Array.from([255, 0, 0, 64, 0, 255, 0, 128, 0, 0, 255, 192, 2
   255, 0, 0, 64, 0, 255, 0, 128, 0, 0, 255, 192, 200, 100, 50, 255]);
 
 for (const [filter, colorType, opaque] of [
+  ["format=gbrp", 2, true],
+  ["format=gbrp,format=rgba", 6, true],
   ["format=rgb24", 2, true],
   ["format=rgb24,format=rgba", 6, true],
   ["format=bgr24,format=bgra", 6, true],

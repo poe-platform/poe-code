@@ -3007,7 +3007,7 @@ async function applyVideoFilterChain(
           [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;
         const gray = pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "ya8";
         const available = planar ? 0x70 : gray ? (pixelFormat === "ya8" ? 0x18 : 0x10) :
-          pixelFormat === "rgb24" || pixelFormat === "bgr24" ? 0x07 : 0x0f;
+          pixelFormat === "rgb24" || pixelFormat === "bgr24" || pixelFormat === "gbrp" ? 0x07 : 0x0f;
         while (nextCommand < commands.length && commands[nextCommand]!.time <= f.ptsSeconds) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
           const command = commands[nextCommand++]!;
@@ -3073,7 +3073,7 @@ async function applyVideoFilterChain(
         if (key !== "pix_fmts") throw new Error(`format: unsupported option ${part}`);
         const values = (separator < 0 ? part : part.slice(separator + 1)).trim().split("|");
         for (const value of values) {
-          if (!["monob", "pal8", "rgba", "bgra", "rgb24", "bgr24", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be", "yuv420p", "yuv422p", "yuv444p"].includes(value)) {
+          if (!["monob", "pal8", "rgba", "bgra", "rgb24", "bgr24", "gbrp", "gbrap", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be", "yuv420p", "yuv422p", "yuv444p"].includes(value)) {
             throw new Error(`format: unsupported pixel format ${value}`);
           }
         }
@@ -3154,7 +3154,8 @@ async function applyVideoFilterChain(
             return { ...f, data };
           }, signal);
         }
-        if (pixelFormat === "rgb24" || pixelFormat === "bgr24" || pixelFormat === "rgb48be") {
+        if (pixelFormat === "rgb24" || pixelFormat === "bgr24" || pixelFormat === "rgb48be" || pixelFormat === "gbrp" ||
+            pixelFormat === "gbrap" && previousPixelFormat !== "gbrap") {
           current = await mapWork(current, async (f) => {
             const data = f.data.slice();
             for (let i = 3; i < data.length; i += 4) {
@@ -3163,7 +3164,8 @@ async function applyVideoFilterChain(
                 signal?.throwIfAborted();
                 budget.checkCpu();
               }
-              data[i] = 255;
+              // Match FFmpeg 7 swscale's packed-to-planar alpha rounding.
+              data[i] = pixelFormat === "gbrap" ? Math.min(255, Math.round(data[i]! * 257 / 256)) : 255;
             }
             return { ...f, data };
           }, signal);
@@ -6368,7 +6370,7 @@ export function evalSyncFfmpeg(
         const f = frames[idx]!;
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1))!;
         const encoded = imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
-                    ...(imgFmt === "qoi" ? { hasAlpha: !["rgb24", "bgr24", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba") } : {}),
+                    ...(imgFmt === "qoi" ? { hasAlpha: !["rgb24", "bgr24", "gbrp", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba") } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"
                       ? { pngPalette: { bytes: pal8Palette, depth: 8 } } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "monob" || vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8"
@@ -15013,7 +15015,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   const imgFmt = imageOutputFormat(videoCodec, outExt);
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
-                    ...(imgFmt === "qoi" ? { hasAlpha: !["rgb24", "bgr24", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba") } : {}),
+                    ...(imgFmt === "qoi" ? { hasAlpha: !["rgb24", "bgr24", "gbrp", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba") } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"
                       ? { pngPalette: { bytes: pal8Palette, depth: 8 } } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "monob" || vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8" || vTrack?.codecDescriptions[0]?.pixFmt === "gray16be"
@@ -15027,7 +15029,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     format: imgFmt,
                     pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8",
                     pngBitDepth: vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : vTrack?.codecDescriptions[0]?.pixFmt === "pal8" ? undefined : ["rgba64be", "rgb48be", "gray16be"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "") ? 16 : 8,
-                    forceOpaque: vTrack?.codecDescriptions[0]?.pixFmt === "rgb48be" || vTrack?.codecDescriptions[0]?.pixFmt === "rgb24" || vTrack?.codecDescriptions[0]?.pixFmt === "bgr24"
+                    forceOpaque: vTrack?.codecDescriptions[0]?.pixFmt === "gbrp" || vTrack?.codecDescriptions[0]?.pixFmt === "rgb48be" || vTrack?.codecDescriptions[0]?.pixFmt === "rgb24" || vTrack?.codecDescriptions[0]?.pixFmt === "bgr24"
                   }).data);
                   budget.checkOutputBytes(encoded.byteLength);
                   await writeImage(fullOutPath, encoded);

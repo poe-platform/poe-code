@@ -12406,7 +12406,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // Duration trims each frame on its own timeline; overlapping frames can both survive.
                         if (frame.pts >= endPts) break;
                         const from = frame.start + (outputSs === undefined ? 0 : Math.max(0, seek - frame.pts));
-                        const to = Math.min(frame.end, frame.start + endPts - frame.pts);
+                        // Resampler startup/flush can produce fewer samples than the scaled frame bounds.
+                        const to = Math.min(stretched[0]?.length ?? 0, frame.end, frame.start + endPts - frame.pts);
                         if (to <= from) continue;
                         ranges.push({ start: from, end: to });
                         frames.push({ start: length, end: length + to - from, pts: frame.pts + from - frame.start - seek });

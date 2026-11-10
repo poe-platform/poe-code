@@ -10732,7 +10732,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const value = tokens[++i] ?? "72";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const resized = yield* applyMagickResizeSteps(image, magickResampleGeometry(image, value), state.kernel, false, false, false, state.resizeFilter);
+                const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const resized = yield* applyMagickResizeSteps(image, magickResampleGeometry(image, expanded), state.kernel, false, false, false, state.resizeFilter);
                 return applyMagickDensity(resized, state.densityGeometry ?? value);
             });
         }
@@ -13613,10 +13614,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const value = tokens[++i] ?? "72", kernel = state.kernel, settings = state.resizeFilter;
+            const optionProperties = state.optionProperties;
             const density = state.densityGeometry ?? value;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const options = magickResizeOptions(image, magickResampleGeometry(image, value), kernel);
+                const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const options = magickResizeOptions(image, magickResampleGeometry(image, expanded), kernel);
                 const resized = options ? await resizeStoredMagickImage(image, backend, options, signal, false, false, false, settings) : image;
                 return applyMagickDensity(resized, density);
             });

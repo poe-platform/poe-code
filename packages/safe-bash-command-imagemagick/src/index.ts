@@ -9982,8 +9982,8 @@ if (t === "-intent" || t === "+intent") {
             if (!Number.isInteger(state.inputDepth) || state.inputDepth < 1) throw new Error("invalid input depth");
         }
         else if (t === "-interlace") {
-            const interlace = (tokens[++i] ?? "").toLowerCase();
-            if (interlace !== "plane" && interlace !== "line" && interlace !== "none" && interlace !== "png" && interlace !== "gif" && interlace !== "jpeg" && interlace !== "partition") throw new Error(`unsupported interlace type '${interlace}'`);
+            const interlace = (tokens[++i] ?? "").trim().toLowerCase().replaceAll("_", "").replaceAll("-", "");
+            if (interlace !== "undefined" && interlace !== "plane" && interlace !== "line" && interlace !== "none" && interlace !== "png" && interlace !== "gif" && interlace !== "jpeg" && interlace !== "partition") throw new Error(`unsupported interlace type '${interlace}'`);
             state.interlace = interlace === "png" || interlace === "gif" || interlace === "jpeg" ? interlace.toUpperCase() : interlace[0]!.toUpperCase() + interlace.slice(1);
             state.jpegProgressive = interlace !== "none";
             state.tiffPlanar = interlace === "plane" || interlace === "partition";

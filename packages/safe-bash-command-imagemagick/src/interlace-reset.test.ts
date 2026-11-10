@@ -14,6 +14,7 @@ for (const mode of ["buffered", "command"] as const) for (const format of ["png"
     for (const [options, progressive] of [
       [[], false],
       [["+interlace"], true],
+      [["-interlace", "Undefined"], true],
       [["-interlace", "None", "+interlace"], true],
       [["+interlace", "-interlace", "None"], false]
     ] as const) {

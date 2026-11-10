@@ -7492,7 +7492,7 @@ function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" 
 
 type MagickHistogram = Float64Array[];
 type MagickChannelSums = { count: number; values: number[] };
-type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; sepiaThreshold?: number; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "region" | "alphaBlend" | "alphaSeparate" | "magickColorspace">, sums?: MagickChannelSums): MagickPixelOperation["apply"] };
+type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; sepiaThreshold?: number; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "region" | "alphaBlend" | "alphaSeparate" | "magickColorspace" | "indexedColors" | "pngPalette">, sums?: MagickChannelSums): MagickPixelOperation["apply"] };
 function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram, method: string, linear: boolean, selection?: Uint8Array, sepiaThreshold?: number, gray = false, image?: Pick<RgbaImage, "width" | "region" | "hasAlpha" | "alphaBlend">, pixelOffset = 0, channels?: MagickState["channels"], workingSamples?: Float64Array, hue = false, cmyk = false, sums?: MagickChannelSums, autoLevel = false): Generator<void, void, void> {
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;

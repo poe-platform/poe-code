@@ -203,8 +203,9 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
 }
 
 /** Median ranks selected channel sums, retaining stable input order for equal sums. */
-export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette">[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0n, width = size / 4): Steps {
+export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { magickColorspace?: string })[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0n, width = size / 4): Steps {
     const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
+    const hue = !!inputs[0]?.magickColorspace && inputs[0].magickColorspace !== "RGB" && inputs[0].space !== "cmyk";
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
     const fractional = ["mean", "multiply", "rms", "rootmeansquare"].includes(operation);
@@ -285,6 +286,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                         : Math.max(0, Math.min(range, Math.round(values[(left + pixel) * slots + slot]! * (highDepth ? 257 : 1))));
                 }
                 yield { kind: "write", highDepth, position: row + left * 4, data: new Uint8Array(data.buffer) };
+                if (hue) yield { kind: "write", hue: true, position: row + left * 4, data: new Uint8Array(Float64Array.from(data, value => value / range).buffer) };
             }
         }
         return;
@@ -449,6 +451,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                 // Keep HDRI arithmetic separate from the bounded encoding views.
                 const samples = Float64Array.from(values, (value, offset) => offset % 4 === 3 && !hasAlpha ? 255 : highDepth ? value / 257 : value);
                 yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
+                if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(samples.map(value => value / 255).buffer) };
             }
             const average = operation === "mean";
             for (let offset = 0; offset < length; offset++) {
@@ -464,6 +467,11 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
             const encoded = highDepth ? Uint16Array.from(samples, value => clamp(value * 257)) : Uint8Array.from(samples, clamp);
             yield { kind: "write", highDepth, position, data: new Uint8Array(encoded.buffer) };
             yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
-        } else yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+            if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(samples.map(value => value / 255).buffer) };
+        } else {
+            yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+            // Replace the first input's working plane with the reduced pixels.
+            if (hue && !retainRange) yield { kind: "write", hue: true, position, data: new Uint8Array(Float64Array.from(data, value => value / range).buffer) };
+        }
     }
 }

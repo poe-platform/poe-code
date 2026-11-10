@@ -4,6 +4,27 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each(["2foo", "2-0", "2;0", "2+0", "2", "2,0"])(`validates the entire duplicate count %s: ${mode}`, async count => {
+        for (const existing of [false, true]) {
+            const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+            const run = (args: string[]) => mode === "sync" ? runConvertCliSync(args, files)
+                : runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            if (existing) expect((await run(["-size", "1x1", "xc:black", "PNG24:out.png"])).exitCode).toBe(0);
+            const result = await run(["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "xc:white", "-duplicate", count, "+append", "PNG24:out.png"]);
+            const valid = count === "2" || count === "2,0";
+            expect(result.exitCode).toBe(valid ? 0 : 1);
+            if (!valid && !existing) {
+                if (mode === "retained") await expect(filesystem.readFile("/out.png")).rejects.toThrow();
+                else expect(files.has("out.png")).toBe(false);
+                continue;
+            }
+            const image = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+            const red = [255, 0, 0, 255], green = [0, 255, 0, 255], blue = [0, 0, 255, 255], white = [255, 255, 255, 255];
+            const repeated = count === "2" ? white : red;
+            expect([image.width, image.height]).toEqual([valid ? 6 : 1, 1]);
+            expect([...image.data]).toEqual(valid ? [red, green, blue, white, repeated, repeated].flat() : [0, 0, 0, 255]);
+        }
+    });
     for (const count of ["-1", "-2,0", "0", "2"]) {
         it(`preserves frame order for duplicate count ${count}: ${mode}`, async () => {
             const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();

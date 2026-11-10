@@ -9769,8 +9769,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-duplicate") {
                 const value = tokens[++i] ?? "", comma = value.indexOf(",");
                 const countSpec = comma < 0 ? value : value.slice(0, comma);
-                count = parseInt(countSpec, 10);
-                if (!Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
+                count = Number(countSpec);
+                if (!countSpec.trim() || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
                 idxSpec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
                 parseMagickIndices(idxSpec);
             }
@@ -10532,8 +10532,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (["-clone", "-delete", "-swap", "-insert"].includes(token)) spec = tokens[++i] ?? (token === "-swap" ? "-2,-1" : token === "-insert" ? "0" : "-1");
             if (token === "-duplicate") {
                 const value = tokens[++i] ?? "", comma = value.indexOf(",");
-                count = parseInt(value, 10);
-                if (!Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
+                const countSpec = comma < 0 ? value : value.slice(0, comma);
+                count = Number(countSpec);
+                if (!countSpec.trim() || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
                 spec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
                 parseMagickIndices(spec);
             }

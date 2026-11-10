@@ -12152,6 +12152,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const argument = trimmed.slice("aformat=".length);
                         const options = argument ? argument.split(":") : [];
                         if (options.at(-1) === "") options.pop();
+                        const nextFilter = audioFilters[filterIndex + 1]?.trim().split("=", 1)[0]!.split("@", 1)[0];
+                        const hasSampleFormat = options.some((option, index) => {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? (index === 0 ? "sample_fmts" : undefined) : option.slice(0, separator).trim();
+                          return key === "sample_fmts" || key === "f";
+                        });
+                        // Haas requires doubles; negotiate before rematrixing unconstrained aformat input.
+                        if (nextFilter === "haas" && !hasSampleFormat) options.unshift("sample_fmts=dbl");
                         for (const [index, option] of options.entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();

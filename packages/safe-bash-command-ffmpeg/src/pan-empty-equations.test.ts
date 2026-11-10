@@ -4,6 +4,10 @@ import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
 for (const [expression, expected] of [
+  ["mono|c0=c1:", [-901, -802, -703]],
+  ["mono|c0=c1", [-901, -802, -703]],
+  ["mono|c0=c1::", null],
+  ["stereo|c0=c0:|c1=c1", null],
   ["stereo|c0=c0|", [101, 0, 202, 0, 303, 0]],
   ["stereo|c0=c0||c1=c1", [101, -901, 202, -802, 303, -703]],
   ["stereo|c0=c0", [101, 0, 202, 0, 303, 0]],

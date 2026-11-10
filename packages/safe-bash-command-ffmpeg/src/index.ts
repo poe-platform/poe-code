@@ -1318,6 +1318,7 @@ async function panAudio(
   spec: string, channels: MediaAudioData["channelData"], channelMask: number | undefined, sampleFormat: string,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: (Float32Array | Float64Array)[]; channelMask: number; channelNames: string[] }> {
+  if (spec.endsWith(":")) spec = spec.slice(0, -1);
   const [layout, ...assignments] = spec.split("|").map(value => value.trim());
   const count = parseAudioChannelCount(layout ?? "");
   const names = count === undefined ? parseAudioChannelLayout(layout ?? "") : Array<string>(count).fill("");

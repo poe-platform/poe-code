@@ -326,7 +326,7 @@ export function* resizeMaskPixelSteps(image: ResizeImage, width: number, height:
         for (let x = left; x < left + data.length / 4; x++) {
             const sx = horizontal !== false ? resizeCopyIndex(x, image.width, width) : x;
             const sy = horizontal === true ? y : resizeCopyIndex(y, image.height, height);
-            const bytes = (yield { kind: "read", highDepth: true, position, length: 4 })!;
+            const bytes = (yield { kind: "read", highDepth: true, position: (sy * image.width + sx) * 4, length: 4 })!;
             data.set(new Uint16Array(bytes.slice().buffer), (x - left) * 4);
         }
         yield { kind: "write", highDepth: true, position: (y * width + left) * 4, data: new Uint8Array(data.buffer) };

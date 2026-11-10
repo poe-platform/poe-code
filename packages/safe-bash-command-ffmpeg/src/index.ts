@@ -11212,6 +11212,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const output = stretched.map(() => new Float64Array(length));
                         const history = offsets.map(offset => new Float64Array(offset - padding));
                         const previous = audioTimestamps;
+                        const previousMetadata = audioMetadata;
+                        audioMetadata = [];
                         audioTimestamps = [];
                         let nextPts = previous?.[0]?.pts ?? (t.samples[0] ? t.samples[0].pts * origRate / t.timescale : audioStartSample);
                         let enabled = true;
@@ -11225,6 +11227,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           let end: number;
                           let pts = nextPts;
                           let pos: number | undefined;
+                          let metadata: typeof audioMetadata[number] | undefined;
                           if (start < padding) {
                             end = Math.min(padding, start + 2048);
                             nextPts += end - start;
@@ -11239,6 +11242,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "adelay enable", {
                                 n, t: inputPts / origRate, pos: pos ?? NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity
                               })) >= 0.5;
+                              metadata = previousMetadata[n];
                               n++;
                               end = Math.min(padding + inputLength, start + count);
                               pts = inputPts + (enabled ? padding : 0);
@@ -11265,6 +11269,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           budget.allocateMemory(32);
                           audioTimestamps.push({ start, end, pts, pos });
+                          if (previousMetadata.length) {
+                            budget.allocateMemory(64);
+                            audioMetadata.push({ pts, tags: metadata?.tags ?? new Map<string, string>() });
+                          }
                           start = end;
                         }
                         stretched = output;

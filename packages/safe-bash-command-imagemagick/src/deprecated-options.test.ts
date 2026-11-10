@@ -7,6 +7,9 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 for (const mode of ["buffered", "sync", "retained", "command"] as const) {
     it.each([
         { options: ["+colors"], exitCode: 1, error: "option deprecated, unable to execute '+colors'" },
+        { options: ["+color-matrix", "1"], exitCode: 1, error: "option deprecated, unable to execute '+color-matrix'" },
+        { options: ["-color-matrix", "1"], exitCode: 0, error: "" },
+        { options: ["-made-up-matrix"], exitCode: 11, error: "unrecognized option '-made-up-matrix'" },
         { options: ["+solarize"], exitCode: 1, error: "option deprecated, unable to execute '+solarize'" },
         { options: ["+reverse"], exitCode: 1, error: "option deprecated, unable to execute '+reverse'" },
         { options: ["-reverse"], exitCode: 0, error: "" },

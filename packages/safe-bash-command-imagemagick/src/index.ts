@@ -5638,7 +5638,12 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     const readMask = img.readMask ? yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
     const virtualCanvas = magickResizeCanvas(img, layout.width, layout.height);
     const source = (img as MagickImage)[magickInput];
-    const background = state.backgroundExplicit ? state.background : img.backgroundColor ?? state.background;
+    let background = state.backgroundExplicit ? state.background : img.backgroundColor ?? state.background;
+    if (img.space === "cmyk" && ["src", "source"].includes(magickCompositeMode(state.composeRaw).name)) {
+        // Native CMYK canvas fills convert linear RGB background values to inks.
+        const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+        background = { ...background, r: rgb[0]! * 255, g: rgb[1]! * 255, b: rgb[2]! * 255 };
+    }
     const canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, background, true),
         hasAlpha: img.hasAlpha || background.a < 255,
         inactiveAlpha: img.alphaBlend !== false && img.inactiveAlpha === true, alphaBlend: background.a < 255 ? true : img.alphaBlend,
@@ -5660,6 +5665,8 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
                 { ...layout, hasAlpha: false }, [plane, img]));
         }
     }
+    if (img.space === "cmyk" && ["src", "source"].includes(magickCompositeMode(state.composeRaw).name)) return yield* applyMagickRasterSteps({ ...canvas, space: "cmyk", channels: 4 },
+        extentCompositeSteps(img, layout, background, state), signal, canvas, [img]);
     if (!layout.area) return canvas;
     if (!["over", "srcover"].includes(magickCompositeMode(state.composeRaw).name)) return yield* applyMagickRasterSteps(canvas,
         extentCompositeSteps(img, layout, background, state), signal, canvas, [img]);
@@ -5719,6 +5726,7 @@ function* extentEvaluateSamples(image: Pick<RgbaImage, "width" | "hasAlpha" | "i
 }
 
 function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState, alphaSource?: RgbaImage | StoredRgbaImage): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const cmykSrc = image.space === "cmyk" && ["src", "source"].includes(magickCompositeMode(state.composeRaw).name);
     const highDepth = "data16" in image && !!image.data16 || "storedData16" in image && !!image.storedData16;
     const evaluate = "evaluateSamples" in image && !!image.evaluateSamples || "storedEvaluateSamples" in image && image.storedEvaluateSamples !== undefined;
     const compose = magickCompositeMode(state.composeRaw).name;
@@ -5730,6 +5738,11 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
         yield;
         const count = Math.min(512, layout.width - x), samples = new Float64Array(count * 4);
         for (let i = 0; i < samples.length; i += 4) samples.set(color, i);
+        const inks = cmykSrc ? new Float64Array(count * 4) : undefined;
+        if (inks) {
+            const backgroundInks = rgbToCmyk(background.r / 255, background.g / 255, background.b / 255);
+            for (let i = 0; i < inks.length; i += 4) inks.set(backgroundInks, i);
+        }
         const area = layout.area, left = Math.max(x, layout.left), right = Math.min(x + count, layout.left + (area?.width ?? 0));
         if (area && y >= layout.top && y < layout.top + area.height && right > left) {
             const position = ((area.top + y - layout.top) * image.width + area.left + left - layout.left) * 4;
@@ -5737,6 +5750,15 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
             if (!bytes || bytes.length !== (right - left) * 4 * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated extent pixels");
             const source = evaluate ? new Float64Array(bytes.slice().buffer)
                 : highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : Float64Array.from(bytes);
+            if (inks) {
+                const bytes = (yield { kind: "read", hue: true, position, length: source.length })!;
+                const input = bytes.length ? new Float64Array(bytes.slice().buffer) : undefined;
+                for (let i = 0; i < source.length; i += 4) {
+                    const pixel = input?.subarray(i, i + 4) ?? rgbToCmyk(source[i]! / 255, source[i + 1]! / 255, source[i + 2]! / 255);
+                    for (let c = 0; c < 4; c++)
+                        if (!state.channelExplicit || (c === 3 ? state.channels.k ?? true : channels![c])) inks[(left - x) * 4 + i + c] = pixel[c]!;
+                }
+            }
             // Extra planes share the parent image's alpha, not their grayscale backing's opacity.
             if (alphaSource) {
                 const alphaEvaluate = "evaluateSamples" in alphaSource && !!alphaSource.evaluateSamples
@@ -5758,6 +5780,11 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
                 for (let c = 0; c < 4; c++) if (!channels[c]) samples[i + c] = color[c]!;
         }
         const position = (y * layout.width + x) * 4;
+        if (inks) {
+            yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
+            for (let i = 0; i < samples.length; i += 4)
+                for (let c = 0; c < 3; c++) samples[i + c] = (1 - inks[i + c]!) * (1 - inks[i + 3]!) * 255;
+        }
         if (alphaSource) for (let i = 3; i < samples.length; i += 4) samples[i] = 255;
         if (evaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
         const data = highDepth ? new Uint8Array(Uint16Array.from(samples, value => Math.round(value * 257)).buffer)
@@ -15858,7 +15885,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const readMask = image.readMask ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
                 const source = (image as StoredMagickImage)[magickInput];
-                const background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;
+                let background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;
+                if (image.space === "cmyk" && ["src", "source"].includes(magickCompositeMode(captured.composeRaw).name)) {
+                    // Native CMYK canvas fills convert linear RGB background values to inks.
+                    const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+                    background = { ...background, r: rgb[0]! * 255, g: rgb[1]! * 255, b: rgb[2]! * 255 };
+                }
                 const canvas: StoredRgbaImage = { ...await createStoredCanvas(layout.width, layout.height, background, backend, signal, true),
                     hasAlpha: image.hasAlpha || background.a < 255,
                     inactiveAlpha: image.alphaBlend !== false && image.inactiveAlpha === true, alphaBlend: background.a < 255 ? true : image.alphaBlend,
@@ -15881,6 +15913,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             { ...layout, hasAlpha: false }, [plane, image]));
                     }
                 }
+                if (image.space === "cmyk" && ["src", "source"].includes(magickCompositeMode(captured.composeRaw).name)) return transformStoredMagickRaster({ ...canvas, space: "cmyk", channels: 4 }, backend,
+                    extentCompositeSteps(image, layout, background, captured), signal, canvas, [image]);
                 if (!layout.area) return canvas;
                 if (!["over", "srcover"].includes(magickCompositeMode(captured.composeRaw).name)) return transformStoredMagickRaster(canvas, backend,
                     extentCompositeSteps(image, layout, background, captured), signal, canvas, [image]);

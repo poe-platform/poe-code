@@ -3523,8 +3523,49 @@ async function applyVideoFilterChain(
         const fh = batch[0]?.height ?? 64;
         const outW = margin * 2 + cols * fw + Math.max(0, cols - 1) * padding;
         const outH = margin * 2 + rows * fh + Math.max(0, rows - 1) * padding;
+        budget.recordFrame(outW, outH);
+        budget.allocateMemory(outW * outH * 4);
         const canvas = new Uint8Array(outW * outH * 4);
-        for (let i = 0; i < canvas.byteLength; i += 4) canvas.set(color, i);
+        const source = batch[0]?.native;
+        // Keep original planar samples only while they still describe the RGBA image.
+        const native = source && [0, 4, 5, 12, 13, 14, 49, 68].includes(source.format) && batch.every(frame =>
+          frame.native?.rgba === frame.data && frame.width === fw && frame.height === fh &&
+          frame.native.width === fw && frame.native.height === fh && frame.native.format === source.format &&
+          frame.native.colorspace === source.colorspace && frame.native.fullRange === source.fullRange)
+          ? source : undefined;
+        const hsub = native && [0, 4, 12, 13].includes(native.format) ? 2 : 1;
+        const vsub = native && [0, 12].includes(native.format) ? 2 : 1;
+        const depth = native?.format === 49 ? 16 : native?.format === 68 ? 10 : 8;
+        const sampleBytes = depth > 8 ? 2 : 1;
+        const chromaWidth = Math.ceil(outW / hsub);
+        const chromaHeight = Math.ceil(outH / vsub);
+        const nativeSize = (outW * outH + 2 * chromaWidth * chromaHeight) * sampleBytes;
+        if (native) budget.allocateMemory(nativeSize + canvas.byteLength);
+        const pixels = native ? new Uint8Array(nativeSize) : undefined;
+        if (pixels) {
+          const [kr, kb] = native!.colorspace === 1 ? [0.2126, 0.0722]
+            : native!.colorspace === 4 ? [0.3, 0.11] : native!.colorspace === 7 ? [0.212, 0.087]
+              : [9, 10].includes(native!.colorspace) ? [0.2627, 0.0593] : [0.299, 0.114];
+          const y = (kr! * color[0]! + (1 - kr! - kb!) * color[1]! + kb! * color[2]!) / 255;
+          const u = (color[2]! / 255 - y) / (2 * (1 - kb!));
+          const v = (color[0]! / 255 - y) / (2 * (1 - kr!));
+          const fullRange = native!.fullRange || [12, 13, 14].includes(native!.format);
+          const fill = fullRange ? [y, u + 0.5, v + 0.5]
+            : [(y * 219 + 16) / 255, (u * 224 + 128) / 255, (v * 224 + 128) / 255];
+          const view = new DataView(pixels.buffer);
+          let offset = 0;
+          for (let plane = 0; plane < 3; plane++) {
+            const size = plane === 0 ? outW * outH : chromaWidth * chromaHeight;
+            const value = Math.round(fill[plane]! * (2 ** depth - 1));
+            if (sampleBytes === 1) pixels.fill(value, offset, offset + size);
+            else for (let i = 0; i < size; i++) {
+              if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              view.setUint16(offset + i * 2, value, true);
+            }
+            offset += size * sampleBytes;
+          }
+        }
+        for (let i = 0; !pixels && i < canvas.byteLength; i += 4) canvas.set(color, i);
         for (let k = 0; k < batch.length; k++) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
@@ -3534,7 +3575,26 @@ async function applyVideoFilterChain(
           const r = Math.floor(cell / cols);
           const ox = margin + c * (fw + padding);
           const oy = margin + r * (fh + padding);
-          for (let y = 0; y < Math.min(fh, tileFrame.height); y++) {
+          if (pixels) {
+            let srcOffset = 0;
+            let dstOffset = 0;
+            for (let plane = 0; plane < 3; plane++) {
+              const sx = plane === 0 ? 1 : hsub;
+              const sy = plane === 0 ? 1 : vsub;
+              const width = Math.ceil(fw / sx);
+              const height = Math.ceil(fh / sy);
+              const destWidth = Math.ceil(outW / sx);
+              for (let y = 0; y < height; y++) {
+                if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+                const src = srcOffset + y * width * sampleBytes;
+                const dst = dstOffset + ((Math.floor(oy / sy) + y) * destWidth + Math.floor(ox / sx)) * sampleBytes;
+                pixels.set(tileFrame.native!.pixels.subarray(src, src + width * sampleBytes), dst);
+              }
+              srcOffset += width * height * sampleBytes;
+              dstOffset += destWidth * Math.ceil(outH / sy) * sampleBytes;
+            }
+          }
+          for (let y = 0; !pixels && y < Math.min(fh, tileFrame.height); y++) {
             if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
             const srcRow = tileFrame.data.subarray(y * tileFrame.width * 4, (y + 1) * tileFrame.width * 4);
@@ -3544,7 +3604,7 @@ async function applyVideoFilterChain(
         // Reused overlap cells do not contribute to the new sheet's timeline.
         const newFrames = current.slice(consumed, base + perTile);
         consumed += newFrames.length;
-        let tiled: MediaVideoFrame = {
+        const tiled: MediaVideoFrame = {
           width: outW,
           height: outH,
           data: canvas,
@@ -3552,37 +3612,11 @@ async function applyVideoFilterChain(
           durationSeconds: newFrames.reduce((s, x) => s + x.durationSeconds, 0),
           keyframe: true
         };
-        const source = batch[0]?.native;
-        if (source && [0, 4, 5].includes(source.format) && batch.every(frame =>
-          frame.native?.format === source.format && frame.native.rgba === frame.data &&
-          frame.native.width === fw && frame.native.height === fh && frame.width === fw && frame.height === fh)) {
-          const hsub = source.format === 5 ? 1 : 2;
-          const vsub = source.format === 0 ? 2 : 1;
-          tiled = await formatYuv(tiled, source.format === 0 ? "yuv420p" : source.format === 4 ? "yuv422p" : "yuv444p", signal);
-          const pixels = tiled.native!.pixels;
-          for (const [k, frame] of batch.entries()) {
-            const cell = k + Math.max(0, -base);
-            const ox = margin + cell % cols * (fw + padding);
-            const oy = margin + Math.floor(cell / cols) * (fh + padding);
-            let inputOffset = 0, outputOffset = 0;
-            for (let plane = 0; plane < 3; plane++) {
-              const sx = plane === 0 ? 1 : hsub, sy = plane === 0 ? 1 : vsub;
-              const width = Math.ceil(fw / sx), height = Math.ceil(fh / sy);
-              const outputWidth = Math.ceil(outW / sx), outputHeight = Math.ceil(outH / sy);
-              for (let y = 0; y < height; y++) {
-                await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
-                const offset = inputOffset + y * width;
-                pixels.set(frame.native!.pixels.subarray(offset, offset + width),
-                  outputOffset + (Math.floor(oy / sy) + y) * outputWidth + Math.floor(ox / sx));
-              }
-              inputOffset += width * height;
-              outputOffset += outputWidth * outputHeight;
-            }
-          }
-          const data = scaleVideoPicture(tiled, outW, outH)!;
-          tiled = { ...tiled, data, native: { ...tiled.native!, rgba: data } };
-        }
-        tiledFrames.push(tiled);
+        if (native && pixels) {
+          const tiledNative = { ...native, pixels, width: outW, height: outH, rgba: canvas };
+          const data = scaleVideoPicture({ ...tiled, native: tiledNative }, outW, outH)!;
+          tiledFrames.push({ ...tiled, data, native: { ...tiledNative, rgba: data } });
+        } else tiledFrames.push(tiled);
         if (base + perTile >= current.length) break;
       }
       current = tiledFrames;

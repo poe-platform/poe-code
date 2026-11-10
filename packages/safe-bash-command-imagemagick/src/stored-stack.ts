@@ -103,7 +103,9 @@ export class StoredImageStack {
             text += decoder.decode(await this.storage.read(position + 8 + offset, Math.min(4096, size - offset)), { stream: true });
         }
         const record = JSON.parse(text + decoder.decode()) as FrameRecord;
-        const image: StoredMagickImage = { ...record.image, ...(record.source ? { [magickInput]: record.source } : {}) };
+        const image: StoredMagickImage = { ...record.image,
+            ...(record.image.gifCommentBytes ? { gifCommentBytes: Uint8Array.from(Object.values(record.image.gifCommentBytes)) } : {}),
+            ...(record.source ? { [magickInput]: record.source } : {}) };
         if (record.gifApplications) {
             const gifApplications: Record<string, Uint8Array> = {};
             for (const [name, region] of Object.entries(record.gifApplications)) {

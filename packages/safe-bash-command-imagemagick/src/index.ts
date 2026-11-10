@@ -9142,6 +9142,15 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const exponent = 1 / (Math.abs(gamma) >= 1e-12 ? gamma : gamma < 0 ? -1e-12 : 1e-12);
         const inverse = token === "+level-colors" || token === "+level" || !colorEndpoints && raw.includes("!");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
+        const spans = white.map((value, channel) => value - black[channel]!);
+        const levelValue = (value: number, channel: number, protection = 0): number => {
+            const span = spans[channel]!;
+            if (inverse) return black[channel]! + Math.pow(Math.max(0, Math.min(1, value / 255)), gamma) * span;
+            const norm = (value - black[channel]!) / (span === 0 ? 1e-6 : span);
+            // Native gamma_pow leaves negative samples unchanged, then -level clamps the curve.
+            const curve = (norm < 0 ? norm : Math.pow(norm, exponent)) * 255;
+            return protection > 0 ? curve : Math.max(0, Math.min(255, curve));
+        };
         const adjust = function* (im: RgbaImage, channels: MagickState["channels"], pixelOffset = 0, imageWidth = im.width): Generator<void, RgbaImage> {
             const cmyk = im.space === "cmyk";
             if (cmyk) im = yield* convertCmykPixels(im);
@@ -9151,7 +9160,6 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const data16 = im.data16 ? new Uint16Array(im.data16) : (im.writeMask || im.region) ? Uint16Array.from(im.data, value => value * 257) : undefined;
             const hueSamples = im.hueSamples?.slice();
             const evaluateSamples = (hueSamples && !cmyk ? Float64Array.from(hueSamples, value => value * 255) : im.evaluateSamples?.slice()) ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
-            const spans = white.map((value, channel) => value - black[channel]!);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
@@ -9176,18 +9184,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     const ink = cmyk && hueSamples && c !== 3;
                     const offset = idx + (c === 4 ? 3 : c), endpoint = c;
                     const v = ink ? hueSamples[offset]! * 255 : evaluateSamples[offset]!;
-                    const span = spans[endpoint]!;
-                    let value: number;
-                    if (inverse) {
-                        const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), gamma);
-                        value = black[endpoint]! + gVal * span;
-                    }
-                    else {
-                        const norm = (v - black[endpoint]!) / (span === 0 ? 1e-6 : span);
-                        // Native gamma_pow leaves negative samples unchanged, then -level clamps the curve.
-                        const curve = (norm < 0 ? norm : Math.pow(norm, exponent)) * 255;
-                        value = protection > 0 ? curve : Math.max(0, Math.min(255, curve));
-                    }
+                    let value = levelValue(v, endpoint, protection);
                     if (protection > 0) {
                         if (c === 3) value = v;
                         else {
@@ -9221,6 +9218,20 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const extra = meta;
         apply = function* (image, offset, width) {
             const result = yield* adjust(image, channels, offset, width);
+            // Keep every colormap entry adjusted, including colors not used by any pixel.
+            const selected = [channels.r, channels.g, channels.b, channels.a && image.hasAlpha];
+            const paletteValue = (value: number, channel: number) => selected[channel] ? clampByteVal(levelValue(value, channel)) : value;
+            const indexedColors = image.indexedColors?.map(color =>
+                paletteValue(color >>> 24, 3) * 16777216 + paletteValue((color >>> 16) & 255, 0) * 65536
+                + paletteValue((color >>> 8) & 255, 1) * 256 + paletteValue(color & 255, 2));
+            let pngPalette = image.pngPalette;
+            if (image.pngPalette) {
+                const bytes = image.pngPalette.bytes.map((value, index) => paletteValue(value, index % 3));
+                const transparency = image.pngPalette.transparency;
+                pngPalette = { ...image.pngPalette, bytes, ...(transparency ? {
+                    transparency: Uint8Array.from({ length: bytes.length / 3 }, (_, index) => paletteValue(transparency[index] ?? 255, 3)),
+                } : {}) };
+            }
             if (extra && image.metaChannels?.length) {
                 result.metaChannels = [...image.metaChannels];
                 for (const [index, plane] of image.metaChannels.entries()) {
@@ -9228,7 +9239,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         result.metaChannels[index] = yield* extra.apply(plane);
                 }
             }
-            return result;
+            return { ...result, ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
         };
     }
     else if (token === "-color-threshold") {

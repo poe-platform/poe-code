@@ -1531,7 +1531,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     "printsize.y": formatSignificantMetric(meta.height / Math.max(resolution ? resolution.y / resolutionScale : 0, 1e-12)),
     units: short.U!
   };
-  let img: RgbaImage | undefined;
+  let img: MagickImage | undefined;
   let pixels: Record<string, string> | undefined;
   let signature: string | undefined;
   let hull: Record<string, string> | undefined;
@@ -1653,7 +1653,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
         img ??= getImage();
         const fn = compileFxExpression(expression.slice(expression.indexOf(":") + 1));
         if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
-        const ctx: FxEvalContext = { statistics, frameIndex: context.sceneIdx, stack: [img], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
+        const ctx: FxEvalContext = { statistics, frameIndex: context.sceneIdx, stack: [{ ...img, [magickInput]: { ...img[magickInput], ...context } }], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
         if (key.startsWith("fx:")) {
           parts.push(formatSignificantMetric(fn(ctx), context.precision));
         } else {
@@ -1702,10 +1702,10 @@ function* formatMagickPropertyStringSteps<Step=never>(
 }
 
 class FxPixelDemand { constructor(readonly position:number, readonly image = 0){} }
-function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,getStatistics:()=>Generator<IdentifyStep,Record<string,number>,void>,signal?:AbortSignal,precision = 6,frameIndex = 0):Generator<IdentifyStep,string,void>{
+function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,getStatistics:()=>Generator<IdentifyStep,Record<string,number>,void>,signal?:AbortSignal,context:MagickFormatContext = {}):Generator<IdentifyStep,string,void>{
  const fn=compileFxExpression(property.slice(property.indexOf(":")+1)),key=property.toLowerCase(),samples=new Map<number,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array}>();
  const statistics=fn.needsStatistics?yield*getStatistics():undefined;
- const context:FxEvalContext={statistics,frameIndex,stack:[image],x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
+ const fxContext:FxEvalContext={statistics,frameIndex:context.sceneIdx,stack:[{...image,[magickInput]:{...(image as StoredMagickImage)[magickInput],...context}}],x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
   if(!target)return 0;
   const px=Math.max(0,Math.min(target.width-1,Math.round(x))),py=Math.max(0,Math.min(target.height-1,Math.round(y))),position=(py*target.width+px)*4;
   if(!Number.isFinite(position))return NaN;
@@ -1724,13 +1724,13 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  for(const ch of key.startsWith("fx:") ? [0] : image.space === "cmyk" ? (image.hasAlpha ? [0,1,2,8,3] : [0,1,2,8]) : (image.hasAlpha ? [0,1,2,3] : [0,1,2])){
   let value:number;
   while(true){
-   signal?.throwIfAborted();context.vars.clear();
-   try{value=fn({...context,ch});break;}
+   signal?.throwIfAborted();fxContext.vars.clear();
+   try{value=fn({...fxContext,ch});break;}
    catch(error){if(!(error instanceof FxPixelDemand))throw error;
     yield {async run(){const data=await storage.read(image.position+error.position,4,signal?{signal}:undefined);const hue = (image as StoredRgbaImage).storedHueSamples; const floatBytes = hue === undefined ? undefined : await storage.read(hue+error.position*8,32,signal?{signal}:undefined); const original=image.storedData16 ? await storage.read(image.storedData16.position+error.position*2,8,signal?{signal}:undefined) : undefined; samples.set(error.position,{data:new Uint8Array(data),...(floatBytes?{hueSamples:new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset,floatBytes.byteOffset+32))}:{}),...(original?{data16:new Uint16Array(original.buffer.slice(original.byteOffset,original.byteOffset+8))}:{})});}};
    }
   }
-  if(key.startsWith("fx:"))return formatSignificantMetric(value, precision);
+  if(key.startsWith("fx:"))return formatSignificantMetric(value, context.precision);
   if(key.startsWith("hex:")){channels.push(Math.max(0,Math.min(hexMaximum,Math.round(value*hexMaximum))));continue;}
   channels.push((image.space === "cmyk" || (image as StoredRgbaImage).magickColorspace === "HCL" || (image as StoredRgbaImage).magickColorspace === "HCLp" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HSV" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "CIELab") && key.startsWith("pixel:") ? value : clampByteVal(value*255));
  }
@@ -1751,7 +1751,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    yield { async run() { const scene = (metadata as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0; delay = await raster!.image.storedDelay?.at(scene, signal ? { signal } : undefined) ?? raster!.image.delay?.[scene] ?? 0; } };
    return String(delay);
   }
-  if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal,context.precision,context.sceneIdx);
+  if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal,context);
   function* load(position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array},void>{
    let chunk!: {data:Uint8Array;data16?:Uint16Array};
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
@@ -2670,7 +2670,7 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
     return { ...img, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
 }
 
-type FxImage = Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>;
+type FxImage = Omit<MagickImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>;
 interface FxStack { readonly length: number; get(index: number): FxImage | undefined; indexOf(image: FxImage): number; reset?(): void }
 class FxFrameDemand {}
 interface FxEvalContext {
@@ -3248,6 +3248,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         }
         if (name === "t" || propName === "t") return targetIdx;
         const targetImg = "get" in ctx.stack ? ctx.stack.get(targetIdx) ?? ctx.stack.get(0) : ctx.stack[targetIdx] ?? ctx.stack[0];
+        if (name === "extent" || propName === "extent") return targetImg?.[magickInput]?.byteLen ?? 0;
         if (name === "page") {
           if (propName === "width") return targetImg?.virtualCanvas?.width ?? targetImg?.width ?? ctx.w;
           if (propName === "height") return targetImg?.virtualCanvas?.height ?? targetImg?.height ?? ctx.h;

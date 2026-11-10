@@ -1177,8 +1177,9 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
         yield;
     }
     const out = new Uint8Array(img.data);
-    const samples = img.evaluateSamples ?? img.data16 ?? img.data;
-    const scale = !img.evaluateSamples && img.data16 ? 257 : 1;
+    const hueSamples = img.space !== "cmyk" ? img.hueSamples?.slice() : undefined;
+    const samples = (hueSamples ? img.hueSamples : undefined) ?? img.evaluateSamples ?? img.data16 ?? img.data;
+    const scale = hueSamples ? 1 / 255 : !img.evaluateSamples && img.data16 ? 257 : 1;
     const evaluateSamples = Float64Array.from(samples, value => value / scale);
     const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
     for (let i = 0; i < out.length; i += 4) {
@@ -1194,6 +1195,7 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
             if (cols >= 5 && img.hasAlpha) value += m[row * cols + 4]! * (samples[i + 3]! / scale);
             else if (channel === 3) value += samples[i + 3]! / scale;
             evaluateSamples[i + channel] = value;
+            if (hueSamples) hueSamples[i + channel] = value / 255;
             if (data16) data16[i + channel] = Math.round(Math.max(0, Math.min(65535, value * 257)));
             out[i + channel] = data16 ? Math.round(data16[i + channel]! / 257) : clampByteVal(value);
         }
@@ -1204,7 +1206,7 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
             evaluateSamples[i] = evaluateSamples[i + 1] = evaluateSamples[i + 2]!;
         }
     }
-    return { ...img, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
+    return { ...img, data: out, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
 function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boolean, diffusionAmount: number, signal?: AbortSignal): Generator<void, RgbaImage, void> {

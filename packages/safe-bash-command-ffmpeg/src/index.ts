@@ -11361,19 +11361,46 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredSampleFormat = "fltp";
                           statsScale = 1;
                         } else {
-                          // Echo shares its input/output format; a downstream volume can
-                          // require floating point before the echo runs.
-                          const next = audioFilters[filterIndex + 1]?.trim();
-                          if (next?.split("=", 1)[0]!.split("@", 1)[0] === "volume") {
-                            let precision = "float";
+                          // Echo shares its input/output format. Negotiate downstream
+                          // requirements through identity filters before rounding samples.
+                          let formats: string[] | undefined;
+                          for (let nextIndex = filterIndex + 1; nextIndex < audioFilters.length; nextIndex++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const next = audioFilters[nextIndex]!.trim();
+                            const name = next.split("=", 1)[0]!.split("@", 1)[0];
+                            if (name === "anull" || name === "acopy") continue;
                             const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
-                            for (const [index, option] of argument.split(":").entries()) {
-                              const separator = option.indexOf("=");
-                              const key = separator < 0 ? ["volume", "precision"][index] : option.slice(0, separator).trim();
-                              if (key === "precision") precision = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                            if (name === "aformat") {
+                              let requested: string[] | undefined;
+                              for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                                const separator = option.indexOf("=");
+                                const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
+                                if (key === "sample_fmts" || key === "f") requested = (separator < 0 ? option : option.slice(separator + 1)).trim().split("|");
+                              }
+                              if (!requested) continue;
+                              const compatible = (formats ?? ["s16p", "s32p", "fltp", "dblp"]).filter(format => requested.includes(format));
+                              // Disjoint formats require a converter after echo.
+                              if (compatible.length === 0) break;
+                              formats = compatible;
+                              continue;
                             }
-                            if (precision === "float" || precision === "1") filteredSampleFormat = "flt";
-                            else if (precision === "double" || precision === "2") filteredSampleFormat = "dbl";
+                            if (name === "volume") {
+                              let precision = "float";
+                              for (const [index, option] of argument.split(":").entries()) {
+                                const separator = option.indexOf("=");
+                                const key = separator < 0 ? ["volume", "precision"][index] : option.slice(0, separator).trim();
+                                if (key === "precision") precision = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                              }
+                              const requested = precision === "float" || precision === "1" ? ["fltp"]
+                                : precision === "double" || precision === "2" ? ["dblp"] : ["s16p", "s32p"];
+                              const compatible = (formats ?? ["s16p", "s32p", "fltp", "dblp"]).filter(format => requested.includes(format));
+                              if (compatible.length > 0) formats = compatible;
+                            }
+                            break;
+                          }
+                          if (formats) {
+                            const planar = filteredSampleFormat.endsWith("p") ? filteredSampleFormat : `${filteredSampleFormat}p`;
+                            filteredSampleFormat = formats.includes(planar) ? planar : formats[0]!;
                           }
                           if (filteredSampleFormat === "u8" || filteredSampleFormat === "u8p") filteredSampleFormat = "s16";
                           // Echo supports planar formats for both input and drained frames.

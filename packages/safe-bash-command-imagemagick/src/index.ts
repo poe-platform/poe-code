@@ -10754,6 +10754,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-adaptive-resize") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = tokens[++i] ?? "100%";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
@@ -13660,6 +13661,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return virtualCanvas ? { ...output, virtualCanvas } : output;
             });
         } else if (!operandsOnly && token === "-adaptive-resize") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const optionProperties = state.optionProperties;
             const geometry = tokens[++i] ?? "100%";
             steps.push(async (image, backend) => {

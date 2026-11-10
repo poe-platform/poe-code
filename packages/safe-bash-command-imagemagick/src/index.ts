@@ -10375,12 +10375,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return im;
                 }
-                return { ...yield* extractImageSteps(im, {
-                    left: sw,
-                    top: sh,
-                    width: im.width - sw * 2,
-                    height: im.height - sh * 2
-                }), virtualCanvas: magickBorderCanvas(im, -sw, -sh) };
+                const area = { left: sw, top: sh, width: im.width - sw * 2, height: im.height - sh * 2 };
+                return { ...yield* extractImageSteps(im, area),
+                    ...(im.readMask ? { readMask: yield* extractImageSteps(im.readMask as RgbaImage, area) } : {}),
+                    virtualCanvas: magickBorderCanvas(im, -sw, -sh) };
             }));
         }
         else if (t === "-trim") {
@@ -13213,7 +13211,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return image;
                 }
-                return { ...await transformStoredImage(image, backend.storage, { kind: "extract", left: width, top: height, width: image.width - width * 2, height: image.height - height * 2 }, signal),
+                const area = { left: width, top: height, width: image.width - width * 2, height: image.height - height * 2 };
+                return { ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
+                    ...(image.readMask ? { readMask: await transformStoredImage(image.readMask as StoredRgbaImage, backend.storage, { kind: "extract", ...area }, signal) } : {}),
                     virtualCanvas: magickBorderCanvas(image, -width, -height) };
             });
         } else if (!operandsOnly && token === "-trim") {

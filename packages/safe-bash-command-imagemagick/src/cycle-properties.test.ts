@@ -13,6 +13,11 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
     it.each([
         { argument: "%[fx:w-3]", input: four, expected: [1, 2, 3, 0] },
         { argument: "%[fx:w-3]", input: three, expected: [0, 1, 2] },
+        { argument: "%n", input: four, expected: [1, 2, 3, 0] },
+        { argument: "%w", input: four, expected: [0, 1, 2, 3] },
+        { argument: "%s", input: four, expected: [0, 1, 2, 3] },
+        { argument: "%[fx:w]", input: four, expected: [0, 1, 2, 3] },
+        { argument: "1", input: four, expected: [1, 2, 3, 0] },
         { argument: "%[w]", input: four, expected: [0, 1, 2, 3] },
         { argument: "%[shift]", input: four, expected: [1, 2, 3, 0] },
         { argument: "%[option:shift]", input: four, expected: [1, 2, 3, 0] },
@@ -51,3 +56,23 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect([...decodeImage(output).data]).toEqual([1, 2, 3, 0, 0, 1, 2].flatMap(index => palette[index]!));
     });
 }
+
+it.each([
+    ["%n", "34cc53ff2053eafffbcd20fff00a21ff"],
+    ["%w", "f00a21ff34cc53ff2053eafffbcd20ff"],
+    ["%s", "f00a21ff34cc53ff2053eafffbcd20ff"],
+    ["%[fx:w]", "f00a21ff34cc53ff2053eafffbcd20ff"],
+    ["1", "34cc53ff2053eafffbcd20fff00a21ff"]
+])("matches native raw RGBA output for -cycle %s", async (argument, expected) => {
+    const filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/p.png", Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAMAAADO4v//AAAADFBMVEXwCiE0zFMgU+r7zSBCy93vAAAADUlEQVR4nGNgYGRiBgAADwAHhI6ZbQAAAABJRU5ErkJggg==", "base64"));
+    await filesystem.writeFile("/out", Buffer.from("KEEP"));
+    const result = await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(["p.png", "-cycle", argument, "-depth", "8", "rgba:out"]).args,
+        cwd: "/", env: {}, fs: filesystem,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { async write() {} }, stderr: { async write() {} }
+    });
+    expect(result.exitCode).toBe(0);
+    expect(Buffer.from(await filesystem.readFile("/out")).toString("hex")).toBe(expected);
+});

@@ -9724,7 +9724,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-cycle") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const value = tokens[++i] ?? "";
-            const amount = value.includes("%[") ? undefined : parseMagickCycleAmount(value);
+            const amount = value.includes("%") ? undefined : parseMagickCycleAmount(value);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expandedAmount = amount ?? parseMagickCycleAmount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }));
                 return yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
@@ -12061,7 +12061,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const value = tokens[++i] ?? "", optionProperties = state.optionProperties;
-            const amount = value.includes("%[") ? undefined : parseMagickCycleAmount(value);
+            const amount = value.includes("%") ? undefined : parseMagickCycleAmount(value);
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expandedAmount = amount ?? parseMagickCycleAmount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));

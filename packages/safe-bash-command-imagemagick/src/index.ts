@@ -1793,7 +1793,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
           img ??= getImage();
           const fn = compileFxExpression(expression.slice(expression.indexOf(":") + 1));
           if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
-          const ctx: FxEvalContext = { statistics, frameIndex: context.sceneIdx, stack: context.fxStack ?? [{ ...img, [magickInput]: { ...img[magickInput], ...context } }], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
+          const ctx: FxEvalContext = { statistics, frameIndex: context.listIndex ?? context.sceneIdx, stack: context.fxStack ?? [{ ...img, [magickInput]: { ...img[magickInput], ...context } }], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
           if (key.startsWith("fx:")) {
             parts.push(formatSignificantMetric(fn(ctx), context.precision));
           } else {
@@ -1857,7 +1857,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
   return frame;
  }, indexOf(target) { for (const [index, frame] of frames) if (frame === target) return index; return 0; } };
  const statistics=fn.needsStatistics?yield*getStatistics():undefined;
- const fxContext:FxEvalContext={statistics,frameIndex:context.sceneIdx,stack:source,x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
+ const fxContext:FxEvalContext={statistics,frameIndex:context.listIndex??context.sceneIdx,stack:source,x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
   if(!target)return 0;
   const px=Math.max(0,Math.min(target.width-1,Math.round(x))),py=Math.max(0,Math.min(target.height-1,Math.round(y))),position=(py*target.width+px)*4;
   if(!Number.isFinite(position))return NaN;
@@ -10588,7 +10588,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const value = tokens[i + 2] ?? "0";
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 const source = (image as MagickImage)[magickInput];
                 const delay = parseDelay(expanded, source?.ticksPerSecond ?? image.ticksPerSecond, image.delay?.[source?.sceneIdx ?? 0] ?? 0);
                 delay.milliseconds ||= 0;
@@ -10679,7 +10679,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-threshold" ? "" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expanded = yield* formatMagickPropertyStringSteps(t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" ? value.trimEnd() : value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" ? value.trimEnd() : value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 const operation = parseMagickPixelOperation([t, expanded], state, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
                 const result = yield* operation.apply(image);
@@ -10781,7 +10781,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const amount = value.includes("%") ? undefined : parseMagickCycleAmount(value);
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expandedAmount = amount ?? parseMagickCycleAmount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, sceneIdx: sceneIdx++, optionProperties: state.optionProperties }));
+                const expandedAmount = amount ?? parseMagickCycleAmount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties }));
                 const output = yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount, state.channels, !!image.writeMask), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha }, image.writeMask ? [image, image.writeMask] : [image]);
                 // Direct images are clipped during palette conversion inside the cycle kernel.
                 if (image.region && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.region = { ...image.region };
@@ -10864,7 +10864,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometries: string[] = [];
             if (geometry?.includes("%[")) for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
                 const image = stack[sceneIdx]!;
-                geometries.push(yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx, optionProperties: state.optionProperties }));
+                geometries.push(yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, optionProperties: state.optionProperties }));
             }
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -11014,6 +11014,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-scene") {
             state.scene = Number(tokens[++i]);
             if (!Number.isSafeInteger(state.scene) || state.scene < 0) throw new Error("invalid scene number");
+            const scene = state.scene;
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                yield;
+                return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], outputScene: scene } };
+            });
         }
         else if (t === "+delay") {
             state.delay = { value: "0" };
@@ -11021,7 +11026,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-delay") {
             const value = tokens[++i] ?? "0";
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
-            state.delay = { value: yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], sceneIdx: 0, optionProperties: state.optionProperties }) };
+            state.delay = { value: yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], listIndex: 0, optionProperties: state.optionProperties }) };
             parseDelayOption(state.delay.value, 0);
         }
         else if (t === "-transparent-color") {
@@ -11029,7 +11034,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-loop") {
             const value = tokens[++i] ?? "0", image = stack[0];
-            state.loop = { value: Number(image ? yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, sceneIdx: 0, optionProperties: state.optionProperties }) : value) };
+            state.loop = { value: Number(image ? yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties }) : value) };
         }
         else if (t === "+dispose") {
             delete state.disposal;
@@ -11217,7 +11222,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "0x0";
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ });
+                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++ });
                 validateMagickSpliceGeometry(expanded);
                 im = discardDisassociatedAlpha(im);
                 const result = yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal, im.virtualPixel);
@@ -11237,7 +11242,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "0x0";
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ });
+                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++ });
                 validateMagickTransformGeometry(expanded, t);
                 im = discardDisassociatedAlpha(im);
                 return (yield* applyMagickChopSteps(im, expanded, state.gravity, signal, analysis));
@@ -11266,7 +11271,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "+0+0";
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ });
+                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++ });
                 validateMagickTransformGeometry(expanded, t);
                 im = discardDisassociatedAlpha(im);
                 let result = yield* applyMagickRollSteps(im, expanded, signal);
@@ -11437,7 +11442,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const argument = tokens[++i] ?? "";
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expanded = yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 const angle = parseMagickPolaroidAngle(expanded);
                 const border = Math.trunc(Math.max(image.width / 25, image.height / 25, 10));
                 const transparent = { r: 0, g: 0, b: 0, a: 0 };
@@ -11745,7 +11750,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const spec = tokens[++i] ?? "0";
             let sceneIdx = 0;
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 const operation = parseMagickWarpOperation(["-rotate", expanded], state, 0, analysis);
                 const { angle: deg, applies } = parseMagickRotation(expanded);
                 if (!applies(im)) return im;
@@ -13376,7 +13381,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
                     const image = (await stack.get(sceneIdx))!;
-                    const expanded = await formatRetainedIdentify(value, image, { ...image[magickInput], sceneIdx, optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                    const expanded = await formatRetainedIdentify(value, image, { ...image[magickInput], listIndex: sceneIdx, optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                     const source = image[magickInput], scene = source?.sceneIdx ?? 0;
                     const current = await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] ?? 0;
                     const delay = parseDelay(expanded, source?.ticksPerSecond ?? image.ticksPerSecond, current);
@@ -13534,7 +13539,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread", "-distort", "+distort"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = geometry?.includes("%[") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images) : geometry;
+                const expanded = geometry?.includes("%[") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images) : geometry;
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
@@ -13608,7 +13613,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (amount === undefined) stackStep(async stack => { images = stack; return stack; });
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expandedAmount = amount ?? parseMagickCycleAmount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, sceneIdx: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images));
+                const expandedAmount = amount ?? parseMagickCycleAmount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images));
                 const output = await transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount, cycleChannels, !!image.storedWriteMask), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
                 if (image.region && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.region = { ...image.region };
                 if (image.storedWriteMask && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.storedWriteMask = { ...image.storedWriteMask };
@@ -13709,7 +13714,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async stack => { images = stack; return stack; });
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" ? value.trimEnd() : value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, sceneIdx: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
+                const expanded = await formatRetainedIdentify(token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" ? value.trimEnd() : value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const operation = parseMagickPixelOperation([token, expanded], settings, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
                 const result = await transformStoredMagickPixels(image, backend, operation, signal);
@@ -14132,7 +14137,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const delay = state.delay = { value: tokens[++i] ?? "0" }, settings = { ...state };
             stackStep(async (stack, backend) => {
                 const image = await stack.get(0) ?? await createStoredCanvas(1, 1, settings.background, backend, signal);
-                delay.value = await formatRetainedIdentify(delay.value, image, { ...(image as StoredMagickImage)[magickInput], sceneIdx: 0, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                delay.value = await formatRetainedIdentify(delay.value, image, { ...(image as StoredMagickImage)[magickInput], listIndex: 0, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 parseDelayOption(delay.value, 0);
                 return stack;
             });
@@ -14352,6 +14357,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-scene") {
             state.scene = Number(tokens[++i]);
             if (!Number.isSafeInteger(state.scene) || state.scene < 0) throw new Error("invalid scene number");
+            const scene = state.scene;
+            steps.push(async image => image ? { ...image, [magickInput]: { ...(image as StoredMagickImage)[magickInput], outputScene: scene } } : undefined);
             continue;
         }
         if (!operandsOnly && (token === "+adjoin" || token === "-adjoin")) { state.adjoin = token === "-adjoin"; continue; }
@@ -14660,7 +14667,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const argument = tokens[++i] ?? "", settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
+                const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const angle = parseMagickPolaroidAngle(expanded);
                 const border = Math.trunc(Math.max(image.width / 25, image.height / 25, 10));
                 const transparent = { r: 0, g: 0, b: 0, a: 0 };
@@ -14850,7 +14857,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const source = image;
                 const captured = { ...settings, virtualPixel: image.virtualPixel ?? "edge" };
-                const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ }, async () => ({ image: source, storage: backend.storage }), signal, images);
+                const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++ }, async () => ({ image: source, storage: backend.storage }), signal, images);
                 if (token === "-splice") validateMagickSpliceGeometry(expanded);
                 else validateMagickTransformGeometry(expanded, token);
                 image = discardDisassociatedAlpha(image);
@@ -15083,7 +15090,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const source = image;
-                const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image: source, storage: backend.storage }), signal, images);
+                const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image: source, storage: backend.storage }), signal, images);
                 const operation = parseMagickWarpOperation(["-rotate", expanded], settings, 0, analysis);
                 const { angle, applies } = parseMagickRotation(expanded);
                 if (!applies(image)) return image;

@@ -75,7 +75,7 @@ for (const captured of [false, true]) {
         assert.equal(result.exitCode, exitCode, result.stderr);
         assert.equal(result.stdout, captured ? expected.trimEnd() : expected);
         if (exitCode === 0) assert.equal(result.stderr, "");
-        else assert.ok(result.stderr.includes(option === "--check" ? "not in sorted order" : `unsupported option ${option}`), result.stderr);
+        else assert.ok(result.stderr.includes(option === "--check" ? "/left:2: is not sorted: a" : `unsupported option ${option}`), result.stderr);
       } finally { await shell.dispose(); }
     });
   }

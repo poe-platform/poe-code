@@ -37,7 +37,7 @@ for (const env of [
   for (const file of ["/a", "/b"]) {
    const result = await run(["--check-order", "/a", "/b"], { "/a": "", "/b": "", [file]: "z left\né left\n" }, env);
    assert.equal(result.exitCode, 1);
-   assert.equal(result.stderr, `join: file ${file === "/a" ? 1 : 2} is not in sorted order\n`);
+   assert.equal(result.stderr, `join: ${file}:2: is not sorted: é left\n`);
   }
  });
 }
@@ -47,7 +47,7 @@ for (const env of [{}, { LC_CTYPE: "en_US.UTF-8" }, ...["C", "POSIX", "C.UTF-8",
   const result = await run(["/a", "/b"], { "/a": "a left\nB left\n", "/b": "B right\n" }, env);
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout.length, 0);
-  assert.equal(result.stderr, "join: file 1 is not in sorted order\njoin: input is not in sorted order\n");
+  assert.equal(result.stderr, "join: /a:2: is not sorted: B left\njoin: input is not in sorted order\n");
  });
 }
 

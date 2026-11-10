@@ -1,5 +1,6 @@
-import { getCommandArguments, type CommandDefinition, type CommandContext } from "safe-bash-contracts";
-import { argument, type Budget, command, compare, empty, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
+import { getCommandArguments, writeBytes, type CommandDefinition, type CommandContext } from "safe-bash-contracts";
+import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { argument, type Budget, command, compare, empty, encode, fail, Inputs, settings, type OrderMode, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 interface Field { readonly file: number; readonly index: number }
 interface Row { readonly bytes: Uint8Array; readonly fields: readonly Uint8Array[]; readonly key: Uint8Array }
@@ -239,18 +240,32 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
   return command("join", limits, async (context, budget) => {
     const options = parse(context, budget);
     const compareKeys = keyComparison(context.env);
-    const inputs = new Inputs(context, budget, options.separator), order = new OrderCheck(options.order, context, budget, compareKeys);
+    const inputs = new Inputs(context, budget, options.separator);
     const terminator = Uint8Array.of(options.separator), delimiter = options.delimiter ?? Uint8Array.of(32);
+    const orderFailure = Symbol("join order failure");
     try {
       const readers = [await inputs.open(options.files[0]!), await inputs.open(options.files[1]!)];
       const previous: (Uint8Array | undefined)[] = [undefined, undefined];
+      const lines = [0, 0], warned = new Set<number>();
       let seenUnpaired = false;
+      const reportOrder = async (file: number, bytes: Uint8Array): Promise<void> => {
+        await budget.flushOutput();
+        await writeBytes(context.stderr, encode(`${context.command}: ${options.files[file]}:${lines[file]}: is not sorted: `), context.signal);
+        // GNU prints records as C strings, stopping at an embedded NUL.
+        const nul = bytes.indexOf(0);
+        await writeBytes(context.stderr, nul < 0 ? bytes : bytes.subarray(0, nul), context.signal);
+        await writeBytes(context.stderr, encode("\n"), context.signal);
+        if (options.order === "check") throw orderFailure;
+        warned.add(file);
+      };
       const finishRow = (bytes: Uint8Array | undefined, file: number, reset: boolean): Row | undefined | Promise<Row | undefined> => {
         if (bytes === undefined) return undefined;
+        lines[file]!++;
         const fields = split(bytes, options, budget), key = fields[options.fields[file]!] ?? empty;
-        if (!reset && (options.order !== "default" || seenUnpaired)) {
-          const oc = order.check(previous[file], key, file + 1, options.fold);
-          if (oc) return oc.then(() => { previous[file] = key; return { bytes, fields, key }; });
+        const prior = previous[file];
+        if (!reset && options.order !== "none" && (options.order === "check" || seenUnpaired)
+          && !warned.has(file) && prior !== undefined && compareKeys(prior, key, options.fold) > 0) {
+          return reportOrder(file, bytes).then(() => { previous[file] = key; return { bytes, fields, key }; });
         }
         previous[file] = key;
         return { bytes, fields, key };
@@ -343,7 +358,6 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
           { const nr = next(file); rows[file] = nr instanceof Promise ? await nr : nr; }
           // GNU starts default checking after reading past the first unpaired row.
           seenUnpaired = true;
-          await order.markUnpaired();
           continue;
         }
         const key = rows[0].key, groups: Row[][] = [[], []];
@@ -381,8 +395,11 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
           rows[file] = await next(file);
         }
       }
-      await order.finish();
-      return { exitCode: order.failed ? 1 : 0 };
+      if (warned.size) throw new PublicDiagnostic("input is not in sorted order");
+      return { exitCode: 0 };
+    } catch (error) {
+      if (error !== orderFailure) throw error;
+      return { exitCode: 1 };
     } finally { await inputs.close(); }
   });
 }

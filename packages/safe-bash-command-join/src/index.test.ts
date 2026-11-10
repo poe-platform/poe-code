@@ -305,7 +305,7 @@ for (const [option, minimum, left, right, expected, exitCode] of [
    assert.equal(result.exitCode, exitCode, `${prefix}: ${result.stderr}`);
    assert.equal(result.stdout, expected, prefix);
    if (exitCode === 0) assert.equal(result.stderr, "", prefix);
-   else assert.ok(result.stderr.includes("not in sorted order"), result.stderr);
+   else assert.equal(result.stderr, "join: /a:2: is not sorted: a\n");
   }
  });
 }
@@ -343,7 +343,8 @@ for (const reverse of [false, true]) {
    }
    const strict = await run(["--check-order", ...args], files);
    assert.equal(strict.exitCode, 1);
-   assert.ok(strict.stderr.includes(`file ${reverse ? 2 : 1} is not in sorted order`));
+   assert.ok(strict.stderr.startsWith("join: /a:"), strict.stderr);
+   assert.ok(strict.stderr.includes(": is not sorted: "), strict.stderr);
   });
  }
 }
@@ -367,7 +368,7 @@ for (const reverse of [false, true]) {
      const result = await run(args, files);
      if (mode === "--check-order") {
       assert.equal(result.exitCode, 1);
-      assert.ok(result.stderr.includes(`file ${file} is not in sorted order`));
+      assert.equal(result.stderr, `join: /b:${prefix ? 3 : 2}: is not sorted: a\n`);
      } else {
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stderr, "");

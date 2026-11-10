@@ -3423,7 +3423,7 @@ export class Runtime {
       return result;
     } finally { allocation?.close(); }
   }
-  private async arrayIndex(binding: IndexedBinding | undefined, index: { decimal: string; source?: string; word?: Word }, state: State, io: IO, owner: ArrayOwner, create = false, relativeMaximum = binding?.maximum ?? -1): Promise<number | undefined> {
+  private async arrayIndex(binding: IndexedBinding | undefined, index: { decimal: string; source?: string; word?: Word }, state: State, io: IO, owner: ArrayOwner, create: boolean | "printf" = false, relativeMaximum = binding?.maximum ?? -1): Promise<number | undefined> {
     if (!binding?.associative) {
       if (index.source === "") throw new ArrayFailure("bad array subscript");
       const word = index.word ?? parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
@@ -3443,6 +3443,7 @@ export class Runtime {
       return fields.length === 1 ? fields[0]! : concatShellValues(fields, io[valueScope]);
     })();
     if (shellValueByteLength(resolvedValue) === 0) {
+      if (create === "printf") throw new ArrayFailure("empty associative subscript");
       await this.diagnostic(io, "associative array: bad array subscript");
       if (create) throw completedExit(1);
       return undefined;
@@ -3451,7 +3452,9 @@ export class Runtime {
   }
 
   tryFastArrayAssignmentSync(..._args: any[]): boolean { return false; }
-  async arrayAssignment(assignment: ArrayAssignment, state: State, io: IO, declaration?: "readonly", origin: "assignment" | "declaration" = "assignment", associative?: boolean, skipSyncFastPath = false): Promise<void> {
+  async arrayAssignment(assignment: ArrayAssignment, state: State, io: IO, declaration?: "readonly", origin: "assignment" | "declaration" | "printf" = "assignment", associative?: boolean, skipSyncFastPath = false): Promise<void> {
+    const printf = origin === "printf";
+    if (origin === "printf") origin = "assignment";
     if (!skipSyncFastPath && this.tryFastArrayAssignmentSync(assignment, state, io, io.diagnosticLine, declaration, associative, false)) return;
     if (!declaration && !skipSyncFastPath) {
       const m = stateMonitor(state);
@@ -3640,13 +3643,14 @@ export class Runtime {
               return keyFields.length === 1 ? keyFields[0]! : concatShellValues(keyFields, io[valueScope]);
             })();
             if (shellValueByteLength(keyValue) === 0) {
+              if (printf) throw new ArrayFailure("empty associative subscript");
               await this.diagnostic(io, "associative array: bad array subscript");
               throw completedExit(1);
             }
             const stagedKey = await targetBinding.stageKeyIndex(keyValue, operation, this.signal);
             if (stagedKey.pendingKey) pendingKeys.push(stagedKey.pendingKey);
             index = stagedKey.index;
-          } else index = (await this.arrayIndex(targetBinding, assignment.index, state, io, operation, true))!;
+          } else index = (await this.arrayIndex(targetBinding, assignment.index, state, io, operation, printf ? "printf" : true))!;
           const value = await join(elementFields!);
           // Expansion can initialize the unset target as a scalar. Preserve that
           // value when promoting it to an indexed binding.
@@ -8601,10 +8605,10 @@ export class Runtime {
       // Shell-maintained arrays reject -v writes silently, unlike %n writes.
       if (protectedReadArrays.has(name)) return 1;
       if (index) {
-        try { await this.arrayAssignment({ kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context); }
+        try { await this.arrayAssignment({ kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context, undefined, "printf"); }
         catch (error) {
           this.signal.throwIfAborted();
-          if (!(error instanceof ArrayFailure) || error.message !== "indexed array: index outside 0..2147483647") throw error;
+          if (!(error instanceof ArrayFailure) || (error.message !== "indexed array: index outside 0..2147483647" && error.message !== "indexed array: empty associative subscript")) throw error;
           await this.diagnostic(context, `${destination}[${index.source ?? index.decimal}]: bad array subscript`);
           return 1;
         }

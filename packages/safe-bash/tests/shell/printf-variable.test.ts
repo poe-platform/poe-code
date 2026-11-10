@@ -470,6 +470,34 @@ for (const [initial, target, expected] of [
   }
 }
 
+for (const [initial, target, expected] of [
+  ["declare -A a=([keep]=OLD)", "a[$key]", "1:1:1:::OLD\n"],
+  ["declare -A a=([keep]=OLD)", 'a[""]', "1:1:1:::OLD\n"],
+  ["declare -A a=([keep]=OLD); declare -n ref=a", "ref[$key]", "1:1:1:::OLD\n"],
+  ["declare -A a=([keep]=OLD)", "a[]", "2:old:1:::OLD\n"],
+  ["declare -A a=([keep]=OLD)", "a[1]", "0:1:2::X:OLD\n"],
+  ["a=(OLD TWO)", "a[$key]", "0:1:2:X:TWO:X\n"],
+] as const) {
+  for (const prefix of ["", "builtin ", "command "]) {
+    test(`${prefix}printf -v handles expanded empty subscripts: ${initial}; ${target}`, async context => {
+      const script = `${initial}; key=''; n=old; ${prefix}printf -v '${target}' 'X%n' n; echo "$?:$n:\${#a[@]}:\${a[0]}:\${a[1]}:\${a[keep]}"`;
+      const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script, "shell"], {
+        env: { LC_ALL: "C.UTF-8" }, timeout: 2000,
+      });
+      assert.ifError(oracle.error);
+      assert.equal(oracle.signal, null);
+      assert.equal(oracle.status, 0);
+      assert.equal(oracle.stdout.toString(), expected);
+      const { shell } = fixture({ env: { LC_ALL: "C.UTF-8" } });
+      context.after(() => shell.dispose());
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, oracle.status);
+      assert.deepEqual(result.stdoutBytes, new Uint8Array(oracle.stdout));
+      assert.deepEqual(result.stderrBytes, new Uint8Array(oracle.stderr));
+    });
+  }
+}
+
 test("standalone printf still refuses -v without shell-state capability", async () => {
   const { shell, fs } = fixture();
   const env = { value: "old" };

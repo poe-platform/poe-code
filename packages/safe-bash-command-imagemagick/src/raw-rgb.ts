@@ -3,11 +3,13 @@ export function rawRasterInput(width: number, height: number, depth: number, end
     const channels = typeof layout === "string" ? layout.length : layout;
     const bgr = typeof layout === "string" && layout.startsWith("bgr"), sampleBytes = Math.min(depth, 16) / 8, pixelBytes = channels * sampleBytes;
     const coder = typeof layout === "string" ? layout.toUpperCase() : channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
+    if (interlace === "line" && layout === 1) throw new Error("ImageDoesNotHaveAnAlphaChannel in GRAY input");
     const packed = (depth === 1 || depth === 2 || depth === 4 || depth === 10 || depth === 12) && (layout === 1 || layout === 3);
     if (floatingPoint ? depth !== 16 && depth !== 32 && depth !== 64 : !packed && depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2 || typeof layout === "string")) throw new Error(`unsupported ${coder} input depth '${depth}'`);
     const rowChannels = packed && interlace !== "none" ? 1 : channels;
     const rowSamples = width * channels, rowLength = Math.ceil(width * rowChannels * depth / 8);
-    const frameLength = rowLength * height * (channels / rowChannels), decodedLength = rowSamples * height * Math.ceil(Math.min(depth, 16) / 8);
+    // Native GRAYA Line reads gray, alpha and two unused channel spans per row.
+    const frameLength = rowLength * height * (channels / rowChannels) * (interlace === "line" && layout === 2 ? 2 : 1), decodedLength = rowSamples * height * Math.ceil(Math.min(depth, 16) / 8);
     if (!Number.isSafeInteger(decodedLength) || !Number.isSafeInteger(frameLength) || frameLength > byteLength - offset || !Number.isSafeInteger(offset) || offset < 0) throw new Error(`unexpected end-of-file in ${coder} input`);
     // A complete packed scanline starts another frame; a shorter tail is ignored.
     if (interlace === "none" && (byteLength - offset) % frameLength >= frameLength / height) throw new Error(`unexpected end-of-file in ${coder} input`);
@@ -54,7 +56,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                     }
                     return bytes;
                 }
-                if (interlace !== "none" && (channels === 3 || typeof layout === "string") || interlace === "plane" && layout === 2) {
+                if (interlace !== "none" && (channels === 3 || typeof layout === "string") || (interlace === "plane" || interlace === "line") && layout === 2) {
                     const sampleBytes = Math.min(depth, 16) / 8, inputSampleBytes = depth / 8, pixelBytes = channels * sampleBytes;
                     const lastPixel = Math.ceil(end / pixelBytes);
                     for (let pixel = Math.floor(start / pixelBytes); pixel < lastPixel;) {
@@ -62,7 +64,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                         const limit = Math.min(lastPixel, pixel + 8192 / inputSampleBytes, interlace === "line" ? (row + 1) * width : lastPixel);
                         const length = (limit - pixel) * sampleBytes;
                         for (let channel = 0; channel < channels; channel++) {
-                            const source = interlace === "partition" ? pixel : interlace === "plane" ? channel * width * height + pixel : (row * channels + channel) * width + pixel % width;
+                            const source = interlace === "partition" ? pixel : interlace === "plane" ? channel * width * height + pixel : (row * (layout === 2 ? 4 : channels) + channel) * width + pixel % width;
                             let input = yield { channel: interlace === "partition" ? channel : 0, position: offset + page * frameLength / (interlace === "partition" ? channels : 1) + source * inputSampleBytes, length: length * inputSampleBytes / sampleBytes };
                             if (input.length !== length * inputSampleBytes / sampleBytes) throw new Error(`unexpected end-of-file in ${coder} input`);
                             if (floatingPoint || depth === 32) input = rawSamplesTo16(input, depth, endian, floatingPoint);

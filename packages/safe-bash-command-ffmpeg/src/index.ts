@@ -10315,22 +10315,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (options.pad_len !== undefined && options.whole_len !== undefined) {
                           throw new Error("apad: pad_len and whole_len are mutually exclusive");
                         }
-                        if (padding === undefined && minimum === undefined) {
-                          const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
-                          if (endSeconds === undefined) {
-                            throw new Error("apad: a finite padding or minimum length is required");
-                          }
-                          // Output duration starts at the first retained frame, or the output seek if later.
-                          const firstPts = audioTimestamps?.[0]?.pts ?? audioStartSample;
-                          const seek = Math.round((outputSs ?? 0) * origRate);
-                          minimum = Math.max(0, Math.round(endSeconds * origRate) - Math.min(firstPts, seek));
-                        }
                         const inputLength = stretched[0]?.length ?? 0;
-                        const length = padding !== undefined ? inputLength + padding : Math.max(inputLength, minimum!);
-                        if (packetSize === 0 && length > inputLength) {
-                          throw new Error("apad: packet_size must be positive when padding is required");
-                        }
-                        budget.checkDuration(length / origRate);
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           for (let start = 0, n = 0; start < inputLength; n++) {
@@ -10345,6 +10330,25 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
+                        if (padding === undefined && minimum === undefined) {
+                          const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
+                          if (endSeconds === undefined && maxAudioFrames === undefined) {
+                            throw new Error("apad: a finite padding or minimum length is required");
+                          }
+                          // Output duration starts at the first retained frame, or the output seek if later.
+                          const firstPts = audioTimestamps?.[0]?.pts ?? audioStartSample;
+                          const seek = Math.round((outputSs ?? 0) * origRate);
+                          minimum = endSeconds === undefined ? Infinity
+                            : Math.max(0, Math.round(endSeconds * origRate) - Math.min(firstPts, seek));
+                          if (maxAudioFrames !== undefined) {
+                            minimum = Math.min(minimum, inputLength + Math.max(0, maxAudioFrames - audioTimestamps.length) * packetSize);
+                          }
+                        }
+                        const length = padding !== undefined ? inputLength + padding : Math.max(inputLength, minimum!);
+                        if (packetSize === 0 && length > inputLength) {
+                          throw new Error("apad: packet_size must be positive when padding is required");
+                        }
+                        budget.checkDuration(length / origRate);
                         const lastFrame = audioTimestamps.at(-1);
                         const paddingPts = lastFrame ? lastFrame.pts + lastFrame.end - lastFrame.start : audioStartSample;
                         if (length > inputLength) {

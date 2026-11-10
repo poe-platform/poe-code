@@ -10497,7 +10497,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const argument = tokens[++i] ?? "1", image = stack[0];
             const expanded = image ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }) : argument;
             const count = parseMagickMorphCount(expanded);
-            stack = (yield* applyMagickMorphSteps(stack, count, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.kernel, signal, state.resizeFilter));
+            stack = (yield* applyMagickMorphSteps(stack, count, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined, state.kernel, signal, state.resizeFilter));
         }
         else if (t === "-floodfill" || t === "+floodfill") {
             if (i + 2 >= tokens.length) throw new Error(`missing argument '${t}'`);
@@ -12286,7 +12286,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             const fraction = step / (count + 1), width = Math.max(1, Math.round(a.width * (1 - fraction) + b.width * fraction)), height = Math.max(1, Math.round(a.height * (1 - fraction) + b.height * fraction));
                             const virtualCanvas = magickResizeCanvas(a, width, height);
                             const source = a.region || a.storedWriteMask ? await resizeStoredMagickImage(a, backend, magickResizeOptions(a, `${width}x${height}!`, settings.kernel), signal, false, false, false, settings.resizeFilter) : a;
-                            let frame = await transformStoredMagickRaster(source, backend, morphPixelSteps(source, b, width, height, fraction, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, !!(source.storedData16 || b.storedData16), settings.kernel, settings.resizeFilter), signal, { ...source, width, height }, [source, b]);
+                            let frame = await transformStoredMagickRaster(source, backend, morphPixelSteps(source, b, width, height, fraction, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, !!(source.storedData16 || b.storedData16), settings.kernel, settings.resizeFilter), signal, { ...source, width, height }, [source, b]);
                             if (source.storedWriteMask) frame = await transformStoredMagickRaster(frame, backend, writeMaskPixelSteps(frame, source.storedWriteMask, !!frame.storedData16, false, undefined, source.hasAlpha && source.alphaBlend !== false), signal, frame, [frame, source, source.storedWriteMask]);
                             if (source.region) frame = await transformStoredMagickRaster(frame, backend, regionPixelSteps(frame, source.region, !!frame.storedData16), signal, frame, [frame, source]);
                             await result.push({ ...frame, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) });

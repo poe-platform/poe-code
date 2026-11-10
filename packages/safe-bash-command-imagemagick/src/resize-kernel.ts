@@ -421,7 +421,7 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
             if (!blended) blended = Float64Array.from(samples.data, (value, i) => (i % stride === 3 && !blendAlpha || i % stride === 4 && !blendBlack) ? value : value * (1 - fraction));
             else for (let i = 0; i < blended.length; i++) {
                 if (i % stride === 3 && !blendAlpha || i % stride === 4 && !blendBlack) continue;
-                if (channels && i % stride !== 4 && !channels[i % stride]) blended[i] = samples.data[i]!;
+                if (channels && !channels[i % stride]) blended[i] = samples.data[i]!;
                 else blended[i]! += samples.data[i]! * fraction;
             }
         }

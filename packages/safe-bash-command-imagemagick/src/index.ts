@@ -11042,6 +11042,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-transparent-color") {
             state.transparentColor = parseColor(tokens[++i] ?? "");
         }
+        else if (t === "+loop") {
+            state.loop = { value: 0 };
+        }
         else if (t === "-loop") {
             const value = tokens[++i] ?? "0", image = stack[0];
             state.loop = { value: Number(image ? yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties }) : value) };
@@ -14160,6 +14163,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-transparent-color") { state.transparentColor = parseColor(tokens[++i] ?? ""); continue; }
+        if (!operandsOnly && token === "+loop") { state.loop = { value: 0 }; continue; }
         if (!operandsOnly && token === "-loop") {
             const value = tokens[++i] ?? "0", loop = state.loop = { value: Number(value) }, optionProperties = state.optionProperties;
             stackStep(async (stack, backend) => {

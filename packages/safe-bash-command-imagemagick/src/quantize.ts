@@ -40,7 +40,7 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false, working?: "hue" | "cmyk"): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; writeMask?: boolean; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false, working?: "hue" | "cmyk"): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     // Keep fractional palette means alongside byte output for later arithmetic and deeper output.
     const round = (value: number) => highDepth ? Math.round(value * 257) / 257 : Math.fround(value * 257) / 257;
@@ -353,22 +353,27 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         yield;
         const size = Math.min(chunkSize, length - position), pixels = yield* readPixels(position, size);
         const data = new Float64Array(size);
+        const mask = cycle?.writeMask ? new Uint16Array((yield { kind: "read", highDepth: true, image: 1, position, length: size })!.slice().buffer) : undefined;
         for (let i = 0; i < size; i += 4) {
             const color = bins.get(key(pixels, i))!.color;
             const pixel = (position + i) / 4;
-            if (cycle?.region && !regionContains(cycle.region, pixel % cycle.width, Math.floor(pixel / cycle.width))) {
+            const protection = mask ? (0.212656 * mask[i]! + 0.715158 * mask[i + 1]! + 0.072186 * mask[i + 2]!) / 65535
+                : cycle?.region && !regionContains(cycle.region, pixel % cycle.width, Math.floor(pixel / cycle.width)) ? 1 : 0;
+            if (cycle && protection > 0) {
                 // Palette assignment and SyncImage each clip while alpha is active.
                 // Cycling then disables alpha, so protected pixels keep that result.
                 assigned.set(color);
                 for (let channel = 0; channel < 4; channel++) clipped[channel] = pixels[i + channel]!;
-                blendMaskedPixel(clipped, clipped, assigned, 0, 1, 255, cycle.channels, cycle.alphaActive);
-                blendMaskedPixel(clipped, clipped, assigned, 0, 1, 255, cycle.channels, cycle.alphaActive);
+                blendMaskedPixel(clipped, clipped, assigned, 0, protection, 255, cycle.channels, cycle.alphaActive);
+                blendMaskedPixel(clipped, clipped, assigned, 0, protection, 255, cycle.channels, cycle.alphaActive);
+                assigned.set(palette[(indices!.get(color)! + shift) % palette.length]!);
+                blendMaskedPixel(clipped, clipped, assigned, 0, protection, 255, cycle.channels, false);
                 data.set(clipped, i);
             } else data.set(cycle ? palette[(indices!.get(color)! + shift) % palette.length]! : color, i);
             if (cycle) data[i + 3] = 255;
         }
         yield* writeWorkingPixels(position, data);
-        if (!highDepth || cycle?.region) yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
+        if (!highDepth || cycle?.region || cycle?.writeMask) yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
         yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data, Math.round) };
     }
     if (working === "cmyk") for (const color of palette) for (let c = 0; c < 3; c++) color[c] = 255 - color[c]!;

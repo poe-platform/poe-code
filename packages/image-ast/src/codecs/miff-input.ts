@@ -45,7 +45,9 @@ export function* miffHeader(size: number): Generator<number, { metadata: ImageMe
         || Number(fields.get("number-channels") ?? channels) !== channels || fields.has("quantum:format") && fields.get("quantum:format") !== "unsigned"
         || [...fields.keys()].some(key => key.startsWith("profile:") || key === "montage")) throw new Error("Unsupported MIFF encoding");
     if (size - offset < width * height * channels * (depth / 8)) throw new Error("Truncated MIFF raster");
-    return { metadata: { format: "miff", width, height, channels, hasAlpha, depth: depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size }, offset };
+    const delay = Number(fields.get("delay") ?? 0), ticksPerSecond = Number(fields.get("ticks-per-second") ?? 100) || 100;
+    if (!Number.isSafeInteger(delay) || delay < 0 || !Number.isSafeInteger(ticksPerSecond) || ticksPerSecond < 0) throw new Error("Invalid MIFF timing");
+    return { metadata: { delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, format: "miff", width, height, channels, hasAlpha, depth: depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size }, offset };
 }
 
 export function readMiffHeader(bytes: Uint8Array) {

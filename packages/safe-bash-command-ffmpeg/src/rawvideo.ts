@@ -89,11 +89,21 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
     const format = pixelFormat ?? track.codecDescriptions[0]?.pixFmt ?? "yuv420p";
     for (const frame of track.decodedVideoFrames ?? []) {
       budget.checkCpu();
-      if (format === "yuv422p" || format === "yuv444p") {
-        const chromaWidth = format === "yuv444p" ? frame.width : Math.ceil(frame.width / 2);
-        budget.checkOutputBytes(size + (frame.width + 2 * chromaWidth) * frame.height);
-        const converted = await formatYuv(frame, format, signal);
-        append(converted.native!.pixels);
+      if (format === "yuv422p" || format === "yuv444p" || format === "yuv444p10le" || format === "yuv444p16le") {
+        const shift = format === "yuv444p10le" ? 2 : format === "yuv444p16le" ? 8 : 0;
+        const chromaWidth = format === "yuv422p" ? Math.ceil(frame.width / 2) : frame.width;
+        budget.checkOutputBytes(size + (frame.width + 2 * chromaWidth) * frame.height * (shift ? 2 : 1));
+        const converted = await formatYuv(frame, format === "yuv422p" ? "yuv422p" : "yuv444p", signal);
+        const pixels = converted.native!.pixels;
+        if (shift) {
+          const bytes = new Uint8Array(pixels.length * 2);
+          const view = new DataView(bytes.buffer);
+          for (let index = 0; index < pixels.length; index++) {
+            if (index % 4096 === 0) budget.checkCpu();
+            view.setUint16(index * 2, pixels[index]! << shift, true);
+          }
+          append(bytes);
+        } else append(pixels);
       } else if (format === "yuv420p") {
         const native = frame.native;
         if (native?.format === 0 && native.rgba === frame.data && native.width === frame.width && native.height === frame.height) {

@@ -12631,17 +12631,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const length = Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate);
                             if (!Number.isSafeInteger(length)) throw new Error("aresample: output sample count is too large");
                             budget.checkDuration(length / targetRate);
-                            budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
+                            const internalFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
+                            budget.allocateMemory(length * stretched.length * (internalFormat === "dblp"
+                              ? Float64Array.BYTES_PER_ELEMENT : Float32Array.BYTES_PER_ELEMENT));
                             const ends = audioTimestamps?.map(frame => frame.end) ??
                               t.samples.map(sample => (sample.dts + sample.duration - (t.samples[0]?.dts ?? 0)) * origRate / t.timescale);
                             const firstPts = Math.round((audioTimestamps?.[0]?.pts ?? audioStartSample) * targetRate / origRate);
                             const outputEnds: number[] = [];
                             stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal,
-                              window, undefined, undefined, cutoff, undefined, undefined, undefined, { ends, outputEnds });
+                              window, undefined, undefined, cutoff, undefined, undefined, undefined, { ends, outputEnds }, internalFormat);
                             // Resampling produces floats; later filters and encoders must round
                             // these samples rather than narrow the original integer PCM.
                             if (!autoConversionFilters) format ??= filteredSampleFormat;
-                            filteredSampleFormat = panSampleFormat = "flt";
+                            filteredSampleFormat = panSampleFormat = internalFormat === "dblp" ? "dbl" : "flt";
                             audioStartSample = Math.round(audioStartSample * targetRate / origRate);
                             // Resampler startup buffers input frames; flush emits a separate tail frame.
                             budget.allocateMemory(outputEnds.length * 24);

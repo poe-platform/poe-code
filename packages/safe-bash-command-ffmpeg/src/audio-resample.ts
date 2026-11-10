@@ -4,8 +4,9 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 export async function resampleAudio(
   channels: readonly (Float32Array | Float64Array)[], outputLength: number, inputRate: number, outputRate: number,
   budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "cubic" | "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9, filterSize = 32, resampleCutoff = 0, phaseShift = 10, linearInterp = 1, exactRational = 1,
-  frameLimit?: { count?: number; ends: readonly number[]; outputEnds?: number[] }
-): Promise<Float32Array[]> {
+  frameLimit?: { count?: number; ends: readonly number[]; outputEnds?: number[] },
+  internalFormat: "fltp" | "dblp" = "fltp"
+): Promise<(Float32Array | Float64Array)[]> {
   const rateRatio = inputRate / outputRate;
   const length = channels[0]?.length ?? 0;
   // Zero selects swresample’s default cutoff; scale support with the effective ratio.
@@ -49,13 +50,15 @@ export async function resampleAudio(
     }
     if (emitted < outputLength) frameLimit.outputEnds?.push(outputLength);
   }
-  const output = channels.map(() => new Float32Array(outputLength));
+  const SampleArray = internalFormat === "dblp" ? Float64Array : Float32Array;
+  const output = channels.map(() => new SampleArray(outputLength));
   if (length === 0 || outputLength === 0) return output;
   // Startup reflects around the first sample; flushing repeats the last sample.
   const period = Math.max(1, 2 * length - 1);
   const sums = new Float64Array(channels.length);
-  budget.allocateMemory(channels.length * 8 * Float32Array.BYTES_PER_ELEMENT);
-  const lanes = new Float32Array(channels.length * 8);
+  const laneCount = internalFormat === "dblp" ? 4 : 8;
+  budget.allocateMemory(channels.length * laneCount * SampleArray.BYTES_PER_ELEMENT);
+  const lanes = new SampleArray(channels.length * laneCount);
   let phaseCount = 2 ** phaseShift;
   if (exactRational) {
     let divisor = inputRate;
@@ -103,7 +106,7 @@ export async function resampleAudio(
       budget.checkCpu();
     }
   }
-  // FFmpeg's x86 FMA float path accumulates eight lanes, then sums halves.
+  // FFmpeg's x86 paths accumulate eight float or four double lanes, then sum halves.
   // Keep adjacent-phase interpolation on its separate scalar path.
   const interpolate = linearInterp !== 0 && inputRate * phaseCount % outputRate !== 0;
   for (let i = 0; i < outputLength; i++) {
@@ -122,11 +125,11 @@ export async function resampleAudio(
         // Reflect at both ends, including clips shorter than the filter support.
         const wrapped = ((j % period) + period) % period;
         const index = wrapped < length ? wrapped : period - wrapped;
-        const coefficient = Math.fround(weight / normalization);
-        const lane = (j - Math.floor(samplePosition) + center) % 8;
+        const coefficient = internalFormat === "dblp" ? weight / normalization : Math.fround(weight / normalization);
+        const lane = (j - Math.floor(samplePosition) + center) % laneCount;
         for (let c = 0; c < channels.length; c++) {
           if (interpolate) sums[c] = sums[c]! + channels[c]![index]! * weight;
-          else lanes[c * 8 + lane] = lanes[c * 8 + lane]! + channels[c]![index]! * coefficient;
+          else lanes[c * laneCount + lane] = lanes[c * laneCount + lane]! + channels[c]![index]! * coefficient;
         }
         if (++work % 16384 === 0) {
           await yieldTurn(signal);
@@ -138,8 +141,8 @@ export async function resampleAudio(
     for (let c = 0; c < channels.length; c++) {
       if (interpolate) output[c]![i] = sums[c]! / normalization;
       else {
-        const base = c * 8;
-        for (let step = 4; step >= 1; step /= 2) {
+        const base = c * laneCount;
+        for (let step = laneCount / 2; step >= 1; step /= 2) {
           for (let lane = 0; lane < step; lane++) {
             lanes[base + lane] = lanes[base + lane]! + lanes[base + lane + step]!;
           }

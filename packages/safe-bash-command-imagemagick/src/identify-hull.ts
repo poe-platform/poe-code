@@ -6,7 +6,7 @@ type Point = { x: number; y: number };
 type Read = { position: number; length: number };
 const cross = (a: Point, b: Point, c: Point) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
 
-export function* identifyHullSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, precision: number): Generator<Read | undefined, string, Uint8Array | Uint16Array | undefined> {
+export function* identifyHullSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, precision: number): Generator<Read | undefined, Record<string, string>, Uint8Array | Uint16Array | undefined> {
     // Only the endpoints of each foreground row can be hull vertices.
     const points: Point[] = [];
     let background: number[] | undefined, first = -1, last = -1;
@@ -29,7 +29,7 @@ export function* identifyHullSteps(image: Pick<RgbaImage, "width" | "height" | "
             }
         }
     }
-    if (!points.length) return "";
+    if (!points.length) return {};
     points.sort((a, b) => a.x - b.x || a.y - b.y);
     const lower: Point[] = [], upper: Point[] = [];
     for (let i = 0; i < points.length; i++) {
@@ -60,7 +60,14 @@ export function* identifyHullSteps(image: Pick<RgbaImage, "width" | "height" | "
         }
     }
     const format = (p: Point) => `${formatSignificantMetric(Math.abs(p.x) < 1e-10 ? 0 : p.x, precision)},${formatSignificantMetric(Math.abs(p.y) < 1e-10 ? 0 : p.y, precision)}`;
-    return `  Convex hull: ${[...ordered, ...(ordered.length > 1 ? [ordered[0]!] : [])].map(format).join(" ")} \n  Minimum bounding box: ${box.length ? box.map(format).join(" ") : "0,0 inf,inf inf,inf nan,nan"} \n`;
+    return {
+        "convex-hull": `${[...ordered, ...(ordered.length > 1 ? [ordered[0]!] : [])].map(format).join(" ")} `,
+        "minimum-bounding-box": `${box.length ? box.map(format).join(" ") : "0,0 inf,inf inf,inf nan,nan"} `
+    };
+}
+
+export function formatIdentifyHull(properties: Record<string, string>): string {
+    return properties["convex-hull"] === undefined ? "" : `  Convex hull: ${properties["convex-hull"]}\n  Minimum bounding box: ${properties["minimum-bounding-box"]}\n`;
 }
 
 export async function identifyStoredHull(image: StoredRgbaImage, storage: ImageByteStorage, precision: number, signal: AbortSignal): Promise<string> {
@@ -75,5 +82,5 @@ export async function identifyStoredHull(image: StoredRgbaImage, storage: ImageB
             next = steps.next(size === 2 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes);
         }
     }
-    return next.value;
+    return formatIdentifyHull(next.value);
 }

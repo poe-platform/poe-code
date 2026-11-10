@@ -17,7 +17,7 @@ import { clahePixelSteps, parseClaheGeometry } from "./clahe-kernel.js";
 import { localThresholdPixelSteps, parseLocalThresholdGeometry } from "./local-threshold-kernel.js";
 import { automaticThreshold } from "./auto-threshold.js";
 import { identifyStatisticsSteps } from "./identify-statistics.js";
-import { identifyHullSteps } from "./identify-hull.js";
+import { identifyHullSteps, formatIdentifyHull } from "./identify-hull.js";
 import { identifyMomentsSteps } from "./identify-moments.js";
 import { identifyMaximumSteps, identifyStoredMaximum } from "./identify-locate.js";
 import { hilbertPixels, riemersmaRemapSteps } from "./riemersma.js";
@@ -1515,11 +1515,14 @@ function* formatMagickPropertyStringSteps<Step=never>(
     depth: bitDepth, size: short.b!, compression, quality: String(meta.quality ?? 0), page: short.P!,
     "resolution.x": formatSignificantMetric(resolution ? resolution.x / resolutionScale : 0),
     "resolution.y": formatSignificantMetric(resolution ? resolution.y / resolutionScale : 0),
+    "printsize.x": formatSignificantMetric(meta.width / Math.max(resolution ? resolution.x / resolutionScale : 0, 1e-12)),
+    "printsize.y": formatSignificantMetric(meta.height / Math.max(resolution ? resolution.y / resolutionScale : 0, 1e-12)),
     units: short.U!
   };
   let img: RgbaImage | undefined;
   let pixels: Record<string, string> | undefined;
   let signature: string | undefined;
+  let hull: Record<string, string> | undefined;
   const statistics: Record<string, number> = {};
   const parts: string[] = [];
   // Only tokenize the original template. Expanded filenames and literal percent
@@ -1594,6 +1597,24 @@ function* formatMagickPropertyStringSteps<Step=never>(
         parts.push(properties[`artifact:${key}`]!);
       } else if (Object.hasOwn(context.optionProperties ?? {}, key.startsWith("option:") ? key.slice(7) : key)) {
         parts.push(context.optionProperties![key.startsWith("option:") ? key.slice(7) : key]!);
+      } else if (key === "convex-hull" || key === "minimum-bounding-box") {
+        let value: string | undefined;
+        if (resolvePixels) value = yield* resolvePixels(key);
+        else {
+          if (!hull) {
+            img ??= getImage();
+            const steps = identifyHullSteps(img, context.precision ?? 6);
+            let next = steps.next();
+            while (!next.done) {
+              yield;
+              next = next.value ? steps.next((img.data16 ?? img.data).subarray(next.value.position, next.value.position + next.value.length)) : steps.next();
+            }
+            hull = next.value;
+          }
+          value = hull[key];
+        }
+        if (value) parts.push(value);
+        else if (context.analysis) context.analysis.warnings += `magick: unknown image property '${token}'\n`;
       } else if (["mean", "min", "max", "minima", "maxima", "median", "standard-deviation", "skewness", "kurtosis", "entropy", "opaque", "type", "bit-depth"].includes(key)) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
@@ -1693,7 +1714,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
 }
 
 async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal):Promise<string>{
- let raster:IdentifyRaster|undefined,properties:Record<string,string>|undefined;
+ let raster:IdentifyRaster|undefined,properties:Record<string,string>|undefined,hull:Record<string,string>|undefined;
  const statistics:Record<string,number>={};
  function* resolve(property:string):Generator<IdentifyStep,string,void>{
   if(!raster)yield {async run(){raster=await getRaster();}};
@@ -1714,6 +1735,18 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
   }
   if(property === "trim-geometry" || property === "bounding-box")return yield*formatTrimBoundsSteps(raster!.image,load,property,context.analysis);
   if(property === "signature")return yield*signatureSteps(raster!.image,load);
+  if(property === "convex-hull" || property === "minimum-bounding-box") {
+   if(!hull) {
+    const steps = identifyHullSteps(raster!.image, context.precision ?? 6);
+    let next = steps.next();
+    while(!next.done) {
+     if(!next.value) { yield; next = steps.next(); }
+     else { const chunk = yield*load(next.value.position,next.value.length); next = steps.next(chunk.data16 ?? chunk.data); }
+    }
+    hull = next.value;
+   }
+   return hull[property] ?? "";
+  }
   if(!properties || (property === "colors" && properties.colors === undefined))properties=yield*magickPixelPropertiesSteps(raster!.image,load,statistics,property === "colors", function*(position, length): Generator<IdentifyStep, Uint8Array, void> {
    let data!: Uint8Array;
    yield { async run() { data = await raster!.storage.read((raster!.image as StoredRgbaImage).readMask!.position! + position, length, signal ? { signal } : undefined); } };
@@ -6262,7 +6295,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                             yield;
                             next = next.value ? steps.next((image.data16 ?? image.data).subarray(next.value.position, next.value.position + next.value.length)) : steps.next();
                         }
-                        outParts.push(next.value);
+                        outParts.push(formatIdentifyHull(next.value));
                     }
                 }
                 if (moments) {

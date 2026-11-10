@@ -10192,7 +10192,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             // Native PCM uses the float transfer, including intermediate rounding.
                             const angle = Math.fround(channel[i]! * Math.PI / 2);
-                            channel[i] = Math.sin(Math.fround(angle + Math.fround(amount * Math.fround(Math.sin(angle * 4)))));
+                            channel[i] = Math.fround(Math.sin(Math.fround(angle + Math.fround(amount * Math.fround(Math.sin(angle * 4))))));
                           }
                         }
                       } else if (trimmed === "dcshift" || trimmed.startsWith("dcshift=")) {

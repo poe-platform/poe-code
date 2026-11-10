@@ -10019,10 +10019,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const writeTemplate = tokens[++i] ?? "";
             const writePath = expandFilenameProperties(writeTemplate, stack[0]!.properties);
             if (writePath.slice(0, 4).toLowerCase() === "mpr:") {
-                const saved: RgbaImage[] = [];
+                const saved: MagickImage[] = [];
+                const source = (stack[0] as MagickImage)[magickInput];
+                const firstScene = state.scene ?? source?.outputScene ?? source?.sceneIdx ?? 0;
                 for (const image of stack) {
                     yield;
-                    saved.push({ ...image, data: new Uint8Array(image.data) });
+                    saved.push({ ...image, data: new Uint8Array(image.data), [magickInput]: { ...(image as MagickImage)[magickInput], outputScene: firstScene + saved.length } });
                 }
                 registers.set(parseInputToken(writePath).baseToken.slice(4).toLowerCase(), saved);
             }
@@ -11434,11 +11436,13 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
         const outLower = outSpec.toLowerCase();
         if (outLower === "null:" || outLower.startsWith("mpr:")) return { exitCode: 0, stdout: "", stderr: "" };
         if (outLower.startsWith("info:")) {
+            const source = (stack[0] as MagickImage)[magickInput];
+            const firstScene = state.scene ?? source?.outputScene ?? source?.sceneIdx ?? 0;
             const formatted: string[] = [];
             for (const [idx, im] of stack.entries()) {
                 formatted.push(histogramComment ? yield* formatHistogramOutputSteps(im) : state.formatStr !== undefined
                     ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
-                        ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: idx, outputScene: (state.scene ?? 0) + idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
+                        ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: idx, outputScene: firstScene + idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
                     })
                     : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
             }
@@ -13056,9 +13060,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const path = expandFilenameProperties(writeTemplate, (await stack.get(0))!.properties);
                 if (path.slice(0, 4).toLowerCase() === "mpr:") {
                     const saved = new StoredImageStack(backend.storage, signal, stack);
+                    const source = (await stack.get(0))![magickInput];
+                    const firstScene = scene ?? source?.outputScene ?? source?.sceneIdx ?? 0;
                     for (let index = 0; index < stack.length; index++) {
                         await yieldTurn(signal);
-                        await saved.push((await stack.get(index))!);
+                        const frame = (await stack.get(index))!;
+                        await saved.push({ ...frame, [magickInput]: { ...frame[magickInput], outputScene: firstScene + index } });
                     }
                     registers.set(parseInputToken(path).baseToken.slice(4).toLowerCase(), saved);
                 }
@@ -13897,6 +13904,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         const text = sparse || lower.startsWith("txt:") || (lower.endsWith(".txt") && !outSpec.includes(":"));
         if (info || text || ftxt || lower.startsWith("histogram:")) {
             async function* information(): AsyncGenerator<string> {
+                const source = (await stack.get(0))![magickInput];
+                const firstScene = state.scene ?? source?.outputScene ?? source?.sceneIdx ?? 0;
                 let last = "";
                 for (let index = 0; index < stack.length; index++) {
                     await yieldTurn(signal);
@@ -13906,7 +13915,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
-                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: index, outputScene: (state.scene ?? 0) + index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: index, outputScene: firstScene + index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
                     if (formatted) last = formatted.at(-1)!;
                     yield formatted;
                 }

@@ -6,16 +6,23 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 export interface MaskChannels { r: boolean; g: boolean; b: boolean }
 
 /** Blend edited pixels with their originals; white protects and black permits writes. */
-export function* writeMaskPixelSteps(image: { width: number; height: number }, mask: { width: number; height: number }, highDepth = false, alphaSet = false, channels?: MaskChannels, alphaActive = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* writeMaskPixelSteps(image: { width: number; height: number; space?: string }, mask: { width: number; height: number }, highDepth = false, alphaSet = false, channels?: MaskChannels, alphaActive = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     for (let y = 0; y < image.height; y++) {
         for (let x = 0; x < image.width; x += 512) {
             yield;
             const count = Math.min(512, image.width - x), position = (y * image.width + x) * 4;
             // Keep HDRI samples until after clipping, as in the native pixel cache.
             const samples: Float64Array[] = [];
-            for (const image of [0, 1]) {
-                const working = yield { kind: "read", evaluate: true, image, position, length: count * 4 };
-                const bytes = working?.length ? undefined : (yield { kind: "read", highDepth, image, position, length: count * 4 })!;
+            let hue = false;
+            for (const source of [0, 1]) {
+                const colors = image.space === "cmyk" ? undefined : yield { kind: "read", hue: true, image: source, position, length: count * 4 };
+                if (colors?.length) {
+                    samples.push(Float64Array.from(new Float64Array(colors.slice().buffer), value => value * 255));
+                    hue = true;
+                    continue;
+                }
+                const working = yield { kind: "read", evaluate: true, image: source, position, length: count * 4 };
+                const bytes = working?.length ? undefined : (yield { kind: "read", highDepth, image: source, position, length: count * 4 })!;
                 samples.push(working?.length ? new Float64Array(working.slice().buffer)
                     : Float64Array.from(highDepth ? new Uint16Array(bytes!.slice().buffer) : bytes!, value => highDepth ? value / 257 : value));
             }
@@ -34,6 +41,8 @@ export function* writeMaskPixelSteps(image: { width: number; height: number }, m
                     for (let channel = 0; channel < 4; channel++) output[i * 4 + channel] = source[i * 4 + channel]!;
                 } else blendMaskedPixel(output, original, edited, i * 4, intensity, 255, channels, alphaActive);
             }
+            // Colorspace conversion consumes the normalized plane before the raster.
+            if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(Float64Array.from(output, value => value / 255).buffer) };
             yield { kind: "write", evaluate: true, position, data: new Uint8Array(output.buffer) };
             // Mask blending creates fractional samples even from 8-bit inputs.
             const bounded = Uint16Array.from(output, value => Math.round(Math.max(0, Math.min(65535, value * 257))));

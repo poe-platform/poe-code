@@ -12514,6 +12514,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed === "aresample" || trimmed.startsWith("aresample=")) {
                         let rate: number | undefined = trimmed === "aresample" ? 0 : undefined;
+                        let firstPts: number | undefined;
                         let format: string | undefined;
                         let window: "kaiser" | "blackman_nuttall" = "kaiser";
                         const options = trimmed === "aresample" ? [] : trimmed.slice("aresample=".length).split(":");
@@ -12578,10 +12579,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             continue;
                           }
-                          const firstPts = Number(raw);
+                          firstPts = Number(raw);
                           if (key !== "first_pts" || !raw?.trim() || extra !== undefined || !Number.isSafeInteger(firstPts)) {
                             throw new Error("aresample: expected first_pts with an integer sample timestamp");
                           }
+                        }
+                        if (firstPts !== undefined) {
                           const start = audioTimestamps?.[0]?.pts ?? audioStartSample;
                           const offset = start - firstPts;
                           // libswresample's default minimum compensation is 1 ms.

@@ -22,8 +22,10 @@ export async function tmix(
     throw new Error("tmix: weights must be finite numbers");
   }
   const weights = Array.from({ length: count }, (_, index) => supplied[Math.min(index, supplied.length - 1)]!);
+  // FFmpeg averages equal weights through its fast path, including all-zero weights.
+  if (!weights.some(weight => weight !== 0)) weights.fill(1);
   const sum = weights.reduce((total, weight) => total + weight, 0);
-  if (!Number.isFinite(sum) || sum === 0) throw new Error("tmix: weights must have a finite nonzero sum");
+  if (!Number.isFinite(sum)) throw new Error("tmix: weights must have a finite sum");
   const output: MediaVideoFrame[] = [];
   let work = 0;
   for (const [index, frame] of frames.entries()) {
@@ -47,7 +49,8 @@ export async function tmix(
         if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
         value += sources[slot]![offset]! * weights[slot]!;
       }
-      data[offset] = Math.max(0, Math.min(255, Math.round(value / sum)));
+      // Native integer mixing converts the non-finite result of canceling weights to zero.
+      data[offset] = sum === 0 ? 0 : Math.max(0, Math.min(255, Math.round(value / sum)));
     }
     if (useNative) {
       const mixedNative = { ...native, pixels: data };

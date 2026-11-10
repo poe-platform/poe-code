@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeImage, decodeImage } from "@poe-code/image-ast/portable";
+import { createCommandArguments } from "safe-bash-contracts";
 import { createFfmpegCommand } from "./index.js";
 
 const values = [12, 40, 40, 112, 144, 176, 176, 232];
@@ -15,7 +16,9 @@ for (const [filter, expected] of [
   ["tmix=3:1 2", [12, 23, 34, 69, 110, 150, 170, 198]],
   ["tmix=3:1 2 1", [12, 19, 33, 58, 102, 144, 168, 190]],
   ["tmix=frames=3:weights=1 0 0", [12, 12, 12, 40, 40, 112, 144, 176]],
-  ...["frames=0", "frames=1025", "frames=2.5", "weights=no", "weights=0 0 0", "unknown=1"].map(value => [`tmix=${value}`, null] as const)
+  ["tmix=weights=0 0 0", [12, 21, 31, 64, 99, 144, 165, 195]],
+  ["tmix=frames=2:weights=-1 1", values.map(() => 0)],
+  ...["frames=0", "frames=1025", "frames=2.5", "weights=no", "weights=Infinity", "weights=1e308", "unknown=1"].map(value => [`tmix=${value}`, null] as const)
 ] as const) {
   it(`tmix selects frames or safely rejects ${filter}`, async () => {
     const volume = Volume.fromJSON(expected === null ? { "/o01.png": "existing output" } : {});
@@ -101,4 +104,42 @@ for (const [samples, filter, expected] of [
       assert.deepEqual(volume.readFileSync("/out.raw"), Buffer.from(expected.flatMap(frame => frame.flatMap((value, plane) => Array(plane === 0 || chroma === "444" ? 4 : chroma === "422" ? 2 : 1).fill(value)))));
     });
   }
+}
+
+// Native FFmpeg 7.0.2 results, including the ordinary-weight controls.
+for (const [weights, expected] of [
+  ["0", [16, 17, 18, 24, 60, 163]],
+  ["0 0", [16, 17, 18, 24, 60, 163]],
+  ["-1 1", [0, 0, 0, 0, 0, 0]],
+  [undefined, [16, 17, 18, 24, 60, 163]],
+  ["0 1", [16, 17, 18, 30, 90, 235]]
+] as const) {
+  it(`tmix preserves YUV planes with weights=${weights ?? "default"}`, async () => {
+    const input = Buffer.concat([
+      Buffer.from("YUV4MPEG2 W2 H2 F5:1 Ip A1:1 C444\n"),
+      ...[16, 17, 18, 30, 90, 235].flatMap(value => [
+        Buffer.from("FRAME\n"), Buffer.alloc(4, value), Buffer.alloc(8, 128)
+      ])
+    ]);
+    const volume = Volume.fromJSON({ "/in.y4m": input, "/out.raw": "KEEP" });
+    const errors: Uint8Array[] = [];
+    const argumentValues = createCommandArguments(["-v", "error", "-y", "-i", "/in.y4m",
+      "-vf", `tmix=frames=2${weights === undefined ? "" : `:weights=${weights}`}`,
+      "-fps_mode", "passthrough", "-pix_fmt", "yuv444p", "-f", "rawvideo", "/out.raw"]);
+    const result = await createFfmpegCommand().execute({
+      command: "ffmpeg", args: argumentValues.args, argumentValues,
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(), stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+    assert.deepEqual(volume.readFileSync("/out.raw"), Buffer.concat(expected.map(value =>
+      Buffer.concat([Buffer.alloc(4, value), Buffer.alloc(8, weights === "-1 1" ? 0 : 128)]))));
+    assert.deepEqual(volume.readFileSync("/in.y4m"), input);
+  });
 }

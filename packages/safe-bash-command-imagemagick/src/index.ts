@@ -9714,6 +9714,8 @@ function magickResampleGeometry(image: ImageMetadata, value: string): string {
 
 function updateMagickProperty(properties: ImageMetadata["properties"], key: string, value?: string): Record<string, string> {
     const normalized = key.toLowerCase();
+    // Native -set does not store these reserved names as string properties.
+    if (["gravity", "intent", "interpolate"].includes(normalized)) return { ...properties };
     if (normalized === "compose") {
         const mode = value === undefined ? undefined : magickCompositeMode(value).name;
         const compose = magickComposeNames.find(name => name.toLowerCase() === mode);

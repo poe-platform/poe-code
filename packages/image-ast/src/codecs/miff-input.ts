@@ -41,7 +41,7 @@ export function* miffHeader(size: number): Generator<number, { metadata: ImageMe
     const hasAlpha = fields.get("matte")?.toLowerCase() === "true" || fields.get("alpha-trait") === "Blend";
     const channels = gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3;
     if (fields.get("class") !== "DirectClass" || (fields.get("compression") ?? "None") !== "None" || ![8, 16].includes(depth) || !["sRGB", "RGB", "Gray"].includes(colorspace)
-        || Number(fields.get("colors") ?? 0) !== 0 || Number(fields.get("number-meta-channels") ?? 0) !== 0
+        || Number(fields.get("number-meta-channels") ?? 0) !== 0
         || Number(fields.get("number-channels") ?? channels) !== channels || fields.has("quantum:format") && fields.get("quantum:format") !== "unsigned"
         || [...fields.keys()].some(key => key.startsWith("profile:") || key === "montage")) throw new Error("Unsupported MIFF encoding");
     if (size - offset < width * height * channels * (depth / 8)) throw new Error("Truncated MIFF raster");

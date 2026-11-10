@@ -3827,7 +3827,7 @@ async function applyVideoFilterChain(
       for (const key of Object.keys(named)) {
         if (key !== "mode") throw new Error(`tinterlace: unsupported option ${key}`);
       }
-      const mode = parseFilterExpression(named.mode ?? positional[0] ?? "", "tinterlace", {
+      const mode = parseFilterExpression(named.mode ?? (positional[0] || "merge"), "tinterlace", {
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
         merge: 0, drop_even: 1, drop_odd: 2, pad: 3, interleave_top: 4,
         interleave_bottom: 5, interlacex2: 6, mergex2: 7
@@ -3835,12 +3835,22 @@ async function applyVideoFilterChain(
       if (Number.isNaN(mode)) throw new Error("tinterlace: invalid expression");
       if (mode < 0 || mode > 7) throw new RangeError("tinterlace: mode out of range [0 - 7]");
       if (positional.length !== 1 || Object.keys(named).some(key => key !== "mode") ||
-          ![1, 2, 4, 5, 6].includes(roundToEven(mode))) {
-        throw new Error("tinterlace: only modes drop_even, drop_odd, interleave_top, interleave_bottom and interlacex2 are supported");
+          ![0, 1, 2, 4, 5, 6, 7].includes(roundToEven(mode))) {
+        throw new Error("tinterlace: unsupported mode or options");
       }
       const doubleRate = roundToEven(mode) === 6;
+      const sliding = roundToEven(mode) === 7;
+      const heightFactor = [0, 7].includes(roundToEven(mode)) ? 2 : 1;
+      if (heightFactor === 2) {
+        diagnostics.sarWidth *= 2;
+        if (diagnostics.sarHeight % 2 === 0) {
+          diagnostics.sarWidth /= 2;
+          diagnostics.sarHeight /= 2;
+        }
+        diagnostics.sar = diagnostics.sarWidth / diagnostics.sarHeight;
+      }
       const output: typeof current = [];
-      for (let index = 0; index + 1 < current.length; index += doubleRate ? 1 : 2) {
+      for (let index = 0; index + 1 < current.length; index += doubleRate || sliding ? 1 : 2) {
         const first = current[index]!;
         const second = current[index + 1]!;
         if ([1, 2].includes(roundToEven(mode))) {
@@ -3852,46 +3862,55 @@ async function applyVideoFilterChain(
           throw new Error("tinterlace: adjacent frames must have matching dimensions");
         }
         const topFieldFirst = doubleRate ? Boolean(first.topFieldFirst) : roundToEven(mode) !== 5;
-        const durationSeconds = doubleRate ? first.durationSeconds / 2 : first.durationSeconds + second.durationSeconds;
+        const durationSeconds = doubleRate ? first.durationSeconds / 2 : first.durationSeconds + (sliding ? 0 : second.durationSeconds);
         if (doubleRate) {
           budget.allocateMemory(128);
           output.push({ ...first, durationSeconds, interlaced: true, topFieldFirst });
         }
+        const height = first.height * heightFactor;
+        budget.recordFrame(first.width, height);
+        const top = (sliding && index % 2) || (doubleRate === topFieldFirst) ? second : first;
+        const bottom = top === first ? second : first;
         const native = first.native;
-        const combined = { ...first, durationSeconds,
+        const combined = { ...first, height, durationSeconds,
           ptsSeconds: first.ptsSeconds + (doubleRate ? durationSeconds : 0), interlaced: true, topFieldFirst };
         if (native && [0, 4, 5, 12, 13, 14, 49, 68].includes(native.format) && [first, second].every(frame =>
           frame.native?.rgba === frame.data && frame.native.width === frame.width && frame.native.height === frame.height &&
           frame.native.format === native.format && frame.native.colorspace === native.colorspace && frame.native.fullRange === native.fullRange)) {
-          budget.allocateMemory(native.pixels.byteLength + first.data.byteLength + 128);
-          const pixels = new Uint8Array(native.pixels.byteLength);
           const hsub = [0, 4, 12, 13].includes(native.format) ? 2 : 1;
           const vsub = [0, 12].includes(native.format) ? 2 : 1;
           const sampleBytes = [49, 68].includes(native.format) ? 2 : 1;
+          const pixelBytes = (first.width * height + 2 * Math.ceil(first.width / hsub) * Math.ceil(height / vsub)) * sampleBytes;
+          budget.allocateMemory(pixelBytes + first.data.byteLength * heightFactor + 128);
+          const pixels = new Uint8Array(pixelBytes);
           let offset = 0;
+          let outputOffset = 0;
           for (let plane = 0; plane < 3; plane++) {
             const stride = Math.ceil(first.width / (plane === 0 ? 1 : hsub)) * sampleBytes;
-            const height = Math.ceil(first.height / (plane === 0 ? 1 : vsub));
-            for (let row = 0; row < height; row++) {
+            const inputHeight = Math.ceil(first.height / (plane === 0 ? 1 : vsub));
+            const planeHeight = Math.ceil(height / (plane === 0 ? 1 : vsub));
+            for (let row = 0; row < planeHeight; row++) {
               if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-              const source = row % 2 === (doubleRate === topFieldFirst ? 1 : 0) ? native : second.native!;
-              const start = offset + row * stride;
-              pixels.set(source.pixels.subarray(start, start + stride), start);
+              const source = (row % 2 === 0 ? top : bottom).native!;
+              const start = offset + Math.floor(row / heightFactor) * stride;
+              pixels.set(source.pixels.subarray(start, start + stride), outputOffset + row * stride);
             }
-            offset += stride * height;
+            offset += stride * inputHeight;
+            outputOffset += stride * planeHeight;
           }
-          combined.native = { ...native, pixels };
+          combined.native = { ...native, height, pixels };
           // Subsampled chroma fields must be woven before rendering RGB rows.
-          combined.data = scaleVideoPicture(combined, first.width, first.height)!;
+          combined.data = scaleVideoPicture(combined, first.width, height)!;
           combined.native = { ...combined.native, rgba: combined.data };
         } else {
-          budget.allocateMemory(first.data.byteLength + 128);
-          combined.data = new Uint8Array(first.data.byteLength);
+          budget.allocateMemory(first.data.byteLength * heightFactor + 128);
+          combined.data = new Uint8Array(first.data.byteLength * heightFactor);
           const stride = first.width * 4;
-          for (let row = 0; row < first.height; row++) {
+          for (let row = 0; row < height; row++) {
             if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-            const source = row % 2 === (doubleRate === topFieldFirst ? 1 : 0) ? first : second;
-            combined.data.set(source.data.subarray(row * stride, (row + 1) * stride), row * stride);
+            const source = row % 2 === 0 ? top : bottom;
+            const start = Math.floor(row / heightFactor) * stride;
+            combined.data.set(source.data.subarray(start, start + stride), row * stride);
           }
           delete combined.native;
         }

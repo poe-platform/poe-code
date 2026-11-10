@@ -2680,7 +2680,6 @@ function parseMagickMorphCount(argument: string): number {
 
 function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage[], void> {
     const { kernel, resizeFilter: settings } = state;
-    const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined;
     let cooperativeWork = 0;
     const count = Math.max(0, Math.trunc(countRaw));
     if (stack.length === 1 && count > 1) {
@@ -2699,6 +2698,8 @@ function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, s
             yield;
         const a = stack[idx]!;
         const b = stack[idx + 1]!;
+        const mask = (a as MagickImage)[magickInput]?.channelMask;
+        const channels = mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;
         out.push(a);
         for (let step = 1; step <= count; step++) {
             if (++cooperativeWork % 65536 === 0)
@@ -2715,7 +2716,7 @@ function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, s
                 frame.metaChannels = [];
                 for (const [channel, plane] of a.metaChannels.entries()) {
                     const other = b.metaChannels?.[channel];
-                    const selected = !state.channelExplicit || state.channelDefault || !!state.channels.meta?.includes(channel);
+                    const selected = !mask || mask.default || !!mask.meta?.includes(channel);
                     frame.metaChannels.push(yield* applyMagickRasterSteps(plane,
                         morphPixelSteps(plane, other ?? plane, w, h, other ? t : 0, [selected, selected, selected, false], !!(plane.data16 || other?.data16), kernel, settings),
                         signal, { ...plane, width: w, height: h }, [plane, other ?? plane]));
@@ -11178,6 +11179,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
         if (setting !== undefined) {
             i = setting;
+            if (t === "-channel" || t === "+channel") {
+                const channelMask = state.channelExplicit ? { ...state.channels, default: state.channelDefault } : undefined;
+                stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                    yield;
+                    return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], channelMask } };
+                });
+            }
             if (t === "-bordercolor" || t === "+bordercolor") {
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
                     yield;
@@ -13847,19 +13855,21 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const result = new StoredImageStack(backend.storage, signal, stack);
                     for (let index = 0; index < stack.length - 1; index++) {
                         const a: StoredRgbaImage = (await stack.get(index))!, b = (await stack.get(index + 1))!; await result.push(a);
+                        const mask = (a as StoredMagickImage)[magickInput]?.channelMask;
+                        const channels = mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;
                         for (let step = 1; step <= count; step++) {
                             await yieldTurn(signal);
                             const fraction = step / (count + 1), width = Math.max(1, Math.round(a.width * (1 - fraction) + b.width * fraction)), height = Math.max(1, Math.round(a.height * (1 - fraction) + b.height * fraction));
                             const virtualCanvas = magickResizeCanvas(a, width, height);
                             const source = a.region || a.storedWriteMask ? await resizeStoredMagickImage(a, backend, magickResizeOptions(a, `${width}x${height}!`, settings.kernel), signal, false, false, false, settings.resizeFilter) : a;
-                            let frame = await transformStoredMagickRaster(source, backend, morphPixelSteps(source, b, width, height, fraction, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, !!(source.storedData16 || b.storedData16), settings.kernel, settings.resizeFilter), signal, { ...source, width, height }, [source, b]);
+                            let frame = await transformStoredMagickRaster(source, backend, morphPixelSteps(source, b, width, height, fraction, channels, !!(source.storedData16 || b.storedData16), settings.kernel, settings.resizeFilter), signal, { ...source, width, height }, [source, b]);
                             if (source.storedWriteMask) frame = await transformStoredMagickRaster(frame, backend, writeMaskPixelSteps(frame, source.storedWriteMask, !!frame.storedData16, false, undefined, source.hasAlpha && source.alphaBlend !== false), signal, frame, [frame, source, source.storedWriteMask]);
                             if (source.region) frame = await transformStoredMagickRaster(frame, backend, regionPixelSteps(frame, source.region, !!frame.storedData16), signal, frame, [frame, source]);
                             if (a.storedMetaChannels?.length) {
                                 frame.storedMetaChannels = [];
                                 for (const [channel, plane] of a.storedMetaChannels.entries()) {
                                     const other = b.storedMetaChannels?.[channel];
-                                    const selected = !settings.channelExplicit || settings.channelDefault || !!settings.channels.meta?.includes(channel);
+                                    const selected = !mask || mask.default || !!mask.meta?.includes(channel);
                                     frame.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
                                         morphPixelSteps(plane, other ?? plane, width, height, other ? fraction : 0, [selected, selected, selected, false], !!(plane.storedData16 || other?.storedData16), settings.kernel, settings.resizeFilter),
                                         signal, { ...plane, width, height }, [plane, other ?? plane]));
@@ -14066,9 +14076,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             i = setting;
             if (token === "-channel" || token === "+channel") {
                 const channels = state.channels;
+                const channelMask = state.channelExplicit ? { ...channels, default: state.channelDefault } : undefined;
                 stackStep(async stack => {
                     if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                     maskChannels = channels;
+                    for (let index = 0; index < stack.length; index++) {
+                        const image = (await stack.get(index))!;
+                        await stack.set(index, { ...image, [magickInput]: { ...image[magickInput], channelMask } });
+                    }
                     return stack;
                 });
             }

@@ -29,6 +29,7 @@ export interface MagickFormatContext {
     interlace?: string;
     imageType?: "Bilevel" | "Grayscale" | "GrayscaleAlpha" | undefined;
     virtualPixel?: string | undefined;
+    channelMask?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean; meta?: number[]; default: boolean } | undefined;
     channelSelection?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean } | undefined;
 }
 export type StoredMagickImage = StoredRgbaImage & MetaChannels & { [magickInput]?: MagickFormatContext; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined };

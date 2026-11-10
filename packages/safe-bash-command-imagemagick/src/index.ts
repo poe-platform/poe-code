@@ -119,8 +119,8 @@ import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage
 import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
-type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -1486,8 +1486,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   }
   const suffix = img.hasAlpha ? "Alpha" : "";
   const type = img.space === "cmyk" ? `ColorSeparation${suffix}`
-    : gray ? (bilevel ? "Bilevel" : `Grayscale${suffix}`)
-    : `${colors.size <= 256 ? "Palette" : "TrueColor"}${suffix}`;
+    : (img as MagickImage)[magickInput]?.imageType ?? (gray ? (bilevel ? "Bilevel" : `Grayscale${suffix}`)
+    : `${colors.size <= 256 ? "Palette" : "TrueColor"}${suffix}`);
   const deviation = sums.reduce((sum, value, c) => sum + (selectedChannels[c] ? Math.sqrt(Math.max(0,
     (squares[c]! - value * value / count) / Math.max(1, count - 1))) : 0), 0) / selectedCount;
   return {
@@ -5978,6 +5978,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         cursor += vertical ? im.height : im.width;
     }
     const first = stack[0]! as MagickImage;
+    canvas[magickInput] = { imageType: first[magickInput]?.imageType };
     const gray = stack.every(image => image.space === "b-w" || image.space === "grey16") && background.r === background.g && background.g === background.b;
     return { ...canvas, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(gray ? { space: first.space, gamma: first.gamma } : {}), ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }), channels: cmyk ? 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
 }
@@ -7305,6 +7306,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         evaluate = token !== "-type" && (token === "-grayscale" || ["rgb", "srgb", "gray", "grey", "rec709luma", "rec601luma", "lab", "cielab", "luv", "ohta", "yuv", "ycbcr"].includes(space));
         const luminance = space === "rec601luminance" || space === "rec709luminance";
         apply = function* (image) {
+            image = { ...image, [magickInput]: { ...image[magickInput],
+                imageType: imageType === "bilevel" ? "Bilevel" : imageType === "grayscale" ? "Grayscale" : imageType === "grayscalealpha" ? "GrayscaleAlpha" : undefined
+            } };
             const linearGray = (image.space === "b-w" || image.space === "grey16") && image.gamma === 1;
             if (linearGray && space === "rgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3, magickColorspace: "RGB" };
             if (image.magickColorspace === "RGB" && space === "rgb") return image;
@@ -12139,6 +12143,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (append) {
                     const first = (await stack.get(0))! as StoredMagickImage & HueMetadata, scene = first[magickInput]?.sceneIdx ?? 0;
+                    result[magickInput] = { imageType: first[magickInput]?.imageType };
                     result = { ...result, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha: background.a < 255, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
                     if (evaluate) {
                         result.storedEvaluateSamples = backend.storage.allocate(width * height * 32);

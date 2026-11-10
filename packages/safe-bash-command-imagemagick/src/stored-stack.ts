@@ -23,6 +23,7 @@ export interface MagickFormatContext {
     ticksPerSecond?: number;
     delayTicks?: number;
     interlace?: string;
+    imageType?: "Bilevel" | "Grayscale" | "GrayscaleAlpha" | undefined;
     virtualPixel?: string | undefined;
     channelSelection?: { r: boolean; g: boolean; b: boolean; a: boolean } | undefined;
 }

@@ -91,8 +91,8 @@ function* trimBounds(width: number, height: number, fuzz: number, scale: number,
         if (!selected.includes("south")) bottom = height - 1;
     }
     if (left > right || top > bottom) return;
-    const retainedWidth = Math.min(width, Math.max(right - left + 1, Math.floor(minSize?.width ?? 0)));
-    const retainedHeight = Math.min(height, Math.max(bottom - top + 1, Math.floor(minSize?.height ?? 0)));
+    const retainedWidth = Math.min(width, Math.max(right - left + 1, Math.round(minSize?.width ?? 0)));
+    const retainedHeight = Math.min(height, Math.max(bottom - top + 1, Math.round(minSize?.height ?? 0)));
     return { left: Math.min(left, width - retainedWidth), top: Math.min(top, height - retainedHeight), width: retainedWidth, height: retainedHeight };
 }
 

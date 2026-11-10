@@ -48,10 +48,11 @@ function* applySipsOddCanvasCropOrPadSteps(image: RgbaImage, curW: number, curH:
     readonly alpha?: number;
 } | string): Generator<void, RgbaImage, void> {
     let work = 0;
-    const rawObj = encodeImage(image.channels === 2 ? { ...image, space: "srgb", channels: 4 } : image, { format: "raw" });
-    const ch = rawObj.channels as 1 | 2 | 3 | 4;
+    // The decoded pixel buffer already contains RGB values, even for CMYK sources.
+    const ch = image.channels === 1 ? 1 : image.hasAlpha ? 4 : 3;
+    const rawObj = encodeImage({ ...image, space: ch === 1 ? "b-w" : "srgb", channels: ch }, { format: "raw" });
     const src = rawObj.data;
-    const pad = parseColor(padColorInput, ch === 4 || ch === 2 ? 0 : 255);
+    const pad = parseColor(padColorInput, ch === 4 ? 0 : 255);
     const bg = [pad.r, pad.g, pad.b, pad.a];
     const offsetX = (dstW - curW) / 2;
     const offsetY = (dstH - curH) / 2;

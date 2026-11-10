@@ -78,7 +78,8 @@ export class StoredSipsImages {
  }
 
  private async oddCanvas(image:StoredRgbaImage,width:number,height:number,destinationWidth:number,destinationHeight:number,background:Parameters<typeof bufferedImageBackend.oddCanvas>[5]):Promise<StoredRgbaImage>{
-  const channels=image.channels===2?4:image.channels,pad=parseColor(background,channels===4?0:255),bg=pad.r|pad.g<<8|pad.b<<16|pad.a<<24;
+  // Stored pixels are RGBA, including decoded CMYK and CMYK-alpha sources.
+  const channels=image.channels===1?1:image.hasAlpha?4:3,pad=parseColor(background,channels===4?0:255),bg=pad.r|pad.g<<8|pad.b<<16|pad.a<<24;
   const pages=new Map<number,Uint8Array>(),pixelCount=image.width*image.height;
   const sample=async(x:number,y:number):Promise<number|undefined>=>{
    if(x<0||y<0||x>=width||y>=height)return bg;

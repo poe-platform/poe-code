@@ -1,6 +1,7 @@
 import type { RgbaImage } from "@poe-code/image-ast";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { magickIntensity } from "./intensity.js";
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { createMagickRandom } from "./random.js";
 import { evaluateNoiseSteps } from "./noise.js";
 type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>;
@@ -151,25 +152,49 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
     }
 }
 
-export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height"> & { magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma"): Steps {
+export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height"> & { space?: RgbaImage["space"] | undefined; magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma"): Steps {
     const { width, height } = inputs[0]!, chunkPixels = 512;
+    const cmyk = inputs[0]!.space === "cmyk", range = highDepth ? 65535 : 255;
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x += chunkPixels) {
         yield;
         const position = (y * width + x) * 4, length = Math.min(chunkPixels, width - x) * 4;
         const base = (yield { kind: "read", highDepth, image: 0, position, length })!;
         const data = highDepth ? new Uint16Array(base.slice().buffer) : new Uint8Array(base);
         const samples = Float64Array.from(data, value => highDepth ? value / 257 : value);
+        const baseHue = cmyk ? yield { kind: "read", hue: true, position, length } : undefined;
+        const inks = baseHue?.length ? new Float64Array(baseHue.slice().buffer) : cmyk ? new Float64Array(length) : undefined;
+        if (inks && !baseHue?.length) for (let offset = 0; offset < length; offset += 4)
+            inks.set(rgbToCmyk(data[offset]! / range, data[offset + 1]! / range, data[offset + 2]! / range), offset);
         for (let image = 0; image < inputs.length; image++) {
             const sourceImage = inputs[image]!;
             if (y >= sourceImage.height || x >= sourceImage.width) continue;
             const count = Math.min(length, (sourceImage.width - x) * 4);
             const bytes = image === 0 ? base : (yield { kind: "read", highDepth, image, position: (y * sourceImage.width + x) * 4, length: count })!;
             const source = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+            const hue = cmyk && sourceImage.space === "cmyk" ? image === 0 ? baseHue
+                : yield { kind: "read", hue: true, image, position: (y * sourceImage.width + x) * 4, length: count } : undefined;
+            const inkSamples = hue?.length ? new Float64Array(hue.slice().buffer) : undefined;
             for (let offset = 0; offset < count; offset += 4) {
+                if (inks) {
+                    const channels = inkSamples ? inkSamples.subarray(offset, offset + 3) : sourceImage.space === "cmyk"
+                        ? rgbToCmyk(source[offset]! / range, source[offset + 1]! / range, source[offset + 2]! / range)
+                        : [source[offset]! / range, source[offset + 1]! / range, source[offset + 2]! / range];
+                    inks[offset + image] = magickIntensity(channels[0]!, channels[1]!, channels[2]!, intensity, 1, sourceImage.magickColorspace === "RGB");
+                    continue;
+                }
                 const value = magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, highDepth ? 65535 : 255, sourceImage.magickColorspace === "RGB");
                 samples[offset + image] = highDepth ? value / 257 : value;
                 data[offset + image] = Math.round(value);
             }
+        }
+        if (inks) {
+            // Keep the CMYK working plane and RGB backing in agreement; alpha is independent of black.
+            for (let offset = 0; offset < length; offset += 4) for (let channel = 0; channel < 3; channel++) {
+                const value = (1 - inks[offset + channel]!) * (1 - inks[offset + 3]!);
+                samples[offset + channel] = value * 255;
+                data[offset + channel] = Math.round(value * range);
+            }
+            yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
         }
         // Retain fractional intensities for later high-depth output.
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };

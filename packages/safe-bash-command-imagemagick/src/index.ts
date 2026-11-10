@@ -10548,7 +10548,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 delete result.hueSamples;
                 delete result.magickColorspace;
             }
-            stack = [{ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 || sources[0]!.hasAlpha }];
+            stack = [{ ...result, space: rIm.space === "cmyk" ? "cmyk" : "srgb", channels: 4, hasAlpha: rIm.space !== "cmyk" && sources.length === 4 || rIm.hasAlpha }];
         }
         else if (t === "-draw") {
             const drawSpec = tokens[++i] ?? "";
@@ -11519,7 +11519,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         delete result.storedHueSamples;
                         delete result.magickColorspace;
                     }
-                    stack.length = 0; await stack.push({ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 || sources[0]!.hasAlpha });
+                    stack.length = 0; await stack.push({ ...result, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: 4, hasAlpha: base.space !== "cmyk" && sources.length === 4 || base.hasAlpha });
                 } else if (token === "-morph") {
                     const image = await stack.get(0);
                     const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal) : argument;

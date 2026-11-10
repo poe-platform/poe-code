@@ -24,6 +24,9 @@ export async function tmix(
   // Native validates bounds before rounding integer options to nearest, ties to even.
   const lower = Math.floor(value);
   const count = value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
+  if (options.planes === "" || options.scale === "") {
+    throw new Error("tmix: invalid expression");
+  }
   const planes = Number(options.planes);
   if (!Number.isInteger(planes) || planes < 0 || planes > 15) {
     throw new Error("tmix: planes must be an integer from 0 to 15");

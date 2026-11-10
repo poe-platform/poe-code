@@ -28,7 +28,7 @@ for (const channels of [1, 2]) {
     ["atrim=start_sample=5:start_sample=-1:end_sample=8", 0, 8],
     ["atrim=start=invalid", -1, 0],
     ["atrim=end=", -1, 0],
-    ["atrim=unknown=1", -1, 0, 1],
+    ["atrim=unknown=1", -1, 0, 8],
     ["atrim=duration=-0.0005", -1, 0, 222],
     ["atrim=duration=invalid", -1, 0],
     ["atrim=durationi=", -1, 0],

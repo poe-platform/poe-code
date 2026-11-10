@@ -20,12 +20,14 @@ for (const complex of [false, true]) {
     ["start_sample=", 234],
     ["duration=invalid", 234],
     ["end=", 234],
-    ["end_sample=3", 0]
+    ["end_sample=5:foo=1", 8],
+    ["end_sample=5:enable=0", 176],
+    ["end_sample=5", 0]
   ] as const) {
     for (const outputExists of [false, true]) {
       it(`atrim=${bound} returns ${exitCode} (${complex ? "complex" : "simple"}, output ${outputExists ? "exists" : "absent"})`, async () => {
-        const input = Buffer.alloc(24);
-        for (let i = 0; i < 12; i++) input.writeInt16LE(i + 1, i * 2);
+        const input = Buffer.alloc(32);
+        for (let i = 0; i < 16; i++) input.writeInt16LE(i + 1, i * 2);
         const existing = Buffer.from("existing output");
         const volume = Volume.fromJSON({ "/in.raw": input,
           ...(outputExists ? { "/out.raw": existing } : {}) });
@@ -45,7 +47,7 @@ for (const complex of [false, true]) {
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         assert.equal(result.exitCode, exitCode, stderr);
-        if (exitCode === 0) assert.deepEqual(volume.readFileSync("/out.raw"), input.subarray(0, 6));
+        if (exitCode === 0) assert.deepEqual(volume.readFileSync("/out.raw"), input.subarray(0, 10));
         else {
           assert.ok(stderr.includes("atrim:"), stderr);
           assert.equal(volume.existsSync("/out.raw"), outputExists);

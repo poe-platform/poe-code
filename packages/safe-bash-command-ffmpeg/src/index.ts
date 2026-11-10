@@ -16098,6 +16098,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("pan:") && !msg.startsWith("pan: unsupported output layout ")) return { exitCode: 234 };
             if (msg === "transpose: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("transpose: unsupported option ")) return { exitCode: 8 };
+            if (msg === "atrim: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("atrim: unsupported option ")) return { exitCode: 8 };
             if ((msg.startsWith("atrim:") && !msg.startsWith("atrim: unsupported option")) ||
                 (msg.startsWith("transpose:") && !msg.startsWith("transpose: unsupported option")) ||
                 (msg.startsWith("asetnsamples:") && !msg.startsWith("asetnsamples: unsupported option")) ||

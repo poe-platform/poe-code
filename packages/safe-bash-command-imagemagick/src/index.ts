@@ -6966,6 +6966,15 @@ function parseMagickIndices(spec: string): number[][] {
 
 }
 
+function parseMagickDuplicateCount(spec: string): number {
+  // Validate the numeric geometry before reading its leading decimal integer.
+  const dimensions = spec.toLowerCase().split("x");
+  if (dimensions.length > 2 || dimensions.some(value => !Number.isFinite(Number(value)))) {
+    throw new Error(`invalid argument ${spec}`);
+  }
+  return spec.trim() === "" ? 0 : Number.parseInt(spec, 10);
+}
+
 function parseMagickDuplicateScenes(spec: string): string {
   if (spec === "") return spec;
   // Native skips leading separators; a nonempty list with only commas selects frame zero.
@@ -10826,7 +10835,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-duplicate") {
                 const value = frameListOperand!, comma = value.startsWith("x") ? 0 : value.indexOf(",");
                 const countSpec = comma < 0 ? value : value.slice(0, comma);
-                count = Number(countSpec);
+                count = parseMagickDuplicateCount(countSpec);
                 if ((!countSpec.trim() && comma !== 0) || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
                 idxSpec = parseMagickDuplicateScenes(comma < 0 ? "-1" : value.slice(comma + 1));
                 if (idxSpec === "") count = 0;
@@ -11620,7 +11629,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (token === "-duplicate") {
                     const value = spec, comma = value.startsWith("x") ? 0 : value.indexOf(",");
                     const countSpec = comma < 0 ? value : value.slice(0, comma);
-                    count = Number(countSpec);
+                    count = parseMagickDuplicateCount(countSpec);
                     if ((!countSpec.trim() && comma !== 0) || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
                     spec = parseMagickDuplicateScenes(comma < 0 ? "-1" : value.slice(comma + 1));
                     if (spec === "") count = 0;
@@ -15174,14 +15183,14 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else if (t === "-duplicate" || t === "+duplicate") {
             if (!operands.length) return { exitCode: 1, stdout: "", stderr: `montage: no images found for operation ${t}\n` };
             let count = 1, spec = "-1";
-            if (t === "-duplicate") {
-                const value = argv[++i] ?? "", comma = value.startsWith("x") ? 0 : value.indexOf(",");
-                count = Number(comma < 0 ? value : value.slice(0, comma));
-                if (!value || !Number.isSafeInteger(count)) return { exitCode: 1, stdout: "", stderr: `montage: invalid argument '${value}'\n` };
-                spec = comma < 0 ? "-1" : value.slice(comma + 1);
-            }
             const length = operands.length;
             try {
+                if (t === "-duplicate") {
+                    const value = argv[++i] ?? "", comma = value.startsWith("x") ? 0 : value.indexOf(",");
+                    count = parseMagickDuplicateCount(comma < 0 ? value : value.slice(0, comma));
+                    if (!value || !Number.isSafeInteger(count)) return { exitCode: 1, stdout: "", stderr: `montage: invalid argument '${value}'\n` };
+                    spec = comma < 0 ? "-1" : value.slice(comma + 1);
+                }
                 spec = parseMagickDuplicateScenes(spec);
                 if (spec === "") count = 0;
                 for (let repeat = 0; repeat < count; repeat++) {

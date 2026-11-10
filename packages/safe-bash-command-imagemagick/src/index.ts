@@ -573,7 +573,7 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   };
 }
 
-function parseDelay(value: string, ticksPerSecond = 100, current?: number): { milliseconds: number; ticksPerSecond: number } {
+function parseDelay(value: string, ticksPerSecond = 100, current?: number): { milliseconds: number; ticksPerSecond: number; delayTicks: number } {
   const geometry = [...value].filter(character => !"%!^<>@".includes(character)).join("")
     .replaceAll("X", "x").replaceAll("/", "x").replaceAll(",", "x");
   const fields: string[] = [];
@@ -587,23 +587,28 @@ function parseDelay(value: string, ticksPerSecond = 100, current?: number): { mi
   fields.push(geometry.slice(start));
   const parts = fields[0]!.split("x");
   if (!geometry.trim() || fields.length > 3 || parts.length > 2 ||
-      [...parts, ...fields.slice(1)].some(part => !Number.isFinite(Number(part)))) return { milliseconds: NaN, ticksPerSecond };
-  const [ticks, rate] = parts;
-  let delay = Math.round(Number(ticks));
+      [...parts, ...fields.slice(1)].some(part => !Number.isFinite(Number(part)))) return { milliseconds: NaN, ticksPerSecond, delayTicks: 0 };
+  const [delay, ticks] = parts;
+  let next = Math.round(Number(delay));
   if (current !== undefined) {
-    // Incoming delays are stored in milliseconds at the default 100 ticks/second.
-    if (value.includes(">")) delay = Math.min(current / 10, delay);
-    else if (value.includes("<")) delay = Math.max(current / 10, delay);
+    const previous = Math.round(current * ticksPerSecond / 1000);
+    if (value.includes(">")) next = Math.min(previous, next);
+    // Native SetImageProperty uses sigma (zero when omitted) for the '<' assignment.
+    else if (value.includes("<")) next = previous < next ? Math.round(Number(ticks ?? 0)) : previous;
   }
-  if (rate) ticksPerSecond = Number(rate) || 1;
-  return { milliseconds: Math.floor(delay * 1000 / ticksPerSecond), ticksPerSecond };
+  if (ticks) ticksPerSecond = Number(ticks) || 1;
+  return { milliseconds: Math.floor(next * 1000 / ticksPerSecond), ticksPerSecond, delayTicks: next };
 }
 
-function parseDelayOption(value: string, current: number): { milliseconds: number; ticksPerSecond: number } {
-  const delay = parseDelay(value, 100, current);
+function parseDelayOption(value: string, current: number): ReturnType<typeof parseDelay> {
+  const delay = parseDelay(value);
   if (!Number.isFinite(delay.milliseconds)) {
     throw new Error(`invalid argument for option '-delay' '${value}'`);
   }
+  // Incoming delays are stored in milliseconds at the default 100 ticks/second.
+  if (value.includes(">")) delay.delayTicks = Math.min(current / 10, delay.delayTicks);
+  else if (value.includes("<")) delay.delayTicks = Math.max(current / 10, delay.delayTicks);
+  delay.milliseconds = Math.floor(delay.delayTicks * 1000 / delay.ticksPerSecond);
   return delay;
 }
 
@@ -9116,7 +9121,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
                 const source = (image as MagickImage)[magickInput];
-                const delay = parseDelay(expanded, source?.ticksPerSecond ?? image.ticksPerSecond);
+                const delay = parseDelay(expanded, source?.ticksPerSecond ?? image.ticksPerSecond, image.delay?.[source?.sceneIdx ?? 0] ?? 0);
                 delay.milliseconds ||= 0;
                 return { ...image, ticksPerSecond: delay.ticksPerSecond, [magickInput]: { ...source, ticksPerSecond: delay.ticksPerSecond },
                     delay: Array(image.delay?.length ?? 1).fill(delay.milliseconds) };
@@ -11209,7 +11214,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
                     const image = (await stack.get(sceneIdx))!;
                     const expanded = await formatRetainedIdentify(value, image, { ...image[magickInput], sceneIdx, optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                    const delay = parseDelay(expanded, image[magickInput]?.ticksPerSecond ?? image.ticksPerSecond);
+                    const source = image[magickInput], scene = source?.sceneIdx ?? 0;
+                    const current = await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] ?? 0;
+                    const delay = parseDelay(expanded, source?.ticksPerSecond ?? image.ticksPerSecond, current);
                     delay.milliseconds ||= 0;
                     await stack.set(sceneIdx, {
                         ...image, ticksPerSecond: delay.ticksPerSecond, [magickInput]: { ...image[magickInput], ticksPerSecond: delay.ticksPerSecond },

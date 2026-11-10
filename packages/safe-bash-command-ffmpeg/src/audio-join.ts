@@ -41,7 +41,7 @@ export async function joinAudio(
   if (outputNames.some(name => !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length) {
     throw new Error(`join: unsupported channel layout ${layout}`);
   }
-  outputNames.sort((a, b) => speakers.indexOf(a) - speakers.indexOf(b));
+  // The mask identifies speakers; channelData retains the requested interleaving order.
   const outputMask = outputNames.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0);
   const audio = tracks.map(track => {
     if (!track.decodedAudio) throw new Error("join requires decoded PCM audio");

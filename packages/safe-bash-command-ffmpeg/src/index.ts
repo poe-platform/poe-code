@@ -13938,7 +13938,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const min = key === "delay" ? 1 : 0;
                           const max = key === "delay" ? 100 : key === "feedback" ? 0.9 : key === "crossfeed" ? 0.8 : 1;
                           const value = parseFilterExpression((separator < 0 ? option : option.slice(separator + 1)).trim(), "stereowiden", {
-                            min, max, default: defaults[key], PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                            min, max, default: defaults[key], none: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
                           });
                           if (!Number.isFinite(value) || value < min || value > max) {
                             throw new RangeError(`stereowiden: ${key} must be in the range [${min}, ${max}]`);
@@ -13976,7 +13976,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               } else if (command.action === "feedback" || command.action === "crossfeed" || command.action === "drymix") {
                                 const max = command.action === "feedback" ? 0.9 : command.action === "crossfeed" ? 0.8 : 1;
                                 const value = parseFilterExpression(command.expression, "stereowiden", {
-                                  min: 0, max, default: defaults[command.action], PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                                  min: 0, max, default: defaults[command.action], none: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
                                 });
                                 if (Number.isFinite(value) && value >= 0 && value <= max) {
                                   if (command.action === "feedback") feedback = Math.fround(value);

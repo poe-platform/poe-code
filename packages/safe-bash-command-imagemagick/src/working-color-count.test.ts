@@ -15,12 +15,23 @@ const cases = [
     { name: "explicit clamp", operations: ["-channel", "RGB", "-evaluate", "add", "100%", "-clamp", "+channel", "-unique-colors"], format: "%w|%k|%[colors]", expected: "4|4|4" }
 ];
 
+for (const factor of ["0", "1e-18", "1e-16", "1e-14"]) for (const unique of [false, true]) {
+    const count = factor === "1e-14" ? 4 : factor === "1e-16" ? 3 : 2;
+    cases.push({ name: `near-equal HDRI ${factor} palette=${unique}`,
+        operations: ["-channel", "R", "-evaluate", "multiply", factor, "+channel", ...(unique ? ["-unique-colors"] : [])],
+        format: unique ? "%wx%h|%k|%r" : "%k|%[colors]",
+        expected: unique ? `${count}x1|${count}|DirectClass sRGB Alpha` : `${count}|${count}` });
+}
+
 for (const mode of ["sync", "map", "retained", "command"] as const) for (const fixture of cases) {
     it(`counts ${fixture.name} (${mode})`, async () => {
         const files = new Map([["/im.pam", input]]);
         const filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/im.pam", input);
-        const args = ["/im.pam", ...fixture.operations, "-format", fixture.format, "info:/out"];
+        const sources = fixture.name.startsWith("near-equal") ? ["xc:#203040a0", "xc:#213040a0", "xc:#803040a0", "xc:#20304020", "+append"] : ["/im.pam"];
+        files.set("/out", Buffer.from("KEEP"));
+        await filesystem.writeFile("/out", Buffer.from("KEEP"));
+        const args = [...sources, ...fixture.operations, "-format", fixture.format, "info:/out"];
         if (mode === "command") {
             const command = createMagickCommand(), argumentValues = createCommandArguments(args);
             let stdout = "", stderr = "";

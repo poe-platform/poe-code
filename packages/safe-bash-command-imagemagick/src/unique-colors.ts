@@ -4,22 +4,43 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import type { HueMetadata } from "./colorspace-hue.js";
 import { magickResizeCanvas } from "./resize-canvas.js";
 
-function colorKey(samples: Uint8Array | Uint16Array | Float64Array, offset: number, alpha?: number): bigint {
+function colorKey(samples: Uint8Array | Uint16Array, offset: number): bigint {
     let key = 0n;
-    if (samples instanceof Float64Array) {
-        const bits = new BigUint64Array(samples.buffer, samples.byteOffset, samples.length);
-        for (let channel = 0; channel < 4; channel++) {
-            // Stored alpha distinguishes colors even while inactive; normalize signed zero.
-            key = key << 64n | (samples[offset + channel] === 0 ? 0n : bits[offset + channel]!);
-        }
-        // CMYK stores K in the fourth working channel and alpha separately.
-        return alpha === undefined ? key : key << 16n | BigInt(alpha);
-    }
     for (let channel = 0; channel < 4; channel++) key = key << 16n | BigInt(samples[offset + channel]!);
     return key;
 }
 
-function colorOrder(samples: Uint8Array | Uint16Array, offset: number, hasAlpha: boolean, inks?: Float64Array): number {
+// ImageMagick compares HDRI channels with MagickEpsilon in Q16 units.
+function equalWorkingColors(left: Float64Array, leftOffset: number, right: Float64Array, rightOffset: number, cmyk: boolean): boolean {
+    const epsilon = 1e-12 / (cmyk ? 65535 : 257);
+    for (let channel = 0; channel < 4; channel++) {
+        if (Math.abs(left[leftOffset + channel]! - right[rightOffset + channel]!) >= epsilon) return false;
+    }
+    return true;
+}
+
+export class UniqueColors {
+    private readonly exact = new Set<bigint>();
+    private readonly leaves = new Map<number, { samples: Float64Array; alpha: number | undefined }[]>();
+    size = 0;
+
+    add(samples: Uint8Array | Uint16Array | Float64Array, offset: number, order: number, alpha?: number): boolean {
+        if (samples instanceof Float64Array) {
+            const leaf = this.leaves.get(order) ?? [];
+            if (leaf.some(color => color.alpha === alpha && equalWorkingColors(color.samples, 0, samples, offset, alpha !== undefined))) return false;
+            leaf.push({ samples: samples.slice(offset, offset + 4), alpha });
+            this.leaves.set(order, leaf);
+        } else {
+            const key = colorKey(samples, offset);
+            if (this.exact.has(key)) return false;
+            this.exact.add(key);
+        }
+        this.size++;
+        return true;
+    }
+}
+
+export function colorOrder(samples: Uint8Array | Uint16Array, offset: number, hasAlpha: boolean, inks?: Float64Array): number {
     const scale = samples instanceof Uint16Array ? 257 : 1;
     const r = Math.round(inks ? inks[offset]! * 255 : samples[offset]! / scale);
     const g = Math.round(inks ? inks[offset + 1]! * 255 : samples[offset + 1]! / scale);
@@ -35,15 +56,14 @@ function colorOrder(samples: Uint8Array | Uint16Array, offset: number, hasAlpha:
 }
 
 export function* uniqueColorsSteps(image: RgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined }): Generator<void, RgbaImage & HueMetadata, void> {
-    const samples = image.data16 ?? image.data, seen = new Set<bigint>();
+    const samples = image.data16 ?? image.data, seen = new UniqueColors();
     const inks = image.space === "cmyk" ? image.hueSamples : undefined;
     let pixels: { offset: number; order: number }[] = [];
     for (let offset = 0; offset < samples.length; offset += 4) {
         if (offset % 4096 === 0) yield;
-        const key = colorKey(inks ?? image.evaluateSamples ?? samples, offset, inks ? samples[offset + 3]! : undefined);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        pixels.push({ offset, order: colorOrder(samples, offset, image.hasAlpha || image.inactiveAlpha === true, inks) });
+        const order = colorOrder(samples, offset, image.hasAlpha || image.inactiveAlpha === true, inks);
+        if (!seen.add(inks ?? image.evaluateSamples ?? samples, offset, order, inks ? samples[offset + 3]! : undefined)) continue;
+        pixels.push({ offset, order });
     }
     // Stable radix sorting stays cooperative even for an all-unique raster.
     for (let shift = 0; shift < 28; shift += 4) {
@@ -78,6 +98,16 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
     const seen = new IntegerTable(storage, 512), order = new IntegerTable(storage, 512), size = image.width * image.height * 4;
     const workingPosition = image.space === "cmyk" ? image.storedHueSamples : image.storedEvaluateSamples;
     let count = 0;
+    // Each leaf stores linked blocks of representatives: next/count, then
+    // alpha and four working channels per record (all float64).
+    let blockPosition = -1, block = new Float64Array(), dirty = false;
+    async function loadBlock(position: number, length: number): Promise<void> {
+        if (position === blockPosition) return;
+        if (dirty) await storage.write(blockPosition, new Uint8Array(block.buffer));
+        block = new Float64Array((await storage.read(position, length)).slice().buffer);
+        blockPosition = position;
+        dirty = false;
+    }
     for (let start = 0; start < size; start += 2048) {
         await yieldTurn(signal);
         const length = Math.min(2048, size - start);
@@ -87,35 +117,47 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
             : new Float64Array((await storage.read(workingPosition + start * 8, length * 8)).slice().buffer);
         const inks = image.space === "cmyk" ? working : undefined;
         for (let offset = 0; offset < length; offset += 4) {
-            const key = colorKey(working ?? samples, offset, inks ? samples[offset + 3]! : undefined);
-            let slot = key;
             if (working) {
-                // The paged table has 64-bit keys. Hash all working-sample bits,
-                // then compare exact colors and probe on a hash collision.
-                slot = 14695981039346656037n;
-                for (let shift = 0n; shift < (inks ? 272n : 256n); shift += 8n) slot = BigInt.asUintN(64, (slot ^ (key >> shift & 255n)) * 1099511628211n);
-            }
-            let previous = await seen.get(slot);
-            while (working && previous !== undefined) {
-                const source = Number(previous);
-                const candidate = source >= start && source < start + length ? working
-                    : new Float64Array((await storage.read(workingPosition! + source * 8, 32)).slice().buffer);
-                let alpha: number | undefined;
-                if (inks) {
-                    if (candidate === working) alpha = samples[source - start + 3]!;
-                    else {
-                        const stride = image.storedData16 ? 2 : 1;
-                        const bytes = await storage.read((image.storedData16?.position ?? image.position) + (source + 3) * stride, stride);
-                        alpha = image.storedData16 ? new Uint16Array(bytes.slice().buffer)[0]! : bytes[0]!;
-                    }
+                const leaf = BigInt(colorOrder(samples, offset, image.hasAlpha || image.inactiveAlpha === true, inks));
+                let position = await seen.get(leaf);
+                if (position === undefined) {
+                    position = BigInt(storage.allocate(64));
+                    await seen.set(leaf, position);
                 }
-                if (colorKey(candidate, candidate === working ? source - start : 0, alpha) === key) break;
-                await yieldTurn(signal);
-                slot = BigInt.asUintN(64, slot + 1n);
-                previous = await seen.get(slot);
+                const firstPosition = position;
+                let duplicate = false, scanned = 0;
+                while (true) {
+                    await loadBlock(Number(position), position === firstPosition ? 64 : 16384);
+                    const used = block[1]!;
+                    for (let index = 0; index < used; index++) {
+                        const record = 2 + index * 5;
+                        if ((!inks || block[record] === samples[offset + 3]) && equalWorkingColors(block, record + 1, working, offset, !!inks)) {
+                            duplicate = true;
+                            break;
+                        }
+                    }
+                    if (duplicate) break;
+                    if (used < Math.floor((block.length - 2) / 5)) {
+                        const record = 2 + used * 5;
+                        block[record] = inks ? samples[offset + 3]! : 0;
+                        block.set(working.subarray(offset, offset + 4), record + 1);
+                        block[1] = used + 1;
+                        dirty = true;
+                        break;
+                    }
+                    if (block[0] === 0) {
+                        block[0] = storage.allocate(16384);
+                        dirty = true;
+                    }
+                    position = BigInt(block[0]!);
+                    if (++scanned % 128 === 0) await yieldTurn(signal);
+                }
+                if (duplicate) continue;
+            } else {
+                const key = colorKey(samples, offset);
+                if (await seen.get(key) !== undefined) continue;
+                await seen.set(key, BigInt(start + offset));
             }
-            if (previous !== undefined) continue;
-            await seen.set(slot, BigInt(start + offset));
             // 36 low bits retain source order within a leaf. The source offset
             // also lets white RGBA16 use the table's full 64-bit key range.
             await order.set(BigInt(colorOrder(samples, offset, image.hasAlpha || image.inactiveAlpha === true, inks)) << 36n | BigInt((start + offset) / 4), BigInt(start + offset));

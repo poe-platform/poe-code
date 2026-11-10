@@ -69,7 +69,7 @@ import { formatTrimBoundsSteps, trimMagickSteps, trimStoredMagick } from "./trim
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { gifDitherSteps } from "./gif-dither.js";
 import { quantizeImageListSteps, quantizePixelSteps } from "./quantize.js";
-import { uniqueColorsSteps, uniqueColorsStored } from "./unique-colors.js";
+import { colorOrder, UniqueColors, uniqueColorsSteps, uniqueColorsStored } from "./unique-colors.js";
 import { magickResizeCanvas } from "./resize-canvas.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
 import { parseMagickPoly, polyPixelSteps } from "./poly-kernel.js";
@@ -1394,7 +1394,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   let bilevel = true;
   let bitDepth = 1;
   const colors = new Set<string>();
-  const uniqueColors = countColors ? new Set<string>() : undefined;
+  const uniqueColors = countColors ? new UniqueColors() : undefined;
   let count = 0;
   // 2048 float64 samples fit the 16 KiB storage read limit, including masks.
   const chunkSize = 2048;
@@ -1418,7 +1418,9 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       // Arithmetic retains unclamped fractional samples separately from output pixels.
       const working = chunk.evaluateSamples ?? samples;
       const alpha = img.hasAlpha ? working[i + 3]! : chunk.evaluateSamples ? 255 : range;
-      uniqueColors.add(inks ? `${inks[i]},${inks[i + 1]},${inks[i + 2]},${inks[i + 3]},${a}` : `${working[i]},${working[i + 1]},${working[i + 2]},${alpha}`);
+      const color = inks ?? working.slice(i, i + 4);
+      if (!inks) color[3] = alpha;
+      uniqueColors.add(color, inks ? i : 0, colorOrder(samples, i, img.hasAlpha, inks), inks ? a : undefined);
     }
     // Copy retains alpha samples without enabling transparency.
     opaque &&= img.alphaBlend === false || a === range;

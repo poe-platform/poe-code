@@ -14,6 +14,7 @@ for (const [filter, frames, left, right] of [
   ["aecho=0.5:1:1:0.5", 24, [[0, 6000], [8, 6000]], [[2, -4000], [10, -4000]]],
   ["aecho=0.5:1:0.2:0.5", 17, [[0, 6000], [1, 6000]], [[2, -4000], [3, -4000]]],
   ["aecho=0.5:1:0.01|2:0.5|0.25", 32, [[0, 6000], [16, 9000]], [[2, -4000], [18, -6000]]],
+  ["aecho=0.5:1:0x1|0x2:0x0.8|0x1p-2", 32, [[0, 6000], [8, 6000], [16, 3000]], [[2, -4000], [10, -4000], [18, -2000]]],
   ["aecho=0:1:1:0.5", 24, [[8, 6000]], [[10, -4000]]],
   ["aecho=0.5:0:1:0.5", 24, [], []],
   ["aecho=0.5:1:1|2:0.5|0.25,atrim=start_sample=16", 16, [[0, 3000]], [[2, -2000]]],
@@ -57,6 +58,31 @@ for (const [filter, frames, hash] of [
   });
 }
 
+// Native FFmpeg 7.0.2 produces the same PCM for hexadecimal and decimal delays.
+for (const delay of ["16", "0x10", "0X10", "+0x10", "0x1p4", "0x0.8p5", "0x10ms", "16ms", "bad||0x10"]) {
+  it(`aecho delay ${delay} matches native mono PCM`, async () => {
+    const channels = [Float64Array.from({ length: 4096 }, (_, i) => ((i * 179) % 50001 - 25000) / 32768)];
+    const volume = Volume.fromJSON({ "/out.raw": "KEEP" });
+    volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels }));
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-y", "-v", "error", "-i", "/in.wav", "-af", `aecho=0.6:0.4:${delay}:0.3`, "-f", "s16le", "/out.raw"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(), stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    const pcm = volume.readFileSync("/out.raw") as Buffer;
+    assert.equal(pcm.length, 8448);
+    assert.equal(createHash("sha256").update(pcm).digest("hex"), "94c45652bd533dce642f5f1a782db4ec5073343a0903d5c47c148efecae46eb5");
+  });
+}
+
 it("aecho makes the complete tail available to downstream frame filters", async () => {
   const { volume, result, stderr } = await run("aecho,aselect='gte(n,1)'");
   assert.equal(result.exitCode, 0, stderr);
@@ -67,6 +93,7 @@ it("aecho makes the complete tail available to downstream frame filters", async 
 });
 
 for (const filter of [
+  "aecho=delays=-0x10", "aecho=delays=0x0", "aecho=delays=0x15f91", "aecho=decays=0x2",
   "aecho=0.5:1:-1:0.5", "aecho=delays=0", "aecho=delays=90001",
   "aecho=delays=0.01", "aecho=delays=1|2:decays=0.5", "aecho=decays=0",
   "aecho=decays=1.1", "aecho=delays=bad", "aecho=decays=bad",

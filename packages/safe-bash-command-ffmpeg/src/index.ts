@@ -13435,6 +13435,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "acontrast: invalid expression") return { exitCode: 234 };
             if (err instanceof RangeError && msg.startsWith("acontrast:")) return { exitCode: 222 };
             if (msg.startsWith("apad packet_size:") || msg === "aloop: invalid expression" || msg === "aloop: invalid or unsupported expression" ||
+                msg === "dcshift: invalid expression" || msg === "dcshift: invalid or unsupported expression" ||
                 msg === "aeval: invalid expression" || msg === "aeval: invalid or unsupported expression") {
               return { exitCode: 234 };
             }

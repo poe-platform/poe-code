@@ -4201,22 +4201,26 @@ async function applyVideoFilterChain(
       }
       current = shuffled;
     } else if (name === "loop") {
-      const values = { loop: 0, size: 0, start: 0 };
+      const values = { loop: 0, size: 0, start: 0, time: Infinity };
       for (const [index, option] of (argStr ? argStr.split(":") : []).entries()) {
         const separator = option.indexOf("=");
-        const key = separator < 0 ? ["loop", "size", "start"][index] : option.slice(0, separator).trim();
-        if (key !== "loop" && key !== "size" && key !== "start") throw new Error(`loop: unsupported option ${key}`);
+        const key = separator < 0 ? ["loop", "size", "start", "time"][index] : option.slice(0, separator).trim();
+        if (key !== "loop" && key !== "size" && key !== "start" && key !== "time") throw new Error(`loop: unsupported option ${key}`);
         const text = (separator < 0 ? option : option.slice(separator + 1)).trim();
-        const value = Number(text);
-        const min = key === "loop" ? -1 : 0;
-        const max = key === "loop" ? 2147483647 : key === "size" ? 32767 : Number.MAX_SAFE_INTEGER;
-        if (!text || !Number.isSafeInteger(value) || value < min || value > max) {
-          throw new Error(`loop: ${key} must be an integer between ${min} and ${max}`);
+        const value = key === "time" ? parseHlsDuration(text) : Number(text);
+        const max = key === "time" ? (2 ** 63 - 1) / 1_000_000
+          : key === "loop" ? 2147483647 : key === "size" ? 32767 : Number.MAX_SAFE_INTEGER;
+        if (!text || !Number.isFinite(value) || (key !== "time" && !Number.isSafeInteger(value)) ||
+          value < (key === "start" || key === "loop" ? -1 : 0) || value > max) {
+          throw new Error(`loop: invalid ${key}`);
         }
         values[key] = value;
       }
-      // FFmpeg starts buffering when its one-based input count reaches start.
-      const start = Math.max(0, values.start - 1);
+      // Frame starts use FFmpeg's one-based input count; time starts use incoming PTS.
+      const start = values.start === -1
+        ? current.findIndex(frame => frame.ptsSeconds >= values.time)
+        : Math.max(0, values.start - 1);
+      if (start < 0) continue;
       const size = Math.min(values.size, Math.max(0, current.length - start));
       if (values.loop === -1 && size > 0) throw new Error("loop: infinite replay is not supported");
       if (values.loop > 0 && size > 0) {

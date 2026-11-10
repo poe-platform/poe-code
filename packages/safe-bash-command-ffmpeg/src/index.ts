@@ -11769,7 +11769,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // Decoded audio is key; video classification and concat metadata are unavailable.
                             key: 1, pict_type: NaN, interlace_type: NaN, concatdec_select: NaN,
                             I: 1, PROGRESSIVE: 0,
-                            n: 0, t: NaN, pts: NaN, TB: 1 / origRate, start_pts: NaN, start_t: NaN, pos: NaN
+                            n: 0, t: NaN, pts: NaN, TB: 1 / origRate, start_pts: NaN, start_t: NaN, pos: NaN,
+                            selected_n: 0, prev_pts: NaN, prev_t: NaN,
+                            prev_selected_n: NaN, prev_selected_pts: NaN, prev_selected_t: NaN
                           };
                           if (audioTimestamps.length === 0) parseFilterExpression(expression, "aselect", variables);
                           const selected: typeof audioTimestamps = [];
@@ -11787,7 +11789,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               variables.start_pts = frame.pts;
                               variables.start_t = variables.t;
                             }
-                            if (parseFilterExpression(expression, "aselect", variables) === 0) continue;
+                            const keep = parseFilterExpression(expression, "aselect", variables) !== 0;
+                            variables.prev_pts = frame.pts;
+                            variables.prev_t = variables.t;
+                            if (!keep) continue;
+                            variables.selected_n++;
+                            variables.prev_selected_n = n;
+                            variables.prev_selected_pts = frame.pts;
+                            variables.prev_selected_t = variables.t;
                             ranges.push(frame);
                             const end = length + frame.end - frame.start;
                             selected.push({ start: length, end, pts: frame.pts, pos: frame.pos });

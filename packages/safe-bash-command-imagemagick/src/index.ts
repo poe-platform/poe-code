@@ -9323,6 +9323,7 @@ async function whiteThresholdStoredMetaChannels(image: StoredRgbaImage, result: 
 async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {
     const size = image.width * image.height * 4, position = backend.storage.allocate(size);
     let result = image;
+    let pixelsChanged = false;
     let storedData16: StoredRgbaImage["storedData16"];
     let storedDataFloat: StoredRgbaImage["storedDataFloat"];
     let storedWriteMask: StoredRgbaImage["storedWriteMask"];
@@ -9343,6 +9344,7 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
             ? { ...image.storedWriteMask, width: data.length / 4, height: 1, data: await backend.storage.read(image.storedWriteMask.position + offset, data.length) } : undefined;
         const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(writeMask ? { writeMask } : {}), ...(evaluateSamples ? {evaluateSamples} : {}), ...(data16 ? {data16} : {}), ...(hueSamples ? {hueSamples} : {}) }, offset / 4, image.width), signal);
         const { data: pixels, writeMask: outputMask, evaluateSamples: outputEvaluate, data16: output16, dataFloat: outputFloat, hueSamples: outputHue, ...metadata } = transformed;
+        pixelsChanged ||= pixels !== data;
         if (outputMask) {
             const { data: maskPixels, ...maskMetadata } = outputMask;
             storedWriteMask ??= { ...maskMetadata, width: image.width, height: image.height, position: backend.storage.allocate(size) };
@@ -9376,7 +9378,8 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
                     { ...planeOperation, apply: meta.apply }, signal, highDepth);
         }
     }
-    return result;
+    // Match buffered execution: unchanged pixel buffers must not trigger mask compositing.
+    return pixelsChanged ? result : { ...result, position: image.position };
 }
 
 function* prepareRawFrames(stack: readonly MagickImage[], format: ImageFormat): Generator<void, RawImage> {
@@ -10285,6 +10288,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
     while (i < tokens.length) {
         yield;
         const t = tokens[i]!;
+        const layerMethod = t === "-layers" ? (tokens[i + 1] ?? "").toLowerCase().replaceAll("-", "").replaceAll("_", "") : "";
         if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
         if (operandsOnly) {
             const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes, undefined, state.extract, registers, analysis);
@@ -10803,7 +10807,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-dispose") {
             state.disposal = parseMagickDisposal(tokens[++i] ?? "");
         }
-        else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "trimbounds") {
+        else if (t === "-layers" && layerMethod === "trimbounds") {
             i++;
             let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
             for (const frame of stack) {
@@ -10817,7 +10821,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return { ...frame, virtualCanvas: { width: right - left, height: bottom - top, x: (frame.virtualCanvas?.x ?? 0) - left, y: (frame.virtualCanvas?.y ?? 0) - top } };
             });
         }
-        else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "removezero") {
+        else if (t === "-layers" && layerMethod === "removezero") {
             i++;
             const frames: RgbaImage[] = [];
             for (const frame of stack) {
@@ -10827,10 +10831,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (frames.length) stack = frames;
             else if (stack.length) analysis.warnings += "magick: animation only contains zero time delays\n";
         }
-        else if (t === "-deconstruct" || (t === "-layers" && ["compareany", "compareoverlay", "compareclear", "removedups", "optimizeplus"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
-            const method = t === "-layers" ? tokens[i + 1]!.toLowerCase() : "compareany";
-            const optimizePlus = t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizeplus";
-            const removeDups = optimizePlus || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "removedups");
+        else if (t === "-deconstruct" || (t === "-layers" && ["compareany", "compareoverlay", "compareclear", "removedups", "optimizeplus"].includes(layerMethod))) {
+            const method = t === "-layers" ? layerMethod : "compareany";
+            const optimizePlus = t === "-layers" && layerMethod === "optimizeplus";
+            const removeDups = optimizePlus || (t === "-layers" && layerMethod === "removedups");
             if (optimizePlus) {
                 for (const frame of stack) {
                     if (frame.width !== stack[0]!.width || frame.height !== stack[0]!.height)
@@ -10904,7 +10908,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             stack = frames;
         }
-        else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizetransparency") {
+        else if (t === "-layers" && layerMethod === "optimizetransparency") {
             i++;
             if (stack.length > 1) {
                 const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
@@ -10927,9 +10931,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
             }
         }
-        else if (t === "-coalesce" || (t === "-layers" && ["coalesce", "dispose", "optimize"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
-            const dispose = t === "-layers" && tokens[i + 1]?.toLowerCase() === "dispose";
-            const optimize = t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimize";
+        else if (t === "-coalesce" || (t === "-layers" && ["coalesce", "dispose", "optimize"].includes(layerMethod))) {
+            const dispose = t === "-layers" && layerMethod === "dispose";
+            const optimize = t === "-layers" && layerMethod === "optimize";
             if (optimize) state.optimizeLayers = true;
             if (t === "-layers") i++;
             if (stack.length && (!optimize || stack.some(frame => frame.width !== (stack[0]!.virtualCanvas?.width || stack[0]!.width) || frame.height !== (stack[0]!.virtualCanvas?.height || stack[0]!.height) || frame.virtualCanvas?.x || frame.virtualCanvas?.y))) {
@@ -12039,7 +12043,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             stack = [appended];
         }
-        else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizeframe") {
+        else if (t === "-layers" && layerMethod === "optimizeframe") {
             for (const frame of stack) {
                 if (frame.width !== stack[0]!.width || frame.height !== stack[0]!.height ||
                     (frame.virtualCanvas?.width || frame.width) !== frame.width ||
@@ -12048,11 +12052,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             state.optimizeLayers = true; i++;
         }
-        else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
+        else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes(layerMethod))) {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const flatten = t === "-flatten" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "flatten");
-            const merge = t === "-layers" && tokens[i + 1]?.toLowerCase() === "merge";
-            const mosaic = t === "-mosaic" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "mosaic");
+            const flatten = t === "-flatten" || (t === "-layers" && layerMethod === "flatten");
+            const merge = t === "-layers" && layerMethod === "merge";
+            const mosaic = t === "-mosaic" || (t === "-layers" && layerMethod === "mosaic");
             if (t === "-layers")
                 i++;
             if (stack.length > 0) {
@@ -12091,7 +12095,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (first.orientation !== undefined) stack[0] = { ...stack[0]!, orientation: first.orientation };
             }
         }
-        else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "composite") {
+        else if (t === "-layers" && layerMethod === "composite") {
             i++;
             const separator = stack.findIndex(frame => (frame as MagickImage)[magickInput]?.filePath === "null:");
             if (separator < 0) throw new Error("missing Null Image List Separator layers Composite");
@@ -12749,6 +12753,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
     for (let i = 0; i < tokens.length; i++) {
         if (i && i % 64 === 0) await yieldTurn(signal);
         const token = tokens[i]!;
+        const layerMethod = token === "-layers" ? (tokens[i + 1] ?? "").toLowerCase().replaceAll("-", "").replaceAll("_", "") : "";
         if (token === "") continue;
         if (!operandsOnly && (token === "-quiet" || token === "+quiet")) {
             stackStep(async stack => { analysis.quiet = token === "-quiet"; return stack; });
@@ -13615,7 +13620,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizeframe") {
+        if (!operandsOnly && token === "-layers" && layerMethod === "optimizeframe") {
             stackStep(async stack => {
                 const first = await stack.get(0);
                 for (let n = 0; n < stack.length; n++) {
@@ -13629,7 +13634,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             state.optimizeLayers = true; i++; continue;
         }
-        if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "composite") {
+        if (!operandsOnly && token === "-layers" && layerMethod === "composite") {
             i++;
             const settings = { ...state };
             stackStep(async (stack, backend) => {
@@ -13654,10 +13659,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             }); continue;
         }
-        if (!operandsOnly && (["-append", "+append", "-flatten", "-mosaic", "-composite"].includes(token) || (token === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
-            const flatten = token === "-flatten" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "flatten");
-            const merge = token === "-layers" && tokens[i + 1]?.toLowerCase() === "merge";
-            const mosaic = token === "-mosaic" || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "mosaic");
+        if (!operandsOnly && (["-append", "+append", "-flatten", "-mosaic", "-composite"].includes(token) || (token === "-layers" && ["flatten", "merge", "mosaic"].includes(layerMethod)))) {
+            const flatten = token === "-flatten" || (token === "-layers" && layerMethod === "flatten");
+            const merge = token === "-layers" && layerMethod === "merge";
+            const mosaic = token === "-mosaic" || (token === "-layers" && layerMethod === "mosaic");
             if (token === "-layers") i++;
             const settings = { ...state };
             stackStep(async (stack, backend) => {
@@ -13825,7 +13830,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "+dispose") { delete state.disposal; continue; }
         if (!operandsOnly && token === "-dispose") { state.disposal = parseMagickDisposal(tokens[++i] ?? ""); continue; }
         if (!operandsOnly && token === "-tile") { state.tile = tokens[++i]; continue; }
-        if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "trimbounds") {
+        if (!operandsOnly && token === "-layers" && layerMethod === "trimbounds") {
             i++;
             stackStep(async stack => {
                 let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
@@ -13843,7 +13848,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "removezero") {
+        if (!operandsOnly && token === "-layers" && layerMethod === "removezero") {
             i++;
             stackStep(async (stack, backend) => {
                 const frames = new StoredImageStack(backend.storage, signal);
@@ -13858,10 +13863,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-deconstruct" || (token === "-layers" && ["compareany", "compareoverlay", "compareclear", "removedups", "optimizeplus"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
-            const method = token === "-layers" ? tokens[i + 1]!.toLowerCase() : "compareany";
-            const optimizePlus = token === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizeplus";
-            const removeDups = optimizePlus || (token === "-layers" && tokens[i + 1]?.toLowerCase() === "removedups");
+        if (!operandsOnly && (token === "-deconstruct" || (token === "-layers" && ["compareany", "compareoverlay", "compareclear", "removedups", "optimizeplus"].includes(layerMethod)))) {
+            const method = token === "-layers" ? layerMethod : "compareany";
+            const optimizePlus = token === "-layers" && layerMethod === "optimizeplus";
+            const removeDups = optimizePlus || (token === "-layers" && layerMethod === "removedups");
             if (optimizePlus) state.optimizeLayers = true;
             if (token === "-layers") i++;
             const fuzz = state.alphaFuzz;
@@ -13951,7 +13956,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "optimizetransparency") {
+        if (!operandsOnly && token === "-layers" && layerMethod === "optimizetransparency") {
             i++;
             const fuzz = state.fuzz;
             stackStep(async (stack, backend) => {
@@ -13973,9 +13978,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-coalesce" || (token === "-layers" && ["coalesce", "dispose", "optimize"].includes((tokens[i + 1] ?? "").toLowerCase())))) {
-            const dispose = token === "-layers" && tokens[i + 1]?.toLowerCase() === "dispose";
-            const optimize = token === "-layers" && tokens[i + 1]?.toLowerCase() === "optimize";
+        if (!operandsOnly && (token === "-coalesce" || (token === "-layers" && ["coalesce", "dispose", "optimize"].includes(layerMethod)))) {
+            const dispose = token === "-layers" && layerMethod === "dispose";
+            const optimize = token === "-layers" && layerMethod === "optimize";
             if (optimize) state.optimizeLayers = true;
             if (token === "-layers") i++;
             stackStep(async (stack, backend) => {

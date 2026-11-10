@@ -8930,7 +8930,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return { ...image, isPalette: false, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-tint") {
-        highDepth = true;
+        highDepth = evaluate = true;
         const value = tokens[++i] ?? "";
         const strength = [...value].filter(character => character.trim() !== "").join("");
         const percentages = strength.replaceAll(":", ",").split(",").map(part => {
@@ -8963,9 +8963,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const hueSamples = image.hueSamples?.slice();
-            const evaluateSamples = image.evaluateSamples?.slice();
-            const samples = hueSamples ?? evaluateSamples ?? data16 ?? out;
-            const quantum = hueSamples ? 1 : evaluateSamples || !data16 ? 255 : 65535;
+            const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
+            const samples = hueSamples ?? evaluateSamples;
+            const quantum = hueSamples ? 1 : 255;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 for (let channel = 0; channel < 3; channel++) {

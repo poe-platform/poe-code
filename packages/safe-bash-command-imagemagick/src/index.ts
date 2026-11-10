@@ -8902,7 +8902,8 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
 
 function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 4 | null, pixelOffset = 0, imageWidth = image.width): Generator<void, RgbaImage> {
     const missingChannel = channel === null || (channel === 4 ? image.space !== "cmyk" : channel === 3 ? !image.hasAlpha : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
-    const { magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, metaChannels: ignoredMeta, storedMetaChannels: ignoredStoredMeta, ...components } = image;
+    // The source selection clips extraction, but does not belong to the generated planes.
+    const { writeMask: ignoredMask, region: ignoredRegion, magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, metaChannels: ignoredMeta, storedMetaChannels: ignoredStoredMeta, ...components } = image;
     const separated = yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : components, missingChannel ? 3 : channel === 4 ? 0 : channel);
     // CMYK stores K at working offset 3; alpha remains in the RGBA backing.
     const workingSamples = channel === 3 ? undefined : hueSamples;
@@ -8976,7 +8977,7 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
             await backend.storage.write(storedData16.position + offset * 2, new Uint8Array(output16.buffer, output16.byteOffset, output16.byteLength));
         }
         await backend.storage.write(position + offset, pixels);
-        result = { ...metadata, ...(writeMask ? { storedWriteMask: { ...image.storedWriteMask! } } : {}), width: image.width, height: image.height, position, ...(storedEvaluateSamples === undefined ? {} : {storedEvaluateSamples}), ...(storedData16 ? {storedData16} : {}), ...(storedDataFloat ? {storedDataFloat} : {}), ...(storedHueSamples === undefined ? {} : {storedHueSamples}) };
+        result = { ...metadata, ...(writeMask ? { storedWriteMask: transformed.writeMask ? { ...image.storedWriteMask! } : undefined } : {}), width: image.width, height: image.height, position, ...(storedEvaluateSamples === undefined ? {} : {storedEvaluateSamples}), ...(storedData16 ? {storedData16} : {}), ...(storedDataFloat ? {storedDataFloat} : {}), ...(storedHueSamples === undefined ? {} : {storedHueSamples}) };
     }
     return result;
 }

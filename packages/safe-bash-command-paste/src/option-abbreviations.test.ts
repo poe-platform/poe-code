@@ -91,20 +91,43 @@ for (const option of ["serial", "delimiters", "zero-terminated"]) {
  }
 }
 
-for (const option of ["--unknown", "--serially", "--delimiters-extra=:", "--zero-terminator", "--=:", "--s=", "--ser=yes", "--z=", "--zero-t=yes"]) {
- test(`paste rejects invalid option ${option}`, async () => {
-  const result = await run([option], {}, "a\nb\n");
-  assert.equal(result.exitCode, 1);
-  assert.equal(result.stdout, "");
-  assert.ok(result.stderr.includes("unsupported option"), result.stderr);
+for (const [args, message] of [
+ [["-x"], "invalid option -- 'x'"],
+ [["-sx"], "invalid option -- 'x'"],
+ [["-xy"], "invalid option -- 'x'"],
+ [["--bad"], "unrecognized option '--bad'"],
+ [["--unknown"], "unrecognized option '--unknown'"],
+ [["--serially"], "unrecognized option '--serially'"],
+ [["--delimiters-extra=:"], "unrecognized option '--delimiters-extra=:'"],
+ [["--zero-terminator"], "unrecognized option '--zero-terminator'"],
+ [["--=:"], "option '--=:' is ambiguous; possibilities: '--serial' '--delimiters' '--zero-terminated' '--help' '--version'"],
+ [["-d"], "option requires an argument -- 'd'"],
+ [["-sd"], "option requires an argument -- 'd'"],
+ [["--delimiters"], "option '--delimiters' requires an argument"],
+ [["--delim"], "option '--delimiters' requires an argument"],
+ [["--serial=yes"], "option '--serial' doesn't allow an argument"],
+ [["--s="], "option '--serial' doesn't allow an argument"],
+ [["--ser=yes"], "option '--serial' doesn't allow an argument"],
+ [["--z="], "option '--zero-terminated' doesn't allow an argument"],
+ [["--zero-t=yes"], "option '--zero-terminated' doesn't allow an argument"],
+ [["--he=yes"], "option '--help' doesn't allow an argument"],
+ [["--vers="], "option '--version' doesn't allow an argument"],
+ [["-x", "--help"], "invalid option -- 'x'"],
+ [["--bad", "--version"], "unrecognized option '--bad'"],
+] as const) {
+ test(`paste reports GNU usage diagnostic for ${JSON.stringify(args)}`, async () => {
+  assert.deepEqual(await run([...args], {}, "x\ny\nz\n", { LC_ALL: "C" }), {
+   exitCode: 1,
+   stdout: "",
+   stderr: `paste: ${message}\nTry 'paste --help' for more information.\n`,
+  });
  });
 }
 
-test("paste requires a delimiter value after an abbreviated option", async () => {
- const result = await run(["--delim"], {}, "a\nb\n");
- assert.equal(result.exitCode, 1);
- assert.equal(result.stdout, "");
- assert.ok(result.stderr.includes("requires an argument"), result.stderr);
+test("paste still merges files with an explicit delimiter in the C locale", async () => {
+ assert.deepEqual(await run(["-d", ":", "a", "b"], { "/a": "A\nB\nC", "/b": "1\n2\n" }, "x\ny\nz\n", { LC_ALL: "C" }), {
+  exitCode: 0, stdout: "A:1\nB:2\nC:\n", stderr: "",
+ });
 });
 
 test("paste treats option prefixes after -- as filenames", async () => {

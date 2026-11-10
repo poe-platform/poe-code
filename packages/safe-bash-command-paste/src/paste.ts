@@ -1,7 +1,7 @@
 import { FsError, getCommandArguments, shellValueBytes, type ShellValue, type CommandDefinition } from "safe-bash-contracts";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { diagnostic } from "safe-bash-io-engine/internal";
-import { argument, command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
+import { command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 function delimiters(bytes: Uint8Array, locale: string): readonly Uint8Array[] {
   const name = locale.split("@")[0]!;
@@ -59,6 +59,10 @@ function validLocale(locale: string): boolean {
   } catch { return false; }
 }
 
+function usageError(message: string): never {
+  throw new PublicDiagnostic(`${message}\nTry 'paste --help' for more information.`);
+}
+
 function operandName(value: ShellValue): string {
   if (typeof value === "string") return value;
   try {
@@ -90,20 +94,25 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         if ("--serial".startsWith(token)) { serial = true; continue; }
         if ("--zero-terminated".startsWith(token)) { separator = 0; continue; }
         const equal = token.indexOf("="), name = equal < 0 ? token : token.slice(0, equal);
+        if (name === "--") usageError(`option '${token}' is ambiguous; possibilities: '--serial' '--delimiters' '--zero-terminated' '--help' '--version'`);
+        if (equal >= 0) {
+          const option = ["--serial", "--zero-terminated", "--help", "--version"].find(option => option.startsWith(name));
+          if (option) usageError(`option '${option}' doesn't allow an argument`);
+        }
         if (name.length > 2 && "--delimiters".startsWith(name)) {
-          [, index] = argument(context.args, index, equal < 0 ? undefined : token.slice(equal + 1), token);
+          if (equal < 0 && context.args[++index] === undefined) usageError("option '--delimiters' requires an argument");
           delimiterList = getCommandArguments(context).bytes(index)!.subarray(equal < 0 ? 0 : equal + 1); continue;
         }
-        fail(`unsupported option ${token}`);
+        usageError(`unrecognized option '${token}'`);
       }
       for (let offset = 1; offset < token.length; offset++) {
         const flag = token[offset];
         if (flag === "s") serial = true;
         else if (flag === "z") separator = 0;
         else if (flag === "d") {
-          [, index] = argument(context.args, index, token.slice(offset + 1) || undefined, "-d");
+          if (offset + 1 === token.length && context.args[++index] === undefined) usageError("option requires an argument -- 'd'");
           delimiterList = getCommandArguments(context).bytes(index)!.subarray(token.length > offset + 1 ? offset + 1 : 0); break;
-        } else fail(`unsupported option -${flag}`);
+        } else usageError(`invalid option -- '${flag}'`);
       }
     }
     const list = delimiters(delimiterList, locale);

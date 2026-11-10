@@ -1,6 +1,6 @@
 # paste
 
-Run `paste` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Enable only the commands your application needs. GNU-style unique prefixes are accepted for `--serial`, `--delimiters`, `--zero-terminated`, `--help`, and `--version`, including attached delimiter values such as `--delim=:`. When delimiter options repeat, only the final list is used and validated; every option still requires an argument. A final delimiter list ending in an unescaped backslash is rejected with the offending list in the diagnostic, without a help hint.
+Run `paste` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Enable only the commands your application needs. GNU-style unique prefixes are accepted for `--serial`, `--delimiters`, `--zero-terminated`, `--help`, and `--version`, including attached delimiter values such as `--delim=:`. When delimiter options repeat, only the final list is used and validated; every option still requires an argument. Invalid options, missing delimiter arguments, and unexpected arguments to flags report GNU-style diagnostics with a `paste --help` hint and exit status 1. A final delimiter list ending in an unescaped backslash is rejected with the offending list in the diagnostic, without a help hint.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

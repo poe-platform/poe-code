@@ -9940,7 +9940,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const time = Number(words.shift());
                           if (words[0] === "[enter]") words.shift();
                           const [target, action, expression] = words;
-                          const supported = action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
+                          const supported = action === "enable" && (target === "tremolo" || target?.startsWith("tremolo@"))
+                            || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
                             || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
                             || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
@@ -9953,7 +9954,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME tremolo[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN");
                           }
                           return { time, target, action: action!, expression };
                         });
@@ -10200,7 +10201,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
                           stretched = await softClipAudio(stretched, origRate, trimmed, audioTimestamps, filteredSampleFormat, budget, context.signal);
                         } else if (filterName === "tremolo") {
-                          stretched = await tremoloAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                          const commands = audioCommands.filter(command => command.target === "tremolo" || command.target === filterTarget)
+                            .sort((a, b) => a.sample - b.sample);
+                          audioCommands = audioCommands.filter(command => command.target !== "tremolo" && command.target !== filterTarget);
+                          stretched = await tremoloAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
                         } else if (filterName === "vibrato") {
                           filteredSampleFormat = "dblp";
                           stretched = await vibratoAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);

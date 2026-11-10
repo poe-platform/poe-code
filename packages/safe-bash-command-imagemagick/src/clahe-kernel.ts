@@ -1,4 +1,5 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { convertHuePixels, type HueMetadata } from "./colorspace-hue.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
@@ -33,6 +34,12 @@ export function parseClaheGeometry(raw: string) {
 export function* clahePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "format" | "space" | "channels" | "depth" | "density" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata,
     geometry: ReturnType<typeof parseClaheGeometry>, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, size = width * height, { bins, clip } = geometry;
+    const cmyk = image.space === "cmyk";
+    // CMYK hue samples are inks, while the backing pixels are already RGB.
+    if (cmyk) {
+        const { hueSamples: ignored, ...rgb } = image;
+        image = rgb;
+    }
     let tw = geometry.width ?? width, th = geometry.height ?? height;
     if (geometry.percent) {
         tw = Math.round(width * (geometry.width ?? 100) / 100);
@@ -136,6 +143,7 @@ export function* clahePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
         }
         // Match native float Quantum storage before rounding the final Q16 samples.
         const output = new Uint16Array(count * 4), extended = new Float64Array(count * 4);
+        const inks = cmyk ? new Float64Array(count * 4) : undefined;
         for (let i = 0; i < count; i++) {
             const l = lab.hueSamples![i * 4]!, a = lab.hueSamples![i * 4 + 1]!, b = lab.hueSamples![i * 4 + 2]!;
             const fy = (l * 100 + 16) / 116, fx = (a - 0.5) * 255 / 500 + fy, fz = fy - (b - 0.5) * 255 / 200;
@@ -148,12 +156,17 @@ export function* clahePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
             for (let channel = 0; channel < 3; channel++) {
                 const value = linear[channel]! - minimum;
                 const encoded = value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
-                extended[i * 4 + channel] = Math.fround(encoded * 65535) / 257;
-                output[i * 4 + channel] = Math.max(0, Math.min(65535, Math.round(Math.fround(encoded * 65535))));
+                const value16 = Math.fround(encoded * 65535);
+                extended[i * 4 + channel] = value16 / 257;
+                output[i * 4 + channel] = Math.max(0, Math.min(65535, Math.round(value16)));
+                if (inks) inks[i * 4 + channel] = value16 / 65535;
             }
+            // Convert before clipping RGB: native HDRI can exceed white after equalization.
+            if (inks) inks.set(rgbToCmyk(inks[i * 4]!, inks[i * 4 + 1]!, inks[i * 4 + 2]!), i * 4);
             extended[i * 4 + 3] = lab.hueSamples![i * 4 + 3]! * 255;
             output[i * 4 + 3] = Math.max(0, Math.min(65535, Math.round(lab.hueSamples![i * 4 + 3]! * 65535)));
         }
+        if (inks) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(inks.buffer) };
         yield { kind: "write", highDepth: true, position: start * 4, data: new Uint8Array(output.buffer) };
         yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(extended.buffer) };
     }

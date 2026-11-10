@@ -54,10 +54,10 @@ for (const mode of ["sync", "buffered", "command"] as const) {
         expect([...opaque.data].filter((_, index) => index % 4 === 3)).toEqual([255, 255, 255]);
     });
 
-    it.each(["TrueColor", "Palette"])(`removes alpha without losing hidden RGB for %s via ${mode}`, async type => {
+    it.each(["TrueColor", "Palette"])(`converts transparent RGB according to %s via ${mode}`, async type => {
         const input = encodeImage({ ...decodeImage(fixtures.direct), data: new Uint8Array([20, 60, 100, 0, 180, 100, 60, 128, 75, 155, 195, 255]) }, { format: "png", pngColorType: 6 }).data;
         const output = await convert(input, ["-type", type.toLowerCase()]);
-        expect([...output.data]).toEqual([20, 60, 100, 255, 180, 100, 60, 255, 75, 155, 195, 255]);
+        expect([...output.data]).toEqual([...(type === "Palette" ? [0, 0, 0] : [20, 60, 100]), 255, 180, 100, 60, 255, 75, 155, 195, 255]);
     });
 
     it(`converts PGM to TrueColor before cropping via ${mode}`, async () => {

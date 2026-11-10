@@ -6980,8 +6980,18 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             if (imageType === "truecolor" || imageType === "truecoloralpha" || paletteType) {
                 const hasAlpha = imageType === "truecoloralpha" || imageType === "palettealpha" || imageType === "palettematte";
-                // Enabling absent alpha makes it opaque; TrueColor and Palette discard alpha without compositing RGB.
+                const source = image;
+                // Enabling absent alpha makes it opaque; TrueColor preserves hidden RGB.
                 if (!hasAlpha || !image.hasAlpha) image = yield* prepareInactiveAlphaOutput({ ...image, hasAlpha: false });
+                if (imageType === "palette" && source.hasAlpha) {
+                    const samples = source.data16 ?? source.data;
+                    for (let offset = 0; offset < samples.length; offset += 4) {
+                        if (offset % 65536 === 0) yield;
+                        if (samples[offset + 3] !== 0) continue;
+                        image.data.fill(0, offset, offset + 3);
+                        image.data16?.fill(0, offset, offset + 3);
+                    }
+                }
                 return { ...image, isPalette: paletteType, hasAlpha, channels: hasAlpha ? 4 : 3, space: "srgb" };
             }
             if (space === "cmyk") return yield* convertCmykPixels(image);

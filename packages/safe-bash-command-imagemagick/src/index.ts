@@ -1176,28 +1176,45 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
         parseMagickColorMatrix(kernels[i]!);
         yield;
     }
+    const cmyk = img.space === "cmyk";
+    if (cmyk) img = yield* convertCmykPixels(img);
+    const hueSamples = img.hueSamples?.slice();
     const out = new Uint8Array(img.data);
-    const hueSamples = img.space !== "cmyk" ? img.hueSamples?.slice() : undefined;
-    const samples = (hueSamples ? img.hueSamples : undefined) ?? img.evaluateSamples ?? img.data16 ?? img.data;
-    const scale = hueSamples ? 1 / 255 : !img.evaluateSamples && img.data16 ? 257 : 1;
+    const samples = !cmyk && img.hueSamples ? img.hueSamples : img.evaluateSamples ?? img.data16 ?? img.data;
+    const scale = !cmyk && img.hueSamples ? 1 / 255 : !img.evaluateSamples && img.data16 ? 257 : 1;
     const evaluateSamples = Float64Array.from(samples, value => value / scale);
     const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        for (let channel = 0; channel < (img.hasAlpha ? 4 : 3); channel++) {
+        for (let channel = 0; channel < (cmyk ? img.hasAlpha ? 5 : 4 : img.hasAlpha ? 4 : 3); channel++) {
             // ImageMagick reserves the fourth matrix channel for CMYK black.
-            const row = channel === 3 ? 4 : channel;
+            const row = !cmyk && channel === 3 ? 4 : channel;
             if (row >= rows) continue;
             let value = cols >= 6 ? m[row * cols + 5]! * 255 : 0;
             for (let col = 0; col < 3; col++)
-                value += (col < cols ? m[row * cols + col]! : row === col ? 1 : 0) * (samples[i + col]! / scale);
+                value += (col < cols ? m[row * cols + col]! : row === col ? 1 : 0) * (cmyk ? img.hueSamples![i + col]! * 255 : samples[i + col]! / scale);
+            if (cmyk && cols >= 4) value += m[row * cols + 3]! * img.hueSamples![i + 3]! * 255;
             if (cols >= 5 && img.hasAlpha) value += m[row * cols + 4]! * (samples[i + 3]! / scale);
-            else if (channel === 3) value += samples[i + 3]! / scale;
-            evaluateSamples[i + channel] = value;
-            if (hueSamples) hueSamples[i + channel] = value / 255;
-            if (data16) data16[i + channel] = Math.round(Math.max(0, Math.min(65535, value * 257)));
-            out[i + channel] = data16 ? Math.round(data16[i + channel]! / 257) : clampByteVal(value);
+            else if (row === 4) value += samples[i + 3]! / scale;
+            if (cmyk && hueSamples && row < 4) {
+                hueSamples[i + row] = value / 255;
+                continue;
+            }
+            const offset = i + (row === 4 ? 3 : channel);
+            evaluateSamples[offset] = value;
+            if (!cmyk && hueSamples) hueSamples[offset] = value / 255;
+            if (data16) data16[offset] = Math.round(Math.max(0, Math.min(65535, value * 257)));
+            out[offset] = data16 ? Math.round(data16[offset]! / 257) : clampByteVal(value);
+        }
+        if (cmyk && hueSamples) {
+            for (let channel = 0; channel < 3; channel++) {
+                const offset = i + channel;
+                const value = (1 - hueSamples[offset]!) * (1 - hueSamples[i + 3]!) * 255;
+                evaluateSamples[offset] = value;
+                if (data16) data16[offset] = Math.round(Math.max(0, Math.min(65535, value * 257)));
+                out[offset] = clampByteVal(value);
+            }
         }
         if (img.space === "b-w" || img.space === "grey16") {
             // Native RGB channel writes share one gray sample; the blue row wins.

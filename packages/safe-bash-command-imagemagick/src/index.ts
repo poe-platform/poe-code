@@ -17783,7 +17783,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset">[];
     trim: boolean; shadow: boolean;
-    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "transparent"; operation: MagickPixelOperation })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -17867,6 +17867,13 @@ function* parseMontageArguments<Step>(argv: readonly string[], fileTargets: (pat
         else if (t === "-rotate") {
             const angle = parseMagickRotation(argv[++i] ?? "0").angle;
             if (angle !== 0) queuedTransforms.push({ kind: "rotate", angle });
+        }
+        else if (t === "-transparent") {
+            if (argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -transparent\n" };
+            const operation = parseMagickPixelOperation(argv, state, i)!;
+            if (operation.warning) warnings += operation.warning.replace("magick:", "montage:");
+            queuedTransforms.push({ kind: "transparent", operation });
+            i = operation.end;
         }
         else if (t === "-trim") {
             trim = true;
@@ -18349,7 +18356,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 }
                 for (const transform of transforms[inputIndex]!) {
                     const previous = thumb;
-                    thumb = yield* (transform.kind === "rotate" ? rotateImageSteps(thumb, transform.angle, state.background)
+                    thumb = yield* (transform.kind === "transparent" ? transform.operation.apply(thumb)
+                        : transform.kind === "rotate" ? rotateImageSteps(thumb, transform.angle, state.background)
                         : transform.kind === "flop" ? flopImageSteps(thumb) : flipImageSteps(thumb));
                     if (thumb !== previous) detachRgbaBuffer(previous.data);
                 }
@@ -18576,8 +18584,10 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         const isNull = (image as StoredMagickImage)[magickInput]?.filePath === "null:";
                         if (trim) image = await trimStoredMagick(image, backend.storage, state.alphaFuzz, signal);
                         for (const transform of transforms[index]!) {
-                            image = await transformStoredImage(image, backend.storage, transform.kind === "rotate"
-                                ? { ...transform, background: state.background } : transform, signal);
+                            image = transform.kind === "transparent"
+                                ? await transformStoredMagickPixels(image, backend, transform.operation, signal)
+                                : await transformStoredImage(image, backend.storage, transform.kind === "rotate"
+                                    ? { ...transform, background: state.background } : transform, signal);
                         }
                         if (thumbnail !== undefined) {
                             const resize = magickResizeOptions(image, thumbnail, state.kernel ?? "lanczossharp");

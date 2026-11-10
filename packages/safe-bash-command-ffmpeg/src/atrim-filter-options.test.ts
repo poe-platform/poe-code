@@ -3,10 +3,24 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
-for (const complex of [false, true]) {
+for (const [complex, trim] of [
+  [false, "start_sample=5"], [true, "start_sample=5"],
+  [false, "end_sample=5"], [true, "end_sample=5"]
+] as const) {
   for (const [options, exitCode] of [
     ["", 0],
     [":threads=1", 0],
+    [":threads=min", 0],
+    [":threads=PI", 0],
+    [":threads=E", 0],
+    [":threads=PHI", 0],
+    [":threads=3", 0],
+    [":threads=default", 0],
+    [":extra_hw_frames=min", 0],
+    [":extra_hw_frames=PI", 0],
+    [":extra_hw_frames=E", 0],
+    [":extra_hw_frames=PHI", 0],
+    [":extra_hw_frames=default", 0],
     [":thread_type=slice", 0],
     [":thread_type=-slice", 0],
     [":thread_type=none", 0],
@@ -33,14 +47,14 @@ for (const complex of [false, true]) {
     [":extra_hw_frames=-2", 222]
   ] as const) {
     for (const outputExists of [false, true]) {
-      it(`atrim=end_sample=5${options} (${complex ? "complex" : "simple"}, output ${outputExists ? "exists" : "absent"})`, async () => {
+      it(`atrim=${trim}${options} (${complex ? "complex" : "simple"}, output ${outputExists ? "exists" : "absent"})`, async () => {
         const input = Buffer.alloc(32);
         for (let i = 0; i < 16; i++) input.writeInt16LE(i + 1, i * 2);
         const existing = Buffer.from("existing output");
         const volume = Volume.fromJSON({ "/in.raw": input,
           ...(outputExists ? { "/out.raw": existing } : {}) });
         let stderr = "";
-        const filter = `atrim=end_sample=5${options}`;
+        const filter = `atrim=${trim}${options}`;
         const result = await createFfmpegCommand().execute({
           args: ["-v", "error", "-y", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
             ...(complex ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"] : ["-af", filter]),
@@ -55,7 +69,7 @@ for (const complex of [false, true]) {
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         assert.equal(result.exitCode, exitCode, stderr);
-        if (exitCode === 0) assert.deepEqual(volume.readFileSync("/out.raw"), input.subarray(0, 10));
+        if (exitCode === 0) assert.deepEqual(volume.readFileSync("/out.raw"), trim === "start_sample=5" ? input.subarray(10) : input.subarray(0, 10));
         else {
           assert.ok(stderr.includes("atrim:"), stderr);
           assert.equal(volume.existsSync("/out.raw"), outputExists);

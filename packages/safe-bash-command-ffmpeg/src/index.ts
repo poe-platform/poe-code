@@ -1084,7 +1084,11 @@ function parseAtrim(argument: string, origRate: number) {
     }
     if (key === "threads" || key === "extra_hw_frames") {
       const number = parseFilterExpression(value, "atrim",
-        { default: key === "threads" ? 0 : -1 });
+        {
+          default: key === "threads" ? 0 : -1,
+          min: key === "threads" ? 0 : -1,
+          PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+        });
       if (!value || Number.isNaN(number)) throw new Error(`atrim: invalid ${key}`);
       if (number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
         throw new RangeError(`atrim: invalid ${key}`);

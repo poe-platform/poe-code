@@ -9477,8 +9477,11 @@ if (t === "-intent" || t === "+intent") {
             state.composeExplicit = true;
             state.compose = "over";
         }
-        else if (t === "+define") {
-            const key = (tokens[++i] ?? "").toLowerCase();
+        else if (t === "+define" || (t === "+set" && tokens[i + 1]?.toLowerCase().startsWith("option:"))) {
+            const rawKey = (tokens[++i] ?? "").toLowerCase();
+            const key = t === "+set" ? rawKey.slice("option:".length) : rawKey;
+            state.optionProperties = { ...state.optionProperties };
+            delete state.optionProperties[key];
             if (key === "connected-components:verbose") delete state.connectedVerbose;
             if (key === "filter:blur" || key === "filter:support" || key === "filter:lobes" || key === "filter:b" || key === "filter:c" || key === "filter:sigma" || key === "filter:window") {
                 state.resizeFilter = { ...state.resizeFilter };
@@ -9908,7 +9911,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if (t === "+set") {
+        if (t === "+set" && !tokens[i + 1]?.toLowerCase().startsWith("option:")) {
             const key = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
@@ -12302,7 +12305,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && token === "+set") {
+        if (!operandsOnly && token === "+set" && !tokens[i + 1]?.toLowerCase().startsWith("option:")) {
             const key = tokens[++i] ?? "";
             steps.push(async image => {
                 if (!image) return;

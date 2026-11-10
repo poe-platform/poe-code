@@ -1,7 +1,10 @@
+import type { RgbaColor } from "@poe-code/image-ast/portable";
+import { virtualPixelIndex } from "./virtual-pixel.js";
+import type { VirtualPixelMethod } from "./warp-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-/** Blur clamped edges, normalize, negate and grayscale without rounding intermediate pixels. */
-export function* charcoalPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+/** Blur with virtual pixels, normalize, negate and grayscale without rounding intermediate pixels. */
+export function* charcoalPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
     let half = 0;
     if (sigma > 0) {
@@ -25,6 +28,9 @@ export function* charcoalPixelSteps(image: { width: number; height: number }, ge
         weights[k + half] = weight; total += weight;
     }
     for (let k = 0; k < weights.length; k++) weights[k]! /= total;
+    const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
+    const fill = (virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
+        ? [background.r, background.g, background.b] : [gray, gray, gray];
     const histogram = new Float64Array(65536);
     let low = 0, high = 65535;
     for (let pass = 0; pass < 2; pass++) {
@@ -35,18 +41,44 @@ export function* charcoalPixelSteps(image: { width: number; height: number }, ge
                 const sums = new Float64Array(count * 3);
                 for (let ky = -half; ky <= half; ky++) {
                     yield;
-                    const sy = Math.max(0, Math.min(height - 1, y + ky));
+                    const pixel = virtualPixelIndex(left, y + ky, width, height, virtualPixel);
+                    const sy = pixel < 0 ? -1 : Math.floor(pixel / width);
                     let row = rows.get(sy);
                     if (!row) {
-                        const first = Math.max(0, left - half), last = Math.min(width - 1, left + count - 1 + half), length = (last - first + 1) * 4;
-                        const bytes = yield { kind: "read", position: (sy * width + first) * 4, length };
-                        if (!bytes || bytes.length !== length) throw new Error("Truncated charcoal pixels");
                         row = new Float64Array(count * 3);
-                        for (let x = 0; x < count; x++) {
-                            if (x % 32 === 0) yield;
-                            for (let k = -half; k <= half; k++) {
-                                const offset = (Math.max(0, Math.min(width - 1, left + x + k)) - first) * 4;
-                                for (let c = 0; c < 3; c++) row[x * 3 + c]! += bytes[offset + c]! * weights[k + half]!;
+                        if (sy < 0) {
+                            // The vertical pass samples the horizontal result: outside rows
+                            // use the constant directly, without another horizontal blur.
+                            for (let x = 0; x < count; x++) row.set(fill, x * 3);
+                        } else {
+                            const first = left - half, length = count + 2 * half;
+                            const samples = new Float64Array(length * 3);
+                            const map = (x: number) => virtualPixelIndex(first + x, sy, width, height, virtualPixel);
+                            for (let x = 0; x < length;) {
+                                yield;
+                                const source = map(x);
+                                if (source < 0) { samples.set(fill, x * 3); x++; continue; }
+                                const direction = map(x + 1) - source;
+                                let run = 1;
+                                if (direction >= -1 && direction <= 1) {
+                                    while (x + run < length && map(x + run) === source + run * direction && source + run * direction >= 0) run++;
+                                }
+                                const start = direction === -1 ? source - run + 1 : source;
+                                const readLength = (direction === 0 ? 1 : run) * 4;
+                                const bytes = yield { kind: "read", position: start * 4, length: readLength };
+                                if (!bytes || bytes.length !== readLength) throw new Error("Truncated charcoal pixels");
+                                for (let i = 0; i < run; i++) {
+                                    const offset = (direction === 0 ? 0 : direction === -1 ? run - i - 1 : i) * 4;
+                                    for (let c = 0; c < 3; c++) samples[(x + i) * 3 + c] = bytes[offset + c]!;
+                                }
+                                x += run;
+                            }
+                            for (let x = 0; x < count; x++) {
+                                if (x % 32 === 0) yield;
+                                for (let k = -half; k <= half; k++) {
+                                    const offset = (x + k + half) * 3;
+                                    for (let c = 0; c < 3; c++) row[x * 3 + c]! += samples[offset + c]! * weights[k + half]!;
+                                }
                             }
                         }
                         if (rows.size >= 32) rows.delete(rows.keys().next().value!);

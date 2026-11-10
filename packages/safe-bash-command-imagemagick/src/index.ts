@@ -9570,12 +9570,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-charcoal") {
             const raw = tokens[++i] ?? "0x1";
+            const { virtualPixel, background } = state;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
                 const geometry = parseMagickGeometry(expanded.replace(",", "x").replace("/", "x"));
-                const edges = yield* applyMagickRasterSteps(im, edgePixelSteps(im, geometry.width ?? 0), signal, { ...im, hasAlpha: false });
-                return yield* applyMagickRasterSteps(edges, charcoalPixelSteps(edges, geometry), signal);
+                const edges = yield* applyMagickRasterSteps(im, edgePixelSteps({ ...im, hasAlpha: im.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, undefined, virtualPixel, background), signal, { ...im, hasAlpha: false });
+                return yield* applyMagickRasterSteps(edges, charcoalPixelSteps(edges, geometry, virtualPixel, background), signal);
             });
         }
         else if (t === "-sketch") {
@@ -11982,13 +11983,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-charcoal") {
             const raw = tokens[++i] ?? "0x1", optionProperties = state.optionProperties;
+            const { virtualPixel, background } = state;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, token);
                 const geometry = parseMagickGeometry(expanded.replace(",", "x").replace("/", "x"));
-                const edges = await transformStoredMagickRaster(image, backend, edgePixelSteps(image, geometry.width ?? 0), signal, { ...image, hasAlpha: false });
-                return transformStoredMagickRaster(edges, backend, charcoalPixelSteps(edges, geometry), signal);
+                const edges = await transformStoredMagickRaster(image, backend, edgePixelSteps({ ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, undefined, virtualPixel, background), signal, { ...image, hasAlpha: false });
+                return transformStoredMagickRaster(edges, backend, charcoalPixelSteps(edges, geometry, virtualPixel, background), signal);
             });
         } else if (!operandsOnly && token === "-sketch") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), seed = state.seed ?? 0n;

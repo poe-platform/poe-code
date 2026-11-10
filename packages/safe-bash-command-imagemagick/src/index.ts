@@ -8469,21 +8469,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return parseFloat(p) / 257;
         };
         const blackPoint = parsePt(parts[0], 0);
-        const black = endpointColors ? [endpointColors[0]!.r, endpointColors[0]!.g, endpointColors[0]!.b, endpointColors[0]!.a] : [blackPoint, blackPoint, blackPoint, blackPoint];
+        // RGB endpoint colors have zero black ink; K is independent of alpha.
+        const black = endpointColors ? [endpointColors[0]!.r, endpointColors[0]!.g, endpointColors[0]!.b, endpointColors[0]!.a, 0] : [blackPoint, blackPoint, blackPoint, blackPoint, blackPoint];
         const whitePoint = parsePt(parts[1], 255 - blackPoint);
-        const white = endpointColors ? [endpointColors[1]!.r, endpointColors[1]!.g, endpointColors[1]!.b, endpointColors[1]!.a] : [whitePoint, whitePoint, whitePoint, whitePoint];
+        const white = endpointColors ? [endpointColors[1]!.r, endpointColors[1]!.g, endpointColors[1]!.b, endpointColors[1]!.a, 0] : [whitePoint, whitePoint, whitePoint, whitePoint, whitePoint];
         const gamma = !colorEndpoints && parts[2]?.trim() ? parseFloat(parts[2]) : 1.0;
         const exponent = 1 / (Math.abs(gamma) >= 1e-12 ? gamma : gamma < 0 ? -1e-12 : 1e-12);
         const inverse = token === "+level-colors" || token === "+level" || !colorEndpoints && raw.includes("!");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = function* (im, pixelOffset = 0, imageWidth = im.width) {
-            const cmyk = !colorEndpoints && im.space === "cmyk";
+            const cmyk = im.space === "cmyk";
             if (cmyk) im = yield* convertCmykPixels(im);
             const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha, cmyk && channels.k];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : (im.writeMask || im.region) ? Uint16Array.from(im.data, value => value * 257) : undefined;
-            const hueSamples = cmyk || im.space !== "cmyk" ? im.hueSamples?.slice() : undefined;
+            const hueSamples = im.hueSamples?.slice();
             const evaluateSamples = (hueSamples && !cmyk ? Float64Array.from(hueSamples, value => value * 255) : im.evaluateSamples?.slice()) ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
             const spans = white.map((value, channel) => value - black[channel]!);
             for (let idx = 0; idx < out.length; idx += 4) {
@@ -8508,7 +8509,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     if (!mask[c])
                         continue;
                     const ink = cmyk && hueSamples && c !== 3;
-                    const offset = idx + (c === 4 ? 3 : c), endpoint = c === 4 ? 3 : c;
+                    const offset = idx + (c === 4 ? 3 : c), endpoint = c;
                     const v = ink ? hueSamples[offset]! * 255 : evaluateSamples[offset]!;
                     const span = spans[endpoint]!;
                     let value: number;

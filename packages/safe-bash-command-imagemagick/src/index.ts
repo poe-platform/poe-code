@@ -9353,6 +9353,8 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format)) image = yield* prepare16BitOutput(image);
     if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
         || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.writeMask || image.region)) {
+        // Raw RGBA synchronizes the masked cache before activating stored alpha.
+        if (format === "rgba" && image.hasAlpha && image.writeMask) image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, image.writeMask, !!image.data16), undefined, image, [image, image, image.writeMask]);
         image = { ...yield* applyMagickRasterSteps(image, pngAlphaPixelSteps(image, image.writeMask, !!image.data16), undefined, { ...image, hasAlpha: true }, image.writeMask ? [image, image.writeMask] : [image]), channels: 4 };
     }
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
@@ -9377,6 +9379,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     }
     if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
         || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.storedWriteMask || image.region)) {
+        if (format === "rgba" && image.hasAlpha && image.storedWriteMask) image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, image.storedWriteMask, !!image.storedData16), signal, image, [image, image, image.storedWriteMask]);
         image = { ...await transformStoredMagickRaster(image, backend, pngAlphaPixelSteps(image, image.storedWriteMask, !!image.storedData16), signal, { ...image, hasAlpha: true }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]), channels: 4 };
     }
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };

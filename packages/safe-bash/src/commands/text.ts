@@ -604,12 +604,12 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
       else if (option === "s") skipCharacters = count;
       else width = count;
     } else if (option === "D") repeatedMethod = "none";
-    else if (option === "all-repeated") {
-      if (!["none", "prepend", "separate"].includes(method!)) throw new UsageError(`invalid argument '${method}' for 'all-repeated'`);
-      repeatedMethod = method!;
-    } else if (option === "group") {
-      if (!["separate", "prepend", "append", "both"].includes(method!)) throw new UsageError(`invalid argument '${method}' for 'group'`);
-      groupMethod = method;
+    else if (option === "all-repeated" || option === "group") {
+      const methods = option === "all-repeated" ? ["none", "prepend", "separate"] : ["separate", "prepend", "append", "both"];
+      const matches = methods.filter(candidate => candidate.startsWith(method!));
+      if (matches.length !== 1) throw new UsageError(`invalid argument '${method}' for '${option}'`);
+      if (option === "all-repeated") repeatedMethod = matches[0]!;
+      else groupMethod = matches[0]!;
     }
   });
   // Optional-argument normalization must not rename literal operand paths.

@@ -9646,7 +9646,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 let other = stack[stack.length >= 4 ? part + 2 : part]!;
                 if (other.width !== base.width || other.height !== base.height)
                     other = yield* applyMagickRasterSteps(other, extendEdgePixelSteps(other, base.width, base.height, true, other.virtualPixel, state.background), signal, { ...other, width: base.width, height: base.height });
-                let output = yield* applyMagickRasterSteps(base, complexPixelSteps(base.width * base.height * 4, operation, base.hasAlpha, base.space === "b-w" || base.space === "grey16", grayOnly), signal, base, [base, other]);
+                let output = yield* applyMagickRasterSteps(base, complexPixelSteps(base.width * base.height * 4, operation, [base, other], base.space === "b-w" || base.space === "grey16", grayOnly), signal, base, [base, other]);
                 if (base.writeMask) output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, base.writeMask, true), signal, output, [output, base, base.writeMask]);
                 result.push(output);
             }
@@ -11112,7 +11112,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     let other: StoredRgbaImage = (await stack.get(stack.length >= 4 ? part + 2 : part))!;
                     if (other.width !== base.width || other.height !== base.height)
                         other = await transformStoredMagickRaster(other, backend, extendEdgePixelSteps(other, base.width, base.height, true, other.virtualPixel, background), signal, { ...other, width: base.width, height: base.height });
-                    let output = await transformStoredMagickRaster(base, backend, complexPixelSteps(base.width * base.height * 4, operation, base.hasAlpha, base.space === "b-w" || base.space === "grey16", grayOnly), signal, base, [base, other]);
+                    let output = await transformStoredMagickRaster(base, backend, complexPixelSteps(base.width * base.height * 4, operation, [base, other], base.space === "b-w" || base.space === "grey16", grayOnly), signal, base, [base, other]);
                     if (base.storedWriteMask) output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, base.storedWriteMask, true), signal, output, [output, base, base.storedWriteMask]);
                     await result.push(output);
                 }

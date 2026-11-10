@@ -451,8 +451,8 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                         out[dIdx + c] = clampByteVal(comp * 255);
                     }
                     else if (norm === "exclusion") {
-                        const comp = gamma * (sc * sa + dc - 2 * sc * dc * sa);
-                        out[dIdx + c] = clampByteVal(comp * 255);
+                        const comp = sc * sa + dc * da - 2 * sc * dc * sa * da;
+                        out[dIdx + c] = clampByteVal((gamma > 0 ? comp / gamma : 0) * 255);
                     }
                     else {
                         let f = 0;

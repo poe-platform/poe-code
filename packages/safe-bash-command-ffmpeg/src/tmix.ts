@@ -3,11 +3,35 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterFloat } from "./filter-float.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
+function parsePlanes(text: string, planes: number): number {
+  let cursor = 0;
+  do {
+    const operator = text[cursor] === "+" || text[cursor] === "-" ? text[cursor++] : undefined;
+    const start = cursor;
+    while (cursor < text.length && text[cursor] !== "+" && text[cursor] !== "-") cursor++;
+    // An empty token makes native evaluate the remaining expression as a whole.
+    let value = parseFilterExpression(start === cursor ? text.slice(start) : text.slice(start, cursor), "tmix", {
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, default: 15, min: 0, max: 15, none: 0, all: -1
+    });
+    if (operator) {
+      const mask = BigInt(Math.trunc(value));
+      value = Number(operator === "+" ? BigInt(planes) | mask : BigInt(planes) & ~mask);
+    }
+    if (!Number.isInteger(value) || value < -1 || value > 0xffffffff) {
+      throw new RangeError("tmix: planes must be 32-bit integer flags");
+    }
+    planes = value >>> 0;
+    if (start === cursor) break;
+  } while (cursor < text.length);
+  return planes;
+}
+
 export async function tmix(
   frames: MediaVideoFrame[], argument: string, budget: MediaBudgetTracker, signal?: AbortSignal,
   commands: readonly { time: number; expression: string }[] = []
 ): Promise<MediaVideoFrame[]> {
-  const options: Record<string, string> = { frames: "3", weights: "1", scale: "0", planes: "15" };
+  const options: Record<string, string> = { frames: "3", weights: "1", scale: "0" };
+  let planes = 15;
   if (argument.endsWith(":")) argument = argument.slice(0, -1);
   let position = 0;
   for (const option of argument ? argument.split(":") : []) {
@@ -18,7 +42,12 @@ export async function tmix(
     if (separator < 0) position++;
     else position = position === 0 ? 1 : 0;
     if (key !== "frames" && key !== "weights" && key !== "enable" && key !== "planes" && key !== "scale") throw new Error(`tmix: unsupported option ${key}`);
-    options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    const text = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key !== "planes") {
+      options[key] = text;
+      continue;
+    }
+    planes = parsePlanes(text, planes);
   }
   const value = parseFilterExpression(options.frames!, "tmix", {
     PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, default: 3, min: 1, max: 1024
@@ -29,12 +58,8 @@ export async function tmix(
   // Native validates bounds before rounding integer options to nearest, ties to even.
   const lower = Math.floor(value);
   const count = value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
-  if (options.planes === "" || options.scale === "") {
+  if (options.scale === "") {
     throw new Error("tmix: invalid expression");
-  }
-  const planes = Number(options.planes);
-  if (!Number.isInteger(planes) || planes < 0 || planes > 0xffffffff) {
-    throw new RangeError("tmix: planes must be an integer from 0 to 4294967295");
   }
   const scaleConstants = {
     PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, default: 0, min: 0, max: 32767

@@ -1,7 +1,7 @@
 import { writerOptionAliases } from "./options.js";
 import { parseWriterBoolean } from "./writer-boolean.js";
 import { optionalFields, parseOptionalFields } from "./optional-fields.js";
-import { iniSection, sexagesimalRow } from "./probe-text.js";
+import { iniSection, sexagesimalRow, prefixRow } from "./probe-text.js";
 import { parseAudio, flacFormatTags, type AudioAst } from "@poe-code/audio-ast";
 
 const codecLongNames: Record<string, string> = {
@@ -31,6 +31,8 @@ export function parseArguments(args: readonly string[]) {
     selector: string | undefined,
     quiet = false,
     sexagesimal = false,
+    prefix = false,
+    byteBinaryPrefix = false,
     streamEntries = false;
   let showOptionalFields: "auto" | "always" | "never" = "auto";
   const sections = new Map<string, string[] | undefined>();
@@ -48,6 +50,8 @@ export function parseArguments(args: readonly string[]) {
     } else if (arg === "-of" || arg === "-print_format") writer = value();
     else if (arg === "-show_optional_fields") showOptionalFields = parseOptionalFields(value());
     else if (arg === "-sexagesimal") sexagesimal = true;
+    else if (arg === "-prefix") prefix = true;
+    else if (arg === "-byte_binary_prefix") byteBinaryPrefix = true;
     else if (arg === "-show_error") continue;
     else if (arg === "-show_format") sections.set("format", undefined);
     else if (arg === "-show_streams") sections.set("stream", undefined);
@@ -101,7 +105,7 @@ export function parseArguments(args: readonly string[]) {
     if ((format === "compact" || format === "csv") && (key === "item_sep" || key === "s") && new TextEncoder().encode(value).length !== 1)
       throw new Error("Item separator must be a single byte");
   }
-  return { filename, format: format!, sections, settings, selector, quiet, streamEntries, sexagesimal, showOptionalFields };
+  return { filename, format: format!, sections, settings, selector, quiet, streamEntries, sexagesimal, prefix, byteBinaryPrefix, showOptionalFields };
 }
 
 type Row = Record<string, string | number | Record<string, string>>;
@@ -270,7 +274,11 @@ export function audioProbeRows(audio: Omit<AudioAst, "data" | "pictures">, size:
     if (sections.get("format_tags")?.length === 0) delete row.tags;
     rows.push({ section: "format", row });
   }
-  return parsed.sexagesimal ? rows.map(({ section, row }) => ({ section, row: sexagesimalRow(row, section) })) : rows;
+  return rows.map(({ section, row }) => {
+    if (parsed.sexagesimal) row = sexagesimalRow(row, section);
+    if (parsed.prefix) row = prefixRow(row, section, parsed.byteBinaryPrefix);
+    return { section, row };
+  });
 }
 
 export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, size: number, parsed: ReturnType<typeof parseArguments>): string {

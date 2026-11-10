@@ -142,20 +142,25 @@ export function sexagesimalRow<T extends Record<string, unknown>>(row: T, sectio
   return result;
 }
 
-/** Scale measured stream/container values, leaving counts, ticks and metadata intact. */
-export function prefixRow(row: Record<string, unknown>, section: string): Record<string, unknown> {
-  if (section !== "stream" && section !== "format") return row;
+/** Prefix measured values only; counters, positions, ticks and metadata stay intact. */
+export function prefixRow<T extends Record<string, unknown>>(row: T, section: string, binary = false, showUnit = false): T {
+  if (!["stream", "format", "packet", "frame", "chapter"].includes(section)) return row;
   const result = { ...row };
-  for (const key of ["sample_rate", "bit_rate", "max_bit_rate", "size", "start_time", "duration"]) {
-    const value = row[key];
-    if (typeof value !== "string") continue;
-    const [number, unit = ""] = value.split(" ");
-    let scaled = Number(number), exponent = 0;
+  for (const [key, value] of Object.entries(row)) {
+    const unit = key === "size" && ["stream", "format", "packet"].includes(section) || key === "pkt_size" && section === "frame" ? "byte"
+      : key === "sample_rate" && section === "stream" ? "Hz"
+      : ["bit_rate", "max_bit_rate"].includes(key) && ["stream", "format"].includes(section) ? "bit/s"
+      : key.endsWith("_time") || key === "duration" && ["stream", "format"].includes(section) ? "s" : undefined;
+    if (!unit || typeof value !== "string" && typeof value !== "number" || value === "") continue;
+    const [raw, suffix = ""] = String(value).split(" ");
+    let scaled = Number(raw);
     if (!Number.isFinite(scaled)) continue;
-    while (Math.abs(scaled) >= 1000 && exponent < 5) { scaled /= 1000; exponent++; }
-    if (exponent === 0) continue;
-    const text = Number.isInteger(scaled) && !number!.includes(".") ? String(scaled) : scaled.toFixed(6);
-    result[key] = `${text} ${" KMGTP"[exponent]}${unit}`;
+    const base = binary && unit === "byte" ? 1024 : 1000;
+    let index = 0;
+    while (scaled >= base && index < 5) { scaled /= base; index++; }
+    const prefix = index ? "KMGTP"[index - 1]! + (base === 1024 ? "i" : "") : "";
+    const number = unit === "s" || !Number.isInteger(scaled) ? scaled.toFixed(6) : String(scaled);
+    Object.assign(result, { [key]: number + (prefix || showUnit || suffix ? " " : "") + prefix + (showUnit ? unit : suffix) });
   }
   return result;
 }

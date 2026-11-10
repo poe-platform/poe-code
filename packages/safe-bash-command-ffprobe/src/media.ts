@@ -318,6 +318,7 @@ export type FfprobeFormatOptions = {
     printFormat: string;
     sexagesimal?: boolean;
     prefix?: boolean;
+    byteBinaryPrefix?: boolean;
     showOptionalFields?: "auto" | "always" | "never";
     showFormat: boolean;
     showStreams: boolean;
@@ -545,7 +546,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   ): Record<string, unknown> => {
     obj = optionalFields(obj, sectionName, opts.showOptionalFields, opts.printFormat);
     if (opts.sexagesimal) obj = sexagesimalRow(obj, sectionName);
-    if (opts.unit && (sectionName === "stream" || sectionName === "format")) {
+    if (opts.unit && !opts.prefix && (sectionName === "stream" || sectionName === "format")) {
       obj = { ...obj };
       for (const [key, suffix] of Object.entries({ sample_rate: "Hz", bit_rate: "bit/s", size: "byte", start_time: "s", duration: "s" })) {
         const value = obj[key];
@@ -553,7 +554,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
           obj[key] = `${value} ${suffix}`;
       }
     }
-    if (opts.prefix) obj = prefixRow(obj, sectionName);
+    if (opts.prefix) obj = prefixRow(obj, sectionName, opts.byteBinaryPrefix, opts.unit);
     if (entryFilter.size === 0) return obj;
     const allowed = entryFilter.get(sectionName);
     if (allowed === undefined && !entryFilter.has(`${sectionName}_side_data`) && !nestedSections.some(section => entryFilter.has(section))) return obj;
@@ -668,7 +669,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
       record = { ...record, data: payload ? "\n" + [...packetHexRows(payload)].join("")
         : packetSourceData(probe.packetSource!, Number(record.pos), Number(record.size)) };
     }
-    if (section === "packet" && opts.unit) {
+    if (section === "packet" && opts.unit && !opts.prefix) {
       record = { ...record };
       for (const key of ["pts_time", "dts_time", "duration_time", "size"]) {
         const value = record[key];
@@ -958,7 +959,7 @@ const probeSections = new Set([
 function parseProbeArguments(args: readonly string[]) {
   let printFormat = "default", showError = false, showFormat = false, showStreams = false,
     showPackets = false, showFrames = false, showChapters = false, showPrograms = false,
-    countFrames = false, countPackets = false, showData = false, unit = false, sexagesimal = false, prefix = false;
+    countFrames = false, countPackets = false, showData = false, unit = false, sexagesimal = false, prefix = false, byteBinaryPrefix = false;
   let showPrivateData = true;
   let webvttKind: string | undefined;
   let ignoreLength = false, exportPathMetadata = false, segmentTimeMetadata = false, safe = true;
@@ -1007,6 +1008,7 @@ function parseProbeArguments(args: readonly string[]) {
     else if (arg === "-of" || arg === "-print_format") printFormat = value();
     else if (arg === "-show_optional_fields") showOptionalFields = parseOptionalFields(value());
     else if (arg === "-prefix") prefix = true;
+    else if (arg === "-byte_binary_prefix") byteBinaryPrefix = true;
     else if (arg === "-sexagesimal") sexagesimal = true;
     else if (arg === "-show_error") showError = true;
     else if (arg === "-show_format") showFormat = true;
@@ -1108,7 +1110,7 @@ function parseProbeArguments(args: readonly string[]) {
   const entryFilter = parseEntryFilter(showEntries);
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;
   showFrames ||= entryFilter.has("frame") && entryFilter.get("frame")?.size !== 0;
-  return { printFormat, showError, showPrivateData, showOptionalFields, sexagesimal, prefix, unit, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
+  return { printFormat, showError, showPrivateData, showOptionalFields, sexagesimal, prefix, byteBinaryPrefix, unit, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
     selectStreams, showEntries, countFrames, countPackets, webvttKind, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions, videoSize, pixelFormat, frameRate, tsFromFile, exportPathMetadata, segmentTimeMetadata, safe };
 }
 
@@ -1313,7 +1315,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
       let publishing = false;
       try {
         parsed = parseProbeArguments(args);
-        const { printFormat, showPrivateData, showOptionalFields, sexagesimal, prefix, unit, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
+        const { printFormat, showPrivateData, showOptionalFields, sexagesimal, prefix, byteBinaryPrefix, unit, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
           selectStreams, showEntries, countFrames, countPackets, webvttKind, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions, videoSize, pixelFormat, frameRate, tsFromFile, exportPathMetadata, segmentTimeMetadata, safe } = parsed;
         if (readIntervals && (showFrames || countFrames)) throw new Error("read_intervals currently supports packet scans, not decoded frames");
         const showPackets = requestedPackets || !!readIntervals && countPackets;
@@ -1455,6 +1457,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           showPrivateData,
           sexagesimal,
           prefix,
+          byteBinaryPrefix,
           unit,
           showFormat,
           showStreams,
@@ -1530,7 +1533,7 @@ export function evalSyncFfprobe(
   }
 
   try {
-    const { printFormat, showPrivateData, showOptionalFields, sexagesimal, prefix, unit, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
+    const { printFormat, showPrivateData, showOptionalFields, sexagesimal, prefix, byteBinaryPrefix, unit, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
       selectStreams, showEntries, countFrames, countPackets, webvttKind, ignoreLength, maxSize, explicitFormat, inputTarget, videoSize, pixelFormat, frameRate, tsFromFile, exportPathMetadata } = parseProbeArguments(args);
     const imagePlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : registry.findByFilename(inputTarget);
     if (inputTarget.startsWith("concat:") || tsFromFile !== 0 || imagePlugin?.id === "image2" && imageSequenceFilename(inputTarget, 0) !== undefined) return undefined;
@@ -1574,6 +1577,7 @@ export function evalSyncFfprobe(
       showPrivateData,
       sexagesimal,
       prefix,
+      byteBinaryPrefix,
       unit,
       showFormat,
       showStreams,

@@ -115,6 +115,35 @@ for (const extension of [false, true]) {
 }
 
 for (const command of ["mapfile", "readarray"]) {
+  for (const [callback, expected] of [
+    ["A=(changed); local A=temp", ["changed", "two", "three"]],
+    ["local A=temp; A=(hidden)", ["one", "two", "three"]],
+  ] as const) {
+    test(`${command} preserves callback mutations across shadowing: ${callback}`, async () => {
+      const { shell } = setup({ extensions: [arraysExtension()] });
+      try {
+        const result = await shell.exec(`cb() { if [[ $1 == 1 ]]; then ${callback}; fi; }; ${command} -tc1 -C cb A; args "$?" "\${A[@]}"`, { stdin: "one\ntwo\nthree\n" });
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, JSON.stringify(["0", ...expected]));
+      } finally { await shell.dispose(); }
+    });
+  }
+
+  for (const seed of ["", "A=(seed);"]) {
+    for (const local of ["local A", "local A=temp", "local other"]) {
+      test(`${command} retains records across ${local}, seed=${seed}`, async () => {
+        const { shell } = setup({ extensions: [arraysExtension()] });
+        try {
+          const result = await shell.exec(`${seed} cb() { ${local}; }; ${command} -tc1 -C cb A; args "$?" "\${A[@]}"`, { stdin: "one\ntwo\nthree\n" });
+          assert.equal(result.exitCode, 0);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, '["0","one","two","three"]');
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+
   for (const [declaration, name, diagnostic] of [
     ["export A=old; readonly A", "A", "readonly variable"],
     ["declare -arx A=(old)", "A", "readonly variable"],

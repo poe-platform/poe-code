@@ -8551,7 +8551,8 @@ export class Runtime {
       const holding = store.owner.hold();
       releaseHolding = () => holding.release();
       if (!options.preserve || !store.get(options.name)) await this.arrayAssignment({ kind: "compound", name: options.name, append: options.preserve, entries: [] }, state, context);
-      const entry = store.bindings.get(options.name)!;
+      let entry = store.bindings.get(options.name)!;
+      const identity = entry.identity;
       allocation.reserve(128 + shellValueByteLength(options.name) * 2, 0);
       pinned = entry.binding.retain();
       const input = source instanceof ShellInput ? source : new ShellInput(source, this.budget, this.signal);
@@ -8632,6 +8633,15 @@ export class Runtime {
             const argumentValues = createCommandArguments([source, String(index), quoted], callbackAllocation);
             mapfileCallbackStates.add(state);
             await this.evalBuiltin({ ...context, args: argumentValues.args, argumentValues }, state, context, false);
+            // Local scope restoration can replace the entry while preserving the
+            // caller's identity. Unset/recreated arrays have a different identity.
+            const restored = store.bindings.get(options.name);
+            if (restored?.identity === identity) entry = restored;
+            if (pinned !== entry.binding) {
+              const previous = pinned!;
+              pinned = entry.binding.retain();
+              await previous.release();
+            }
           } catch (error) {
             if (error instanceof Flow && (error.kind === "break" || error.kind === "continue")) pendingFlow = error;
             else throw error;

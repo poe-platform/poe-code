@@ -28,7 +28,7 @@ export async function tremoloAudio(
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const number = parseFilterExpression(value, "tremolo", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 });
     if (number < (key === "f" ? 0.1 : 0) || number > (key === "f" ? 20000 : 1)) {
-      throw new Error(`tremolo: invalid ${key}`);
+      throw new RangeError(`tremolo: invalid ${key}`);
     }
     if (key === "f") frequency = number;
     else depth = number;

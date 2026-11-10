@@ -100,6 +100,8 @@ export interface RgbaImage {
   readonly gifFrames?: readonly { readonly icc?: Uint8Array | undefined; readonly gifApplications?: Readonly<Record<string, Uint8Array>> | undefined; readonly comment?: string | undefined; readonly gifCommentBytes?: Uint8Array | undefined; readonly width: number; readonly height: number; readonly x: number; readonly y: number }[];
   readonly disposal?: number | readonly number[];
   readonly delay?: readonly number[];
+  /** Original frame delay count for formats that store ticks separately from the rate. */
+  readonly delayTicks?: number;
   /** Tick rate used to express animation delay counts; durations remain milliseconds. */
   readonly ticksPerSecond?: number;
   readonly loop?: number;

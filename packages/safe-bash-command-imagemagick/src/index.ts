@@ -18267,6 +18267,9 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     yield* blitOverRgbaInPlaceSteps(thumb, caption, 0, thumb.height - height);
                     detachRgbaBuffer(caption.data);
                 }
+                if ((loaded as MagickImage)[magickInput]?.filePath === "null:") {
+                    (thumb as MagickImage)[magickInput] = { filePath: "null:" };
+                }
                 images.push(thumb);
             }
         }
@@ -18315,6 +18318,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 if (variableCells && col === 0) {
                     tileX = 0;
                     if (row > 0) tileY += rowHeights[row - 1]!;
+                }
+                if ((im as MagickImage)[magickInput]?.filePath === "null:") {
+                    tileX += im.width + padX * 2;
+                    detachRgbaBuffer(im.data);
+                    continue;
                 }
                 const cellX = (variableCells ? tileX : col * slotW) + padX;
                 const cellY = (variableCells ? tileY : row * slotH) + padY;
@@ -18433,6 +18441,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 const path = paths[index]!;
                 try {
                     const loaded = await parseStoredCompareInput(path, { ...state, ...sizes[index] }, backend, signal, { source: await sourceAt(index), visit: async image => {
+                        const isNull = (image as StoredMagickImage)[magickInput]?.filePath === "null:";
                         if (trim) image = await trimStoredMagick(image, backend.storage, state.alphaFuzz, signal);
                         for (const orientation of orientations) {
                             image = await transformStoredImage(image, backend.storage, { kind: orientation === "transpose" ? "flip" : orientation }, signal);
@@ -18462,6 +18471,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             image = await transformStoredImage(image, backend.storage, { kind: "extend", top: 0, bottom: height, left: 0, right: 0, background: state.background, extendWith: "background" }, signal);
                             image = await compositeStoredMagick(image, caption, backend, signal, 0, image.height - height, "over", undefined, false, true);
                         }
+                        if (isNull) (image as StoredMagickImage)[magickInput] = { filePath: "null:" };
                         maxThumbW = Math.max(maxThumbW, image.width); maxThumbH = Math.max(maxThumbH, image.height); await images.push(image);
                     } });
                     if (!loaded) inputErrors += `montage: unable to open image '${path}': No such file or directory\n`;
@@ -18518,6 +18528,14 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     if (!image) return { exitCode: 1, stdout: "", stderr: `montage: unable to open image '${path}': No such file or directory\n` };
                     directPng = await sources.get(BigInt((pageStart + index) * 5 + 4)) === 1n;
                 } else image = (await images.get(pageStart + index))!;
+                if (variableCells && col === 0) {
+                    tileX = 0;
+                    if (row > 0) tileY += Number(await rowHeights.get(BigInt(row - 1)));
+                }
+                if ((image as StoredMagickImage)[magickInput]?.filePath === "null:") {
+                    tileX += image.width + padX * 2;
+                    continue;
+                }
                 if (frame) {
                     image = await transformStoredMagickRaster(image, backend, magickFramePixels(image, maxThumbW + frame.width * 2, maxThumbH + frame.height * 2, state.borderColor, frame.outer || frame.inner ? matte : state.background, frame.width, frame.height, frame.outer, frame.inner), signal, { width: maxThumbW + frame.width * 2, height: maxThumbH + frame.height * 2, hasAlpha: true });
                     if (!shadow) {
@@ -18530,10 +18548,6 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     continue;
                 }
                 const width = fast ? Number(await sources.get(BigInt((pageStart + index) * 5 + 2))) : image.width, height = fast ? Number(await sources.get(BigInt((pageStart + index) * 5 + 3))) : image.height;
-                if (variableCells && col === 0) {
-                    tileX = 0;
-                    if (row > 0) tileY += Number(await rowHeights.get(BigInt(row - 1)));
-                }
                 const offset = resolveGravityOffset(variableCells ? 0 : maxThumbW - width, variableCells && !concatenate ? 0 : (variableCells ? Number(await rowHeights.get(BigInt(row))) - padY * 2 - (shadow ? 4 : 0) : maxThumbH) - height, state.gravity);
                 // Concatenate offsets bordered tiles without enlarging the canvas.
                 const x = (variableCells ? tileX : col * slotW) + (concatenate ? borderW : 0) + padX + offset.left, y = (variableCells ? tileY : row * slotH) + (concatenate ? borderW : 0) + padY + offset.top;

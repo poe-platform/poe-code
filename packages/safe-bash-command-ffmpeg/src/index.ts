@@ -2866,7 +2866,7 @@ async function applyVideoFilterChain(
         if (component === "none") continue;
         if (!component.trim()) throw new Error("negate: invalid empty component");
         const index = ["r", "g", "b", "y", "u", "v", "a"].indexOf(component);
-        const value = index < 0 ? Number(component) : 1 << index;
+        const value = index < 0 ? parseFilterExpression(component, "negate", {}) : 1 << index;
         if (!Number.isInteger(value) || value < 0 || value > 127) {
           throw new Error(`negate: invalid component ${component}`);
         }
@@ -14392,6 +14392,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
             if (msg === audioConversionDisabled) return { exitCode: 234 };
+            if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("fps: frame rate:")) {
               // Rate expressions fail during filter configuration, after file
               // muxers open their output. Image sequences have not opened a frame.

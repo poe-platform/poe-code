@@ -259,7 +259,19 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
     }
 }
 
-export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: MagickResizeKernel = "lanczos3", highDepth = false, settings?: ResizeFilterSettings, preserveSamples = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: MagickResizeKernel = "lanczos3", highDepth = false, settings?: ResizeFilterSettings, preserveSamples = false, writeMask = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    if (scale && writeMask) {
+        // ScaleImage checks the resized clone's zero write-mask channel before
+        // writing area averages, leaving its color and active alpha channels zero.
+        for (let start = 0; start < width * height; start += 1024) {
+            yield;
+            const count = Math.min(1024, width * height - start);
+            const data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
+            if (!image.hasAlpha) for (let i = 3; i < data.length; i += 4) data[i] = highDepth ? 65535 : 255;
+            yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
+        }
+        return;
+    }
     const samples = resizeSamples(image, width, height, thumbnail, scale, kernel, highDepth, settings, false, preserveSamples);
     const range = highDepth ? 65535 : 255;
     let next = samples.next();

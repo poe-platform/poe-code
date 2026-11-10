@@ -4667,7 +4667,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     const point = !scale && kernel === "nearest" && (!thumbnail || Math.min(img.width / width, img.height / height) < 3);
     let resized: RgbaImage = !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
-        : yield* applyMagickRasterSteps(img, point ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, !!img.writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples), undefined, { ...img, width, height });
+        : yield* applyMagickRasterSteps(img, point ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, !!img.writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples, !!img.writeMask), undefined, { ...img, width, height });
     for (const samples of point ? [img.data16, img.evaluateSamples] : []) {
         if (!samples) continue;
         const source = new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength);
@@ -4683,7 +4683,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
         }
         resized = { ...resized, ...(output instanceof Uint16Array ? { data16: output } : { evaluateSamples: output }) };
     }
-    if (sample && img.writeMask) resized = { ...resized, writeMask: { ...resized, hasAlpha: false } };
+    if ((sample || scale) && img.writeMask) resized = { ...resized, writeMask: { ...resized, hasAlpha: false } };
     const virtualCanvas = magickResizeCanvas(img, width, height);
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
@@ -4699,7 +4699,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     const point = !scale && options.kernel === "nearest" && (!thumbnail || Math.min(image.width / width, image.height / height) < 3);
     let resized: StoredRgbaImage = !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
-        : await transformStoredMagickRaster(image, backend, point ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, !!image.storedWriteMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples), signal, { ...image, width, height });
+        : await transformStoredMagickRaster(image, backend, point ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, !!image.storedWriteMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples, !!image.storedWriteMask), signal, { ...image, width, height });
     for (const [source, pixelBytes] of point ? [[image.storedData16?.position, 8], [image.storedEvaluateSamples, 32]] as const : []) {
         if (source === undefined) continue;
         const position = backend.storage.allocate(width * height * pixelBytes);
@@ -4714,7 +4714,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
         }
         resized = { ...resized, ...(pixelBytes === 8 ? { storedData16: { position, length: width * height * 4 } } : { storedEvaluateSamples: position }) };
     }
-    if (sample && image.storedWriteMask) {
+    if ((sample || scale) && image.storedWriteMask) {
         const { storedData16: ignoredData16, ...mask } = image.storedWriteMask;
         resized = { ...resized, storedWriteMask: { ...mask, width, height, hasAlpha: false, position: resized.position } };
     }

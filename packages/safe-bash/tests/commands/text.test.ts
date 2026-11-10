@@ -392,7 +392,7 @@ test("uniq emits every repeated record and separates selected groups", async () 
     assert.equal(result.stderr, "", option);
   }
   assert.equal((await run("uniq", ["-iD"], { stdin: chunks("A\na\na\nb\n") })).stdout, "A\na\na\n");
-  assert.equal((await run("uniq", ["-uD"], { stdin: "a\na\nb\n" })).stdout, "");
+  assert.equal((await run("uniq", ["-uD"], { stdin: "a\na\nb\n" })).stdout, "a\n");
   assert.deepEqual((await run("uniq", ["-D"], { stdin: chunks(Uint8Array.of(255, 10, 255, 10, 254, 10)) })).stdoutBytes, Buffer.from([255, 10, 255, 10]));
   assert.equal((await run("uniq", ["-z", "--group=both"], { stdin: chunks("a\0a\0b") })).stdout, "\0a\0a\0\0b\0\0");
   assert.equal((await run("uniq", ["--group=both"], { stdin: "" })).stdout, "");
@@ -403,6 +403,45 @@ test("uniq emits every repeated record and separates selected groups", async () 
   const result = await run("uniq", ["--group=append", "input", "output"], { fs });
   assert.equal(result.exitCode, 0);
   assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "a\na\n\nb\n\nc\nc\n\n");
+});
+
+test("uniq combines all-repeated and unique by omitting the last record of repeated groups", async () => {
+  for (const [args, expected] of [
+    [["-D", "-u"], "A x\nB x\nE z\n"],
+    [["-u", "-D"], "A x\nB x\nE z\n"],
+    [["-uD"], "A x\nB x\nE z\n"],
+    [["-u", "--all-repeated=none"], "A x\nB x\nE z\n"],
+    [["-u", "--all-repeated=separate"], "A x\nB x\n\nE z\n"],
+    [["-u", "--all-repeated=prepend"], "\nA x\nB x\n\nE z\n"],
+    [["-D"], "A x\nB x\nC x\nE z\nF z\n"],
+    [["-u"], "D y\n"],
+  ] as const) {
+    for (const delimiter of ["\n", "\0"]) for (const terminated of [false, true]) {
+      const input = ["A x", "B x", "C x", "D y", "E z", "F z"].join(delimiter) + (terminated ? delimiter : "");
+      const result = await run("uniq", [...args, "-f1", ...(delimiter === "\0" ? ["-z"] : [])], {
+        commands: textCommands(), env: { LC_ALL: "C" }, stdin: chunks(input),
+      });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, expected.split("\n").join(delimiter), args.join(" "));
+    }
+  }
+});
+
+test("uniq -uD retains original records across reused input buffers", async () => {
+  for (const buffer of [false, true]) {
+    const storage = buffer ? Buffer.alloc(4) : new Uint8Array(4);
+    const stdin = { async *[Symbol.asyncIterator]() {
+      for (const first of [65, 66, 67]) {
+        storage.set([first, 32, 255, 10]);
+        yield storage;
+      }
+      storage.fill(0);
+    } };
+    const result = await run("uniq", ["-uD", "-f1"], { commands: textCommands(), env: { LC_ALL: "C" }, stdin });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, Buffer.from([65, 32, 255, 10, 66, 32, 255, 10]));
+  }
 });
 
 test("uniq rejects invalid group methods and incompatible selections", async () => {

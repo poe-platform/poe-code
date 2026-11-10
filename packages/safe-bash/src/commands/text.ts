@@ -698,14 +698,18 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
       const currentKey = key(lineBytes);
       if (previousKey && compareByteArrays(previousKey, currentKey) === 0) {
         count++;
-        if (expanded && !onlyUnique) {
+        if (expanded) {
           if (allRepeated && count === 2) {
             if (method === "prepend" || (method === "separate" && emittedGroup)) writeByte(delimiter);
-            emitLine(previous!);
+            if (!onlyUnique) emitLine(previous!);
             emittedGroup = true;
           }
-          writeBytes(lineBytes);
-          writeByte(delimiter);
+          // GNU -D -u emits each repeated record only when its successor arrives.
+          emitLine(onlyUnique ? previous! : lineBytes);
+          if (onlyUnique) {
+            previous = lineBytes;
+            previousKey = currentKey;
+          }
         }
       } else {
         if (!expanded && previous !== undefined && selected()) emitLine(previous);

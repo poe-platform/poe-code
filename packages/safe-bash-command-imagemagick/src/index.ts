@@ -11148,6 +11148,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }, undefined, true);
         }
         else if (t === "-clahe") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = parseClaheGeometry(tokens[++i] ?? "");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, clahePixelSteps(im, geometry, state.background, state.virtualPixel), signal);
@@ -14018,6 +14019,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster(image, backend, waveletDenoisePixelSteps(image, expanded), signal);
             }, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-clahe") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const geometry = parseClaheGeometry(tokens[++i] ?? ""), { background, virtualPixel } = state;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, clahePixelSteps(image, geometry, background, virtualPixel), signal) : undefined);
         } else if (!operandsOnly && token === "-lat") {

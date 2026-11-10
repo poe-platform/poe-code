@@ -72,3 +72,35 @@ for (const fixture of fixtures) for (const retained of [false, true]) {
         expect(output.data.filter((_, i) => i % 4 === 3)).toEqual(decodeImage(input).data.filter((_, i) => i % 4 === 3));
     });
 }
+
+for (const mode of ["buffered", "retained", "sync", "public"] as const) {
+    it.each(["before", "after", "identity"] as const)(`checks CLAHE image ordering via ${mode}: %s`, async placement => {
+        const keep = Buffer.from("KEEP"), files = new Map([["out", keep]]), fs = new MemoryFileSystem();
+        await fs.writeFile("/out", keep);
+        const inputs = ["xc:#80562360", "xc:#40a0a0a0", "xc:#9070a0ea", "+append"];
+        const clahe = ["-clahe", "2x2+16+2"];
+        const args = [...(placement === "before" ? [...clahe, ...inputs]
+            : placement === "after" ? [...inputs, "-set", "option:g", "2x2+16+2", ...clahe]
+            : [...inputs, "-colorspace", "sRGB", "-colorspace", "sRGB"]), "-depth", "8", "rgba:out"];
+        let exitCode: number, stderr = "";
+        if (mode === "public") {
+            const argumentValues = createCommandArguments(args);
+            const result = await createMagickCommand().execute({
+                command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write() {} }, stderr: { async write(chunk) { stderr += Buffer.from(chunk); } },
+            });
+            exitCode = result.exitCode;
+        } else {
+            const result = mode === "sync" ? runConvertCliSync(args, files)
+                : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+            exitCode = result.exitCode;
+            stderr = result.stderr;
+        }
+        expect(exitCode, stderr).toBe(placement === "before" ? 1 : 0);
+        if (placement === "before") expect(stderr).toContain("no images found for operation '-clahe'");
+        const output = mode === "public" || mode === "retained" ? await fs.readFile("/out") : files.get("out")!;
+        expect(Buffer.from(output).toString("hex")).toBe(placement === "before" ? "4b454550"
+            : placement === "after" ? "9b6e3a60b2ffffa0cface0ea" : "8056236040a0a0a09070a0ea");
+    });
+}

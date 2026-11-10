@@ -11647,9 +11647,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = output;
                         audioInitialFrameDropped = false;
                       } else if (trimmed === "atempo" || trimmed.startsWith("atempo=")) {
-                        const argument = trimmed === "atempo" ? "1" : trimmed.slice("atempo=".length).trim();
+                        const argument = trimmed.slice("atempo=".length).trim();
                         let tempo = 1;
-                        for (const [index, option] of argument.split(":").entries()) {
+                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? (index === 0 ? "tempo" : "") : option.slice(0, separator).trim();
                           if (key === "enable") throw new Error("atempo: timeline is unsupported");

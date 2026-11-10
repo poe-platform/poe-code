@@ -5659,7 +5659,7 @@ describe("decoded audio editing", () => {
     });
   }
 
-  for (const tempo of ["0.25", "0", "-1", "100.1", "Infinity", "NaN", "", "8junk", "0.25,atempo=4",
+  for (const tempo of ["0.25", "0", "-1", "100.1", "Infinity", "NaN", "tempo=", "8junk", "0.25,atempo=4",
     "1/4", "100+1", "1/0", "0/0", "1/", "1/2junk"]) {
     it(`rejects invalid atempo=${tempo} without writing output`, async () => {
       const input = encodeWav({ sampleRate: 16000, channels: [new Float64Array(160)] });

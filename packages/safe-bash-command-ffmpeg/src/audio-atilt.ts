@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function tiltAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -14,7 +15,7 @@ export async function tiltAudio(
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options;
     if (!key || !Object.hasOwn(options, key)) throw new Error(`atilt: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    const number = Number(value);
+    const number = parseFilterExpression(value, "atilt", {});
     const [min, max] = ranges[key];
     if (!value || !Number.isFinite(number) || number < min! || number > max! || key === "order" && !Number.isInteger(number)) {
       throw new Error(`atilt: invalid ${key}`);

@@ -9,9 +9,9 @@ const frequencies = [40, 1000, 30000];
 const tones = Float64Array.from({ length: 38400 }, (_, i) =>
   Math.round(500 + frequencies.reduce((sum, f) => sum + 2000 * Math.sin(2 * Math.PI * f * i / rate), 0)) / 32768);
 
-async function run(filter: string, channels = [tones], complex = false) {
+async function run(filter: string, channels = [tones], complex = false, sampleRate = rate) {
   const fs = createMemoryFileSystem();
-  await fs.writeFile("/in.wav", encodeWav({ sampleRate: rate, channels }));
+  await fs.writeFile("/in.wav", encodeWav({ sampleRate, channels }));
   await fs.writeFile("/out.raw", new TextEncoder().encode("KEEP"));
   let stderr = "";
   const result = await createFfmpegCommand().execute({
@@ -74,6 +74,39 @@ for (const option of ["freq=19", "freq=192001", "slope=1.1", "slope=-1.1", "widt
   it(`atilt rejects ${option} without replacing output`, async () => {
     const result = await run(`atilt=${option}`, [new Float64Array(4)]);
     assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes("atilt:"), result.stderr);
+    assert.equal(result.bytes.toString(), "KEEP");
+  });
+}
+
+for (const options of [
+  "freq=500:slope=1/2",
+  "freq=0.5k:slope=0.5",
+  "freq=250*2:slope=0.5",
+  "freq=0x1f4:slope=0.5",
+  "freq=5e2:slope=500m:width=1k:order=10/2:level=1",
+  "0.5k:1/2:500*2:2+3:2/2"
+]) {
+  it(`atilt evaluates numeric options ${options}`, async () => {
+    const input = [Float64Array.from({ length: 128 }, (_, i) => (i % 8 === 0 ? 3000 : -800) / 32768)];
+    const control = await run("atilt=freq=500:slope=0.5", input, false, 8000);
+    const result = await run(`atilt=${options}`, input, false, 8000);
+    assert.equal(control.exitCode, 0, control.stderr);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.bytes, control.bytes);
+    // Native FFmpeg 7.0.2 samples from the 8 kHz impulse fixture.
+    assert.deepEqual([0, 1, 2, 31, 32, 33].map(i => result.bytes.readInt16LE(i * 2)),
+      [5241, -2872, -1455, -813, 5830, -2672]);
+  });
+}
+
+for (const option of [
+  "freq=0b111110100", "freq=0o764", "freq=0.019k", "freq=193k",
+  "slope=3/2", "width=99/1", "order=31/1", "level=5/1", "freq=500garbage"
+]) {
+  it(`atilt rejects invalid numeric option ${option} without replacing output`, async () => {
+    const result = await run(`atilt=${option}`, [new Float64Array(4)]);
+    assert.notEqual(result.exitCode, 0);
     assert.ok(result.stderr.includes("atilt:"), result.stderr);
     assert.equal(result.bytes.toString(), "KEEP");
   });

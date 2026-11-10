@@ -85,6 +85,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; hasYOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, compose = "Over"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { name } = magickCompositeMode(compose);
     const copySource = ["src", "source", "copy"].includes(name), copyDestination = ["dst", "destination"].includes(name);
+    const copyAlpha = name === "copyalpha" || name === "copyopacity";
     const { width, height } = source, cx = width / 2, cy = height / 2;
     const insetX = geometry.hasOffset ? geometry.x : width * 0.1, insetY = geometry.hasYOffset ? geometry.y : height * 0.1;
     const rx = cx - Math.ceil(insetX * (geometry.isPercent ? width / 100 : 1) - 0.5);
@@ -190,10 +191,10 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                 for (let channel = 0; channel < 3; channel++) {
                     const color = channel === 0 ? background.r : channel === 1 ? background.g : background.b;
                     const selected = !channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channels.b);
-                    data[x * 4 + channel] = !selected || copyDestination ? Math.round(color * scale) : copySource ? data[x * 4 + channel]!
+                    data[x * 4 + channel] = !selected || copyDestination || copyAlpha ? Math.round(color * scale) : copySource ? data[x * 4 + channel]!
                         : alpha === 0 ? 0 : Math.round((data[x * 4 + channel]! * foreground + color * scale * back) / alpha);
                 }
-                data[x * 4 + 3] = Math.round(((!channels || channels.a) && !copyDestination ? (copySource ? foreground : alpha) * 255 : background.a) * scale);
+                data[x * 4 + 3] = Math.round(((!channels || channels.a) && !copyDestination ? (copySource || copyAlpha ? foreground : alpha) * 255 : background.a) * scale);
             }
             yield { kind: "write", highDepth, position: ((y + offsetY) * canvas.width + left + offsetX) * 4, data: new Uint8Array(data.buffer) };
         }

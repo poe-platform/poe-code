@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
@@ -32,6 +33,15 @@ it("tinterlace expressions match direct mode 4 Y4M bytes and timing", async () =
     assert.equal(header.find(token => token.startsWith("I")), "It");
     const [numerator, denominator] = header.find(token => token.startsWith("F"))!.slice(1).split(":").map(Number);
     assert.equal(numerator! / denominator!, 3);
+    const payload = bytes.subarray(bytes.indexOf(10) + 1);
+    assert.equal(payload.length, 3 * (6 + 48));
+    const planes = [];
+    for (let offset = 0; offset < payload.length; offset += 54) {
+      assert.equal(payload.subarray(offset, offset + 6).toString(), "FRAME\n");
+      planes.push(payload.subarray(offset + 6, offset + 54));
+    }
+    assert.equal(createHash("sha256").update(Buffer.concat(planes)).digest("hex"),
+      "39d0d1885b28f1a97ef6bb6a045eda20fdc2f3951e23bcc59c7cc8d9ab983460");
     if (control) assert.deepEqual(bytes, control);
     else control = bytes;
     assert.deepEqual(volume.readFileSync("/in.y4m"), input);

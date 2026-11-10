@@ -20,6 +20,7 @@ import { formatYuv } from "./format-yuv.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
+import { padTinterlace } from "./tinterlace-pad.js";
 import { weave } from "./weave.js";
 import { decimate } from "./decimate.js";
 import { meanFrameDifference } from "./select.js";
@@ -3851,12 +3852,12 @@ async function applyVideoFilterChain(
       if (Number.isNaN(mode)) throw new Error("tinterlace: invalid expression");
       if (mode < 0 || mode > 7) throw new RangeError("tinterlace: mode out of range [0 - 7]");
       if (positional.length !== 1 || Object.keys(named).some(key => key !== "mode") ||
-          ![0, 1, 2, 4, 5, 6, 7].includes(roundToEven(mode))) {
+          ![0, 1, 2, 3, 4, 5, 6, 7].includes(roundToEven(mode))) {
         throw new Error("tinterlace: unsupported mode or options");
       }
       const doubleRate = roundToEven(mode) === 6;
       const sliding = roundToEven(mode) === 7;
-      const heightFactor = [0, 7].includes(roundToEven(mode)) ? 2 : 1;
+      const heightFactor = [0, 3, 7].includes(roundToEven(mode)) ? 2 : 1;
       if (heightFactor === 2) {
         diagnostics.sarWidth *= 2;
         if (diagnostics.sarHeight % 2 === 0) {
@@ -3864,6 +3865,10 @@ async function applyVideoFilterChain(
           diagnostics.sarHeight /= 2;
         }
         diagnostics.sar = diagnostics.sarWidth / diagnostics.sarHeight;
+      }
+      if (roundToEven(mode) === 3) {
+        current = await padTinterlace(current, budget, signal);
+        continue;
       }
       const output: typeof current = [];
       for (let index = 0; index + 1 < current.length; index += doubleRate || sliding ? 1 : 2) {

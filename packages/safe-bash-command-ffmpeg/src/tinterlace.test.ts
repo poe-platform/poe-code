@@ -18,7 +18,7 @@ for (const [filter, expected] of [
   ["trim=end_frame=7,tinterlace=mode=interleave_top", [[12,40],[40,112],[144,176]]],
   ["trim=end_frame=1,tinterlace=mode=interleave_top", []],
   ["tinterlace=mode=interleave_top,select='eq(t,0.2)'", [[40,112]]],
-  ...["mode=invalid", "mode=3.4", "mode=8", "mode=0/0", "mode=1/0", "mode=2+", "mode=interleave_top:flags=1", "unknown=4"].map(value => [`tinterlace=${value}`, null] as const)
+  ...["mode=invalid", "mode=8", "mode=0/0", "mode=1/0", "mode=2+", "mode=interleave_top:flags=1", "unknown=4"].map(value => [`tinterlace=${value}`, null] as const)
 ] as const) {
   it(`tinterlace weaves rows or safely rejects ${filter}`, async () => {
     const volume = Volume.fromJSON(expected === null ? { "/o01.png": "existing output" } : {});

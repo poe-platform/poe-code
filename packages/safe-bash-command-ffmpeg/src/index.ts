@@ -4098,6 +4098,7 @@ async function applyVideoFilterChain(
       for (const part of argStr === "" ? [] : positional) {
         const separator = part.indexOf("=");
         const key = separator < 0 ? modeKeys[positionalIndex++] : part.slice(0, separator).trim().toLowerCase();
+        if (key === "enable") continue;
         if (!key || !modeKeys.includes(key)) throw new Error("tblend: only component modes and all_mode are supported");
         options[key] = separator < 0 ? part : part.slice(separator + 1).trim();
       }
@@ -4116,8 +4117,11 @@ async function applyVideoFilterChain(
       let nextCommand = 0;
       const packedAlpha = pixelFormat === "rgba" || pixelFormat === "bgra";
       const hasAlpha = packedAlpha || pixelFormat === "gbrap" || pixelFormat === "ya8" || pixelFormat === "rgba64be";
+      if (named.enable !== undefined && current.length === 0) {
+        parseFilterExpression(named.enable, "tblend enable", { n: 0, t: 0, w: 0, h: 0, pos: NaN, NAN: NaN, INF: Infinity });
+      }
       const blended: typeof current = [];
-      for (let index = 1; index < current.length; index++) {
+      for (let index = 0; index < current.length; index++) {
         const frame = current[index]!;
         while (nextCommand < commands.length && commands[nextCommand]!.time <= frame.ptsSeconds) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
@@ -4130,11 +4134,16 @@ async function applyVideoFilterChain(
             // Rejected runtime commands preserve the active blend mode.
           }
         }
+        const enabled = named.enable === undefined || Math.abs(parseFilterExpression(named.enable, "tblend enable", {
+          n: index, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN, NAN: NaN, INF: Infinity
+        })) >= 0.5;
+        // Even disabled frames initialize and update the previous-frame state.
+        if (index === 0) continue;
         const previous = current[index - 1]!;
         if (frame.width !== previous.width || frame.height !== previous.height) {
           throw new Error("tblend: adjacent frames must have matching dimensions");
         }
-        if (modes.slice(0, 4).every(mode => mode === 0)) {
+        if (!enabled || modes.slice(0, 4).every(mode => mode === 0)) {
           blended.push(frame);
           continue;
         }

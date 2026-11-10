@@ -4,7 +4,7 @@ import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
 for (const format of ["yuv444p", "rgba"]) {
-  for (const filter of ["tblend", "tblend=all_mode=normal", "trim=start_frame=1"]) {
+  for (const filter of ["tblend", "tblend=all_mode=normal", "trim=start_frame=1", "tblend=all_mode=difference:enable=0"]) {
     it(`${filter} preserves exact ${format} samples after the first frame`, async () => {
       const samples = [[50, 30, 212, 255], [120, 180, 60, 128], [120, 180, 60, 128], [80, 140, 190, 32]];
       const frames = samples.map(sample => Buffer.from(format === "rgba"

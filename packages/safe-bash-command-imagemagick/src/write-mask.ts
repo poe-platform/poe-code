@@ -5,7 +5,7 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 export interface MaskChannels { r: boolean; g: boolean; b: boolean }
 
 /** Blend edited pixels with their originals; white protects and black permits writes. */
-export function* writeMaskPixelSteps(image: { width: number; height: number }, mask: { width: number; height: number }, highDepth = false, alphaOpaque = false, channels?: MaskChannels, alphaActive = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* writeMaskPixelSteps(image: { width: number; height: number }, mask: { width: number; height: number }, highDepth = false, alphaSet = false, channels?: MaskChannels, alphaActive = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     for (let y = 0; y < image.height; y++) {
         for (let x = 0; x < image.width; x += 512) {
             yield;
@@ -28,7 +28,7 @@ export function* writeMaskPixelSteps(image: { width: number; height: number }, m
             for (let i = 0; i < count; i++) {
                 const m = Math.min(i, maskCount - 1) * 4;
                 const intensity = (0.212656 * pixels[m]! + 0.715158 * pixels[m + 1]! + 0.072186 * pixels[m + 2]!) / 255;
-                if (alphaOpaque) {
+                if (alphaSet) {
                     const source = intensity > 0.5 ? edited : original;
                     for (let channel = 0; channel < 4; channel++) output[i * 4 + channel] = source[i * 4 + channel]!;
                 } else blendMaskedPixel(output, original, edited, i * 4, intensity, 255, channels, alphaActive);

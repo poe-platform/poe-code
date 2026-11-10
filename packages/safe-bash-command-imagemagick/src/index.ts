@@ -10070,8 +10070,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (maskAlpha !== "unmasked" && !handlesRegion && original.region && result.region === original.region && result.data !== original.data && result.width === original.width && result.height === original.height) {
                 result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, original.region, !!(result.data16 || original.data16), state.channels, maskAlpha === "opaque" || maskAlpha === "transparent"), undefined, result, [result, original]);
             }
-            if (maskAlpha !== "unmasked" && maskAlpha !== "transparent" && original.writeMask && (!result.writeMask || result.writeMask === original.writeMask) && result.data !== original.data && result.width === original.width && result.height === original.height) {
-                result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask, !!(result.data16 || original.data16), maskAlpha === "opaque", state.channels, original.hasAlpha && original.alphaBlend !== false), undefined, result, [result, original, original.writeMask]);
+            if (maskAlpha !== "unmasked" && (maskAlpha !== "transparent" || original.hasAlpha) && original.writeMask && (!result.writeMask || result.writeMask === original.writeMask) && result.data !== original.data && result.width === original.width && result.height === original.height) {
+                result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, original.writeMask, !!(result.data16 || original.data16), maskAlpha === "opaque" || maskAlpha === "transparent", state.channels, original.hasAlpha && original.alphaBlend !== false), undefined, result, [result, original, original.writeMask]);
             }
             return maskAlpha === "extract" ? { ...result, alphaBlend: false } : result;
         });
@@ -14685,8 +14685,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 else for (let n = 0; n < stack.length; n++) {
                     const original = (await stack.get(n))! as StoredRgbaImage;
                     let result = await step(original, backend);
-                    if (result && step.maskAlpha !== "unmasked" && step.maskAlpha !== "transparent" && original.storedWriteMask && (!result.storedWriteMask || result.storedWriteMask === original.storedWriteMask) && result.position !== original.position && result.width === original.width && result.height === original.height) {
-                        result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask, !!(result.storedData16 || original.storedData16), step.maskAlpha === "opaque", maskChannels, original.hasAlpha && original.alphaBlend !== false), signal, result, [result, original, original.storedWriteMask]);
+                    if (result && step.maskAlpha !== "unmasked" && (step.maskAlpha !== "transparent" || original.hasAlpha) && original.storedWriteMask && (!result.storedWriteMask || result.storedWriteMask === original.storedWriteMask) && result.position !== original.position && result.width === original.width && result.height === original.height) {
+                        result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask, !!(result.storedData16 || original.storedData16), step.maskAlpha === "opaque" || step.maskAlpha === "transparent", maskChannels, original.hasAlpha && original.alphaBlend !== false), signal, result, [result, original, original.storedWriteMask]);
                     }
                     if (result && step.maskAlpha !== "unmasked" && !step.handlesRegion && original.region && result.region === original.region && result.position !== original.position && result.width === original.width && result.height === original.height) {
                         result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, original.region, !!(result.storedData16 || original.storedData16), maskChannels, step.maskAlpha === "opaque" || step.maskAlpha === "transparent"), signal, result, [result, original]);

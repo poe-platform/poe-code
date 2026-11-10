@@ -7,7 +7,7 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 const rgb = [255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 0];
 const masked = ["-write-mask", "/mask.png"];
 // Native ImageMagick 7.1.2: alpha opaque selects mask values above half;
-// alpha transparent ignores the mask, while negate uses ordinary protection.
+// alpha transparent initializes RGB-only input without masking; negate uses ordinary protection.
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     it.each([
         { name: "transparent", mask: [255, 0, 0, 0], operations: [...masked, "-alpha", "transparent", "+write-mask"], alpha: [0, 0, 0, 0] },

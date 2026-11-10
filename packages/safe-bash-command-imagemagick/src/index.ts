@@ -6538,6 +6538,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     const percentage = argument.includes("%");
     const independent = !state.channelDefault;
     const channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
+    const settings = { ...state, channels: { ...state.channels } };
     return { end, highDepth: true, luminance: token === "-linear-stretch" || token === "-equalize" && state.channelSync || (token === "-normalize" || token === "-contrast-stretch") && !independent, transform(histogram, image) {
         if (token === "-contrast-stretch" || token === "-linear-stretch") {
             if (!Number.isFinite(Number.parseFloat(argument)) || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
@@ -6545,9 +6546,6 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             }
         }
         const levels = histogram[0]!.length;
-        const lookup = Array.from({ length: 4 }, () => levels === 65536
-            ? Uint16Array.from({ length: levels }, (_, value) => value)
-            : Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
         const count = Math.max(1, image.width * image.height);
         if (token === "-auto-gamma") {
             const count = Math.max(1, histogram[0]!.reduce((sum, frequency) => sum + frequency, 0));
@@ -6559,16 +6557,30 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             const sharedMean = gray
                 ? (sums[0]! + sums[3]!) / (count * (image.hasAlpha ? 2 : 1) * (levels - 1))
                 : sums.reduce((sum, value) => sum + value, 0) / (count * channelCount * (levels - 1));
-            // Explicit channels use independent means; native leaves alpha unchanged.
-            const active = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, !independent && image.hasAlpha];
-            for (let channel = 0; channel < channelCount; channel++) {
-                if (!active[channel]) continue;
+            // Native auto-gamma uses levels, including both masked cache syncs.
+            const operations: MagickPixelOperation[] = [];
+            const active = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b];
+            for (let channel = 0; channel < (independent ? gray ? 1 : 3 : 1); channel++) {
+                if (independent && !active[channel]) continue;
                 const mean = independent ? sums[channel]! / (count * (levels - 1)) : sharedMean;
                 if (mean <= 0 || mean >= 1) continue;
-                const exponent = Math.log(0.5) / Math.log(mean);
-                for (let value = 0; value < levels; value++) lookup[channel]![value] = Math.round(Math.pow(value / (levels - 1), exponent) * (levels - 1));
+                const gamma = Math.log(mean) / Math.log(0.5);
+                const selected = independent ? {
+                    r: channel === 0, g: gray || channel === 1, b: gray || channel === 2, a: false, k: false,
+                } : { r: true, g: true, b: true, a: true, k: false };
+                operations.push(parseMagickPixelOperation(["-level", `0,65535,${gamma}`], {
+                    ...settings, channelExplicit: true, channels: selected,
+                }, 0)!);
             }
-        } else if (token === "-auto-level") {
+            return function* (pixels, pixelOffset = 0, imageWidth = image.width) {
+                for (const operation of operations) pixels = yield* operation.apply(pixels, pixelOffset, imageWidth);
+                return pixels;
+            };
+        }
+        const lookup = Array.from({ length: 4 }, () => levels === 65536
+            ? Uint16Array.from({ length: levels }, (_, value) => value)
+            : Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
+        if (token === "-auto-level") {
             const mins = [levels - 1, levels - 1, levels - 1, levels - 1], maxs = [0, 0, 0, 0], active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];
             for (let channel = 0; channel < 4; channel++) for (let value = 0; value < levels; value++) if (histogram[channel]![value]! > 0) { mins[channel] = Math.min(mins[channel]!, value); maxs[channel] = Math.max(maxs[channel]!, value); }
             if (!independent) {
@@ -10837,7 +10849,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const workingSamples = workingBytes ? new Float64Array(workingBytes.buffer.slice(workingBytes.byteOffset, workingBytes.byteOffset + workingBytes.byteLength)) : undefined;
                     await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, offset / 4, settings.channels, workingSamples, image.storedHueSamples !== undefined, image.space === "cmyk"), signal);
                 }
-                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, evaluate: operation.sepiaThreshold !== undefined, apply: operation.transform(histogram, image) }, signal, analysisOperation.highDepth);
+                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, evaluate: operation.sepiaThreshold !== undefined || token === "-auto-gamma", handlesWriteMask: token === "-auto-gamma", apply: operation.transform(histogram, image) }, signal, analysisOperation.highDepth);
             }, { handlesRegion: token === "-sepia-tone" }));
             continue;
         }

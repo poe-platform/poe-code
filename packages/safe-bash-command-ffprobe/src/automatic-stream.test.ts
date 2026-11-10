@@ -5,7 +5,7 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createFfprobeCommand, evalSyncFfprobe } from "./media.js";
 
 async function run(route: "file" | "stdin", mode = "success", extra: string[] = []) {
-  const bytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(32768)] }, { tags: { title: "streamed title" } });
+  const bytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(extra.includes("-show_frames") ? 24576 : 32768)] }, { tags: { title: "streamed title" } });
   if (mode === "fallback") new DataView(bytes.buffer).setUint16(32, 7, true);
   const args = ["-of", "json", "-show_streams", "-show_format", ...extra, route === "stdin" ? "-" : "/input.wav"];
   const expected = evalSyncFfprobe(route === "stdin" ? bytes : undefined, args, () => bytes);

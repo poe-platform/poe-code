@@ -9,6 +9,12 @@ for (const [filter, expected] of [
   ["null", values],
   ["framestep=3", [12, 112, 176]],
   ["framestep=step=3", [12, 112, 176]],
+  ["framestep=step=1+1", [12, 40, 144, 176]],
+  ["framestep=2.5", [12, 40, 144, 176]],
+  ["framestep=3.5", [12, 144]],
+  ["framestep=2.6", [12, 112, 176]],
+  ["framestep=step='sqrt(4)'", [12, 40, 144, 176]],
+  ["framestep=PI", [12, 112, 176]],
   ["framestep", values],
   ["framestep=1", values],
   ["framestep=8", [12]],
@@ -16,7 +22,7 @@ for (const [filter, expected] of [
   ["framestep=3,select='gt(t,0.5)'", [176]],
   ["trim=start_frame=1,framestep=3", [40, 144, 232]],
   ["framestep=3,framestep=2", [12, 176]],
-  ...["0", "-1", "2147483648", "nope", "step=", "unknown=3", "3:2"].map(value => [`framestep=${value}`, null] as const)
+  ...["0", "-1", "0.9", "2147483647.1", "2147483648", "1/0", "0/0", "nope", "step=", "unknown=3", "3:2"].map(value => [`framestep=${value}`, null] as const)
 ] as const) {
   it(`framestep selects frames or safely rejects ${filter}`, async () => {
     const volume = Volume.fromJSON({ "/o01.png": "existing output" });

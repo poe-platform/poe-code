@@ -3688,11 +3688,14 @@ async function applyVideoFilterChain(
       }
       current = retained;
     } else if (name === "framestep") {
-      const step = Number(named.step ?? (argStr || "1"));
+      const value = parseFilterExpression(named.step ?? (argStr || "1"), "framestep", {
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+      });
       if (positional.length > 1 || Object.keys(named).some(key => key !== "step") ||
-          !Number.isInteger(step) || step < 1 || step > 2147483647) {
+          !Number.isFinite(value) || value < 1 || value > 2147483647) {
         throw new Error("framestep: step must be an integer from 1 to 2147483647");
       }
+      const step = roundToEven(value);
       current = current.filter((_, index) => index % step === 0)
         .map(frame => ({ ...frame, durationSeconds: frame.durationSeconds * step }));
     } else if (name === "tinterlace") {

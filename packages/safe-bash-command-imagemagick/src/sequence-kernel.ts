@@ -1,5 +1,6 @@
 import type { RgbaImage } from "@poe-code/image-ast";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { magickIntensity } from "./intensity.js";
 import { createMagickRandom } from "./random.js";
 import { evaluateNoiseSteps } from "./noise.js";
 type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>;
@@ -150,7 +151,7 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
     }
 }
 
-export function* combinePixelSteps(inputs: readonly Pick<RgbaImage, "width" | "height">[], highDepth = false): Steps {
+export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height"> & { magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma"): Steps {
     const { width, height } = inputs[0]!, chunkPixels = highDepth ? 2048 : 4096;
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x += chunkPixels) {
         yield;
@@ -163,7 +164,7 @@ export function* combinePixelSteps(inputs: readonly Pick<RgbaImage, "width" | "h
             const count = Math.min(length, (sourceImage.width - x) * 4);
             const bytes = image === 0 ? base : (yield { kind: "read", highDepth, image, position: (y * sourceImage.width + x) * 4, length: count })!;
             const source = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
-            for (let offset = 0; offset < count; offset += 4) data[offset + image] = Math.round(0.212656 * source[offset]! + 0.715158 * source[offset + 1]! + 0.072186 * source[offset + 2]!);
+            for (let offset = 0; offset < count; offset += 4) data[offset + image] = Math.round(magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, highDepth ? 65535 : 255, sourceImage.magickColorspace === "RGB"));
         }
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }

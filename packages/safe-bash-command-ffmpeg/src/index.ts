@@ -1274,7 +1274,6 @@ async function renderShowwavespic(
   const count = channels[0]?.length ?? 0;
   if (!count) throw new Error("showwavespic: no audio samples");
   const rowHeight = split ? Math.floor(height / channels.length) : height;
-  if (!rowHeight) throw new Error("showwavespic: image height is smaller than the channel count");
   if (count < width) return undefined;
   budget.recordFrame(width, height);
   budget.allocateMemory(width * height * 4);

@@ -2506,6 +2506,15 @@ function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSi
     return { ...img, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }
 
+function parseMagickColorCount(argument: string): number {
+    validateMagickTransformGeometry(argument, "-colors");
+    // Native reads a decimal integer prefix, then converts it to an unsigned count.
+    const count = Number.parseInt(argument, 10);
+    if (!Number.isFinite(count) || count === 0) throw new Error(`invalid argument for option '-colors': ${argument}`);
+    // Negative counts wrap above the native maximum colormap size.
+    return count < 0 ? 65536 : Math.min(count, 65536);
+}
+
 function parseMagickCycleAmount(argument: string): number {
     validateMagickTransformGeometry(argument, "-cycle");
     // Native validates geometry, then reads only the leading decimal integer.
@@ -10194,7 +10203,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-colors") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const colors = Number(tokens[++i]);
+            const colors = parseMagickColorCount(tokens[++i] ?? "");
             state.colors = colors;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const { data16: ignored, hueSamples: ignoredHue, ...pixels } = image;
@@ -12755,7 +12764,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const colors = Number(tokens[++i]), grayscale = state.quantizeGray, treeDepth = state.treeDepth, dither = state.dither, diffusionAmount = state.diffusionAmount ?? 1;
+            const colors = parseMagickColorCount(tokens[++i] ?? ""), grayscale = state.quantizeGray, treeDepth = state.treeDepth, dither = state.dither, diffusionAmount = state.diffusionAmount ?? 1;
             state.colors = colors;
             steps.push(async (image, backend) => {
                 if (!image) return;

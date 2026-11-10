@@ -9951,6 +9951,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-resize" || t === "-scale" || t === "-sample" || t === "-thumbnail") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geom = tokens[++i] ?? "100%";
             validateMagickTransformGeometry(geom, t);
             const k = t === "-sample" ? "nearest" : state.kernel;
@@ -12486,6 +12487,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return { ...result, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) };
             });
         } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter, sampleOffset = state.sampleOffset;
             validateMagickTransformGeometry(geometry, token);
             steps.push(async (image, backend) => { if (!image) return; const options = magickResizeOptions(image, geometry, kernel ?? (thumbnail ? "lanczossharp" : undefined)); return resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, sampleOffset); });

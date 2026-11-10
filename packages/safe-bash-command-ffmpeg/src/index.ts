@@ -2017,6 +2017,7 @@ async function applyVideoFilterChain(
   let current: (MediaVideoFrame & { filterMetadata?: Record<string, string>; interlaced?: boolean })[] = frames;
   if (current.length === 0) return current;
   let frameRateKnown = true;
+  let videoCommands: { time: number; target: string; expression: string }[] = [];
 
   for (const filterSpec of parseFilterChain(filterChainStr)) {
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
@@ -2039,7 +2040,36 @@ async function applyVideoFilterChain(
       }
     }
 
-    if (name === "signalstats") {
+    if (name === "sendcmd") {
+      let commands = argStr;
+      if (commands.startsWith("c=")) commands = commands.slice(2);
+      else if (commands.startsWith("commands=")) commands = commands.slice(9);
+      const scheduled = [];
+      for (const command of commands.split(";")) {
+        if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        if (!command.trim()) continue;
+        const words = Array.from(command, char => char.trim() ? char : " ").join("").split(" ").filter(Boolean);
+        const time = Number(words.shift());
+        if (words[0] === "[enter]") words.shift();
+        const [target, action, expression] = words;
+        if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target ||
+            !(target === "negate" || target.startsWith("negate@")) || action !== "components" || !expression) {
+          throw new Error("sendcmd: expected TIME negate[@NAME] components FLAGS");
+        }
+        budget.allocateMemory(64);
+        scheduled.push({ time, target, expression });
+      }
+      if (!scheduled.length) throw new Error("sendcmd: commands are required");
+      scheduled.sort((a, b) => a.time - b.time);
+      let next = 0;
+      for (const frame of current) {
+        if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        while (next < scheduled.length && scheduled[next]!.time <= frame.ptsSeconds) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          videoCommands.push({ ...scheduled[next++]!, time: frame.ptsSeconds });
+        }
+      }
+    } else if (name === "signalstats") {
       const stat = named.stat ?? (positional[0]?.includes("=") ? "" : positional[0]) ?? "";
       const out = named.out ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "-1";
       if (Object.keys(named).some(key => !["stat", "out", "c", "color"].includes(key)) || positional.length > 3 ||
@@ -2858,7 +2888,7 @@ async function applyVideoFilterChain(
         "negate: invalid negate_alpha boolean"
       );
       let mask = 0x77;
-      for (const flags of components) {
+      const setComponents = (flags: string) => {
         const relative = flags.startsWith("+") || flags.startsWith("-");
         if (!relative) mask = 0;
         let position = 0;
@@ -2877,7 +2907,14 @@ async function applyVideoFilterChain(
           }
           mask = remove ? mask & ~value : mask | value;
         } while (position < flags.length);
-      }
+      };
+      for (const flags of components) setComponents(flags);
+      const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
+      const commands = videoCommands.filter(command => command.target === name || command.target === instance);
+      // Native sendcmd delivers a command to the first matching instance.
+      videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
+      commands.sort((a, b) => a.time - b.time);
+      let nextCommand = 0;
       current = await mapWork(current, async (f, n) => {
         const source = f.native;
         const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
@@ -2885,6 +2922,20 @@ async function applyVideoFilterChain(
         const gray = pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "ya8";
         const available = planar ? 0x70 : gray ? (pixelFormat === "ya8" ? 0x18 : 0x10) :
           pixelFormat === "rgb24" || pixelFormat === "bgr24" ? 0x07 : 0x0f;
+        while (nextCommand < commands.length && commands[nextCommand]!.time <= f.ptsSeconds) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const command = commands[nextCommand++]!;
+          const previousMask = mask;
+          try {
+            setComponents(command.expression);
+            if (mask !== 0x77 && mask & ~available) {
+              throw new Error("negate: Requested components not available");
+            }
+          } catch {
+            // Rejected runtime commands leave the active component selection intact.
+            mask = previousMask;
+          }
+        }
         // The all-color mask selects only the negotiated format's components.
         // RGBA alpha is selected by components; grayscale alpha also honors negate_alpha.
         const selected = (mask === 0x77 ? available & 0x77 : mask) |

@@ -36,3 +36,34 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         expect(Array.from(image.data16!)).toEqual(Array.from({ length: width * height }, () => [0x4567, 0x2345, 0xabcd, 0x98ab]).flat());
     });
 }
+
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    it.each([
+        [["-thumbnail", "1x1"], 8, 1],
+        [["-thumbnail", "2x1"], 8, 2],
+        [["-thumbnail", "4x2>"], 8, 2],
+        [["-thumbnail", "1x1", "-depth", "16"], 16, 1],
+        [["-resize", "1x1"], 16, 1]
+    ] as const)(`uses thumbnail output depth without losing working precision: %j (${mode})`, async (operation, depth, width) => {
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        const args = ["-size", "2x1", "xc:#123456789abc", ...operation, "-format", "%z", "-write", "/out.pam", "info:-"];
+        let stdout = "";
+        if (mode === "command") {
+            const command = createMagickCommand(), argumentValues = createCommandArguments(args);
+            const result = await command.execute({ command: command.name, args: argumentValues.args, argumentValues,
+                cwd: "/", env: {}, fs: filesystem, signal: new AbortController().signal,
+                stdin: (async function* () {})(), stdout: { async write(chunk) { stdout += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } }, stderr: { async write() {} } });
+            expect(result.exitCode).toBe(0);
+        } else {
+            const result = mode === "sync" ? runMagickCliSync(args, files)
+                : await runMagickCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" });
+            expect(result.exitCode, result.stderr).toBe(0);
+            stdout = result.stdout;
+        }
+        expect(stdout).toBe(String(depth));
+        const bytes = Buffer.from(mode === "buffered" || mode === "sync" ? files.get("/out.pam")! : await filesystem.readFile("/out.pam"));
+        const rasterStart = bytes.indexOf("ENDHDR\n") + "ENDHDR\n".length;
+        expect(bytes.subarray(0, rasterStart).toString()).toContain(`MAXVAL ${depth === 8 ? 255 : 65535}\n`);
+        expect(bytes.subarray(rasterStart).toString("hex")).toBe((depth === 8 ? "12569a" : "123456789abc").repeat(width));
+    });
+}

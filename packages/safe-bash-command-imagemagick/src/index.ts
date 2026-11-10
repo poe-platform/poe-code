@@ -5060,7 +5060,7 @@ function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickForm
 function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Generator<void, RgbaImage, void> {
     if (thumbnail) {
         const { virtualCanvas: ignoredCanvas, xmp: ignoredXmp, ...reset } = img;
-        img = { ...reset, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset), "comment") };
+        img = { ...reset, bitsPerSample: 8, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset), "comment") };
     }
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczossharp" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
@@ -5122,7 +5122,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
 async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: ReturnType<typeof magickResizeOptions>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false): Promise<StoredRgbaImage> {
     if (thumbnail) {
         const { virtualCanvas: ignoredCanvas, xmp: ignoredXmp, ...reset } = image;
-        image = { ...reset, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset), "comment") };
+        image = { ...reset, bitsPerSample: 8, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset), "comment") };
     }
     if (!options) return image;
     const width = options.width!, height = options.height!;

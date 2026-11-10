@@ -133,7 +133,7 @@ Async `runIdentifyCli(args, { filesystem, cwd, stdin, stdout, stderr })` uses th
 
 `identify -format '%@' image.png` reports trim bounds without changing the image or its canvas dimensions; a uniform image reports `0x0+width+height` with a geometry warning.
 
-`%S` reports the default scene setting (`2147483647`), independently of the current frame (`%s`) and image count (`%n`). `-set orientation text` and `-set scene text` override `%[orientation]` and `%[scene]` without changing pixel orientation or `%s`; `+set orientation` and `+set scene` restore the derived values.
+`%S` reports the default scene setting (`2147483647`), independently of the current frame (`%s`) and image count (`%n`). `-set orientation text` and `-set scene text` override `%[orientation]` and `%[scene]` without changing pixel orientation or `%s`; `+set orientation` and `+set scene` restore the derived values. `%[quality]` reports image quality (`0` when unset) and honors `-quality`; `-set quality text` overrides only this property, and `+set quality` restores the image value.
 
 `identify +format` restores the default description for subsequent images; earlier images keep their format. Nested image properties expand before formatted FX arithmetic, so `identify -format '%[fx:%[width]*2]' image.png` prints twice the image width.
 

@@ -1638,6 +1638,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const properties: Record<string, string> = {
     compose: "Over",
     scene: short.s!,
+    quality: String(meta.quality ?? 0),
     orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",
     ...meta.properties,
     magick: short.m!,
@@ -1657,7 +1658,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     "exif:orientation": meta.orientation === undefined ? "" : String(meta.orientation),
     colorspace: space, channels: `${space.toLowerCase()}${meta.hasAlpha || meta.inactiveAlpha && meta.alphaBlend !== false ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (hasAlphaChannel ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.region || meta.writeMask || meta.storedWriteMask ? 1 : 0) + metaChannelCount}.${metaChannelCount}`,
     width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
-    depth: bitDepth, size: context.outputFilePath === undefined ? short.b! : "0B", compression, quality: String(meta.quality ?? 0), page: short.P!,
+    depth: bitDepth, size: context.outputFilePath === undefined ? short.b! : "0B", compression, page: short.P!,
     "resolution.x": formatSignificantMetric(resolution ? resolution.x / resolutionScale : 0),
     "resolution.y": formatSignificantMetric(resolution ? resolution.y / resolutionScale : 0),
     "printsize.x": formatSignificantMetric(meta.width / Math.max(resolution ? resolution.x / resolutionScale : 0, 1e-12)),
@@ -6667,6 +6668,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 im = { ...image, evaluateSamples };
             }
             im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], virtualPixel: state.virtualPixel } });
+            if (state.qualityExplicit) im = { ...im, quality: state.quality };
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.composeExplicit) im = { ...im, properties: { ...im.properties, compose: state.composeRaw } };
             if (state.interlace !== undefined) im = Object.assign({}, im, { [magickInput]: { ...(im as MagickImage)[magickInput], interlace: state.interlace } });
@@ -10569,6 +10571,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-background") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, backgroundColor: state.background }; });
             if (t === "-interlace" || t === "+interlace") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
+            if (t === "-quality") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, quality: state.quality }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
             if (t === "-virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, hasAlpha: image.hasAlpha || state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(image as MagickImage)[magickInput], virtualPixel: state.virtualPixel } }; });
         }
@@ -13297,6 +13300,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const compose = state.composeRaw;
                 steps.push(async image => image ? { ...image, properties: { ...image.properties, compose } } : undefined);
             }
+            if (token === "-quality") {
+                const quality = state.quality;
+                steps.push(async image => image ? { ...image, quality } : undefined);
+            }
             if (token === "-gravity" || token === "+gravity") {
                 const gravity = state.gravity;
                 steps.push(async image => image ? { ...image, gravity } : undefined);
@@ -15957,6 +15964,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    image = { ...metadata, storedEvaluateSamples };
   }
   image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], virtualPixel: state.virtualPixel } });
+  if(state.qualityExplicit)image={...image,quality:state.quality};
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.composeExplicit)image={...image,properties:{...image.properties,compose:state.composeRaw}};
   if(state.interlace!==undefined)image=Object.assign({},image,{[magickInput]:{...(image as StoredMagickImage)[magickInput],interlace:state.interlace}});

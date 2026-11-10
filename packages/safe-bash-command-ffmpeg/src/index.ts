@@ -9245,6 +9245,35 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     [{ ...loadedDocs[0]!, tracks: outputs.map(output => output.track) }],
                     { stripAudio, stripVideo, stripSubtitles }, context.signal);
                   afFilters.push(...outputs.map((output, ordinal) => ({ ordinal, expression: output.expression })));
+                } else if (filterComplex.trim().endsWith("]")) {
+                  let expression = filterComplex.trim();
+                  const outputStart = expression.lastIndexOf("[");
+                  const output = expression.slice(outputStart);
+                  if (outputStart < 0 || maps.length !== 1 || maps[0] !== output) {
+                    throw new Error("Video filter output label must be mapped exactly once");
+                  }
+                  expression = expression.slice(0, outputStart).trim();
+                  let input = "0:v";
+                  if (expression.startsWith("[")) {
+                    const end = expression.indexOf("]");
+                    if (end < 0) throw new Error("Invalid video filter input label");
+                    input = expression.slice(1, end);
+                    expression = expression.slice(end + 1).trim();
+                  }
+                  const [index, selector, ordinal, ...extra] = input.split(":");
+                  const numeric = selector === "v" ? [index, ordinal ?? "0"] : [index, selector ?? "0"];
+                  const valid = extra.length === 0 && (selector === "v" || ordinal === undefined) &&
+                    numeric.every(value => value !== undefined && value.length > 0 &&
+                      Array.from(value).every(char => char >= "0" && char <= "9") && Number.isSafeInteger(Number(value)));
+                  const doc = valid ? loadedDocs[Number(index)] : undefined;
+                  const track = selector === undefined || selector === "v"
+                    ? doc?.tracks.filter(track => track.type === "video")[Number(ordinal ?? "0")]
+                    : doc?.tracks[Number(selector)];
+                  if (!doc || !track || track.type !== "video") throw new Error(`Invalid video filter input: ${input}`);
+                  if (!expression || expression.startsWith("[")) throw new Error("Unsupported video filter graph");
+                  workingDoc = await muxMp4Cooperatively(
+                    [{ ...doc, tracks: [track] }], { stripAudio, stripVideo, stripSubtitles }, context.signal);
+                  vfFilters.push(expression);
                 } else {
                   workingDoc = await muxMp4Cooperatively(loadedDocs, {}, context.signal);
                   const cleanedComplex = filterComplex.replace(/\[[^\]]+\]/g, "").trim();

@@ -8390,10 +8390,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const raw = [...(tokens[++i] ?? "")].filter(character => character.trim() !== "").join("")
             .replaceAll(",", "x").replaceAll("/", "x");
         validateMagickTransformGeometry(raw, token);
+        const geometry = parseMagickGeometry(raw);
+        // Two offsets supply no contrast magnitude; numeric prefixes are not complete dimensions.
+        const magnitude = geometry.aspectRatio ?? geometry.width ?? (geometry.hasOffset && !geometry.hasYOffset ? geometry.x : undefined);
         const [cStr, mStr] = raw.replaceAll(":", "x").split("x");
         const ratio = raw.includes(":");
         const strength = parseFloat(cStr ?? "") / (ratio ? parseFloat(mStr ?? "1") : 1);
-        if (!Number.isFinite(strength)) {
+        if (!Number.isFinite(magnitude) || !Number.isFinite(strength)) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
         const beta = Math.max(1e-4, strength);
@@ -9771,7 +9774,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if ((t === "-ordered-dither" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-auto-threshold" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-level-colors" || t === "+level-colors" || t === "-negate" || t === "+negate" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast") && !stack.length) throw new Error(`no images found for operation '${t}'`);
+        if ((t === "-ordered-dither" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-auto-threshold" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-level-colors" || t === "+level-colors" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" || t === "-negate" || t === "+negate" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast") && !stack.length) throw new Error(`no images found for operation '${t}'`);
         if (t === "-page") {
             const raw = tokens[++i] ?? "";
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
@@ -12241,7 +12244,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-brightness-contrast" || token === "-gamma" || token === "+gamma" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-negate" || token === "+negate" || token === "-threshold" || token === "-black-threshold" || token === "-white-threshold" || token === "-auto-threshold" || token === "-random-threshold" || token === "-range-threshold")) stackStep(async stack => {
+        if (!operandsOnly && (token === "-brightness-contrast" || token === "-gamma" || token === "+gamma" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-negate" || token === "+negate" || token === "-threshold" || token === "-black-threshold" || token === "-white-threshold" || token === "-auto-threshold" || token === "-random-threshold" || token === "-range-threshold")) stackStep(async stack => {
             if (!stack.length) throw new Error(`no images found for operation '${token}'`);
             return stack;
         });

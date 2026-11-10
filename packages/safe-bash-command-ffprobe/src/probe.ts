@@ -1,3 +1,4 @@
+import { stringValidationOption } from "./string-validation.js";
 import { writerOptionAliases } from "./options.js";
 import { parseWriterBoolean } from "./writer-boolean.js";
 import { optionalFields, parseOptionalFields } from "./optional-fields.js";
@@ -78,12 +79,15 @@ export function parseArguments(args: readonly string[]) {
     }
   }
   if (!filename) throw new Error("Input file is required");
+  const equals = writer.indexOf("="), colon = writer.indexOf(":");
+  if (equals >= 0 && (colon < 0 || equals < colon)) writer = writer.slice(0, equals) + ":" + writer.slice(equals + 1);
   const [format, ...options] = writer.split(":");
   if (!["json", "compact", "csv", "default", "flat", "ini"].includes(format!))
     throw new Error(`Unknown output format ${format}`);
   const settings = new Map(
     options.map((option) => {
-      const [k, v] = option.split("=");
+      const equals = option.indexOf("=");
+      const k = option.slice(0, equals), v = equals < 0 ? undefined : option.slice(equals + 1);
       if (!k || v === undefined) throw new Error("Invalid writer option");
       return [k === "s" && format === "flat" ? "sep_char" : writerOptionAliases.get(k) ?? k, v];
     })
@@ -97,6 +101,7 @@ export function parseArguments(args: readonly string[]) {
     ini: ["h", "hierarchical"]
   };
   for (const [key, value] of settings) {
+    if (stringValidationOption(key, value)) continue;
     if (!writerOptions[format!]!.includes(key))
       throw new Error(`Unsupported writer option ${key}`);
     if ((key === "escape" || key === "e") && !["c", "csv", "none"].includes(value))
@@ -105,7 +110,7 @@ export function parseArguments(args: readonly string[]) {
     if ((format === "compact" || format === "csv") && (key === "item_sep" || key === "s") && new TextEncoder().encode(value).length !== 1)
       throw new Error("Item separator must be a single byte");
   }
-  return { filename, format: format!, sections, settings, selector, quiet, streamEntries, sexagesimal, prefix, byteBinaryPrefix, showOptionalFields };
+  return { filename, writer, format: format!, sections, settings, selector, quiet, streamEntries, sexagesimal, prefix, byteBinaryPrefix, showOptionalFields };
 }
 
 type Row = Record<string, string | number | Record<string, string>>;

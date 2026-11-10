@@ -1,10 +1,10 @@
+import { encodeProbeText } from "./string-validation.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { writeBytes } from "safe-bash-contracts/io";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { CommandContext } from "safe-bash-contracts/command";
 
 async function* encodeParts(parts: Iterable<string> | AsyncIterable<string>, signal: AbortSignal): AsyncGenerator<Uint8Array> {
-  const encoder = new TextEncoder();
   let high = "", steps = 0;
   for await (const part of parts) {
     signal.throwIfAborted();
@@ -13,11 +13,11 @@ async function* encodeParts(parts: Iterable<string> | AsyncIterable<string>, sig
       let text = high + part.slice(offset, offset + 4096); high = "";
       const last = text.charCodeAt(text.length - 1);
       if (last >= 0xd800 && last <= 0xdbff) { high = text.at(-1)!; text = text.slice(0, -1); }
-      if (text) yield encoder.encode(text);
+      if (text) yield encodeProbeText(text);
       if (++steps % 256 === 0) await yieldTurn(signal);
     }
   }
-  if (high) yield encoder.encode(high);
+  if (high) yield encodeProbeText(high);
 }
 
 /** Preserve admission-before-publication with a bounded cache in caller backing. */

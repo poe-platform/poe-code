@@ -1,3 +1,4 @@
+import { StringValidation, probeJsonString } from "./string-validation.js";
 import { parseWriterBoolean } from "./writer-boolean.js";
 import { escapeIni } from "./probe-text.js";
 import type { AudioAst } from "@poe-code/audio-ast";
@@ -13,7 +14,7 @@ async function* parts(value: Value): AsyncGenerator<string> {
   if (typeof value === "function") yield* value(); else yield String(value);
 }
 async function* jsonString(input: AsyncIterable<string>) {
-  yield '"'; for await (const part of input) yield JSON.stringify(part).slice(1, -1); yield '"';
+  yield '"'; for await (const part of input) yield probeJsonString(part).slice(1, -1); yield '"';
 }
 async function* replace(input: AsyncIterable<string>, needle: string, replacement: string): AsyncGenerator<string> {
   let pending = "", first = true;
@@ -52,14 +53,15 @@ async function needsQuotes(input: AsyncIterable<string>, separator: string) {
 export type TaggedAudioRow = ReturnType<typeof audioProbeRows>[number] & { tags?: StoredAudioTags | undefined };
 
 /** Replay scalar rows and tag spans without collecting tag maps or formatted output. */
-export async function* formatTaggedAudio(audio: Omit<AudioAst, "data" | "nodes" | "pictures"> & { nodes?: AudioAst["nodes"] }, size: number, args: readonly string[], tags: StoredAudioTags): AsyncGenerator<string> {
+export async function* formatTaggedAudio(audio: Omit<AudioAst, "data" | "nodes" | "pictures"> & { nodes?: AudioAst["nodes"] }, size: number, args: readonly string[], tags: StoredAudioTags, validation?: StringValidation): AsyncGenerator<string> {
   const parsed = parseArguments(args), rows = audioProbeRows({ ...audio, nodes: audio.nodes ?? [] }, size, parsed, tags.count > 0);
-  yield* formatTaggedRows((async function* () { for (const row of rows) yield { ...row, tags }; })(), args);
+  yield* formatTaggedRows((async function* () { for (const row of rows) yield { ...row, tags }; })(), args, validation);
 }
 
 /** Rows may acquire per-stream indexes; iteration never collects the stream list. */
-export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, args: readonly string[]): AsyncGenerator<string> {
-  const { sections, format, settings, streamEntries } = parseArguments(args);
+export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, args: readonly string[], validation?: StringValidation): AsyncGenerator<string> {
+  const { sections, format, writer, settings, streamEntries } = parseArguments(args);
+  const strings = validation ?? new StringValidation(writer);
   let tags: StoredAudioTags | undefined;
   async function* tagFields(section: string) {
     const selected = sections.get(section + "_tags");
@@ -73,7 +75,7 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
         }
         if (matches && at === wanted.length) { included = true; break; }
       }
-      if (included) yield { key: entry.key, value: entry.text };
+      if (included && await strings.accepts(entry.key, entry.text)) yield { key: () => strings.text(entry.key), value: () => strings.text(entry.text) };
     }
   }
   async function* jsonRow(row: TaggedAudioRow["row"], section: string, indent: number): AsyncGenerator<string> {

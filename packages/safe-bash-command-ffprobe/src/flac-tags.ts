@@ -1,3 +1,4 @@
+import { ProbeTextDecoder } from "./string-validation.js";
 import { IntegerTable, PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { flacFormatTagName, normalizeVorbisCommentKey, type AudioProbeSource, type FlacCommentSpan } from "@poe-code/audio-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -26,7 +27,7 @@ export class FlacTags {
     return bytes;
   }
   private async *decoded(offset: number, length: number, ignoreBOM: boolean, stored = false) {
-    const decoder = new TextDecoder("utf-8", { ignoreBOM });
+    const decoder = new ProbeTextDecoder(ignoreBOM);
     let steps = 0;
     for (let at = 0; at < length; at += 16384) {
       yield decoder.decode(await (stored ? this.storage.read(offset + at, Math.min(16384, length - at)) : this.read(offset + at, Math.min(16384, length - at))), { stream: true });

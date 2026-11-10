@@ -1,3 +1,4 @@
+import { probeJsonString } from "./string-validation.js";
 import type { MediaProbeText } from '@poe-code/mp4-ast';
 import { yieldTurn } from 'safe-bash-contracts/yield';
 
@@ -86,7 +87,7 @@ export async function* formatProbeText(step: ProbeTextStep, signal?: AbortSignal
     if (step.mode === 'xml') { yield escapeXml(chunk); continue; }
     if (step.mode === 'ini') { yield escapeIni(chunk); continue; }
     if (step.mode === 'plain') { yield chunk; continue; }
-    if (step.mode === 'json') { yield JSON.stringify(chunk).slice(1, -1); continue; }
+    if (step.mode === 'json') { yield probeJsonString(chunk).slice(1, -1); continue; }
     if (step.mode === 'csv') { yield chunk.replaceAll('"', '""'); continue; }
     let escaped = '';
     for (const character of chunk) {

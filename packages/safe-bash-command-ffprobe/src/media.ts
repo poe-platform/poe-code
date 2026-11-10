@@ -1,3 +1,4 @@
+import { StringValidation, stringValidationOption } from "./string-validation.js";
 import { parseStreamOrdinal } from "./stream-ordinal.js";
 import { parseWriterBoolean } from "./writer-boolean.js";
 import { probeConcat } from "./concat.js";
@@ -462,7 +463,7 @@ export function* formatFfprobeResultChunks(probe: SyncProbeRows, opts: FfprobeFo
 }
 
 /** Consume one-shot caller-backed records with backpressure and iterator cleanup. */
-export async function* formatFfprobeSourceChunks(probe: ProbeSourceRows, opts: FfprobeFormatOptions, audioInput?: AudioProbeInput, signal?: AbortSignal): AsyncGenerator<string> {
+export async function* formatFfprobeSourceChunks(probe: ProbeSourceRows, opts: FfprobeFormatOptions, audioInput?: AudioProbeInput, signal?: AbortSignal, validation = new StringValidation(opts.printFormat)): AsyncGenerator<string> {
   signal?.throwIfAborted();
   probe = mp3ReplayGain(probe, audioInput);
   const audio = formatQualifiedAudio(probe, opts, audioInput);
@@ -471,6 +472,22 @@ export async function* formatFfprobeSourceChunks(probe: ProbeSourceRows, opts: F
     try {
       probe = { ...probe, format: { ...probe.format, tags: flacFormatTags(parseAudio(audioInput.bytes).nodes) } };
     } catch { /* Preserve the general-media fallback for extended options or malformed audio. */ }
+  }
+  if (probe.format?.tags) {
+    const entries = parseEntryFilter(opts.showEntries), fields = entries.get("format_tags");
+    const parent = entries.get("format");
+    const included = fields !== undefined || opts.showFormat || entries.has("format");
+    if (included) {
+      const tags: Record<string, string | MediaProbeText> = {};
+      for (const [key, value] of Object.entries(probe.format.tags)) {
+        const selected = fields === null || fields?.has(key) || fields === undefined &&
+          (entries.size === 0 || parent === null || parent?.has("tags") || opts.showFormat && parent === undefined);
+        if (!selected) { tags[key] = value; continue; }
+        const text = isProbeText(value) ? value.chunks : value;
+        if (await validation.accepts(key, text)) tags[validation.replace(key)] = { kind: "text", chunks: () => validation.text(text) };
+      }
+      probe = { ...probe, format: { ...probe.format, tags } };
+    }
   }
   for (const step of formatProbeSteps(probe, opts)) {
     signal?.throwIfAborted();
@@ -1097,6 +1114,7 @@ function parseProbeArguments(args: readonly string[]) {
   let xsdStrict = false;
   for (const parameter of parameters) {
     const key = parameter.split("=")[0]!;
+    if (stringValidationOption(key, parameter.slice(parameter.indexOf("=") + 1))) continue;
     if (!writerOptions[writer]!.includes(key))
       throw new Error(`Unsupported writer option ${key}`);
     const value = parameter.slice(parameter.indexOf("=") + 1);
@@ -1166,9 +1184,9 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
     const ogg = await probeStoredOgg(source, context, retain);
     return onAudio ? { oggRows: ogg.rows } : probeOggStreamMetadata(ogg.first, source.size, probeOptions);
   }
-  let result: MediaProbeSourceRecords = await (plugin.probeRecords ?? plugin.probeMetadata)!.call(plugin, source, { ...records, filename, seekable: !isStdin(filename), signal: context.signal, budget, limits: budget.limits });
+  let result: MediaProbeSourceRecords = await (plugin.probeRecords ?? plugin.probeMetadata)!.call(plugin, source, { ...records, filename, seekable: !isStdin(filename) && !filename.startsWith("data:"), signal: context.signal, budget, limits: budget.limits });
   if (result.close) retain(result.close.bind(result));
-  if ((onAudio || plugin.formatName === "flac" || plugin.formatName === "mp3") && !(plugin.formatName === "wav" && result.format?.tags?.time_reference !== undefined)) {
+  if ((onAudio || plugin.formatName === "wav" && Object.keys(result.format?.tags ?? {}).length > 0 || plugin.formatName === "flac" || plugin.formatName === "mp3") && !(plugin.formatName === "wav" && result.format?.tags?.time_reference !== undefined)) {
     const initialTags = plugin.formatName === "flac" ? new FlacTags(source, context, { flac: true }) : new SourceAudioTags(source, context);
     retain(initialTags.close);
     let checkpoints = 0, hasReplayGain = false;
@@ -1325,6 +1343,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         parsed = parseProbeArguments(args);
         const { printFormat, showPrivateData, showOptionalFields, sexagesimal, prefix, byteBinaryPrefix, unit, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
           selectStreams, showEntries, countFrames, countPackets, webvttKind, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions, videoSize, pixelFormat, frameRate, tsFromFile, exportPathMetadata, segmentTimeMetadata, safe } = parsed;
+        const validation = new StringValidation(printFormat);
         if (readIntervals && (showFrames || countFrames)) throw new Error("read_intervals currently supports packet scans, not decoded frames");
         const showPackets = requestedPackets || !!readIntervals && countPackets;
         const inlineInput = inputTarget.startsWith("data:");
@@ -1351,7 +1370,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         if (!probeResult) probeResult = !inlineInput && !concatProtocol && retainedPlugins.length && !isStdin(inputTarget)
           ? await probeRetainedMetadata(context, retainedPlugins, inputTarget, inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize, ...(mp4Records ? { mp4Records } : {}) }, automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain, !explicitPlugin)
           : undefined;
-        if (!probeResult && !inlineInput && !concatProtocol && explicitPlugin && explicitPlugin.formatName !== "mp3" && !showData && !showDataHash)
+        if (!probeResult && !inlineInput && !concatProtocol && explicitPlugin && explicitPlugin.formatName !== "mp3" && !(validation.requested && ["wav", "flac"].includes(explicitPlugin.formatName)) && !showData && !showDataHash)
           probeResult = await probeStreamMetadata(context, explicitPlugin, inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize });
         let replay: AsyncIterable<Uint8Array> | undefined;
         const streamPlugins = explicitPlugin ? retainedPlugins : automaticPlugins;
@@ -1376,7 +1395,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
                 return result;
               }, retain);
             } else if (automaticPlugin) {
-              if (!showData && !showDataHash && !automaticAudio && !automaticPlugin.probeRecords && automaticPlugin.probeMetadataStream) {
+              if (!showData && !showDataHash && !automaticAudio && !(validation.requested && ["wav", "flac", "mp3"].includes(automaticPlugin.formatName)) && !automaticPlugin.probeRecords && automaticPlugin.probeMetadataStream) {
                 // Sniff replay already admits each source chunk exactly once.
                 probeResult = await automaticPlugin.probeMetadataStream(sniffed.stream, {
                   showPackets, showFrames, ignoreLength, maxSize, filename: inputTarget, seekable: !isStdin(inputTarget), signal: context.signal, budget, limits: budget.limits
@@ -1411,27 +1430,35 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
 
-            const resolveResource = await loadManifestResources(plugin, bytes, inputTarget, context.cwd, readInput, budget, allowedExtensions);
-            let probe = plugin.probe(bytes, {
-              webvttKind, ignoreLength, maxSize, seekable: !isStdin(inputTarget) && !inlineInput,
-              resolveResource,
-              filename: inputTarget,
-              limits: options.limits,
-              budget,
-              showPackets: showPackets || countPackets,
-              showFrames: showFrames || countFrames
-            });
-            const stream = probe.streams[0];
-            if (!explicitFormat && plugin.id === "image2" && stream?.codec_name === "png") {
-              probe = { ...probe, format: { ...probe.format, format_name: "png_pipe", format_long_name: "piped png sequence" } };
+            if (validation.requested && ["wav", "flac", "mp3"].includes(plugin.formatName) && (plugin.probeRecords || plugin.probeMetadata)) {
+              probeResult = await probeSourceMetadata(context, [plugin], { size: bytes.length,
+                async read(offset, length) { return bytes.subarray(offset, offset + length); }
+              }, inputTarget, budget, { showPackets, showFrames, ignoreLength, maxSize },
+              automaticAudio ? (audio, size, tags) => { audioInput = { audio, size, args }; storedTags = tags; } : undefined, retain);
             }
-            if (readIntervals && plugin.id === "aiff" && stream?.codec_name?.startsWith("pcm_") && stream.bits_per_sample && stream.channels) {
-              intervalPcm = { sampleRate: Number(stream.sample_rate), blockAlign: stream.channels * stream.bits_per_sample / 8 };
+            if (!probeResult) {
+              const resolveResource = await loadManifestResources(plugin, bytes, inputTarget, context.cwd, readInput, budget, allowedExtensions);
+              let probe = plugin.probe(bytes, {
+                webvttKind, ignoreLength, maxSize, seekable: !isStdin(inputTarget) && !inlineInput,
+                resolveResource,
+                filename: inputTarget,
+                limits: options.limits,
+                budget,
+                showPackets: showPackets || countPackets,
+                showFrames: showFrames || countFrames
+              });
+              const stream = probe.streams[0];
+              if (!explicitFormat && plugin.id === "image2" && stream?.codec_name === "png") {
+                probe = { ...probe, format: { ...probe.format, format_name: "png_pipe", format_long_name: "piped png sequence" } };
+              }
+              if (readIntervals && plugin.id === "aiff" && stream?.codec_name?.startsWith("pcm_") && stream.bits_per_sample && stream.channels) {
+                intervalPcm = { sampleRate: Number(stream.sample_rate), blockAlign: stream.channels * stream.bits_per_sample / 8 };
+              }
+              probeResult = exportPathMetadata && plugin.id === "image2" && !isStdin(inputTarget)
+                ? { ...probe, packets: probe.packets?.map(packet => ({ ...packet, ...imagePathMetadata(inputTarget) })) } : probe;
+              if ((showData || showDataHash) && ["wav", "mp3", "flac", "mp4", "mov"].includes(plugin.id)) probeResult = { ...probeResult, packetSource: { size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } } };
+              if (!options.asts && (!explicitFormat || explicitFormat === "mp3")) audioInput = { bytes, args };
             }
-            probeResult = exportPathMetadata && plugin.id === "image2" && !isStdin(inputTarget)
-              ? { ...probe, packets: probe.packets?.map(packet => ({ ...packet, ...imagePathMetadata(inputTarget) })) } : probe;
-            if ((showData || showDataHash) && ["wav", "mp3", "flac", "mp4", "mov"].includes(plugin.id)) probeResult = { ...probeResult, packetSource: { size: bytes.length, async read(offset, length) { return bytes.subarray(offset, offset + length); } } };
-            if (!options.asts && (!explicitFormat || explicitFormat === "mp3")) audioInput = { bytes, args };
           }
         }
 
@@ -1456,9 +1483,9 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         }
 
         const formatted = "oggRows" in probeResult
-          ? formatTaggedRows(probeResult.oggRows(args), args)
+          ? formatTaggedRows(probeResult.oggRows(args), args, validation)
           : storedTags && audioInput && "audio" in audioInput
-          ? formatTaggedAudio(audioInput.audio, audioInput.size, audioInput.args, storedTags)
+          ? formatTaggedAudio(audioInput.audio, audioInput.size, audioInput.args, storedTags, validation)
           : formatFfprobeSourceChunks(probeResult, {
           printFormat,
           showOptionalFields,
@@ -1480,12 +1507,13 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           countFrames,
           countPackets,
           maxSize
-        }, audioInput, context.signal);
+        }, audioInput, context.signal, validation);
 
         publishing = true;
         await writeProbeOutput(context, formatted, total => budget.checkOutputBytes(total), closeInputs);
         options.onMetrics?.(budget.getStats());
-        return { exitCode: 0 };
+        if (validation.failed && !quiet) await writeBytes(context.stderr, encodeUtf8("ffprobe: Invalid UTF-8 sequence found in metadata string\n"), context.signal);
+        return { exitCode: validation.failed ? 1 : 0 };
       } catch (err) {
         try { await closeInputs(); } catch { /* Preserve the primary failure. */ }
         rethrowRuntimeError(context, err);
@@ -1543,6 +1571,7 @@ export function evalSyncFfprobe(
   try {
     const { printFormat, showPrivateData, showOptionalFields, sexagesimal, prefix, byteBinaryPrefix, unit, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
       selectStreams, showEntries, countFrames, countPackets, webvttKind, ignoreLength, maxSize, explicitFormat, inputTarget, videoSize, pixelFormat, frameRate, tsFromFile, exportPathMetadata } = parseProbeArguments(args);
+    if (new StringValidation(printFormat).requested) return undefined;
     const imagePlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : registry.findByFilename(inputTarget);
     if (inputTarget.startsWith("concat:") || tsFromFile !== 0 || imagePlugin?.id === "image2" && imageSequenceFilename(inputTarget, 0) !== undefined) return undefined;
     if (inputTarget.startsWith("data:")) return undefined;

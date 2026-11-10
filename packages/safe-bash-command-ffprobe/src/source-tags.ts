@@ -1,3 +1,4 @@
+import { ProbeTextDecoder } from "./string-validation.js";
 import { IntegerTable, PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
 import { readId3Text, type AudioProbeSource, type WavTagSpan, type Mp3Tag } from "@poe-code/audio-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -23,7 +24,7 @@ export class SourceAudioTags {
       yield* readId3Text(this.source, { key: "", offset, length, encoding, unsynchronized, binary }, { signal: this.context.signal, checkpoint: () => yieldTurn(this.context.signal) });
       return;
     }
-    const decoder = new TextDecoder(); let steps = 0;
+    const decoder = new ProbeTextDecoder(); let steps = 0;
     for (let at = 0; at < length; at += 16384) {
       this.context.signal.throwIfAborted();
       const bytes = await (encoding === 254 ? this.storage : this.source).read(offset + at, Math.min(16384, length - at));

@@ -1,3 +1,4 @@
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Width-first seam carving with liblqr's brightness gradient and leftmost ties. */
@@ -14,7 +15,8 @@ export function* liquidRescalePixelSteps(image: { width: number; height: number;
     } else if (image.isPalette && image.indexedColors) {
         image.indexedColors.forEach((color, index) => palette.set(color % 16777216, index));
     }
-    const stride = palette.size ? 5 : 4;
+    const cmyk = image.space === "cmyk";
+    const stride = cmyk || palette.size ? 5 : 4;
     let data = new Float32Array(image.width * image.height * stride);
     for (let offset = 0; offset < image.width * image.height * 4; offset += 4096) {
         yield;
@@ -22,10 +24,15 @@ export function* liquidRescalePixelSteps(image: { width: number; height: number;
         const bytes = yield { kind: "read", hue, highDepth: !hue, position: offset, length };
         if (!bytes || bytes.length !== length * (hue ? 8 : 2)) throw new Error("Truncated liquid rescale pixels");
         const samples = hue ? new Float64Array(bytes.slice().buffer) : new Uint16Array(bytes.slice().buffer);
+        const inkBytes = cmyk ? yield { kind: "read", hue: true, position: offset, length } : undefined;
+        const inks = inkBytes?.length ? new Float64Array(inkBytes.slice().buffer) : undefined;
         for (let i = 0; i < length; i += 4) {
             const p = (offset + i) / 4 * stride;
             for (let c = 0; c < 4; c++) data[p + c] = samples[i + c]! / (hue ? 1 : 65535);
-            if (palette.size) {
+            if (cmyk) {
+                data.set(inks ? inks.subarray(i, i + 4) : rgbToCmyk(data[p]!, data[p + 1]!, data[p + 2]!), p);
+                data[p + 4] = samples[i + 3]! / 65535;
+            } else if (palette.size) {
                 const color = Math.round(samples[i]! / 257) * 65536 + Math.round(samples[i + 1]! / 257) * 256 + Math.round(samples[i + 2]! / 257);
                 data[p + 4] = (palette.get(color) ?? 0) / 65535;
             }
@@ -51,8 +58,11 @@ export function* liquidRescalePixelSteps(image: { width: number; height: number;
                 const p = at(x, y) * stride, index = y * size + x;
                 order[index] = x;
                 const average = (data[p]! + data[p + 1]! + data[p + 2]!) / 3;
-                // liblqr interprets RGB+index as RGBA and RGBA+index as CMYKA.
-                brightness[index] = palette.size
+                // liblqr infers RGBA from four channels and CMYKA from five.
+                // Opaque CMYK therefore uses black as RGBA's alpha multiplier.
+                brightness[index] = cmyk
+                    ? image.hasAlpha ? (1 - average) * (1 - data[p + 3]!) * data[p + 4]! : average * data[p + 3]!
+                    : palette.size
                     ? (image.hasAlpha ? (1 - average) * (1 - data[p + 3]!) : average) * data[p + 4]!
                     : average * (image.hasAlpha ? data[p + 3]! : 1);
             }
@@ -121,6 +131,23 @@ export function* liquidRescalePixelSteps(image: { width: number; height: number;
         yield;
         const length = Math.min(4096, width * height * 4 - offset), samples = new Uint16Array(length);
         const hueSamples = hue ? new Float64Array(length) : undefined;
+        if (cmyk) {
+            const inks = new Float64Array(length), evaluated = new Float64Array(length);
+            for (let i = 0; i < length; i += 4) {
+                const p = (offset + i) / 4 * stride;
+                for (let c = 0; c < 4; c++) inks[i + c] = Math.fround(data[p + c]! * 65535) / 65535;
+                for (let c = 0; c < 4; c++) {
+                    const value = c === 3 ? Math.fround(data[p + 4]! * 65535) / 65535
+                        : (1 - inks[i + c]!) * (1 - inks[i + 3]!);
+                    evaluated[i + c] = value * 255;
+                    samples[i + c] = Math.round(value * 65535);
+                }
+            }
+            yield { kind: "write", hue: true, position: offset, data: new Uint8Array(inks.buffer) };
+            yield { kind: "write", evaluate: true, position: offset, data: new Uint8Array(evaluated.buffer) };
+            yield { kind: "write", highDepth: true, position: offset, data: new Uint8Array(samples.buffer) };
+            continue;
+        }
         const evaluated = new Float64Array(length);
         for (let i = 0; i < length; i++) {
             const quantum = Math.fround(data[Math.floor((offset + i) / 4) * stride + i % 4]! * 65535);

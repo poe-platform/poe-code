@@ -295,6 +295,8 @@ export function formatIntrospectionOutput(
       "  transpose        V->V       Transpose rows with columns.",
       "  negate           V->V       Negate input video.",
       "  drawbox          V->V       Draw a colored box on the input video.",
+      "  drawtext         V->V       Draw text on the input video.",
+      "  subtitles        V->V       Render subtitles on the input video.",
       "  overlay          VV->V      Overlay a video source on top of the input.",
       "  hstack           N->V       Stack video inputs horizontally.",
       "  vstack           N->V       Stack video inputs vertically.",

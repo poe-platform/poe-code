@@ -180,7 +180,7 @@ Use `-page 12x12+2+3 input.png output.png` to set the virtual canvas without cha
 
 `+bordercolor` resets the border color for subsequent inputs to `#dfdfdf`, preserving the color of images already loaded.
 
-`-polaroid angle` adds a curved photo frame and shadow, rotates it by the signed angle, and trims the transparent margin. It honors `-bordercolor` and `-background`; angles can expand image properties and FX expressions. Angle geometry such as `12x0`, `12%`, `12>` and `(12)` uses 12 degrees; invalid arguments such as `0b1100` and `0xC` fail without replacing existing output.
+`-polaroid angle` adds a curved photo frame and shadow, renders the image’s `caption` property below the photo, rotates it by the signed angle, and trims the transparent margin. The bundled default caption font is Z003 Medium Italic (URW Base35, AGPL-3 with the font exception); `+set caption` removes the caption before rendering. It honors `-bordercolor` and `-background`; angles can expand image properties and FX expressions. Angle geometry such as `12x0`, `12%`, `12>` and `(12)` uses 12 degrees; invalid arguments such as `0b1100` and `0xC` fail without replacing existing output.
 
 `-font path/to/font.ttf -pointsize 10 -set caption Hi -polaroid 0` renders a caption using a local TrueType font from the command filesystem. `+font` clears the selection. Font data is read only when rendering text; missing or invalid fonts fail without replacing the output. Local-font polaroid captions use FreeType (https://freetype.org), with a 16 MiB font limit and a 1,048,576-pixel caption limit.
 

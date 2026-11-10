@@ -1,5 +1,6 @@
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
 import { renderFontCaption } from "./font/caption.js";
+import { defaultCaptionFont } from "./font/default.js";
 import { polaroidPixels } from "./polaroid-caption.js";
 import { complexPixelSteps, parseComplexOperator } from "./complex.js";
 import { parseCdlSteps, cdlImageSteps } from "./cdl.js";
@@ -10623,7 +10624,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const border = Math.trunc(Math.max(image.width / 25, image.height / 25, 10));
                 const transparent = { r: 0, g: 0, b: 0, a: 0 };
                 const text = image.properties?.caption;
-                const font = state.font === undefined ? undefined : files.get(state.font);
+                const font = state.font === undefined ? defaultCaptionFont : files.get(state.font);
                 if (text !== undefined && state.font !== undefined && !font) throw new Error(`unable to read font '${state.font}'`);
                 const caption = text !== undefined && font ? renderFontCaption(font, text, image.width, state.pointsize, state.density, state.fill, state.borderColor, state.strokeWidth, signal) : undefined;
                 let picture = yield* applyMagickRasterSteps(image, polaroidPixels(image, border, state.borderColor, caption), signal,
@@ -13486,7 +13487,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const font = text !== undefined && settings.font !== undefined ? await backend.read(settings.font, async source => {
                     if (source.size > 16 * 1024 * 1024) throw new Error("font exceeds memory limit");
                     return source.read(0, source.size, { signal });
-                }) : undefined;
+                }) : defaultCaptionFont;
                 if (text !== undefined && settings.font !== undefined && !font) throw new Error(`unable to read font '${settings.font}'`);
                 const caption = text !== undefined && font ? renderFontCaption(font, text, image.width, settings.pointsize, settings.density, settings.fill, settings.borderColor, settings.strokeWidth, signal) : undefined;
                 let picture = await transformStoredMagickRaster(image, backend, polaroidPixels(image, border, settings.borderColor, caption), signal,

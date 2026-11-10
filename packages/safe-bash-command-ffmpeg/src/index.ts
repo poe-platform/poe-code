@@ -11537,66 +11537,68 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           const number = samples || pts ? parseFilterExpression(value, "atrim", {}) : parseHlsDuration(value);
                           const boundary = samples || pts ? roundToEven(number) : Math.round(number * origRate);
-                          let frame = samples ? boundary : boundary - audioStartSample;
-                          if (!value || !Number.isFinite(number) || !Number.isSafeInteger(frame) || (samples && number < (key === "start_sample" ? -1 : 0))) {
+                          if (!value || !Number.isFinite(number) || !Number.isSafeInteger(boundary) || (samples && number < (key === "start_sample" ? -1 : 0))) {
                             throw new Error(`atrim: invalid ${key}`);
                           }
-                          if (!samples && audioTimestamps) {
-                            // Time bounds follow frame PTS; sample bounds count the input data.
-                            frame = length;
-                            let nextPts = 0;
-                            for (const timestamp of audioTimestamps) {
-                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                              // Missing PTS continues from the preceding frame, or zero initially.
-                              const pts = Number.isNaN(timestamp.pts) ? nextPts : timestamp.pts;
-                              nextPts = pts + timestamp.end - timestamp.start;
-                              if (boundary <= nextPts) {
-                                frame = timestamp.start + Math.max(0, boundary - pts);
-                                break;
+                          if (key === "start_sample" && boundary === -1) bounds.delete(key);
+                          else bounds.set(key, boundary);
+                        }
+                        const startPts = Math.min(bounds.get("start") ?? Infinity, bounds.get("start_pts") ?? Infinity);
+                        const endPts = Math.max(bounds.get("end") ?? -Infinity, bounds.get("end_pts") ?? -Infinity);
+                        const startSample = bounds.get("start_sample") ?? Infinity;
+                        const endSample = bounds.get("end_sample") ?? -Infinity;
+                        const ranges: { start: number; end: number }[] = [];
+                        const retained: NonNullable<typeof audioTimestamps> = [];
+                        let firstPts: number | undefined;
+                        let outputLength = 0;
+                        let nextPts = 0;
+                        for (const frame of audioTimestamps ?? [{ start: 0, end: length, pts: audioStartSample, pos: undefined }]) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          const count = frame.end - frame.start;
+                          const pts = Number.isNaN(frame.pts) ? nextPts : frame.pts;
+                          nextPts = pts + count;
+                          // Timestamp bounds apply to every frame; sample bounds count all input samples.
+                          let start = Math.min(startPts - pts, startSample - frame.start);
+                          if (start === Infinity) start = 0;
+                          if (start >= count) continue;
+                          start = Math.max(0, start);
+                          firstPts ??= pts + start;
+                          let end = Math.max(endPts - pts, endSample - frame.start,
+                            duration > 0 ? firstPts + duration - pts : -Infinity);
+                          if (end === -Infinity) end = count;
+                          // Only a frame wholly past every end bound ends the stream.
+                          if (end <= 0) break;
+                          end = Math.min(count, end);
+                          if (end <= start) continue;
+                          budget.allocateMemory(48);
+                          ranges.push({ start: frame.start + start, end: frame.start + end });
+                          retained.push({ start: outputLength, end: outputLength + end - start, pts: frame.pts + start, pos: frame.pos });
+                          outputLength += end - start;
+                        }
+                        const start = ranges[0]?.start ?? length;
+                        const end = ranges.at(-1)?.end ?? length;
+                        if (end - start === outputLength) {
+                          stretched = stretched.map(channel => channel.subarray(start, end));
+                        } else {
+                          budget.allocateMemory(outputLength * stretched.length * 8);
+                          const output = stretched.map(() => new Float64Array(outputLength));
+                          let offset = 0;
+                          for (const range of ranges) {
+                            for (let start = range.start; start < range.end; start += 4096) {
+                              budget.checkCpu();
+                              await yieldTurn(context.signal);
+                              context.signal?.throwIfAborted();
+                              const end = Math.min(range.end, start + 4096);
+                              for (const [channel, samples] of stretched.entries()) {
+                                output[channel]!.set(samples.subarray(start, end), offset + start - range.start);
                               }
                             }
+                            offset += range.end - range.start;
                           }
-                          if (key === "start_sample" && frame === -1) bounds.delete(key);
-                          else bounds.set(key, frame);
+                          stretched = output;
                         }
-                        let start = Math.min(bounds.get("start") ?? Infinity, bounds.get("start_sample") ?? Infinity, bounds.get("start_pts") ?? Infinity);
-                        let end = Math.max(bounds.get("end") ?? -Infinity, bounds.get("end_sample") ?? -Infinity, bounds.get("end_pts") ?? -Infinity);
-                        start = start === Infinity ? 0 : Math.max(0, Math.min(length, start));
-                        if (duration > 0) {
-                          let durationEnd = start + duration;
-                          if (audioTimestamps) {
-                            let boundary: number | undefined;
-                            durationEnd = length;
-                            let nextPts = 0;
-                            for (const frame of audioTimestamps) {
-                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                              const pts = Number.isNaN(frame.pts) ? nextPts : frame.pts;
-                              nextPts = pts + frame.end - frame.start;
-                              if (frame.end <= start) continue;
-                              boundary ??= pts + Math.max(0, start - frame.start) + duration;
-                              if (boundary <= nextPts) {
-                                durationEnd = frame.start + Math.max(0, boundary - pts);
-                                break;
-                              }
-                            }
-                          }
-                          end = Math.max(end, durationEnd);
-                        }
-                        end = end === -Infinity ? length : Math.max(start, Math.min(length, end));
-                        stretched = stretched.map(channel => channel.subarray(start, end));
-                        if (audioTimestamps) {
-                          const retained: typeof audioTimestamps = [];
-                          for (const frame of audioTimestamps) {
-                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            const first = Math.max(start, frame.start);
-                            const last = Math.min(end, frame.end);
-                            if (last <= first) continue;
-                            budget.allocateMemory(24);
-                            retained.push({ start: first - start, end: last - start, pts: frame.pts + first - frame.start, pos: frame.pos });
-                          }
-                          audioTimestamps = retained;
-                        }
-                        audioStartSample = audioTimestamps?.[0]?.pts ?? audioStartSample + start;
+                        if (audioTimestamps) audioTimestamps = retained;
+                        audioStartSample = retained[0]?.pts ?? audioStartSample + start;
                       } else if (trimmed === "areverse") {
                         stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);
                         if (audioTimestamps) {

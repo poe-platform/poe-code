@@ -9983,6 +9983,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 218 };
             }
 
+            const imagePipe = outputFormat === "image2pipe";
+            const imageOutput = imagePipe || (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
+            const planeOutput = imageOutput && !imagePipe && outputTarget.endsWith(".Y") && (videoCodec === undefined || videoCodec === "rawvideo");
+            const numberedImageOutput = !imagePipe && formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined;
+            if ((imageOutput || numberedImageOutput) && !planeOutput && videoCodec !== undefined && videoCodec !== "copy" && !imageEncoders.includes(videoCodec)) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unknown encoder '${videoCodec}'\n`), context.signal);
+              return { exitCode: 8 };
+            }
+            // Numbered image output applies -r during CFR synchronization, after video filters.
+            if (outputSize && videoCodec !== "copy") {
+              const [w, h] = outputSize.toLowerCase().split("x");
+              if (w && h) vfFilters.push(`scale=${w}:${h}`);
+            }
+            if (outputFps && videoCodec !== "copy" && !numberedImageOutput) {
+              vfFilters.push(`fps=${outputFps}`);
+            }
+            if (videoCodec !== "copy" && (rawPixelFormat === "gray" || rawPixelFormat === "gray8" || rawPixelFormat === "ya8" ||
+                (outPlugin?.id === "y4m" && (rawPixelFormat === "yuv420p" || rawPixelFormat === "yuv422p" || rawPixelFormat === "yuv444p")))) {
+              vfFilters.push(`format=${rawPixelFormat}`);
+            }
+
             // Apply output-level time slicing (`-ss`, `-to`, `-t`)
             if (
               outputSs !== undefined ||
@@ -10003,9 +10024,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 copyAudio: audioCodec === "copy"
               });
               if (outputSs !== undefined) workingDoc = discardOutputPreroll(workingDoc, { video: videoCodec, audio: audioCodec }, copyInitialNonKeyframes);
-              // Audio filters consume the input cut; output cuts consume their result.
+              // Filters consume the input cut; output cuts consume their result.
               let audioOrdinal = 0;
               workingDoc = { ...workingDoc, tracks: workingDoc.tracks.map((track, index) => {
+                if (track.type === "video" && vfFilters.length > 0) return uncutTracks[index]!;
                 if (track.type !== "audio") return track;
                 const ordinal = audioOrdinal++;
                 return afFilters.some(filter => filter.ordinal === undefined || filter.ordinal === ordinal)
@@ -10021,26 +10043,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (type === "video") maxVideoFrames = maximum;
               else if (type === "audio") maxAudioFrames = maximum;
               else maxSubtitleFrames = maximum;
-            }
-            const imagePipe = outputFormat === "image2pipe";
-            const imageOutput = imagePipe || (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
-            const planeOutput = imageOutput && !imagePipe && outputTarget.endsWith(".Y") && (videoCodec === undefined || videoCodec === "rawvideo");
-            const numberedImageOutput = !imagePipe && formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined;
-            if ((imageOutput || numberedImageOutput) && !planeOutput && videoCodec !== undefined && videoCodec !== "copy" && !imageEncoders.includes(videoCodec)) {
-              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unknown encoder '${videoCodec}'\n`), context.signal);
-              return { exitCode: 8 };
-            }
-            // Numbered image output applies -r during CFR synchronization, after video filters.
-            if (outputSize && videoCodec !== "copy") {
-              const [w, h] = outputSize.toLowerCase().split("x");
-              if (w && h) vfFilters.push(`scale=${w}:${h}`);
-            }
-            if (outputFps && videoCodec !== "copy" && !numberedImageOutput) {
-              vfFilters.push(`fps=${outputFps}`);
-            }
-            if (videoCodec !== "copy" && (rawPixelFormat === "gray" || rawPixelFormat === "gray8" || rawPixelFormat === "ya8" ||
-                (outPlugin?.id === "y4m" && (rawPixelFormat === "yuv420p" || rawPixelFormat === "yuv422p" || rawPixelFormat === "yuv444p")))) {
-              vfFilters.push(`format=${rawPixelFormat}`);
             }
 
             if (forceKeyFrames !== undefined && videoCodec !== "copy") {
@@ -10113,7 +10115,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     : displayed;
                   const cleanFrames = decimateSource
                     ? await ensureDecodedFrames(decimateSource.track, decimateSource.doc.timescale, budget, context.signal) : undefined;
-                  const filtered = await applyVideoFilterChain(inputFrames, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal, cleanFrames);
+                  let filtered = await applyVideoFilterChain(inputFrames, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal, cleanFrames);
+                  if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
+                    const start = outputSs ?? 0;
+                    const end = outputDuration === undefined ? outputTo ?? Infinity : start + outputDuration;
+                    filtered = filtered.filter(frame => frame.ptsSeconds >= start && frame.ptsSeconds < end)
+                      .map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds - start }));
+                  }
                   const first = filtered[0];
                   const filteredTimescale = Math.max(t.timescale, diagnostics.timescale);
                   return {

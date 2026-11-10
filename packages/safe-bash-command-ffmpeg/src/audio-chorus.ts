@@ -20,7 +20,7 @@ export async function chorusAudio(
     options[key] = separator < 0 ? option : option.slice(separator + 1);
   }
   const gains = [options.in_gain, options.out_gain].map(value => {
-    const gain = parseFilterExpression(value, "chorus", {});
+    const gain = parseFilterExpression(value, "chorus", { default: 0.4, min: 0, max: 1 });
     if (!Number.isFinite(gain) || gain < 0 || gain > 1) throw new Error("chorus: invalid gain");
     return Math.fround(gain);
   });

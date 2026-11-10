@@ -10,6 +10,12 @@ for (const graph of [false, true]) {
   for (const [filter, frames, impulses] of [
     ["anull", 256, [[0, 16000]]],
     ["chorus=0.5:0.9:10:0.5:1:1", 344, [[0, 7200], [4, 7200]]],
+    ["chorus=default:max:10:0.5:1:1", 344, [[0, 6400], [4, 8000]]],
+    ["chorus=max:default:10:0.5:1:1", 344, [[0, 6400], [4, 3200]]],
+    ["chorus=min:max:10:0.5:1:1", 344, [[4, 8000]]],
+    ["chorus=max:min:10:0.5:1:1", 344, []],
+    ["chorus=in_gain=1:in_gain=default:out_gain=0:out_gain=max:delays=10:decays=0.5:speeds=1:depths=1", 344, [[0, 6400], [4, 8000]]],
+    ["chorus=max/2:default+0.5:10:0.5:1:1", 344, [[0, 7200], [4, 7200]]],
     ["chorus=0.5:0.9:0xa:0x.8:0x1:0x1", 344, [[0, 7200], [4, 7200]]],
     ["chorus=0.5:0.9:10|20:0.5|0.3:1|2:1|2", 432, [[0, 7200], [4, 7200], [8, 4320]]],
     ["chorus=in_gain=0.5:out_gain=0.9:delays=10|20:decays=0.5|0.3:speeds=1|2:depths=1|2", 432, [[0, 7200], [4, 7200], [8, 4320]]],
@@ -85,6 +91,8 @@ for (const filter of [
   "chorus=0.5:0.9:10:0.5:0:1", "chorus=0.5:0.9:10:0.5:Infinity:1",
   "chorus=0.5:0.9:-10:0.5:1:1", "chorus=0.5:0.9:-0x10:0.5:1:1", "chorus=0.5:0.9:10:0.5:1:-1",
   "chorus=0.5:0.9:10:0.5:1:Infinity", "chorus=2:0.9:10:0.5:1:1",
+  "chorus=max+1:default:10:0.5:1:1", "chorus=default:min-1:10:0.5:1:1",
+  "chorus=default/0:max:10:0.5:1:1", "chorus=default:unknown:10:0.5:1:1",
   "chorus=0.5:0.9:10:0.5:1:1:unknown=1", "chorus=0.5:0.9:2000:0.5:1:1"
 ]) {
   it(`${filter} fails without replacing output`, async () => {

@@ -6440,7 +6440,7 @@ function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "
                     }
                     for (let channel = 0; channel < (cmyk ? 4 : 3); channel++) {
                         const value = (samples[src + channel]! * sa + output[dst + channel]! * da) / alpha;
-                        output[dst + channel] = hue ? Math.max(0, Math.min(1, value)) : value;
+                        output[dst + channel] = Math.max(0, Math.min(quantum, value));
                     }
                     backing[dst + 3] = alpha * quantum;
                 }

@@ -2168,7 +2168,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
-    const value = (["-wave", "-swirl", "-implode"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
+    const value = (["-wave", "-swirl", "-implode", "-spread"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     let dimensions = false;
     for (const char of value) {
         if (char === "x" || char === "X" || char === ":") dimensions = true;
@@ -2178,7 +2178,7 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
         }
     }
     if (!value || value === "+" || value === "-") throw new Error(`invalid argument for option '${option}': ${raw}`);
-    if (option === "-swirl" || option === "-implode" || option === "-wave") {
+    if (option === "-swirl" || option === "-implode" || option === "-wave" || option === "-spread") {
         const geometry = parseMagickGeometry(value);
         // A single signed magnitude parses as an offset; two offsets supply no magnitude.
         const magnitude = geometry.aspectRatio ?? geometry.width ?? (geometry.areaLimit !== undefined || geometry.hasOffset && !geometry.hasYOffset ? Number.parseFloat(value) : undefined);
@@ -3752,19 +3752,19 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             return { ...plan, steps: warpPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background, "background", kernel, filter) };
         } };
     }
-    if (!["-shear", "-swirl", "-implode", "-wave", "-distort", "+distort"].includes(token)) return;
+    if (!["-shear", "-swirl", "-implode", "-wave", "-spread", "-distort", "+distort"].includes(token)) return;
     let i = start;
     const distort = token === "-distort" || token === "+distort";
     const viewport = distort ? state.distortViewport : undefined;
     const scale = distort && state.distortScale !== undefined ? Math.abs(Number.parseFloat(state.distortScale)) : undefined;
     if (scale !== undefined && (!Number.isFinite(scale) || scale < 0.1)) throw new Error("invalid argument for option distort:scale");
     const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
-    if (["-wave", "-swirl", "-implode"].includes(token) && !spec.includes("%[")) validateMagickTransformGeometry(spec, token);
+    if (["-wave", "-swirl", "-implode", "-spread"].includes(token) && !spec.includes("%[")) validateMagickTransformGeometry(spec, token);
     const interpolation = state.interpolation ?? "bilinear";
-    const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort || token === "-implode" || token === "-swirl" ? "edge" : undefined);
+    const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort || token === "-implode" || token === "-swirl" || token === "-spread" ? "edge" : undefined);
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
     const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b] : undefined;
-    const compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz;
+    const compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, seed = state.seed ?? 0;
     return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">, geometry = spec) => {
         if (token === "-shear") {
             const plan = shearPlan(image, geometry);
@@ -3773,7 +3773,18 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             };
             return { ...plan, virtualCanvas, steps: shearPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background, compose, composeArgs, fuzz) };
         }
-        if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(geometry, token);
+        if (["-wave", "-swirl", "-implode", "-spread"].includes(token)) validateMagickTransformGeometry(geometry, token);
+        if (token === "-spread") {
+            const radius = parseMagickGeometry(geometry).aspectRatio ?? Number.parseFloat(geometry);
+            // Native's automatic kernel width for sigma=0.5 is five, including radius zero.
+            const width = radius > 1e-12 ? 2 * Math.ceil(radius) + 1 : 5;
+            if (!Number.isSafeInteger(width)) throw new Error("Spread radius exceeds limit");
+            const random = createMagickRandom(seed);
+            const plan: WarpPlan = { width: image.width, height: image.height, hasAlpha: image.hasAlpha,
+                interpolation, channels,
+                map: (x, y) => [x + width * (random() - 0.5), y + width * (random() - 0.5)] };
+            return { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel) };
+        }
         let plan = magickWarpPlan(image, token, geometry, args);
         if (plan && (token === "-swirl" || token === "-implode")) {
             plan = { ...plan, interpolation, channels,
@@ -7396,11 +7407,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             throw new Error(`invalid argument '-range-threshold' '${raw}'`);
         }
         const scale = raw.includes("%") ? 65535 / 100 : 1;
-        const points = parts.map(part => Number(part) * scale);
-        for (let point = 1; point < points.length; point++) {
-            points[point] = Math.max(points[point - 1]!, points[point]!);
-        }
-        const [lowBlack, lowWhite, highWhite, highBlack] = points as [number, number, number, number];
+        const [lowBlack, lowWhite, highWhite, highBlack] = parts.map(part => Number(part) * scale) as [number, number, number, number];
         const channels = state.channels;
         const explicit = state.channelExplicit;
         apply = function* (image) {
@@ -8987,9 +8994,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }, pixelOperation.maskAlpha);
         }
         else if (warpOperation) {
-            if (["-swirl", "-implode", "-wave"].includes(t) && !stack.length) throw new Error(`no images found for operation '${t}'`);
+            if (["-swirl", "-implode", "-wave", "-spread"].includes(t) && !stack.length) throw new Error(`no images found for operation '${t}'`);
             i = warpOperation.end;
-            const geometry = ["-shear", "-wave", "-swirl", "-implode"].includes(t) ? tokens[i] : undefined;
+            const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread"].includes(t) ? tokens[i] : undefined;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = geometry?.includes("%[") ? yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : geometry;
                 const plan = warpOperation.plan(image, expanded);
@@ -10997,12 +11004,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const warpOperation = operandsOnly || token === "-rotate" ? undefined : parseMagickWarpOperation(tokens, state, i, analysis);
         if (warpOperation) {
-            if (["-swirl", "-implode", "-wave"].includes(token)) stackStep(async stack => {
+            if (["-swirl", "-implode", "-wave", "-spread"].includes(token)) stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
             i = warpOperation.end;
-            const geometry = ["-shear", "-wave", "-swirl", "-implode"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
+            const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = geometry?.includes("%[") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal) : geometry;
@@ -12527,6 +12534,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-fx",
         "-shear",
         "-swirl",
+        "-spread",
         "-implode",
         "-wave",
         "-shadow",

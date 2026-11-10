@@ -9,7 +9,7 @@ ImageMagick (`magick`, `convert`, `mogrify`, `composite`, `montage`, `compare`, 
 
 `+remap` builds a shared palette across loaded images using the current `-colors` limit and dithering settings. `pattern:NAME` renders the requested built-in ImageMagick tile, including stripes, crosshatches, bricks and gray density patterns. Use `-size 32x17 pattern:vertical out.png` to repeat it across a canvas; without `-size`, the native tile dimensions are used. Unknown names fail without replacing the output.
 
-`-seed 123 -size 64x64 plasma:fractal out.png` creates reproducible plasma noise. Use `plasma:red-blue` for a color gradient with plasma displacement; changing the seed changes the pixels.
+`-seed 123 -size 64x64 plasma:fractal out.png` creates reproducible plasma noise. Use `plasma:red-blue` for a color gradient with plasma displacement; changing the seed changes the pixels. `in.png -seed 17 -spread 2 out.png` randomly samples nearby pixels using the chosen radius, interpolation and virtual-pixel settings; radius zero selects the native automatic radius.
 
 PNG iTXt comments preserve the actual UTF-8 text when a translated keyword is present. This intentionally differs from ImageMagick 7.1.2-31/35, which reads and rewrites the comment `hello` with translated keyword `Title` as `itle`. Language tags alone do not change the comment. PNG round trips and `-sample` preserve XMP profile bytes; `-thumbnail`, `-strip`, `+profile xmp`, and `+profile "*"` remove XMP.
 

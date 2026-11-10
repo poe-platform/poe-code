@@ -9838,7 +9838,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
                 if (expandedKey.toLowerCase() === "colorspace") return yield* setColorspacePixels(image, expanded);
-                if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: Number(expanded) };
+                if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
@@ -12209,7 +12209,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
                 if (expandedKey.toLowerCase() === "colorspace") return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: image => setColorspacePixels(image, expanded) }, signal);
-                if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: Number(expanded) };
+                if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };

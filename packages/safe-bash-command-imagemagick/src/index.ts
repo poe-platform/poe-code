@@ -18199,7 +18199,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                     const count = yield* frameCount(path);
                     if (count > 1 && inlineGeom === undefined) {
                         inputs = [];
-                        for (const page of selectedInputPages(pageSpec, count)) {
+                        for (const page of selectedInputPages(pageSpec, count, index => inputs.push(`${baseToken}[${index}]`))) {
                             if (++cooperativeWork % 64 === 0) yield;
                             inputs.push(`${baseToken}[${page}]`);
                         }

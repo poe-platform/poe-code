@@ -544,6 +544,14 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   ): Record<string, unknown> => {
     obj = optionalFields(obj, sectionName, opts.showOptionalFields, opts.printFormat);
     if (opts.sexagesimal) obj = sexagesimalRow(obj, sectionName);
+    if (opts.unit && (sectionName === "stream" || sectionName === "format")) {
+      obj = { ...obj };
+      for (const [key, suffix] of Object.entries({ sample_rate: "Hz", bit_rate: "bit/s", size: "byte", start_time: "s", duration: "s" })) {
+        const value = obj[key];
+        if (value !== undefined && value !== "N/A" && !(suffix === "s" && opts.sexagesimal))
+          obj[key] = `${value} ${suffix}`;
+      }
+    }
     if (entryFilter.size === 0) return obj;
     const allowed = entryFilter.get(sectionName);
     if (allowed === undefined && !entryFilter.has(`${sectionName}_side_data`) && !nestedSections.some(section => entryFilter.has(section))) return obj;

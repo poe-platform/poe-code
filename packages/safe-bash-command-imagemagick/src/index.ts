@@ -1551,7 +1551,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     x: formatSignificantMetric(resolution ? resolution.x / resolutionScale : meta.density ?? 72, 17),
     y: formatSignificantMetric(resolution ? resolution.y / resolutionScale : meta.density ?? 72, 17),
     U: resolution?.unit === "inch" ? "PixelsPerInch" : resolution?.unit === "cm" || resolution?.unit === "meter" ? "PixelsPerCentimeter" : "Undefined",
-    s: String(context.sceneIdx ?? 0), p: String(context.listIndex ?? context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
+    s: String(context.outputScene ?? context.sceneIdx ?? 0), p: String(context.listIndex ?? context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
     N: (context.listIndex ?? context.sceneIdx ?? 0) === (context.sceneCount ?? meta.pages ?? 1) - 1 ? `${context.sceneCount ?? meta.pages ?? 1}\n` : "",
     // Native uses this sentinel when ImageInfo.number_scenes is unset.
     S: "2147483647",
@@ -11375,7 +11375,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             for (const [idx, im] of stack.entries()) {
                 formatted.push(histogramComment ? yield* formatHistogramOutputSteps(im) : state.formatStr !== undefined
                     ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
-                        ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, analysis, sceneIdx: idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
+                        ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, analysis, sceneIdx: idx, outputScene: (state.scene ?? 0) + idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
                     })
                     : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
             }
@@ -13812,7 +13812,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
-                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, analysis, sceneIdx: index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, analysis, sceneIdx: index, outputScene: (state.scene ?? 0) + index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
                     if (formatted) last = formatted.at(-1)!;
                     yield formatted;
                 }

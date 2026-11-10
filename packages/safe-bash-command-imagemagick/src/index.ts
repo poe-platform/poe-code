@@ -4835,6 +4835,24 @@ function resolveMagickPageGeometry(raw: string): string {
     return size === undefined ? raw : size + (end < 0 ? "" : raw.slice(end));
 }
 
+function parseMagickPageSetting(raw: string, operation: "page" | "set"): MagickGeometry {
+    const value = resolveMagickPageGeometry(raw);
+    try {
+        validateMagickTransformGeometry(value, "-page");
+    } catch {
+        return parseMagickGeometry("");
+    }
+    const geometry = parseMagickGeometry(value);
+    // Native page properties require an x separator between a width and offsets.
+    if (operation === "set" && geometry.width !== undefined && geometry.hasOffset && !value.toLowerCase().includes("x")) return parseMagickGeometry("");
+    return geometry;
+}
+
+function parseMagickRepageGeometry(raw: string): MagickGeometry {
+    validateMagickTransformGeometry(raw, "-repage");
+    return parseMagickGeometry(raw);
+}
+
 function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry, operation: "repage" | "set") {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     let width = Math.round(geometry.width ?? page.width);
@@ -8551,9 +8569,7 @@ if (t === "-seed") {
         }
         else if (t === "+extract") { delete state.extract; }
         else if (t === "-page") {
-            const value = resolveMagickPageGeometry(tokens[++i] ?? "");
-            validateMagickTransformGeometry(value, t);
-            const geometry = parseMagickGeometry(value);
+            const geometry = parseMagickPageSetting(tokens[++i] ?? "", "page");
             state.page = { width: Math.round(geometry.width ?? 0), height: Math.round(geometry.height ?? 0), x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
         }
         else if (t === "+page") { delete state.page; }
@@ -9085,7 +9101,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: Number(expanded) };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
-                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(resolveMagickPageGeometry(expanded)), forceExact: false }, "set") };
+                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             i++;
@@ -11160,7 +11176,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: Number(expanded) };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
-                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(resolveMagickPageGeometry(expanded)), forceExact: false }, "set") };
+                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             continue;
@@ -11873,7 +11889,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const geometry = raw === undefined ? undefined : parseMagickGeometry(raw);
                 for (let index = 0; index < stack.length; index++) {
                     const image = (await stack.get(index))!;
-                    const { virtualCanvas: ignoredCanvas, ...reset } = image;
+                    const reset = { ...image, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
                     await stack.set(index, geometry ? { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") } : reset);
                 }
                 return stack;

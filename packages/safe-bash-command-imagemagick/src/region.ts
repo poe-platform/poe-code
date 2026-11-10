@@ -40,16 +40,24 @@ export function* regionPixelSteps(image: { width: number; height: number; hasAlp
         const spans = y < region.y || y >= region.y + region.height ? [[0, image.width, 1]] : [[0, left, 1], [left, right, 0], [right, image.width, 1]];
         for (const [start, end, source] of spans) {
             for (let x = start!; x < end!; x += 4096) {
-                const position = (y * image.width + x) * 4;
-                const data = (yield { kind: "read", highDepth, image: source!, position, length: Math.min(4096, end! - x) * 4 })!;
+                const position = (y * image.width + x) * 4, length = Math.min(4096, end! - x) * 4;
+                // Gamma and other HDRI operations must not round before mask compositing.
+                const working = yield { kind: "read", evaluate: true, image: source!, position, length };
+                const original = working?.length ? new Float64Array(working.slice().buffer)
+                    : Float64Array.from(highDepth ? new Uint16Array((yield { kind: "read", highDepth, image: source!, position, length })!.slice().buffer)
+                        : (yield { kind: "read", image: source!, position, length })!, value => highDepth ? value / 257 : value);
+                const output = original.slice();
                 if (source === 1) {
-                    const editedBytes = (yield { kind: "read", highDepth, position, length: Math.min(4096, end! - x) * 4 })!;
-                    const original = highDepth ? new Uint16Array(data.slice().buffer) : data;
-                    const edited = highDepth ? new Uint16Array(editedBytes.slice().buffer) : editedBytes;
-                    const output = original.slice();
-                    for (let offset = 0; offset < output.length; offset += 4) blendMaskedPixel(output, original, edited, offset, 1, highDepth ? 65535 : 255, channels, image.hasAlpha || image.alphaBlend !== false);
-                    yield { kind: "write", highDepth, position, data: new Uint8Array(output.buffer) };
-                } else yield { kind: "write", highDepth, position, data };
+                    const editedWorking = yield { kind: "read", evaluate: true, position, length };
+                    const edited = editedWorking?.length ? new Float64Array(editedWorking.slice().buffer)
+                        : Float64Array.from(highDepth ? new Uint16Array((yield { kind: "read", highDepth, position, length })!.slice().buffer)
+                            : (yield { kind: "read", position, length })!, value => highDepth ? value / 257 : value);
+                    for (let offset = 0; offset < output.length; offset += 4) blendMaskedPixel(output, original, edited, offset, 1, 255, channels, image.hasAlpha || image.alphaBlend !== false);
+                }
+                yield { kind: "write", evaluate: true, position, data: new Uint8Array(output.buffer) };
+                const bounded = highDepth ? Uint16Array.from(output, value => Math.round(Math.max(0, Math.min(65535, value * 257))))
+                    : Uint8Array.from(output, value => Math.round(Math.max(0, Math.min(255, value))));
+                yield { kind: "write", highDepth, position, data: new Uint8Array(bounded.buffer) };
             }
         }
     }

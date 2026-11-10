@@ -45,7 +45,7 @@ export function* writeMaskExtentSteps(image: { width: number; height: number }, 
 }
 
 /** Native clip-cache compositing uses premultiplied colors and restores source alpha. */
-export function blendMaskedPixel(output: Uint8Array | Uint16Array, original: Uint8Array | Uint16Array, edited: Uint8Array | Uint16Array, offset: number, protection: number, maximum: number, channels?: MaskChannels, alphaActive = true): void {
+export function blendMaskedPixel(output: Uint8Array | Uint16Array | Float64Array, original: Uint8Array | Uint16Array | Float64Array, edited: Uint8Array | Uint16Array | Float64Array, offset: number, protection: number, maximum: number, channels?: MaskChannels, alphaActive = true): void {
     if (protection === 0) {
         for (let channel = 0; channel < 4; channel++) output[offset + channel] = edited[offset + channel]!;
         return;
@@ -58,7 +58,8 @@ export function blendMaskedPixel(output: Uint8Array | Uint16Array, original: Uin
             output[offset + channel] = edited[offset + channel]!;
             continue;
         }
-        output[offset + channel] = Math.round(original[offset + channel]! * sourceAlpha + edited[offset + channel]! * editedAlpha * (1 - sourceAlpha));
+        const value = original[offset + channel]! * sourceAlpha + edited[offset + channel]! * editedAlpha * (1 - sourceAlpha);
+        output[offset + channel] = output instanceof Float64Array ? Math.fround(value * 257) / 257 : Math.round(value);
     }
     output[offset + 3] = original[offset + 3]!;
 }

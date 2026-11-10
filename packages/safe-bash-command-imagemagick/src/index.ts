@@ -5541,8 +5541,10 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
                     y <= Math.min(shape.y, shape.y1) - mid - 0.5 || y > Math.max(shape.y, shape.y1) + mid + 0.5) continue;
                 coverage = distance <= Math.abs(mid - 0.25) ? 1 : Math.max(0, mid + 0.75 - distance) ** 2;
                 if (shape.antialias === false) coverage = coverage >= 0.5 ? 1 : 0;
-                if (distance <= 0.5 && shape.fill.a > 0) {
-                    const alpha = shape.fill.a / 255, offset = i * 4, da = data[offset + 3]! / quantum;
+                let fillCoverage = Math.max(0, 1 - distance) ** 2;
+                if (shape.antialias === false) fillCoverage = fillCoverage >= 0.5 ? 1 : 0;
+                if (fillCoverage > 0 && shape.fill.a > 0) {
+                    const alpha = shape.fill.a / 255 * fillCoverage, offset = i * 4, da = data[offset + 3]! / quantum;
                     const outA = alpha + da * (1 - alpha);
                     for (const [channel, value] of [shape.fill.r, shape.fill.g, shape.fill.b].entries()) data[offset + channel] = Math.round((value * scale * alpha + data[offset + channel]! * da * (1 - alpha)) / outA);
                     data[offset + 3] = Math.round(outA * quantum);
@@ -5765,7 +5767,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const y1 = num();
             const lineStroke = stroke === "none" ? paintFill : paintStroke;
             if (!transformed && svgElements.length === 0) {
-                yield { kind: "shape", shape: "line", tile: false, color: stroke === "none" ? fillColor : strokeColor, fill: stroke === "none" ? { ...fillColor, a: 0 } : fillColor, x: x0, y: y0, x1, y1, width: Math.max(1, strokeWidth), antialias: state.antialias !== false };
+                yield { kind: "shape", shape: "line", tile: false, color: strokeColor, fill: fillColor, x: x0, y: y0, x1, y1, width: Math.max(1, strokeWidth), antialias: state.antialias !== false };
             } else {
                 svgElements.push(`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
             }

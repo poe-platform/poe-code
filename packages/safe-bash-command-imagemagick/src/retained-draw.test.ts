@@ -35,7 +35,7 @@ it("preserves original drawing pixel vectors", async () => {
         "490c4c48b7330c1fd93b8c546368aabfc0432e08da0867deb62cafeafe53bbc3",
         "1e5b865e684300d379cef949e63e5dae75bbe6688f518751d856bed19125c60a",
         "68c9a7433c60975dd48966d58d8fd649bca3c34d56977646bc461d5ac34d752f",
-        "3de9a33ee486fd2ed3830811386b4fd3e5023e230af26629590d3bda79383bb7",
+        "c5c9cd3ddfbefc6b1f4ea3a969ee0972c06d9652f7eb9ba7ad351690440801da",
         "fc0c18793a56602c3e5ccea187be9fbaa160ddbeec71ecd307712a0d5c0bf766",
         "70e8bd6e5ef5364bfd6fe1fc55a946845c2aebb92e841c1ea0a16f3b8953d3cc",
         "343d1ed9e0415ac74e67190d816e4a7d10f8e29109bf4bd1fc276cfe74de8664",

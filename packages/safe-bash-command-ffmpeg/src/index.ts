@@ -12543,7 +12543,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let enable: string | undefined;
                         const options = { delay: 20, feedback: 0.3, crossfeed: 0.3, drymix: 0.8 };
                         const argument = trimmed.slice("stereowiden=".length);
-                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                        const entries = argument ? argument.split(":") : [];
+                        if (argument.endsWith(":")) entries.pop();
+                        for (const [index, option] of entries.entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["delay", "feedback", "crossfeed", "drymix"][index] : option.slice(0, separator).trim();
                           if (key === "enable") {

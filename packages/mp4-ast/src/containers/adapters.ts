@@ -131,7 +131,7 @@ function extractVideoFramesFromDoc(doc: MediaDocument, maxFrames?: number): {
     if (maxFrames !== undefined && frames.length >= maxFrames) break;
     presentationStart += duration;
   }
-  const fps = frames.length > 0 ? Math.max(1, Math.round(1 / (frames[0]!.durationSeconds || .1))) : 30;
+  const fps = frames.length > 0 ? 1 / (frames[0]!.durationSeconds || .1) : 30;
   return { frames, width, height, fps };
 }
 
@@ -335,7 +335,25 @@ export function serializeY4m(doc: MediaDocument): Uint8Array {
   const exactTiming = track && sampleDuration && frames[0] &&
     Math.abs(sampleDuration / track.timescale - frames[0].durationSeconds) < Number.EPSILON;
   const divisor = exactTiming ? gcd(track.timescale, sampleDuration) : 1;
-  const rate = exactTiming ? `${track.timescale / divisor}:${sampleDuration / divisor}` : `${fps}:1`;
+  let rate = exactTiming ? `${track.timescale / divisor}:${sampleDuration / divisor}` : `${Math.round(fps)}:1`;
+  if (!exactTiming) {
+    // Filters keep durations in seconds. Recover their rational rate instead of
+    // rounding to integer fps or reusing the source track's stale sample timing.
+    let value = fps;
+    let previousNumerator = 0, numerator = 1;
+    let previousDenominator = 1, denominator = 0;
+    while (Number.isFinite(value)) {
+      const whole = Math.floor(value);
+      const nextNumerator = whole * numerator + previousNumerator;
+      const nextDenominator = whole * denominator + previousDenominator;
+      if (nextNumerator > 2147483647 || nextDenominator > 2147483647) break;
+      [previousNumerator, numerator] = [numerator, nextNumerator];
+      [previousDenominator, denominator] = [denominator, nextDenominator];
+      if (numerator > 0) rate = `${numerator}:${denominator}`;
+      if (Math.abs(numerator / denominator - fps) <= fps * 1e-12) break;
+      value = 1 / (value - whole);
+    }
+  }
   const interlace = codec?.fieldOrder === "tt" ? "t" : codec?.fieldOrder === "bb" ? "b" : "p";
   const range = codec?.colorRange === "pc" ? " XCOLORRANGE=FULL" : codec?.colorRange === "tv" ? " XCOLORRANGE=LIMITED" : "";
   const sourceFormat = frames[0]?.native?.format;

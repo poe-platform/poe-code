@@ -120,10 +120,10 @@ for (const pipe of [false, true]) test(`subshell/pipeline cwd isolation ${pipe}`
   assert.equal(result.stdout, pipe ? "/work\n" : "/one/target\n/one/target\n/work\n");
 });
 
-test("prefix bindings restore while successful cwd remains", async () => {
+test("successful cd publishes directory bindings while restoring CDPATH", async () => {
   const { fs } = await fixture();
   const result = await execute(fs, 'PWD=temporary OLDPWD=temporary CDPATH=/one cd target; pwd; printf "%s|%s|%s" "$PWD" "$OLDPWD" "${CDPATH-unset}"');
-  assert.equal(result.stdout, "/one/target\n/one/target\n/work|/|unset");
+  assert.equal(result.stdout, "/one/target\n/one/target\n/one/target|temporary|unset");
 });
 
 test("host invoke cd leaves parent and getopts cursor unchanged", async () => {

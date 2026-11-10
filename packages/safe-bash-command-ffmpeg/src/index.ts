@@ -15001,7 +15001,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
 
                   const samples: (typeof t.samples)[number][] = [];
-                  if ((segmentAudioPackets || frameChecksumOutput) && audioTimestamps) {
+                  if ((segmentAudioPackets || frameChecksumOutput || outPlugin?.id === "s16le") && audioTimestamps) {
                     const ratio = targetRate / origRate;
                     const cutoff = Math.min((resampleCutoff || 0.97) * ratio, 1);
                     const filterLength = filterSize <= cutoff ? 1 : 2 * Math.ceil(filterSize / 2 / cutoff);
@@ -15016,7 +15016,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (end <= start) continue;
                       budget.allocateMemory(16);
                       segmentAudioPackets?.push({ pts: start, isKeyframe: true });
-                      if (frameChecksumOutput) {
+                      if (frameChecksumOutput || outPlugin?.id === "s16le") {
                         const pts = Math.round((frame.pts - frame.start) * ratio) + start;
                         budget.allocateMemory(48);
                         samples.push({ dts: pts, pts, cts: 0,
@@ -15027,7 +15027,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (start < targetSamples) {
                       budget.allocateMemory(16);
                       segmentAudioPackets?.push({ pts: start, isKeyframe: true });
-                      if (frameChecksumOutput) {
+                      if (frameChecksumOutput || outPlugin?.id === "s16le") {
                         const last = samples.at(-1);
                         const pts = last ? last.pts + last.duration : 0;
                         budget.allocateMemory(48);
@@ -16008,6 +16008,33 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (videoTrackTimescale && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) {
               workingDoc = rescaleVideoTracks(workingDoc, videoTrackTimescale, budget);
+            }
+            if (outPlugin?.id === "s16le" && logLevel >= 16) {
+              for (const [streamIndex, track] of workingDoc.tracks.entries()) {
+                let previousDts = 0;
+                let previousMessage = "";
+                let repeats = 0;
+                for (const [index, sample] of track.samples.entries()) {
+                  if (index % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                  if (!Number.isFinite(sample.dts)) continue;
+                  // The raw muxer rejects the timestamp, but still writes the PCM.
+                  // A zero current DTS is treated as uninitialized by libavformat.
+                  if (previousDts !== 0 && previousDts >= sample.dts) {
+                    const message = `[s16le] Application provided invalid, non monotonically increasing dts to muxer in stream ${streamIndex}: ${previousDts} >= ${sample.dts}\n`;
+                    if (message === previousMessage) {
+                      repeats++;
+                    } else {
+                      if (repeats) await writeBytes(context.stderr, encodeUtf8(`    Last message repeated ${repeats} times\n`), context.signal);
+                      await writeBytes(context.stderr, encodeUtf8(message), context.signal);
+                      previousMessage = message;
+                      repeats = 0;
+                    }
+                  } else {
+                    previousDts = sample.dts;
+                  }
+                }
+                if (repeats) await writeBytes(context.stderr, encodeUtf8(`    Last message repeated ${repeats} times\n`), context.signal);
+              }
             }
             const serializedBytes = checksumOutput
               ? (frameChecksumOutput

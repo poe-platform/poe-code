@@ -10523,10 +10523,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error("volume: invalid replaygain_preamp");
                             }
                           } else if (key === "replaygain_noclip") {
-                            if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(value)) {
+                            const noClip = value.toLowerCase();
+                            if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(noClip)) {
                               throw new Error("volume: invalid replaygain_noclip");
                             }
-                            replayGainNoClip = ["1", "true", "yes", "on"].includes(value);
+                            replayGainNoClip = ["1", "true", "yes", "on"].includes(noClip);
                           }
                           else if (key === "enable") enable = value;
                           else throw new Error(`volume: unsupported option ${key}`);

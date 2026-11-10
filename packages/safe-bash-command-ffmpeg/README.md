@@ -728,7 +728,7 @@ and `atempo@fast=2`, with the same behavior as their unlabeled forms.
 `asendcmd=c='0.25 volume@v volume 0.25',volume@v=1` changes the named gain on the first audio frame at or after 0.25 seconds. Inline `c`/`commands` schedules support semicolon-separated time/target/volume/gain commands (optionally `[enter]`) targeting subsequent volume filters; target `volume` addresses all subsequent volume instances. `asendcmd=c='0.064 compensationdelay@x dry 0.5',compensationdelay@x=m=1` updates the named delay filter's dry gain at the next audio frame while preserving wet history; target `compensationdelay` addresses all subsequent instances. `asendcmd=c='0.064 alimiter@cap limit 0.25',alimiter@cap=limit=1:level=0` changes the limiter threshold at the next audio frame while preserving its lookahead buffer and release envelope. Target `alimiter` selects the first subsequent limiter; invalid runtime limits leave the previous limit active. Other command actions, interval flags, and command files are unsupported.
 The volume counters `nb_samples` and `nb_consumed_samples` are unavailable (NaN), as in native FFmpeg.
 `volume` supports ReplayGain `drop` (default), `ignore`, `track`, and `album` modes,
-with `replaygain_preamp` (-60–60 dB) and `replaygain_noclip` (enabled by default).
+with `replaygain_preamp` (-60–60 dB) and `replaygain_noclip` (enabled by default; accepts `0`/`1` and case-insensitive `false`/`true`, `no`/`yes`, `off`/`on`).
 Tagged gain replaces the volume multiplier; untagged audio keeps the requested volume.
 With `eval=frame`, `startt` and `startpts` retain the first audio frame's timestamp in seconds and sample time-base units; both are NaN with `eval=once`.
 With `eval=frame`, a NaN gain becomes silence; `isnan()` can supply a fallback gain.

@@ -10767,17 +10767,17 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-liquid-rescale") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const rawGeometry = tokens[++i] ?? "";
-            validateMagickTransformGeometry(rawGeometry, t);
-            let geometry = rawGeometry.replaceAll("(", "").replaceAll(")", "");
-            // Native liquid-rescale treats an isolated dimension separator as zero dimensions.
-            if (geometry === "x") geometry = "0x0";
-            const seam = parseMagickGeometry(geometry);
+            const geometry = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const options = magickResizeOptions(image, geometry, state.kernel);
+                let expanded = yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                validateMagickTransformGeometry(expanded, t);
+                expanded = expanded.replaceAll("(", "").replaceAll(")", "");
+                if (expanded === "x") expanded = "0x0";
+                const seam = parseMagickGeometry(expanded);
+                const options = magickResizeOptions(image, expanded, state.kernel);
                 if (!options) return image;
                 const width = options.width!, height = options.height!;
-                if (width <= 2 || height <= 2) return yield* applyMagickResizeSteps(image, geometry, state.kernel, false, false, false, state.resizeFilter);
+                if (width <= 2 || height <= 2) return yield* applyMagickResizeSteps(image, expanded, state.kernel, false, false, false, state.resizeFilter);
                 if (width === image.width && height === image.height) return image;
                 const result = yield* applyMagickRasterSteps(image, liquidRescalePixelSteps(image, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0), signal, { ...image, width, height });
                 const virtualCanvas = magickResizeCanvas(image, width, height);
@@ -13670,15 +13670,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const rawGeometry = tokens[++i] ?? "", kernel = state.kernel, settings = state.resizeFilter;
-            validateMagickTransformGeometry(rawGeometry, token);
-            let geometry = rawGeometry.replaceAll("(", "").replaceAll(")", "");
-            // Native liquid-rescale treats an isolated dimension separator as zero dimensions.
-            if (geometry === "x") geometry = "0x0";
-            const seam = parseMagickGeometry(geometry);
+            const geometry = tokens[++i] ?? "", kernel = state.kernel, settings = state.resizeFilter, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const options = magickResizeOptions(image, geometry, kernel);
+                let expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickTransformGeometry(expanded, token);
+                expanded = expanded.replaceAll("(", "").replaceAll(")", "");
+                if (expanded === "x") expanded = "0x0";
+                const seam = parseMagickGeometry(expanded);
+                const options = magickResizeOptions(image, expanded, kernel);
                 if (!options) return image;
                 const width = options.width!, height = options.height!;
                 if (width <= 2 || height <= 2) return resizeStoredMagickImage(image, backend, options, signal, false, false, false, settings);

@@ -11,7 +11,7 @@ function unit(bytes: Uint8Array, offset: number, utf8: boolean): { text: string;
   if (utf8 && size && offset + size <= bytes.length) {
     try {
       const text = decoder.decode(bytes.subarray(offset, offset + size));
-      return { text, size, printable: !/[\p{Cc}\p{Cf}\p{Cn}]/u.test(text) };
+      return { text, size, printable: !/[\p{Cc}\p{Cn}]/u.test(text) };
     } catch (error) { if (!(error instanceof TypeError)) throw error; }
   }
   return { text: "", size: 1, printable: false };

@@ -66,6 +66,26 @@ function fixture(options: Parameters<typeof setup>[0] = {}) {
   return result;
 }
 
+// Byte expectations captured with GNU Bash 5.3 on Linux in C.UTF-8.
+for (const [format, operand, hex] of [
+  ["%q", String.raw`a\u00adb`, "61c2ad62"],
+  ["%Q", String.raw`a\u200db`, "61e2808d62"],
+  ["%#q", String.raw`a\u00adb`, "2761c2ad6227"],
+  ["%.2q", String.raw`a\u00adb`, "61c2"],
+  ["%q", String.raw`a\u0065b`, "616562"],
+  ["%q", String.raw`a\u0007b`, "2427615c616227"],
+  ["%#q", String.raw`a\u0007b`, "2427615c616227"],
+] as const) {
+  test(`printf ${format} preserves C.UTF-8 quoting bytes for ${operand}`, async context => {
+    const { shell } = fixture({ env: { LC_ALL: "C.UTF-8" } });
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`printf -v v '${format}' $'${operand}'; status=$?; printf %s "$v"; exit "$status"`);
+    assert.equal(result.exitCode, 0);
+    assert.deepEqual(result.stderrBytes, new Uint8Array());
+    assert.deepEqual(result.stdoutBytes, new Uint8Array(Buffer.from(hex, "hex")));
+  });
+}
+
 for (const prefix of ["", "builtin ", "command "]) {
   for (const [args, exitCode, stdout] of [
     ["", 2, ""],

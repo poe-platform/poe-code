@@ -2543,16 +2543,14 @@ async function applyVideoFilterChain(
     } else if (name === "crop") {
       const crop: Record<string, string> = {};
       const keys = ["w", "h", "x", "y", "keep_aspect", "exact"];
-      let namedOption = false;
       for (const [index, part] of (argStr ? positional : []).entries()) {
         const separator = part.indexOf("=");
         let key = separator < 0 ? keys[index] : part.slice(0, separator).trim();
         if (key === "out_w") key = "w";
         if (key === "out_h") key = "h";
-        if (!key || !keys.includes(key) || (separator < 0 && namedOption)) {
+        if (!key || !keys.includes(key)) {
           throw new Error(`crop: unknown or misplaced option ${part}`);
         }
-        namedOption ||= separator >= 0;
         const value = (separator < 0 ? part : part.slice(separator + 1)).trim();
         if (key === "keep_aspect" || key === "exact") {
           if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value.toLowerCase())) {

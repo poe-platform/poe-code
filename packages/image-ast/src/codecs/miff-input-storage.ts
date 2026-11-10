@@ -5,14 +5,14 @@ import type { ImageByteSource, ImageByteStorage, StoredRgbaImage } from "./png-s
 import { SourceBytes } from "./storage-source.js";
 import { miffHeader, miffPixels } from "./miff-input.js";
 
-export async function readMiffFromSource(source: ImageByteSource, signal: AbortSignal) {
-    const reader = new SourceBytes(source, signal, "MIFF"), steps = miffHeader(source.size); let next = steps.next();
+export async function readMiffFromSource(source: ImageByteSource, signal: AbortSignal, page?: number) {
+    const reader = new SourceBytes(source, signal, "MIFF"), steps = miffHeader(source.size, page); let next = steps.next();
     while (!next.done) next = steps.next(await reader.at(next.value));
     return next.value;
 }
 
 export async function decodeMiffToStorage(source: ImageByteSource, storage: ImageByteStorage, signal: AbortSignal, options?: SharpInputOptions): Promise<StoredRgbaImage> {
-    const { metadata, offset } = await readMiffFromSource(source, signal);
+    const { metadata, offset } = await readMiffFromSource(source, signal, options?.page);
     checkLimitInputPixels(metadata.width, metadata.height, options);
     const count = metadata.width * metadata.height, position = storage.allocate(count * 4), sampleBytes = metadata.depth === "ushort" ? 2 : 1;
     const storedData16 = sampleBytes === 2 ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;

@@ -53,7 +53,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  else if(isXbmBytes(prefix))metadata=await readXbmFromSource(source,undefined,signal,options);
  else if(isXwdBytes(prefix))metadata=readXwdHeader(prefix,source.size).metadata;
  else if(isQoiBytes(prefix))metadata={...readQoiMetadata(prefix),size:source.size};
- else if(isMiffBytes(prefix))metadata=(await readMiffFromSource(source,signal)).metadata;
+ else if(isMiffBytes(prefix))metadata=(await readMiffFromSource(source,signal,options?.page)).metadata;
  else if(isXpmBytes(prefix))metadata=await readXpmFromSource(source,undefined,signal,options);
  else if(isTxtBytes(prefix))metadata=await readTxtFromSource(source,undefined,signal,options);
  else if(isTgaBytes(prefix))metadata={...readTgaMetadata(prefix),size:source.size};

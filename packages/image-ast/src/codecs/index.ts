@@ -180,7 +180,7 @@ export function readImageMetadata(
     case "qoi": meta = readQoiMetadata(bytes); break;
     case "hdr": meta = readRadianceHeader(bytes).metadata; break;
     case "exr": meta = readExrHeader(bytes).metadata; break;
-    case "miff": meta = readMiffHeader(bytes).metadata; break;
+    case "miff": meta = readMiffHeader(bytes, options?.page).metadata; break;
     case "phm": meta = readPhmHeader(bytes).metadata; break;
     case "tga":
       meta = readTgaMetadata(bytes);

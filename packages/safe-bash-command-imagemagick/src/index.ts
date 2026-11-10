@@ -9113,7 +9113,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
-                const delay = parseDelay(expanded) || 0;
+                const delay = parseDelay(expanded);
                 return { ...image, ticksPerSecond: 100, delay: Array(image.delay?.length ?? 1).fill(delay) };
             });
             i += 3;
@@ -11204,7 +11204,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
                     const image = (await stack.get(sceneIdx))!;
                     const expanded = await formatRetainedIdentify(value, image, { ...image[magickInput], sceneIdx, optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                    const delay = parseDelay(expanded) || 0;
+                    const delay = parseDelay(expanded);
                     await stack.set(sceneIdx, {
                         ...image, ticksPerSecond: 100,
                         storedDelay: { length: image.storedDelay?.length ?? image.delay?.length ?? 1, async at() { return delay; } },

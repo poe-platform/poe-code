@@ -5,7 +5,7 @@ export function isMiffBytes(bytes: Uint8Array): boolean {
     return new TextDecoder().decode(bytes.subarray(0, 14)) === "id=ImageMagick";
 }
 
-export function* miffHeader(size: number): Generator<number, { metadata: ImageMetadata & { magickColorspace: string }; offset: number }, number | undefined> {
+function* miffFrameHeader(size: number): Generator<number, { metadata: ImageMetadata & { magickColorspace: string }; offset: number }, number | undefined> {
     let offset = 0, text = "", quote = "";
     while (true) {
         const byte = yield offset++;
@@ -50,8 +50,25 @@ export function* miffHeader(size: number): Generator<number, { metadata: ImageMe
     return { metadata: { delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, format: "miff", width, height, channels, hasAlpha, depth: depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size }, offset };
 }
 
-export function readMiffHeader(bytes: Uint8Array) {
-    const steps = miffHeader(bytes.length); let next = steps.next();
+/** Scan adjacent rasters without retaining a frame table or reading their pixels. */
+export function* miffHeader(size: number, page = 0): Generator<number, { metadata: ImageMetadata & { magickColorspace: string }; offset: number }, number | undefined> {
+    if (!Number.isSafeInteger(page) || page < 0) throw new RangeError("MIFF page out of range");
+    let start = 0, pages = 0;
+    let selected: ReturnType<typeof readMiffHeader> | undefined;
+    while (start < size) {
+        const steps = miffFrameHeader(size - start);
+        let next = steps.next();
+        while (!next.done) next = steps.next(yield start + next.value);
+        const { metadata, offset } = next.value;
+        if (pages++ === page) selected = { metadata: { ...metadata, size }, offset: start + offset };
+        start += offset + metadata.width * metadata.height * metadata.channels * (metadata.depth === "ushort" ? 2 : 1);
+    }
+    if (!selected) throw new RangeError("MIFF page out of range");
+    return { ...selected, metadata: { ...selected.metadata, ...(pages > 1 ? { pages } : {}) } };
+}
+
+export function readMiffHeader(bytes: Uint8Array, page?: number) {
+    const steps = miffHeader(bytes.length, page); let next = steps.next();
     while (!next.done) next = steps.next(bytes[next.value]);
     return next.value;
 }
@@ -70,7 +87,7 @@ export function miffPixels(bytes: Uint8Array, metadata: ImageMetadata) {
 }
 
 export function decodeMiffImage(bytes: Uint8Array, options?: SharpInputOptions): RgbaImage {
-    const { metadata, offset } = readMiffHeader(bytes);
+    const { metadata, offset } = readMiffHeader(bytes, options?.page);
     checkLimitInputPixels(metadata.width, metadata.height, options);
     const length = metadata.width * metadata.height * metadata.channels * (metadata.depth === "ushort" ? 2 : 1);
     return { ...metadata, ...miffPixels(bytes.subarray(offset, offset + length), metadata) };

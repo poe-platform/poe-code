@@ -234,7 +234,7 @@ function contributions(index: number, source: number, target: number, blur: numb
     return { first, weights };
 }
 
-type ResizeImage = { width: number; height: number; hasAlpha: boolean; inactiveAlpha?: boolean | undefined; space?: string; magickColorspace?: string };
+type ResizeImage = { width: number; height: number; hasAlpha: boolean; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; space?: string; magickColorspace?: string };
 type ResizeSamples = Generator<ConvolveRequest | { kind: "samples"; position: number; data: Float64Array } | undefined, void, Uint8Array | undefined>;
 
 /** Keep HDRI samples unclamped until all resizing and morph blending is finished. */
@@ -350,12 +350,29 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
         return;
     }
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
-    const samples = resizeSamples(image, width, height, thumbnail, scale, kernel, highDepth, settings, cmyk, preserveSamples);
+    const inactiveAlpha = thumbnail && !image.hasAlpha && image.inactiveAlpha;
+    // Deactivation retains RGB blending; disassociation retains unclamped colors.
+    const samples = resizeSamples(inactiveAlpha ? { ...image, hasAlpha: image.alphaBlend === true } : image, width, height, thumbnail, scale, kernel, highDepth, settings, cmyk, preserveSamples || !!inactiveAlpha);
     const range = highDepth ? 65535 : 255;
     let next = samples.next();
     while (!next.done) {
         const request = next.value;
         if (request?.kind !== "samples") { next = samples.next(yield request); continue; }
+        // Inactive alpha is copied unless discrete alpha still updates it.
+        // Disassociation leaves an undefined channel in the resized clone.
+        if (inactiveAlpha && !(image.alphaSeparate && image.alphaBlend)) {
+            for (let i = 0; i < request.data.length; i += stride) {
+                if (image.alphaSeparate) { request.data[i + 3] = 0; continue; }
+                const pixel = request.position / 4 + i / stride;
+                const sx = resizeCopyIndex(pixel % width, image.width, width);
+                const sy = resizeCopyIndex(Math.floor(pixel / width), image.height, height);
+                const position = (sy * image.width + sx) * 4;
+                const samples = yield { kind: "read", evaluate: true, position, length: 4 };
+                const bytes = samples?.length ? samples : (yield { kind: "read", highDepth, position, length: 4 })!;
+                const values = samples?.length ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+                request.data[i + 3] = values[3]! * (samples?.length && highDepth ? 257 : 1);
+            }
+        }
         if (maskedAxis) {
             const horizontal = maskedAxis === "horizontal";
             for (let i = 0; i < request.data.length; i += stride) {

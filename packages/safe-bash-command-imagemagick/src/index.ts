@@ -11256,22 +11256,23 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-combine") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const rIm = stack[0]!;
-            const sources = stack.slice(0, 4);
+            const cmyk = rIm.space === "cmyk" && stack.length <= 4 + Number(rIm.hasAlpha);
+            const sources = stack.slice(0, cmyk ? 5 : 4);
             const gray = (rIm.space === "b-w" || rIm.space === "grey16") && sources.length <= (rIm.hasAlpha ? 2 : 1);
-            let result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(sources, sources.some(image => !!image.data16), state.intensity, gray), signal, rIm, sources);
+            let result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(sources, sources.some(image => !!image.data16), state.intensity, gray, cmyk), signal, rIm, sources);
             if (rIm.writeMask) result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, rIm.writeMask, !!result.data16, false, undefined, rIm.hasAlpha && rIm.alphaBlend !== false), signal, result, [result, rIm, rIm.writeMask]);
             if (rIm.region) result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, rIm.region, !!result.data16), signal, result, [result, rIm]);
             // Retain the working colorspace when the combined planes fit its channels.
-            if (result.space !== "cmyk") {
+            if (!cmyk) {
                 delete result.hueSamples;
-                if (sources.length === 4 && (!rIm.hasAlpha || rIm.alphaBlend === false) || rIm.space === "b-w" || rIm.space === "grey16") delete result.magickColorspace;
+                if (rIm.space === "cmyk" || sources.length === 4 && (!rIm.hasAlpha || rIm.alphaBlend === false) || rIm.space === "b-w" || rIm.space === "grey16") delete result.magickColorspace;
             }
             const metaChannels: BaseRgbaImage[] = [];
-            for (const source of stack.slice(4)) {
+            for (const source of stack.slice(sources.length)) {
                 const plane = { width: rIm.width, height: rIm.height, format: rIm.format, depth: rIm.depth, density: rIm.density, space: "b-w" as const, channels: 1 as const, hasAlpha: false, data: source.data };
                 metaChannels.push(yield* applyMagickRasterSteps(plane, combineMetaPixelSteps(rIm, source, !!source.data16, state.intensity), signal, plane, [source]));
             }
-            stack = [{ ...result, isPalette: false, metaChannels, space: gray ? rIm.space : rIm.space === "cmyk" ? "cmyk" : "srgb", channels: gray ? (rIm.hasAlpha ? 2 : 1) : 4, hasAlpha: rIm.space !== "cmyk" && sources.length === 4 || rIm.hasAlpha }];
+            stack = [{ ...result, isPalette: false, metaChannels, space: gray ? rIm.space : cmyk ? "cmyk" : "srgb", channels: gray ? (rIm.hasAlpha ? 2 : 1) : 4, hasAlpha: !cmyk && sources.length === 4 || rIm.hasAlpha }];
         }
         else if (t === "-draw") {
             const drawSpec = tokens[++i] ?? "";
@@ -12276,25 +12277,26 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     return result;
                 } else if (token === "-combine") {
-                    const sources: StoredRgbaImage[] = [];
-                    for (let index = 0; index < Math.min(4, stack.length); index++) sources.push((await stack.get(index))!);
-                    const base = sources[0]!;
+                    const base = (await stack.get(0))! as StoredRgbaImage;
+                    const cmyk = base.space === "cmyk" && stack.length <= 4 + Number(base.hasAlpha);
+                    const sources: StoredRgbaImage[] = [base];
+                    for (let index = 1; index < Math.min(cmyk ? 5 : 4, stack.length); index++) sources.push((await stack.get(index))!);
                     const gray = (base.space === "b-w" || base.space === "grey16") && sources.length <= (base.hasAlpha ? 2 : 1);
-                    let result = await transformStoredMagickRaster(base, backend, combinePixelSteps(sources, sources.some(image => !!image.storedData16), settings.intensity, gray), signal, base, sources);
+                    let result = await transformStoredMagickRaster(base, backend, combinePixelSteps(sources, sources.some(image => !!image.storedData16), settings.intensity, gray, cmyk), signal, base, sources);
                     if (base.storedWriteMask) result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, base.storedWriteMask, !!result.storedData16, false, undefined, base.hasAlpha && base.alphaBlend !== false), signal, result, [result, base, base.storedWriteMask]);
                     if (base.region) result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, base.region, !!result.storedData16), signal, result, [result, base]);
                     // Retain the working colorspace when the combined planes fit its channels.
-                    if (result.space !== "cmyk") {
+                    if (!cmyk) {
                         delete result.storedHueSamples;
-                        if (sources.length === 4 && (!base.hasAlpha || base.alphaBlend === false) || base.space === "b-w" || base.space === "grey16") delete result.magickColorspace;
+                        if (base.space === "cmyk" || sources.length === 4 && (!base.hasAlpha || base.alphaBlend === false) || base.space === "b-w" || base.space === "grey16") delete result.magickColorspace;
                     }
                     const storedMetaChannels: BaseStoredRgbaImage[] = [];
-                    for (let index = 4; index < stack.length; index++) {
+                    for (let index = sources.length; index < stack.length; index++) {
                         const source = (await stack.get(index))! as StoredRgbaImage;
                         const plane = { width: base.width, height: base.height, format: base.format, depth: base.depth, density: base.density, space: "b-w" as const, channels: 1 as const, hasAlpha: false, position: source.position };
                         storedMetaChannels.push(await transformStoredMagickRaster(plane, backend, combineMetaPixelSteps(base, source, !!source.storedData16, settings.intensity), signal, plane, [source]));
                     }
-                    stack.length = 0; await stack.push({ ...result, isPalette: false, storedMetaChannels, space: gray ? base.space : base.space === "cmyk" ? "cmyk" : "srgb", channels: gray ? (base.hasAlpha ? 2 : 1) : 4, hasAlpha: base.space !== "cmyk" && sources.length === 4 || base.hasAlpha });
+                    stack.length = 0; await stack.push({ ...result, isPalette: false, storedMetaChannels, space: gray ? base.space : cmyk ? "cmyk" : "srgb", channels: gray ? (base.hasAlpha ? 2 : 1) : 4, hasAlpha: !cmyk && sources.length === 4 || base.hasAlpha });
                 } else if (token === "-morph") {
                     const image = await stack.get(0);
                     const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack) : argument;

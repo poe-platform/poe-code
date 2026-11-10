@@ -247,10 +247,10 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
     }
 }
 
-export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height"> & { space?: RgbaImage["space"] | undefined; magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma", gray = false): Steps {
+export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height"> & { space?: RgbaImage["space"] | undefined; magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma", gray = false, cmyk = inputs[0]!.space === "cmyk"): Steps {
     const { width, height } = inputs[0]!, chunkPixels = 512;
     // The storage planes are RGBA plus CMYK inks; reduce C, M, Y, alpha and K together.
-    const cmyk = inputs[0]!.space === "cmyk", range = highDepth ? 65535 : 255;
+    const range = highDepth ? 65535 : 255;
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x += chunkPixels) {
         yield;
         const position = (y * width + x) * 4, length = Math.min(chunkPixels, width - x) * 4;
@@ -259,8 +259,8 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
         const baseWorking = yield { kind: "read", evaluate: true, image: 0, position, length };
         const samples = baseWorking?.length ? new Float64Array(baseWorking.slice().buffer)
             : Float64Array.from(data, value => highDepth ? value / 257 : value);
-        const baseHue = cmyk ? yield { kind: "read", hue: true, position, length } : undefined;
-        const inks = baseHue?.length ? new Float64Array(baseHue.slice().buffer) : cmyk ? new Float64Array(length) : undefined;
+        const baseHue = inputs[0]!.space === "cmyk" ? yield { kind: "read", hue: true, position, length } : undefined;
+        const inks = cmyk ? baseHue?.length ? new Float64Array(baseHue.slice().buffer) : new Float64Array(length) : undefined;
         if (inks && !baseHue?.length) for (let offset = 0; offset < length; offset += 4)
             inks.set(rgbToCmyk(data[offset]! / range, data[offset + 1]! / range, data[offset + 2]! / range), offset);
         for (let image = 0; image < inputs.length; image++) {
@@ -271,15 +271,21 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
             const bytes = working?.length ? working : image === 0 ? base : (yield { kind: "read", highDepth, image, position: (y * sourceImage.width + x) * 4, length: count })!;
             const source = working?.length ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => highDepth ? value * 257 : value)
                 : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
-            const hue = cmyk && sourceImage.space === "cmyk" ? image === 0 ? baseHue
+            const hue = sourceImage.space === "cmyk" ? image === 0 ? baseHue
                 : yield { kind: "read", hue: true, image, position: (y * sourceImage.width + x) * 4, length: count } : undefined;
             const inkSamples = hue?.length ? new Float64Array(hue.slice().buffer) : undefined;
             for (let offset = 0; offset < count; offset += 4) {
-                if (inks) {
+                if (inks || sourceImage.space === "cmyk") {
                     const channels = inkSamples ? inkSamples.subarray(offset, offset + 3) : sourceImage.space === "cmyk"
                         ? rgbToCmyk(source[offset]! / range, source[offset + 1]! / range, source[offset + 2]! / range)
                         : [source[offset]! / range, source[offset + 1]! / range, source[offset + 2]! / range];
-                    inks[offset + image] = magickIntensity(channels[0]!, channels[1]!, channels[2]!, intensity, 1, sourceImage.magickColorspace === "RGB");
+                    const value = magickIntensity(channels[0]!, channels[1]!, channels[2]!, intensity, 1, sourceImage.magickColorspace === "RGB");
+                    if (inks && image < 4) inks[offset + image] = value;
+                    else {
+                        const channel = inks ? 3 : image;
+                        samples[offset + channel] = value * 255;
+                        data[offset + channel] = Math.round(value * range);
+                    }
                     continue;
                 }
                 const value = magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, highDepth ? 65535 : 255, sourceImage.magickColorspace === "RGB");

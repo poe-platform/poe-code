@@ -11873,8 +11873,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const readMask = im.readMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
                 // Native decoration creates a zero-valued write-mask channel.
                 const writeMask = im.writeMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
+                const metaChannels: BaseRgbaImage[] = [];
+                for (const plane of im.metaChannels ?? []) metaChannels.push(yield* applyMagickRasterSteps(plane,
+                    borderPixels(plane, fw, fh, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16), signal, { width, height, hasAlpha: false }));
                 const canvas = { ...yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, im.matteColor ?? state.matteColor, fw, fh, g.x, g.y, state.composeRaw.toLowerCase() === "over"), signal,
-                    { width, height, hasAlpha: im.hasAlpha || (im.matteColor ?? state.matteColor).a < 255 || state.borderColor.a < 255 }), region: undefined, writeMask, readMask, virtualCanvas: magickBorderCanvas(im, fw, fh) };
+                    { width, height, hasAlpha: im.hasAlpha || (im.matteColor ?? state.matteColor).a < 255 || state.borderColor.a < 255 }), region: undefined, writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, fw, fh) };
                 if (state.composeRaw.toLowerCase() === "over") return canvas;
                 return yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
             });
@@ -15341,8 +15344,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const readMask = image.readMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 // Native decoration creates a zero-valued write-mask channel.
                 const storedWriteMask = image.storedWriteMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
+                const storedMetaChannels: BaseStoredRgbaImage[] = [];
+                for (const plane of image.storedMetaChannels ?? []) storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
+                    borderPixels(plane, left, top, { r: 0, g: 0, b: 0, a: 255 }, !!plane.storedData16), signal, { width, height, hasAlpha: false }));
                 const canvas = { ...await transformStoredMagickRaster(image, backend, magickFramePixels(image, width, height, borderColor, image.matteColor ?? matteColor, left, top, geometry.x, geometry.y, composeRaw.toLowerCase() === "over"), signal,
-                    { width, height, hasAlpha: image.hasAlpha || (image.matteColor ?? matteColor).a < 255 || borderColor.a < 255 }), region: undefined, storedWriteMask, readMask, virtualCanvas: magickBorderCanvas(image, left, top) };
+                    { width, height, hasAlpha: image.hasAlpha || (image.matteColor ?? matteColor).a < 255 || borderColor.a < 255 }), region: undefined, storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
                 if (composeRaw.toLowerCase() === "over") return canvas;
                 return compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
             });

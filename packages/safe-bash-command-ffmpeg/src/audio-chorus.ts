@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { parseFilterFloat } from "./filter-float.js";
 
 export async function chorusAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -24,7 +25,7 @@ export async function chorusAudio(
     return Math.fround(gain);
   });
   const [delays, decays, speeds, depths] = [options.delays, options.decays, options.speeds, options.depths].map(value =>
-    value.split("|").map(part => Math.fround(Number.parseFloat(part))).filter(value => !Number.isNaN(value)));
+    value.split("|").map(part => Math.fround(parseFilterFloat(part))).filter(value => !Number.isNaN(value)));
   if (!delays!.length || [decays, speeds, depths].some(list => list!.length !== delays!.length)) {
     throw new Error("chorus: delays, decays, speeds and depths must have matching entries");
   }

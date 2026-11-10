@@ -10,6 +10,7 @@ for (const graph of [false, true]) {
   for (const [filter, frames, impulses] of [
     ["anull", 256, [[0, 16000]]],
     ["chorus=0.5:0.9:10:0.5:1:1", 344, [[0, 7200], [4, 7200]]],
+    ["chorus=0.5:0.9:0xa:0x.8:0x1:0x1", 344, [[0, 7200], [4, 7200]]],
     ["chorus=0.5:0.9:10|20:0.5|0.3:1|2:1|2", 432, [[0, 7200], [4, 7200], [8, 4320]]],
     ["chorus=in_gain=0.5:out_gain=0.9:delays=10|20:decays=0.5|0.3:speeds=1|2:depths=1|2", 432, [[0, 7200], [4, 7200], [8, 4320]]],
     ["chorus=0.5:0.9:10:0.5:1:1,volume=0.5", 344, [[0, 3600], [4, 3600]]],
@@ -45,6 +46,20 @@ for (const [filter, frames, hash] of [
   });
 }
 
+// Native FFmpeg 7.0.2: hexadecimal delays must preserve every PCM sample and the EOF tail.
+for (const delay of ["0x10", "16", "+0X10", "0x1p4", "0x.8p5", "16ms"]) {
+  for (const graph of [false, true]) {
+    it(`chorus delay ${delay} matches native mono PCM (graph ${graph})`, async () => {
+      const channels = [Float64Array.from({ length: 4096 }, (_, i) => ((i * 179) % 50001 - 25000) / 32768)];
+      const { result, stderr, output } = await run(`chorus=0.4:0.4:${delay}:0.3:2:4`, graph, channels);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.equal(output.length, 8512);
+      assert.equal(createHash("sha256").update(output).digest("hex"),
+        "77e70c40a35fa1574b04320e9542a68c0a01a8dfee27195a45e7f904da451dda");
+    });
+  }
+}
+
 it("chorus emits delayed samples after EOF independently for each channel", async () => {
   const channels = [new Float64Array(2), new Float64Array(2)];
   channels[0]![0] = 16000 / 32768;
@@ -68,7 +83,7 @@ it("chorus exposes its complete tail to downstream frame filters", async () => {
 for (const filter of [
   "chorus", "chorus=0.5:0.9:10:0.5:1", "chorus=0.5:0.9:10|20:0.5:1:1",
   "chorus=0.5:0.9:10:0.5:0:1", "chorus=0.5:0.9:10:0.5:Infinity:1",
-  "chorus=0.5:0.9:-10:0.5:1:1", "chorus=0.5:0.9:10:0.5:1:-1",
+  "chorus=0.5:0.9:-10:0.5:1:1", "chorus=0.5:0.9:-0x10:0.5:1:1", "chorus=0.5:0.9:10:0.5:1:-1",
   "chorus=0.5:0.9:10:0.5:1:Infinity", "chorus=2:0.9:10:0.5:1:1",
   "chorus=0.5:0.9:10:0.5:1:1:unknown=1", "chorus=0.5:0.9:2000:0.5:1:1"
 ]) {
@@ -79,8 +94,11 @@ for (const filter of [
   });
 }
 
-async function run(filter: string, graph = false, channels = [new Float64Array(256)]) {
-  if (channels.length === 1) channels[0]![0] = 16000 / 32768;
+async function run(filter: string, graph = false, channels?: Float64Array[]) {
+  if (!channels) {
+    channels = [new Float64Array(256)];
+    channels[0]![0] = 16000 / 32768;
+  }
   const volume = Volume.fromJSON({ "/out.s16": "keep" });
   volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels }));
   let stderr = "";

@@ -138,7 +138,7 @@ Both forms apply to every channel and may omit either bound.
 
 `aecho=0.5:1:1|2:0.5|0.25` mixes delayed copies independently into each audio channel and drains the full longest-delay tail. Supports positional or named `in_gain`, `out_gain`, `delays` (milliseconds), and `decays`; delay and decay lists accept decimal or hexadecimal numeric prefixes and must have matching lengths. Invalid options preserve existing output.
 
-`chorus=0.5:0.9:10|20:0.5|0.3:1|2:1|2` mixes modulated voices independently into each PCM channel and emits the complete delayed tail. Supports positional or named `in_gain`, `out_gain`, `delays`, `decays`, `speeds`, and `depths`. The four voice lists are required and must have matching lengths; delays and depths are in milliseconds, speeds in Hz. Like native FFmpeg, depth controls the sinusoidal voice offsets, while the largest delay plus depth determines tail duration. Invalid options or resource limits preserve existing output.
+`chorus=0.5:0.9:10|20:0.5|0.3:1|2:1|2` mixes modulated voices independently into each PCM channel and emits the complete delayed tail. Supports positional or named `in_gain`, `out_gain`, `delays`, `decays`, `speeds`, and `depths`. The four voice lists are required and must have matching lengths; delays and depths are in milliseconds, speeds in Hz. Voice lists accept hexadecimal floats: delay `0x10` is 16 ms, as is `0x1p4`. Like native FFmpeg, depth controls the sinusoidal voice offsets, while the largest delay plus depth determines tail duration. Invalid options or resource limits preserve existing output.
 
 `adelay=0S|1S` delays each audio channel independently and pads with silence.
 Use uppercase `S` after an integer for sample frames, lowercase `s` after an integer

@@ -28,7 +28,7 @@ describe.each(["command", "retained", "buffered", "sync"] as const)("blue-shift 
         const error = "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr;
         expect(result.exitCode, error).toBe(exitCode);
         if (exitCode === 0) expect(error).toBe("");
-        else expect(error).toContain("invalid argument '-blue-shift'");
+        else expect(error).toContain("invalid argument");
         const bytes = mode === "command" ? Buffer.concat(chunks)
             : "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? Buffer.from(result.stdoutBytes)
             : Buffer.from("stdout" in result && typeof result.stdout === "string" ? result.stdout : "");

@@ -9608,7 +9608,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometry = tokens[++i] ?? "", offset = tokens[++i] ?? "";
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                return yield* applyMagickRasterSteps(image, copyMagickPixelSteps(image, geometry, offset, !!image.data16, channels, !!image.evaluateSamples, state.virtualPixel, state.background), signal, { ...image, hasAlpha: image.hasAlpha || (!channels || channels[3] === true) && (state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) });
+                const context = { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties };
+                const expandedGeometry = yield* formatMagickPropertyStringSteps(geometry, image, () => image, context);
+                const expandedOffset = yield* formatMagickPropertyStringSteps(offset, image, () => image, context);
+                return yield* applyMagickRasterSteps(image, copyMagickPixelSteps(image, expandedGeometry, expandedOffset, !!image.data16, channels, !!image.evaluateSamples, state.virtualPixel, state.background), signal, { ...image, hasAlpha: image.hasAlpha || (!channels || channels[3] === true) && (state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) });
             });
         }
         else if (t === "-roll") {
@@ -12345,8 +12348,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             const geometry = tokens[++i] ?? "", offset = tokens[++i] ?? "";
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
-            const { virtualPixel, background } = state;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, copyMagickPixelSteps(image, geometry, offset, !!image.storedData16, channels, image.storedEvaluateSamples !== undefined, virtualPixel, background), signal, { ...image, hasAlpha: image.hasAlpha || (!channels || channels[3] === true) && (virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255) }) : undefined);
+            const { virtualPixel, background, optionProperties } = state;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const context = { ...(image as StoredMagickImage)[magickInput], optionProperties };
+                const expandedGeometry = await formatRetainedIdentify(geometry, image, context, async () => ({ image, storage: backend.storage }), signal);
+                const expandedOffset = await formatRetainedIdentify(offset, image, context, async () => ({ image, storage: backend.storage }), signal);
+                return transformStoredMagickRaster(image, backend, copyMagickPixelSteps(image, expandedGeometry, expandedOffset, !!image.storedData16, channels, image.storedEvaluateSamples !== undefined, virtualPixel, background), signal, { ...image, hasAlpha: image.hasAlpha || (!channels || channels[3] === true) && (virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255) });
+            });
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             if (token === "-chop" || token === "-roll") stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

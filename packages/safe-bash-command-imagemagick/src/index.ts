@@ -5462,6 +5462,8 @@ function parseMagickPageSetting(raw: string, operation: "page" | "set"): MagickG
     } catch {
         return parseMagickGeometry("");
     }
+    // A slash invalidates the entire page rectangle, including its width.
+    if (value.includes("/")) return parseMagickGeometry("");
     const geometry = parseMagickGeometry(value.replaceAll("#", "").replaceAll("@", "").replaceAll(":", "x"));
     // Native page properties require an x separator between a width and offsets.
     if (operation === "set" && geometry.width !== undefined && geometry.hasOffset && !value.toLowerCase().includes("x")) return parseMagickGeometry("");
@@ -5472,6 +5474,8 @@ function parseMagickPageSetting(raw: string, operation: "page" | "set"): MagickG
 
 function parseMagickRepageGeometry(raw: string): MagickGeometry {
     validateMagickTransformGeometry(raw, "-repage");
+    // A slash invalidates the entire page rectangle, including its width.
+    if (raw.includes("/")) return parseMagickGeometry("");
     const geometry = parseMagickGeometry(raw.replaceAll("#", "").replaceAll("@", "").replaceAll(":", "x"));
     // Native requires an x separator between a width and any offsets.
     if (geometry.width !== undefined && geometry.hasOffset && !raw.toLowerCase().includes("x")) {

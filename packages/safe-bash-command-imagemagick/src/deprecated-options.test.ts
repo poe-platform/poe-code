@@ -8,6 +8,8 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
     it.each([
         { options: ["+colors"], exitCode: 1, error: "option deprecated, unable to execute '+colors'" },
         { options: ["+solarize"], exitCode: 1, error: "option deprecated, unable to execute '+solarize'" },
+        { options: ["+reverse"], exitCode: 1, error: "option deprecated, unable to execute '+reverse'" },
+        { options: ["-reverse"], exitCode: 0, error: "" },
         { options: ["xc:blue", "xc:red", "+append", "+unique-colors"], exitCode: 1, error: "option deprecated, unable to execute '+unique-colors'" },
         { options: ["xc:blue", "xc:red", "+append", "+sort-pixels"], exitCode: 1, error: "option deprecated, unable to execute '+sort-pixels'" },
         { options: ["xc:blue", "xc:red", "+append", "-unique-colors"], exitCode: 0, error: "", pixels: [255, 0, 0, 255, 0, 0, 255, 255] },
@@ -34,3 +36,17 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
             .toEqual(exitCode === 0 ? Uint8Array.from(pixels ?? [255, 0, 0, 255]) : original);
     });
 }
+
+it.each(["+reverse", "-reverse"])("matches the native info output for %s", async option => {
+    const argumentValues = createCommandArguments(["xc:red", option, "-format", "%w", "info:-"]);
+    let stdout = "", stderr = "";
+    const result = await createMagickCommand().execute({
+        command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: new MemoryFileSystem(),
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    });
+    expect(result.exitCode).toBe(option === "+reverse" ? 1 : 0);
+    expect(stdout).toBe(option === "+reverse" ? "" : "1");
+    expect(stderr).toBe(option === "+reverse" ? "magick: option deprecated, unable to execute '+reverse'\n" : "");
+});

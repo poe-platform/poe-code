@@ -15,6 +15,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
     const first = source[offset];
     if (first === "+" || first === "-") {
       offset++;
+      if (source[offset] === "+" || source[offset] === "-") throw new Error(`${filter}: invalid expression`);
       value = parse(3, depth + 1, evaluate) * (first === "-" ? -1 : 1);
     } else if (first === "(") {
       offset++;

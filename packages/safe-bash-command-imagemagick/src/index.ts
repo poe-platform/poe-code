@@ -10155,9 +10155,9 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     }
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
-    if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     image = yield* prepareInactiveAlphaOutput(yield* prepareHueOutput(image, format));
+    if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
     if (["exr", "hdr", "pfm", "phm"].includes(format)) image = yield* prepareFloatOutput(image);
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) image = { ...image, backgroundColor: { r: image.data[0]!, g: image.data[1]!, b: image.data[2]!, a: 255 } };
     if (format === "miff") {
@@ -10182,7 +10182,6 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     }
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
-    if (format === "gif" && !image.isPalette && dither) image = { ...(await transformStoredMagickRaster(image, backend, gifDitherSteps(image, dither, diffusionAmount), signal)), isPalette: true };
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     if (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "xyY" || image.magickColorspace === "YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "OHTA" || image.magickColorspace === "YUV" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
@@ -10191,6 +10190,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareFloatOutput }, signal);
     }
     if (!image.hasAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
+    if (format === "gif" && !image.isPalette && dither) image = { ...(await transformStoredMagickRaster(image, backend, gifDitherSteps(image, dither, diffusionAmount), signal)), isPalette: true };
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) {
         const pixel = await backend.storage.read(image.position, 4);
         image = { ...image, backgroundColor: { r: pixel[0]!, g: pixel[1]!, b: pixel[2]!, a: 255 } };

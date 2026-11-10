@@ -27,7 +27,7 @@ it.each(cases)(`${mode}: preserves %s blue-shift=%s through conversion to sRGB`,
         stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
     }) : mode === "sync" ? runMagickCliSync(argv, files)
         : await runMagickCli(argv, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
-    expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+    expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(0);
     const output = mode === "buffered" || mode === "sync" ? files.get("/out.rgba")! : await fs.readFile("/out.rgba");
     expect(Buffer.from(output).toString("hex")).toBe(expected);
 });

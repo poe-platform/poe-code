@@ -8912,22 +8912,28 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const factor = Number(value);
         if (!value.trim() || !Number.isFinite(factor)) throw new Error(`invalid argument '-blue-shift' '${value}'`);
         apply = function* (image) {
+            const cmyk = image.space === "cmyk";
+            if (cmyk) image = yield* convertCmykPixels(image);
+            const hueSamples = cmyk ? image.hueSamples!.slice() : undefined;
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
+            const samples = hueSamples ?? evaluateSamples, scale = hueSamples ? 65535 : 257;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
-                const r = evaluateSamples[idx]!, g = evaluateSamples[idx + 1]!, b = evaluateSamples[idx + 2]!;
+                const r = samples[idx]!, g = samples[idx + 1]!, b = samples[idx + 2]!;
                 const minimum = Math.min(r, g, b), maximum = Math.max(r, g, b);
-                // BlueShiftImage blends twice and stores Q16-HDRI samples; alpha is unchanged.
+                // BlueShiftImage blends twice and stores Q16-HDRI samples; black and alpha are unchanged.
                 for (let channel = 0; channel < 3; channel++) {
-                    const sample = Math.fround(0.5 * (0.5 * (evaluateSamples[idx + channel]! * 257 + factor * minimum * 257) + factor * maximum * 257));
+                    let sample = Math.fround(0.5 * (0.5 * (samples[idx + channel]! * scale + factor * minimum * scale) + factor * maximum * scale));
+                    samples[idx + channel] = sample / scale;
+                    if (cmyk) sample = Math.fround((1 - samples[idx + channel]!) * (1 - samples[idx + 3]!) * 65535);
                     evaluateSamples[idx + channel] = sample / 257;
                     out[idx + channel] = clampByteVal(sample / 257);
                     if (data16) data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, sample)));
                 }
             }
-            return { ...image, isPalette: false, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
+            return { ...image, isPalette: false, data: out, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-tint") {
         highDepth = evaluate = true;

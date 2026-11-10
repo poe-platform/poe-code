@@ -16,15 +16,14 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
   const count = Math.ceil(bytes.length / frameBytes);
   budget.checkSamples(count);
-  const timescale = 1_000_000;
-  const ticks = Math.max(1, Math.round(timescale / fps));
+  const timescale = fps;
   const samples: MediaSample[] = [];
   const frames: MediaVideoFrame[] = [];
   for (let index = 0; index < count; index++) {
     budget.checkCpu();
     const data = bytes.subarray(index * frameBytes, (index + 1) * frameBytes);
-    samples.push({ data, offset: index * frameBytes, size: data.length, dts: index * ticks, pts: index * ticks, cts: 0,
-      duration: ticks, isKeyframe: true, sampleDescriptionIndex: 1 });
+    samples.push({ data, offset: index * frameBytes, size: data.length, dts: index, pts: index, cts: 0,
+      duration: 1, isKeyframe: true, sampleDescriptionIndex: 1 });
     // Stream copy retains the final short packet; decoding only emits complete frames.
     if (!decode || data.length !== frameBytes) continue;
     budget.recordFrame(width, height);
@@ -52,13 +51,13 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     frames.push({ width, height, data: rgba, offset: index * frameBytes,
       ...(yuv || pixelFormat === "gray16be" ? { native: { rgba, pixels: data, width, height,
         format: pixelFormat === "gray16be" ? 29 : pixelFormat === "yuv444p" ? 5 : 0, colorspace: 5, fullRange: pixelFormat === "gray16be" ? 1 : 0 } } : {}),
-      ptsSeconds: index * ticks / timescale,
-      durationSeconds: ticks / timescale, keyframe: true });
+      ptsSeconds: index / timescale,
+      durationSeconds: 1 / timescale, keyframe: true });
   }
   return {
-    containerFormat: "rawvideo", timescale, duration: count * ticks, durationSeconds: count * ticks / timescale,
+    containerFormat: "rawvideo", timescale, duration: count, durationSeconds: count / timescale,
     byteLength: bytes.length, metadata: {}, tracks: [{
-      id: 1, type: "video", handlerType: "vide", timescale, duration: count * ticks,
+      id: 1, type: "video", handlerType: "vide", timescale, duration: count,
       language: "und", enabled: true, width, height,
       codecDescriptions: [{ formatFourCC: "raw ", codecName: "rawvideo", width, height, pixFmt: pixelFormat }],
       samples, decodedVideoFrames: frames

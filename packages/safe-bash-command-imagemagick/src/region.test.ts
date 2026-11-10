@@ -42,7 +42,7 @@ it("keeps region placement across retained frame-cache and chunk boundaries", as
 
 it("supports region through the public magick command", async () => {
     const filesystem = new MemoryFileSystem();
-    const args = createCommandArguments(["xc:red", "xc:blue", "+append", "-region", "1x1+1+0", "-negate", "+region", "/out.png"]);
+    const args = createCommandArguments(["xc:red", "-alpha", "on", "xc:blue", "-alpha", "on", "+append", "-channel", "RGB", "-region", "1x1+1+0", "-negate", "+region", "/out.png"]);
     let stderr = "";
     expect(await createMagickCommand().execute({
         command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs: filesystem,

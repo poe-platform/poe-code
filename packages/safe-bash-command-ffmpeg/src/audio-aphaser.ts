@@ -6,7 +6,8 @@ export async function phaseAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
-  const options = { in_gain: 0.4, out_gain: 0.74, delay: 3, decay: 0.4, speed: 0.5, type: 1 };
+  const defaults = { in_gain: 0.4, out_gain: 0.74, delay: 3, decay: 0.4, speed: 0.5, type: 1 };
+  const options = { ...defaults };
   const ranges = { in_gain: [0, 1], out_gain: [0, 1e9], delay: [0, 5], decay: [0, 0.99], speed: [0.1, 2], type: [0, 1] };
   const names = Object.keys(options) as (keyof typeof options)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
@@ -20,11 +21,12 @@ export async function phaseAudio(
     else optionPosition = optionPosition === 0 ? 1 : 0;
     if (!key || !Object.hasOwn(options, key)) throw new Error(`aphaser: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    const [min, max] = ranges[key];
     const number = parseFilterExpression(value, "aphaser", {
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+      min: min!, max: max!, default: defaults[key],
       ...(key === "type" ? { t: 1, triangular: 1, s: 0, sinusoidal: 0 } : {})
     });
-    const [min, max] = ranges[key];
     if (!value || !Number.isFinite(number) || number < min! || number > max!) {
       throw new RangeError(`aphaser: invalid ${key}`);
     }

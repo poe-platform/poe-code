@@ -59,6 +59,28 @@ for (const [filter, exitCode] of [
   }
 }
 
+// Native FFmpeg 7.0.2 complete raw PCM for AVOption constants and literal controls.
+for (const [expression, literal, hash] of [
+  ["decay=max/2", "decay=0.495", "0795b6083b2bab3130e4cb8bcbc3c8e4e502e808400ae6454bfa5a4fbdd36f3b"],
+  ["type=default", "type=t", "a131cc632affa5d8e011b45e4baafd4b6d7dfdc47a3727a560f5044255fda00c"],
+  ["out_gain=min", "out_gain=0", "66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925"]
+]) {
+  for (const graph of [false, true]) {
+    for (const options of [expression, literal]) {
+      it(`aphaser=${options} matches native AVOption output (${graph ? "graph" : "simple"})`, async () => {
+        const input = encodeWav({ sampleRate: 8000, channels: [
+          Float64Array.from({ length: 16 }, (_, i) => ((i * 7919 + 3467) % 49001 - 24500) / 32768)
+        ] }, { bitsPerSample: 16 });
+        const { volume, result, stderr } = await run(`aphaser=${options}`, graph, 16, input);
+        assert.equal(result.exitCode, 0, stderr);
+        const output = volume.readFileSync("/out.raw") as Buffer;
+        assert.equal(output.length, 32);
+        assert.equal(createHash("sha256").update(output).digest("hex"), hash);
+      });
+    }
+  }
+}
+
 // Native FFmpeg 9.0.1, unsigned 8-bit mono WAV to signed 16-bit raw PCM.
 for (const [filter, hash] of [
   ["anull", "08bf20a6df02b84d99d1bc9538cf14bbf377d59ffe2e1ccfcf9551ea0eda1c37"],
@@ -112,6 +134,12 @@ for (const [expression, literal] of [
   ["type=sinusoidal+1", "type=t"],
   ["type=1/2", "type=s"],
   ["type=2/3", "type=t"],
+  ["in_gain=max/2", "in_gain=0.5"],
+  ["out_gain=max/1000000000", "out_gain=1"],
+  ["delay=max", "delay=5"],
+  ["speed=min", "speed=0.1"],
+  ["type=min", "type=s"],
+  ["in_gain=1:in_gain=default:out_gain=1:out_gain=default:delay=1:delay=default:decay=0:decay=default:speed=1:speed=default:type=s:type=default", "0.4:0.74:3:0.4:0.5:t"],
   ["1/2:4/5:6/2:2/5:2^0:s", "0.5:0.8:3:0.4:1:s"]
 ]) {
   for (const graph of [false, true]) {

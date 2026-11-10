@@ -10374,7 +10374,33 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const start = end;
                           while (end < value.length && value[end]! >= "0" && value[end]! <= "9") end++;
                           const unit = end > start ? value[end] : undefined;
-                          const delay = Number.parseFloat(value);
+                          let delay = Number.parseFloat(value);
+                          if (value.slice(start, start + 2).toLowerCase() === "0x") {
+                            let position = start + 2;
+                            let mantissa = 0;
+                            let scale = 1;
+                            let fraction = false;
+                            let digits = 0;
+                            while (position < value.length) {
+                              const character = value[position]!.toLowerCase();
+                              const digit = "0123456789abcdef".indexOf(character);
+                              if (digit >= 0) {
+                                mantissa = mantissa * 16 + digit;
+                                if (fraction) scale *= 16;
+                                digits++;
+                              } else if (character === "." && !fraction) fraction = true;
+                              else break;
+                              position++;
+                            }
+                            if (digits > 0) {
+                              let exponent = 0;
+                              if (value[position]?.toLowerCase() === "p") {
+                                exponent = Number.parseInt(value.slice(position + 1), 10);
+                                if (Number.isNaN(exponent)) exponent = 0;
+                              }
+                              delay = (value[0] === "-" ? -1 : 1) * (mantissa / scale) * 2 ** exponent;
+                            }
+                          }
                           const offset = unit === "S" ? delay
                             : Math.trunc(Math.fround(Math.fround(Math.fround(delay) * origRate) / (unit === "s" ? 1 : 1000)));
                           if (!Number.isFinite(delay) || offset < 0 || !Number.isSafeInteger(offset)) {

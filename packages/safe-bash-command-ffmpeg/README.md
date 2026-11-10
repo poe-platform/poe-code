@@ -143,6 +143,7 @@ Both forms apply to every channel and may omit either bound.
 `adelay=0S|1S` delays each audio channel independently and pads with silence.
 Use uppercase `S` after an integer for sample frames, lowercase `s` after an integer
 for seconds, or a numeric prefix (optionally followed by `ms`) for milliseconds.
+Hexadecimal milliseconds accept fractions and binary exponents: `0x1p-2` delays by 0.25 ms.
 Leading `+` and trailing text are accepted, as in `+2S`, `0.5ms`, or `2Sabc`. `adelay=1S:all=1` repeats the last delay for remaining channels.
 Negative delays are accepted only when they truncate to zero samples: at 8 kHz,
 `-0.1249` milliseconds is accepted, while `-0.125` is rejected.

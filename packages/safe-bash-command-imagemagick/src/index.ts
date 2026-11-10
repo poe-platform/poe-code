@@ -5906,9 +5906,10 @@ function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlph
         virtualCanvas: { width: vertical ? cross : extent, height: vertical ? extent : cross, x: 0, y: 0 }, offsets };
 }
 
-function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "magickColorspace" | "space">, frame: Pick<RgbaImage, "width" | "height" | "hasAlpha">, left: number, top: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "magickColorspace" | "space">, frame: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">, left: number, top: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = canvas.space === "cmyk";
     const hue = cmyk || canvas.magickColorspace !== undefined && canvas.magickColorspace !== "RGB";
+    const sourceCmyk = frame.space === "cmyk", sourceHue = sourceCmyk || !cmyk && hue;
     const quantum = hue ? 1 : 255;
     for (let y = 0; y < canvas.height; y++) {
         for (let x = 0; x < canvas.width; x += 512) {
@@ -5932,17 +5933,24 @@ function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "
             const start = Math.max(x, left), end = Math.min(x + count, left + frame.width);
             if (y >= top && y < top + frame.height && start < end) {
                 const input = (yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, highDepth })!;
-                const working = yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, hue, evaluate: !hue };
+                const working = yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, hue: sourceHue, evaluate: !sourceHue };
                 const integers = highDepth ? new Uint16Array(input.slice().buffer) : input;
                 const samples = working?.length ? new Float64Array(working.slice().buffer) : Float64Array.from(integers, value => value / (highDepth ? 65535 : 255) * quantum);
-                if (cmyk && !working?.length) {
-                    for (let i = 0; i < samples.length; i += 4) samples.set(rgbToCmyk(samples[i]!, samples[i + 1]!, samples[i + 2]!), i);
+                if (working?.length && sourceHue !== hue) {
+                    for (let i = 0; i < samples.length; i++) samples[i] = samples[i]! * (sourceHue ? 255 : 1 / 255);
                 }
-                const rgba = cmyk ? yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, evaluate: true } : undefined;
+                if (sourceCmyk && !working?.length) {
+                    for (let i = 0; i < samples.length; i += 4) samples.set(rgbToCmyk(samples[i]! / quantum, samples[i + 1]! / quantum, samples[i + 2]! / quantum).map(value => value * quantum), i);
+                }
+                // Native Over uses existing channel slots, with zero black for an RGB source.
+                if (cmyk && !sourceCmyk) {
+                    for (let i = 3; i < samples.length; i += 4) samples[i] = 0;
+                }
+                const rgba = cmyk || sourceCmyk ? yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, evaluate: true } : undefined;
                 const inputBacking = rgba?.length ? new Float64Array(rgba.slice().buffer) : undefined;
                 for (let pixel = start; pixel < end; pixel++) {
                     const src = (pixel - start) * 4, dst = (pixel - x) * 4;
-                    const sa = !frame.hasAlpha ? 1 : cmyk ? inputBacking ? inputBacking[src + 3]! / 255 : integers[src + 3]! / (highDepth ? 65535 : 255) : samples[src + 3]! / quantum, da = backing[dst + 3]! / quantum * (1 - sa), alpha = sa + da;
+                    const sa = !frame.hasAlpha ? 1 : cmyk || sourceCmyk ? inputBacking ? inputBacking[src + 3]! / 255 : integers[src + 3]! / (highDepth ? 65535 : 255) : samples[src + 3]! / quantum, da = backing[dst + 3]! / quantum * (1 - sa), alpha = sa + da;
                     if (sa === 0) {
                         if (cmyk && alpha === 0) output.fill(0, dst, dst + 4);
                         continue;

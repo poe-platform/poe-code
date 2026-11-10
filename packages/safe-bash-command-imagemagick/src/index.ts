@@ -634,6 +634,7 @@ interface MagickState {
   tiffEndian?: "msb" | "lsb";
   tiffRowsPerStrip?: number;
   inputEndian?: string;
+  rawInterlace?: "line" | "plane" | undefined;
   background: RgbaColor;
   backgroundExplicit?: boolean;
   tileOffset?: { x: number; y: number };
@@ -6200,7 +6201,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (rgb) {
         if (!state.hasSize) throw new Error("must specify image size for RGB input");
-        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", rawBytes.length, 3);
+        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", rawBytes.length, 3, 0, state.rawInterlace);
         const bytes = new Uint8Array(raw.size);
         for (let position = 0; position < raw.size; position += 8192) {
             yield;
@@ -8556,10 +8557,11 @@ if (t === "-seed") {
             if (interlace !== "plane" && interlace !== "line" && interlace !== "none" && interlace !== "png" && interlace !== "gif") throw new Error(`unsupported interlace type '${interlace}'`);
             state.jpegProgressive = interlace !== "none";
             state.tiffPlanar = interlace === "plane";
+            state.rawInterlace = interlace === "plane" || interlace === "line" ? interlace : undefined;
             state.pngInterlace = interlace !== "none";
             state.gifInterlace = interlace !== "none";
         }
-        else if (t === "+interlace") { state.jpegProgressive = true; delete state.tiffPlanar; state.pngInterlace = true; state.gifInterlace = true; }
+        else if (t === "+interlace") { delete state.rawInterlace; state.jpegProgressive = true; delete state.tiffPlanar; state.pngInterlace = true; state.gifInterlace = true; }
         else if (t === "-compress") {
             const compression = (tokens[++i] ?? "").toLowerCase();
             const method = ({ none: "none", lzw: "lzw", zip: "deflate", rle: "packbits", jpeg: "jpeg", bzip: "none" } as const)[compression as "none" | "lzw" | "zip" | "rle" | "jpeg" | "bzip"];
@@ -13147,7 +13149,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if(!state.hasSize)throw new Error("must specify image size for RGB input");
   const path=baseToken.slice(4);
   const consume=async(source:ImageByteSource)=>{
-   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size,3);
+   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size,3,0,state.rawInterlace);
    return parseStoredCompareInput(`ppm:${token.slice(4)}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
     const steps=raw.read(position,length);let next=steps.next();
     while(!next.done)next=steps.next(await source.read(next.value.position,next.value.length,{signal}));

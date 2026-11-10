@@ -61,6 +61,6 @@ it.each([
         : await runConvertCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
     expect(result.exitCode).toBe(0);
     expect("stderr" in result ? result.stderr : stderr).toBe("");
-    const bytes = "stdoutBytes" in result ? result.stdoutBytes! : Buffer.concat(chunks);
+    const bytes = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : Buffer.concat(chunks);
     expect(Buffer.from(bytes).toString("hex")).toBe(expected);
 });

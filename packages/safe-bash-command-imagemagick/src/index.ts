@@ -9739,8 +9739,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const value = tokens[++i] ?? "";
             const amount = value.includes("%") ? undefined : parseMagickCycleAmount(value);
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expandedAmount = amount ?? parseMagickCycleAmount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }));
+                const expandedAmount = amount ?? parseMagickCycleAmount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, sceneIdx: sceneIdx++, optionProperties: state.optionProperties }));
                 return yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
             });
         }
@@ -12076,9 +12077,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             const value = tokens[++i] ?? "", optionProperties = state.optionProperties;
             const amount = value.includes("%") ? undefined : parseMagickCycleAmount(value);
+            let images: StoredImageStack, sceneIdx = 0;
+            if (amount === undefined) stackStep(async stack => { images = stack; return stack; });
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expandedAmount = amount ?? parseMagickCycleAmount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
+                const expandedAmount = amount ?? parseMagickCycleAmount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, sceneIdx: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images));
                 return transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
             });
             continue;

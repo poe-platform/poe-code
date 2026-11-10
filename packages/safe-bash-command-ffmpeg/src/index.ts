@@ -10201,22 +10201,29 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                       } else if (trimmed === "aloop" || trimmed.startsWith("aloop=")) {
-                        const values: Record<string, number> = { loop: 0, size: 0, start: 0 };
+                        const values: Record<string, number> = { loop: 0, size: 0, start: 0, time: Infinity };
                         const argument = trimmed.slice("aloop=".length);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? ["loop", "size", "start"][index] : option.slice(0, separator).trim();
+                          const key = separator < 0 ? ["loop", "size", "start", "time"][index] : option.slice(0, separator).trim();
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (!key || !Object.hasOwn(values, key)) throw new Error(`aloop: unsupported option ${key}`);
-                          const number = Number(value);
-                          if (!value || !Number.isSafeInteger(number) || number < 0) throw new Error(`aloop: invalid ${key}; finite nonnegative integers required`);
+                          const number = key === "time" ? parseHlsDuration(value) : Number(value);
+                          if (!value || !Number.isFinite(number) ||
+                            (key !== "time" && !Number.isSafeInteger(number)) ||
+                            number < (key === "start" ? -1 : 0) ||
+                            (key === "time" && number > (2 ** 63 - 1) / 1_000_000)) {
+                            throw new Error(`aloop: invalid ${key}`);
+                          }
                           values[key] = number;
                         }
-                        const { loop, size, start } = values;
-                        if (loop! > 0 && size! > 0 && start !== 0) throw new Error("aloop: active loops require start=0");
-                        if (size! > 0 && start === 0) {
+                        const { loop, size, start, time } = values;
+                        const loopStart = start === -1 ? Math.round(time! * origRate) : start!;
+                        if (loop! > 0 && size! > 0 && start! > 0) throw new Error("aloop: active loops require start=0");
+                        if (size! > 0 && loopStart < (stretched[0]?.length ?? 0)) {
                           const inputLength = stretched[0]?.length ?? 0;
-                          const regionLength = Math.min(size!, inputLength);
+                          const regionLength = Math.min(size!, inputLength - loopStart);
+                          const regionEnd = loopStart + regionLength;
                           const repeatedLength = regionLength * loop!;
                           const length = inputLength + repeatedLength;
                           if (!Number.isSafeInteger(length)) throw new Error("aloop: output sample count is too large");
@@ -10233,15 +10240,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                             const end = Math.min(inputLength, offset + count);
                             const pts = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + offset);
-                            if (offset < regionLength) {
-                              const prefixEnd = Math.min(end, regionLength);
+                            if (offset < regionEnd) {
+                              const prefixEnd = Math.min(end, regionEnd);
                               budget.allocateMemory(24);
                               audioTimestamps.push({ start: offset, end: prefixEnd, pts });
-                              if (prefixEnd === regionLength) {
+                              if (prefixEnd === regionEnd) {
                                 for (let repeat = 0; repeat < loop!; repeat++) {
                                   for (let sample = 0; sample < regionLength; sample += 1024) {
                                     if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                                    const start = regionLength * (repeat + 1) + sample;
+                                    const start = regionEnd + regionLength * repeat + sample;
                                     budget.allocateMemory(24);
                                     audioTimestamps.push({ start, end: start + Math.min(1024, regionLength - sample),
                                       pts: pts + prefixEnd - offset + repeat * regionLength + sample });
@@ -10249,8 +10256,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 }
                               }
                             }
-                            if (end > regionLength) {
-                              const tailStart = Math.max(offset, regionLength);
+                            if (end > regionEnd) {
+                              const tailStart = Math.max(offset, regionEnd);
                               budget.allocateMemory(24);
                               audioTimestamps.push({ start: tailStart + repeatedLength, end: end + repeatedLength,
                                 pts: pts + tailStart - offset + repeatedLength });
@@ -10266,7 +10273,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               budget.checkCpu();
                               const end = Math.min(length, offset + 16384);
                               for (let i = offset; i < end; i++) {
-                                output[i] = channel[i < repeatedLength ? i % regionLength : i - repeatedLength]!;
+                                output[i] = channel[i < regionEnd ? i
+                                  : i < regionEnd + repeatedLength ? loopStart + (i - regionEnd) % regionLength
+                                  : i - repeatedLength]!;
                               }
                             }
                             return output;

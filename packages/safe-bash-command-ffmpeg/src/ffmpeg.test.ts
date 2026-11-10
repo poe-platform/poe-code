@@ -1062,6 +1062,49 @@ describe("dcshift", () => {
 });
 
 describe("aloop", () => {
+  for (const complex of [false, true]) {
+    for (const [filter, expected] of [
+      ["aloop=loop=2:size=3:start=-1:time=375us", [101, 102, 103, 104, 105, 106, 104, 105, 106, 104, 105, 106, 107, 108]],
+      ["aloop=2:3:-1:375us", [101, 102, 103, 104, 105, 106, 104, 105, 106, 104, 105, 106, 107, 108]],
+      ["aloop=2:3:-1:64ms", [101, 102, 103, 104, 105, 106, 107, 108]],
+      ["aloop=loop=2:size=3:start=-1", [101, 102, 103, 104, 105, 106, 107, 108]],
+      ["aloop=loop=2:size=3:start=0:time=0", [101, 102, 103, 101, 102, 103, 101, 102, 103, 104, 105, 106, 107, 108]],
+      ["aloop=2:3:0", [101, 102, 103, 101, 102, 103, 101, 102, 103, 104, 105, 106, 107, 108]],
+      ["aloop=2:3:-2", null],
+      ["aloop=2:3:-1:invalid", null],
+      ["aloop=2:3:0:-1us", null],
+      ["aloop=2:3:-1:", null],
+    ] as const) {
+      it(`matches native PCM for ${filter} (complex=${complex})`, async () => {
+        const input = new Uint8Array(8 * 4);
+        const view = new DataView(input.buffer);
+        for (let i = 0; i < 8; i++) {
+          view.setInt16(i * 4, 101 + i, true);
+          view.setInt16(i * 4 + 2, -901 - i, true);
+        }
+        const vfs = createTestVfs({ "/in.raw": input, "/out.raw": "KEEP" });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-y", "-f", "s16le", "-ar", "8000", "-ac", "2", "-i", "/in.raw",
+          ...(complex ? ["-filter_complex", `[0:a]${filter}[o]`, "-map", "[o]"] : ["-af", filter]),
+          "-f", "s16le", "/out.raw",
+        ], vfs);
+        if (expected === null) {
+          assert.notEqual(result.exitCode, 0);
+          assert.match(result.stderr, /aloop:/);
+          assert.equal(new TextDecoder().decode(vfs.store.get("/out.raw")), "KEEP");
+        } else {
+          assert.equal(result.exitCode, 0, result.stderr);
+          const bytes = new Uint8Array(expected.length * 4);
+          const output = new DataView(bytes.buffer);
+          expected.forEach((left, i) => {
+            output.setInt16(i * 4, left, true);
+            output.setInt16(i * 4 + 2, -800 - left, true);
+          });
+          assert.deepEqual(vfs.store.get("/out.raw"), bytes);
+        }
+      });
+    }
+  }
   it("preserves incoming frame splits and chunks replayed regions into 1024 samples", async () => {
     const channels = [1, -1].map(sign => Float64Array.from({ length: 2300 }, (_, i) => sign * (i + 1) / 32768));
     const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels }) });

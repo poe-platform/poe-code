@@ -4,15 +4,15 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createConvertCommand, runConvertCli } from "./index.js";
 
-// ImageMagick 7.1.2-32 Q16 returns an unscaled ratio in [0, 1] quantum units,
-// which rounds to zero in the byte raster, including the alpha channel.
+// ImageMagick 7.1.2-35 scales neighborhood contrast to the quantum range.
+// The decoded byte view contains the high byte of each Q16 PNG sample.
 const fixtures = [
-    { name: "center impulse", width: 3, geometry: "3x3", values: [0, 0, 0, 0, 255, 0, 0, 0, 0] },
-    { name: "unequal nonzero values", width: 3, geometry: "3x1", values: [20, 80, 160] },
-    { name: "black zero denominator", width: 3, geometry: "3x3", values: [0, 0, 0] },
-    { name: "constant white", width: 3, geometry: "3x3", values: [255, 255, 255] },
-    { name: "even window", width: 3, geometry: "2x1", values: [0, 100, 200] },
-    { name: "identity window", width: 3, geometry: "1x1", values: [0, 100, 200] },
+    { name: "center impulse", width: 3, geometry: "3x3", values: [0, 0, 0, 0, 255, 0, 0, 0, 0], expected: Array<number>(9).fill(255) },
+    { name: "unequal nonzero values", width: 3, geometry: "3x1", values: [20, 80, 160], expected: [153, 199, 85] },
+    { name: "black zero denominator", width: 3, geometry: "3x3", values: [0, 0, 0], expected: [0, 0, 0] },
+    { name: "constant white", width: 3, geometry: "3x3", values: [255, 255, 255], expected: [0, 0, 0] },
+    { name: "even window", width: 3, geometry: "2x1", values: [0, 100, 200], expected: [0, 255, 85] },
+    { name: "identity window", width: 3, geometry: "1x1", values: [0, 100, 200], expected: [0, 0, 0] },
 ];
 for (const mode of ["command", "buffered", "retained"] as const)
 for (const alpha of [false, true])
@@ -33,5 +33,5 @@ it(`computes Contrast: ${fixture.name} (${mode}, alpha=${alpha})`, async () => {
     expect(result).toMatchObject({ exitCode: 0 });
     expect(stderr).toEqual([]);
     const output = decodeImage(mode === "buffered" ? files.get("/out.png")! : await fs.readFile("/out.png"));
-    expect([...output.data]).toEqual(fixture.values.flatMap(() => [0, 0, 0, alpha ? 0 : 255]));
+    expect([...output.data]).toEqual(fixture.expected.flatMap(value => [value, value, value, alpha ? 0 : 255]));
 });

@@ -47,7 +47,7 @@ export function* hitAndMissPixelSteps(image: { width: number; height: number }, 
 
 /** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. Arrays specify sparse horizontal offsets. */
 export function* morphologyPixelSteps(image: { width: number; height: number; hasAlpha?: boolean }, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const highDepth = mode === "mean" || mode === "rms" || mode === "standarddeviation";
+    const highDepth = mode === "mean" || mode === "rms" || mode === "standarddeviation" || mode === "contrast";
     const { width, height } = image, histogram = new Float64Array(4 * 256);
     const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
     const fill = new Uint8Array((virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
@@ -118,9 +118,9 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
                         let minimum = 0, maximum = 255;
                         while (minimum < 255 && histogram[c * 256 + minimum] === 0) minimum++;
                         while (maximum > 0 && histogram[c * 256 + maximum] === 0) maximum--;
-                        // ImageMagick 7.1.2-32 uses an unscaled Q16 ratio; convert to bytes.
+                        // Native Contrast scales the min/max ratio to the quantum range.
                         value = c === 3 && image.hasAlpha === false ? 255
-                            : maximum + minimum === 0 ? 0 : Math.round((maximum - minimum) / (maximum + minimum) / 257);
+                            : maximum + minimum === 0 ? 0 : 255 * (maximum - minimum) / (maximum + minimum);
                     } else if (mode === "median" || mode === "nonpeak") {
                         for (; value < 255; value++) { seen += histogram[c * 256 + value]!; if (seen > rank) break; }
                         if (mode === "nonpeak") {

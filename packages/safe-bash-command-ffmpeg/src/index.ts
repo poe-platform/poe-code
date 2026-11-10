@@ -20,6 +20,7 @@ import { formatYuv } from "./format-yuv.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
+import { weave } from "./weave.js";
 import { decimate } from "./decimate.js";
 import { meanFrameDifference } from "./select.js";
 import { parseDecimateGraph } from "./decimate-graph.js";
@@ -3822,6 +3823,8 @@ async function applyVideoFilterChain(
         }
         return output;
       }, signal);
+    } else if (name === "weave") {
+      current = await weave(current, argStr, budget, signal);
     } else if (name === "tinterlace") {
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       for (const key of Object.keys(named)) {

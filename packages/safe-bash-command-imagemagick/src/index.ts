@@ -11704,7 +11704,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
                 const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, ...metadata } = first;
-                let canvas: RgbaImage = { ...metadata, width, height, data: (yield* createSolidRgbaImageSteps(width, height, background)).data, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
+                let canvas: RgbaImage = { ...metadata, width, height, data: (yield* createSolidRgbaImageSteps(width, height, background)).data, hasAlpha: dispose || first.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } };
                 const frames: RgbaImage[] = [];
                 for (const inputFrame of stack) {
                     // Native DisposeImages repeats the first input, including its timing.
@@ -11731,6 +11731,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if (frame.disposal === 3) canvas = previous;
                     else if (frame.disposal === 2) {
                         const clear = yield* createSolidRgbaImageSteps(frame.width, frame.height, { r: 0, g: 0, b: 0, a: 0 });
+                        canvas = { ...canvas, hasAlpha: true };
                         canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, clear, x, y, "source", undefined, false, 0, true), signal, canvas, [canvas, clear]);
                     }
                     if (dispose) frames.push({ ...first, width, height, data: canvas.data, ...(canvas.data16 ? { data16: canvas.data16 } : {}), ...(canvas.evaluateSamples ? { evaluateSamples: canvas.evaluateSamples } : {}), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } });
@@ -15057,7 +15058,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) return stack;
                 const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
-                let canvas = await createStoredCanvas(width, height, background, backend, signal);
+                let canvas = { ...await createStoredCanvas(width, height, background, backend, signal), hasAlpha: dispose || first.hasAlpha };
                 const frames = new StoredImageStack(backend.storage, signal);
                 for (let index = 0; index < stack.length; index++) {
                     const frame = dispose ? first : (await stack.get(index))!, previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
@@ -15084,6 +15085,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (frame.disposal === 3) canvas = previous;
                     else if (frame.disposal === 2) {
                         const clear = await createStoredCanvas(frame.width, frame.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
+                        canvas = { ...canvas, hasAlpha: true };
                         canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, clear, x, y, "source", undefined, false, 0, true), signal, canvas, [canvas, clear]);
                     }
                     if (dispose) await frames.push({ ...first, width, height, position: canvas.position, ...(canvas.storedData16 ? { storedData16: canvas.storedData16 } : {}), ...(canvas.storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples: canvas.storedEvaluateSamples }), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } });

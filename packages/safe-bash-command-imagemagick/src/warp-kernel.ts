@@ -92,7 +92,8 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
     // Hue/Lab planes hold the working channels; CMYK keeps black in the alpha slot.
     const hue = source.space !== "cmyk" && (!!source.hueSamples || source.storedHueSamples !== undefined);
     const evaluate = !!source.evaluateSamples || source.storedEvaluateSamples !== undefined;
-    const cache = new Map<number, Float64Array>();
+    const cmyk = source.space === "cmyk";
+    const cache = new Map<number, Float64Array>(), inkCache = new Map<number, Float64Array>();
     function* readPixel(x: number, y: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {
         if (x < 0 || y < 0 || x >= width || y >= height) {
             const index = virtualPixelIndex(x, y, width, height, virtualPixel);
@@ -101,11 +102,12 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             } else {
                 const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
                 return (virtualPixel === "background" || virtualPixel?.endsWith("-tile"))
-                    ? [background.r * scale, background.g * scale, background.b * scale, background.a * scale]
-                    : [gray * scale, gray * scale, gray * scale, virtualPixel === "transparent" ? 0 : maximum];
+                    ? [background.r * scale, background.g * scale, background.b * scale, background.a * scale, 0]
+                    : [gray * scale, gray * scale, gray * scale, virtualPixel === "transparent" ? 0 : maximum, 0];
             }
         }
         const position = (y * width + x) * 4;
+        let pixel: ArrayLike<number>;
         if (hue || evaluate) {
             const page = Math.floor(position / 1024) * 1024;
             let samples = cache.get(page);
@@ -117,16 +119,33 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                 if (cache.size === 32) cache.delete(cache.keys().next().value!);
                 cache.set(page, samples);
             }
-            return samples.subarray(position - page, position - page + 4).map(value => value * (hue ? maximum : scale));
+            pixel = samples.subarray(position - page, position - page + 4).map(value => value * (hue ? maximum : scale));
+        } else {
+            const bytes = yield { kind: "read", highDepth, position, length: 4 };
+            if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated warp pixels");
+            pixel = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
         }
-        const bytes = yield { kind: "read", highDepth, position, length: 4 };
-        if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated warp pixels");
-        return highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
+        // Disabled alpha must not suppress source colors during sampling.
+        if (source.alphaBlend === false) pixel = [pixel[0]!, pixel[1]!, pixel[2]!, maximum];
+        if (!cmyk) return pixel;
+        const page = Math.floor(position / 1024) * 1024;
+        let inks = inkCache.get(page);
+        if (!inks) {
+            const length = Math.min(1024, width * height * 4 - page);
+            const bytes = yield { kind: "read", hue: true, position: page, length };
+            if (!bytes || bytes.length !== length * 8) throw new Error("Truncated warp inks");
+            inks = new Float64Array(bytes.slice().buffer);
+            if (inkCache.size === 32) inkCache.delete(inkCache.keys().next().value!);
+            inkCache.set(page, inks);
+        }
+        const offset = position - page;
+        // K is independent of alpha, which remains in the RGBA backing.
+        return [inks[offset]! * maximum, inks[offset + 1]! * maximum, inks[offset + 2]! * maximum, pixel[3]!, inks[offset + 3]! * maximum];
     }
     for (let start = 0; start < plan.width * plan.height; start += 1024) {
         yield;
         const count = Math.min(1024, plan.width * plan.height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
-        const evaluateSamples = new Float64Array(count * 4);
+        const evaluateSamples = new Float64Array(count * 4), hueSamples = cmyk ? new Float64Array(count * 4) : undefined;
         for (let i = 0; i < count; i++) {
             const px = (start + i) % plan.width, py = Math.floor((start + i) / plan.width);
             const [sx, sy, copy] = plan.map(px, py), offset = i * 4;
@@ -136,12 +155,14 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     evaluateSamples[offset + c] = pixel[c]! / scale;
                     data[offset + c] = Math.max(0, Math.min(maximum, Math.round(pixel[c]!)));
                 }
+                if (hueSamples) hueSamples.set([pixel[0]! / maximum, pixel[1]! / maximum, pixel[2]! / maximum, pixel[4]! / maximum], offset);
                 continue;
             }
             // Point resampling uses PixelInfo interpolation, whose background
             // mode returns the image background even inside the source raster.
             if (kernel === "nearest" && plan.interpolation === "background" || virtualPixel === undefined && (sx < -0.5 || sy < -0.5 || sx > width - 0.5 || sy > height - 0.5)) {
                 evaluateSamples.set([background.r, background.g, background.b, background.a], offset);
+                if (hueSamples) hueSamples.set([background.r / 255, background.g / 255, background.b / 255, 0], offset);
                 data[offset] = background.r * scale; data[offset + 1] = background.g * scale; data[offset + 2] = background.b * scale; data[offset + 3] = background.a * scale;
                 continue;
             }
@@ -175,7 +196,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     [x0, y0, meshWeights?.[0] ?? (1 - fx) * (1 - fy)], [x1, y0, meshWeights?.[1] ?? fx * (1 - fy)],
                     [x0, y1, meshWeights?.[2] ?? (1 - fx) * fy], [x1, y1, meshWeights?.[3] ?? fx * fy]
                 ];
-                let red = 0, green = 0, blue = 0, alpha = 0, total = 0, colorTotal = 0;
+                let red = 0, green = 0, blue = 0, black = 0, alpha = 0, total = 0, colorTotal = 0;
                 let sampleIndex = 0;
                 for (const sample of samples) {
                     if (!sample) { yield; continue; }
@@ -194,6 +215,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     red += pixel[0]! * (plan.channels?.[0] === false ? unassociatedWeight : weight);
                     green += pixel[1]! * (plan.channels?.[1] === false ? unassociatedWeight : weight);
                     blue += pixel[2]! * (plan.channels?.[2] === false ? unassociatedWeight : weight);
+                    if (cmyk) black += pixel[4]! * weight;
                     if (interpolation !== "mesh" && !averageSize && interpolation !== "catrom" && interpolation !== "spline") colorTotal += weight;
                 }
                 // Native EWA falls back to interpolation for nonpositive filter coverage.
@@ -209,8 +231,20 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     evaluateSamples[offset + c] = quantum / 257;
                     data[offset + c] = Math.max(0, Math.min(maximum, Math.round(quantum / quantumScale)));
                 }
+                if (hueSamples) hueSamples.set([
+                    ...values.slice(0, 3).map(value => Math.fround(value * quantumScale) / 65535),
+                    Math.fround(black * colorScale * quantumScale) / 65535
+                ], offset);
                 break;
             }
+        }
+        if (hueSamples) {
+            for (let offset = 0; offset < data.length; offset += 4) for (let channel = 0; channel < 3; channel++) {
+                const value = Math.fround((1 - hueSamples[offset + channel]!) * (1 - hueSamples[offset + 3]!) * 65535);
+                evaluateSamples[offset + channel] = value / 257;
+                data[offset + channel] = Math.max(0, Math.min(maximum, Math.round(value / (highDepth ? 1 : 257))));
+            }
+            yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(hueSamples.buffer) };
         }
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
         yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(evaluateSamples.buffer) };

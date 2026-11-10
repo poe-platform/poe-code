@@ -9343,14 +9343,31 @@ function parseChannelSelections(expression: string): number[][] {
 }
 
 function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<void, RgbaImage> {
+    const single = channels.length === 1;
     const data = new Uint8Array(image.data), data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
+    const evaluateSamples = single && (image.hueSamples || image.evaluateSamples)
+        ? image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value) : undefined;
     for (let offset = 0; offset < data.length; offset += 4) {
         if (offset % 65536 === 0) yield;
         for (let target = 0; target < 3; target++) {
-            const source = channels[target] ?? (channels.length === 1 ? channels[0]! : target);
+            const source = channels[target] ?? (single ? channels[0]! : target);
             data[offset + target] = source === 3 && !image.hasAlpha ? 255 : image.data[offset + source]!;
             if (data16) data16[offset + target] = source === 3 && !image.hasAlpha ? 65535 : image.data16![offset + source]!;
+            if (evaluateSamples) {
+                const value = source === 3 && !image.hasAlpha ? 255
+                    : source !== 3 && image.hueSamples ? Math.fround(image.hueSamples[offset + source]! * 65535) / 257
+                    : image.evaluateSamples?.[offset + source] ?? (image.data16 ? image.data16[offset + source]! / 257 : image.data[offset + source]!);
+                evaluateSamples[offset + target] = value;
+                data[offset + target] = clampByteVal(value);
+                if (data16) data16[offset + target] = Math.round(Math.max(0, Math.min(65535, value * 257)));
+            }
         }
+    }
+    if (single) {
+        const { hueSamples: ignoredHue, storedHueSamples: ignoredStoredHue, ...metadata } = image;
+        return { ...metadata, data, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}),
+            space: "b-w", magickColorspace: "Gray", channels: image.hasAlpha ? 2 : 1,
+            [magickInput]: { ...image[magickInput], imageType: "Grayscale" } };
     }
     return { ...image, data, ...(data16 ? { data16 } : {}), space: "srgb", channels: image.hasAlpha ? 4 : 3 };
 }
@@ -13016,7 +13033,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const hasAlpha = base.hasAlpha || assignments.some(({ target }) => target === 3);
                     await result.push(await transformStoredMagickRaster({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources));
                 } else if (image) for (const channels of selections) {
-                    await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: image => selectMagickChannels(image, channels) }, signal));
+                    await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: channels.length === 1, apply: image => selectMagickChannels(image, channels) }, signal));
                 }
                 return result;
             });

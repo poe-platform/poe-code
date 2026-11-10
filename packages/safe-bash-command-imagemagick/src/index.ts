@@ -5115,6 +5115,9 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
         if (area === false) break;
         if (area === null) {
             tiles.push({ ...(yield* createSolidRgbaImageSteps(1, 1, { ...background, a: 0 })),
+                ...(img.orientation !== undefined ? { orientation: img.orientation } : {}),
+                ...(img.properties ? { properties: img.properties } : {}),
+                ...(img.disposal !== undefined ? { disposal: img.disposal } : {}),
                 ...(img.delay ? { delay: img.delay } : {}),
                 ...((img as MagickImage)[magickInput] ? { [magickInput]: (img as MagickImage)[magickInput] } : {}),
                 virtualCanvas: { ...magickCropCanvas(img, 0, 0), x: -1, y: -1 } });
@@ -13708,6 +13711,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         if (area === false) break;
                         if (area === null) {
                             await frames.push(magickCropViewport(image, { ...await createStoredCanvas(1, 1, { ...background, a: 0 }, backend, signal),
+                                ...(image.orientation !== undefined ? { orientation: image.orientation } : {}),
+                                ...(image.properties ? { properties: image.properties } : {}),
+                                ...(image.disposal !== undefined ? { disposal: image.disposal } : {}),
                                 ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
                                 ...(image[magickInput] ? { [magickInput]: image[magickInput] } : {}),
                                 virtualCanvas: { ...magickCropCanvas(image, 0, 0), x: -1, y: -1 } }, expanded, gravity));
@@ -14394,6 +14400,9 @@ async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom:
         if (!area && analysis) analysis.warnings += `magick: geometry does not contain image '${filename}'\n`;
         if (area === null) return {
             ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend, signal),
+            ...(image.orientation !== undefined ? { orientation: image.orientation } : {}),
+            ...(image.properties ? { properties: image.properties } : {}),
+            ...(image.disposal !== undefined ? { disposal: image.disposal } : {}),
             ...(image.delay ? { delay: image.delay } : {}),
             ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
             ...((image as StoredMagickImage)[magickInput] ? { [magickInput]: (image as StoredMagickImage)[magickInput] } : {}),
@@ -15214,6 +15223,9 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 if (area !== undefined) yield { async run() {
                     tile = area === null ? {
                         ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend!, signal!),
+                        ...(image.orientation !== undefined ? { orientation: image.orientation } : {}),
+                        ...(image.properties ? { properties: image.properties } : {}),
+                        ...(image.disposal !== undefined ? { disposal: image.disposal } : {}),
                         virtualCanvas: { ...magickCropCanvas(image, 0, 0), x: -1, y: -1 }
                     } : {
                         ...await transformStoredImage(image, backend!.storage, { kind: "extract", ...area }, signal!),

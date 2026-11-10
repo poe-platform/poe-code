@@ -564,6 +564,8 @@ Expressions support arithmetic, `exp(x)` (for example, `aeval=exp(n/4)/4`), `val
 layout and repeats the last expression when needed. `aeval=abs(val(1))` rectifies negative
 right-channel samples; `abs(x)` also accepts constants and arithmetic expressions. `sin(x)` takes radians, and
 `PI` is available for waveforms such as `aeval=sin(PI*n/2)/2`.
+`atan2(y,x)` returns the angle in radians, including zero for `atan2(0,0)`;
+for example, `aeval=atan2(n\,1)/2`.
 `log(x)` evaluates the natural logarithm; for example, `aeval=log(n+1)/4`.
 `hypot(x,y)` computes the hypotenuse; `aeval=hypot(n\,1)/8` generates it from the sample index.
 `isinf(x)` returns 1 for positive or negative infinity and 0 for finite values or NaN;

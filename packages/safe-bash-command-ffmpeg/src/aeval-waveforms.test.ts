@@ -7,6 +7,12 @@ import { createFfmpegCommand } from "./index.js";
 for (const [expression, expected] of [
   ["sin(PI*n/2)/2", [0, 16384, 0, -16384]],
   ["sin(n)", [0, 27573, 29796, 4624]],
+  ["atan2(n,1)/2", [0, 12868, 18140, 20464]],
+  ["atan2(0,0)", [0, 0, 0, 0]],
+  ["atan2(1-2*mod(n,2),1-2*floor(n/2))/PI/2", [4096, -4096, 12288, -12288]],
+  ["atan2()", undefined],
+  ["atan2(1)", undefined],
+  ["atan2(1,2,3)", undefined],
   ["log(n+1)/4", [0, 5678, 9000, 11357]],
   ["log(1)", [0, 0, 0, 0]],
   ["log(1/(n+1))/4", [0, -5678, -9000, -11357]],

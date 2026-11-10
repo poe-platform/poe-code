@@ -5214,6 +5214,7 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
         ...(img.orientation !== undefined ? { orientation: img.orientation } : {}),
         ...(readMask ? { readMask } : {}),
         ...(img.magickColorspace ? { magickColorspace: img.magickColorspace } : {}),
+        ...(img.gamma !== undefined ? { gamma: img.gamma } : {}),
         density: img.density, ...(img.resolution ? { resolution: img.resolution } : {}),
         ...(img.properties ? { properties: img.properties } : {}),
         ...(img.delay ? { delay: img.delay } : {}), ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
@@ -13352,6 +13353,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     ...(image.orientation !== undefined ? { orientation: image.orientation } : {}),
                     ...(readMask ? { readMask } : {}),
                     ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}),
+                    ...(image.gamma !== undefined ? { gamma: image.gamma } : {}),
                     density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}),
                     ...(image.properties ? { properties: image.properties } : {}),
                     ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),

@@ -457,13 +457,13 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   // A final sign leaves its ordinate at zero without discarding earlier fields.
   const trailingOffsetSign = s.endsWith("+") || s.endsWith("-");
   // Rectangle geometry preserves the first two offsets and ignores later ones.
-  const offsetMatch = /^([^+-]*)([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:[+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)*)?$/.exec(trailingOffsetSign ? s.slice(0, -1) : s);
+  const offsetMatch = /^([^+-]*)([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:[+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)*)?$/.exec(trailingOffsetSign ? `${s}0` : s);
   if (offsetMatch) {
     s = offsetMatch[1]!;
     x = Number(offsetMatch[2]!);
     y = offsetMatch[3] !== undefined ? Number(offsetMatch[3]!) : 0;
     hasOffset = true;
-    hasYOffset = offsetMatch[3] !== undefined || trailingOffsetSign;
+    hasYOffset = offsetMatch[3] !== undefined;
   }
 
   while (s.length > 0) {

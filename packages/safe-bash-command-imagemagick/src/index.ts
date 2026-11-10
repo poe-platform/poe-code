@@ -10598,15 +10598,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i += 3;
             continue;
         }
-        if (t === "-set" && tokens[i + 1]?.toLowerCase() === "dispose") {
-            const disposal = parseMagickDisposal(tokens[i + 2] ?? "");
-            if (disposal !== undefined) stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                yield;
-                return { ...image, disposal };
-            });
-            i += 3;
-            continue;
-        }
         if (t === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
             const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
             const properties: { key: string; value: string }[] = [];
@@ -10632,6 +10623,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 if (expandedKey.toLowerCase() === "colorspace") return yield* setColorspacePixels(image, expanded);
                 if (expandedKey.toLowerCase() === "type") return setMagickType(image, expanded);
+                if (expandedKey.toLowerCase() === "dispose") {
+                    const disposal = parseMagickDisposal(expanded);
+                    return disposal === undefined ? image : { ...image, disposal };
+                }
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
@@ -11058,7 +11053,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-dispose") {
             const value = tokens[++i] ?? "";
-            state.disposal = parseMagickDisposal(value) ?? 0;
+            const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
+            const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties });
+            state.disposal = parseMagickDisposal(expanded) ?? 0;
             state.optionProperties = { ...state.optionProperties, dispose: value };
         }
         else if (t === "-layers" && layerMethod === "trimbounds") {
@@ -13415,12 +13412,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             i += 2;
             continue;
         }
-        if (!operandsOnly && token === "-set" && tokens[i + 1]?.toLowerCase() === "dispose") {
-            const disposal = parseMagickDisposal(tokens[i + 2] ?? "");
-            if (disposal !== undefined) steps.push(async image => image ? { ...image, disposal } : undefined);
-            i += 2;
-            continue;
-        }
         if (!operandsOnly && token === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
             const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
             const optionProperties = state.optionProperties, units = state.units === "unknown" ? undefined : state.units;
@@ -13444,6 +13435,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (expandedKey.toLowerCase() === "colorspace") return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: image => setColorspacePixels(image, expanded) }, signal);
                 if (expandedKey.toLowerCase() === "type") return setMagickType(image, expanded);
+                if (expandedKey.toLowerCase() === "dispose") {
+                    const disposal = parseMagickDisposal(expanded);
+                    return disposal === undefined ? image : { ...image, disposal };
+                }
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
@@ -14187,6 +14182,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-dispose") {
+            // Resolve image-dependent settings before subsequent input settings are captured.
+            if (tokens[i + 1]?.includes("%")) return;
             const value = tokens[++i] ?? "";
             state.disposal = parseMagickDisposal(value) ?? 0;
             state.optionProperties = { ...state.optionProperties, dispose: value };

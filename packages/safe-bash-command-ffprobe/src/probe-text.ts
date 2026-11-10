@@ -12,8 +12,8 @@ export function* probeJsonSteps(value: unknown, compact: boolean, depth: number)
   if (isProbeText(value)) { yield { text: value, mode: 'json' }; return; }
   if (value === null || typeof value !== 'object') { yield JSON.stringify(value) ?? 'null'; return; }
   if ('toJSON' in value && typeof value.toJSON === 'function' || value instanceof Number || value instanceof String || value instanceof Boolean) {
-    const text = JSON.stringify(value, null, compact ? undefined : 2) ?? 'null';
-    yield compact ? text : text.replaceAll('\n', '\n' + '  '.repeat(depth)); return;
+    const text = JSON.stringify(value, null, compact ? undefined : 4) ?? 'null';
+    yield compact ? text : text.replaceAll('\n', '\n' + '    '.repeat(depth)); return;
   }
   const array = Array.isArray(value);
   function* entries(): Generator<readonly [string, unknown]> {
@@ -31,13 +31,13 @@ export function* probeJsonSteps(value: unknown, compact: boolean, depth: number)
       const section = item !== null && typeof item === 'object' && !isProbeText(item);
       yield (first ? '' : array || section ? ',\n' : ', ') +
         (array || section ? '    '.repeat(depth + 1) : '');
-    } else yield (first ? '' : ',') + '\n' + '  '.repeat(depth + 1);
+    } else yield (first ? '' : ',') + '\n' + '    '.repeat(depth + 1);
     first = false;
     if (!array) yield JSON.stringify(key) + ': ';
     yield* probeJsonSteps(item, compact, depth + 1);
   }
   if (compact) yield array ? '\n' + '    '.repeat(depth) : ' ';
-  else if (!first) yield '\n' + '  '.repeat(depth);
+  else yield (first ? '\n\n' : '\n') + '    '.repeat(depth);
   yield array ? ']' : '}';
 }
 

@@ -53,7 +53,7 @@ it.each(cases)("applies writer aliases in order: %s", async (writer, expected) =
 });
 
 it.each([
-  ["json=c=1:compact=0", '{\n  "programs": [],\n  "stream_groups": [],\n  "streams": [\n    {\n      "index": 0\n    }\n  ]\n}\n'],
+  ["json=c=1:compact=0", '{\n    "programs": [\n\n    ],\n    "stream_groups": [\n\n    ],\n    "streams": [\n        {\n            "index": 0\n        }\n    ]\n}\n'],
   ["json=compact=0:c=1", '{\n    "programs": [\n\n    ],\n    "stream_groups": [\n\n    ],\n    "streams": [\n        { "index": 0 }\n    ]\n}\n']
 ])("applies JSON aliases in order: %s", (writer, expected) => {
   expect(evalSyncFfprobe(bytes, ["-of", writer, "-show_entries", "stream=index", "-"])).toBe(expected);

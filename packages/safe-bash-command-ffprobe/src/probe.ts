@@ -1,7 +1,7 @@
 import { writerOptionAliases } from "./options.js";
 import { parseWriterBoolean } from "./writer-boolean.js";
 import { optionalFields, parseOptionalFields } from "./optional-fields.js";
-import { iniSection, sexagesimalRow, prefixRow } from "./probe-text.js";
+import { iniSection, sexagesimalRow, probeJsonSteps, prefixRow } from "./probe-text.js";
 import { parseAudio, flacFormatTags, type AudioAst } from "@poe-code/audio-ast";
 
 const codecLongNames: Record<string, string> = {
@@ -295,7 +295,7 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
     }
     const row = rows.find((r) => r.section === "format");
     if (row) result.format = row.row;
-    return JSON.stringify(result, null, 4) + "\n";
+    return Array.from(probeJsonSteps(result, false, 0)).join("") + "\n";
   }
   if (format === "ini") {
     let output = "# ffprobe output\n", index = 0;

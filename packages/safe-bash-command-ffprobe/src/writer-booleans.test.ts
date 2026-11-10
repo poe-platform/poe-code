@@ -61,7 +61,7 @@ for (const value of ["true", "on", "1", "false", "off", "0"]) {
   const enabled = ["true", "on", "1"].includes(value);
   it(`renders JSON compact=${value}`, async () => {
     const args = ["-of", `json=compact=${value}`, "-show_entries", "format=filename", "/sample.wav"];
-    const expected = enabled ? '{\n    "format": { "filename": "/sample.wav" }\n}\n' : '{\n  "format": {\n    "filename": "/sample.wav"\n  }\n}\n';
+    const expected = enabled ? '{\n    "format": { "filename": "/sample.wav" }\n}\n' : '{\n    "format": {\n        "filename": "/sample.wav"\n    }\n}\n';
     expect(await execute(args)).toMatchObject({ exitCode: 0, stdout: expected });
   });
   it(`renders INI hierarchical=${value} across writers`, async () => {

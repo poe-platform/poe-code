@@ -735,7 +735,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     if (probe.error) sections.push({ name: "error", value: probe.error });
     if (finalFormat !== undefined) sections.push({ name: "format", value: finalFormat });
     const compact = parseWriterBoolean(paramMap.compact ?? "0");
-    const indent = compact ? "    " : "  ";
+    const indent = "    ";
     yield "{";
     let firstSection = true;
     for (const section of sections) {
@@ -765,14 +765,14 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
           firstRow = false;
           yield* probeJsonSteps(row, compact, 2);
         } };
-        if (compact && firstRow) yield "\n";
-        yield (compact || !firstRow ? "\n" + indent : "") + "]";
+        if (firstRow) yield "\n";
+        yield "\n" + indent + "]";
       } else {
         yield* probeJsonSteps(section.value, compact, 1);
       }
     }
-    if (compact && firstSection) yield "\n";
-    yield (compact || !firstSection ? "\n" : "") + "}\n";
+    if (firstSection) yield "\n";
+    yield "\n}\n";
     return;
   }
   const noWrappers =

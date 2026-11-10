@@ -87,16 +87,16 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
           yield* jsonString(parts(field.key)); yield ": ";
           yield* jsonString(parts(field.value));
         }
-        yield (firstTag ? "" : "\n" + " ".repeat(indent + 4)) + "}";
+        yield (firstTag ? "\n\n" : "\n") + " ".repeat(indent + 4) + "}";
       } else if (typeof value === "number") yield JSON.stringify(value);
       else yield* jsonString(parts(value));
     }
-    yield (first ? "" : "\n" + " ".repeat(indent)) + "}";
+    yield (first ? "\n\n" : "\n") + " ".repeat(indent) + "}";
   }
   if (format === "json") {
     yield "{"; let first = true, streamOpen = (sections.has("stream") && sections.get("stream")?.length !== 0) || (sections.has("stream_tags") && sections.get("stream_tags")?.length !== 0), firstStream = true;
     if (streamOpen) {
-      if (streamEntries) yield '\n    "programs": [],\n    "stream_groups": [],';
+      if (streamEntries) yield '\n    "programs": [\n\n    ],\n    "stream_groups": [\n\n    ],';
       yield '\n    "streams": ['; first = false;
     }
     for await (const entry of rows) {
@@ -105,13 +105,13 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
         yield (firstStream ? "\n" : ",\n") + "        "; firstStream = false;
         yield* jsonRow(row, section, 8);
       } else if (section === "format") {
-        if (streamOpen) { yield (firstStream ? "" : "\n    ") + "]"; streamOpen = false; }
+        if (streamOpen) { yield (firstStream ? "\n\n    " : "\n    ") + "]"; streamOpen = false; }
         yield (first ? "\n" : ",\n") + '    "format": '; first = false;
         yield* jsonRow(row, section, 4);
       }
     }
-    if (streamOpen) yield (firstStream ? "" : "\n    ") + "]";
-    yield (first ? "" : "\n") + "}\n"; return;
+    if (streamOpen) yield (firstStream ? "\n\n    " : "\n    ") + "]";
+    yield (first ? "\n\n" : "\n") + "}\n"; return;
   }
   const enabled = (key: string, fallback: boolean) => { const value = settings.get(key); return value === undefined ? fallback : parseWriterBoolean(value); };
   if (format === "ini") {

@@ -33,7 +33,7 @@ async function run(mode = "success") {
     const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
   } });
   let thrown: unknown;
-  const result = await Promise.resolve(createFfprobeCommand({ limits: { maxInputBytes: size, maxOutputBytes: mode === "limit" ? 100000 : 4000000 } }).execute({
+  const result = await Promise.resolve(createFfprobeCommand({ limits: { maxInputBytes: size, maxOutputBytes: mode === "limit" ? 100000 : 8000000 } }).execute({
     command: "ffprobe", ...createCommandArguments(["-f", "wav", "-of", "json", "-show_packets", "-show_frames", "/input.wav"]),
     cwd: "/", env: {}, fs, signal: controller.signal, stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) {

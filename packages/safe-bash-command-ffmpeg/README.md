@@ -176,6 +176,9 @@ Output timestamps use the sample-rate time base, even after `asettb` and with em
 `enable` expressions accept the mathematical constants `PI`, `E`, and `PHI` and are evaluated at input frame timestamps, as in
 `adelay=0S|23S:enable='gte(t,0.3)'`. Expressions expose the frame index `n`, time `t`,
 input packet byte offset `pos` (NaN when unknown), and audio dimensions `w` and `h` (both zero).
+Registers `st(index,value)` and `ld(index)` start at zero and persist between input frames within each delay instance.
+For example, `enable='st(0,not(ld(0)))'` alternates enabled and disabled frames, starting enabled.
+Replacing the enable expression with a runtime command resets its registers; rejected expressions retain the previous state.
 Disabled frames pass through and freeze
 the delay buffers. Common leading silence and the full delayed tail are retained;
 the final input frame’s enable state controls whether the tail drains buffered audio or emits silence.

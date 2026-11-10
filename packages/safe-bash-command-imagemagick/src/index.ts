@@ -2222,6 +2222,8 @@ function parseMagickShaveGeometry(raw: string, image: Pick<RgbaImage, "width" | 
 
 function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">) {
     const { width, height } = image;
+    const pageWidth = image.virtualCanvas?.width || width;
+    const pageHeight = image.virtualCanvas?.height || height;
     // Rectangle geometry ends at the first comma-separated field.
     raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
     // Chop ignores # and treats % anywhere as a dimension modifier, preserving pixel offsets.
@@ -2230,12 +2232,12 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
     // A second decimal point in the width leaves the entire native rectangle untouched.
     if (dimensionSeparator >= 0 && !raw.trimStart().startsWith("+") && !raw.trimStart().startsWith("-")
         && raw.slice(0, dimensionSeparator).split(".").length > 2) {
-        return { ...g, width: image.virtualCanvas?.width || width, height: image.virtualCanvas?.height || height, x: 0, y: 0 };
+        return { ...g, width: pageWidth, height: pageHeight, x: 0, y: 0 };
     }
     const suffix = [...raw].findIndex(character => character === ":" || character === "/");
     if (dimensionSeparator >= 0 && suffix > dimensionSeparator) {
         // A slash stops GetGeometry before dimensions or offsets are read.
-        if (raw[suffix] === "/") return { ...g, width: image.virtualCanvas?.width || width, height: image.virtualCanvas?.height || height, x: 0, y: 0 };
+        if (raw[suffix] === "/") return { ...g, width: pageWidth, height: pageHeight, x: 0, y: 0 };
         // A colon uses the first two dimensions as a ratio, retaining preceding offsets.
         const dimensions = parseMagickGeometry(raw.slice(0, suffix).replaceAll("#", "").replaceAll("%", ""));
         g = { ...dimensions, aspectRatio: (dimensions.width ?? 0) / (dimensions.height ?? 1) };
@@ -2243,7 +2245,7 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
     // Native GetGeometry leaves the page rectangle untouched when a scalar @
     // width is followed by an offset sign, rather than a dimension separator.
     if (g.areaLimit !== undefined && g.hasOffset && !g.isPercent) {
-        return { ...g, width: image.virtualCanvas?.width || width, height: image.virtualCanvas?.height || height, x: 0, y: 0 };
+        return { ...g, width: pageWidth, height: pageHeight, x: 0, y: 0 };
     }
     if (g.aspectRatio !== undefined) {
         return {
@@ -2255,8 +2257,8 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
     const offsetOnly = g.hasOffset && g.width === undefined && g.height === undefined;
     return {
         ...g,
-        width: offsetOnly ? width : Math.max(0, Math.round((g.width ?? (g.isPercent ? 100 : 0)) * (g.isPercent ? width / 100 : 1))),
-        height: offsetOnly ? height : Math.max(0, Math.round((g.height ?? (g.isPercent ? g.width ?? 0 : !g.hasOffset && raw.toLowerCase().includes("x") ? 0 : height)) * (g.isPercent ? height / 100 : 1)))
+        width: offsetOnly ? pageWidth : Math.max(0, Math.round((g.width ?? (g.isPercent ? 100 : 0)) * (g.isPercent ? width / 100 : 1))),
+        height: offsetOnly ? pageHeight : Math.max(0, Math.round((g.height ?? (g.isPercent ? g.width ?? 0 : !g.hasOffset && raw.toLowerCase().includes("x") ? 0 : pageHeight)) * (g.isPercent ? height / 100 : 1)))
     };
 }
 

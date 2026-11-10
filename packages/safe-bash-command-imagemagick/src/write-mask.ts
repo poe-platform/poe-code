@@ -7,6 +7,8 @@ export interface MaskChannels { r: boolean; g: boolean; b: boolean }
 
 /** Blend edited pixels with their originals; white protects and black permits writes. */
 export function* writeMaskPixelSteps(image: { width: number; height: number; space?: string }, mask: { width: number; height: number }, highDepth = false, alphaSet = false, channels?: MaskChannels & { k?: boolean }, alphaActive = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    // Gray's single intensity channel occupies all three RGB storage slots.
+    if (channels && (image.space === "b-w" || image.space === "grey16")) channels = { ...channels, g: channels.r, b: channels.r };
     for (let y = 0; y < image.height; y++) {
         for (let x = 0; x < image.width; x += 512) {
             yield;

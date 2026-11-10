@@ -63,6 +63,8 @@ export function orientRegion(region: Region, image: { width: number; height: num
 
 /** Apply a white write mask outside the selected rectangle in bounded chunks. */
 export function* regionPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined; space?: string }, region: Region, highDepth = false, channels?: MaskChannels & { k?: boolean }, replaceAlpha = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    // Gray's single intensity channel occupies all three RGB storage slots.
+    if (channels && (image.space === "b-w" || image.space === "grey16")) channels = { ...channels, g: channels.r, b: channels.r };
     const left = Math.max(0, Math.min(image.width, region.x));
     const right = Math.max(left, Math.min(image.width, region.x + region.width));
     const wrappedRight = region.wrap ? Math.max(0, region.x + region.width - image.width) : 0;

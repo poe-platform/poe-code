@@ -11847,8 +11847,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const raw = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                validateMagickTransformGeometry(expanded, t);
-                const geometry = parseMagickGeometry(expanded);
+                const normalized = expanded.replaceAll(",", "x").replaceAll("/", "x").replaceAll("(", "").replaceAll(")", "");
+                validateMagickTransformGeometry(normalized, t);
+                const geometry = parseMagickGeometry(normalized);
                 return (yield* applyMagickRasterSteps(im, embossPixelSteps(im, geometry, state.channelExplicit ? state.channels : undefined, state.virtualPixel, state.background), signal));
             }, undefined, true);
         }
@@ -15184,8 +15185,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                validateMagickTransformGeometry(expanded, token);
-                const geometry = parseMagickGeometry(expanded);
+                const normalized = expanded.replaceAll(",", "x").replaceAll("/", "x").replaceAll("(", "").replaceAll(")", "");
+                validateMagickTransformGeometry(normalized, token);
+                const geometry = parseMagickGeometry(normalized);
                 return transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry, channels, virtualPixel, background), signal);
             }, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-canny") {

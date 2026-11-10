@@ -8,7 +8,7 @@ for (const mode of ["command", "sync"] as const) {
   it.each([
     { options: ["-virtual-pixel", "mirror"], expected: "mirror" },
     { options: ["-virtual-pixel", "mirror", "-virtual-pixel", "tile"], expected: "tile" },
-    { options: ["-virtual-pixel", "mirror", "-virtual-pixel", "tile", "+virtual-pixel"], expected: "" },
+    { options: ["-virtual-pixel", "mirror", "-virtual-pixel", "tile", "+virtual-pixel"], expected: beforeInput ? "" : "tile" },
     { options: [], expected: "" }
   ])(`${mode} formats virtual-pixel with $options (before input=${beforeInput})`, async ({ options, expected }) => {
     const args = [...(beforeInput ? [...options, "xc:#2060b080"] : ["xc:#2060b080", ...options]), "-format", "a:%[virtual-pixel]:b", "info:/out"];

@@ -6943,9 +6943,10 @@ function parseMagickSwapPositions(spec: string): number[] {
     return positions;
 }
 
-function parseMagickIndices(spec: string): number[][] {
+function parseMagickIndices(spec: string, operation: "clone" | "delete" = "clone"): number[][] {
   if (!spec.trim() || spec.trimStart().startsWith(",")) throw new Error(`invalid argument ${spec}`);
   const parts: number[][] = [];
+  let incompleteRange = false;
   let position = 0;
   const readIndex = (): number => {
     while (position < spec.length && !spec[position]!.trim()) position++;
@@ -6967,18 +6968,19 @@ function parseMagickIndices(spec: string): number[][] {
     if (spec[position] === "-") {
       position++;
       while (position < spec.length && !spec[position]!.trim()) position++;
-      // Native treats an omitted range endpoint as frame zero.
-      values.push(position === spec.length || spec[position] === "," ? 0 : readIndex());
+      // Deletion stops selecting at an omitted endpoint, but still validates the remaining syntax.
+      if (operation === "delete" && (position === spec.length || spec[position] === ",")) incompleteRange = true;
+      // Native cloning treats an omitted range endpoint as frame zero.
+      else values.push(position === spec.length || spec[position] === "," ? 0 : readIndex());
     } else if (position > end) {
-      parts.push(values);
+      if (!incompleteRange) parts.push(values);
       continue;
     }
     const next = spec[position];
     if (next !== undefined && next.trim() && next !== ",") throw new Error(`invalid argument ${spec}`);
-    parts.push(values);
+    if (!incompleteRange) parts.push(values);
   }
   return parts;
-
 }
 
 function parseMagickDuplicateCount(spec: string): number {
@@ -7000,7 +7002,7 @@ function parseMagickDuplicateScenes(spec: string): string {
 }
 
 function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" | "delete"): Generator<number> {
-  const parts = parseMagickIndices(spec);
+  const parts = parseMagickIndices(spec, operation);
   // Clone lists interpret a trailing comma as an additional frame-zero selection.
   if (operation === "clone" && spec.trimEnd().endsWith(",")) parts.push([0]);
   if (length <= 0) return;
@@ -14534,7 +14536,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "-delete" || t === "+delete") {
             const spec = t === "+delete" ? "-1" : argv[++i];
             if (spec === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-delete'\n" };
-            try { parseMagickIndices(spec); }
+            try { parseMagickIndices(spec, "delete"); }
             catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
             stackSteps.push({ operand: operands.length, token: t, spec });
         }

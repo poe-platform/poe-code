@@ -28,6 +28,8 @@ const cases = [
     { inputs: ["a.ppm", "b.ppm", "a.ppm", "-delete", "0,1", "a.ppm"], rgb: equalA },
     { inputs: ["a.ppm", "b.ppm", "a.ppm", "-delete", "0-1", "a.ppm"], rgb: equalA },
     { inputs: ["a.ppm", "b.ppm", "-delete", "99"], rgb: different, differs: true },
+    { inputs: ["a.ppm", "b.ppm", "-delete", "0-"], rgb: different, differs: true },
+    { inputs: ["a.ppm", "b.ppm", "-delete", "1-,0"], rgb: different, differs: true },
     { inputs: ["pair.gif", "-delete", "0", "b.ppm"], rgb: equalB },
 ];
 

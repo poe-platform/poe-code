@@ -6342,7 +6342,8 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     if (lower.startsWith("xc:") || lower.startsWith("canvas:")) {
         const colorStr = (baseToken.slice(baseToken.indexOf(":") + 1) || "white").trim();
         const c = parseColor(colorStr, true);
-        let image: RgbaImage = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), hasAlpha: c.a < 255 || colorStr.startsWith("#") && colorStr.length === 9 };
+        const hasAlpha = c.a < 255 || colorStr.startsWith("#") && [5, 9, 17].includes(colorStr.length) || colorStr.toLowerCase().includes("a(");
+        let image: RgbaImage = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), hasAlpha, ...(!hasAlpha ? { inactiveAlpha: false } : {}) };
         if (c.cmyk) image = yield* fillCmykPixels(image, c.cmyk);
         return yield* applyMod([image]);
     }
@@ -7634,6 +7635,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         else if (mode === "activate") {
             apply = function* (im) {
+                // A canvas without an alpha channel gains zero samples when activated.
+                if (!im.hasAlpha && im.inactiveAlpha === false && im.alphaBlend !== true) {
+                    const data = new Uint8Array(im.data), data16 = im.data16?.slice();
+                    for (let index = 3; index < data.length; index += 4) {
+                        if (index % 65536 === 3) yield;
+                        data[index] = 0;
+                        if (data16) data16[index] = 0;
+                    }
+                    im = { ...im, data, ...(data16 ? { data16 } : {}) };
+                }
                 yield;
                 return { ...im, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, channels: im.channels <= 2 ? 2 : 4 };
             };
@@ -13972,7 +13983,8 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const colorStr=(baseToken.slice(baseToken.indexOf(":")+1)||"white").trim();
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(colorStr,true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
-  image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),hasAlpha:color.a<255||colorStr.startsWith("#")&&colorStr.length===9,...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{})};
+  const hasAlpha=color.a<255||colorStr.startsWith("#")&&[5,9,17].includes(colorStr.length)||colorStr.toLowerCase().includes("a(");
+  image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),hasAlpha,...(!hasAlpha?{inactiveAlpha:false}:{}),...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{})};
   if ("cmyk" in color && color.cmyk) {
    const inks = color.cmyk;
    image = await transformStoredMagickPixels(image, backend, { end: 0, apply: image => fillCmykPixels(image, inks) }, signal);

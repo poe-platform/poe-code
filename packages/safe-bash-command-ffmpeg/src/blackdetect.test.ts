@@ -37,7 +37,7 @@ it("reports native black intervals and boundary tags without changing video byte
   assert.ok(error.includes("black_start:0 black_end:0.75 black_duration:0.75\n"), error);
   assert.deepEqual(error.split("\n").filter(line => line.startsWith("lavfi.")),
     ["lavfi.black_start=0", "lavfi.black_end=0.75", "lavfi.black_start=1.75"]);
-  for (const header of ["frame:0 pts:0 pts_time:0", "frame:3 pts:3 pts_time:0.75", "frame:7 pts:7 pts_time:1.75"]) {
+  for (const header of ["frame:0    pts:0       pts_time:0", "frame:3    pts:3       pts_time:0.75", "frame:7    pts:7       pts_time:1.75"]) {
     assert.ok(error.includes(header), error);
   }
   assert.ok(!error.includes("black_start:1.75"), error);

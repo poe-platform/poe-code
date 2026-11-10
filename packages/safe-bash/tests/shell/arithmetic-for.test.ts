@@ -4,6 +4,33 @@ import { setup } from "./helpers.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { ArrayLedger } from "../../src/shell/arrays/ledger.js";
+import { mapfileExtension } from "../../src/shell/extensions/mapfile/index.js";
+
+for (const control of ["break", "continue"]) {
+  for (const extension of [false, true]) {
+    test(`${control} outside a loop reports its source location, mapfile=${extension}`, async context => {
+      const { shell, commands } = setup({ extensions: extension ? [mapfileExtension()] : [] });
+      for (const command of basicCommands()) commands.register(command);
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`printf 'pre;';\n${control}; printf 'rc=%d;' "$?"`);
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [
+        0, "pre;rc=0;", `shell: line 2: ${control}: only meaningful in a \`for', \`while', or \`until' loop\n`,
+      ]);
+      const loop = await shell.exec(`for x in A B; do printf '%s;' "$x"; ${control} 1; printf 'tail:%s;' "$?"; done; printf 'done:%s;' "$?"`);
+      assert.deepEqual([loop.exitCode, loop.stdout, loop.stderr], [0, control === "break" ? "A;done:0;" : "A;B;done:0;", ""]);
+    });
+  }
+  for (const prefix of ["", "builtin ", "command "]) {
+    test(`${prefix}${control} reports the named shell and line`, async context => {
+      const { shell } = setup();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`bash -c ':\n\n${prefix}${control}; say "rc=$?"' named-shell`);
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [
+        0, "rc=0\n", `named-shell: line 3: ${control}: only meaningful in a \`for', \`while', or \`until' loop\n`,
+      ]);
+    });
+  }
+}
 
 for (const argument of ["", " 0", " 7"]) {
   for (const errexit of [false, true]) test(`top-level return${argument} reports usage status${errexit ? " under errexit" : ""}`, async () => {
@@ -38,7 +65,7 @@ for (const control of ["break", "continue"]) {
       assert.equal(result.stderr, `${control}: invalid loop count\n`);
       const outside = await shell.exec(`${control} 0; say "OUTSIDE:$?"`);
       assert.equal(outside.stdout, "OUTSIDE:0\n");
-      assert.equal(outside.stderr, `${control}: only meaningful in a loop\n`);
+      assert.equal(outside.stderr, `shell: line 1: ${control}: only meaningful in a \`for', \`while', or \`until' loop\n`);
       assert.equal(outside.exitCode, 0);
     } finally { await shell.dispose(); }
   });

@@ -481,7 +481,7 @@ test('mapfile function callback retains its own loop scope', async () => {
   try {
     const result = await shell.exec('cb() { say callback; break; }; for x in 1 2; do mapfile -t -C cb -c 1 A; say after; done', { stdin: 'a\nb\n' });
     assert.equal(result.stdout, 'callback\ncallback\nafter\nafter\n');
-    assert.match(result.stderr, /break: only meaningful in a loop/u);
+    assert.equal(result.stderr, "shell: line 1: break: only meaningful in a `for', `while', or `until' loop\n".repeat(2));
   } finally { await shell.dispose(); }
 });
 

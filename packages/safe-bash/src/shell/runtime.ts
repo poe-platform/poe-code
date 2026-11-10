@@ -9739,7 +9739,7 @@ export class Runtime {
     if (command === "break" || command === "continue") {
       if (!state.loopDepth) {
         if ((state as { _subshellInLoop?: boolean })._subshellInLoop) throw completedExit(0, command, 1);
-        await writeDiagnostic(stderr, `${command}: only meaningful in a loop\n`);
+        await this.diagnostic(context, `${command}: only meaningful in a \`for', \`while', or \`until' loop`);
         return 0;
       }
       const offset = args[0] === "--" ? 1 : 0;

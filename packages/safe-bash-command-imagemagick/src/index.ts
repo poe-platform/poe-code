@@ -10614,6 +10614,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const transparent = { r: 0, g: 0, b: 0, a: 0 };
                 let picture = yield* applyMagickRasterSteps(image, borderPixels(image, border, border, state.borderColor, true), signal,
                     { width: image.width + 2 * border, height: image.height + 2 * border, hasAlpha: true });
+                // Native PolaroidImage clones the larger raster, scaling its page too.
+                const virtualCanvas = magickResizeCanvas(image, picture.width, picture.height);
+                if (virtualCanvas) picture = { ...picture, virtualCanvas };
                 // Rotate 90, wave, rotate -90: sample the same bend directly.
                 const amplitude = picture.width * 0.01, height = picture.height;
                 const bend: WarpPlan = { width: picture.width + Math.trunc(2 * amplitude), height, hasAlpha: true, interpolation: state.interpolation ?? "bilinear",
@@ -13467,6 +13470,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const transparent = { r: 0, g: 0, b: 0, a: 0 };
                 let picture = await transformStoredMagickRaster(image, backend, borderPixels(image, border, border, settings.borderColor, true), signal,
                     { width: image.width + 2 * border, height: image.height + 2 * border, hasAlpha: true });
+                // Native PolaroidImage clones the larger raster, scaling its page too.
+                const virtualCanvas = magickResizeCanvas(image, picture.width, picture.height);
+                if (virtualCanvas) picture = { ...picture, virtualCanvas };
                 const amplitude = picture.width * 0.01, height = picture.height;
                 const bend: WarpPlan = { width: picture.width + Math.trunc(2 * amplitude), height, hasAlpha: true, interpolation: settings.interpolation ?? "bilinear",
                     map: (x, y) => [x - Math.fround(amplitude * (1 + Math.sin(Math.PI * (height - 1 - y) / height))), y] };

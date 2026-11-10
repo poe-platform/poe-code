@@ -51,6 +51,25 @@ for (const [filter, hash] of [
   }
 }
 
+// Native FFmpeg 7.0.2 raw s16le PCM for mixed named and positional options.
+for (const [options, named, hex] of [
+  ["1:delay=1:0.25", "in_gain=0.25:delay=1", "dbf67c053202e0000718eff160faf8fd"],
+  ["1:out_gain=0.5:0.25", "in_gain=0.25:out_gain=0.5", "d3f9b5037b0197003c107ff633fca1fe"]
+]) {
+  for (const graph of [false, true]) {
+    it(`aphaser=${options} assigns mixed options like native (${graph ? "graph" : "simple"})`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from([-12655, 12655, 1, -1, 32767, -32768, 0, 300], value => value / 32768)
+      ] }, { bitsPerSample: 16 });
+      for (const argument of [options, named]) {
+        const { volume, result, stderr } = await run(`aphaser=${argument}`, graph, 8, input);
+        assert.equal(result.exitCode, 0, stderr);
+        assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"), hex);
+      }
+    });
+  }
+}
+
 // Native FFmpeg 7.0.2 evaluates numeric AVOptions before range checks.
 for (const [expression, literal] of [
   ["in_gain=1/2", "in_gain=0.5"],
@@ -142,7 +161,7 @@ async function run(filter: string, graph = false, frames = 2048, input?: Uint8Ar
     Float64Array.from({ length: frames }, (_, i) => ((i * 67) % 14000 - 7000) / 32768),
     Float64Array.from({ length: frames }, (_, i) => (6000 - (i * 53) % 12000) / 32768)
   ];
-  const volume = Volume.fromJSON({ "/out.wav": "keep" });
+  const volume = Volume.fromJSON({ "/out.wav": "keep", "/out.raw": "KEEP" });
   volume.writeFileSync("/in.wav", input ?? encodeWav({ sampleRate: 8000, channels }));
   let stderr = "";
   const result = await createFfmpegCommand({ limits: { maxDurationSeconds: 3 } }).execute({

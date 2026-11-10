@@ -10,9 +10,14 @@ export async function phaseAudio(
   const ranges = { in_gain: [0, 1], out_gain: [0, 1e9], delay: [0, 5], decay: [0, 0.99], speed: [0.1, 2], type: [0, 1] };
   const names = Object.keys(options) as (keyof typeof options)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  let optionPosition = 0;
+  for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options;
+    const key = separator < 0 ? names[optionPosition] : option.slice(0, separator).trim() as keyof typeof options;
+    // FFmpeg 7 restarts shorthand after named options, skipping the first slot
+    // when it was just visited. The named key does not select the next slot.
+    if (separator < 0) optionPosition++;
+    else optionPosition = optionPosition === 0 ? 1 : 0;
     if (!key || !Object.hasOwn(options, key)) throw new Error(`aphaser: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const number = parseFilterExpression(value, "aphaser", {

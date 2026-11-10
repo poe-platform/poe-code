@@ -2107,7 +2107,8 @@ function parseMagickVignetteGeometry(raw: string): MagickGeometry {
     if ((separator < 0 || magnitude) && (!magnitude || !Number.isFinite(Number(magnitude)))) {
         throw new Error(`invalid argument for option '-vignette': ${raw}`);
     }
-    return parseMagickGeometry(raw);
+    // Vignette ignores trailing fields and these modifiers, including resize area semantics.
+    return parseMagickGeometry(raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "").replaceAll("#", "").replaceAll("@", ""));
 }
 
 function parseMagickRaiseGeometry(raw: string, option: string): MagickGeometry {

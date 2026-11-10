@@ -5,7 +5,7 @@ import { encodeImage, decodeImage } from "@poe-code/image-ast/portable";
 import { image2Ast } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
-for (const [keepAspect, x, y] of [[0, 2, 1], [1, 7, 5]] as const) {
+for (const [keepAspect, x, y] of [[0, 2, 1], [1, 7, 5], ["n", 2, 1], ["N", 2, 1], ["y", 7, 5], ["Y", 7, 5]] as const) {
   it(`preserves crop sample aspect ratio with keep_aspect=${keepAspect}`, async () => {
     const data = new Uint8Array(Array.from({ length: 35 }, (_, i) => [i + 1, i + 1, i + 1, 255]).flat());
     const input = encodeImage({ width: 7, height: 5, channels: 4, data,

@@ -31,7 +31,7 @@ async function crop(filter: string, raw = false) {
 
 it("aligns default YUV420 crop dimensions and offsets to the chroma grid", async () => {
   const aligned = decodeImage(await crop("crop=32:24:10:6"));
-  for (const filter of ["crop=32:24:11:7", "crop=33:25:11:7:exact=0", "crop=32:24:11:7:0:0"]) {
+  for (const filter of ["crop=32:24:11:7", "crop=33:25:11:7:exact=0", "crop=32:24:11:7:0:0", "crop=33:25:11:7:exact=n", "crop=33:25:11:7:exact=N"]) {
     const output = decodeImage(await crop(filter));
     assert.equal(output.width, 32);
     assert.equal(output.height, 24);
@@ -55,7 +55,7 @@ it("preserves exact crop coordinates and dimensions when requested", async () =>
 // FFmpeg 7.0.2: -i h264-b-frames.mp4 -vf crop=33:25:11:7:exact=1 -frames:v 1 out.png.
 it("keeps exact YUV crop dimensions and addresses chroma at the containing sample", async () => {
   const expected = decodeImage(readFileSync(new URL("./fixtures/crop-exact.png", import.meta.url)));
-  for (const filter of ["crop=33:25:11:7:exact=1", "crop=33:25:11:7:0:1"]) {
+  for (const filter of ["crop=33:25:11:7:exact=1", "crop=33:25:11:7:0:1", "crop=33:25:11:7:exact=y", "crop=33:25:11:7:exact=Y"]) {
     const output = decodeImage(await crop(filter));
     assert.equal(output.width, 33);
     assert.equal(output.height, 25);

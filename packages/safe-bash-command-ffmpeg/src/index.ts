@@ -2554,7 +2554,7 @@ async function applyVideoFilterChain(
         }
         const value = (separator < 0 ? part : part.slice(separator + 1)).trim();
         if (key === "keep_aspect" || key === "exact") {
-          if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value.toLowerCase())) {
+          if (!["0", "1", "true", "false", "yes", "no", "y", "n", "on", "off"].includes(value.toLowerCase())) {
             throw new Error(`crop: ${key} must be a boolean`);
           }
         }
@@ -2565,7 +2565,7 @@ async function applyVideoFilterChain(
       // Preserve the decoded chroma grid even after earlier RGBA filter operations.
       // AVPixelFormat: YUV420P/YUVJ420P and YUV422P/YUVJ422P.
       const format = current[0]!.native?.format;
-      const exact = ["1", "true", "yes", "on"].includes((crop.exact ?? "0").toLowerCase());
+      const exact = ["1", "true", "yes", "y", "on"].includes((crop.exact ?? "0").toLowerCase());
       const inputHsub = format === 0 || format === 12 || format === 4 || format === 13 ? 2 : 1;
       const inputVsub = format === 0 || format === 12 ? 2 : 1;
       const hsub = exact ? 1 : inputHsub;
@@ -2585,7 +2585,7 @@ async function applyVideoFilterChain(
       if (!Number.isFinite(cw) || !Number.isFinite(ch) || cw <= 0 || ch <= 0 || cw > iw || ch > ih) {
         throw new Error(`Invalid too big or non positive size for width '${cw}' or height '${ch}'`);
       }
-      if (["1", "true", "yes", "on"].includes((crop.keep_aspect ?? "0").toLowerCase())) {
+      if (["1", "true", "yes", "y", "on"].includes((crop.keep_aspect ?? "0").toLowerCase())) {
         let numerator = diagnostics.sarWidth * iw * ch;
         let denominator = diagnostics.sarHeight * ih * cw;
         while (denominator !== 0) {

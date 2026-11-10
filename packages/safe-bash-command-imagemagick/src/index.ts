@@ -11179,7 +11179,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     borderPixels(plane, bw, bh, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16), signal, { width, height, hasAlpha: false }));
                 if (state.composeRaw.toLowerCase() === "over") {
                     return { ...yield* applyMagickRasterSteps(im, borderPixels(im, bw, bh, borderColor, !!im.data16), signal,
-                        { width, height, hasAlpha: im.hasAlpha || borderColor.a < 255 }), region: undefined, writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, bw, bh) };
+                        { width, height, hasAlpha: im.hasAlpha || borderColor.a < 255 }), alphaBlend: borderColor.a < 255 ? true : im.alphaBlend, region: undefined, writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, bw, bh) };
                 }
                 const canvas = yield* createSolidRgbaImageSteps(width, height, borderColor);
                 const composed = yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, bw, bh, state.composeArgs, signal, state.alphaFuzz, true);
@@ -14646,7 +14646,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     borderPixels(plane, left, top, { r: 0, g: 0, b: 0, a: 255 }, !!plane.storedData16), signal, { width, height, hasAlpha: false }));
                 if (compose.toLowerCase() === "over") {
                     return { ...await transformStoredMagickRaster(image, backend, borderPixels(image, left, top, background, !!image.storedData16), signal,
-                        { width, height, hasAlpha: image.hasAlpha || background.a < 255 }), region: undefined, storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
+                        { width, height, hasAlpha: image.hasAlpha || background.a < 255 }), alphaBlend: background.a < 255 ? true : image.alphaBlend, region: undefined, storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
                 }
                 const canvas = await createStoredCanvas(width, height, background, backend, signal);
                 return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, compose, composeArgs, false, true, false, false, fuzz, true),

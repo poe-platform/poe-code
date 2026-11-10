@@ -11479,7 +11479,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // Validate even an empty stream; expressions use the audio sample time base.
                         if (audioTimestamps.length === 0) parseFilterExpression(expression, "asetpts", {
                           POS: NaN,
-                          NAN: NaN, PTS: 0, STARTPTS: 0, STARTT: 0, T: 0, TB: 1 / origRate, SR: origRate,
+                          NAN: NaN, PTS: 0, STARTPTS: 0, STARTT: 0, T: 0, TB: 1 / origRate, SR: origRate, INTERLACED: 0,
                           FR: NaN, FRAME_RATE: NaN,
                           N: 0, NB_CONSUMED_SAMPLES: 0, NB_SAMPLES: 0, S: 0
                         });
@@ -11487,7 +11487,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           frame.pts = Math.trunc(parseFilterExpression(expression, "asetpts", {
                             POS: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN,
-                            NAN: NaN, PTS: frame.pts, STARTPTS: startPts, STARTT: startPts / origRate, T: frame.pts / origRate, TB: 1 / origRate, SR: origRate,
+                            NAN: NaN, PTS: frame.pts, STARTPTS: startPts, STARTT: startPts / origRate, T: frame.pts / origRate, TB: 1 / origRate, SR: origRate, INTERLACED: 0,
                             FR: NaN, FRAME_RATE: NaN,
                             N: frame.start, NB_CONSUMED_SAMPLES: frame.start,
                             NB_SAMPLES: frame.end - frame.start, S: frame.end - frame.start

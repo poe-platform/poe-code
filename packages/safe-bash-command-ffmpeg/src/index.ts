@@ -11541,8 +11541,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           const number = samples || pts ? parseFilterExpression(value, "atrim", {}) : parseHlsDuration(value);
                           const boundary = samples || pts ? roundToEven(number) : Math.round(number * origRate);
-                          if (!value || !Number.isFinite(number) || !Number.isSafeInteger(boundary) || (samples && number < (key === "start_sample" ? -1 : 0))) {
+                          // Native int64 options use doubles, including INT64_MAX rounded to 2^63.
+                          if (!value || !Number.isFinite(number) ||
+                              (samples || pts ? Math.abs(number) > 2 ** 63 : !Number.isSafeInteger(boundary)) ||
+                              (samples && number < (key === "start_sample" ? -1 : 0))) {
                             throw new Error(`atrim: invalid ${key}`);
+                          }
+                          // INT64_MIN is the unset PTS sentinel, including when an option is repeated.
+                          if (pts && boundary === -(2 ** 63)) {
+                            bounds.delete(key);
+                            continue;
                           }
                           if (key === "start_sample" && boundary === -1) bounds.delete(key);
                           else bounds.set(key, boundary);

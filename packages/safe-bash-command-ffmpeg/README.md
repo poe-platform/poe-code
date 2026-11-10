@@ -124,7 +124,7 @@ linear gain; longer clips use smoothed loudness gain and a linked lookahead limi
 `atrim=start_sample=2:duration=0.0005` retains four samples at 8 kHz, starting at sample 2.
 `duration` (alias `durationi`) is relative to the first retained timestamp; zero leaves duration unset.
 When combined with `end` or `end_sample`, the latest end wins.
-Sample and PTS bounds accept expressions and round to the nearest integer, with ties to even; `start_sample=-1` leaves the sample start unset.
+Sample and PTS bounds accept native 64-bit values and expressions and round to the nearest integer, with ties to even; `start_sample=-1` leaves the sample start unset, and PTS bounds of `-9223372036854775808` leave that timestamp bound unset.
 PTS bounds accept hexadecimal literals such as `0x2`; binary (`0b10`) and octal (`0o2`) literals are rejected without replacing existing output.
 Use `atrim=start=0.253:end=0.390` for time bounds in seconds; `starti` and `endi` are aliases for `start` and `end`. End bounds are exclusive. Clock durations work with escaped colons, for example `atrim=end='00\:00\:00.00025'` keeps two samples at 8 kHz.
 Repeated `atrim` options use their last value; distinct time and sample bounds keep the earliest start and latest end.

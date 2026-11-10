@@ -5873,7 +5873,8 @@ describe("decoded audio editing", () => {
       [["-stream_loop", "2", "-i", "/four.wav"], 12],
       [["-i", "concat:/four.wav|/four.wav"], 4],
       [["-i", "/four.wav", "-af", "volume=0.5", "-t", "1"], 1],
-      [["-i", "/four.wav", "-af", "atempo=2.0,areverse"], 2]
+      // Native FFmpeg emits 88304 samples after aligning the final fragment.
+      [["-i", "/four.wav", "-af", "atempo=2.0,areverse"], 88304 / 44100]
     ] as const) {
       const result = await runCmd(command, [...args, "-y", "/output.wav"], vfs);
       assert.equal(result.exitCode, 0, result.stderr);

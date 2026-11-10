@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
+import { mapfileExtension } from "../../src/shell/extensions/mapfile/index.js";
 import { setup } from "./helpers.js";
 
 for (const [name, source, stdout, exitCode, stderr] of [
@@ -44,6 +45,30 @@ for (const [name, source, stdout, exitCode, stderr] of [
 }
 
 for (const command of ["break", "continue"]) {
+  for (const extension of [false, true]) {
+    for (const terminator of ["", "-- "]) {
+      test(`${command} stops the script on extra operands (${terminator || "plain"}, mapfile=${extension})`, async context => {
+        const { shell, commands } = setup({ extensions: extension ? [mapfileExtension()] : [] });
+        for (const builtin of basicCommands()) commands.register(builtin);
+        context.after(() => shell.dispose());
+        const result = await shell.exec(`for i in A B; do printf '%s' "$i"; ${command} ${terminator}1 2; printf T; done; printf E`);
+        assert.equal(result.exitCode, 1);
+        assert.equal(result.stdout, "A");
+        assert.equal(result.stderr, `shell: line 1: ${command}: too many arguments\n`);
+      });
+    }
+  }
+
+  test(`${command} retains a valid single loop count`, async context => {
+    const { shell, commands } = setup();
+    for (const builtin of basicCommands()) commands.register(builtin);
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`for x in A B; do printf '%s;' "$x"; ${command} 1; printf 'tail:%s;' "$?"; done; printf 'done:%s;' "$?"`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, command === "break" ? "A;done:0;" : "A;B;done:0;");
+    assert.equal(result.stderr, "");
+  });
+
   test(`${command} accepts a nested loop count after --`, async context => {
     const { shell } = setup();
     context.after(() => shell.dispose());

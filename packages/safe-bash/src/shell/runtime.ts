@@ -9750,7 +9750,10 @@ export class Runtime {
         throw completedExit(2, "exit");
       }
       const levels = Number(count);
-      if (args.length - offset > 1) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
+      if (args.length - offset > 1) {
+        await writeDiagnostic(stderr, `${context.scriptName ?? "shell"}: line ${context.diagnosticLine ?? 1}: ${command}: too many arguments\n`);
+        throw completedExit(1);
+      }
       if (levels < 1) {
         await writeDiagnostic(stderr, `${command}: invalid loop count\n`);
         throw completedExit(1, "break", state.loopDepth);

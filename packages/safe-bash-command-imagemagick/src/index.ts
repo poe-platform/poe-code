@@ -9727,7 +9727,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const amount = value.includes("%") ? undefined : parseMagickCycleAmount(value);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expandedAmount = amount ?? parseMagickCycleAmount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }));
-                return yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
+                return yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
             });
         }
         else if (t === "-unique-colors") {
@@ -12065,7 +12065,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expandedAmount = amount ?? parseMagickCycleAmount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
-                return transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
+                return transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
             });
             continue;
         }

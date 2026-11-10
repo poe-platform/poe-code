@@ -3,10 +3,10 @@ import { quantizePixelSteps } from "./quantize.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Rotate palette colors using bounded chunks in either raster backend. */
-export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "indexedColors" | "pngPalette" | "depth" | "hasAlpha">, amount: number): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
+export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "indexedColors" | "pngPalette" | "depth" | "hasAlpha" | "isPalette">, amount: number): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(amount)) throw new Error("cycle requires an integer");
-    const palette = image.indexedColors ? [...image.indexedColors] : [];
-    const png = image.pngPalette?.bytes;
+    const palette = image.isPalette !== false && image.indexedColors ? [...image.indexedColors] : [];
+    const png = image.isPalette !== false ? image.pngPalette?.bytes : undefined;
     if (!palette.length && png) for (let i = 0; i < png.length; i += 3) palette.push((image.pngPalette?.transparency?.[i / 3] ?? 255) * 16777216 + png[i]! * 65536 + png[i + 1]! * 256 + png[i + 2]!);
     if (!palette.length) return yield* quantizePixelSteps(image.width * image.height * 4, 256, false, 5, image.hasAlpha, true, amount);
     const indices = new Map(palette.map((color, index) => [color, index]));

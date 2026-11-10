@@ -11149,8 +11149,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-clahe") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const geometry = parseClaheGeometry(tokens[++i] ?? "");
+            const raw = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const geometry = parseClaheGeometry(expanded);
                 return yield* applyMagickRasterSteps({ ...im, isPalette: false }, clahePixelSteps(im, geometry, state.background, state.virtualPixel), signal);
             });
         }
@@ -14023,8 +14025,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const geometry = parseClaheGeometry(tokens[++i] ?? ""), { background, virtualPixel } = state;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, clahePixelSteps(image, geometry, background, virtualPixel), signal) : undefined);
+            const raw = tokens[++i] ?? "", { background, virtualPixel, optionProperties } = state;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const geometry = parseClaheGeometry(expanded);
+                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, clahePixelSteps(image, geometry, background, virtualPixel), signal);
+            });
         } else if (!operandsOnly && token === "-lat") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

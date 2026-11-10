@@ -82,7 +82,10 @@ function* miffFrameHeader(size: number): Generator<number, MiffHeader, number | 
     const disposal = Math.max(0, ["undefined", "none", "background", "previous"].indexOf(fields.get("dispose")?.toLowerCase() ?? "undefined"));
     const delay = Number(fields.get("delay") ?? 0), ticksPerSecond = Number(fields.get("ticks-per-second") ?? 100) || 100;
     if (!Number.isSafeInteger(delay) || delay < 0 || !Number.isSafeInteger(ticksPerSecond) || ticksPerSecond < 0) throw new Error("Invalid MIFF timing");
-    return { metadata: { disposal, ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, ...(Object.keys(properties).length ? { properties } : {}), format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
+    const [x = 0, y = x] = (fields.get("resolution") ?? "").split("x").map(Number);
+    const unit = fields.get("units") === "PixelsPerInch" ? "inch" : fields.get("units") === "PixelsPerCentimeter" ? "cm" : "unknown";
+    const resolution: ImageMetadata["resolution"] = Number.isFinite(x) && Number.isFinite(y) && x > 0 && y > 0 ? { x, y, unit } : undefined;
+    return { metadata: { disposal, ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, ...(Object.keys(properties).length ? { properties } : {}), format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: resolution ? x * (unit === "cm" ? 2.54 : 1) : 72, ...(resolution ? { resolution } : {}), size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
 }
 
 /** Scan adjacent rasters and collect animation timing without reading their pixels. */

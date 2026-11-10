@@ -1530,7 +1530,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
     x: formatSignificantMetric(resolution ? resolution.x / resolutionScale : meta.density ?? 72, 17),
     y: formatSignificantMetric(resolution ? resolution.y / resolutionScale : meta.density ?? 72, 17),
-    U: resolution?.unit === "meter" ? "PixelsPerCentimeter" : "Undefined",
+    U: resolution?.unit === "inch" ? "PixelsPerInch" : resolution?.unit === "cm" || resolution?.unit === "meter" ? "PixelsPerCentimeter" : "Undefined",
     s: String(context.sceneIdx ?? 0), p: String(context.listIndex ?? context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
     N: (context.listIndex ?? context.sceneIdx ?? 0) === (context.sceneCount ?? meta.pages ?? 1) - 1 ? `${context.sceneCount ?? meta.pages ?? 1}\n` : "",
     // Native uses this sentinel when ImageInfo.number_scenes is unset.

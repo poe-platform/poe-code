@@ -43,14 +43,14 @@ function* miffFrameHeader(size: number): Generator<number, MiffHeader, number | 
     }
     const width = Number(fields.get("columns")), height = Number(fields.get("rows")), depth = Number(fields.get("depth"));
     if (fields.get("id") !== "ImageMagick") throw new Error("Invalid MIFF signature");
-    if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 8)) throw new Error("Invalid MIFF dimensions");
+    if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 16)) throw new Error("Invalid MIFF dimensions");
     const colorspace = fields.get("colorspace") ?? "sRGB", gray = colorspace === "Gray";
     const hasAlpha = fields.get("matte")?.toLowerCase() === "true" || fields.get("alpha-trait") === "Blend";
     const channels = gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3;
     const indexed = fields.get("class") === "PseudoClass", colors = Number(fields.get("colors") ?? 0);
     const sampleBytes = depth / 8, indexBytes = Math.max(sampleBytes, colors > 256 ? 2 : 1);
     const pixelBytes = indexed ? indexBytes + (hasAlpha ? sampleBytes : 0) : channels * sampleBytes;
-    if ((!indexed && fields.get("class") !== "DirectClass") || (fields.get("compression") ?? "None") !== "None" || ![8, 16].includes(depth) || !["sRGB", "RGB", "Gray"].includes(colorspace)
+    if ((!indexed && fields.get("class") !== "DirectClass") || (fields.get("compression") ?? "None") !== "None" || !(indexed ? [8, 16] : [8, 16, 32]).includes(depth) || !["sRGB", "RGB", "Gray"].includes(colorspace)
         || indexed && (!Number.isSafeInteger(colors) || colors < 1 || colors > 65536)
         || Number(fields.get("number-meta-channels") ?? 0) !== 0
         || Number(fields.get("number-channels") ?? channels + Number(indexed)) !== channels + Number(indexed) || fields.has("quantum:format") && fields.get("quantum:format") !== "unsigned"
@@ -59,7 +59,7 @@ function* miffFrameHeader(size: number): Generator<number, MiffHeader, number | 
     if (size - offset < (indexed ? colors * 3 * sampleBytes : 0) + width * height * pixelBytes) throw new Error("Truncated MIFF raster");
     const delay = Number(fields.get("delay") ?? 0), ticksPerSecond = Number(fields.get("ticks-per-second") ?? 100) || 100;
     if (!Number.isSafeInteger(delay) || delay < 0 || !Number.isSafeInteger(ticksPerSecond) || ticksPerSecond < 0) throw new Error("Invalid MIFF timing");
-    return { metadata: { delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, format: "miff", width, height, channels, hasAlpha, depth: depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
+    return { metadata: { delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, format: "miff", width, height, channels, hasAlpha, depth: depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
 }
 
 /** Scan adjacent rasters and collect animation timing without reading their pixels. */
@@ -88,10 +88,10 @@ export function readMiffHeader(bytes: Uint8Array, page?: number) {
 }
 
 export function miffPixels(bytes: Uint8Array, metadata: ImageMetadata, palette?: Uint8Array) {
-    const { channels, hasAlpha, depth } = metadata, sampleBytes = depth === "ushort" ? 2 : 1;
+    const { channels, hasAlpha } = metadata, sampleBytes = metadata.bitsPerSample! / 8;
     const colors = palette ? palette.length / (3 * sampleBytes) : 0, indexBytes = Math.max(sampleBytes, colors > 256 ? 2 : 1);
     const pixelBytes = palette ? indexBytes + (hasAlpha ? sampleBytes : 0) : channels * sampleBytes;
-    const count = bytes.length / pixelBytes, data = new Uint8Array(count * 4), data16 = sampleBytes === 2 ? new Uint16Array(count * 4) : undefined;
+    const count = bytes.length / pixelBytes, data = new Uint8Array(count * 4), data16 = sampleBytes > 1 ? new Uint16Array(count * 4) : undefined;
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), gray = channels < 3;
     const colormap = palette ? new DataView(palette.buffer, palette.byteOffset, palette.byteLength) : undefined;
     for (let pixel = 0; pixel < count; pixel++) {
@@ -101,9 +101,9 @@ export function miffPixels(bytes: Uint8Array, metadata: ImageMetadata, palette?:
             const source = colormap ? channel === 3 ? pixel * pixelBytes + indexBytes : (index * 3 + channel) * sampleBytes
                 : (pixel * channels + (channel === 3 ? channels - 1 : gray ? 0 : channel)) * sampleBytes;
             const samples = channel < 3 && colormap ? colormap : view;
-            const value = channel === 3 && !hasAlpha ? 65535 : sampleBytes === 2 ? samples.getUint16(source) : samples.getUint8(source) * 257;
+            const value = channel === 3 && !hasAlpha ? 65535 : sampleBytes === 4 ? samples.getUint32(source) / 65537 : sampleBytes === 2 ? samples.getUint16(source) : samples.getUint8(source) * 257;
             data[pixel * 4 + channel] = Math.round(value / 257);
-            if (data16) data16[pixel * 4 + channel] = value;
+            if (data16) data16[pixel * 4 + channel] = Math.round(value);
         }
     }
     return { data, ...(data16 ? { data16 } : {}) };

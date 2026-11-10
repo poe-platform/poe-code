@@ -14,8 +14,8 @@ export async function readMiffFromSource(source: ImageByteSource, signal: AbortS
 export async function decodeMiffToStorage(source: ImageByteSource, storage: ImageByteStorage, signal: AbortSignal, options?: SharpInputOptions): Promise<StoredRgbaImage> {
     const { metadata, offset, colors, pixelBytes } = await readMiffFromSource(source, signal, options?.page);
     checkLimitInputPixels(metadata.width, metadata.height, options);
-    const count = metadata.width * metadata.height, position = storage.allocate(count * 4), sampleBytes = metadata.depth === "ushort" ? 2 : 1;
-    const storedData16 = sampleBytes === 2 ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
+    const count = metadata.width * metadata.height, position = storage.allocate(count * 4), sampleBytes = metadata.bitsPerSample! / 8;
+    const storedData16 = sampleBytes > 1 ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
     const palette = colors ? new Uint8Array(colors * 3 * sampleBytes) : undefined;
     if (palette) for (let start = 0; start < palette.length; start += 8192) {
         await defaultRuntime.yieldTurn(signal);
@@ -25,9 +25,10 @@ export async function decodeMiffToStorage(source: ImageByteSource, storage: Imag
         palette.set(bytes, start);
     }
     const raster = offset + (palette?.length ?? 0);
-    for (let pixel = 0; pixel < count; pixel += 1024) {
+    const chunkPixels = Math.min(1024, Math.floor(8192 / pixelBytes));
+    for (let pixel = 0; pixel < count; pixel += chunkPixels) {
         await defaultRuntime.yieldTurn(signal);
-        const length = Math.min(1024, count - pixel) * pixelBytes;
+        const length = Math.min(chunkPixels, count - pixel) * pixelBytes;
         const input = await source.read(raster + pixel * pixelBytes, length, { signal });
         signal.throwIfAborted();
         if (input.length !== length) throw new Error("Truncated MIFF raster");

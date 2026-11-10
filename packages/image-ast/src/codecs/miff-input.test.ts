@@ -24,7 +24,7 @@ it.each([0, 2, 256])("reads DirectClass RGB samples with colors=%s", colors => {
     expect([...decodeMiffImage(fixture(`colors=${colors}`)).data]).toEqual([18, 52, 86, 255]);
 });
 
-it.each(["compression=Zip", "class=PseudoClass", "depth=32", "colorspace=CMYK", "profile:icc=10", "number-meta-channels=1"])("rejects unsupported layout %s", fields => {
+it.each(["compression=Zip", "class=PseudoClass", "depth=64", "depth=8 quantum:format=floating-point", "colorspace=CMYK", "profile:icc=10", "number-meta-channels=1"])("rejects unsupported layout %s", fields => {
     expect(() => decodeMiffImage(fixture(fields))).toThrow("Unsupported MIFF encoding");
 });
 
@@ -47,9 +47,10 @@ it("stops reading on cancellation", async () => {
     expect(source.read).not.toHaveBeenCalled();
 });
 
-it("decodes retained 16-bit samples in bounded chunks without retaining borrowed bytes", async () => {
-    const samples = [0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0x80, 0x01];
-    const bytes = fixture("columns=2050 depth=16 matte=True", Array.from({ length: 2050 }, () => samples).flat());
+it.each([16, 32])("decodes retained %s-bit samples in bounded chunks without retaining borrowed bytes", async depth => {
+    const samples = depth === 16 ? [0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0x80, 0x01]
+        : [0x12, 0x34, 0x12, 0x34, 0x56, 0x78, 0x56, 0x78, 0x9a, 0xbc, 0x9a, 0xbc, 0x80, 0x01, 0x80, 0x01];
+    const bytes = fixture(`columns=2050 depth=${depth} matte=True`, Array.from({ length: 2050 }, () => samples).flat());
     const backing = new Uint8Array(2050 * 12), borrowed = new Uint8Array(8192);
     let end = 0;
     const source = { size: bytes.length, read: vi.fn(async (offset: number, length: number) => {
@@ -104,4 +105,15 @@ it("rejects truncated subsequent frames and checks selected frame limits before 
     const storage = { allocate: vi.fn(), read: vi.fn(), write: vi.fn() };
     await expect(decodeMiffToStorage({ size: mixedSequence.length, read: async (offset, length) => mixedSequence.subarray(offset, offset + length) }, storage, new AbortController().signal, { page: 1, limitInputPixels: 1 })).rejects.toThrow();
     expect(storage.allocate).not.toHaveBeenCalled();
+});
+
+it.each([false, true])("decodes unsigned 32-bit grayscale with alpha=%s and scans mixed-depth frames", alpha => {
+    const samples = alpha ? [0, 0, 128, 1, 255, 255, 255, 255] : [0, 0, 128, 1];
+    const frame = fixture(`depth=32 colorspace=Gray matte=${alpha} quantum:format=unsigned`, samples);
+    const sequence = new Uint8Array([...frame, ...fixture()]);
+    const image = decodeMiffImage(sequence);
+    expect(image).toMatchObject({ pages: 2, depth: "uint", bitsPerSample: 32 });
+    expect([...image.data16!]).toEqual([1, 1, 1, 65535]);
+    expect([...decodeMiffImage(sequence, { page: 1 }).data]).toEqual([18, 52, 86, 255]);
+    expect(() => decodeMiffImage(frame.subarray(0, frame.length - 1))).toThrow("Truncated MIFF raster");
 });

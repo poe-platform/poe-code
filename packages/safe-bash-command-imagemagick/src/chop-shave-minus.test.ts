@@ -29,7 +29,7 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
                     expect(new TextDecoder().decode(output)).toBe("KEEP");
                 } else {
                     expect(result.exitCode).toBe(0);
-                    expect(diagnostic).toBe(`magick: geometry does not contain image '${geometry}'\n`);
+                    expect(diagnostic).toBe(`magick: geometry does not contain image '${operation === "-shave" ? "red" : geometry}'\n`);
                     expect(output).toEqual(format === "info"
                         ? new TextEncoder().encode("3x2")
                         : Uint8Array.from({ length: 24 }, (_, index) => index % 4 === 0 || index % 4 === 3 ? 255 : 0));

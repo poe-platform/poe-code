@@ -34,6 +34,6 @@ for (const mode of ["map", "retained", "command"] as const) {
         }
         expect(Array.from(output.data)).toEqual(expected);
         expect(output.virtualCanvas ?? { width: output.width, height: output.height, x: 0, y: 0 }).toEqual({ width: output.width, height: output.height, x: 0, y: 0 });
-        expect(stderr).toBe(warns ? `magick: geometry does not contain image '${geometry}'\n` : "");
+        expect(stderr).toBe(warns ? `magick: geometry does not contain image '/input.png'\n` : "");
     });
 }

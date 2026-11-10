@@ -33,6 +33,6 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
         const output = decodeImage(mode === "retained" || mode === "command" ? await filesystem.readFile("/output.png") : files.get("/output.png")!);
         expect([output.width, output.height]).toEqual([width, height]);
         expect(Buffer.from(output.data).toString("hex")).toBe(pixels);
-        expect("stderr" in result ? result.stderr : stderr).toBe(warns ? `magick: geometry does not contain image '${geometry}'\n` : "");
+        expect("stderr" in result ? result.stderr : stderr).toBe(warns ? `magick: geometry does not contain image '${operation === "-shave" ? "/input.ppm" : geometry}'\n` : "");
     });
 }

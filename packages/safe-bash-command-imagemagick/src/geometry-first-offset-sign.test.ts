@@ -31,7 +31,7 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
             }) : mode === "sync" ? runMagickCliSync(args, files)
                 : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
             expect(result.exitCode).toBe(0);
-            expect("stderr" in result ? result.stderr : stderr).toBe(warns ? `magick: geometry does not contain image '${geometry}'\n` : "");
+            expect("stderr" in result ? result.stderr : stderr).toBe(warns ? `magick: geometry does not contain image '${operation === "-shave" ? "red" : geometry}'\n` : "");
             const output = mode === "retained" || mode === "command" ? await filesystem.readFile("/out") : files.get("out")!;
             expect(new TextDecoder().decode(output)).toBe(expected);
         });

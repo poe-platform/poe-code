@@ -22,7 +22,7 @@ for (const mode of ["map", "retained", "command"] as const) {
             expect(result.exitCode).toBe(0);
             const output = decodeImage(mode === "map" ? files.get("/output.png")! : await fs.readFile("/output.png"));
             const valid = geometry === "1x1" || geometry === "0x0" || geometry === "0";
-            expect(stderr).toBe(valid ? "" : `magick: geometry does not contain image '${geometry}'\n`);
+            expect(stderr).toBe(valid ? "" : `magick: geometry does not contain image '/input.png'\n`);
             expect([output.width, output.height]).toEqual(geometry === "1x1" ? [2, 1] : [4, 3]);
             expect(Array.from(output.data)).toEqual(geometry === "1x1" ? [6, 6, 6, 255, 7, 7, 7, 255] : Array.from(pixels));
         });

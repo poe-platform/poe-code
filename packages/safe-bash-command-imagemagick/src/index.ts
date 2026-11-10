@@ -12160,7 +12160,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const sh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? (expanded.toLowerCase().includes("x") ? 0 : sw)));
                 if ((expanded.toLowerCase().includes("x") && expanded.includes("/"))
                     || (!g.isPercent && hasSignedMagickShaveDimensions(expanded)) || (g.hasOffset && g.width === undefined && g.height === undefined) || sw * 2 >= im.width || sh * 2 >= im.height) {
-                    analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
+                    analysis.warnings += `magick: geometry does not contain image '${(im as MagickImage)[magickInput]?.filePath ?? ""}'\n`;
                     return im;
                 }
                 const area = { left: sw, top: sh, width: im.width - sw * 2, height: im.height - sh * 2 };
@@ -15917,7 +15917,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const height = Math.max(0, Math.round(parsed.isPercent ? image.height * (parsed.percentY ?? 100) / 100 : parsed.height ?? (expanded.toLowerCase().includes("x") ? 0 : width)));
                 if ((expanded.toLowerCase().includes("x") && expanded.includes("/"))
                     || (!parsed.isPercent && hasSignedMagickShaveDimensions(expanded)) || (parsed.hasOffset && parsed.width === undefined && parsed.height === undefined) || width * 2 >= image.width || height * 2 >= image.height) {
-                    analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
+                    analysis.warnings += `magick: geometry does not contain image '${(image as StoredMagickImage)[magickInput]?.filePath ?? ""}'\n`;
                     return image;
                 }
                 const area = { left: width, top: height, width: image.width - width * 2, height: image.height - height * 2 };

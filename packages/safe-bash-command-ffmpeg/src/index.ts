@@ -12249,10 +12249,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           const inputLayout = stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ? "mono"
                             : stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3) ? "stereo" : undefined;
-                          if (!inputLayout) throw new Error("aformat: layout conversion requires mono or stereo input");
-                          if (layouts.includes(inputLayout)) continue;
+                          const inputMask = filteredChannelMask || ({ 3: 0xb, 4: 0x107, 6: 0x3f }[stretched.length]);
+                          const multichannelStereo = layouts[0] === "stereo" && inputMask !== undefined &&
+                            [0xb, 0x107, 0x3f, 0x60f].includes(inputMask);
+                          if (!inputLayout && !multichannelStereo) throw new Error("aformat: unsupported input channel layout");
+                          if (inputLayout && layouts.includes(inputLayout)) continue;
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);
-                          const expression = layouts[0] === "mono" ? "mono|c0=0.5*c0+0.5*c1"
+                          // Integer rematrixing normalizes the contributing speakers; LFE is omitted.
+                          const assignment = ["u8", "u8p", "s16", "s16p", "s32", "s32p", "s64", "s64p"].includes(panSampleFormat) ? "<" : "=";
+                          // Native's 4.0 PCM16 mixer rounds each Q15 coefficient independently.
+                          const fourChannelGains = inputMask === 0x107 && panSampleFormat === "s16"
+                            ? [1, Math.SQRT1_2, 0.5].map(gain => Math.round(gain / (1.5 + Math.SQRT1_2) * 32768) / 32768)
+                            : undefined;
+                          const expression = multichannelStereo && fourChannelGains
+                            ? `stereo|FL=${fourChannelGains[0]}*FL+${fourChannelGains[1]}*FC+${fourChannelGains[2]}*BC|FR=${fourChannelGains[0]}*FR+${fourChannelGains[1]}*FC+${fourChannelGains[2]}*BC`
+                            : multichannelStereo
+                            ? `stereo|FL${assignment}FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR${assignment}FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`
+                            : layouts[0] === "mono" ? "mono|c0=0.5*c0+0.5*c1"
                             : `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`;
                           const mixed = await panAudio(expression, stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
                           stretched = mixed.channels;

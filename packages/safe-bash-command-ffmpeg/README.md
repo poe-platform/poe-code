@@ -696,8 +696,11 @@ Use `-ch_layout mono` or `-channel_layout mono` for mono output, equivalent to `
 without changing its samples, including after `channelsplit`.
 `aformat=channel_layouts=mono` (or `aformat=cl=mono`) downmixes stereo by
 averaging left and right samples, or preserves mono input. `stereo` preserves
-stereo input or converts mono with equal-power gains. Lists such as `mono|stereo`
-and `stereo|mono` preserve either input layout regardless of list order.
+stereo input or converts mono with equal-power gains. It also downmixes 2.1,
+4.0 and 5.1 input to stereo, including raw PCM with `-ac 3`, `-ac 4` or `-ac 6`.
+Center and surround speakers contribute to the mix; LFE is omitted.
+Lists such as `mono|stereo` and `stereo|mono` preserve either input layout
+regardless of list order.
 Every entry must be `mono` or `stereo`; invalid lists fail without replacing output.
 `aformat=sample_fmts` (alias `f`) accepts `u8`, `u8p`, `s16`, `s16p`, `s32`,
 `s32p`, `s64`, `s64p`, `flt`, `fltp`, `dbl`, and `dblp`. Samples pass through the selected intermediate

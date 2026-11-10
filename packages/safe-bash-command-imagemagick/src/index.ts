@@ -280,7 +280,7 @@ const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   yellowgreen: [154, 205, 50, 255]
 };
 
-function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly number[] } {
+function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly number[]; space?: "b-w" } {
   const s = raw.trim();
   const low = s.toLowerCase();
   if (X11_NAMED_COLORS[low]) {
@@ -290,7 +290,7 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
   const grayMatch = /^gr[ae]y(\d{1,3})$/.exec(low);
   if (grayMatch) {
     const v = Math.max(0, Math.min(255, Math.round((Number(grayMatch[1]) / 100) * 255)));
-    return { r: v, g: v, b: v, a: 255 };
+    return { r: v, g: v, b: v, a: 255, space: "b-w" };
   }
   const round = (value: number) => precise ? value : Math.round(value);
   if (/^#[0-9a-f]{12}$/i.test(s)) {
@@ -328,7 +328,7 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
     if (kind.startsWith("gray") || kind.startsWith("grey")) {
       const v = parseChanByte(parts[0], 0);
       const a = parseAlphaByte(parts[1]);
-      return { r: v, g: v, b: v, a };
+      return { r: v, g: v, b: v, a, space: "b-w" };
     }
     if (kind.startsWith("cmyk")) {
       const parseUnit = (p: string | undefined) => {
@@ -6537,6 +6537,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const c = parseColor(colorStr, true);
         const hasAlpha = c.a < 255 || colorStr.startsWith("#") && [5, 9, 17].includes(colorStr.length) || colorStr.toLowerCase().includes("a(");
         let image: RgbaImage = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), hasAlpha, ...(!hasAlpha ? { inactiveAlpha: false } : {}) };
+        if (c.space) image = { ...image, space: c.space, channels: hasAlpha ? 2 : 1 };
         if (c.cmyk) image = yield* fillCmykPixels(image, c.cmyk);
         return yield* applyMod([image]);
     }
@@ -14963,6 +14964,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(colorStr,true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   const hasAlpha=color.a<255||colorStr.startsWith("#")&&[5,9,17].includes(colorStr.length)||colorStr.toLowerCase().includes("a(");
   image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),hasAlpha,...(!hasAlpha?{inactiveAlpha:false}:{}),...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{})};
+  if ("space" in color && color.space) image = { ...image, space: color.space, channels: hasAlpha ? 2 : 1 };
   if ("cmyk" in color && color.cmyk) {
    const inks = color.cmyk;
    image = await transformStoredMagickPixels(image, backend, { end: 0, apply: image => fillCmykPixels(image, inks) }, signal);

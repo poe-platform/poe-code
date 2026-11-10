@@ -1796,7 +1796,7 @@ export class ShellInput implements ByteSource, CommandInput {
             };
             const width = (input: Uint8Array, start: number): number => {
               if (input === bytes && reason === "timeout" && bytes[start] === 1 && escapedStart(start + 1)) return 2;
-              if (byteCount || input === bytes && escapedStart(start)) return 1;
+              if (byteCount) return 1;
               const length = displayWidth(input, start);
               return length === utf8Length(input[start]!) ? length : 1;
             };

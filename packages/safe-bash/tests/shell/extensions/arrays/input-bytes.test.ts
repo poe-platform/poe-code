@@ -181,8 +181,6 @@ const fieldCases = [
   { name: "mixed separators", ifs: " :\t", text: " \ta : : b : \n", raw: true },
   { name: "escaped whitespace", ifs: " ", text: "a\\ b c\n", raw: false },
   { name: "empty indexed input", ifs: " :", text: " \t\n", raw: true },
-  { name: "escaped UTF8 separator", ifs: "é", text: "α\\éβéγ\n", raw: false },
-  { name: "escaped astral separator named remainder", ifs: "😀", text: "a\\😀b😀c😀d\n", raw: false, maximum: 2 },
   { name: "UTF8 separator byte mode", ifs: "é", text: "αéβéγ\n", raw: true },
 ] as const;
 

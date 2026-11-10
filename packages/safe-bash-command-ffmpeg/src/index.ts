@@ -10170,7 +10170,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost") {
+                      } else if (filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -10236,13 +10236,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const limited = await limitAudio(stretched, origRate, trimmed, budget, context.signal, audioTimestamps, commands);
                           stretched = limited.channels;
                           audioTimestamps = limited.frames;
+                        } else if (filterName === "agate") {
+                          stretched = await applyAudioGate(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
                         } else {
                           filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
                           stretched = await normalizeSpeech(stretched, origRate, audioTimestamps, trimmed, filteredSampleFormat, budget, context.signal);
                         }
-                        statsScale = 1;
-                      } else if (trimmed === "agate" || trimmed.startsWith("agate=")) {
-                        stretched = await applyAudioGate(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "acompressor" || trimmed.startsWith("acompressor=")) {
                         stretched = await compressAudio(stretched, origRate, trimmed, budget, context.signal);

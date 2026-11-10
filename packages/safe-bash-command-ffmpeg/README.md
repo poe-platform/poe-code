@@ -358,6 +358,8 @@ Filters after join are supported.
 `agate=threshold=0.05:ratio=4:attack=0.1:release=1` attenuates quiet PCM sections
 while preserving sample count and timing. It supports native defaults, range, knee,
 attack/release, peak/RMS detection, channel linking, input/makeup gain, and downward/upward modes.
+Timeline expressions such as `agate=enable='between(t,0.1,0.3)'` select audio frames;
+disabled frames pass through unchanged and pause the gate envelope.
 
 `acompressor=threshold=0.1:ratio=4:attack=1:release=20` compresses changing PCM levels
 with attack and release in milliseconds. It supports soft knees, peak/RMS detection,

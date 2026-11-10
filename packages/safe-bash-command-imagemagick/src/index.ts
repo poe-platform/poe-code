@@ -1554,6 +1554,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     version: MAGICK_VERSION,
     directory: short.d!, basename: short.t!, extension: short.e!,
     interlace: context.interlace ?? (meta.isProgressive ? meta.format.toUpperCase() : "None"),
+    ...(context.virtualPixel === undefined ? {} : { "virtual-pixel": context.virtualPixel }),
     scene: short.s!, scenes: short.n!,
     profiles: [...(meta.icc ? ["icc"] : []), ...(meta.xmp ? ["xmp"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
     gamma: String(Number((meta.gamma ?? 1 / 2.2).toPrecision(6))),
@@ -6246,7 +6247,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 }
                 im = { ...image, evaluateSamples };
             }
-            im = { ...im, gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge" };
+            im = { ...im, gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(im as MagickImage)[magickInput], virtualPixel: state.virtualPixel } };
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.interlace !== undefined) im = Object.assign({}, im, { [magickInput]: { ...(im as MagickImage)[magickInput], interlace: state.interlace } });
             if (state.orientation !== undefined) im = { ...im, orientation: state.orientation };
@@ -8825,7 +8826,12 @@ function applyMagickDensity<T extends ImageMetadata & { magickUnits?: MagickStat
 function applyMagickReadSetting(tokens: readonly string[], state: MagickState, start: number): number | undefined {
     let i = start;
     const t = tokens[i];
-if (t === "-seed") {
+if (t === "-intent" || t === "+intent") {
+            const value = t === "+intent" ? "undefined" : tokens[++i] ?? "";
+            if (!["undefined", "saturation", "perceptual", "relative", "absolute"].includes(value.toLowerCase())) throw new Error(`unrecognized intent type '-intent' '${value}'`);
+            state.optionProperties = { ...state.optionProperties, intent: value };
+        }
+        else if (t === "-seed") {
             const value = tokens[++i] ?? "";
             validateMagickTransformGeometry(value, t);
             // Native validates geometry, then reads only the leading decimal integer.
@@ -9037,6 +9043,10 @@ if (t === "-seed") {
             const cRaw = tokens[++i] ?? "over";
             state.composeRaw = cRaw;
             state.compose = parseCompose(cRaw);
+        }
+        else if (t === "+compose") {
+            state.composeRaw = "Over";
+            state.compose = "over";
         }
         else if (t === "+define") {
             const key = (tokens[++i] ?? "").toLowerCase();
@@ -9523,7 +9533,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             if (t === "-interlace" || t === "+interlace") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
-            if (t === "-virtual-pixel" || t === "+virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualPixel: state.virtualPixel ?? "edge" }; });
+            if (t === "-virtual-pixel" || t === "+virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(image as MagickImage)[magickInput], virtualPixel: state.virtualPixel } }; });
         }
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, i++);
@@ -10948,7 +10958,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             for (const [idx, im] of stack.entries()) {
                 formatted.push(histogramComment ? yield* formatHistogramOutputSteps(im) : state.formatStr !== undefined
                     ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
-                        ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, analysis, sceneIdx: idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { format: state.formatStr }
+                        ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, analysis, sceneIdx: idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
                     })
                     : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
             }
@@ -11745,8 +11755,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 steps.push(async image => image ? { ...image, gravity } : undefined);
             }
             if (token === "-virtual-pixel" || token === "+virtual-pixel") {
-                const virtualPixel = state.virtualPixel ?? "edge";
-                steps.push(async image => image ? { ...image, virtualPixel } : undefined);
+                const virtualPixel = state.virtualPixel;
+                steps.push(async image => image ? { ...image, virtualPixel: virtualPixel ?? "edge", [magickInput]: { ...(image as StoredMagickImage)[magickInput], virtualPixel } } : undefined);
             }
             continue;
         }
@@ -13197,7 +13207,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
-                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, analysis, sceneIdx: index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { format: state.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, analysis, sceneIdx: index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
                     if (formatted) last = formatted.at(-1)!;
                     yield formatted;
                 }
@@ -13839,7 +13849,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    image = { ...metadata, storedEvaluateSamples };
   }
-  image = { ...image, gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge" };
+  image = { ...image, gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(image as StoredMagickImage)[magickInput], virtualPixel: state.virtualPixel } };
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.interlace!==undefined)image=Object.assign({},image,{[magickInput]:{...(image as StoredMagickImage)[magickInput],interlace:state.interlace}});
   if(state.orientation!==undefined)image={...image,orientation:state.orientation};

@@ -11237,7 +11237,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                               const inputPts = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start - padding);
                               enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "adelay enable", {
-                                n, t: inputPts / origRate, pos: packet?.offset ?? NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity
+                                n, t: inputPts / origRate, pos: pos ?? NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity
                               })) >= 0.5;
                               n++;
                               end = Math.min(padding + inputLength, start + count);

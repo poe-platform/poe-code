@@ -18935,7 +18935,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 canvas = await compositeStoredMagick(titled, canvas, backend, signal, 0, height, "over", undefined, false, true);
                 canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
             }
-            if (!anyTransparent) canvas = { ...canvas, hasAlpha: false, channels: 3 };
+            canvas = { ...canvas, hasAlpha: anyTransparent, channels: anyTransparent ? 4 : 3 };
             if (state.units !== undefined) canvas = applyMagickUnits(canvas, state.units);
             if (state.densityGeometry !== undefined) canvas = applyMagickDensity(canvas, state.densityGeometry);
             if (outSpec.toLowerCase().startsWith("info:")) {

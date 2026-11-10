@@ -10,8 +10,8 @@ for (let i = 0; i < 5000; i++) {
   input.writeInt16LE((i * 193 + 777) % 60001 - 30000, i * 4 + 2);
 }
 
-async function run(filter: string, graph: boolean) {
-  const fs = Volume.fromJSON({ "/in.raw": input, "/out.raw": "KEEP" });
+async function run(filter: string, graph: boolean, inputBytes = input) {
+  const fs = Volume.fromJSON({ "/in.raw": inputBytes, "/out.raw": "KEEP" });
   let stderr = "";
   const result = await createFfmpegCommand().execute({
     args: ["-v", "error", "-y", "-f", "s16le", "-ar", "8000", "-ac", "2", "-i", "/in.raw",
@@ -29,6 +29,26 @@ async function run(filter: string, graph: boolean) {
 
 // Native FFmpeg 7.0.2 references include both channels and the complete EOF tail.
 for (const graph of [false, true]) {
+  for (const [expression, enabled] of [
+    ["between(PI,3.14,3.15)", true],
+    ["between(E,2.71,2.72)", true],
+    ["between(PHI,1.61,1.62)", true],
+    ["eq(PI,4)", false],
+    ["eq(E,3)", false],
+    ["eq(PHI,2)", false],
+    ["1", true],
+    ["0", false]
+  ] as const) {
+    it(`adelay evaluates ${expression} at its mathematical value (graph ${graph})`, async () => {
+      const samples = [101, -901, 202, -802, 303, -703];
+      const bytes = Buffer.alloc(samples.length * 2);
+      samples.forEach((sample, index) => bytes.writeInt16LE(sample, index * 2));
+      const { result, stderr, output } = await run(`adelay=1S:enable='${expression}'`, graph, bytes);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.deepEqual(Array.from({ length: output.length / 2 }, (_, index) => output.readInt16LE(index * 2)),
+        enabled ? [0, -901, 101, -802, 202, -703, 303, 0] : [...samples, 0, 0]);
+    });
+  }
   for (const [filter, frames, hash] of [
     [
         "adelay=0S|23S:enable=0",

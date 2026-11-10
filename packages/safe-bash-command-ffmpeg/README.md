@@ -153,7 +153,7 @@ and case-insensitive `true`/`false`, `yes`/`no`, `y`/`n`, `on`/`off`,
 When false or omitted, unspecified channels are unchanged. Empty entries are skipped,
 so `adelay=|1S` delays the first channel. Omitted delays pass audio through unchanged,
 including `adelay`, `adelay=`, and `adelay=all=1`.
-`enable` expressions are evaluated at input frame timestamps, as in
+`enable` expressions accept the mathematical constants `PI`, `E`, and `PHI` and are evaluated at input frame timestamps, as in
 `adelay=0S|23S:enable='gte(t,0.3)'`. Disabled frames pass through and freeze
 the delay buffers. Common leading silence and the full delayed tail are retained;
 the final input frame’s enable state controls whether the tail drains buffered audio or emits silence.

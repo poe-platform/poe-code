@@ -812,7 +812,7 @@ test("cut preserves range union record and Unicode behavior across chunk boundar
   assert.equal((await run("cut", ["-c", "1-"], { stdin: "\uFEFFa\uFEFFb\n\uFEFFc\n" })).stdout, "\uFEFFa\uFEFFb\n\uFEFFc\n");
   assert.equal((await run("cut", ["-b", "1-"], { stdin: "\uFEFFa\n" })).stdout, "\uFEFFa\n");
   assert.equal((await run("cut", ["-b", Array(10001).fill("1").join(",")], { stdin: "abc\n" })).stdout, "a\n");
-  for (const ranges of ["0", "-", "1--2", "9007199254740992"]) {
+  for (const ranges of ["0", "-", "1--2"]) {
     assert.equal((await run("cut", ["-b", ranges])).exitCode, 2, ranges);
   }
   assert.equal((await run("cut", ["-b", "01,, 2"], { stdin: "abc\n" })).exitCode, 1);
@@ -959,3 +959,46 @@ test("sort -k preserves blank-only and trailing-blank fields", async () => {
   assert.equal(s3.exitCode, 0, s3.stderr);
   assert.equal(s3.stdout, "a\na   \n");
 });
+
+for (const mode of ["b", "c", "f"]) {
+  test(`cut ${mode} accepts exact uint64 endpoints below the reserved maximum`, async () => {
+    for (const endpoint of ["9007199254740991", "9007199254740992", "9007199254740993", "18446744073709551614"]) {
+      for (const [list, output] of [
+        [`2-${endpoint}`, mode === "f" ? "b:c\n" : ":b:c\n"],
+        [`-${endpoint}`, "a:b:c\n"],
+        [endpoint, "\n"],
+        [`${endpoint}-`, "\n"],
+        [`000${endpoint}`, "\n"],
+        [`${endpoint},1`, "a\n"],
+      ]) {
+        const result = await run("cut", [`-${mode}`, list!, ...(mode === "f" ? ["-d:"] : [])], {
+          commands: textCommands(), stdin: "a:b:c", env: { LC_ALL: "C" },
+        });
+        assert.equal(result.exitCode, 0, `${list}: ${result.stderr}`);
+        assert.equal(result.stdout, output, list);
+        assert.equal(result.stderr, "");
+      }
+    }
+    const complement = await run("cut", [`-${mode}`, "2-18446744073709551614", "--complement", ...(mode === "f" ? ["-d:"] : [])], {
+      commands: textCommands(), stdin: "a:b:c", env: { LC_ALL: "C" },
+    });
+    assert.equal(complement.exitCode, 0, complement.stderr);
+    assert.equal(complement.stdout, "a\n");
+  });
+
+  test(`cut ${mode} rejects reserved, overflowing and exactly decreasing endpoints before input`, async () => {
+    for (const list of [
+      "18446744073709551615", "2-18446744073709551615", "18446744073709551615-",
+      "18446744073709551616", "2-18446744073709551616", "9".repeat(1000),
+      "9007199254740993-9007199254740992", "18446744073709551614-18446744073709551613",
+    ]) {
+      const result = await run("cut", [`-${mode}`, list, ...(mode === "f" ? ["-d:"] : [])], {
+        commands: textCommands(),
+        stdin: { async *[Symbol.asyncIterator]() { assert.fail("invalid range must not read input"); yield new Uint8Array(); } },
+      });
+      assert.equal(result.exitCode, 1, list);
+      assert.equal(result.stdout, "", list);
+      assert.notEqual(result.stderr, "", list);
+    }
+  });
+}

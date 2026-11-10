@@ -14,12 +14,15 @@ import { openFileOutput, writeFileOutput } from "../contracts/filesystem-output.
 
 interface CutRange { start: number; end: number }
 
+// GNU cut reserves UINTMAX_MAX for open-ended ranges.
+const CUT_UINTMAX_MAX = 18446744073709551615n;
+
 async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
   const ranges: CutRange[] = [];
   let tokenStart = 0;
   let dash = -1;
-  let start = 0;
-  let end = 0;
+  let start = 0n;
+  let end = 0n;
   let invalid = false;
   for (let index = 0; index <= list.length; index++) {
     const checkpoint = work.charge();
@@ -28,26 +31,30 @@ async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
     if (character === "," || character === " " || character === "\t" || index === list.length) {
       if (index === tokenStart) throw new PublicDiagnostic("invalid range ''");
       if (invalid || (dash === tokenStart && dash === index - 1)) throw new UsageError(`invalid range '${list.slice(tokenStart, index)}'`);
-      if (dash === tokenStart) start = 1;
+      if (dash === tokenStart) start = 1n;
       if (dash < 0) end = start;
       const openEnd = dash >= 0 && dash === index - 1;
-      if (openEnd) end = Infinity;
-      if (!Number.isSafeInteger(start) || start < 1) throw new UsageError(`invalid number '${list.slice(tokenStart, dash < 0 ? index : dash)}'`);
-      if (!openEnd && (!Number.isSafeInteger(end) || end < 1)) throw new UsageError(`invalid number '${list.slice(dash < 0 ? tokenStart : dash + 1, index)}'`);
+      if (openEnd) end = CUT_UINTMAX_MAX;
+      if (start < 1n) throw new UsageError(`invalid number '${list.slice(tokenStart, dash < 0 ? index : dash)}'`);
+      if (!openEnd && end < 1n) throw new UsageError(`invalid number '${list.slice(dash < 0 ? tokenStart : dash + 1, index)}'`);
+      if (start >= CUT_UINTMAX_MAX || (!openEnd && end >= CUT_UINTMAX_MAX)) throw new PublicDiagnostic(`invalid number in range '${list.slice(tokenStart, index)}'`);
       if (end < start) throw new PublicDiagnostic(`invalid decreasing range '${list.slice(tokenStart, index)}'`);
-      ranges.push({ start, end });
+      // Validate exact endpoints before converting to numeric buffer positions.
+      // Rounding above the safe integer limit cannot affect an in-memory record.
+      ranges.push({ start: Number(start), end: openEnd ? Infinity : Number(end) });
       tokenStart = index + 1;
       dash = -1;
-      start = 0;
-      end = 0;
+      start = 0n;
+      end = 0n;
       invalid = false;
     } else if (character === "-" && dash < 0) {
       dash = index;
     } else {
       const digit = list.charCodeAt(index) - 48;
       if (digit < 0 || digit > 9) invalid = true;
-      else if (dash < 0) start = start * 10 + digit;
-      else end = end * 10 + digit;
+      else if (dash < 0) {
+        if (start < CUT_UINTMAX_MAX) start = start * 10n + BigInt(digit);
+      } else if (end < CUT_UINTMAX_MAX) end = end * 10n + BigInt(digit);
     }
   }
   const ordered = await sortRecords(ranges, (left, right) => left.start - right.start, work);

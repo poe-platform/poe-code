@@ -7923,7 +7923,21 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         else if (mode === "extract") {
             apply = function* (im) {
                 if (im.alphaBlend !== true) im = yield* prepareInactiveAlphaOutput(im);
-                return { ...yield* extractChannelImageSteps({ ...im, hasAlpha: true }, 3), inactiveAlpha: false };
+                const extracted = yield* extractChannelImageSteps({ ...im, hasAlpha: true }, 3);
+                const hueSamples = im.hueSamples ? new Float64Array(im.hueSamples.length) : undefined;
+                if (hueSamples) for (let offset = 0; offset < extracted.data.length; offset += 4) {
+                    if (offset % 65536 === 0) yield;
+                    const alpha = extracted.data16 ? extracted.data16[offset]! / 65535 : extracted.data[offset]! / 255;
+                    // Extract into every working color channel, including CMYK black.
+                    hueSamples[offset] = hueSamples[offset + 1] = hueSamples[offset + 2] = alpha;
+                    hueSamples[offset + 3] = im.space === "cmyk" ? alpha : 1;
+                    if (im.space === "cmyk") {
+                        const gray = (1 - alpha) * (1 - alpha) * 65535;
+                        extracted.data[offset] = extracted.data[offset + 1] = extracted.data[offset + 2] = clampByteVal(gray / 257);
+                        if (extracted.data16) extracted.data16[offset] = extracted.data16[offset + 1] = extracted.data16[offset + 2] = Math.round(gray);
+                    }
+                }
+                return { ...extracted, ...(hueSamples ? { hueSamples } : {}), inactiveAlpha: false, space: im.space };
             };
         }
         else { throw new Error(`Unsupported alpha mode: ${mode}`); }

@@ -10484,7 +10484,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const value = separator < 0 ? option : option.slice(separator + 1);
                           if (key === "enable") {
                             enable = value;
-                            parseFilterExpression(enable, "apad enable", { n: 0, t: 0, pos: 0, w: 0, h: 0 });
+                            parseFilterExpression(enable, "apad enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
                             continue;
                           }
                           if (key === "packet_size") {
@@ -10593,7 +10593,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           for (const [n, frame] of audioTimestamps.entries()) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             enabled = Math.abs(parseFilterExpression(enable, "apad enable", {
-                              n, t: frame.pts / origRate, pos: frame.pos ?? NaN, w: 0, h: 0
+                              n, t: frame.pts / origRate, pos: frame.pos ?? NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
                             })) >= 0.5;
                           }
                         }

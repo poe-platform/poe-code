@@ -7903,6 +7903,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     } else if (token === "-brightness-contrast") {
         highDepth = true;
+        evaluate = true;
         const raw = [...(tokens[++i] ?? "")].filter(c => c.trim() !== "").join("").replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x");
         validateMagickTransformGeometry(raw, token);
         const parts = raw.replaceAll(":", "x").split("x");
@@ -7920,8 +7921,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (image) {
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
-            const samples = data16 ?? out, quantum = data16 ? 65535 : 255;
-            const offset = (brightness / 100 * quantum - quantum / 2) * slope + quantum / 2;
+            const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
+            const quantum = data16 ? 65535 : 255;
+            const offset = (brightness / 100 * 65535 - 65535 / 2) * slope + 65535 / 2;
             const mask = [channels.r, channels.g, channels.b, channels.a && image.hasAlpha];
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
@@ -7934,7 +7936,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
                 }
             }
-            return { ...image, data: out, ...(data16 ? { data16 } : {}) };
+            return { ...image, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-random-threshold") {
         highDepth = true;

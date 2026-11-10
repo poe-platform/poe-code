@@ -17782,7 +17782,7 @@ interface MontageArguments {
     transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
 }
-function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments | ImageMagickCliResult, void> {
+function* parseMontageArguments<Step>(argv: readonly string[], fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
     let warnings = "";
     const state = createDefaultState();
@@ -18112,10 +18112,13 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             // the output filename flushes the final batch exactly once.
             if (i === argv.length - 1) yield* applyTransforms(true);
             else if (pending) yield* applyTransforms(false);
-            operands.push(t);
-            transforms.push([]);
-            labels.push(label);
-            sizes.push({ hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0 });
+            const targets = i === argv.length - 1 ? [t] : yield* fileTargets(t);
+            for (const target of targets) {
+                operands.push(target);
+                transforms.push([]);
+                labels.push(label);
+                sizes.push({ hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0 });
+            }
         }
     }
     if (groups.length) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
@@ -18132,7 +18135,7 @@ function montageTitleSvg(title: string, width: number, state: MagickState, padY:
 }
 function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
-    const parsed = yield* parseMontageArguments(argv);
+    const parsed = yield* parseMontageArguments(argv, path => mogrifyTargets(path, files.keys()));
     if ("exitCode" in parsed) return parsed;
     const { warnings, trim, shadow, transforms, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
@@ -18476,7 +18479,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     return { exitCode: inputErrors ? 1 : 0, stdout, stderr: warnings + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
-    const parsed = await drainSteps(parseMontageArguments(argv), signal);
+    const parsed = await drainIdentifySteps(parseMontageArguments(argv, function* (path): Generator<IdentifyStep, string[], void> {
+        let targets: string[] = [];
+        yield { async run() { targets = await mogrifyFileTargets(path, input.filesystem, input.cwd, signal); } };
+        return targets;
+    }), signal);
     if ("exitCode" in parsed) return parsed;
     const { warnings, trim, shadow, transforms, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;

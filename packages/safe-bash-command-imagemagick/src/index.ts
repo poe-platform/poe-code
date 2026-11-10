@@ -6903,7 +6903,7 @@ function parseMagickInsertPosition(spec: string): number {
     const [first, second] = geometry.split(",");
     const component = (first || second || "").split("/")[0]!;
     // Geometry modifiers set native parse flags even without a dimension.
-    const hasGeometryFlag = geometry.startsWith("-") || [...geometry].some(c => "xX.!#%:<>@^".includes(c));
+    const hasGeometryFlag = geometry.startsWith("-") || (geometry.startsWith("+") && parseMagickGeometry(geometry).hasOffset) || [...geometry].some(c => "xX.!#%:<>@^".includes(c));
     if (!hasGeometryFlag && !(component && Number.isFinite(Number(component)))) {
         throw new Error(`invalid argument for option '-insert': ${spec}`);
     }

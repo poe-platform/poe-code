@@ -7,20 +7,34 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 const red = [255, 0, 0, 255], green = [0, 255, 0, 255], blue = [0, 0, 255, 255];
 
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
-    it.each([",1", ",2", "0", "1"])(`inserts four frames at position %s in ${mode}`, async position => {
+    // Native ImageMagick accepts signed offset pairs but rejects unsigned 1+1.
+    it.each([
+        { position: ",1", order: "WRGB" },
+        { position: ",2", order: "WRGB" },
+        { position: "0", order: "WRGB" },
+        { position: "+1+1", order: "RWGB" },
+        { position: "+2+0", order: "RGWB" },
+        { position: "+0+1", order: "WRGB" },
+        { position: "+1-1", order: "RWGB" },
+        { position: "1+1", order: null },
+        { position: "1", order: "RWGB" },
+        { position: "+1", order: "RWGB" }
+    ])(`inserts four frames at position $position in ${mode}`, async ({ position, order }) => {
         const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
-        const args = ["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "xc:white", "-insert", position, "+append", "PNG24:out.png"];
+        const original = new TextEncoder().encode("KEEP");
+        files.set("out", original);
+        await filesystem.writeFile("/out", original);
+        const args = ["xc:red", "xc:lime", "xc:blue", "xc:white", "-insert", position, "+append", "-depth", "8", "rgb:out"];
         const result = mode === "command" ? await createMagickCommand().execute({
             command: "magick", args: createCommandArguments(args).args, fs: filesystem, cwd: "/", env: {},
             stdin: (async function* () {})(), signal: new AbortController().signal,
             stdout: { async write() {} }, stderr: { async write() {} }
         }) : mode === "sync" ? runMagickCliSync(args, files)
             : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
-        expect(result.exitCode).toBe(0);
-        const output = decodeImage(mode === "retained" || mode === "command" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
-        const white = [255, 255, 255, 255];
-        expect([output.width, output.height]).toEqual([4, 1]);
-        expect([...output.data]).toEqual((position === "1" ? [red, white, green, blue] : [white, red, green, blue]).flat());
+        expect(result.exitCode).toBe(order === null ? 1 : 0);
+        const output = mode === "retained" || mode === "command" ? await filesystem.readFile("/out") : files.get("out")!;
+        const colors = { R: [255, 0, 0], G: [0, 255, 0], B: [0, 0, 255], W: [255, 255, 255] };
+        expect([...output]).toEqual(order === null ? [...original] : [...order].flatMap(color => colors[color as keyof typeof colors]));
     });
 }
 

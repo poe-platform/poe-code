@@ -5,7 +5,7 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 export interface MaskChannels { r: boolean; g: boolean; b: boolean }
 
 /** Blend edited pixels with their originals; white protects and black permits writes. */
-export function* writeMaskPixelSteps(image: { width: number; height: number }, mask: { width: number; height: number }, highDepth = false, alphaOpaque = false, channels?: MaskChannels): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* writeMaskPixelSteps(image: { width: number; height: number }, mask: { width: number; height: number }, highDepth = false, alphaOpaque = false, channels?: MaskChannels, alphaActive = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     for (let y = 0; y < image.height; y++) {
         for (let x = 0; x < image.width; x += 4096) {
             yield;
@@ -31,7 +31,7 @@ export function* writeMaskPixelSteps(image: { width: number; height: number }, m
                 if (alphaOpaque) {
                     const source = intensity > 0.5 ? edited : original;
                     for (let channel = 0; channel < 4; channel++) output[i * 4 + channel] = source[i * 4 + channel]!;
-                } else blendMaskedPixel(output, original, edited, i * 4, intensity, 255, channels);
+                } else blendMaskedPixel(output, original, edited, i * 4, intensity, 255, channels, alphaActive);
             }
             yield { kind: "write", evaluate: true, position, data: new Uint8Array(output.buffer) };
             // Mask blending creates fractional samples even from 8-bit inputs.

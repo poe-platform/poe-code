@@ -4,6 +4,8 @@ export function rawNetpbmInput(width: number, height: number, depth: number, end
     if (depth !== 8 && depth !== 16) throw new Error(`unsupported ${coder} input depth '${depth}'`);
     const frameLength = width * height * channels * (depth / 8);
     if (!Number.isSafeInteger(frameLength) || frameLength > byteLength - offset || !Number.isSafeInteger(offset) || offset < 0) throw new Error(`unexpected end-of-file in ${coder} input`);
+    // A complete packed scanline starts another frame; a shorter tail is ignored.
+    if (interlace === "none" && (byteLength - offset) % frameLength >= frameLength / height) throw new Error(`unexpected end-of-file in ${coder} input`);
     const header = new TextEncoder().encode(`P${channels === 1 ? 5 : 6}\n${width} ${height}\n${depth === 8 ? 255 : 65535}\n`);
     const swap = depth === 16 && endian !== "msb";
     return {

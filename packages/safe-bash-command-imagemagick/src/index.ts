@@ -4762,6 +4762,10 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
 
 function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geomStr:string,gravity:GravityPosition):Parameters<typeof extractImageSteps>[1]|undefined|null {
  const g=parseMagickGeometry(geomStr.replaceAll("#", ""));
+    // Native crop leaves the image intact for a single percentage with offsets.
+    if (g.isPercent && g.hasOffset && g.width !== undefined && !geomStr.toLowerCase().includes("x")) {
+        return { left: 0, top: 0, width: img.width, height: img.height };
+    }
     const rawW = g.aspectRatio !== undefined
         ? Math.max(1, Math.round(Math.min(img.width, img.height * g.aspectRatio)))
         : g.isPercent

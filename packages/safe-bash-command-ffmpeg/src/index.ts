@@ -9500,6 +9500,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (name === "key") key = value;
                           else if (name === "value") metadataValue = value;
                           else if (name === "file") file = value;
+                          // The in-memory report is written once, so buffering does not affect its contents.
+                          else if (name === "direct") parseFilterBoolean(value, "ametadata: invalid direct");
                           else throw new Error(`ametadata: unsupported option ${name}`);
                         }
                         if (mode !== "print" && mode !== "add") throw new Error("ametadata: only mode=add and mode=print are supported");

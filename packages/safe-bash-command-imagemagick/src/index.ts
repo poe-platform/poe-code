@@ -10458,6 +10458,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (t === "-shear" && image.readMask) {
                     output.readMask = yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 });
                 }
+                if (t === "-spread" && image.readMask) {
+                    // Recreate the seeded plan so the mask follows the same displacements.
+                    const mask = image.readMask as RgbaImage;
+                    const maskPlan = warpOperation.plan(mask, expanded)!;
+                    output.readMask = yield* applyMagickRasterSteps(mask, maskPlan.steps, signal, maskPlan);
+                }
                 // Nonzero shear creates a fresh canvas without the original region.
                 if ("tx" in plan && (plan.tx !== 0 || plan.ty !== 0)) output.region = undefined;
                 if (t === "-wave" && image.readMask && "map" in plan) {
@@ -13009,6 +13015,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (token === "-shear" && image.readMask) {
                     output.readMask = await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
+                }
+                if (token === "-spread" && image.readMask) {
+                    // Recreate the seeded plan so the mask follows the same displacements.
+                    const mask = image.readMask as StoredRgbaImage;
+                    const maskPlan = warpOperation.plan(mask, expanded)!;
+                    output.readMask = await transformStoredMagickRaster(mask, backend, maskPlan.steps, signal, maskPlan);
                 }
                 // Nonzero shear creates a fresh canvas without the original region.
                 if ("tx" in plan && (plan.tx !== 0 || plan.ty !== 0)) output.region = undefined;

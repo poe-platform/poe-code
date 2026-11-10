@@ -4,16 +4,16 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import type { HueMetadata } from "./colorspace-hue.js";
 import { magickResizeCanvas } from "./resize-canvas.js";
 
-function colorKey(samples: Uint8Array | Uint16Array, offset: number): bigint {
+function colorKey(samples: Uint8Array | Uint16Array, offset: number, hasAlpha: boolean): bigint {
     let key = 0n;
-    for (let channel = 0; channel < 4; channel++) key = key << 16n | BigInt(samples[offset + channel]!);
+    for (let channel = 0; channel < (hasAlpha ? 4 : 3); channel++) key = key << 16n | BigInt(samples[offset + channel]!);
     return key;
 }
 
 // ImageMagick compares HDRI channels with MagickEpsilon in Q16 units.
-function equalWorkingColors(left: Float64Array, leftOffset: number, right: Float64Array, rightOffset: number, cmyk: boolean): boolean {
+function equalWorkingColors(left: Float64Array, leftOffset: number, right: Float64Array, rightOffset: number, cmyk: boolean, hasAlpha: boolean): boolean {
     const epsilon = 1e-12 / (cmyk ? 65535 : 257);
-    for (let channel = 0; channel < 4; channel++) {
+    for (let channel = 0; channel < (cmyk || hasAlpha ? 4 : 3); channel++) {
         if (Math.abs(left[leftOffset + channel]! - right[rightOffset + channel]!) >= epsilon) return false;
     }
     return true;
@@ -24,14 +24,14 @@ export class UniqueColors {
     private readonly leaves = new Map<number, { samples: Float64Array; alpha: number | undefined }[]>();
     size = 0;
 
-    add(samples: Uint8Array | Uint16Array | Float64Array, offset: number, order: number, alpha?: number): boolean {
+    add(samples: Uint8Array | Uint16Array | Float64Array, offset: number, order: number, alpha?: number, hasAlpha = true): boolean {
         if (samples instanceof Float64Array) {
             const leaf = this.leaves.get(order) ?? [];
-            if (leaf.some(color => color.alpha === alpha && equalWorkingColors(color.samples, 0, samples, offset, alpha !== undefined))) return false;
+            if (leaf.some(color => (!hasAlpha || color.alpha === alpha) && equalWorkingColors(color.samples, 0, samples, offset, alpha !== undefined, hasAlpha))) return false;
             leaf.push({ samples: samples.slice(offset, offset + 4), alpha });
             this.leaves.set(order, leaf);
         } else {
-            const key = colorKey(samples, offset);
+            const key = colorKey(samples, offset, hasAlpha);
             if (this.exact.has(key)) return false;
             this.exact.add(key);
         }
@@ -55,14 +55,17 @@ export function colorOrder(samples: Uint8Array | Uint16Array, offset: number, ha
     return order;
 }
 
-export function* uniqueColorsSteps(image: RgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined }): Generator<void, RgbaImage & HueMetadata, void> {
+export function* uniqueColorsSteps(image: RgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined }): Generator<void, RgbaImage & HueMetadata, void> {
+    // Disassociate disables the native alpha trait; Deactivate and Discrete retain it.
+    const dropAlpha = !image.hasAlpha && image.inactiveAlpha === true && image.alphaBlend === false;
+    const hasAlpha = !dropAlpha && (image.hasAlpha || image.inactiveAlpha === true);
     const samples = image.data16 ?? image.data, seen = new UniqueColors();
     const inks = image.space === "cmyk" ? image.hueSamples : undefined;
     let pixels: { offset: number; order: number }[] = [];
     for (let offset = 0; offset < samples.length; offset += 4) {
         if (offset % 4096 === 0) yield;
-        const order = colorOrder(samples, offset, image.hasAlpha || image.inactiveAlpha === true, inks);
-        if (!seen.add(inks ?? image.evaluateSamples ?? samples, offset, order, inks ? samples[offset + 3]! : undefined)) continue;
+        const order = colorOrder(samples, offset, hasAlpha, inks);
+        if (!seen.add(inks ?? image.evaluateSamples ?? samples, offset, order, inks ? samples[offset + 3]! : undefined, !dropAlpha)) continue;
         pixels.push({ offset, order });
     }
     // Stable radix sorting stays cooperative even for an all-unique raster.
@@ -89,12 +92,20 @@ export function* uniqueColorsSteps(image: RgbaImage & HueMetadata & { inactiveAl
         if (data16) data16.set(image.data16!.subarray(offset, offset + 4), index * 4);
         if (hueSamples) hueSamples.set(image.hueSamples!.subarray(offset, offset + 4), index * 4);
         if (evaluateSamples) evaluateSamples.set(image.evaluateSamples!.subarray(offset, offset + 4), index * 4);
+        if (dropAlpha) {
+            data[index * 4 + 3] = 255;
+            if (data16) data16[index * 4 + 3] = 65535;
+            if (evaluateSamples) evaluateSamples[index * 4 + 3] = 255;
+            if (hueSamples && !inks) hueSamples[index * 4 + 3] = 1;
+        }
     }
     const virtualCanvas = magickResizeCanvas(image, pixels.length, 1);
-    return { ...image, isPalette: false, width: pixels.length, height: 1, ...(virtualCanvas ? { virtualCanvas } : {}), data, ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
+    return { ...image, ...(dropAlpha ? { inactiveAlpha: false, alphaSeparate: false, channels: image.space === "cmyk" ? 4 : image.channels <= 2 ? 1 : 3 } : {}), isPalette: false, width: pixels.length, height: 1, ...(virtualCanvas ? { virtualCanvas } : {}), data, ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
-export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined }, storage: PagedStorage, signal: AbortSignal): Promise<StoredRgbaImage & HueMetadata> {
+export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined }, storage: PagedStorage, signal: AbortSignal): Promise<StoredRgbaImage & HueMetadata> {
+    const dropAlpha = !image.hasAlpha && image.inactiveAlpha === true && image.alphaBlend === false;
+    const hasAlpha = !dropAlpha && (image.hasAlpha || image.inactiveAlpha === true);
     const seen = new IntegerTable(storage, 512), order = new IntegerTable(storage, 512), size = image.width * image.height * 4;
     const workingPosition = image.space === "cmyk" ? image.storedHueSamples : image.storedEvaluateSamples;
     let count = 0;
@@ -118,7 +129,7 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
         const inks = image.space === "cmyk" ? working : undefined;
         for (let offset = 0; offset < length; offset += 4) {
             if (working) {
-                const leaf = BigInt(colorOrder(samples, offset, image.hasAlpha || image.inactiveAlpha === true, inks));
+                const leaf = BigInt(colorOrder(samples, offset, hasAlpha, inks));
                 let position = await seen.get(leaf);
                 if (position === undefined) {
                     position = BigInt(storage.allocate(64));
@@ -131,7 +142,7 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
                     const used = block[1]!;
                     for (let index = 0; index < used; index++) {
                         const record = 2 + index * 5;
-                        if ((!inks || block[record] === samples[offset + 3]) && equalWorkingColors(block, record + 1, working, offset, !!inks)) {
+                        if ((!inks || dropAlpha || block[record] === samples[offset + 3]) && equalWorkingColors(block, record + 1, working, offset, !!inks, !dropAlpha)) {
                             duplicate = true;
                             break;
                         }
@@ -154,13 +165,13 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
                 }
                 if (duplicate) continue;
             } else {
-                const key = colorKey(samples, offset);
+                const key = colorKey(samples, offset, !dropAlpha);
                 if (await seen.get(key) !== undefined) continue;
                 await seen.set(key, BigInt(start + offset));
             }
             // 36 low bits retain source order within a leaf. The source offset
             // also lets white RGBA16 use the table's full 64-bit key range.
-            await order.set(BigInt(colorOrder(samples, offset, image.hasAlpha || image.inactiveAlpha === true, inks)) << 36n | BigInt((start + offset) / 4), BigInt(start + offset));
+            await order.set(BigInt(colorOrder(samples, offset, hasAlpha, inks)) << 36n | BigInt((start + offset) / 4), BigInt(start + offset));
             count++;
         }
     }
@@ -170,6 +181,8 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
     const storedEvaluateSamples = image.storedEvaluateSamples === undefined ? undefined : storage.allocate(count * 32);
     const evaluateBytes = storedEvaluateSamples === undefined ? undefined : new Uint8Array(4096 * 8);
     const data = new Uint8Array(4096), data16 = storedData16 ? new Uint16Array(4096) : undefined;
+    const hueSamples = hueBytes ? new Float64Array(hueBytes.buffer) : undefined;
+    const evaluateSamples = evaluateBytes ? new Float64Array(evaluateBytes.buffer) : undefined;
     let written = 0, used = 0;
     for await (const [, source] of order.entries()) {
         if (used === 0) await yieldTurn(signal);
@@ -182,6 +195,12 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
         } else data.set(await storage.read(image.position + offset, 4), used);
         if (hueBytes) hueBytes.set(await storage.read(image.storedHueSamples! + offset * 8, 32), used * 8);
         if (evaluateBytes) evaluateBytes.set(await storage.read(image.storedEvaluateSamples! + offset * 8, 32), used * 8);
+        if (dropAlpha) {
+            data[used + 3] = 255;
+            if (data16) data16[used + 3] = 65535;
+            if (evaluateSamples) evaluateSamples[used + 3] = 255;
+            if (hueSamples && image.space !== "cmyk") hueSamples[used + 3] = 1;
+        }
         used += 4;
         if (used === data.length || written + used === count * 4) {
             await storage.write(position + written, data.subarray(0, used));
@@ -192,5 +211,5 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
         }
     }
     const virtualCanvas = magickResizeCanvas(image, count, 1);
-    return { ...image, isPalette: false, position, width: count, height: 1, ...(virtualCanvas ? { virtualCanvas } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}) };
+    return { ...image, ...(dropAlpha ? { inactiveAlpha: false, alphaSeparate: false, channels: image.space === "cmyk" ? 4 : image.channels <= 2 ? 1 : 3 } : {}), isPalette: false, position, width: count, height: 1, ...(virtualCanvas ? { virtualCanvas } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}) };
 }

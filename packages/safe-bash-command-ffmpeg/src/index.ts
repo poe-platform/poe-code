@@ -1072,6 +1072,7 @@ function parseAtrim(argument: string, origRate: number) {
       throw new Error(`atrim: unsupported option ${key}`);
     }
     const number = samples || pts ? parseFilterExpression(value, "atrim", {
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
       inf: Infinity, Infinity, NaN,
       min: pts ? -(2 ** 63) : key === "start_sample" ? -1 : 0,
       max: 2 ** 63,

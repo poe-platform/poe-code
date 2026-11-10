@@ -5476,7 +5476,7 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
             const start = ((layout.area.top + y) * img.width + layout.area.left + x) * 4;
             const end = start + Math.min(4096, layout.area.width - x) * 4;
             const samples = img.data16 ? img.data16.slice(start, end) : Uint16Array.from(img.data.subarray(start, end), value => value * 257);
-            extentSamplesOverBackground(samples, background, state);
+            extentSamplesOverBackground(samples, background, state, img);
             const target = ((layout.top + y) * layout.width + layout.left + x) * 4;
             canvas.data16.set(samples, target);
             canvas.data.set(Uint8Array.from(samples, value => Math.round(value / 257)), target);
@@ -5496,7 +5496,7 @@ async function decodeStoredMagickSvg(svg: string, density: number, backend: Comp
     }
     return decodeImageToStorage({ size, async read(position, length) { return backend.storage.read(base + position, length); } }, backend.storage, signal, { density });
 }
-function* extentEvaluateSamples(image: Pick<RgbaImage, "width">, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* extentEvaluateSamples(image: Pick<RgbaImage, "width" | "hasAlpha" | "inactiveAlpha" | "alphaBlend">, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const color = [background.r, background.g, background.b, background.a];
     const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
     for (let y = 0; y < layout.height; y++) for (let x = 0; x < layout.width; x += 512) {
@@ -5509,7 +5509,8 @@ function* extentEvaluateSamples(image: Pick<RgbaImage, "width">, layout: ReturnT
             const bytes = (yield { kind: "read", evaluate: true, position, length: (right - left) * 4 })!;
             const source = new Float64Array(bytes.slice().buffer);
             for (let i = 0; i < source.length; i += 4) {
-                const alpha = source[i + 3]! / 255, behind = background.a / 255 * (1 - alpha), combined = alpha + behind;
+                const alpha = (image.hasAlpha || image.inactiveAlpha) && image.alphaBlend !== false ? source[i + 3]! / 255 : 1;
+                const behind = background.a / 255 * (1 - alpha), combined = alpha + behind;
                 for (let c = 0; c < 3; c++) source[i + c] = channels?.[c] === false ? color[c]! : combined ? (source[i + c]! * alpha + color[c]! * behind) / combined : 0;
                 source[i + 3] = channels?.[3] === false ? background.a : combined * 255;
             }
@@ -5566,11 +5567,12 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
     }
 }
 
-function extentSamplesOverBackground(samples: Uint16Array, background: RgbaColor, state: MagickState): void {
+function extentSamplesOverBackground(samples: Uint16Array, background: RgbaColor, state: MagickState, image: Pick<RgbaImage, "hasAlpha" | "inactiveAlpha" | "alphaBlend">): void {
     const color = [background.r * 257, background.g * 257, background.b * 257];
     const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
     for (let i = 0; i < samples.length; i += 4) {
-        const alpha = samples[i + 3]! / 65535, behind = background.a / 255 * (1 - alpha), combined = alpha + behind;
+        const alpha = (image.hasAlpha || image.inactiveAlpha) && image.alphaBlend !== false ? samples[i + 3]! / 65535 : 1;
+        const behind = background.a / 255 * (1 - alpha), combined = alpha + behind;
         for (let c = 0; c < 3; c++) samples[i + c] = channels?.[c] === false ? Math.round(color[c]!) : combined ? Math.round((samples[i + c]! * alpha + color[c]! * behind) / combined) : 0;
         samples[i + 3] = Math.round(channels?.[3] === false ? background.a * 257 : combined * 65535);
     }
@@ -14601,7 +14603,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         const samples = image.storedData16
                             ? new Uint16Array((await backend.storage.read(image.storedData16.position + start * 2, count * 2)).slice().buffer)
                             : Uint16Array.from(await backend.storage.read(image.position + start, count), value => value * 257);
-                        extentSamplesOverBackground(samples, background, captured);
+                        extentSamplesOverBackground(samples, background, captured, image);
                         const target = ((layout.top + y) * layout.width + layout.left + x) * 4;
                         await backend.storage.write(canvas.storedData16.position + target * 2, new Uint8Array(samples.buffer));
                         await backend.storage.write(canvas.position + target, Uint8Array.from(samples, value => Math.round(value / 257)));

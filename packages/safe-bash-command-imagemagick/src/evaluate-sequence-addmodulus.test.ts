@@ -40,3 +40,31 @@ for (const mode of ["map", "sync", "retained", "command"] as const) {
     });
   }
 }
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI, 8-bit PPM inputs, raw RGB output.
+for (const mode of ["map", "sync", "retained", "command"] as const)
+it.each([
+  { operation: "AddModulus", count: 2, depth: 16, expected: "41416767aaaa5e5d2322f1f1" },
+  { operation: "AddModulus", count: 2, depth: 8, expected: "4167aa5e23f1" },
+  { operation: "AddModulus", count: 1, depth: 16, expected: "0d0d1e1e4f4febeb99993d3d" },
+  { operation: "Sum", count: 2, depth: 16, expected: "41416767aaaafffffffff1f1" },
+])(`${mode}: $operation preserves wrapped Q16 samples ($count inputs, depth $depth)`, async ({ operation, count, depth, expected }) => {
+  const files = new Map([
+    ["/a.ppm", new TextEncoder().encode("P3\n2 1\n255\n13 30 79 235 153 61\n")],
+    ["/c.ppm", new TextEncoder().encode("P3\n2 1\n255\n52 73 91 114 137 180\n")],
+    ["/out", new TextEncoder().encode("KEEP")],
+  ]);
+  const fs = createMemoryFileSystem();
+  for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+  const args = [...["/a.ppm", "/c.ppm"].slice(0, count), "-evaluate-sequence", operation,
+    "-endian", "MSB", "-depth", String(depth), "rgb:/out"];
+  const result = mode === "command" ? await createMagickCommand().execute({
+    command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+    stdin: (async function* () {})(), signal: new AbortController().signal,
+    stdout: { async write() {} }, stderr: { async write() {} },
+  }) : mode === "sync" ? runConvertCliSync(args, files)
+    : await runMagickCli(args, mode === "map" ? files : { filesystem: fs, cwd: "/" });
+  expect(result).toMatchObject({ exitCode: 0 });
+  const output = mode === "map" || mode === "sync" ? files.get("/out")! : await fs.readFile("/out");
+  expect(Buffer.from(output).toString("hex")).toBe(expected);
+});

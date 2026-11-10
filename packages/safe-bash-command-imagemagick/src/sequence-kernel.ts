@@ -212,7 +212,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
     const fractional = cmyk || ["divide", "mean", "multiply", "rms", "rootmeansquare"].includes(operation);
-    const retainRange = ["add", "sum", "subtract", "min", "max"].includes(operation);
+    const retainRange = ["add", "addmodulus", "sum", "subtract", "min", "max"].includes(operation);
     function* read(image: number, position: number, length: number, retainWorking = retainRange || fractional): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
         const storagePosition = position / stride * 4, storageLength = length / stride * 4;
         const working = retainWorking ? yield { kind: "read", evaluate: true, image, position: storagePosition, length: storageLength } : undefined;

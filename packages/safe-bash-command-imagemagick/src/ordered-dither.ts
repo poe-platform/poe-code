@@ -82,7 +82,7 @@ export function parseOrderedDither(argument: string) {
     return { map, levels };
 }
 
-export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata, { map, levels }: ReturnType<typeof parseOrderedDither>, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata & { alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined }, { map, levels }: ReturnType<typeof parseOrderedDither>, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const gray = image.space === "b-w" || image.space === "grey16";
     const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
     for (let y = 0; y < image.height; y++) for (let left = 0; left < image.width; left += 1024) {
@@ -100,7 +100,7 @@ export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "heigh
             const threshold = map.values[(y % map.height) * map.width + (left + x) % map.width]!;
             let selected = 0;
             for (let channel = 0; channel < 4; channel++) {
-                if (!channels[channel] || (channel === 3 && !image.hasAlpha) || (gray && (channel === 1 || channel === 2))) continue;
+                if (!channels[channel] || (channel === 3 && !(image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false)) || (gray && (channel === 1 || channel === 2))) continue;
                 const intervals = levels[selected++]!;
                 if (intervals === 0) continue;
                 const sample = hue ? Math.max(0, Math.min(1, hue[x * 4 + channel]!)) : samples[x * 4 + channel]! / 255;

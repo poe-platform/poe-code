@@ -2830,7 +2830,7 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
     // Native Sine/Cosine percentages scale by QuantumRange + 1.
     const vFrequency = isPct ? (rawNum / 100) * 65536 : rawNum;
     const out = new Uint8Array(img.data);
-    const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha, cmyk && (channels.k ?? true)];
+    const mask = [channels.r, channels.g, channels.b, channels.a && (img.hasAlpha || img.alphaSeparate === true && img.alphaBlend !== false), cmyk && (channels.k ?? true)];
     // Gray has one intensity channel, replicated across the RGB storage slots.
     if (img.space === "b-w" || img.space === "grey16") mask[1] = mask[2] = channels.r;
     // Keep HDRI samples separate from the bounded encoding views.
@@ -2987,7 +2987,7 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
     const out = new Uint8Array(img.data);
     const data16 = img.data16?.slice();
     const evaluateSamples = img.evaluateSamples?.slice() ?? Float64Array.from(img.data16 ?? img.data, value => img.data16 ? value / 257 : value);
-    const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
+    const mask = [channels.r, channels.g, channels.b, channels.a && (img.hasAlpha || img.alphaSeparate === true && img.alphaBlend !== false)];
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -4225,8 +4225,9 @@ function* applyMagickSolarizeSteps(img: RgbaImage, thresh: number, channels: Mag
     const cmyk = img.space === "cmyk";
     if (cmyk) img = yield* convertCmykPixels(img);
     // Native palette solarize updates the RGB colormap, ignoring the channel mask.
-    const mask = cmyk ? [false, false, false, channels.a && img.hasAlpha]
-        : img.isPalette ? [true, true, true, false] : [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
+    // Discrete keeps alpha editable without activating transparency; Deactivate does not.
+    const mask = cmyk ? [false, false, false, channels.a && (img.hasAlpha || img.alphaSeparate === true && img.alphaBlend !== false)]
+        : img.isPalette ? [true, true, true, false] : [channels.r, channels.g, channels.b, channels.a && (img.hasAlpha || img.alphaSeparate === true && img.alphaBlend !== false)];
     const inks = [channels.r, channels.g, channels.b, channels.k];
     const out = new Uint8Array(img.data);
     const data16 = img.data16?.slice();
@@ -7376,7 +7377,7 @@ function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" 
 
 type MagickHistogram = Float64Array[];
 type MagickChannelSums = { count: number; values: number[] };
-type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; sepiaThreshold?: number; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "region" | "alphaBlend" | "magickColorspace">, sums?: MagickChannelSums): MagickPixelOperation["apply"] };
+type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; sepiaThreshold?: number; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "region" | "alphaBlend" | "alphaSeparate" | "magickColorspace">, sums?: MagickChannelSums): MagickPixelOperation["apply"] };
 function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram, method: string, linear: boolean, selection?: Uint8Array, sepiaThreshold?: number, gray = false, image?: Pick<RgbaImage, "width" | "region" | "hasAlpha" | "alphaBlend">, pixelOffset = 0, channels?: MagickState["channels"], workingSamples?: Float64Array, hue = false, cmyk = false, sums?: MagickChannelSums, autoLevel = false): Generator<void, void, void> {
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
@@ -7693,7 +7694,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         // Retain HDRI stretch fractions without changing the input's output depth.
         const stretch = token === "-normalize" || token === "-contrast-stretch";
         const cmyk = image.space === "cmyk" && token === "-contrast-stretch";
-        const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha, cmyk && (!independent || settings.channels.k === true)];
+        const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false), cmyk && (!independent || settings.channels.k === true)];
         const lookup = Array.from({ length: cmyk ? 5 : 4 }, () => stretch
             ? Float32Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1))
             : Uint16Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1)));
@@ -7903,7 +7904,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (cmyk) image = yield* convertCmykPixels(image);
             const hueSamples = image.hueSamples?.slice();
             const gray = image.space === "b-w" || image.space === "grey16";
-            const mask = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && image.hasAlpha];
+            const mask = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false)];
             // CMYK stores black in the working plane and alpha in the RGBA backing.
             if (cmyk) mask.splice(3, 0, channels.k === true);
             // Native PNG readback treats the rounded sRGB gAMA value as 1/2.2.
@@ -8376,7 +8377,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
             const quantum = data16 ? 65535 : 255;
             const offset = (brightness / 100 * 65535 - 65535 / 2) * slope + 65535 / 2;
-            const mask = [channels.r, channels.g, channels.b, channels.a && image.hasAlpha, cmyk && channels.k];
+            const mask = [channels.r, channels.g, channels.b, channels.a && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false), cmyk && channels.k];
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 for (let channel = 0; channel < mask.length; channel++) {
@@ -8582,7 +8583,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const evaluateSamples = inks ? Float64Array.from(image.evaluateSamples ?? data16 ?? out, (sample, index) =>
                 index % 4 === 3 ? sample / (image.evaluateSamples || !data16 ? 1 : 257) : Math.fround(inks[index]! * 65535) / 257) : image.evaluateSamples?.slice();
             const samples = evaluateSamples ?? data16 ?? out, quantumScale = evaluateSamples || !data16 ? 257 : 1, maximum = evaluateSamples || !data16 ? 255 : 65535;
-            const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : undefined;
+            const mask = channels ? [channels.r, channels.g, channels.b, channels.a && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false)] : undefined;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 if (mask) {
@@ -8601,7 +8602,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     out[idx] = out[idx + 1] = out[idx + 2] = result;
                     if (data16) data16[idx] = data16[idx + 1] = data16[idx + 2] = result ? 65535 : 0;
                     // Native default threshold assigns the intensity result to alpha too.
-                    if (image.hasAlpha) {
+                    if (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false) {
                         samples[idx + 3] = result ? maximum : 0;
                         out[idx + 3] = result;
                         if (data16) data16[idx + 3] = result ? 65535 : 0;
@@ -8742,11 +8743,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const hueSamples = im.hueSamples?.slice();
             const evaluateSamples = im.evaluateSamples?.slice();
             const samples = hueSamples ?? evaluateSamples ?? data16 ?? out, range = hueSamples ? 1 : evaluateSamples || !data16 ? 255 : 65535;
-            const mask = [ch.r, ch.g, ch.b, cmyk ? ch.k : ch.a && im.hasAlpha];
+            const mask = [ch.r, ch.g, ch.b, cmyk ? ch.k : ch.a && (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false)];
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
                 const gray = samples[idx] === samples[idx + 1] && samples[idx + 1] === samples[idx + 2];
-                if (cmyk && (!onlyGray || gray) && ch.a && im.hasAlpha) {
+                if (cmyk && (!onlyGray || gray) && ch.a && (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false)) {
                     const alpha = 255 - (evaluateSamples?.[idx + 3] ?? (data16 ? data16[idx + 3]! / 257 : out[idx + 3]!));
                     out[idx + 3] = clampByteVal(alpha);
                     if (data16) data16[idx + 3] = Math.round(Math.max(0, Math.min(65535, alpha * 257)));
@@ -8864,7 +8865,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const cmyk = im.space === "cmyk";
             if (cmyk) im = yield* convertCmykPixels(im);
             const inkSamples = cmyk ? im.hueSamples?.slice() : undefined;
-            const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha, cmyk && channels.k];
+            const mask = [channels.r, channels.g, channels.b, channels.a && (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false), cmyk && channels.k];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
@@ -8999,7 +9000,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const adjust = function* (im: RgbaImage, channels: MagickState["channels"], pixelOffset = 0, imageWidth = im.width): Generator<void, RgbaImage> {
             const cmyk = im.space === "cmyk";
             if (cmyk) im = yield* convertCmykPixels(im);
-            const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha, cmyk && channels.k];
+            const mask = [channels.r, channels.g, channels.b, channels.a && (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false), cmyk && channels.k];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : (im.writeMask || im.region) ? Uint16Array.from(im.data, value => value * 257) : undefined;
@@ -9148,8 +9149,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const evaluateSamples = cmyk ? Float64Array.from(data16 ?? out, value => data16 ? value / 257 : value) : undefined;
             const samples = hueSamples ?? data16 ?? out, quantumScale = cmyk ? 65535 : data16 ? 1 : 257, maximum = cmyk ? 1 : data16 ? 65535 : 255;
             const mask = channels
-                ? [channels.r, channels.g, channels.b, cmyk ? channels.k : channels.a && im.hasAlpha]
-                : [true, true, true, cmyk || im.hasAlpha];
+                ? [channels.r, channels.g, channels.b, cmyk ? channels.k : channels.a && (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false)]
+                : [true, true, true, cmyk || im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false];
             const cutoffs = cmyk ? [thresholds[0]!, thresholds[1]!, thresholds[2]!, values[3] ?? thresh] : thresholds;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
@@ -9166,7 +9167,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     // Black is the fourth ink; alpha remains in the RGBA backing.
                     const alpha = channels ? evaluateSamples[idx + 3]! * 257 : intensity;
                     const alphaThreshold = thresholds[3]!;
-                    if (im.hasAlpha && (!channels || channels.a) && (isBlack ? alpha < alphaThreshold : alpha > alphaThreshold)) {
+                    if ((im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false) && (!channels || channels.a) && (isBlack ? alpha < alphaThreshold : alpha > alphaThreshold)) {
                         out[idx + 3] = isBlack ? 0 : 255;
                         if (data16) data16[idx + 3] = isBlack ? 0 : 65535;
                         evaluateSamples[idx + 3] = isBlack ? 0 : 255;

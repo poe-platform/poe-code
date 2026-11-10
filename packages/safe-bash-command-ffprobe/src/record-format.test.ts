@@ -5,7 +5,7 @@ import { formatFfprobeResult, formatFfprobeResultChunks } from "./media.js";
 
 const bytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(2500)] });
 const probe = wavAst().probe(bytes, { showPackets: true, showFrames: true });
-for (const printFormat of ["ini", "json", "json=c=1", "json:compact=1", "csv", "compact", "flat", "default"]) {
+for (const printFormat of ["xml", "ini", "json", "json=c=1", "json:compact=1", "csv", "compact", "flat", "default"]) {
   it(`preserves ${printFormat} output with one-shot packet/frame iterators`, () => {
     const opts = { printFormat, showFormat: true, showStreams: true, showPackets: true, showFrames: true, showChapters: true, showPrograms: true };
     const expected = formatFfprobeResult(probe, opts);

@@ -9,7 +9,7 @@ const bytes=encodeWav({sampleRate:8000,channels:[new Float64Array(2500)]});
 const probe=wavAst().probe(bytes,{showPackets:true,showFrames:true});
 const opts={printFormat:'json',showFormat:true,showStreams:true,showPackets:true,showFrames:true,showChapters:true,showPrograms:true};
 async function* rows<T>(values:Iterable<T>){yield* values;}
-it.each(['json','json:compact=1','default','csv','compact','flat'])('formats asynchronous record sources with %s parity',async printFormat=>{
+it.each(['xml','json','json:compact=1','default','csv','compact','flat'])('formats asynchronous record sources with %s parity',async printFormat=>{
   expect(typeof command.formatFfprobeSourceChunks).toBe('function');
   let text='';for await(const part of command.formatFfprobeSourceChunks({...probe,streams:rows(probe.streams),packets:rows(probe.packets!),frames:rows(probe.frames!),chapters:rows(probe.chapters)},{...opts,printFormat}))text+=part;
   expect(text).toBe(command.formatFfprobeResult(probe,{...opts,printFormat}));

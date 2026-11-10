@@ -858,12 +858,14 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     }
   }
   let packetIndex = 0, frameIndex = 0;
-  if (fmt === "flat" && includePackets && includeFrames) {
+  if ((fmt === "xml" || fmt === "flat") && includePackets && includeFrames) {
+    if (fmt === "xml") yield "    <packets_and_frames>\n";
     yield { rows: interleaveProbeRecords(probe.packets ?? [], probe.frames ?? []), *render(row) {
       const { type, record } = row as { type: string; record: unknown };
       const prepared = prepareRecord(record, type);
       if (prepared !== undefined) yield* render(prepared, type, type === "packet" ? packetIndex++ : frameIndex++);
     } };
+    if (fmt === "xml") yield "    </packets_and_frames>\n";
   } else {
     if (fmt === "xml" && includePackets) yield "    <packets>\n";
     if (includePackets && probe.packets) yield { rows: probe.packets, *render(row) {

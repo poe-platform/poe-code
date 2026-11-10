@@ -6711,9 +6711,12 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     if (packedCoder) {
         if (!state.hasSize) throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
         const path = lower.startsWith(`${packedCoder}:`) ? baseToken.slice(packedCoder.length + 1) : baseToken;
-        const source = path === "-" ? stdinBytes : files.get(path);
-        if (!source) return undefined;
-        const raw = rawRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", source.length, packedCoder === "gray" ? 1 : packedCoder === "graya" ? 2 : packedCoder === "cmyk" ? 4 : packedCoder === "cmyka" ? 5 : packedCoder, state.inputOffset, (packedCoder === "gray" || packedCoder === "graya") && state.rawInterlace === "line" ? "line" : (packedCoder.startsWith("cmyk") || packedCoder.startsWith("rgb") || packedCoder.startsWith("bgr")) && (state.rawInterlace === "line" || state.rawInterlace === "plane") ? state.rawInterlace : packedCoder === "graya" && state.rawInterlace === "plane" ? "plane" : undefined, packedCoder === "gray" && state.tiffFloatingPoint);
+        const partition = state.rawInterlace === "partition" && path !== "-";
+        const sources = partition
+            ? rawPartitionPaths(path, packedCoder.replace("o", "a")).map(path => files.get(path))
+            : [path === "-" ? stdinBytes : files.get(path)];
+        if (sources.some(source => !source)) return undefined;
+        const raw = rawRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", Math.min(...sources.map(source => source!.length)) * sources.length, packedCoder === "gray" ? 1 : packedCoder === "graya" ? 2 : packedCoder === "cmyk" ? 4 : packedCoder === "cmyka" ? 5 : packedCoder, state.inputOffset, partition ? "partition" : (packedCoder === "gray" || packedCoder === "graya") && state.rawInterlace === "line" ? "line" : (packedCoder.startsWith("cmyk") || packedCoder.startsWith("rgb") || packedCoder.startsWith("bgr")) && (state.rawInterlace === "line" || state.rawInterlace === "plane") ? state.rawInterlace : packedCoder === "graya" && state.rawInterlace === "plane" ? "plane" : undefined, packedCoder === "gray" && state.tiffFloatingPoint);
         const frames: RgbaImage[] = [];
         for (const page of selectedInputPages(pageSpec, raw.pages)) {
             const bytes = new Uint8Array(raw.size);
@@ -6721,10 +6724,10 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 yield;
                 const steps = raw.read(position, Math.min(8192, raw.size - position), page);
                 let next = steps.next();
-                while (!next.done) next = steps.next(source.subarray(next.value.position, next.value.position + next.value.length));
+                while (!next.done) next = steps.next(sources[next.value.channel]!.subarray(next.value.position, next.value.position + next.value.length));
                 bytes.set(next.value, position);
             }
-            frames.push(Object.assign(decodeImage(bytes), { [magickInput]: { filePath: path, byteLen: source.length, sceneIdx: page } }));
+            frames.push(Object.assign(decodeImage(bytes), { [magickInput]: { filePath: path, byteLen: sources[0]!.length, sceneIdx: page } }));
         }
         return yield* applyMod(frames);
     }
@@ -15309,19 +15312,25 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(packedCoder){
   if(!state.hasSize)throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
   const path=lower.startsWith(`${packedCoder}:`)?baseToken.slice(packedCoder.length+1):baseToken;
-  const consume=async(source:ImageByteSource)=>{
-   const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size,packedCoder==="gray"?1:packedCoder==="graya"?2:packedCoder==="cmyk"?4:packedCoder==="cmyka"?5:packedCoder,state.inputOffset, (packedCoder === "gray" || packedCoder === "graya") && state.rawInterlace === "line" ? "line" : (packedCoder.startsWith("cmyk") || packedCoder.startsWith("rgb") || packedCoder.startsWith("bgr")) && (state.rawInterlace === "line" || state.rawInterlace === "plane") ? state.rawInterlace : packedCoder === "graya" && state.rawInterlace === "plane" ? "plane" : undefined, packedCoder === "gray" && state.tiffFloatingPoint);
+  const partition=state.rawInterlace==="partition"&&path!=="-";
+  const consume=async(sources:ImageByteSource[])=>{
+   const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,packedCoder==="gray"?1:packedCoder==="graya"?2:packedCoder==="cmyk"?4:packedCoder==="cmyka"?5:packedCoder,state.inputOffset, partition ? "partition" : (packedCoder === "gray" || packedCoder === "graya") && state.rawInterlace === "line" ? "line" : (packedCoder.startsWith("cmyk") || packedCoder.startsWith("rgb") || packedCoder.startsWith("bgr")) && (state.rawInterlace === "line" || state.rawInterlace === "plane") ? state.rawInterlace : packedCoder === "graya" && state.rawInterlace === "plane" ? "plane" : undefined, packedCoder === "gray" && state.tiffFloatingPoint);
    for(const page of selectedInputPages(pageSpec,raw.pages)){
     image=await parseStoredCompareInput(`${packedCoder==="gray"?"pgm":packedCoder==="graya"?"pam":"miff"}:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();
-     while(!next.done)next=steps.next(await source.read(next.value.position,next.value.length,{signal}));
+     while(!next.done)next=steps.next(await sources[next.value.channel]!.read(next.value.position,next.value.length,{signal}));
      return next.value;
     }}});
     if(!readOptions.visit&&!readOptions.lastPage)break;
    }
    return image;
   };
-  return readOptions.source===null?undefined:readOptions.source?consume(readOptions.source):backend.read(path,consume);
+  if(partition){
+   const paths=rawPartitionPaths(path,packedCoder.replace("o","a"));
+   const read=async(sources:ImageByteSource[]):Promise<StoredRgbaImage|undefined>=>sources.length===paths.length?consume(sources):backend.read(paths[sources.length]!,source=>read([...sources,source]));
+   return read([]);
+  }
+  return readOptions.source===null?undefined:readOptions.source?consume([readOptions.source]):backend.read(path,source=>consume([source]));
  }else if(lower.startsWith("rgb:")||(!lower.includes(":")&&lower.endsWith(".rgb"))){
   if(!state.hasSize)throw new Error("must specify image size for RGB input");
   const path=lower.startsWith("rgb:")?baseToken.slice(4):baseToken;

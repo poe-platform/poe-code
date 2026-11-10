@@ -21,7 +21,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
     const swap = !floatingPoint && depth === 16 && endian !== "msb";
     return {
         size: header.length + decodedLength,
-        pages: Math.floor((byteLength - offset) / frameLength),
+        pages: interlace === "partition" && layout !== 3 ? 1 : Math.floor((byteLength - offset) / frameLength),
         *read(position: number, size: number, page = 0): Generator<{ position: number; length: number; channel: number }, Uint8Array, Uint8Array> {
             const bytes = new Uint8Array(size);
             const headerLength = Math.max(0, Math.min(size, header.length - position));
@@ -56,25 +56,29 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                     }
                     return bytes;
                 }
-                if (interlace !== "none" && channels >= 3 || (interlace === "plane" || interlace === "line") && layout === 2) {
+                if (interlace === "partition" || interlace !== "none" && channels >= 3 || (interlace === "plane" || interlace === "line") && layout === 2) {
                     const sampleBytes = Math.min(depth, 16) / 8, inputSampleBytes = depth / 8, pixelBytes = channels * sampleBytes;
                     const lastPixel = Math.ceil(end / pixelBytes);
                     for (let pixel = Math.floor(start / pixelBytes); pixel < lastPixel;) {
                         const row = Math.floor(pixel / width);
-                        const limit = Math.min(lastPixel, pixel + 8192 / inputSampleBytes, interlace === "line" ? (row + 1) * width : lastPixel);
+                        const limit = Math.min(lastPixel, pixel + 8192 / inputSampleBytes, interlace === "line" || interlace === "partition" && bgr ? (row + 1) * width : lastPixel);
                         const length = (limit - pixel) * sampleBytes;
                         for (let channel = 0; channel < channels; channel++) {
-                            const source = interlace === "partition" ? pixel : interlace === "plane" ? channel * width * height + pixel : (row * (layout === 2 ? 4 : channels) + channel) * width + pixel % width;
-                            let input = yield { channel: interlace === "partition" ? channel : 0, position: offset + page * frameLength / (interlace === "partition" ? channels : 1) + source * inputSampleBytes, length: length * inputSampleBytes / sampleBytes };
+                            // Native BGR partition reads copy the canvas red (zero) and its final blue row.
+                            const source = interlace === "partition" ? bgr && channel === 2 ? (height - 1) * width + pixel % width : pixel : interlace === "plane" ? channel * width * height + pixel : (row * (layout === 2 ? 4 : channels) + channel) * width + pixel % width;
+                            const sourceChannel = bgr && channel < 3 ? 2 - channel : channel;
+                            let input = yield { channel: interlace === "partition" ? sourceChannel : 0, position: offset + page * frameLength / (interlace === "partition" ? channels : 1) + source * inputSampleBytes, length: length * inputSampleBytes / sampleBytes };
                             if (input.length !== length * inputSampleBytes / sampleBytes) throw new Error(`unexpected end-of-file in ${coder} input`);
                             if (floatingPoint || depth === 32) input = rawSamplesTo16(input, depth, endian, floatingPoint);
+                            // Native imports .A into a color channel, leaving partition alpha zero.
+                            const zero = interlace === "partition" && (bgr && channel === 0 || channel === channels - 1 && (layout === 2 || layout === 5 || typeof layout === "string" && channels === 4));
                             for (let i = 0; i < length; i++) {
                                 // Native Plane reads RGB order for every coder; only Line swaps BGR.
                                 const outputChannel = interlace === "line" && bgr && channel < 3 ? 2 - channel : channel;
                                 const output = (pixel + Math.floor(i / sampleBytes)) * pixelBytes + outputChannel * sampleBytes + i % sampleBytes;
                                 const value = layout === "rgbo" && interlace === "line" && channel === 3 ? 255 : input[swap ? i ^ 1 : i]!;
                                 // Native CMYKA line interlace stores opacity; plane and packed layouts store alpha.
-                                if (output >= start && output < end) bytes[headerLength + output - start] = layout === 5 && interlace === "line" && channel === 4 ? 255 - value : value;
+                                if (output >= start && output < end) bytes[headerLength + output - start] = zero ? 0 : layout === 5 && interlace === "line" && channel === 4 ? 255 - value : value;
                             }
                         }
                         pixel = limit;

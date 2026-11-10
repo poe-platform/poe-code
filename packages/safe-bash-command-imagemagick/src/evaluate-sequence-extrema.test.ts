@@ -33,3 +33,34 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     expect(Buffer.from(output).toString("hex")).toBe(expected);
   });
 }
+
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+  for (const depth of [8, 16]) {
+    it.each([
+      { operation: "Max", channel: ["-channel", "RGB"], alpha: 0 },
+      { operation: "Min", channel: ["-channel", "RGB"], alpha: 0 },
+      { operation: "Mean", channel: ["-channel", "RGB"], alpha: 0 },
+      { operation: "Max", channel: [], alpha: 0x82 },
+      { operation: "Min", channel: [], alpha: 0x46 },
+    ])(`${mode}: $operation alpha with $channel at depth ${depth}`, async ({ operation, channel, alpha }) => {
+      const files = new Map<string, Uint8Array>(), fs = createMemoryFileSystem();
+      const initial = new TextEncoder().encode("KEEP");
+      files.set("/out", initial);
+      await fs.writeFile("/out", initial);
+      const args = [
+        "-depth", String(depth), "xc:#b5267382", "xc:#297d3846", "-colorspace", "sRGB",
+        ...channel, "-evaluate-sequence", operation, "+channel", "-channel", "A", "-separate",
+        "+channel", "-depth", String(depth), "gray:/out",
+      ];
+      const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} },
+      }) : mode === "sync" ? runMagickCliSync(args, files)
+        : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = mode === "retained" || mode === "command" ? await fs.readFile("/out") : files.get("/out")!;
+      expect(output).toEqual(new Uint8Array(depth / 8).fill(alpha));
+    });
+  }
+}

@@ -593,6 +593,10 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 }
             }
             if (operation === "addmodulus") for (let offset = 0; offset < length; offset++) values[offset]! /= scale;
+            // Clear unselected extrema in both working samples and encoded output.
+            if ((operation === "min" || operation === "max") && channels) for (let offset = 0; offset < length; offset++) {
+                if (!channels[offset % stride] && (offset % stride !== 3 || hasAlpha)) values[offset] = 0;
+            }
             if (retainRange) {
                 // Keep HDRI arithmetic separate from the bounded encoding views.
                 const samples = Float64Array.from(values, (value, offset) => offset % stride === 3 && !hasAlpha ? 255 : highDepth ? value / 257 : value);

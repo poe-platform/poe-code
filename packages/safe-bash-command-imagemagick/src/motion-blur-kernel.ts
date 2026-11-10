@@ -3,12 +3,14 @@ import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
-export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples" | "storedHueSamples">> & { inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk";
     const alphaActive = image.hasAlpha || image.alphaBlend !== false;
     const highDepth = !!(image.data16 || image.storedData16);
-    const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
-    const scale = !evaluate && highDepth ? 257 : 1;
+    // Hue and Lab working samples take precedence over the RGBA backing.
+    const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
+    const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
+    const scale = !hue && !evaluate && highDepth ? 257 : 1;
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1), angle = geometry.x ?? 0;
     if (![radius, sigma, angle].every(Number.isFinite) || radius >= 5000) throw new Error("Motion blur radius or sigma exceeds limit");
     let half = radius > 0 ? Math.ceil(radius) : 1;
@@ -40,9 +42,9 @@ export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" 
     for (let start = 0; start < width * height; start += 1024) {
         yield;
         const count = Math.min(1024, width * height - start);
-        const original = yield { kind: "read", evaluate, highDepth, position: start * 4, length: count * 4 };
-        if (!original || original.length !== count * 4 * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated motion blur pixels");
-        const data = evaluate ? new Float64Array(original.slice().buffer)
+        const original = yield { kind: "read", hue, evaluate, highDepth, position: start * 4, length: count * 4 };
+        if (!original || original.length !== count * 4 * (hue || evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated motion blur pixels");
+        const data = hue ? new Float64Array(original.slice().buffer).map(value => value * 255) : evaluate ? new Float64Array(original.slice().buffer)
             : Float64Array.from(highDepth ? new Uint16Array(original.slice().buffer) : original, value => value / scale);
         const inkBytes = cmyk ? yield { kind: "read", hue: true, position: start * 4, length: count * 4 } : undefined;
         if (cmyk && inkBytes?.length !== count * 32) throw new Error("Truncated motion blur inks");
@@ -67,9 +69,9 @@ export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" 
                     }
                 }
                 if (!pixel) {
-                    const bytes = yield { kind: "read", evaluate, highDepth, position: (y * width + x) * 4, length: 4 };
-                    if (!bytes || bytes.length !== 4 * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated motion blur pixels");
-                    pixel = evaluate ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
+                    const bytes = yield { kind: "read", hue, evaluate, highDepth, position: (y * width + x) * 4, length: 4 };
+                    if (!bytes || bytes.length !== 4 * (hue || evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated motion blur pixels");
+                    pixel = hue ? new Float64Array(bytes.slice().buffer).map(value => value * 255) : evaluate ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
                 }
                 if (cmyk && x >= 0 && y >= 0 && x < width && y < height) {
                     const bytes = yield { kind: "read", hue: true, position: (y * width + x) * 4, length: 4 };
@@ -99,5 +101,6 @@ export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" 
             : Uint8Array.from(data, value => Math.max(0, Math.min(255, Math.round(value))));
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(encoded.buffer) };
         yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(data.buffer) };
+        if (hue) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(data.map(value => value / 255).buffer) };
     }
 }

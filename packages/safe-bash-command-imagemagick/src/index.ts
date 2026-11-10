@@ -2040,7 +2040,7 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
 }
 
 function parseMagickShaveGeometry(raw: string, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">): MagickGeometry {
-    const geometry = parseMagickGeometry(raw.replace(":", "x").replaceAll("@", "").replaceAll("#", ""));
+    const geometry = parseMagickGeometry(raw.replace(":", "x").replaceAll("@", ""));
     if (!raw.includes("@")) return geometry;
     const hasDimensions = raw.toLowerCase().includes("x") || raw.includes(":");
     let width = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? 0));
@@ -2283,7 +2283,7 @@ function hasSignedMagickShaveDimensions(raw: string): boolean {
 
 function resolveMagickFrameGeometry(raw: string, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">) {
     const area = raw.includes("@");
-    const geometry = parseMagickGeometry(raw.replaceAll("@", "").replaceAll("#", "").replace(":", "x"));
+    const geometry = parseMagickGeometry(raw.replaceAll("@", "").replace(":", "x"));
     const hasAxes = raw.toLowerCase().includes("x");
     let width = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? (hasAxes ? 0 : image.width)));
     let height = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? (hasAxes ? 0 : area ? image.virtualCanvas?.height || image.height : geometry.width ?? image.height)));
@@ -2302,7 +2302,7 @@ function resolveMagickFrameGeometry(raw: string, image: Pick<RgbaImage, "width" 
 
 function parseMagickBorderGeometry(raw: string): MagickGeometry {
     validateMagickTransformGeometry(raw, "-border");
-    const geometry = parseMagickGeometry(raw.replace(":", "x").replaceAll("#", ""));
+    const geometry = parseMagickGeometry(raw.replace(":", "x"));
     if (geometry.width === undefined && geometry.height === undefined && geometry.aspectRatio === undefined && geometry.areaLimit === undefined) {
         throw new Error(`invalid argument for option '-border': ${raw}`);
     }

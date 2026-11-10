@@ -4,10 +4,12 @@ import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
-export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { region?: Region | undefined; alphaBlend?: boolean | undefined; hasAlpha?: boolean; inactiveAlpha?: boolean | undefined }, angle: number, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples" | "storedHueSamples">> & { region?: Region | undefined; alphaBlend?: boolean | undefined; hasAlpha?: boolean; inactiveAlpha?: boolean | undefined }, angle: number, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const highDepth = !!(image.data16 || image.storedData16);
-    const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
+    // Hue and Lab working samples take precedence over the RGBA backing.
+    const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
+    const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
     const { width, height } = image, cx = (width - 1) / 2, cy = (height - 1) / 2, radius = Math.hypot(cx, cy);
     const radians = angle * Math.PI / 180, samples = Math.max(2, Math.floor(Math.abs(4 * radians * Math.sqrt(radius) + 2)));
     if (!Number.isFinite(angle) || samples > 100_000) throw new Error("Rotational blur sample count exceeds limit");
@@ -28,9 +30,9 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
         let samples = cache.get(page);
         if (!samples) {
             const count = Math.min(4096, width * height * 4 - page);
-            const bytes = yield { kind: "read", evaluate, highDepth: true, position: page, length: count };
-            if (!bytes || bytes.length !== count * (evaluate ? 8 : 2)) throw new Error("Truncated rotational blur pixels");
-            samples = evaluate ? new Float64Array(bytes.slice().buffer).map(value => value * 257)
+            const bytes = yield { kind: "read", hue, evaluate, highDepth: true, position: page, length: count };
+            if (!bytes || bytes.length !== count * (hue || evaluate ? 8 : 2)) throw new Error("Truncated rotational blur pixels");
+            samples = hue || evaluate ? new Float64Array(bytes.slice().buffer).map(value => value * (hue ? 65535 : 257))
                 : Float64Array.from(new Uint16Array(bytes.slice().buffer));
             if (cmyk) {
                 const bytes = yield { kind: "read", hue: true, position: page, length: count };
@@ -105,5 +107,6 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
             : Uint8Array.from(rgba, value => Math.max(0, Math.min(255, Math.round(value / 257))));
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
         yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(rgba.map(value => value / 257).buffer) };
+        if (hue) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(values.map(value => value / 65535).buffer) };
     }
 }

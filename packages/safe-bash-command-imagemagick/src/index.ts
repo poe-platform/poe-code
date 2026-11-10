@@ -10647,7 +10647,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (t === "-shear" && image.readMask) {
                     output.readMask = yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 });
                 }
-                if (t === "-spread" && image.readMask) {
+                if (image.readMask && (t === "-swirl" || t === "-implode" || t === "-spread")) {
                     // Recreate the seeded plan so the mask follows the same displacements.
                     const mask = image.readMask as RgbaImage;
                     const maskPlan = warpOperation.plan(mask, expanded)!;
@@ -13240,7 +13240,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (token === "-shear" && image.readMask) {
                     output.readMask = await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 }
-                if (token === "-spread" && image.readMask) {
+                if (image.readMask && (token === "-swirl" || token === "-implode" || token === "-spread")) {
                     // Recreate the seeded plan so the mask follows the same displacements.
                     const mask = image.readMask as StoredRgbaImage;
                     const maskPlan = warpOperation.plan(mask, expanded)!;

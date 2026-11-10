@@ -126,7 +126,8 @@ export async function fadeAudio(
       const sample = channels[c]![i]! * gain;
       // Store at the negotiated precision before the next filter consumes samples.
       output[c]![i] = sampleFormat === "s16" ? Math.trunc(sample * 32768) / 32768
-        : sampleFormat === "flt" || sampleFormat === "fltp" ? Math.fround(sample) : sample;
+        : sampleFormat === "s32" || sampleFormat === "s32p" ? Math.trunc(sample * 2147483648) / 2147483648
+          : sampleFormat === "flt" || sampleFormat === "fltp" ? Math.fround(sample) : sample;
     }
   }
   return output;

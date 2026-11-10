@@ -9936,23 +9936,32 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const count = timestamp ? timestamp.end - timestamp.start
                             : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           const frameEnd = Math.min(length, frameStart + count);
+                          budget.allocateMemory(64);
+                          const metadata = audioMetadata[n] ?? { pts: timestamp?.pts ?? audioStartSample + frameStart, tags: new Map<string, string>() };
+                          audioMetadata[n] = metadata;
                           for (let frame = frameStart; frame < frameEnd; frame++) {
                             const pts = (timestamp?.pts ?? audioStartSample + frameStart) + frame - frameStart;
                             for (let channel = 0; channel < channels; channel++) {
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                               const slot = mono ? channel : 0;
                               const prefix = mono ? `channel: ${channel} | ` : "";
+                              const suffix = mono ? `.${channel + 1}` : "";
                               if (Math.abs(stretched[channel]![frame]!) < noise) {
                                 counts[slot]!++;
                                 if (starts[slot] === undefined && counts[slot]! >= minimum) {
                                   const start = pts / origRate - (minimum / (mono ? 1 : channels) - 1) / origRate;
                                   starts[slot] = start;
+                                  budget.allocateMemory(128);
+                                  metadata.tags.set(`lavfi.silence_start${suffix}`, String(Number(start.toPrecision(6))));
                                   await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_start: ${Number(start.toPrecision(6))}\n`), context.signal);
                                 }
                               } else {
                                 const start = starts[slot];
                                 if (start !== undefined) {
                                   const end = pts / origRate;
+                                  budget.allocateMemory(256);
+                                  metadata.tags.set(`lavfi.silence_end${suffix}`, String(Number(end.toPrecision(6))));
+                                  metadata.tags.set(`lavfi.silence_duration${suffix}`, String(Number((end - start).toPrecision(6))));
                                   await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
                                 }
                                 counts[slot] = 0;

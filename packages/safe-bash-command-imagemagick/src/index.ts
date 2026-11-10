@@ -3040,12 +3040,13 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
 }, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const cmyk = img.space === "cmyk";
     if (cmyk) img = yield* convertCmykPixels(img);
-    const hueSamples = cmyk ? img.hueSamples!.slice() : undefined;
+    const hueSamples = img.hueSamples?.slice();
     let cooperativeWork = 0;
     const fn = funcRaw.toLowerCase();
     const out = new Uint8Array(img.data);
     const data16 = img.data16?.slice();
-    const evaluateSamples = img.evaluateSamples?.slice() ?? Float64Array.from(img.data16 ?? img.data, value => img.data16 ? value / 257 : value);
+    const evaluateSamples = (hueSamples && !cmyk ? Float64Array.from(hueSamples, value => value * 255) : img.evaluateSamples?.slice())
+        ?? Float64Array.from(img.data16 ?? img.data, value => img.data16 ? value / 257 : value);
     const mask = [channels.r, channels.g, channels.b, channels.a && (img.hasAlpha || img.alphaSeparate === true && img.alphaBlend !== false), cmyk && (channels.k ?? true)];
     // Gray has one intensity channel, replicated across the RGB storage slots.
     if (img.space === "b-w" || img.space === "grey16") mask[1] = mask[2] = channels.r;
@@ -3093,10 +3094,11 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
                 continue;
             }
             evaluateSamples[i + c] = y * 255;
+            if (hueSamples && !cmyk) hueSamples[i + c] = y;
             out[i + c] = clampByteVal(y * 255);
             if (data16) data16[i + c] = Math.round(Math.max(0, Math.min(1, y)) * 65535);
         }
-        if (hueSamples) for (let c = 0; c < 3; c++) {
+        if (cmyk && hueSamples) for (let c = 0; c < 3; c++) {
             const value = Math.fround((1 - hueSamples[i + c]!) * (1 - hueSamples[i + 3]!) * 65535) / 257;
             evaluateSamples[i + c] = value;
             out[i + c] = clampByteVal(value);

@@ -364,6 +364,7 @@ disabled frames pass through unchanged and pause the gate envelope.
 audio frame at or after the requested time, preserving the gate envelope.
 Target `agate` selects the first subsequent gate; a named target selects that
 instance. Invalid runtime gains retain the previous setting.
+Downstream filters receive packed double (`dbl`) audio, including when `ratio=1`.
 Numeric options accept expressions (`ratio=1+2*3`), units (`threshold=-12dB`,
 `release=2k`), mathematical constants (`level_in=PI`), and option constants
 (`min`, `max`, `default`, `none`, `all`). Evaluated values must remain within each

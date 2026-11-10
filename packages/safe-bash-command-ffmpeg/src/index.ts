@@ -10241,6 +10241,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const commands = audioCommands.filter(command => command.target === "agate" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);
                           audioCommands = audioCommands.filter(command => command.target !== "agate" && command.target !== filterTarget);
+                          filteredSampleFormat = "dbl";
                           stretched = await applyAudioGate(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
                         } else {
                           filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";

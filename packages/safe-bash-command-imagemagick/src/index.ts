@@ -8190,7 +8190,19 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             throw new Error(`invalid list of numbers '-function' '${value}'`);
         }
         const coefficients = parameters.map(Number);
-        apply = image => applyMagickFunctionSteps(image, operation, coefficients, channels, signal);
+        apply = function* (image) {
+            const result = yield* applyMagickFunctionSteps(image, operation, coefficients, channels, signal);
+            if (image.metaChannels?.length) {
+                result.metaChannels = [];
+                for (const [index, plane] of image.metaChannels.entries()) {
+                    const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
+                    result.metaChannels.push(selected
+                        ? yield* applyMagickFunctionSteps(plane, operation, coefficients, { r: true, g: true, b: true, a: false }, signal)
+                        : plane);
+                }
+            }
+            return result;
+        };
     } else if (token === "-solarize") {
         highDepth = true;
         const value = tokens[++i] ?? "50%";
@@ -13289,6 +13301,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const pixelOperation = operandsOnly ? undefined : parseMagickPixelOperation(tokens, state, i, signal);
         if (pixelOperation) {
+            const functionMetaOperation = token === "-function" ? parseMagickPixelOperation(tokens,
+                { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, i, signal) : undefined;
+            const functionMetaSelection = !state.channelExplicit || state.channelDefault ? undefined : state.channels.meta ?? [];
             if (pixelOperation.warning) stackStep(async stack => {
                 analysis.warnings += pixelOperation.warning!;
                 return stack;
@@ -13304,6 +13319,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession): Promise<StoredRgbaImage | undefined> => {
                 if (!image) return;
                 const converted = await transformStoredMagickPixels(image, backend, pixelOperation, signal);
+                if (functionMetaOperation && image.storedMetaChannels?.length) {
+                    converted.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries()) {
+                        converted.storedMetaChannels.push(!functionMetaSelection || functionMetaSelection.includes(index)
+                            ? await transformStoredMagickPixels(plane, backend, functionMetaOperation, signal)
+                            : plane);
+                    }
+                }
                 if (token === "-white-threshold") await whiteThresholdStoredMetaChannels(image, converted, backend, settings, signal);
                 if (bilevel) {
                     const source = converted.storedData16 ? { ...converted, position: converted.storedData16.position } : converted;

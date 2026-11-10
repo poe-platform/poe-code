@@ -12,13 +12,13 @@ export async function acrossfadeAudio(
   const a = first.decodedAudio;
   const b = second.decodedAudio;
   if (!a || !b) throw new Error("acrossfade requires decoded PCM audio");
-  const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : a.channels === 6 ? 0x3f : undefined);
-  const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : b.channels === 6 ? 0x3f : undefined);
-  const remix = a.channels !== b.channels &&
+  const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : a.channels === 4 ? 0x107 : a.channels === 6 ? 0x3f : undefined);
+  const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : b.channels === 4 ? 0x107 : b.channels === 6 ? 0x3f : undefined);
+  const remix = a.channels !== b.channels && Math.min(a.channels, b.channels) <= 2 &&
     [a, b].every((audio, index) => {
       const layout = index === 0 ? layoutA : layoutB;
       return audio.channels === 1 && layout === 4 || audio.channels === 2 && layout === 3 ||
-        audio.channels === 6 && (layout === 0x3f || layout === 0x60f);
+        audio.channels === 4 && layout === 0x107 || audio.channels === 6 && (layout === 0x3f || layout === 0x60f);
     });
   if (!remix && (a.channels !== b.channels || layoutA !== layoutB)) {
     throw new Error("acrossfade requires matching channel layouts");
@@ -85,8 +85,11 @@ export async function acrossfadeAudio(
   budget.checkDuration(length / a.sampleRate);
   budget.allocateMemory(length * a.channels * 8);
   const channelData = a.channelData.map(() => new Float64Array(length));
-  const pcm16 = [first, second].every(track =>
-    ["pcm_s16le", "pcm_s16be"].includes(track.codecDescriptions[0]?.codecName ?? ""));
+  // FFmpeg negotiates the first input's precision and converts the second before fading.
+  const pcm16 = ["pcm_s16le", "pcm_s16be"].includes(first.codecDescriptions[0]?.codecName ?? "");
+  const pcm32 = ["pcm_s32le", "pcm_s32be"].includes(first.codecDescriptions[0]?.codecName ?? "");
+  const secondPcm32 = ["pcm_s32le", "pcm_s32be", "pcm_s24le", "pcm_s24be"]
+    .includes(second.codecDescriptions[0]?.codecName ?? "");
   for (let i = 0; i < length; i++) {
     if (i % 4096 === 0) {
       await yieldTurn(signal);
@@ -102,11 +105,23 @@ export async function acrossfadeAudio(
       let secondSample = 0;
       if (secondIndex >= 0) {
         if (!remix) secondSample = secondChannels[channel]![secondIndex]!;
-        else if (a.channels === 6) {
+        else if (a.channels === 4 || a.channels === 6) {
           // Mono occupies front center; stereo occupies FL/FR. Other speakers are silent.
           secondSample = b.channels === 1
             ? channel === 2 ? secondChannels[0]![secondIndex]! : 0
             : channel < 2 ? secondChannels[channel]![secondIndex]! : 0;
+        } else if (b.channels === 4) {
+          const center = secondChannels[2]![secondIndex]!;
+          const back = secondChannels[3]![secondIndex]!;
+          if (a.channels === 1) {
+            const front = secondChannels[0]![secondIndex]! + secondChannels[1]![secondIndex]!;
+            secondSample = pcm16 ? (front * 7951 + center * 11244 + back * 5622) / 32768
+              : front * Math.SQRT1_2 + center + back / 2;
+          } else {
+            const front = secondChannels[channel]![secondIndex]!;
+            secondSample = pcm16 ? (front * 14847 + center * 10498 + back * 7423) / 32768
+              : front + center * Math.SQRT1_2 + back / 2;
+          }
         } else if (b.channels === 6) {
           const center = secondChannels[2]![secondIndex]!;
           if (a.channels === 1) {
@@ -125,13 +140,18 @@ export async function acrossfadeAudio(
           ? secondChannels[0]![secondIndex]! * (pcm16 ? 23170 / 32768 : Math.SQRT1_2)
           : (secondChannels[0]![secondIndex]! + secondChannels[1]![secondIndex]!) / 2;
       }
+      // Integer narrowing discards low bits, including for negative samples.
+      if (pcm16 && secondPcm32 && ratio === 1 && !remix) {
+        secondSample = Math.floor(secondSample * 32768) / 32768;
+      }
       // Automatic rate/layout conversion negotiates S16 before the fade's truncating cast.
       const secondValue = (pcm16 && (ratio !== 1 || remix)
         ? Math.max(-32768, Math.min(32767, Math.round(secondSample * 32768))) / 32768
         : secondSample) * secondGain;
-      // Native S16 fades cast the mixed sample to int16 before encoding.
+      // Native integer fades truncate the mixed sample before encoding.
       const value = firstValue + secondValue;
-      channelData[channel]![i] = pcm16 ? (Math.trunc(value * 32768) << 16 >> 16) / 32768 : value;
+      channelData[channel]![i] = pcm16 ? (Math.trunc(value * 32768) << 16 >> 16) / 32768
+        : pcm32 ? (Math.trunc(value * 2147483648) | 0) / 2147483648 : value;
     }
   }
   const frames: MediaSample[] = [];

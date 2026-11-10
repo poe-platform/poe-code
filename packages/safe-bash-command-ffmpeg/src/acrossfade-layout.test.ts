@@ -81,3 +81,40 @@ for (const [first, second, hash] of [
     assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
   });
 }
+
+// Native FFmpeg references for 16-sample WAVs with the default 4.0 layout.
+for (const [first, second, hash] of [
+  [4, 1, "20c9a2640ff6d5e4"],
+  [1, 4, "f48b60c35698926d"],
+  [4, 2, "7610b0471f5b9536"],
+  [2, 4, "ce792ebb1e0590d1"],
+  [4, 4, "e7fc5d9a8667e84a"]
+] as const) for (const channelMask of [undefined, 0x107]) {
+  it(`acrossfade matches native PCM for ${first} then ${second} channels, mask=${channelMask}`, async () => {
+    const volume = Volume.fromJSON({ "/out.raw": "KEEP" });
+    for (const [index, channels] of [first, second].entries()) {
+      volume.writeFileSync(`/${index}.wav`, encodeWav({ sampleRate: 8000,
+        ...(channels === 4 && channelMask !== undefined ? { channelMask } : {}),
+        channels: Array.from({ length: channels }, (_, channel) =>
+          Float64Array.from({ length: 16 }, (_, sample) =>
+            (3001 + 17 * sample + 251 * channel) * (index === 0 ? 1 : -1) / 32768)) }));
+    }
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-y", "-i", "/0.wav", "-i", "/1.wav", "-filter_complex",
+        "[0:a][1:a]acrossfade=ns=5[o]", "-map", "[o]", "-f", "s16le", "/out.raw"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(), stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    const pcm = volume.readFileSync("/out.raw") as Buffer;
+    assert.equal(pcm.length, 27 * first * 2);
+    assert.equal(createHash("sha256").update(pcm).digest("hex").slice(0, 16), hash);
+  });
+}

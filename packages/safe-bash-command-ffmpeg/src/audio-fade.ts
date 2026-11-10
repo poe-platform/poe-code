@@ -49,6 +49,14 @@ export async function fadeAudio(
       const floor = Math.floor(number);
       const index = number - floor === 0.5 ? floor + Math.abs(floor % 2) : Math.round(number);
       curve = entries[index + 1]![1];
+    } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      const number = parseFilterExpression(value, "afade", key === "thread_type" ? { slice: 1 } : {});
+      if (key === "thread_type"
+        ? !Number.isInteger(number) || number > 4294967295
+        : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
+        throw new Error(`afade: invalid ${key}`);
+      }
+      // Thread scheduling and hardware frame reservations do not change PCM samples.
     } else if (key === "enable") {
       parseFilterExpression(value, "afade enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 });
       enable = value;

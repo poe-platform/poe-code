@@ -145,6 +145,7 @@ Use uppercase `S` after an integer for sample frames, lowercase `s` after an int
 for seconds, or a numeric prefix (optionally followed by `ms`) for milliseconds.
 Hexadecimal milliseconds accept fractions and binary exponents: `0x1p-2` delays by 0.25 ms.
 Leading `+` and trailing text are accepted, as in `+2S`, `0.5ms`, or `2Sabc`. `adelay=1S:all=1` repeats the last delay for remaining channels.
+Positional values after named options follow native FFmpeg ordering: `adelay=1S:all=1:2S` replaces the delay with two samples for every channel; `adelay=1S:enable=1:2S` delays only the first channel by two samples.
 Negative delays are accepted only when they truncate to zero samples: at 8 kHz,
 `-0.1249` milliseconds is accepted, while `-0.125` is rejected.
 `all` accepts signed or zero-padded decimal `1`/`0` (such as `+1`, `0001`, or `-0`)

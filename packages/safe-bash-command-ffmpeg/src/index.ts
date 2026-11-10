@@ -10348,9 +10348,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let delays = "";
                         let all = false;
                         let enable: string | undefined;
-                        for (const [index, option] of trimmed.slice("adelay=".length).split(":").entries()) {
+                        let optionPosition = 0;
+                        for (const option of trimmed.slice("adelay=".length).split(":")) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? ["delays", "all"][index] : option.slice(0, separator).trim();
+                          const key = separator < 0 ? ["delays", "all"][optionPosition] : option.slice(0, separator).trim();
+                          // Named options restart shorthand, skipping the first slot only
+                          // when it was the slot just visited, regardless of the named key.
+                          if (separator < 0) optionPosition++;
+                          else optionPosition = optionPosition === 0 ? 1 : 0;
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (key === "delays") delays = value;
                           else if (key === "all") {
